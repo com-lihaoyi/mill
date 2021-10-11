@@ -7,8 +7,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 import io.github.retronym.java9rtexport.Export
-import mainargs.{Flag, Leftover, arg}
-import ammonite.repl.tools.Util.PathRead
+import mainargs.{Flag, Leftover, ParserForClass, arg}
 import mill.api.DummyInputStream
 import mill.main.EvaluatorState
 
@@ -86,6 +85,33 @@ case class MillConfig(
     leftoverArgs: Leftover[String]
 )
 
+object MillConfigParser {
+  import ammonite.repl.tools.Util.PathRead
+
+  val customName = s"Mill Build Tool, version ${BuildInfo.millVersion}"
+  val customDoc = "usage: mill [options] [[target [target-options]] [+ [target ...]]]"
+
+  private[this] lazy val parser: ParserForClass[MillConfig] = mainargs.ParserForClass[MillConfig]
+
+  lazy val usageText = parser.helpText(customName = customName, customDoc = customDoc)
+
+  def parse(args: Array[String]): Either[String, MillConfig] = {
+    parser.constructEither(
+      args,
+      allowRepeats = true,
+      autoPrintHelpAndExit = None,
+      customName = customName,
+      customDoc = customDoc
+    )
+      .map { config =>
+        config.copy(
+          ammoniteCore = config.ammoniteCore.copy(home = config.home)
+        )
+      }
+  }
+
+}
+
 object MillMain {
 
   def main(args: Array[String]): Unit = {
@@ -121,199 +147,172 @@ object MillMain {
       initialSystemProperties: Map[String, String]
   ): (Boolean, Option[EvaluatorState]) = {
 
-    val parser = mainargs.ParserForClass[MillConfig]
-    val customName = "Mill Build Tool"
-    val customDoc = "usage: mill [mill-options] [target [target-options]]"
-    if (args.take(1).toSeq == Seq("--help")) {
-      stdout.println(
-        parser.helpText(customName = customName, customDoc = customDoc)
-      )
-      (true, None)
-    } else
-      parser
-        .constructEither(
-          args,
-          allowRepeats = true,
-          autoPrintHelpAndExit = None,
-          customName = customName,
-          customDoc = customDoc
+    MillConfigParser.parse(args) match {
+      case Left(msg) =>
+        stderr.println(msg)
+        (false, None)
+      case Right(config) if config.ammoniteCore.help.value =>
+        stdout.println(MillConfigParser.usageText)
+        (true, None)
+      case Right(config) if config.showVersion.value =>
+        def p(k: String, d: String = "<unknown>") = System.getProperty(k, d)
+        stdout.println(
+          s"""Mill Build Tool version ${BuildInfo.millVersion}
+             |Java version: ${p("java.version", "<unknown Java version")}, vendor: ${p(
+            "java.vendor",
+            "<unknown Java vendor"
+          )}, runtime: ${p("java.home", "<unknown runtime")}
+             |Default locale: ${Locale.getDefault()}, platform encoding: ${p(
+            "file.encoding",
+            "<unknown encoding>"
+          )}
+             |OS name: "${p("os.name")}", version: ${p("os.version")}, arch: ${p(
+            "os.arch"
+          )}""".stripMargin
         )
-        .map { config =>
-          config.copy(
-            ammoniteCore = config.ammoniteCore.copy(home = config.home)
-          )
-        } match {
-        case Left(msg) =>
-          stderr.println(msg)
-          (false, None)
-        case Right(config) =>
+        (true, None)
+      case Right(config)
           if (
-            (config.interactive.value || config.repl.value || config.noServer.value) &&
-            stdin == DummyInputStream
-          ) {
+            config.interactive.value || config.repl.value || config.noServer.value
+          ) && stdin == DummyInputStream =>
+        // because we have stdin as dummy, we assume we were already started in server process
+        stderr.println(
+          "-i/--interactive/--repl/--no-server must be passed in as the first argument"
+        )
+        (false, None)
+      case Right(config)
+          if Seq(
+            config.interactive.value,
+            config.repl.value,
+            config.noServer.value
+          ).count(identity) > 1 =>
+        stderr.println(
+          "Only one of -i/--interactive, --repl, or --no-server may be given"
+        )
+        (false, None)
+      case Right(config) =>
+        val useRepl =
+          config.repl.value || (config.interactive.value && config.leftoverArgs.value.isEmpty)
+        val (success, nextStateCache) =
+          if (config.repl.value && config.leftoverArgs.value.nonEmpty) {
+            stderr.println("No target may be provided with the --repl flag")
+            (false, stateCache)
+          } else if (config.leftoverArgs.value.isEmpty && config.noServer.value) {
             stderr.println(
-              "-i/--interactive/--repl/--no-server must be passed in as the first argument"
+              "A target must be provided when not starting a build REPL"
             )
-            (false, None)
-          } else if (
-            Seq(
-              config.interactive.value,
-              config.repl.value,
-              config.noServer.value
-            ).count(identity) > 1
-          ) {
+            (false, stateCache)
+          } else if (useRepl && stdin == DummyInputStream) {
             stderr.println(
-              "Only one of -i/--interactive, --repl, or --no-server may be given"
+              "Build REPL needs to be run with the -i/--interactive/--repl flag"
             )
-            (false, None)
-          } else if (config.showVersion.value) {
-            def p(k: String, d: String = "<unknown>") = System.getProperty(k, d)
-            stdout.println(
-              s"""Mill Build Tool version ${p(
-                "MILL_VERSION",
-                "<unknown mill version>"
-              )}
-                 |Java version: ${p(
-                "java.version",
-                "<unknown Java version"
-              )}, vendor: ${p(
-                "java.vendor",
-                "<unknown Java vendor"
-              )}, runtime: ${p("java.home", "<unknown runtime")}
-                 |Default locale: ${Locale
-                .getDefault()}, platform encoding: ${p(
-                "file.encoding",
-                "<unknown encoding>"
-              )}
-                 |OS name: "${p("os.name")}", version: ${p(
-                "os.version"
-              )}, arch: ${p("os.arch")}""".stripMargin
-            )
-            (true, None)
+            (false, stateCache)
           } else {
-            val useRepl =
-              config.repl.value || (config.interactive.value && config.leftoverArgs.value.isEmpty)
-            val (success, nextStateCache) =
-              if (config.repl.value && config.leftoverArgs.value.nonEmpty) {
-                stderr.println("No target may be provided with the --repl flag")
-                (false, stateCache)
-              } else if (config.leftoverArgs.value.isEmpty && config.noServer.value) {
-                stderr.println(
-                  "A target must be provided when not starting a build REPL"
-                )
-                (false, stateCache)
-              } else if (useRepl && stdin == DummyInputStream) {
-                stderr.println(
-                  "Build REPL needs to be run with the -i/--interactive/--repl flag"
-                )
-                (false, stateCache)
-              } else {
-                if (useRepl && config.interactive.value) {
-                  stderr.println(
-                    "WARNING: Starting a build REPL without --repl is deprecated"
-                  )
-                }
-                val systemProps =
-                  systemProperties ++ config.extraSystemProperties
+            if (useRepl && config.interactive.value) {
+              stderr.println(
+                "WARNING: Starting a build REPL without --repl is deprecated"
+              )
+            }
+            val systemProps =
+              systemProperties ++ config.extraSystemProperties
 
-                val threadCount = config.threadCountRaw match {
-                  case None => Some(1)
-                  case Some(0) => None
-                  case Some(n) => Some(n)
-                }
-                val ammConfig = ammonite.main.Config(
-                  core = config.ammoniteCore,
-                  predef = ammonite.main.Config.Predef(
-                    predefCode =
-                      if (!useRepl) ""
-                      else
-                        s"""import $$file.build, build._
-                           |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                           |  os.Path(${pprint
-                          .apply(
-                            config.ammoniteCore.home.toIO.getCanonicalPath
-                              .replace("$", "$$")
-                          )
-                          .plainText}),
-                           |  ${config.disableTicker.value},
-                           |  interp.colors(),
-                           |  repl.pprinter(),
-                           |  build.millSelf.get,
-                           |  build.millDiscover,
-                           |  debugLog = ${config.debugLog.value},
-                           |  keepGoing = ${config.keepGoing.value},
-                           |  systemProperties = ${systemProps.toSeq
-                          .map(p => s""""${p._1}" -> "${p._2}"""")
-                          .mkString("Map[String,String](", ",", ")")},
-                           |  threadCount = ${threadCount}
-                           |)
-                           |repl.pprinter() = replApplyHandler.pprinter
-                           |import replApplyHandler.generatedEval._
-                           |""".stripMargin,
-                    noHomePredef = Flag()
-                  ),
-                  repl = ammonite.main.Config.Repl(
-                    banner = "",
-                    noRemoteLogging = Flag(),
-                    classBased = Flag()
-                  )
+            val threadCount = config.threadCountRaw match {
+              case None => Some(1)
+              case Some(0) => None
+              case Some(n) => Some(n)
+            }
+            val ammConfig = ammonite.main.Config(
+              core = config.ammoniteCore,
+              predef = ammonite.main.Config.Predef(
+                predefCode =
+                  if (!useRepl) ""
+                  else
+                    s"""import $$file.build, build._
+                       |implicit val replApplyHandler = mill.main.ReplApplyHandler(
+                       |  os.Path(${pprint
+                      .apply(
+                        config.ammoniteCore.home.toIO.getCanonicalPath
+                          .replace("$", "$$")
+                      )
+                      .plainText}),
+                       |  ${config.disableTicker.value},
+                       |  interp.colors(),
+                       |  repl.pprinter(),
+                       |  build.millSelf.get,
+                       |  build.millDiscover,
+                       |  debugLog = ${config.debugLog.value},
+                       |  keepGoing = ${config.keepGoing.value},
+                       |  systemProperties = ${systemProps.toSeq
+                      .map(p => s""""${p._1}" -> "${p._2}"""")
+                      .mkString("Map[String,String](", ",", ")")},
+                       |  threadCount = ${threadCount}
+                       |)
+                       |repl.pprinter() = replApplyHandler.pprinter
+                       |import replApplyHandler.generatedEval._
+                       |""".stripMargin,
+                noHomePredef = Flag()
+              ),
+              repl = ammonite.main.Config.Repl(
+                banner = "",
+                noRemoteLogging = Flag(),
+                classBased = Flag()
+              )
+            )
+
+            val runner = new mill.main.MainRunner(
+              config = ammConfig,
+              mainInteractive = mainInteractive,
+              disableTicker = config.disableTicker.value,
+              outprintStream = stdout,
+              errPrintStream = stderr,
+              stdIn = stdin,
+              stateCache0 = stateCache,
+              env = env,
+              setIdle = setIdle,
+              debugLog = config.debugLog.value,
+              keepGoing = config.keepGoing.value,
+              systemProperties = systemProps,
+              threadCount = threadCount,
+              ringBell = config.ringBell.value,
+              wd = os.pwd,
+              initialSystemProperties = initialSystemProperties
+            )
+
+            if (mill.main.client.Util.isJava9OrAbove) {
+              val rt = config.ammoniteCore.home / Export.rtJarName
+              if (!os.exists(rt)) {
+                runner.printInfo(
+                  s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
                 )
-
-                val runner = new mill.main.MainRunner(
-                  config = ammConfig,
-                  mainInteractive = mainInteractive,
-                  disableTicker = config.disableTicker.value,
-                  outprintStream = stdout,
-                  errPrintStream = stderr,
-                  stdIn = stdin,
-                  stateCache0 = stateCache,
-                  env = env,
-                  setIdle = setIdle,
-                  debugLog = config.debugLog.value,
-                  keepGoing = config.keepGoing.value,
-                  systemProperties = systemProps,
-                  threadCount = threadCount,
-                  ringBell = config.ringBell.value,
-                  wd = os.pwd,
-                  initialSystemProperties = initialSystemProperties
-                )
-
-                if (mill.main.client.Util.isJava9OrAbove) {
-                  val rt = config.ammoniteCore.home / Export.rtJarName
-                  if (!os.exists(rt)) {
-                    runner.printInfo(
-                      s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
-                    )
-                    Export.rtTo(rt.toIO, false)
-                  }
-                }
-
-                if (useRepl) {
-                  runner.printInfo("Loading...")
-                  (
-                    runner.watchLoop(isRepl = true, printing = false, _.run()),
-                    runner.stateCache
-                  )
-                } else {
-                  (
-                    runner.runScript(
-                      os.pwd / "build.sc",
-                      config.leftoverArgs.value.toList
-                    ),
-                    runner.stateCache
-                  )
-                }
-              }
-            if (config.ringBell.value) {
-              if (success) println("\u0007")
-              else {
-                println("\u0007")
-                Thread.sleep(250)
-                println("\u0007")
+                Export.rtTo(rt.toIO, false)
               }
             }
-            (success, nextStateCache)
+
+            if (useRepl) {
+              runner.printInfo("Loading...")
+              (
+                runner.watchLoop(isRepl = true, printing = false, _.run()),
+                runner.stateCache
+              )
+            } else {
+              (
+                runner.runScript(
+                  os.pwd / "build.sc",
+                  config.leftoverArgs.value.toList
+                ),
+                runner.stateCache
+              )
+            }
           }
-      }
+        if (config.ringBell.value) {
+          if (success) println("\u0007")
+          else {
+            println("\u0007")
+            Thread.sleep(250)
+            println("\u0007")
+          }
+        }
+        (success, nextStateCache)
+    }
   }
 }
