@@ -6,20 +6,49 @@ import mill.T
 import mill.define.{NamedTask, Task}
 import mill.api.{PathRef, Result}
 import mill.eval.Evaluator
-import mill.util.{Ctx, PrintLogger, Watched}
+import mill.util.{Ctx, PrintLogger, SelectMode, Watched}
 import pprint.{Renderer, Truncated}
 
 object MainModule{
-  def resolveTasks[T](evaluator: Evaluator, targets: Seq[String], multiSelect: Boolean)
-                     (f: List[NamedTask[Any]] => T) = {
-    RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, multiSelect) match{
+  @deprecated(
+    "use resolveTasks(Evaluator, Seq[String], SelectMode) instead",
+    "mill after 0.9.9"
+  )
+  def resolveTasks[T](
+    evaluator: Evaluator,
+    targets: Seq[String],
+    multiSelect: Boolean
+  )(f: List[NamedTask[Any]] => T): Result[T] =
+    resolveTasks(evaluator, targets, if (multiSelect) SelectMode.Multi else SelectMode.Single)(f)
+
+  def resolveTasks[T](
+    evaluator: Evaluator,
+    targets: Seq[String],
+    selectMode: SelectMode
+  )(f: List[NamedTask[Any]] => T): Result[T] = {
+    RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
   }
-  def evaluateTasks[T](evaluator: Evaluator, targets: Seq[String], multiSelect: Boolean)
-                      (f: Seq[(Any, Option[ujson.Value])] => T) = {
-    RunScript.evaluateTasks(evaluator, targets, multiSelect) match{
+
+  @deprecated(
+    "use evaluateTasks(Evaluator, Seq[String], SelectMode) instead",
+    "mill after 0.9.9"
+  )
+  def evaluateTasks[T](
+    evaluator: Evaluator,
+    targets: Seq[String],
+    multiSelect: Boolean
+  )(f: Seq[(Any, Option[ujson.Value])] => T): Result[Watched[Unit]] =
+    evaluateTasks(evaluator, targets, if (multiSelect) SelectMode.Multi else SelectMode.Single)(f)
+
+  def evaluateTasks[T](
+    evaluator: Evaluator,
+    targets: Seq[String],
+    selectMode: SelectMode
+  )(f: Seq[(Any, Option[ujson.Value])] => T): Result[Watched[Unit]] = {
+    RunScript.evaluateTasks(evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) => Result.Failure(err, Some(Watched((), watched)))
       case Right((watched, Right(res))) =>
@@ -27,6 +56,7 @@ object MainModule{
         Result.Success(Watched((), watched))
     }
   }
+
 }
 
 trait MainModule extends mill.Module{
@@ -51,7 +81,7 @@ trait MainModule extends mill.Module{
     */
   def resolve(evaluator: Evaluator, targets: String*) = mill.T.command{
     val resolved = RunScript.resolveTasks(
-      mill.main.ResolveMetadata, evaluator, targets, multiSelect = true
+      mill.main.ResolveMetadata, evaluator, targets, SelectMode.Multi
     )
 
     resolved match{
@@ -81,7 +111,7 @@ trait MainModule extends mill.Module{
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
     RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+      mill.main.ResolveTasks, evaluator, targets, SelectMode.Multi
     ) match {
       case Left(err) => Left(err)
       case Right(rs) =>
@@ -98,7 +128,7 @@ trait MainModule extends mill.Module{
     */
   def path(evaluator: Evaluator, src: String, dest: String) = mill.T.command{
     val resolved = RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, List(src, dest), multiSelect = true
+      mill.main.ResolveTasks, evaluator, List(src, dest), SelectMode.Multi
     )
 
     resolved match{
@@ -138,7 +168,7 @@ trait MainModule extends mill.Module{
     * Displays metadata about the given task without actually running it.
     */
   def inspect(evaluator: Evaluator, targets: String*) = mill.T.command{
-    MainModule.resolveTasks(evaluator, targets, multiSelect = true){ tasks =>
+    MainModule.resolveTasks(evaluator, targets, SelectMode.Multi){ tasks =>
       val output = new StringBuilder
       for{
         task <- tasks
@@ -165,11 +195,12 @@ trait MainModule extends mill.Module{
     * Runs multiple tasks in a single call.
     * For compatibility reasons, the tasks are executed single-threaded.
     */
+  @deprecated("Use `+` separator instead", "mill after 0.9.9")
   def all(evaluator: Evaluator, targets: String*) = mill.T.command {
     MainModule.evaluateTasks(
       evaluator = if (evaluator.effectiveThreadCount > 1) evaluator.copy(threadCount = Some(1)) else evaluator,
       targets = targets,
-      multiSelect = true) { res =>
+      SelectMode.Multi) { res =>
         res.flatMap(_._2)
     }
   }
@@ -181,7 +212,7 @@ trait MainModule extends mill.Module{
     MainModule.evaluateTasks(
       evaluator = evaluator,
       targets = targets,
-      multiSelect = true) { res =>
+      SelectMode.Multi) { res =>
         res.flatMap(_._2)
     }
   }
@@ -201,7 +232,7 @@ trait MainModule extends mill.Module{
         }
       ),
       targets,
-      multiSelect = false
+      SelectMode.Multi
     ) {res =>
       for(json <- res.flatMap(_._2)){
         println(json.render(indent = 4))
@@ -287,7 +318,7 @@ trait MainModule extends mill.Module{
     }
 
     RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+      mill.main.ResolveTasks, evaluator, targets, SelectMode.Multi
     ) match {
       case Left(err) => Result.Failure(err)
       case Right(rs) => planTasks match {

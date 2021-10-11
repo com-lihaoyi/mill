@@ -1,6 +1,7 @@
 package mill.main
 
 import mill.eval.Evaluator
+import mill.util.SelectMode
 
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
@@ -12,7 +13,7 @@ object Tasks{
       mill.main.ResolveTasks,
       Evaluator.currentEvaluator.get,
       s,
-      multiSelect = false
+      selectMode.Single
     ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]])),
     alwaysRepeatable = false,
     allowEmpty  = false
