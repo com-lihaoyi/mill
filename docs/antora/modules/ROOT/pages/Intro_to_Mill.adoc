@@ -422,22 +422,77 @@ use `--jobs 1`. This is currently the default.
 Please note that the maximal possible parallelism depends on your project. Tasks that depend on each other can't be
 processes in parallel.
 
+== Command-line usage
+
+Mill is a command-line tool and supports various options.
+
+Run `mill --help` for a complete list of options
+
+.Output of `mill --help`
+----
+Mill Build Tool
+usage: mill [options] [[target [target-options]] [+ [target ...]]]
+  --no-default-predef  Disable the default predef and run Ammonite with the minimal predef possible
+  -s --silent          Make ivy logs go silent instead of printing though failures will still throw
+                       exception
+  -w --watch           Watch and re-run your scripts when they change
+  --bsp                Run a BSP server against the passed scripts
+  -c --code <str>      Pass in code to be run immediately in the REPL
+  -h --home <path>     The home directory of the REPL; where it looks for config and caches
+  -p --predef <path>   Lets you load your predef from a custom location, rather than the "default
+                       location in your Ammonite home
+  --color <bool>       Enable or disable colored output; by default colors are enabled in both REPL
+                       and scripts if the console is interactive, and disabled otherwise
+  --thin               Hide parts of the core of Ammonite and some of its dependencies. By default,
+                       the core of Ammonite and all of its dependencies can be seen by users from
+                       the Ammonite session. This option mitigates that via class loader isolation.
+  --help               Print this message
+  -h --home <path>     The home directory of the REPL; where it looks for config and caches
+  --repl               Run Mill in interactive mode and start a build REPL. In this mode, no mill
+                       server will be used. Must be the first argument.
+  --no-server          Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. In this mode, no mill server will be used. Must be the first argument.
+  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. In this mode, no mill server will be used. Must be the first argument.
+  -v --version         Show mill version and exit.
+  -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
+  --disable-ticker     Disable ticker log (e.g. short-lived prints of stages and progress bars)
+  -d --debug           Show debug output on STDOUT
+  -k --keep-going      Continue build, even after build failures
+  -D --define <k=v>    Define (or overwrite) a system property
+  -j --jobs <int>      Allow processing N targets in parallel. Use 1 to disable parallel and 0 to
+                       use as much threads as available processors.
+  rest <str>...        The name of the targets you want to build, followed by any parameters you
+                       wish to pass to those targets.
+----
+
+All _options_ must be given before the first target.
+
+A _target_ is a fully qualified task or command optionally followed by target specific arguments.
+You can use wildcards and brace-expansion to select multiple targets at once or to shorten the path to deeply nested targets.
+If you provide optional target arguments and your wildcard or brace-expansion is resolved to multiple targets, the arguments will be applied to each of the targets.
+
+.Wildcards and brace-expansion
+|===
+| Wildcard | Function
+|`_` | matches a single segment of the target path
+| `__` | matches arbitrary segments of the target path
+| `{a,b}` | is equal to specifying two targets `a` and `b`
+|===
+
+You can use the `+` symbol to add another target with optional arguments.
+If you need to feed a `+` as argument to your target, you can mask it by preceding it with a backslash (`\`).
+
+=== Examples
+
+`+mill foo._.compile+`:: Runs `compile` for all direct sub-modules of `foo`
+`+mill foo.__.test+` :: Runs `test` for all sub-modules of `foo`
+`+mill {foo,bar}.__.testCached+` :: Runs `testCached` for all sub-modules of `foo` and `bar`
+`+mill __.compile + foo.__.test+` :: Runs all `compile`
+
 == Command-line Tools
 
-Mill comes built in with a small number of useful command-line utilities:
-
-=== all
-
-[source,bash]
-----
-mill all foo.{compile,run}
-mill all "foo.{compile,run}"
-mill all foo.compile foo.run
-mill all _.compile # run compile for every top-level module
-mill all __.compile  # run compile for every module
-----
-
-`all` runs multiple tasks in a single command
+Mill comes with a few useful command-line utilities built into it:
 
 === resolve
 
