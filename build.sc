@@ -1212,5 +1212,11 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
     multiSelect = false
   )(identity))()
 
+  T.task(MainModule.evaluateTasks(
+    ev.copy(failFast = false),
+    Seq("docs.antora.localPages"),
+    multiSelect = false
+  )(identity))()
+
   ()
 }
