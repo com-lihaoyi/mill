@@ -2,6 +2,7 @@ package mill.util
 
 import mill.define.{Segment, Segments}
 import mill.define.Segment.{Cross, Label}
+import mill.util.ParseArgs.{TargetSeparator, TargetsWithParams}
 import utest._
 
 object ParseArgsTest extends TestSuite {
@@ -55,23 +56,27 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       "multiSelectorsWithArgs" - check(
-        input = Seq("core.compile",
-                    "application.runMain",
-                    "--",
-                    "Main",
-                    "hello",
-                    "world"),
+        input = Seq(
+          "core.compile",
+          "application.runMain",
+          ParseArgs.MultiArgsSeparator,
+          "Main",
+          "hello",
+          "world"
+        ),
         expectedSelectors = Seq("core.compile", "application.runMain"),
         expectedArgs = Seq("Main", "hello", "world"),
         multiSelect = true
       )
       "multiSelectorsWithArgsWithAllInArgs" - check(
-        input = Seq("core.compile",
-                    "application.runMain",
-                    "--",
-                    "Main",
-                    "--all",
-                    "world"),
+        input = Seq(
+          "core.compile",
+          "application.runMain",
+          ParseArgs.MultiArgsSeparator,
+          "Main",
+          "--all",
+          "world"
+        ),
         expectedSelectors = Seq("core.compile", "application.runMain"),
         expectedArgs = Seq("Main", "--all", "world"),
         multiSelect = true
@@ -139,11 +144,13 @@ object ParseArgsTest extends TestSuite {
       }
     }
 
-    "apply" - {
-      def check(input: Seq[String],
-                expectedSelectors: List[(Option[List[Segment]], List[Segment])],
-                expectedArgs: Seq[String],
-                multiSelect: Boolean) = {
+    "apply(multiselect)" - {
+      def check(
+          input: Seq[String],
+          expectedSelectors: List[(Option[List[Segment]], List[Segment])],
+          expectedArgs: Seq[String],
+          multiSelect: Boolean
+      ) = {
         val Right((selectors0, args)) = ParseArgs(input, multiSelect)
 
         val selectors = selectors0.map{
@@ -201,12 +208,23 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       "multiSelectorsBraceExpansionWithArgs" - check(
-        input = Seq("{core,application}.run", "--", "hello", "world"),
+        input = Seq("{core,application}.run", ParseArgs.MultiArgsSeparator, "hello", "world"),
         expectedSelectors = List(
           None -> List(Label("core"), Label("run")),
           None -> List(Label("application"), Label("run"))
         ),
         expectedArgs = Seq("hello", "world"),
+        multiSelect = true
+      )
+      "multiSelectorsBraceWithMissingArgsSeparator" - check(
+        input = Seq("{core,application}.run", "hello", "world"),
+        expectedSelectors = List(
+          None -> List(Label("core"), Label("run")),
+          None -> List(Label("application"), Label("run")),
+          None -> List(Label("hello")),
+          None -> List(Label("world"))
+        ),
+        expectedArgs = Seq.empty,
         multiSelect = true
       )
       "multiSelectorsBraceExpansionWithCross" - check(
@@ -249,6 +267,136 @@ object ParseArgsTest extends TestSuite {
         multiSelect = false
       )
     }
-  }
 
+    test("apply(SelectMode.Separated)") {
+      val selectMode = SelectMode.Separated
+      def parsed(args: String*) = ParseArgs(args, selectMode)
+      test("rejectEmpty") {
+        assert(parsed("") == Left("Selector cannot be empty"))
+      }
+      def check(
+          input: Seq[String],
+          expectedSelectotArgPairs: Seq[(Seq[(Option[Seq[Segment]], Seq[Segment])], Seq[String])]
+      ) = {
+        val Right(parsed) = ParseArgs(input, selectMode)
+        val actual = parsed.map {
+          case (selectors0, args) =>
+            val selectors = selectors0.map {
+              case (Some(v1), v2) => (Some(v1.value), v2.value)
+              case (None, v2) => (None, v2.value)
+            }
+            (selectors, args)
+        }
+        assert(
+          actual == expectedSelectotArgPairs
+        )
+      }
+
+      test("singleTopLevelTarget") {
+        check(
+          Seq("compile"),
+          Seq(
+            Seq(
+              None -> Seq(Label("compile"))
+            ) -> Seq.empty
+          )
+        )
+      }
+      test("singleTarget") {
+        check(
+          Seq("core.compile"),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("compile"))
+            ) -> Seq.empty
+          )
+        )
+      }
+      test("multiTargets") {
+        check(
+          Seq("core.compile", ParseArgs.TargetSeparator, "app.compile"),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("compile"))
+            ) -> Seq.empty,
+            Seq(
+              None -> Seq(Label("app"), Label("compile"))
+            ) -> Seq.empty
+          )
+        )
+      }
+      test("multiTargetsSupportMaskingSeparator") {
+        check(
+          Seq(
+            "core.run",
+            """\""" + ParseArgs.TargetSeparator,
+            "arg2",
+            "+",
+            "run",
+            """\\""" + ParseArgs.TargetSeparator,
+            """\\\""" + ParseArgs.TargetSeparator,
+            """x\\""" + ParseArgs.TargetSeparator
+          ),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("run"))
+            ) -> Seq(ParseArgs.TargetSeparator, "arg2"),
+            Seq(
+              None -> Seq(Label("run"))
+            ) -> Seq(
+              """\""" + TargetSeparator,
+              """\\""" + TargetSeparator,
+              """x\\""" + TargetSeparator
+            )
+          )
+        )
+      }
+      test("singleTargetWithArgs") {
+        check(
+          Seq("core.run", "arg1", "arg2"),
+          Seq(
+            Seq(
+              None -> List(Label("core"), Label("run"))
+            ) -> Seq("arg1", "arg2")
+          )
+        )
+      }
+      test("multiTargetsWithArgs") {
+        check(
+          Seq("core.run", "arg1", "arg2", ParseArgs.TargetSeparator, "core.runMain", "my.main"),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("run"))
+            ) -> Seq("arg1", "arg2"),
+            Seq(
+              None -> Seq(Label("core"), Label("runMain"))
+            ) -> Seq("my.main")
+          )
+        )
+      }
+      test("multiTargetsWithArgsAndBrace") {
+        check(
+          Seq(
+            "{core,app,test._}.run",
+            "arg1",
+            "arg2",
+            ParseArgs.TargetSeparator,
+            "core.runMain",
+            "my.main"
+          ),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("run")),
+              None -> Seq(Label("app"), Label("run")),
+              None -> Seq(Label("test"), Label("_"), Label("run"))
+            ) -> Seq("arg1", "arg2"),
+            Seq(
+              None -> Seq(Label("core"), Label("runMain"))
+            ) -> Seq("my.main")
+          )
+        )
+      }
+    }
+
+  }
 }
