@@ -2,18 +2,22 @@ package mill.main
 
 import java.nio.file.NoSuchFileException
 
+import scala.annotation.tailrec
+
 import ammonite.interp.Interpreter
 import ammonite.runtime.SpecialClassLoader
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.define
 import mill.define._
-import mill.eval.{Evaluator, Labelled}
-import mill.util.{EitherOps, MultiBiMap, ParseArgs, PrintLogger, Watched}
-import mill.api.{Logger, PathRef, Result, Strict}
+import mill.eval.Evaluator
+import mill.util.{EitherOps, ParseArgs, PrintLogger, SelectMode, Watched}
+import mill.api.{Logger, PathRef, Result}
 import mill.api.Strict.Agg
 import scala.collection.mutable
 import scala.reflect.ClassTag
+
+import mill.util.ParseArgs.TargetsWithParams
 
 /**
  * Custom version of ammonite.main.Scripts, letting us run the build.sc script
@@ -92,7 +96,7 @@ object RunScript {
 
     val evaluated = for {
       evaluator <- evalRes
-      (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, multiSelect = false))
+      (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, SelectMode.Separated))
     } yield {
       (evaluator, evalWatches, res.map(_.flatMap(_._2)))
     }
@@ -158,10 +162,39 @@ object RunScript {
       resolver: mill.main.Resolve[R],
       evaluator: Evaluator,
       scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, List[R]] = {
+    val parsedGroups: Either[String, Seq[TargetsWithParams]] = ParseArgs(scriptArgs, selectMode)
+    val resolvedGroups = parsedGroups.flatMap { groups =>
+      val resolved = groups.map { parsed: TargetsWithParams =>
+        resolveTasks(resolver, evaluator, Right(parsed))
+      }
+      EitherOps.sequence(resolved)
+    }
+    resolvedGroups.map(_.flatten.toList)
+  }
+
+  @deprecated(
+    "Use resolveTasks[T, R](Resolve[R], Evaluator, Seq[String], SelectMode) instead",
+    "mill after 0.10.0-M3"
+  )
+  def resolveTasks[T, R: ClassTag](
+      resolver: mill.main.Resolve[R],
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
       multiSelect: Boolean
-  ) = {
+  ): Either[String, List[R]] = {
+    val parsed: Either[String, TargetsWithParams] = ParseArgs(scriptArgs, multiSelect = multiSelect)
+    resolveTasks(resolver, evaluator, parsed)
+  }
+
+  private def resolveTasks[T, R: ClassTag](
+      resolver: mill.main.Resolve[R],
+      evaluator: Evaluator,
+      targetsWithParams: Either[String, TargetsWithParams]
+  ): Either[String, List[R]] = {
     for {
-      parsed <- ParseArgs(scriptArgs, multiSelect = multiSelect)
+      parsed <- targetsWithParams
       (selectors, args) = parsed
       taskss <- {
         val selected = selectors.map { case (scopedSel, sel) =>
@@ -188,7 +221,7 @@ object RunScript {
               }
             }
         }
-        EitherOps.sequence(selected)
+        EitherOps.sequence(selected).map(_.toList)
       }
       res <- EitherOps.sequence(taskss)
     } yield res.flatten
@@ -213,7 +246,11 @@ object RunScript {
     }
   }
 
-  def prepareResolve[T](evaluator: Evaluator, scopedSel: Option[Segments], sel: Segments) = {
+  def prepareResolve[T](
+      evaluator: Evaluator,
+      scopedSel: Option[Segments],
+      sel: Segments
+  ): Either[String, (BaseModule, Seq[List[String]])] = {
     for (rootModule <- resolveRootModule(evaluator, scopedSel))
       yield {
         val crossSelectors = sel.value.map {
@@ -224,13 +261,28 @@ object RunScript {
       }
   }
 
-  def evaluateTasks[T](evaluator: Evaluator, scriptArgs: Seq[String], multiSelect: Boolean) = {
-    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, multiSelect))
+  @deprecated(
+    "Use evaluateTasks[T](Evaluator, Seq[String], SelectMode) instead",
+    "mill after 0.10.0-M3"
+  )
+  def evaluateTasks[T](
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
+      multiSelect: Boolean
+  ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]])] =
+    evaluateTasks(evaluator, scriptArgs, if (multiSelect) SelectMode.Multi else SelectMode.Single)
+
+  def evaluateTasks[T](
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]])] = {
+    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
 
         val watched2 = for {
-          x <- res.right.toSeq
+          x <- res.toSeq
           (Watched(_, extraWatched), _) <- x
           w <- extraWatched
         } yield w

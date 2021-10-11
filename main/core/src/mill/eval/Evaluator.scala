@@ -7,7 +7,7 @@ import ammonite.runtime.SpecialClassLoader
 import mainargs.MainData
 import scala.util.DynamicVariable
 
-import mill.api.{BuildProblemReporter, DummyTestReporter, Strict, TestReporter}
+import mill.api.{BuildProblemReporter, DummyTestReporter, TestReporter}
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define.{Ctx => _, _}
@@ -115,13 +115,13 @@ case class Evaluator(
         // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
         val counterMsg = (i + 1) + "/" + sortedGroups.keyCount
         val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
-          terminal,
-          group,
-          results,
-          counterMsg,
-          reporter,
-          testReporter,
-          contextLogger
+          terminal = terminal,
+          group = group,
+          results = results,
+          counterMsg = counterMsg,
+          zincProblemReporter = reporter,
+          testReporter = testReporter,
+          logger = contextLogger
         )
         someTaskFailed =
           someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
@@ -136,11 +136,11 @@ case class Evaluator(
 
     Evaluator.writeTimings(timings.toSeq, outPath)
     Evaluator.Results(
-      goals.indexed.map(results(_).map(_._1)),
-      evaluated,
-      transitive,
-      getFailing(sortedGroups, results),
-      results.map { case (k, v) => (k, v.map(_._1)) }
+      rawValues = goals.indexed.map(results(_).map(_._1)),
+      evaluated = evaluated,
+      transitive = transitive,
+      failing = getFailing(sortedGroups, results),
+      results = results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
 
@@ -712,7 +712,7 @@ object Evaluator {
   }
 
   case class Evaluated(
-      newResults: collection.Map[Task[_], Result[(Any, Int)]],
+      newResults: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
       newEvaluated: Seq[Task[_]],
       cached: Boolean
   )

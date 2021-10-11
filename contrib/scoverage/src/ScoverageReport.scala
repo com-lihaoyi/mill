@@ -4,6 +4,7 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.{Command, Module, Task}
 import mill.eval.Evaluator
 import mill.main.RunScript
+import mill.util.SelectMode
 import mill.{PathRef, T}
 import os.Path
 
@@ -84,7 +85,7 @@ trait ScoverageReport extends Module {
       mill.main.ResolveTasks,
       evaluator,
       Seq(sources),
-      multiSelect = false
+      SelectMode.Single
     ) match {
       case Left(err) => throw new Exception(err)
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[Seq[PathRef]]]]
@@ -93,7 +94,7 @@ trait ScoverageReport extends Module {
       mill.main.ResolveTasks,
       evaluator,
       Seq(dataTargets),
-      multiSelect = false
+      SelectMode.Single
     ) match {
       case Left(err) => throw new Exception(err)
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[PathRef]]]
