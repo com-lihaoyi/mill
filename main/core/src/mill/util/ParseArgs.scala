@@ -40,6 +40,8 @@ object ParseArgs {
       selectMode: SelectMode
   ): Either[String, Seq[TargetsWithParams]] = {
 
+    val MaskPattern = ("""\\+\Q""" + TargetSeparator + """\E""").r
+
     /**
      * Partition the arguments in groups using a separator.
      * To also use the separator as argument, masking it with a backslash (`\`) is supported.
@@ -50,9 +52,10 @@ object ParseArgs {
       case r =>
         val (next, r2) = r.span(_ != TargetSeparator)
         separated(
-          result ++ Seq(next.map(x =>
-            if (x == """\""" + TargetSeparator) TargetSeparator else x
-          )),
+          result ++ Seq(next.map {
+            case x @ MaskPattern(_*) => x.drop(1)
+            case x => x
+          }),
           r2.drop(1)
         )
     }

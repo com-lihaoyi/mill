@@ -2,7 +2,7 @@ package mill.util
 
 import mill.define.{Segment, Segments}
 import mill.define.Segment.{Cross, Label}
-import mill.util.ParseArgs.TargetsWithParams
+import mill.util.ParseArgs.{TargetSeparator, TargetsWithParams}
 import utest._
 
 object ParseArgsTest extends TestSuite {
@@ -60,13 +60,27 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       "multiSelectorsWithArgs" - check(
-        input = Seq("core.compile", "application.runMain", ParseArgs.MultiArgsSeparator, "Main", "hello", "world"),
+        input = Seq(
+          "core.compile",
+          "application.runMain",
+          ParseArgs.MultiArgsSeparator,
+          "Main",
+          "hello",
+          "world"
+        ),
         expectedSelectors = Seq("core.compile", "application.runMain"),
         expectedArgs = Seq("Main", "hello", "world"),
         multiSelect = true
       )
       "multiSelectorsWithArgsWithAllInArgs" - check(
-        input = Seq("core.compile", "application.runMain", ParseArgs.MultiArgsSeparator, "Main", "--all", "world"),
+        input = Seq(
+          "core.compile",
+          "application.runMain",
+          ParseArgs.MultiArgsSeparator,
+          "Main",
+          "--all",
+          "world"
+        ),
         expectedSelectors = Seq("core.compile", "application.runMain"),
         expectedArgs = Seq("Main", "--all", "world"),
         multiSelect = true
@@ -316,11 +330,27 @@ object ParseArgsTest extends TestSuite {
       }
       test("multiTargetsSupportMaskingSeparator") {
         check(
-          Seq("core.run", """\""" + ParseArgs.TargetSeparator, "arg2"),
+          Seq(
+            "core.run",
+            """\""" + ParseArgs.TargetSeparator,
+            "arg2",
+            "+",
+            "run",
+            """\\""" + ParseArgs.TargetSeparator,
+            """\\\""" + ParseArgs.TargetSeparator,
+            """x\\""" + ParseArgs.TargetSeparator
+          ),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("run"))
             ) -> Seq(ParseArgs.TargetSeparator, "arg2"),
+            Seq(
+              None -> Seq(Label("run"))
+            ) -> Seq(
+              """\""" + TargetSeparator,
+              """\\""" + TargetSeparator,
+              """x\\""" + TargetSeparator
+            )
           )
         )
       }
@@ -349,7 +379,14 @@ object ParseArgsTest extends TestSuite {
       }
       test("multiTargetsWithArgsAndBrace") {
         check(
-          Seq("{core,app,test._}.run", "arg1", "arg2", ParseArgs.TargetSeparator, "core.runMain", "my.main"),
+          Seq(
+            "{core,app,test._}.run",
+            "arg1",
+            "arg2",
+            ParseArgs.TargetSeparator,
+            "core.runMain",
+            "my.main"
+          ),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("run")),
