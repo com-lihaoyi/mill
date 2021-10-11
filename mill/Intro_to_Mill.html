@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M3-30-1b0295</span>
+    <span class="version">0.10.0-M3-31-3bc13c</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M3-30-1b0295</a>
+          <a href="index.html">0.10.0-M3-31-3bc13c</a>
         </li>
         <li class="version">
           <a href="0.10.0-M3/index.html">0.10.0-M3</a>
@@ -173,9 +173,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M3-30-1b0295</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M3-31-3bc13c</button>
   <div class="version-menu">
-    <a class="version is-current" href="Intro_to_Mill.html">0.10.0-M3-30-1b0295</a>
+    <a class="version is-current" href="Intro_to_Mill.html">0.10.0-M3-31-3bc13c</a>
     <a class="version" href="0.10.0-M3/Intro_to_Mill.html">0.10.0-M3</a>
     <a class="version" href="0.10.0-M2/Intro_to_Mill.html">0.10.0-M2</a>
     <a class="version" href="0.9.9/Intro_to_Mill.html">0.9.9</a>
@@ -715,25 +715,120 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_command_line_usage"><a class="anchor" href="#_command_line_usage"></a>Command-line usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill is a command-line tool and supports various options.</p>
+</div>
+<div class="paragraph">
+<p>Run <code>mill --help</code> for a complete list of options</p>
+</div>
+<div class="listingblock">
+<div class="title">Output of <code>mill --help</code></div>
+<div class="content">
+<pre>Mill Build Tool
+usage: mill [options] [[target [target-options]] [+ [target ...]]]
+  --no-default-predef  Disable the default predef and run Ammonite with the minimal predef possible
+  -s --silent          Make ivy logs go silent instead of printing though failures will still throw
+                       exception
+  -w --watch           Watch and re-run your scripts when they change
+  --bsp                Run a BSP server against the passed scripts
+  -c --code &lt;str&gt;      Pass in code to be run immediately in the REPL
+  -h --home &lt;path&gt;     The home directory of the REPL; where it looks for config and caches
+  -p --predef &lt;path&gt;   Lets you load your predef from a custom location, rather than the &quot;default
+                       location in your Ammonite home
+  --color &lt;bool&gt;       Enable or disable colored output; by default colors are enabled in both REPL
+                       and scripts if the console is interactive, and disabled otherwise
+  --thin               Hide parts of the core of Ammonite and some of its dependencies. By default,
+                       the core of Ammonite and all of its dependencies can be seen by users from
+                       the Ammonite session. This option mitigates that via class loader isolation.
+  --help               Print this message
+  -h --home &lt;path&gt;     The home directory of the REPL; where it looks for config and caches
+  --repl               Run Mill in interactive mode and start a build REPL. In this mode, no mill
+                       server will be used. Must be the first argument.
+  --no-server          Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. In this mode, no mill server will be used. Must be the first argument.
+  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. In this mode, no mill server will be used. Must be the first argument.
+  -v --version         Show mill version and exit.
+  -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
+  --disable-ticker     Disable ticker log (e.g. short-lived prints of stages and progress bars)
+  -d --debug           Show debug output on STDOUT
+  -k --keep-going      Continue build, even after build failures
+  -D --define &lt;k=v&gt;    Define (or overwrite) a system property
+  -j --jobs &lt;int&gt;      Allow processing N targets in parallel. Use 1 to disable parallel and 0 to
+                       use as much threads as available processors.
+  rest &lt;str&gt;...        The name of the targets you want to build, followed by any parameters you
+                       wish to pass to those targets.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All <em>options</em> must be given before the first target.</p>
+</div>
+<div class="paragraph">
+<p>A <em>target</em> is a fully qualified task or command optionally followed by target specific arguments.
+You can use wildcards and brace-expansion to select multiple targets at once or to shorten the path to deeply nested targets.
+If you provide optional target arguments and your wildcard or brace-expansion is resolved to multiple targets, the arguments will be applied to each of the targets.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Wildcards and brace-expansion</caption>
+<colgroup>
+<col style="width: 50%;" />
+<col style="width: 50%;" />
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Wildcard</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Function</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">matches a single segment of the target path</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>__</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">matches arbitrary segments of the target path</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>{a,b}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">is equal to specifying two targets <code>a</code> and <code>b</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>You can use the <code>+</code> symbol to add another target with optional arguments.
+If you need to feed a <code>+</code> as argument to your target, you can mask it by preceding it with a backslash (<code>\</code>).</p>
+</div>
+<div class="sect2">
+<h3 id="_examples"><a class="anchor" href="#_examples"></a>Examples</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>mill foo._.compile</code></dt>
+<dd>
+<p>Runs <code>compile</code> for all direct sub-modules of <code>foo</code></p>
+</dd>
+<dt class="hdlist1"><code>mill foo.__.test</code> </dt>
+<dd>
+<p>Runs <code>test</code> for all sub-modules of <code>foo</code></p>
+</dd>
+<dt class="hdlist1"><code>mill {foo,bar}.__.testCached</code> </dt>
+<dd>
+<p>Runs <code>testCached</code> for all sub-modules of <code>foo</code> and <code>bar</code></p>
+</dd>
+<dt class="hdlist1"><code>mill __.compile + foo.__.test</code> </dt>
+<dd>
+<p>Runs all <code>compile</code></p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_command_line_tools"><a class="anchor" href="#_command_line_tools"></a>Command-line Tools</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill comes with a small number of useful command-line utilities built into it:</p>
-</div>
-<div class="sect2">
-<h3 id="_all"><a class="anchor" href="#_all"></a>all</h3>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill all foo.{compile,run}
-mill all &quot;foo.{compile,run}&quot;
-mill all foo.compile foo.run
-mill all _.compile # run compile for every top-level module
-mill all __.compile  # run compile for every module</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>all</code> runs multiple tasks in a single command</p>
-</div>
+<p>Mill comes with a few useful command-line utilities built into it:</p>
 </div>
 <div class="sect2">
 <h3 id="_resolve"><a class="anchor" href="#_resolve"></a>resolve</h3>
@@ -812,7 +907,7 @@ exploring the structure of your build from the command line.</p>
 </div>
 <div class="paragraph">
 <p><code>inspect</code> also works with the same <code>_</code>/<code>__</code> wildcard/query syntaxes that
-<a href="#_all">all</a>/<a href="#_resolve">resolve</a> do:</p>
+<a href="#_all">[_all]</a>/<a href="#_resolve">resolve</a> do:</p>
 </div>
 <div class="listingblock">
 <div class="content">
