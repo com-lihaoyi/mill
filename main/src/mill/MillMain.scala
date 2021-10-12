@@ -82,7 +82,12 @@ case class MillConfig(
         """The name of the targets you want to build, followed by any parameters
       you wish to pass to those targets."""
     )
-    leftoverArgs: Leftover[String]
+    leftoverArgs: Leftover[String],
+    @arg(
+      name = "plugin-ivy",
+      doc = """Dependency of a mill plugin to load"""
+    )
+    plugins: Seq[String]
 )
 
 object MillConfigParser {
@@ -221,39 +226,68 @@ object MillMain {
               case Some(0) => None
               case Some(n) => Some(n)
             }
+
+            val predefCode =
+              if (!useRepl) ""
+              else
+                s"""import $$file.build, build._
+                   |implicit val replApplyHandler = mill.main.ReplApplyHandler(
+                   |  os.Path(${pprint
+                  .apply(
+                    config.ammoniteCore.home.toIO.getCanonicalPath
+                      .replace("$", "$$")
+                  )
+                  .plainText}),
+                   |  ${config.disableTicker.value},
+                   |  interp.colors(),
+                   |  repl.pprinter(),
+                   |  build.millSelf.get,
+                   |  build.millDiscover,
+                   |  debugLog = ${config.debugLog.value},
+                   |  keepGoing = ${config.keepGoing.value},
+                   |  systemProperties = ${systemProps.toSeq
+                  .map(p => s""""${p._1}" -> "${p._2}"""")
+                  .mkString("Map[String,String](", ",", ")")},
+                   |  threadCount = ${threadCount}
+                   |)
+                   |repl.pprinter() = replApplyHandler.pprinter
+                   |import replApplyHandler.generatedEval._
+                   |""".stripMargin
+
+            val pluginsPredefCode: String = config.plugins match {
+              case Seq() => ""
+              case plugins =>
+                val deps = plugins.map {
+                  _.split("[:]") match {
+                    case Array("ivy", g, a, v) =>
+                      // Ivy Java dependency
+                      s""""$g" % "$a" % "$v""""
+                    case Array("ivy", g, "", a, v) =>
+                      // Ivy Scala dependency
+                      s""""$g" %% "$a" % "$v""""
+                    case Array("ivy", g, "", "", a, v) =>
+                      // Ivy Scala full dependency
+                      s""""$g" %%% "$a" % "$v""""
+                    case Array("ivy", g, "", a, "", v) =>
+                      // Ivy Mill plugin dependency
+                      s""""$g" %% "${a}_mill${BuildInfo.millBinPlatform}" % "$v""""
+                    case Array("ivy", g, "", "", a, "", v) =>
+                      // Ivy Mill plugin dependency full Scala version
+                      s""""$g" %%% "${a}_mill${BuildInfo.millBinPlatform}" % "$v""""
+                    case x => throw new Exception(s"Unsupported plugin declaration: '$x'.")
+                  }
+                }
+                s"""interp.load.ivy(${deps.mkString(",")})"""
+            }
+
             val ammConfig = ammonite.main.Config(
               core = config.ammoniteCore,
               predef = ammonite.main.Config.Predef(
-                predefCode =
-                  if (!useRepl) ""
-                  else
-                    s"""import $$file.build, build._
-                       |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                       |  os.Path(${pprint
-                      .apply(
-                        config.ammoniteCore.home.toIO.getCanonicalPath
-                          .replace("$", "$$")
-                      )
-                      .plainText}),
-                       |  ${config.disableTicker.value},
-                       |  interp.colors(),
-                       |  repl.pprinter(),
-                       |  build.millSelf.get,
-                       |  build.millDiscover,
-                       |  debugLog = ${config.debugLog.value},
-                       |  keepGoing = ${config.keepGoing.value},
-                       |  systemProperties = ${systemProps.toSeq
-                      .map(p => s""""${p._1}" -> "${p._2}"""")
-                      .mkString("Map[String,String](", ",", ")")},
-                       |  threadCount = ${threadCount}
-                       |)
-                       |repl.pprinter() = replApplyHandler.pprinter
-                       |import replApplyHandler.generatedEval._
-                       |""".stripMargin,
+                predefCode = Seq(predefCode, pluginsPredefCode).filter(_.nonEmpty).mkString("\n"),
                 noHomePredef = Flag()
               ),
               repl = ammonite.main.Config.Repl(
-                banner = "",
+                banner = MillConfigParser.customName,
                 noRemoteLogging = Flag(),
                 classBased = Flag()
               )
