@@ -84,7 +84,7 @@ case class MillConfig(
     )
     leftoverArgs: Leftover[String],
     @arg(
-      name = "plugin-ivy",
+      name = "plugin",
       doc = """Dependency of a mill plugin to load"""
     )
     plugins: Seq[String]
@@ -254,31 +254,13 @@ object MillMain {
                    |import replApplyHandler.generatedEval._
                    |""".stripMargin
 
-            val pluginsPredefCode: String = config.plugins match {
-              case Seq() => ""
-              case plugins =>
-                val deps = plugins.map {
-                  _.split("[:]") match {
-                    case Array("ivy", g, a, v) =>
-                      // Ivy Java dependency
-                      s""""$g" % "$a" % "$v""""
-                    case Array("ivy", g, "", a, v) =>
-                      // Ivy Scala dependency
-                      s""""$g" %% "$a" % "$v""""
-                    case Array("ivy", g, "", "", a, v) =>
-                      // Ivy Scala full dependency
-                      s""""$g" %%% "$a" % "$v""""
-                    case Array("ivy", g, "", a, "", v) =>
-                      // Ivy Mill plugin dependency
-                      s""""$g" %% "${a}_mill${BuildInfo.millBinPlatform}" % "$v""""
-                    case Array("ivy", g, "", "", a, "", v) =>
-                      // Ivy Mill plugin dependency full Scala version
-                      s""""$g" %%% "${a}_mill${BuildInfo.millBinPlatform}" % "$v""""
-                    case x => throw new Exception(s"Unsupported plugin declaration: '$x'.")
-                  }
-                }
-                s"""interp.load.ivy(${deps.mkString(",")})"""
-            }
+            val pluginsPredefCode: String = config.plugins.map {
+              _.split("[:]", 2) match {
+                case Array("ivy", dep) =>
+                  s"""import $$ivy.`${dep}`"""
+                case x => throw new Exception(s"Unsupported plugin declaration: '$x'.")
+              }
+            }.mkString("\n")
 
             val ammConfig = ammonite.main.Config(
               core = config.ammoniteCore,
