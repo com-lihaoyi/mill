@@ -9,10 +9,10 @@ import coursierapi.{Dependency => CDependency, Module => CModule, ScalaVersion =
 import utest.{TestSuite, Tests, _}
 
 object MillIvyHookTest extends TestSuite {
-  val wd = os.pwd
+  val wd = os.Path("/tmp")
   def mapDep(d: CDependency): Seq[File] =
     Seq(
-      (wd / d.getModule.getOrganization / d.getModule.getName / d.getVersion / s"${d.getModule.getName}-${d.getVersion}.jar").toIO
+      (wd / s"${d.getModule.getOrganization}__${d.getModule.getName}__${d.getVersion}__${d.getModule.getName}-${d.getVersion}.jar").toIO
     )
   override def tests: Tests = Tests {
     val interp = new InterpreterInterface {
@@ -23,11 +23,11 @@ object MillIvyHookTest extends TestSuite {
     }
     test("simple") {
       val deps = Seq(
-        ("a:b:c", CDependency.of("a", "b", "c"), wd / "a" / "b" / "c" / "b-c.jar"),
+        ("a:b:c", CDependency.of("a", "b", "c"), wd / "a__b__c__b-c.jar"),
         (
           "a::b:c",
           CDependency.of(CModule.parse("a::b", CScalaVersion.of("2.13.6")), "c"),
-          wd / "a" / "b_2.13" / "c" / "b_2.13-c.jar"
+          wd / "a__b_2.13__c__b_2.13-c.jar"
         ),
         (
           "a::b::c",
@@ -38,7 +38,15 @@ object MillIvyHookTest extends TestSuite {
             ),
             "c"
           ),
-          wd / "a" / s"b_mill${mill.BuildInfo.millBinPlatform}_2.13" / "c" / s"b_mill${mill.BuildInfo.millBinPlatform}_2.13-c.jar"
+          wd / s"a__b_mill${mill.BuildInfo.millBinPlatform}_2.13__c__b_mill${mill.BuildInfo.millBinPlatform}_2.13-c.jar"
+        ),
+        (
+          s"a::b:",
+          CDependency.of(
+            CModule.parse("a::b", CScalaVersion.of("2.13.6")),
+            mill.BuildInfo.millVersion
+          ),
+          wd / s"a__b_2.13__${mill.BuildInfo.millVersion}__b_2.13-${mill.BuildInfo.millVersion}.jar"
         )
       )
       val checks = deps.map { case (coord, dep, path) =>
@@ -48,7 +56,7 @@ object MillIvyHookTest extends TestSuite {
           val resolved = MillIvyHook.resolve(interp, Seq(coord))
           assert(
             // first check only adds context to the exception message
-            !coord.isEmpty && resolved == expected
+            coord.nonEmpty && dep.toString.nonEmpty && resolved == expected
           )
         }
       }
