@@ -77,17 +77,18 @@ case class MillConfig(
     )
     threadCountRaw: Option[Int],
     @arg(
+      name = "plugin",
+      doc = """Dependency of a mill plugin to load"""
+    )
+    plugins: Seq[String],
+    
+    @arg(
       name = "rest",
       doc =
         """The name of the targets you want to build, followed by any parameters
       you wish to pass to those targets."""
     )
-    leftoverArgs: Leftover[String],
-    @arg(
-      name = "plugin",
-      doc = """Dependency of a mill plugin to load"""
-    )
-    plugins: Seq[String]
+    leftoverArgs: Leftover[String]
 )
 
 object MillConfigParser {
