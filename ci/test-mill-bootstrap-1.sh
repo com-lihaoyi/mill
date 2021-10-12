@@ -17,7 +17,7 @@ git stash -a
 rm -rf ~/.mill/ammonite
 
 # Differentiate first and second builds
-git config --global user.name "Your Name"
+git config user.name "Your Name"
 echo "Build 2" > info.txt && git add info.txt && git commit -m "Add info.txt"
 
 # Patch local build

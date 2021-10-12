@@ -52,8 +52,10 @@ object ProguardTests extends TestSuite {
     test("Proguard module") {
       test("should download proguard jars") - workspaceTest(proguard) { eval =>
         val Right((agg, _)) = eval.apply(proguard.proguardClasspath)
-        assert(agg.iterator.toSeq.nonEmpty,
-          agg.iterator.toSeq.head.path.toString().contains("proguard-base"))
+        assert(
+          agg.iterator.toSeq.nonEmpty,
+          agg.iterator.toSeq.head.path.toString().contains("proguard-base")
+        )
       }
 
       test("should create a proguarded jar") - workspaceTest(proguard) { eval =>

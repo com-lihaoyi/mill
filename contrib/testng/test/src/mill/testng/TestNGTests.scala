@@ -1,7 +1,6 @@
 package mill
 package testng
 
-import ammonite.ops.{Path, cp, mkdir, pwd, rm, _}
 import mill.api.Result.Exception
 import mill.define.Target
 import mill.scalalib._
@@ -36,17 +35,17 @@ object TestNGTests extends TestSuite {
 
   }
 
-  val resourcePath: Path = pwd / "contrib" / "testng" / "test" / "resources" / "demo"
+  val resourcePath: os.Path = os.pwd / "contrib" / "testng" / "test" / "resources" / "demo"
 
   def workspaceTest[T, M <: TestUtil.BaseModule](
       m: M,
-      resourcePath: Path = resourcePath
+      resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
-    rm(m.millSourcePath)
-    rm(eval.outPath)
-    mkdir(m.millSourcePath / up)
-    cp(resourcePath, m.millSourcePath)
+    os.remove.all(m.millSourcePath)
+    os.remove.all(eval.outPath)
+    os.makeDir.all(m.millSourcePath / os.up)
+    os.copy(resourcePath, m.millSourcePath)
     t(eval)
   }
 

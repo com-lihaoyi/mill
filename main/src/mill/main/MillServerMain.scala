@@ -1,20 +1,14 @@
 package mill.main
 
 import sun.misc.{Signal, SignalHandler}
-
 import java.io._
 import java.net.Socket
-import java.nio.charset.StandardCharsets
-import java.math.BigInteger
-import java.security.MessageDigest
 
 import scala.jdk.CollectionConverters._
 
 import org.scalasbt.ipcsocket._
-
 import mill.{BuildInfo, MillMain}
 import mill.main.client._
-import mill.eval.Evaluator
 import mill.api.DummyInputStream
 import mill.main.client.lock.{Lock, Locks}
 
@@ -29,11 +23,12 @@ trait MillServerMain[T] {
       stderr: PrintStream,
       env: Map[String, String],
       setIdle: Boolean => Unit,
-      systemProperties: Map[String, String]
+      systemProperties: Map[String, String],
+      initialSystemProperties: Map[String, String]
   ): (Boolean, Option[T])
 }
 
-object MillServerMain extends mill.main.MillServerMain[Evaluator.State] {
+object MillServerMain extends mill.main.MillServerMain[EvaluatorState] {
   def main(args0: Array[String]): Unit = {
     // Disable SIGINT interrupt signal in the Mill server.
     //
@@ -59,15 +54,16 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State] {
 
   def main0(
       args: Array[String],
-      stateCache: Option[Evaluator.State],
+      stateCache: Option[EvaluatorState],
       mainInteractive: Boolean,
       stdin: InputStream,
       stdout: PrintStream,
       stderr: PrintStream,
       env: Map[String, String],
       setIdle: Boolean => Unit,
-      systemProperties: Map[String, String]
-  ): (Boolean, Option[Evaluator.State]) = {
+      systemProperties: Map[String, String],
+      initialSystemProperties: Map[String, String]
+  ): (Boolean, Option[EvaluatorState]) = {
     MillMain.main0(
       args,
       stateCache,
@@ -77,7 +73,8 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State] {
       stderr,
       env,
       setIdle = setIdle,
-      systemProperties
+      systemProperties = systemProperties,
+      initialSystemProperties = initialSystemProperties
     )
   }
 }
@@ -92,6 +89,7 @@ class Server[T](
 
   val originalStdout = System.out
   def run() = {
+    val initialSystemProperties = sys.props.toMap
     Server.tryLockBlock(locks.processLock) {
       var running = true
       while (running) {
@@ -124,7 +122,7 @@ class Server[T](
             case None => running = false
             case Some(sock) =>
               try {
-                handleRun(sock)
+                handleRun(sock, initialSystemProperties)
                 serverSocket.close()
               } catch { case e: Throwable => e.printStackTrace(originalStdout) }
           }
@@ -136,7 +134,7 @@ class Server[T](
     }.getOrElse(throw new Exception("PID already present"))
   }
 
-  def handleRun(clientSocket: Socket) = {
+  def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]) = {
 
     val currentOutErr = clientSocket.getOutputStream
     val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)
@@ -175,7 +173,8 @@ class Server[T](
             stderr,
             env.asScala.toMap,
             idle = _,
-            systemProperties.asScala.toMap
+            systemProperties.asScala.toMap,
+            initialSystemProperties
           )
 
           sm.stateCache = newStateCache

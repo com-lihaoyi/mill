@@ -225,8 +225,8 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         val checker = new Checker(canOverrideSuper)
         checker(foo, Seq("base", "object"), Agg(foo), extraEvaled = -1)
 
-        val public = ammonite.ops.read(checker.evaluator.outPath / "foo" / "meta.json")
-        val overriden = ammonite.ops.read(
+        val public = os.read(checker.evaluator.outPath / "foo" / "meta.json")
+        val overriden = os.read(
           checker.evaluator.outPath / "foo" /
             "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo" / "meta.json"
         )
@@ -253,8 +253,8 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           secondRunNoOp = false
         )
 
-        val public = ammonite.ops.read(checker.evaluator.outPath / "cmd" / "meta.json")
-        val overriden = ammonite.ops.read(
+        val public = os.read(checker.evaluator.outPath / "cmd" / "meta.json")
+        val overriden = os.read(
           checker.evaluator.outPath / "cmd" /
             "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd" / "meta.json"
         )

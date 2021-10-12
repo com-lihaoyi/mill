@@ -1,5 +1,6 @@
 package mill.define
 import language.experimental.macros
+import scala.reflect.ClassTag
 import scala.reflect.macros.blackbox
 
 object Cross {
@@ -45,7 +46,7 @@ object Cross {
  *   ...
  * }
  */
-class Cross[T](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.define.Ctx)
+class Cross[T: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.define.Ctx)
     extends mill.define.Module()(ctx) {
 
   override lazy val millModuleDirectChildren =

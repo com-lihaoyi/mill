@@ -52,7 +52,7 @@ trait Proguard extends ScalaModule {
    * This is used for both the `java` command binary,
    * as well as the standard library jars.
    * Defaults to the `java.home` system property.
-    * Keep in sync with [[java9RtJar]]-
+   * Keep in sync with [[java9RtJar]]-
    */
   def javaHome: T[PathRef] = T.input {
     PathRef(Path(sys.props("java.home")))
@@ -61,8 +61,10 @@ trait Proguard extends ScalaModule {
   /** Specifies the input jar to proguard. Defaults to the output of the `assembly` task. */
   def inJar: T[PathRef] = T { assembly() }
 
-  /** This needs to return the Java RT JAR if on Java 9 or above.
-    * Keep in sync with [[javaHome]]. */
+  /**
+   * This needs to return the Java RT JAR if on Java 9 or above.
+   * Keep in sync with [[javaHome]].
+   */
   def java9RtJar: T[Seq[PathRef]] = T {
     if (mill.main.client.Util.isJava9OrAbove) {
       val rt = T.dest / Export.rtJarName
@@ -83,7 +85,8 @@ trait Proguard extends ScalaModule {
    * Defaults the jars under `javaHome`.
    */
   def libraryJars: T[Seq[PathRef]] = T {
-    val javaJars = os.list(javaHome().path / "lib", sort = false).filter(_.ext == "jar").toSeq.map(PathRef(_))
+    val javaJars =
+      os.list(javaHome().path / "lib", sort = false).filter(_.ext == "jar").toSeq.map(PathRef(_))
     javaJars ++ java9RtJar()
   }
 
@@ -133,7 +136,7 @@ trait Proguard extends ScalaModule {
    * These are downloaded from JCenter and fed to `java -cp`
    */
   def proguardClasspath: T[Loose.Agg[PathRef]] = T {
-    resolveDeps(T.task{ Agg(ivy"com.guardsquare:proguard-base:${proguardVersion()}")})()
+    resolveDeps(T.task { Agg(ivy"com.guardsquare:proguard-base:${proguardVersion()}") })()
   }
 
   private def steps: T[Seq[String]] = T {
@@ -152,9 +155,9 @@ trait Proguard extends ScalaModule {
    */
   def entryPoint: T[String] = T {
     s"""|-keep public class ${finalMainClass()} {
-      |    public static void main(java.lang.String[]);
-      |}
-      |""".stripMargin
+        |    public static void main(java.lang.String[]);
+        |}
+        |""".stripMargin
   }
 
   /**

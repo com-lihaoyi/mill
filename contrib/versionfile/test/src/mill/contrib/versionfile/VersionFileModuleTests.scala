@@ -2,10 +2,8 @@ package mill.contrib.versionfile
 
 import mill.eval.Result
 import mill.util.{TestEvaluator, TestUtil}
-import ammonite.ops.{cp, mkdir, pwd, rm, up, Path}
 import utest.{assert, assertMatch, intercept, test, Tests, TestSuite}
 import utest.framework.TestPath
-import os.write
 
 object VersionFileModuleTests extends TestSuite {
 
@@ -19,9 +17,9 @@ object VersionFileModuleTests extends TestSuite {
       versionText: String
   )(implicit tp: TestPath): TestEvaluator = {
     val eval = new TestEvaluator(m)
-    rm(m.millSourcePath)
-    rm(eval.outPath)
-    write.over(
+    os.remove.all(m.millSourcePath)
+    os.remove.all(eval.outPath)
+    os.write.over(
       vf(m).millSourcePath / "version",
       versionText,
       createFolders = true

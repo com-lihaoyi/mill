@@ -225,7 +225,7 @@ object ResolveTasks extends Resolve[NamedTask[Any]] {
 
         // Contents of `either` *must* be a `Task`, because we only select
         // methods returning `Task` in the discovery process
-        case Some(either) => either.right.map(Seq(_))
+        case Some(either) => either.map(Seq(_))
       }
   }
 }

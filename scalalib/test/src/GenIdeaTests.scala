@@ -50,10 +50,10 @@ object GenIdeaTests extends ScriptTestSuite(false) {
     test("helper assertPartialContentMatches works") {
       val testContent =
         s"""line 1
-          |line 2
-          |line 3
-          |line 4
-          |""".stripMargin
+           |line 2
+           |line 3
+           |line 4
+           |""".stripMargin
 
       assertPartialContentMatches(testContent, testContent)
       intercept[utest.AssertionError] {
@@ -61,15 +61,16 @@ object GenIdeaTests extends ScriptTestSuite(false) {
       }
       assertPartialContentMatches(
         found = testContent,
-        expected = s"""line 1${ignoreString}line 4
-          |""".stripMargin
+        expected =
+          s"""line 1${ignoreString}line 4
+             |""".stripMargin
       )
       intercept[utest.AssertionError] {
         assertPartialContentMatches(
           found = testContent,
           expected =
             s"""line 1${ignoreString}line 2${ignoreString}line 2${ignoreString}line 4
-              |""".stripMargin
+               |""".stripMargin
         )
       }
       assertPartialContentMatches(

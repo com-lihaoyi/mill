@@ -71,7 +71,7 @@ object JavaCompileJarTests extends TestSuite {
         evaluator.check(targets, expected)
       }
 
-      def append(path: os.Path, txt: String) = ammonite.ops.write.append(path, txt)
+      def append(path: os.Path, txt: String) = os.write.append(path, txt)
 
       check(
         targets = Agg(jar),

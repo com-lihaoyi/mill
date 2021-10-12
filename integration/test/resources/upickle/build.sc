@@ -72,7 +72,7 @@ trait UpickleModule extends CrossSbtModule with PublishModule{
           """)
     }
     val (tuples, cases) = tuplesAndCases.unzip
-    ammonite.ops.write(file, s"""
+    os.write(file, s"""
       package upickle
       import acyclic.file
       import language.experimental.macros

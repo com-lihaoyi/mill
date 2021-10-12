@@ -7,7 +7,7 @@ import ammonite.runtime.SpecialClassLoader
 import mainargs.MainData
 import scala.util.DynamicVariable
 
-import mill.api.{BuildProblemReporter, DummyTestReporter, Strict, TestReporter}
+import mill.api.{BuildProblemReporter, DummyTestReporter, TestReporter}
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define.{Ctx => _, _}
@@ -15,6 +15,7 @@ import mill.util
 import mill.util._
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 case class Labelled[T](task: NamedTask[T], segments: Segments) {
@@ -89,11 +90,11 @@ case class Evaluator(
       reporter: Int => Option[BuildProblemReporter] =
         (int: Int) => Option.empty[BuildProblemReporter],
       testReporter: TestReporter = DummyTestReporter
-  ) = {
+  ): Evaluator.Results = {
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
-    val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
+    val results = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
     var someTaskFailed: Boolean = false
 
     val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
@@ -114,13 +115,13 @@ case class Evaluator(
         // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
         val counterMsg = (i + 1) + "/" + sortedGroups.keyCount
         val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
-          terminal,
-          group,
-          results,
-          counterMsg,
-          reporter,
-          testReporter,
-          contextLogger
+          terminal = terminal,
+          group = group,
+          results = results,
+          counterMsg = counterMsg,
+          zincProblemReporter = reporter,
+          testReporter = testReporter,
+          logger = contextLogger
         )
         someTaskFailed =
           someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
@@ -135,24 +136,25 @@ case class Evaluator(
 
     Evaluator.writeTimings(timings.toSeq, outPath)
     Evaluator.Results(
-      goals.indexed.map(results(_).map(_._1)),
-      evaluated,
-      transitive,
-      getFailing(sortedGroups, results),
-      results.map { case (k, v) => (k, v.map(_._1)) }
+      rawValues = goals.indexed.map(results(_).map(_._1)),
+      evaluated = evaluated,
+      transitive = transitive,
+      failing = getFailing(sortedGroups, results),
+      results = results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
 
   def getFailing(
       sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]],
-      results: collection.Map[Task[_], Result[(Any, Int)]]
+      results: collection.Map[Task[_], mill.api.Result[(Any, Int)]]
   ) = {
 
-    val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[_]]
+    val failing =
+      new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]]
     for ((k, vs) <- sortedGroups.items()) {
       failing.addAll(
         k,
-        vs.items.flatMap(results.get).collect { case f: Result.Failing[_] => f.map(_._1) }
+        vs.items.flatMap(results.get).collect { case f: mill.api.Result.Failing[_] => f.map(_._1) }
       )
     }
     failing
@@ -601,12 +603,7 @@ object Evaluator {
   object Cached {
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
   }
-  case class State(
-      rootModule: mill.define.BaseModule,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
-      workerCache: mutable.Map[Segments, (Int, Any)],
-      watched: Seq[(ammonite.interp.Watchable, Long)]
-  )
+
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
@@ -715,7 +712,7 @@ object Evaluator {
   }
 
   case class Evaluated(
-      newResults: collection.Map[Task[_], Result[(Any, Int)]],
+      newResults: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
       newEvaluated: Seq[Task[_]],
       cached: Boolean
   )
@@ -752,7 +749,7 @@ object Evaluator {
    * }}}
    */
   @deprecated(
-    "This method has no sensible error management and should be avoided. See it's scaladoc for an alternative pattern.",
+    "This method has no sensible error management and should be avoided. See it's scaladoc for an alternative pattern or use evalOrThrow instead.",
     "mill after 0.10.0-M3"
   )
   def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
@@ -761,6 +758,33 @@ object Evaluator {
       case Seq(e: T) => e
     }
   }
+
+  class EvalOrThrow(evaluator: Evaluator, exceptionFactory: Results => Throwable) {
+    def apply[T: ClassTag](task: Task[T]): T =
+      evaluator.evaluate(Agg(task)) match {
+        case r if r.failing.items().nonEmpty =>
+          throw exceptionFactory(r)
+        case r =>
+          // Input is a single-item Agg, so we also expect a single-item result
+          val Seq(e: T) = r.values
+          e
+      }
+    def apply[T: ClassTag](tasks: Seq[Task[T]]): Seq[T] =
+      evaluator.evaluate(tasks) match {
+        case r if r.failing.items().nonEmpty =>
+          throw exceptionFactory(r)
+        case r => r.values.asInstanceOf[Seq[T]]
+      }
+  }
+
+  /**
+   * Evaluate given task(s) and return the successful result(s), or throw an exception.
+   */
+  def evalOrThrow(
+      evaluator: Evaluator,
+      exceptionFactory: Results => Throwable =
+        r => new Exception(s"Failure during task evaluation: ${Evaluator.formatFailing(r)}")
+  ): EvalOrThrow = new EvalOrThrow(evaluator, exceptionFactory)
 
   def formatFailing(evaluated: Evaluator.Results): String = {
     (for ((k, fs) <- evaluated.failing.items())

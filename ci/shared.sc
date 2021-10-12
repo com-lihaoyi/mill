@@ -5,8 +5,6 @@
   */
 
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import ammonite.ops.{RelPath, mkdir, write}
-import os.{Path,up}
 
 def argNames(n: Int) = {
   val uppercases = (0 until n).map("T" + _)
@@ -15,7 +13,7 @@ def argNames(n: Int) = {
   val zipArgs    = lowercases.mkString(", ")
   (lowercases, uppercases, typeArgs, zipArgs)
 }
-def generateApplyer(dir: Path) = {
+def generateApplyer(dir: os.Path) = {
   def generate(n: Int) = {
     val (lowercases, uppercases, typeArgs, zipArgs) = argNames(n)
     val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
@@ -26,7 +24,7 @@ def generateApplyer(dir: Path) = {
 
     if (n < 22) List(zipmap, zip).mkString("\n") else zip
   }
-  write(
+  os.write(
     dir / "ApplicativeGenerated.scala",
     s"""package mill.define
       |import scala.language.higherKinds
@@ -37,7 +35,7 @@ def generateApplyer(dir: Path) = {
   )
 }
 
-def generateTarget(dir: Path) = {
+def generateTarget(dir: os.Path) = {
   def generate(n: Int) = {
     val (lowercases, uppercases, typeArgs, zipArgs) = argNames(n)
     val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
@@ -46,7 +44,7 @@ def generateTarget(dir: Path) = {
     s"def zip[$typeArgs]($parameters) = makeT[($typeArgs)](Seq($zipArgs), (args: mill.api.Ctx) => ($body))"
   }
 
-  write(
+  os.write(
     dir / "TaskGenerated.scala",
     s"""package mill.define
        |import scala.language.higherKinds
@@ -58,7 +56,7 @@ def generateTarget(dir: Path) = {
   )
 }
 
-def generateEval(dir: Path) = {
+def generateEval(dir: os.Path) = {
   def generate(n: Int) = {
     val (lowercases, uppercases, typeArgs, zipArgs) = argNames(n)
     val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
@@ -71,7 +69,7 @@ def generateEval(dir: Path) = {
      """.stripMargin
   }
 
-  write(
+  os.write(
     dir / "EvalGenerated.scala",
     s"""package mill.main
        |import mill.eval.Evaluator
@@ -84,7 +82,7 @@ def generateEval(dir: Path) = {
   )
 }
 
-def generateApplicativeTest(dir: Path) = {
+def generateApplicativeTest(dir: os.Path) = {
   def generate(n: Int): String = {
     val (lowercases, uppercases, typeArgs, zipArgs) = argNames(n)
     val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: Option[$upper]" }.mkString(", ")
@@ -92,7 +90,7 @@ def generateApplicativeTest(dir: Path) = {
     s"def zip[$typeArgs]($parameters) = { for ($forArgs) yield ($zipArgs) }"
   }
 
-  write(
+  os.write(
     dir / "ApplicativeTestsGenerated.scala",
     s"""package mill.define
        |trait OptGenerated {
@@ -102,9 +100,9 @@ def generateApplicativeTest(dir: Path) = {
   )
 }
 
-def unpackZip(zipDest: Path, url: String) = {
+def unpackZip(zipDest: os.Path, url: String) = {
   println(s"Unpacking zip $url into $zipDest")
-  mkdir(zipDest)
+  os.makeDir.all(zipDest)
 
   val bytes = scalaj.http.Http.apply(url).option(scalaj.http.HttpOptions.followRedirects(true)).asBytes
   val byteStream = new java.io.ByteArrayInputStream(bytes.body)
@@ -114,8 +112,8 @@ def unpackZip(zipDest: Path, url: String) = {
       case null => false
       case entry =>
         if (!entry.isDirectory) {
-          val dest = zipDest / RelPath(entry.getName)
-          mkdir(dest / up)
+          val dest = zipDest / os.RelPath(entry.getName)
+          os.makeDir.all(dest / os.up)
           val fileOut = new java.io.FileOutputStream(dest.toString)
           val buffer = new Array[Byte](4096)
           while ( {
@@ -135,7 +133,7 @@ def unpackZip(zipDest: Path, url: String) = {
 }
 
 @main
-def generateCoreSources(p: Path) = {
+def generateCoreSources(p: os.Path) = {
   generateApplyer(p)
   generateTarget(p)
   generateEval(p)
@@ -143,14 +141,14 @@ def generateCoreSources(p: Path) = {
 }
 
 @main
-def generateCoreTestSources(p: Path) = {
+def generateCoreTestSources(p: os.Path) = {
   generateApplicativeTest(p)
   p
 }
 
 
 @main
-def downloadTestRepo(label: String, commit: String, dest: Path) = {
+def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
   unpackZip(dest, s"https://github.com/$label/archive/$commit.zip")
   dest
 }
@@ -164,8 +162,8 @@ object mycopy {
   import java.nio.file
   import java.nio.file.{CopyOption, LinkOption, StandardCopyOption, Files}
   def apply(
-             from: Path,
-             to: Path,
+             from: os.Path,
+             to: os.Path,
              followLinks: Boolean = true,
              replaceExisting: Boolean = false,
              copyAttributes: Boolean = false,
@@ -187,7 +185,7 @@ object mycopy {
       s"Can't copy a directory into itself: $to is inside $from"
     )
 
-    def copyOne(p: Path): file.Path = {
+    def copyOne(p: os.Path): file.Path = {
       val target = to / p.relativeTo(from)
       if (mergeFolders && isDir(p, followLinks) && isDir(target, followLinks)) {
         // nothing to do
@@ -203,8 +201,8 @@ object mycopy {
 
   object into {
     def apply(
-               from: Path,
-               to: Path,
+               from: os.Path,
+               to: os.Path,
                followLinks: Boolean = true,
                replaceExisting: Boolean = false,
                copyAttributes: Boolean = false,

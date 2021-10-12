@@ -1,6 +1,5 @@
 package mill.contrib.bloop
 
-import ammonite.ops._
 import bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
 import mill.api.Loose
@@ -11,14 +10,13 @@ import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import mill.scalalib._
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.ReleaseMode
-import os.pwd
 
 /**
  * Implementation of the Bloop related tasks. Inherited by the
  * `mill.contrib.bloop.Bloop` object, and usable in tests by passing
  * a custom evaluator.
  */
-class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
+class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer =>
   import BloopFormats._
 
   private val bloopDir = wd / ".bloop"
@@ -88,7 +86,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       def config = T { outer.bloopConfig(jm) }
 
       def writeConfig: Target[(String, PathRef)] = T {
-        mkdir(bloopDir)
+        os.makeDir.all(bloopDir)
         val path = bloopConfigPath(jm)
         _root_.bloop.config.write(config(), path.toNIO)
         T.log.info(s"Wrote $path")
@@ -151,7 +149,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
   protected def name(m: JavaModule) = m.millModuleSegments.render
 
-  protected def bloopConfigPath(module: JavaModule): Path =
+  protected def bloopConfigPath(module: JavaModule): os.Path =
     bloopDir / s"${name(module)}.json"
 
   //////////////////////////////////////////////////////////////////////////////
@@ -257,7 +255,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         T.task {
           BloopConfig.Platform.Jvm(
             BloopConfig.JvmConfig(
-              home = T.env.get("JAVA_HOME").map(s => Path(s).toNIO),
+              home = T.env.get("JAVA_HOME").map(s => os.Path(s).toNIO),
               options = {
                 // See https://github.com/scalacenter/bloop/issues/1167
                 val forkArgs = module.forkArgs().toList
@@ -336,7 +334,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
           })
         } yield gathered
           .collect {
-            case (dep, Right(file)) if Path(file).ext == "jar" =>
+            case (dep, Right(file)) if os.Path(file).ext == "jar" =>
               (
                 dep.module.organization,
                 dep.module.name,
@@ -383,7 +381,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
     val ivyDepsClasspath = module.resolvedIvyDeps.map(_.map(_.path).toSeq)
 
-    def transitiveClasspath(m: JavaModule): Task[Seq[Path]] = T.task {
+    def transitiveClasspath(m: JavaModule): Task[Seq[os.Path]] = T.task {
       (m.moduleDeps ++ m.compileModuleDeps).map(classes) ++
         m.unmanagedClasspath().map(_.path) ++
         T.traverse(m.moduleDeps ++ m.compileModuleDeps)(transitiveClasspath)().flatten

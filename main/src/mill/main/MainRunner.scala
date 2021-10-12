@@ -26,7 +26,7 @@ class MainRunner(
     outprintStream: PrintStream,
     errPrintStream: PrintStream,
     stdIn: InputStream,
-    stateCache0: Option[Evaluator.State] = None,
+    stateCache0: Option[EvaluatorState] = None,
     env: Map[String, String],
     setIdle: Boolean => Unit,
     debugLog: Boolean,
@@ -34,7 +34,8 @@ class MainRunner(
     systemProperties: Map[String, String],
     threadCount: Option[Int],
     ringBell: Boolean,
-    wd: os.Path
+    wd: os.Path,
+    initialSystemProperties: Map[String, String]
 ) extends ammonite.MainRunner(
       cliConfig = config,
       outprintStream = outprintStream,
@@ -125,18 +126,20 @@ class MainRunner(
           env = env,
           keepGoing = keepGoing,
           systemProperties = systemProperties,
-          threadCount = threadCount
+          threadCount = threadCount,
+          initialSystemProperties = initialSystemProperties
         )
 
         result match {
           case Res.Success(data) =>
             val (eval, evalWatches, res) = data
 
-            stateCache = Some(Evaluator.State(
+            stateCache = Some(EvaluatorState(
               rootModule = eval.rootModule,
               classLoaderSig = eval.classLoaderSig,
               workerCache = eval.workerCache,
-              watched = interpWatched
+              watched = interpWatched,
+              setSystemProperties = systemProperties.keySet
             ))
             val watched = () => {
               val alreadyStale = evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)
@@ -207,29 +210,30 @@ class MainRunner(
           s"Some(_root_.mill.define.Segments.labels($segsList))"
         } else "None"
 
-      val top = s"""
-        |package ${pkgName.head.encoded}
-        |package ${Util.encodeScalaSourcePath(pkgName.tail)}
-        |$imports
-        |import _root_.mill._
-        |object $wrapName
-        |extends _root_.mill.define.BaseModule(os.Path($literalPath), foreign0 = $foreign)(
-        |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
-        |)
-        |with $wrapName{
-        |  // Stub to make sure Ammonite has something to call after it evaluates a script,
-        |  // even if it does nothing...
-        |  def $$main() = Iterator[String]()
-        |
-        |  // Need to wrap the returned Module in Some(...) to make sure it
-        |  // doesn't get picked up during reflective child-module discovery
-        |  def millSelf = Some(this)
-        |
-        |  implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
-        |}
-        |
-        |sealed trait $wrapName extends _root_.mill.main.MainModule{
-        |""".stripMargin
+      val top =
+        s"""
+           |package ${pkgName.head.encoded}
+           |package ${Util.encodeScalaSourcePath(pkgName.tail)}
+           |$imports
+           |import _root_.mill._
+           |object $wrapName
+           |extends _root_.mill.define.BaseModule(os.Path($literalPath), foreign0 = $foreign)(
+           |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
+           |)
+           |with $wrapName{
+           |  // Stub to make sure Ammonite has something to call after it evaluates a script,
+           |  // even if it does nothing...
+           |  def $$main() = Iterator[String]()
+           |
+           |  // Need to wrap the returned Module in Some(...) to make sure it
+           |  // doesn't get picked up during reflective child-module discovery
+           |  def millSelf = Some(this)
+           |
+           |  implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
+           |}
+           |
+           |sealed trait $wrapName extends _root_.mill.main.MainModule{
+           |""".stripMargin
       val bottom = "\n}"
 
       (top, bottom, 1)

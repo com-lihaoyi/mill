@@ -36,12 +36,12 @@ trait BuildInfo extends ScalaModule {
       os.write(
         outputFile,
         s"""|${buildInfoPackageName.map(packageName => s"package ${packageName}\n").getOrElse("")}
-          |object ${buildInfoObjectName} {
-          |$internalMembers
-          |
-          |  val toMap = Map[String, String](
-          |    $map)
-          |}""".stripMargin
+            |object ${buildInfoObjectName} {
+            |$internalMembers
+            |
+            |  val toMap = Map[String, String](
+            |    $map)
+            |}""".stripMargin
       )
       (Seq(PathRef(outputFile)), PathRef(T.dest))
     } else {
