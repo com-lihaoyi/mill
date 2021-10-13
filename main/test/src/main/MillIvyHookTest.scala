@@ -9,7 +9,7 @@ import coursierapi.{Dependency => CDependency, Module => CModule, ScalaVersion =
 import utest.{TestSuite, Tests, _}
 
 object MillIvyHookTest extends TestSuite {
-  val wd = os.Path("/tmp")
+  val wd = os.root / "tmp"
   def mapDep(d: CDependency): Seq[File] =
     Seq(
       (wd / s"${d.getModule.getOrganization}__${d.getModule.getName}__${d.getVersion}__${d.getModule.getName}-${d.getVersion}.jar").toIO
