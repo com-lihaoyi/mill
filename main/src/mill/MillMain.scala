@@ -148,7 +148,7 @@ object MillMain {
                    |import replApplyHandler.generatedEval._
                    |""".stripMargin
 
-            val pluginsPredefCode: String = config.plugins.map {
+            val importsPredefCode: String = config.imports.map {
               _.split("[:]", 2) match {
                 case Array("ivy", dep) =>
                   s"""import $$ivy.`${dep}`"""
@@ -159,7 +159,7 @@ object MillMain {
             val ammConfig = ammonite.main.Config(
               core = config.ammoniteCore,
               predef = ammonite.main.Config.Predef(
-                predefCode = Seq(predefCode, pluginsPredefCode).filter(_.nonEmpty).mkString("\n"),
+                predefCode = Seq(predefCode, importsPredefCode).filter(_.nonEmpty).mkString("\n"),
                 noHomePredef = Flag()
               ),
               repl = ammonite.main.Config.Repl(

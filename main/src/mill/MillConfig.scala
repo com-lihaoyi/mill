@@ -68,10 +68,10 @@ case class MillConfig(
     )
     threadCountRaw: Option[Int],
     @arg(
-      name = "plugin",
-      doc = """Dependency of a mill plugin to load"""
+      name = "import",
+      doc = """Additional ivy dependencies to load into mill, e.g. plugins."""
     )
-    plugins: Seq[String],
+    imports: Seq[String],
     @arg(
       name = "rest",
       doc =
