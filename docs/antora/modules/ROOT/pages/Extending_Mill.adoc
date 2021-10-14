@@ -201,6 +201,15 @@ This is typical required for Mill contrib modules, which are developed in the Mi
 ----
 import $ivy:`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`
 ----
+
+There is the even more convenient option to leave the version completely empty.
+Mill will substitute it with its current version.
+But don't forget to provide the trailing colon!
+
+.Example: Use `mill-contrib-bloop` plugin matching the current Mill version
+----
+import $ivy:`com.lihaoyi:mill-contrib-bloop:`
+----
 --
 
 `$MILL_BIN_PLATFORM` ::

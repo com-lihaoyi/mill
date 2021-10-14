@@ -7,110 +7,9 @@ import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 import io.github.retronym.java9rtexport.Export
-import mainargs.{Flag, Leftover, ParserForClass, arg}
+import mainargs.Flag
 import mill.api.DummyInputStream
 import mill.main.EvaluatorState
-
-case class MillConfig(
-    ammoniteCore: ammonite.main.Config.Core,
-    @arg(
-      short = 'h',
-      doc =
-        "The home directory of the REPL; where it looks for config and caches"
-    )
-    home: os.Path = mill.api.Ctx.defaultHome,
-    @arg(
-      doc =
-        """Run Mill in interactive mode and start a build REPL. In this mode, no
-    mill server will be used. Must be the first argument."""
-    )
-    repl: Flag,
-    @arg(
-      name = "no-server",
-      doc =
-        """Run Mill in interactive mode, suitable for opening REPLs and taking user
-      input. In this mode, no mill server will be used. Must be the first argument."""
-    )
-    noServer: Flag,
-    @arg(
-      short = 'i',
-      doc =
-        """Run Mill in interactive mode, suitable for opening REPLs and taking user
-      input. In this mode, no mill server will be used. Must be the first argument."""
-    )
-    interactive: Flag,
-    @arg(name = "version", short = 'v', doc = "Show mill version and exit.")
-    showVersion: Flag,
-    @arg(
-      name = "bell",
-      short = 'b',
-      doc =
-        "Ring the bell once if the run completes successfully, twice if it fails."
-    )
-    ringBell: Flag,
-    @arg(
-      name = "disable-ticker",
-      doc =
-        "Disable ticker log (e.g. short-lived prints of stages and progress bars)"
-    )
-    disableTicker: Flag,
-    @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
-    debugLog: Flag,
-    @arg(
-      name = "keep-going",
-      short = 'k',
-      doc = "Continue build, even after build failures"
-    )
-    keepGoing: Flag,
-    @arg(
-      name = "define",
-      short = 'D',
-      doc = "Define (or overwrite) a system property"
-    )
-    extraSystemProperties: Map[String, String],
-    @arg(
-      name = "jobs",
-      short = 'j',
-      doc =
-        """Allow processing N targets in parallel. Use 1 to disable parallel and 0 to
-      use as much threads as available processors."""
-    )
-    threadCountRaw: Option[Int],
-    @arg(
-      name = "rest",
-      doc =
-        """The name of the targets you want to build, followed by any parameters
-      you wish to pass to those targets."""
-    )
-    leftoverArgs: Leftover[String]
-)
-
-object MillConfigParser {
-  import ammonite.repl.tools.Util.PathRead
-
-  val customName = s"Mill Build Tool, version ${BuildInfo.millVersion}"
-  val customDoc = "usage: mill [options] [[target [target-options]] [+ [target ...]]]"
-
-  private[this] lazy val parser: ParserForClass[MillConfig] = mainargs.ParserForClass[MillConfig]
-
-  lazy val usageText = parser.helpText(customName = customName, customDoc = customDoc)
-
-  def parse(args: Array[String]): Either[String, MillConfig] = {
-    parser.constructEither(
-      args,
-      allowRepeats = true,
-      autoPrintHelpAndExit = None,
-      customName = customName,
-      customDoc = customDoc
-    )
-      .map { config =>
-        config.copy(
-          ammoniteCore = config.ammoniteCore.copy(home = config.home)
-        )
-      }
-  }
-
-}
 
 object MillMain {
 
@@ -221,39 +120,50 @@ object MillMain {
               case Some(0) => None
               case Some(n) => Some(n)
             }
+
+            val predefCode =
+              if (!useRepl) ""
+              else
+                s"""import $$file.build, build._
+                   |implicit val replApplyHandler = mill.main.ReplApplyHandler(
+                   |  os.Path(${pprint
+                  .apply(
+                    config.ammoniteCore.home.toIO.getCanonicalPath
+                      .replace("$", "$$")
+                  )
+                  .plainText}),
+                   |  ${config.disableTicker.value},
+                   |  interp.colors(),
+                   |  repl.pprinter(),
+                   |  build.millSelf.get,
+                   |  build.millDiscover,
+                   |  debugLog = ${config.debugLog.value},
+                   |  keepGoing = ${config.keepGoing.value},
+                   |  systemProperties = ${systemProps.toSeq
+                  .map(p => s""""${p._1}" -> "${p._2}"""")
+                  .mkString("Map[String,String](", ",", ")")},
+                   |  threadCount = ${threadCount}
+                   |)
+                   |repl.pprinter() = replApplyHandler.pprinter
+                   |import replApplyHandler.generatedEval._
+                   |""".stripMargin
+
+            val importsPredefCode: String = config.imports.map {
+              _.split("[:]", 2) match {
+                case Array("ivy", dep) =>
+                  s"""import $$ivy.`${dep}`"""
+                case x => throw new Exception(s"Unsupported plugin declaration: '$x'.")
+              }
+            }.mkString("\n")
+
             val ammConfig = ammonite.main.Config(
               core = config.ammoniteCore,
               predef = ammonite.main.Config.Predef(
-                predefCode =
-                  if (!useRepl) ""
-                  else
-                    s"""import $$file.build, build._
-                       |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                       |  os.Path(${pprint
-                      .apply(
-                        config.ammoniteCore.home.toIO.getCanonicalPath
-                          .replace("$", "$$")
-                      )
-                      .plainText}),
-                       |  ${config.disableTicker.value},
-                       |  interp.colors(),
-                       |  repl.pprinter(),
-                       |  build.millSelf.get,
-                       |  build.millDiscover,
-                       |  debugLog = ${config.debugLog.value},
-                       |  keepGoing = ${config.keepGoing.value},
-                       |  systemProperties = ${systemProps.toSeq
-                      .map(p => s""""${p._1}" -> "${p._2}"""")
-                      .mkString("Map[String,String](", ",", ")")},
-                       |  threadCount = ${threadCount}
-                       |)
-                       |repl.pprinter() = replApplyHandler.pprinter
-                       |import replApplyHandler.generatedEval._
-                       |""".stripMargin,
+                predefCode = Seq(predefCode, importsPredefCode).filter(_.nonEmpty).mkString("\n"),
                 noHomePredef = Flag()
               ),
               repl = ammonite.main.Config.Repl(
-                banner = "",
+                banner = MillConfigParser.customName,
                 noRemoteLogging = Flag(),
                 classBased = Flag()
               )
