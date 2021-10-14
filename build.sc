@@ -73,6 +73,11 @@ object Deps {
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.9"
   val coursier = ivy"io.get-coursier::coursier:2.0.16-169-g194ebc55c"
+  val coursierReducedDeps = coursier.exclude(
+    "com.lihaoyi" -> "utest",
+    "org.codehaus.plexus" -> "*"
+  )
+
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
@@ -222,7 +227,7 @@ object main extends MillModule {
     override def ivyDeps = Agg(
       Deps.ammoniteExcludingTrees,
       Deps.scalametaTrees,
-      Deps.coursier,
+      Deps.coursierReducedDeps,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
