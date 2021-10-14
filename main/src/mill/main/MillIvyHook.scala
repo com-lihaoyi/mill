@@ -17,6 +17,8 @@ import mill.BuildInfo
  *
  * - supports the format `org:::name::version` for mill plugins;
  *   which is equivalent to `org:::name_mill$MILL_BIN_PLATFORM:version`
+ *
+ * - replaces the empty version for scala dependencies as $MILL_VERSION
  */
 object MillIvyHook extends BaseIvy(plugin = false) {
   override def resolve(
@@ -24,8 +26,10 @@ object MillIvyHook extends BaseIvy(plugin = false) {
       signatures: Seq[String]
   ): Either[String, (Seq[coursierapi.Dependency], Seq[File])] = {
 
-    // replace platform notation
+    // replace platform notation and empty version
     val millSigs: Seq[String] = for (signature <- signatures) yield {
+//      if (signature.endsWith(":") && signature.count(_ == ":") == 4) signature + "$MILL_VERSION"
+//      else
       signature.split("[:]") match {
         case Array(org, "", pname, "", version)
             if org.length > 0 && pname.length > 0 && version.length > 0 =>
@@ -33,6 +37,8 @@ object MillIvyHook extends BaseIvy(plugin = false) {
         case Array(org, "", "", pname, "", version)
             if org.length > 0 && pname.length > 0 && version.length > 0 =>
           s"${org}:::${pname}_mill$$MILL_BIN_PLATFORM:${version}"
+        case Array(org, "", name) if org.length > 0 && name.length > 0 && signature.endsWith(":") =>
+          s"${org}::${name}:$$MILL_VERSION"
         case _ => signature
       }
     }
