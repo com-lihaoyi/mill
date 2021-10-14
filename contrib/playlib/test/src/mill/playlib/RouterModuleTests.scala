@@ -29,7 +29,8 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
   }
 
   val resourcePath: os.Path = os.pwd / "contrib" / "playlib" / "test" / "resources" / "hello-world"
-  val invalidResourcePath: os.Path = os.pwd / "contrib" / "playlib" / "test" / "resources" / "invalid"
+  val invalidResourcePath: os.Path =
+    os.pwd / "contrib" / "playlib" / "test" / "resources" / "invalid"
   val invalidSubResourcePath: os.Path =
     os.pwd / "contrib" / "playlib" / "test" / "resources" / "invalidsub"
 

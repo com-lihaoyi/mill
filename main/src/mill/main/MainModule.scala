@@ -202,7 +202,10 @@ trait MainModule extends mill.Module {
    * Runs multiple tasks in a single call.
    * For compatibility reasons, the tasks are executed single-threaded.
    */
-  @deprecated("Use the + separator, wildcards, or brace-expansion to specify multiple targets.", "mill after 0.10.0-M3")
+  @deprecated(
+    "Use the + separator, wildcards, or brace-expansion to specify multiple targets.",
+    "mill after 0.10.0-M3"
+  )
   def all(evaluator: Evaluator, targets: String*) = mill.T.command {
     MainModule.evaluateTasks(
       evaluator =
@@ -218,7 +221,10 @@ trait MainModule extends mill.Module {
   /**
    * Runs multiple tasks in a single call in parallel.
    */
-  @deprecated("Use the + separator, wildcards, or brace-expansion to specify multiple targets.", "mill after 0.10.0-M3")
+  @deprecated(
+    "Use the + separator, wildcards, or brace-expansion to specify multiple targets.",
+    "mill after 0.10.0-M3"
+  )
   def par(evaluator: Evaluator, targets: String*) = T.command {
     MainModule.evaluateTasks(
       evaluator = evaluator,
