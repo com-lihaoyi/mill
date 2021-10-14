@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M3-33-959629</span>
+    <span class="version">0.10.0-M3-42-5de074</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M3-33-959629</a>
+          <a href="index.html">0.10.0-M3-42-5de074</a>
         </li>
         <li class="version">
           <a href="0.10.0-M3/index.html">0.10.0-M3</a>
@@ -173,9 +173,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M3-33-959629</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M3-42-5de074</button>
   <div class="version-menu">
-    <a class="version is-current" href="Extending_Mill.html">0.10.0-M3-33-959629</a>
+    <a class="version is-current" href="Extending_Mill.html">0.10.0-M3-42-5de074</a>
     <a class="version" href="0.10.0-M3/Extending_Mill.html">0.10.0-M3</a>
     <a class="version" href="0.10.0-M2/Extending_Mill.html">0.10.0-M2</a>
     <a class="version" href="0.9.9/Extending_Mill.html">0.9.9</a>
@@ -452,6 +452,17 @@ This is typical required for Mill contrib modules, which are developed in the Mi
 <div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
 <div class="content">
 <pre>import $ivy:`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There is the even more convenient option to leave the version completely empty.
+Mill will substitute it with its current version.
+But don’t forget to provide the trailing colon!</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
+<div class="content">
+<pre>import $ivy:`com.lihaoyi:mill-contrib-bloop:`</pre>
 </div>
 </div>
 </div>
