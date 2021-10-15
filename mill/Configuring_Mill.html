@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M3-50-220443</span>
+    <span class="version">0.10.0-M3-51-bccb1b</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M3-50-220443</a>
+          <a href="index.html">0.10.0-M3-51-bccb1b</a>
         </li>
         <li class="version">
           <a href="0.10.0-M3/index.html">0.10.0-M3</a>
@@ -173,9 +173,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M3-50-220443</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M3-51-bccb1b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Configuring_Mill.html">0.10.0-M3-50-220443</a>
+    <a class="version is-current" href="Configuring_Mill.html">0.10.0-M3-51-bccb1b</a>
     <a class="version" href="0.10.0-M3/Configuring_Mill.html">0.10.0-M3</a>
     <a class="version" href="0.10.0-M2/Configuring_Mill.html">0.10.0-M2</a>
     <a class="version" href="0.9.9/Configuring_Mill.html">0.9.9</a>
@@ -932,6 +932,53 @@ object foo extends ScalaModule {
 <p>You can also override <code>unmanagedClasspath</code> to point it at jars that you want to
 download from arbitrary URLs. Note that targets like <code>unmanagedClasspath</code> are
 cached, so your jar is downloaded only once and re-used indefinitely after that.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_the_ammonite_repl_scala_console"><a class="anchor" href="#_using_the_ammonite_repl_scala_console"></a>Using the Ammonite Repl / Scala console</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All <code>ScalaModule</code>s have a <code>console</code> and a <code>repl</code> target, to start a Scala console or an Ammonite Repl.</p>
+</div>
+<div class="paragraph">
+<p>To use the latter, you can (and sometimes need to) customize the Ammonite version to work with your selected Scala version.
+The default Ammonite version is the one, which is used by Mill internally (Mill’s <code>build.sc</code> is an Ammonite script, after all).
+But depending on the Scala version you are using, there is probably no matching Ammonite release available.
+In order to start the repl, you have to specify a different available Ammonite version.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Overriding <code>ammoniteVersion</code> to select a release compatible to the <code>scalaVersion</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._. scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.6&quot;
+  def ammoniteVersion = &quot;2.4.0&quot;
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>Why is Ammonite tied to the exact Scala version?</em></p>
+</div>
+<div class="paragraph">
+<p>This is because Ammonite depends on the Scala compiler.
+In contrast to the Scala library, compiler releases do not guarantee any binary compatibility between releases.
+As a consequence, Ammonite needs full Scala version specific releases.</p>
+</div>
+<div class="paragraph">
+<p>The older your used Mill version or the newer the Scala version you want to use, the higher is the risk that the default Ammonite version will not match.</p>
+</div>
+</td>
+</tr>
+</tbody></table>
 </div>
 </div>
 </div>
