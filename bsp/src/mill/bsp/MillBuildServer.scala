@@ -17,8 +17,11 @@ import mill.util.DummyLogger
 import os.Path
 import scala.jdk.CollectionConverters._
 
-class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: String)
-    extends ExternalModule
+class MillBuildServer(
+    evaluator: Evaluator,
+    bspVersion: String,
+    serverVersion: String
+) extends ExternalModule
     with BuildServer
     with ScalaBuildServer
     with JavaBuildServer {
@@ -43,6 +46,8 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
     capabilities.setRunProvider(new RunProvider(List("java", "scala").asJava))
     capabilities.setTestProvider(new TestProvider(List("java", "scala").asJava))
     capabilities.setDependencySourcesProvider(true)
+    // TODO: implement
+    capabilities.setDependencyModulesProvider(false)
     capabilities.setInverseSourcesProvider(true)
     capabilities.setResourcesProvider(true)
     capabilities.setBuildTargetChangedProvider(
@@ -131,6 +136,9 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       new InverseSourcesResult(targets.asJava)
     }
 
+  /**
+   * External dependencies (sources or source jars).
+   */
   override def buildTargetDependencySources(
       dependencySourcesParams: DependencySourcesParams
   ): CompletableFuture[DependencySourcesResult] =
@@ -148,6 +156,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
               val sources = evaluateInformativeTask(
                 evaluator,
                 module.resolveDeps(
+                  // Same as resolvedIvyDeps but for sources
                   T.task(module.transitiveCompileIvyDeps() ++ module.transitiveIvyDeps()),
                   sources = true
                 ),
@@ -563,4 +572,15 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
     }
     future
   }
+
+  /**
+   * External dependencies per module (e.g. ivy deps)
+   */
+  override def buildTargetDependencyModules(params: DependencyModulesParams)
+      : CompletableFuture[DependencyModulesResult] =
+    handleExceptions {
+      // TODO: implement
+      val items = List.empty[DependencyModulesItem]
+      new DependencyModulesResult(items.asJava)
+    }
 }
