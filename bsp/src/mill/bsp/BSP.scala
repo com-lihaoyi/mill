@@ -72,7 +72,7 @@ object BSP extends ExternalModule {
           "false",
           s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
         ),
-        millVersion = Util.millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion),
+        millVersion = BuildInfo.millVersion,
         bspVersion = bspProtocolVersion,
         languages = languages
       )

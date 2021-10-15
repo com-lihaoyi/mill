@@ -2,7 +2,7 @@ package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
 
-import mill.T
+import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, NamedTask, Task}
 import mill.eval.Evaluator
@@ -69,8 +69,8 @@ trait MainModule extends mill.Module {
   /**
    * Show the mill version.
    */
-  def version() = mill.T.command {
-    val res = System.getProperty("MILL_VERSION")
+  def version(): Command[String] = mill.T.command {
+    val res = BuildInfo.millVersion
     println(res)
     res
   }
@@ -202,7 +202,10 @@ trait MainModule extends mill.Module {
    * Runs multiple tasks in a single call.
    * For compatibility reasons, the tasks are executed single-threaded.
    */
-  @deprecated("Use the + separator, wildcards, or brace-expansion to specify multiple targets.", "mill after 0.10.0-M3")
+  @deprecated(
+    "Use the + separator, wildcards, or brace-expansion to specify multiple targets.",
+    "mill after 0.10.0-M3"
+  )
   def all(evaluator: Evaluator, targets: String*) = mill.T.command {
     MainModule.evaluateTasks(
       evaluator =
@@ -218,7 +221,10 @@ trait MainModule extends mill.Module {
   /**
    * Runs multiple tasks in a single call in parallel.
    */
-  @deprecated("Use the + separator, wildcards, or brace-expansion to specify multiple targets.", "mill after 0.10.0-M3")
+  @deprecated(
+    "Use the + separator, wildcards, or brace-expansion to specify multiple targets.",
+    "mill after 0.10.0-M3"
+  )
   def par(evaluator: Evaluator, targets: String*) = T.command {
     MainModule.evaluateTasks(
       evaluator = evaluator,

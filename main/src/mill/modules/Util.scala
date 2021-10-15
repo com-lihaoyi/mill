@@ -58,6 +58,10 @@ object Util {
     IO.unpackZip(downloaded.path, dest)
   }
 
+  /**
+   * Deprecated helper method, intended to allow runtime resolution and in-development-tree testings of mill plugins possible.
+   * This design has issues and will probably replaced.
+   */
   def millProjectModule(
       key: String,
       artifact: String,
@@ -73,17 +77,17 @@ object Util {
         )
       case None =>
         mill.modules.Jvm.resolveDependencies(
-          repositories,
-          Seq(
+          repositories = repositories,
+          deps = Seq(
             coursier.Dependency(
               coursier.Module(
                 coursier.Organization("com.lihaoyi"),
                 coursier.ModuleName(artifact + artifactSuffix)
               ),
-              millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion)
+              BuildInfo.millVersion
             )
           ),
-          Nil
+          force = Nil
         ).map(_.filter(x => resolveFilter(x.path)))
     }
   }
