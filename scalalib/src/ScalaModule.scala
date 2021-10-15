@@ -347,7 +347,9 @@ trait ScalaModule extends JavaModule { outer =>
    * Ammonite's version used in the `repl` command is by default
    * set to the one Mill is built against.
    */
-  def ammoniteVersion: T[String] = T(Versions.ammonite)
+  def ammoniteVersion: T[String] = T {
+    Versions.ammonite
+  }
 
   /**
    * Dependencies that are necessary to run the Ammonite Scala REPL
@@ -361,14 +363,23 @@ trait ScalaModule extends JavaModule { outer =>
 
   def resolvedAmmoniteReplIvyDeps = T {
     resolveDeps(T.task {
+      val scaVersion = scalaVersion()
+      val ammVersion = ammoniteVersion()
+      if (scaVersion != BuildInfo.scalaVersion && ammVersion == Versions.ammonite) {
+        T.log.info(
+          s"""Resolving Ammonite Repl ${ammVersion} for Scala ${scaVersion} ...
+             |If you encounter dependency resolution failures, please review/override `def ammoniteVersion` to select a compatible release.""".stripMargin
+        )
+      }
       runIvyDeps() ++ transitiveIvyDeps() ++
-        Agg(ivy"com.lihaoyi:::ammonite:${ammoniteVersion()}")
+        Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}")
     })()
   }
 
   /**
    * Opens up an Ammonite Scala REPL with your module and all dependencies present,
-   * for you to test and operate your code interactively
+   * for you to test and operate your code interactively.
+   * Use [[ammoniteVersion]] to customize the Ammonite version to use.
    */
   def repl(replOptions: String*): Command[Unit] = T.command {
     if (T.log.inStream == DummyInputStream) {
