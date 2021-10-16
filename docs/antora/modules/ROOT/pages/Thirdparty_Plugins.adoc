@@ -230,6 +230,14 @@ Effectively, at execution time, this line gets replaced by the content of `plugi
 
 Please always refer to the https://github.com/lefou/mill-integrationtest[official plugin documentation site] for complete and up-to-date information.
 
+== JaCoCo - Code Coverage
+
+Mill plugin to collect test coverage data with https://www.jacoco.org/jacoco/[JaCoCo] and generate reports.
+
+Plugin home: https://github.com/lefou/mill-jacoco
+
+
+
 == JBake
 
 Create static sites/blogs with JBake.
