@@ -1,6 +1,6 @@
 package mill.scalalib.bsp
 
-import mill.define.{BaseModule, Segments}
+import mill.define.{BaseModule, Segments, Task}
 import mill.scalalib.JavaModule
 import mill.{Module, T}
 import os.Path
@@ -12,12 +12,14 @@ trait BspModule extends Module {
     displayName = Some(millModuleSegments.render),
     baseDirectory = Some(millSourcePath),
     tags = Seq(),
-    languageIds = Seq(Tag.Library),
+    languageIds = Seq(Tag.Library, Tag.Application),
     canCompile = false,
     canTest = false,
     canRun = false,
     canDebug = false,
   )
+
+  def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task { None }
 
 }
 
@@ -47,7 +49,7 @@ case class BspBuildTarget(
     canTest: Boolean,
     canRun: Boolean,
     canDebug: Boolean,
-    data: (Option[String], Option[Any]) = (None, None)
+//    data: (Option[String], Option[Any]) = (None, None)
 )
 
 case class BspBuildTargetId(id: BspUri)
@@ -67,6 +69,7 @@ class MillBuildTarget(rootModule: BaseModule)(implicit outerCtx0: mill.define.Ct
     canRun = false,
     canCompile = false,
     canTest = false,
-    canDebug = false
+    canDebug = false,
+    tags = Seq(BspModule.Tag.Library, BspModule.Tag.Application)
   )
 }

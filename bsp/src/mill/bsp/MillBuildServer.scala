@@ -115,11 +115,17 @@ class MillBuildServer(
         clientCaps.contains
       )
       val runLangs =
-        moduleBspInfo.filter(_.canRun).flatMap(_.languageIds).distinct.filter(clientCaps.contains)
+        moduleBspInfo.filter(_.canRun).flatMap(
+          _.languageIds
+        ).distinct // .filter(clientCaps.contains)
       val testLangs =
-        moduleBspInfo.filter(_.canTest).flatMap(_.languageIds).distinct.filter(clientCaps.contains)
+        moduleBspInfo.filter(_.canTest).flatMap(
+          _.languageIds
+        ).distinct //.filter(clientCaps.contains)
       val debugLangs =
-        moduleBspInfo.filter(_.canDebug).flatMap(_.languageIds).distinct.filter(clientCaps.contains)
+        moduleBspInfo.filter(_.canDebug).flatMap(
+          _.languageIds
+        ).distinct //.filter(clientCaps.contains)
 
       val capabilities = new BuildServerCapabilities
       capabilities.setCompileProvider(new CompileProvider(compileLangs.asJava))
@@ -157,11 +163,38 @@ class MillBuildServer(
   }
 
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
-    completable("workspaceBuildTargets") {
-      // use bsp module
-      log.debug(s"Found ${bspModulesById.size} BspModules")
-      val targets = bspModulesById.values.map(_.buildTarget)
-      new WorkspaceBuildTargetsResult(targets.toList.asJava)
+    completableTasks(
+      "workspaceBuildTargets",
+      targetIds = bspModulesById.keySet.toSeq,
+      agg = (items: Seq[BuildTarget]) => new WorkspaceBuildTargetsResult(items.asJava)
+    ) {
+      case (id, m) =>
+        T.task {
+          val s = m.bspBuildTarget
+          val deps = m match {
+            case jm: JavaModule =>
+              jm.moduleDeps.collect {
+                case bm: BspModule => bspIdByModule(bm)
+              }
+            case _ => Seq()
+          }
+          val data = m.bspBuildTargetData()
+
+          new BuildTarget(
+            id,
+            s.tags.asJava,
+            s.languageIds.asJava,
+            deps.asJava,
+            new BuildTargetCapabilities(s.canCompile, s.canTest, s.canRun, s.canDebug)
+          ).tap { t =>
+            s.displayName.foreach(t.setDisplayName)
+            s.baseDirectory.foreach(p => t.setBaseDirectory(p.toNIO.toUri.toString))
+            data.foreach { d =>
+              t.setDataKind(d._1)
+              t.setData(d._2)
+            }
+          }
+        }
     }
 
   override def workspaceReload(): CompletableFuture[Object] =
@@ -694,28 +727,28 @@ class MillBuildServer(
 
     def buildTargetId: BuildTargetIdentifier = bspIdByModule(m)
 
-    def buildTarget: BuildTarget = {
-      val s = m.bspBuildTarget
-      val deps = m match {
-        case jm: JavaModule =>
-          jm.moduleDeps.collect {
-            case bm: BspModule => bm.buildTargetId
-          }
-        case _ => Seq()
-      }
-      new BuildTarget(
-        buildTargetId,
-        s.tags.asJava,
-        s.languageIds.asJava,
-        deps.asJava,
-        new BuildTargetCapabilities(s.canCompile, s.canTest, s.canRun, s.canDebug)
-      ).tap { t =>
-        s.displayName.foreach(t.setDisplayName)
-        s.baseDirectory.foreach(p => t.setBaseDirectory(p.toNIO.toUri.toString))
-        s.data._1.foreach(t.setDataKind)
-        s.data._2.foreach(t.setData)
-      }
-    }
+//    def buildTarget: BuildTarget = {
+//      val s = m.bspBuildTarget
+//      val deps = m match {
+//        case jm: JavaModule =>
+//          jm.moduleDeps.collect {
+//            case bm: BspModule => bm.buildTargetId
+//          }
+//        case _ => Seq()
+//      }
+//      new BuildTarget(
+//        buildTargetId,
+//        s.tags.asJava,
+//        s.languageIds.asJava,
+//        deps.asJava,
+//        new BuildTargetCapabilities(s.canCompile, s.canTest, s.canRun, s.canDebug)
+//      ).tap { t =>
+//        s.displayName.foreach(t.setDisplayName)
+//        s.baseDirectory.foreach(p => t.setBaseDirectory(p.toNIO.toUri.toString))
+////        s.data._1.foreach(t.setDataKind)
+////        s.data._2.foreach(t.setData)
+//      }
+//    }
 
   }
 

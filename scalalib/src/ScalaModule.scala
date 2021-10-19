@@ -7,10 +7,13 @@ import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.api.{DummyInputStream, Loose, PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import mill.scalalib.api.Util.{isDotty, isDottyOrScala3, isScala3, isScala3Milestone}
+import mill.scalalib.api.Util.{isDotty, isDottyOrScala3, isScala3, isScala3Milestone, scalaBinaryVersion}
 import Lib._
+import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.Loose.Agg
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+
+import scala.jdk.CollectionConverters._
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -439,5 +442,17 @@ trait ScalaModule extends JavaModule { outer =>
 //      case m: BspModule => m.bspBuildTarget.id
 //    }
   )
+
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+    Some((BuildTargetDataKind.SCALA, new ScalaBuildTarget(
+      scalaOrganization(),
+      scalaVersion(),
+      scalaBinaryVersion(scalaVersion()),
+      ScalaPlatform.JVM,
+      scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
+    )))
+  }
+
+
 
 }
