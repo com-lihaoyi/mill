@@ -1,16 +1,14 @@
 package mill.bsp
 
-import ammonite.util.Colors
 import ch.epfl.scala.bsp4j.BuildClient
 
 import java.io.PrintWriter
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
-import mill.{BuildInfo, T}
+import mill.{BuildInfo, MillMain, T}
 import mill.define.{Command, Discover, ExternalModule}
-import mill.api.{DummyInputStream, Result}
+import mill.api.Result
 import mill.eval.Evaluator
-import mill.util.{ColorLogger, FileLogger, MultiLogger, PrintLogger}
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import scala.concurrent.CancellationException
@@ -73,7 +71,7 @@ object BSP extends ExternalModule {
         name = "mill-bsp",
         argv = Seq(
           millPath,
-          "-i",
+          "--bsp",
           "--disable-ticker",
           "--color",
           "false",
@@ -139,8 +137,8 @@ object BSP extends ExternalModule {
       val out = logger.outputStream
       try {
         val launcher = new Launcher.Builder[BuildClient]()
-          .setOutput(out)
-          .setInput(in)
+          .setOutput(MillMain.initialSystemStreams.out)
+          .setInput(MillMain.initialSystemStreams.in)
           .setLocalService(millServer)
           .setRemoteInterface(classOf[BuildClient])
           .traceMessages(new PrintWriter(

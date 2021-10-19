@@ -1,11 +1,9 @@
 package mill
 
-import java.io.{InputStream, PrintStream}
+import java.io.{FileOutputStream, InputStream, PrintStream}
 import java.util.Locale
-
 import scala.jdk.CollectionConverters._
 import scala.util.Properties
-
 import io.github.retronym.java9rtexport.Export
 import mainargs.Flag
 import mill.api.DummyInputStream
@@ -13,23 +11,43 @@ import mill.main.EvaluatorState
 
 object MillMain {
 
+  private[mill] class SystemStreams(val out: PrintStream, val err: PrintStream, val in: InputStream)
+  private[mill] val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
+
   def main(args: Array[String]): Unit = {
+    // setup streams
+    val openStreams = if(args.headOption == Option("--bsp")) {
+      val stderrFile = os.pwd / ".bsp" / "mill-bsp.stderr"
+      os.makeDir.all(stderrFile / os.up)
+      val err = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
+      System.setErr(err)
+      System.setOut(err)
+      err.println(s"Mill in BSP mode, version ${BuildInfo.millVersion}, ${new java.util.Date()}")
+      Seq(err)
+    } else Seq()
 
     if (Properties.isWin && System.console() != null)
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
-    val (result, _) = main0(
-      args,
-      None,
-      ammonite.Main.isInteractive(),
-      System.in,
-      System.out,
-      System.err,
-      System.getenv().asScala.toMap,
-      b => (),
-      systemProperties = Map(),
-      initialSystemProperties = sys.props.toMap
-    )
+    val (result, _) = try {
+      main0(
+        args,
+        None,
+        ammonite.Main.isInteractive(),
+        System.in,
+        System.out,
+        System.err,
+        System.getenv().asScala.toMap,
+        b => (),
+        systemProperties = Map(),
+        initialSystemProperties = sys.props.toMap
+      )
+    } finally {
+      System.setOut(initialSystemStreams.out)
+      System.setErr(initialSystemStreams.err)
+      System.setIn(initialSystemStreams.in)
+      openStreams.foreach(_.close())
+    }
     System.exit(if (result) 0 else 1)
   }
 
@@ -72,21 +90,22 @@ object MillMain {
         (true, None)
       case Right(config)
           if (
-            config.interactive.value || config.repl.value || config.noServer.value
+            config.interactive.value || config.repl.value || config.noServer.value || config.bsp.value
           ) && stdin == DummyInputStream =>
         // because we have stdin as dummy, we assume we were already started in server process
         stderr.println(
-          "-i/--interactive/--repl/--no-server must be passed in as the first argument"
+          "-i/--interactive/--repl/--no-server/--bsp must be passed in as the first argument"
         )
         (false, None)
       case Right(config)
           if Seq(
             config.interactive.value,
             config.repl.value,
-            config.noServer.value
+            config.noServer.value,
+            config.bsp.value
           ).count(identity) > 1 =>
         stderr.println(
-          "Only one of -i/--interactive, --repl, or --no-server may be given"
+          "Only one of -i/--interactive, --repl, --no-server or --bsp may be given"
         )
         (false, None)
       case Right(config) =>

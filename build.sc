@@ -778,7 +778,7 @@ def launcherScript(shellJvmArgs: Seq[String],
          |    COURSIER_CACHE=.coursier ${java(millMainClass, true)}
          |else
          |    case "$$1" in
-         |      -i | --interactive | --repl | --no-server )
+         |      -i | --interactive | --repl | --no-server | --bsp )
          |        init_mill_jvm_opts
          |        ${java(millMainClass, true)}
          |        ;;

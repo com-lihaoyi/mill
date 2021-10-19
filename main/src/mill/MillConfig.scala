@@ -24,6 +24,10 @@ case class MillConfig(
     )
     noServer: Flag,
     @arg(
+      doc = """Enable BSP server mode."""
+    )
+    bsp: Flag,
+    @arg(
       short = 'i',
       doc =
         """Run Mill in interactive mode, suitable for opening REPLs and taking user
