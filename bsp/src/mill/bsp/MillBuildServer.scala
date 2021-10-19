@@ -12,11 +12,14 @@ import mill.define.Segment.Label
 import mill.define.{BaseModule, Discover, ExternalModule, Task}
 import mill.eval.Evaluator
 import mill.main.{EvaluatorScopt, MainModule}
+import mill.modules.Jvm
 import mill.scalalib._
+import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTargetId, BspModule, BspUri, MillBuildTarget}
 import mill.util.{ColorLogger, DummyLogger, PrintLogger}
 import os.Path
 
+import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.chaining.scalaUtilChainingOps
@@ -52,6 +55,13 @@ class MillBuildServer(
     def debug(msg: String) = ctx.log.errorStream.println(msg)
   }
 
+  object sanitizeUri {
+    def apply(uri: String): String =
+      if (uri.endsWith("/")) apply(uri.substring(0, uri.length - 1)) else uri
+    def apply(uri: os.Path): String = apply(uri.toNIO.toUri.toString)
+    def apply(uri: PathRef): String = apply(uri.path)
+  }
+
   private[this] object internal {
     def clear(): Unit = synchronized {
       idToModule = None
@@ -64,12 +74,11 @@ class MillBuildServer(
             evaluator.rootModule.millInternal.modules ++ Seq(millBuildTarget)
           val map = modules.collect {
             case m: MillBuildTarget =>
-              val uri = m.millSourcePath.toNIO.toUri.toString
+              val uri = sanitizeUri(m.millSourcePath)
               val id = new BuildTargetIdentifier(uri)
               (id, m)
             case m: BspModule =>
-              val uri =
-                (millBuildTarget.millSourcePath / m.millModuleSegments.parts).toNIO.toUri.toString
+              val uri = sanitizeUri(millBuildTarget.millSourcePath / m.millModuleSegments.parts)
               val id = new BuildTargetIdentifier(uri)
               (id, m)
           }.toMap
@@ -101,7 +110,7 @@ class MillBuildServer(
     completable(s"buildInitialize ${request}", checkInitialized = false) {
       // TODO: scan BspModules and infer their capabilities
 
-      if (request.getRootUri != millBuildTarget.buildTargetId.getUri) {
+      if (request.getRootUri != bspIdByModule(millBuildTarget).getUri) {
         log.debug(
           s"Workspace root differs from mill build root! Requested root: ${request.getRootUri} Mill root: ${millBuildTarget.buildTargetId.getUri}"
         )
@@ -188,7 +197,7 @@ class MillBuildServer(
             new BuildTargetCapabilities(s.canCompile, s.canTest, s.canRun, s.canDebug)
           ).tap { t =>
             s.displayName.foreach(t.setDisplayName)
-            s.baseDirectory.foreach(p => t.setBaseDirectory(p.toNIO.toUri.toString))
+            s.baseDirectory.foreach(p => t.setBaseDirectory(sanitizeUri(p)))
             data.foreach { d =>
               t.setDataKind(d._1)
               t.setData(d._2)
@@ -209,7 +218,7 @@ class MillBuildServer(
 
     def sourceItem(source: Path, generated: Boolean) = {
       new SourceItem(
-        source.toNIO.toUri.toString,
+        sanitizeUri(source),
         if (source.toIO.isFile) SourceItemKind.FILE else SourceItemKind.DIRECTORY,
         generated
       )
@@ -243,7 +252,7 @@ class MillBuildServer(
         case (id, m: JavaModule) =>
           T.task {
             val src = m.allSourceFiles()
-            val found = src.map(_.path.toNIO.toUri.toString).contains(
+            val found = src.map(sanitizeUri.apply).contains(
               p.getTextDocument.getUri
             )
             if (found) Seq((id)) else Seq()
@@ -276,7 +285,7 @@ class MillBuildServer(
             sources = true
           )()
           val unmanaged = m.unmanagedClasspath()
-          val cp = (sources ++ unmanaged).map(_.path.toNIO.toUri.toString).iterator.toSeq
+          val cp = (sources ++ unmanaged).map(sanitizeUri.apply).iterator.toSeq
           new DependencySourcesItem(id, cp.asJava)
         }
     }
@@ -320,7 +329,7 @@ class MillBuildServer(
           )
             .filter(pathRef => os.exists(pathRef.path))
 
-          items :+ new ResourcesItem(targetId, resources.map(_.path.toNIO.toUri.toString).asJava)
+          items :+ new ResourcesItem(targetId, resources.map(sanitizeUri.apply).asJava)
         }
 
       new ResourcesResult(items.asJava)
@@ -522,7 +531,7 @@ class MillBuildServer(
                 targetId,
                 Seq.empty.asJava,
                 classpath.iterator.toSeq.asJava,
-                evaluator.outPath.toNIO.toUri.toString
+                sanitizeUri(evaluator.outPath)
               ))
             } else
               getModule(targetId, modules) match {
@@ -531,13 +540,13 @@ class MillBuildServer(
                     evaluateInformativeTask(evaluator, m.javacOptions, Seq.empty[String]).toList
                   val classpath =
                     evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
-                      .map(_.path.toNIO.toUri.toString)
-                  val classDirectory = (Evaluator
+                      .map(sanitizeUri.apply)
+                  val classDirectory = sanitizeUri(Evaluator
                     .resolveDestPaths(
                       evaluator.outPath,
                       m.millModuleSegments ++ Seq(Label("compile"))
                     )
-                    .dest / "classes").toNIO.toUri.toString
+                    .dest / "classes")
 
                   Some(new JavacOptionsItem(
                     targetId,
@@ -565,45 +574,6 @@ class MillBuildServer(
       agg(res)
     }
 
-//  override def buildTargetScalacOptions(
-//      scalacOptionsParams: ScalacOptionsParams
-//  ): CompletableFuture[ScalacOptionsResult] =
-//    completable(s"buildTargetScalacOptions ${scalacOptionsParams}") {
-//      val ids = scalacOptionsParams.getTargets.asScala.toSeq
-//
-//      val tasks: Seq[Task[(BuildTargetIdentifier, Seq[String], Seq[String], String)]] =
-//        ids.map(id => (id, bspModulesById(id))).collect {
-//          case (id, `millBuildTarget`) =>
-//            T.task {
-//              (
-//                id,
-//                Seq.empty[String],
-//                getMillBuildClasspath(evaluator, false),
-//                evaluator.outPath.toNIO.toUri.toString
-//              )
-//            }
-//          case (id, module: ScalaModule) =>
-//            T.task {
-//              (
-//                id,
-//                module.scalacOptions(),
-//                module.compileClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
-//                module.compile().classes.path.toNIO.toUri.toString
-//              )
-//            }
-//        }
-//
-//      val results: Seq[(BuildTargetIdentifier, Seq[String], Seq[String], String)] =
-//        Evaluator.evalOrThrow(evaluator)(tasks)
-//
-//      val items = results.map {
-//        case (id, options, classpath, dest) =>
-//          new ScalacOptionsItem(id, options.asJava, classpath.asJava, dest)
-//      }
-//
-//      new ScalacOptionsResult(items.asJava)
-//    }
-
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =
     completableTasks(
@@ -616,23 +586,23 @@ class MillBuildServer(
             id,
             Seq.empty[String].asJava,
             getMillBuildClasspath(evaluator, false).asJava,
-            evaluator.outPath.toNIO.toUri.toString
+            sanitizeUri(evaluator.outPath)
           )
         }
       case (id, m: ScalaModule) => T.task {
           new ScalacOptionsItem(
             id,
             m.scalacOptions().asJava,
-            m.compileClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava,
-            m.compile().classes.path.toNIO.toUri.toString
+            m.compileClasspath().map(sanitizeUri.apply).iterator.toSeq.asJava,
+            sanitizeUri(m.compile().classes)
           )
         }
       case (id, m: JavaModule) => T.task {
           new ScalacOptionsItem(
             id,
             Seq().asJava,
-            m.compileClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava,
-            m.compile().classes.path.toNIO.toUri.toString
+            m.compileClasspath().map(sanitizeUri.apply).iterator.toSeq.asJava,
+            sanitizeUri(m.compile().classes)
           )
         }
     }
@@ -658,30 +628,48 @@ class MillBuildServer(
           )
           new ScalaMainClassesItem(id, items.asJava)
         }
+      case (id, _) => T.task {
+          // no Java module, so no main classes
+          new ScalaMainClassesItem(id, Seq.empty[ScalaMainClass].asJava)
+        }
+
     }
 
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
       : CompletableFuture[ScalaTestClassesResult] =
-    completable(s"buildTargetScalaTestClasses ${p}") {
-      val modules = getModules(evaluator)
+    completableTasks(
+      s"buildTargetScalaTestClasses ${p}",
+      targetIds = p.getTargets.asScala.toSeq,
+      agg = (items: Seq[ScalaTestClassesItem]) => new ScalaTestClassesResult(items.asJava)
+    ) {
+      case (id, m: TestModule) => T.task {
+          val classpath = m.runClasspath()
+          val testFramework = m.testFramework()
+          val compResult = m.compile()
 
-      val items =
-        p.getTargets.asScala.foldLeft(Seq.empty[ScalaTestClassesItem]) {
-          (items, targetId) =>
-            val newItem = getModule(targetId, modules) match {
-              case module: TestModule =>
-                Some(new ScalaTestClassesItem(
-                  targetId,
-                  getTestClasses(module, evaluator).toList.asJava
-                ))
-              case _: JavaModule =>
-                None // TODO: maybe send a notification that this target has no test classes
+          val classFingerprint = Jvm.inprocess(
+            classpath.map(_.path),
+            classLoaderOverrideSbtTesting = true,
+            isolated = true,
+            closeContextClassLoaderWhenDone = false,
+            cl => {
+              val framework = TestRunner.framework(testFramework)(cl)
+              Lib.discoverTests(
+                cl,
+                framework,
+                Agg(compResult.classes.path)
+              )
             }
+          )
+          Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
 
-            items ++ newItem
+          val classes = Seq.empty[String]
+          new ScalaTestClassesItem(id, classes.asJava)
         }
-
-      new ScalaTestClassesResult(items.asJava)
+      case (id, _) => T.task {
+          // Not a test module, so no test classes
+          new ScalaTestClassesItem(id, Seq.empty[String].asJava)
+        }
     }
 
   /**
@@ -726,29 +714,6 @@ class MillBuildServer(
   implicit class BspModuleSupport(val m: BspModule) {
 
     def buildTargetId: BuildTargetIdentifier = bspIdByModule(m)
-
-//    def buildTarget: BuildTarget = {
-//      val s = m.bspBuildTarget
-//      val deps = m match {
-//        case jm: JavaModule =>
-//          jm.moduleDeps.collect {
-//            case bm: BspModule => bm.buildTargetId
-//          }
-//        case _ => Seq()
-//      }
-//      new BuildTarget(
-//        buildTargetId,
-//        s.tags.asJava,
-//        s.languageIds.asJava,
-//        deps.asJava,
-//        new BuildTargetCapabilities(s.canCompile, s.canTest, s.canRun, s.canDebug)
-//      ).tap { t =>
-//        s.displayName.foreach(t.setDisplayName)
-//        s.baseDirectory.foreach(p => t.setBaseDirectory(p.toNIO.toUri.toString))
-////        s.data._1.foreach(t.setDataKind)
-////        s.data._2.foreach(t.setData)
-//      }
-//    }
 
   }
 
