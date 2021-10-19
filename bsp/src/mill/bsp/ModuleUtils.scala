@@ -26,14 +26,6 @@ import scala.jdk.CollectionConverters._
 object ModuleUtils {
 
   /**
-   * Resolve all the mill modules contained in the project
-   */
-  def getModules(evaluator: Evaluator): Seq[JavaModule] =
-    evaluator.rootModule.millInternal.segmentsToModules.values.collect {
-      case m: JavaModule => m
-    }.toSeq
-
-  /**
    * Resolve a mill modules given a target identifier
    */
   def getModule(targetId: BuildTargetIdentifier, modules: Seq[JavaModule]): JavaModule =

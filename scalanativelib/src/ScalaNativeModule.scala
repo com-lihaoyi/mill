@@ -1,15 +1,17 @@
 package mill
 package scalanativelib
 
+import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import coursier.maven.MavenRepository
 import mill.api.Loose.Agg
 import mill.define.{Target, Task}
 import mill.modules.Jvm
+import mill.scalalib.api.Util.scalaBinaryVersion
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
 import mill.scalanativelib.api._
+
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
-
 import upickle.default.{macroRW, ReadWriter => RW}
 
 trait ScalaNativeModule extends ScalaModule { outer =>
@@ -177,6 +179,16 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       envArgs = forkEnv(),
       workingDir = forkWorkingDir()
     )
+  }
+
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+    Some((BuildTargetDataKind.SCALA, new ScalaBuildTarget(
+      scalaOrganization(),
+      scalaVersion(),
+      scalaBinaryVersion(scalaVersion()),
+      ScalaPlatform.NATIVE,
+      scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
+    )))
   }
 }
 

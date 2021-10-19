@@ -313,45 +313,41 @@ class MillBuildServer(
         }
     }
 
-  override def buildTargetResources(resourcesParams: ResourcesParams)
-      : CompletableFuture[ResourcesResult] =
-    completable(s"buildTargetResources ${resourcesParams}") {
-      val modules = getModules(evaluator)
-      val millBuildTargetId = getMillBuildTargetId(evaluator)
-
-      val items = resourcesParams.getTargets.asScala
-        .filter(_ != millBuildTargetId)
-        .foldLeft(Seq.empty[ResourcesItem]) { (items, targetId) =>
-          val resources = evaluateInformativeTask(
-            evaluator,
-            getModule(targetId, modules).resources,
-            Seq.empty[PathRef]
-          )
-            .filter(pathRef => os.exists(pathRef.path))
-
-          items :+ new ResourcesItem(targetId, resources.map(sanitizeUri.apply).asJava)
+  override def buildTargetResources(p: ResourcesParams): CompletableFuture[ResourcesResult] =
+    completableTasks(
+      s"buildTargetResources ${p}",
+      targetIds = p.getTargets.asScala.toSeq,
+      agg = (items: Seq[ResourcesItem]) => new ResourcesResult(items.asJava)
+    ) {
+      case (id, m: JavaModule) => T.task {
+          val resources = m.resources().map(_.path).filter(os.exists).map(sanitizeUri.apply)
+          new ResourcesItem(id, resources.asJava)
         }
-
-      new ResourcesResult(items.asJava)
+      case (id, _) => T.task {
+          // no java module, no resources
+          new ResourcesItem(id, Seq.empty[String].asJava)
+        }
     }
 
   // TODO: if the client wants to give compilation arguments and the module
   // already has some from the build file, what to do?
   override def buildTargetCompile(compileParams: CompileParams): CompletableFuture[CompileResult] =
     completable(s"buildTargetCompile ${compileParams}") {
-      val modules = getModules(evaluator)
-      val millBuildTargetId = getMillBuildTargetId(evaluator)
+      val modules = bspModulesById.values.toSeq.collect { case m: JavaModule => m }
 
       val params = TaskParameters.fromCompileParams(compileParams)
       val taskId = params.hashCode()
-      val compileTasks = Strict.Agg(
-        params.getTargets.distinct.filter(_ != millBuildTargetId).map(
-          getModule(_, modules).compile
-        ): _*
-      )
+      val compileTasks = params.getTargets.map(bspModulesById).map {
+        case m: JavaModule => m.compile
+        case m => T.task {
+            Result.Failure(
+              s"Don't know now to compile non-Java target ${m.bspBuildTarget.displayName}"
+            )
+          }
+      }
       val result = evaluator.evaluate(
         compileTasks,
-        getBspLoggedReporterPool(params, modules, evaluator, client),
+        getBspLoggedReporterPool(compileParams.getOriginId, modules, evaluator, client),
         DummyTestReporter,
         new MillBspLogger(client, taskId, evaluator.baseLogger)
       )
@@ -362,15 +358,19 @@ class MillBuildServer(
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
     completable(s"buildTargetRun ${runParams}") {
-      val modules = getModules(evaluator)
+      val modules = bspModulesById.values.toSeq.collect {
+        case m: JavaModule => m
+      }
 
       val params = TaskParameters.fromRunParams(runParams)
-      val module = getModule(params.getTargets.head, modules)
+      val module = params.getTargets.map(bspModulesById).collectFirst {
+        case m: JavaModule => m
+      }.get
       val args = params.getArguments.getOrElse(Seq.empty[String])
       val runTask = module.run(args: _*)
       val runResult = evaluator.evaluate(
         Strict.Agg(runTask),
-        getBspLoggedReporterPool(params, modules, evaluator, client),
+        getBspLoggedReporterPool(runParams.getOriginId, modules, evaluator, client),
         logger = new MillBspLogger(client, runTask.hashCode(), evaluator.baseLogger)
       )
       val response = runResult.results(runTask) match {
@@ -387,9 +387,8 @@ class MillBuildServer(
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] =
     completable(s"buildTargetTest ${testParams}") {
-      val modules = getModules(evaluator)
-      val targets = getTargets(modules, evaluator)
-      val millBuildTargetId = getMillBuildTargetId(evaluator)
+      val modules = bspModulesById.values.toSeq.collect { case m: JavaModule => m }
+      val millBuildTargetId = bspIdByModule(millBuildTarget)
 
       val params = TaskParameters.fromTestParams(testParams)
       val argsMap =
@@ -411,7 +410,7 @@ class MillBuildServer(
       val overallStatusCode = testParams.getTargets.asScala
         .filter(_ != millBuildTargetId)
         .foldLeft(StatusCode.OK) { (overallStatusCode, targetId) =>
-          getModule(targetId, modules) match {
+          bspModulesById(targetId) match {
             case m: TestModule =>
               val testModule = m.asInstanceOf[TestModule]
               val testTask = testModule.testLocal(argsMap(targetId.getUri): _*)
@@ -434,7 +433,7 @@ class MillBuildServer(
 
               val results = evaluator.evaluate(
                 Strict.Agg(testTask),
-                getBspLoggedReporterPool(params, modules, evaluator, client),
+                getBspLoggedReporterPool(testParams.getOriginId, modules, evaluator, client),
                 testReporter,
                 new MillBspLogger(client, testTask.hashCode, evaluator.baseLogger)
               )
@@ -444,11 +443,7 @@ class MillBuildServer(
               val taskFinishParams =
                 new TaskFinishParams(new TaskId(testTask.hashCode().toString), statusCode)
               taskFinishParams.setEventTime(System.currentTimeMillis())
-              taskFinishParams.setMessage(
-                "Finished testing target" + targets.find(_.getId == targetId).fold("")(t =>
-                  s": ${t.getDisplayName}"
-                )
-              )
+              taskFinishParams.setMessage(s"Finished testing target${m.bspBuildTarget.displayName}")
               taskFinishParams.setDataKind(TaskDataKind.TEST_REPORT)
               taskFinishParams.setData(testReporter.getTestReport)
               client.onBuildTaskFinish(taskFinishParams)
@@ -476,24 +471,24 @@ class MillBuildServer(
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams)
       : CompletableFuture[CleanCacheResult] =
     completable(s"buildTargetCleanCache ${cleanCacheParams}") {
-      val modules = getModules(evaluator)
+      val modules = bspModulesById.values.toSeq.collect { case m: JavaModule => m }
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
       val (msg, cleaned) =
         cleanCacheParams.getTargets.asScala.filter(_ != millBuildTargetId).foldLeft(("", true)) {
           case ((msg, cleaned), targetId) =>
-            val module = getModule(targetId, modules)
+            val module = bspModulesById(targetId)
             val mainModule = new MainModule {
               override implicit def millDiscover: Discover[_] = Discover[this.type]
             }
             val cleanTask =
-              mainModule.clean(evaluator, Seq(s"${module.millModuleSegments.render}.compile"): _*)
+              mainModule.clean(evaluator, Seq(s"${module.bspBuildTarget.displayName}.compile"): _*)
             val cleanResult = evaluator.evaluate(
               Strict.Agg(cleanTask),
               logger = new MillBspLogger(client, cleanTask.hashCode, evaluator.baseLogger)
             )
             if (cleanResult.failing.keyCount > 0) (
-              msg + s" Target ${module.millModuleSegments.render} could not be cleaned. See message from mill: \n" +
+              msg + s" Target ${module.bspBuildTarget.displayName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.results(cleanTask) match {
                   case fail: Result.Failure[Any] => fail.msg + "\n"
                   case _ => "could not retrieve message"
@@ -509,7 +504,7 @@ class MillBuildServer(
                 .out
               while (os.exists(outDir)) Thread.sleep(10)
 
-              (msg + s"${module.millModuleSegments.render} cleaned \n", cleaned)
+              (msg + s"${module.bspBuildTarget.displayName} cleaned \n", cleaned)
             }
         }
 
@@ -519,7 +514,7 @@ class MillBuildServer(
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
     completable(s"buildTargetJavacOptions ${javacOptionsParams}") {
-      val modules = getModules(evaluator)
+      val modules = bspModulesById.values.toSeq.collect { case m: JavaModule => m }
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
       val items = javacOptionsParams.getTargets.asScala

@@ -1,14 +1,18 @@
 package mill
 package scalajslib
 
+import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.{PathRef, Result}
-import mill.scalalib.api.Util.isScala3
+import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
 import mill.util.Ctx
 import mill.api.Loose
 import mill.define.Task
 import mill.scalajslib.api._
+
+import scala.jdk.CollectionConverters._
+
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
@@ -194,6 +198,17 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
 
   def useECMAScript2015: T[Boolean] = false
+
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+    Some((BuildTargetDataKind.SCALA, new ScalaBuildTarget(
+      scalaOrganization(),
+      scalaVersion(),
+      scalaBinaryVersion(scalaVersion()),
+      ScalaPlatform.JS,
+      scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
+    )))
+  }
+
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {

@@ -17,7 +17,7 @@ object Utils {
   // define the function that spawns compilation reporter for each module based on the
   // module's hash code TODO: find something more reliable than the hash code
   def getBspLoggedReporterPool(
-      params: Parameters,
+      originId: String,
       modules: Seq[JavaModule],
       evaluator: Evaluator,
       client: BuildClient
@@ -30,7 +30,7 @@ object Utils {
       taskStartParams.setDataKind(TaskDataKind.COMPILE_TASK)
       taskStartParams.setMessage(s"Compiling target ${target.getDisplayName}")
       client.onBuildTaskStart(taskStartParams)
-      new BspLoggedReporter(client, target, taskId, params.getOriginId)
+      new BspLoggedReporter(client, target, taskId, Option(originId))
     }
   }
 
