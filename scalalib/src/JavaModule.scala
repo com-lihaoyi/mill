@@ -2,7 +2,6 @@ package mill
 package scalalib
 
 import scala.annotation.nowarn
-
 import coursier.Repository
 import mill.api.Loose.Agg
 import mill.api.{PathRef, Result}
@@ -10,6 +9,7 @@ import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.modules.Jvm.{createAssembly, createJar}
 import mill.modules.{Assembly, Jvm}
 import mill.scalalib.api.CompilationResult
+import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
 import os.Path
 
@@ -21,7 +21,8 @@ trait JavaModule
     with TaskModule
     with GenIdeaModule
     with CoursierModule
-    with OfflineSupportModule { outer =>
+    with OfflineSupportModule
+    with BspModule { outer =>
 
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
@@ -716,4 +717,14 @@ trait JavaModule
     resolvedRunIvyDeps()
     ()
   }
+
+  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+    languageIds = Seq(BspModule.LanguageId.Java),
+    canCompile = true,
+    canRun = true,
+//    dependencies = moduleDeps.collect {
+//      case m: BspModule => m.bspBuildTarget.id
+//    }
+  )
+
 }

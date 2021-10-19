@@ -4,6 +4,7 @@ import mill.{Agg, BuildInfo, T}
 import mill.define.{Command, Task, TaskModule}
 import mill.eval.Result
 import mill.modules.Jvm
+import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 
 trait TestModule extends JavaModule with TaskModule {
   override def defaultCommandName() = "test"
@@ -177,6 +178,10 @@ trait TestModule extends JavaModule with TaskModule {
     TestModule.handleResults(doneMsg, results)
 
   }
+
+  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+    canTest = true
+  )
 }
 
 object TestModule {

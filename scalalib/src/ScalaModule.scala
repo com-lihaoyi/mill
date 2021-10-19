@@ -2,7 +2,6 @@ package mill
 package scalalib
 
 import scala.annotation.nowarn
-
 import coursier.{Dependency, Repository}
 import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.api.{DummyInputStream, Loose, PathRef, Result}
@@ -11,6 +10,7 @@ import mill.modules.Jvm.createJar
 import mill.scalalib.api.Util.{isDotty, isDottyOrScala3, isScala3, isScala3Milestone}
 import Lib._
 import mill.api.Loose.Agg
+import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -430,4 +430,14 @@ trait ScalaModule extends JavaModule { outer =>
   override def manifest: T[Jvm.JarManifest] = T {
     super.manifest().add("Scala-Version" -> scalaVersion())
   }
+
+  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+    languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Scala),
+    canCompile = true,
+    canRun = true,
+//    dependencies = moduleDeps.collect {
+//      case m: BspModule => m.bspBuildTarget.id
+//    }
+  )
+
 }
