@@ -179,9 +179,13 @@ trait TestModule extends JavaModule with TaskModule {
 
   }
 
-  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    canTest = true
-  )
+  override def bspBuildTarget: BspBuildTarget = {
+    val parent = super.bspBuildTarget
+    parent.copy(
+      canTest = true,
+      tags = Seq(BspModule.Tag.Test)
+    )
+  }
 }
 
 object TestModule {

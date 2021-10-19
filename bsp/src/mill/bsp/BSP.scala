@@ -1,16 +1,22 @@
 package mill.bsp
 
+import ammonite.util.Colors
 import ch.epfl.scala.bsp4j.BuildClient
+
 import java.io.PrintWriter
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
 import mill.{BuildInfo, T}
 import mill.define.{Command, Discover, ExternalModule}
+import mill.api.{DummyInputStream, Result}
 import mill.eval.Evaluator
-import mill.modules.Util
+import mill.util.{ColorLogger, FileLogger, MultiLogger, PrintLogger}
 import org.eclipse.lsp4j.jsonrpc.Launcher
+
 import scala.concurrent.CancellationException
 import upickle.default.write
+
+import scala.util.Using
 
 object BSP extends ExternalModule {
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
@@ -18,6 +24,7 @@ object BSP extends ExternalModule {
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
   val bspProtocolVersion = "2.0.0"
   val languages = Seq("scala", "java")
+  val serverName = "mill-bsp"
 
   /**
    * Installs the mill-bsp server. It creates a json file
@@ -38,14 +45,14 @@ object BSP extends ExternalModule {
       val bspDirectory = evaluator.rootModule.millSourcePath / ".bsp"
       if (!os.exists(bspDirectory)) os.makeDir.all(bspDirectory)
       try {
-        os.write(bspDirectory / "mill.json", createBspConnectionJson())
+        os.write(bspDirectory / s"${serverName}.json", createBspConnectionJson())
       } catch {
         case _: FileAlreadyExistsException =>
           T.log.info(
             "The bsp connection json file probably exists already - will be overwritten"
           )
-          os.remove(bspDirectory / "mill.json")
-          os.write(bspDirectory / "mill.json", createBspConnectionJson())
+          os.remove(bspDirectory / s"${serverName}.json")
+          os.write(bspDirectory / s"${serverName}.json", createBspConnectionJson())
         case e: Exception =>
           T.log.error("An exception occurred while installing mill-bsp")
           e.printStackTrace(T.log.errorStream)
@@ -67,6 +74,7 @@ object BSP extends ExternalModule {
         argv = Seq(
           millPath,
           "-i",
+          "--disable-ticker",
           "--color",
           "false",
           s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
@@ -88,8 +96,23 @@ object BSP extends ExternalModule {
    * @return: mill.Command which executes the starting of the
    *          server
    */
-  def start(ev: Evaluator): Command[Unit] =
-    T.command {
+  def start(ev: Evaluator): Command[Unit] = T.command {
+//    Using.resource(new FileLogger(
+//      false,
+//      ev.rootModule.millSourcePath / ".bsp" / s"${serverName}.log",
+//      true,
+//      true
+//    ))(_.close()) { fileLogger =>
+//      val log: ColorLogger = ev.baseLogger match {
+//        case PrintLogger(c1, _, c2, _, i, e, in, de, uc) =>
+//          // Map all output to debug channel
+//          val outLogger = PrintLogger(c1, false, c2, e, i, e, DummyInputStream, de, uc)
+//          new MultiLogger(c1, outLogger, fileLogger, in) with ColorLogger {
+//            override def colors: Colors = c2
+//          }
+//        case l => l
+//      }
+
       val evaluator = new Evaluator(
         ev.home,
         ev.outPath,
@@ -104,9 +127,12 @@ object BSP extends ExternalModule {
       val millServer = new MillBuildServer(
         evaluator,
         bspProtocolVersion,
-        BuildInfo.millVersion
+        BuildInfo.millVersion,
+        serverName
       )
       val executor = Executors.newCachedThreadPool()
+
+      var shutdownRequestedBeforeExit = false
 
       val logger = T.ctx.log
       val in = logger.inStream
@@ -118,13 +144,16 @@ object BSP extends ExternalModule {
           .setLocalService(millServer)
           .setRemoteInterface(classOf[BuildClient])
           .traceMessages(new PrintWriter(
-            (evaluator.rootModule.millSourcePath / ".bsp" / "mill.log").toIO
+            (evaluator.rootModule.millSourcePath / ".bsp" / s"${serverName}.trace").toIO
           ))
           .setExecutorService(executor)
           .create()
         millServer.onConnectWithClient(launcher.getRemoteProxy)
         val listening = launcher.startListening()
-        millServer.cancelator = () => listening.cancel(true)
+        millServer.cancellator = shutdownBefore => {
+          shutdownRequestedBeforeExit = shutdownBefore
+          listening.cancel(true)
+        }
         listening.get()
         ()
       } catch {
@@ -132,7 +161,7 @@ object BSP extends ExternalModule {
           T.log.error("The mill server was shut down.")
         case e: Exception =>
           T.log.error(
-            s"""An exception occured while connecting to the client.
+            s"""An exception occurred while connecting to the client.
                |Cause: ${e.getCause}
                |Message: ${e.getMessage}
                |Exception class: ${e.getClass}
@@ -142,5 +171,8 @@ object BSP extends ExternalModule {
         T.log.error("Shutting down executor")
         executor.shutdown()
       }
-    }
+      if (shutdownRequestedBeforeExit) Result.Success(())
+      else Result.Failure("BSP exited without properly shutdown request")
+//    }
+  }
 }

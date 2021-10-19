@@ -3,20 +3,20 @@ package mill.scalalib.bsp
 import mill.define.{BaseModule, Segments}
 import mill.scalalib.JavaModule
 import mill.{Module, T}
+import os.Path
 
 trait BspModule extends Module {
+  import BspModule._
 
   def bspBuildTarget: BspBuildTarget = BspBuildTarget(
-//    id = BspBuildTargetId(BspUri(millOuterCtx.millSourcePath / millModuleSegments.parts)),
     displayName = Some(millModuleSegments.render),
     baseDirectory = Some(millSourcePath),
     tags = Seq(),
-    languageIds = Seq(),
+    languageIds = Seq(Tag.Library),
     canCompile = false,
     canTest = false,
     canRun = false,
     canDebug = false,
-//    dependencies = Seq()
   )
 
 }
@@ -26,10 +26,19 @@ object BspModule {
     val Java = "java"
     val Scala = "scala"
   }
+
+  object Tag {
+    val Library = "library"
+    val Application = "application"
+    val Test = "test"
+    val IntegrationTest = "integration-test"
+    val Benchmark = "benchmark"
+    val NoIDE = "no-ide"
+    val Manual = "manual"
+  }
 }
 
 case class BspBuildTarget(
-//    id: BspBuildTargetId,
     displayName: Option[String],
     baseDirectory: Option[os.Path],
     tags: Seq[String],
@@ -38,7 +47,6 @@ case class BspBuildTarget(
     canTest: Boolean,
     canRun: Boolean,
     canDebug: Boolean,
-//    dependencies: Seq[BspBuildTargetId],
     data: (Option[String], Option[Any]) = (None, None)
 )
 
@@ -52,8 +60,8 @@ object BspUri {
 
 class MillBuildTarget(rootModule: BaseModule)(implicit outerCtx0: mill.define.Ctx)
     extends BspModule {
+  override def millSourcePath: Path = rootModule.millSourcePath
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-//    id = BspBuildTargetId(BspUri(rootModule.millSourcePath)),
     displayName = Some("mill-build"),
     baseDirectory = Some(rootModule.millSourcePath),
     canRun = false,

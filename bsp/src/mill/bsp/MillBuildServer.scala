@@ -5,7 +5,7 @@ import com.google.gson.JsonObject
 
 import java.util.concurrent.CompletableFuture
 import mill._
-import mill.api.{Ctx, DummyTestReporter, Logger, Result, Strict}
+import mill.api.{Ctx, DummyTestReporter, Logger, Loose, Result, Strict}
 import mill.bsp.ModuleUtils._
 import mill.bsp.Utils._
 import mill.define.Segment.Label
@@ -14,7 +14,7 @@ import mill.eval.Evaluator
 import mill.main.{EvaluatorScopt, MainModule}
 import mill.scalalib._
 import mill.scalalib.bsp.{BspBuildTargetId, BspModule, BspUri, MillBuildTarget}
-import mill.util.{DummyLogger, PrintLogger}
+import mill.util.{ColorLogger, DummyLogger, PrintLogger}
 import os.Path
 
 import scala.jdk.CollectionConverters._
@@ -24,7 +24,8 @@ import scala.util.chaining.scalaUtilChainingOps
 class MillBuildServer(
     evaluator: Evaluator,
     bspVersion: String,
-    serverVersion: String
+    serverVersion: String,
+    serverName: String
 ) extends ExternalModule
     with BuildServer
     with ScalaBuildServer
@@ -41,65 +42,15 @@ class MillBuildServer(
     }
     val home: Path = evaluator.rootModule.millSourcePath
   }
-  var cancelator: () => Unit = () => ()
+  var cancellator: Boolean => Unit = shutdownBefore => ()
   var client: BuildClient = _
   var initialized = false
   var clientInitialized = false
+  var shutdownRequested = false
 
   object log {
     def debug(msg: String) = ctx.log.errorStream.println(msg)
   }
-
-  override def onConnectWithClient(server: BuildClient): Unit = client = server
-
-  override def buildInitialize(params: InitializeBuildParams)
-      : CompletableFuture[InitializeBuildResult] =
-    completable(s"buildInitialize ${params}", checkInitialized = false) {
-      // TODO: scan BspModules and infer their capabilities
-
-      val modules = bspModulesById.values
-      val moduleBspInfo = modules.map(_.bspBuildTarget).toSeq
-      val clientCaps = params.getCapabilities().getLanguageIds().asScala
-      val compileLangs = moduleBspInfo.filter(_.canCompile).flatMap(_.languageIds).distinct.filter(
-        clientCaps.contains
-      )
-      val runLangs =
-        moduleBspInfo.filter(_.canRun).flatMap(_.languageIds).distinct.filter(clientCaps.contains)
-      val testLangs =
-        moduleBspInfo.filter(_.canTest).flatMap(_.languageIds).distinct.filter(clientCaps.contains)
-      val debugLangs =
-        moduleBspInfo.filter(_.canDebug).flatMap(_.languageIds).distinct.filter(clientCaps.contains)
-
-      val capabilities = new BuildServerCapabilities
-      capabilities.setCompileProvider(new CompileProvider(compileLangs.asJava))
-      capabilities.setRunProvider(new RunProvider(runLangs.asJava))
-      capabilities.setTestProvider(new TestProvider(testLangs.asJava))
-      capabilities.setDebugProvider(new DebugProvider(debugLangs.asJava))
-      capabilities.setDependencySourcesProvider(true)
-      // TODO: implement
-      capabilities.setDependencyModulesProvider(false)
-      capabilities.setInverseSourcesProvider(true)
-      capabilities.setResourcesProvider(true)
-      capabilities.setBuildTargetChangedProvider(
-        false
-      )
-      //TODO: for now it's false, but will try to support this later
-      capabilities.setCanReload(false)
-
-      initialized = true
-      new InitializeBuildResult("mill-bsp", serverVersion, bspVersion, capabilities)
-    }
-
-  override def onBuildInitialized(): Unit = {
-    clientInitialized = true
-  }
-
-  override def buildShutdown(): CompletableFuture[Object] =
-    completable("buildShutdown") {
-      "shut down this server".asInstanceOf[Object]
-    }
-
-  override def onBuildExit(): Unit = cancelator()
 
   private[this] object internal {
     def clear(): Unit = synchronized {
@@ -112,6 +63,10 @@ class MillBuildServer(
           val modules: Seq[Module] =
             evaluator.rootModule.millInternal.modules ++ Seq(millBuildTarget)
           val map = modules.collect {
+            case m: MillBuildTarget =>
+              val uri = m.millSourcePath.toNIO.toUri.toString
+              val id = new BuildTargetIdentifier(uri)
+              (id, m)
             case m: BspModule =>
               val uri =
                 (millBuildTarget.millSourcePath / m.millModuleSegments.parts).toNIO.toUri.toString
@@ -139,12 +94,81 @@ class MillBuildServer(
     internal.modulesToId.get
   }
 
+  override def onConnectWithClient(server: BuildClient): Unit = client = server
+
+  override def buildInitialize(request: InitializeBuildParams)
+      : CompletableFuture[InitializeBuildResult] =
+    completable(s"buildInitialize ${request}", checkInitialized = false) {
+      // TODO: scan BspModules and infer their capabilities
+
+      if (request.getRootUri != millBuildTarget.buildTargetId.getUri) {
+        log.debug(
+          s"Workspace root differs from mill build root! Requested root: ${request.getRootUri} Mill root: ${millBuildTarget.buildTargetId.getUri}"
+        )
+      }
+
+      val moduleBspInfo = bspModulesById.values.map(_.bspBuildTarget).toSeq
+
+      val clientCaps = request.getCapabilities().getLanguageIds().asScala
+
+      val compileLangs = moduleBspInfo.filter(_.canCompile).flatMap(_.languageIds).distinct.filter(
+        clientCaps.contains
+      )
+      val runLangs =
+        moduleBspInfo.filter(_.canRun).flatMap(_.languageIds).distinct.filter(clientCaps.contains)
+      val testLangs =
+        moduleBspInfo.filter(_.canTest).flatMap(_.languageIds).distinct.filter(clientCaps.contains)
+      val debugLangs =
+        moduleBspInfo.filter(_.canDebug).flatMap(_.languageIds).distinct.filter(clientCaps.contains)
+
+      val capabilities = new BuildServerCapabilities
+      capabilities.setCompileProvider(new CompileProvider(compileLangs.asJava))
+      capabilities.setRunProvider(new RunProvider(runLangs.asJava))
+      capabilities.setTestProvider(new TestProvider(testLangs.asJava))
+      capabilities.setDebugProvider(new DebugProvider(debugLangs.asJava))
+      capabilities.setDependencySourcesProvider(true)
+
+      capabilities.setDependencyModulesProvider(true)
+      capabilities.setInverseSourcesProvider(true)
+      capabilities.setResourcesProvider(true)
+      capabilities.setBuildTargetChangedProvider(
+        false
+      )
+      //TODO: for now it's false, but will try to support this later
+      capabilities.setCanReload(false)
+
+      initialized = true
+      new InitializeBuildResult("mill-bsp", serverVersion, bspVersion, capabilities)
+    }
+
+  override def onBuildInitialized(): Unit = {
+    clientInitialized = true
+  }
+
+  override def buildShutdown(): CompletableFuture[Object] =
+    completable("buildShutdown") {
+      shutdownRequested = true
+      null.asInstanceOf[Object]
+    }
+
+  override def onBuildExit(): Unit = {
+    log.debug("onBuildExit")
+    cancellator(shutdownRequested)
+  }
+
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
     completable("workspaceBuildTargets") {
       // use bsp module
-      log.debug(s"(new) Found ${bspModulesById.size} BspModules")
+      log.debug(s"Found ${bspModulesById.size} BspModules")
       val targets = bspModulesById.values.map(_.buildTarget)
       new WorkspaceBuildTargetsResult(targets.toList.asJava)
+    }
+
+  override def workspaceReload(): CompletableFuture[Object] =
+    completable("workspaceReload") {
+      // Instead stop and restart the command
+      // BSP.install(evaluator)
+      null.asInstanceOf[Object]
     }
 
   override def buildTargetSources(sourcesParams: SourcesParams)
@@ -221,6 +245,29 @@ class MillBuildServer(
           val unmanaged = m.unmanagedClasspath()
           val cp = (sources ++ unmanaged).map(_.path.toNIO.toUri.toString).iterator.toSeq
           new DependencySourcesItem(id, cp.asJava)
+        }
+    }
+
+  /**
+   * External dependencies per module (e.g. ivy deps)
+   */
+  override def buildTargetDependencyModules(params: DependencyModulesParams)
+      : CompletableFuture[DependencyModulesResult] =
+    completableTasks(
+      hint = "buildTargetDependencyModules",
+      targetIds = params.getTargets.asScala.toSeq,
+      agg = (items: Seq[DependencyModulesItem]) => new DependencyModulesResult(items.asJava)
+    ) {
+      case (id, m: JavaModule) =>
+        T.task {
+          val ivy = m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps()
+          val deps = ivy.map { dep =>
+            new DependencyModule(dep.dep.module.repr, dep.dep.version)
+          }
+          val unmanged = m.unmanagedClasspath().map { dep =>
+            new DependencyModule(s"unmanaged-${dep.path.last}", "")
+          }
+          new DependencyModulesItem(id, (deps ++ unmanged).iterator.toSeq.asJava)
         }
     }
 
@@ -427,13 +474,6 @@ class MillBuildServer(
       new CleanCacheResult(msg, cleaned)
     }
 
-  override def workspaceReload(): CompletableFuture[Object] =
-    completable("workspaceReload") {
-      // Instead stop and restart the command
-      // BSP.install(evaluator)
-      null.asInstanceOf[Object]
-    }
-
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
     completable(s"buildTargetJavacOptions ${javacOptionsParams}") {
@@ -531,16 +571,14 @@ class MillBuildServer(
 //      new ScalacOptionsResult(items.asJava)
 //    }
 
-  override def buildTargetScalacOptions(
-      scalacOptionsParams: ScalacOptionsParams
-  ): CompletableFuture[ScalacOptionsResult] =
+  override def buildTargetScalacOptions(p: ScalacOptionsParams)
+      : CompletableFuture[ScalacOptionsResult] =
     completableTasks(
-      hint = s"buildTargetScalacOptions ${scalacOptionsParams}",
-      targetIds = scalacOptionsParams.getTargets.asScala.toSeq,
+      hint = s"buildTargetScalacOptions ${p}",
+      targetIds = p.getTargets.asScala.toSeq,
       agg = (items: Seq[ScalacOptionsItem]) => new ScalacOptionsResult(items.asJava)
     ) {
-      case (id, `millBuildTarget`) =>
-        T.task {
+      case (id, `millBuildTarget`) => T.task {
           new ScalacOptionsItem(
             id,
             Seq.empty[String].asJava,
@@ -548,71 +586,54 @@ class MillBuildServer(
             evaluator.outPath.toNIO.toUri.toString
           )
         }
-      case (id, module: ScalaModule) =>
-        T.task {
+      case (id, m: ScalaModule) => T.task {
           new ScalacOptionsItem(
             id,
-            module.scalacOptions().asJava,
-            module.compileClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava,
-            module.compile().classes.path.toNIO.toUri.toString
+            m.scalacOptions().asJava,
+            m.compileClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava,
+            m.compile().classes.path.toNIO.toUri.toString
+          )
+        }
+      case (id, m: JavaModule) => T.task {
+          new ScalacOptionsItem(
+            id,
+            Seq().asJava,
+            m.compileClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava,
+            m.compile().classes.path.toNIO.toUri.toString
           )
         }
     }
 
-  // TODO: In the case when mill fails to provide a main classes because multiple were
-  // defined for the same module, do something so that those can still be detected
-  // such that IntelliJ can run any of them
-  override def buildTargetScalaMainClasses(
-      scalaMainClassesParams: ScalaMainClassesParams
-  ): CompletableFuture[ScalaMainClassesResult] =
-    completable(s"buildTargetScalaMainClasses ${scalaMainClassesParams}") {
-      val modules = getModules(evaluator)
-      val millBuildTargetId = getMillBuildTargetId(evaluator)
-
-      val items = scalaMainClassesParams.getTargets.asScala
-        .filter(_ != millBuildTargetId)
-        .foldLeft(Seq.empty[ScalaMainClassesItem]) { (items, targetId) =>
-          val module = getModule(targetId, modules)
-          val scalaMainClasses = getTaskResult(evaluator, module.finalMainClassOpt) match {
-            case result: Result.Success[_] =>
-              result.asSuccess.get.value match {
-                case mainClass: Right[String, String] =>
-                  Seq(
-                    new ScalaMainClass(
-                      mainClass.value,
-                      Seq.empty[String].asJava,
-                      evaluateInformativeTask(
-                        evaluator,
-                        module.forkArgs,
-                        Seq.empty[String]
-                      ).toList.asJava
-                    )
-                  )
-                case msg: Left[String, String] =>
-                  val messageParams = new ShowMessageParams(MessageType.WARNING, msg.value)
-                  messageParams.setOriginId(scalaMainClassesParams.getOriginId)
-                  client.onBuildShowMessage(
-                    messageParams
-                  ) // tell the client that no main class was found or specified
-                  Seq.empty[ScalaMainClass]
-              }
-            case _ => Seq.empty[ScalaMainClass]
-          }
-
-          items :+ new ScalaMainClassesItem(targetId, scalaMainClasses.asJava)
+  override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
+      : CompletableFuture[ScalaMainClassesResult] =
+    completableTasks(
+      hint = "buildTragetScalaMainClasses",
+      targetIds = p.getTargets.asScala.toSeq,
+      agg = (items: Seq[ScalaMainClassesItem]) => new ScalaMainClassesResult(items.asJava)
+    ) {
+      case (id, m: JavaModule) =>
+        T.task {
+          // We find all main classes, although we could also find only the configured one
+          val mainClasses = m.zincWorker.worker().discoverMainClasses(m.compile())
+          // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
+          val jvmOpts = m.forkArgs()
+          val envs = m.forkEnv()
+          val items = mainClasses.map(mc =>
+            new ScalaMainClass(mc, Seq().asJava, jvmOpts.asJava).tap {
+              _.setEnvironmentVariables(envs.map(e => s"${e._1}=${e._2}").toSeq.asJava)
+            }
+          )
+          new ScalaMainClassesItem(id, items.asJava)
         }
-
-      new ScalaMainClassesResult(items.asJava)
     }
 
-  override def buildTargetScalaTestClasses(
-      scalaTestClassesParams: ScalaTestClassesParams
-  ): CompletableFuture[ScalaTestClassesResult] =
-    completable(s"buildTargetScalaTestClasses ${scalaTestClassesParams}") {
+  override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
+      : CompletableFuture[ScalaTestClassesResult] =
+    completable(s"buildTargetScalaTestClasses ${p}") {
       val modules = getModules(evaluator)
 
       val items =
-        scalaTestClassesParams.getTargets.asScala.foldLeft(Seq.empty[ScalaTestClassesItem]) {
+        p.getTargets.asScala.foldLeft(Seq.empty[ScalaTestClassesItem]) {
           (items, targetId) =>
             val newItem = getModule(targetId, modules) match {
               case module: TestModule =>
@@ -667,17 +688,6 @@ class MillBuildServer(
     }
     future
   }
-
-  /**
-   * External dependencies per module (e.g. ivy deps)
-   */
-  override def buildTargetDependencyModules(params: DependencyModulesParams)
-      : CompletableFuture[DependencyModulesResult] =
-    completable("buildTargetDependencyModules") {
-      // TODO: implement
-      val items = List.empty[DependencyModulesItem]
-      new DependencyModulesResult(items.asJava)
-    }
 
   /** Convert to BSP API. */
   implicit class BspModuleSupport(val m: BspModule) {
