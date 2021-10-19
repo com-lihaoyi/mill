@@ -42,48 +42,56 @@ class MillBuildServer(
   var initialized = false
   var clientInitialized = false
 
+  object log {
+    def debug(msg: String) = ctx.log.errorStream.println(msg)
+  }
+
   override def onConnectWithClient(server: BuildClient): Unit = client = server
 
   override def buildInitialize(params: InitializeBuildParams)
-      : CompletableFuture[InitializeBuildResult] = {
-    val capabilities = new BuildServerCapabilities
-    capabilities.setCompileProvider(new CompileProvider(List("java", "scala").asJava))
-    capabilities.setRunProvider(new RunProvider(List("java", "scala").asJava))
-    capabilities.setTestProvider(new TestProvider(List("java", "scala").asJava))
-    capabilities.setDependencySourcesProvider(true)
-    // TODO: implement
-    capabilities.setDependencyModulesProvider(false)
-    capabilities.setInverseSourcesProvider(true)
-    capabilities.setResourcesProvider(true)
-    capabilities.setBuildTargetChangedProvider(
-      false
-    ) //TODO: for now it's false, but will try to support this later
-    val future = new CompletableFuture[InitializeBuildResult]()
-    future.complete(new InitializeBuildResult("mill-bsp", serverVersion, bspVersion, capabilities))
-    initialized = true
-    future
-  }
+      : CompletableFuture[InitializeBuildResult] =
+    completable(s"buildInitialize ${params}", checkInitialized = false) {
+      // TODO: scan BspModules and infer their capabilities
+
+      val capabilities = new BuildServerCapabilities
+      capabilities.setCompileProvider(new CompileProvider(List("java", "scala").asJava))
+      capabilities.setRunProvider(new RunProvider(List("java", "scala").asJava))
+      capabilities.setTestProvider(new TestProvider(List("java", "scala").asJava))
+      capabilities.setDependencySourcesProvider(true)
+      // TODO: implement
+      capabilities.setDependencyModulesProvider(false)
+      capabilities.setInverseSourcesProvider(true)
+      capabilities.setResourcesProvider(true)
+      capabilities.setBuildTargetChangedProvider(
+        false
+      )
+      //TODO: for now it's false, but will try to support this later
+      capabilities.setCanReload(false)
+
+      initialized = true
+      new InitializeBuildResult("mill-bsp", serverVersion, bspVersion, capabilities)
+    }
 
   override def onBuildInitialized(): Unit = {
     clientInitialized = true
   }
 
   override def buildShutdown(): CompletableFuture[Object] =
-    handleExceptions {
+    completable("bildShutdown") {
       "shut down this server".asInstanceOf[Object]
     }
 
   override def onBuildExit(): Unit = cancelator()
 
-  override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
-    handleExceptions {
       val targets = getTargets(getModules(evaluator), evaluator)
 
+  override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
+    completable("workspaceBuildTargets") {
       new WorkspaceBuildTargetsResult(targets.asJava)
     }
 
   override def buildTargetSources(sourcesParams: SourcesParams): CompletableFuture[SourcesResult] =
-    handleExceptions {
+    completable(s"buildTargetSources ${sourcesParams}") {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
@@ -126,7 +134,7 @@ class MillBuildServer(
   override def buildTargetInverseSources(
       inverseSourcesParams: InverseSourcesParams
   ): CompletableFuture[InverseSourcesResult] =
-    handleExceptions {
+    completable(s"buildtargetInverseSources ${inverseSourcesParams}") {
       val modules = getModules(evaluator)
 
       val targets = modules
@@ -147,7 +155,7 @@ class MillBuildServer(
   override def buildTargetDependencySources(
       dependencySourcesParams: DependencySourcesParams
   ): CompletableFuture[DependencySourcesResult] =
-    handleExceptions {
+    completable(s"buildTargetDependencySources ${dependencySourcesParams}") {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
@@ -183,7 +191,7 @@ class MillBuildServer(
 
   override def buildTargetResources(resourcesParams: ResourcesParams)
       : CompletableFuture[ResourcesResult] =
-    handleExceptions {
+    completable(s"buildTargetResources ${resourcesParams}") {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
@@ -206,7 +214,7 @@ class MillBuildServer(
   // TODO: if the client wants to give compilation arguments and the module
   // already has some from the build file, what to do?
   override def buildTargetCompile(compileParams: CompileParams): CompletableFuture[CompileResult] =
-    handleExceptions {
+    completable(s"buildTargetCompile ${compileParams}") {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
@@ -229,7 +237,7 @@ class MillBuildServer(
     }
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
-    handleExceptions {
+    completable(s"buildTargetRun ${runParams}") {
       val modules = getModules(evaluator)
 
       val params = TaskParameters.fromRunParams(runParams)
@@ -254,7 +262,7 @@ class MillBuildServer(
     }
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] =
-    handleExceptions {
+    completable(s"buildTargetTest ${testParams}") {
       val modules = getModules(evaluator)
       val targets = getTargets(modules, evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
@@ -343,7 +351,7 @@ class MillBuildServer(
 
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams)
       : CompletableFuture[CleanCacheResult] =
-    handleExceptions {
+    completable(s"buildTargetCleanCache ${cleanCacheParams}") {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
@@ -385,13 +393,15 @@ class MillBuildServer(
     }
 
   override def workspaceReload(): CompletableFuture[Object] =
-    handleExceptions {
-      BSP.install(evaluator)
+    completable("workspaceReload") {
+      // Instead stop and restart the command
+      // BSP.install(evaluator)
+      null.asInstanceOf[Object]
     }
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
-    handleExceptions {
+    completable(s"buildTargetJavacOptions ${javacOptionsParams}") {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
@@ -439,7 +449,7 @@ class MillBuildServer(
   override def buildTargetScalacOptions(
       scalacOptionsParams: ScalacOptionsParams
   ): CompletableFuture[ScalacOptionsResult] =
-    handleExceptions {
+    completable(s"buildTargetScalacOptions ${scalacOptionsParams}") {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
@@ -490,7 +500,7 @@ class MillBuildServer(
   override def buildTargetScalaMainClasses(
       scalaMainClassesParams: ScalaMainClassesParams
   ): CompletableFuture[ScalaMainClassesResult] =
-    handleExceptions {
+    completable(s"buildTargetScalaMainClasses ${scalaMainClassesParams}") {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
@@ -533,7 +543,7 @@ class MillBuildServer(
   override def buildTargetScalaTestClasses(
       scalaTestClassesParams: ScalaTestClassesParams
   ): CompletableFuture[ScalaTestClassesResult] =
-    handleExceptions {
+    completable(s"buildTargetScalaTestClasses ${scalaTestClassesParams}") {
       val modules = getModules(evaluator)
 
       val items =
@@ -562,13 +572,28 @@ class MillBuildServer(
    * the future exceptionally. Also complete exceptionally if the server was not
    * yet initialized.
    */
-  private[this] def handleExceptions[V](f: => V): CompletableFuture[V] = {
+  private[this] def completable[V](
+      hint: String,
+      checkInitialized: Boolean = true
+  )(f: => V): CompletableFuture[V] = {
+    log.debug(s"Entered ${hint}")
+    val start = System.currentTimeMillis()
+    def took =
+      log.debug(s"${hint.split("[ ]").head} took ${System.currentTimeMillis() - start} msec")
+
     val future = new CompletableFuture[V]()
-    if (initialized) {
+    if (!checkInitialized || initialized) {
       try {
-        future.complete(f)
+        val v = f
+        log.debug(s"${hint.split("[ ]").head} result: ${v}")
+        took
+        future.complete(v)
       } catch {
-        case e: Exception => future.completeExceptionally(e)
+        case e: Exception =>
+          ctx.log.errorStream.println(s"Caugh exception: ${e}")
+          e.printStackTrace(ctx.log.errorStream)
+          took
+          future.completeExceptionally(e)
       }
     } else {
       future.completeExceptionally(
@@ -583,7 +608,7 @@ class MillBuildServer(
    */
   override def buildTargetDependencyModules(params: DependencyModulesParams)
       : CompletableFuture[DependencyModulesResult] =
-    handleExceptions {
+    completable("buildTargetDependencyModules") {
       // TODO: implement
       val items = List.empty[DependencyModulesItem]
       new DependencyModulesResult(items.asJava)
