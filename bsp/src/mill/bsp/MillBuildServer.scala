@@ -13,7 +13,7 @@ import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
 import mill.main.{EvaluatorScopt, MainModule}
 import mill.scalalib._
-import mill.util.DummyLogger
+import mill.util.{DummyLogger, PrintLogger}
 import os.Path
 import scala.jdk.CollectionConverters._
 
@@ -29,7 +29,12 @@ class MillBuildServer(
 
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
   implicit val ctx: Ctx.Log with Ctx.Home = new Ctx.Log with Ctx.Home {
-    val log: DummyLogger.type = mill.util.DummyLogger
+    val log: Logger = evaluator.baseLogger match {
+      case PrintLogger(c1, d, c2, _, i, e, in, de, uc) =>
+        // Map all output to debug channel
+        PrintLogger(c1, d, c2, e, i, e, in, de, uc)
+      case l => l
+    }
     val home: Path = evaluator.rootModule.millSourcePath
   }
   var cancelator: () => Unit = () => ()

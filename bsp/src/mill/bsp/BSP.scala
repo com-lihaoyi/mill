@@ -67,7 +67,6 @@ object BSP extends ExternalModule {
         argv = Seq(
           millPath,
           "-i",
-          "--disable-ticker",
           "--color",
           "false",
           s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
