@@ -411,8 +411,7 @@ class MillBuildServer(
         .filter(_ != millBuildTargetId)
         .foldLeft(StatusCode.OK) { (overallStatusCode, targetId) =>
           bspModulesById(targetId) match {
-            case m: TestModule =>
-              val testModule = m.asInstanceOf[TestModule]
+            case testModule: TestModule =>
               val testTask = testModule.testLocal(argsMap(targetId.getUri): _*)
 
               // notifying the client that the testing of this build target started
@@ -443,7 +442,7 @@ class MillBuildServer(
               val taskFinishParams =
                 new TaskFinishParams(new TaskId(testTask.hashCode().toString), statusCode)
               taskFinishParams.setEventTime(System.currentTimeMillis())
-              taskFinishParams.setMessage(s"Finished testing target${m.bspBuildTarget.displayName}")
+              taskFinishParams.setMessage(s"Finished testing target${testModule.bspBuildTarget.displayName}")
               taskFinishParams.setDataKind(TaskDataKind.TEST_REPORT)
               taskFinishParams.setData(testReporter.getTestReport)
               client.onBuildTaskFinish(taskFinishParams)
