@@ -182,7 +182,7 @@ class MillBuildServer(
           val s = m.bspBuildTarget
           val deps = m match {
             case jm: JavaModule =>
-              jm.moduleDeps.collect {
+              jm.recursiveModuleDeps.collect {
                 case bm: BspModule => bspIdByModule(bm)
               }
             case _ => Seq()
@@ -513,49 +513,38 @@ class MillBuildServer(
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
-    completable(s"buildTargetJavacOptions ${javacOptionsParams}") {
-      val modules = bspModulesById.values.toSeq.collect { case m: JavaModule => m }
-      val millBuildTargetId = getMillBuildTargetId(evaluator)
-
-      val items = javacOptionsParams.getTargets.asScala
-        .foldLeft(Seq.empty[JavacOptionsItem]) { (items, targetId) =>
-          val newItem =
-            if (targetId == millBuildTargetId) {
-              val classpath = getMillBuildClasspath(evaluator, sources = false)
-              Some(new JavacOptionsItem(
-                targetId,
-                Seq.empty.asJava,
-                classpath.iterator.toSeq.asJava,
-                sanitizeUri(evaluator.outPath)
-              ))
-            } else
-              getModule(targetId, modules) match {
-                case m: JavaModule =>
-                  val options =
-                    evaluateInformativeTask(evaluator, m.javacOptions, Seq.empty[String]).toList
-                  val classpath =
-                    evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
-                      .map(sanitizeUri.apply)
-                  val classDirectory = sanitizeUri(Evaluator
-                    .resolveDestPaths(
-                      evaluator.outPath,
-                      m.millModuleSegments ++ Seq(Label("compile"))
-                    )
-                    .dest / "classes")
-
-                  Some(new JavacOptionsItem(
-                    targetId,
-                    options.asJava,
-                    classpath.iterator.toSeq.asJava,
-                    classDirectory
-                  ))
-                case _ => None
-              }
-
-          items ++ newItem
+    completableTasks(
+      s"buildTargetJavacOptions ${javacOptionsParams}",
+      targetIds = javacOptionsParams.getTargets.asScala.toSeq,
+      agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava)
+    ) {
+      case (id, `millBuildTarget`) =>
+        T.task {
+          val classpath = getMillBuildClasspath(evaluator, sources = false)
+          new JavacOptionsItem(
+            id,
+            Seq.empty.asJava,
+            classpath.iterator.toSeq.asJava,
+            sanitizeUri(evaluator.outPath)
+          )
         }
+      case (id, m: JavaModule) => T.task {
+          val options = m.javacOptions()
+          val classpath = m.compileClasspath().map(sanitizeUri.apply)
+          val classDirectory = sanitizeUri(Evaluator
+            .resolveDestPaths(
+              evaluator.outPath,
+              m.millModuleSegments ++ Seq(Label("compile"))
+            )
+            .dest / "classes")
 
-      new JavacOptionsResult(items.asJava)
+          new JavacOptionsItem(
+            id,
+            options.asJava,
+            classpath.iterator.toSeq.asJava,
+            classDirectory
+          )
+        }
     }
 
   def completableTasks[T: ClassTag, V](
