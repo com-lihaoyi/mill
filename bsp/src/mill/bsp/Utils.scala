@@ -56,32 +56,4 @@ object Utils {
     }
   }
 
-  // Detect and return the test classes contained in the given TestModule
-  def getTestClasses(module: TestModule, evaluator: Evaluator)(implicit
-      ctx: Ctx.Home
-  ): Seq[String] = {
-    val runClasspath = getTaskResult(evaluator, module.runClasspath)
-    val framework = getTaskResult(evaluator, module.testFramework)
-    val compilationResult = getTaskResult(evaluator, module.compile)
-
-    (runClasspath, framework, compilationResult) match {
-      case (Result.Success(classpath), Result.Success(testFramework), Result.Success(compResult)) =>
-        val classFingerprint = Jvm.inprocess(
-          classpath.asInstanceOf[Seq[PathRef]].map(_.path),
-          classLoaderOverrideSbtTesting = true,
-          isolated = true,
-          closeContextClassLoaderWhenDone = false,
-          cl => {
-            val framework = TestRunner.framework(testFramework.asInstanceOf[String])(cl)
-            discoverTests(
-              cl,
-              framework,
-              Agg(compResult.asInstanceOf[CompilationResult].classes.path)
-            )
-          }
-        )
-        Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
-      case _ => Seq.empty[String] //TODO: or send notification that something went wrong
-    }
-  }
 }

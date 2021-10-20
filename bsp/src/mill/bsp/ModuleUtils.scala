@@ -35,92 +35,10 @@ object ModuleUtils {
         s"No module found for target id ${targetId.getUri}"
       ))
 
-  /**
-   * Compute mapping between all the JavaModules contained in the
-   * working directory ( has to be a mill-based project ) and
-   * BSP BuildTargets ( mill modules correspond one-to-one to
-   * bsp build targets ).
-   *
-   * @param modules            All JavaModules contained in the working
-   *                           directory of the mill project
-   * @param evaluator          The mill evaluator that can resolve information
-   *                           about the mill project
-   * @return JavaModule -> BuildTarget mapping
-   */
-  def getTargets(modules: Seq[JavaModule], evaluator: Evaluator)(
-      implicit ctx: Ctx.Log
-  ): Seq[BuildTarget] = {
-    val targets = modules.map(module => getTarget(module, evaluator))
-    val millBuildTarget = getMillBuildTarget(evaluator, modules)
-
-    millBuildTarget +: targets
-  }
-
   def getMillBuildTargetId(evaluator: Evaluator): BuildTargetIdentifier =
     new BuildTargetIdentifier(
       evaluator.rootModule.millSourcePath.toNIO.toUri.toString
     )
-
-  /**
-   * Compute the BuildTarget for the Mill build (build.sc files)
-   *
-   * @param evaluator   mill evaluator that can resolve
-   *                    build information
-   * @return the Mill BuildTarget
-   */
-  def getMillBuildTarget(evaluator: Evaluator, modules: Seq[JavaModule])(
-      implicit ctx: Ctx.Log
-  ): BuildTarget = {
-    val target = new BuildTarget(
-      getMillBuildTargetId(evaluator),
-      Seq.empty[String].asJava,
-      Seq("scala").asJava,
-      Seq.empty[BuildTargetIdentifier].asJava,
-      new BuildTargetCapabilities(false, false, false)
-    )
-    target.setBaseDirectory(
-      evaluator.rootModule.millSourcePath.toNIO.toUri.toString
-    )
-    target.setDataKind(BuildTargetDataKind.SCALA)
-    target.setTags(
-      Seq(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION).asJava
-    )
-    target.setDisplayName("mill-build")
-
-    val scalaOrganization = "org.scala-lang"
-    val scalaLibDep =
-      scalaRuntimeIvyDeps(scalaOrganization, BuildInfo.scalaVersion)
-
-    val repos = Evaluator
-      .evalOrThrow(
-        evaluator,
-        exceptionFactory = r =>
-          new Exception(
-            s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
-          )
-      )(modules.map(_.repositoriesTask))
-      .flatten
-      .distinct
-
-    val classpath = resolveDependencies(
-      repos,
-      depToDependency(_, BuildInfo.scalaVersion),
-      scalaLibDep,
-      ctx = Some(ctx)
-    ).asSuccess.toSeq.flatMap(_.value)
-
-    target.setData(
-      new ScalaBuildTarget(
-        scalaOrganization,
-        BuildInfo.scalaVersion,
-        Util.scalaBinaryVersion(BuildInfo.scalaVersion),
-        ScalaPlatform.JVM,
-        classpath.map(_.path.toNIO.toUri.toString).asJava
-      )
-    )
-
-    target
-  }
 
   /**
    * Compute the BuildClasspath for the Mill build (build.sc files)
