@@ -127,16 +127,11 @@ your scala code editable in https://scalameta.org/metals/[Metals]
 
 === Quickstart
 
-[source,scala]
-----
-// build.sc (or any other .sc file it depends on, including predef)
-import $ivy.`com.lihaoyi::mill-contrib-bloop:`
-----
+In your terminal:
 
-Then in your terminal :
-
+.Generate Bloop project configuration
 ----
-> mill mill.contrib.bloop.Bloop/install
+> mill --import ivy:com.lihaoyi::mill-contrib-bloop:  mill.contrib.bloop.Bloop/install
 ----
 
 It generate correct bloop config for any `JavaModule`, `ScalaModule`,
