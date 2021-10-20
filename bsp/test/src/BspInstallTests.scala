@@ -13,7 +13,7 @@ object BspInstallTests extends ScriptTestSuite(false) {
       val workspacePath = initWorkspace()
       eval("mill.bsp.BSP/install")
 
-      assert(exists(workspacePath / ".bsp" / "mill.json"))
+      assert(exists(workspacePath / ".bsp" / s"${BSP.serverName}.json"))
     }
   }
 }
