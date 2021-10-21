@@ -528,14 +528,16 @@ class MillBuildServer(
             sanitizeUri(evaluator.outPath)
           )
         }
-      case (id, m: JavaModule) => T.task {
+      case (id, m: JavaModule) =>
+        val teval = T.task(evaluator)
+        T.task {
           val options = m.javacOptions()
-          val classpath = m.compileClasspath().map(sanitizeUri.apply)
+          val classpath = m.bspCompileClasspath(teval)().map(sanitizeUri.apply)
           new JavacOptionsItem(
             id,
             options.asJava,
             classpath.iterator.toSeq.asJava,
-            sanitizeUri(m.bspCompileClassesPath(T.task{evaluator})())
+            sanitizeUri(m.bspCompileClassesPath(T.task { evaluator })())
           )
         }
     }
