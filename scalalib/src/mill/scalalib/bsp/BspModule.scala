@@ -1,13 +1,16 @@
 package mill.scalalib.bsp
 
+import mill.api.internal
 import mill.define.{BaseModule, Segments, Task}
-import mill.scalalib.JavaModule
+import mill.scalalib.api.CompilationResult
 import mill.{Module, T}
-import os.Path
+import os.{Path, SubPath}
 
 trait BspModule extends Module {
   import BspModule._
 
+  /** Use to fill most fields of `BuildTarget`. */
+  @internal
   def bspBuildTarget: BspBuildTarget = BspBuildTarget(
     displayName = Some(millModuleSegments.render),
     baseDirectory = Some(millSourcePath),
@@ -19,7 +22,13 @@ trait BspModule extends Module {
     canDebug = false,
   )
 
+  /** Use to populate the `BuildTarget.{dataKind,data}` fields. */
+  @internal
   def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task { None }
+
+//  /** Provides optional info about location of compiled classes. */
+//  @internal
+//  def bspCompileClassesInfo: Option[(Segments, SubPath)] = None
 
 }
 

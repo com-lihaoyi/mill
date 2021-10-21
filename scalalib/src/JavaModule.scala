@@ -4,14 +4,16 @@ package scalalib
 import scala.annotation.nowarn
 import coursier.Repository
 import mill.api.Loose.Agg
-import mill.api.{PathRef, Result}
-import mill.define.{Command, Sources, Target, Task, TaskModule}
+import mill.api.{PathRef, Result, internal}
+import mill.define.Segment.Label
+import mill.define.{Command, Segments, Sources, Target, Task, TaskModule}
+import mill.eval.Evaluator
 import mill.modules.Jvm.{createAssembly, createJar}
 import mill.modules.{Assembly, Jvm}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
-import os.Path
+import os.{Path, SubPath}
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -193,6 +195,17 @@ trait JavaModule
       .flatten
   }
 
+  @internal
+  def bspTransitiveLocalClasspath(evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
+    val res = T.traverse(moduleDeps ++ compileModuleDeps)(m =>
+      T.task { m.bspLocalClasspath(evaluator)() ++ m.bspTransitiveLocalClasspath(evaluator)() }
+    )
+    T.task {
+      val res2: Seq[PathRef] = res().flatten
+      res2
+    }
+  }
+
   /**
    * What platform suffix to use for publishing, e.g. `_sjs` for Scala.js
    * projects
@@ -257,6 +270,7 @@ trait JavaModule
   /**
    * Compiles the current module to generate compiled classfiles/bytecode
    */
+  // Keep in sync with [[bspCompileClassesInfo]]
   def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
     zincWorker
       .worker()
@@ -269,12 +283,43 @@ trait JavaModule
       )
   }
 
+  /** the path to the compiles classes without forcing to actually run the target */
+  @internal
+  def bspCompileClassesPath(evaluator: Task[Evaluator]): Task[PathRef] = {
+    if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
+      T.task {
+        val pr = PathRef(
+          Evaluator
+            .resolveDestPaths(evaluator().outPath, compile.ctx.segments)
+            .dest / "classes"
+        )
+        T.log.debug(
+          s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
+        )
+        pr
+      }
+    } else T.task {
+      T.log.debug(
+        s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
+      )
+      compile().classes
+    }
+  }
+
   /**
    * The output classfiles/resources from this module, excluding upstream
    * modules and third-party dependencies
    */
   def localClasspath: T[Seq[PathRef]] = T {
     resources() ++ Agg(compile().classes)
+  }
+
+  @internal
+  def bspLocalClasspath(evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
+    val cl = bspCompileClassesPath(evaluator)
+    T.task {
+      resources() ++ Seq(cl())
+    }
   }
 
   /**
@@ -286,6 +331,18 @@ trait JavaModule
       resources() ++
       unmanagedClasspath() ++
       resolvedIvyDeps()
+  }
+
+  /** Same as [[compileClassapth]], but does not trigger compilation targets, if possible. */
+  @internal
+  def bspCompileClasspath(evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
+    val lcp = bspTransitiveLocalClasspath(evaluator)
+    T.task {
+      lcp() ++
+        resources() ++
+        unmanagedClasspath() ++
+        resolvedIvyDeps()
+    }
   }
 
   /**
@@ -718,13 +775,21 @@ trait JavaModule
     ()
   }
 
+  @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     languageIds = Seq(BspModule.LanguageId.Java),
     canCompile = true,
-    canRun = true,
-//    dependencies = moduleDeps.collect {
-//      case m: BspModule => m.bspBuildTarget.id
-//    }
+    canRun = true
   )
+
+//  @internal
+//  override def bspCompileClassesInfo: Option[(Segments, SubPath)] = {
+//    if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
+//      // this is a non-overridden compile task
+//      Some(Segments(Label("compile")), os.sub / "classes")
+//    } else {
+//      None
+//    }
+//  }
 
 }

@@ -442,7 +442,9 @@ class MillBuildServer(
               val taskFinishParams =
                 new TaskFinishParams(new TaskId(testTask.hashCode().toString), statusCode)
               taskFinishParams.setEventTime(System.currentTimeMillis())
-              taskFinishParams.setMessage(s"Finished testing target${testModule.bspBuildTarget.displayName}")
+              taskFinishParams.setMessage(
+                s"Finished testing target${testModule.bspBuildTarget.displayName}"
+              )
               taskFinishParams.setDataKind(TaskDataKind.TEST_REPORT)
               taskFinishParams.setData(testReporter.getTestReport)
               client.onBuildTaskFinish(taskFinishParams)
@@ -517,8 +519,7 @@ class MillBuildServer(
       targetIds = javacOptionsParams.getTargets.asScala.toSeq,
       agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava)
     ) {
-      case (id, `millBuildTarget`) =>
-        T.task {
+      case (id, `millBuildTarget`) => T.task {
           val classpath = getMillBuildClasspath(evaluator, sources = false)
           new JavacOptionsItem(
             id,
@@ -530,18 +531,11 @@ class MillBuildServer(
       case (id, m: JavaModule) => T.task {
           val options = m.javacOptions()
           val classpath = m.compileClasspath().map(sanitizeUri.apply)
-          val classDirectory = sanitizeUri(Evaluator
-            .resolveDestPaths(
-              evaluator.outPath,
-              m.millModuleSegments ++ Seq(Label("compile"))
-            )
-            .dest / "classes")
-
           new JavacOptionsItem(
             id,
             options.asJava,
             classpath.iterator.toSeq.asJava,
-            classDirectory
+            sanitizeUri(m.bspCompileClassesPath(T.task{evaluator})())
           )
         }
     }
@@ -572,20 +566,19 @@ class MillBuildServer(
             sanitizeUri(evaluator.outPath)
           )
         }
-      case (id, m: ScalaModule) => T.task {
-          new ScalacOptionsItem(
-            id,
-            m.scalacOptions().asJava,
-            m.compileClasspath().map(sanitizeUri.apply).iterator.toSeq.asJava,
-            sanitizeUri(m.compile().classes)
-          )
+      case (id, m: JavaModule) =>
+        val optionsTask = m match {
+          case sm: ScalaModule => sm.scalacOptions
+          case _ => T.task { Seq.empty[String] }
         }
-      case (id, m: JavaModule) => T.task {
+
+        val teval = T.task(evaluator)
+        T.task {
           new ScalacOptionsItem(
             id,
-            Seq().asJava,
-            m.compileClasspath().map(sanitizeUri.apply).iterator.toSeq.asJava,
-            sanitizeUri(m.compile().classes)
+            optionsTask().asJava,
+            m.bspCompileClasspath(teval)().map(sanitizeUri.apply).iterator.toSeq.asJava,
+            sanitizeUri(m.bspCompileClassesPath(teval)())
           )
         }
     }

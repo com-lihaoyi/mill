@@ -3,15 +3,25 @@ package scalalib
 
 import scala.annotation.nowarn
 import coursier.{Dependency, Repository}
-import mill.define.{Command, Sources, Target, Task, TaskModule}
-import mill.api.{DummyInputStream, Loose, PathRef, Result}
+import mill.define.{Command, Segments, Sources, Target, Task, TaskModule}
+import mill.api.{DummyInputStream, Loose, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import mill.scalalib.api.Util.{isDotty, isDottyOrScala3, isScala3, isScala3Milestone, scalaBinaryVersion}
+import mill.scalalib.api.Util.{
+  isDotty,
+  isDottyOrScala3,
+  isScala3,
+  isScala3Milestone,
+  scalaBinaryVersion
+}
 import Lib._
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.Loose.Agg
+import mill.define.Segment.Label
+import mill.eval.Evaluator
+import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import os.SubPath
 
 import scala.jdk.CollectionConverters._
 
@@ -180,6 +190,7 @@ trait ScalaModule extends JavaModule { outer =>
     )()
   }
 
+  // Keep in sync with [[bspCompileClassesInfo]]
   override def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
     zincWorker
       .worker()
@@ -196,6 +207,28 @@ trait ScalaModule extends JavaModule { outer =>
         T.reporter.apply(hashCode)
       )
   }
+
+  /** the path to the compiles classes without forcing to actually run the target */
+  @internal
+  override def bspCompileClassesPath(evaluator: Task[Evaluator]): Task[PathRef] = {
+    if (compile.ctx.enclosing == s"${classOf[ScalaModule].getName}#compile") T.task {
+      T.log.debug(
+        s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
+      )
+      PathRef(
+        Evaluator
+          .resolveDestPaths(evaluator().outPath, compile.ctx.segments)
+          .dest / "classes"
+      )
+    }
+    else T.task {
+      T.log.debug(
+        s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
+      )
+      compile().classes
+    }
+  }
+
 
   override def docSources: Sources = T.sources {
     // Scaladoc 3.0.0 is consuming tasty files
@@ -437,22 +470,20 @@ trait ScalaModule extends JavaModule { outer =>
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Scala),
     canCompile = true,
-    canRun = true,
-//    dependencies = moduleDeps.collect {
-//      case m: BspModule => m.bspBuildTarget.id
-//    }
+    canRun = true
   )
 
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
-    Some((BuildTargetDataKind.SCALA, new ScalaBuildTarget(
-      scalaOrganization(),
-      scalaVersion(),
-      scalaBinaryVersion(scalaVersion()),
-      ScalaPlatform.JVM,
-      scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
-    )))
+    Some((
+      BuildTargetDataKind.SCALA,
+      new ScalaBuildTarget(
+        scalaOrganization(),
+        scalaVersion(),
+        scalaBinaryVersion(scalaVersion()),
+        ScalaPlatform.JVM,
+        scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
+      )
+    ))
   }
-
-
 
 }
