@@ -35,11 +35,6 @@ object ModuleUtils {
         s"No module found for target id ${targetId.getUri}"
       ))
 
-  def getMillBuildTargetId(evaluator: Evaluator): BuildTargetIdentifier =
-    new BuildTargetIdentifier(
-      evaluator.rootModule.millSourcePath.toNIO.toUri.toString
-    )
-
   /**
    * Compute the BuildClasspath for the Mill build (build.sc files)
    *

@@ -9,7 +9,7 @@ import mill.api.{Ctx, DummyTestReporter, Logger, Loose, Result, Strict}
 import mill.bsp.ModuleUtils._
 import mill.bsp.Utils._
 import mill.define.Segment.Label
-import mill.define.{BaseModule, Discover, ExternalModule, Task}
+import mill.define.{BaseModule, Discover, ExternalModule, Segments, Task}
 import mill.eval.Evaluator
 import mill.main.{EvaluatorScopt, MainModule}
 import mill.modules.Jvm
@@ -331,13 +331,13 @@ class MillBuildServer(
 
   // TODO: if the client wants to give compilation arguments and the module
   // already has some from the build file, what to do?
-  override def buildTargetCompile(compileParams: CompileParams): CompletableFuture[CompileResult] =
-    completable(s"buildTargetCompile ${compileParams}") {
+  override def buildTargetCompile(p: CompileParams): CompletableFuture[CompileResult] =
+    completable(s"buildTargetCompile ${p}") {
       val modules = bspModulesById.values.toSeq.collect { case m: JavaModule => m }
 
-      val params = TaskParameters.fromCompileParams(compileParams)
+      val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
-      val compileTasks = params.getTargets.map(bspModulesById).map {
+      val compileTasks = params.getTargets.distinct.map(bspModulesById).map {
         case m: JavaModule => m.compile
         case m => T.task {
             Result.Failure(
@@ -345,14 +345,15 @@ class MillBuildServer(
             )
           }
       }
+
       val result = evaluator.evaluate(
         compileTasks,
-        getBspLoggedReporterPool(compileParams.getOriginId, modules, evaluator, client),
+        getBspLoggedReporterPool(p.getOriginId, modules, evaluator, client),
         DummyTestReporter,
         new MillBspLogger(client, taskId, evaluator.baseLogger)
       )
       val compileResult = new CompileResult(getStatusCode(result))
-      compileResult.setOriginId(compileParams.getOriginId)
+      compileResult.setOriginId(p.getOriginId)
       compileResult // TODO: See in what form IntelliJ expects data about products of compilation in order to set data field
     }
 
@@ -472,24 +473,22 @@ class MillBuildServer(
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams)
       : CompletableFuture[CleanCacheResult] =
     completable(s"buildTargetCleanCache ${cleanCacheParams}") {
-      val modules = bspModulesById.values.toSeq.collect { case m: JavaModule => m }
-      val millBuildTargetId = getMillBuildTargetId(evaluator)
-
       val (msg, cleaned) =
-        cleanCacheParams.getTargets.asScala.filter(_ != millBuildTargetId).foldLeft(("", true)) {
+        cleanCacheParams.getTargets.asScala.filter(_ != millBuildTarget.buildTargetId).foldLeft(("", true)) {
           case ((msg, cleaned), targetId) =>
             val module = bspModulesById(targetId)
             val mainModule = new MainModule {
               override implicit def millDiscover: Discover[_] = Discover[this.type]
             }
-            val cleanTask =
-              mainModule.clean(evaluator, Seq(s"${module.bspBuildTarget.displayName}.compile"): _*)
+            val compileTargetName = (module.millModuleSegments ++ Segments(Label("compile"))).render
+            log.debug(s"about to clean: ${compileTargetName}")
+            val cleanTask = mainModule.clean(evaluator, Seq(compileTargetName): _*)
             val cleanResult = evaluator.evaluate(
               Strict.Agg(cleanTask),
               logger = new MillBspLogger(client, cleanTask.hashCode, evaluator.baseLogger)
             )
             if (cleanResult.failing.keyCount > 0) (
-              msg + s" Target ${module.bspBuildTarget.displayName} could not be cleaned. See message from mill: \n" +
+              msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.results(cleanTask) match {
                   case fail: Result.Failure[Any] => fail.msg + "\n"
                   case _ => "could not retrieve message"
@@ -548,7 +547,7 @@ class MillBuildServer(
       agg: Seq[T] => V
   )(f: (BuildTargetIdentifier, BspModule) => Task[T]): CompletableFuture[V] =
     completable(hint) {
-      val tasks: Seq[Task[T]] = targetIds.map(id => f(id, bspModulesById(id)))
+      val tasks: Seq[Task[T]] = targetIds.distinct.map(id => f(id, bspModulesById(id)))
       val res = Evaluator.evalOrThrow(evaluator)(tasks)
       agg(res)
     }

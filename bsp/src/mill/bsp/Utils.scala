@@ -1,14 +1,13 @@
 package mill.bsp
 
-import ch.epfl.scala.bsp4j._
+import ch.epfl.scala.bsp4j.{BuildClient, CompileTask, StatusCode, TaskDataKind, TaskId, TaskStartParams}
 import mill._
 import mill.api.Result.{Skipped, Success}
 import mill.api.{BuildProblemReporter, Result}
-import mill.bsp.ModuleUtils._
 import mill.eval.Evaluator
 import mill.modules.Jvm
 import mill.scalalib.Lib.discoverTests
-import mill.scalalib._
+import mill.scalalib.JavaModule
 import mill.scalalib.api.CompilationResult
 import mill.util.Ctx
 
@@ -22,8 +21,8 @@ object Utils {
       evaluator: Evaluator,
       client: BuildClient
   ): Int => Option[BuildProblemReporter] = { hashCode: Int =>
-    getTarget(hashCode, modules, evaluator).map { target =>
-      val taskId = new TaskId(getModule(target.getId, modules).compile.hashCode.toString)
+    ModuleUtils.getTarget(hashCode, modules, evaluator).map { target =>
+      val taskId = new TaskId(ModuleUtils.getModule(target.getId, modules).compile.hashCode.toString)
       val taskStartParams = new TaskStartParams(taskId)
       taskStartParams.setEventTime(System.currentTimeMillis())
       taskStartParams.setData(new CompileTask(target.getId))

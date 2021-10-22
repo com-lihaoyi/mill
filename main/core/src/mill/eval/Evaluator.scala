@@ -494,7 +494,7 @@ case class Evaluator(
             env,
             reporter,
             testReporter
-          ) with Ctx.Jobs {
+          ) with mill.api.Ctx.Jobs {
             override def jobs: Int = effectiveThreadCount
           }
 
