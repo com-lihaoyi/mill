@@ -195,17 +195,6 @@ trait JavaModule
       .flatten
   }
 
-  @internal
-  def bspTransitiveLocalClasspath(evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
-    val res = T.traverse(moduleDeps ++ compileModuleDeps)(m =>
-      T.task { m.bspLocalClasspath(evaluator)() ++ m.bspTransitiveLocalClasspath(evaluator)() }
-    )
-    T.task {
-      val res2: Seq[PathRef] = res().flatten
-      res2
-    }
-  }
-
   /**
    * What platform suffix to use for publishing, e.g. `_sjs` for Scala.js
    * projects
@@ -314,14 +303,6 @@ trait JavaModule
     resources() ++ Agg(compile().classes)
   }
 
-  @internal
-  def bspLocalClasspath(evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
-    val cl = bspCompileClassesPath(evaluator)
-    T.task {
-      resources() ++ Seq(cl())
-    }
-  }
-
   /**
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module
@@ -336,7 +317,24 @@ trait JavaModule
   /** Same as [[compileClassapth]], but does not trigger compilation targets, if possible. */
   @internal
   def bspCompileClasspath(evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
-    val lcp = bspTransitiveLocalClasspath(evaluator)
+    def bspLocalClasspath(j : JavaModule, evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
+      val cl = bspCompileClassesPath(evaluator)
+      T.task {
+        resources() ++ Seq(cl())
+      }
+    }
+
+    def bspTransitiveLocalClasspath(j: JavaModule, evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
+      val res = T.traverse(j.moduleDeps ++ j.compileModuleDeps)(m =>
+        T.task { bspLocalClasspath(m, evaluator)() ++ bspTransitiveLocalClasspath(m, evaluator)() }
+      )
+      T.task {
+        val res2: Seq[PathRef] = res().flatten
+        res2
+      }
+    }
+
+    val lcp = bspTransitiveLocalClasspath(this, evaluator)
     T.task {
       lcp() ++
         resources() ++
