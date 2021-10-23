@@ -77,45 +77,6 @@ object ModuleUtils {
     binarySource.filter(path => exists(path)).map(_.toNIO.toUri.toString)
   }
 
-  /**
-   * Evaluate the given task using the given mill evaluator and return
-   * its result of type Result
-   *
-   * @param evaluator mill evalautor
-   * @param task      task to evaluate
-   * @tparam T
-   */
-  def getTaskResult[T](evaluator: Evaluator, task: Task[T]): Result[Any] = {
-    evaluator.evaluate(Strict.Agg(task)).results(task)
-  }
-
-  /**
-   * Evaluate the given task using the given mill evaluator and return
-   * its result of type T, or the default value of the evaluation failed.
-   *
-   * @param evaluator    mill evalautor
-   * @param task         task to evaluate
-   * @param defaultValue default value to return in case of failure
-   * @tparam T
-   */
-  def evaluateInformativeTask[T](evaluator: Evaluator, task: Task[T], defaultValue: T): T = {
-    val evaluated = evaluator.evaluate(Strict.Agg(task)).results(task)
-    evaluated match {
-      case Success(_) => evaluated.asSuccess.get.value.asInstanceOf[T]
-      case _ => defaultValue
-    }
-  }
-
-  def getTargetId(module: JavaModule): BuildTargetIdentifier =
-    new BuildTargetIdentifier(
-      (module.millOuterCtx.millSourcePath / module.millModuleSegments.parts).toNIO.toUri.toString
-    )
-
-  def getTargetId(moduleHashCode: Int, modules: Seq[JavaModule]): Option[BuildTargetIdentifier] =
-    modules.find(_.hashCode == moduleHashCode).map(getTargetId)
-
-  def isSourceJar(url: URL): Boolean = url.getFile.endsWith("-sources.jar")
-
   def isPathSourceJar(path: Path): Boolean =
     path.wrapped.toString.endsWith("-sources.jar")
 
