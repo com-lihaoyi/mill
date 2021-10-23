@@ -1,15 +1,12 @@
 package mill.bsp
 
-import ch.epfl.scala.bsp4j.{BuildClient, CompileTask, StatusCode, TaskDataKind, TaskId, TaskStartParams}
+import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier, CompileTask, StatusCode, TaskDataKind, TaskId, TaskStartParams}
 import mill._
 import mill.api.Result.{Skipped, Success}
-import mill.api.{BuildProblemReporter, Result}
+import mill.api.{CompileProblemReporter}
 import mill.eval.Evaluator
-import mill.modules.Jvm
-import mill.scalalib.Lib.discoverTests
 import mill.scalalib.JavaModule
-import mill.scalalib.api.CompilationResult
-import mill.util.Ctx
+import mill.scalalib.bsp.BspModule
 
 object Utils {
 
@@ -17,19 +14,20 @@ object Utils {
   // module's hash code TODO: find something more reliable than the hash code
   def getBspLoggedReporterPool(
       originId: String,
-      modules: Seq[JavaModule],
-      evaluator: Evaluator,
+      bspIdsByModule: Map[BspModule, BuildTargetIdentifier],
       client: BuildClient
-  ): Int => Option[BuildProblemReporter] = { hashCode: Int =>
-    ModuleUtils.getTarget(hashCode, modules, evaluator).map { target =>
-      val taskId = new TaskId(ModuleUtils.getModule(target.getId, modules).compile.hashCode.toString)
-      val taskStartParams = new TaskStartParams(taskId)
-      taskStartParams.setEventTime(System.currentTimeMillis())
-      taskStartParams.setData(new CompileTask(target.getId))
-      taskStartParams.setDataKind(TaskDataKind.COMPILE_TASK)
-      taskStartParams.setMessage(s"Compiling target ${target.getDisplayName}")
-      client.onBuildTaskStart(taskStartParams)
-      new BspLoggedReporter(client, target, taskId, Option(originId))
+  ): Int => Option[CompileProblemReporter] = { moduleHashCode: Int =>
+    bspIdsByModule.find(_._1.hashCode == moduleHashCode).map {
+      case (module: JavaModule, targetId) =>
+        val buildTarget = module.bspBuildTarget
+        val taskId = new TaskId(module.compile.hashCode.toString)
+        new BspCompileProblemReporter(
+          client,
+          targetId,
+          buildTarget.displayName.getOrElse(targetId.getUri),
+          taskId,
+          Option(originId)
+        )
     }
   }
 

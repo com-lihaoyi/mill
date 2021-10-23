@@ -1,6 +1,6 @@
 package mill.define
 
-import mill.api.{Logger, PathRef, Result}
+import mill.api.{CompileProblemReporter, Logger, PathRef, Result}
 import mill.define.Applicative.Applyable
 import mill.util.EnclosingClass
 import sourcecode.Compat.Context
@@ -60,7 +60,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def env(implicit ctx: mill.api.Ctx.Env) = ctx.env
   def args(implicit ctx: mill.api.Ctx.Args) = ctx.args
   def testReporter(implicit ctx: mill.api.Ctx) = ctx.testReporter
-  def reporter(implicit ctx: mill.api.Ctx) = ctx.reporter
+  def reporter(implicit ctx: mill.api.Ctx): Int => Option[CompileProblemReporter] = ctx.reporter
 
   implicit def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
     macro targetImpl[T]

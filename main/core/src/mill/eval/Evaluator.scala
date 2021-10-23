@@ -2,17 +2,17 @@ package mill.eval
 
 import java.net.URLClassLoader
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-
 import ammonite.runtime.SpecialClassLoader
 import mainargs.MainData
-import scala.util.DynamicVariable
 
-import mill.api.{BuildProblemReporter, DummyTestReporter, TestReporter}
+import scala.util.DynamicVariable
+import mill.api.{CompileProblemReporter, DummyTestReporter, TestReporter}
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define.{Ctx => _, _}
 import mill.util
 import mill.util._
+
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -72,8 +72,8 @@ case class Evaluator(
    */
   def evaluate(
       goals: Agg[Task[_]],
-      reporter: Int => Option[BuildProblemReporter] =
-        (int: Int) => Option.empty[BuildProblemReporter],
+      reporter: Int => Option[CompileProblemReporter] =
+        (int: Int) => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger
   ): Evaluator.Results = {
@@ -87,8 +87,8 @@ case class Evaluator(
   def sequentialEvaluate(
       goals: Agg[Task[_]],
       logger: ColorLogger,
-      reporter: Int => Option[BuildProblemReporter] =
-        (int: Int) => Option.empty[BuildProblemReporter],
+      reporter: Int => Option[CompileProblemReporter] =
+        (int: Int) => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
@@ -113,6 +113,7 @@ case class Evaluator(
 
         val startTime = System.currentTimeMillis()
         // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
+
         val counterMsg = (i + 1) + "/" + sortedGroups.keyCount
         val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
           terminal = terminal,
@@ -164,8 +165,8 @@ case class Evaluator(
       goals: Agg[Task[_]],
       threadCount: Int,
       logger: ColorLogger,
-      reporter: Int => Option[BuildProblemReporter] =
-        (int: Int) => Option.empty[BuildProblemReporter],
+      reporter: Int => Option[CompileProblemReporter] =
+        (int: Int) => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
     logger.debug(s"Using parallel evaluator with $threadCount threads")
@@ -274,7 +275,7 @@ case class Evaluator(
       group: Agg[Task[_]],
       results: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
       counterMsg: String,
-      zincProblemReporter: Int => Option[BuildProblemReporter],
+      zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger
   ): Evaluated = {
@@ -423,7 +424,7 @@ case class Evaluator(
       paths: Option[Evaluator.Paths],
       maybeTargetLabel: Option[String],
       counterMsg: String,
-      reporter: Int => Option[BuildProblemReporter],
+      reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: Logger
   ): (mutable.LinkedHashMap[Task[_], mill.api.Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {

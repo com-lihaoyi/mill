@@ -66,7 +66,7 @@ class Ctx(
     val log: Logger,
     val home: os.Path,
     val env: Map[String, String],
-    val reporter: Int => Option[BuildProblemReporter],
+    val reporter: Int => Option[CompileProblemReporter],
     val testReporter: TestReporter
 ) extends Ctx.Dest
     with Ctx.Log

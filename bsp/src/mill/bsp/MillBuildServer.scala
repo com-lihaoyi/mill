@@ -348,9 +348,10 @@ class MillBuildServer(
 
       val result = evaluator.evaluate(
         compileTasks,
-        getBspLoggedReporterPool(p.getOriginId, modules, evaluator, client),
+        getBspLoggedReporterPool(p.getOriginId, bspIdByModule, client),
         DummyTestReporter,
         new MillBspLogger(client, taskId, evaluator.baseLogger)
+//        new MillBspTaskMonitor(client)
       )
       val compileResult = new CompileResult(getStatusCode(result))
       compileResult.setOriginId(p.getOriginId)
@@ -371,7 +372,7 @@ class MillBuildServer(
       val runTask = module.run(args: _*)
       val runResult = evaluator.evaluate(
         Strict.Agg(runTask),
-        getBspLoggedReporterPool(runParams.getOriginId, modules, evaluator, client),
+        getBspLoggedReporterPool(runParams.getOriginId, bspIdByModule, client),
         logger = new MillBspLogger(client, runTask.hashCode(), evaluator.baseLogger)
       )
       val response = runResult.results(runTask) match {
@@ -433,7 +434,7 @@ class MillBuildServer(
 
               val results = evaluator.evaluate(
                 Strict.Agg(testTask),
-                getBspLoggedReporterPool(testParams.getOriginId, modules, evaluator, client),
+                getBspLoggedReporterPool(testParams.getOriginId, bspIdByModule, client),
                 testReporter,
                 new MillBspLogger(client, testTask.hashCode, evaluator.baseLogger)
               )
@@ -689,9 +690,7 @@ class MillBuildServer(
 
   /** Convert to BSP API. */
   implicit class BspModuleSupport(val m: BspModule) {
-
     def buildTargetId: BuildTargetIdentifier = bspIdByModule(m)
-
   }
 
 }
