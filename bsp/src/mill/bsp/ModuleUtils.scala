@@ -26,16 +26,6 @@ import scala.jdk.CollectionConverters._
 object ModuleUtils {
 
   /**
-   * Resolve a mill modules given a target identifier
-   */
-  def getModule(targetId: BuildTargetIdentifier, modules: Seq[JavaModule]): JavaModule =
-    modules
-      .find(getTargetId(_) == targetId)
-      .getOrElse(throw new IllegalArgumentException(
-        s"No module found for target id ${targetId.getUri}"
-      ))
-
-  /**
    * Compute the BuildClasspath for the Mill build (build.sc files)
    *
    * @param evaluator mill evaluator that can resolve build information
@@ -88,54 +78,6 @@ object ModuleUtils {
   }
 
   /**
-   * Compute the BuildTarget associated with the given mill
-   * JavaModule, which is any module present in the working
-   * directory, but it's not the root module itself.
-   *
-   * @param module      any in-project mill module
-   * @param evaluator   mill evaluator
-   * @return inner BuildTarget
-   */
-  def getTarget(module: JavaModule, evaluator: Evaluator): BuildTarget = {
-    val dataBuildTarget = computeBuildTargetData(module, evaluator)
-    val capabilities = getModuleCapabilities(module)
-    val buildTargetTag = module match {
-      case _: TestModule => Seq(BuildTargetTag.TEST)
-      case _: JavaModule =>
-        Seq(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION)
-    }
-
-    val buildTarget = new BuildTarget(
-      getTargetId(module),
-      buildTargetTag.asJava,
-      Seq("scala", "java").asJava,
-      (module.moduleDeps ++ module.compileModuleDeps)
-        .map(getTargetId)
-        .toList
-        .asJava,
-      capabilities
-    )
-    if (module.isInstanceOf[ScalaModule]) {
-      buildTarget.setDataKind(BuildTargetDataKind.SCALA)
-    }
-    buildTarget.setData(dataBuildTarget)
-    buildTarget.setDisplayName(module.millModuleSegments.render)
-    buildTarget
-  }
-
-  // obtain the capabilities of the given module ( ex: canCompile, canRun, canTest )
-  private[this] def getModuleCapabilities(
-      module: JavaModule
-  ): BuildTargetCapabilities = {
-    val canTest = module match {
-      case _: TestModule => true
-      case _ => false
-    }
-
-    new BuildTargetCapabilities(true, canTest, true)
-  }
-
-  /**
    * Evaluate the given task using the given mill evaluator and return
    * its result of type Result
    *
@@ -169,13 +111,6 @@ object ModuleUtils {
       (module.millOuterCtx.millSourcePath / module.millModuleSegments.parts).toNIO.toUri.toString
     )
 
-  def getTarget(
-      moduleHashCode: Int,
-      modules: Seq[JavaModule],
-      evaluator: Evaluator
-  ): Option[BuildTarget] =
-    modules.find(_.hashCode == moduleHashCode).map(getTarget(_, evaluator))
-
   def getTargetId(moduleHashCode: Int, modules: Seq[JavaModule]): Option[BuildTargetIdentifier] =
     modules.find(_.hashCode == moduleHashCode).map(getTargetId)
 
@@ -184,76 +119,4 @@ object ModuleUtils {
   def isPathSourceJar(path: Path): Boolean =
     path.wrapped.toString.endsWith("-sources.jar")
 
-  // Compute the ScalaBuildTarget from information about the given JavaModule.
-  private[this] def computeBuildTargetData(
-      module: JavaModule,
-      evaluator: Evaluator
-  ): ScalaBuildTarget = {
-    module match {
-      case m: ScalaModule =>
-        val scalaVersion =
-          evaluateInformativeTask(evaluator, m.scalaVersion, "")
-        new ScalaBuildTarget(
-          evaluateInformativeTask(evaluator, m.scalaOrganization, ""),
-          scalaVersion,
-          Util.scalaBinaryVersion(scalaVersion),
-          getScalaTargetPlatform(m),
-          computeScalaLangDependencies(m, evaluator)
-            .map(_.path.toNIO.toUri.toString)
-            .iterator
-            .toSeq
-            .asJava
-        )
-      case _: JavaModule =>
-        new ScalaBuildTarget(
-          "org.scala-lang",
-          BuildInfo.scalaVersion,
-          Util.scalaBinaryVersion(BuildInfo.scalaVersion),
-          ScalaPlatform.JVM,
-          Seq.empty[String].asJava
-        )
-      case m =>
-        throw new IllegalStateException(
-          s"Module type of ${m.millModuleSegments.render} not supported by BSP"
-        )
-    }
-  }
-
-  // Compute all relevant scala dependencies of `module`, like scala-library, scala-compiler,
-  // and scala-reflect
-  private[this] def computeScalaLangDependencies(
-      module: ScalaModule,
-      evaluator: Evaluator
-  ): Agg[PathRef] = {
-    evaluateInformativeTask(
-      evaluator,
-      module.resolveDeps(module.scalaLibraryIvyDeps),
-      Agg.empty[PathRef]
-    ) ++
-      evaluateInformativeTask(
-        evaluator,
-        module.scalacPluginClasspath,
-        Agg.empty[PathRef]
-      ) ++
-      evaluateInformativeTask(
-        evaluator,
-        module.resolveDeps(module.ivyDeps),
-        Agg.empty[PathRef]
-      ).filter(pathRef =>
-        pathRef.path.toNIO.toUri.toString.contains("scala-compiler") ||
-          pathRef.path.toNIO.toUri.toString.contains("scala-reflect") ||
-          pathRef.path.toNIO.toUri.toString.contains("scala-library")
-      )
-  }
-
-  // Obtain the scala platform for `module`
-  private[this] def getScalaTargetPlatform(
-      module: ScalaModule
-  ): ScalaPlatform = {
-    module match {
-      case _: ScalaNativeModule => ScalaPlatform.NATIVE
-      case _: ScalaJSModule => ScalaPlatform.JS
-      case _: ScalaModule => ScalaPlatform.JVM
-    }
-  }
 }
