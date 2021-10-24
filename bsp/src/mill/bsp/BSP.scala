@@ -2,7 +2,7 @@ package mill.bsp
 
 import ch.epfl.scala.bsp4j.BuildClient
 
-import java.io.PrintWriter
+import java.io.{PrintStream, PrintWriter}
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
 import mill.{BuildInfo, MillMain, T}
@@ -95,38 +95,30 @@ object BSP extends ExternalModule {
    *          server
    */
   def start(ev: Evaluator): Command[Unit] = T.command {
-//    Using.resource(new FileLogger(
-//      false,
-//      ev.rootModule.millSourcePath / ".bsp" / s"${serverName}.log",
-//      true,
-//      true
-//    ))(_.close()) { fileLogger =>
-//      val log: ColorLogger = ev.baseLogger match {
-//        case PrintLogger(c1, _, c2, _, i, e, in, de, uc) =>
-//          // Map all output to debug channel
-//          val outLogger = PrintLogger(c1, false, c2, e, i, e, DummyInputStream, de, uc)
-//          new MultiLogger(c1, outLogger, fileLogger, in) with ColorLogger {
-//            override def colors: Colors = c2
-//          }
-//        case l => l
-//      }
+    startBspServer(Some(ev), logStream = T.log.errorStream, ev.rootModule.millSourcePath)
+  }
 
-      val evaluator = new Evaluator(
-        ev.home,
-        ev.outPath,
-        ev.externalOutPath,
-        ev.rootModule,
-        ev.baseLogger,
-        ev.classLoaderSig,
-        ev.workerCache,
-        ev.env,
-        false
-      )
+  def startBspServer(initialEvaluator: Option[Evaluator], logStream: PrintStream, projectDir: os.Path) = {
+      val evaluator = initialEvaluator.map { ev =>
+        new Evaluator(
+          ev.home,
+          ev.outPath,
+          ev.externalOutPath,
+          ev.rootModule,
+          ev.baseLogger,
+          ev.classLoaderSig,
+          ev.workerCache,
+          ev.env,
+          false
+        )
+      }
       val millServer = new MillBuildServer(
         evaluator,
         bspProtocolVersion,
         BuildInfo.millVersion,
-        serverName
+        serverName,
+        logStream,
+        projectDir
       )
       val executor = Executors.newCachedThreadPool()
 
@@ -142,7 +134,7 @@ object BSP extends ExternalModule {
           .setLocalService(millServer)
           .setRemoteInterface(classOf[BuildClient])
           .traceMessages(new PrintWriter(
-            (evaluator.rootModule.millSourcePath / ".bsp" / s"${serverName}.trace").toIO
+            (projectDir / ".bsp" / s"${serverName}.trace").toIO
           ))
           .setExecutorService(executor)
           .create()
