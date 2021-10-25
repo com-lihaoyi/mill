@@ -1,24 +1,66 @@
 package mill.bsp
 
-import ch.epfl.scala.bsp4j._
+import ch.epfl.scala.bsp4j.{
+  BuildClient,
+  BuildServer,
+  BuildServerCapabilities,
+  BuildTarget,
+  BuildTargetCapabilities,
+  BuildTargetIdentifier,
+  CleanCacheParams,
+  CleanCacheResult,
+  CompileParams,
+  CompileProvider,
+  CompileResult,
+  DebugProvider,
+  DependencyModule,
+  DependencyModulesItem,
+  DependencyModulesParams,
+  DependencyModulesResult,
+  DependencySourcesItem,
+  DependencySourcesParams,
+  DependencySourcesResult,
+  InitializeBuildParams,
+  InitializeBuildResult,
+  InverseSourcesParams,
+  InverseSourcesResult,
+  ResourcesItem,
+  ResourcesParams,
+  ResourcesResult,
+  RunParams,
+  RunProvider,
+  RunResult,
+  SourceItem,
+  SourceItemKind,
+  SourcesItem,
+  SourcesParams,
+  SourcesResult,
+  StatusCode,
+  TaskDataKind,
+  TaskFinishParams,
+  TaskId,
+  TaskStartParams,
+  TestParams,
+  TestProvider,
+  TestResult,
+  TestTask,
+  WorkspaceBuildTargetsResult
+}
 import com.google.gson.JsonObject
 
 import java.util.concurrent.CompletableFuture
 import mill._
-import mill.api.{Ctx, DummyTestReporter, Logger, Loose, Result, Strict}
-import mill.bsp.ModuleUtils._
-import mill.bsp.Utils._
+import mill.api.{DummyTestReporter, Result, Strict}
 import mill.define.Segment.Label
-import mill.define.{BaseModule, Discover, ExternalModule, Segments, Task}
-import mill.eval.{Evaluator, EvaluatorPaths, EvaluatorPathsResolver}
+import mill.define.{Discover, ExternalModule, Segments, Task}
+import mill.eval.Evaluator
 import mill.main.{EvaluatorScopt, MainModule}
-import mill.modules.Jvm
-import mill.scalalib._
+import mill.scalalib.{JavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, MillBuildTarget}
 import os.Path
 
 import java.io.PrintStream
-import scala.concurrent.{Await, Future, Promise}
+import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success}
@@ -31,21 +73,11 @@ class MillBuildServer(
     serverName: String,
     logStream: PrintStream
 ) extends ExternalModule
-    with BuildServer
-    with ScalaBuildServer
-    with JavaBuildServer {
+    with BuildServer {
+
   implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] = new mill.main.EvaluatorScopt[T]()
 
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
-//  implicit val ctx: Ctx.Log with Ctx.Home = new Ctx.Log with Ctx.Home {
-//    val log: Logger = evaluator.baseLogger match {
-//      case PrintLogger(c1, d, c2, _, i, e, in, de, uc) =>
-//        // Map all output to debug channel
-//        PrintLogger(c1, d, c2, e, i, e, in, de, uc)
-//      case l => l
-//    }
-//    val home: Path = evaluator.rootModule.millSourcePath
-//  }
   var cancellator: Boolean => Unit = shutdownBefore => ()
   var client: BuildClient = _
   var initialized = false
@@ -315,7 +347,10 @@ class MillBuildServer(
       ) {
         case (id, `millBuildTarget`) =>
           T.task {
-            new DependencySourcesItem(id, getMillBuildClasspath(evaluator, sources = true).asJava)
+            new DependencySourcesItem(
+              id,
+              ModuleUtils.getMillBuildClasspath(evaluator, sources = true).asJava
+            )
           }
         case (id, m: JavaModule) =>
           T.task {
@@ -394,12 +429,11 @@ class MillBuildServer(
 
       val result = evaluator.evaluate(
         compileTasks,
-        getBspLoggedReporterPool(p.getOriginId, bspIdByModule, client),
+        Utils.getBspLoggedReporterPool(p.getOriginId, bspIdByModule, client),
         DummyTestReporter,
         new MillBspLogger(client, taskId, evaluator.baseLogger)
-//        new MillBspTaskMonitor(client)
       )
-      val compileResult = new CompileResult(getStatusCode(result))
+      val compileResult = new CompileResult(Utils.getStatusCode(result))
       compileResult.setOriginId(p.getOriginId)
       compileResult // TODO: See in what form IntelliJ expects data about products of compilation in order to set data field
     }
@@ -420,7 +454,7 @@ class MillBuildServer(
       val runTask = module.run(args: _*)
       val runResult = evaluator.evaluate(
         Strict.Agg(runTask),
-        getBspLoggedReporterPool(runParams.getOriginId, bspIdByModule, client),
+        Utils.getBspLoggedReporterPool(runParams.getOriginId, bspIdByModule, client),
         logger = new MillBspLogger(client, runTask.hashCode(), evaluator.baseLogger)
       )
       val response = runResult.results(runTask) match {
@@ -484,11 +518,11 @@ class MillBuildServer(
 
               val results = evaluator.evaluate(
                 Strict.Agg(testTask),
-                getBspLoggedReporterPool(testParams.getOriginId, bspIdByModule, client),
+                Utils.getBspLoggedReporterPool(testParams.getOriginId, bspIdByModule, client),
                 testReporter,
                 new MillBspLogger(client, testTask.hashCode, evaluator.baseLogger)
               )
-              val statusCode = getStatusCode(results)
+              val statusCode = Utils.getStatusCode(results)
 
               // Notifying the client that the testing of this build target ended
               val taskFinishParams =
@@ -565,39 +599,6 @@ class MillBuildServer(
       new CleanCacheResult(msg, cleaned)
     }
 
-  override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
-      : CompletableFuture[JavacOptionsResult] =
-    completable(s"buildTargetJavacOptions ${javacOptionsParams}") { state =>
-      import state._
-      targetTasks(
-        state,
-        targetIds = javacOptionsParams.getTargets.asScala.toSeq,
-        agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava)
-      ) {
-        case (id, `millBuildTarget`) => T.task {
-            val classpath = getMillBuildClasspath(evaluator, sources = false)
-            new JavacOptionsItem(
-              id,
-              Seq.empty.asJava,
-              classpath.iterator.toSeq.asJava,
-              sanitizeUri(evaluator.outPath)
-            )
-          }
-        case (id, m: JavaModule) =>
-          val pathResolver = T.task(evaluator.pathsResolver)
-          T.task {
-            val options = m.javacOptions()
-            val classpath = m.bspCompileClasspath(pathResolver)().map(sanitizeUri.apply)
-            new JavacOptionsItem(
-              id,
-              options.asJava,
-              classpath.iterator.toSeq.asJava,
-              sanitizeUri(m.bspCompileClassesPath(pathResolver)())
-            )
-          }
-      }
-    }
-
   def completableTasks[T: ClassTag, V](
       hint: String,
       targetIds: Seq[BuildTargetIdentifier],
@@ -618,106 +619,6 @@ class MillBuildServer(
     agg(res)
   }
 
-  override def buildTargetScalacOptions(p: ScalacOptionsParams)
-      : CompletableFuture[ScalacOptionsResult] =
-    completable(hint = s"buildTargetScalacOptions ${p}") { state =>
-      import state._
-      targetTasks(
-        state,
-        targetIds = p.getTargets.asScala.toSeq,
-        agg = (items: Seq[ScalacOptionsItem]) => new ScalacOptionsResult(items.asJava)
-      ) {
-        case (id, `millBuildTarget`) => T.task {
-            new ScalacOptionsItem(
-              id,
-              Seq.empty[String].asJava,
-              getMillBuildClasspath(evaluator, false).asJava,
-              sanitizeUri(evaluator.outPath)
-            )
-          }
-        case (id, m: JavaModule) =>
-          val optionsTask = m match {
-            case sm: ScalaModule => sm.scalacOptions
-            case _ => T.task { Seq.empty[String] }
-          }
-
-          val pathResolver = T.task(evaluator.pathsResolver)
-          T.task {
-            new ScalacOptionsItem(
-              id,
-              optionsTask().asJava,
-              m.bspCompileClasspath(pathResolver)().map(sanitizeUri.apply).iterator.toSeq.asJava,
-              sanitizeUri(m.bspCompileClassesPath(pathResolver)())
-            )
-          }
-      }
-    }
-
-  override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
-      : CompletableFuture[ScalaMainClassesResult] =
-    completableTasks(
-      hint = "buildTragetScalaMainClasses",
-      targetIds = p.getTargets.asScala.toSeq,
-      agg = (items: Seq[ScalaMainClassesItem]) => new ScalaMainClassesResult(items.asJava)
-    ) {
-      case (id, m: JavaModule) =>
-        T.task {
-          // We find all main classes, although we could also find only the configured one
-          val mainClasses = m.zincWorker.worker().discoverMainClasses(m.compile())
-          // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
-          val jvmOpts = m.forkArgs()
-          val envs = m.forkEnv()
-          val items = mainClasses.map(mc =>
-            new ScalaMainClass(mc, Seq().asJava, jvmOpts.asJava).tap {
-              _.setEnvironmentVariables(envs.map(e => s"${e._1}=${e._2}").toSeq.asJava)
-            }
-          )
-          new ScalaMainClassesItem(id, items.asJava)
-        }
-      case (id, _) => T.task {
-          // no Java module, so no main classes
-          new ScalaMainClassesItem(id, Seq.empty[ScalaMainClass].asJava)
-        }
-
-    }
-
-  override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
-      : CompletableFuture[ScalaTestClassesResult] =
-    completableTasks(
-      s"buildTargetScalaTestClasses ${p}",
-      targetIds = p.getTargets.asScala.toSeq,
-      agg = (items: Seq[ScalaTestClassesItem]) => new ScalaTestClassesResult(items.asJava)
-    ) {
-      case (id, m: TestModule) => T.task {
-          val classpath = m.runClasspath()
-          val testFramework = m.testFramework()
-          val compResult = m.compile()
-
-          val classFingerprint = Jvm.inprocess(
-            classpath.map(_.path),
-            classLoaderOverrideSbtTesting = true,
-            isolated = true,
-            closeContextClassLoaderWhenDone = false,
-            cl => {
-              val framework = TestRunner.framework(testFramework)(cl)
-              Lib.discoverTests(
-                cl,
-                framework,
-                Agg(compResult.classes.path)
-              )
-            }
-          )
-          Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
-
-          val classes = Seq.empty[String]
-          new ScalaTestClassesItem(id, classes.asJava)
-        }
-      case (id, _) => T.task {
-          // Not a test module, so no test classes
-          new ScalaTestClassesItem(id, Seq.empty[String].asJava)
-        }
-    }
-
   /**
    * Given a function that take input of type T and return output of type V,
    * apply the function on the given inputs and return a completable future of
@@ -725,7 +626,7 @@ class MillBuildServer(
    * the future exceptionally. Also complete exceptionally if the server was not
    * yet initialized.
    */
-  private[this] def completable[V](
+  protected def completable[V](
       hint: String,
       checkInitialized: Boolean = true
   )(f: State => V): CompletableFuture[V] = {
@@ -763,5 +664,4 @@ class MillBuildServer(
 
     future
   }
-
 }

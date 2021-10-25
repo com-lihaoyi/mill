@@ -124,13 +124,15 @@ object BSP extends ExternalModule {
         false
       )
     }
+
     val millServer = new MillBuildServer(
       evaluator,
       bspProtocolVersion,
       BuildInfo.millVersion,
       serverName,
       errStream
-    )
+    ) with MillJavaBuildServer with MillScalaBuildServer
+
     val executor = Executors.newCachedThreadPool()
 
     var shutdownRequestedBeforeExit = false
