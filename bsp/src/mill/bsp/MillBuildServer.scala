@@ -379,14 +379,18 @@ class MillBuildServer(
 
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
-      val compileTasks = params.getTargets.distinct.map(bspModulesById).map {
-        case m: JavaModule => m.compile
-        case m => T.task {
-            Result.Failure(
-              s"Don't know now to compile non-Java target ${m.bspBuildTarget.displayName}"
-            )
+      val compileTasks =
+        params.getTargets.distinct
+          .filter(_ != millBuildTarget.buildTargetId)
+          .map(bspModulesById)
+          .map {
+            case m: JavaModule => m.compile
+            case m => T.task {
+                Result.Failure(
+                  s"Don't know now to compile non-Java target ${m.bspBuildTarget.displayName}"
+                )
+              }
           }
-      }
 
       val result = evaluator.evaluate(
         compileTasks,
