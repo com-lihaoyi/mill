@@ -310,7 +310,7 @@ case class Evaluator(
           if (!labelledNamedTask.task.ctx.external) outPath
           else externalOutPath
 
-        val paths = Evaluator.resolveDestPaths(
+        val paths = EvaluatorPaths.resolveDestPaths(
           out,
           destSegments(labelledNamedTask)
         )
@@ -421,7 +421,7 @@ case class Evaluator(
       group: Agg[Task[_]],
       results: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
       inputsHash: Int,
-      paths: Option[Evaluator.Paths],
+      paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
       counterMsg: String,
       reporter: Int => Option[CompileProblemReporter],
@@ -613,21 +613,16 @@ object Evaluator {
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
-  case class Paths(out: os.Path, dest: os.Path, meta: os.Path, log: os.Path)
-  def makeSegmentStrings(segments: Segments) = segments.value.flatMap {
-    case Segment.Label(s) => Seq(s)
-    case Segment.Cross(values) => values.map(_.toString)
-  }
+  @deprecated("Use EvaluatorPaths instead", "mill-0.10.0-M3")
+  type Paths = EvaluatorPaths
+  @deprecated("Use EvaluatorPaths.makeSegmentStrings instead", "mill-0.10.0-M3")
+  def makeSegmentStrings(segments: Segments) = EvaluatorPaths.makeSegmentStrings(segments)
+  @deprecated("Use EvaluatorPaths.resolveDestPaths instead", "mill-0.10.0-M3")
   def resolveDestPaths(
       workspacePath: os.Path,
       segments: Segments,
       foreignSegments: Option[Segments] = None
-  ): Paths = {
-    val refinedSegments = foreignSegments.map(_ ++ segments).getOrElse(segments)
-    val segmentStrings = makeSegmentStrings(refinedSegments)
-    val targetPath = workspacePath / segmentStrings
-    Paths(targetPath, targetPath / "dest", targetPath / "meta.json", targetPath / "log")
-  }
+  ) = EvaluatorPaths.resolveDestPaths(workspacePath, segments, foreignSegments)
 
   // check if the build itself has changed
   def classLoaderSig = Thread.currentThread().getContextClassLoader match {

@@ -26,10 +26,6 @@ trait BspModule extends Module {
   @internal
   def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task { None }
 
-//  /** Provides optional info about location of compiled classes. */
-//  @internal
-//  def bspCompileClassesInfo: Option[(Segments, SubPath)] = None
-
 }
 
 object BspModule {

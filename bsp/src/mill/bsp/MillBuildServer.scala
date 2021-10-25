@@ -10,7 +10,7 @@ import mill.bsp.ModuleUtils._
 import mill.bsp.Utils._
 import mill.define.Segment.Label
 import mill.define.{BaseModule, Discover, ExternalModule, Segments, Task}
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, EvaluatorPathsResolver}
 import mill.main.{EvaluatorScopt, MainModule}
 import mill.modules.Jvm
 import mill.scalalib._
@@ -185,7 +185,7 @@ class MillBuildServer(
       capabilities.setCanReload(false)
 
       initialized = true
-      new InitializeBuildResult("mill-bsp", serverVersion, bspVersion, capabilities)
+      new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
     }
 
   override def onBuildInitialized(): Unit = {
@@ -585,17 +585,15 @@ class MillBuildServer(
             )
           }
         case (id, m: JavaModule) =>
-          val teval = T.task(evaluator)
+          val pathResolver = T.task(EvaluatorPathsResolver.default(evaluator.outPath))
           T.task {
             val options = m.javacOptions()
-            val classpath = m.bspCompileClasspath(teval)().map(sanitizeUri.apply)
+            val classpath = m.bspCompileClasspath(pathResolver)().map(sanitizeUri.apply)
             new JavacOptionsItem(
               id,
               options.asJava,
               classpath.iterator.toSeq.asJava,
-              sanitizeUri(m.bspCompileClassesPath(T.task {
-                evaluator
-              })())
+              sanitizeUri(m.bspCompileClassesPath(pathResolver)())
             )
           }
       }
@@ -644,13 +642,13 @@ class MillBuildServer(
             case _ => T.task { Seq.empty[String] }
           }
 
-          val teval = T.task(evaluator)
+          val pathResolver = T.task(EvaluatorPathsResolver.default(evaluator.outPath))
           T.task {
             new ScalacOptionsItem(
               id,
               optionsTask().asJava,
-              m.bspCompileClasspath(teval)().map(sanitizeUri.apply).iterator.toSeq.asJava,
-              sanitizeUri(m.bspCompileClassesPath(teval)())
+              m.bspCompileClasspath(pathResolver)().map(sanitizeUri.apply).iterator.toSeq.asJava,
+              sanitizeUri(m.bspCompileClassesPath(pathResolver)())
             )
           }
       }

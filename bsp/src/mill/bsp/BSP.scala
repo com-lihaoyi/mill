@@ -2,7 +2,7 @@ package mill.bsp
 
 import ch.epfl.scala.bsp4j.BuildClient
 
-import java.io.{PrintStream, PrintWriter}
+import java.io.{InputStream, PrintStream, PrintWriter}
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
 import mill.{BuildInfo, MillMain, T}
@@ -95,74 +95,82 @@ object BSP extends ExternalModule {
    *          server
    */
   def start(ev: Evaluator): Command[Unit] = T.command {
-    startBspServer(Some(ev), logStream = T.log.errorStream, ev.rootModule.millSourcePath)
+    startBspServer(
+      initialEvaluator = Some(ev),
+      outStream = MillMain.initialSystemStreams.out,
+      errStream = T.log.errorStream,
+      inStream = MillMain.initialSystemStreams.in,
+      projectDir = ev.rootModule.millSourcePath
+    )
   }
 
-  def startBspServer(initialEvaluator: Option[Evaluator], logStream: PrintStream, projectDir: os.Path) = {
-      val evaluator = initialEvaluator.map { ev =>
-        new Evaluator(
-          ev.home,
-          ev.outPath,
-          ev.externalOutPath,
-          ev.rootModule,
-          ev.baseLogger,
-          ev.classLoaderSig,
-          ev.workerCache,
-          ev.env,
-          false
-        )
-      }
-      val millServer = new MillBuildServer(
-        evaluator,
-        bspProtocolVersion,
-        BuildInfo.millVersion,
-        serverName,
-        logStream,
-        projectDir
+  def startBspServer(
+      initialEvaluator: Option[Evaluator],
+      outStream: PrintStream,
+      errStream: PrintStream,
+      inStream: InputStream,
+      projectDir: os.Path
+  ) = {
+    val evaluator = initialEvaluator.map { ev =>
+      new Evaluator(
+        ev.home,
+        ev.outPath,
+        ev.externalOutPath,
+        ev.rootModule,
+        ev.baseLogger,
+        ev.classLoaderSig,
+        ev.workerCache,
+        ev.env,
+        false
       )
-      val executor = Executors.newCachedThreadPool()
+    }
+    val millServer = new MillBuildServer(
+      evaluator,
+      bspProtocolVersion,
+      BuildInfo.millVersion,
+      serverName,
+      errStream
+    )
+    val executor = Executors.newCachedThreadPool()
 
-      var shutdownRequestedBeforeExit = false
+    var shutdownRequestedBeforeExit = false
 
-      val logger = T.ctx.log
-      val in = logger.inStream
-      val out = logger.outputStream
-      try {
-        val launcher = new Launcher.Builder[BuildClient]()
-          .setOutput(MillMain.initialSystemStreams.out)
-          .setInput(MillMain.initialSystemStreams.in)
-          .setLocalService(millServer)
-          .setRemoteInterface(classOf[BuildClient])
-          .traceMessages(new PrintWriter(
-            (projectDir / ".bsp" / s"${serverName}.trace").toIO
-          ))
-          .setExecutorService(executor)
-          .create()
-        millServer.onConnectWithClient(launcher.getRemoteProxy)
-        val listening = launcher.startListening()
-        millServer.cancellator = shutdownBefore => {
-          shutdownRequestedBeforeExit = shutdownBefore
-          listening.cancel(true)
-        }
-        listening.get()
-        ()
-      } catch {
-        case _: CancellationException =>
-          T.log.error("The mill server was shut down.")
-        case e: Exception =>
-          T.log.error(
-            s"""An exception occurred while connecting to the client.
-               |Cause: ${e.getCause}
-               |Message: ${e.getMessage}
-               |Exception class: ${e.getClass}
-               |Stack Trace: ${e.getStackTrace}""".stripMargin
-          )
-      } finally {
-        T.log.error("Shutting down executor")
-        executor.shutdown()
+    try {
+      val launcher = new Launcher.Builder[BuildClient]()
+        .setOutput(outStream)
+        .setInput(inStream)
+        .setLocalService(millServer)
+        .setRemoteInterface(classOf[BuildClient])
+        .traceMessages(new PrintWriter(
+          (projectDir / ".bsp" / s"${serverName}.trace").toIO
+        ))
+        .setExecutorService(executor)
+        .create()
+      millServer.onConnectWithClient(launcher.getRemoteProxy)
+      val listening = launcher.startListening()
+      millServer.cancellator = shutdownBefore => {
+        shutdownRequestedBeforeExit = shutdownBefore
+        listening.cancel(true)
       }
-      if (shutdownRequestedBeforeExit) Result.Success(())
-      else Result.Failure("BSP exited without properly shutdown request")
+      listening.get()
+      ()
+    } catch {
+      case _: CancellationException =>
+        errStream.println("The mill server was shut down.")
+      case e: Exception =>
+        errStream.println(
+          s"""An exception occurred while connecting to the client.
+             |Cause: ${e.getCause}
+             |Message: ${e.getMessage}
+             |Exception class: ${e.getClass}
+             |Stack Trace: ${e.getStackTrace}""".stripMargin
+        )
+    } finally {
+      errStream.println("Shutting down executor")
+      executor.shutdown()
+    }
+    if (shutdownRequestedBeforeExit) Result.Success(())
+    else Result.Failure("BSP exited without properly shutdown request")
 //    }
   }
 }

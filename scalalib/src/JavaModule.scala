@@ -5,15 +5,14 @@ import scala.annotation.nowarn
 import coursier.Repository
 import mill.api.Loose.Agg
 import mill.api.{PathRef, Result, internal}
-import mill.define.Segment.Label
-import mill.define.{Command, Segments, Sources, Target, Task, TaskModule}
-import mill.eval.Evaluator
+import mill.define.{Command, Sources, Target, Task, TaskModule}
+import mill.eval.EvaluatorPathsResolver
 import mill.modules.Jvm.{createAssembly, createJar}
 import mill.modules.{Assembly, Jvm}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
-import os.{Path, SubPath}
+import os.Path
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -259,7 +258,7 @@ trait JavaModule
   /**
    * Compiles the current module to generate compiled classfiles/bytecode
    */
-  // Keep in sync with [[bspCompileClassesInfo]]
+  // Keep in sync with [[bspCompileClassesPath]]
   def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
     zincWorker
       .worker()
@@ -272,15 +271,14 @@ trait JavaModule
       )
   }
 
-  /** the path to the compiles classes without forcing to actually run the target */
+  /** The path to the compiled classes without forcing to actually run the target. */
+  // Keep in sync with [[compile]]
   @internal
-  def bspCompileClassesPath(evaluator: Task[Evaluator]): Task[PathRef] = {
+  def bspCompileClassesPath(pathsResolver: Task[EvaluatorPathsResolver]): Task[PathRef] = {
     if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
       T.task {
         val pr = PathRef(
-          Evaluator
-            .resolveDestPaths(evaluator().outPath, compile.ctx.segments)
-            .dest / "classes"
+          pathsResolver().resolveDest(compile).dest / "classes"
         )
         T.log.debug(
           s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
@@ -307,6 +305,7 @@ trait JavaModule
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module
    */
+  // Keep in sync with [[bspCompileClasspath]]
   def compileClasspath: T[Agg[PathRef]] = T {
     transitiveLocalClasspath() ++
       resources() ++
@@ -314,19 +313,23 @@ trait JavaModule
       resolvedIvyDeps()
   }
 
-  /** Same as [[compileClassapth]], but does not trigger compilation targets, if possible. */
+  /** Same as [[compileClasspath]], but does not trigger compilation targets, if possible. */
+  // Keep in sync with [[compileClasspath]]
   @internal
-  def bspCompileClasspath(evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
-    def bspLocalClasspath(j : JavaModule, evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
-      val cl = bspCompileClassesPath(evaluator)
+  def bspCompileClasspath(pathsResolver: Task[EvaluatorPathsResolver]): Task[Seq[PathRef]] = {
+    def bspLocalClasspath(j: JavaModule, pathsResolver: Task[EvaluatorPathsResolver]): Task[Seq[PathRef]] = {
+      val cl = bspCompileClassesPath(pathsResolver)
       T.task {
         resources() ++ Seq(cl())
       }
     }
 
-    def bspTransitiveLocalClasspath(j: JavaModule, evaluator: Task[Evaluator]): Task[Seq[PathRef]] = {
+    def bspTransitiveLocalClasspath(
+        j: JavaModule,
+        pathsResolver: Task[EvaluatorPathsResolver]
+    ): Task[Seq[PathRef]] = {
       val res = T.traverse(j.moduleDeps ++ j.compileModuleDeps)(m =>
-        T.task { bspLocalClasspath(m, evaluator)() ++ bspTransitiveLocalClasspath(m, evaluator)() }
+        T.task { bspLocalClasspath(m, pathsResolver)() ++ bspTransitiveLocalClasspath(m, pathsResolver)() }
       )
       T.task {
         val res2: Seq[PathRef] = res().flatten
@@ -334,7 +337,7 @@ trait JavaModule
       }
     }
 
-    val lcp = bspTransitiveLocalClasspath(this, evaluator)
+    val lcp = bspTransitiveLocalClasspath(this, pathsResolver)
     T.task {
       lcp() ++
         resources() ++
@@ -779,15 +782,5 @@ trait JavaModule
     canCompile = true,
     canRun = true
   )
-
-//  @internal
-//  override def bspCompileClassesInfo: Option[(Segments, SubPath)] = {
-//    if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
-//      // this is a non-overridden compile task
-//      Some(Segments(Label("compile")), os.sub / "classes")
-//    } else {
-//      None
-//    }
-//  }
 
 }

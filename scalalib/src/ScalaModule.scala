@@ -2,9 +2,8 @@ package mill
 package scalalib
 
 import scala.annotation.nowarn
-import coursier.{Dependency, Repository}
-import mill.define.{Command, Segments, Sources, Target, Task, TaskModule}
-import mill.api.{DummyInputStream, Loose, PathRef, Result, internal}
+import mill.define.{Command, Sources, Target, Task}
+import mill.api.{DummyInputStream, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
 import mill.scalalib.api.Util.{
@@ -18,7 +17,7 @@ import Lib._
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.Loose.Agg
 import mill.define.Segment.Label
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, EvaluatorPathsResolver}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import os.SubPath
@@ -210,16 +209,12 @@ trait ScalaModule extends JavaModule { outer =>
 
   /** the path to the compiles classes without forcing to actually run the target */
   @internal
-  override def bspCompileClassesPath(evaluator: Task[Evaluator]): Task[PathRef] = {
+  override def bspCompileClassesPath(pathsResolver: Task[EvaluatorPathsResolver]): Task[PathRef] = {
     if (compile.ctx.enclosing == s"${classOf[ScalaModule].getName}#compile") T.task {
       T.log.debug(
         s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
       )
-      PathRef(
-        Evaluator
-          .resolveDestPaths(evaluator().outPath, compile.ctx.segments)
-          .dest / "classes"
-      )
+      PathRef(pathsResolver().resolveDest(compile).dest / "classes")
     }
     else T.task {
       T.log.debug(
@@ -228,7 +223,6 @@ trait ScalaModule extends JavaModule { outer =>
       compile().classes
     }
   }
-
 
   override def docSources: Sources = T.sources {
     // Scaladoc 3.0.0 is consuming tasty files
