@@ -10,17 +10,14 @@ import mill.bsp.ModuleUtils._
 import mill.bsp.Utils._
 import mill.define.Segment.Label
 import mill.define.{BaseModule, Discover, ExternalModule, Segments, Task}
-import mill.eval.{Evaluator, EvaluatorPathsResolver}
+import mill.eval.{Evaluator, EvaluatorPaths, EvaluatorPathsResolver}
 import mill.main.{EvaluatorScopt, MainModule}
 import mill.modules.Jvm
 import mill.scalalib._
-import mill.scalalib.api.CompilationResult
-import mill.scalalib.bsp.{BspBuildTargetId, BspModule, BspUri, MillBuildTarget}
-import mill.util.{ColorLogger, DummyLogger, PrintLogger}
+import mill.scalalib.bsp.{BspModule, MillBuildTarget}
 import os.Path
 
 import java.io.PrintStream
-import scala.annotation.tailrec
 import scala.concurrent.{Await, Future, Promise}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -551,11 +548,9 @@ class MillBuildServer(
               false
             )
             else {
-              val outDir = Evaluator
-                .resolveDestPaths(
-                  evaluator.outPath,
-                  module.millModuleSegments ++ Seq(Label("compile"))
-                )
+              val outDir = evaluator.pathsResolver.resolveDest(
+                module.millModuleSegments ++ Seq(Label("compile"))
+              )
                 .out
               while (os.exists(outDir)) Thread.sleep(10)
 
@@ -585,7 +580,7 @@ class MillBuildServer(
             )
           }
         case (id, m: JavaModule) =>
-          val pathResolver = T.task(EvaluatorPathsResolver.default(evaluator.outPath))
+          val pathResolver = T.task(evaluator.pathsResolver)
           T.task {
             val options = m.javacOptions()
             val classpath = m.bspCompileClasspath(pathResolver)().map(sanitizeUri.apply)
@@ -642,7 +637,7 @@ class MillBuildServer(
             case _ => T.task { Seq.empty[String] }
           }
 
-          val pathResolver = T.task(EvaluatorPathsResolver.default(evaluator.outPath))
+          val pathResolver = T.task(evaluator.pathsResolver)
           T.task {
             new ScalacOptionsItem(
               id,

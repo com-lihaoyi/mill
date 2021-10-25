@@ -65,6 +65,8 @@ case class Evaluator(
 
   val classLoaderSignHash = classLoaderSig.hashCode()
 
+  val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
+
   /**
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module

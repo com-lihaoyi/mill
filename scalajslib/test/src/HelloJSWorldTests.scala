@@ -3,7 +3,7 @@ package mill.scalajslib
 import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
-import mill.eval.{Evaluator, Result}
+import mill.eval.{EvaluatorPaths, Result}
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule, TestRunner}
 import mill.scalalib.api.Util.isScala3
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
@@ -276,10 +276,7 @@ object HelloJSWorldTests extends TestSuite {
 
       val Right((_, evalCount)) = helloWorldEvaluator(task)
 
-      val paths = Evaluator.resolveDestPaths(
-        helloWorldEvaluator.outPath,
-        task.ctx.segments
-      )
+      val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task)
       val log = os.read(paths.log)
       assert(
         evalCount > 0,

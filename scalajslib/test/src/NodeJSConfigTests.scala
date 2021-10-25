@@ -2,7 +2,7 @@ package mill.scalajslib
 
 import mill._
 import mill.define.Discover
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.scalalib.{CrossScalaModule, DepSyntax}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -64,10 +64,7 @@ object NodeJSConfigTests extends TestSuite {
 
     def checkLog(command: define.Command[_], nodeArgs: List[String], notNodeArgs: List[String]) = {
       helloWorldEvaluator(command)
-      val paths = Evaluator.resolveDestPaths(
-        helloWorldEvaluator.outPath,
-        command.ctx.segments
-      )
+      val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, command)
       val log = os.read(paths.log)
       assert(
         nodeArgs.forall(log.contains),

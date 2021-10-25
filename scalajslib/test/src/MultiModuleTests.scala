@@ -2,7 +2,7 @@ package mill.scalajslib
 
 import mill._
 import mill.define.Discover
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util._
 import mill.scalalib._
 import utest._
@@ -71,10 +71,7 @@ object MultiModuleTests extends TestSuite {
 
       val Right((_, evalCount)) = evaluator(command)
 
-      val paths = Evaluator.resolveDestPaths(
-        evaluator.outPath,
-        command.ctx.segments
-      )
+      val paths = EvaluatorPaths.resolveDestPaths(evaluator.outPath, command)
       val log = os.read(paths.log)
       assert(
         evalCount > 0,
