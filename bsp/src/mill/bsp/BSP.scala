@@ -7,14 +7,16 @@ import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
 import mill.{BuildInfo, MillMain, T}
 import mill.define.{Command, Discover, ExternalModule}
-import mill.api.Result
 import mill.eval.Evaluator
+import mill.main.{BspServerHandle, BspServerResult}
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
-import scala.concurrent.CancellationException
+import scala.concurrent.{Await, CancellationException, Promise}
 import upickle.default.write
 
+import scala.concurrent.duration.Duration
 import scala.util.Using
+import scala.util.chaining.scalaUtilChainingOps
 
 object BSP extends ExternalModule {
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
@@ -23,6 +25,8 @@ object BSP extends ExternalModule {
   val bspProtocolVersion = "2.0.0"
   val languages = Seq("scala", "java")
   val serverName = "mill-bsp"
+
+  private[this] var millServerHandle = Promise[BspServerHandle]
 
   /**
    * Installs the mill-bsp server. It creates a json file
@@ -74,8 +78,8 @@ object BSP extends ExternalModule {
           "--bsp",
           "--disable-ticker",
           "--color",
-          "false",
-          s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
+          "false"
+//          s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
         ),
         millVersion = BuildInfo.millVersion,
         bspVersion = bspProtocolVersion,
@@ -94,14 +98,29 @@ object BSP extends ExternalModule {
    * @return: mill.Command which executes the starting of the
    *          server
    */
-  def start(ev: Evaluator): Command[Unit] = T.command {
+  def start(ev: Evaluator): Command[BspServerResult] = T.command {
     startBspServer(
       initialEvaluator = Some(ev),
       outStream = MillMain.initialSystemStreams.out,
       errStream = T.log.errorStream,
       inStream = MillMain.initialSystemStreams.in,
-      projectDir = ev.rootModule.millSourcePath
+      logDir = ev.rootModule.millSourcePath / ".bsp",
+      canReload = false
     )
+  }
+
+  /**
+   * This command only starts a BSP session, which means it injects the current evaluator into an already running BSP server.
+   * This command requires Mill to start with `--bsp` option.
+   * @param ev The Evaluator
+   * @return The server result, indicating if mill should re-run this command or just exit.
+   */
+  def startSession(ev: Evaluator): Command[BspServerResult] = T.command {
+    T.log.errorStream.println("BSP/startSession: Starting BSP session")
+    val serverHandle: BspServerHandle = Await.result(millServerHandle.future, Duration.Inf)
+    val res = serverHandle.runSession(ev)
+    T.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
+    res
   }
 
   def startBspServer(
@@ -109,7 +128,9 @@ object BSP extends ExternalModule {
       outStream: PrintStream,
       errStream: PrintStream,
       inStream: InputStream,
-      projectDir: os.Path
+      logDir: os.Path,
+      canReload: Boolean,
+      serverHandle: Option[Promise[BspServerHandle]] = None
   ) = {
     val evaluator = initialEvaluator.map { ev =>
       new Evaluator(
@@ -125,13 +146,15 @@ object BSP extends ExternalModule {
       )
     }
 
-    val millServer = new MillBuildServer(
-      evaluator,
-      bspProtocolVersion,
-      BuildInfo.millVersion,
-      serverName,
-      errStream
-    ) with MillJavaBuildServer with MillScalaBuildServer
+    val millServer =
+      new MillBuildServer(
+        initialEvaluator = evaluator,
+        bspVersion = bspProtocolVersion,
+        serverVersion = BuildInfo.millVersion,
+        serverName = serverName,
+        logStream = errStream,
+        canReload = canReload
+      ) with MillJavaBuildServer with MillScalaBuildServer
 
     val executor = Executors.newCachedThreadPool()
 
@@ -144,7 +167,7 @@ object BSP extends ExternalModule {
         .setLocalService(millServer)
         .setRemoteInterface(classOf[BuildClient])
         .traceMessages(new PrintWriter(
-          (projectDir / ".bsp" / s"${serverName}.trace").toIO
+          (logDir / s"${serverName}.trace").toIO
         ))
         .setExecutorService(executor)
         .create()
@@ -154,6 +177,36 @@ object BSP extends ExternalModule {
         shutdownRequestedBeforeExit = shutdownBefore
         listening.cancel(true)
       }
+
+      val bspServerHandle = new BspServerHandle {
+        private[this] var _lastResult: Option[BspServerResult] = None
+
+        override def runSession(evaluator: Evaluator): BspServerResult = {
+          _lastResult = None
+          millServer.updateEvaluator(Option(evaluator))
+          val onReload = Promise[BspServerResult]
+          millServer.onSessionEnd = Some { serverResult =>
+            errStream.println("Unsetting evaluator on session end")
+            millServer.updateEvaluator(None)
+            _lastResult = Some(serverResult)
+            onReload.success(serverResult)
+          }
+          Await.result(onReload.future, Duration.Inf).tap { r =>
+            errStream.println(s"Reload finished, result: ${r}")
+            _lastResult = Some(r)
+          }
+        }
+
+        override def lastResult: Option[BspServerResult] = _lastResult
+
+        override def stop(): Unit = {
+          errStream.println("Stopping server via handle...")
+          listening.cancel(true)
+        }
+      }
+      millServerHandle.success(bspServerHandle)
+      serverHandle.foreach(_.success(bspServerHandle))
+
       listening.get()
       ()
     } catch {
@@ -170,9 +223,13 @@ object BSP extends ExternalModule {
     } finally {
       errStream.println("Shutting down executor")
       executor.shutdown()
+
     }
-    if (shutdownRequestedBeforeExit) Result.Success(())
-    else Result.Failure("BSP exited without properly shutdown request")
-//    }
+
+    val finalReuslt =
+      if (shutdownRequestedBeforeExit) BspServerResult.Shutdown
+      else BspServerResult.Failure
+
+    finalReuslt
   }
 }

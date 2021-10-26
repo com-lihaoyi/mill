@@ -54,7 +54,7 @@ import mill.api.{DummyTestReporter, Result, Strict}
 import mill.define.Segment.Label
 import mill.define.{Discover, ExternalModule, Segments, Task}
 import mill.eval.Evaluator
-import mill.main.{EvaluatorScopt, MainModule}
+import mill.main.{BspServerResult, EvaluatorScopt, MainModule}
 import mill.scalalib.{JavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, MillBuildTarget}
 import os.Path
@@ -71,7 +71,8 @@ class MillBuildServer(
     bspVersion: String,
     serverVersion: String,
     serverName: String,
-    logStream: PrintStream
+    logStream: PrintStream,
+    canReload: Boolean
 ) extends ExternalModule
     with BuildServer {
 
@@ -79,6 +80,7 @@ class MillBuildServer(
 
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
   var cancellator: Boolean => Unit = shutdownBefore => ()
+  var onSessionEnd: Option[BspServerResult => Unit] = None
   var client: BuildClient = _
   var initialized = false
   var clientInitialized = false
@@ -135,21 +137,18 @@ class MillBuildServer(
   }
 
   private[this] var statePromise: Promise[State] = Promise[State]
-  private[this] var stateFuture: Future[State] = statePromise.future
+  initialEvaluator.foreach(e => statePromise.success(new State(e)))
+
+  private[this] def stateFuture: Future[State] = statePromise.future
 
   def updateEvaluator(evaluator: Option[Evaluator]): Unit = {
     log.debug(s"Updating Evaluator: ${evaluator}")
-    evaluator match {
-      case Some(e) if (statePromise.isCompleted) =>
-        statePromise = Promise.successful(new State(e))
-      case Some(e) => statePromise.success(new State(e))
-      case None if statePromise.isCompleted =>
-        statePromise = Promise[State]
-      case _ =>
+    if(statePromise.isCompleted) {
+      // replace the promise
+      statePromise = Promise[State]
     }
+    evaluator.foreach(e => statePromise.success(new State(e)))
   }
-
-  updateEvaluator(initialEvaluator)
 
   object log {
     def debug(msg: String) = logStream.println(msg)
@@ -162,46 +161,46 @@ class MillBuildServer(
     def apply(uri: PathRef): String = apply(uri.path)
   }
 
-  override def onConnectWithClient(server: BuildClient): Unit = client = server
+  override def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
 
   override def buildInitialize(request: InitializeBuildParams)
       : CompletableFuture[InitializeBuildResult] =
-    completable(s"buildInitialize ${request}", checkInitialized = false) { state: State =>
-      import state._
+    completableNoState(s"buildInitialize ${request}", checkInitialized = false) {
 
       // TODO: scan BspModules and infer their capabilities
 
-      if (request.getRootUri != bspIdByModule(millBuildTarget).getUri) {
-        log.debug(
-          s"Workspace root differs from mill build root! Requested root: ${request.getRootUri} Mill root: ${millBuildTarget.buildTargetId.getUri}"
-        )
-      }
+//      if (request.getRootUri != bspIdByModule(millBuildTarget).getUri) {
+//        log.debug(
+//          s"Workspace root differs from mill build root! Requested root: ${request.getRootUri} Mill root: ${millBuildTarget.buildTargetId.getUri}"
+//        )
+//      }
 
-      val moduleBspInfo = bspModulesById.values.map(_.bspBuildTarget).toSeq
+//      val moduleBspInfo = bspModulesById.values.map(_.bspBuildTarget).toSeq
 
       val clientCaps = request.getCapabilities().getLanguageIds().asScala
 
-      val compileLangs = moduleBspInfo.filter(_.canCompile).flatMap(_.languageIds).distinct.filter(
-        clientCaps.contains
-      )
-      val runLangs =
-        moduleBspInfo.filter(_.canRun).flatMap(
-          _.languageIds
-        ).distinct // .filter(clientCaps.contains)
-      val testLangs =
-        moduleBspInfo.filter(_.canTest).flatMap(
-          _.languageIds
-        ).distinct //.filter(clientCaps.contains)
-      val debugLangs =
-        moduleBspInfo.filter(_.canDebug).flatMap(
-          _.languageIds
-        ).distinct //.filter(clientCaps.contains)
+//      val compileLangs = moduleBspInfo.filter(_.canCompile).flatMap(_.languageIds).distinct.filter(
+//        clientCaps.contains
+//      )
+//      val runLangs =
+//        moduleBspInfo.filter(_.canRun).flatMap(
+//          _.languageIds
+//        ).distinct // .filter(clientCaps.contains)
+//      val testLangs =
+//        moduleBspInfo.filter(_.canTest).flatMap(
+//          _.languageIds
+//        ).distinct //.filter(clientCaps.contains)
+//      val debugLangs =
+//        moduleBspInfo.filter(_.canDebug).flatMap(
+//          _.languageIds
+//        ).distinct //.filter(clientCaps.contains)
 
+      val supportedLangs = Seq("java", "scala").asJava
       val capabilities = new BuildServerCapabilities
-      capabilities.setCompileProvider(new CompileProvider(compileLangs.asJava))
-      capabilities.setRunProvider(new RunProvider(runLangs.asJava))
-      capabilities.setTestProvider(new TestProvider(testLangs.asJava))
-      capabilities.setDebugProvider(new DebugProvider(debugLangs.asJava))
+      capabilities.setCompileProvider(new CompileProvider(supportedLangs))
+      capabilities.setRunProvider(new RunProvider(supportedLangs))
+      capabilities.setTestProvider(new TestProvider(supportedLangs))
+      capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
       capabilities.setDependencySourcesProvider(true)
 
       capabilities.setDependencyModulesProvider(true)
@@ -210,8 +209,7 @@ class MillBuildServer(
       capabilities.setBuildTargetChangedProvider(
         false
       )
-      //TODO: for now it's false, but will try to support this later
-      capabilities.setCanReload(false)
+      capabilities.setCanReload(canReload)
 
       initialized = true
       new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
@@ -221,14 +219,27 @@ class MillBuildServer(
     clientInitialized = true
   }
 
-  override def buildShutdown(): CompletableFuture[Object] =
-    completable("buildShutdown") { state =>
-      shutdownRequested = true
-      null.asInstanceOf[Object]
+  override def buildShutdown(): CompletableFuture[Object] = {
+    log.debug(s"Entered buildShutdown")
+    shutdownRequested = true
+
+    onSessionEnd match {
+      case None =>
+      case Some(onEnd) =>
+        log.debug("Shutdown build...")
+        onEnd(BspServerResult.Shutdown)
     }
 
+    CompletableFuture.completedFuture(null.asInstanceOf[Object])
+  }
   override def onBuildExit(): Unit = {
-    log.debug("onBuildExit")
+    log.debug("Entered onBuildExit")
+    onSessionEnd match {
+      case None =>
+      case Some(onEnd) =>
+        log.debug("Exiting build...")
+        onEnd(BspServerResult.Shutdown)
+    }
     cancellator(shutdownRequested)
   }
 
@@ -271,10 +282,15 @@ class MillBuildServer(
     }
 
   override def workspaceReload(): CompletableFuture[Object] =
-    completable("workspaceReload") { state =>
+    completableNoState("workspaceReload", false) {
       // Instead stop and restart the command
       // BSP.install(evaluator)
-      null.asInstanceOf[Object]
+      onSessionEnd match {
+        case None => "unsupportedWorkspaceReload".asInstanceOf[Object]
+        case Some(onEnd) =>
+          log.debug("Reloading workspace...")
+          onEnd(BspServerResult.ReloadWorkspace).asInstanceOf[Object]
+      }
     }
 
   override def buildTargetSources(sourcesParams: SourcesParams)
@@ -660,6 +676,39 @@ class MillBuildServer(
           future.completeExceptionally(exception)
       }(scala.concurrent.ExecutionContext.global)
 
+    }
+
+    future
+  }
+
+  protected def completableNoState[V](
+      hint: String,
+      checkInitialized: Boolean = true
+  )(f: => V): CompletableFuture[V] = {
+    log.debug(s"Entered ${hint}")
+    val start = System.currentTimeMillis()
+    def took =
+      log.debug(s"${hint.split("[ ]").head} took ${System.currentTimeMillis() - start} msec")
+
+    val future = new CompletableFuture[V]()
+
+    if (checkInitialized && !initialized) {
+      future.completeExceptionally(
+        new Exception("Can not respond to any request before receiving the `initialize` request.")
+      )
+    } else {
+      try {
+        val v = f
+        log.debug(s"${hint.split("[ ]").head} result: ${v}")
+        took
+        future.complete(v)
+      } catch {
+        case e: Exception =>
+          logStream.println(s"Caugh exception: ${e}")
+          e.printStackTrace(logStream)
+          took
+          future.completeExceptionally(e)
+      }
     }
 
     future
