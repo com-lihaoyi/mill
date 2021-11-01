@@ -1,10 +1,9 @@
 package mill.scalalib.bsp
 
-import mill.api.internal
-import mill.define.{BaseModule, Segments, Task}
-import mill.scalalib.api.CompilationResult
-import mill.{Module, T}
-import os.{Path, SubPath}
+import mill.api.{PathRef, internal}
+import mill.define.{BaseModule, Sources, Task}
+import mill.scalalib.{Dep, DepSyntax, ScalaModule}
+import mill.{Agg, BuildInfo, Module, T}
 
 trait BspModule extends Module {
   import BspModule._
@@ -19,7 +18,7 @@ trait BspModule extends Module {
     canCompile = false,
     canTest = false,
     canRun = false,
-    canDebug = false,
+    canDebug = false
   )
 
   /** Use to populate the `BuildTarget.{dataKind,data}` fields. */
@@ -53,7 +52,7 @@ case class BspBuildTarget(
     canCompile: Boolean,
     canTest: Boolean,
     canRun: Boolean,
-    canDebug: Boolean,
+    canDebug: Boolean
 //    data: (Option[String], Option[Any]) = (None, None)
 )
 
@@ -66,8 +65,22 @@ object BspUri {
 }
 
 class MillBuildTarget(rootModule: BaseModule)(implicit outerCtx0: mill.define.Ctx)
-    extends BspModule {
-  override def millSourcePath: Path = rootModule.millSourcePath
+    extends ScalaModule {
+  override def millSourcePath: os.Path = rootModule.millSourcePath
+  override def scalaVersion: T[String] = BuildInfo.scalaVersion
+  override def ivyDeps: T[Agg[Dep]] = T {
+    Agg.from(BuildInfo.millEmbeddedDeps.map(d => ivy"${d}"))
+  }
+  override def sources: Sources = T.sources(millSourcePath)
+  override def allSourceFiles: T[Seq[PathRef]] = T {
+    def isHiddenFile(path: os.Path) = path.last.startsWith(".")
+    for {
+      root <- allSources()
+      if os.exists(root.path)
+      path <- if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path)
+      if os.isFile(path) && ((path.ext == "sc") && !isHiddenFile(path))
+    } yield PathRef(path)
+  }
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     displayName = Some("mill-build"),
     baseDirectory = Some(rootModule.millSourcePath),
