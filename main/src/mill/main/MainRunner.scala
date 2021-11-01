@@ -172,7 +172,7 @@ class MainRunner(
     }
   }
 
-  override def initMain(isRepl: Boolean) = {
+  override def initMain(isRepl: Boolean): Main = {
     val hooks = ImportHook.defaults + (Seq("ivy") -> MillIvyHook)
     super.initMain(isRepl).copy(
       scriptCodeWrapper = CustomCodeWrapper,

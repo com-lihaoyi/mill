@@ -204,130 +204,107 @@ object MillMain {
               )
             )
 
-            ///////////////////////////////////
-//            if (bspMode)
-            class BspContext {
-              // BSP mode, run with a simple evaluator command to inject the evaluator
-              // The command returns when the server exists or the workspace should be reloaded
-              // if the `lastResult` is `ReloadWorkspace` we re-run the script in a loop
+            val runner = new mill.main.MainRunner(
+              config = ammConfig,
+              mainInteractive = mainInteractive,
+              disableTicker = config.disableTicker.value,
+              outprintStream = stdout,
+              errPrintStream = stderr,
+              stdIn = stdin,
+              stateCache0 = stateCache,
+              env = env,
+              setIdle = setIdle,
+              debugLog = config.debugLog.value,
+              keepGoing = config.keepGoing.value,
+              systemProperties = systemProps,
+              threadCount = threadCount,
+              ringBell = config.ringBell.value,
+              wd = os.pwd,
+              initialSystemProperties = initialSystemProperties
+            )
 
-              //              import scala.concurrent.ExecutionContext.Implicits._
-              val serverThreadContext =
-                ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
-
-              stderr.println("Running in BSP mode with hardcoded startSession command")
-
-              val bspServerHandle = Promise[BspServerHandle]
-
-              stderr.println("Trying to load BSP server...")
-              val bspServerFuture = Future {
-                try {
-                  val bspClass = MillMain.this.getClass.getClassLoader.loadClass("mill.bsp.BSP")
-                  val method = bspClass.getMethod(
-                    "startBspServer",
-                    Seq[Class[_]](
-                      classOf[Option[Evaluator]],
-                      classOf[PrintStream],
-                      classOf[PrintStream],
-                      classOf[InputStream],
-                      classOf[os.Path],
-                      classOf[Boolean],
-                      classOf[Option[Promise[BspServerHandle]]]
-                    ): _*
-                  )
-
-                  method.invoke(
-                    null,
-                    Seq[Object](
-                      None,
-                      MillMain.initialSystemStreams.out,
-                      System.err,
-                      MillMain.initialSystemStreams.in,
-                      os.pwd / ".bsp",
-                      java.lang.Boolean.TRUE,
-                      Some(bspServerHandle)
-                    ): _*
-                  ).asInstanceOf[BspServerHandle]
-                } catch {
-                  case NonFatal(e) =>
-                    stderr.println(s"Could not start BSP server. ${e.getMessage}")
-                    e.printStackTrace(stderr)
-                }
-              }(serverThreadContext)
-
-              val handle = Await.result(bspServerHandle.future, Duration.Inf).tap { _ =>
-                stderr.println("BSP server started")
-              }
-
-//              (result, runner.stateCache)
-
-              //                case Failure(e) =>
-              //                  // TODO: handle error more visible
-              //                  (false, runner.stateCache)
-              //              }
-              val millArgs = List("mill.bsp.BSP/startSession")
-            }
-            val bspContext = if (bspMode) Some(new BspContext()) else None
-            val targetsAndParams =
-              bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
-
-            //                case Success(handle) =>
-//            var result: Boolean = false
-//            while (repeat) {
-//              repeat = false
-//              result = runner.runScript(
-//                os.pwd / "build.sc",
-//                List("mill.bsp.BSP/startSession")
-//              )
-//              repeat = handle.lastResult == Some(BspServerResult.ReloadWorkspace)
-//              stderr.println(s"BSP/startSession returned. Restart: ${repeat}")
-//            }
-//
-//            handle.stop()
-            ///////////////////////////////////
-
-            var repeatForBsp = true
-            var loopRes: (Boolean, Option[EvaluatorState]) = (false, None)
-
-            while (repeatForBsp) {
-              repeatForBsp = false
-
-              val runner = new mill.main.MainRunner(
-                config = ammConfig,
-                mainInteractive = mainInteractive,
-                disableTicker = config.disableTicker.value,
-                outprintStream = stdout,
-                errPrintStream = stderr,
-                stdIn = stdin,
-                stateCache0 = stateCache,
-                env = env,
-                setIdle = setIdle,
-                debugLog = config.debugLog.value,
-                keepGoing = config.keepGoing.value,
-                systemProperties = systemProps,
-                threadCount = threadCount,
-                ringBell = config.ringBell.value,
-                wd = os.pwd,
-                initialSystemProperties = initialSystemProperties
-              )
-
-              if (mill.main.client.Util.isJava9OrAbove) {
-                val rt = config.ammoniteCore.home / Export.rtJarName
-                if (!os.exists(rt)) {
-                  runner.printInfo(
-                    s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
-                  )
-                  Export.rtTo(rt.toIO, false)
-                }
-              }
-
-              if (useRepl) {
-                runner.printInfo("Loading...")
-                loopRes = (
-                  runner.watchLoop(isRepl = true, printing = false, _.run()),
-                  runner.stateCache
+            if (mill.main.client.Util.isJava9OrAbove) {
+              val rt = config.ammoniteCore.home / Export.rtJarName
+              if (!os.exists(rt)) {
+                runner.printInfo(
+                  s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
                 )
-              } else {
+                Export.rtTo(rt.toIO, false)
+              }
+            }
+
+            if (useRepl) {
+              runner.printInfo("Loading...")
+              (
+                runner.watchLoop(isRepl = true, printing = false, _.run()),
+                runner.stateCache
+              )
+            } else {
+              class BspContext {
+                // BSP mode, run with a simple evaluator command to inject the evaluator
+                // The command returns when the server exists or the workspace should be reloaded
+                // if the `lastResult` is `ReloadWorkspace` we re-run the script in a loop
+
+                //              import scala.concurrent.ExecutionContext.Implicits._
+                val serverThreadContext =
+                  ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
+
+                stderr.println("Running in BSP mode with hardcoded startSession command")
+
+                val bspServerHandle = Promise[BspServerHandle]
+
+                stderr.println("Trying to load BSP server...")
+                val bspServerFuture = Future {
+                  try {
+                    val bspClass = MillMain.this.getClass.getClassLoader.loadClass("mill.bsp.BSP")
+                    val method = bspClass.getMethod(
+                      "startBspServer",
+                      Seq[Class[_]](
+                        classOf[Option[Evaluator]],
+                        classOf[PrintStream],
+                        classOf[PrintStream],
+                        classOf[InputStream],
+                        classOf[os.Path],
+                        classOf[Boolean],
+                        classOf[Option[Promise[BspServerHandle]]]
+                      ): _*
+                    )
+
+                    method.invoke(
+                      null,
+                      Seq[Object](
+                        None,
+                        MillMain.initialSystemStreams.out,
+                        System.err,
+                        MillMain.initialSystemStreams.in,
+                        os.pwd / ".bsp",
+                        java.lang.Boolean.TRUE,
+                        Some(bspServerHandle)
+                      ): _*
+                    ).asInstanceOf[BspServerHandle]
+                  } catch {
+                    case NonFatal(e) =>
+                      stderr.println(s"Could not start BSP server. ${e.getMessage}")
+                      e.printStackTrace(stderr)
+                  }
+                }(serverThreadContext)
+
+                val handle = Await.result(bspServerHandle.future, Duration.Inf).tap { _ =>
+                  stderr.println("BSP server started")
+                }
+
+                val millArgs = List("mill.bsp.BSP/startSession")
+              }
+
+              val bspContext = if (bspMode) Some(new BspContext()) else None
+              val targetsAndParams =
+                bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
+
+              var repeatForBsp = true
+              var loopRes: (Boolean, Option[EvaluatorState]) = (false, None)
+              while (repeatForBsp) {
+                repeatForBsp = false
+
                 val runnerRes = runner.runScript(
                   os.pwd / "build.sc",
                   targetsAndParams
@@ -342,13 +319,15 @@ object MillMain {
                   runnerRes,
                   runner.stateCache
                 )
+              } // while repeatForBsp
+              bspContext.foreach { ctx =>
+                stderr.println(
+                  s"Exiting BSP runner loop. Stopping BSP server. Last result: ${ctx.handle.lastResult}"
+                )
+                ctx.handle.stop()
               }
-            } // while repeatForBsp
-            bspContext.foreach { ctx =>
-              stderr.println(s"Exiting BSP runner loop. Stopping BSP server. Last result: ${ctx.handle.lastResult}")
-              ctx.handle.stop()
+              loopRes
             }
-            loopRes
           }
         if (config.ringBell.value) {
           if (success) println("\u0007")
