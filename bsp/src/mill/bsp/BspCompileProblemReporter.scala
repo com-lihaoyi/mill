@@ -108,14 +108,17 @@ class BspCompileProblemReporter(
 
   // Computes the diagnostic related to the given Problem
   private[this] def getSingleDiagnostic(problem: Problem): Diagnostic = {
+    // Zinc's range starts at 1 whereas BSP at 0
+     def correctLine = (_: Int) - 1
+
     val pos = problem.position
-    val line = pos.line.map(_ - 1) // Zinc's range starts at 1 whereas BSP 0
+    val line = pos.line.map(correctLine)
     val start = new bsp.Position(
-      pos.startLine.orElse(line).getOrElse[Int](0),
+      pos.startLine.map(correctLine).orElse(line).getOrElse[Int](0),
       pos.startColumn.orElse(pos.pointer).getOrElse[Int](0)
     )
     val end = new bsp.Position(
-      pos.endLine.orElse(line).getOrElse[Int](start.getLine.intValue()),
+      pos.endLine.map(correctLine).orElse(line).getOrElse[Int](start.getLine.intValue()),
       pos.endColumn.orElse(pos.pointer).getOrElse[Int](start.getCharacter.intValue())
     )
     val diagnostic = new bsp.Diagnostic(new bsp.Range(start, end), problem.message)
