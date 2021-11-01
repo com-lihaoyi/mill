@@ -71,14 +71,14 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.9"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.10"
   val coursier = ivy"io.get-coursier::coursier:2.0.16-169-g194ebc55c"
   val coursierReducedDeps = coursier.exclude(
     "com.lihaoyi" -> "utest",
     "org.codehaus.plexus" -> "*"
   )
 
-  val flywayCore = ivy"org.flywaydb:flyway-core:8.0.1"
+  val flywayCore = ivy"org.flywaydb:flyway-core:8.0.2"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
@@ -105,7 +105,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.0.6"
-  val scalametaTrees = ivy"org.scalameta::trees:4.4.28"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.29"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.9"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"

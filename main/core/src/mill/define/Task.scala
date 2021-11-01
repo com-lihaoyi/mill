@@ -155,8 +155,19 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def sourceImpl1(c: Context)(value: c.Expr[Result[os.Path]])(ctx: c.Expr[mill.define.Ctx])
       : c.Expr[Source] = {
     import c.universe._
+
+    val wrapped =
+        Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
+          reify(value.splice.map(PathRef(_))).tree
+        )
+
     mill.moduledefs.Cacher.impl0[Source](c)(
-      reify(new Source(makeT(Nil, _ => value.splice.map(PathRef(_))), ctx.splice))
+      reify(
+        new Source(
+          wrapped.splice,
+          ctx.splice
+        )
+      )
     )
   }
 
@@ -166,7 +177,12 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
       : c.Expr[Source] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Source](c)(
-      reify(new Source(makeT(Nil, _ => value.splice), ctx.splice))
+      reify(
+        new Source(
+          Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(value.tree).splice,
+          ctx.splice
+        )
+      )
     )
   }
   def input[T](value: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Input[T] =
