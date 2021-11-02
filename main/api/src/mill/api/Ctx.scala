@@ -52,6 +52,11 @@ object Ctx {
     def jobs: Int
   }
 
+  /** Access to the project root (aka workspace) directory. */
+  trait Workspace {
+    def workspace: os.Path
+  }
+
   def defaultHome = os.home / ".mill" / "ammonite"
 
   /**
@@ -67,12 +72,14 @@ class Ctx(
     val home: os.Path,
     val env: Map[String, String],
     val reporter: Int => Option[BuildProblemReporter],
-    val testReporter: TestReporter
+    val testReporter: TestReporter,
+    val workspace: os.Path
 ) extends Ctx.Dest
     with Ctx.Log
     with Ctx.Args
     with Ctx.Home
-    with Ctx.Env {
+    with Ctx.Env
+    with Ctx.Workspace {
 
   def dest: Path = dest0()
   def length: Int = args.length

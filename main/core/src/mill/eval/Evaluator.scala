@@ -469,17 +469,17 @@ case class Evaluator(
         if (targetInputValues.length != task.inputs.length) mill.api.Result.Skipped
         else {
           val args = new Ctx(
-            targetInputValues.toArray[Any],
-            () =>
-//              usedDest match {
-//              case Some((earlierTask, earlierStack)) if earlierTask != task =>
-//                val inner = new Exception("Earlier usage of `dest`")
-//                inner.setStackTrace(earlierStack)
-//                throw new Exception(
-//                  "`dest` can only be used in one place within each Target[T]",
-//                  inner
-//                )
-//              case _ =>
+            args = targetInputValues.toArray[Any],
+            dest0 = () =>
+              //              usedDest match {
+              //              case Some((earlierTask, earlierStack)) if earlierTask != task =>
+              //                val inner = new Exception("Earlier usage of `dest`")
+              //                inner.setStackTrace(earlierStack)
+              //                throw new Exception(
+              //                  "`dest` can only be used in one place within each Target[T]",
+              //                  inner
+              //                )
+              //              case _ =>
               paths match {
                 case Some(dest) =>
                   if (usedDest.isEmpty) os.makeDir.all(dest.dest)
@@ -487,14 +487,15 @@ case class Evaluator(
                   dest.dest
                 case None =>
                   throw new Exception("No `dest` folder available here")
-//                }
+                //                }
               },
-            multiLogger,
-            home,
-            env,
-            reporter,
-            testReporter
-          ) with Ctx.Jobs {
+            log = multiLogger,
+            home = home,
+            env = env,
+            reporter = reporter,
+            testReporter = testReporter,
+            workspace = rootModule.millSourcePath
+          ) with mill.api.Ctx.Jobs {
             override def jobs: Int = effectiveThreadCount
           }
 
