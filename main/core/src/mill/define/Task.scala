@@ -54,13 +54,14 @@ trait Target[+T] extends NamedTask[T] {
 
 object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   // convenience
-  def dest(implicit ctx: mill.api.Ctx.Dest) = ctx.dest
-  def log(implicit ctx: mill.api.Ctx.Log) = ctx.log
-  def home(implicit ctx: mill.api.Ctx.Home) = ctx.home
-  def env(implicit ctx: mill.api.Ctx.Env) = ctx.env
-  def args(implicit ctx: mill.api.Ctx.Args) = ctx.args
+  def dest(implicit ctx: mill.api.Ctx.Dest): os.Path = ctx.dest
+  def log(implicit ctx: mill.api.Ctx.Log): Logger = ctx.log
+  def home(implicit ctx: mill.api.Ctx.Home): os.Path = ctx.home
+  def env(implicit ctx: mill.api.Ctx.Env): Map[String, String] = ctx.env
+  def args(implicit ctx: mill.api.Ctx.Args): IndexedSeq[_] = ctx.args
   def testReporter(implicit ctx: mill.api.Ctx) = ctx.testReporter
   def reporter(implicit ctx: mill.api.Ctx): Int => Option[CompileProblemReporter] = ctx.reporter
+  def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
 
   implicit def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
     macro targetImpl[T]
@@ -157,9 +158,9 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     import c.universe._
 
     val wrapped =
-        Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
-          reify(value.splice.map(PathRef(_))).tree
-        )
+      Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
+        reify(value.splice.map(PathRef(_))).tree
+      )
 
     mill.moduledefs.Cacher.impl0[Source](c)(
       reify(
