@@ -87,7 +87,7 @@ class BspCompileProblemReporter(
     params
   }
 
-  // Update the published diagnostics for the fiven text file by
+  // Update the published diagnostics for the given text file by
   // adding the recently computed diagnostic to the list of
   // all previous diagnostics generated for the same file.
   private[this] def appendDiagnostics(

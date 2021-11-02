@@ -42,33 +42,21 @@ object BSP extends ExternalModule {
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
    */
-  def install(evaluator: Evaluator): Command[Unit] =
+  def install(evaluator: Evaluator, jobs: Int = 1): Command[Unit] =
     T.command {
       val bspDirectory = evaluator.rootModule.millSourcePath / ".bsp"
-      if (!os.exists(bspDirectory)) os.makeDir.all(bspDirectory)
-      try {
-        os.write(bspDirectory / s"${serverName}.json", createBspConnectionJson())
-      } catch {
-        case _: FileAlreadyExistsException =>
-          T.log.info(
-            "The bsp connection json file probably exists already - will be overwritten"
-          )
-          os.remove(bspDirectory / s"${serverName}.json")
-          os.write(bspDirectory / s"${serverName}.json", createBspConnectionJson())
-        case e: Exception =>
-          T.log.error("An exception occurred while installing mill-bsp")
-          e.printStackTrace(T.log.errorStream)
-      }
-
+      val bspFile = bspDirectory / s"${serverName}.json"
+      if (os.exists(bspFile)) T.log.info(s"Overwriting BSP connection file: ${bspFile}")
+      else T.log.info(s"Creating BSP connection file: ${bspFile}")
+      os.write.over(bspFile, createBspConnectionJson(jobs), createFolders = true)
     }
 
   // creates a Json with the BSP connection details
-  def createBspConnectionJson(): String = {
+  def createBspConnectionJson(jobs: Int): String = {
+    // we assume, the classpath is an executable jar here, FIXME
     val millPath = sys.props
       .get("java.class.path")
-      .getOrElse(throw new IllegalStateException(
-        "System property java.class.path not set"
-      ))
+      .getOrElse(throw new IllegalStateException("System property 'java.class.path' not set"))
 
     write(
       BspConfigJson(
@@ -78,7 +66,9 @@ object BSP extends ExternalModule {
           "--bsp",
           "--disable-ticker",
           "--color",
-          "false"
+          "false",
+          "--jobs",
+          s"${jobs}"
 //          s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
         ),
         millVersion = BuildInfo.millVersion,
