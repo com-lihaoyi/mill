@@ -281,11 +281,12 @@ object MillMain {
                         java.lang.Boolean.TRUE,
                         Some(bspServerHandle)
                       ): _*
-                    ).asInstanceOf[BspServerHandle]
+                    )
                   } catch {
                     case NonFatal(e) =>
                       stderr.println(s"Could not start BSP server. ${e.getMessage}")
                       e.printStackTrace(stderr)
+                      BspServerResult.Failure
                   }
                 }(serverThreadContext)
 
