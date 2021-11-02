@@ -1,11 +1,10 @@
 package mill.define
 
-import mill.api.{CompileProblemReporter, Logger, PathRef, Result}
+import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
 import mill.define.Applicative.Applyable
 import mill.util.EnclosingClass
 import sourcecode.Compat.Context
 import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
-
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
@@ -59,7 +58,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def home(implicit ctx: mill.api.Ctx.Home): os.Path = ctx.home
   def env(implicit ctx: mill.api.Ctx.Env): Map[String, String] = ctx.env
   def args(implicit ctx: mill.api.Ctx.Args): IndexedSeq[_] = ctx.args
-  def testReporter(implicit ctx: mill.api.Ctx) = ctx.testReporter
+  def testReporter(implicit ctx: mill.api.Ctx): TestReporter = ctx.testReporter
   def reporter(implicit ctx: mill.api.Ctx): Int => Option[CompileProblemReporter] = ctx.reporter
   def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
 
