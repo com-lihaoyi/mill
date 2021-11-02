@@ -2,6 +2,9 @@ package mill.scalalib.bsp
 
 import mill.api.{PathRef, internal}
 import mill.define.{BaseModule, Sources, Task}
+import mill.eval.EvaluatorPathsResolver
+import mill.modules.Jvm
+import mill.scalalib.api.CompilationResult
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
 import mill.{Agg, BuildInfo, Module, T}
 
@@ -64,30 +67,61 @@ object BspUri {
   def apply(path: os.Path): BspUri = BspUri(path.toNIO.toUri.toString)
 }
 
-class MillBuildTarget(rootModule: BaseModule)(implicit outerCtx0: mill.define.Ctx)
-    extends ScalaModule {
+/**
+ * Synthetic module representing the mill-build project itself in a BSP context.
+ * @param rootModule
+ * @param outerCtx0
+ */
+trait MillBuildTarget // (rootModule: BaseModule, ctx0: mill.define.Ctx)
+    extends // Module()(ctx0) with
+      ScalaModule {
+  protected def rootModule: BaseModule
   override def millSourcePath: os.Path = rootModule.millSourcePath
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
   override def ivyDeps: T[Agg[Dep]] = T {
+    T.log.errorStream.println(s"ivyDeps: ${T.dest}")
     Agg.from(BuildInfo.millEmbeddedDeps.map(d => ivy"${d}"))
   }
-  override def sources: Sources = T.sources(millSourcePath)
+  // The buildfile and single source of truth
+  def buildScFile = T.source(millSourcePath / "build.sc")
+  def ammoniteFiles = T {
+    T.log.errorStream.println(s"ammoniteFiles: ${T.dest}")
+    // we depend on buildScFile, to recompute whenever build.sc changes
+    findSources(Seq(millSourcePath), excludes = Seq(millSourcePath / "out"))
+  }
+  // We need to be careful here to not include the out/ directory
+  override def sources: Sources = T.sources {
+    T.log.errorStream.println(s"sources: ${T.dest}")
+    val sources = ammoniteFiles()
+    T.log.errorStream.println(s"sources: ${sources}")
+    sources
+  }
   override def allSourceFiles: T[Seq[PathRef]] = T {
+    findSources(sources().map(_.path))
+  }
+  def findSources(paths: Seq[os.Path], excludes: Seq[os.Path] = Seq()): Seq[PathRef] = {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
-    for {
-      root <- allSources()
-      if os.exists(root.path)
-      path <- if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path)
+    (for {
+      root <- paths
+      if os.exists(root) && !excludes.exists(excl => root.startsWith(excl))
+      path <- if (os.isDir(root)) os.walk(root) else Seq(root)
       if os.isFile(path) && ((path.ext == "sc") && !isHiddenFile(path))
-    } yield PathRef(path)
+    } yield PathRef(path)).distinct
   }
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     displayName = Some("mill-build"),
     baseDirectory = Some(rootModule.millSourcePath),
+    languageIds = Seq(BspModule.LanguageId.Scala),
     canRun = false,
     canCompile = false,
     canTest = false,
     canDebug = false,
     tags = Seq(BspModule.Tag.Library, BspModule.Tag.Application)
   )
+  override def compile: T[CompilationResult] = T {
+    T.log.errorStream.println(s"compile: ${T.dest}")
+    os.write(T.dest / "dummy", "")
+    os.makeDir(T.dest / "classes")
+    CompilationResult(T.dest / "dummy", PathRef(T.dest / "classes"))
+  }
 }

@@ -7,7 +7,6 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsResult
 }
 import mill.T
-import mill.bsp.ModuleUtils.getMillBuildClasspath
 import mill.scalalib.JavaModule
 
 import java.util.concurrent.CompletableFuture
@@ -23,15 +22,6 @@ trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
         targetIds = javacOptionsParams.getTargets.asScala.toSeq,
         agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava)
       ) {
-        case (id, state.millBuildTarget) => T.task {
-            val classpath = getMillBuildClasspath(evaluator, sources = false)
-            new JavacOptionsItem(
-              id,
-              Seq.empty.asJava,
-              classpath.iterator.toSeq.asJava,
-              sanitizeUri(evaluator.outPath)
-            )
-          }
         case (id, m: JavaModule) =>
           val pathResolver = T.task(evaluator.pathsResolver)
           T.task {

@@ -14,7 +14,6 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsResult
 }
 import mill.{Agg, T}
-import mill.bsp.ModuleUtils.getMillBuildClasspath
 import mill.modules.Jvm
 import mill.scalalib.{JavaModule, Lib, ScalaModule, TestModule, TestRunner}
 
@@ -33,14 +32,6 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
         targetIds = p.getTargets.asScala.toSeq,
         agg = (items: Seq[ScalacOptionsItem]) => new ScalacOptionsResult(items.asJava)
       ) {
-        case (id, state.millBuildTarget) => T.task {
-            new ScalacOptionsItem(
-              id,
-              Seq.empty[String].asJava,
-              getMillBuildClasspath(evaluator, false).asJava,
-              sanitizeUri(evaluator.outPath)
-            )
-          }
         case (id, m: JavaModule) =>
           val optionsTask = m match {
             case sm: ScalaModule => sm.scalacOptions

@@ -1,6 +1,6 @@
 package mill.bsp
 
-import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier, CompileTask, StatusCode, TaskDataKind, TaskId, TaskStartParams}
+import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier, StatusCode, TaskId}
 import mill._
 import mill.api.Result.{Skipped, Success}
 import mill.api.{CompileProblemReporter}
