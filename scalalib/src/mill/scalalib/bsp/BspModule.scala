@@ -16,8 +16,8 @@ trait BspModule extends Module {
   def bspBuildTarget: BspBuildTarget = BspBuildTarget(
     displayName = Some(millModuleSegments.render),
     baseDirectory = Some(millSourcePath),
-    tags = Seq(),
-    languageIds = Seq(Tag.Library, Tag.Application),
+    tags = Seq(Tag.Library, Tag.Application),
+    languageIds = Seq(),
     canCompile = false,
     canTest = false,
     canRun = false,
