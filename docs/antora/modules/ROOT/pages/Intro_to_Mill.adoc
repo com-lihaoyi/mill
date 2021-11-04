@@ -162,12 +162,12 @@ object foo extends JavaModule {}
 The simplest Mill build for a Scala project looks as follows:
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "{example-scala-version}"
 }
 ----
 
@@ -264,18 +264,18 @@ object bar extends JavaModule {
 === Scala Example
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "{example-scala-version}"
 }
 
 object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
 
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "{example-scala-version}"
 }
 ----
 
@@ -325,19 +325,18 @@ code in each module changes.
 Modules can also be nested:
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "{example-scala-version}"
 
   object bar extends ScalaModule {
     def moduleDeps = Seq(foo)
 
-    def scalaVersion = "2.13.1"
+    def scalaVersion = "{example-scala-version}"
   }
-
 }
 ----
 
@@ -504,7 +503,6 @@ Mill comes with a few useful command-line utilities built into it:
 ----
 $ mill resolve _
 [1/1] resolve
-all
 clean
 foo
 inspect
@@ -798,7 +796,7 @@ mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre
 
 == IDE Support
 
-To support various IDEs and Language Servers, Mill supports the Build Server Protocol and has a <<Build Server Protocol (BSP),built-in BSP server>>.
+To support various IDEs and Language Servers, Mill supports the https://build-server-protocol.github.io/[Build Server Protocol] in version {bsp-version} and has a <<Build Server Protocol (BSP),built-in BSP server>>.
 
 In addition to BSP, Mill also supports <<IntelliJ Support,IntelliJ IDEA project configuration generation>> directly.
 
@@ -823,15 +821,15 @@ Until we have completed it, you can enable SemanticDB manually in your ``ScalaMo
 For convenience, you can mix-in the `mill.scalalib.bsp.ScalaMetalsSupport` trait. This enables SemanticDB and also adapts the scalac options to produce more helpful messages in Metals.
 
 .`build.sc`: Mix-in of `ScalaMetalsSupport` trait
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._
 import mill.scalalib._
 import mill.scalalib.bsp.ScalaMetalsSupport
 
 object foo extends ScalaModule with ScalaMetalsSupport {
-  def scalaVersion = ???
-  def semanticDbVersion = ???
+  def semanticDbVersion = "{example-semanticdb-version}"
+  def scalaVersion = "{example-scala-version}"
 }
 ----
 --
