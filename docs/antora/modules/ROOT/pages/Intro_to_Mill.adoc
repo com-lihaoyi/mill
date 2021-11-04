@@ -811,6 +811,15 @@ mill mill.bsp.BSP/install
 
 Working known clients of the BSP server are IntelliJ IDEA and Metals.
 
+You can fine control some BSP server options by specifying command options:
+
+|===
+| Option | Description
+|`--jobs` `n` | Use `n` threads in parallel to run tasks. A value of `0` means use as much threads as the system has cpu cores.
+|===
+
+[source]
+
 [NOTE]
 --
 If you want to us Metals, you may also want to enable SemanticDB support. Without it, some functionality like find references may not work.
