@@ -162,12 +162,12 @@ object foo extends JavaModule {}
 The simplest Mill build for a Scala project looks as follows:
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "{example-scala-version}"
 }
 ----
 
@@ -264,18 +264,18 @@ object bar extends JavaModule {
 === Scala Example
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "{example-scala-version}"
 }
 
 object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
 
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "{example-scala-version}"
 }
 ----
 
@@ -325,19 +325,18 @@ code in each module changes.
 Modules can also be nested:
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "{example-scala-version}"
 
   object bar extends ScalaModule {
     def moduleDeps = Seq(foo)
 
-    def scalaVersion = "2.13.1"
+    def scalaVersion = "{example-scala-version}"
   }
-
 }
 ----
 
@@ -504,7 +503,6 @@ Mill comes with a few useful command-line utilities built into it:
 ----
 $ mill resolve _
 [1/1] resolve
-all
 clean
 foo
 inspect
@@ -798,18 +796,61 @@ mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre
 
 == IDE Support
 
-Mill supports any IDE that is compatible with https://build-server-protocol.github.io/[BSP], such as IntelliJ. +
-Use `mill mill.bsp.BSP/install` to generate the BSP project config for your build.
+To support various IDEs and Language Servers, Mill supports the https://build-server-protocol.github.io/[Build Server Protocol] in version {bsp-version} and has a <<Build Server Protocol (BSP),built-in BSP server>>.
 
-It also enables Intellij to provide navigation and code-completion features within your build file itself.
+In addition to BSP, Mill also supports <<IntelliJ Support,IntelliJ IDEA project configuration generation>> directly.
 
-== IntelliJ Support (legacy)
+=== Build Server Protocol (BSP)
 
-Mill supports IntelliJ configuration generation.
-Use `mill mill.scalalib.GenIdea/idea` to generate an IntelliJ project
-config for your build.
+To install a BSP connection file `.bsp/mill-bsp.json`, run:
 
-This also configures IntelliJ to allow easy navigate &amp; code-completion within your build file itself.
+[source,bash]
+----
+mill mill.bsp.BSP/install
+----
+
+Working known clients of the BSP server are IntelliJ IDEA and Metals.
+
+You can fine control some BSP server options by specifying command options:
+
+|===
+| Option | Description
+|`--jobs` `n` | Use `n` threads in parallel to run tasks. A value of `0` means use as much threads as the system has cpu cores.
+|===
+
+[source]
+
+[NOTE]
+--
+If you want to us Metals, you may also want to enable SemanticDB support. Without it, some functionality like find references may not work.
+
+We still work on a better and automatic SemanticDB support.
+Until we have completed it, you can enable SemanticDB manually in your ``ScalaModule``.
+
+For convenience, you can mix-in the `mill.scalalib.bsp.ScalaMetalsSupport` trait. This enables SemanticDB and also adapts the scalac options to produce more helpful messages in Metals.
+
+.`build.sc`: Mix-in of `ScalaMetalsSupport` trait
+[source,scala,subs="attributes,verbatim"]
+----
+import mill._
+import mill.scalalib._
+import mill.scalalib.bsp.ScalaMetalsSupport
+
+object foo extends ScalaModule with ScalaMetalsSupport {
+  def semanticDbVersion = "{example-semanticdb-version}"
+  def scalaVersion = "{example-scala-version}"
+}
+----
+--
+
+== IntelliJ Support
+
+To generate IntelliJ IDEA project files into `.idea/`, run:
+
+[source,bash]
+----
+mill mill.scalalib.GenIdea/idea
+----
 
 == The Build REPL
 

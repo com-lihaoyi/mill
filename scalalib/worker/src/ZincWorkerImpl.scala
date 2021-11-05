@@ -3,22 +3,8 @@ package mill.scalalib.worker
 import java.io.File
 import java.util.Optional
 import mill.api.Loose.Agg
-import mill.api.{
-  BuildProblemReporter,
-  KeyedLockedCache,
-  PathRef,
-  Problem,
-  ProblemPosition,
-  Severity
-}
-import mill.scalalib.api.Util.{
-  grepJar,
-  isDotty,
-  isDottyOrScala3,
-  isScala3,
-  isScala3Milestone,
-  scalaBinaryVersion
-}
+import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, internal}
+import mill.scalalib.api.Util.{grepJar, isDotty, isDottyOrScala3, isScala3, isScala3Milestone, scalaBinaryVersion}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
@@ -88,6 +74,7 @@ class ZincProblemPosition(base: xsbti.Position) extends ProblemPosition {
   override def endColumn: Option[Int] = base.endColumn()
 }
 
+@internal
 class ZincWorkerImpl(
     compilerBridge: Either[
       (ZincWorkerApi.Ctx, (String, String) => (Option[Array[os.Path]], os.Path)),
@@ -288,7 +275,7 @@ class ZincWorkerImpl(
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
-      reporter: Option[BuildProblemReporter]
+      reporter: Option[CompileProblemReporter]
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
 
     for (
@@ -306,7 +293,7 @@ class ZincWorkerImpl(
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
-      reporter: Option[BuildProblemReporter]
+      reporter: Option[CompileProblemReporter]
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     compileInternal(
       upstreamCompileOutput,
@@ -329,7 +316,7 @@ class ZincWorkerImpl(
       scalacOptions: Seq[String],
       compilerClasspath: Agg[os.Path],
       scalacPluginClasspath: Agg[os.Path],
-      reporter: Option[BuildProblemReporter]
+      reporter: Option[CompileProblemReporter]
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
 
     for (
@@ -358,7 +345,7 @@ class ZincWorkerImpl(
       scalacOptions: Seq[String],
       compilerClasspath: Agg[os.Path],
       scalacPluginClasspath: Agg[os.Path],
-      reporter: Option[BuildProblemReporter]
+      reporter: Option[CompileProblemReporter]
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     withCompilers(
       scalaVersion,
@@ -471,9 +458,11 @@ class ZincWorkerImpl(
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
-      reporter: Option[BuildProblemReporter]
+      reporter: Option[CompileProblemReporter]
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     os.makeDir.all(ctx.dest)
+
+    reporter.foreach(_.start())
 
     val consoleAppender = ConsoleAppender(
       "ZincLogAppender",
@@ -588,6 +577,10 @@ class ZincWorkerImpl(
         )
       )
       mill.api.Result.Success((zincFile, classesDir))
-    } catch { case e: CompileFailed => mill.api.Result.Failure(e.toString) }
+    } catch { case e: CompileFailed =>
+      mill.api.Result.Failure(e.toString)
+    } finally {
+      reporter.foreach(_.finish())
+    }
   }
 }

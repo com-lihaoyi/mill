@@ -5,8 +5,7 @@ package worker
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import java.io.File
-
-import mill.api.Result
+import mill.api.{Result, internal}
 import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import org.scalajs.linker.{PathIRContainer, PathIRFile, PathOutputFile, StandardImpl}
 import org.scalajs.linker.interface.{ModuleKind => ScalaJSModuleKind, _}
@@ -19,6 +18,7 @@ import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 import scala.collection.mutable
 import scala.ref.WeakReference
 
+@internal
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   private case class LinkerInput(
       fullOpt: Boolean,

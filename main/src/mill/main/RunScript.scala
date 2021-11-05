@@ -1,22 +1,18 @@
 package mill.main
 
 import java.nio.file.NoSuchFileException
-
-import scala.annotation.tailrec
-
-import ammonite.interp.Interpreter
 import ammonite.runtime.SpecialClassLoader
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.define
 import mill.define._
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{EitherOps, ParseArgs, PrintLogger, SelectMode, Watched}
 import mill.api.{Logger, PathRef, Result}
 import mill.api.Strict.Agg
+
 import scala.collection.mutable
 import scala.reflect.ClassTag
-
 import mill.util.ParseArgs.TargetsWithParams
 
 /**
@@ -312,9 +308,7 @@ object RunScript {
         val json = for (t <- targets.toSeq) yield {
           t match {
             case t: mill.define.NamedTask[_] =>
-              val jsonFile = Evaluator
-                .resolveDestPaths(evaluator.outPath, t.ctx.segments, t.ctx.foreign)
-                .meta
+              val jsonFile = EvaluatorPaths.resolveDestPaths(evaluator.outPath, t).meta
               val metadata = upickle.default.read[Evaluator.Cached](ujson.read(jsonFile.toIO))
               Some(metadata.value)
 

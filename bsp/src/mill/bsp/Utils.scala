@@ -1,36 +1,33 @@
 package mill.bsp
 
-import ch.epfl.scala.bsp4j._
+import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier, StatusCode, TaskId}
 import mill._
 import mill.api.Result.{Skipped, Success}
-import mill.api.{BuildProblemReporter, Result}
-import mill.bsp.ModuleUtils._
+import mill.api.{CompileProblemReporter}
 import mill.eval.Evaluator
-import mill.modules.Jvm
-import mill.scalalib.Lib.discoverTests
-import mill.scalalib._
-import mill.scalalib.api.CompilationResult
-import mill.util.Ctx
+import mill.scalalib.JavaModule
+import mill.scalalib.bsp.BspModule
 
 object Utils {
 
   // define the function that spawns compilation reporter for each module based on the
   // module's hash code TODO: find something more reliable than the hash code
   def getBspLoggedReporterPool(
-      params: Parameters,
-      modules: Seq[JavaModule],
-      evaluator: Evaluator,
+      originId: String,
+      bspIdsByModule: Map[BspModule, BuildTargetIdentifier],
       client: BuildClient
-  ): Int => Option[BuildProblemReporter] = { hashCode: Int =>
-    getTarget(hashCode, modules, evaluator).map { target =>
-      val taskId = new TaskId(getModule(target.getId, modules).compile.hashCode.toString)
-      val taskStartParams = new TaskStartParams(taskId)
-      taskStartParams.setEventTime(System.currentTimeMillis())
-      taskStartParams.setData(new CompileTask(target.getId))
-      taskStartParams.setDataKind(TaskDataKind.COMPILE_TASK)
-      taskStartParams.setMessage(s"Compiling target ${target.getDisplayName}")
-      client.onBuildTaskStart(taskStartParams)
-      new BspLoggedReporter(client, target, taskId, params.getOriginId)
+  ): Int => Option[CompileProblemReporter] = { moduleHashCode: Int =>
+    bspIdsByModule.find(_._1.hashCode == moduleHashCode).map {
+      case (module: JavaModule, targetId) =>
+        val buildTarget = module.bspBuildTarget
+        val taskId = new TaskId(module.compile.hashCode.toString)
+        new BspCompileProblemReporter(
+          client,
+          targetId,
+          buildTarget.displayName.getOrElse(targetId.getUri),
+          taskId,
+          Option(originId)
+        )
     }
   }
 
@@ -56,32 +53,4 @@ object Utils {
     }
   }
 
-  // Detect and return the test classes contained in the given TestModule
-  def getTestClasses(module: TestModule, evaluator: Evaluator)(implicit
-      ctx: Ctx.Home
-  ): Seq[String] = {
-    val runClasspath = getTaskResult(evaluator, module.runClasspath)
-    val framework = getTaskResult(evaluator, module.testFramework)
-    val compilationResult = getTaskResult(evaluator, module.compile)
-
-    (runClasspath, framework, compilationResult) match {
-      case (Result.Success(classpath), Result.Success(testFramework), Result.Success(compResult)) =>
-        val classFingerprint = Jvm.inprocess(
-          classpath.asInstanceOf[Seq[PathRef]].map(_.path),
-          classLoaderOverrideSbtTesting = true,
-          isolated = true,
-          closeContextClassLoaderWhenDone = false,
-          cl => {
-            val framework = TestRunner.framework(testFramework.asInstanceOf[String])(cl)
-            discoverTests(
-              cl,
-              framework,
-              Agg(compResult.asInstanceOf[CompilationResult].classes.path)
-            )
-          }
-        )
-        Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
-      case _ => Seq.empty[String] //TODO: or send notification that something went wrong
-    }
-  }
 }

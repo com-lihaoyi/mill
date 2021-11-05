@@ -2,17 +2,17 @@ package mill.eval
 
 import java.net.URLClassLoader
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-
 import ammonite.runtime.SpecialClassLoader
 import mainargs.MainData
-import scala.util.DynamicVariable
 
-import mill.api.{BuildProblemReporter, DummyTestReporter, TestReporter}
+import scala.util.DynamicVariable
+import mill.api.{CompileProblemReporter, DummyTestReporter, TestReporter}
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define.{Ctx => _, _}
 import mill.util
 import mill.util._
+
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -65,6 +65,8 @@ case class Evaluator(
 
   val classLoaderSignHash = classLoaderSig.hashCode()
 
+  val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
+
   /**
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
@@ -72,8 +74,8 @@ case class Evaluator(
    */
   def evaluate(
       goals: Agg[Task[_]],
-      reporter: Int => Option[BuildProblemReporter] =
-        (int: Int) => Option.empty[BuildProblemReporter],
+      reporter: Int => Option[CompileProblemReporter] =
+        (int: Int) => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger
   ): Evaluator.Results = {
@@ -87,8 +89,8 @@ case class Evaluator(
   def sequentialEvaluate(
       goals: Agg[Task[_]],
       logger: ColorLogger,
-      reporter: Int => Option[BuildProblemReporter] =
-        (int: Int) => Option.empty[BuildProblemReporter],
+      reporter: Int => Option[CompileProblemReporter] =
+        (int: Int) => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
@@ -113,6 +115,7 @@ case class Evaluator(
 
         val startTime = System.currentTimeMillis()
         // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
+
         val counterMsg = (i + 1) + "/" + sortedGroups.keyCount
         val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
           terminal = terminal,
@@ -164,11 +167,11 @@ case class Evaluator(
       goals: Agg[Task[_]],
       threadCount: Int,
       logger: ColorLogger,
-      reporter: Int => Option[BuildProblemReporter] =
-        (int: Int) => Option.empty[BuildProblemReporter],
+      reporter: Int => Option[CompileProblemReporter] =
+        (int: Int) => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
-    logger.info(s"Using experimental parallel evaluator with $threadCount threads")
+    logger.debug(s"Using parallel evaluator with $threadCount threads")
     os.makeDir.all(outPath)
     val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
 
@@ -274,7 +277,7 @@ case class Evaluator(
       group: Agg[Task[_]],
       results: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
       counterMsg: String,
-      zincProblemReporter: Int => Option[BuildProblemReporter],
+      zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger
   ): Evaluated = {
@@ -309,7 +312,7 @@ case class Evaluator(
           if (!labelledNamedTask.task.ctx.external) outPath
           else externalOutPath
 
-        val paths = Evaluator.resolveDestPaths(
+        val paths = EvaluatorPaths.resolveDestPaths(
           out,
           destSegments(labelledNamedTask)
         )
@@ -420,10 +423,10 @@ case class Evaluator(
       group: Agg[Task[_]],
       results: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
       inputsHash: Int,
-      paths: Option[Evaluator.Paths],
+      paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
       counterMsg: String,
-      reporter: Int => Option[BuildProblemReporter],
+      reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: Logger
   ): (mutable.LinkedHashMap[Task[_], mill.api.Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
@@ -613,21 +616,16 @@ object Evaluator {
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
-  case class Paths(out: os.Path, dest: os.Path, meta: os.Path, log: os.Path)
-  def makeSegmentStrings(segments: Segments) = segments.value.flatMap {
-    case Segment.Label(s) => Seq(s)
-    case Segment.Cross(values) => values.map(_.toString)
-  }
+  @deprecated("Use EvaluatorPaths instead", "mill-0.10.0-M3")
+  type Paths = EvaluatorPaths
+  @deprecated("Use EvaluatorPaths.makeSegmentStrings instead", "mill-0.10.0-M3")
+  def makeSegmentStrings(segments: Segments) = EvaluatorPaths.makeSegmentStrings(segments)
+  @deprecated("Use EvaluatorPaths.resolveDestPaths instead", "mill-0.10.0-M3")
   def resolveDestPaths(
       workspacePath: os.Path,
       segments: Segments,
       foreignSegments: Option[Segments] = None
-  ): Paths = {
-    val refinedSegments = foreignSegments.map(_ ++ segments).getOrElse(segments)
-    val segmentStrings = makeSegmentStrings(refinedSegments)
-    val targetPath = workspacePath / segmentStrings
-    Paths(targetPath, targetPath / "dest", targetPath / "meta.json", targetPath / "log")
-  }
+  ) = EvaluatorPaths.resolveDestPaths(workspacePath, segments, foreignSegments)
 
   // check if the build itself has changed
   def classLoaderSig = Thread.currentThread().getContextClassLoader match {

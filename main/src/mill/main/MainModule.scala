@@ -1,14 +1,11 @@
 package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
-
 import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, NamedTask, Task}
-import mill.eval.Evaluator
-import mill.util.SelectMode.Multi
+import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{PrintLogger, SelectMode, Watched}
-import os.Path
 import pprint.{Renderer, Truncated}
 
 object MainModule {
@@ -290,7 +287,7 @@ trait MainModule extends mill.Module {
           SelectMode.Multi
         ).map(
           _.map { segments =>
-            Evaluator.resolveDestPaths(rootDir, segments).out
+            EvaluatorPaths.resolveDestPaths(rootDir, segments).out
           }
         )
 

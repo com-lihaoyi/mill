@@ -2,14 +2,12 @@ package mill.scalalib
 
 import java.io.ByteArrayOutputStream
 import java.util.jar.JarFile
-
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 import scala.xml.NodeSeq
-
 import mill._
 import mill.define.Target
-import mill.eval.{Evaluator, Result}
+import mill.eval.{Evaluator, EvaluatorPaths, Result}
 import mill.modules.Assembly
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
@@ -451,10 +449,7 @@ object HelloWorldTests extends TestSuite {
 
         val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.compile)
 
-        val paths = Evaluator.resolveDestPaths(
-          eval.outPath,
-          HelloWorld.core.compile.ctx.segments
-        )
+        val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
 
         assert(
           os.walk(paths.dest / "classes").isEmpty,
