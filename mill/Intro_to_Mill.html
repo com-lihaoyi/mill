@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M3-58-067c7c</span>
+    <span class="version">0.10.0-M3-107-93b78e</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M3-58-067c7c</a>
+          <a href="index.html">0.10.0-M3-107-93b78e</a>
         </li>
         <li class="version">
           <a href="0.10.0-M3/index.html">0.10.0-M3</a>
@@ -173,9 +173,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M3-58-067c7c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M3-107-93b78e</button>
   <div class="version-menu">
-    <a class="version is-current" href="Intro_to_Mill.html">0.10.0-M3-58-067c7c</a>
+    <a class="version is-current" href="Intro_to_Mill.html">0.10.0-M3-107-93b78e</a>
     <a class="version" href="0.10.0-M3/Intro_to_Mill.html">0.10.0-M3</a>
     <a class="version" href="0.10.0-M2/Intro_to_Mill.html">0.10.0-M2</a>
     <a class="version" href="0.9.9/Intro_to_Mill.html">0.9.9</a>
@@ -408,7 +408,7 @@ object foo extends JavaModule {}</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.1&quot;
+  def scalaVersion = &quot;2.13.7&quot;
 }</code></pre>
 </div>
 </div>
@@ -532,13 +532,13 @@ object bar extends JavaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.1&quot;
+  def scalaVersion = &quot;2.13.7&quot;
 }
 
 object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
 
-  def scalaVersion = &quot;2.13.1&quot;
+  def scalaVersion = &quot;2.13.7&quot;
 }</code></pre>
 </div>
 </div>
@@ -598,14 +598,13 @@ code in each module changes.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.1&quot;
+  def scalaVersion = &quot;2.13.7&quot;
 
   object bar extends ScalaModule {
     def moduleDeps = Seq(foo)
 
-    def scalaVersion = &quot;2.13.1&quot;
+    def scalaVersion = &quot;2.13.7&quot;
   }
-
 }</code></pre>
 </div>
 </div>
@@ -836,7 +835,6 @@ If you need to feed a <code>+</code> as argument to your target, you can mask it
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill resolve _
 [1/1] resolve
-all
 clean
 foo
 inspect
@@ -1179,24 +1177,90 @@ mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre
 <h2 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill supports any IDE that is compatible with <a href="https://build-server-protocol.github.io/">BSP</a>, such as IntelliJ.<br />
-Use <code>mill mill.bsp.BSP/install</code> to generate the BSP project config for your build.</p>
+<p>To support various IDEs and Language Servers, Mill supports the <a href="https://build-server-protocol.github.io/">Build Server Protocol</a> in version 2.0.0 and has a <a href="#_build_server_protocol_bsp">built-in BSP server</a>.</p>
 </div>
 <div class="paragraph">
-<p>It also enables Intellij to provide navigation and code-completion features within your build file itself.</p>
+<p>In addition to BSP, Mill also supports <a href="#_intellij_support">IntelliJ IDEA project configuration generation</a> directly.</p>
+</div>
+<div class="sect2">
+<h3 id="_build_server_protocol_bsp"><a class="anchor" href="#_build_server_protocol_bsp"></a>Build Server Protocol (BSP)</h3>
+<div class="paragraph">
+<p>To install a BSP connection file <code>.bsp/mill-bsp.json</code>, run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.bsp.BSP/install</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Working known clients of the BSP server are IntelliJ IDEA and Metals.</p>
+</div>
+<div class="paragraph">
+<p>You can fine control some BSP server options by specifying command options:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;" />
+<col style="width: 50%;" />
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Option</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jobs</code> <code>n</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use <code>n</code> threads in parallel to run tasks. A value of <code>0</code> means use as much threads as the system has cpu cores.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you want to us Metals, you may also want to enable SemanticDB support. Without it, some functionality like find references may not work.</p>
+</div>
+<div class="paragraph">
+<p>We still work on a better and automatic SemanticDB support.
+Until we have completed it, you can enable SemanticDB manually in your <code>ScalaModule</code>.</p>
+</div>
+<div class="paragraph">
+<p>For convenience, you can mix-in the <code>mill.scalalib.bsp.ScalaMetalsSupport</code> trait. This enables SemanticDB and also adapts the scalac options to produce more helpful messages in Metals.</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code>: Mix-in of <code>ScalaMetalsSupport</code> trait</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+import mill.scalalib._
+import mill.scalalib.bsp.ScalaMetalsSupport
+
+object foo extends ScalaModule with ScalaMetalsSupport {
+  def semanticDbVersion = &quot;4.4.29&quot;
+  def scalaVersion = &quot;2.13.7&quot;
+}</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_intellij_support_legacy"><a class="anchor" href="#_intellij_support_legacy"></a>IntelliJ Support (legacy)</h2>
+<h2 id="_intellij_support"><a class="anchor" href="#_intellij_support"></a>IntelliJ Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill supports IntelliJ configuration generation.
-Use <code>mill mill.scalalib.GenIdea/idea</code> to generate an IntelliJ project
-config for your build.</p>
+<p>To generate IntelliJ IDEA project files into <code>.idea/</code>, run:</p>
 </div>
-<div class="paragraph">
-<p>This also configures IntelliJ to allow easy navigate &amp; code-completion within your build file itself.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.GenIdea/idea</code></pre>
+</div>
 </div>
 </div>
 </div>
