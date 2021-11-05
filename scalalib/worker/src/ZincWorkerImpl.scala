@@ -3,7 +3,7 @@ package mill.scalalib.worker
 import java.io.File
 import java.util.Optional
 import mill.api.Loose.Agg
-import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity}
+import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, internal}
 import mill.scalalib.api.Util.{grepJar, isDotty, isDottyOrScala3, isScala3, isScala3Milestone, scalaBinaryVersion}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
@@ -74,6 +74,7 @@ class ZincProblemPosition(base: xsbti.Position) extends ProblemPosition {
   override def endColumn: Option[Int] = base.endColumn()
 }
 
+@internal
 class ZincWorkerImpl(
     compilerBridge: Either[
       (ZincWorkerApi.Ctx, (String, String) => (Option[Array[os.Path]], os.Path)),
