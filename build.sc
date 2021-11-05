@@ -2,7 +2,7 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.2`
-import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.4`
+import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.5`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
 import java.nio.file.attribute.PosixFilePermission
 
@@ -172,6 +172,13 @@ trait MillApiModule
   def scalaVersion = Deps.scalaVersion
   override def ammoniteVersion = Deps.ammonite.dep.version
   override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
+  override def mimaPreviousArtifacts =
+    if (Settings.mimaBaseVersions.isEmpty) T { Agg[Dep]() }
+    else super.mimaPreviousArtifacts
+  override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
+    "mill.api.internal",
+    "mill.api.experimental"
+  )
 }
 
 trait MillModule extends MillApiModule { outer =>
