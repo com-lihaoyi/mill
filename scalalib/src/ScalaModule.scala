@@ -461,12 +461,14 @@ trait ScalaModule extends JavaModule { outer =>
     super.manifest().add("Scala-Version" -> scalaVersion())
   }
 
+  @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Scala),
     canCompile = true,
     canRun = true
   )
 
+  @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((
       BuildTargetDataKind.SCALA,

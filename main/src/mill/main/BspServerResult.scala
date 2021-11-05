@@ -1,5 +1,8 @@
 package mill.main
 
+import mill.api.internal
+
+@internal
 sealed trait BspServerResult
 
 object BspServerResult {

@@ -4,6 +4,7 @@ package scalanativelib
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import coursier.maven.MavenRepository
 import mill.api.Loose.Agg
+import mill.api.internal
 import mill.define.{Target, Task}
 import mill.modules.Jvm
 import mill.scalalib.api.Util.scalaBinaryVersion
@@ -181,6 +182,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     )
   }
 
+  @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((BuildTargetDataKind.SCALA, new ScalaBuildTarget(
       scalaOrganization(),

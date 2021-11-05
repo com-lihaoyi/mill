@@ -72,6 +72,7 @@ object BspUri {
  * @param rootModule
  * @param outerCtx0
  */
+@internal
 trait MillBuildTarget // (rootModule: BaseModule, ctx0: mill.define.Ctx)
     extends // Module()(ctx0) with
       ScalaModule {

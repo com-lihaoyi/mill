@@ -2,12 +2,11 @@ package mill
 package scalajslib
 
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
-import mill.api.{PathRef, Result}
+import mill.api.{Loose, PathRef, Result, internal}
 import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
 import mill.util.Ctx
-import mill.api.Loose
 import mill.define.Task
 import mill.scalajslib.api._
 
@@ -199,6 +198,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def useECMAScript2015: T[Boolean] = false
 
+  @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((BuildTargetDataKind.SCALA, new ScalaBuildTarget(
       scalaOrganization(),

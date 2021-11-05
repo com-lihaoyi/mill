@@ -1,10 +1,12 @@
 package mill.scalalib.bsp
 
+import mill.api.experimental
 import mill.{Agg, T}
 import mill.define.Target
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
 
 /*+ Enable some common settings required to properly support Metals Language Server (via BSP). */
+@experimental
 trait ScalaMetalsSupport extends ScalaModule {
 
   /** The semanticDB version to use. It needs to support your configured Scala versions. */
