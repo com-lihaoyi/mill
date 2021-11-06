@@ -59,8 +59,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   def scoverageRuntimeDep: T[Dep] = T {
     ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}"
   }
-  def scoveragePluginDep: T[Dep] = T {
-    ivy"org.scoverage:::scalac-scoverage-plugin:${outer.scoverageVersion()}"
+  def scoveragePluginDep: T[Agg[Dep]] = T {
+    Agg(
+      ivy"org.scoverage:::scalac-scoverage-plugin:${outer.scoverageVersion()}",
+      ivy"org.scoverage::scalac-scoverage-domain:${outer.scoverageVersion()}",
+      ivy"org.scoverage::scalac-scoverage-serializer:${outer.scoverageVersion()}"
+    )
   }
 
   @deprecated("Use scoverageToolsClasspath instead.", "mill after 0.10.0-M1")
@@ -72,13 +76,15 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     scoverageReportWorkerClasspath() ++
       resolveDeps(T.task {
         Agg(
-          ivy"org.scoverage:scalac-scoverage-plugin_${mill.BuildInfo.scalaVersion}:${outer.scoverageVersion()}"
+          ivy"org.scoverage::scalac-scoverage-domain:${outer.scoverageVersion()}",
+          ivy"org.scoverage::scalac-scoverage-serializer:${outer.scoverageVersion()}",
+          ivy"org.scoverage::scalac-scoverage-reporter:${outer.scoverageVersion()}"
         )
       })()
   }
 
   def scoverageClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { Agg(scoveragePluginDep()) })()
+    resolveDeps(T.task { scoveragePluginDep() })()
   }
 
   def scoverageReportWorkerClasspath: T[Agg[PathRef]] = T {
@@ -98,7 +104,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath().map(_.path))
-        .report(reportType, allSources().map(_.path), Seq(data().path))
+        .report(reportType, allSources().map(_.path), Seq(data().path), T.workspace)
     }
 
     /**
@@ -126,11 +132,20 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
     /** Add the scoverage scalac plugin. */
     override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] =
-      T { outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep()) }
+      T { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDep() }
 
-    /** Add the scoverage specific plugin settings (`dataDir`). */
+    /**
+     * Add the scoverage specific plugin settings
+     *  - `dataDir` - where the coverage data files should go
+     *  - `sourceRoot` - used for path relativization.
+     */
     override def scalacOptions: Target[Seq[String]] =
-      T { outer.scalacOptions() ++ Seq(s"-P:scoverage:dataDir:${data().path.toIO.getPath()}") }
+      T {
+        outer.scalacOptions() ++ Seq(
+          s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",
+          s"-P:scoverage:sourceRoot:${T.workspace}"
+        )
+      }
 
     def htmlReport(): Command[Unit] = T.command { doReport(ReportType.Html) }
     def xmlReport(): Command[Unit] = T.command { doReport(ReportType.Xml) }

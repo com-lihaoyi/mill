@@ -107,7 +107,7 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.0.6"
   val scalametaTrees = ivy"org.scalameta::trees:4.4.29"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.9"
+  def scalacScoverageReporter = ivy"org.scoverage::scalac-scoverage-reporter:2.0.0-M2"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
   val upickle = ivy"com.lihaoyi::upickle:1.4.2"
   val utest = ivy"com.lihaoyi::utest:0.7.10"
@@ -573,7 +573,7 @@ object contrib extends MillModule {
       override def compileIvyDeps = T{
         Agg(
           // compile-time only, need to provide the correct scoverage version runtime
-          Deps.scalacScoveragePlugin,
+          Deps.scalacScoverageReporter,
           // provided by mill runtime
           Deps.osLib
         )
