@@ -106,7 +106,11 @@ trait HelloWorldTests extends utest.TestSuite {
               eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps)
 
             assert(
-              result == Agg(ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}"),
+              result == Agg(
+                ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}",
+                ivy"org.scoverage::scalac-scoverage-domain:${testScoverageVersion}",
+                ivy"org.scoverage::scalac-scoverage-serializer:${testScoverageVersion}"
+              ),
               evalCount > 0
             )
           }
@@ -190,21 +194,14 @@ trait HelloWorldTests extends utest.TestSuite {
 
 object HelloWorldTests_2_12 extends HelloWorldTests {
   override def threadCount = Some(1)
-  override def testScalaVersion: String = "2.12.14"
-  override def testScoverageVersion = "1.4.9"
+  override def testScalaVersion: String = "2.12.15"
+  override def testScoverageVersion = "2.0.0-M4"
   override def testScalatestVersion = "3.0.8"
 }
 
 object HelloWorldTests_2_13 extends HelloWorldTests {
   override def threadCount = Some(1)
-  override def testScalaVersion: String = "2.13.6"
-  override def testScoverageVersion = "1.4.9"
+  override def testScalaVersion: String = "2.13.7"
+  override def testScoverageVersion = "2.0.0-M4"
   override def testScalatestVersion = "3.0.8"
 }
-
-//object HelloWorldParTests_2_13 extends HelloWorldTests {
-//  override def threadCount: Some[Int] = Some(4)
-//  override def testScalaVersion: String = "2.13.6"
-//  override def testScoverageVersion = "1.4.8"
-//  override def testScalatestVersion = "3.0.8"
-//}
