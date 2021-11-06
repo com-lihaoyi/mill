@@ -836,7 +836,10 @@ def launcherScript(
          |# https://stackoverflow.com/a/43618657/871202
          |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
          |    init_mill_jvm_opts
-         |    COURSIER_CACHE=.coursier ${java(millMainClass, true)}
+         |    if [ -z $$COURSIER_CACHE ] ; then
+         |      COURSIER_CACHE=.coursier
+         |    fi
+         |    ${java(millMainClass, true)}
          |else
          |    case "$$1" in
          |      -i | --interactive | --repl | --no-server | --bsp )
