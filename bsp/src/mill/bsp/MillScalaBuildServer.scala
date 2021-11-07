@@ -1,5 +1,10 @@
 package mill.bsp
 
+import java.util.concurrent.CompletableFuture
+
+import scala.jdk.CollectionConverters._
+import scala.util.chaining._
+
 import ch.epfl.scala.bsp4j.{
   ScalaBuildServer,
   ScalaMainClass,
@@ -13,13 +18,10 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsParams,
   ScalacOptionsResult
 }
-import mill.{Agg, T}
 import mill.modules.Jvm
 import mill.scalalib.{JavaModule, Lib, ScalaModule, TestModule, TestRunner}
-
-import java.util.concurrent.CompletableFuture
-import scala.jdk.CollectionConverters._
-import scala.util.chaining._
+import mill.{Agg, T}
+import sbt.testing.Fingerprint
 
 trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 
@@ -35,8 +37,8 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
         case (id, m: JavaModule) =>
           val optionsTask = m match {
             case sm: ScalaModule => T.task {
-              sm.allScalacOptions() ++ sm.scalacPluginClasspath().map(jar => s"-Xplugin:$jar")
-            }
+                sm.allScalacOptions() ++ sm.scalacPluginClasspath().map(jar => s"-Xplugin:$jar")
+              }
             case _ => T.task { Seq.empty[String] }
           }
 
@@ -92,7 +94,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
           val testFramework = m.testFramework()
           val compResult = m.compile()
 
-          val classFingerprint = Jvm.inprocess(
+          val classFingerprint: Agg[(Class[_], Fingerprint)] = Jvm.inprocess(
             classpath.map(_.path),
             classLoaderOverrideSbtTesting = true,
             isolated = true,
@@ -106,9 +108,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
               )
             }
           )
-          Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
-
-          val classes = Seq.empty[String]
+          val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
           new ScalaTestClassesItem(id, classes.asJava)
         }
       case (id, _) => T.task {
