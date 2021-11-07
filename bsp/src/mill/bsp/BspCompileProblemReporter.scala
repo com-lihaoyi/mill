@@ -3,13 +3,15 @@ package mill.bsp
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+
 import ch.epfl.scala.bsp4j._
 import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.{CompileProblemReporter, Problem}
-
 import scala.collection.JavaConverters._
 import scala.collection.concurrent
 import scala.language.implicitConversions
+
+import os.Path
 
 /**
  * Specialized reporter that sends compilation diagnostics
@@ -87,13 +89,7 @@ class BspCompileProblemReporter(
     params
   }
 
-  // Update the published diagnostics for the given text file by
-  // adding the recently computed diagnostic to the list of
-  // all previous diagnostics generated for the same file.
-  private[this] def appendDiagnostics(
-      textDocument: TextDocumentIdentifier,
-      currentDiagnostic: Diagnostic
-  ): List[Diagnostic] = {
+  private[this] def ensureDiagnostics(textDocument: TextDocumentIdentifier): bsp.PublishDiagnosticsParams = {
     diagnosticMap.putIfAbsent(
       textDocument,
       new bsp.PublishDiagnosticsParams(
@@ -103,7 +99,17 @@ class BspCompileProblemReporter(
         true
       )
     )
-    diagnosticMap(textDocument).getDiagnostics.asScala.toList ++ List(currentDiagnostic)
+    diagnosticMap(textDocument)
+  }
+
+  // Update the published diagnostics for the given text file by
+  // adding the recently computed diagnostic to the list of
+  // all previous diagnostics generated for the same file.
+  private[this] def appendDiagnostics(
+      textDocument: TextDocumentIdentifier,
+      currentDiagnostic: Diagnostic
+  ): List[Diagnostic] = {
+    ensureDiagnostics(textDocument).getDiagnostics.asScala.toList ++ List(currentDiagnostic)
   }
 
   // Computes the diagnostic related to the given Problem
@@ -138,6 +144,12 @@ class BspCompileProblemReporter(
     client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
     warnings.incrementAndGet()
   }
+
+  override def fileVisited(file: Path): Unit = {
+    val uri = file.toNIO.toUri.toString
+    client.onBuildPublishDiagnostics(ensureDiagnostics(new TextDocumentIdentifier(uri)))
+  }
+
 
   override def printSummary(): Unit = {
     finish()
@@ -176,4 +188,5 @@ class BspCompileProblemReporter(
       finished.set(true)
     }
   }
+
 }

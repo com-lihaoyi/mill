@@ -11,6 +11,7 @@ trait CompileProblemReporter {
   def logError(problem: Problem): Unit
   def logWarning(problem: Problem): Unit
   def logInfo(problem: Problem): Unit
+  def fileVisited(file: os.Path): Unit
   def printSummary(): Unit
   def finish(): Unit
 }

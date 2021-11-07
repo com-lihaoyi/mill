@@ -448,7 +448,6 @@ class MillBuildServer(
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
       val compileTasks = params.getTargets.distinct.map(bspModulesById).map {
-        //          .filter(_ != `mill-build`.buildTargetId)
           case m: JavaModule => m.compile
           case m => T.task {
               Result.Failure(

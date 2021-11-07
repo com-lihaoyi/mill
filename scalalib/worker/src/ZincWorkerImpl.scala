@@ -2,16 +2,32 @@ package mill.scalalib.worker
 
 import java.io.File
 import java.util.Optional
+import java.util.concurrent.ConcurrentHashMap
+
 import mill.api.Loose.Agg
-import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, internal}
-import mill.scalalib.api.Util.{grepJar, isDotty, isDottyOrScala3, isScala3, isScala3Milestone, scalaBinaryVersion}
+import mill.api.{
+  CompileProblemReporter,
+  KeyedLockedCache,
+  PathRef,
+  Problem,
+  ProblemPosition,
+  Severity,
+  internal
+}
+import mill.scalalib.api.Util.{
+  grepJar,
+  isDotty,
+  isDottyOrScala3,
+  isScala3,
+  isScala3Milestone,
+  scalaBinaryVersion
+}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.util.LogExchange
 import xsbti.{PathBasedFile, VirtualFile}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
-
 import scala.ref.WeakReference
 
 case class MockedLookup(am: VirtualFile => Optional[CompileAnalysis])
@@ -48,29 +64,17 @@ class ZincProblemPosition(base: xsbti.Position) extends ProblemPosition {
   import JavaOptionConverter._
 
   override def line: Option[Int] = base.line()
-
   override def lineContent: String = base.lineContent()
-
   override def offset: Option[Int] = base.offset()
-
   override def pointer: Option[Int] = base.pointer()
-
   override def pointerSpace: Option[String] = base.pointerSpace()
-
   override def sourcePath: Option[String] = base.sourcePath()
-
   override def sourceFile: Option[File] = base.sourceFile()
-
   override def startOffset: Option[Int] = base.startOffset()
-
   override def endOffset: Option[Int] = base.endOffset()
-
   override def startLine: Option[Int] = base.startLine()
-
   override def startColumn: Option[Int] = base.startColumn()
-
   override def endLine: Option[Int] = base.endLine()
-
   override def endColumn: Option[Int] = base.endColumn()
 }
 
@@ -530,6 +534,28 @@ class ZincWorkerImpl(
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
 
+    // We want to listed to all compiled files
+    val compileProgress = reporter.map { reporter =>
+      new CompileProgress {
+        val seen = new ConcurrentHashMap[String, java.lang.Boolean]()
+        override def startUnit(phase: String, unitPath: String): Unit = {
+          // ctx.log.info(s"compiler starts unit `${unitPath}` (phase: ${phase})")
+          try {
+            seen.putIfAbsent(unitPath, java.lang.Boolean.TRUE) match {
+              case null =>
+                // first visit
+                os.Path(unitPath)
+                reporter.fileVisited(os.Path(unitPath))
+              case _ =>
+            }
+          } catch {
+            case e: IllegalArgumentException =>
+            // could not convert path to os.Path
+          }
+        }
+      }
+    }
+
     val inputs = ic.inputs(
       classpath = classpath,
       sources = virtualSources,
@@ -542,15 +568,15 @@ class ZincWorkerImpl(
       order = CompileOrder.Mixed,
       compilers = compilers,
       setup = ic.setup(
-        lookup,
+        lookup = lookup,
         skip = false,
-        zincFile.toNIO,
-        new FreshCompilerCache,
-        IncOptions.of(),
-        newReporter,
-        None,
-        None,
-        Array()
+        cacheFile = zincFile.toNIO,
+        cache = new FreshCompilerCache,
+        incOptions = IncOptions.of(),
+        reporter = newReporter,
+        progress = compileProgress,
+        earlyAnalysisStore = None,
+        extra = Array()
       ),
       pr = {
         val prev = store.get()
@@ -577,8 +603,9 @@ class ZincWorkerImpl(
         )
       )
       mill.api.Result.Success((zincFile, classesDir))
-    } catch { case e: CompileFailed =>
-      mill.api.Result.Failure(e.toString)
+    } catch {
+      case e: CompileFailed =>
+        mill.api.Result.Failure(e.toString)
     } finally {
       reporter.foreach(_.finish())
     }
