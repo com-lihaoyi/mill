@@ -494,7 +494,7 @@ trait JavaModule
   /**
    * The source jar, containing only source code for publishing to Maven Central
    */
-  def sourceJar: T[PathRef] = T {
+  def sourceJar: Target[PathRef] = T {
     createJar(
       (allSources() ++ resources()).map(_.path).filter(os.exists),
       manifest()
@@ -505,13 +505,13 @@ trait JavaModule
    * Any command-line parameters you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkArgs: T[Seq[String]] = T { Seq.empty[String] }
+  def forkArgs: Target[Seq[String]] = T { Seq.empty[String] }
 
   /**
    * Any environment variables you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkEnv: T[Map[String, String]] = T { sys.env.toMap }
+  def forkEnv: Target[Map[String, String]] = T.input { T.env }
 
   /**
    * Builds a command-line "launcher" file that can be used to run this module's
