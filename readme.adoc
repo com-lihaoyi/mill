@@ -231,6 +231,7 @@ _Changes since {prev-version}:_
 * BSP support rework and overhaul of built-in BSP server
 * GenIdea: failures when inspecting and resolving the build are not properly reported
 * Coursier: we now implemented a workaround to tackle concurrent downloads issues
+* New `+` separator to provide multiple targets (with parameters) via cmdline
 * New `--import` cmdline option to run ad-hoc plugins without editing of `build.sc`
 * New `T.ctx().workspace` API to access the project root directory
 * Various internal improvements and bug fixes
