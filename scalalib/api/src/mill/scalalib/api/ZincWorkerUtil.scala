@@ -1,59 +1,9 @@
 package mill.scalalib.api
 
 import mill.api.Loose.Agg
-import mill.api.{PathRef, CompileProblemReporter}
-import mill.api.JsonFormatters._
 
-object ZincWorkerApi {
-  type Ctx = mill.api.Ctx.Dest with mill.api.Ctx.Log with mill.api.Ctx.Home
-}
-trait ZincWorkerApi {
+trait ZincWorkerUtil {
 
-  /** Compile a Java-only project */
-  def compileJava(
-      upstreamCompileOutput: Seq[CompilationResult],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
-      javacOptions: Seq[String],
-      reporter: Option[CompileProblemReporter]
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
-
-  /** Compile a mixed Scala/Java or Scala-only project */
-  def compileMixed(
-      upstreamCompileOutput: Seq[CompilationResult],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
-      javacOptions: Seq[String],
-      scalaVersion: String,
-      scalaOrganization: String,
-      scalacOptions: Seq[String],
-      compilerClasspath: Agg[os.Path],
-      scalacPluginClasspath: Agg[os.Path],
-      reporter: Option[CompileProblemReporter]
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
-
-  def discoverMainClasses(compilationResult: CompilationResult)(implicit
-      ctx: ZincWorkerApi.Ctx
-  ): Seq[String]
-
-  def docJar(
-      scalaVersion: String,
-      scalaOrganization: String,
-      compilerClasspath: Agg[os.Path],
-      scalacPluginClasspath: Agg[os.Path],
-      args: Seq[String]
-  )(implicit ctx: ZincWorkerApi.Ctx): Boolean
-}
-
-object CompilationResult {
-  implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] =
-    upickle.default.macroRW
-}
-
-// analysisFile is represented by os.Path, so we won't break caches after file changes
-case class CompilationResult(analysisFile: os.Path, classes: PathRef)
-
-object Util {
   def isDotty(scalaVersion: String) = scalaVersion.startsWith("0.")
   def isScala3(scalaVersion: String) = scalaVersion.startsWith("3.")
   def isScala3Milestone(scalaVersion: String) = scalaVersion.startsWith("3.0.0-M")
@@ -199,3 +149,9 @@ object Util {
     (plus ++ minus).distinct.toSeq
   }
 }
+
+object ZincWorkerUtil extends ZincWorkerUtil
+
+@deprecated("use ZincWorkerUtil instead", "mill after 0.10.0-M3")
+object Util extends ZincWorkerUtil
+

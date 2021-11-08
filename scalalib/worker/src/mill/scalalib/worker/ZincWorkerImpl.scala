@@ -4,79 +4,16 @@ import java.io.File
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 
+import scala.ref.WeakReference
+
 import mill.api.Loose.Agg
-import mill.api.{
-  CompileProblemReporter,
-  KeyedLockedCache,
-  PathRef,
-  Problem,
-  ProblemPosition,
-  Severity,
-  internal
-}
-import mill.scalalib.api.Util.{
-  grepJar,
-  isDotty,
-  isDottyOrScala3,
-  isScala3,
-  isScala3Milestone,
-  scalaBinaryVersion
-}
-import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
+import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, internal}
+import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil => Util}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.util.LogExchange
-import xsbti.{PathBasedFile, VirtualFile}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
-import scala.ref.WeakReference
-
-case class MockedLookup(am: VirtualFile => Optional[CompileAnalysis])
-    extends PerClasspathEntryLookup {
-  override def analysis(classpathEntry: VirtualFile): Optional[CompileAnalysis] =
-    am(classpathEntry)
-
-  override def definesClass(classpathEntry: VirtualFile): DefinesClass =
-    Locate.definesClass(classpathEntry)
-}
-
-class ZincProblem(base: xsbti.Problem) extends Problem {
-  override def category: String = base.category()
-
-  override def severity: Severity = base.severity() match {
-    case xsbti.Severity.Info => mill.api.Info
-    case xsbti.Severity.Warn => mill.api.Warn
-    case xsbti.Severity.Error => mill.api.Error
-  }
-
-  override def message: String = base.message()
-
-  override def position: ProblemPosition = new ZincProblemPosition(base.position())
-}
-
-class ZincProblemPosition(base: xsbti.Position) extends ProblemPosition {
-
-  object JavaOptionConverter {
-    implicit def convertInt(x: Optional[Integer]): Option[Int] =
-      if (x.isPresent) Some(x.get().intValue()) else None
-    implicit def convert[T](x: Optional[T]): Option[T] = if (x.isPresent) Some(x.get()) else None
-  }
-
-  import JavaOptionConverter._
-
-  override def line: Option[Int] = base.line()
-  override def lineContent: String = base.lineContent()
-  override def offset: Option[Int] = base.offset()
-  override def pointer: Option[Int] = base.pointer()
-  override def pointerSpace: Option[String] = base.pointerSpace()
-  override def sourcePath: Option[String] = base.sourcePath()
-  override def sourceFile: Option[File] = base.sourceFile()
-  override def startOffset: Option[Int] = base.startOffset()
-  override def endOffset: Option[Int] = base.endOffset()
-  override def startLine: Option[Int] = base.startLine()
-  override def startColumn: Option[Int] = base.startColumn()
-  override def endLine: Option[Int] = base.endLine()
-  override def endColumn: Option[Int] = base.endColumn()
-}
+import xsbti.{PathBasedFile, VirtualFile}
 
 @internal
 class ZincWorkerImpl(
@@ -132,7 +69,7 @@ class ZincWorkerImpl(
       compilerClasspath,
       scalacPluginClasspath
     ) { compilers: Compilers =>
-      if (isDotty(scalaVersion) || isScala3Milestone(scalaVersion)) {
+      if (Util.isDotty(scalaVersion) || Util.isScala3Milestone(scalaVersion)) {
         // dotty 0.x and scala 3 milestones use the dotty-doc tool
         val dottydocClass =
           compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
@@ -140,7 +77,7 @@ class ZincWorkerImpl(
         val reporter = dottydocMethod.invoke(dottydocClass.newInstance(), args.toArray)
         val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
         !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
-      } else if (isScala3(scalaVersion)) {
+      } else if (Util.isScala3(scalaVersion)) {
         val scaladocClass =
           compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
         val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
@@ -205,7 +142,7 @@ class ZincWorkerImpl(
       (Seq("javac") ++ argsArray).!
     } else if (allScala) {
       val compilerMain = classloader.loadClass(
-        if (isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
+        if (Util.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
         else "scala.tools.nsc.Main"
       )
       compilerMain
@@ -418,16 +355,16 @@ class ZincWorkerImpl(
 
     compilerCache.withCachedValue(compilersSig) {
       val compilerJar =
-        if (isDotty(scalaVersion))
-          grepJar(
+        if (Util.isDotty(scalaVersion))
+          Util.grepJar(
             compilerClasspath,
-            s"dotty-compiler_${scalaBinaryVersion(scalaVersion)}",
+            s"dotty-compiler_${Util.scalaBinaryVersion(scalaVersion)}",
             scalaVersion
           )
-        else if (isScala3(scalaVersion))
-          grepJar(
+        else if (Util.isScala3(scalaVersion))
+          Util.grepJar(
             compilerClasspath,
-            s"scala3-compiler_${scalaBinaryVersion(scalaVersion)}",
+            s"scala3-compiler_${Util.scalaBinaryVersion(scalaVersion)}",
             scalaVersion
           )
         else
@@ -440,7 +377,7 @@ class ZincWorkerImpl(
           compilerClasspath,
           // we don't support too outdated dotty versions
           // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
-          if (isDottyOrScala3(scalaVersion)) "2.13." else scalaVersion
+          if (Util.isDottyOrScala3(scalaVersion)) "2.13." else scalaVersion
         ).toIO,
         compilerJar = compilerJar.toIO,
         allJars = combinedCompilerJars,
