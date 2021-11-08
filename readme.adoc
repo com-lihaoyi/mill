@@ -209,11 +209,32 @@ corresponding version of Mill.
 
 === 'main' branch
 :version: main
-:prev-version: 0.10.0-M3
-:milestone: 54
-:milestone-name: after 0.10.0-M3
+:prev-version: 0.10.0-M4
+:milestone: 55
+:milestone-name: after 0.10.0-M4
 
 _Changes since {prev-version}:_
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.0-M4 - 2021-11-08
+:version: 0.10.0-M4
+:prev-version: 0.10.0-M3
+:milestone: 54
+:milestone-name: 0.10.0-M4
+
+_Changes since {prev-version}:_
+
+* BSP support rework and overhaul of built-in BSP server
+* GenIdea: failures when inspecting and resolving the build are not properly reported
+* Coursier: we now implemented a workaround to tackle concurrent downloads issues
+* New `--import` cmdline option to run ad-hoc plugins without editing of `build.sc`
+* New `T.ctx().workspace` API to access the project root directory
+* Various internal improvements and bug fixes
+* Various refactorings and cleanups
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
