@@ -869,6 +869,7 @@ def launcherScript(
          |if "%1" == "--interactive" set _I_=true
          |if "%1" == "--repl" set _I_=true
          |if "%1" == "--no-server" set _I_=true
+         |if "%1" == "--bsp" set _I_=true
          |
          |set "mill_jvm_opts="
          |set "mill_jvm_opts_file=.mill-jvm-opts"
