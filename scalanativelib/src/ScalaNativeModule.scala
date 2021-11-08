@@ -91,8 +91,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def logLevel: Target[NativeLogLevel] = T { NativeLogLevel.Info }
 
-  protected def releaseModeInput = T.input(
-    sys.env.get("SCALANATIVE_MODE").map(v =>
+  protected def releaseModeInput: Target[Option[ReleaseMode]] = T.input {
+    T.env.get("SCALANATIVE_MODE").map(v =>
       ReleaseMode
         .values
         .find(_.value == v)
@@ -100,7 +100,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
           s"SCALANATIVE_MODE=$v is not valid. Allowed values are: [${ReleaseMode.values.map(_.value).mkString(", ")}]"
         ))
     )
-  )
+  }
+
   def releaseMode: Target[ReleaseMode] = T {
     releaseModeInput().getOrElse(ReleaseMode.Debug)
   }
@@ -114,7 +115,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeClangPP = T { os.Path(scalaNativeWorker().discoverClangPP) }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
-  protected def nativeGCInput = T.input(sys.env.get("SCALANATIVE_GC"))
+  protected def nativeGCInput: Target[Option[String]] = T.input {
+    T.env.get("SCALANATIVE_GC")
+  }
+
   def nativeGC = T {
     nativeGCInput().getOrElse(scalaNativeWorker().defaultGarbageCollector)
   }
@@ -131,8 +135,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeLinkStubs = T { false }
 
   // The LTO mode to use used during a release build
-  protected def nativeLTOInput = T.input(
-    sys.env.get("SCALANATIVE_LTO").map(v =>
+  protected def nativeLTOInput: Target[Option[LTO]] = T.input {
+    T.env.get("SCALANATIVE_LTO").map(v =>
       LTO
         .values
         .find(_.value == v)
@@ -140,11 +144,15 @@ trait ScalaNativeModule extends ScalaModule { outer =>
           s"SCALANATIVE_LTO=$v is not valid. Allowed values are: [${LTO.values.map(_.value).mkString(", ")}]"
         ))
     )
-  )
+  }
+
   def nativeLTO: Target[LTO] = T { nativeLTOInput().getOrElse(LTO.None) }
 
   // Shall we optimize the resulting NIR code?
-  protected def nativeOptimizeInput = T.input(sys.env.get("SCALANATIVE_OPTIMIZE").map(_.toBoolean))
+  protected def nativeOptimizeInput: Target[Option[Boolean]] = T.input {
+    T.env.get("SCALANATIVE_OPTIMIZE").map(_.toBoolean)
+  }
+
   def nativeOptimize: Target[Boolean] = T { nativeOptimizeInput().getOrElse(true) }
 
   def nativeConfig = T.task {
