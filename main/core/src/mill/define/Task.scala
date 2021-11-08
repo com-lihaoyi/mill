@@ -286,7 +286,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
 
   type TT[+X] = Task[X]
   def makeT[X](inputs0: Seq[TT[_]], evaluate0: mill.api.Ctx => Result[X]) = new Task[X] {
-    val inputs = inputs0.distinct
+    val inputs = inputs0
     def evaluate(x: mill.api.Ctx) = evaluate0(x)
   }
 
