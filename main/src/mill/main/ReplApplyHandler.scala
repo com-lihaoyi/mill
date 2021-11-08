@@ -7,6 +7,7 @@ import mill.define.Applicative.ApplyHandler
 import mill.define.Segment.Label
 import mill.define._
 import mill.eval.{Evaluator, Result}
+import pprint.Tree
 
 object ReplApplyHandler {
   def apply[T](
@@ -94,7 +95,7 @@ object ReplApplyHandler {
     )
   }
 
-  def pprintTask(t: NamedTask[_], evaluator: Evaluator) = {
+  def pprintTask(t: NamedTask[_], evaluator: Evaluator): Tree.Lazy = {
     val seen = mutable.Set.empty[Task[_]]
     def rec(t: Task[_]): Seq[Segments] = {
       if (seen(t)) Nil // do nothing
@@ -132,7 +133,7 @@ object ReplApplyHandler {
         "\n",
         ctx.applyPrefixColor("Inputs").toString,
         ":"
-      ) ++ t.inputs.iterator.flatMap(rec).map("\n    " + _.render)
+      ) ++ t.inputs.distinct.iterator.flatMap(rec).map("\n    " + _.render)
     )
   }
 
