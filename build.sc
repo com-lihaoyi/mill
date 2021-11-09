@@ -10,12 +10,14 @@ import com.github.lolgab.mill.mima
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
+import mill.api.Result
 import mill.define.{Command, Source, Sources, Target, Task}
 import mill.eval.Evaluator
 import mill.main.MainModule
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
+import mill.scalalib.api.CompilationResult
 import os.RelPath
 
 object Settings {
@@ -1281,4 +1283,68 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
   )(identity))()
 
   ()
+}
+
+object `api-doc` extends MillApiModule { self =>
+  def aggModules: Seq[JavaModule] = {
+    def rec(m: Module): Seq[JavaModule] = m match {
+      case `self` => Seq()
+      case _: Cross[_] => Seq()
+      case _: TestModule => Seq()
+      case m: JavaModule => Seq(m) ++ m.millModuleDirectChildren.flatMap(rec)
+      case _ => Seq()
+    }
+    Seq(main, scalalib, scalajslib, scalanativelib, bsp, contrib).flatMap(rec)
+  }
+
+  override def sources = T.sources {
+    T.traverse(aggModules)(_.allSources)().flatten
+  }
+  override def compileIvyDeps = T {
+    Agg.from(T.traverse(aggModules)(m => T.task { m.compileIvyDeps() ++ m.ivyDeps() })().flatten)
+  }
+  override def compile = T {
+    os.makeDir(T.dest / "classes")
+    os.write(T.dest / "empty", "")
+    CompilationResult(T.dest / "empty", PathRef(T.dest / "classes"))
+  }
+  override def scalaDocPluginClasspath = T {
+    super.scalaDocPluginClasspath() ++ Seq(main.moduledefs.jar())
+  }
+  def emptyJar = T { Jvm.createJar(Agg())(T.dest) }
+  override def sourceJar: Target[PathRef] = emptyJar
+  override def jar: Target[PathRef] = emptyJar
+  override def docJar = T {
+    val outDir = T.dest
+
+    val javadocDir = outDir / "javadoc"
+    os.makeDir.all(javadocDir)
+
+    val files = allSourceFiles().map(_.path.toString)
+
+    val outputOptions = Seq("-d", javadocDir.toNIO.toString)
+
+    val pluginOptions =
+      scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
+    val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
+    val options = Seq(
+      "-classpath",
+      compileCp.mkString(java.io.File.pathSeparator)
+    ) ++
+      outputOptions ++
+      pluginOptions ++
+      scalaDocOptions() // user options come last, so they can override any other settings
+
+    if (files.nonEmpty) {
+      zincWorker.worker().docJar(
+        scalaVersion(),
+        scalaOrganization(),
+        scalaDocClasspath().map(_.path),
+        scalacPluginClasspath().map(_.path),
+        files ++ options
+      )
+      // we ignore any error here, because there are some, but we still have good-enough docs
+    }
+    Jvm.createJar(Agg(javadocDir))(outDir)
+  }
 }
