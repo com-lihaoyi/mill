@@ -46,8 +46,8 @@ private[playlib] class RouteCompilerWorker {
       generatorType: RouteCompilerType,
       dest: os.Path
   )(implicit ctx: Ctx): Result[CompilationResult] = {
-    //the routes file must come last as it can include the routers generated
-    //by the others
+    // the routes file must come last as it can include the routers generated
+    // by the others
     bridge(routerClasspath)
       .compile(
         files.toArray.map(_.toIO),

@@ -75,7 +75,7 @@ object BspUri {
 @internal
 trait MillBuildTarget // (rootModule: BaseModule, ctx0: mill.define.Ctx)
     extends // Module()(ctx0) with
-      ScalaModule {
+    ScalaModule {
   protected def rootModule: BaseModule
   override def millSourcePath: os.Path = rootModule.millSourcePath
   override def scalaVersion: T[String] = BuildInfo.scalaVersion

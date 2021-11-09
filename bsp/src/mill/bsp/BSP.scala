@@ -176,7 +176,7 @@ object BSP extends ExternalModule {
           millServer.updateEvaluator(Option(evaluator))
           val onReload = Promise[BspServerResult]
           millServer.onSessionEnd = Some { serverResult =>
-            if(!onReload.isCompleted) {
+            if (!onReload.isCompleted) {
               errStream.println("Unsetting evaluator on session end")
               millServer.updateEvaluator(None)
               _lastResult = Some(serverResult)

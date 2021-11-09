@@ -86,7 +86,7 @@ class BspTestReporter(
         TestStatus.SKIPPED
       case sbt.testing.Status.Pending =>
         skipped += 1
-        TestStatus.SKIPPED //TODO: what to do here
+        TestStatus.SKIPPED // TODO: what to do here
     }
 
     taskFinishParams.setDataKind(TaskDataKind.TEST_FINISH)

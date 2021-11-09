@@ -221,7 +221,7 @@ object TestRunner {
       testReporter: TestReporter,
       classFilter: Class[_] => Boolean
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
-    //Leave the context class loader set and open so that shutdown hooks can access it
+    // Leave the context class loader set and open so that shutdown hooks can access it
     Jvm.inprocess(
       entireClasspath,
       classLoaderOverrideSbtTesting = true,

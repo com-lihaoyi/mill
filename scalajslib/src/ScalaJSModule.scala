@@ -200,13 +200,16 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
-    Some((BuildTargetDataKind.SCALA, new ScalaBuildTarget(
-      scalaOrganization(),
-      scalaVersion(),
-      scalaBinaryVersion(scalaVersion()),
-      ScalaPlatform.JS,
-      scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
-    )))
+    Some((
+      BuildTargetDataKind.SCALA,
+      new ScalaBuildTarget(
+        scalaOrganization(),
+        scalaVersion(),
+        scalaBinaryVersion(scalaVersion()),
+        ScalaPlatform.JS,
+        scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
+      )
+    ))
   }
 
 }

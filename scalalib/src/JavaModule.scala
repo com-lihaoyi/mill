@@ -317,7 +317,10 @@ trait JavaModule
   // Keep in sync with [[compileClasspath]]
   @internal
   def bspCompileClasspath(pathsResolver: Task[EvaluatorPathsResolver]): Task[Seq[PathRef]] = {
-    def bspLocalClasspath(j: JavaModule, pathsResolver: Task[EvaluatorPathsResolver]): Task[Seq[PathRef]] = {
+    def bspLocalClasspath(
+        j: JavaModule,
+        pathsResolver: Task[EvaluatorPathsResolver]
+    ): Task[Seq[PathRef]] = {
       val cl = bspCompileClassesPath(pathsResolver)
       T.task {
         resources() ++ Seq(cl())
@@ -329,7 +332,9 @@ trait JavaModule
         pathsResolver: Task[EvaluatorPathsResolver]
     ): Task[Seq[PathRef]] = {
       val res = T.traverse(j.moduleDeps ++ j.compileModuleDeps)(m =>
-        T.task { bspLocalClasspath(m, pathsResolver)() ++ bspTransitiveLocalClasspath(m, pathsResolver)() }
+        T.task {
+          bspLocalClasspath(m, pathsResolver)() ++ bspTransitiveLocalClasspath(m, pathsResolver)()
+        }
       )
       T.task {
         val res2: Seq[PathRef] = res().flatten

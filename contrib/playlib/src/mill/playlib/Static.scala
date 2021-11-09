@@ -89,7 +89,7 @@ trait Static extends ScalaModule {
                 if (file.startsWith(prefix)) {
                   val rel = os.RelPath(file.toString.substring(prefix.length))
                   val toFile = webJarBase / os.RelPath(rel.segments(0) +: rel.segments.drop(2), 0)
-                  //println(s"$file -> $toFile")
+                  // println(s"$file -> $toFile")
                   os.makeDir.all(toFile / os.up)
                   Files.copy(file, toFile.toNIO)
                 }

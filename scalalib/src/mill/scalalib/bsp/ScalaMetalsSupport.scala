@@ -16,10 +16,12 @@ trait ScalaMetalsSupport extends ScalaModule {
       ivy"org.scalameta:::semanticdb-scalac:${semanticDbVersion()}"
     )
   }
+
   /** Adds some options and configures the semanticDB plugin. */
   override def mandatoryScalacOptions: Target[Seq[String]] = T {
     super.mandatoryScalacOptions() ++ Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${T.workspace}")
   }
+
   /** Filters options unsupported by Metals. */
   override def allScalacOptions: Target[Seq[String]] = T {
     super.allScalacOptions().filterNot(_ == "-Xfatal-warnings")

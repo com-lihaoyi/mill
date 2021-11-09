@@ -25,7 +25,7 @@ object Pom {
     }
   }
 
-  //TODO - not only jar packaging support?
+  // TODO - not only jar packaging support?
   def apply(
       artifact: Artifact,
       dependencies: Agg[Dependency],
