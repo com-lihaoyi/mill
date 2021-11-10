@@ -491,7 +491,7 @@ If you need to feed a `+` as argument to your target, you can mask it by precedi
 `+mill foo._.compile+`:: Runs `compile` for all direct sub-modules of `foo`
 `+mill foo.__.test+` :: Runs `test` for all sub-modules of `foo`
 `+mill {foo,bar}.__.testCached+` :: Runs `testCached` for all sub-modules of `foo` and `bar`
-`+mill __.compile + foo.__.test+` :: Runs all `compile`
+`+mill __.compile + foo.__.test+` :: Runs all `compile` targets and all tests under `foo`.
 
 == Command-line Tools
 
@@ -531,8 +531,8 @@ foo.artifactName
 ...
 ----
 
-`resolve` lists the tasks that match a particular query, without running them. This is useful for "dry running"
-an `mill all` command to see what would be run before you run them, or to explore what modules or tasks are available
+`resolve` lists the tasks that match a particular query, without running them.
+This is useful for "dry running" an `mill` command to see what would be run before you run them, or to explore what modules or tasks are available
 from the command line using `+resolve _+`, `+resolve foo._+`, etc.
 
 [source,bash]
@@ -569,7 +569,7 @@ it also displays its source location and a list of input tasks. This is very use
 exploring the structure of your build from the command line.
 
 `inspect` also works with the same `+_+`/`+__+` wildcard/query syntaxes that
-<<_all>>/<<_resolve>> do:
+<<_resolve>> do:
 
 [source,bash]
 ----
@@ -822,7 +822,7 @@ You can fine control some BSP server options by specifying command options:
 
 [NOTE]
 --
-If you want to us Metals, you may also want to enable SemanticDB support. Without it, some functionality like find references may not work.
+If you want to use Metals, you may also want to enable SemanticDB support. Without it, some functionality like find references may not work.
 
 We still work on a better and automatic SemanticDB support.
 Until we have completed it, you can enable SemanticDB manually in your ``ScalaModule``.
@@ -993,7 +993,8 @@ You also need to specify `release` as `true` or `false`, depending on whether yo
 on `oss.sonatype.org` or you want Mill to complete the release process to Maven Central.
 
 If you are publishing multiple artifacts, you can also use `mill mill.scalalib.PublishModule/publishAll` as described
-https://com-lihaoyi.github.io/mill/page/common-project-layouts.html#publishing[here]
+
+xref:Common_Project_Layouts.adoc#_publishing[here]
 
 == Structure of the `out/` folder
 
