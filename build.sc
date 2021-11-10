@@ -100,6 +100,7 @@ object Deps {
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.0.2"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
+  val jib = ivy"com.google.cloud.tools:jib-core:0.18.0"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
   val ipcsocketExcludingJna = ipcsocket.exclude(
@@ -699,6 +700,7 @@ object contrib extends MillModule {
         scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs()
     }
+    override def ivyDeps = Agg(Deps.jib)
   }
 
   object bloop extends MillModule {

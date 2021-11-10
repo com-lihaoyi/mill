@@ -2,9 +2,25 @@ package mill
 package contrib.docker
 
 import mill.scalalib.JavaModule
-import os.Shellable.IterableShellable
+import mill.api.Logger
+
+import com.google.cloud.tools.jib.api.Containerizer
+import com.google.cloud.tools.jib.api.TarImage
+import com.google.cloud.tools.jib.api.Jib
+import com.google.cloud.tools.jib.api.JibEvent
+import com.google.cloud.tools.jib.api.LogEvent
+import com.google.cloud.tools.jib.api.RegistryImage
+import com.google.cloud.tools.jib.api.DockerDaemonImage
+import com.google.cloud.tools.jib.api.ImageReference
+import com.google.cloud.tools.jib.api.buildplan.Port
+import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath
+import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
+
+import java.nio.file.Paths
+import java.util.Arrays
 
 import scala.collection.immutable._
+import scala.collection.JavaConverters._
 
 trait DockerModule { outer: JavaModule =>
 
@@ -16,7 +32,7 @@ trait DockerModule { outer: JavaModule =>
      */
     def tags: T[Seq[String]] = T(List(outer.artifactName()))
     def labels: T[Map[String, String]] = Map.empty[String, String]
-    def baseImage: T[String] = "gcr.io/distroless/java:latest"
+    def baseImage: T[String] = "gcr.io/distroless/java11-debian11:latest"
     def pullBaseImage: T[Boolean] = T(baseImage().endsWith(":latest"))
 
     /**
@@ -56,15 +72,6 @@ trait DockerModule { outer: JavaModule =>
     def envVars: T[Map[String, String]] = Map.empty[String, String]
 
     /**
-     * Commands to add as RUN instructions.
-     *
-     * See also the Docker docs on
-     * [[https://docs.docker.com/engine/reference/builder/#run RUN]]
-     * for more information.
-     */
-    def run: T[Seq[String]] = Seq.empty[String]
-
-    /**
      * Any applicable string to the USER instruction.
      *
      * An empty string will be ignored and will result in USER not being
@@ -74,81 +81,91 @@ trait DockerModule { outer: JavaModule =>
      */
     def user: T[String] = ""
 
-    /**
-     * The name of the executable to use, the default is "docker".
-     */
-    def executable: T[String] = "docker"
-
-    private def baseImageCacheBuster: T[(Boolean, Double)] = T.input {
-      val pull = pullBaseImage()
-      if (pull) (pull, Math.random()) else (pull, 0d)
-    }
-
-    def dockerfile: T[String] = T {
-      val jarName = assembly().path.last
-      val labelRhs = labels()
-        .map { case (k, v) =>
-          val lineBrokenValue = v
-            .replace("\r\n", "\\\r\n")
-            .replace("\n", "\\\n")
-            .replace("\r", "\\\r")
-          s""""$k"="$lineBrokenValue""""
+    private def getJibEventHandler(log: Logger): java.util.function.Consumer[JibEvent] = {
+      (event: JibEvent) => {
+        event match {
+          case event: LogEvent => event.getLevel match {
+            case LogEvent.Level.ERROR => log.error(event.getMessage)
+            case LogEvent.Level.LIFECYCLE => // ignore
+            case _ => log.info(s"[${event.getLevel.toString.toLowerCase}] ${event.getMessage}")
+          }
+          case _ =>
         }
-        .mkString(" ")
-
-      val lines = List(
-        if (labels().isEmpty) "" else s"LABEL $labelRhs",
-        if (exposedPorts().isEmpty) ""
-        else exposedPorts().map(port => s"$port/tcp")
-          .mkString("EXPOSE ", " ", ""),
-        if (exposedUdpPorts().isEmpty) ""
-        else exposedUdpPorts().map(port => s"$port/udp")
-          .mkString("EXPOSE ", " ", ""),
-        envVars().map { case (env, value) =>
-          s"ENV $env=$value"
-        }.mkString("\n"),
-        if (volumes().isEmpty) ""
-        else volumes().map(v => s"\"$v\"").mkString("VOLUME [", ", ", "]"),
-        run().map(c => s"RUN $c").mkString("\n"),
-        if (user().isEmpty) "" else s"USER ${user()}"
-      ).filter(_.nonEmpty).mkString(sys.props("line.separator"))
-
-      s"""
-         |FROM ${baseImage()}
-         |$lines
-         |COPY $jarName /$jarName
-         |ENTRYPOINT ["java", "-jar", "/$jarName"]""".stripMargin
+      }
     }
 
     final def build = T {
-      val dest = T.dest
+      val out = T.dest / "image.tar"
 
       val asmPath = outer.assembly().path
-      os.copy(asmPath, dest / asmPath.last)
-
-      os.write(dest / "Dockerfile", dockerfile())
+      val jarName = asmPath.last
 
       val log = T.log
+      val eventHandler = getJibEventHandler(log)
 
-      val tagArgs = tags().flatMap(t => List("-t", t))
+      val targetTar = Containerizer.to(
+        TarImage.at(Paths.get(out.toString)).named(tags().head)
+      ).setAlwaysCacheBaseImage(pullBaseImage()).addEventHandler(eventHandler)
 
-      val (pull, _) = baseImageCacheBuster()
-      val pullLatestBase = IterableShellable(if (pull) Some("--pull") else None)
+      val targetTarWithTags = tags().tail.foldLeft(targetTar)(
+        (target, tag) => target.withAdditionalTag(tag)
+      )
 
-      val result = os
-        .proc(executable(), "build", tagArgs, pullLatestBase, dest)
-        .call(stdout = os.Inherit, stderr = os.Inherit)
+      val allExposedPorts =
+        exposedPorts().map((port) => Port.tcp(port)).toSet ++
+        exposedUdpPorts().map((port) => Port.udp(port)).toSet
 
-      log.info(s"Docker build completed ${if (result.exitCode == 0) "successfully"
-      else "unsuccessfully"} with ${result.exitCode}")
-      tags()
+      val builder = Jib
+        .from(baseImage())
+        .addLayer(
+          Arrays.asList(Paths.get(asmPath.toString)),
+          "/app/"
+        )
+        .setEntrypoint(Arrays.asList("/usr/bin/java", "-jar", "/app/" + jarName))
+        .setLabels(labels().asJava)
+        .setVolumes(volumes().map((volume) => AbsoluteUnixPath.get(volume)).toSet.asJava)
+        .setEnvironment(envVars().asJava)
+        .setExposedPorts(allExposedPorts.asJava)
+
+      if(!user().isEmpty){
+        builder.setUser(user())
+      }
+
+      builder.containerize(targetTarWithTags)
+
+      PathRef(out)
+    }
+
+    final def load() = T.command {
+      val image = build()
+      val source = TarImage.at(Paths.get(image.path.toString))
+
+      val log = T.log
+      val eventHandler = getJibEventHandler(log)
+
+      tags().foreach(t => {
+        val targetRef = ImageReference.parse(t)
+        val target = Containerizer.to(DockerDaemonImage.named(targetRef)).addEventHandler(eventHandler)
+        Jib.from(source).containerize(target)
+      })
     }
 
     final def push() = T.command {
-      val tags = build()
-      tags.foreach(t =>
-        os.proc(executable(), "push", t).call(stdout = os.Inherit, stderr = os.Inherit)
-      )
+      val image = build()
+      val source = TarImage.at(Paths.get(image.path.toString))
+
+      val log = T.log
+      val eventHandler = getJibEventHandler(log)
+
+      tags().foreach(tag => {
+        val targetRef = ImageReference.parse(tag)
+        val target = Containerizer.to(RegistryImage.named(targetRef).addCredentialRetriever(
+          CredentialRetrieverFactory.forImage(targetRef, (event) => {
+            eventHandler.accept(event)
+          }).dockerConfig()
+        )).addEventHandler(eventHandler)
+        Jib.from(source).containerize(target)
+      })
     }
   }
 }
