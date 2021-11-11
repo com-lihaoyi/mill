@@ -8,12 +8,20 @@ For details about including plugins in your `build.sc` read xref:Extending_Mill.
 --
 When using one of these contribution modules, it is important that the versions you load match your mill version.
 To facilitate this, Mill will automatically replace the `$MILL_VERSION` literal in your ivy imports with the correct value.
+You can also leave the version completely empty to default to the mill version (but don't forget to keep the trailing colon).
 
 For instance:
 
 [source,scala]
 ----
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
+----
+
+or
+
+[source,scala]
+----
+import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 ----
 --
 
@@ -25,7 +33,7 @@ This plugin allows publishing to Artifactory.
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-artifactory:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-artifactory:`
 import mill.contrib.artifactory.ArtifactoryPublishModule
 
 object mymodule extends ArtifactoryPublishModule {
@@ -53,7 +61,7 @@ Make sure your module extends from `BintrayPublishModule`:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-bintray:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-bintray:`
 import mill.contrib.bintray.BintrayPublishModule
 
 object mymodule extends BintrayPublishModule {
@@ -72,7 +80,7 @@ the package used, you can do that like this:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-bintray:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-bintray:`
 import mill.contrib.bintray.BintrayPublishModule
 
 object mymodule extends BintrayPublishModule {
@@ -120,7 +128,7 @@ your scala code editable in https://scalameta.org/metals/[Metals]
 [source,scala]
 ----
 // build.sc (or any other .sc file it depends on, including predef)
-import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 ----
 
 Then in your terminal :
@@ -173,7 +181,7 @@ Quickstart:
 .`build.sc`
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 
 object project extends BuildInfo {
@@ -223,7 +231,7 @@ This plugin allows publishing to AWS Codeartifact.
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-codeartifact:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-codeartifact:`
 import mill.contrib.codeartifact.CodeartifactPublishModule
 
 object mymodule extends CodeartifactPublishModule {
@@ -254,7 +262,7 @@ In the simplest configuration just extend `DockerModule` and declare a `DockerCo
 ----
 import mill._, scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-docker:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-docker:`
 import contrib.docker.DockerModule
 
 object foo extends JavaModule with DockerModule {
@@ -302,7 +310,7 @@ Configure flyway by overriding settings in your module. For example
 ----
 import mill._, scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-flyway:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-flyway:`
 import contrib.flyway.FlywayModule
 
 object foo extends ScalaModule with FlywayModule {
@@ -378,7 +386,7 @@ Twirl versions. You also need to define your own test object which extends the p
 [source,scala]
 ----
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule {
     //config
@@ -448,7 +456,7 @@ The `PlayApiModule` trait behaves the same as the `PlayModule` trait but it won'
 [source,scala]
 ----
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayApiModule {
     //config
@@ -485,7 +493,7 @@ like in the following example build:
 [source,scala]
 ----
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
 
 object core extends PlayApiModule {
     //config
@@ -526,7 +534,7 @@ Looking back at the sample build definition in <<_using_playmodule>>:
 [source,scala]
 ----
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
 
 object core extends PlayModule {
     //config
@@ -567,7 +575,7 @@ by mixing in the `SingleModule` trait in your build:
 [source,scala]
 ----
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule with SingleModule {
 	//config
@@ -612,7 +620,7 @@ define `playVersion` and `scalaVersion`.
 [source,scala]
 ----
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
   def playVersion= T{"2.7.0"}
@@ -667,7 +675,7 @@ To add additional imports to all of the routes:
 ----
 import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
   def playVersion = "2.7.0"
@@ -695,7 +703,7 @@ Here is a simple example:
 .`build.sc`
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-proguard:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-proguard:`
 import contrib.proguard._
 
 object foo extends ScalaModule with Proguard {
@@ -720,7 +728,7 @@ This creates a Scala module which compiles `.proto` files in the `protobuf` fold
 .`build.sc`
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-scalapblib:`
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
@@ -759,7 +767,7 @@ If you'd like to configure the https://scalapb.github.io/docs/scalapbc#passing-g
 .`build.sc`
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-scalapblib:`
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
@@ -774,7 +782,7 @@ If you'd like to pass additional arguments to the ScalaPB compiler directly, you
 .`build.sc`
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-scalapblib:`
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
@@ -799,7 +807,7 @@ module. Additionally, you must define a submodule that extends the
 .`build.sc`
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
 import mill.contrib.scoverage.ScoverageModule
 
 object foo extends ScoverageModule  {
@@ -904,7 +912,7 @@ Also note that twirl templates get compiled into scala code, so you also need to
 ----
 import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
 // ...
@@ -941,7 +949,7 @@ directory. This directory must be added to the generated sources of the module t
 ----
 import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.3.15"
@@ -978,7 +986,7 @@ To add additional imports to all of the twirl templates, override `twirlImports`
 ----
 import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.3.15"
@@ -1020,7 +1028,7 @@ To add additional formats, override `twirlFormats` in your build:
 ----
 import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.3.15"
@@ -1058,7 +1066,7 @@ Add a `VersionFileModule` to the `build.sc` file:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
 import mill.contrib.versionfile.VersionFileModule
 
 object versionFile extends VersionFileModule
@@ -1095,7 +1103,7 @@ If you want to use the version file for publishing, you can do it like this:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
 import mill.contrib.versionfile.VersionFileModule
 
 object versionFile extends VersionFileModule
@@ -1115,7 +1123,7 @@ at the root of the project, you can override `millSourcePath`:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
 import mill.contrib.versionfile.VersionFileModule
 
 object versionFile extends VersionFileModule {
