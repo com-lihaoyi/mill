@@ -207,12 +207,16 @@ corresponding version of Mill.
 
 == Changelog
 
-=== main
-:version: main
+=== 0.9.10 - 2021-11-13
+:version: 0.9.10
 :prev-version: 0.9.9
-:milestone: 51
-:milestone-name: after 0.9.9
+:milestone: 52
+:milestone-name: 0.9.10
 
+* Some feature backports from mill 0.10
+* New `+` separator to provide multiple targets (with parameters) via cmdline
+* New `--import` cmdline option to run ad-hoc plugins without editing of `build.sc`
+* `import $ivy` support `$MILL_BIN_PLATFORM` variable and a new sort notations for external plugins
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
