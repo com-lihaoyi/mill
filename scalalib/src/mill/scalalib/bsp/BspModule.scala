@@ -1,6 +1,7 @@
 package mill.scalalib.bsp
 
-import mill.api.{PathRef, internal}
+import ammonite.runtime.SpecialClassLoader
+import mill.api.{Loose, PathRef, internal}
 import mill.define.{BaseModule, Sources, Task}
 import mill.eval.EvaluatorPathsResolver
 import mill.modules.Jvm
@@ -83,6 +84,21 @@ trait MillBuildTarget // (rootModule: BaseModule, ctx0: mill.define.Ctx)
     T.log.errorStream.println(s"ivyDeps: ${T.dest}")
     Agg.from(BuildInfo.millEmbeddedDeps.map(d => ivy"${d}"))
   }
+
+  /**
+   * We need to add all resources from Ammonites cache,
+   * which typically also include resolved `ivy`-imports and compiled `$file`-imports.
+   */
+  override def unmanagedClasspath: T[Agg[PathRef]] = T {
+    super.unmanagedClasspath() ++ (
+      rootModule.getClass.getClassLoader match {
+        case cl: SpecialClassLoader =>
+          cl.allJars.map(url => PathRef(os.Path(java.nio.file.Paths.get(url.toURI))))
+        case _ => Seq()
+      }
+    )
+  }
+
   // The buildfile and single source of truth
   def buildScFile = T.source(millSourcePath / "build.sc")
   def ammoniteFiles = T {
