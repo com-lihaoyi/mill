@@ -7,6 +7,8 @@ import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
 import java.nio.file.attribute.PosixFilePermission
 
 import com.github.lolgab.mill.mima
+import com.github.lolgab.mill.mima.ProblemFilter
+import com.typesafe.tools.mima.core.IncompatibleSignatureProblem
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -43,7 +45,7 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.6"
+  val scalaVersion = "2.13.7"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.13"
 
@@ -229,6 +231,15 @@ object main extends MillModule {
       Deps.upickle,
       Deps.sbtTestInterface
     )
+
+    override def mimaBackwardIssueFilters: Target[Map[String, Seq[ProblemFilter]]] = Map(
+      // probably false positives after bump to Scala 2.13.7 from 2.13.6
+      "0.10.0-M4" -> Seq(
+        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.args"),
+        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.this"),
+        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx#Args.args")
+      )
+    )
   }
   object core extends MillModule {
     override def moduleDeps = Seq(moduledefs, api)
@@ -287,6 +298,27 @@ object main extends MillModule {
 
       os.write(dir / "mill" / "BuildInfo.scala", code, createFolders = true)
     }
+
+    override def mimaBackwardIssueFilters: Target[Map[String, Seq[ProblemFilter]]] = Map(
+      // probably false positives after bump to Scala 2.13.7 from 2.13.6
+      "0.10.0-M4" -> Seq(
+        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.makeT"),
+        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.args"),
+        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.util.ParseArgs.standaloneIdent"),
+        ProblemFilter.exclude[IncompatibleSignatureProblem](
+          "mill.util.ParseArgs#BraceExpansionParser.plainChars"
+        ),
+        ProblemFilter.exclude[IncompatibleSignatureProblem](
+          "mill.util.ParseArgs#BraceExpansionParser.braceParser"
+        ),
+        ProblemFilter.exclude[IncompatibleSignatureProblem](
+          "mill.util.ParseArgs#BraceExpansionParser.parser"
+        ),
+        ProblemFilter.exclude[IncompatibleSignatureProblem](
+          "mill.util.ParseArgs#BraceExpansionParser.toExpand"
+        )
+      )
+    )
   }
 
   object moduledefs extends MillPublishModule with ScalaModule {
