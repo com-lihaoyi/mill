@@ -51,6 +51,14 @@ pkg install mill
 
 ----
 
+=== Gentoo Linux
+
+[source,sh]
+----
+emerge dev-java/mill-bin
+
+----
+
 === Windows
 
 To get started, download Mill from
