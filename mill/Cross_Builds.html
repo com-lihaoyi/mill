@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M4-10-25f5c4</span>
+    <span class="version">0.10.0-M4-11-7bd636</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M4-10-25f5c4</a>
+          <a href="index.html">0.10.0-M4-11-7bd636</a>
         </li>
         <li class="version">
           <a href="0.10.0-M4/index.html">0.10.0-M4</a>
@@ -179,9 +179,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M4-10-25f5c4</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M4-11-7bd636</button>
   <div class="version-menu">
-    <a class="version is-current" href="Cross_Builds.html">0.10.0-M4-10-25f5c4</a>
+    <a class="version is-current" href="Cross_Builds.html">0.10.0-M4-11-7bd636</a>
     <a class="version" href="0.10.0-M4/Cross_Builds.html">0.10.0-M4</a>
     <a class="version" href="0.10.0-M3/Cross_Builds.html">0.10.0-M3</a>
     <a class="version" href="0.10.0-M2/Cross_Builds.html">0.10.0-M2</a>
@@ -235,6 +235,27 @@ mill show foo[2.11].bigSuffix
 mill show foo[2.12].suffix
 mill show foo[2.12].bigSuffix</code></pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Please be aware that some shells like <code>zsh</code> interpret square brackets differently, so quoting or masking might be needed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-zsh hljs" data-lang="zsh">mill show foo\[2.10\].suffix
+mill show 'foo[2.10].suffix'
+mill show &quot;foo[2.10].suffix&quot;</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>The modules each also have a <code>millSourcePath</code> of</p>
