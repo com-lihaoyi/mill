@@ -29,6 +29,15 @@ mill show foo[2.12].suffix
 mill show foo[2.12].bigSuffix
 ----
 
+If you were a `zsh` user, the command should be a little complex.
+
+[source,zsh]
+----
+mill show foo\[2.10\].suffix
+mill show 'foo[2.10].suffix'
+mill show "foo[2.10].suffix"
+----
+
 The modules each also have a `millSourcePath` of
 
 [source,text]
