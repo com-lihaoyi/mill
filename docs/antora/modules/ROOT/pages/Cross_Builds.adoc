@@ -29,6 +29,17 @@ mill show foo[2.12].suffix
 mill show foo[2.12].bigSuffix
 ----
 
+[NOTE]
+--
+Please be aware that some shells like `zsh` interpret square brackets differently, so quoting or masking might be needed.
+
+[source,zsh]
+----
+mill show foo\[2.10\].suffix
+mill show 'foo[2.10].suffix'
+mill show "foo[2.10].suffix"
+----
+--
 The modules each also have a `millSourcePath` of
 
 [source,text]
