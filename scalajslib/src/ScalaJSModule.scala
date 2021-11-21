@@ -99,6 +99,50 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
+  private def isLinkJSSupported = T {
+    scalaJSVersion() match {
+      case v if v.startsWith("0.") => false
+      case v if v < "1.3" => false
+      case _ => true
+    }
+  }
+
+  def fastLinkJS = T {
+    if (isLinkJSSupported()) {
+      linkJS(
+        worker = ScalaJSWorkerApi.scalaJSWorker(),
+        toolsClasspath = scalaJSToolsClasspath(),
+        runClasspath = runClasspath(),
+        mainClass = finalMainClassOpt().toOption,
+        testBridgeInit = false,
+        mode = FastOpt,
+        moduleKind = moduleKind(),
+        moduleSplitStyle = moduleSplitStyle(),
+        moduleInitializers = moduleInitializers(),
+        outputPatterns = outputPatterns(),
+        useECMAScript2015 = useECMAScript2015()
+      )
+    } else mill.api.Result.Failure("fastLinkJS/fullLinkJS is not supported in Scala.js below 1.3")
+  }
+
+  def fullLinkJS = T {
+    if (isLinkJSSupported()) {
+      linkJS(
+        worker = ScalaJSWorkerApi.scalaJSWorker(),
+        toolsClasspath = scalaJSToolsClasspath(),
+        runClasspath = runClasspath(),
+        mainClass = finalMainClassOpt().toOption,
+        testBridgeInit = false,
+        mode = FullOpt,
+        moduleKind = moduleKind(),
+        moduleSplitStyle = moduleSplitStyle(),
+        moduleInitializers = moduleInitializers(),
+        outputPatterns = outputPatterns(),
+        useECMAScript2015 = useECMAScript2015()
+      )
+    } else mill.api.Result.Failure("fastLinkJS/fullLinkJS is not supported in Scala.js below 1.3")
+  }
+
   override def runLocal(args: String*) = T.command { run(args: _*) }
 
   override def run(args: String*) = T.command {
@@ -157,6 +201,45 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ).map(PathRef(_))
   }
 
+  def linkJS(
+      worker: ScalaJSWorker,
+      toolsClasspath: Agg[PathRef],
+      runClasspath: Agg[PathRef],
+      mainClass: Option[String],
+      testBridgeInit: Boolean,
+      mode: OptimizeMode,
+      moduleKind: ModuleKind,
+      moduleSplitStyle: ModuleSplitStyle,
+      moduleInitializers: Seq[ModuleInitializer],
+      outputPatterns: OutputPatterns,
+      useECMAScript2015: Boolean
+  )(implicit ctx: Ctx): Result[PathRef] = {
+    os.remove.all(ctx.dest)
+    os.makeDir.all(ctx.dest)
+    val outputPath = ctx.dest
+
+    val classpath = runClasspath.map(_.path)
+    val sjsirFiles = classpath
+      .filter(path => os.exists(path) && os.isDir(path))
+      .flatMap(os.walk(_))
+      .filter(_.ext == "sjsir")
+    val libraries = classpath.filter(_.ext == "jar")
+    worker.linkJs(
+      toolsClasspath.map(_.path),
+      sjsirFiles,
+      libraries,
+      outputPath.toIO,
+      mainClass,
+      testBridgeInit,
+      mode == FullOpt,
+      moduleKind,
+      moduleSplitStyle,
+      moduleInitializers,
+      outputPatterns,
+      useECMAScript2015
+    ).map(PathRef(_))
+  }
+
   override def mandatoryScalacOptions = T {
     super.mandatoryScalacOptions() ++ {
       if (isScala3(scalaVersion())) Seq("-scalajs")
@@ -195,6 +278,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def jsEnvConfig: T[JsEnvConfig] = T { JsEnvConfig.NodeJs() }
 
   def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
+
+  def moduleSplitStyle: T[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }
+
+  def moduleInitializers: T[Seq[ModuleInitializer]] = T { Seq[ModuleInitializer]() }
+
+  def outputPatterns: T[OutputPatterns] = T { OutputPatternsDefaults }
 
   def useECMAScript2015: T[Boolean] = false
 
@@ -236,6 +325,22 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       testBridgeInit = true,
       FastOpt,
       moduleKind(),
+      useECMAScript2015()
+    )
+  }
+
+  def fastLinkJSTest = T {
+    linkJS(
+      ScalaJSWorkerApi.scalaJSWorker(),
+      scalaJSToolsClasspath(),
+      scalaJSTestDeps() ++ runClasspath(),
+      None,
+      testBridgeInit = true,
+      FastOpt,
+      moduleKind(),
+      moduleSplitStyle(),
+      moduleInitializers(),
+      outputPatterns(),
       useECMAScript2015()
     )
   }
