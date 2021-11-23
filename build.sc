@@ -43,7 +43,7 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.6"
+  val scalaVersion = "2.13.7"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.13"
 

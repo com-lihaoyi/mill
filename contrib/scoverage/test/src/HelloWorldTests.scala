@@ -197,7 +197,7 @@ object HelloWorldTests_2_12 extends HelloWorldTests {
 
 object HelloWorldTests_2_13 extends HelloWorldTests {
   override def threadCount = Some(1)
-  override def testScalaVersion: String = "2.13.6"
+  override def testScalaVersion: String = "2.13.7"
   override def testScoverageVersion = "1.4.10"
   override def testScalatestVersion = "3.0.8"
 }

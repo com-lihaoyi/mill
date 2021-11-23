@@ -19,14 +19,14 @@ object MillIvyHookTest extends TestSuite {
       def loadIvy(coordinates: CDependency*): Either[String, Seq[File]] =
         Right(coordinates.flatMap(mapDep))
       def watch(p: os.Path): Unit = ???
-      def scalaVersion: String = "2.13.6"
+      def scalaVersion: String = "2.13.7"
     }
     test("simple") {
       val deps = Seq(
         ("a:b:c", CDependency.of("a", "b", "c"), wd / "a__b__c__b-c.jar"),
         (
           "a::b:c",
-          CDependency.of(CModule.parse("a::b", CScalaVersion.of("2.13.6")), "c"),
+          CDependency.of(CModule.parse("a::b", CScalaVersion.of("2.13.7")), "c"),
           wd / "a__b_2.13__c__b_2.13-c.jar"
         ),
         (
@@ -34,7 +34,7 @@ object MillIvyHookTest extends TestSuite {
           CDependency.of(
             CModule.parse(
               s"a::b_mill${mill.BuildInfo.millBinPlatform}",
-              CScalaVersion.of("2.13.6")
+              CScalaVersion.of("2.13.7")
             ),
             "c"
           ),
@@ -43,7 +43,7 @@ object MillIvyHookTest extends TestSuite {
         (
           s"a::b:",
           CDependency.of(
-            CModule.parse("a::b", CScalaVersion.of("2.13.6")),
+            CModule.parse("a::b", CScalaVersion.of("2.13.7")),
             mill.BuildInfo.millVersion
           ),
           wd / s"a__b_2.13__${mill.BuildInfo.millVersion}__b_2.13-${mill.BuildInfo.millVersion}.jar"
