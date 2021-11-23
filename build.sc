@@ -84,7 +84,7 @@ object Deps {
     "org.codehaus.plexus" -> "*"
   )
 
-  val flywayCore = ivy"org.flywaydb:flyway-core:8.0.2"
+  val flywayCore = ivy"org.flywaydb:flyway-core:8.0.5"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
