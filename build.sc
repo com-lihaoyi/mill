@@ -77,7 +77,7 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.10"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.11"
   val coursier = ivy"io.get-coursier::coursier:2.0.16-169-g194ebc55c"
   val coursierReducedDeps = coursier.exclude(
     "com.lihaoyi" -> "utest",
