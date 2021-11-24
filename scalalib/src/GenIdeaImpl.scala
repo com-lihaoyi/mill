@@ -8,6 +8,7 @@ import ammonite.runtime.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import coursier.{LocalRepositories, Repositories, Repository}
+import java.nio.file.Paths
 import mill.Agg
 import mill.api.Ctx.{Home, Log}
 import mill.api.{PathRef, Result, Strict}
@@ -132,7 +133,7 @@ case class GenIdeaImpl(
       Try(evaluator.rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader])
         .map {
           _.allJars
-            .map(url => os.Path(url.getFile))
+            .map(url => os.Path(Paths.get(url.toURI)))
             .filter(_.toIO.exists)
         }
         .getOrElse(Seq())
