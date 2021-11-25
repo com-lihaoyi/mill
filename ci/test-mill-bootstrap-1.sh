@@ -25,7 +25,7 @@ ci/patch-mill-bootstrap.sh
 
 # Second build
 ~/mill-1 -i "{__.publishLocal,assembly}"
-cp out/assembly/dest/mill ~/mill-2
+cp out/assembly.dest/mill ~/mill-2
 
 # Clean up
 git stash -u

@@ -46,7 +46,7 @@ object TutorialTests extends TestSuite {
   val resourcePath: os.Path = os.pwd / "contrib" / "scalapblib" / "test" / "protobuf" / "tutorial"
 
   def protobufOutPath(eval: TestEvaluator): os.Path =
-    eval.outPath / "core" / "compileScalaPB" / "dest" / "com" / "example" / "tutorial"
+    eval.outPath / "core" / "compileScalaPB.dest" / "com" / "example" / "tutorial"
 
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
@@ -91,7 +91,7 @@ object TutorialTests extends TestSuite {
         val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
 
         assert(
-          result.path == eval.outPath / "core" / "compileScalaPB" / "dest",
+          result.path == eval.outPath / "core" / "compileScalaPB.dest",
           outputFiles.nonEmpty,
           outputFiles.forall(expectedSourcefiles.contains),
           outputFiles.size == 5,

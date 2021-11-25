@@ -70,7 +70,7 @@ object BuildInfoTests extends TestSuite {
         val Right(((result, _), evalCount)) =
           eval.apply(BuildInfo.generatedBuildInfo)
         assert(
-          result.head.path == eval.outPath / "generatedBuildInfo" / "dest" / "BuildInfo.scala" &&
+          result.head.path == eval.outPath / "generatedBuildInfo.dest" / "BuildInfo.scala" &&
             os.exists(result.head.path) &&
             os.read(result.head.path) == expected
         )
@@ -82,7 +82,7 @@ object BuildInfoTests extends TestSuite {
         assert(
           result.isEmpty &&
             !os.exists(
-              eval.outPath / "generatedBuildInfo" / "dest" / "BuildInfo.scala"
+              eval.outPath / "generatedBuildInfo.dest" / "BuildInfo.scala"
             )
         )
       }
@@ -91,7 +91,7 @@ object BuildInfoTests extends TestSuite {
         val Right(((result, _), evalCount)) = eval.apply(BuildInfoSettings.generatedBuildInfo)
         val path = result.head.path
         assert(
-          path == eval.outPath / "generatedBuildInfo" / "dest" / "BuildInfo.scala" &&
+          path == eval.outPath / "generatedBuildInfo.dest" / "BuildInfo.scala" &&
             os.exists(path)
         )
 
@@ -124,7 +124,7 @@ object BuildInfoTests extends TestSuite {
       }
 
       "generatedSources must be a folder" - workspaceTest(BuildInfo) { eval =>
-        val buildInfoGeneratedSourcesFolder = eval.outPath / "generatedBuildInfo" / "dest"
+        val buildInfoGeneratedSourcesFolder = eval.outPath / "generatedBuildInfo.dest"
         val Right((result, evalCount)) = eval.apply(BuildInfo.generatedSources)
         assert(
           result.size == 1,

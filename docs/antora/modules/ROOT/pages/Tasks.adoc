@@ -89,8 +89,8 @@ other targets are defined using `foo()` to extract the value from them.
 Apart from the `foo()` calls, the `T {...}` block contains arbitrary code that does some work and returns a result.
 
 Each target, e.g. `classFiles`, is assigned a path on disk as scratch space & to
-store its output files at `out/classFiles/dest/`, and its returned metadata is
-automatically JSON-serialized and stored at `out/classFiles/meta.json`.
+store its output files at `out/classFiles.dest/`, and its returned metadata is
+automatically JSON-serialized and stored at `out/classFiles.json`.
 The return-value of targets has to be JSON-serializable via
 {upickle-github-url}[uPickle].
 
@@ -167,8 +167,8 @@ Like <<_targets>>, a command only evaluates after all its upstream
 dependencies have completed, and will not begin to run if any upstream
 dependency has failed.
 
-Commands are assigned the same scratch/output folder `out/run/dest/` as
-Targets are, and its returned metadata stored at the same `out/run/meta.json`
+Commands are assigned the same scratch/output folder `out/run.dest/` as
+Targets are, and its returned metadata stored at the same `out/run.json`
 path for consumption by external tools.
 
 Commands can only be defined directly within a `Module` body.

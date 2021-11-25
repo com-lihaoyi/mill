@@ -9,7 +9,7 @@ Command:
 * `T.dest`
 * `implicitly[mill.api.Ctx.Dest]`
 
-This is a unique `os.Path` (e.g. `out/classFiles/dest/` or `out/run/dest/`)  that is
+This is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)  that is
 assigned to every Target or Command. It is cleared before your task runs, and
 you can use it as a scratch space for temporary files or a place to put returned
 artifacts.

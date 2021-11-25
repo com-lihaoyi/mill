@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.define.{NamedTask, Segment, Segments}
 
-case class EvaluatorPaths(out: os.Path, dest: os.Path, meta: os.Path, log: os.Path)
+case class EvaluatorPaths(dest: os.Path, meta: os.Path, log: os.Path)
 
 object EvaluatorPaths {
   private[eval] def makeSegmentStrings(segments: Segments) = segments.value.flatMap {
@@ -17,7 +17,11 @@ object EvaluatorPaths {
     val refinedSegments = foreignSegments.map(_ ++ segments).getOrElse(segments)
     val segmentStrings = makeSegmentStrings(refinedSegments)
     val targetPath = workspacePath / segmentStrings
-    EvaluatorPaths(targetPath, targetPath / "dest", targetPath / "meta.json", targetPath / "log")
+    EvaluatorPaths(
+      targetPath / os.up / s"${targetPath.last}.dest",
+      targetPath / os.up / s"${targetPath.last}.json",
+      targetPath / os.up / s"${targetPath.last}.log"
+    )
   }
   def resolveDestPaths(
       workspacePath: os.Path,
