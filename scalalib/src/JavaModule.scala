@@ -772,13 +772,32 @@ trait JavaModule
 
   def forkWorkingDir: Target[Path] = T { os.pwd }
 
+  /**
+   * @param hint "all" - fetch all dependencies,
+   *             "source" | "sources" - fetch source dependencies
+   */
   @nowarn("msg=pure expression does nothing")
-  override def prepareOffline(): Command[Unit] = T.command {
-    super.prepareOffline()()
-    resolvedIvyDeps()
-    zincWorker.prepareOffline()()
-    resolvedRunIvyDeps()
-    ()
+  override def prepareOffline(hint: String*): Command[Unit] = {
+    val withSources = hint.contains("all") || hint.contains("source") || hint.contains("sources")
+    val tasks = Seq(
+      if (withSources) Seq(
+        resolveDeps(
+          T.task {
+            transitiveCompileIvyDeps() ++ transitiveIvyDeps()
+          },
+          sources = true
+        )
+      )
+      else Seq()
+    ).flatten
+    T.command {
+      super.prepareOffline(hint: _*)()
+      resolvedIvyDeps()
+      zincWorker.prepareOffline()()
+      resolvedRunIvyDeps()
+      T.sequence(tasks)()
+      ()
+    }
   }
 
   @internal

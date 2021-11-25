@@ -151,13 +151,13 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   }
 
   @nowarn("msg=pure expression does nothing")
-  override def prepareOffline(): Command[Unit] =
+  override def prepareOffline(hint: String*): Command[Unit] = {
     T.command {
-      super.prepareOffline()()
+      super.prepareOffline(hint: _*)()
       classpath()
-      // worker()
       ()
     }
+  }
 
   @nowarn("msg=pure expression does nothing")
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
