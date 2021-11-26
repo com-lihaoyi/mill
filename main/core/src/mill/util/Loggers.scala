@@ -172,6 +172,8 @@ class FileLogger(
 //    if (!append && !outputStreamUsed) os.remove.all(file)
     outputStreamUsed = true
     var folderCreated = false
+    // Lazily create the folder and file that we're logging to, so as to avoid spamming the out/ 
+    // folder with empty folders/files for the vast majority of tasks that do not have any logs
     lazy val inner = {
       if (!os.exists(file / os.up)) os.makeDir.all(file / os.up)
       folderCreated = true
