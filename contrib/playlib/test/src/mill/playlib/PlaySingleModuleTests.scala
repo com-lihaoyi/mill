@@ -10,7 +10,7 @@ import utest.{TestSuite, Tests, assert, _}
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingle extends TestUtil.BaseModule with PlayModule with SingleModule {
-    override def playVersion = T { "2.8.8" }
+    override def playVersion = T { "2.8.9" }
     override def twirlVersion = T { "1.5.1" }
     override def scalaVersion = T { "2.13.6" }
     object test extends PlayTests
