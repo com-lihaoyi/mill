@@ -232,13 +232,13 @@ object main extends MillModule {
       Deps.sbtTestInterface
     )
 
-    override def mimaBackwardIssueFilters: Target[Map[String, Seq[ProblemFilter]]] = Map(
-      // probably false positives after bump to Scala 2.13.7 from 2.13.6
-      "0.10.0-M4" -> Seq(
-        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.args"),
-        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.this"),
-        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx#Args.args")
-      )
+    // probably false positives after bump to Scala 2.13.7 from 2.13.6
+    //    override def mimaBackwardIssueFilters: Target[Map[String, Seq[ProblemFilter]]] = Map(
+    //      "0.10.0-M4" -> Seq(
+    override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = Seq(
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.args"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.this"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx#Args.args")
     )
   }
   object core extends MillModule {
@@ -299,24 +299,24 @@ object main extends MillModule {
       os.write(dir / "mill" / "BuildInfo.scala", code, createFolders = true)
     }
 
-    override def mimaBackwardIssueFilters: Target[Map[String, Seq[ProblemFilter]]] = Map(
-      // probably false positives after bump to Scala 2.13.7 from 2.13.6
-      "0.10.0-M4" -> Seq(
-        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.makeT"),
-        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.args"),
-        ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.util.ParseArgs.standaloneIdent"),
-        ProblemFilter.exclude[IncompatibleSignatureProblem](
-          "mill.util.ParseArgs#BraceExpansionParser.plainChars"
-        ),
-        ProblemFilter.exclude[IncompatibleSignatureProblem](
-          "mill.util.ParseArgs#BraceExpansionParser.braceParser"
-        ),
-        ProblemFilter.exclude[IncompatibleSignatureProblem](
-          "mill.util.ParseArgs#BraceExpansionParser.parser"
-        ),
-        ProblemFilter.exclude[IncompatibleSignatureProblem](
-          "mill.util.ParseArgs#BraceExpansionParser.toExpand"
-        )
+    // probably false positives after bump to Scala 2.13.7 from 2.13.6
+    //    override def mimaBackwardIssueFilters: Target[Map[String, Seq[ProblemFilter]]] = Map(
+    //      "0.10.0-M4" -> Seq(
+    override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = Seq(
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.makeT"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.args"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.util.ParseArgs.standaloneIdent"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.plainChars"
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.braceParser"
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.parser"
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.toExpand"
       )
     )
   }
