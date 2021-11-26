@@ -78,7 +78,7 @@ object Deps {
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.11"
-  val coursier = ivy"io.get-coursier::coursier:2.0.16-169-g194ebc55c"
+  val coursier = ivy"io.get-coursier::coursier:2.0.16-200-ge888c6dea"
   val coursierReducedDeps = coursier.exclude(
     "com.lihaoyi" -> "utest",
     "org.codehaus.plexus" -> "*"
@@ -100,8 +100,8 @@ object Deps {
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.1"
 
-  val jna = ivy"net.java.dev.jna:jna:5.9.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.9.0"
+  val jna = ivy"net.java.dev.jna:jna:5.10.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.10.0"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.2"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
