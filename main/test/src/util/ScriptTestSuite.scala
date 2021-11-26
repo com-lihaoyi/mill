@@ -30,7 +30,8 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
         watch = Flag(),
         bsp = Flag(),
         thin = Flag(),
-        help = Flag()
+        help = Flag(),
+        showVersion = Flag()
       ),
       ammonite.main.Config.Predef(noHomePredef = Flag()),
       ammonite.main.Config.Repl(noRemoteLogging = Flag(), classBased = Flag())
