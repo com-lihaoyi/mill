@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M4-24-6ccbe5</span>
+    <span class="version">0.10.0-M4-25-267ff3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M4-24-6ccbe5</a>
+          <a href="index.html">0.10.0-M4-25-267ff3</a>
         </li>
         <li class="version">
           <a href="0.10.0-M4/index.html">0.10.0-M4</a>
@@ -179,9 +179,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M4-24-6ccbe5</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M4-25-267ff3</button>
   <div class="version-menu">
-    <a class="version is-current" href="Tasks.html">0.10.0-M4-24-6ccbe5</a>
+    <a class="version is-current" href="Tasks.html">0.10.0-M4-25-267ff3</a>
     <a class="version" href="0.10.0-M4/Tasks.html">0.10.0-M4</a>
     <a class="version" href="0.10.0-M3/Tasks.html">0.10.0-M3</a>
     <a class="version" href="0.10.0-M2/Tasks.html">0.10.0-M2</a>
@@ -318,8 +318,8 @@ Apart from the <code>foo()</code> calls, the <code>T {…​}</code> block conta
 </div>
 <div class="paragraph">
 <p>Each target, e.g. <code>classFiles</code>, is assigned a path on disk as scratch space &amp; to
-store its output files at <code>out/classFiles/dest/</code>, and its returned metadata is
-automatically JSON-serialized and stored at <code>out/classFiles/meta.json</code>.
+store its output files at <code>out/classFiles.dest/</code>, and its returned metadata is
+automatically JSON-serialized and stored at <code>out/classFiles.json</code>.
 The return-value of targets has to be JSON-serializable via
 <a href="https://github.com/com-lihaoyi/upickle">uPickle</a>.</p>
 </div>
@@ -408,8 +408,8 @@ dependencies have completed, and will not begin to run if any upstream
 dependency has failed.</p>
 </div>
 <div class="paragraph">
-<p>Commands are assigned the same scratch/output folder <code>out/run/dest/</code> as
-Targets are, and its returned metadata stored at the same <code>out/run/meta.json</code>
+<p>Commands are assigned the same scratch/output folder <code>out/run.dest/</code> as
+Targets are, and its returned metadata stored at the same <code>out/run.json</code>
 path for consumption by external tools.</p>
 </div>
 <div class="paragraph">

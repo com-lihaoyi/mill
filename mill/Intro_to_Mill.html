@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M4-24-6ccbe5</span>
+    <span class="version">0.10.0-M4-25-267ff3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M4-24-6ccbe5</a>
+          <a href="index.html">0.10.0-M4-25-267ff3</a>
         </li>
         <li class="version">
           <a href="0.10.0-M4/index.html">0.10.0-M4</a>
@@ -179,9 +179,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M4-24-6ccbe5</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M4-25-267ff3</button>
   <div class="version-menu">
-    <a class="version is-current" href="Intro_to_Mill.html">0.10.0-M4-24-6ccbe5</a>
+    <a class="version is-current" href="Intro_to_Mill.html">0.10.0-M4-25-267ff3</a>
     <a class="version" href="0.10.0-M4/Intro_to_Mill.html">0.10.0-M4</a>
     <a class="version" href="0.10.0-M3/Intro_to_Mill.html">0.10.0-M3</a>
     <a class="version" href="0.10.0-M2/Intro_to_Mill.html">0.10.0-M2</a>
@@ -470,7 +470,7 @@ $ mill foo.run                     # run the main method, if any
 
 $ mill foo.runBackground           # run the main method in the background
 
-$ mill foo.launcher                # prepares a foo/launcher/dest/run you can run later
+$ mill foo.launcher                # prepares a foo/launcher.dest/run you can run later
 
 $ mill foo.jar                     # bundle the classfiles into a jar
 
@@ -503,18 +503,35 @@ whereas commands re-run every time.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">out/
     foo/
-        compile/
-        run/
-        runBackground/
-        launcher/
-        jar/
-        assembly/</code></pre>
+        compile.dest
+        compile.log
+        compile.json
+
+        run.dest
+        run.log
+        run.json
+
+        runBackground.dest
+        runBackground.log
+        runBackground.json
+
+        launcher.dest
+        launcher.log
+        launcher.json
+
+        jar.dest
+        jar.log
+        jar.json
+
+        assembly.dest
+        assembly.log
+        assembly.json</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Within the output folder for each task there’s a <code>meta.json</code> file containing the metadata returned by that task, and
-a <code>dest/</code> folder containing any files that the task generates. For example, <code>out/foo/compile/dest/</code> contains the
-compiled classfiles, while <code>out/foo/assembly/dest/</code> contains the self-contained assembly with the project’s classfiles
+<p>For each task there’s a <code>foo.json</code> file containing the metadata returned by that task, and
+two optional paths: a <code>foo.dest/</code> folder containing any files that the task generates and a <code>foo.log</code> file containing the the logs of running that task. For example, <code>out/foo/compile.dest/</code> contains the
+compiled classfiles, while <code>out/foo/assembly.dest/</code> contains the self-contained assembly with the project’s classfiles
 jar-ed up with all its dependencies.</p>
 </div>
 <div class="paragraph">
@@ -962,8 +979,8 @@ E.g. <code>compile</code> returns the paths to the <code>classes</code> folder a
 [1/1] show
 [10/25] foo.resources
 {
-    &quot;analysisFile&quot;: &quot;/Users/lihaoyi/Dropbox/Github/test//out/foo/compile/dest/zinc&quot;,
-    &quot;classes&quot;: &quot;ref:07960649:/Users/lihaoyi/Dropbox/Github/test//out/foo/compile/dest/classes&quot;
+    &quot;analysisFile&quot;: &quot;/Users/lihaoyi/Dropbox/Github/test//out/foo/compile.dest/zinc&quot;,
+    &quot;classes&quot;: &quot;ref:07960649:/Users/lihaoyi/Dropbox/Github/test//out/foo/compile.dest/classes&quot;
 }</code></pre>
 </div>
 </div>
@@ -1047,11 +1064,11 @@ follow up with <code>mill path</code> on any individual upstream task to see exa
 [1/1] show
 [3/3] visualize
 [
-    &quot;.../out/visualize/dest/out.txt&quot;,
-    &quot;.../out/visualize/dest/out.dot&quot;,
-    &quot;.../out/visualize/dest/out.json&quot;,
-    &quot;.../out/visualize/dest/out.png&quot;,
-    &quot;.../out/visualize/dest/out.svg&quot;
+    &quot;.../out/visualize.dest/out.txt&quot;,
+    &quot;.../out/visualize.dest/out.dot&quot;,
+    &quot;.../out/visualize.dest/out.json&quot;,
+    &quot;.../out/visualize.dest/out.png&quot;,
+    &quot;.../out/visualize.dest/out.svg&quot;
 ]</code></pre>
 </div>
 </div>
@@ -1077,11 +1094,11 @@ and <code>.json</code> for easy processing by downstream tools.</p>
 [1/1] show
 [3/3] visualizePlan
 [
-    &quot;.../out/visualizePlan/dest/out.txt&quot;,
-    &quot;.../out/visualizePlan/dest/out.dot&quot;,
-    &quot;.../out/visualizePlan/dest/out.json&quot;,
-    &quot;.../out/visualizePlan/dest/out.png&quot;,
-    &quot;.../out/visualizePlan/dest/out.svg&quot;
+    &quot;.../out/visualizePlan.dest/out.txt&quot;,
+    &quot;.../out/visualizePlan.dest/out.dot&quot;,
+    &quot;.../out/visualizePlan.dest/out.json&quot;,
+    &quot;.../out/visualizePlan.dest/out.png&quot;,
+    &quot;.../out/visualizePlan.dest/out.svg&quot;
 ]</code></pre>
 </div>
 </div>
@@ -1317,8 +1334,8 @@ Inputs:
 @ foo.compile()
 [25/25] foo.compile
 res2: mill.scalalib.api.CompilationResult = CompilationResult(
-  /Users/lihaoyi/Dropbox/Github/test/out/foo/compile/dest/zinc,
-  PathRef(/Users/lihaoyi/Dropbox/Github/test/out/foo/compile/dest/classes, false, -61934706)
+  /Users/lihaoyi/Dropbox/Github/test/out/foo/compile.dest/zinc,
+  PathRef(/Users/lihaoyi/Dropbox/Github/test/out/foo/compile.dest/classes, false, -61934706)
 )</code></pre>
 </div>
 </div>
@@ -1360,8 +1377,8 @@ object foo extends ScalaModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill foo.assembly
 
-$ ls -lh out/foo/assembly/dest/out.jar
--rw-r--r--  1 lihaoyi  staff   5.0M Feb 17 11:14 out/foo/assembly/dest/out.jar</code></pre>
+$ ls -lh out/foo/assembly.dest/out.jar
+-rw-r--r--  1 lihaoyi  staff   5.0M Feb 17 11:14 out/foo/assembly.dest/out.jar</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1369,7 +1386,7 @@ $ ls -lh out/foo/assembly/dest/out.jar
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ java -cp out/foo/assembly/dest/out.jar foo.Example
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ java -cp out/foo/assembly.dest/out.jar foo.Example
 Hello World!</code></pre>
 </div>
 </div>
@@ -1477,30 +1494,30 @@ per <code>Target</code>/<code>Command</code>, that is run, e.g.:</p>
 executed. This is very useful if you want to find out exactly what tasks are being run and Mill is being slow.</p>
 </div>
 <div class="paragraph">
-<p>Each folder currently contains the following files:</p>
+<p>Each task currently creates contains the following files:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>dest/</code>: a path for the <code>Task</code> to use either as a scratch space, or to place generated files that are returned
+<p><code>foo.dest/</code>: optional, a path for the <code>Task</code> to use either as a scratch space, or to place generated files that are returned
 using <code>PathRef</code> references. A <code>Task</code> should only output files within its own given <code>dest/</code> folder (available as <code>T.dest</code>) to avoid
 conflicting with another <code>Task</code>, but can name files within <code>dest/</code>  arbitrarily.</p>
 </li>
 <li>
-<p><code>log</code>: the <code>stdout</code>/<code>stderr</code> of the <code>Task</code>. This is also streamed to the console during evaluation.</p>
+<p><code>foo.log</code>: optional, the <code>stdout</code>/<code>stderr</code> of the <code>Task</code>. This is also streamed to the console during evaluation.</p>
 </li>
 <li>
-<p><code>meta.json</code>: the cache-key and JSON-serialized return-value of the
+<p><code>foo.json</code>: the cache-key and JSON-serialized return-value of the
 <code>Target</code>/<code>Command</code>. The return-value can also be retrieved via <code>mill show foo.compile</code>. Binary blobs are typically not
-included in <code>meta.json</code>, and instead stored as separate binary files in <code>dest/</code> which are then referenced
-by <code>meta.json</code> via <code>PathRef</code> references.</p>
+included in <code>foo.json</code>, and instead stored as separate binary files in <code>dest/</code> which are then referenced
+by <code>foo.json</code> via <code>PathRef</code> references.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>The <code>out/</code> folder is intentionally kept simple and user-readable. If your build is not behaving as you would expect,
 feel free to poke around the various
-<code>dest/</code> folders to see what files are being created, or the <code>meta.json</code> files to see what is being returned by a
+<code>foo.dest/</code> folders to see what files are being created, or the <code>foo.json</code> files to see what is being returned by a
 particular task. You can also simply delete folders within <code>out/</code> if you want to force portions of your project to be
 rebuilt, e.g. by deleting the <code>out/main/</code> or <code>out/main/test/compile/</code> folders.</p>
 </div>

@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M4-24-6ccbe5</span>
+    <span class="version">0.10.0-M4-25-267ff3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M4-24-6ccbe5</a>
+          <a href="index.html">0.10.0-M4-25-267ff3</a>
         </li>
         <li class="version">
           <a href="0.10.0-M4/index.html">0.10.0-M4</a>
@@ -179,9 +179,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M4-24-6ccbe5</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M4-25-267ff3</button>
   <div class="version-menu">
-    <a class="version is-current" href="Mill_Internals.html">0.10.0-M4-24-6ccbe5</a>
+    <a class="version is-current" href="Mill_Internals.html">0.10.0-M4-25-267ff3</a>
     <a class="version" href="0.10.0-M4/Mill_Internals.html">0.10.0-M4</a>
     <a class="version" href="0.10.0-M3/Mill_Internals.html">0.10.0-M3</a>
     <a class="version" href="0.10.0-M2/Mill_Internals.html">0.10.0-M2</a>
@@ -254,8 +254,8 @@ run something via <code>mill core.cross[a].printIt</code> while from code you us
 <h3 id="_caching_by_default"><a class="anchor" href="#_caching_by_default"></a>Caching by default</h3>
 <div class="paragraph">
 <p>Every <code>Target</code> in a build, defined by <code>def foo = T {…​}</code>, is cached by default.
-Currently this is done using a <code>foo/meta.json</code> file in the <code>out/</code> folder. The
-<code>Target</code> is also provided a <code>foo/</code> path on the filesystem dedicated to it, for
+Currently this is done using a <code>foo.json</code> file in the <code>out/</code> folder. The
+<code>Target</code> is also provided a <code>foo.dest/</code> path on the filesystem dedicated to it, for
 it to store output files etc.</p>
 </div>
 <div class="paragraph">
@@ -280,10 +280,10 @@ structures where a previous process left off, in order to continue the build.</p
 <div class="paragraph">
 <p>Re-construction is done via the hierarchical nature of the build: each <code>Target</code>
 <code>foo.bar.baz</code> has a fixed position in the build hierarchy, and thus a fixed
-position on disk <code>out/foo/bar/baz/meta.json</code>. When the old process dies and a
+position on disk <code>out/foo/bar/baz.json</code>. When the old process dies and a
 new process starts, there will be a new instance of <code>Target</code> with the same
 implementation code and same position in the build hierarchy: this new <code>Target</code>
-can then load the <code>out/foo/bar/baz/meta.json</code> file and pick up where the
+can then load the <code>out/foo/bar/baz.json</code> file and pick up where the
 previous process left off.</p>
 </div>
 <div class="paragraph">
@@ -471,10 +471,10 @@ example, a `Target</code> at position <code>core.test.compile</code> would:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Cache output metadata at <code>out/core/test/compile/meta.json</code></p>
+<p>Cache output metadata at <code>out/core/test/compile.json</code></p>
 </li>
 <li>
-<p>Output files to the folder <code>out/core/test/compile/dest/</code></p>
+<p>Output files to the folder <code>out/core/test/compile.dest/</code></p>
 </li>
 <li>
 <p>Source files default to a folder in <code>core/test/</code>, <code>core/test/src/</code></p>
