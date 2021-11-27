@@ -30,8 +30,8 @@ import os.Path
  * - mill scoverage.xmlReportAll      # generates report in xml format for all modules
  * - mill scoverage.consoleReportAll  # reports to the console for all modules
  *
- * The aggregated report will be available at either `out/scoverage/htmlReportAll/dest/`
- * for html reports or `out/scoverage/xmlReportAll/dest/` for xml reports.
+ * The aggregated report will be available at either `out/scoverage/htmlReportAll.dest/`
+ * for html reports or `out/scoverage/xmlReportAll.dest/` for xml reports.
  */
 trait ScoverageReport extends Module {
   outer =>

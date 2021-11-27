@@ -1,9 +1,9 @@
 <module type="JAVA_MODULE" version="4">
     <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../../out/HelloWorld/ideaCompileOutput/dest/classes"/>
+        <output url="file://$MODULE_DIR$/../../out/HelloWorld/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../../out/HelloWorld/generatedSources/dest/classes">
-            <sourceFolder url="file://$MODULE_DIR$/../../out/HelloWorld/generatedSources/dest/classes" isTestSource="false" generated="true"/>
+        <content url="file://$MODULE_DIR$/../../out/HelloWorld/generatedSources.dest/classes">
+            <sourceFolder url="file://$MODULE_DIR$/../../out/HelloWorld/generatedSources.dest/classes" isTestSource="false" generated="true"/>
         </content>
         <content url="file://$MODULE_DIR$/../../HelloWorld/src">
             <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/src" isTestSource="false"/>

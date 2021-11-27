@@ -26,7 +26,7 @@ class AmmoniteTests(fork: Boolean)
 
       assert(
         compileResult,
-        os.walk(workspacePath / "out" / "integration" / scalaVersion / "test" / "compile")
+        os.walk(workspacePath / "out" / "integration" / scalaVersion / "test" / "compile.dest")
           .exists(_.last == "ErrorTruncationTests.class")
       )
     }
