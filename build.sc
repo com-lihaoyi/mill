@@ -1,12 +1,14 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.2`
-import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.5`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2-4-dcde72`
+import $ivy.`com.github.lolgab::mill-mima::0.0.6`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
 import java.nio.file.attribute.PosixFilePermission
 
 import com.github.lolgab.mill.mima
+import com.github.lolgab.mill.mima.ProblemFilter
+import com.typesafe.tools.mima.core.IncompatibleSignatureProblem
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -43,7 +45,7 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.6"
+  val scalaVersion = "2.13.7"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.13"
 
@@ -69,7 +71,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.4.0"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.4.1"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -229,6 +231,15 @@ object main extends MillModule {
       Deps.upickle,
       Deps.sbtTestInterface
     )
+
+    // probably false positives after bump to Scala 2.13.7 from 2.13.6
+    //    override def mimaBackwardIssueFilters: Target[Map[String, Seq[ProblemFilter]]] = Map(
+    //      "0.10.0-M4" -> Seq(
+    override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = Seq(
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.args"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.this"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx#Args.args")
+    )
   }
   object core extends MillModule {
     override def moduleDeps = Seq(moduledefs, api)
@@ -287,6 +298,27 @@ object main extends MillModule {
 
       os.write(dir / "mill" / "BuildInfo.scala", code, createFolders = true)
     }
+
+    // probably false positives after bump to Scala 2.13.7 from 2.13.6
+    //    override def mimaBackwardIssueFilters: Target[Map[String, Seq[ProblemFilter]]] = Map(
+    //      "0.10.0-M4" -> Seq(
+    override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = Seq(
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.makeT"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.args"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.util.ParseArgs.standaloneIdent"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.plainChars"
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.braceParser"
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.parser"
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.toExpand"
+      )
+    )
   }
 
   object moduledefs extends MillPublishModule with ScalaModule {

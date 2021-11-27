@@ -611,11 +611,12 @@ class MillBuildServer(
               false
             )
             else {
-              val outDir = evaluator.pathsResolver.resolveDest(
+              val outPaths = evaluator.pathsResolver.resolveDest(
                 module.millModuleSegments ++ Seq(Label("compile"))
               )
-                .out
-              while (os.exists(outDir)) Thread.sleep(10)
+              val outPathSeq = Seq(outPaths.dest, outPaths.meta, outPaths.log)
+
+              while (outPathSeq.exists(os.exists(_))) Thread.sleep(10)
 
               (msg + s"${module.bspBuildTarget.displayName} cleaned \n", cleaned)
             }

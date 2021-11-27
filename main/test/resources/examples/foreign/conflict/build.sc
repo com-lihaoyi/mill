@@ -19,5 +19,5 @@ def checkDests : T[Unit] = T {
 }
 
 object inner extends mill.Module {
-  def selfDest = T { T.dest / os.up / os.up }
+  def selfDest = T { T.dest / os.up }
 }
