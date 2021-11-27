@@ -317,7 +317,6 @@ case class Evaluator(
           destSegments(labelledNamedTask)
         )
 
-        if (!os.exists(paths.out)) os.makeDir.all(paths.out)
         val cached = for {
           cached <-
             try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
@@ -474,15 +473,6 @@ case class Evaluator(
           val args = new Ctx(
             args = targetInputValues.toArray[Any],
             dest0 = () =>
-              //              usedDest match {
-              //              case Some((earlierTask, earlierStack)) if earlierTask != task =>
-              //                val inner = new Exception("Earlier usage of `dest`")
-              //                inner.setStackTrace(earlierStack)
-              //                throw new Exception(
-              //                  "`dest` can only be used in one place within each Target[T]",
-              //                  inner
-              //                )
-              //              case _ =>
               paths match {
                 case Some(dest) =>
                   if (usedDest.isEmpty) os.makeDir.all(dest.dest)

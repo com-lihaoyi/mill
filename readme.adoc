@@ -121,7 +121,7 @@ Mill without the bootstrap Mill process present:
 ./mill dev.launcher
 ----
 
-This creates the `out/dev/launcher/dest/run` launcher script, which you can then
+This creates the `out/dev/launcher.dest/run` launcher script, which you can then
 use to run your current checkout of Mill where-ever you'd like. Note that this
 script relies on the compiled code already present in the Mill `out/` folder,
 and thus isn't suitable for testing on Mill's own Mill build since you would be
@@ -133,7 +133,7 @@ folder without the bootstrap Mill process being present via:
 
 [source,bash]
 ----
-./mill dev.launcher && (cd scratch && ../out/dev/launcher/dest/run -w show thingy)
+./mill dev.launcher && (cd scratch && ../out/dev/launcher.dest/run -w show thingy)
 ----
 
 === Bootstrapping: Building Mill with your current checkout of Mill

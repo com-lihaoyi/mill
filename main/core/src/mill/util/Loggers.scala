@@ -163,6 +163,7 @@ class FileLogger(
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val outputStream = {
+
     val options = Seq(
       Seq(StandardOpenOption.CREATE, StandardOpenOption.WRITE),
       Seq(StandardOpenOption.APPEND).filter(_ => append),
@@ -170,8 +171,25 @@ class FileLogger(
     ).flatten
 //    if (!append && !outputStreamUsed) os.remove.all(file)
     outputStreamUsed = true
-    os.makeDir.all(file / os.up)
-    new PrintStream(Files.newOutputStream(file.toNIO, options: _*))
+    var folderCreated = false
+    // Lazily create the folder and file that we're logging to, so as to avoid spamming the out/ 
+    // folder with empty folders/files for the vast majority of tasks that do not have any logs
+    lazy val inner = {
+      if (!os.exists(file / os.up)) os.makeDir.all(file / os.up)
+      folderCreated = true
+      Files.newOutputStream(file.toNIO, options: _*)
+    }
+    new PrintStream(new OutputStream {
+      override def write(b: Int): Unit = inner.write(b)
+
+      override def write(b: Array[Byte]): Unit = inner.write(b)
+
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = inner.write(b, off, len)
+
+      override def close(): Unit = if (folderCreated) inner.close()
+
+      override def flush(): Unit = if (folderCreated) inner.flush()
+    })
   }
 
   lazy val errorStream = outputStream

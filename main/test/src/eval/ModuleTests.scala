@@ -24,12 +24,12 @@ object ModuleTests extends TestSuite {
       val zresult = check.apply(Build.z)
       assert(
         zresult == Right((30, 1)),
-        os.read(check.evaluator.outPath / "z" / "meta.json").contains("30"),
+        os.read(check.evaluator.outPath / "z.json").contains("30"),
         os.read(
-          TestEvaluator.externalOutPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "x" / "meta.json"
+          TestEvaluator.externalOutPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "x.json"
         ).contains("13"),
         os.read(
-          TestEvaluator.externalOutPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "inner" / "y" / "meta.json"
+          TestEvaluator.externalOutPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "inner" / "y.json"
         ).contains("17")
       )
     }

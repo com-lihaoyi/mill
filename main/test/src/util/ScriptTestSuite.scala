@@ -69,7 +69,8 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
   def meta(s: String): String = {
     val (List(selector), args) = ParseArgs.apply(Seq(s), multiSelect = false).right.get
 
-    os.read(wd / "out" / selector._2.value.flatMap(_.pathSegments) / "meta.json")
+    val segments = selector._2.value.flatMap(_.pathSegments)
+    os.read(wd / "out" / segments.init / s"${segments.last}.json")
   }
 
   def initWorkspace(): Path = {

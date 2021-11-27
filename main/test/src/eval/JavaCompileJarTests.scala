@@ -122,7 +122,7 @@ object JavaCompileJarTests extends TestSuite {
       check(targets = Agg(allSources), expected = Agg(allSources))
       check(targets = Agg(jar), expected = Agg(classFiles, jar))
 
-      val jarContents = os.proc("jar", "-tf", evaluator.outPath / "jar" / "dest" / "out.jar").call(
+      val jarContents = os.proc("jar", "-tf", evaluator.outPath / "jar.dest" / "out.jar").call(
         evaluator.outPath
       ).out.string
       val expectedJarContents =
@@ -144,7 +144,7 @@ object JavaCompileJarTests extends TestSuite {
       val filteredJarContents = os.proc(
         "jar",
         "-tf",
-        evaluator.outPath / "filterJar" / "dest" / "out.jar"
+        evaluator.outPath / "filterJar.dest" / "out.jar"
       ).call(evaluator.outPath).out.string
       assert(filteredJarContents.linesIterator.toSeq == expectedJarContents.linesIterator.filter(
         noFoos(_)
@@ -153,7 +153,7 @@ object JavaCompileJarTests extends TestSuite {
       val executed = os.proc(
         "java",
         "-cp",
-        evaluator.outPath / "jar" / "dest" / "out.jar",
+        evaluator.outPath / "jar.dest" / "out.jar",
         "test.Foo"
       ).call(evaluator.outPath).out.string
       assert(executed == (31337 + 271828) + System.lineSeparator)

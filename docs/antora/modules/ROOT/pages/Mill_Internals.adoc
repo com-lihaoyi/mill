@@ -44,8 +44,8 @@ run something via `mill core.cross[a].printIt` while from code you use
 === Caching by default
 
 Every `Target` in a build, defined by `def foo = T {...}`, is cached by default.
-Currently this is done using a `foo/meta.json` file in the `out/` folder. The
-`Target` is also provided a `foo/` path on the filesystem dedicated to it, for
+Currently this is done using a `foo.json` file in the `out/` folder. The
+`Target` is also provided a `foo.dest/` path on the filesystem dedicated to it, for
 it to store output files etc.
 
 This happens whether you want it to or not. Every `Target` is cached, not just
@@ -65,10 +65,10 @@ structures where a previous process left off, in order to continue the build.
 
 Re-construction is done via the hierarchical nature of the build: each `Target`
 `foo.bar.baz` has a fixed position in the build hierarchy, and thus a fixed
-position on disk `out/foo/bar/baz/meta.json`. When the old process dies and a
+position on disk `out/foo/bar/baz.json`. When the old process dies and a
 new process starts, there will be a new instance of `Target` with the same
 implementation code and same position in the build hierarchy: this new `Target`
-can then load the `out/foo/bar/baz/meta.json` file and pick up where the
+can then load the `out/foo/bar/baz.json` file and pick up where the
 previous process left off.
 
 Minimizing startup time means aggressive caching, as well as minimizing the
@@ -189,9 +189,9 @@ the ``Target``s you can run.
 A `Target`'s position in the module hierarchy tells you many things. For
 example, a `Target` at position `core.test.compile` would:
 
-* Cache output metadata at `out/core/test/compile/meta.json`
+* Cache output metadata at `out/core/test/compile.json`
 
-* Output files to the folder `out/core/test/compile/dest/`
+* Output files to the folder `out/core/test/compile.dest/`
 
 * Source files default to a folder in `core/test/`, `core/test/src/`
 

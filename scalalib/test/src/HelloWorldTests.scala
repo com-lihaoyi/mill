@@ -369,7 +369,7 @@ object HelloWorldTests extends TestSuite {
         val Right((_, evalCount)) = eval.apply(HelloWorldDocTitle.core.docJar)
         assert(
           evalCount > 0,
-          os.read(eval.outPath / "core" / "docJar" / "dest" / "javadoc" / "index.html").contains(
+          os.read(eval.outPath / "core" / "docJar.dest" / "javadoc" / "index.html").contains(
             "<span id=\"doc-title\">Hello World"
           )
         )
@@ -420,10 +420,10 @@ object HelloWorldTests extends TestSuite {
         val analysisFile = result.analysisFile
         val outputFiles = os.walk(result.classes.path)
         val expectedClassfiles = compileClassfiles.map(
-          eval.outPath / "core" / "compile" / "dest" / "classes" / _
+          eval.outPath / "core" / "compile.dest" / "classes" / _
         )
         assert(
-          result.classes.path == eval.outPath / "core" / "compile" / "dest" / "classes",
+          result.classes.path == eval.outPath / "core" / "compile.dest" / "classes",
           os.exists(analysisFile),
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
@@ -481,7 +481,7 @@ object HelloWorldTests extends TestSuite {
 
     "runMain" - {
       "runMainObject" - workspaceTest(HelloWorld) { eval =>
-        val runResult = eval.outPath / "core" / "runMain" / "dest" / "hello-mill"
+        val runResult = eval.outPath / "core" / "runMain.dest" / "hello-mill"
 
         val Right((_, evalCount)) = eval.apply(HelloWorld.core.runMain("Main", runResult.toString))
         assert(evalCount > 0)
@@ -537,7 +537,7 @@ object HelloWorldTests extends TestSuite {
 
     "forkRun" - {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
-        val runResult = eval.outPath / "core" / "run" / "dest" / "hello-mill"
+        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldWithMain.core.run(runResult.toString)
         )
@@ -559,7 +559,7 @@ object HelloWorldTests extends TestSuite {
       "runDiscoverMainClass" - workspaceTest(HelloWorldWithoutMain) { eval =>
         // Make sure even if there isn't a main class defined explicitly, it gets
         // discovered by Zinc and used
-        val runResult = eval.outPath / "core" / "run" / "dest" / "hello-mill"
+        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldWithoutMain.core.run(runResult.toString)
         )
@@ -575,7 +575,7 @@ object HelloWorldTests extends TestSuite {
 
     "run" - {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
-        val runResult = eval.outPath / "core" / "run" / "dest" / "hello-mill"
+        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldWithMain.core.runLocal(runResult.toString)
         )
@@ -588,7 +588,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       "runWithDefaultMain" - workspaceTest(HelloWorldDefaultMain) { eval =>
-        val runResult = eval.outPath / "core" / "run" / "dest" / "hello-mill"
+        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldDefaultMain.core.runLocal(runResult.toString)
         )
@@ -641,7 +641,7 @@ object HelloWorldTests extends TestSuite {
         val outPath = eval.outPath
         eval.apply(HelloWorld.core.compile)
 
-        val logFile = outPath / "core" / "compile" / "log"
+        val logFile = outPath / "core" / "compile.log"
         assert(os.exists(logFile))
       }
     }

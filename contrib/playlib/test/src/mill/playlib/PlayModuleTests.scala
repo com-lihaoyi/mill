@@ -100,10 +100,10 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
             os.RelPath("views/html/main$.class"),
             os.RelPath("views/html/main.class")
           ).map(
-            eval.outPath / "core" / scalaVersion / playVersion / "compile" / "dest" / "classes" / _
+            eval.outPath / "core" / scalaVersion / playVersion / "compile.dest" / "classes" / _
           )
           assert(
-            result.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compile" / "dest" / "classes",
+            result.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compile.dest" / "classes",
             outputFiles.nonEmpty,
             outputFiles.forall(expectedClassfiles.contains),
             outputFiles.size == 15,

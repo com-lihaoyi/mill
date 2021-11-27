@@ -225,10 +225,10 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         val checker = new Checker(canOverrideSuper)
         checker(foo, Seq("base", "object"), Agg(foo), extraEvaled = -1)
 
-        val public = os.read(checker.evaluator.outPath / "foo" / "meta.json")
+        val public = os.read(checker.evaluator.outPath / "foo.json")
         val overriden = os.read(
           checker.evaluator.outPath / "foo" /
-            "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo" / "meta.json"
+            "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo.json"
         )
         assert(
           public.contains("base"),
@@ -253,10 +253,10 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           secondRunNoOp = false
         )
 
-        val public = os.read(checker.evaluator.outPath / "cmd" / "meta.json")
+        val public = os.read(checker.evaluator.outPath / "cmd.json")
         val overriden = os.read(
           checker.evaluator.outPath / "cmd" /
-            "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd" / "meta.json"
+            "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd.json"
         )
         assert(
           public.contains("base1"),

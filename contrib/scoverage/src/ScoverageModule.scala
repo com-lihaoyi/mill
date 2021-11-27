@@ -45,9 +45,9 @@ import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
  * - mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
  * - mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
  *
- * The measurement data by default is available at `out/foo/scoverage/dataDir/dest/`,
- * the html report is saved in `out/foo/scoverage/htmlReport/dest/`,
- * and the xml report is saved in `out/foo/scoverage/xmlReport/dest/`.
+ * The measurement data by default is available at `out/foo/scoverage/dataDir.dest/`,
+ * the html report is saved in `out/foo/scoverage/htmlReport.dest/`,
+ * and the xml report is saved in `out/foo/scoverage/xmlReport.dest/`.
  */
 trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 

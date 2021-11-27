@@ -5,7 +5,7 @@ trait PathAware extends mill.Module {
 }
 
 trait DestAware extends mill.Module {
-  def selfDest = T { T.dest / os.up / os.up }
+  def selfDest = T { T.dest / os.up }
 }
 
 object sub extends PathAware with DestAware {

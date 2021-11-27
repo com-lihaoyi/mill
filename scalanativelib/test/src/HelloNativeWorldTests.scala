@@ -230,7 +230,7 @@ object HelloNativeWorldTests extends TestSuite {
       val Right((_, evalCount)) = helloWorldEvaluator(task)
 
       val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task)
-      val stdout = os.proc(paths.out / "dest" / "out").call().out.lines
+      val stdout = os.proc(paths.dest / "out").call().out.lines
       assert(
         stdout.contains("Hello Scala Native"),
         evalCount > 0

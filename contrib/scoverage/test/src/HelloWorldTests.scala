@@ -115,7 +115,7 @@ trait HelloWorldTests extends utest.TestSuite {
 
             assert(
               result.path.toIO.getPath.replace("""\""", "/").endsWith(
-                "mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data/dest"
+                "mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data.dest"
               ),
               evalCount > 0
             )
