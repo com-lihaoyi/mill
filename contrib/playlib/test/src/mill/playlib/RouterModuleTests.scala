@@ -50,10 +50,10 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
             os.RelPath("sub/RoutesPrefix.scala"),
             os.RelPath("controllers/javascript/JavaScriptReverseRoutes.scala")
           ).map(
-            eval.outPath / "core" / scalaVersion / playVersion / "compileRouter" / "dest" / _
+            eval.outPath / "core" / scalaVersion / playVersion / "compileRouter.dest" / _
           )
           assert(
-            result.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compileRouter" / "dest",
+            result.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compileRouter.dest",
             outputFiles.nonEmpty,
             outputFiles.forall(expectedClassfiles.contains),
             outputFiles.size == 7,

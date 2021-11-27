@@ -286,8 +286,9 @@ trait MainModule extends mill.Module {
           targets,
           SelectMode.Multi
         ).map(
-          _.map { segments =>
-            EvaluatorPaths.resolveDestPaths(rootDir, segments).out
+          _.flatMap { segments =>
+            val paths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
+            Seq(paths.dest, paths.meta, paths.log)
           }
         )
 
