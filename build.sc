@@ -8,7 +8,7 @@ import java.nio.file.attribute.PosixFilePermission
 
 import com.github.lolgab.mill.mima
 import com.github.lolgab.mill.mima.ProblemFilter
-import com.typesafe.tools.mima.core.IncompatibleSignatureProblem
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleSignatureProblem}
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -317,7 +317,9 @@ object main extends MillModule {
       ),
       ProblemFilter.exclude[IncompatibleSignatureProblem](
         "mill.util.ParseArgs#BraceExpansionParser.toExpand"
-      )
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.EvaluatorPaths.*"),
+      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.eval.EvaluatorPaths.*"),
     )
   }
 
