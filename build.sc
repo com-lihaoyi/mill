@@ -168,13 +168,7 @@ trait MillCoursierModule extends CoursierModule {
   }
 }
 
-trait MillApiModule
-    extends MillPublishModule
-    with ScalaModule
-    with MillCoursierModule
-    with mima.Mima {
-  def scalaVersion = Deps.scalaVersion
-  override def ammoniteVersion = Deps.ammonite.dep.version
+trait MillMimaConfig extends mima.Mima {
   override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
   override def mimaPreviousArtifacts =
     if (Settings.mimaBaseVersions.isEmpty) T { Agg[Dep]() }
@@ -183,6 +177,44 @@ trait MillApiModule
     "mill.api.internal",
     "mill.api.experimental"
   )
+  override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
+    issueFilterByModule.getOrElse(this, Seq())
+  }
+  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
+    main.api -> Seq(
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.args"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.this"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx#Args.args")
+    ),
+    main.core -> Seq(
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.makeT"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.args"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.util.ParseArgs.standaloneIdent"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.plainChars"
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.braceParser"
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.parser"
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem](
+        "mill.util.ParseArgs#BraceExpansionParser.toExpand"
+      ),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.EvaluatorPaths.*"),
+      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.eval.EvaluatorPaths.*")
+    )
+  )
+}
+
+trait MillApiModule
+    extends MillPublishModule
+    with ScalaModule
+    with MillCoursierModule
+    with MillMimaConfig {
+  def scalaVersion = Deps.scalaVersion
+  override def ammoniteVersion = Deps.ammonite.dep.version
 }
 
 trait MillModule extends MillApiModule { outer =>
@@ -230,15 +262,6 @@ object main extends MillModule {
       Deps.osLib,
       Deps.upickle,
       Deps.sbtTestInterface
-    )
-
-    // probably false positives after bump to Scala 2.13.7 from 2.13.6
-    //    override def mimaBackwardIssueFilters: Target[Map[String, Seq[ProblemFilter]]] = Map(
-    //      "0.10.0-M4" -> Seq(
-    override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = Seq(
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.args"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.this"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx#Args.args")
     )
   }
   object core extends MillModule {
@@ -298,29 +321,6 @@ object main extends MillModule {
 
       os.write(dir / "mill" / "BuildInfo.scala", code, createFolders = true)
     }
-
-    // probably false positives after bump to Scala 2.13.7 from 2.13.6
-    //    override def mimaBackwardIssueFilters: Target[Map[String, Seq[ProblemFilter]]] = Map(
-    //      "0.10.0-M4" -> Seq(
-    override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = Seq(
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.makeT"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.args"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.util.ParseArgs.standaloneIdent"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.util.ParseArgs#BraceExpansionParser.plainChars"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.util.ParseArgs#BraceExpansionParser.braceParser"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.util.ParseArgs#BraceExpansionParser.parser"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.util.ParseArgs#BraceExpansionParser.toExpand"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.EvaluatorPaths.*"),
-      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.eval.EvaluatorPaths.*"),
-    )
   }
 
   object moduledefs extends MillPublishModule with ScalaModule {
