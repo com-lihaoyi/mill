@@ -37,4 +37,4 @@ rm -rf ~/.mill/ammonite
 ci/patch-mill-bootstrap.sh
 
 # Use second build to run tests using Mill
-~/mill-2 -i all {main,scalalib,scalajslib,scalanativelib,bsp}.__.test
+~/mill-2 -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"

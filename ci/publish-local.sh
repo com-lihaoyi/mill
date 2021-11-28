@@ -2,7 +2,7 @@
 
 set -eux
 
-./mill -i all __.publishLocal assembly
+./mill -i "$@" __.publishLocal + assembly
 
 ./mill -i show main.publishVersion
 
