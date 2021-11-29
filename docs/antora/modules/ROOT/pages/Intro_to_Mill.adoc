@@ -847,6 +847,12 @@ You can fine control some BSP server options by specifying command options:
 
 [NOTE]
 --
+When using Metals by default Bloop will be used as your build server unless you
+explicitly choose Mill. When in a Mill workspace use the "Switch Build Server"
+command from Metals which will allow you to switch to using Mill as your build
+server. If no `.bsp/mill-bsp.json` file exists Metals will automatically create
+it for you and then connect to Mill.
+
 If you want to use Metals, you may also want to enable SemanticDB support. Without it, some functionality like find references may not work.
 
 We still work on a better and automatic SemanticDB support.
