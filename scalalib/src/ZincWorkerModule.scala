@@ -5,11 +5,12 @@ import scala.annotation.nowarn
 import coursier.Repository
 import mill.Agg
 import mill.T
-import mill.api.{Ctx, FixSizedCache, KeyedLockedCache}
-import mill.define.{Command, Discover, ExternalModule, Worker}
+import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, Loose, PathRef, Result}
+import mill.define.{Command, Discover, ExternalModule, Target, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.scalalib.api.ZincWorkerApi
+import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil}
+import os.Path
 
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
@@ -17,7 +18,7 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
 
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
 
-  def classpath = T {
+  def classpath: Target[Agg[PathRef]] = T {
     mill.modules.Util.millProjectModule(
       "MILL_SCALA_WORKER",
       "mill-scalalib-worker",
@@ -25,16 +26,15 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     )
   }
 
-  def scalalibClasspath = T {
+  def scalalibClasspath: Target[Agg[PathRef]] = T {
     mill.modules.Util.millProjectModule(
       "MILL_SCALA_LIB",
       "mill-scalalib",
-      repositoriesTask(),
-      artifactSuffix = "_2.13"
+      repositoriesTask()
     )
   }
 
-  def backgroundWrapperClasspath = T {
+  def backgroundWrapperClasspath: Target[Agg[PathRef]] = T {
     mill.modules.Util.millProjectModule(
       "MILL_BACKGROUNDWRAPPER",
       "mill-scalalib-backgroundwrapper",
@@ -43,15 +43,14 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     )
   }
 
-  def worker: Worker[mill.scalalib.api.ZincWorkerApi] = T.worker {
+  def worker: Worker[ZincWorkerApi] = T.worker {
     val ctx = T.ctx()
     val jobs = T.ctx() match {
       case j: Ctx.Jobs => j.jobs
       case _ => 1
     }
-    ctx.log.debug(s"ZinkWorker: using cache size ${jobs}")
     val cl = mill.api.ClassLoader.create(
-      classpath().map(_.path.toNIO.toUri.toURL).toVector,
+      classpath().map(_.path.toNIO.toUri.toURL).iterator.to(Vector),
       getClass.getClassLoader
     )
     val cls = cl.loadClass("mill.scalalib.worker.ZincWorkerImpl")
@@ -73,21 +72,21 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
           (x: String, y: String) =>
             scalaCompilerBridgeJar(x, y, repositoriesTask()).asSuccess.get.value
         )),
-        mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),
-        mill.scalalib.api.Util.grepJar(_, "scala-compiler", _, sources = false),
+        ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false),
+        ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),
         new FixSizedCache(jobs),
         false.asInstanceOf[AnyRef]
       )
-    instance.asInstanceOf[mill.scalalib.api.ZincWorkerApi]
+    instance.asInstanceOf[ZincWorkerApi]
   }
 
   def scalaCompilerBridgeJar(
       scalaVersion: String,
       scalaOrganization: String,
       repositories: Seq[Repository]
-  ) = {
+  ): Result[(Option[Array[Path]], Path)] = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
-      case _ => (scalaVersion, mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion))
+      case _ => (scalaVersion, ZincWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
 
     val (bridgeDep, bridgeName, bridgeVersion) =
@@ -113,14 +112,14 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       useSources,
       Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     ).map(deps =>
-      mill.scalalib.api.Util.grepJar(deps.map(_.path), bridgeName, bridgeVersion, useSources)
+      ZincWorkerUtil.grepJar(deps.map(_.path), bridgeName, bridgeVersion, useSources)
     )
 
     if (useSources) {
       for {
         jar <- bridgeJar
         classpath <- compilerInterfaceClasspath(scalaVersion, scalaOrganization, repositories)
-      } yield (Some(classpath.map(_.path).toArray), jar)
+      } yield (Some(classpath.map(_.path).iterator.toArray), jar)
     } else {
       bridgeJar.map((None, _))
     }
@@ -130,11 +129,11 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       scalaVersion: String,
       scalaOrganization: String,
       repositories: Seq[Repository]
-  ) = {
+  ): Result[Agg[PathRef]] = {
     resolveDependencies(
-      repositories,
-      Lib.depToDependency(_, "2.12.4", ""),
-      Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}"),
+      repositories = repositories,
+      depToDependency = Lib.depToDependency(_, "2.12.4", ""),
+      deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}"),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
