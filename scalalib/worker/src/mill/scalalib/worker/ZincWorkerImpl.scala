@@ -5,11 +5,13 @@ import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.ref.WeakReference
+import scala.util.Properties.isWin
 
 import mill.api.Loose.Agg
 import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, internal}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil => Util}
 import sbt.internal.inc._
+import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.util.LogExchange
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
@@ -41,7 +43,16 @@ class ZincWorkerImpl(
     // Zinc does not have an entry point for Java-only compilation, so we need
     // to make up a dummy ScalaCompiler instance.
     val scalac = ZincUtil.scalaCompiler(
-      new ScalaInstance("", null, null, dummyFile, dummyFile, new Array(0), Some("")),
+      new ScalaInstance(
+        version = "",
+        loader = null,
+        loaderCompilerOnly = null,
+        loaderLibraryOnly = null,
+        libraryJars = Array(dummyFile),
+        compilerJars = Array(dummyFile),
+        allJars = new Array(0),
+        explicitActual = Some("")
+      ),
       dummyFile,
       classpathOptions // this is used for javac too
     )
@@ -138,8 +149,17 @@ class ZincWorkerImpl(
     val allScala = sources.forall(_.ext == "scala")
     val allJava = sources.forall(_.ext == "java")
     if (allJava) {
+      val javacExe: String =
+        sys.props
+          .get("java.home")
+          .map(h =>
+            if (isWin) new File(h, "bin\\javac.exe")
+            else new File(h, "bin/javac")
+          )
+          .filter(f => f.exists())
+          .fold("javac")(_.getAbsolutePath())
       import scala.sys.process._
-      (Seq("javac") ++ argsArray).!
+      (Seq(javacExe) ++ argsArray).!
     } else if (allScala) {
       val compilerMain = classloader.loadClass(
         if (Util.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
@@ -339,7 +359,7 @@ class ZincWorkerImpl(
       scalacPluginClasspath: Agg[os.Path]
   )(f: Compilers => T)(implicit ctx: ZincWorkerApi.Ctx) = {
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
-    val combinedCompilerJars = combinedCompilerClasspath.toArray.map(_.toIO)
+    val combinedCompilerJars = combinedCompilerClasspath.iterator.toArray.map(_.toIO)
 
     val compiledCompilerBridge = compileBridgeIfNeeded(
       scalaVersion,
@@ -354,40 +374,27 @@ class ZincWorkerImpl(
         combinedCompilerClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
 
     compilerCache.withCachedValue(compilersSig) {
-      val compilerJar =
-        if (Util.isDotty(scalaVersion))
-          Util.grepJar(
-            compilerClasspath,
-            s"dotty-compiler_${Util.scalaBinaryVersion(scalaVersion)}",
-            scalaVersion
-          )
-        else if (Util.isScala3(scalaVersion))
-          Util.grepJar(
-            compilerClasspath,
-            s"scala3-compiler_${Util.scalaBinaryVersion(scalaVersion)}",
-            scalaVersion
-          )
-        else
-          compilerJarNameGrep(compilerClasspath, scalaVersion)
-
+      val loader = getCachedClassLoader(compilersSig, combinedCompilerJars)
       val scalaInstance = new ScalaInstance(
         version = scalaVersion,
-        loader = getCachedClassLoader(compilersSig, combinedCompilerJars),
-        libraryJar = libraryJarNameGrep(
+        loader = loader,
+        loaderCompilerOnly = loader,
+        loaderLibraryOnly = ClasspathUtil.rootLoader,
+        libraryJars = Array(libraryJarNameGrep(
           compilerClasspath,
           // we don't support too outdated dotty versions
           // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
           if (Util.isDottyOrScala3(scalaVersion)) "2.13." else scalaVersion
-        ).toIO,
-        compilerJar = compilerJar.toIO,
+        ).toIO),
+        compilerJars = combinedCompilerJars,
         allJars = combinedCompilerJars,
         explicitActual = None
       )
       ic.compilers(
-        scalaInstance,
-        ClasspathOptionsUtil.boot,
-        None,
-        ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
+        instance = scalaInstance,
+        cpOptions = ClasspathOptionsUtil.boot,
+        javaHome = None,
+        scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
       )
     }(f)
   }
@@ -413,6 +420,10 @@ class ZincWorkerImpl(
       _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
+    // The following three calls to [[LogExchange]] are deprecated, but the
+    // suggested alternatives aren't public API, so we can't really do anything
+    // to avoid calling these deprecated API.
+    // See issue https://github.com/sbt/sbt/issues/6734
     val logger = LogExchange.logger(loggerId)
     LogExchange.unbindLoggerAppenders(loggerId)
     LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> sbt.util.Level.Info) :: Nil)
