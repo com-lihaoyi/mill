@@ -423,7 +423,7 @@ class ZincWorkerImpl(
     // The following three calls to [[LogExchange]] are deprecated, but the
     // suggested alternatives aren't public API, so we can't really do anything
     // to avoid calling these deprecated API.
-    // See issue https://github.com/sbt/zinc/issues/1007
+    // See issue https://github.com/sbt/sbt/issues/6734
     val logger = LogExchange.logger(loggerId)
     LogExchange.unbindLoggerAppenders(loggerId)
     LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> sbt.util.Level.Info) :: Nil)
