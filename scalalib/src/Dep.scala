@@ -1,5 +1,5 @@
 package mill.scalalib
-import mill.util.JsonFormatters._
+import JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
 import mill.scalalib.api.Util.Scala3EarlyVersion

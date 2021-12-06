@@ -26,7 +26,8 @@ object ReplApplyHandler {
     val logger = new mill.util.PrintLogger(
       colors != ammonite.util.Colors.BlackWhite,
       disableTicker,
-      colors,
+      colors.info(),
+      colors.error(),
       System.out,
       System.err,
       System.err,
