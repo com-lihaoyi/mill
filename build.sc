@@ -335,8 +335,8 @@ object main extends MillModule {
   object moduledefs extends MillPublishModule with ScalaModule {
     def scalaVersion = Deps.scalaVersion
     override def ivyDeps = Agg(
-      Deps.sourcecode,
-      Deps.scalaCompiler(scalaVersion())
+      Deps.scalaCompiler(scalaVersion()),
+      Deps.sourcecode
     )
   }
 
