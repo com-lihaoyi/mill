@@ -266,9 +266,8 @@ object main extends MillModule {
       Deps.sbtTestInterface
     )
   }
-  object util extends MillModule {
-    override def moduleDeps = Seq(moduledefs, api)
-    def compileIvyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
+  object util extends MillApiModule {
+    override def moduleDeps = Seq(api)
     def ivyDeps = Agg(
       Deps.ammoniteTerminal,
       Deps.fansi
@@ -335,8 +334,10 @@ object main extends MillModule {
 
   object moduledefs extends MillPublishModule with ScalaModule {
     def scalaVersion = Deps.scalaVersion
-    def compileIvyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
-    override def ivyDeps = Agg(Deps.sourcecode)
+    override def ivyDeps = Agg(
+      Deps.sourcecode,
+      Deps.scalaCompiler(scalaVersion())
+    )
   }
 
   object client extends MillPublishModule {

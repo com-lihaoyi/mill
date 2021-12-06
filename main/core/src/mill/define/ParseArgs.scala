@@ -5,6 +5,7 @@ import scala.annotation.tailrec
 import fastparse._
 import NoWhitespace._
 import mill.define.{Segment, Segments}
+import mill.util.EitherOps
 
 sealed trait SelectMode
 object SelectMode {
