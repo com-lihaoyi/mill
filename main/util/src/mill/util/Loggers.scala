@@ -64,20 +64,22 @@ object PrintState {
   case object Middle extends PrintState
 }
 trait ColorLogger extends Logger {
-  def colors: ammonite.util.Colors
+  def infoColor: fansi.Attrs
+  def errorColor: fansi.Attrs
 }
 
 case class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "")
     extends ColorLogger {
   override def colored = out.colored
 
-  def colors = out.colors
+  def infoColor = out.infoColor
+  def errorColor = out.errorColor
   override val errorStream = new PrintStream(new LinePrefixOutputStream(
-    colors.info()(context).render,
+    infoColor(context).render,
     out.errorStream
   ))
   override val outputStream = new PrintStream(new LinePrefixOutputStream(
-    colors.info()(context).render,
+    infoColor(context).render,
     out.outputStream
   ))
 
@@ -95,7 +97,8 @@ case class PrefixLogger(out: ColorLogger, context: String, tickerContext: String
 case class PrintLogger(
     colored: Boolean,
     disableTicker: Boolean,
-    colors: ammonite.util.Colors,
+    infoColor: fansi.Attrs,
+    errorColor: fansi.Attrs,
     outStream: PrintStream,
     infoStream: PrintStream,
     errStream: PrintStream,
@@ -115,22 +118,22 @@ case class PrintLogger(
 
   def info(s: String) = synchronized {
     printState = PrintState.Newline
-    infoStream.println(colors.info()(context + s))
+    infoStream.println(infoColor(context + s))
   }
 
   def error(s: String) = synchronized {
     printState = PrintState.Newline
-    errStream.println((colors.info()(context) ++ colors.error()(s)).render)
+    errStream.println((infoColor(context) ++ errorColor(s)).render)
   }
 
   def ticker(s: String) = synchronized {
     if (!disableTicker) {
       printState match {
         case PrintState.Newline =>
-          infoStream.println(colors.info()(s))
+          infoStream.println(infoColor(s))
         case PrintState.Middle =>
           infoStream.println()
-          infoStream.println(colors.info()(s))
+          infoStream.println(infoColor(s))
         case PrintState.Ticker =>
           val p = new PrintWriter(infoStream)
           // Need to make this more "atomic"
@@ -140,7 +143,7 @@ case class PrintLogger(
           nav.left(9999)
           p.flush()
 
-          infoStream.println(colors.info()(s))
+          infoStream.println(infoColor(s))
       }
       printState = PrintState.Ticker
     }

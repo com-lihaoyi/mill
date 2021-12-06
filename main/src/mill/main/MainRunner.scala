@@ -105,7 +105,8 @@ class MainRunner(
         val logger = PrintLogger(
           colored = colored,
           disableTicker = disableTicker,
-          colors = colors,
+          infoColor = colors.info(),
+          errorColor = colors.error(),
           outStream = outprintStream,
           infoStream = errPrintStream,
           errStream = errPrintStream,

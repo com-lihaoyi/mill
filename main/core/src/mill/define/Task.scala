@@ -2,7 +2,7 @@ package mill.define
 
 import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
 import mill.define.Applicative.Applyable
-import mill.util.EnclosingClass
+import mill.define.EnclosingClass
 import sourcecode.Compat.Context
 import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
 import scala.language.experimental.macros

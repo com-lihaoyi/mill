@@ -259,26 +259,13 @@ object Jvm {
       closeContextClassLoaderWhenDone: Boolean,
       body: ClassLoader => T
   )(implicit ctx: Ctx.Home): T = {
-    val urls = classPath.map(_.toIO.toURI.toURL)
-    val cl =
-      if (classLoaderOverrideSbtTesting) {
-        mill.api.ClassLoader.create(urls.toVector, null, sharedPrefixes = Seq("sbt.testing."))
-      } else if (isolated) {
-        mill.api.ClassLoader.create(urls.toVector, null)
-      } else {
-        mill.api.ClassLoader.create(urls.toVector, getClass.getClassLoader)
-      }
-
-    val oldCl = Thread.currentThread().getContextClassLoader
-    Thread.currentThread().setContextClassLoader(cl)
-    try {
-      body(cl)
-    } finally {
-      if (closeContextClassLoaderWhenDone) {
-        Thread.currentThread().setContextClassLoader(oldCl)
-        cl.close()
-      }
-    }
+    mill.util.Jvm.inprocess(
+      classPath,
+      classLoaderOverrideSbtTesting,
+      isolated,
+      closeContextClassLoaderWhenDone,
+      body
+    )
   }
 
   def createManifest(mainClass: Option[String]): JarManifest = {

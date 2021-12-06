@@ -20,7 +20,8 @@ import mill.util.{ColorLogger, ProxyLogger}
 class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
     extends ProxyLogger(logger)
     with ColorLogger {
-  def colors = ammonite.util.Colors.BlackWhite
+  def infoColor = fansi.Color.Blue
+  def errorColor = fansi.Color.Red
 
   override def ticker(s: String): Unit = {
     try {

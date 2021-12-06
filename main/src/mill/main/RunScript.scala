@@ -7,13 +7,15 @@ import ammonite.util.{Name, Res, Util}
 import mill.define
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.util.{EitherOps, ParseArgs, PrintLogger, SelectMode, Watched}
+import mill.util.{EitherOps, PrintLogger, Watched}
+import mill.define.SelectMode
+import mill.define.ParseArgs
 import mill.api.{Logger, PathRef, Result}
 import mill.api.Strict.Agg
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
-import mill.util.ParseArgs.TargetsWithParams
+import mill.define.ParseArgs.TargetsWithParams
 
 /**
  * Custom version of ammonite.main.Scripts, letting us run the build.sc script

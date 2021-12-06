@@ -2,7 +2,7 @@ package mill.define
 
 import java.lang.reflect.Modifier
 
-import mill.util.ParseArgs
+import mill.define.ParseArgs
 
 import scala.language.experimental.macros
 import scala.reflect.ClassTag

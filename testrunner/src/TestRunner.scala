@@ -1,20 +1,91 @@
-package mill.scalalib
+package mill.testrunner
 
-import ammonite.util.Colors
-import mill.Agg
-import mill.api.{DummyTestReporter, TestReporter}
-import mill.modules.Jvm
+import mill.api.Loose.Agg
+import mill.api.{DummyTestReporter, Loose, TestReporter}
+import mill.util.Jvm
 import mill.scalalib.api._
-import mill.scalalib.Lib.discoverTests
 import mill.util.{Ctx, PrintLogger}
-import mill.util.JsonFormatters._
+import mill.api.JsonFormatters._
 import sbt.testing._
 
+import java.io.FileInputStream
+import java.lang.annotation.Annotation
+import java.lang.reflect.Modifier
 import java.util.regex.Pattern
+import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.util.Try
 
 object TestRunner {
+  def listClassFiles(base: os.Path): Iterator[String] = {
+    if (os.isDir(base))
+      os.walk(base).iterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
+    else {
+      val zip = new ZipInputStream(new FileInputStream(base.toIO))
+      Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(
+        ".class"
+      ))
+    }
+  }
+
+  def discoverTests(
+      cl: ClassLoader,
+      framework: Framework,
+      classpath: Loose.Agg[os.Path]
+  ): Loose.Agg[(Class[_], Fingerprint)] = {
+
+    val fingerprints = framework.fingerprints()
+
+    val testClasses = classpath.flatMap { base =>
+      // Don't blow up if there are no classfiles representing
+      // the tests to run Instead just don't run anything
+      if (!os.exists(base)) Nil
+      else listClassFiles(base).flatMap { path =>
+        val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
+        val publicConstructorCount =
+          cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
+
+        if (
+          Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
+        ) {
+          None
+        } else {
+          (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
+            case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
+            case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
+            case _ => None
+          }
+        }
+      }
+    }
+
+    testClasses
+  }
+
+  def matchFingerprints(
+      cl: ClassLoader,
+      cls: Class[_],
+      fingerprints: Array[Fingerprint],
+      isModule: Boolean
+  ): Option[(Class[_], Fingerprint)] = {
+    fingerprints.find {
+      case f: SubclassFingerprint =>
+        f.isModule == isModule &&
+          cl.loadClass(f.superclassName()).isAssignableFrom(cls)
+
+      case f: AnnotatedFingerprint =>
+        val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
+        f.isModule == isModule &&
+        (
+          cls.isAnnotationPresent(annotationCls) ||
+            cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
+            cls.getMethods.exists(m =>
+              m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers())
+            )
+        )
+
+    }.map { f => (cls, f) }
+  }
 
   case class TestArgs(
       framework: String,
@@ -137,8 +208,10 @@ object TestRunner {
         val log = PrintLogger(
           testArgs.colored,
           true,
-          if (testArgs.colored) Colors.Default
-          else Colors.BlackWhite,
+          if (testArgs.colored) fansi.Color.Blue
+          else fansi.Attrs.Empty,
+          if (testArgs.colored) fansi.Color.Red
+          else fansi.Attrs.Empty,
           System.out,
           System.err,
           System.err,
@@ -186,7 +259,7 @@ object TestRunner {
       testClassfilePath: Agg[os.Path],
       args: Seq[String],
       testReporter: TestReporter
-  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.testrunner.TestRunner.Result]) = {
     runTestFramework(
       frameworkInstances = cl => frameworkInstances(cl).head,
       entireClasspath = entireClasspath,
@@ -202,7 +275,7 @@ object TestRunner {
       testClassfilePath: Agg[os.Path],
       args: Seq[String],
       testReporter: TestReporter
-  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.testrunner.TestRunner.Result]) = {
     runTestFramework(
       frameworkInstances,
       entireClasspath,
@@ -220,7 +293,7 @@ object TestRunner {
       args: Seq[String],
       testReporter: TestReporter,
       classFilter: Class[_] => Boolean
-  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.testrunner.TestRunner.Result]) = {
     // Leave the context class loader set and open so that shutdown hooks can access it
     Jvm.inprocess(
       entireClasspath,
@@ -282,7 +355,7 @@ object TestRunner {
         val results = for (e <- events) yield {
           val ex =
             if (e.throwable().isDefined) Some(e.throwable().get) else None
-          mill.scalalib.TestRunner.Result(
+          mill.testrunner.TestRunner.Result(
             e.fullyQualifiedName(),
             e.selector() match {
               case s: NestedSuiteSelector => s.suiteId()

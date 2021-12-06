@@ -5,7 +5,8 @@ import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, NamedTask, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.util.{PrintLogger, SelectMode, Watched}
+import mill.util.{PrintLogger, Watched}
+import mill.define.SelectMode
 import pprint.{Renderer, Truncated}
 
 object MainModule {
@@ -242,8 +243,8 @@ trait MainModule extends mill.Module {
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
         baseLogger = evaluator.baseLogger match {
-          case PrintLogger(c1, d, c2, _, i, e, in, de, uc) =>
-            PrintLogger(c1, d, c2, e, i, e, in, de, uc)
+          case PrintLogger(c1, d, c2, c3, _, i, e, in, de, uc) =>
+            PrintLogger(c1, d, c2, c3, e, i, e, in, de, uc)
           case l => l
         }
       ),

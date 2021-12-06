@@ -1,6 +1,8 @@
 package mill.api
 
 import upickle.default.{ReadWriter => RW}
+
+import scala.reflect.ClassTag
 import scala.util.matching.Regex
 
 object JsonFormatters extends JsonFormatters
@@ -45,4 +47,16 @@ trait JsonFormatters {
         json("lineNumber").num.toInt
       )
   )
+
+
+  implicit def enumFormat[T <: java.lang.Enum[_]: ClassTag]: RW[T] =
+    upickle.default.readwriter[String].bimap(
+      _.name(),
+      (s: String) =>
+        implicitly[ClassTag[T]]
+          .runtimeClass
+          .getConstructor(classOf[String])
+          .newInstance(s)
+          .asInstanceOf[T]
+    )
 }

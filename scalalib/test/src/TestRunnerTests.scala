@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.{Agg, T}
 
 import scala.util.Success
-import mill.scalalib.TestRunner.TestArgs
+import mill.testrunner.TestRunner.TestArgs
 import mill.util.{TestEvaluator, TestUtil}
 import org.scalacheck.Prop.forAll
 import utest._
@@ -73,7 +73,7 @@ object TestRunnerTests extends TestSuite {
     "TestRunner" - {
       "test case lookup" - workspaceTest(testrunner) { eval =>
         val Right((result, _)) = eval.apply(testrunner.test.test())
-        val test = result.asInstanceOf[(String, Seq[mill.scalalib.TestRunner.Result])]
+        val test = result.asInstanceOf[(String, Seq[mill.testrunner.TestRunner.Result])]
         assert(
           test._2.size == 3
         )
@@ -81,7 +81,7 @@ object TestRunnerTests extends TestSuite {
       "testOnly" - {
         def testOnly(eval: TestEvaluator, args: Seq[String], size: Int) = {
           val Right((result1, _)) = eval.apply(testrunner.test.testOnly(args: _*))
-          val testOnly = result1.asInstanceOf[(String, Seq[mill.scalalib.TestRunner.Result])]
+          val testOnly = result1.asInstanceOf[(String, Seq[mill.testrunner.TestRunner.Result])]
           assert(
             testOnly._2.size == size
           )

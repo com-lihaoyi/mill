@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.eval.Evaluator
-import mill.util.SelectMode
+import mill.define.SelectMode
 
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 

@@ -67,7 +67,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
     }
   }
   def meta(s: String): String = {
-    val (List(selector), args) = ParseArgs.apply(Seq(s), multiSelect = false).right.get
+    val (List(selector), args) = mill.define.ParseArgs.apply(Seq(s), multiSelect = false).right.get
 
     val segments = selector._2.value.flatMap(_.pathSegments)
     os.read(wd / "out" / segments.init / s"${segments.last}.json")

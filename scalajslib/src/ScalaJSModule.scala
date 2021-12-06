@@ -5,7 +5,8 @@ import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
+import mill.scalalib.{DepSyntax, Lib, TestModule}
+import mill.testrunner.TestRunner
 import mill.util.Ctx
 import mill.define.Task
 import mill.scalajslib.api._

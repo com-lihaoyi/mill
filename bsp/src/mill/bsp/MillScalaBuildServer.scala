@@ -19,7 +19,8 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsResult
 }
 import mill.modules.Jvm
-import mill.scalalib.{JavaModule, Lib, ScalaModule, TestModule, TestRunner}
+import mill.scalalib.{JavaModule, Lib, ScalaModule, TestModule}
+import mill.testrunner.TestRunner
 import mill.{Agg, T}
 import sbt.testing.Fingerprint
 
@@ -101,7 +102,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
             closeContextClassLoaderWhenDone = false,
             cl => {
               val framework = TestRunner.framework(testFramework)(cl)
-              Lib.discoverTests(
+              TestRunner.discoverTests(
                 cl,
                 framework,
                 Agg(compResult.classes.path)
