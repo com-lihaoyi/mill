@@ -31,14 +31,14 @@ object ParseArgs {
 
   @deprecated("Use apply(Seq[String], SelectMode) instead", "mill after 0.10.0-M3")
   def apply(
-             scriptArgs: Seq[String],
-             multiSelect: Boolean
-           ): Either[String, TargetsWithParams] = extractAndValidate(scriptArgs, multiSelect)
+      scriptArgs: Seq[String],
+      multiSelect: Boolean
+  ): Either[String, TargetsWithParams] = extractAndValidate(scriptArgs, multiSelect)
 
   def apply(
-             scriptArgs: Seq[String],
-             selectMode: SelectMode
-           ): Either[String, Seq[TargetsWithParams]] = {
+      scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, Seq[TargetsWithParams]] = {
 
     val MaskPattern = ("""\\+\Q""" + TargetSeparator + """\E""").r
 
@@ -63,29 +63,29 @@ object ParseArgs {
     val parsed: Seq[Either[String, TargetsWithParams]] =
       parts.map(extractAndValidate(_, selectMode == SelectMode.Multi))
 
-    val res1: Either[String, Seq[TargetsWithParams]] = mill.util.EitherOps.sequence(parsed)
+    val res1: Either[String, Seq[TargetsWithParams]] = EitherOps.sequence(parsed)
 
     res1
   }
 
   private def extractAndValidate(
-                                  scriptArgs: Seq[String],
-                                  multiSelect: Boolean
-                                ): Either[String, TargetsWithParams] = {
+      scriptArgs: Seq[String],
+      multiSelect: Boolean
+  ): Either[String, TargetsWithParams] = {
     val (selectors, args) = extractSelsAndArgs(scriptArgs, multiSelect)
     for {
       _ <- validateSelectors(selectors)
-      expandedSelectors <- mill.util.EitherOps
+      expandedSelectors <- EitherOps
         .sequence(selectors.map(expandBraces))
         .map(_.flatten)
-      selectors <- mill.util.EitherOps.sequence(expandedSelectors.map(extractSegments))
+      selectors <- EitherOps.sequence(expandedSelectors.map(extractSegments))
     } yield (selectors.toList, args)
   }
 
   def extractSelsAndArgs(
-                          scriptArgs: Seq[String],
-                          multiSelect: Boolean
-                        ): (Seq[String], Seq[String]) = {
+      scriptArgs: Seq[String],
+      multiSelect: Boolean
+  ): (Seq[String], Seq[String]) = {
 
     if (multiSelect) {
       val dd = scriptArgs.indexOf(MultiArgsSeparator)
