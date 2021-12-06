@@ -268,6 +268,7 @@ object main extends MillModule {
   }
   object util extends MillModule {
     override def moduleDeps = Seq(moduledefs, api)
+    def compileIvyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
     def ivyDeps = Agg(
       Deps.ammoniteTerminal,
       Deps.fansi
@@ -334,10 +335,8 @@ object main extends MillModule {
 
   object moduledefs extends MillPublishModule with ScalaModule {
     def scalaVersion = Deps.scalaVersion
-    override def ivyDeps = Agg(
-      Deps.scalaCompiler(scalaVersion()),
-      Deps.sourcecode
-    )
+    def compileIvyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
+    override def ivyDeps = Agg(Deps.sourcecode)
   }
 
   object client extends MillPublishModule {
@@ -345,12 +344,7 @@ object main extends MillModule {
       Deps.ipcsocketExcludingJna
     )
     object test extends Tests with TestModule.Junit4 {
-      override def ivyDeps = T {
-        Agg(
-          Deps.junitInterface,
-          Deps.lambdaTest
-        )
-      }
+      override def ivyDeps = Agg(Deps.junitInterface, Deps.lambdaTest)
     }
   }
 
