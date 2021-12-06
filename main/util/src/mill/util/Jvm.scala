@@ -4,12 +4,12 @@ import mill.api.Loose.Agg
 object Jvm {
 
   def inprocess[T](
-                    classPath: Agg[os.Path],
-                    classLoaderOverrideSbtTesting: Boolean,
-                    isolated: Boolean,
-                    closeContextClassLoaderWhenDone: Boolean,
-                    body: ClassLoader => T
-                  )(implicit ctx: mill.api.Ctx.Home): T = {
+      classPath: Agg[os.Path],
+      classLoaderOverrideSbtTesting: Boolean,
+      isolated: Boolean,
+      closeContextClassLoaderWhenDone: Boolean,
+      body: ClassLoader => T
+  )(implicit ctx: Ctx.Home): T = {
     val urls = classPath.map(_.toIO.toURI.toURL)
     val cl =
       if (classLoaderOverrideSbtTesting) {
