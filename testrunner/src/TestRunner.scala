@@ -29,10 +29,10 @@ object TestRunner {
   }
 
   def discoverTests(
-                     cl: ClassLoader,
-                     framework: Framework,
-                     classpath: Loose.Agg[os.Path]
-                   ): Loose.Agg[(Class[_], Fingerprint)] = {
+      cl: ClassLoader,
+      framework: Framework,
+      classpath: Loose.Agg[os.Path]
+  ): Loose.Agg[(Class[_], Fingerprint)] = {
 
     val fingerprints = framework.fingerprints()
 
@@ -63,11 +63,11 @@ object TestRunner {
   }
 
   def matchFingerprints(
-                         cl: ClassLoader,
-                         cls: Class[_],
-                         fingerprints: Array[Fingerprint],
-                         isModule: Boolean
-                       ): Option[(Class[_], Fingerprint)] = {
+      cl: ClassLoader,
+      cls: Class[_],
+      fingerprints: Array[Fingerprint],
+      isModule: Boolean
+  ): Option[(Class[_], Fingerprint)] = {
     fingerprints.find {
       case f: SubclassFingerprint =>
         f.isModule == isModule &&
@@ -76,13 +76,13 @@ object TestRunner {
       case f: AnnotatedFingerprint =>
         val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
         f.isModule == isModule &&
-          (
-            cls.isAnnotationPresent(annotationCls) ||
-              cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
-              cls.getMethods.exists(m =>
-                m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers())
-              )
+        (
+          cls.isAnnotationPresent(annotationCls) ||
+            cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
+            cls.getMethods.exists(m =>
+              m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers())
             )
+        )
 
     }.map { f => (cls, f) }
   }
