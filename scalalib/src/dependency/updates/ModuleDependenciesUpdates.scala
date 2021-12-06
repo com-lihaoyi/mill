@@ -22,7 +22,7 @@ final case class DependencyUpdates(
 )
 
 object DependencyUpdates {
-  import mill.util.JsonFormatters.depFormat
+  import mill.scalalib.JsonFormatters.depFormat
 
   implicit val rw: upickle.default.ReadWriter[DependencyUpdates] =
     upickle.default.macroRW

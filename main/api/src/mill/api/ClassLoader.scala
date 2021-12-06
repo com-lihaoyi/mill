@@ -38,9 +38,8 @@ object ClassLoader {
       makeUrls(urls).toArray,
       refinePlatformParent(parent)
     ) {
-      val allSharedPrefixes = sharedPrefixes :+ "com.sun.jna"
       override def findClass(name: String): Class[_] = {
-        if (allSharedPrefixes.exists(name.startsWith)) {
+        if (sharedPrefixes.exists(name.startsWith)) {
           logger.foreach(
             _.debug(s"About to load class [${name}] from shared classloader [${sharedLoader}]")
           )

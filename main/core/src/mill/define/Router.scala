@@ -1,4 +1,4 @@
-package mill.util
+package mill.define
 
 import mill.define.{Cross, Discover}
 

@@ -38,7 +38,8 @@ class TestEvaluator(
   val logger = new PrintLogger(
     colored = true,
     disableTicker = false,
-    ammonite.util.Colors.Default,
+    ammonite.util.Colors.Default.info(),
+    ammonite.util.Colors.Default.error(),
     outStream,
     outStream,
     outStream,
