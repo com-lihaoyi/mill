@@ -23,7 +23,7 @@ object HelloNativeWorldTests extends TestSuite {
   }
 
   val scala213 = "2.13.6"
-  val scalaNative04 = "0.4.0"
+  val scalaNative04 = "0.4.2"
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
