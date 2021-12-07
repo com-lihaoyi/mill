@@ -306,7 +306,7 @@ different Task types:
 | |Target |Command |Source/Input |Anonymous Task |Persistent Target |Worker 
 
 |Cached to Disk |X |X | | |X |
-|Must be JSON Writable |X |X | | |X | 
+|Must be JSON Writable |X |X |X| |X |
 |Must be JSON Readable |X | | | |X | 
 |Runnable from the Command Line |X |X | | |X | 
 |Can Take Arguments | |X | |X | | 
