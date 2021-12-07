@@ -93,7 +93,7 @@ case class Evaluator(
         (int: Int) => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
-    val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
+    val (sortedGroups, transitive) = Evaluator.plan(goals)
     val terminalNames = sortedGroups
       .keys()
       .map{
@@ -182,7 +182,7 @@ case class Evaluator(
     os.makeDir.all(outPath)
     val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
 
-    val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
+    val (sortedGroups, transitive) = Evaluator.plan(goals)
 
     val interGroupDeps = findInterGroupDeps(sortedGroups)
     import scala.concurrent._
@@ -663,7 +663,7 @@ object Evaluator {
     def values = rawValues.collect { case mill.api.Result.Success(v) => v }
   }
 
-  def plan(rootModule: BaseModule, goals: Agg[Task[_]]) = {
+  def plan(goals: Agg[Task[_]]) = {
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
     val seen = collection.mutable.Set.empty[Segments]
