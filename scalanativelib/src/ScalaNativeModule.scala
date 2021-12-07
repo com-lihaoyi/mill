@@ -8,7 +8,8 @@ import mill.api.internal
 import mill.define.{Target, Task}
 import mill.modules.Jvm
 import mill.scalalib.api.Util.scalaBinaryVersion
-import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
+import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
+import mill.testrunner.TestRunner
 import mill.scalanativelib.api._
 
 import scala.jdk.CollectionConverters._

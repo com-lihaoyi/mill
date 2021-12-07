@@ -72,6 +72,7 @@ object Deps {
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
   val ammonite = ivy"com.lihaoyi:::ammonite:2.4.1"
+  val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:2.4.1"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -122,6 +123,7 @@ object Deps {
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.5.7"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0"
+  val fansi = ivy"com.lihaoyi::fansi:0.2.14"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.0"
 }
 
@@ -189,18 +191,18 @@ trait MillMimaConfig extends mima.Mima {
     main.core -> Seq(
       ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.makeT"),
       ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.args"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.util.ParseArgs.standaloneIdent"),
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.ParseArgs.standaloneIdent"),
       ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.util.ParseArgs#BraceExpansionParser.plainChars"
+        "mill.define.ParseArgs#BraceExpansionParser.plainChars"
       ),
       ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.util.ParseArgs#BraceExpansionParser.braceParser"
+        "mill.define.ParseArgs#BraceExpansionParser.braceParser"
       ),
       ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.util.ParseArgs#BraceExpansionParser.parser"
+        "mill.define.ParseArgs#BraceExpansionParser.parser"
       ),
       ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.util.ParseArgs#BraceExpansionParser.toExpand"
+        "mill.define.ParseArgs#BraceExpansionParser.toExpand"
       ),
       ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.EvaluatorPaths.*"),
       ProblemFilter.exclude[DirectMissingMethodProblem]("mill.eval.EvaluatorPaths.*")
@@ -264,8 +266,15 @@ object main extends MillModule {
       Deps.sbtTestInterface
     )
   }
+  object util extends MillApiModule {
+    override def moduleDeps = Seq(api)
+    def ivyDeps = Agg(
+      Deps.ammoniteTerminal,
+      Deps.fansi
+    )
+  }
   object core extends MillModule {
-    override def moduleDeps = Seq(moduledefs, api)
+    override def moduleDeps = Seq(moduledefs, api, util)
 
     override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
@@ -336,12 +345,7 @@ object main extends MillModule {
       Deps.ipcsocketExcludingJna
     )
     object test extends Tests with TestModule.Junit4 {
-      override def ivyDeps = T {
-        Agg(
-          Deps.junitInterface,
-          Deps.lambdaTest
-        )
-      }
+      override def ivyDeps = Agg(Deps.junitInterface, Deps.lambdaTest)
     }
   }
 
@@ -358,11 +362,14 @@ object main extends MillModule {
   }
 }
 
+
+object testrunner extends MillModule {
+  override def moduleDeps = Seq(scalalib.api, main.util)
+}
 object scalalib extends MillModule {
-  override def moduleDeps = Seq(main, scalalib.api)
+  override def moduleDeps = Seq(main, scalalib.api, testrunner)
 
   override def ivyDeps = Agg(
-    Deps.sbtTestInterface,
     Deps.scalafmtDynamic
   )
 
@@ -753,7 +760,7 @@ object scalanativelib extends MillModule {
 }
 
 object bsp extends MillModule {
-  override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
+  override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib, testrunner)
   override def ivyDeps = Agg(
     Deps.bsp,
     Deps.sbtTestInterface

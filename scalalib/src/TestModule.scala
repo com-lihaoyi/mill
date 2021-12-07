@@ -5,6 +5,7 @@ import mill.define.{Command, Task, TaskModule}
 import mill.eval.Result
 import mill.modules.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import mill.testrunner.TestRunner
 
 trait TestModule extends JavaModule with TaskModule {
   override def defaultCommandName() = "test"
@@ -138,7 +139,7 @@ trait TestModule extends JavaModule with TaskModule {
         }
 
       Jvm.runSubprocess(
-        mainClass = "mill.scalalib.TestRunner",
+        mainClass = "mill.testrunner.TestRunner",
         classPath = zincWorker.scalalibClasspath().map(_.path),
         jvmArgs = jvmArgs,
         envArgs = forkEnv(),

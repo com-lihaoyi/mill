@@ -4,7 +4,7 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.{Command, Module, Task}
 import mill.eval.Evaluator
 import mill.main.RunScript
-import mill.util.SelectMode
+import mill.define.SelectMode
 import mill.{PathRef, T}
 import os.Path
 
