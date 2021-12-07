@@ -2,7 +2,6 @@ package mill.contrib.bloop
 
 import bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
-import mill.api.Loose
 import mill.define.{Module => MillModule, _}
 import mill.eval.Evaluator
 import mill.scalajslib.ScalaJSModule
