@@ -4,7 +4,8 @@ import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
 import mill.eval.{EvaluatorPaths, Result}
-import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule, TestRunner}
+import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
+import mill.testrunner.TestRunner
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
 import mill.util.{TestEvaluator, TestUtil}

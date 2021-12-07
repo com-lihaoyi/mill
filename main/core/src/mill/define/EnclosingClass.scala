@@ -1,4 +1,4 @@
-package mill.util
+package mill.define
 
 import sourcecode.Compat.Context
 import language.experimental.macros
@@ -10,6 +10,6 @@ object EnclosingClass {
     import c.universe._
     val cls = c.internal.enclosingOwner.owner.asType.asClass
     //    q"new _root_.mill.define.EnclosingClass(classOf[$cls])"
-    q"new _root_.mill.util.EnclosingClass(this.getClass)"
+    q"new _root_.mill.define.EnclosingClass(this.getClass)"
   }
 }
