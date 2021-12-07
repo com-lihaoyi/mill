@@ -45,14 +45,10 @@ trait NamedTask[+T] extends Task[T] {
   def ctx: mill.define.Ctx
   def label = ctx.segment match { case Segment.Label(v) => v }
   override def toString = ctx.segments.render
-  def readWriteOpt: Option[RW[_]]
-  def writeOpt: Option[W[_]]
 }
 trait Target[+T] extends NamedTask[T] {
   override def asTarget = Some(this)
   def readWrite: RW[_]
-  def readWriteOpt = Some(readWrite)
-  def writeOpt = Some(readWrite)
 }
 
 object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
@@ -319,15 +315,11 @@ class Command[+T](
     val cls: Class[_],
 ) extends NamedTaskImpl[T](ctx0, t) {
   override def asCommand = Some(this)
-  def readWriteOpt = None
-  def writeOpt = Some(writer)
 }
 
 class Worker[+T](t: Task[T], ctx0: mill.define.Ctx) extends NamedTaskImpl[T](ctx0, t) {
   override def flushDest = false
   override def asWorker = Some(this)
-  def readWriteOpt = None
-  def writeOpt = None
 }
 
 class Persistent[+T](t: Task[T], ctx0: mill.define.Ctx, readWrite: RW[_])
@@ -339,8 +331,6 @@ class Persistent[+T](t: Task[T], ctx0: mill.define.Ctx, readWrite: RW[_])
 class Input[T](t: Task[T], ctx0: mill.define.Ctx, val writer: upickle.default.Writer[_])
     extends NamedTaskImpl[T](ctx0, t) {
   override def sideHash = util.Random.nextInt()
-  def readWriteOpt = None
-  def writeOpt = Some(writer)
 }
 
 class Sources(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx)
