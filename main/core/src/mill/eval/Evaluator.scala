@@ -94,7 +94,6 @@ case class Evaluator(
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
-    pprint.log(goals.toSeq)
     val terminalNames = sortedGroups
       .keys()
       .map{
@@ -102,7 +101,7 @@ case class Evaluator(
         case Right(x) => (System.identityHashCode(x), x.task.ctx.lineNum, x.segments.render)
       }
       .toList
-    pprint.log(terminalNames.toList)
+
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
     var someTaskFailed: Boolean = false
@@ -669,15 +668,12 @@ object Evaluator {
     val topoSorted = Graph.topoSorted(transitive)
     val seen = collection.mutable.Set.empty[Segments]
     val overriden = collection.mutable.Set.empty[Task[_]]
-    pprint.log(topoSorted.values.reverse)
     topoSorted.values.reverse.foreach{
       case x: NamedTask[_] =>
         if (!seen.contains(x.ctx.segments)) seen.add(x.ctx.segments)
         else overriden.add(x)
       case _ => //donothing
     }
-    pprint.log(overriden.size)
-    pprint.log(seen.size)
 
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
       case t: NamedTask[Any] =>
