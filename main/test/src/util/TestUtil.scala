@@ -28,7 +28,6 @@ object TestUtil {
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
       millName0: sourcecode.Name,
-      overrides: Overrides
   ) extends mill.define.BaseModule(getSrcPathBase() / millModuleEnclosing0.value.split("\\.| |#"))(
         implicitly,
         implicitly,
