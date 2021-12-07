@@ -94,13 +94,6 @@ case class Evaluator(
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
     val (sortedGroups, transitive) = Evaluator.plan(goals)
-    val terminalNames = sortedGroups
-      .keys()
-      .map{
-        case Left(x) => x
-        case Right(x) => (System.identityHashCode(x), x.task.ctx.lineNum, x.segments.render)
-      }
-      .toList
 
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
