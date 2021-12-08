@@ -185,11 +185,11 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
       )
     )
   }
-  def input[T](value: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Input[T] =
+  def input[T](value: Result[T])(implicit w: upickle.default.Writer[T], ctx: mill.define.Ctx): Input[T] =
     macro inputImpl[T]
 
   def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
-      rw: c.Expr[RW[T]],
+      w: c.Expr[upickle.default.Writer[T]],
       ctx: c.Expr[mill.define.Ctx]
   ): c.Expr[Input[T]] = {
     import c.universe._
@@ -199,7 +199,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
         new Input[T](
           Applicative.impl[Task, T, mill.api.Ctx](c)(value).splice,
           ctx.splice,
-          rw.splice
+          w.splice
         )
       )
     )
@@ -328,9 +328,8 @@ class Persistent[+T](t: Task[T], ctx0: mill.define.Ctx, readWrite: RW[_])
   override def flushDest = false
 }
 
-class Input[T](t: Task[T], ctx0: mill.define.Ctx, val readWrite: RW[_])
-    extends NamedTaskImpl[T](ctx0, t)
-    with Target[T] {
+class Input[T](t: Task[T], ctx0: mill.define.Ctx, val writer: upickle.default.Writer[_])
+    extends NamedTaskImpl[T](ctx0, t) {
   override def sideHash = util.Random.nextInt()
 }
 
@@ -338,10 +337,7 @@ class Sources(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx)
     extends Input[Seq[PathRef]](
       t,
       ctx0,
-      RW.join(
-        upickle.default.SeqLikeReader[Seq, PathRef],
-        upickle.default.SeqLikeWriter[Seq, PathRef]
-      )
+      upickle.default.SeqLikeWriter[Seq, PathRef]
     )
 
 class Source(t: Task[PathRef], ctx0: mill.define.Ctx)
