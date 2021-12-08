@@ -209,23 +209,20 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
       ctx: mill.define.Ctx,
       w: W[T],
       cls: EnclosingClass,
-      overrides: Overrides
   ): Command[T] = {
-    new Command(t, ctx, w, cls.value, overrides.value)
+    new Command(t, ctx, w, cls.value)
   }
 
   def command[T](t: Result[T])(implicit
       w: W[T],
       ctx: mill.define.Ctx,
       cls: EnclosingClass,
-      overrides: Overrides
   ): Command[T] = macro commandImpl[T]
 
   def commandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
       w: c.Expr[W[T]],
       ctx: c.Expr[mill.define.Ctx],
       cls: c.Expr[EnclosingClass],
-      overrides: c.Expr[Overrides]
   ): c.Expr[Command[T]] = {
     import c.universe._
     reify(
@@ -234,7 +231,6 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
         ctx.splice,
         w.splice,
         cls.splice.value,
-        overrides.splice.value
       )
     )
   }
@@ -317,7 +313,6 @@ class Command[+T](
     ctx0: mill.define.Ctx,
     val writer: W[_],
     val cls: Class[_],
-    val overrides: Int
 ) extends NamedTaskImpl[T](ctx0, t) {
   override def asCommand = Some(this)
 }

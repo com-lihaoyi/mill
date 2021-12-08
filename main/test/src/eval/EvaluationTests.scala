@@ -356,5 +356,32 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         assert(leftCount == 4, middleCount == 4, rightCount == 1)
       }
     }
+    "stackableOverrides" - {
+      // Make sure you can override commands, call their supers, and have the
+      // overriden command be allocated a spot within the overriden/ folder of
+      // the main publicly-available command
+      import StackableOverrides._
+
+      val checker = new Checker(canOverrideSuper)
+      checker(
+        m.f,
+        6,
+        Agg(m.f),
+        extraEvaled = -1
+      )
+
+      val overridePrefix =
+        os.sub /  "overriden" / "mill" / "util" / "TestGraphs" / "StackableOverrides"
+
+      assert(
+        os.read(checker.evaluator.outPath / "m" / "f" / overridePrefix / "X" / "f.json")
+          .contains(" 1,")
+      )
+      assert(
+        os.read(checker.evaluator.outPath / "m" / "f" / overridePrefix / "A" / "f.json")
+          .contains(" 3,")
+      )
+      assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))
+    }
   }
 }

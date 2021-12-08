@@ -117,7 +117,7 @@ trait MainModule extends mill.Module {
     ) match {
       case Left(err) => Left(err)
       case Right(rs) =>
-        val (sortedGroups, _) = Evaluator.plan(evaluator.rootModule, rs)
+        val (sortedGroups, _) = Evaluator.plan(rs)
         Right(sortedGroups.keys().collect { case Right(r) => r }.toArray)
     }
   }
