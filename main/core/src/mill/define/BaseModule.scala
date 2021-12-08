@@ -21,7 +21,6 @@ abstract class BaseModule(
         implicitly,
         BasePath(millSourcePath0),
         Segments(),
-        mill.define.Overrides(0),
         Ctx.External(external0),
         Ctx.Foreign(foreign0),
         millFile0,
