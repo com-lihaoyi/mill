@@ -15,6 +15,8 @@ import mill.scalalib.api.{CompilationResult, ZincWorkerUtil}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import scala.jdk.CollectionConverters._
 
+import mainargs.Flag
+
 /**
  * Core configuration required to compile a single Scala compilation target
  */
@@ -444,25 +446,21 @@ trait ScalaModule extends JavaModule { outer =>
   override def artifactId: T[String] = artifactName() + artifactSuffix()
 
   /**
-   * @param hint "all" - fetch all dependencies,
-   *             "ammonite" - fetch ammonite dependencies,
-   *             "compiler" - fetch all compiler dependencies
+   * @param all If `true` , fetches also sources, Ammonite and compiler dependencies.
    */
   @nowarn("msg=pure expression does nothing")
-  override def prepareOffline(hint: String*): Command[Unit] = {
-    val withAmmonite = hint.contains("all") || hint.contains("ammonite")
-    val withCompiler = hint.contains("all") || hint.contains("compiler")
-
-    val tasks = Seq(
-      if (withAmmonite) Seq(resolvedAmmoniteReplIvyDeps) else Seq(),
-      if (withCompiler) Seq(T.task {
-        zincWorker.scalaCompilerBridgeJar(scalaVersion(), scalaOrganization(), repositoriesTask())
-      })
+  override def prepareOffline(all: Flag): Command[Unit] = {
+    val tasks =
+      if (all.value) Seq(
+        resolvedAmmoniteReplIvyDeps,
+        T.task {
+          zincWorker.scalaCompilerBridgeJar(scalaVersion(), scalaOrganization(), repositoriesTask())
+        }
+      )
       else Seq()
-    ).flatten
 
     T.command {
-      super.prepareOffline(hint: _*)()
+      super.prepareOffline(all)()
       resolveDeps(scalacPluginIvyDeps)()
       resolveDeps(scalaDocPluginIvyDeps)()
       T.sequence(tasks)()

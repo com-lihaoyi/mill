@@ -2,7 +2,9 @@ package mill
 package scalalib
 
 import scala.annotation.nowarn
+
 import coursier.Repository
+import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Command, Sources, Target, Task, TaskModule}
@@ -773,27 +775,31 @@ trait JavaModule
   def forkWorkingDir: Target[Path] = T { os.pwd }
 
   /**
-   * @param hint "all" - fetch all dependencies,
-   *             "source" | "sources" - fetch source dependencies
+   * @param all If `true` fetches also source dependencies
    */
   @nowarn("msg=pure expression does nothing")
-  override def prepareOffline(hint: String*): Command[Unit] = {
-    val withSources = hint.contains("all") || hint.contains("source") || hint.contains("sources")
-    val tasks = Seq(
-      if (withSources) Seq(
+  override def prepareOffline(all: Flag): Command[Unit] = {
+    val tasks =
+      if (all.value) Seq(
         resolveDeps(
           T.task {
             transitiveCompileIvyDeps() ++ transitiveIvyDeps()
           },
           sources = true
+        ),
+        resolveDeps(
+          T.task {
+            runIvyDeps() ++ transitiveIvyDeps()
+          },
+          sources = true
         )
       )
       else Seq()
-    ).flatten
+
     T.command {
-      super.prepareOffline(hint: _*)()
+      super.prepareOffline(all)()
       resolvedIvyDeps()
-      zincWorker.prepareOffline()()
+      zincWorker.prepareOffline(all)()
       resolvedRunIvyDeps()
       T.sequence(tasks)()
       ()

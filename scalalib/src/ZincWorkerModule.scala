@@ -3,6 +3,7 @@ package mill.scalalib
 import scala.annotation.nowarn
 
 import coursier.Repository
+import mainargs.Flag
 import mill.Agg
 import mill.T
 import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, Loose, PathRef, Result}
@@ -151,12 +152,10 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   }
 
   @nowarn("msg=pure expression does nothing")
-  override def prepareOffline(hint: String*): Command[Unit] = {
-    T.command {
-      super.prepareOffline(hint: _*)()
-      classpath()
-      ()
-    }
+  override def prepareOffline(all: Flag): Command[Unit] = T.command {
+    super.prepareOffline(all)()
+    classpath()
+    ()
   }
 
   @nowarn("msg=pure expression does nothing")
