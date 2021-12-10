@@ -2,27 +2,20 @@ package mill
 package scalalib
 
 import scala.annotation.nowarn
+
 import mill.define.{Command, Sources, Target, Task}
 import mill.api.{DummyInputStream, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import mill.scalalib.api.Util.{
-  isDotty,
-  isDottyOrScala3,
-  isScala3,
-  isScala3Milestone,
-  scalaBinaryVersion
-}
 import Lib._
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.Loose.Agg
-import mill.define.Segment.Label
 import mill.eval.{Evaluator, EvaluatorPathsResolver}
-import mill.scalalib.api.CompilationResult
+import mill.scalalib.api.{CompilationResult, ZincWorkerUtil}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import os.SubPath
-
 import scala.jdk.CollectionConverters._
+
+import mainargs.Flag
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -46,7 +39,7 @@ trait ScalaModule extends JavaModule { outer =>
    * @return
    */
   def scalaOrganization: T[String] = T {
-    if (isDotty(scalaVersion()))
+    if (ZincWorkerUtil.isDotty(scalaVersion()))
       "ch.epfl.lamp"
     else
       "org.scala-lang"
@@ -76,9 +69,9 @@ trait ScalaModule extends JavaModule { outer =>
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
     d: coursier.Dependency =>
       val artifacts =
-        if (isDotty(scalaVersion()))
+        if (ZincWorkerUtil.isDotty(scalaVersion()))
           Set("dotty-library", "dotty-compiler")
-        else if (isScala3(scalaVersion()))
+        else if (ZincWorkerUtil.isScala3(scalaVersion()))
           Set("scala3-library", "scala3-compiler")
         else
           Set("scala-library", "scala-compiler", "scala-reflect")
@@ -134,7 +127,7 @@ trait ScalaModule extends JavaModule { outer =>
 
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
-      if (isDottyOrScala3(scalaVersion()))
+      if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
         Seq(
           "-project",
           artifactName()
@@ -226,7 +219,9 @@ trait ScalaModule extends JavaModule { outer =>
 
   override def docSources: Sources = T.sources {
     // Scaladoc 3.0.0 is consuming tasty files
-    if (isScala3(scalaVersion()) && !isScala3Milestone(scalaVersion())) Seq(compile().classes)
+    if (
+      ZincWorkerUtil.isScala3(scalaVersion()) && !ZincWorkerUtil.isScala3Milestone(scalaVersion())
+    ) Seq(compile().classes)
     else allSources()
   }
 
@@ -260,7 +255,9 @@ trait ScalaModule extends JavaModule { outer =>
       }
     }
 
-    if (isDotty(scalaVersion()) || isScala3Milestone(scalaVersion())) { // dottydoc
+    if (
+      ZincWorkerUtil.isDotty(scalaVersion()) || ZincWorkerUtil.isScala3Milestone(scalaVersion())
+    ) { // dottydoc
       val javadocDir = T.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
@@ -288,7 +285,7 @@ trait ScalaModule extends JavaModule { outer =>
         javadocDir / "_site"
       )
 
-    } else if (isScala3(scalaVersion())) { // scaladoc 3
+    } else if (ZincWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
       val javadocDir = T.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
@@ -357,7 +354,7 @@ trait ScalaModule extends JavaModule { outer =>
     } else {
       Jvm.runSubprocess(
         mainClass =
-          if (isDottyOrScala3(scalaVersion()))
+          if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
             "dotty.tools.repl.Main"
           else
             "scala.tools.nsc.MainGenericRunner",
@@ -438,7 +435,7 @@ trait ScalaModule extends JavaModule { outer =>
    */
   def artifactScalaVersion: T[String] = T {
     if (crossFullScalaVersion()) scalaVersion()
-    else mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion())
+    else ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   }
 
   /**
@@ -448,13 +445,27 @@ trait ScalaModule extends JavaModule { outer =>
 
   override def artifactId: T[String] = artifactName() + artifactSuffix()
 
+  /**
+   * @param all If `true` , fetches also sources, Ammonite and compiler dependencies.
+   */
   @nowarn("msg=pure expression does nothing")
-  override def prepareOffline(): Command[Unit] = T.command {
-    super.prepareOffline()()
-    resolveDeps(scalacPluginIvyDeps)()
-    resolveDeps(scalaDocPluginIvyDeps)()
-    resolvedAmmoniteReplIvyDeps()
-    ()
+  override def prepareOffline(all: Flag): Command[Unit] = {
+    val tasks =
+      if (all.value) Seq(
+        resolvedAmmoniteReplIvyDeps,
+        T.task {
+          zincWorker.scalaCompilerBridgeJar(scalaVersion(), scalaOrganization(), repositoriesTask())
+        }
+      )
+      else Seq()
+
+    T.command {
+      super.prepareOffline(all)()
+      resolveDeps(scalacPluginIvyDeps)()
+      resolveDeps(scalaDocPluginIvyDeps)()
+      T.sequence(tasks)()
+      ()
+    }
   }
 
   override def manifest: T[Jvm.JarManifest] = T {
@@ -475,7 +486,7 @@ trait ScalaModule extends JavaModule { outer =>
       new ScalaBuildTarget(
         scalaOrganization(),
         scalaVersion(),
-        scalaBinaryVersion(scalaVersion()),
+        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.JVM,
         scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
       )
