@@ -134,7 +134,7 @@ As test modules in Mill are just regular modules, there is no special need for a
 You can use `ivyDeps` and `runIvyDeps` to declare dependencies in test modules.
 --
 
-You can also declare compile-time-only dependencies.
+You can also declare compile-time-only dependencies with `compileIvyDeps`.
 These are present in the compile classpath, but will not propagated to the transitive dependencies.
 
 .`build.sc`: Delcaring compile-time-only dependencies
