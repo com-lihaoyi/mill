@@ -172,7 +172,6 @@ case class Evaluator(
         (int: Int) => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
-    logger.debug(s"Using parallel evaluator with $threadCount threads")
     os.makeDir.all(outPath)
     val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
 
