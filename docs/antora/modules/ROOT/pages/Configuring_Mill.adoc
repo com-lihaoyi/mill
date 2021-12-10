@@ -72,6 +72,8 @@ you can use `:::` as in `ivy"org.scalamacros:::paradise:2.1.1"`.
 To select the test-jars from a dependency use the following syntax:
 `ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`.
 
+=== Repository configuration
+
 By default, these are resolved from maven central, but you can add your own
 resolvers by overriding the `repositoriesTask` task in the module:
 
@@ -105,6 +107,50 @@ object YourBuild extends ScalaModule {
   // ... rest of your build definitions
 }
 ----
+
+=== Runtime and compile-time dependencies
+
+If you want to use additonal dependencies at runtime or override dependencies and their versions at runtime, you can do so with `runIvyDeps`.
+
+.`build.sc`: Declaring runtime dependencies
+[source,scala]
+----
+import mill._, scalalib._
+
+object foo extends JavaModule {
+  def runIvyDeps = Agg(
+    ivy"ch.qos.logback:logback-classic:1.2.7",
+    ivy"com.h2database:h2:2.0.202"
+  )
+}
+----
+
+[IMPORTANT]
+--
+_Mill has no `test`-scoped dependencies!_
+
+You might be used to test-scoped dependencies from other build tools like Maven, Gradle or sbt.
+As test modules in Mill are just regular modules, there is no special need for a dedicated test-scope.
+You can use `ivyDeps` and `runIvyDeps` to declare dependencies in test modules.
+--
+
+You can also declare compile-time-only dependencies with `compileIvyDeps`.
+These are present in the compile classpath, but will not propagated to the transitive dependencies.
+
+.`build.sc`: Delcaring compile-time-only dependencies
+[source,scala]
+----
+import mill._, scalalib._
+
+object foo extends JavaModule {
+  def compileIvyDeps = Agg(
+    ivy"javax.servlet:sevlet-api:2.5"
+  )
+}
+----
+
+NOTE: Compile-time dependencies are translated to `provided`-scoped dependencies when publish to Maven or Ivy-Repositories.
+
 
 == Adding a Test Suite
 
