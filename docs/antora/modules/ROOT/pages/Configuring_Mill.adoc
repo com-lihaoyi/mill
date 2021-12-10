@@ -110,7 +110,7 @@ object YourBuild extends ScalaModule {
 
 === Runtime and compile-time dependencies
 
-If you want to use addional dependencies at runtime or override dependencies and their versions at runtime, you can do so with `runIvyDeps`.
+If you want to use additonal dependencies at runtime or override dependencies and their versions at runtime, you can do so with `runIvyDeps`.
 
 .`build.sc`: Declaring runtime dependencies
 [source,scala]
