@@ -185,7 +185,10 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
       )
     )
   }
-  def input[T](value: Result[T])(implicit w: upickle.default.Writer[T], ctx: mill.define.Ctx): Input[T] =
+  def input[T](value: Result[T])(implicit
+      w: upickle.default.Writer[T],
+      ctx: mill.define.Ctx
+  ): Input[T] =
     macro inputImpl[T]
 
   def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
@@ -208,7 +211,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def command[T](t: Task[T])(implicit
       ctx: mill.define.Ctx,
       w: W[T],
-      cls: EnclosingClass,
+      cls: EnclosingClass
   ): Command[T] = {
     new Command(t, ctx, w, cls.value)
   }
@@ -216,13 +219,13 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def command[T](t: Result[T])(implicit
       w: W[T],
       ctx: mill.define.Ctx,
-      cls: EnclosingClass,
+      cls: EnclosingClass
   ): Command[T] = macro commandImpl[T]
 
   def commandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
       w: c.Expr[W[T]],
       ctx: c.Expr[mill.define.Ctx],
-      cls: c.Expr[EnclosingClass],
+      cls: c.Expr[EnclosingClass]
   ): c.Expr[Command[T]] = {
     import c.universe._
     reify(
@@ -230,7 +233,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
         Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
         ctx.splice,
         w.splice,
-        cls.splice.value,
+        cls.splice.value
       )
     )
   }
@@ -312,7 +315,7 @@ class Command[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
     val writer: W[_],
-    val cls: Class[_],
+    val cls: Class[_]
 ) extends NamedTaskImpl[T](ctx0, t) {
   override def asCommand = Some(this)
 }

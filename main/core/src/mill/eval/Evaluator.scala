@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-case class Labelled[T](task: NamedTask[T], segments: Segments){
+case class Labelled[T](task: NamedTask[T], segments: Segments) {
   def format = task match {
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
@@ -662,11 +662,11 @@ object Evaluator {
     val topoSorted = Graph.topoSorted(transitive)
     val seen = collection.mutable.Set.empty[Segments]
     val overriden = collection.mutable.Set.empty[Task[_]]
-    topoSorted.values.reverse.foreach{
+    topoSorted.values.reverse.foreach {
       case x: NamedTask[_] =>
         if (!seen.contains(x.ctx.segments)) seen.add(x.ctx.segments)
         else overriden.add(x)
-      case _ => //donothing
+      case _ => // donothing
     }
 
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
@@ -675,7 +675,8 @@ object Evaluator {
 
         val additional =
           if (!overriden(t)) Nil
-          else Seq(Segment.Label("overriden")) ++ t.ctx.enclosing.split("\\.|#| ").map(Segment.Label)
+          else
+            Seq(Segment.Label("overriden")) ++ t.ctx.enclosing.split("\\.|#| ").map(Segment.Label)
 
         Right(Labelled(t, segments ++ additional))
       case t if goals.contains(t) => Left(t)

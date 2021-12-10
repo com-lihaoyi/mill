@@ -1,4 +1,3 @@
-
 package object mill extends mill.api.JsonFormatters {
   val T = define.Target
   type T[T] = define.Target[T]
