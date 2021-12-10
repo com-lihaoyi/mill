@@ -371,7 +371,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       )
 
       val overridePrefix =
-        os.sub /  "overriden" / "mill" / "util" / "TestGraphs" / "StackableOverrides"
+        os.sub / "overriden" / "mill" / "util" / "TestGraphs" / "StackableOverrides"
 
       assert(
         os.read(checker.evaluator.outPath / "m" / "f" / overridePrefix / "X" / "f.json")

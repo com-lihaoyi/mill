@@ -48,7 +48,6 @@ trait JsonFormatters {
       )
   )
 
-
   implicit def enumFormat[T <: java.lang.Enum[_]: ClassTag]: RW[T] =
     upickle.default.readwriter[String].bimap(
       _.name(),
