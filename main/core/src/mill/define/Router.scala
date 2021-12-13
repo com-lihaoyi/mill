@@ -72,7 +72,7 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
         } yield (
           m.overrides.length,
           extractMethod(
-            m.name.toString,
+            m.name,
             m.paramss.flatten,
             m.pos,
             m.annotations.find(_.tpe =:= typeOf[mainargs.main]),
