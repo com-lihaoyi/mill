@@ -29,7 +29,11 @@ jobs:
           - java-version: 8
             # buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
             buildcmd: ./mill -i integration.test "mill.integration.local.UpickleTests"
-
+          # Just some reporting to enable reasoning about library upgrades
+          - java-version: 8
+            buildcmd: | 
+              ./mill -i -k __.ivyDepsTree
+              ./mill -i -k __.ivyDepsTree --withRuntime true
 
     runs-on: ubuntu-latest
 
