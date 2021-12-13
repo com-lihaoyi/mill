@@ -118,7 +118,7 @@ object Deps {
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.10"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
-  val upickle = ivy"com.lihaoyi::upickle:1.4.2"
+  val upickle = ivy"com.lihaoyi::upickle:1.4.3"
   val utest = ivy"com.lihaoyi::utest:0.7.10"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.5.7"
