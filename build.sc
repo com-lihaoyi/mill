@@ -70,7 +70,7 @@ object Deps {
     val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.0"
   }
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.0"
+  val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
   val ammonite = ivy"com.lihaoyi:::ammonite:2.5.0"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:2.5.0"
   // Exclude trees here to force the version of we have defined. We use this
