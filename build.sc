@@ -71,8 +71,8 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.4.1"
-  val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:2.4.1"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.5.0"
+  val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:2.5.0"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -123,7 +123,7 @@ object Deps {
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.5.7"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0"
-  val fansi = ivy"com.lihaoyi::fansi:0.2.14"
+  val fansi = ivy"com.lihaoyi::fansi:0.3.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.0"
 }
 
