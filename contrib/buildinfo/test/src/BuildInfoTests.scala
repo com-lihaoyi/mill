@@ -1,11 +1,6 @@
 package mill.contrib.buildinfo
 
-import scala.util.Properties
-
 import mill._
-import mill.define.Sources
-import mill.define.Target
-import mill.scalalib.ScalaModule
 import mill.util.TestEvaluator
 import mill.util.TestUtil
 import os.Path
@@ -14,7 +9,7 @@ import utest.framework.TestPath
 
 object BuildInfoTests extends TestSuite {
 
-  val scalaVersionString = "2.12.4"
+  val scalaVersionString = mill.BuildInfo.scalaVersion
   trait BuildInfoModule extends TestUtil.BaseModule with scalalib.ScalaModule with BuildInfo {
     // override build root to test custom builds/modules
     override def millSourcePath: Path = TestUtil.getSrcPathStatic()
@@ -62,7 +57,7 @@ object BuildInfoTests extends TestSuite {
         val expected =
           s"""|
               |object BuildInfo {
-              |  def scalaVersion = "2.12.4"
+              |  def scalaVersion = "${mill.BuildInfo.scalaVersion}"
               |
               |  val toMap = Map[String, String](
               |    "scalaVersion" -> scalaVersion)
@@ -100,7 +95,7 @@ object BuildInfoTests extends TestSuite {
           s"""|package foo
               |
               |object bar {
-              |  def scalaVersion = "2.12.4"
+              |  def scalaVersion = "${mill.BuildInfo.scalaVersion}"
               |
               |  val toMap = Map[String, String](
               |    "scalaVersion" -> scalaVersion)
