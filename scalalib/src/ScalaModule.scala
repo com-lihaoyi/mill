@@ -175,6 +175,12 @@ trait ScalaModule extends JavaModule { outer =>
 
   // Keep in sync with [[bspCompileClassesInfo]]
   override def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
+    val sv = scalaVersion()
+    if (sv == "2.12.4") T.log.error(
+      """Attention: Zinc is known to not work properly for Scala version 2.12.4.
+        |You may want to select another version. Upgrading to a more recent Scala version is recommended.
+        |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
+    )
     zincWorker
       .worker()
       .compileMixed(
@@ -182,7 +188,7 @@ trait ScalaModule extends JavaModule { outer =>
         allSourceFiles().map(_.path),
         compileClasspath().map(_.path),
         javacOptions(),
-        scalaVersion(),
+        sv,
         scalaOrganization(),
         allScalacOptions(),
         scalaCompilerClasspath().map(_.path),
