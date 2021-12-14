@@ -42,7 +42,7 @@ object MillMain {
         main0(
           args,
           None,
-          ammonite.Main.isInteractive(),
+          ammonite.util.Util.isInteractive(),
           System.in,
           System.out,
           System.err,
