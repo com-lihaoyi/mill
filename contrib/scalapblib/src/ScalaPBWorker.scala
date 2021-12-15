@@ -36,7 +36,7 @@ class ScalaPBWorker {
               s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
               s"--proto_path=${root.getCanonicalPath}"
             ) ++ sources.map(_.getCanonicalPath)
-            ctx.log.debug(s"ScalaPBC args: ${args.mkString(" ")}")
+            ctx.log.debug(args.mkString(" "))
             mainMethod.invoke(null, args.toArray)
           }
         }
@@ -81,7 +81,9 @@ class ScalaPBWorker {
       scalaPBOptions: String,
       dest: os.Path,
       scalaPBCExtraArgs: Seq[String]
-  )(implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
+  )(
+      implicit ctx: mill.api.Ctx
+  ): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
 
     def compileScalaPBDir(inputDir: os.Path): Unit = {
