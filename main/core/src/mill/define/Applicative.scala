@@ -34,6 +34,23 @@ object Applicative {
 
     def zipMap[R]()(cb: Ctx => Z[R]) = mapCtx(zip()) { (_, ctx) => cb(ctx) }
     def zipMap[A, R](a: T[A])(f: (A, Ctx) => Z[R]) = mapCtx(a)(f)
+    def zipMapLong[R](xs: IndexedSeq[T[Any]])(f: (IndexedSeq[Any], Ctx) => Z[R]) = {
+      var recursiveZipped: T[_] = zip()
+      for(x <- xs) {
+        recursiveZipped = zip(recursiveZipped, x)
+      }
+
+      mapCtx(recursiveZipped) { (nested, ctx) =>
+        var items = List.empty[Any]
+        var current: Any = nested
+        while(current != ()){
+          val (rest, v) = current
+          current = rest
+          items = v :: items
+        }
+        f(items.toArray[Any], ctx)
+      }
+    }
     def zip(): T[Unit]
     def zip[A](a: T[A]): T[Tuple1[A]]
   }
@@ -45,9 +62,13 @@ object Applicative {
     import c.universe._
     def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
 
-    val bound = collection.mutable.Buffer.empty[(c.Tree, ValDef)]
+    val exprs = collection.mutable.Buffer.empty[c.Tree]
     val targetApplySym = typeOf[Applyable[Nothing, _]].member(TermName("apply"))
 
+    val itemsName = c.freshName(TermName("items"))
+    val itemsSym = c.internal.newTermSymbol(c.internal.enclosingOwner, itemsName)
+    c.internal.setFlag(itemsSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
+    c.internal.setInfo(itemsSym, typeOf[Seq[Any]])
     // Derived from @olafurpg's
     // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
     val defs = rec(t).filter(_.isDef).map(_.symbol).toSet
@@ -74,8 +95,9 @@ object Applicative {
         val tempIdent = Ident(tempSym)
         c.internal.setType(tempIdent, t.tpe)
         c.internal.setFlag(tempSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
-        bound.append((q"${c.prefix}.underlying($fun)", c.internal.valDef(tempSym)))
-        tempIdent
+        val itemsIdent = Ident(itemsSym)
+        exprs.append(q"${c.prefix}.underlying($fun)")
+        c.typecheck(q"$itemsIdent(${exprs.size-1}).asInstanceOf[${t.tpe}]")
       case (t, api)
           if t.symbol != null
             && t.symbol.annotations.exists(_.tree.tpe =:= typeOf[mill.api.Ctx.ImplicitStub]) =>
@@ -87,13 +109,12 @@ object Applicative {
       case (t, api) => api.default(t)
     }
 
-    val (exprs, bindings) = bound.unzip
-
     val ctxBinding = c.internal.valDef(ctxSym)
 
-    val callback = c.typecheck(q"(..$bindings, $ctxBinding) => $transformed ")
+    val itemsBinding = c.internal.valDef(itemsSym)
+    val callback = c.typecheck(q"{(${itemsBinding}, ${ctxBinding}) => $transformed}")
 
-    val res = q"${c.prefix}.zipMap(..$exprs){ $callback }"
+    val res = q"${c.prefix}.zipMapLong(${exprs.toList}){ $callback }"
 
     c.internal.changeOwner(transformed, c.internal.enclosingOwner, callback.symbol)
 

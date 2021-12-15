@@ -39,6 +39,28 @@ object ApplicativeTests extends TestSuite {
       "twoSomes" - assert(Opt(Some("lol ")() + Some("hello")()) == Some("lol hello"))
       "singleNone" - assert(Opt("lol " + None()) == None)
       "twoNones" - assert(Opt("lol " + None() + None()) == None)
+      "moreThan22" - {
+        assert(
+          Opt(
+            "lol " +
+              None() + None() + None() + None() + None() +
+              None() + None() + None() + None() + Some(" world")() +
+              None() + None() + None() + None() + None() +
+              None() + None() + None() + None() + None() +
+              None() + None() + None() + None() + Some(" moo")()
+          ) == None
+        )
+        assert(
+          Opt(
+            "lol " +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")()
+          ) == Some("lol abcdeabcdeabcdeabcdeabcde")
+        )
+      }
     }
     "context" - {
       assert(Opt(Opt.ctx() + Some("World")()) == Some("hellooooWorld"))
