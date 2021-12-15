@@ -141,6 +141,7 @@ class Server[T](
     pipedOutput.connect(pipedInput)
     val pumper = new InputPumper(in, pipedOutput, false)
     val pumperThread = new Thread(pumper)
+    pumperThread.setDaemon(true)
     pumperThread.start()
     pipedInput
   }
