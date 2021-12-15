@@ -49,16 +49,7 @@ trait ScalaModule extends JavaModule { outer =>
    * All individual source files fed into the Zinc compiler.
    */
   override def allSourceFiles: T[Seq[PathRef]] = T {
-    def isHiddenFile(path: os.Path) = path.last.startsWith(".")
-    for {
-      root <- allSources()
-      if os.exists(root.path)
-      path <- if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path)
-      if os
-        .isFile(path) && ((path.ext == "scala" || path.ext == "java") && !isHiddenFile(
-        path
-      ))
-    } yield PathRef(path)
+    Lib.findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
   }
 
   /**
@@ -364,7 +355,7 @@ trait ScalaModule extends JavaModule { outer =>
         jvmArgs = forkArgs(),
         envArgs = forkEnv(),
         mainArgs = Seq("-usejavacp"),
-        workingDir = os.pwd
+        workingDir = forkWorkingDir()
       )
       Result.Success(())
     }
@@ -418,7 +409,7 @@ trait ScalaModule extends JavaModule { outer =>
         jvmArgs = forkArgs(),
         envArgs = forkEnv(),
         mainArgs = replOptions,
-        workingDir = os.pwd
+        workingDir = forkWorkingDir()
       )
       Result.Success(())
     }

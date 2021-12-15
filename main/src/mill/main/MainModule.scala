@@ -73,8 +73,6 @@ trait MainModule extends mill.Module {
     res
   }
 
-  private val OutDir: String = "out"
-
   /**
    * Resolves a mill query string and prints out the tasks it resolves to.
    */
@@ -268,7 +266,7 @@ trait MainModule extends mill.Module {
       )
     }
 
-    val rootDir = os.pwd / OutDir
+    val rootDir = evaluator.outPath
 
     val KeepPattern = "(mill-.+)".r.anchored
 

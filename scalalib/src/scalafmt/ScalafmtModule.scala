@@ -24,7 +24,7 @@ trait ScalafmtModule extends JavaModule {
       )
   }
 
-  def scalafmtConfig: Sources = T.sources(os.pwd / ".scalafmt.conf")
+  def scalafmtConfig: Sources = T.sources(T.workspace / ".scalafmt.conf")
 
   protected def filesToFormat(sources: Seq[PathRef]) = {
     for {
