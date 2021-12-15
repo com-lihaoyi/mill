@@ -292,6 +292,20 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
+
+=== 0.9.11 - 2021-12-15
+:version: 0.9.11
+:prev-version: 0.9.10
+:milestone: 56
+:milestone-name: 0.9.11
+
+* zinc worker: Updated log4j2 to 2.16.0 to fix Log4Shell (CVE-2021-44228) vulnerability
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 === 0.9.10 - 2021-11-13
 :version: 0.9.10
 :prev-version: 0.9.9
