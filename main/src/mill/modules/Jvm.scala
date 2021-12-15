@@ -1,25 +1,24 @@
 package mill.modules
 
-import java.io.{ByteArrayInputStream, File, FileOutputStream, InputStream, SequenceInputStream}
+import java.io.{ByteArrayInputStream, File, FileOutputStream, InputStream, PipedInputStream, SequenceInputStream}
 import java.lang.reflect.Modifier
 import java.net.URI
 import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
-
 import coursier.{Dependency, Repository, Resolution}
 import coursier.util.{Gather, Task}
-import java.util.Collections
 
+import java.util.Collections
 import mill.main.client.InputPumper
 import mill.api.{Ctx, IO, PathRef, Result}
 import mill.api.Loose.Agg
 import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
+
 import scala.collection.mutable
 import scala.util.Properties.isWin
 import scala.jdk.CollectionConverters._
 import scala.util.Using
-
 import mill.BuildInfo
 import upickle.default.{ReadWriter => RW}
 
@@ -191,7 +190,7 @@ object Jvm {
     // to System.in/System.out/System.err, so the subprocess's streams get sent
     // to the parent process's origin outputs even if we want to direct them
     // elsewhere
-    if (System.in.isInstanceOf[ByteArrayInputStream]) {
+    if (System.in.isInstanceOf[PipedInputStream]) {
       val process = os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,
