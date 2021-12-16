@@ -359,7 +359,7 @@ object Task {
 
   }
 
-  class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[IndexedSeq[T]] {
+  class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
     val inputs = inputs0
     def evaluate(args: mill.api.Ctx) = {
       for (i <- 0 until args.length)
