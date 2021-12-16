@@ -50,7 +50,7 @@ class SonatypeHttpApi(
         .read(response.text())("data")
         .arr
         .find(profile => groupId.split('.').startsWith(profile("name").str.split('.')))
-        .map(_("resourceURI").str.toString)
+        .map(_("resourceURI").str)
 
     resourceUri.getOrElse(
       throw new RuntimeException(
@@ -65,11 +65,11 @@ class SonatypeHttpApi(
       headers = commonHeaders
     )
     try {
-      ujson.read(response.text())("type").str.toString
+      ujson.read(response.text())("type").str
     } catch {
       case e: ParseException =>
         throw new RuntimeException(
-          s"Could not parse HTTP response. ${e.getMessage()}" + "\n" + s"Full response: ${response}"
+          s"Could not parse HTTP response. ${e.getMessage()}" + "\n" + s"Raw response: ${response}"
         )
     }
   }
@@ -88,7 +88,7 @@ class SonatypeHttpApi(
       )
     }
 
-    ujson.read(response.text())("data")("stagedRepositoryId").str.toString
+    ujson.read(response.text())("data")("stagedRepositoryId").str
   }
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_finish.html
