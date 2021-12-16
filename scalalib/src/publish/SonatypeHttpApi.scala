@@ -4,9 +4,11 @@ import java.util.Base64
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 import mill.BuildInfo
 import requests.BaseSession
+import ujson.ParseException
 
 class SonatypeHttpApi(
     uri: String,
@@ -62,7 +64,14 @@ class SonatypeHttpApi(
       s"${uri}/staging/repository/${stagingRepoId}",
       headers = commonHeaders
     )
-    ujson.read(response.text())("type").str.toString
+    try {
+      ujson.read(response.text())("type").str.toString
+    } catch {
+      case e: ParseException =>
+        throw new RuntimeException(
+          s"Could not parse HTTP response. ${e.getMessage()}" + "\n" + s"Full response: ${response}"
+        )
+    }
   }
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_start.html
