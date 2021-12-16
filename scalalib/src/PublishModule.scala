@@ -5,7 +5,7 @@ import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.PathRef
 import mill.main.Tasks
 import mill.modules.Jvm
-import mill.scalalib.publish.{Artifact, SonatypePublisher}
+import mill.scalalib.publish.{Artifact, VersionScheme, SonatypePublisher}
 
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar
@@ -17,6 +17,11 @@ trait PublishModule extends JavaModule { outer =>
 
   def pomSettings: T[PomSettings]
   def publishVersion: T[String]
+
+  /**
+   * Version scheme used for the model: Supported values are VersionScheme.EarlySemVer, VersionScheme.PVP, and VersionScheme.SemVerSpec
+   */
+  def versionScheme: T[VersionScheme] = VersionScheme.NoScheme
 
   def publishSelfDependency: Target[Artifact] = T {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
