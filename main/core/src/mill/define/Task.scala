@@ -283,8 +283,6 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     )
   }
 
-  type TT[+X] = Task[X]
-
   def underlying[A](v: Task[A]) = v
 
   def traverse[T, V](source: Seq[T])(f: T => Task[V]) = {
