@@ -28,14 +28,9 @@ object Applicative {
 
   type Id[+T] = T
 
-  trait Applyer[W[_], T[_], Z[_], Ctx] extends ApplyerGenerated[T, Z, Ctx] {
+  trait Applyer[W[_], T[_], Z[_], Ctx] {
     def ctx()(implicit c: Ctx) = c
-    def underlying[A](v: W[A]): T[_]
-
-    def zipMap[R]()(cb: Ctx => Z[R]) = mapCtx(zip()) { (_, ctx) => cb(ctx) }
-    def zipMap[A, R](a: T[A])(f: (A, Ctx) => Z[R]) = mapCtx(a)(f)
-    def zip(): T[Unit]
-    def zip[A](a: T[A]): T[Tuple1[A]]
+    def traverseCtx[I, R](xs: Seq[W[I]])(f: (IndexedSeq[I], Ctx) => Z[R]): T[R]
   }
 
   def impl[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[M[T]] = {
@@ -45,9 +40,13 @@ object Applicative {
     import c.universe._
     def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
 
-    val bound = collection.mutable.Buffer.empty[(c.Tree, ValDef)]
+    val exprs = collection.mutable.Buffer.empty[c.Tree]
     val targetApplySym = typeOf[Applyable[Nothing, _]].member(TermName("apply"))
 
+    val itemsName = c.freshName(TermName("items"))
+    val itemsSym = c.internal.newTermSymbol(c.internal.enclosingOwner, itemsName)
+    c.internal.setFlag(itemsSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
+    c.internal.setInfo(itemsSym, typeOf[Seq[Any]])
     // Derived from @olafurpg's
     // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
     val defs = rec(t).filter(_.isDef).map(_.symbol).toSet
@@ -74,8 +73,9 @@ object Applicative {
         val tempIdent = Ident(tempSym)
         c.internal.setType(tempIdent, t.tpe)
         c.internal.setFlag(tempSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
-        bound.append((q"${c.prefix}.underlying($fun)", c.internal.valDef(tempSym)))
-        tempIdent
+        val itemsIdent = Ident(itemsSym)
+        exprs.append(q"$fun")
+        c.typecheck(q"$itemsIdent(${exprs.size-1}).asInstanceOf[${t.tpe}]")
       case (t, api)
           if t.symbol != null
             && t.symbol.annotations.exists(_.tree.tpe =:= typeOf[mill.api.Ctx.ImplicitStub]) =>
@@ -87,13 +87,12 @@ object Applicative {
       case (t, api) => api.default(t)
     }
 
-    val (exprs, bindings) = bound.unzip
-
     val ctxBinding = c.internal.valDef(ctxSym)
 
-    val callback = c.typecheck(q"(..$bindings, $ctxBinding) => $transformed ")
+    val itemsBinding = c.internal.valDef(itemsSym)
+    val callback = c.typecheck(q"{(${itemsBinding}, ${ctxBinding}) => $transformed}")
 
-    val res = q"${c.prefix}.zipMap(..$exprs){ $callback }"
+    val res = q"${c.prefix}.traverseCtx[_root_.scala.Any, ${weakTypeOf[T]}](${exprs.toList}){ $callback }"
 
     c.internal.changeOwner(transformed, c.internal.enclosingOwner, callback.symbol)
 

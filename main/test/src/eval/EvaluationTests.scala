@@ -327,7 +327,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // cached target
         val check = new Checker(build)
         assert(leftCount == 0, rightCount == 0)
-        check(down, expValue = 10101, expEvaled = Agg(up, right, down), extraEvaled = 8)
+        check(down, expValue = 10101, expEvaled = Agg(up, right, down), extraEvaled = 5)
         assert(leftCount == 1, middleCount == 1, rightCount == 1)
 
         // If the upstream `up` doesn't change, the entire block of tasks
@@ -340,7 +340,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // because tasks have no cached value that can be used. `right`, which
         // is a cached Target, does not recompute
         up.inputs(0).asInstanceOf[Test].counter += 1
-        check(down, expValue = 10102, expEvaled = Agg(up, down), extraEvaled = 6)
+        check(down, expValue = 10102, expEvaled = Agg(up, down), extraEvaled = 4)
         assert(leftCount == 2, middleCount == 2, rightCount == 1)
 
         // Running the tasks themselves results in them being recomputed every
@@ -350,9 +350,9 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         check(left, expValue = 2, expEvaled = Agg(), extraEvaled = 1, secondRunNoOp = false)
         assert(leftCount == 4, middleCount == 2, rightCount == 1)
 
-        check(middle, expValue = 100, expEvaled = Agg(), extraEvaled = 2, secondRunNoOp = false)
+        check(middle, expValue = 100, expEvaled = Agg(), extraEvaled = 1, secondRunNoOp = false)
         assert(leftCount == 4, middleCount == 3, rightCount == 1)
-        check(middle, expValue = 100, expEvaled = Agg(), extraEvaled = 2, secondRunNoOp = false)
+        check(middle, expValue = 100, expEvaled = Agg(), extraEvaled = 1, secondRunNoOp = false)
         assert(leftCount == 4, middleCount == 4, rightCount == 1)
       }
     }
