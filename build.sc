@@ -249,17 +249,11 @@ object main extends MillModule {
   override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
   )
-  override def generatedSources = T {
-    Seq(PathRef(shared.generateCoreSources(T.ctx.dest)))
-  }
   override def testArgs = Seq(
     "-DMILL_VERSION=" + publishVersion()
   )
   override val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {
-    override def generatedSources = T {
-      Seq(PathRef(shared.generateCoreTestSources(T.ctx.dest)))
-    }
   }
   object api extends MillApiModule {
     override def ivyDeps = Agg(
@@ -301,7 +295,6 @@ object main extends MillModule {
         millBinPlatform = millBinPlatform(),
         artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
       )
-      shared.generateCoreSources(dest)
       Seq(PathRef(dest))
     }
 

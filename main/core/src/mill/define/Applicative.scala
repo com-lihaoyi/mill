@@ -28,31 +28,10 @@ object Applicative {
 
   type Id[+T] = T
 
-  trait Applyer[W[_], T[_], Z[_], Ctx] extends ApplyerGenerated[T, Z, Ctx] {
+  trait Applyer[W[_], T[_], Z[_], Ctx] {
     def ctx()(implicit c: Ctx) = c
     def underlying[A](v: W[A]): T[_]
-
-    def zipMap[R]()(cb: Ctx => Z[R]) = mapCtx(zip()) { (_, ctx) => cb(ctx) }
-    def zipMap[A, R](a: T[A])(f: (A, Ctx) => Z[R]) = mapCtx(a)(f)
-    def zipMapLong[R](xs: IndexedSeq[T[Any]])(f: (IndexedSeq[Any], Ctx) => Z[R]) = {
-      var recursiveZipped: T[_] = zip()
-      for(x <- xs) {
-        recursiveZipped = zip(recursiveZipped, x)
-      }
-
-      mapCtx(recursiveZipped) { (nested, ctx) =>
-        var items = List.empty[Any]
-        var current: Any = nested
-        while(current != ()){
-          val (rest, v) = current
-          current = rest
-          items = v :: items
-        }
-        f(items.toArray[Any], ctx)
-      }
-    }
-    def zip(): T[Unit]
-    def zip[A](a: T[A]): T[Tuple1[A]]
+    def traverseCtx[I, R](xs: Seq[W[I]])(f: (IndexedSeq[I], Ctx) => Z[R]): T[R]
   }
 
   def impl[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[M[T]] = {
@@ -96,7 +75,7 @@ object Applicative {
         c.internal.setType(tempIdent, t.tpe)
         c.internal.setFlag(tempSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
         val itemsIdent = Ident(itemsSym)
-        exprs.append(q"${c.prefix}.underlying($fun)")
+        exprs.append(q"$fun")
         c.typecheck(q"$itemsIdent(${exprs.size-1}).asInstanceOf[${t.tpe}]")
       case (t, api)
           if t.symbol != null
@@ -114,7 +93,7 @@ object Applicative {
     val itemsBinding = c.internal.valDef(itemsSym)
     val callback = c.typecheck(q"{(${itemsBinding}, ${ctxBinding}) => $transformed}")
 
-    val res = q"${c.prefix}.zipMapLong(${exprs.toList}){ $callback }"
+    val res = q"${c.prefix}.traverseCtx[_root_.scala.Any, ${weakTypeOf[T]}](${exprs.toList}){ $callback }"
 
     c.internal.changeOwner(transformed, c.internal.enclosingOwner, callback.symbol)
 
