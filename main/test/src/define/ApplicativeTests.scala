@@ -12,7 +12,6 @@ object ApplicativeTests extends TestSuite {
   object Opt extends Applicative.Applyer[Opt, Option, Applicative.Id, String] {
 
     val injectedCtx = "helloooo"
-    def underlying[A](v: Opt[A]) = v.self
     def apply[T](t: T): Option[T] = macro Applicative.impl[Option, T, String]
 
     def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (IndexedSeq[I], String) => Applicative.Id[R]): Option[R] = {
