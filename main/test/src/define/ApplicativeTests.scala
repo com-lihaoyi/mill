@@ -57,8 +57,13 @@ object ApplicativeTests extends TestSuite {
             Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
             Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
             Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
             Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")()
-          ) == Some("lol abcdeabcdeabcdeabcdeabcde")
+          ) == Some("lol abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde")
         )
       }
     }
