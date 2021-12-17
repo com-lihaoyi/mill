@@ -25,7 +25,8 @@ class ScalaPBWorker {
 
         val instance = new ScalaPBWorkerApi {
           override def compileScalaPB(
-              source: File,
+              root: File,
+              sources: Seq[File],
               scalaPBOptions: String,
               generatedDirectory: File,
               otherArgs: Seq[String]
@@ -33,9 +34,9 @@ class ScalaPBWorker {
             val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
             val args = otherArgs ++ Seq(
               s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
-              s"--proto_path=${source.getParentFile.getCanonicalPath}",
-              source.getCanonicalPath
-            )
+              s"--proto_path=${root.getCanonicalPath}"
+            ) ++ sources.map(_.getCanonicalPath)
+            ctx.log.debug(s"ScalaPBC args: ${args.mkString(" ")}")
             mainMethod.invoke(null, args.toArray)
           }
         }
@@ -86,10 +87,12 @@ class ScalaPBWorker {
     def compileScalaPBDir(inputDir: os.Path): Unit = {
       // ls throws if the path doesn't exist
       if (inputDir.toIO.exists) {
-        os.walk(inputDir).filter(_.last.matches(".*.proto"))
-          .foreach { proto =>
-            compiler.compileScalaPB(proto.toIO, scalaPBOptions, dest.toIO, scalaPBCExtraArgs)
-          }
+        val files = os
+          .walk(inputDir)
+          .filter(_.last.matches(".*.proto"))
+          .map(_.toIO)
+          .toIndexedSeq
+        compiler.compileScalaPB(inputDir.toIO, files, scalaPBOptions, dest.toIO, scalaPBCExtraArgs)
       }
     }
 
@@ -101,7 +104,8 @@ class ScalaPBWorker {
 
 trait ScalaPBWorkerApi {
   def compileScalaPB(
-      source: File,
+      root: File,
+      source: Seq[File],
       scalaPBOptions: String,
       generatedDirectory: File,
       otherArgs: Seq[String]
