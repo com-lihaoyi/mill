@@ -106,7 +106,8 @@ object Deps {
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.1"
 }
 
-def millVersion: T[String] = T { VcsVersion.vcsState().format() }
+// FIXME: temporary hardcoded version to get 0.9.11 release out
+def millVersion: T[String] = T { "0.9.11" }
 def millLastTag: T[String] = T { VcsVersion.vcsState().lastTag.get }
 def millBinPlatform: T[String] = T {
   val tag = millLastTag()
