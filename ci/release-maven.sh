@@ -17,7 +17,7 @@ out/dev/assembly/dest/mill mill.scalalib.PublishModule/publishAll \
     --sonatypeCreds $SONATYPE_DEPLOY_USER:$SONATYPE_DEPLOY_PASSWORD \
     --gpgArgs --passphrase=$SONATYPE_PGP_PASSWORD,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
     --publishArtifacts __.publishArtifacts \
-    --readTimeout  1800000 \
-    --awaitTimeout 1800000 \
+    --readTimeout  3600000 \
+    --awaitTimeout 3600000 \
     --release true \
     --signed  true
