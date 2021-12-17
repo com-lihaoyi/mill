@@ -92,7 +92,16 @@ class ScalaPBWorker {
           .filter(_.last.matches(".*.proto"))
           .map(_.toIO)
           .toIndexedSeq
-        compiler.compileScalaPB(inputDir.toIO, files, scalaPBOptions, dest.toIO, scalaPBCExtraArgs)
+
+        if (files.nonEmpty) {
+          compiler.compileScalaPB(
+            inputDir.toIO,
+            files,
+            scalaPBOptions,
+            dest.toIO,
+            scalaPBCExtraArgs
+          )
+        }
       }
     }
 
