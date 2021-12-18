@@ -151,6 +151,15 @@ object foo extends JavaModule {
 
 NOTE: Compile-time dependencies are translated to `provided`-scoped dependencies when publish to Maven or Ivy-Repositories.
 
+=== Keeping up-to-date with Scala Steward
+
+It's always a good idea to keep your dependencies up-to-date.
+
+If your project is hosted on GitHub, GitLab, or Bitbucket, you can use https://github.com/scala-steward-org/scala-steward[Scala Steward] to automatically open a pull request to update your dependencies whenever there is a newer version available.
+
+TIP: Scala Steward can also keep your xref:Intro_to_Mill.adoc#_automatic_mill_updates[Mill version up-to-date].
+
+
 
 == Adding a Test Suite
 
