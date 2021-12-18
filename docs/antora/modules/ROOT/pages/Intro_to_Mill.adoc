@@ -1062,8 +1062,7 @@ rebuilt, e.g. by deleting the `out/main/` or `out/main/test/compile/` folders.
 
 == Overriding Mill Versions
 
-Apart from downloading and installing new versions of Mill globally, there are a few ways of selecting/updating your
-Mill version:
+Apart from downloading and installing new versions of Mill globally, there are a few ways of selecting/updating your Mill version:
 
 * Create a `.mill-version` file to specify the version of Mill you wish to use:
 [source,bash]
@@ -1090,6 +1089,12 @@ MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
 to override the Mill version manually. This takes precedence over the version specified in `./mill` or `.mill-version`
 
 Note that both of these overrides only work for versions 0.5.0 and above.
+
+=== Automatic Mill updates
+
+If your project is hosted on GitHub, GitLab, or Bitbucket, you can use https://github.com/scala-steward-org/scala-steward[Scala Steward] to automatically open a pull request to update your Mill version (in `.mill-version` file), whenever there is a newer version available.
+
+TIP: Scala Steward can also xref:Configuring_Mill.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies] and keep them up-to-date.
 
 === Development Releases
 
