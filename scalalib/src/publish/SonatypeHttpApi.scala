@@ -4,9 +4,11 @@ import java.util.Base64
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 import mill.BuildInfo
 import requests.BaseSession
+import ujson.ParseException
 
 class SonatypeHttpApi(
     uri: String,
@@ -48,7 +50,7 @@ class SonatypeHttpApi(
         .read(response.text())("data")
         .arr
         .find(profile => groupId.split('.').startsWith(profile("name").str.split('.')))
-        .map(_("resourceURI").str.toString)
+        .map(_("resourceURI").str)
 
     resourceUri.getOrElse(
       throw new RuntimeException(
@@ -62,7 +64,15 @@ class SonatypeHttpApi(
       s"${uri}/staging/repository/${stagingRepoId}",
       headers = commonHeaders
     )
-    ujson.read(response.text())("type").str.toString
+    try {
+      ujson.read(response.text())("type").str
+    } catch {
+      case e: ParseException =>
+        throw new RuntimeException(
+          s"Could not parse HTTP response. ${e.getMessage()}" + "\n" + s"Raw response: ${response}",
+          e
+        )
+    }
   }
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_start.html
@@ -74,12 +84,12 @@ class SonatypeHttpApi(
     ))
 
     if (!response.is2xx) {
-      throw new Exception(
+      throw new RuntimeException(
         s"$uri/staging/profiles returned ${response.statusCode}\n${response.text()}"
       )
     }
 
-    ujson.read(response.text())("data")("stagedRepositoryId").str.toString
+    ujson.read(response.text())("data")("stagedRepositoryId").str
   }
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_finish.html
