@@ -69,7 +69,8 @@ class SonatypeHttpApi(
     } catch {
       case e: ParseException =>
         throw new RuntimeException(
-          s"Could not parse HTTP response. ${e.getMessage()}" + "\n" + s"Raw response: ${response}"
+          s"Could not parse HTTP response. ${e.getMessage()}" + "\n" + s"Raw response: ${response}",
+          e
         )
     }
   }
@@ -83,7 +84,7 @@ class SonatypeHttpApi(
     ))
 
     if (!response.is2xx) {
-      throw new Exception(
+      throw new RuntimeException(
         s"$uri/staging/profiles returned ${response.statusCode}\n${response.text()}"
       )
     }
