@@ -71,7 +71,7 @@ trait PublishModule extends JavaModule { outer =>
   def publishLocal(localIvyRepo: String = null): define.Command[Unit] = T.command {
     val publisher = localIvyRepo match {
       case null => LocalIvyPublisher
-      case repo => new LocalIvyPublisher(os.Path(repo, os.pwd))
+      case repo => new LocalIvyPublisher(os.Path(repo, T.workspace))
     }
 
     publisher.publish(
@@ -92,7 +92,7 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishM2Local(m2RepoPath: String = (os.home / ".m2" / "repository").toString())
       : Command[Seq[PathRef]] = T.command {
-    val path = os.Path(m2RepoPath, os.pwd)
+    val path = os.Path(m2RepoPath, T.workspace)
     new LocalM2Publisher(path)
       .publish(
         jar = jar().path,
