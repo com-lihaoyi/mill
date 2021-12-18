@@ -162,4 +162,14 @@ object Lib {
       ctx = ctx
     )
 
+  def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {
+    def isHiddenFile(path: os.Path) = path.last.startsWith(".")
+    for {
+      root <- sources
+      if os.exists(root.path)
+      path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
+      if os.isFile(path) && (extensions.exists(path.ext == _) && !isHiddenFile(path))
+    } yield path
+  }
+
 }

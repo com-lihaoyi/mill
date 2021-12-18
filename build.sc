@@ -109,7 +109,7 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.2"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.16.0"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.0"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
@@ -253,8 +253,7 @@ object main extends MillModule {
     "-DMILL_VERSION=" + publishVersion()
   )
   override val test = new Tests(implicitly)
-  class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {
-  }
+  class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {}
   object api extends MillApiModule {
     override def ivyDeps = Agg(
       Deps.osLib,
