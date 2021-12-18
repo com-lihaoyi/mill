@@ -209,11 +209,39 @@ corresponding version of Mill.
 
 === 'main' branch
 :version: main
-:prev-version: 0.10.0-M4
-:milestone: 55
-:milestone-name: after 0.10.0-M4
+:prev-version: 0.10.0-M5
+:milestone: 57
+:milestone-name: after 0.10.0-M5
 
 _Changes since {prev-version}:_
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.0-M5 - 2021-12-18
+:version: main
+:prev-version: 0.10.0-M4
+:milestone: 55
+:milestone-name: 0.10.0-M5
+
+*This release breaks binary compatibility for external plugins.*
+
+
+_Changes since {prev-version}:_
+
+* Fixed Log4Shell security vulnerability in `ZincWorkerModule` (CVE-2021-44228)
+* Factored out the testrunner into a new module, which also fixes some potential classloader issues when executing tests (e.g. with JNA)
+* Removed the limitation of max 22 inputs for tasks
+* `--watched` commands can now re-run when pressing enter-key
+* task and arguments of commands can now have hyphens in their name
+* Reworked and decluttered the out-folder structure
+* `prepareOffline` now has a `all` flag to control if all or only some dependency should be prefetched
+* Made chaching more effective for targets overridden in stackable-traits
+* Further BSP improvements, esp. for Metals and Scala 3
+* Lots of other internal improvements and fixes
+* Various dependency updates
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
