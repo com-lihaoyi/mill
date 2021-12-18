@@ -38,7 +38,8 @@ object Settings {
     "0.9.11",
     "0.10.0-M2",
     "0.10.0-M3",
-    "0.10.0-M4"
+    "0.10.0-M4",
+    "0.10.0-M5"
   )
   val mimaBaseVersions = Seq("0.10.0-M4")
 }
