@@ -1,10 +1,11 @@
 package mill.contrib.scalapblib
 
 import mill.T
-import mill.api.PathRef
-import mill.util.{TestEvaluator, TestUtil}
+import mill.util.{TestUtil, TestEvaluator}
 import utest.framework.TestPath
-import utest.{TestSuite, Tests, assert, _}
+import utest.{TestSuite, assert, Tests, _}
+
+import java.nio.file.Files
 
 object TutorialTests extends TestSuite {
 
@@ -17,7 +18,6 @@ object TutorialTests extends TestSuite {
     def scalaVersion = "2.12.4"
     def scalaPBVersion = "0.10.1"
     def scalaPBFlatPackage = true
-    def scalaPBIncludePath = Seq(scalaPBUnpackProto())
   }
 
   object Tutorial extends TutorialBase {
@@ -26,8 +26,6 @@ object TutorialTests extends TestSuite {
       override def scalaPBVersion = "0.10.1"
     }
   }
-
-  // todo add tests for automatic search for scalapb-options.proto files
 
   object TutorialWithProtoc extends TutorialBase {
     object core extends TutorialModule {
@@ -45,7 +43,21 @@ object TutorialTests extends TestSuite {
     }
   }
 
+  object TutorialWithScalapbOptionModuleDependencies extends TutorialBase {
+    object core extends TutorialModule {
+      def moduleDeps = Seq(options)
+      override def scalaPBVersion = "0.11.3"
+    }
+
+    object options extends TutorialModule {
+      override def scalaPBVersion = "0.11.3"
+    }
+  }
+
   val resourcePath: os.Path = os.pwd / "contrib" / "scalapblib" / "test" / "protobuf" / "tutorial"
+
+  val optionResourcePath: os.Path =
+    os.pwd / "contrib" / "scalapblib" / "test" / "protobuf" / "options"
 
   def protobufOutPath(eval: TestEvaluator): os.Path =
     eval.outPath / "core" / "compileScalaPB.dest" / "com" / "example" / "tutorial"
@@ -59,6 +71,16 @@ object TutorialTests extends TestSuite {
     os.makeDir.all(m.millSourcePath / "core" / "protobuf")
     os.copy(resourcePath, m.millSourcePath / "core" / "protobuf" / "tutorial")
     t(eval)
+  }
+
+  def workspaceTestWithOption[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit
+      tp: TestPath
+  ): T = {
+    workspaceTest(m) { eval =>
+      os.makeDir.all(m.millSourcePath / "options" / "protobuf")
+      os.copy(optionResourcePath, m.millSourcePath / "options" / "protobuf" / "tutorial")
+      t(eval)
+    }
   }
 
   def compiledSourcefiles: Seq[os.RelPath] = Seq[os.RelPath](
@@ -130,6 +152,34 @@ object TutorialTests extends TestSuite {
 //      //   assert(unchangedEvalCount == 0)
 //      // }
 //     }
+
+      "pickUpScalapbOption" - workspaceTestWithOption(TutorialWithScalapbOptionModuleDependencies) {
+        eval =>
+          val Right((result, evalCount)) =
+            eval.apply(TutorialWithScalapbOptionModuleDependencies.core.compileScalaPB)
+
+          val outPath = protobufOutPath(eval)
+
+          val outputFiles = os.walk(result.path).filter(os.isFile)
+
+          val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
+
+          assert(
+            result.path == eval.outPath / "core" / "compileScalaPB.dest",
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedSourcefiles.contains),
+            outputFiles.find(_.toString.endsWith("AddressBook.scala")).exists(p =>
+              Files.lines(p.toNIO).anyMatch(_.contains("java.time.Instant"))
+            ),
+            outputFiles.size == 5,
+            evalCount > 0
+          )
+
+          // don't recompile if nothing changed
+          val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+
+          assert(unchangedEvalCount == 0)
+      }
     }
 
     "useExternalProtocCompiler" - {
@@ -150,6 +200,21 @@ object TutorialTests extends TestSuite {
           result match {
             case Right((args, _)) =>
               assert(args.exists(_.contains("--additional-test=...")))
+            case _ => assert(false)
+          }
+      }
+    }
+
+    "scalapbOptionsArePickedUpFrom" - {
+      "depdendendModule" - workspaceTestWithOption(TutorialWithScalapbOptionModuleDependencies) {
+        eval =>
+          val result =
+            eval.apply(TutorialWithScalapbOptionModuleDependencies.core.scalaPbOptionFiles)
+          result match {
+            case Right((args, _)) =>
+              assert(args.exists(
+                _.path.toString.endsWith("scalapb-options.proto")
+              ))
             case _ => assert(false)
           }
       }

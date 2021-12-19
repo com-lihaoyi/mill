@@ -1,0 +1,18 @@
+syntax = "proto2";
+
+package tutorial;
+
+import "scalapb/scalapb.proto";
+
+option (scalapb.options) = {
+  scope: PACKAGE
+  field_transformations : [
+    {
+      when : {
+        type: TYPE_MESSAGE
+        type_name: ".google.protobuf.Timestamp"
+      }
+      set : {[scalapb.field] {type : 'java.time.Instant' }}
+    }
+  ]
+};

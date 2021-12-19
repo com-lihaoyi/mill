@@ -37,16 +37,16 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBLenses: T[Boolean] = T { true }
 
   /**
-    * Additional arguments for scalaPBC.
-    *
-    *  If you'd like to pass additional arguments to the ScalaPB compiler directly,
-    *  you can override this task.
-    *
-    *  @see See [[http://www.lihaoyi.com/mill/page/contrib-modules.html#scalapb Configuration Options]] to
-    *       know more.
-    *  @return a sequence of Strings representing the additional arguments to append
-    *          (defaults to empty Seq[String]).
-    */
+   * Additional arguments for scalaPBC.
+   *
+   *  If you'd like to pass additional arguments to the ScalaPB compiler directly,
+   *  you can override this task.
+   *
+   *  @see See [[http://www.lihaoyi.com/mill/page/contrib-modules.html#scalapb Configuration Options]] to
+   *       know more.
+   *  @return a sequence of Strings representing the additional arguments to append
+   *          (defaults to empty Seq[String]).
+   */
   def scalaPBAdditionalArgs: T[Seq[String]] = T { Seq.empty[String] }
 
   def scalaPBProtocPath: T[Option[String]] = T { None }
@@ -134,15 +134,16 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPbOptionFiles: T[Seq[PathRef]] = T {
     val isModifier = scalaPbModifierFileName().toSet
-    def findProtoModifiers(path: os.Path) = if (path.toIO.exists()) {
-      os.walk
-        .stream(path)
-        .filter(f => isModifier(f.toIO.getName))
-        .map(PathRef(_, quick = true))
-        .toList
-    } else {
-      List.empty
-    }
+    def findProtoModifiers(path: os.Path) =
+      if (path.toIO.exists()) {
+        os.walk
+          .stream(path)
+          .filter(f => isModifier(f.toIO.getName))
+          .map(PathRef(_, quick = true))
+          .toList
+      } else {
+        List.empty
+      }
 
     (Target.sequence(moduleDeps.collect { case m: ScalaPBModule => m.scalaPbOptionFiles })().flatten
       ++ findProtoModifiers(scalaPBUnpackProto().path)

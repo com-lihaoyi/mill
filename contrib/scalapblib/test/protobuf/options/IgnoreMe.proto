@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package tutorial;
+
+import "google/protobuf/wrappers.proto";
+
+option java_package = "com.example.tutorial";
+
+// this should not end up in the compiled project of another project
+message IgnoreMe{
+    google.protobuf.Int32Value my_int32 = 5;
+}

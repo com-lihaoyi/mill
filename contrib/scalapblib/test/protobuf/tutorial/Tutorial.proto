@@ -4,6 +4,7 @@ package tutorial;
 
 option java_package = "com.example.tutorial";
 option java_outer_classname = "AddressBookProtos";
+import "google/protobuf/timestamp.proto";
 
 message Person {
   required string name = 1;
@@ -26,4 +27,5 @@ message Person {
 
 message AddressBook {
   repeated Person people = 1;
+  optional google.protobuf.Timestamp at = 2;
 }
