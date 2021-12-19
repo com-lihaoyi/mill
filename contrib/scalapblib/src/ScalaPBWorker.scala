@@ -25,17 +25,19 @@ class ScalaPBWorker {
 
         val instance = new ScalaPBWorkerApi {
           override def compileScalaPB(
-              root: File,
-              sources: Seq[File],
+              importPaths: Seq[File],
+              source: Seq[File],
               scalaPBOptions: String,
               generatedDirectory: File,
               otherArgs: Seq[String]
           ): Unit = {
             val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
+
+            val imports = importPaths.map(file => s"--proto_path=${file.getCanonicalPath}")
+
             val args = otherArgs ++ Seq(
-              s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
-              s"--proto_path=${root.getCanonicalPath}"
-            ) ++ sources.map(_.getCanonicalPath)
+              s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}"
+            ) ++ imports ++ source.map(_.getCanonicalPath)
             ctx.log.debug(s"ScalaPBC args: ${args.mkString(" ")}")
             mainMethod.invoke(null, args.toArray)
           }
@@ -81,39 +83,40 @@ class ScalaPBWorker {
       scalaPBOptions: String,
       dest: os.Path,
       scalaPBCExtraArgs: Seq[String]
-  )(implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
+  )(
+      implicit ctx: mill.api.Ctx
+  ): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
-
-    def compileScalaPBDir(inputDir: os.Path): Unit = {
-      // ls throws if the path doesn't exist
-      if (inputDir.toIO.exists) {
-        val files = os
+    def findProtoFiles(inputDir: os.Path): Seq[File] = {
+      if (inputDir.toIO.isDirectory) {
+        os
           .walk(inputDir)
           .filter(_.last.matches(".*.proto"))
           .map(_.toIO)
           .toIndexedSeq
-
-        if (files.nonEmpty) {
-          compiler.compileScalaPB(
-            inputDir.toIO,
-            files,
-            scalaPBOptions,
-            dest.toIO,
-            scalaPBCExtraArgs
-          )
-        }
+      } else {
+        Seq(inputDir.toIO)
       }
     }
+    val rootPaths = scalaPBSources.filter(_.toIO.exists())
+    val protoFiles = rootPaths.flatMap(findProtoFiles)
 
-    scalaPBSources.foreach(compileScalaPBDir)
-
+    if (protoFiles.nonEmpty) {
+      compiler.compileScalaPB(
+        rootPaths.map(_.toIO),
+        protoFiles,
+        scalaPBOptions,
+        dest.toIO,
+        scalaPBCExtraArgs
+      )
+    }
     mill.api.Result.Success(PathRef(dest))
   }
 }
 
 trait ScalaPBWorkerApi {
   def compileScalaPB(
-      root: File,
+      importPaths: Seq[File],
       source: Seq[File],
       scalaPBOptions: String,
       generatedDirectory: File,

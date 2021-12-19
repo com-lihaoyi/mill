@@ -3,8 +3,8 @@ package contrib.scalapblib
 
 import coursier.MavenRepository
 import coursier.core.Version
-import mill.define.Sources
-import mill.api.{IO, Loose, PathRef}
+import mill.define.{Sources, Target}
+import mill.api.{PathRef, IO, Loose}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 
@@ -37,16 +37,16 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBLenses: T[Boolean] = T { true }
 
   /**
-   * Additional arguments for scalaPBC.
-   *
-   *  If you'd like to pass additional arguments to the ScalaPB compiler directly,
-   *  you can override this task.
-   *
-   *  @see See [[http://www.lihaoyi.com/mill/page/contrib-modules.html#scalapb Configuration Options]] to
-   *       know more.
-   *  @return a sequence of Strings representing the additional arguments to append
-   *          (defaults to empty Seq[String]).
-   */
+    * Additional arguments for scalaPBC.
+    *
+    *  If you'd like to pass additional arguments to the ScalaPB compiler directly,
+    *  you can override this task.
+    *
+    *  @see See [[http://www.lihaoyi.com/mill/page/contrib-modules.html#scalapb Configuration Options]] to
+    *       know more.
+    *  @return a sequence of Strings representing the additional arguments to append
+    *          (defaults to empty Seq[String]).
+    */
   def scalaPBAdditionalArgs: T[Seq[String]] = T { Seq.empty[String] }
 
   def scalaPBProtocPath: T[Option[String]] = T { None }
@@ -83,7 +83,11 @@ trait ScalaPBModule extends ScalaModule {
     )
   }
 
-  def scalaPBIncludePath: T[Seq[PathRef]] = T.sources { Seq.empty[PathRef] }
+  def scalaPBIncludePath: T[Seq[PathRef]] = T {
+    Seq(scalaPBUnpackProto()) ++ scalaPBSources() ++ Target
+      .sequence(moduleDeps.collect { case m: ScalaPBModule => m.scalaPBIncludePath })()
+      .flatten
+  }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = T {
     resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
@@ -115,18 +119,42 @@ trait ScalaPBModule extends ScalaModule {
    * options passing to ScalaPBC **except** `--scala_out=...`, `--proto_path=source_parent` and `source`
    */
   def scalaPBCompileOptions: T[Seq[String]] = T {
-    ScalaPBWorkerApi.scalaPBWorker().compileOptions(
-      scalaPBProtocPath(),
-      scalaPBIncludePath().map(_.path),
-      scalaPBAdditionalArgs()
-    )
+    ScalaPBWorkerApi
+      .scalaPBWorker()
+      .compileOptions(
+        scalaPBProtocPath(),
+        scalaPBIncludePath().map(_.path),
+        scalaPBAdditionalArgs()
+      )
+  }
+
+  def scalaPbModifierFileName: T[Seq[String]] = T {
+    Seq("scalapb-options.proto")
+  }
+
+  def scalaPbOptionFiles: T[Seq[PathRef]] = T {
+    val isModifier = scalaPbModifierFileName().toSet
+    def findProtoModifiers(path: os.Path) = if (path.toIO.exists()) {
+      os.walk
+        .stream(path)
+        .filter(f => isModifier(f.toIO.getName))
+        .map(PathRef(_, quick = true))
+        .toList
+    } else {
+      List.empty
+    }
+
+    (Target.sequence(moduleDeps.collect { case m: ScalaPBModule => m.scalaPbOptionFiles })().flatten
+      ++ findProtoModifiers(scalaPBUnpackProto().path)
+      ++ scalaPBSources().flatMap(p => findProtoModifiers(p.path)))
   }
 
   def compileScalaPB: T[PathRef] = T.persistent {
-    ScalaPBWorkerApi.scalaPBWorker()
+    ScalaPBWorkerApi
+      .scalaPBWorker()
       .compile(
         scalaPBClasspath().map(_.path),
-        scalaPBSources().map(_.path),
+        scalaPBSources().map(_.path) ++ scalaPbOptionFiles().map(_.path),
         scalaPBOptions(),
         T.dest,
         scalaPBCompileOptions()

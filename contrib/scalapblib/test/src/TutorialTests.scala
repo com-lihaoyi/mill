@@ -27,6 +27,8 @@ object TutorialTests extends TestSuite {
     }
   }
 
+  // todo add tests for automatic search for scalapb-options.proto files
+
   object TutorialWithProtoc extends TutorialBase {
     object core extends TutorialModule {
       override def scalaPBProtocPath = Some("/dev/null")
