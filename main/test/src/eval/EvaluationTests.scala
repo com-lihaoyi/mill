@@ -5,6 +5,7 @@ import mill.define.{Discover, Graph, Target, Task}
 import mill.{Module, T}
 import mill.util.{DummyLogger, TestEvaluator, TestGraphs, TestUtil}
 import mill.api.Strict.Agg
+import os.SubPath
 import utest._
 import utest.framework.TestPath
 
@@ -227,8 +228,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "foo.json")
         val overriden = os.read(
-          checker.evaluator.outPath / "foo" /
-            "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo.json"
+          checker.evaluator.outPath / "foo.overridden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo.json"
         )
         assert(
           public.contains("base"),
@@ -255,8 +255,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "cmd.json")
         val overriden = os.read(
-          checker.evaluator.outPath / "cmd" /
-            "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd.json"
+          checker.evaluator.outPath / "cmd.overridden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd.json"
         )
         assert(
           public.contains("base1"),
@@ -370,15 +369,15 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         extraEvaled = -1
       )
 
-      val overridePrefix =
-        os.sub / "overriden" / "mill" / "util" / "TestGraphs" / "StackableOverrides"
+      def overridePath(task: String): SubPath =
+        os.sub / s"${task}.overridden" / "mill" / "util" / "TestGraphs" / "StackableOverrides"
 
       assert(
-        os.read(checker.evaluator.outPath / "m" / "f" / overridePrefix / "X" / "f.json")
+        os.read(checker.evaluator.outPath / "m" / overridePath("f") / "X" / "f.json")
           .contains(" 1,")
       )
       assert(
-        os.read(checker.evaluator.outPath / "m" / "f" / overridePrefix / "A" / "f.json")
+        os.read(checker.evaluator.outPath / "m" / overridePath("f") / "A" / "f.json")
           .contains(" 3,")
       )
       assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))

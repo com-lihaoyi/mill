@@ -9,10 +9,7 @@ sealed trait Segment {
   }
 }
 object Segment {
-  case class Label(value: String) extends Segment {
-    // FIXME: Document, why we have this requirement, see https://github.com/com-lihaoyi/mill/issues/820
-    require(!value.contains('.'), "A label must not contain a dot ('.').")
-  }
+  case class Label(value: String) extends Segment
   case class Cross(value: Seq[Any]) extends Segment
 }
 
