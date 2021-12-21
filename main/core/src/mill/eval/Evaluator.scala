@@ -672,12 +672,20 @@ object Evaluator {
       case t: NamedTask[Any] =>
         val segments = t.ctx.segments
 
-        val additional =
-          if (!overriden(t)) Nil
-          else
-            Seq(Segment.Label("overriden")) ++ t.ctx.enclosing.split("\\.|#| ").map(Segment.Label)
+        Right(
+          Labelled(
+            t,
+            if (!overriden(t)) segments
+            else Segments(
+              segments.value.init ++
+              Seq(Segment.Label(segments.value.last.asInstanceOf[Segment.Label].value + ".override")) ++
+              t.ctx.enclosing.split("\\.|#| ").map(Segment.Label):_*
+            )
+          )
+        )
 
-        Right(Labelled(t, segments ++ additional))
+
+
       case t if goals.contains(t) => Left(t)
     }
 
