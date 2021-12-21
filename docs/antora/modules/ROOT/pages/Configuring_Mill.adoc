@@ -237,7 +237,7 @@ mill foo.test
 ----
 
 By default, tests are run in a subprocess, and `forkArg` and `forkEnv` can be
-overriden to pass JVM flags &amp; environment variables. You can also use
+overridden to pass JVM flags &amp; environment variables. You can also use
 
 [source,bash]
 ----

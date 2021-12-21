@@ -135,7 +135,7 @@ would have its `millSourcePath` be `./foo/lols/baz`.
 
 Note that `millSourcePath` is generally only used for a module's input source files.
 Output is always in the `out/` folder and cannot be changed, e.g. even with the
-overriden `millSourcePath` the output paths are still the default `./out/foo/bar` and
+overridden `millSourcePath` the output paths are still the default `./out/foo/bar` and
 `./out/foo/baz/qux` folders.
 
 == External Modules

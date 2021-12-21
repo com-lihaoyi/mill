@@ -219,7 +219,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
       "overrideSuperTask" - {
         // Make sure you can override targets, call their supers, and have the
-        // overriden target be allocated a spot within the overriden/ folder of
+        // overridden target be allocated a spot within the overridden/ folder of
         // the main publicly-available target
         import canOverrideSuper._
 
@@ -227,19 +227,19 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         checker(foo, Seq("base", "object"), Agg(foo), extraEvaled = -1)
 
         val public = os.read(checker.evaluator.outPath / "foo.json")
-        val overriden = os.read(
+        val overridden = os.read(
           checker.evaluator.outPath / "foo.overridden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo.json"
         )
         assert(
           public.contains("base"),
           public.contains("object"),
-          overriden.contains("base"),
-          !overriden.contains("object")
+          overridden.contains("base"),
+          !overridden.contains("object")
         )
       }
       "overrideSuperCommand" - {
         // Make sure you can override commands, call their supers, and have the
-        // overriden command be allocated a spot within the overriden/ folder of
+        // overridden command be allocated a spot within the overridden/ folder of
         // the main publicly-available command
         import canOverrideSuper._
 
@@ -254,14 +254,14 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         )
 
         val public = os.read(checker.evaluator.outPath / "cmd.json")
-        val overriden = os.read(
+        val overridden = os.read(
           checker.evaluator.outPath / "cmd.overridden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd.json"
         )
         assert(
           public.contains("base1"),
           public.contains("object1"),
-          overriden.contains("base1"),
-          !overriden.contains("object1")
+          overridden.contains("base1"),
+          !overridden.contains("object1")
         )
       }
       "nullTasks" - {
@@ -357,7 +357,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
     }
     "stackableOverrides" - {
       // Make sure you can override commands, call their supers, and have the
-      // overriden command be allocated a spot within the overriden/ folder of
+      // overridden command be allocated a spot within the overridden/ folder of
       // the main publicly-available command
       import StackableOverrides._
 
