@@ -676,16 +676,16 @@ object Evaluator {
           Labelled(
             t,
             if (!overriden(t)) segments
-            else Segments(
-              segments.value.init ++
-              Seq(Segment.Label(segments.value.last.asInstanceOf[Segment.Label].value + ".override")) ++
-              t.ctx.enclosing.split("\\.|#| ").map(Segment.Label):_*
-            )
+            else {
+              val suffix = (
+                Seq(segments.value.last.asInstanceOf[Segment.Label].value + ".override") ++
+                t.ctx.enclosing.split("\\.|#| ")
+              ).map(Segment.Label)
+              Segments(segments.value.init ++ suffix:_*)
+            }
           )
         )
-
-
-
+        
       case t if goals.contains(t) => Left(t)
     }
 
