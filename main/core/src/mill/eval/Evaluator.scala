@@ -660,24 +660,31 @@ object Evaluator {
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
     val seen = collection.mutable.Set.empty[Segments]
-    val overriden = collection.mutable.Set.empty[Task[_]]
+    val overridden = collection.mutable.Set.empty[Task[_]]
     topoSorted.values.reverse.foreach {
       case x: NamedTask[_] =>
         if (!seen.contains(x.ctx.segments)) seen.add(x.ctx.segments)
-        else overriden.add(x)
+        else overridden.add(x)
       case _ => // donothing
     }
 
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
       case t: NamedTask[Any] =>
         val segments = t.ctx.segments
-
-        val additional =
-          if (!overriden(t)) Nil
-          else
-            Seq(Segment.Label("overriden")) ++ t.ctx.enclosing.split("\\.|#| ").map(Segment.Label)
-
-        Right(Labelled(t, segments ++ additional))
+        Right(
+          Labelled(
+            t,
+            if (!overridden(t)) segments
+            else {
+              val Segment.Label(tName) = segments.value.last
+              Segments(
+                segments.value.init ++
+                  Seq(Segment.Label(tName + ".overridden")) ++
+                  t.ctx.enclosing.split("\\.|#| ").map(Segment.Label): _*
+              )
+            }
+          )
+        )
       case t if goals.contains(t) => Left(t)
     }
 
