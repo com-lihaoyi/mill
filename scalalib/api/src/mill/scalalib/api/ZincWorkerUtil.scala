@@ -125,28 +125,39 @@ trait ZincWorkerUtil {
 
   /**
    * Given a version string and the sequence of all the possible versions strings
-   * using a semantic versioning scheme (like x.y.z) it returns all the version
-   * ranges that contain `version` for all sub-version (major, minor, patch) in
+   * using a semantic versioning scheme (like x.y.z) it returns all the non-redundant
+   * version ranges that contain `version` for all sub-version (major, minor, patch) in
    * `allVersions`.
    * For example, `versionRanges("2.0", Seq("1.0", "2.0", "3.0"))` returns versions
-   * like `"1+"`, `"3-"`, `"3.0-"`, `"2+"`, `"2-"` and so on.
+   * like `"2.0-"`, `"2+"`, `"2-"` and so on.
    */
   def versionRanges(version: String, allVersions: Seq[String]): Seq[String] = {
     import scala.math.Ordering.Implicits._
     val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get)
     val all = allVersions.flatMap(
       _.split('.').inits
+        .filter(_.nonEmpty)
         .flatMap { l =>
           try { Some(l.map(_.toInt)) }
           catch { case _: NumberFormatException => None }
         }
         .map(_.toSeq)
-    )
+    ).groupBy(v => v.length)
+      .values
+      .flatMap { group =>
+        val withoutExtremes = group.distinct.sorted.drop(1).dropRight(1)
+        withoutExtremes.filter(v => withoutExtremes.count(_.startsWith(v.dropRight(1))) > 1)
+      }
+      .filter(s => s.nonEmpty)
+      .toSeq
+
     val plus =
-      all.filter(v => v.nonEmpty && v <= versionParts.take(v.length)).map(_.mkString(".") + "+")
+      all.filter(v => v <= versionParts.take(v.length)).map(_.mkString(".") + "+")
+
     val minus =
-      all.filter(v => v.nonEmpty && v >= versionParts.take(v.length)).map(_.mkString(".") + "-")
-    (plus ++ minus).distinct.toSeq
+      all.filter(v => v >= versionParts.take(v.length)).map(_.mkString(".") + "-")
+
+    (plus ++ minus).distinct.sorted
   }
 }
 
