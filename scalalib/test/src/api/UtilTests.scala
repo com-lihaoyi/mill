@@ -24,6 +24,7 @@ object UtilTests extends TestSuite {
         "2.12.12+",
         "2.12.12-",
         "2.13-",
+        "3-",
         "3.0-",
         "3.1-"
       )

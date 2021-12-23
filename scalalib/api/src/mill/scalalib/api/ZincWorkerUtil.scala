@@ -134,7 +134,7 @@ trait ZincWorkerUtil {
   def versionRanges(version: String, allVersions: Seq[String]): Seq[String] = {
     import scala.math.Ordering.Implicits._
     val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get)
-    val all = allVersions.flatMap(
+    val groups = allVersions.flatMap(
       _.split('.').inits
         .filter(_.nonEmpty)
         .flatMap { l =>
@@ -144,12 +144,15 @@ trait ZincWorkerUtil {
         .map(_.toSeq)
     ).groupBy(v => v.length)
       .values
-      .flatMap { group =>
-        val withoutExtremes = group.distinct.sorted.drop(1).dropRight(1)
-        withoutExtremes.filter(v => withoutExtremes.count(_.startsWith(v.dropRight(1))) > 1)
-      }
-      .filter(s => s.nonEmpty)
-      .toSeq
+      .map(_.distinct.sorted.drop(1).dropRight(1))
+    val all = (groups match {
+      case majors :: otherGroups =>
+        val withoutRedundant = otherGroups.map(group =>
+          group.filter(version => group.count(_.startsWith(version.dropRight(1))) > 1)
+        )
+        majors :: withoutRedundant
+      case Nil => Nil
+    }).flatten
 
     val plus =
       all.filter(v => v <= versionParts.take(v.length)).map(_.mkString(".") + "+")
