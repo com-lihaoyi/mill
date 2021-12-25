@@ -52,11 +52,9 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
       nativeOptimize: Boolean,
       logLevel: NativeLogLevel
   ): NativeConfig = {
-    val entry = mainClass + "$"
-
     val config =
       Config.empty
-        .withMainClass(entry)
+        .withMainClass(mainClass)
         .withClassPath(classpath.map(_.toPath))
         .withWorkdir(nativeWorkdir.toPath)
         .withCompilerConfig(
