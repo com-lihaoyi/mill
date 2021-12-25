@@ -168,7 +168,7 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDeps(
       T.task {
         scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
-          scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
+          scalaLibraryIvyDeps()
       }
     )()
   }

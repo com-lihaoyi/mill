@@ -22,12 +22,12 @@ object HelloNativeWorldTests extends TestSuite {
     override def mainClass = Some("hello.Main")
   }
 
-  val scala213 = "2.13.6"
+  val scala213 = "2.13.7"
   val scalaNative04 = "0.4.0"
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scala <- Seq(scala213, "2.12.13", "2.11.12")
+      scala <- Seq("3.1.0", scala213, "2.12.13", "2.11.12")
       scalaNative <- Seq(scalaNative04, "0.4.3-RC2")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
     } yield (scala, scalaNative, mode)
@@ -38,6 +38,11 @@ object HelloNativeWorldTests extends TestSuite {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
       def releaseMode = T { mode }
+      override def repositoriesTask = T.task {
+        super.repositoriesTask() :+ coursier.MavenRepository(
+          "http://oss.sonatype.org/content/repositories/snapshots"
+        )
+      }
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello native world ready for real world publishing",

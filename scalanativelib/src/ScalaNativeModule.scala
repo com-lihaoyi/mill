@@ -4,10 +4,10 @@ package scalanativelib
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import coursier.maven.MavenRepository
 import mill.api.Loose.Agg
-import mill.api.internal
+import mill.api.{internal, Result}
 import mill.define.{Target, Task}
 import mill.modules.Jvm
-import mill.scalalib.api.Util.scalaBinaryVersion
+import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.TestRunner
 import mill.scalanativelib.api._
@@ -62,12 +62,20 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeLibIvy = T { ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
 
   def nativeIvyDeps = T {
-    Seq(nativeLibIvy()) ++
-      Seq(
-        ivy"org.scala-native::javalib::${scalaNativeVersion()}",
-        ivy"org.scala-native::auxlib::${scalaNativeVersion()}",
+    val scalaVersionSpecific =
+      if (isScala3(scalaVersion()))
+        ivy"org.scala-native::scala3lib::${scalaNativeVersion()}"
+      else
         ivy"org.scala-native::scalalib::${scalaNativeVersion()}"
-      )
+
+    Seq(nativeLibIvy()) ++ Seq(
+      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
+      ivy"org.scala-native::auxlib::${scalaNativeVersion()}"
+    ) :+ scalaVersionSpecific
+  }
+
+  override def scalaLibraryIvyDeps = T {
+    if (isScala3(scalaVersion())) Agg.empty[Dep] else super.scalaLibraryIvyDeps()
   }
 
   /** Adds [[nativeIvyDeps]] as mandatory dependencies. */
@@ -77,7 +85,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def bridgeFullClassPath = T {
     Lib.resolveDependencies(
-      Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+      repositories = repositoriesTask(),
       Lib.depToDependency(_, scalaVersion(), platformSuffix()),
       toolsIvyDeps(),
       ctx = Some(implicitly[mill.util.Ctx.Log])
@@ -92,15 +100,27 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def logLevel: Target[NativeLogLevel] = T { NativeLogLevel.Info }
 
+  private def readEnvVariable[T](
+      env: Map[String, String],
+      envVariable: String,
+      values: Seq[T],
+      valueOf: T => String
+  ): Result[Option[T]] = {
+    env.get(envVariable) match {
+      case Some(value) =>
+        values.find(valueOf(_) == value) match {
+          case None =>
+            Result.Failure(
+              s"$envVariable=$value is not valid. Allowed values are: [${values.map(valueOf).mkString(", ")}]"
+            )
+          case Some(value) => Result.Success(Some(value))
+        }
+      case None => Result.Success(None)
+    }
+  }
+
   protected def releaseModeInput: Target[Option[ReleaseMode]] = T.input {
-    T.env.get("SCALANATIVE_MODE").map(v =>
-      ReleaseMode
-        .values
-        .find(_.value == v)
-        .getOrElse(throw new Exception(
-          s"SCALANATIVE_MODE=$v is not valid. Allowed values are: [${ReleaseMode.values.map(_.value).mkString(", ")}]"
-        ))
-    )
+    readEnvVariable[ReleaseMode](T.env, "SCALANATIVE_MODE", ReleaseMode.values, _.value)
   }
 
   def releaseMode: Target[ReleaseMode] = T {
@@ -137,21 +157,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   // The LTO mode to use used during a release build
   protected def nativeLTOInput: Target[Option[LTO]] = T.input {
-    T.env.get("SCALANATIVE_LTO").map(v =>
-      LTO
-        .values
-        .find(_.value == v)
-        .getOrElse(throw new Exception(
-          s"SCALANATIVE_LTO=$v is not valid. Allowed values are: [${LTO.values.map(_.value).mkString(", ")}]"
-        ))
-    )
+    readEnvVariable[LTO](T.env, "SCALANATIVE_LTO", LTO.values, _.value)
   }
 
   def nativeLTO: Target[LTO] = T { nativeLTOInput().getOrElse(LTO.None) }
 
   // Shall we optimize the resulting NIR code?
   protected def nativeOptimizeInput: Target[Option[Boolean]] = T.input {
-    T.env.get("SCALANATIVE_OPTIMIZE").map(_.toBoolean)
+    readEnvVariable[Boolean](T.env, "SCALANATIVE_OPTIMIZE", Seq(true, false), _.toString)
   }
 
   def nativeOptimize: Target[Boolean] = T { nativeOptimizeInput().getOrElse(true) }
