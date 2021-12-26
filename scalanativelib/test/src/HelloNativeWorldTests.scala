@@ -260,7 +260,7 @@ object HelloNativeWorldTests extends TestSuite {
     )
 
     val scalaVersionSpecific =
-      if (isScala3) Set("ArgsParser.tasty", "Main.tasty")
+      if (isScala3(scalaVersion)) Set("ArgsParser.tasty", "Main.tasty")
       else Set(
         "Main$delayedInit$body.class",
         "Main$delayedInit$body.nir"
