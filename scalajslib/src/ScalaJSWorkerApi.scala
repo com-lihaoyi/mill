@@ -52,6 +52,35 @@ class ScalaJSWorker {
     ).map(os.Path(_))
   }
 
+  def linkJs(
+      toolsClasspath: Agg[os.Path],
+      sources: Agg[os.Path],
+      libraries: Agg[os.Path],
+      dest: File,
+      main: Option[String],
+      testBridgeInit: Boolean,
+      fullOpt: Boolean,
+      moduleKind: ModuleKind,
+      moduleSplitStyle: ModuleSplitStyle,
+      moduleInitializers: Seq[ModuleInitializer],
+      outputPatterns: OutputPatterns,
+      useECMAScript2015: Boolean
+  )(implicit ctx: Ctx.Home): Result[os.Path] = {
+    bridge(toolsClasspath).linkJs(
+      sources.items.map(_.toIO).toArray,
+      libraries.items.map(_.toIO).toArray,
+      dest,
+      main,
+      testBridgeInit,
+      fullOpt,
+      moduleKind,
+      moduleSplitStyle,
+      moduleInitializers,
+      outputPatterns,
+      useECMAScript2015
+    ).map(os.Path(_))
+  }
+
   def run(toolsClasspath: Agg[os.Path], config: JsEnvConfig, linkedFile: File)(implicit
       ctx: Ctx.Home
   ): Unit = {

@@ -14,68 +14,48 @@ import utest._
 import scala.collection.JavaConverters._
 import mill.scalajslib.api._
 
-object HelloJSWorldTests extends TestSuite {
+object HelloJSWorldTests extends TestSuite with HelloJSWorldTestsBase {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
+  val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12", "2.11.12")
+  val scalaJSVersionsAndUseECMA2015 =
+    Seq(("1.4.0", false), ("1.3.1", true), ("1.0.1", false), ("0.6.33", false))
 
   trait HelloJSWorldModule extends CrossScalaModule with ScalaJSModule with PublishModule {
     override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("Main")
+    override def artifactName = "hello-js-world"
+    def pomSettings = PomSettings(
+      organization = "com.lihaoyi",
+      description = "hello js world ready for real world publishing",
+      url = "https://github.com/lihaoyi/hello-world-publish",
+      licenses = Seq(License.Common.Apache2),
+      versionControl = VersionControl.github("lihaoyi", "hello-world-publish"),
+      developers =
+        Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+    )
   }
 
-  object HelloJSWorld extends TestUtil.BaseModule {
-    val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12", "2.11.12")
-    val scalaJSVersionsAndUseECMA2015 =
-      Seq(("1.4.0", false), ("1.3.1", true), ("1.0.1", false), ("0.6.33", false))
-    val matrix = for {
-      scala <- scalaVersions
-      (scalaJS, useECMAScript2015) <- scalaJSVersionsAndUseECMA2015
-      if !(isScala3(scala) && scalaJS != scalaJSVersionsAndUseECMA2015.head._1)
-    } yield (scala, scalaJS, useECMAScript2015)
-
+  object HelloJSWorld extends HelloJSWorldBase {
     object helloJsWorld extends Cross[BuildModule](matrix: _*)
-    class BuildModule(val crossScalaVersion: String, sjsVersion0: String, sjsUseECMA2015: Boolean)
-        extends HelloJSWorldModule {
-      override def artifactName = "hello-js-world"
-      def scalaJSVersion = sjsVersion0
-      def useECMAScript2015 = sjsUseECMA2015
-      def pomSettings = PomSettings(
-        organization = "com.lihaoyi",
-        description = "hello js world ready for real world publishing",
-        url = "https://github.com/lihaoyi/hello-world-publish",
-        licenses = Seq(License.Common.Apache2),
-        versionControl = VersionControl.github("lihaoyi", "hello-world-publish"),
-        developers =
-          Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-      )
-    }
+
+    class BuildModule(crossScalaVersion: String, sjsVersion0: String, sjsUseECMA2015: Boolean)
+        extends BuildModuleBase(crossScalaVersion, sjsVersion0, sjsUseECMA2015)
+        with HelloJSWorldModule
 
     object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
     class BuildModuleUtest(crossScalaVersion: String, sjsVersion0: String, sjsUseECMA2015: Boolean)
-        extends BuildModule(crossScalaVersion, sjsVersion0, sjsUseECMA2015) {
-      object test extends super.Tests with TestModule.Utest {
-        override def sources = T.sources { millSourcePath / "src" / "utest" }
-        val utestVersion = if (isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
-        override def ivyDeps = Agg(
-          ivy"com.lihaoyi::utest::$utestVersion"
-        )
-      }
-    }
+        extends BuildModuleUtestBase(crossScalaVersion, sjsVersion0, sjsUseECMA2015)
+        with HelloJSWorldModule
 
     object buildScalaTest extends Cross[BuildModuleScalaTest](matrix: _*)
     class BuildModuleScalaTest(
         crossScalaVersion: String,
         sjsVersion0: String,
         sjsUseECMA2015: Boolean
-    ) extends BuildModule(crossScalaVersion, sjsVersion0, sjsUseECMA2015) {
-      object test extends super.Tests {
-        override def sources = T.sources { millSourcePath / "src" / "scalatest" }
-        def testFrameworks = Seq("org.scalatest.tools.Framework")
-        override def ivyDeps = Agg(
-          ivy"org.scalatest::scalatest::3.1.2"
-        )
-      }
-    }
+    ) extends BuildModuleScalaTestBase(crossScalaVersion, sjsVersion0, sjsUseECMA2015)
+        with HelloJSWorldModule
+
     override lazy val millDiscover = Discover[this.type]
   }
 
@@ -165,7 +145,7 @@ object HelloJSWorldTests extends TestSuite {
     }
     "jar" - {
       "containsSJSIRs" - {
-        val (scala, scalaJS, useECMAScript2015) = HelloJSWorld.matrix.head
+        val (scala, scalaJS, useECMAScript2015) = matrix.head
         val Right((result, evalCount)) =
           helloWorldEvaluator(HelloJSWorld.helloJsWorld(scala, scalaJS, useECMAScript2015).jar)
         val jar = result.path
@@ -183,17 +163,17 @@ object HelloJSWorldTests extends TestSuite {
         assert(result.id == artifactId)
       }
       "artifactId_06" - testArtifactId(
-        HelloJSWorld.scalaVersions.head,
+        scalaVersions.head,
         "0.6.33",
         "hello-js-world_sjs0.6_2.13"
       )
       "artifactId_10" - testArtifactId(
-        HelloJSWorld.scalaVersions.head,
+        scalaVersions.head,
         "1.0.1",
         "hello-js-world_sjs1_2.13"
       )
       "artifactId_1" - testArtifactId(
-        HelloJSWorld.scalaVersions.head,
+        scalaVersions.head,
         "1.4.0",
         "hello-js-world_sjs1_2.13"
       )
@@ -322,31 +302,4 @@ object HelloJSWorldTests extends TestSuite {
 
     inAllVersions ++ scalaJSVersionSpecific ++ scalaVersionSpecific
   }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
-
-  def testAllMatrix(
-      f: (String, String, Boolean) => Unit,
-      skipScala: String => Boolean = _ => false,
-      skipScalaJS: String => Boolean = _ => false,
-      skipECMAScript2015: Boolean = true
-  ): Unit = {
-    for {
-      (scala, scalaJS, useECMAScript2015) <- HelloJSWorld.matrix
-      if !skipScala(scala)
-      if !skipScalaJS(scalaJS)
-      if !(skipECMAScript2015 && useECMAScript2015)
-    } {
-      if (scala.startsWith("2.11.")) {
-        TestUtil.disableInJava9OrAbove(f(scala, scalaJS, useECMAScript2015))
-      } else {
-        f(scala, scalaJS, useECMAScript2015)
-      }
-    }
-  }
-
 }

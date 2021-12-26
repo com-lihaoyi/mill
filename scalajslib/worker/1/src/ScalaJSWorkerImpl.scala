@@ -5,10 +5,21 @@ package worker
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import java.io.File
-import mill.api.{Result, internal}
-import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
+import mill.api.{internal, Result}
+import mill.scalajslib.api.{
+  JsEnvConfig,
+  ModuleInitializer,
+  ModuleKind,
+  ModuleSplitStyle,
+  OutputPatterns
+}
 import org.scalajs.linker.{PathIRContainer, PathIRFile, PathOutputFile, StandardImpl}
-import org.scalajs.linker.interface.{ModuleKind => ScalaJSModuleKind, _}
+import org.scalajs.linker.interface.{
+  ModuleInitializer => ScalaJSModuleInitializer,
+  ModuleKind => ScalaJSModuleKind,
+  ModuleSplitStyle => ScalaJsModuleSplitStyle,
+  _
+}
 import org.scalajs.logging.ScalaConsoleLogger
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.jsenv.nodejs.NodeJSEnv.SourceMap
@@ -80,11 +91,11 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       .withSourceMapURI(java.net.URI.create(sourceMap.getFileName.toString))
     val logger = new ScalaConsoleLogger
     val mainInitializer = Option(main).map { cls =>
-      ModuleInitializer.mainMethodWithArgs(cls, "main")
+      ScalaJSModuleInitializer.mainMethodWithArgs(cls, "main")
     }
     val testInitializer =
       if (testBridgeInit)
-        Some(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
+        Some(ScalaJSModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
       else None
     val moduleInitializers = mainInitializer.toList ::: testInitializer.toList
 
@@ -100,6 +111,39 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     }
 
     Await.result(resultFuture, Duration.Inf)
+  }
+
+  private lazy val linker13Support = new ScalaJsLinker_1_3Support()
+
+  def linkJs(
+      sources: Array[File],
+      libraries: Array[File],
+      destDirectory: File,
+      main: Option[String],
+      testBridgeInit: Boolean,
+      fullOpt: Boolean,
+      moduleKind: ModuleKind,
+      moduleSplitStyle: ModuleSplitStyle,
+      moduleInitializers: Seq[ModuleInitializer],
+      outputPatterns: OutputPatterns,
+      useECMAScript2015: Boolean
+  ): Result[File] = {
+    if (org.scalajs.ir.ScalaJSVersions.current >= "1.3")
+      linker13Support.linkJs(
+        sources,
+        libraries,
+        destDirectory,
+        main,
+        testBridgeInit,
+        fullOpt,
+        moduleKind,
+        moduleSplitStyle,
+        moduleInitializers,
+        outputPatterns,
+        useECMAScript2015
+      )
+    else
+      mill.api.Result.Failure("fastLinkJS/fullLinkJS is not supported in Scala.js below 1.3")
   }
 
   def run(config: JsEnvConfig, linkedFile: File): Unit = {

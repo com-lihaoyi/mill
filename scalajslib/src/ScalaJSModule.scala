@@ -2,7 +2,7 @@ package mill
 package scalajslib
 
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
-import mill.api.{Loose, PathRef, Result, internal}
+import mill.api.{internal, Loose, PathRef, Result}
 import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule}
@@ -10,6 +10,7 @@ import mill.testrunner.TestRunner
 import mill.util.Ctx
 import mill.define.Task
 import mill.scalajslib.api._
+import mill.scalajslib.api.OutputPatterns.OutputPatternsDefaults
 
 import scala.jdk.CollectionConverters._
 
@@ -100,6 +101,38 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
+  def fastLinkJS = T {
+    linkJS(
+      worker = ScalaJSWorkerApi.scalaJSWorker(),
+      toolsClasspath = scalaJSToolsClasspath(),
+      runClasspath = runClasspath(),
+      mainClass = finalMainClassOpt().toOption,
+      testBridgeInit = false,
+      mode = FastOpt,
+      moduleKind = moduleKind(),
+      moduleSplitStyle = moduleSplitStyle(),
+      moduleInitializers = moduleInitializers(),
+      outputPatterns = outputPatterns(),
+      useECMAScript2015 = useECMAScript2015()
+    )
+  }
+
+  def fullLinkJS = T {
+    linkJS(
+      worker = ScalaJSWorkerApi.scalaJSWorker(),
+      toolsClasspath = scalaJSToolsClasspath(),
+      runClasspath = runClasspath(),
+      mainClass = finalMainClassOpt().toOption,
+      testBridgeInit = false,
+      mode = FullOpt,
+      moduleKind = moduleKind(),
+      moduleSplitStyle = moduleSplitStyle(),
+      moduleInitializers = moduleInitializers(),
+      outputPatterns = outputPatterns(),
+      useECMAScript2015 = useECMAScript2015()
+    )
+  }
+
   override def runLocal(args: String*) = T.command { run(args: _*) }
 
   override def run(args: String*) = T.command {
@@ -158,6 +191,45 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ).map(PathRef(_))
   }
 
+  def linkJS(
+      worker: ScalaJSWorker,
+      toolsClasspath: Agg[PathRef],
+      runClasspath: Agg[PathRef],
+      mainClass: Option[String],
+      testBridgeInit: Boolean,
+      mode: OptimizeMode,
+      moduleKind: ModuleKind,
+      moduleSplitStyle: ModuleSplitStyle,
+      moduleInitializers: Seq[ModuleInitializer],
+      outputPatterns: OutputPatterns,
+      useECMAScript2015: Boolean
+  )(implicit ctx: Ctx): Result[PathRef] = {
+    os.remove.all(ctx.dest)
+    os.makeDir.all(ctx.dest)
+    val outputPath = ctx.dest
+
+    val classpath = runClasspath.map(_.path)
+    val sjsirFiles = classpath
+      .filter(path => os.exists(path) && os.isDir(path))
+      .flatMap(os.walk(_))
+      .filter(_.ext == "sjsir")
+    val libraries = classpath.filter(_.ext == "jar")
+    worker.linkJs(
+      toolsClasspath.map(_.path),
+      sjsirFiles,
+      libraries,
+      outputPath.toIO,
+      mainClass,
+      testBridgeInit,
+      mode == FullOpt,
+      moduleKind,
+      moduleSplitStyle,
+      moduleInitializers,
+      outputPatterns,
+      useECMAScript2015
+    ).map(PathRef(_))
+  }
+
   override def mandatoryScalacOptions = T {
     super.mandatoryScalacOptions() ++ {
       if (isScala3(scalaVersion())) Seq("-scalajs")
@@ -196,6 +268,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def jsEnvConfig: T[JsEnvConfig] = T { JsEnvConfig.NodeJs() }
 
   def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
+
+  def moduleSplitStyle: T[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }
+
+  def moduleInitializers: T[Seq[ModuleInitializer]] = T { Seq[ModuleInitializer]() }
+
+  def outputPatterns: T[OutputPatterns] = T { OutputPatternsDefaults }
 
   def useECMAScript2015: T[Boolean] = false
 
@@ -237,6 +315,22 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       testBridgeInit = true,
       FastOpt,
       moduleKind(),
+      useECMAScript2015()
+    )
+  }
+
+  def fastLinkJSTest = T {
+    linkJS(
+      ScalaJSWorkerApi.scalaJSWorker(),
+      scalaJSToolsClasspath(),
+      scalaJSTestDeps() ++ runClasspath(),
+      None,
+      testBridgeInit = true,
+      FastOpt,
+      moduleKind(),
+      moduleSplitStyle(),
+      moduleInitializers(),
+      outputPatterns(),
       useECMAScript2015()
     )
   }

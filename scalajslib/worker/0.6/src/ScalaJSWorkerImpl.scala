@@ -3,17 +3,22 @@ package scalajslib
 package worker
 
 import java.io.File
-
 import mill.api.Result
-import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
+import mill.scalajslib.api.{
+  JsEnvConfig,
+  ModuleInitializer,
+  ModuleKind,
+  ModuleSplitStyle,
+  OutputPatterns
+}
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
 import org.scalajs.core.tools.linker.{
   Linker,
-  ModuleInitializer,
   Semantics,
   StandardLinker,
+  ModuleInitializer => ScalaJSModuleInitializer,
   ModuleKind => ScalaJSModuleKind
 }
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
@@ -76,7 +81,9 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val jarSJSIRs = jars.flatMap(_.jar.sjsirFiles)
     val destFile = AtomicWritableFileVirtualJSFile(dest)
     val logger = new ScalaConsoleLogger
-    val initializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
+    val initializer = Option(main).map { cls =>
+      ScalaJSModuleInitializer.mainMethodWithArgs(cls, "main")
+    }
     try {
       linker.link(sourceSJSIRs ++ jarSJSIRs, initializer.toSeq, destFile, logger)
       Result.Success(dest)
@@ -85,6 +92,21 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
         Result.Failure(e.getMessage)
     }
   }
+
+  def linkJs(
+      sources: Array[File],
+      libraries: Array[File],
+      destDirectory: File,
+      main: Option[String],
+      testBridgeInit: Boolean,
+      fullOpt: Boolean,
+      moduleKind: ModuleKind,
+      moduleSplitStyle: ModuleSplitStyle,
+      moduleInitializers: Seq[ModuleInitializer],
+      outputPatterns: OutputPatterns,
+      useECMAScript2015: Boolean
+  ): Result[File] =
+    mill.api.Result.Failure("fastLinkJS/fullLinkJS is not supported in Scala.js below 1.3")
 
   def run(config: JsEnvConfig, linkedFile: File): Unit = {
     jsEnv(config)

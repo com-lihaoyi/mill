@@ -1,6 +1,7 @@
 package mill.scalajslib.api
 import java.io.File
 import mill.api.Result
+
 trait ScalaJSWorkerApi {
   def link(
       sources: Array[File],
@@ -10,6 +11,20 @@ trait ScalaJSWorkerApi {
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: ModuleKind,
+      useECMAScript2015: Boolean
+  ): Result[File]
+
+  def linkJs(
+      sources: Array[File],
+      libraries: Array[File],
+      destDirectory: File,
+      main: Option[String],
+      testBridgeInit: Boolean,
+      fullOpt: Boolean,
+      moduleKind: ModuleKind,
+      moduleSplitStyle: ModuleSplitStyle,
+      moduleInitializers: Seq[ModuleInitializer],
+      outputPatterns: OutputPatterns,
       useECMAScript2015: Boolean
   ): Result[File]
 
@@ -34,6 +49,34 @@ object ModuleKind {
   object NoModule extends ModuleKind
   object CommonJSModule extends ModuleKind
   object ESModule extends ModuleKind
+}
+
+sealed trait ModuleSplitStyle
+object ModuleSplitStyle {
+  object FewestModules extends ModuleSplitStyle
+  object SmallestModules extends ModuleSplitStyle
+}
+
+object ModuleInitializer {
+  import upickle.default.{ReadWriter => RW, macroRW}
+  implicit def rw: RW[ModuleInitializer] = macroRW
+}
+
+case class ModuleInitializer(className: String, mainMethod: String, moduleId: String)
+
+sealed trait OutputPatterns
+
+object OutputPatterns {
+  import upickle.default.{ReadWriter => RW, macroRW}
+  implicit def rwFromJsFile: RW[OutputPatternsFromJsFile] = macroRW
+  implicit def rw: RW[OutputPatterns] = macroRW
+
+  def fromJSFile(jsFile: String): OutputPatterns = OutputPatternsFromJsFile(jsFile)
+
+  case object OutputPatternsDefaults extends OutputPatterns
+
+  case class OutputPatternsFromJsFile(jsFile: String) extends OutputPatterns
+
 }
 
 sealed trait JsEnvConfig
