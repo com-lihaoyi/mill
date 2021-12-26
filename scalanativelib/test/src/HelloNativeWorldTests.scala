@@ -5,6 +5,7 @@ import mill._
 import mill.define.Discover
 import mill.eval.{EvaluatorPaths, Result}
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
+import mill.scalalib.api.Util.isScala3
 import mill.testrunner.TestRunner
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
@@ -98,8 +99,8 @@ object HelloNativeWorldTests extends TestSuite {
           ).compile)
 
         val outPath = result.classes.path
-        val outputFiles = os.walk(outPath).filter(os.isFile)
-        val expectedClassfiles = compileClassfiles(outPath / "hello")
+        val outputFiles = os.walk(outPath).filter(os.isFile).map(_.last)
+        val expectedClassfiles = compileClassfiles(isScala3(scalaVersion))
         assert(
           outputFiles.toSet == expectedClassfiles,
           evalCount > 0
@@ -248,16 +249,25 @@ object HelloNativeWorldTests extends TestSuite {
     }
   }
 
-  def compileClassfiles(parentDir: os.Path) = Set(
-    parentDir / "ArgsParser$.class",
-    parentDir / "ArgsParser$.nir",
-    parentDir / "ArgsParser.class",
-    parentDir / "Main.class",
-    parentDir / "Main$.class",
-    parentDir / "Main$delayedInit$body.class",
-    parentDir / "Main$.nir",
-    parentDir / "Main$delayedInit$body.nir"
-  )
+  def compileClassfiles(isScala3: Boolean) = {
+    val common = Set(
+      "ArgsParser$.class",
+      "ArgsParser$.nir",
+      "ArgsParser.class",
+      "ArgsParser.nir",
+      "Main$.class",
+      "Main$.nir",
+      "Main.class",
+      "Main.nir"
+    )
+    val versionSpecific =
+      if (isScala3) Set("ArgsParser.tasty", "Main.tasty")
+      else Set(
+        "Main$delayedInit$body.class",
+        "Main$delayedInit$body.nir"
+      )
+    common ++ versionSpecific
+  }
 
   def prepareWorkspace(): Unit = {
     os.remove.all(workspacePath)
