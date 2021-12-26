@@ -72,11 +72,12 @@ object OutputPatterns {
   implicit def rw: RW[OutputPatterns] = macroRW
 
   def fromJSFile(jsFile: String): OutputPatterns = OutputPatternsFromJsFile(jsFile)
+
+  case object OutputPatternsDefaults extends OutputPatterns
+
+  case class OutputPatternsFromJsFile(jsFile: String) extends OutputPatterns
+
 }
-
-case object OutputPatternsDefaults extends OutputPatterns
-
-case class OutputPatternsFromJsFile(jsFile: String) extends OutputPatterns
 
 sealed trait JsEnvConfig
 object JsEnvConfig {

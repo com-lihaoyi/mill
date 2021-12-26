@@ -105,7 +105,8 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       moduleInitializers: Seq[ModuleInitializer],
       outputPatterns: OutputPatterns,
       useECMAScript2015: Boolean
-  ): Result[File] = ???
+  ): Result[File] =
+    mill.api.Result.Failure("fastLinkJS/fullLinkJS is not supported in Scala.js below 1.3")
 
   def run(config: JsEnvConfig, linkedFile: File): Unit = {
     jsEnv(config)

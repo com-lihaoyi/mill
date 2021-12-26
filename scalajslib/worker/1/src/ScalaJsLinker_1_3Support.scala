@@ -6,20 +6,9 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import java.io.File
 import mill.api.{internal, Result}
-import mill.scalajslib.api.{
-  ModuleInitializer,
-  ModuleKind,
-  ModuleSplitStyle,
-  OutputPatterns,
-  OutputPatternsDefaults,
-  OutputPatternsFromJsFile
-}
-import org.scalajs.linker.{
-  PathIRContainer,
-  PathIRFile,
-  PathOutputDirectory,
-  StandardImpl
-}
+import mill.scalajslib.api.{ModuleInitializer, ModuleKind, ModuleSplitStyle, OutputPatterns}
+
+import org.scalajs.linker.{PathIRContainer, PathIRFile, PathOutputDirectory, StandardImpl}
 import org.scalajs.linker.interface.{ModuleKind => ScalaJSModuleKind, _}
 import org.scalajs.linker.interface.{ModuleSplitStyle => ScalaJSModuleSplitStyle}
 import org.scalajs.linker.interface.{OutputPatterns => ScalaJSOutputPatterns}
@@ -66,8 +55,9 @@ class ScalaJsLinker_1_3Support {
         case ModuleSplitStyle.SmallestModules => ScalaJSModuleSplitStyle.SmallestModules
       }
       val scalaJSOutputPatterns = input.outputPatterns match {
-        case OutputPatternsDefaults => ScalaJSOutputPatterns.Defaults
-        case OutputPatternsFromJsFile(jsFile) => ScalaJSOutputPatterns.fromJSFile(jsFile)
+        case OutputPatterns.OutputPatternsDefaults => ScalaJSOutputPatterns.Defaults
+        case OutputPatterns.OutputPatternsFromJsFile(jsFile) =>
+          ScalaJSOutputPatterns.fromJSFile(jsFile)
       }
 
       val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule

@@ -2,7 +2,7 @@ package mill
 package scalajslib
 
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
-import mill.api.{Loose, PathRef, Result, internal}
+import mill.api.{internal, Loose, PathRef, Result}
 import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule}
@@ -10,6 +10,7 @@ import mill.testrunner.TestRunner
 import mill.util.Ctx
 import mill.define.Task
 import mill.scalajslib.api._
+import mill.scalajslib.api.OutputPatterns.OutputPatternsDefaults
 
 import scala.jdk.CollectionConverters._
 
@@ -100,48 +101,36 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  private def isLinkJSSupported = T {
-    scalaJSVersion() match {
-      case v if v.startsWith("0.") => false
-      case v if v < "1.3" => false
-      case _ => true
-    }
-  }
-
   def fastLinkJS = T {
-    if (isLinkJSSupported()) {
-      linkJS(
-        worker = ScalaJSWorkerApi.scalaJSWorker(),
-        toolsClasspath = scalaJSToolsClasspath(),
-        runClasspath = runClasspath(),
-        mainClass = finalMainClassOpt().toOption,
-        testBridgeInit = false,
-        mode = FastOpt,
-        moduleKind = moduleKind(),
-        moduleSplitStyle = moduleSplitStyle(),
-        moduleInitializers = moduleInitializers(),
-        outputPatterns = outputPatterns(),
-        useECMAScript2015 = useECMAScript2015()
-      )
-    } else mill.api.Result.Failure("fastLinkJS/fullLinkJS is not supported in Scala.js below 1.3")
+    linkJS(
+      worker = ScalaJSWorkerApi.scalaJSWorker(),
+      toolsClasspath = scalaJSToolsClasspath(),
+      runClasspath = runClasspath(),
+      mainClass = finalMainClassOpt().toOption,
+      testBridgeInit = false,
+      mode = FastOpt,
+      moduleKind = moduleKind(),
+      moduleSplitStyle = moduleSplitStyle(),
+      moduleInitializers = moduleInitializers(),
+      outputPatterns = outputPatterns(),
+      useECMAScript2015 = useECMAScript2015()
+    )
   }
 
   def fullLinkJS = T {
-    if (isLinkJSSupported()) {
-      linkJS(
-        worker = ScalaJSWorkerApi.scalaJSWorker(),
-        toolsClasspath = scalaJSToolsClasspath(),
-        runClasspath = runClasspath(),
-        mainClass = finalMainClassOpt().toOption,
-        testBridgeInit = false,
-        mode = FullOpt,
-        moduleKind = moduleKind(),
-        moduleSplitStyle = moduleSplitStyle(),
-        moduleInitializers = moduleInitializers(),
-        outputPatterns = outputPatterns(),
-        useECMAScript2015 = useECMAScript2015()
-      )
-    } else mill.api.Result.Failure("fastLinkJS/fullLinkJS is not supported in Scala.js below 1.3")
+    linkJS(
+      worker = ScalaJSWorkerApi.scalaJSWorker(),
+      toolsClasspath = scalaJSToolsClasspath(),
+      runClasspath = runClasspath(),
+      mainClass = finalMainClassOpt().toOption,
+      testBridgeInit = false,
+      mode = FullOpt,
+      moduleKind = moduleKind(),
+      moduleSplitStyle = moduleSplitStyle(),
+      moduleInitializers = moduleInitializers(),
+      outputPatterns = outputPatterns(),
+      useECMAScript2015 = useECMAScript2015()
+    )
   }
 
   override def runLocal(args: String*) = T.command { run(args: _*) }
