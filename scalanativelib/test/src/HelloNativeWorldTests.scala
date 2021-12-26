@@ -5,6 +5,7 @@ import mill._
 import mill.define.Discover
 import mill.eval.{EvaluatorPaths, Result}
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
+import mill.scalalib.api.Util.isScala3
 import mill.testrunner.TestRunner
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
@@ -99,7 +100,7 @@ object HelloNativeWorldTests extends TestSuite {
 
         val outPath = result.classes.path
         val outputFiles = os.walk(outPath).filter(os.isFile).map(_.last).toSet
-        val expectedClassfiles = compileClassfiles(scalaNativeVersion)
+        val expectedClassfiles = compileClassfiles(scalaVersion, scalaNativeVersion)
         assert(
           outputFiles == expectedClassfiles,
           evalCount > 0
@@ -248,23 +249,29 @@ object HelloNativeWorldTests extends TestSuite {
     }
   }
 
-  def compileClassfiles(scalaNativeVersion: String) = {
+  def compileClassfiles(scalaVersion: String, scalaNativeVersion: String) = {
     val common = Set(
       "ArgsParser$.class",
       "ArgsParser$.nir",
       "ArgsParser.class",
       "Main.class",
       "Main$.class",
-      "Main$delayedInit$body.class",
-      "Main$.nir",
-      "Main$delayedInit$body.nir"
+      "Main$.nir"
     )
+
+    val scalaVersionSpecific =
+      if (isScala3) Set("ArgsParser.tasty", "Main.tasty")
+      else Set(
+        "Main$delayedInit$body.class",
+        "Main$delayedInit$body.nir"
+      )
 
     val scalaNativeVersionSpecific =
       if(scalaNativeVersion == "0.4.0") Set.empty
-      else Set("Main.nir", "ArgsParser.nir") 
+      else Set("Main.nir", "ArgsParser.nir")
 
-    common ++ scalaNativeVersionSpecific
+
+    common ++ scalaVersionSpecific ++ scalaNativeVersionSpecific
   }
 
   def prepareWorkspace(): Unit = {
