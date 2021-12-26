@@ -54,24 +54,19 @@ object HelloNativeWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
-    trait UtestTestModule extends ScalaNativeModule with TestModule.Utest {
-      override def ivyDeps = super.ivyDeps() ++ Agg(
-        ivy"com.lihaoyi::utest::0.7.6"
-      )
-    }
     object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
     class BuildModuleUtest(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
         extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
-      object test extends super.Tests with UtestTestModule {
+      object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
-      }
-    }
-
-    object buildNoTests extends Cross[BuildModuleNoTests](matrix: _*)
-    class BuildModuleNoTests(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
-        extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
-      object test extends super.Tests with UtestTestModule {
-        override def sources = T.sources { millSourcePath / "src" / "no-tests" }
+        override def repositoriesTask = T.task {
+          super.repositoriesTask() :+ coursier.MavenRepository(
+            "http://oss.sonatype.org/content/repositories/snapshots"
+          )
+        }
+        override def ivyDeps = super.ivyDeps() ++ Agg(
+          ivy"com.lihaoyi::utest::0.7.6"
+        )
       }
     }
     override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
@@ -193,41 +188,19 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    def checkNoTests(
-        scalaVersion: String,
-        scalaNativeVersion: String,
-        mode: ReleaseMode,
-        cached: Boolean
-    ) = {
-      val Right(((message, results), _)) = helloWorldEvaluator(
-        if (!cached)
-          HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.test()
-        else HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.testCached
-      )
-
-      assert(
-        results.size == 0,
-        message == "\n"
-      )
-    }
-
     "test" - {
       val cached = false
 
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkNoTests(scala, scalaNative, releaseMode, cached)
-      )
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkUtest(scala, scalaNative, releaseMode, cached)
+      testAllMatrix(
+        (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
+        skipScala = isScala3 // Remove this once utest is released for Scala 3
       )
     }
     "testCached" - {
       val cached = true
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkNoTests(scala, scalaNative, releaseMode, cached)
-      )
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkUtest(scala, scalaNative, releaseMode, cached)
+      testAllMatrix(
+        (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
+        skipScala = isScala3 // Remove this once utest is released for Scala 3
       )
     }
 
