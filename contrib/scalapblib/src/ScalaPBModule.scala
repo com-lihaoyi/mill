@@ -3,12 +3,13 @@ package contrib.scalapblib
 
 import coursier.MavenRepository
 import coursier.core.Version
-import mill.define.{Sources, Target}
+import mill.define.{Target, Sources}
 import mill.api.{PathRef, IO, Loose}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 
-import java.util.zip.ZipInputStream
+import java.util.zip.{ZipInputStream, ZipFile}
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.util.Using
 
 /** @see [[http://www.lihaoyi.com/mill/page/contrib-modules.html#scalapb ScalaPB Module]] */
@@ -93,24 +94,19 @@ trait ScalaPBModule extends ScalaModule {
     resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
   }
 
-  def scalaPBUnpackProto: T[PathRef] = T {
+  override def scalaPBUnpackProto: T[PathRef] = T {
     val cp = scalaPBProtoClasspath()
     val dest = T.dest
-    cp.iterator.foreach { ref =>
-      Using(new ZipInputStream(ref.path.getInputStream)) { zip =>
-        while ({
-          Option(zip.getNextEntry) match {
-            case None => false
-            case Some(entry) =>
-              if (entry.getName.endsWith(".proto")) {
-                val protoDest = dest / os.SubPath(entry.getName)
-                Using(os.write.outputStream(protoDest, createFolders = true))(IO.stream(zip, _))
-              }
-              zip.closeEntry()
-              true
-          }
-        }) ()
-      }
+    cp.foreach { ref =>
+      val jarFs = new ZipFile(ref.path.toIO.getCanonicalFile)
+      try {
+        jarFs.entries().asIterator().asScala.filter(_.getName.endsWith(".proto")).filterNot(
+          _.isDirectory
+        ).foreach { entry =>
+          val protoDest = dest.toNIO.resolve(Path.of(entry.getName))
+          os.write.over(os.Path(protoDest), jarFs.getInputStream(entry), createFolders = true)
+        }
+      } finally jarFs.close()
     }
     PathRef(dest)
   }
