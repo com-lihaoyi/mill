@@ -41,7 +41,7 @@ object Settings {
     "0.10.0-M4",
     "0.10.0-M5"
   )
-  val mimaBaseVersions = Seq("0.10.0-M4")
+  val mimaBaseVersions = Seq("0.10.0-M5")
 }
 
 object Deps {
@@ -186,30 +186,6 @@ trait MillMimaConfig extends mima.Mima {
     issueFilterByModule.getOrElse(this, Seq())
   }
   lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
-    main.api -> Seq(
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.args"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.this"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx#Args.args")
-    ),
-    main.core -> Seq(
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.makeT"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.args"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.ParseArgs.standaloneIdent"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.plainChars"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.braceParser"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.parser"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.toExpand"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.EvaluatorPaths.*"),
-      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.eval.EvaluatorPaths.*")
-    )
   )
 }
 
