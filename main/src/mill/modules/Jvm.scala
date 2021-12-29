@@ -206,7 +206,7 @@ object Jvm {
       )
 
       for ((std, dest) <- sources) {
-        val t = new Thread(new InputPumper(std, dest, false))
+        val t = new Thread(new InputPumper(std, dest, false, () => process.isAlive()))
         t.setDaemon(true)
         t.start()
       }
