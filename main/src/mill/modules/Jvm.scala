@@ -200,13 +200,13 @@ object Jvm {
       )
 
       val sources = Seq(
-        process.stdout -> System.out,
-        process.stderr -> System.err,
-        System.in -> process.stdin
+        (process.stdout, System.out, "process.stdout"),
+        (process.stderr,  System.err, "process.stderr"),
+        (System.in, process.stdin, "process.stdin")
       )
 
-      for ((std, dest) <- sources) {
-        val t = new Thread(new InputPumper(std, dest, false, () => process.isAlive()))
+      for ((std, dest, name) <- sources) {
+        val t = new Thread(new InputPumper(std, dest, true, () => process.isAlive(), name))
         t.setDaemon(true)
         t.start()
       }

@@ -139,7 +139,7 @@ class Server[T](
     val pipedInput = new PipedInputStream()
     val pipedOutput = new PipedOutputStream()
     pipedOutput.connect(pipedInput)
-    val pumper = new InputPumper(in, pipedOutput, false)
+    val pumper = new InputPumper(in, pipedOutput, false, () => true, "proxyInputStream")
     val pumperThread = new Thread(pumper)
     pumperThread.setDaemon(true)
     pumperThread.start()
