@@ -35,10 +35,10 @@ object IvyTests extends TestSuite {
       )
     )
 
-    'fullIvy - {
+    test("fullIvy") {
       val fullIvy = XML.loadString(Ivy(artifact, deps, extras))
 
-      'topLevel - {
+      test("topLevel") {
         val info = singleNode(fullIvy \ "info")
         assert(
           mandatoryAttr(info, "organisation") == artifact.group,
@@ -47,7 +47,7 @@ object IvyTests extends TestSuite {
         )
       }
 
-      'publications - {
+      test("publications") {
         val publications: List[IvyInfo] =
           (fullIvy \ "publications" \ "artifact").iterator.map(IvyInfo.apply).toList
         assert(publications.size == 4 + extras.size)
@@ -70,7 +70,7 @@ object IvyTests extends TestSuite {
         expected.foreach(exp => assert(publications.contains(exp)))
       }
 
-      'dependencies - {
+      test("dependencies") {
         val dependencies = fullIvy \ "dependencies" \ "dependency"
         val ivyDeps = deps.indexed
 

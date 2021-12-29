@@ -41,7 +41,8 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def pom: Target[PathRef] = T {
-    val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
+    val pom =
+      Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings(), publishProperties())
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)
     PathRef(pomPath)
@@ -62,6 +63,12 @@ trait PublishModule extends JavaModule { outer =>
    * Extra artifacts to publish.
    */
   def extraPublish: Target[Seq[PublishInfo]] = T { Seq.empty[PublishInfo] }
+
+  /**
+   * Properties to be published with the published pom/ivy XML.
+   * @since Mill after 0.10.0-M5
+   */
+  def publishProperties: Target[Map[String, String]] = T { Map.empty[String, String] }
 
   /**
    * Publish artifacts to a local ivy repository.
