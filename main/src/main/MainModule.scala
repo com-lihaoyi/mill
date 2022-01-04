@@ -232,7 +232,7 @@ trait MainModule extends mill.Module{
         }
       ),
       targets,
-      SelectMode.Multi
+      SelectMode.Separated
     ) {res =>
       for(json <- res.flatMap(_._2)){
         println(json.render(indent = 4))
