@@ -321,6 +321,20 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
+=== 0.9.12 - 2022-01-07
+:version: 0.9.12
+:prev-version: 0.9.11
+:milestone: 58
+:milestone-name: 0.9.12
+
+* fixed parsing of command parameters in `show` command
+* zinc worker: Updated log4j2 to 2.17.1
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 === 0.9.11 - 2021-12-15
 :version: 0.9.11
 :prev-version: 0.9.10
