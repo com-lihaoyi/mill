@@ -34,7 +34,7 @@ if [ ! -s "$MILL_EXEC_PATH" ] ; then
     ASSEMBLY="-assembly"
   fi
   DOWNLOAD_FILE=$MILL_EXEC_PATH-tmp-download
-  MILL_VERSION_TAG=$(echo $MILL_VERSION | sed 's/\([^-]+\)\(-M[0-9]+\)?\(-.*\)?/\1\2/')
+  MILL_VERSION_TAG=$(echo $MILL_VERSION | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
   MILL_DOWNLOAD_URL="https://github.com/lihaoyi/mill/releases/download/${MILL_VERSION_TAG}/$MILL_VERSION${ASSEMBLY}"
   curl --fail -L -o "$DOWNLOAD_FILE" "$MILL_DOWNLOAD_URL"
   chmod +x "$DOWNLOAD_FILE"
