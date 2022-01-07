@@ -39,11 +39,6 @@ object HelloNativeWorldTests extends TestSuite {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
       def releaseMode = T { mode }
-      override def repositoriesTask = T.task {
-        super.repositoriesTask() :+ coursier.MavenRepository(
-          "http://oss.sonatype.org/content/repositories/snapshots"
-        )
-      }
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello native world ready for real world publishing",
@@ -59,11 +54,6 @@ object HelloNativeWorldTests extends TestSuite {
         extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
-        override def repositoriesTask = T.task {
-          super.repositoriesTask() :+ coursier.MavenRepository(
-            "http://oss.sonatype.org/content/repositories/snapshots"
-          )
-        }
         override def ivyDeps = super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest::0.7.6"
         )
