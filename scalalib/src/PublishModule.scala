@@ -41,7 +41,8 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def pom: Target[PathRef] = T {
-    val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
+    val pom =
+      Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings(), publishProperties())
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)
     PathRef(pomPath)
@@ -64,6 +65,12 @@ trait PublishModule extends JavaModule { outer =>
   def extraPublish: Target[Seq[PublishInfo]] = T { Seq.empty[PublishInfo] }
 
   /**
+   * Properties to be published with the published pom/ivy XML.
+   * @since Mill after 0.10.0-M5
+   */
+  def publishProperties: Target[Map[String, String]] = T { Map.empty[String, String] }
+
+  /**
    * Publish artifacts to a local ivy repository.
    * @param localIvyRepo The local ivy repository.
    *                     If not defined, defaults to `$HOME/.ivy2/local`
@@ -71,7 +78,7 @@ trait PublishModule extends JavaModule { outer =>
   def publishLocal(localIvyRepo: String = null): define.Command[Unit] = T.command {
     val publisher = localIvyRepo match {
       case null => LocalIvyPublisher
-      case repo => new LocalIvyPublisher(os.Path(repo, os.pwd))
+      case repo => new LocalIvyPublisher(os.Path(repo, T.workspace))
     }
 
     publisher.publish(
@@ -92,7 +99,7 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishM2Local(m2RepoPath: String = (os.home / ".m2" / "repository").toString())
       : Command[Seq[PathRef]] = T.command {
-    val path = os.Path(m2RepoPath, os.pwd)
+    val path = os.Path(m2RepoPath, T.workspace)
     new LocalM2Publisher(path)
       .publish(
         jar = jar().path,

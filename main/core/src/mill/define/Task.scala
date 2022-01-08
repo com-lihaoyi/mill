@@ -51,7 +51,7 @@ trait Target[+T] extends NamedTask[T] {
   def readWrite: RW[_]
 }
 
-object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
+object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   // convenience
   def dest(implicit ctx: mill.api.Ctx.Dest): os.Path = ctx.dest
   def log(implicit ctx: mill.api.Ctx.Log): Logger = ctx.log
@@ -283,22 +283,13 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     )
   }
 
-  type TT[+X] = Task[X]
-  def makeT[X](inputs0: Seq[TT[_]], evaluate0: mill.api.Ctx => Result[X]) = new Task[X] {
-    val inputs = inputs0
-    def evaluate(x: mill.api.Ctx) = evaluate0(x)
-  }
-
-  def underlying[A](v: Task[A]) = v
-  def mapCtx[A, B](t: Task[A])(f: (A, mill.api.Ctx) => Result[B]) = t.mapDest(f)
-  def zip() = new Task.Task0(())
-  def zip[A](a: Task[A]) = a.map(Tuple1(_))
-  def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
-
   def traverse[T, V](source: Seq[T])(f: T => Task[V]) = {
     new Task.Sequence[V](source.map(f))
   }
   def sequence[T](source: Seq[Task[T]]) = new Task.Sequence[T](source)
+  def traverseCtx[I, R](xs: Seq[Task[I]])(f: (IndexedSeq[I], mill.api.Ctx) => Result[R]): Task[R] = {
+    new Task.TraverseCtx[I, R](xs, f)
+  }
 }
 
 abstract class NamedTaskImpl[+T](ctx0: mill.define.Ctx, t: Task[T]) extends NamedTask[T] {
@@ -372,9 +363,19 @@ object Task {
     val inputs = inputs0
     def evaluate(args: mill.api.Ctx) = {
       for (i <- 0 until args.length)
-        yield args(i).asInstanceOf[T]
+      yield args(i).asInstanceOf[T]
     }
-
+  }
+  class TraverseCtx[+T, V](inputs0: Seq[Task[T]],
+                           f: (IndexedSeq[T], mill.api.Ctx) => Result[V]) extends Task[V] {
+    val inputs = inputs0
+    def evaluate(args: mill.api.Ctx) = {
+      f(
+        for (i <- 0 until args.length)
+        yield args(i).asInstanceOf[T],
+        args
+      )
+    }
   }
   class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
     def evaluate(args: mill.api.Ctx) = f(args(0))

@@ -26,8 +26,8 @@ to those same paths.
 This is the default logger provided for every task. While your task is running,
 `System.out` and `System.in` are also redirected to this logger. The logs for a
 task are streamed to standard out/error as you would expect, but each task's
-specific output is also streamed to a log file on disk, e.g. `out/run/log` or
-`out/classFiles/log` for you to inspect later.
+specific output is also streamed to a log file on disk, e.g. `out/run.log` or
+`out/classFiles.log` for you to inspect later.
 
 Messages logged with `log.debug` appear by default only in the log files.
 You can use the `--debug` option when running mill to show them on the console too.

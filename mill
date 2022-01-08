@@ -10,7 +10,7 @@ set -e
 if [ -z "$MILL_VERSION" ] ; then
   if [ -f ".mill-version" ] ; then
     MILL_VERSION="$(head -n 1 .mill-version 2> /dev/null)"
-  elif [ -f "mill" ] && [ "$BASH_SOURCE" != "mill" ] ; then
+  elif [ -f "mill" ] && [ "$0" != "mill" ] ; then
     MILL_VERSION=$(grep -F "DEFAULT_MILL_VERSION=" "mill" | head -n 1 | cut -d= -f2)
   else
     MILL_VERSION=$DEFAULT_MILL_VERSION
@@ -29,12 +29,12 @@ MILL_MAJOR_VERSION="${version_remainder%%.*}"; version_remainder="${version_rema
 MILL_MINOR_VERSION="${version_remainder%%.*}"; version_remainder="${version_remainder#*.}"
 
 if [ ! -s "$MILL_EXEC_PATH" ] ; then
-  mkdir -p $MILL_DOWNLOAD_PATH
+  mkdir -p "$MILL_DOWNLOAD_PATH"
   if [ "$MILL_MAJOR_VERSION" -gt 0 ] || [ "$MILL_MINOR_VERSION" -ge 5 ] ; then
     ASSEMBLY="-assembly"
   fi
   DOWNLOAD_FILE=$MILL_EXEC_PATH-tmp-download
-  MILL_VERSION_TAG=$(echo $MILL_VERSION | sed 's/\([^-]+\)\(-M[0-9]+\)?\(-.*\)?/\1\2/')
+  MILL_VERSION_TAG=$(echo $MILL_VERSION | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
   MILL_DOWNLOAD_URL="https://github.com/lihaoyi/mill/releases/download/${MILL_VERSION_TAG}/$MILL_VERSION${ASSEMBLY}"
   curl --fail -L -o "$DOWNLOAD_FILE" "$MILL_DOWNLOAD_URL"
   chmod +x "$DOWNLOAD_FILE"

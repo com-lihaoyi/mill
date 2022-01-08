@@ -1,16 +1,17 @@
 package mill.main
 
 import sun.misc.{Signal, SignalHandler}
+
 import java.io._
 import java.net.Socket
-
 import scala.jdk.CollectionConverters._
-
 import org.scalasbt.ipcsocket._
 import mill.{BuildInfo, MillMain}
 import mill.main.client._
 import mill.api.DummyInputStream
 import mill.main.client.lock.{Lock, Locks}
+
+import java.util.function.Consumer
 
 trait MillServerMain[T] {
   var stateCache = Option.empty[T]
@@ -68,7 +69,7 @@ object MillServerMain extends mill.main.MillServerMain[EvaluatorState] {
       args,
       stateCache,
       mainInteractive = mainInteractive,
-      DummyInputStream,
+      stdin,
       stdout,
       stderr,
       env,
@@ -78,6 +79,7 @@ object MillServerMain extends mill.main.MillServerMain[EvaluatorState] {
     )
   }
 }
+
 
 class Server[T](
     lockBase: String,
@@ -134,12 +136,27 @@ class Server[T](
     }.getOrElse(throw new Exception("PID already present"))
   }
 
+  def proxyInputStreamThroughPumper(in: InputStream) = {
+    val pipedInput = new PipedInputStream()
+    val pipedOutput = new PipedOutputStream()
+    pipedOutput.connect(pipedInput)
+    val pumper = new InputPumper(in, pipedOutput, false)
+    val pumperThread = new Thread(pumper, "proxyInputStreamThroughPumper")
+    pumperThread.setDaemon(true)
+    pumperThread.start()
+    pipedInput
+  }
   def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]) = {
 
     val currentOutErr = clientSocket.getOutputStream
     val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)
     val stderr = new PrintStream(new ProxyOutputStream(currentOutErr, -1), true)
-    val socketIn = clientSocket.getInputStream
+    // Proxy the input stream through a pair of Piped**putStream via a pumper,
+    // as the `UnixDomainSocketInputStream` we get directly from the socket does
+    // not properly implement `available(): Int` and thus messes up polling logic
+    // that relies on that method
+    val proxiedSocketInput = proxyInputStreamThroughPumper(clientSocket.getInputStream)
+
     val argStream = new FileInputStream(lockBase + "/run")
     val interactive = argStream.read() != 0
     val clientMillVersion = Util.readString(argStream)
@@ -168,7 +185,7 @@ class Server[T](
             args,
             sm.stateCache,
             interactive,
-            socketIn,
+            proxiedSocketInput,
             stdout,
             stderr,
             env.asScala.toMap,
@@ -214,7 +231,7 @@ class Server[T](
       // It seems OK to exit the client early and subsequently
       // start up mill client again (perhaps closing the server
       // socket helps speed up the process).
-      val t = new Thread(() => clientSocket.close())
+      val t = new Thread(() => clientSocket.close(), "clientSocketCloser")
       t.setDaemon(true)
       t.start()
     } else clientSocket.close()

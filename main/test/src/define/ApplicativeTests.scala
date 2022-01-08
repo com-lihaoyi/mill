@@ -8,16 +8,16 @@ import scala.language.experimental.macros
 
 object ApplicativeTests extends TestSuite {
   implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
-  class Opt[T](val self: Option[T]) extends Applicative.Applyable[Option, T]
-  object Opt extends OptGenerated with Applicative.Applyer[Opt, Option, Applicative.Id, String] {
+  class Opt[+T](val self: Option[T]) extends Applicative.Applyable[Option, T]
+  object Opt extends Applicative.Applyer[Opt, Option, Applicative.Id, String] {
 
     val injectedCtx = "helloooo"
-    def underlying[A](v: Opt[A]) = v.self
     def apply[T](t: T): Option[T] = macro Applicative.impl[Option, T, String]
 
-    def mapCtx[A, B](a: Option[A])(f: (A, String) => B): Option[B] = a.map(f(_, injectedCtx))
-    def zip() = Some(())
-    def zip[A](a: Option[A]) = a.map(Tuple1(_))
+    def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (IndexedSeq[I], String) => Applicative.Id[R]): Option[R] = {
+      if (xs.exists(_.self.isEmpty)) None
+      else Some(f(xs.map(_.self.get).toVector, injectedCtx))
+    }
   }
   class Counter {
     var value = 0
@@ -39,6 +39,33 @@ object ApplicativeTests extends TestSuite {
       "twoSomes" - assert(Opt(Some("lol ")() + Some("hello")()) == Some("lol hello"))
       "singleNone" - assert(Opt("lol " + None()) == None)
       "twoNones" - assert(Opt("lol " + None() + None()) == None)
+      "moreThan22" - {
+        assert(
+          Opt(
+            "lol " +
+              None() + None() + None() + None() + None() +
+              None() + None() + None() + None() + Some(" world")() +
+              None() + None() + None() + None() + None() +
+              None() + None() + None() + None() + None() +
+              None() + None() + None() + None() + Some(" moo")()
+          ) == None
+        )
+        assert(
+          Opt(
+            "lol " +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")()
+          ) == Some("lol abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde")
+        )
+      }
     }
     "context" - {
       assert(Opt(Opt.ctx() + Some("World")()) == Some("hellooooWorld"))

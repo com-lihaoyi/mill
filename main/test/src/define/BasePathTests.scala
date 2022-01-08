@@ -54,20 +54,20 @@ object BasePathTests extends TestSuite {
         "js"
       )
     }
-    "overriden" - {
-      object overridenBasePath extends TestUtil.BaseModule {
-        override def millSourcePath = os.pwd / "overridenBasePathRootValue"
+    "overridden" - {
+      object overriddenBasePath extends TestUtil.BaseModule {
+        override def millSourcePath = os.pwd / "overriddenBasePathRootValue"
         object nested extends Module {
-          override def millSourcePath = super.millSourcePath / "overridenBasePathNested"
+          override def millSourcePath = super.millSourcePath / "overriddenBasePathNested"
           object nested extends Module {
-            override def millSourcePath = super.millSourcePath / "overridenBasePathDoubleNested"
+            override def millSourcePath = super.millSourcePath / "overriddenBasePathDoubleNested"
           }
         }
       }
       assert(
-        overridenBasePath.millSourcePath == os.pwd / "overridenBasePathRootValue",
-        overridenBasePath.nested.millSourcePath == os.pwd / "overridenBasePathRootValue" / "nested" / "overridenBasePathNested",
-        overridenBasePath.nested.nested.millSourcePath == os.pwd / "overridenBasePathRootValue" / "nested" / "overridenBasePathNested" / "nested" / "overridenBasePathDoubleNested"
+        overriddenBasePath.millSourcePath == os.pwd / "overriddenBasePathRootValue",
+        overriddenBasePath.nested.millSourcePath == os.pwd / "overriddenBasePathRootValue" / "nested" / "overriddenBasePathNested",
+        overriddenBasePath.nested.nested.millSourcePath == os.pwd / "overriddenBasePathRootValue" / "nested" / "overriddenBasePathNested" / "nested" / "overriddenBasePathDoubleNested"
       )
     }
 

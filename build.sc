@@ -35,11 +35,14 @@ object Settings {
     "0.9.8",
     "0.9.9",
     "0.9.10",
+    "0.9.11",
+    "0.9.12",
     "0.10.0-M2",
     "0.10.0-M3",
-    "0.10.0-M4"
+    "0.10.0-M4",
+    "0.10.0-M5"
   )
-  val mimaBaseVersions = Seq("0.10.0-M4")
+  val mimaBaseVersions = Seq("0.10.0-M5")
 }
 
 object Deps {
@@ -108,6 +111,7 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.2"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.0"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
@@ -183,30 +187,6 @@ trait MillMimaConfig extends mima.Mima {
     issueFilterByModule.getOrElse(this, Seq())
   }
   lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
-    main.api -> Seq(
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.args"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.this"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx#Args.args")
-    ),
-    main.core -> Seq(
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.makeT"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.args"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.ParseArgs.standaloneIdent"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.plainChars"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.braceParser"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.parser"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.toExpand"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.EvaluatorPaths.*"),
-      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.eval.EvaluatorPaths.*")
-    )
   )
 }
 
@@ -247,18 +227,11 @@ object main extends MillModule {
   override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
   )
-  override def generatedSources = T {
-    Seq(PathRef(shared.generateCoreSources(T.ctx.dest)))
-  }
   override def testArgs = Seq(
     "-DMILL_VERSION=" + publishVersion()
   )
   override val test = new Tests(implicitly)
-  class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {
-    override def generatedSources = T {
-      Seq(PathRef(shared.generateCoreTestSources(T.ctx.dest)))
-    }
-  }
+  class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {}
   object api extends MillApiModule {
     override def ivyDeps = Agg(
       Deps.osLib,
@@ -299,7 +272,6 @@ object main extends MillModule {
         millBinPlatform = millBinPlatform(),
         artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
       )
-      shared.generateCoreSources(dest)
       Seq(PathRef(dest))
     }
 
@@ -436,7 +408,8 @@ object scalalib extends MillModule {
     override def moduleDeps = Seq(scalalib.api)
 
     override def ivyDeps = Agg(
-      Deps.zinc
+      Deps.zinc,
+      Deps.log4j2Core
     )
     def testArgs = T {
       Seq(

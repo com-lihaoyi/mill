@@ -183,8 +183,6 @@ class ReplApplyHandler(
     }
   }
 
-  val generatedEval = new EvalGenerated(evaluator)
-
   val millHandlers: PartialFunction[Any, pprint.Tree] = {
     case c: Cross[_] =>
       ReplApplyHandler.pprintCross(c, evaluator)

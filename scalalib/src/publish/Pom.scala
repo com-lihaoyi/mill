@@ -25,12 +25,12 @@ object Pom {
     }
   }
 
-  // TODO - not only jar packaging support?
   def apply(
       artifact: Artifact,
       dependencies: Agg[Dependency],
       name: String,
-      pomSettings: PomSettings
+      pomSettings: PomSettings,
+      properties: Map[String, String]
   ): String = {
     val xml =
       <project
@@ -42,7 +42,7 @@ object Pom {
         <name>{name}</name>
         <groupId>{artifact.group}</groupId>
         <artifactId>{artifact.id}</artifactId>
-        <packaging>jar</packaging>
+        <packaging>{pomSettings.packaging}</packaging>
         <description>{pomSettings.description}</description>
 
         <version>{artifact.version}</version>
@@ -63,8 +63,11 @@ object Pom {
         <developers>
           {pomSettings.developers.map(renderDeveloper)}
         </developers>
+        <properties>
+          {properties.map(renderProperty _).iterator}
+        </properties>
         <dependencies>
-          {dependencies.map(renderDependency).toSeq}
+          {dependencies.map(renderDependency).iterator}
         </dependencies>
       </project>
 
@@ -88,6 +91,10 @@ object Pom {
       {<organization>{d.organization}</organization>.optional}
       {<organizationUrl>{d.organizationUrl}</organizationUrl>.optional}
     </developer>
+  }
+
+  private def renderProperty(property: (String, String)): Elem = {
+    <prop>{property._2}</prop>.copy(label = property._1)
   }
 
   private def renderDependency(d: Dependency): Elem = {

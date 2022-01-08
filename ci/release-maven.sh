@@ -17,7 +17,7 @@ rm gpg_key
     --sonatypeCreds $SONATYPE_DEPLOY_USER:$SONATYPE_DEPLOY_PASSWORD \
     --gpgArgs --passphrase=$SONATYPE_PGP_PASSWORD,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
     --publishArtifacts __.publishArtifacts \
-    --readTimeout 600000 \
-    --awaitTimeout 600000 \
+    --readTimeout  1200000 \
+    --awaitTimeout 1200000 \
     --release true \
-    --signed true
+    --signed  true

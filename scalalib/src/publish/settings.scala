@@ -62,5 +62,6 @@ case class PomSettings(
     url: String,
     licenses: Seq[License],
     versionControl: VersionControl,
-    developers: Seq[Developer]
+    developers: Seq[Developer],
+    packaging: String = "jar"
 )

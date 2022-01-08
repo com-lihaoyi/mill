@@ -279,7 +279,7 @@ object ParseArgsTest extends TestSuite {
       }
       def check(
           input: Seq[String],
-          expectedSelectotArgPairs: Seq[(Seq[(Option[Seq[Segment]], Seq[Segment])], Seq[String])]
+          expectedSelectorArgPairs: Seq[(Seq[(Option[Seq[Segment]], Seq[Segment])], Seq[String])]
       ) = {
         val Right(parsed) = ParseArgs(input, selectMode)
         val actual = parsed.map {
@@ -291,7 +291,7 @@ object ParseArgsTest extends TestSuite {
             (selectors, args)
         }
         assert(
-          actual == expectedSelectotArgPairs
+          actual == expectedSelectorArgPairs
         )
       }
 
