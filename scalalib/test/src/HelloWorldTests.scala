@@ -179,6 +179,7 @@ object HelloWorldTests extends TestSuite {
         developers =
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
+      override def versionScheme = Some(VersionScheme.EarlySemVer)
     }
   }
 
@@ -973,6 +974,18 @@ object HelloWorldTests extends TestSuite {
           (scalaLibrary \ "artifactId").text == "scala-library",
           (scalaLibrary \ "groupId").text == "org.scala-lang"
         )
+      }
+      "versionScheme" - workspaceTest(HelloWorldWithPublish) { eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
+
+        assert(
+          os.exists(result.path),
+          evalCount > 0
+        )
+
+        val pomXml = scala.xml.XML.loadFile(result.path.toString)
+        val versionScheme = pomXml \ "properties" \ "info.versionScheme"
+        assert(versionScheme.text == "early-semver")
       }
     }
 
