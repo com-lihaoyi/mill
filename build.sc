@@ -111,7 +111,6 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.2"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.0"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
@@ -125,7 +124,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:1.4.3"
   val utest = ivy"com.lihaoyi::utest:0.7.10"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
-  val zinc = ivy"org.scala-sbt::zinc:1.5.9"
+  val zinc = ivy"org.scala-sbt::zinc:1.6.0"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0"
   val fansi = ivy"com.lihaoyi::fansi:0.3.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.0"
@@ -408,8 +407,7 @@ object scalalib extends MillModule {
     override def moduleDeps = Seq(scalalib.api)
 
     override def ivyDeps = Agg(
-      Deps.zinc,
-      Deps.log4j2Core
+      Deps.zinc
     )
     def testArgs = T {
       Seq(
