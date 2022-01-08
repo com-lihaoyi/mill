@@ -19,10 +19,20 @@ trait PublishModule extends JavaModule { outer =>
   def publishVersion: T[String]
 
   /**
-   * Version scheme used for the model: Supported values are VersionScheme.EarlySemVer, VersionScheme.PVP, and VersionScheme.SemVerSpec
+   * Optional information about the used version scheme.
+   * This may enable dependency resolvers to properly resolve version ranges and version mismatches (conflicts).
+   * This information will be written as `info.versionScheme` property in the `pom.xml`.
+   * See [[VersionScheme]] for possible values.
+   *
+   * You can find more info under these links:
+   * - https://docs.scala-lang.org/overviews/core/binary-compatibility-for-library-authors.html#recommended-versioning-scheme
+   * - https://www.scala-lang.org/blog/2021/02/16/preventing-version-conflicts-with-versionscheme.html
+   * - https://www.scala-sbt.org/1.x/docs/Publishing.html#Version+scheme
+   * - https://semver.org
+   *
    * @since Mill after 0.10.0-M5
    */
-  def versionScheme: T[Option[VersionScheme]] = None
+  def versionScheme: Target[Option[VersionScheme]] = T { None }
 
   def publishSelfDependency: Target[Artifact] = T {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
