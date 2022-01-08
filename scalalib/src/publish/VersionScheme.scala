@@ -1,6 +1,8 @@
 package mill.scalalib.publish
 
-sealed abstract class VersionScheme(val value: String)
+sealed abstract class VersionScheme(val value: String) {
+  def toProperty: (String, String) = "info.versionScheme" -> value
+}
 
 object VersionScheme {
   case object Always extends VersionScheme("always")

@@ -20,6 +20,7 @@ trait PublishModule extends JavaModule { outer =>
 
   /**
    * Version scheme used for the model: Supported values are VersionScheme.EarlySemVer, VersionScheme.PVP, and VersionScheme.SemVerSpec
+   * @since Mill after 0.10.0-M5
    */
   def versionScheme: T[Option[VersionScheme]] = None
 
@@ -75,7 +76,7 @@ trait PublishModule extends JavaModule { outer =>
    * @since Mill after 0.10.0-M5
    */
   def publishProperties: Target[Map[String, String]] = T {
-    versionScheme().map("info.versionScheme" -> _.value).toMap
+    versionScheme().map(_.toProperty).toMap
   }
 
   /**
