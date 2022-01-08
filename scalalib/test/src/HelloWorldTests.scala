@@ -21,7 +21,7 @@ object HelloWorldTests extends TestSuite {
   }
 
   trait HelloWorldModule extends scalalib.ScalaModule {
-    def scalaVersion = "2.12.4"
+    def scalaVersion = "2.12.5"
   }
 
   trait HelloWorldModuleWithMain extends HelloWorldModule {
@@ -32,7 +32,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule
   }
   object CrossHelloWorld extends HelloBase {
-    object core extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4", "2.13.1")
+    object core extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.5", "2.13.1")
     class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
   }
 
@@ -218,7 +218,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldMacros extends HelloBase {
     object core extends ScalaModule {
-      def scalaVersion = "2.12.4"
+      def scalaVersion = "2.12.5"
 
       override def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
@@ -231,7 +231,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldFlags extends HelloBase {
     object core extends ScalaModule {
-      def scalaVersion = "2.12.4"
+      def scalaVersion = "2.12.5"
 
       override def scalacOptions = super.scalacOptions() ++ Seq(
         "-Ypartial-unification"
@@ -241,7 +241,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloScalacheck extends HelloBase {
     object foo extends ScalaModule {
-      def scalaVersion = "2.12.4"
+      def scalaVersion = "2.12.5"
       object test extends Tests {
         override def ivyDeps = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
         override def testFramework = "org.scalacheck.ScalaCheckFramework"
@@ -306,7 +306,7 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalaVersion)
 
         assert(
-          result == "2.12.4",
+          result == "2.12.5",
           evalCount > 0
         )
       }
@@ -518,7 +518,7 @@ object HelloWorldTests extends TestSuite {
           "2.11.11 pwns"
         )))
         "v2123" - workspaceTest(CrossHelloWorld)(cross(_, "2.12.3", "2.12.3 leet"))
-        "v2124" - workspaceTest(CrossHelloWorld)(cross(_, "2.12.4", "2.12.4 leet"))
+        "v2125" - workspaceTest(CrossHelloWorld)(cross(_, "2.12.5", "2.12.5 leet"))
         "v2131" - workspaceTest(CrossHelloWorld)(cross(_, "2.13.1", "2.13.1 idk"))
       }
 

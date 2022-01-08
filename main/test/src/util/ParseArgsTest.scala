@@ -194,9 +194,9 @@ object ParseArgsTest extends TestSuite {
         multiSelect = false
       )
       "singleSelectorWithCross" - check(
-        input = Seq("bridges[2.12.4,jvm].compile"),
+        input = Seq("bridges[2.12.5,jvm].compile"),
         expectedSelectors = List(
-          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("compile"))
+          None -> List(Label("bridges"), Cross(Seq("2.12.5", "jvm")), Label("compile"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = false
@@ -231,10 +231,10 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       "multiSelectorsBraceExpansionWithCross" - check(
-        input = Seq("bridges[2.12.4,jvm].{test,jar}"),
+        input = Seq("bridges[2.12.5,jvm].{test,jar}"),
         expectedSelectors = List(
-          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("test")),
-          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("jar"))
+          None -> List(Label("bridges"), Cross(Seq("2.12.5", "jvm")), Label("test")),
+          None -> List(Label("bridges"), Cross(Seq("2.12.5", "jvm")), Label("jar"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = true

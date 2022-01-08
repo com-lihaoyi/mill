@@ -133,7 +133,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   ): Result[Agg[PathRef]] = {
     resolveDependencies(
       repositories = repositories,
-      depToDependency = Lib.depToDependency(_, "2.12.4", ""),
+      depToDependency = Lib.depToDependency(_, "2.12.5", ""),
       deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}"),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module

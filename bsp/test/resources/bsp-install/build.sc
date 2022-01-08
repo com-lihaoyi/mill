@@ -4,7 +4,7 @@ import mill.define.Command
 import mill.scalalib.GenIdeaModule._
 
 trait HelloWorldModule extends scalalib.ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.5"
   object test extends super.Tests {
     def testFrameworks = Seq("utest.runner.Framework")
   }

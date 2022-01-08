@@ -2,7 +2,7 @@ import mill.Cross
 import mill.scalalib.{SbtModule, PublishModule, Dep, CrossSbtModule, DepSyntax}
 import mill.scalalib.publish.{PomSettings, License, Developer, VersionControl}
 
-object acyclic extends Cross[AcyclicModule]("2.10.6", "2.11.8", "2.12.3", "2.12.4")
+object acyclic extends Cross[AcyclicModule]("2.10.6", "2.11.8", "2.12.3", "2.12.5")
 class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with PublishModule {
   def millSourcePath = super.millSourcePath / os.up
   def artifactName = "acyclic"

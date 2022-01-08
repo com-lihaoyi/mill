@@ -12,7 +12,7 @@ object ResolveDepsTests extends TestSuite {
 
   def evalDeps(deps: Agg[Dep]): Result[Agg[PathRef]] = Lib.resolveDependencies(
     repos,
-    Lib.depToDependency(_, "2.12.4", ""),
+    Lib.depToDependency(_, "2.12.5", ""),
     deps
   )
 

@@ -1,7 +1,7 @@
 import mill.scalalib.{SbtModule, Dep, DepSyntax}
 
 trait BetterFilesModule extends SbtModule{
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.5"
   def scalacOptions = Seq(
     "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
     "-encoding", "utf-8",                // Specify character encoding used by source files.

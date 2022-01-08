@@ -105,7 +105,7 @@ trait UpickleTestModule extends TestModule with ScalaModule{
   def testFrameworks = Seq("utest.runner.Framework")
 }
 
-object upickleJvm extends Cross[UpickleJvmModule]("2.11.11", "2.12.4")
+object upickleJvm extends Cross[UpickleJvmModule]("2.11.11", "2.12.5")
 class UpickleJvmModule(val crossScalaVersion: String) extends UpickleModule{
   def platformSegment = "jvm"
 
@@ -118,7 +118,7 @@ class UpickleJvmModule(val crossScalaVersion: String) extends UpickleModule{
   }
 }
 
-object upickleJs extends Cross[UpickleJsModule]("2.11.11", "2.12.4")
+object upickleJs extends Cross[UpickleJsModule]("2.11.11", "2.12.5")
 class UpickleJsModule(val crossScalaVersion: String) extends UpickleModule with ScalaJSModule {
   def platformSegment = "js"
 
@@ -137,7 +137,7 @@ class UpickleJsModule(val crossScalaVersion: String) extends UpickleModule with 
 }
 
 object test extends ScalaModule{
-  def scalaVersion = "2.12.4"
-  def moduleDeps = Seq(upickleJvm("2.12.4"))
+  def scalaVersion = "2.12.5"
+  def moduleDeps = Seq(upickleJvm("2.12.5"))
   def sources = T.sources{millSourcePath}
 }

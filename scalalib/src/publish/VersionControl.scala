@@ -11,7 +11,7 @@ package mill.scalalib.publish
  * @param tag: tag that was created for this release. This is useful for
  *        git and mercurial since it's not possible to include the tag in
  *        the connection url.
- *        (example: v2.12.4, HEAD, my-branch, fd8a2567ad32c11bcf8adbaca85bdba72bb4f935, ...)
+ *        (example: v2.12.5, HEAD, my-branch, fd8a2567ad32c11bcf8adbaca85bdba72bb4f935, ...)
  */
 case class VersionControl(
     browsableRepository: Option[String] = None,

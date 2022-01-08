@@ -6,9 +6,9 @@ The main build file is [build.sc](/build.sc), other `.sc` files in root director
 
 ### Example commands
 
-Compile play json for JVM on scala 2.12.4: 
+Compile play json for JVM on scala 2.12.5: 
 ```bash
-mill playJsonJvm[2.12.4].compile
+mill playJsonJvm[2.12.5].compile
 ```
 
 Run test on all modules:
@@ -16,9 +16,9 @@ Run test on all modules:
 mill __.test
 ```
 
-Run benchmarks on scala 2.12.4:
+Run benchmarks on scala 2.12.5:
 ```bash
-mill benchmarks[2.12.4].runJmh
+mill benchmarks[2.12.5].runJmh
 ```
 
 ### CI

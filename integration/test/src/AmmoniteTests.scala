@@ -31,7 +31,7 @@ class AmmoniteTests(fork: Boolean)
       )
     }
 
-    "scala2124" - check("2.12.4")
+    "scala2126" - check("2.12.6")
 
   }
 }

@@ -53,7 +53,7 @@ project:
 ----
 import mill._
 import mill.scalalib._
-object foo extends Cross[FooModule]("2.10.6", "2.11.11", "2.12.4")
+object foo extends Cross[FooModule]("2.11.12", "2.12.14", "2.13.7")
 class FooModule(val crossScalaVersion: String) extends CrossScalaModule {
    ...
    object test extends Tests {
@@ -71,14 +71,14 @@ configuration for `CrossScalaModule` expects a filesystem layout as follows:
 build.sc
 foo/
     src/
-    src-2.10/
     src-2.11/
     src-2.12/
+    src-2.13/
     test/
         src/
-        src-2.10/
         src-2.11/
         src-2.12/
+        src-2.13/
 ----
 
 Code common to all Scala versions lives in `src`, while code specific to one
@@ -93,8 +93,8 @@ import mill._
 import mill.scalajslib._
 
 object foo extends ScalaJSModule {
-  def scalaVersion = "2.12.4"
-  def scalaJSVersion = "0.6.22"
+  def scalaVersion = "2.13.7"
+  def scalaJSVersion = "1.8.0"
 }
 ----
 
@@ -112,8 +112,8 @@ generating the optimized Javascript file.
 import mill._, scalalib._, scalanativelib._
 
 object hello extends ScalaNativeModule {
-  def scalaVersion = "2.11.12"
-  def scalaNativeVersion = "0.3.8"
+  def scalaVersion = "2.13.7"
+  def scalaNativeVersion = "0.4.2"
   def logLevel = NativeLogLevel.Info // optional
   def releaseMode = ReleaseMode.Debug // optional
 }
@@ -219,7 +219,7 @@ import mill._
 import mill.scalalib._
 
 object foo extends SbtModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.5"
 }
 ----
 
@@ -247,7 +247,7 @@ to re-organize all your files
 ----
 import mill._
 import mill.scalalib._
-object foo extends Cross[FooModule]("2.10.6", "2.11.11", "2.12.4")
+object foo extends Cross[FooModule]("2.11.12", "2.12.14", "2.13.7")
 class FooModule(val crossScalaVersion: String) extends CrossSbtModule {
    ...
    object test extends Tests {
@@ -266,14 +266,14 @@ foo/
     src/
         main/
             scala/
-            scala-2.10/
             scala-2.11/
             scala-2.12/
+            scala-2.13/
         test/
             scala/
-            scala-2.10/
             scala-2.11/
             scala-2.12/
+            scala-2.13/
 ----
 
 == Publishing
@@ -285,7 +285,7 @@ import mill._
 import mill.scalalib._
 import mill.scalalib.publish._
 object foo extends ScalaModule with PublishModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
   def publishVersion = "0.0.1"
   def pomSettings = PomSettings(
     description = "My first library",

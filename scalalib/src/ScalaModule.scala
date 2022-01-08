@@ -417,7 +417,7 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   /**
-   * Whether to publish artifacts with name "mill_2.12.4" instead of "mill_2.12"
+   * Whether to publish artifacts with name "mill_2.12.5" instead of "mill_2.12"
    */
   def crossFullScalaVersion: T[Boolean] = false
 

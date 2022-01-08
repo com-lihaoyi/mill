@@ -10,7 +10,7 @@ You can configure your Mill build in a number of ways:
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
 
   def scalacOptions = Seq("-Ydelambdafy:inline")
 
@@ -52,7 +52,7 @@ mill foo.runLocal arg1 arg2 arg3
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::upickle:0.5.1",
     ivy"com.lihaoyi::pprint:0.5.2",
@@ -66,7 +66,7 @@ You can define the `ivyDeps` field to add ivy dependencies to your module. The
 `ivy"com.lihaoyi::upickle:0.5.1"` syntax (with `::`) represents Scala
 dependencies; for Java dependencies you would use a single `:` e.g.
 `"ivy"com.lihaoyi:upickle:0.5.1"`. If you have dependencies cross-published
-against the full Scala version (eg. `2.12.4` instead of just `2.12`),
+against the full Scala version (eg. `2.12.14` instead of just `2.12`),
 you can use `:::` as in `ivy"org.scalamacros:::paradise:2.1.1"`.
 
 To select the test-jars from a dependency use the following syntax:
@@ -263,7 +263,7 @@ You can define multiple test suites if you want, e.g.:
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
 
   object test extends Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
@@ -292,7 +292,7 @@ Scalatest example:
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
 
   object test extends Tests with TestModule.ScalaTest {
     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
@@ -308,7 +308,7 @@ Specs2 example:
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
 
   object test extends Tests with TestModule.Specs2 {
     def ivyDeps = Agg(ivy"org.specs2::specs2-core:4.6.0")
@@ -326,7 +326,7 @@ After that, you can follow the instructions in <<_adding_a_test_suite>>, and use
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
 
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
@@ -350,7 +350,7 @@ To have a formatting per-module you need to make your module extend `mill.scalal
 import mill._, scalalib._, scalafmt._
 
 object foo extends ScalaModule with ScalafmtModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
 }
 ----
 
@@ -374,7 +374,7 @@ for details.
 import mill._, scalalib._
 
 trait CommonModule extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
 }
 
 object foo extends CommonModule
@@ -426,7 +426,7 @@ Everything declared in the above file will be available to any build you run.
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
 }
 
 def lineCount = T {
@@ -482,11 +482,11 @@ import mill._, scalalib._
 
 object qux extends Module {
   object foo extends ScalaModule {
-    def scalaVersion = "2.12.4"
+    def scalaVersion = "2.12.14"
   }
   object bar extends ScalaModule {
     def moduleDeps = Seq(foo)
-    def scalaVersion = "2.12.4"
+    def scalaVersion = "2.12.14"
   }
 }
 ----
@@ -563,7 +563,7 @@ mill unhyphenatedModule.unhyphenated_target2
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
   def compile = T {
     println("Compiling...")
     super.compile()
@@ -593,7 +593,7 @@ In Mill builds the `override` keyword is optional.
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
   def unmanagedClasspath = T {
     if (!os.exists(millSourcePath / "lib")) Agg()
     else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
@@ -613,7 +613,7 @@ filesystem, e.g. in the above snippet any jars that happen to live in the
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
   def mainClass = Some("foo.bar.Baz")
 }
 ----
@@ -639,7 +639,7 @@ import mill._, scalalib._
 import mill.modules.Assembly._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
   def assemblyRules = Seq(
     Rule.Append("application.conf"), // all application.conf files will be concatenated into single file
     Rule.AppendPattern(".*\\.conf"), // all *.conf files will be concatenated into single file
@@ -657,7 +657,7 @@ object foo extends ScalaModule {
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.12.14"
   def unmanagedClasspath = Agg(
     mill.modules.Util.download(
       "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar",

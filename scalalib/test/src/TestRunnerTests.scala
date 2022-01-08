@@ -13,7 +13,7 @@ object TestRunnerTests extends TestSuite {
   object testrunner extends TestUtil.BaseModule with ScalaModule {
     override def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
-    def scalaVersion = "2.12.4"
+    def scalaVersion = "2.12.5"
 
     object test extends super.Tests with TestModule.Utest {
 
