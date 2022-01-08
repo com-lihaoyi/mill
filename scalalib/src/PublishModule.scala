@@ -21,7 +21,7 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * Version scheme used for the model: Supported values are VersionScheme.EarlySemVer, VersionScheme.PVP, and VersionScheme.SemVerSpec
    */
-  def versionScheme: T[VersionScheme] = VersionScheme.NoScheme
+  def versionScheme: T[Option[VersionScheme]] = None
 
   def publishSelfDependency: Target[Artifact] = T {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
@@ -71,9 +71,12 @@ trait PublishModule extends JavaModule { outer =>
 
   /**
    * Properties to be published with the published pom/ivy XML.
+   * Use `super.publishProperties() ++` when overriding to avoid losing default properties.
    * @since Mill after 0.10.0-M5
    */
-  def publishProperties: Target[Map[String, String]] = T { Map.empty[String, String] }
+  def publishProperties: Target[Map[String, String]] = T {
+    versionScheme().map("info.versionScheme" -> _.value).toMap
+  }
 
   /**
    * Publish artifacts to a local ivy repository.

@@ -133,10 +133,4 @@ object Pom {
       </dependency>
   }
 
-  private def renderVersionScheme(versionScheme: VersionScheme): Option[Elem] = {
-    versionScheme.value.map(value =>
-      <info.versionScheme>{value}</info.versionScheme>
-    )
-  }
-
 }
