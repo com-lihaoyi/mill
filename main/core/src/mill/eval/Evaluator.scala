@@ -8,6 +8,7 @@ import mainargs.MainData
 import scala.util.DynamicVariable
 import mill.api.{CompileProblemReporter, DummyTestReporter, TestReporter}
 import mill.api.Result.{Aborted, OuterStack, Success}
+import mill.api.Loose
 import mill.api.Strict.Agg
 import mill.define.{Ctx => _, _}
 import mill.util
@@ -302,8 +303,7 @@ case class Evaluator(
     )
 
     val scriptsHash = {
-      val cls = group.items.toList(1).asInstanceOf[NamedTask[_]].ctx.enclosingCls.getName
-      val classes = new Agg.Mutable[String]()
+      val classes = new Loose.Agg.Mutable[String]()
       group.items.flatMap(i => i +: i.inputs.toSeq).foreach {
         case namedTask: NamedTask[_] =>
           // We don't care if it's the class of the companion object (class ends with `$`)
