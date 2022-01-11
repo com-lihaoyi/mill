@@ -197,7 +197,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
 
-  def useECMAScript2015: T[Boolean] = true
+  def useECMAScript2015: T[Boolean] = T { 
+    !scalaJSVersion().startsWith("0.")
+  }
 
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
