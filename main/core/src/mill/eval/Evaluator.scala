@@ -52,6 +52,7 @@ case class Evaluator(
     externalOutPath: os.Path,
     rootModule: mill.define.BaseModule,
     baseLogger: ColorLogger,
+    importTree: Seq[ScriptNode],
     classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
     workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
     env: Map[String, String] = Evaluator.defaultEnv,
@@ -59,12 +60,21 @@ case class Evaluator(
     threadCount: Option[Int] = Some(1)
 ) {
 
+  val (scriptsClassLoader, externalClassLoader) = classLoaderSig.partitionMap {
+    case (Right(elem), sig) => Right((elem, sig))
+    case (Left(elem), sig) => Left((elem, sig))
+  }
+
+  // We're interested of the whole file hash.
+  // So we sum the hash of both class and companion object (ends with `$`)
+  val scriptsSigMap = scriptsClassLoader.groupMapReduce(_._1.stripSuffix("$"))(_._2)(_ + _)
+
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   import Evaluator.Evaluated
 
-  val classLoaderSignHash = classLoaderSig.hashCode()
+  val externalClassLoaderSigHash = externalClassLoader.hashCode()
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
@@ -291,7 +301,23 @@ case class Evaluator(
       group.iterator.map(_.sideHash)
     )
 
-    val inputsHash = externalInputsHash + sideHashes + classLoaderSignHash
+    val scriptsHash = {
+      val cls = group.items.toList(1).asInstanceOf[NamedTask[_]].ctx.enclosingCls.getName
+      val classes = new Agg.Mutable[String]()
+      group.items.flatMap(i => i +: i.inputs.toSeq).foreach {
+        case namedTask: NamedTask[_] =>
+          // We don't care if it's the class of the companion object (class ends with `$`)
+          val cls = namedTask.ctx.enclosingCls.getName.stripSuffix("$")
+          classes.append(cls)
+        case _ =>
+      }
+      val importClasses = importTree.filter(e => classes.contains(e.cls))
+      val dependendentScripts = Graph.transitiveNodes(importClasses).map(_.cls)
+      val dependendentScriptsSig = dependendentScripts.map(s => s -> scriptsSigMap(s))
+      dependendentScriptsSig.hashCode()
+    }
+
+    val inputsHash = externalInputsHash + sideHashes + externalClassLoaderSigHash + scriptsHash
 
     terminal match {
       case Left(task) =>

@@ -35,23 +35,30 @@ object Graph {
     }
     output
   }
-
   /**
-   * Collects all transitive dependencies (targets) of the given targets,
-   * including the given targets.
+   * Collects all transitive dependencies (nodes) of the given nodes,
+   * including the given nodes.
    */
   def transitiveTargets(sourceTargets: Agg[Task[_]]): Agg[Task[_]] = {
-    val transitiveTargets = new Agg.Mutable[Task[_]]
-    def rec(t: Task[_]): Unit = {
-      if (transitiveTargets.contains(t)) () // do nothing
+    transitiveNodes(sourceTargets)
+  }
+    
+  /**
+   * Collects all transitive dependencies (nodes) of the given nodes,
+   * including the given nodes.
+   */
+  def transitiveNodes[T <: GraphNode[T]](sourceNodes: Agg[T]): Agg[T] = {
+    val transitiveNodes = new Agg.Mutable[T]
+    def rec(t: T): Unit = {
+      if (transitiveNodes.contains(t)) () // do nothing
       else {
-        transitiveTargets.append(t)
+        transitiveNodes.append(t)
         t.inputs.foreach(rec)
       }
     }
 
-    sourceTargets.items.foreach(rec)
-    transitiveTargets
+    sourceNodes.items.foreach(rec)
+    transitiveNodes
   }
 
   /**

@@ -16,6 +16,7 @@ object ReplApplyHandler {
       colors: ammonite.util.Colors,
       pprinter0: pprint.PPrinter,
       rootModule: mill.define.BaseModule,
+      importTree: Seq[ScriptNode],
       discover: Discover[_],
       debugLog: Boolean,
       keepGoing: Boolean,
@@ -45,6 +46,7 @@ object ReplApplyHandler {
         os.pwd / "out",
         rootModule,
         logger,
+        importTree = importTree,
         failFast = !keepGoing,
         threadCount = threadCount
       ),

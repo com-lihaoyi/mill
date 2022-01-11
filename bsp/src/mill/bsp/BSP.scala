@@ -129,6 +129,7 @@ object BSP extends ExternalModule {
         ev.externalOutPath,
         ev.rootModule,
         ev.baseLogger,
+        ev.importTree,
         ev.classLoaderSig,
         ev.workerCache,
         ev.env,

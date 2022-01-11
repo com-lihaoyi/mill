@@ -63,6 +63,7 @@ class TestEvaluator(
     TestEvaluator.externalOutPath,
     module,
     logger,
+    importTree = Seq.empty,
     failFast = failFast,
     threadCount = threads
   )

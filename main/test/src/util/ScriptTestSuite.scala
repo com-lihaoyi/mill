@@ -53,13 +53,20 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
     initialSystemProperties = sys.props.toMap
   )
   def eval(s: String*): Boolean = {
+    evalImpl(os.Inherit, s)
+  }
+  def eval(stdout: os.ProcessOutput, s: String*): Boolean = {
+    require(fork, "Custom stdout is only implemented for fork mode")
+    evalImpl(stdout, s)
+  }
+  private def evalImpl(stdout: os.ProcessOutput, s: Seq[String]): Boolean = {
     if (!fork) runner.runScript(workspacePath / buildPath, s.toList)
     else {
       try {
         os.proc(os.home / "mill-release", "-i", s).call(
           wd,
           stdin = os.Inherit,
-          stdout = os.Inherit,
+          stdout = stdout,
           stderr = os.Inherit
         )
         true

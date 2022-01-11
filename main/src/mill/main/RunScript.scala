@@ -64,15 +64,34 @@ object RunScript {
             interp.watch(path)
             val eval =
               for (rootModule <- evaluateRootModule(wd, path, interp, log))
-                yield EvaluatorState(
-                  rootModule,
-                  rootModule.getClass.getClassLoader.asInstanceOf[
-                    SpecialClassLoader
-                  ].classpathSignature,
-                  mutable.Map.empty[Segments, (Int, Any)],
-                  interp.watchedValues.toSeq,
-                  systemProperties.keySet
-                )
+                yield {
+                  val importTreeMap = interp.alreadyLoadedFiles.map { case (a, b) =>
+                    val filePath = a.filePathPrefix
+                    val importPaths = b.blockInfo.flatMap { b =>
+                      val relativePath = b.hookInfo.trees.map(_.prefix)
+                      relativePath.collect {
+                        case "$file" :: tail => filePath.init ++ tail
+                      }
+                    }
+                    val k = filePath.mkString(".")
+                    k -> ScriptNode(k, importPaths.map(s => ScriptNode(s.mkString("."), Seq.empty)))
+                  }.toMap
+
+                  val importTree = importTreeMap.map {
+                    case (k, v) => ScriptNode(k, v.inputs.map(i => importTreeMap(i.cls)))
+                  }.toSeq
+
+                  EvaluatorState(
+                    rootModule,
+                    rootModule.getClass.getClassLoader.asInstanceOf[
+                      SpecialClassLoader
+                    ].classpathSignature,
+                    mutable.Map.empty[Segments, (Int, Any)],
+                    interp.watchedValues.toSeq,
+                    systemProperties.keySet,
+                    importTree
+                  )
+                }
             (eval, interp.watchedValues)
         }
     }
@@ -85,6 +104,7 @@ object RunScript {
           wd / "out",
           s.rootModule,
           log,
+          importTree = s.importTree,
           s.classLoaderSig,
           s.workerCache,
           env,
