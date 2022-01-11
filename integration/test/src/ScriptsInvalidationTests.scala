@@ -9,22 +9,20 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
   def workspaceSlug: String = "invalidation"
   def scriptSourcePath: os.Path = os.pwd / "integration" / "test" / "resources" / workspaceSlug
 
-  val output = mutable.Buffer[String]()
-  val stdout = os.ProcessOutput((bytes, count) => output += new String(bytes, 0, count))
-  def runTask(task: String) = assert(eval(stdout, task))
-
-  override def utestBeforeEach(path: Seq[String]): Unit = {
-    output.clear()
+  def runTask(task: String) = {
+    val (successful, stdout) = evalStdout(task)
+    assert(successful)
+    stdout.map(_.trim)
   }
 
   val tests = Tests {
     test("should not invalidate tasks in different untouched sc files") {
       test("first run") {
         initWorkspace()
-        runTask("task")
 
-        val result = output.map(_.trim).toList
-        val expected = List("a", "d", "b", "c")
+        val result = runTask("task")
+
+        val expected = Seq("a", "d", "b", "c")
 
         assert(result == expected)
       }
@@ -36,18 +34,17 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
                             |""".stripMargin
         os.write.over(workspacePath / buildPath, newContent)
 
-        runTask("task")
+        val stdout = runTask("task")
 
-        assert(output.isEmpty)
+        assert(stdout.isEmpty)
       }
     }
     test("should invalidate tasks if leaf file is changed") {
       test("first run") {
         initWorkspace()
-        runTask("task")
 
-        val result = output.map(_.trim).toList
-        val expected = List("a", "d", "b", "c")
+        val result = runTask("task")
+        val expected = Seq("a", "d", "b", "c")
 
         assert(result == expected)
       }
@@ -60,10 +57,8 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
                             |""".stripMargin
         os.write.over(workspacePath / inputD, newContent)
 
-        runTask("task")
-
-        val result = output.map(_.trim).toList
-        val expected = List("d", "b")
+        val result = runTask("task")
+        val expected = Seq("d", "b")
 
         assert(result == expected)
       }
@@ -71,10 +66,9 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
     test("should handle submodules in scripts") {
       test("first run") {
         initWorkspace()
-        runTask("module.task")
 
-        val result = output.map(_.trim).toList
-        val expected = List("a", "d", "b", "c", "task")
+        val result = runTask("module.task")
+        val expected = Seq("a", "d", "b", "c", "task")
 
         assert(result == expected)
       }
@@ -86,10 +80,8 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
                             |""".stripMargin
         os.write.over(workspacePath / buildPath, newContent)
 
-        runTask("module.task")
-
-        val result = output.map(_.trim).toList
-        val expected = List("task")
+        val result = runTask("module.task")
+        val expected = Seq("task")
 
         assert(result == expected)
       }
