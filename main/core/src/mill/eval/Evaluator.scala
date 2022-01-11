@@ -66,9 +66,19 @@ case class Evaluator(
     case (Left(elem), sig) => Left((elem, sig))
   }
 
+  /**
+   * A ammonite script can have multiple classes in it.
+   * We remove all the names after the first `$` to get the file.
+   */
+  private def fileFromClass(cls: String): String = {
+    val list = cls.split('.')
+    val newList = list.init :+ list.last.takeWhile(_ != '$')
+    newList.mkString(".")
+  }
+
   // We're interested of the whole file hash.
   // So we sum the hash of both class and companion object (ends with `$`)
-  val scriptsSigMap = scriptsClassLoader.groupMapReduce(_._1.stripSuffix("$"))(_._2)(_ + _)
+  val scriptsSigMap = scriptsClassLoader.groupMapReduce(e => fileFromClass(e._1))(_._2)(_ + _)
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
@@ -304,10 +314,9 @@ case class Evaluator(
 
     val scriptsHash = {
       val classes = new Loose.Agg.Mutable[String]()
-      group.items.flatMap(i => i +: i.inputs.toSeq).foreach {
+      group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
         case namedTask: NamedTask[_] =>
-          // We don't care if it's the class of the companion object (class ends with `$`)
-          val cls = namedTask.ctx.enclosingCls.getName.stripSuffix("$")
+          val cls = fileFromClass(namedTask.ctx.enclosingCls.getName)
           classes.append(cls)
         case _ =>
       }
