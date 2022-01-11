@@ -36,8 +36,8 @@ object Graph {
     output
   }
   /**
-   * Collects all transitive dependencies (nodes) of the given nodes,
-   * including the given nodes.
+   * Collects all transitive dependencies (targets) of the given targets,
+   * including the given targets.
    */
   def transitiveTargets(sourceTargets: Agg[Task[_]]): Agg[Task[_]] = {
     transitiveNodes(sourceTargets)
