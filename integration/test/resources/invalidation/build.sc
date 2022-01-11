@@ -8,3 +8,12 @@ def task = T {
   inputB.input()
   inputC.input()
 }
+
+object module extends Module {
+  def task = T {
+    println("task")
+    inputA.input()
+    inputB.input()
+    inputC.input()
+  }
+}

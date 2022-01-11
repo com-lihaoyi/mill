@@ -11,7 +11,7 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
 
   val output = mutable.Buffer[String]()
   val stdout = os.ProcessOutput((bytes, count) => output += new String(bytes, 0, count))
-  def runTask() = assert(eval(stdout, "task"))
+  def runTask(task: String) = assert(eval(stdout, task))
 
   override def utestBeforeEach(path: Seq[String]): Unit = {
     output.clear()
@@ -21,7 +21,7 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
     test("should not invalidate tasks in different untouched sc files") {
       test("first run") {
         initWorkspace()
-        runTask()
+        runTask("task")
 
         val result = output.map(_.trim).toList
         val expected = List("a", "d", "b", "c")
@@ -36,7 +36,7 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
                             |""".stripMargin
         os.write.over(workspacePath / buildPath, newContent)
 
-        runTask()
+        runTask("task")
 
         assert(output.isEmpty)
       }
@@ -44,7 +44,7 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
     test("should invalidate tasks if leaf file is changed") {
       test("first run") {
         initWorkspace()
-        runTask()
+        runTask("task")
 
         val result = output.map(_.trim).toList
         val expected = List("a", "d", "b", "c")
@@ -60,10 +60,36 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
                             |""".stripMargin
         os.write.over(workspacePath / inputD, newContent)
 
-        runTask()
+        runTask("task")
 
         val result = output.map(_.trim).toList
         val expected = List("d", "b")
+
+        assert(result == expected)
+      }
+    }
+    test("should handle submodules in scripts") {
+      test("first run") {
+        initWorkspace()
+        runTask("module.task")
+
+        val result = output.map(_.trim).toList
+        val expected = List("a", "d", "b", "c", "task")
+
+        assert(result == expected)
+      }
+
+      test("second run modifying script") {
+        val oldContent = os.read(scriptSourcePath / buildPath)
+        val newContent = s"""$oldContent
+                            |def newTask = T { }
+                            |""".stripMargin
+        os.write.over(workspacePath / buildPath, newContent)
+
+        runTask("module.task")
+
+        val result = output.map(_.trim).toList
+        val expected = List("task")
 
         assert(result == expected)
       }
