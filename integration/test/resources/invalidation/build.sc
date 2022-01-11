@@ -2,6 +2,7 @@ import $file.a.inputA
 import $file.b.inputB
 import $file.inputC
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
+import $file.e.inputE
 
 def task = T {
   inputA.input()
@@ -16,4 +17,9 @@ object module extends Module {
     inputB.input()
     inputC.input()
   }
+}
+
+def taskE = T {
+  println("taskE")
+  inputE.input()
 }

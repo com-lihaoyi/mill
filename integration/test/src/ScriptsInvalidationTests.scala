@@ -86,5 +86,28 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
         assert(result == expected)
       }
     }
+    test("should handle ammonite ^ imports") {
+      test("first run") {
+        initWorkspace()
+
+        val result = runTask("taskE")
+        val expected = Seq("a", "e", "taskE")
+
+        assert(result == expected)
+      }
+
+      test("second run modifying script") {
+        val oldContent = os.read(scriptSourcePath / buildPath)
+        val newContent = s"""$oldContent
+                            |def newTask = T { }
+                            |""".stripMargin
+        os.write.over(workspacePath / buildPath, newContent)
+
+        val result = runTask("taskE")
+        val expected = Seq("taskE")
+
+        assert(result == expected)
+      }
+    }
   }
 }

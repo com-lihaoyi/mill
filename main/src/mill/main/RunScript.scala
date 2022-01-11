@@ -70,7 +70,9 @@ object RunScript {
                     val importPaths = b.blockInfo.flatMap { b =>
                       val relativePath = b.hookInfo.trees.map(_.prefix)
                       relativePath.collect {
-                        case "$file" :: tail => filePath.init ++ tail
+                        case "$file" :: tail =>
+                          val concatenated = filePath.init ++ tail
+                          normalizeAmmoniteImportPath(concatenated)
                       }
                     }
                     val k = filePath.mkString(".")
@@ -78,7 +80,7 @@ object RunScript {
                   }.toMap
 
                   val importTree = importTreeMap.map {
-                    case (k, v) => ScriptNode(k, v.inputs.map(i => importTreeMap(i.cls)))
+                    case (k, v) => ScriptNode(k, v.inputs.flatMap(i => importTreeMap.get(i.cls)))
                   }.toSeq
 
                   EvaluatorState(
@@ -341,6 +343,16 @@ object RunScript {
         watched -> Right(evaluated.values.zip(json))
       case n => watched -> Left(s"$n targets failed\n$errorStr")
     }
+  }
+
+  private def normalizeAmmoniteImportPath(segments: Seq[String]): Seq[String] = {
+    def loop(l: List[String], up: Int): List[String] = l match {
+      case "^" :: tail  => loop(tail, up + 1)
+      case head :: tail if up > 0 => loop(tail, up - 1)
+      case head :: tail => head :: loop(tail, up)
+      case Nil => Nil
+    }
+    loop(segments.toList.reverse, 0).reverse
   }
 
 //  def consistencyCheck[T](mapping: Discovered.Mapping[T]): Either[String, Unit] = {
