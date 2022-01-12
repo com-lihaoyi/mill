@@ -1,6 +1,9 @@
 package mill.scalajslib.api
+
 import java.io.File
 import mill.api.Result
+import upickle.default.{ReadWriter => RW, macroRW}
+
 trait ScalaJSWorkerApi {
   def link(
       sources: Array[File],
@@ -10,7 +13,7 @@ trait ScalaJSWorkerApi {
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: ModuleKind,
-      useECMAScript2015: Boolean
+      esFeatures: ESFeatures
   ): Result[File]
 
   def run(config: JsEnvConfig, linkedFile: File): Unit
@@ -36,10 +39,42 @@ object ModuleKind {
   object ESModule extends ModuleKind
 }
 
+sealed trait ESVersion
+object ESVersion {
+  implicit val rw: RW[ESVersion] = macroRW[ESVersion]
+  object ES2015 extends ESVersion
+  object ES2016 extends ESVersion
+  object ES2017 extends ESVersion
+  object ES2018 extends ESVersion
+  object ES2019 extends ESVersion
+  object ES2020 extends ESVersion
+  object ES2021 extends ESVersion
+  object ES5_1 extends ESVersion
+}
+
+case class ESFeatures private (
+    allowBigIntsForLongs: Boolean,
+    avoidClasses: Boolean,
+    avoidLetsAndConsts: Boolean,
+    esVersion: ESVersion
+) {
+  def withAllowBigIntsForLongs(allowBigIntsForLongs: Boolean): ESFeatures = copy(allowBigIntsForLongs = allowBigIntsForLongs)
+  def withAvoidClasses(avoidClasses: Boolean): ESFeatures = copy(avoidClasses = avoidClasses)
+  def withAvoidLetsAndConsts(avoidLetsAndConsts: Boolean): ESFeatures = copy(avoidLetsAndConsts = avoidLetsAndConsts)
+  def withESVersion(esVersion: ESVersion): ESFeatures = copy(esVersion = esVersion)
+}
+object ESFeatures {
+  val Defaults: ESFeatures = ESFeatures(
+    allowBigIntsForLongs = false,
+    avoidClasses = true,
+    avoidLetsAndConsts = true,
+    esVersion = ESVersion.ES2015
+  )
+  implicit val rw: RW[ESFeatures] = macroRW[ESFeatures]
+}
+
 sealed trait JsEnvConfig
 object JsEnvConfig {
-
-  import upickle.default.{ReadWriter => RW, macroRW}
   implicit def rwNodeJs: RW[NodeJs] = macroRW
   implicit def rwJsDom: RW[JsDom] = macroRW
   implicit def rwPhantom: RW[Phantom] = macroRW

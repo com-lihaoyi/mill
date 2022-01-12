@@ -6,9 +6,14 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import java.io.File
 import mill.api.{Result, internal}
-import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
+import mill.scalajslib.api.{ESFeatures, ESVersion, JsEnvConfig, ModuleKind}
 import org.scalajs.linker.{PathIRContainer, PathIRFile, PathOutputFile, StandardImpl}
-import org.scalajs.linker.interface.{ModuleKind => ScalaJSModuleKind, _}
+import org.scalajs.linker.interface.{
+  ESFeatures => ScalaJSESFeatures,
+  ESVersion => ScalaJSESVersion,
+  ModuleKind => ScalaJSModuleKind,
+  _
+}
 import org.scalajs.logging.ScalaConsoleLogger
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.jsenv.nodejs.NodeJSEnv.SourceMap
@@ -23,7 +28,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   private case class LinkerInput(
       fullOpt: Boolean,
       moduleKind: ModuleKind,
-      useECMAScript2015: Boolean,
+      esFeatures: ESFeatures,
       dest: File
   )
   private object ScalaJSLinker {
@@ -45,13 +50,28 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
         case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
         case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
       }
+      val scalaJSESVersion = input.esFeatures.esVersion match {
+        case ESVersion.ES5_1 => ScalaJSESVersion.ES5_1
+        case ESVersion.ES2015 => ScalaJSESVersion.ES2015
+        case ESVersion.ES2016 => ScalaJSESVersion.ES2016
+        case ESVersion.ES2017 => ScalaJSESVersion.ES2017
+        case ESVersion.ES2018 => ScalaJSESVersion.ES2018
+        case ESVersion.ES2019 => ScalaJSESVersion.ES2019
+        case ESVersion.ES2020 => ScalaJSESVersion.ES2020
+        case ESVersion.ES2021 => ScalaJSESVersion.ES2021
+      }
+      val scalaJSESFeatures: ScalaJSESFeatures = ScalaJSESFeatures.Defaults
+        .withAllowBigIntsForLongs(input.esFeatures.allowBigIntsForLongs)
+        .withAvoidClasses(input.esFeatures.avoidClasses)
+        .withAvoidLetsAndConsts(input.esFeatures.avoidLetsAndConsts)
+        .withESVersion(scalaJSESVersion)
       val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule
       val config = StandardConfig()
         .withOptimizer(input.fullOpt)
         .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
-        .withESFeatures(_.withUseECMAScript2015(input.useECMAScript2015))
+        .withESFeatures(scalaJSESFeatures)
       StandardImpl.linker(config)
     }
   }
@@ -63,11 +83,11 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: ModuleKind,
-      useECMAScript2015: Boolean
+      esFeatures: ESFeatures
   ) = {
     import scala.concurrent.ExecutionContext.Implicits.global
     val linker =
-      ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, useECMAScript2015, dest))
+      ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures, dest))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
     val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))

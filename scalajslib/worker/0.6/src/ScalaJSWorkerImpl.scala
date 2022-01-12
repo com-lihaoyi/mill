@@ -5,11 +5,12 @@ package worker
 import java.io.File
 
 import mill.api.Result
-import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
+import mill.scalajslib.api.{ESFeatures, JsEnvConfig, ModuleKind}
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
 import org.scalajs.core.tools.linker.{
+  ESFeatures => ScalaJSESFeatures,
   Linker,
   ModuleInitializer,
   Semantics,
@@ -27,7 +28,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   private case class LinkerInput(
       fullOpt: Boolean,
       moduleKind: ModuleKind,
-      useECMAScript2015: Boolean
+      esFeatures: ESFeatures
   )
   private object ScalaJSLinker {
     private val cache = mutable.Map.empty[LinkerInput, WeakReference[Linker]]
@@ -48,13 +49,14 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
         case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
         case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
       }
+      val scalaJSESFeatures = ScalaJSESFeatures.Default
       val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule
       val config = StandardLinker.Config()
         .withOptimizer(input.fullOpt)
         .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
-        .withESFeatures(_.withUseECMAScript2015(input.useECMAScript2015))
+        .withESFeatures(scalaJSESFeatures)
       StandardLinker(config)
     }
   }
@@ -67,9 +69,9 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       testBridgeInit: Boolean, // ignored in 0.6
       fullOpt: Boolean,
       moduleKind: ModuleKind,
-      useECMAScript2015: Boolean
+      esFeatures: ESFeatures
   ) = {
-    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, useECMAScript2015))
+    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures))
     val sourceSJSIRs = sources.map(new FileVirtualScalaJSIRFile(_))
     val jars =
       libraries.map(jar => IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile))
