@@ -594,13 +594,15 @@ object contrib extends MillModule {
     object api extends MillApiModule {
       override def compileModuleDeps = Seq(main.api)
     }
-
     override def moduleDeps = Seq(scoverage.api)
     override def compileModuleDeps = Seq(scalalib)
 
     override def testArgs = T {
       val mapping = Map(
-        "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path
+        "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path,
+        "MILL_SCALA_2_13_VERSION" -> Deps.scalaVersion,
+        "MILL_SCALA_2_12_VERSION" -> Deps.workerScalaVersion212,
+        "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version,
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
