@@ -60,7 +60,7 @@ object Deps {
 
   object Scalajs_1 {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
-    val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.2.0"
+    val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.2.1"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
     val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.7.1"
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.7.1"
