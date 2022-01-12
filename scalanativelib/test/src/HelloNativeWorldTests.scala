@@ -28,7 +28,7 @@ object HelloNativeWorldTests extends TestSuite {
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
       scala <- Seq(scala213, "2.12.13", "2.11.12")
-      scalaNative <- Seq(scalaNative04)
+      scalaNative <- Seq(scalaNative04, "0.4.3-RC2")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
     } yield (scala, scalaNative, mode)
 
@@ -93,10 +93,10 @@ object HelloNativeWorldTests extends TestSuite {
           ).compile)
 
         val outPath = result.classes.path
-        val outputFiles = os.walk(outPath).filter(os.isFile)
-        val expectedClassfiles = compileClassfiles(outPath / "hello")
+        val outputFiles = os.walk(outPath).filter(os.isFile).map(_.last).toSet
+        val expectedClassfiles = compileClassfiles(scalaNativeVersion)
         assert(
-          outputFiles.toSet == expectedClassfiles,
+          outputFiles == expectedClassfiles,
           evalCount > 0
         )
 
@@ -243,16 +243,24 @@ object HelloNativeWorldTests extends TestSuite {
     }
   }
 
-  def compileClassfiles(parentDir: os.Path) = Set(
-    parentDir / "ArgsParser$.class",
-    parentDir / "ArgsParser$.nir",
-    parentDir / "ArgsParser.class",
-    parentDir / "Main.class",
-    parentDir / "Main$.class",
-    parentDir / "Main$delayedInit$body.class",
-    parentDir / "Main$.nir",
-    parentDir / "Main$delayedInit$body.nir"
-  )
+  def compileClassfiles(scalaNativeVersion: String) = {
+    val common = Set(
+      "ArgsParser$.class",
+      "ArgsParser$.nir",
+      "ArgsParser.class",
+      "Main.class",
+      "Main$.class",
+      "Main$delayedInit$body.class",
+      "Main$.nir",
+      "Main$delayedInit$body.nir"
+    )
+
+    val scalaNativeVersionSpecific =
+      if(scalaNativeVersion == "0.4.0") Set.empty
+      else Set("Main.nir", "ArgsParser.nir") 
+
+    common ++ scalaNativeVersionSpecific
+  }
 
   def prepareWorkspace(): Unit = {
     os.remove.all(workspacePath)

@@ -704,7 +704,7 @@ object scalanativelib extends MillModule {
 
   override def testArgs = T {
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").assembly().path
+      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").compile().classes.path
     )
     scalalib.worker.testArgs() ++
       scalalib.backgroundwrapper.testArgs() ++
