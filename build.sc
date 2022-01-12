@@ -48,9 +48,9 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.7"
+  val scalaVersion = "2.13.8"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.13"
+  val workerScalaVersion212 = "2.12.15"
 
   object Scalajs_0_6 {
     val scalajsJsEnvs = ivy"org.scala-js::scalajs-js-envs:0.6.33"
@@ -73,9 +73,10 @@ object Deps {
     val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.0"
   }
 
-  val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.5.0"
-  val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:2.5.0"
+  val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
+  val ammoniteVersion = "2.5.0-6-01d7b780"
+  val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
+  val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -118,9 +119,9 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.0.8"
-  val scalametaTrees = ivy"org.scalameta::trees:4.4.31"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.32"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.10"
+  def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
   val upickle = ivy"com.lihaoyi::upickle:1.4.3"
   val utest = ivy"com.lihaoyi::utest:0.7.10"
