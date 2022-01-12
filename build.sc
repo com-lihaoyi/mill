@@ -170,8 +170,7 @@ trait MillCoursierModule extends CoursierModule {
     super.repositoriesTask() ++ Seq(
       MavenRepository(
         "https://oss.sonatype.org/content/repositories/releases"
-      ),
-      MavenRepository("http://oss.sonatype.org/content/repositories/snapshots")
+      )
     )
   }
 }

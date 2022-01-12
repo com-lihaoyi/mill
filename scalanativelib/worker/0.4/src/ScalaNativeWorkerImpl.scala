@@ -59,7 +59,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
     }
     val config =
       Config.empty
-        .withMainClass(mainClass)
+        .withMainClass(entry)
         .withClassPath(classpath.map(_.toPath))
         .withWorkdir(nativeWorkdir.toPath)
         .withCompilerConfig(
