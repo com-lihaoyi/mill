@@ -231,9 +231,8 @@ object HelloNativeWorldTests extends TestSuite {
       )
 
     val scalaNativeVersionSpecific =
-      if(scalaNativeVersion == "0.4.0") Set.empty
+      if (scalaNativeVersion == "0.4.0") Set.empty
       else Set("Main.nir", "ArgsParser.nir")
-
 
     common ++ scalaVersionSpecific ++ scalaNativeVersionSpecific
   }
