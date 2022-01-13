@@ -59,7 +59,9 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
         val useECMAScript2015: Boolean = input.esFeatures.esVersion match {
           case ESVersion.ES5_1 => false
           case ESVersion.ES2015 => true
-          case v => throw new Exception(s"ESVersion $v is not supported with Scala.js < 1.6. Either update Scala.js or use one of ESVersion.ES5_1 or ESVersion.ES2015")
+          case v => throw new Exception(
+              s"ESVersion $v is not supported with Scala.js < 1.6. Either update Scala.js or use one of ESVersion.ES5_1 or ESVersion.ES2015"
+            )
         }
         esFeatures.withUseECMAScript2015(useECMAScript2015)
       }
@@ -78,14 +80,14 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       }
       var scalaJSESFeatures: ScalaJSESFeatures = ScalaJSESFeatures.Defaults
         .withAllowBigIntsForLongs(input.esFeatures.allowBigIntsForLongs)
-        
-      if(minorIsGreaterThan(3)) {
+
+      if (minorIsGreaterThan(3)) {
         scalaJSESFeatures = scalaJSESFeatures
           .withAvoidClasses(input.esFeatures.avoidClasses)
           .withAvoidLetsAndConsts(input.esFeatures.avoidLetsAndConsts)
       }
       scalaJSESFeatures =
-        if(minorIsGreaterThan(6)) withESVersion_1_6_plus(scalaJSESFeatures)
+        if (minorIsGreaterThan(6)) withESVersion_1_6_plus(scalaJSESFeatures)
         else withESVersion_1_5_minus(scalaJSESFeatures)
 
       val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule

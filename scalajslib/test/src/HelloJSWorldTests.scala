@@ -135,10 +135,9 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
     test("fastOpt") {
-      // testAllMatrix(
-        // (scala, scalaJS) =>
-          TestUtil.disableInJava9OrAbove(testRun("2.13.3", "1.8.0", FastOpt))
-      // )
+      testAllMatrix((scala, scalaJS) =>
+        TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FastOpt))
+      )
     }
     test("jar") {
       test("containsSJSIRs") {
@@ -270,9 +269,7 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     test("run") {
-      testAllMatrix(
-        (scala, scalaJS) => checkRun(scala, scalaJS)
-      )
+      testAllMatrix((scala, scalaJS) => checkRun(scala, scalaJS))
     }
   }
 

@@ -58,9 +58,11 @@ case class ESFeatures private (
     avoidLetsAndConsts: Boolean,
     esVersion: ESVersion
 ) {
-  def withAllowBigIntsForLongs(allowBigIntsForLongs: Boolean): ESFeatures = copy(allowBigIntsForLongs = allowBigIntsForLongs)
+  def withAllowBigIntsForLongs(allowBigIntsForLongs: Boolean): ESFeatures =
+    copy(allowBigIntsForLongs = allowBigIntsForLongs)
   def withAvoidClasses(avoidClasses: Boolean): ESFeatures = copy(avoidClasses = avoidClasses)
-  def withAvoidLetsAndConsts(avoidLetsAndConsts: Boolean): ESFeatures = copy(avoidLetsAndConsts = avoidLetsAndConsts)
+  def withAvoidLetsAndConsts(avoidLetsAndConsts: Boolean): ESFeatures =
+    copy(avoidLetsAndConsts = avoidLetsAndConsts)
   def withESVersion(esVersion: ESVersion): ESFeatures = copy(esVersion = esVersion)
 }
 object ESFeatures {

@@ -204,7 +204,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def esFeatures: T[ESFeatures] = T {
     if (useECMAScript2015.ctx.enclosing != s"${classOf[ScalaJSModule].getName}#useECMAScript2015") {
-      Result.Failure("Overriding `useECMAScript2015` is not supported anymore. Override `esFeatures` instead")
+      Result.Failure(
+        "Overriding `useECMAScript2015` is not supported anymore. Override `esFeatures` instead"
+      )
     } else {
       Result.Success {
         if (scalaJSVersion().startsWith("0.")) ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
