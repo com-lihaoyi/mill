@@ -53,25 +53,24 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def toolsIvyDeps = T {
-    Seq(
+    Agg(
       ivy"org.scala-native:tools_2.12:${scalaNativeVersion()}",
       ivy"org.scala-native:test-runner_2.12:${scalaNativeVersion()}"
     )
   }
 
-  def nativeLibIvy = T { ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
-
-  def nativeIvyDeps = T {
+  def nativeIvyDeps: T[Agg[Dep]] = T {
     val scalaVersionSpecific =
       if (isScala3(scalaVersion()))
-        ivy"org.scala-native::scala3lib::${scalaNativeVersion()}"
+        Agg(ivy"org.scala-native::scala3lib::${scalaNativeVersion()}")
       else
-        ivy"org.scala-native::scalalib::${scalaNativeVersion()}"
+        Agg(ivy"org.scala-native::scalalib::${scalaNativeVersion()}")
 
-    Seq(nativeLibIvy()) ++ Seq(
+    Agg(
+      ivy"org.scala-native::nativelib::${scalaNativeVersion()}",
       ivy"org.scala-native::javalib::${scalaNativeVersion()}",
       ivy"org.scala-native::auxlib::${scalaNativeVersion()}"
-    ) :+ scalaVersionSpecific
+    ) ++ scalaVersionSpecific
   }
 
   override def scalaLibraryIvyDeps = T {
@@ -83,10 +82,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     super.mandatoryIvyDeps() ++ nativeIvyDeps()
   }
 
-  def bridgeFullClassPath = T {
-    resolveDeps(toolsIvyDeps()).map(t =>
-      (scalaNativeWorkerClasspath().toSeq ++ t.toSeq).map(_.path)
-    )
+  def bridgeFullClassPath: T[Agg[os.Path]] = T {
+    val workerClasspath = scalaNativeWorkerClasspath()
+    val resolvedIvyDeps = resolveDeps(toolsIvyDeps)()
+    (workerClasspath ++ resolvedIvyDeps).map(_.path)
   }
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = T {
