@@ -175,7 +175,7 @@ object HelloJSWorldTests extends TestSuite {
       test("artifactId_1") {
         testArtifactId(
           HelloJSWorld.scalaVersions.head,
-          "1.4.0",
+          HelloJSWorld.scalaJSVersions.head,
           "hello-js-world_sjs1_2.13"
         )
       }
