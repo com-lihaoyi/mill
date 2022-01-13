@@ -5,6 +5,7 @@ import mill._
 import mill.define.Discover
 import mill.eval.{EvaluatorPaths, Result}
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
+import mill.scalalib.api.Util.isScala3
 import mill.testrunner.TestRunner
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
@@ -27,9 +28,10 @@ object HelloNativeWorldTests extends TestSuite {
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scala <- Seq(scala213, "2.12.13", "2.11.12")
+      scala <- Seq("3.1.0", scala213, "2.12.13", "2.11.12")
       scalaNative <- Seq(scalaNative04, "0.4.3-RC2")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
+      if !(isScala3(scala) && scalaNative == scalaNative04)
     } yield (scala, scalaNative, mode)
 
     object helloNativeWorld extends Cross[BuildModule](matrix: _*)
@@ -48,24 +50,14 @@ object HelloNativeWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
-    trait UtestTestModule extends ScalaNativeModule with TestModule.Utest {
-      override def ivyDeps = super.ivyDeps() ++ Agg(
-        ivy"com.lihaoyi::utest::0.7.6"
-      )
-    }
     object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
     class BuildModuleUtest(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
         extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
-      object test extends super.Tests with UtestTestModule {
+      object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
-      }
-    }
-
-    object buildNoTests extends Cross[BuildModuleNoTests](matrix: _*)
-    class BuildModuleNoTests(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
-        extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
-      object test extends super.Tests with UtestTestModule {
-        override def sources = T.sources { millSourcePath / "src" / "no-tests" }
+        override def ivyDeps = super.ivyDeps() ++ Agg(
+          ivy"com.lihaoyi::utest::0.7.6"
+        )
       }
     }
     override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
@@ -94,7 +86,7 @@ object HelloNativeWorldTests extends TestSuite {
 
         val outPath = result.classes.path
         val outputFiles = os.walk(outPath).filter(os.isFile).map(_.last).toSet
-        val expectedClassfiles = compileClassfiles(scalaNativeVersion)
+        val expectedClassfiles = compileClassfiles(scalaVersion, scalaNativeVersion)
         assert(
           outputFiles == expectedClassfiles,
           evalCount > 0
@@ -187,41 +179,19 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    def checkNoTests(
-        scalaVersion: String,
-        scalaNativeVersion: String,
-        mode: ReleaseMode,
-        cached: Boolean
-    ) = {
-      val Right(((message, results), _)) = helloWorldEvaluator(
-        if (!cached)
-          HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.test()
-        else HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.testCached
-      )
-
-      assert(
-        results.size == 0,
-        message == "\n"
-      )
-    }
-
     "test" - {
       val cached = false
 
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkNoTests(scala, scalaNative, releaseMode, cached)
-      )
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkUtest(scala, scalaNative, releaseMode, cached)
+      testAllMatrix(
+        (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
+        skipScala = isScala3 // Remove this once utest is released for Scala 3
       )
     }
     "testCached" - {
       val cached = true
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkNoTests(scala, scalaNative, releaseMode, cached)
-      )
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkUtest(scala, scalaNative, releaseMode, cached)
+      testAllMatrix(
+        (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
+        skipScala = isScala3 // Remove this once utest is released for Scala 3
       )
     }
 
@@ -243,23 +213,28 @@ object HelloNativeWorldTests extends TestSuite {
     }
   }
 
-  def compileClassfiles(scalaNativeVersion: String) = {
+  def compileClassfiles(scalaVersion: String, scalaNativeVersion: String) = {
     val common = Set(
       "ArgsParser$.class",
       "ArgsParser$.nir",
       "ArgsParser.class",
       "Main.class",
       "Main$.class",
-      "Main$delayedInit$body.class",
-      "Main$.nir",
-      "Main$delayedInit$body.nir"
+      "Main$.nir"
     )
 
-    val scalaNativeVersionSpecific =
-      if(scalaNativeVersion == "0.4.0") Set.empty
-      else Set("Main.nir", "ArgsParser.nir") 
+    val scalaVersionSpecific =
+      if (isScala3(scalaVersion)) Set("ArgsParser.tasty", "Main.tasty")
+      else Set(
+        "Main$delayedInit$body.class",
+        "Main$delayedInit$body.nir"
+      )
 
-    common ++ scalaNativeVersionSpecific
+    val scalaNativeVersionSpecific =
+      if (scalaNativeVersion == "0.4.0") Set.empty
+      else Set("Main.nir", "ArgsParser.nir")
+
+    common ++ scalaVersionSpecific ++ scalaNativeVersionSpecific
   }
 
   def prepareWorkspace(): Unit = {
