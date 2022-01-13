@@ -74,8 +74,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
-  private def checkDeprecations(): Task[Unit] = T.task {
-    pprint.pprintln("Calling checkDeprecations.")
+  private def checkDeprecations: Task[Unit] = T.task {
     useECMAScript2015()
     if(overriddenUseECMAScript2015) {
       Result.Failure("Overriding `useECMAScript2015` is not supported anymore. Override `esFeatures` instead")
@@ -85,7 +84,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   def fastOpt = T {
-    // checkDeprecations()
+    checkDeprecations()
     link(
       worker = ScalaJSWorkerApi.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),

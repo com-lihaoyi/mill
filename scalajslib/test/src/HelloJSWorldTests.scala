@@ -37,7 +37,6 @@ object HelloJSWorldTests extends TestSuite {
         extends HelloJSWorldModule {
       override def artifactName = "hello-js-world"
       def scalaJSVersion = sjsVersion0
-      override def useECMAScript2015 = false
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello js world ready for real world publishing",
@@ -136,10 +135,10 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
     test("fastOpt") {
-      testAllMatrix(
-        (scala, scalaJS) =>
-          TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FastOpt))
-      )
+      // testAllMatrix(
+        // (scala, scalaJS) =>
+          TestUtil.disableInJava9OrAbove(testRun("2.13.3", "1.8.0", FastOpt))
+      // )
     }
     test("jar") {
       test("containsSJSIRs") {
