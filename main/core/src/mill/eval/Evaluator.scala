@@ -11,6 +11,7 @@ import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Loose
 import mill.api.Strict.Agg
 import mill.define.{Ctx => _, _}
+import mill.internal.Utils
 import mill.util
 import mill.util._
 
@@ -317,7 +318,8 @@ case class Evaluator(
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
         case namedTask: NamedTask[_] =>
           val cls = fileFromClass(namedTask.ctx.enclosingCls.getName)
-          classes.append(cls)
+          val normalized = Utils.normalizeAmmoniteImportPath(cls)
+          classes.append(normalized)
         case _ =>
       }
       val importClasses = importTree.filter(e => classes.contains(e.cls))
