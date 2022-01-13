@@ -31,6 +31,7 @@ object HelloNativeWorldTests extends TestSuite {
       scala <- Seq("3.1.0", scala213, "2.12.13", "2.11.12")
       scalaNative <- Seq(scalaNative04, "0.4.3-RC2")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
+      if !(isScala3(scala) && scalaNative == scalaNative04)
     } yield (scala, scalaNative, mode)
 
     object helloNativeWorld extends Cross[BuildModule](matrix: _*)
