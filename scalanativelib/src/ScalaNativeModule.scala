@@ -82,10 +82,15 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     super.mandatoryIvyDeps() ++ nativeIvyDeps()
   }
 
+  // Using `resolveDeps` from `CoursierModule` incorrectly resolves
+  // scala-library 2.13 instead of the required 2.12
   def bridgeFullClassPath: T[Agg[os.Path]] = T {
-    val workerClasspath = scalaNativeWorkerClasspath()
-    val resolvedIvyDeps = resolveDeps(toolsIvyDeps)()
-    (workerClasspath ++ resolvedIvyDeps).map(_.path)
+    Lib.resolveDependencies(
+      repositoriesTask(),
+      resolveCoursierDependency().apply(_),
+      toolsIvyDeps(),
+      ctx = Some(T.log)
+    ).map(t => (scalaNativeWorkerClasspath() ++ t).map(_.path))
   }
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = T {
