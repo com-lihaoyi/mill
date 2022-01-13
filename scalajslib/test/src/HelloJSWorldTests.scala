@@ -154,8 +154,7 @@ object HelloJSWorldTests extends TestSuite {
       def testArtifactId(scalaVersion: String, scalaJSVersion: String, artifactId: String): Unit = {
         val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.helloJsWorld(
           scalaVersion,
-          scalaJSVersion,
-          false
+          scalaJSVersion
         ).artifactMetadata)
         assert(result.id == artifactId)
       }
@@ -195,8 +194,8 @@ object HelloJSWorldTests extends TestSuite {
 
     def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
       val resultMap = runTests(
-        if (!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion, false).test.test()
-        else HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion, false).test.testCached
+        if (!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test()
+        else HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.testCached
       )
 
       val mainTests = resultMap("MainTests")
@@ -214,8 +213,8 @@ object HelloJSWorldTests extends TestSuite {
 
     def checkScalaTest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
       val resultMap = runTests(
-        if (!cached) HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion, false).test.test()
-        else HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion, false).test.testCached
+        if (!cached) HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.test()
+        else HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.testCached
       )
 
       val mainSpec = resultMap("MainSpec")
