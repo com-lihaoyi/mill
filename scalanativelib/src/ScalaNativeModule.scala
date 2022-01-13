@@ -84,12 +84,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def bridgeFullClassPath = T {
-    Lib.resolveDependencies(
-      repositories = repositoriesTask(),
-      Lib.depToDependency(_, scalaVersion(), platformSuffix()),
-      toolsIvyDeps(),
-      ctx = Some(implicitly[mill.util.Ctx.Log])
-    ).map(t => (scalaNativeWorkerClasspath().toSeq ++ t.toSeq).map(_.path))
+    resolveDeps(toolsIvyDeps()).map(t =>
+      (scalaNativeWorkerClasspath().toSeq ++ t.toSeq).map(_.path)
+    )
   }
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = T {
