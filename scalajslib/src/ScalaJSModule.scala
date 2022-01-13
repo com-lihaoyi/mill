@@ -74,7 +74,18 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
+  private def checkDeprecations(): Task[Unit] = T.task {
+    pprint.pprintln("Calling checkDeprecations.")
+    useECMAScript2015()
+    if(overriddenUseECMAScript2015) {
+      Result.Failure("Overriding `useECMAScript2015` is not supported anymore. Override `esFeatures` instead")
+    } else {
+      Result.Success(())
+    }
+  }
+
   def fastOpt = T {
+    // checkDeprecations()
     link(
       worker = ScalaJSWorkerApi.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
@@ -88,6 +99,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   def fullOpt = T {
+    checkDeprecations()
     link(
       worker = ScalaJSWorkerApi.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
@@ -197,8 +209,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
 
+  private var overriddenUseECMAScript2015 = true
   @deprecated("Use esFeatures().esVersion instead", since = "mill after 0.10.0-M5")
-  def useECMAScript2015: T[Boolean] = T { esFeatures().esVersion != ESVersion.ES5_1 }
+  def useECMAScript2015: T[Boolean] = T {
+    overriddenUseECMAScript2015 = false
+    esFeatures().esVersion != ESVersion.ES5_1
+  }
 
   def esFeatures: T[ESFeatures] = T {
     if (scalaJSVersion().startsWith("0.")) ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)

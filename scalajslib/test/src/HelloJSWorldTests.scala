@@ -37,6 +37,7 @@ object HelloJSWorldTests extends TestSuite {
         extends HelloJSWorldModule {
       override def artifactName = "hello-js-world"
       def scalaJSVersion = sjsVersion0
+      override def useECMAScript2015 = false
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello js world ready for real world publishing",
@@ -63,8 +64,7 @@ object HelloJSWorldTests extends TestSuite {
     object buildScalaTest extends Cross[BuildModuleScalaTest](matrix: _*)
     class BuildModuleScalaTest(
         crossScalaVersion: String,
-        sjsVersion0: String,
-        sjsUseECMA2015: Boolean
+        sjsVersion0: String
     ) extends BuildModule(crossScalaVersion, sjsVersion0) {
       object test extends super.Tests {
         override def sources = T.sources { millSourcePath / "src" / "scalatest" }
