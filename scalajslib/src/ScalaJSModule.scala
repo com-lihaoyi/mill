@@ -83,7 +83,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       testBridgeInit = false,
       mode = FastOpt,
       moduleKind = moduleKind(),
-      useECMAScript2015 = useECMAScript2015()
+      esFeatures = esFeatures()
     )
   }
 
@@ -96,7 +96,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       testBridgeInit = false,
       mode = FullOpt,
       moduleKind = moduleKind(),
-      useECMAScript2015 = useECMAScript2015()
+      esFeatures = esFeatures()
     )
   }
 
@@ -132,7 +132,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       testBridgeInit: Boolean,
       mode: OptimizeMode,
       moduleKind: ModuleKind,
-      useECMAScript2015: Boolean
+      esFeatures: ESFeatures
   )(implicit ctx: Ctx): Result[PathRef] = {
     val outputPath = ctx.dest / "out.js"
 
@@ -154,7 +154,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       testBridgeInit,
       mode == FullOpt,
       moduleKind,
-      useECMAScript2015
+      esFeatures
     ).map(PathRef(_))
   }
 
@@ -197,8 +197,17 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
 
-  def useECMAScript2015: T[Boolean] = T { 
+  @deprecated("Use esFeatures().esVersion instead", since = "mill after 0.10.0-M5")
+  def useECMAScript2015: T[Boolean] = T {
     !scalaJSVersion().startsWith("0.")
+  }
+
+  def esFeatures: T[ESFeatures] = T {
+    if (useECMAScript2015.ctx.enclosing != s"${classOf[ScalaJSModule].getName}#useECMAScript2015") {
+      T.log.error("Overriding `useECMAScript2015` is deprecated. Override `esFeatures` instead")
+    }
+    if (useECMAScript2015()) ESFeatures.Defaults
+    else ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
   }
 
   @internal
@@ -239,7 +248,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       testBridgeInit = true,
       FastOpt,
       moduleKind(),
-      useECMAScript2015()
+      esFeatures()
     )
   }
 
