@@ -124,7 +124,7 @@ class MainRunner(
           case Res.Success(data) =>
             val (eval, evalWatches, res) = data
 
-            stateCache = Some(EvaluatorState(
+            stateCache = Some(new EvaluatorState(
               rootModule = eval.rootModule,
               classLoaderSig = eval.classLoaderSig,
               workerCache = eval.workerCache,

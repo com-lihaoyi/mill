@@ -16,6 +16,12 @@ import scala.reflect.macros.blackbox.Context
  * [[Target.apply]] & similar macros.
  */
 abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with GraphNode[Task[_]] {
+
+  /**
+   * What other Targets does this Target depend on?
+   */
+  val inputs: Seq[Task[_]]
+
   /**
    * Evaluate this target
    */

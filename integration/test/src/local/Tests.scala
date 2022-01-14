@@ -11,4 +11,5 @@ object PlayJsonTests extends mill.integration.PlayJsonTests(fork = false)
 object CaffeineTests extends mill.integration.CaffeineTests(fork = false)
 object DocAnnotationsTests extends mill.integration.DocAnnotationsTests(fork = false)
 object ScriptsInvalidationTests extends mill.integration.ScriptsInvalidationTests(fork = false)
-object ScriptsInvalidationForeignTests extends mill.integration.ScriptsInvalidationForeignTests(fork = false)
+object ScriptsInvalidationForeignTests
+    extends mill.integration.ScriptsInvalidationForeignTests(fork = false)

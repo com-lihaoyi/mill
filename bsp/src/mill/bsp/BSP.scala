@@ -122,20 +122,7 @@ object BSP extends ExternalModule {
       canReload: Boolean,
       serverHandle: Option[Promise[BspServerHandle]] = None
   ) = {
-    val evaluator = initialEvaluator.map { ev =>
-      new Evaluator(
-        ev.home,
-        ev.outPath,
-        ev.externalOutPath,
-        ev.rootModule,
-        ev.baseLogger,
-        ev.importTree,
-        ev.classLoaderSig,
-        ev.workerCache,
-        ev.env,
-        false
-      )
-    }
+    val evaluator = initialEvaluator.map(_.withFailFast(false))
 
     val millServer =
       new MillBuildServer(

@@ -205,7 +205,7 @@ trait MainModule extends mill.Module {
   def all(evaluator: Evaluator, targets: String*) = mill.T.command {
     MainModule.evaluateTasks(
       evaluator =
-        if (evaluator.effectiveThreadCount > 1) evaluator.copy(threadCount = Some(1))
+        if (evaluator.effectiveThreadCount > 1) evaluator.withThreadCount(Some(1))
         else evaluator,
       targets = targets,
       SelectMode.Multi
@@ -237,10 +237,10 @@ trait MainModule extends mill.Module {
    */
   def show(evaluator: Evaluator, targets: String*) = T.command {
     MainModule.evaluateTasks(
-      evaluator.copy(
+      evaluator.withBaseLogger(
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
-        baseLogger = evaluator.baseLogger match {
+        evaluator.baseLogger match {
           case PrintLogger(c1, d, c2, c3, _, i, e, in, de, uc) =>
             PrintLogger(c1, d, c2, c3, e, i, e, in, de, uc)
           case l => l

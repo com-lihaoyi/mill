@@ -85,7 +85,7 @@ object RunScript {
 
                   val importTree = GraphUtils.linksToScriptNodeGraph(importTreeMap)
 
-                  EvaluatorState(
+                  new EvaluatorState(
                     rootModule,
                     rootModule.getClass.getClassLoader.asInstanceOf[
                       SpecialClassLoader
@@ -108,12 +108,12 @@ object RunScript {
           wd / "out",
           s.rootModule,
           log,
-          importTree = s.importTree,
           s.classLoaderSig,
           s.workerCache,
           env,
           failFast = !keepGoing,
-          threadCount = threadCount
+          threadCount = threadCount,
+          importTree = s.importTree
         )
 
     val evaluated = for {

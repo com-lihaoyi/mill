@@ -47,20 +47,46 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
  *                 If `false`, it tries to evaluate all tasks, running longer and reporting possibly more than one failure.
  * @param threadCount If a [[Some]] the explicit number of threads to use for parallel task evaluation,
  *                    or [[None]] to use n threads where n is the number of available logical processors.
+ * @param importTree The tree of imports of the build ammonite scripts
  */
-case class Evaluator(
-    home: os.Path,
-    outPath: os.Path,
-    externalOutPath: os.Path,
-    rootModule: mill.define.BaseModule,
-    baseLogger: ColorLogger,
-    importTree: Seq[ScriptNode],
-    classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-    workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-    env: Map[String, String] = Evaluator.defaultEnv,
-    failFast: Boolean = true,
-    threadCount: Option[Int] = Some(1)
-) {
+class Evaluator(
+    val home: os.Path,
+    val outPath: os.Path,
+    val externalOutPath: os.Path,
+    val rootModule: mill.define.BaseModule,
+    val baseLogger: ColorLogger,
+    val classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
+    val workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+    val env: Map[String, String] = Evaluator.defaultEnv,
+    val failFast: Boolean = true,
+    val threadCount: Option[Int] = Some(1),
+    val importTree: Seq[ScriptNode]
+) extends Product with Serializable {
+
+  protected[this] def this(
+      home: os.Path,
+      outPath: os.Path,
+      externalOutPath: os.Path,
+      rootModule: mill.define.BaseModule,
+      baseLogger: ColorLogger,
+      classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
+      workerCache: mutable.Map[Segments, (Int, Any)],
+      env: Map[String, String],
+      failFast: Boolean,
+      threadCount: Option[Int]
+  ) = this(
+    home,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSig,
+    workerCache,
+    env,
+    failFast,
+    threadCount,
+    Seq.empty
+  )
 
   val (scriptsClassLoader, externalClassLoader) = classLoaderSig.partitionMap {
     case (Right(elem), sig) => Right((elem, sig))
@@ -69,7 +95,8 @@ case class Evaluator(
 
   // We're interested of the whole file hash.
   // So we sum the hash of all classes that normalize to the same name.
-  val scriptsSigMap = scriptsClassLoader.groupMapReduce(e => Utils.normalizeAmmoniteImportPath(e._1))(_._2)(_ + _)
+  val scriptsSigMap =
+    scriptsClassLoader.groupMapReduce(e => Utils.normalizeAmmoniteImportPath(e._1))(_._2)(_ + _)
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
@@ -77,6 +104,9 @@ case class Evaluator(
   import Evaluator.Evaluated
 
   val externalClassLoaderSigHash = externalClassLoader.hashCode()
+
+  // Binary compatibility shim
+  protected[this] def classLoaderSignHash = externalClassLoaderSigHash
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
@@ -617,6 +647,113 @@ case class Evaluator(
       msgParts.mkString
   }
 
+  protected[this] def copy(
+      home: os.Path = this.home,
+      outPath: os.Path = this.outPath,
+      externalOutPath: os.Path = this.externalOutPath,
+      rootModule: mill.define.BaseModule = this.rootModule,
+      baseLogger: ColorLogger = this.baseLogger,
+      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = this.classLoaderSig,
+      workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache,
+      env: Map[String, String] = this.env,
+      failFast: Boolean = this.failFast,
+      threadCount: Option[Int] = this.threadCount
+  ): Evaluator = new Evaluator(
+    home,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSig,
+    workerCache,
+    env,
+    failFast,
+    threadCount,
+    this.importTree
+  )
+
+  override def toString(): String = {
+    s"""Evaluator(
+     |  home = $home,
+     |  outPath = $outPath,
+     |  externalOutPath = $externalOutPath,
+     |  rootModule = $rootModule,
+     |  baseLogger = $baseLogger,
+     |  classLoaderSig = $classLoaderSig,
+     |  workerCache = $workerCache,
+     |  env = $env,
+     |  failFast = $failFast,
+     |  threadCount = $threadCount,
+     |  importTree = $importTree,
+    |)""".stripMargin
+  }
+
+  // Rename to copy once the other copy is gone
+  private def myCopy(
+      home: os.Path = this.home,
+      outPath: os.Path = this.outPath,
+      externalOutPath: os.Path = this.externalOutPath,
+      rootModule: mill.define.BaseModule = this.rootModule,
+      baseLogger: ColorLogger = this.baseLogger,
+      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = this.classLoaderSig,
+      workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache,
+      env: Map[String, String] = this.env,
+      failFast: Boolean = this.failFast,
+      threadCount: Option[Int] = this.threadCount,
+      importTree: Seq[ScriptNode] = this.importTree
+  ): Evaluator = new Evaluator(
+    home,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSig,
+    workerCache,
+    env,
+    failFast,
+    threadCount,
+    importTree
+  )
+
+  def withHome(home: os.Path = this.home): Evaluator = myCopy(home = home)
+  def withOutPath(outPath: os.Path = this.outPath): Evaluator = myCopy(outPath = outPath)
+  def withExternalOutPath(externalOutPath: os.Path = this.externalOutPath): Evaluator =
+    myCopy(externalOutPath = externalOutPath)
+  def withRootModule(rootModule: mill.define.BaseModule = this.rootModule): Evaluator =
+    myCopy(rootModule = rootModule)
+  def withBaseLogger(baseLogger: ColorLogger = this.baseLogger): Evaluator =
+    myCopy(baseLogger = baseLogger)
+  def withClassLoaderSig(classLoaderSig: Seq[(Either[String, java.net.URL], Long)] =
+    this.classLoaderSig): Evaluator = myCopy(classLoaderSig = classLoaderSig)
+  def withWorkerCache(workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache)
+      : Evaluator = myCopy(workerCache = workerCache)
+  def withEnv(env: Map[String, String] = this.env): Evaluator = myCopy(env = env)
+  def withFailFast(failFast: Boolean = this.failFast): Evaluator = myCopy(failFast = failFast)
+  def withThreadCount(threadCount: Option[Int] = this.threadCount): Evaluator =
+    myCopy(threadCount = threadCount)
+  def withImportTree(importTree: Seq[ScriptNode] = this.importTree): Evaluator =
+    myCopy(importTree = importTree)
+
+  @deprecated(since = "0.10.0")
+  def canEqual(that: Any): Boolean = ???
+  @deprecated(since = "0.10.0")
+  def productArity: Int = 10
+  @deprecated(since = "0.10.0")
+  def productElement(n: Int): Any = n match {
+    case 0 => home
+    case 1 => outPath
+    case 2 => externalOutPath
+    case 3 => rootModule
+    case 4 => baseLogger
+    case 5 => classLoaderSig
+    case 6 => workerCache
+    case 7 => env
+    case 8 => failFast
+    case 9 => threadCount
+    case 10 => importTree
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+
 }
 
 object Evaluator {
@@ -819,4 +956,56 @@ object Evaluator {
   }
 
   private val dynamicTickerPrefix = new DynamicVariable("")
+
+  def apply(
+      home: os.Path,
+      outPath: os.Path,
+      externalOutPath: os.Path,
+      rootModule: mill.define.BaseModule,
+      baseLogger: ColorLogger,
+      classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
+      workerCache: mutable.Map[Segments, (Int, Any)],
+      env: Map[String, String],
+      failFast: Boolean,
+      threadCount: Option[Int],
+      importTree: Seq[ScriptNode]
+  ): Evaluator = new Evaluator(
+    home,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSig,
+    workerCache,
+    env,
+    failFast,
+    threadCount,
+    importTree
+  )
+
+  def apply(
+      home: os.Path,
+      outPath: os.Path,
+      externalOutPath: os.Path,
+      rootModule: mill.define.BaseModule,
+      baseLogger: ColorLogger,
+      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
+      workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+      env: Map[String, String] = Evaluator.defaultEnv,
+      failFast: Boolean = true,
+      threadCount: Option[Int] = Some(1)
+  ): Evaluator = ???
+
+  def unapply(evaluator: Evaluator): Option[(
+      os.Path,
+      os.Path,
+      os.Path,
+      mill.define.BaseModule,
+      ColorLogger,
+      Seq[(Either[String, java.net.URL], Long)],
+      mutable.Map[Segments, (Int, Any)],
+      Map[String, String],
+      Boolean,
+      Option[Int]
+  )] = ???
 }

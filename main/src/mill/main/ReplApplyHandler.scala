@@ -140,6 +140,29 @@ object ReplApplyHandler {
     )
   }
 
+  def apply[T](
+    home: os.Path,
+    disableTicker: Boolean,
+    colors: ammonite.util.Colors,
+    pprinter0: pprint.PPrinter,
+    rootModule: mill.define.BaseModule,
+    discover: Discover[_],
+    debugLog: Boolean,
+    keepGoing: Boolean,
+    systemProperties: Map[String, String],
+    threadCount: Option[Int]): ReplApplyHandler = apply(
+      home,
+      disableTicker,
+      colors,
+      pprinter0,
+      rootModule,
+      Seq.empty,
+      discover,
+      debugLog,
+      keepGoing,
+      systemProperties,
+      threadCount,
+    )
 }
 
 class ReplApplyHandler(
