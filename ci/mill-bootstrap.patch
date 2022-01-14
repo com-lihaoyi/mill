@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 28358c42..07cd107f 100755
+index 91789b8f..e480f97d 100755
 --- a/build.sc
 +++ b/build.sc
 @@ -1,16 +1,16 @@
@@ -25,7 +25,7 @@ index 28358c42..07cd107f 100755
  import mill._
  import mill.define.{Command, Source, Sources, Target, Task}
  import mill.eval.Evaluator
-@@ -130,12 +130,8 @@ object Deps {
+@@ -132,12 +132,8 @@ object Deps {
    val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.0"
  }
  
@@ -40,7 +40,7 @@ index 28358c42..07cd107f 100755
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
-@@ -173,20 +169,20 @@ trait MillCoursierModule extends CoursierModule {
+@@ -175,20 +171,20 @@ trait MillCoursierModule extends CoursierModule {
    }
  }
  
@@ -75,7 +75,7 @@ index 28358c42..07cd107f 100755
  }
  
  trait MillApiModule
-@@ -1226,12 +1222,11 @@ def launcher = T {
+@@ -1230,12 +1226,11 @@ def launcher = T {
  }
  
  def uploadToGithub(authKey: String) = T.command {
