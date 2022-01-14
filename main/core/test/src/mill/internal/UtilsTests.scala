@@ -44,6 +44,20 @@ object UtilsTests extends TestSuite {
 
         assert(result == expected)
       }
+      test("should remove companion objects") {
+        val input = "ammonite.$file.a.inputA$"
+        val result = normalize(input)
+        val expected = "ammonite.$file.a.inputA"
+
+        assert(result == expected)
+      }
+      test("should remove internal classes") {
+        val input = "ammonite.$file.build$module$"
+        val result = normalize(input)
+        val expected = "ammonite.$file.build"
+
+        assert(result == expected)
+      }
     }
   }
 }

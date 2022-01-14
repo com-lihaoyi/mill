@@ -66,8 +66,9 @@ object RunScript {
             val eval =
               for (rootModule <- evaluateRootModule(wd, path, interp, log))
                 yield {
-                  val importTreeMap = interp.alreadyLoadedFiles.map { case (a, b) =>
-                    val filePath = a.filePathPrefix
+                  val importTreeMap = mutable.Map.empty[String, Seq[String]]
+                  interp.alreadyLoadedFiles.foreach { case (a, b) =>
+                    val filePath = Utils.normalizeAmmoniteImportPath(a.filePathPrefix)
                     val importPaths = b.blockInfo.flatMap { b =>
                       val relativePath = b.hookInfo.trees.map(_.prefix)
                       relativePath.collect {
@@ -77,8 +78,10 @@ object RunScript {
                       }
                     }
                     def toCls(segments: Seq[String]): String = segments.mkString(".")
-                    toCls(filePath) -> importPaths.map(toCls)
-                  }.toMap
+                    val key = toCls(filePath)
+                    val toAppend = importPaths.map(toCls)
+                    importTreeMap(key) = importTreeMap.getOrElse(key, Seq.empty) ++ toAppend
+                  }
 
                   val importTree = GraphUtils.linksToScriptNodeGraph(importTreeMap)
 

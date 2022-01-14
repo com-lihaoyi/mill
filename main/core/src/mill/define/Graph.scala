@@ -35,6 +35,7 @@ object Graph {
     }
     output
   }
+
   /**
    * Collects all transitive dependencies (targets) of the given targets,
    * including the given targets.

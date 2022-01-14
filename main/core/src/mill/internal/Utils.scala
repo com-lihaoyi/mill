@@ -9,7 +9,13 @@ private [mill] object Utils {
       case head :: tail => head :: loop(tail, up)
       case Nil => Nil
     }
-    loop(segments.reverse.toList, 0).reverse
+    val reversed = segments.reverse.toList
+    val withoutCompanions = reversed match {
+      case head :: tail =>
+        head.takeWhile(_ != '$') :: tail
+      case Nil => Nil
+    }
+    loop(withoutCompanions, 0).reverse
   }
   def normalizeAmmoniteImportPath(cls: String): String = {
     normalizeAmmoniteImportPath(cls.split('.')).mkString(".")
