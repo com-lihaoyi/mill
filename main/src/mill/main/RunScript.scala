@@ -70,7 +70,11 @@ object RunScript {
                   interp.alreadyLoadedFiles.foreach { case (a, b) =>
                     val filePath = Utils.normalizeAmmoniteImportPath(a.filePathPrefix)
                     val importPaths = b.blockInfo.flatMap { b =>
-                      val relativePath = b.hookInfo.trees.map(_.prefix)
+                      val relativePath = b.hookInfo.trees.map { t =>
+                        val prefix = t.prefix
+                        val mappings = t.mappings.toSeq.flatMap(_.map(_._1))
+                        prefix ++ mappings
+                      }
                       relativePath.collect {
                         case "$file" :: tail =>
                           val concatenated = filePath.init ++ tail
