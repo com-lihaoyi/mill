@@ -199,20 +199,15 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   @deprecated("Use esFeatures().esVersion instead", since = "mill after 0.10.0-M5")
   def useECMAScript2015: T[Boolean] = T {
-    esFeatures().esVersion != ESVersion.ES5_1
+    !scalaJSVersion().startsWith("0.")
   }
 
   def esFeatures: T[ESFeatures] = T {
     if (useECMAScript2015.ctx.enclosing != s"${classOf[ScalaJSModule].getName}#useECMAScript2015") {
-      Result.Failure(
-        "Overriding `useECMAScript2015` is not supported anymore. Override `esFeatures` instead"
-      )
-    } else {
-      Result.Success {
-        if (scalaJSVersion().startsWith("0.")) ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
-        else ESFeatures.Defaults
-      }
+      T.log.error("Overriding `useECMAScript2015` is deprecated. Override `esFeatures` instead")
     }
+    if (useECMAScript2015()) ESFeatures.Defaults
+    else ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
   }
 
   @internal
