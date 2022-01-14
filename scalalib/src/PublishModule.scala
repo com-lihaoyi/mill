@@ -155,7 +155,7 @@ trait PublishModule extends JavaModule { outer =>
   def publish(
       sonatypeCreds: String,
       signed: Boolean = true,
-      gpgArgs: Seq[String] = PublishModule.defaultGpgArgs,
+      gpgArgs: Seq[String] = Seq.empty,
       release: Boolean = false,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000,
@@ -168,7 +168,7 @@ trait PublishModule extends JavaModule { outer =>
       sonatypeSnapshotUri,
       sonatypeCreds,
       signed,
-      gpgArgs.flatMap(_.split("[,]")),
+      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgs else gpgArgs,
       readTimeout,
       connectTimeout,
       T.log,
