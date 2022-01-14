@@ -76,13 +76,11 @@ object RunScript {
                           Utils.normalizeAmmoniteImportPath(concatenated)
                       }
                     }
-                    val k = filePath.mkString(".")
-                    k -> ScriptNode(k, importPaths.map(s => ScriptNode(s.mkString("."), Seq.empty)))
+                    def toCls(segments: Seq[String]): String = segments.mkString(".")
+                    toCls(filePath) -> importPaths.map(toCls)
                   }.toMap
 
-                  val importTree = importTreeMap.map {
-                    case (k, v) => ScriptNode(k, v.inputs.flatMap(i => importTreeMap.get(i.cls)))
-                  }.toSeq
+                  val importTree = GraphUtils.linksToScriptNodeGraph(importTreeMap)
 
                   EvaluatorState(
                     rootModule,
