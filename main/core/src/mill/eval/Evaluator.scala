@@ -88,14 +88,14 @@ class Evaluator(
     Seq.empty
   )
 
-  val (scriptsClassLoader, externalClassLoader) = classLoaderSig.partitionMap {
+  private val (scriptsClassLoader, externalClassLoader) = classLoaderSig.partitionMap {
     case (Right(elem), sig) => Right((elem, sig))
     case (Left(elem), sig) => Left((elem, sig))
   }
 
   // We're interested of the whole file hash.
   // So we sum the hash of all classes that normalize to the same name.
-  val scriptsSigMap =
+  private val scriptsSigMap =
     scriptsClassLoader.groupMapReduce(e => Utils.normalizeAmmoniteImportPath(e._1))(_._2)(_ + _)
 
   val effectiveThreadCount: Int =
@@ -103,7 +103,7 @@ class Evaluator(
 
   import Evaluator.Evaluated
 
-  val externalClassLoaderSigHash = externalClassLoader.hashCode()
+  private val externalClassLoaderSigHash = externalClassLoader.hashCode()
 
   // Binary compatibility shim
   @deprecated(since = "0.10.0")
@@ -349,12 +349,13 @@ class Evaluator(
       dependendentScriptsSig.hashCode()
     }
 
-    val classLoaderSigHash = if(importTree.nonEmpty) {
-      externalClassLoaderSigHash + scriptsHash
-    } else {
-      // We fallback to the old mechanism when the importTree was not populated
-      classLoaderSignHash
-    }
+    val classLoaderSigHash =
+      if (importTree.nonEmpty) {
+        externalClassLoaderSigHash + scriptsHash
+      } else {
+        // We fallback to the old mechanism when the importTree was not populated
+        classLoaderSignHash
+      }
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash
 
@@ -683,18 +684,18 @@ class Evaluator(
 
   override def toString(): String = {
     s"""Evaluator(
-     |  home = $home,
-     |  outPath = $outPath,
-     |  externalOutPath = $externalOutPath,
-     |  rootModule = $rootModule,
-     |  baseLogger = $baseLogger,
-     |  classLoaderSig = $classLoaderSig,
-     |  workerCache = $workerCache,
-     |  env = $env,
-     |  failFast = $failFast,
-     |  threadCount = $threadCount,
-     |  importTree = $importTree,
-    |)""".stripMargin
+       |  home = $home,
+       |  outPath = $outPath,
+       |  externalOutPath = $externalOutPath,
+       |  rootModule = $rootModule,
+       |  baseLogger = $baseLogger,
+       |  classLoaderSig = $classLoaderSig,
+       |  workerCache = $workerCache,
+       |  env = $env,
+       |  failFast = $failFast,
+       |  threadCount = $threadCount,
+       |  importTree = $importTree,
+       |)""".stripMargin
   }
 
   // Rename to copy once the other copy is gone (before 0.11.0)
@@ -724,24 +725,21 @@ class Evaluator(
     importTree
   )
 
-  def withHome(home: os.Path = this.home): Evaluator = myCopy(home = home)
-  def withOutPath(outPath: os.Path = this.outPath): Evaluator = myCopy(outPath = outPath)
-  def withExternalOutPath(externalOutPath: os.Path = this.externalOutPath): Evaluator =
+  def withHome(home: os.Path): Evaluator = myCopy(home = home)
+  def withOutPath(outPath: os.Path): Evaluator = myCopy(outPath = outPath)
+  def withExternalOutPath(externalOutPath: os.Path): Evaluator =
     myCopy(externalOutPath = externalOutPath)
-  def withRootModule(rootModule: mill.define.BaseModule = this.rootModule): Evaluator =
+  def withRootModule(rootModule: mill.define.BaseModule): Evaluator =
     myCopy(rootModule = rootModule)
-  def withBaseLogger(baseLogger: ColorLogger = this.baseLogger): Evaluator =
-    myCopy(baseLogger = baseLogger)
-  def withClassLoaderSig(classLoaderSig: Seq[(Either[String, java.net.URL], Long)] =
-    this.classLoaderSig): Evaluator = myCopy(classLoaderSig = classLoaderSig)
-  def withWorkerCache(workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache)
-      : Evaluator = myCopy(workerCache = workerCache)
-  def withEnv(env: Map[String, String] = this.env): Evaluator = myCopy(env = env)
-  def withFailFast(failFast: Boolean = this.failFast): Evaluator = myCopy(failFast = failFast)
-  def withThreadCount(threadCount: Option[Int] = this.threadCount): Evaluator =
-    myCopy(threadCount = threadCount)
-  def withImportTree(importTree: Seq[ScriptNode] = this.importTree): Evaluator =
-    myCopy(importTree = importTree)
+  def withBaseLogger(baseLogger: ColorLogger): Evaluator = myCopy(baseLogger = baseLogger)
+  def withClassLoaderSig(classLoaderSig: Seq[(Either[String, java.net.URL], Long)]): Evaluator =
+    myCopy(classLoaderSig = classLoaderSig)
+  def withWorkerCache(workerCache: mutable.Map[Segments, (Int, Any)]): Evaluator =
+    myCopy(workerCache = workerCache)
+  def withEnv(env: Map[String, String]): Evaluator = myCopy(env = env)
+  def withFailFast(failFast: Boolean): Evaluator = myCopy(failFast = failFast)
+  def withThreadCount(threadCount: Option[Int]): Evaluator = myCopy(threadCount = threadCount)
+  def withImportTree(importTree: Seq[ScriptNode]): Evaluator = myCopy(importTree = importTree)
 
   @deprecated(since = "0.10.0")
   def canEqual(that: Any): Boolean = that.isInstanceOf[Evaluator]
@@ -989,7 +987,7 @@ object Evaluator {
     env,
     failFast,
     threadCount,
-    Seq.empty,
+    Seq.empty
   )
 
   @deprecated(since = "0.10.0")
@@ -1014,6 +1012,6 @@ object Evaluator {
     evaluator.workerCache,
     evaluator.env,
     evaluator.failFast,
-    evaluator.threadCount,
+    evaluator.threadCount
   ))
 }
