@@ -655,6 +655,7 @@ class Evaluator(
       msgParts.mkString
   }
 
+  @deprecated(since = "0.10.0")
   protected[this] def copy(
       home: os.Path = this.home,
       outPath: os.Path = this.outPath,
