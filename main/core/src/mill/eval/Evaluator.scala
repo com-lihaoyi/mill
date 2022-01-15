@@ -63,7 +63,7 @@ class Evaluator(
     val importTree: Seq[ScriptNode]
 ) extends Product with Serializable { // TODO: Remove extends Product with Serializable before 0.11.0
   @deprecated(since = "0.10.0")
-  protected[this] def this(
+  def this(
       home: os.Path,
       outPath: os.Path,
       externalOutPath: os.Path,
@@ -107,7 +107,7 @@ class Evaluator(
 
   // Binary compatibility shim
   @deprecated(since = "0.10.0")
-  protected[this] def classLoaderSignHash = classLoaderSig.hashCode()
+  def classLoaderSignHash = classLoaderSig.hashCode()
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
@@ -656,7 +656,7 @@ class Evaluator(
   }
 
   @deprecated(since = "0.10.0")
-  protected[this] def copy(
+  def copy(
       home: os.Path = this.home,
       outPath: os.Path = this.outPath,
       externalOutPath: os.Path = this.externalOutPath,

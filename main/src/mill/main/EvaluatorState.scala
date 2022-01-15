@@ -25,7 +25,7 @@ class EvaluatorState private[main] (
        |)""".stripMargin
   }
   @deprecated(since = "0.10.0")
-  protected[this] def this(
+  def this(
       rootModule: mill.define.BaseModule,
       classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
       workerCache: mutable.Map[Segments, (Int, Any)],
