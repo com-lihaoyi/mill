@@ -1,13 +1,6 @@
 package mill.modules
 
-import java.io.{
-  ByteArrayInputStream,
-  File,
-  FileOutputStream,
-  InputStream,
-  PipedInputStream,
-  SequenceInputStream
-}
+import java.io.{ByteArrayInputStream, File, FileOutputStream, InputStream, PipedInputStream, SequenceInputStream}
 import java.lang.reflect.Modifier
 import java.net.URI
 import java.nio.file.{FileSystems, Files, StandardOpenOption}
@@ -210,7 +203,7 @@ object Jvm {
 
       val sources = Seq(
         (process.stdout, System.out, "spawnSubprocess.stdout", false, () => true),
-        (process.stderr, System.err, "spawnSubprocess.stderr", false, () => true),
+        (process.stderr,  System.err, "spawnSubprocess.stderr", false, () => true),
         (System.in, process.stdin, "spawnSubprocess.stdin", true, () => process.isAlive())
       )
 

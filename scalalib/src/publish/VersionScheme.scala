@@ -5,7 +5,6 @@ sealed abstract class VersionScheme(val value: String) {
 }
 
 object VersionScheme {
-
   /**
    * Early Semantic Versioning that would keep binary compatibility
    *  across patch updates within 0.Y.z (for instance 0.13.0 and 0.13.2).
