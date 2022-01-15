@@ -106,7 +106,7 @@ class Evaluator(
   val externalClassLoaderSigHash = externalClassLoader.hashCode()
 
   // Binary compatibility shim
-  protected[this] def classLoaderSignHash = externalClassLoaderSigHash
+  protected[this] def classLoaderSignHash = classLoaderSig.hashCode()
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
@@ -348,7 +348,14 @@ class Evaluator(
       dependendentScriptsSig.hashCode()
     }
 
-    val inputsHash = externalInputsHash + sideHashes + externalClassLoaderSigHash + scriptsHash
+    val classLoaderSigHash = if(importTree.nonEmpty) {
+      externalClassLoaderSigHash + scriptsHash
+    } else {
+      // We fallback to the old mechanism when the importTree was not populated
+      classLoaderSignHash
+    }
+
+    val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash
 
     terminal match {
       case Left(task) =>
@@ -688,7 +695,7 @@ class Evaluator(
     |)""".stripMargin
   }
 
-  // Rename to copy once the other copy is gone
+  // Rename to copy once the other copy is gone (before 0.11.0)
   private def myCopy(
       home: os.Path = this.home,
       outPath: os.Path = this.outPath,
@@ -735,7 +742,7 @@ class Evaluator(
     myCopy(importTree = importTree)
 
   @deprecated(since = "0.10.0")
-  def canEqual(that: Any): Boolean = ???
+  def canEqual(that: Any): Boolean = that.isInstanceOf[Evaluator]
   @deprecated(since = "0.10.0")
   def productArity: Int = 10
   @deprecated(since = "0.10.0")
@@ -957,32 +964,7 @@ object Evaluator {
 
   private val dynamicTickerPrefix = new DynamicVariable("")
 
-  def apply(
-      home: os.Path,
-      outPath: os.Path,
-      externalOutPath: os.Path,
-      rootModule: mill.define.BaseModule,
-      baseLogger: ColorLogger,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
-      workerCache: mutable.Map[Segments, (Int, Any)],
-      env: Map[String, String],
-      failFast: Boolean,
-      threadCount: Option[Int],
-      importTree: Seq[ScriptNode]
-  ): Evaluator = new Evaluator(
-    home,
-    outPath,
-    externalOutPath,
-    rootModule,
-    baseLogger,
-    classLoaderSig,
-    workerCache,
-    env,
-    failFast,
-    threadCount,
-    importTree
-  )
-
+  @deprecated(since = "0.10.0")
   def apply(
       home: os.Path,
       outPath: os.Path,
@@ -994,8 +976,21 @@ object Evaluator {
       env: Map[String, String] = Evaluator.defaultEnv,
       failFast: Boolean = true,
       threadCount: Option[Int] = Some(1)
-  ): Evaluator = ???
+  ): Evaluator = new Evaluator(
+    home,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSig,
+    workerCache,
+    env,
+    failFast,
+    threadCount,
+    Seq.empty,
+  )
 
+  @deprecated(since = "0.10.0")
   def unapply(evaluator: Evaluator): Option[(
       os.Path,
       os.Path,
@@ -1007,5 +1002,16 @@ object Evaluator {
       Map[String, String],
       Boolean,
       Option[Int]
-  )] = ???
+  )] = Some((
+    evaluator.home,
+    evaluator.outPath,
+    evaluator.externalOutPath,
+    evaluator.rootModule,
+    evaluator.baseLogger,
+    evaluator.classLoaderSig,
+    evaluator.workerCache,
+    evaluator.env,
+    evaluator.failFast,
+    evaluator.threadCount,
+  ))
 }

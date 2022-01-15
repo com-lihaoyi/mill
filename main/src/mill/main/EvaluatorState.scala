@@ -4,6 +4,7 @@ import scala.collection.mutable
 
 import mill.define.{ScriptNode, Segments}
 
+// TODO: Remove extends Product with Serializable before 0.11.0
 class EvaluatorState private[main] (
     val rootModule: mill.define.BaseModule,
     val classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
@@ -12,6 +13,7 @@ class EvaluatorState private[main] (
     val setSystemProperties: Set[String],
     val importTree: Seq[ScriptNode]
 ) extends Product with Serializable {
+
   override def toString(): String = {
     s"""EvaluatorState(
        |  rootModule = $rootModule,
@@ -22,6 +24,7 @@ class EvaluatorState private[main] (
        |  importTree = $importTree
        |)""".stripMargin
   }
+  @deprecated(since = "0.10.0")
   protected[this] def this(
       rootModule: mill.define.BaseModule,
       classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
@@ -37,7 +40,7 @@ class EvaluatorState private[main] (
     Seq.empty
   )
   @deprecated(since = "0.10.0")
-  def canEqual(that: Any): Boolean = ???
+  def canEqual(that: Any): Boolean = that.isInstanceOf[EvaluatorState]
   @deprecated(since = "0.10.0")
   def productArity: Int = 6
   @deprecated(since = "0.10.0")
@@ -66,6 +69,7 @@ class EvaluatorState private[main] (
     this.importTree
   )
 }
+// TODO: Remove the extends runtime.AbstractFunction5[...] before 0.11.0 
 object EvaluatorState extends runtime.AbstractFunction5[mill.define.BaseModule, Seq[(
         Either[String, java.net.URL],
         Long
@@ -97,7 +101,7 @@ object EvaluatorState extends runtime.AbstractFunction5[mill.define.BaseModule, 
         ammonite.interp.Watchable,
         Long
     )], Set[String])] =
-    Option((
+    Some((
       evaluatorState.rootModule,
       evaluatorState.classLoaderSig,
       evaluatorState.workerCache,
