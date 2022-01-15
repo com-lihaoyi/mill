@@ -4,6 +4,7 @@ import mill.define.ScriptNode
 
 import scala.collection.mutable
 
+@mill.api.internal
 private object GraphUtils {
   def linksToScriptNodeGraph(links: collection.Map[String, Seq[String]]): Seq[ScriptNode] = {
     val cache = mutable.Map.empty[String, ScriptNode]
