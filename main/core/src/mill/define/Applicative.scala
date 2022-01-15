@@ -75,7 +75,7 @@ object Applicative {
         c.internal.setFlag(tempSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
         val itemsIdent = Ident(itemsSym)
         exprs.append(q"$fun")
-        c.typecheck(q"$itemsIdent(${exprs.size - 1}).asInstanceOf[${t.tpe}]")
+        c.typecheck(q"$itemsIdent(${exprs.size-1}).asInstanceOf[${t.tpe}]")
       case (t, api)
           if t.symbol != null
             && t.symbol.annotations.exists(_.tree.tpe =:= typeOf[mill.api.Ctx.ImplicitStub]) =>
@@ -92,8 +92,7 @@ object Applicative {
     val itemsBinding = c.internal.valDef(itemsSym)
     val callback = c.typecheck(q"{(${itemsBinding}, ${ctxBinding}) => $transformed}")
 
-    val res =
-      q"${c.prefix}.traverseCtx[_root_.scala.Any, ${weakTypeOf[T]}](${exprs.toList}){ $callback }"
+    val res = q"${c.prefix}.traverseCtx[_root_.scala.Any, ${weakTypeOf[T]}](${exprs.toList}){ $callback }"
 
     c.internal.changeOwner(transformed, c.internal.enclosingOwner, callback.symbol)
 
