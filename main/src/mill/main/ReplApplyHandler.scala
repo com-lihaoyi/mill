@@ -16,7 +16,6 @@ object ReplApplyHandler {
       colors: ammonite.util.Colors,
       pprinter0: pprint.PPrinter,
       rootModule: mill.define.BaseModule,
-      importTree: Seq[ScriptNode],
       discover: Discover[_],
       debugLog: Boolean,
       keepGoing: Boolean,
@@ -46,9 +45,9 @@ object ReplApplyHandler {
         os.pwd / "out",
         rootModule,
         logger,
-        importTree = importTree,
         failFast = !keepGoing,
-        threadCount = threadCount
+        threadCount = threadCount,
+        importTree = Seq.empty
       ),
       systemProperties = systemProperties
     )
@@ -139,30 +138,6 @@ object ReplApplyHandler {
       ) ++ t.inputs.distinct.iterator.flatMap(rec).map("\n    " + _.render)
     )
   }
-
-  def apply[T](
-    home: os.Path,
-    disableTicker: Boolean,
-    colors: ammonite.util.Colors,
-    pprinter0: pprint.PPrinter,
-    rootModule: mill.define.BaseModule,
-    discover: Discover[_],
-    debugLog: Boolean,
-    keepGoing: Boolean,
-    systemProperties: Map[String, String],
-    threadCount: Option[Int]): ReplApplyHandler = apply(
-      home,
-      disableTicker,
-      colors,
-      pprinter0,
-      rootModule,
-      Seq.empty,
-      discover,
-      debugLog,
-      keepGoing,
-      systemProperties,
-      threadCount,
-    )
 }
 
 class ReplApplyHandler(

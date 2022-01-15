@@ -57,7 +57,7 @@ class TestEvaluator(
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
-  val evaluator = new Evaluator(
+  val evaluator = Evaluator(
     mill.api.Ctx.defaultHome,
     outPath,
     TestEvaluator.externalOutPath,
