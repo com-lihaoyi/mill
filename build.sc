@@ -40,9 +40,10 @@ object Settings {
     "0.10.0-M2",
     "0.10.0-M3",
     "0.10.0-M4",
-    "0.10.0-M5"
+    "0.10.0-M5",
+    "0.10.0"
   )
-  val mimaBaseVersions = Seq("0.10.0-M5-26-9c818a")
+  val mimaBaseVersions = Seq("0.10.0")
 }
 
 object Deps {
