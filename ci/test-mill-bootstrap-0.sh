@@ -8,7 +8,7 @@ git stash -a
 
 # First build
 ./mill -i "{__.publishLocal,assembly}"
-cp out/assembly/dest/mill ~/mill-1
+cp out/assembly.dest/mill ~/mill-1
 
 # Clean up
 git stash -u

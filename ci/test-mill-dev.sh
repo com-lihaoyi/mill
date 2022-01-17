@@ -15,6 +15,6 @@ rm -rf ~/.mill/ammonite
 ci/patch-mill-bootstrap.sh
 
 # Second build & run tests
-out/dev/assembly/dest/mill -i main.test.compile
+out/dev/assembly.dest/mill -i main.test.compile
 
-out/dev/assembly/dest/mill -i "{main,scalalib,scalajslib,scalanativelib,contrib.twirllib,contrib.scalapblib}.test"
+out/dev/assembly.dest/mill -i "{main,scalalib,scalajslib,scalanativelib,contrib.twirllib,contrib.scalapblib}.test"
