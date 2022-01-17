@@ -54,7 +54,7 @@ jobs:
       - name: Run '${{ matrix.buildcmd }}'
         run: ${{ matrix.buildcmd }}
 
-  test-optional:
+  test-binary-issues:
     strategy:
       fail-fast: false
       matrix:
@@ -63,7 +63,8 @@ jobs:
           - ./mill -i -k __.mimaReportBinaryIssues
 
     runs-on: ubuntu-latest
-    continue-on-error: true
+    # when doing milestone builds, this may be true
+    continue-on-error: false
 
     steps:
       - uses: actions/checkout@v2
