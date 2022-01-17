@@ -18,7 +18,7 @@ import mill.main.MainModule
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
-import os.RelPath
+import mill.define.SelectMode
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -1283,21 +1283,17 @@ def uploadToGithub(authKey: String) = T.command {
 def validate(ev: Evaluator): Command[Unit] = T.command {
   T.task(MainModule.evaluateTasks(
     ev.copy(failFast = false),
-    Seq("__.compile", "__.mimaReportBinaryIssues"),
-    multiSelect = true
+    Seq(
+      "__.compile",
+      "+",
+      "__.mimaReportBinaryIssues",
+      "+",
+      "mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll",
+      "__.sources",
+      "+",
+      "docs.antora.localPages"
+    ),
+    selectMode = SelectMode.Separated
   )(identity))()
-
-  T.task(MainModule.evaluateTasks(
-    ev.copy(failFast = false),
-    Seq("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll", "__.sources"),
-    multiSelect = false
-  )(identity))()
-
-  T.task(MainModule.evaluateTasks(
-    ev.copy(failFast = false),
-    Seq("docs.antora.localPages"),
-    multiSelect = false
-  )(identity))()
-
   ()
 }
