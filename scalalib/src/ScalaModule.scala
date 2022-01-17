@@ -184,16 +184,16 @@ trait ScalaModule extends JavaModule { outer =>
     zincWorker
       .worker()
       .compileMixed(
-        upstreamCompileOutput(),
-        allSourceFiles().map(_.path),
-        compileClasspath().map(_.path),
-        javacOptions(),
-        sv,
-        scalaOrganization(),
-        allScalacOptions(),
-        scalaCompilerClasspath().map(_.path),
-        scalacPluginClasspath().map(_.path),
-        T.reporter.apply(hashCode)
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = javacOptions(),
+        scalaVersion = sv,
+        scalaOrganization = scalaOrganization(),
+        scalacOptions = allScalacOptions(),
+        compilerClasspath = scalaCompilerClasspath().map(_.path),
+        scalacPluginClasspath = scalacPluginClasspath().map(_.path),
+        reporter = T.reporter.apply(hashCode)
       )
   }
 
