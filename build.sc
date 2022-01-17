@@ -603,7 +603,7 @@ object contrib extends MillModule {
         "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path,
         "MILL_SCALA_2_13_VERSION" -> Deps.scalaVersion,
         "MILL_SCALA_2_12_VERSION" -> Deps.workerScalaVersion212,
-        "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version,
+        "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -1239,6 +1239,7 @@ def uploadToGithub(authKey: String) = T.command {
   ))
 
   if (releaseTag == label) {
+    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
     scalaj.http.Http(
       s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
     )
@@ -1254,29 +1255,29 @@ def uploadToGithub(authKey: String) = T.command {
       .asString
   }
 
-  for (example <- Seq("example-1", "example-2", "example-3")) {
-    os.copy(os.pwd / "example" / example, T.dest / example)
-    os.copy(launcher().path, T.dest / example / "mill")
-    os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
+  val exampleZips = Seq("example-1", "example-2", "example-3")
+    .map { example =>
+      os.copy(os.pwd / "example" / example, T.dest / example)
+      os.copy(launcher().path, T.dest / example / "mill")
+      os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
+      (T.dest / s"$example.zip", label + "-" + example + ".zip")
+    }
+
+  val zips = exampleZips ++ Seq(
+    (assembly().path, label + "-assembly"),
+    (launcher().path, label)
+  )
+
+  for ((zip, name) <- zips) {
     upload.apply(
-      T.dest / s"$example.zip",
+      zip,
       releaseTag,
-      label + "-" + example + ".zip",
+      name,
       authKey,
       Settings.githubOrg,
       Settings.githubRepo
     )
   }
-  upload.apply(
-    assembly().path,
-    releaseTag,
-    label + "-assembly",
-    authKey,
-    Settings.githubOrg,
-    Settings.githubRepo
-  )
-
-  upload.apply(launcher().path, releaseTag, label, authKey, Settings.githubOrg, Settings.githubRepo)
 }
 
 def validate(ev: Evaluator): Command[Unit] = T.command {

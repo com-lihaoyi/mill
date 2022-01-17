@@ -1,4 +1,7 @@
 #!/usr/bin/env amm
+import scala.util.Try
+import scala.util.control.NonFatal
+
 import scalaj.http._
 
 @main
@@ -24,7 +27,8 @@ def apply(
 ): String = {
 
   val response = Http(
-    s"https://api.github.com/repos/${githubOrg}/${githubRepo}/releases/tags/${tagName}")
+    s"https://api.github.com/repos/${githubOrg}/${githubRepo}/releases/tags/${tagName}"
+  )
     .header("Authorization", "token " + authKey)
     .header("Accept", "application/vnd.github.v3+json")
     .asString
@@ -53,8 +57,12 @@ def apply(
 
   println("Long Url " + longUrl)
 
-  val shortUrl = shorten(longUrl)
-
-  println("Short Url " + shortUrl)
-  shortUrl
+  Try {
+    val shortUrl = shorten(longUrl)
+    println("Short Url " + shortUrl)
+    shortUrl
+  }.toOption.getOrElse {
+    // could not shorten the url
+    longUrl
+  }
 }
