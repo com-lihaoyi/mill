@@ -1,20 +1,6 @@
 #!/usr/bin/env amm
-import scala.util.Try
-import scala.util.control.NonFatal
 
 import scalaj.http._
-
-@main
-def shorten(longUrl: String) = {
-  println("shorten longUrl " + longUrl)
-  val shortUrl = Http("https://git.io")
-    .postForm(Seq("url" -> longUrl))
-    .asString
-    .headers("Location")
-    .head
-  println("shorten shortUrl " + shortUrl)
-  shortUrl
-}
 
 @main
 def apply(
@@ -56,13 +42,5 @@ def apply(
   val longUrl = ujson.read(res.body)("browser_download_url").str
 
   println("Long Url " + longUrl)
-
-  Try {
-    val shortUrl = shorten(longUrl)
-    println("Short Url " + shortUrl)
-    shortUrl
-  }.toOption.getOrElse {
-    // could not shorten the url
-    longUrl
-  }
+  longUrl
 }
