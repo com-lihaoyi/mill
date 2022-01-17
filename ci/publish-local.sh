@@ -6,4 +6,4 @@ set -eux
 
 ./mill -i show main.publishVersion
 
-cp out/assembly/dest/mill ~/mill-release
+cp out/assembly.dest/mill ~/mill-release
