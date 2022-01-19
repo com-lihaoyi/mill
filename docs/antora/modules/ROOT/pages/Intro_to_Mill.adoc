@@ -1111,8 +1111,7 @@ or
 == Running Mill with custom JVM options
 
 It's possible to pass JVM options to the Mill launcher. To do this you need to create a `.mill-jvm-opts` file in your
-project's root. This file should contain JVM options (strings, starting with `-X`), one per line. All other lines will
-be ignored.
+project's root. This file should contain JVM options, one per line.
 
 For example, if your build requires a lot of memory and bigger stack size, your `.mill-jvm-opts` could look like this:
 
