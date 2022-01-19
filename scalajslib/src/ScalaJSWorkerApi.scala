@@ -39,7 +39,7 @@ class ScalaJSWorker {
       fullOpt: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
-  )(implicit ctx: Ctx.Home): Result[os.Path] = {
+  )(implicit ctx: Ctx.Home): Result[Seq[os.Path]] = {
     bridge(toolsClasspath).link(
       sources.items.map(_.toIO).toArray,
       libraries.items.map(_.toIO).toArray,
@@ -49,7 +49,7 @@ class ScalaJSWorker {
       fullOpt,
       moduleKind,
       esFeatures
-    ).map(os.Path(_))
+    ).map(_.map(os.Path(_)))
   }
 
   def run(toolsClasspath: Agg[os.Path], config: JsEnvConfig, linkedFile: File)(implicit

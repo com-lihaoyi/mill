@@ -89,7 +89,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val initializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
     try {
       linker.link(sourceSJSIRs ++ jarSJSIRs, initializer.toSeq, destFile, logger)
-      Result.Success(dest)
+      Result.Success(Seq(dest))
     } catch {
       case e: org.scalajs.core.tools.linker.LinkingException =>
         Result.Failure(e.getMessage)

@@ -14,7 +14,7 @@ trait ScalaJSWorkerApi {
       fullOpt: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
-  ): Result[File]
+  ): Result[Seq[File]]
 
   def run(config: JsEnvConfig, linkedFile: File): Unit
 

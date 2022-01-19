@@ -7,7 +7,7 @@ import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule}
 import mill.testrunner.TestRunner
-import mill.util.Ctx
+import mill.api.Ctx
 import mill.define.Task
 import mill.scalajslib.api._
 
@@ -106,12 +106,16 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
       case Right(_) =>
-        ScalaJSWorkerApi.scalaJSWorker().run(
-          scalaJSToolsClasspath().map(_.path),
-          jsEnvConfig(),
-          fastOpt().path.toIO
-        )
-        Result.Success(())
+        fastOpt().headOption match {
+          case None => Result.Failure("Missing linker output")
+          case Some(file) =>
+            ScalaJSWorkerApi.scalaJSWorker().run(
+              scalaJSToolsClasspath().map(_.path),
+              jsEnvConfig(),
+              file.path.toIO
+            )
+            Result.Success(())
+        }
     }
 
   }
@@ -133,11 +137,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mode: OptimizeMode,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
-  )(implicit ctx: Ctx): Result[PathRef] = {
-    val outputPath = ctx.dest / "out.js"
+  )(implicit ctx: Ctx): Result[Seq[PathRef]] = {
 
     os.makeDir.all(ctx.dest)
-    os.remove.all(outputPath)
 
     val classpath = runClasspath.map(_.path)
     val sjsirFiles = classpath
@@ -149,13 +151,13 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       toolsClasspath.map(_.path),
       sjsirFiles,
       libraries,
-      outputPath.toIO,
+      ctx.dest.toIO,
       mainClass,
       testBridgeInit,
       mode == FullOpt,
       moduleKind,
       esFeatures
-    ).map(PathRef(_))
+    ).map(_.map(PathRef(_)))
   }
 
   override def mandatoryScalacOptions = T {
@@ -263,7 +265,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       scalaJSToolsClasspath().map(_.path),
       jsEnvConfig(),
       testFramework(),
-      fastOptTest().path.toIO,
+      // TODO: How to handle None and many?
+      fastOptTest().headOption.map(_.path.toIO).get,
       moduleKind()
     )
 
