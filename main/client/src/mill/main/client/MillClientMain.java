@@ -78,9 +78,7 @@ public class MillClientMain {
             try (Scanner sc = new Scanner(millJvmOptsFile)) {
                 while (sc.hasNextLine()) {
                     String arg = sc.nextLine();
-                    if (arg.startsWith("-X")) {
-                        vmOptions.add(arg);
-                    }
+                    vmOptions.add(arg);
                 }
             }
         }
