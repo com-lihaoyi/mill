@@ -2,14 +2,13 @@ package mill
 package scalajslib
 
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
-import mill.api.{Loose, PathRef, Result, internal}
-import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
-import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{DepSyntax, Lib, TestModule}
-import mill.testrunner.TestRunner
-import mill.api.Ctx
+import mill.api.{Ctx, Loose, PathRef, Result, internal}
 import mill.define.Task
 import mill.scalajslib.api._
+import mill.scalalib.Lib.resolveDependencies
+import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
+import mill.scalalib.{DepSyntax, Lib, TestModule}
+import mill.testrunner.TestRunner
 
 import scala.jdk.CollectionConverters._
 
@@ -84,7 +83,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mode = FastOpt,
       moduleKind = moduleKind(),
       esFeatures = esFeatures()
-    )
+    ).map(_.modules.values.map(f => PathRef(os.Path(f))))
   }
 
   def fullOpt = T {
@@ -97,7 +96,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mode = FullOpt,
       moduleKind = moduleKind(),
       esFeatures = esFeatures()
-    )
+    ).map(_.modules.values.map(f => PathRef(os.Path(f))))
   }
 
   override def runLocal(args: String*) = T.command { run(args: _*) }
@@ -106,18 +105,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
       case Right(_) =>
-        fastOpt().headOption match {
-          case None => Result.Failure("Missing linker output")
-          case Some(file) =>
-            ScalaJSWorkerApi.scalaJSWorker().run(
-              scalaJSToolsClasspath().map(_.path),
-              jsEnvConfig(),
-              file.path.toIO
-            )
-            Result.Success(())
-        }
+        ScalaJSWorkerApi.scalaJSWorker().run(
+          scalaJSToolsClasspath().map(_.path),
+          jsEnvConfig(),
+          linkedModules(fastOpt(), moduleKind()))
+        Result.Success(())
     }
-
   }
 
   override def runMainLocal(mainClass: String, args: String*) = T.command[Unit] {
@@ -137,7 +130,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mode: OptimizeMode,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
-  )(implicit ctx: Ctx): Result[Seq[PathRef]] = {
+  )(implicit ctx: Ctx): Result[LinkedModules] = {
 
     os.makeDir.all(ctx.dest)
 
@@ -157,7 +150,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mode == FullOpt,
       moduleKind,
       esFeatures
-    ).map(_.map(PathRef(_)))
+    )
   }
 
   override def mandatoryScalacOptions = T {
@@ -226,6 +219,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ))
   }
 
+  protected def linkedModules(paths: Iterable[PathRef], moduleKind: ModuleKind): LinkedModules =
+    LinkedModules(
+      paths.toSeq.map(p => p.path.baseName -> p.path.toIO).toMap,
+      moduleKind)
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
@@ -251,7 +248,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       FastOpt,
       moduleKind(),
       esFeatures()
-    )
+    ).map(_.modules.values.map(f => PathRef(os.Path(f))))
   }
 
   override def testLocal(args: String*) = T.command { test(args: _*) }
@@ -265,8 +262,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       scalaJSToolsClasspath().map(_.path),
       jsEnvConfig(),
       testFramework(),
-      // TODO: How to handle None and many?
-      fastOptTest().headOption.map(_.path.toIO).get,
+      linkedModules(fastOptTest(), moduleKind()),
       moduleKind()
     )
 

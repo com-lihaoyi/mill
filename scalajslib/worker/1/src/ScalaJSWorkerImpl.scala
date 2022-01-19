@@ -2,21 +2,20 @@ package mill
 package scalajslib
 package worker
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.Duration
-import java.io.File
 import mill.api.{Result, internal}
-import mill.scalajslib.api.{ESFeatures, ESVersion, JsEnvConfig, ModuleKind}
+import mill.scalajslib.api.{ESFeatures, ESVersion, ModuleKind, _}
 import org.scalajs.ir.ScalaJSVersions
-import org.scalajs.linker.{PathIRContainer, PathIRFile, PathOutputDirectory, StandardImpl}
-import org.scalajs.linker.interface.{ESFeatures => ScalaJSESFeatures, ESVersion => ScalaJSESVersion, ModuleKind => ScalaJSModuleKind, _}
-import org.scalajs.logging.ScalaConsoleLogger
-import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.jsenv.nodejs.NodeJSEnv.SourceMap
-import org.scalajs.testing.adapter.TestAdapter
-import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
+import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
+import org.scalajs.linker.interface.{ESFeatures => ScalaJSESFeatures, ESVersion => ScalaJSESVersion, ModuleKind => ScalaJSModuleKind, _}
+import org.scalajs.linker.{PathIRContainer, PathIRFile, PathOutputDirectory, StandardImpl}
+import org.scalajs.logging.ScalaConsoleLogger
+import org.scalajs.testing.adapter.{TestAdapter, TestAdapterInitializer => TAI}
 
+import java.io.File
 import scala.collection.mutable
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.ref.WeakReference
 
 @internal
@@ -27,6 +26,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       esFeatures: ESFeatures,
       dest: File
   )
+
   private object ScalaJSLinker {
     private val cache = mutable.Map.empty[LinkerInput, WeakReference[Linker]]
     def reuseOrCreate(input: LinkerInput): Linker = cache.get(input) match {
@@ -95,6 +95,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       StandardImpl.linker(config)
     }
   }
+
   def link(
       sources: Array[File],
       libraries: Array[File],
@@ -104,7 +105,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       fullOpt: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
-  ): Result[Seq[File]] = {
+  ): Result[LinkedModules] = {
     import scala.concurrent.ExecutionContext.Implicits.global
     val linker =
       ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures, dest))
@@ -127,13 +128,14 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       sourceIRs <- sourceIRsFuture
       libraryIRs <- libraryIRsFuture
       report <- linker.link(sourceIRs ++ libraryIRs, moduleInitializers, outDir, logger)
-      result = report.publicModules.toList match {
-        case Nil => Result.Failure("Linker produced no modules")
-        // TOOD: probably need to return a map of module names along with file paths
-        case modules => Result.Success(modules.map(m => dest.toPath.resolve(m.jsFileName).toFile))
-      }
     } yield {
-      result
+      Result.Success(
+        LinkedModules(
+          report
+            .publicModules
+            .map(m => m.moduleID -> dest.toPath.resolve(m.jsFileName).toFile)
+            .toMap,
+          moduleKind))
     }).recover {
       case e: org.scalajs.linker.interface.LinkingException =>
         Result.Failure(e.getMessage)
@@ -142,9 +144,9 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     Await.result(resultFuture, Duration.Inf)
   }
 
-  def run(config: JsEnvConfig, linkedFile: File): Unit = {
+  def run(config: JsEnvConfig, linkedModules: LinkedModules): Unit = {
     val env = jsEnv(config)
-    val input = jsEnvInput(linkedFile)
+    val input = jsEnvInput(linkedModules)
     val runConfig = RunConfig().withLogger(new ScalaConsoleLogger)
     Run.runInterruptible(env, input, runConfig)
   }
@@ -152,11 +154,11 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   def getFramework(
       config: JsEnvConfig,
       frameworkName: String,
-      linkedFile: File,
+      linkedModules: LinkedModules,
       moduleKind: ModuleKind
   ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
-    val input = jsEnvInput(linkedFile)
+    val input = jsEnvInput(linkedModules)
     val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
 
     val adapter = new TestAdapter(env, input, tconfig)
@@ -204,6 +206,12 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       )
   }
 
-  def jsEnvInput(linkedFile: File): Seq[Input] =
-    Seq(Input.Script(linkedFile.toPath()))
+  def jsEnvInput(linkedModules: LinkedModules): Seq[Input] = {
+    val input = linkedModules.moduleKind match {
+      case ModuleKind.NoModule => Input.Script.apply _
+      case ModuleKind.CommonJSModule => Input.CommonJSModule.apply _
+      case ModuleKind.ESModule => Input.ESModule.apply _
+    }
+    linkedModules.modules.values.toSeq.map(file => input(file.toPath))
+  }
 }

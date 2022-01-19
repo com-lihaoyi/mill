@@ -14,18 +14,20 @@ trait ScalaJSWorkerApi {
       fullOpt: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
-  ): Result[Seq[File]]
+  ): Result[LinkedModules]
 
-  def run(config: JsEnvConfig, linkedFile: File): Unit
+  def run(config: JsEnvConfig, linkedModules: LinkedModules): Unit
 
   def getFramework(
       config: JsEnvConfig,
       frameworkName: String,
-      linkedFile: File,
+      linkedModules: LinkedModules,
       moduleKind: ModuleKind
   ): (() => Unit, sbt.testing.Framework)
 
 }
+
+case class LinkedModules(modules: Map[String, File], moduleKind: ModuleKind)
 
 sealed trait OptimizeMode
 

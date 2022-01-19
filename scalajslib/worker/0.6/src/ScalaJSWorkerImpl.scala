@@ -3,9 +3,8 @@ package scalajslib
 package worker
 
 import java.io.File
-
 import mill.api.Result
-import mill.scalajslib.api.{ESFeatures, ESVersion, JsEnvConfig, ModuleKind}
+import mill.scalajslib.api.{ESFeatures, ESVersion, JsEnvConfig, LinkedModules, ModuleKind}
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
@@ -78,7 +77,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       fullOpt: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
-  ) = {
+  ): Result[LinkedModules] = {
     val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures))
     val sourceSJSIRs = sources.map(new FileVirtualScalaJSIRFile(_))
     val jars =
@@ -89,30 +88,31 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val initializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
     try {
       linker.link(sourceSJSIRs ++ jarSJSIRs, initializer.toSeq, destFile, logger)
-      Result.Success(Seq(dest))
+      // TODO: is "main" always the case for 0.6?
+      Result.Success(LinkedModules(Map("main" -> dest), moduleKind))
     } catch {
       case e: org.scalajs.core.tools.linker.LinkingException =>
         Result.Failure(e.getMessage)
     }
   }
 
-  def run(config: JsEnvConfig, linkedFile: File): Unit = {
+  def run(config: JsEnvConfig, linkedModules: LinkedModules): Unit = {
     jsEnv(config)
-      .jsRunner(FileVirtualJSFile(linkedFile))
+      .jsRunner(jsFile(linkedModules))
       .run(new ScalaConsoleLogger, ConsoleJSConsole)
   }
 
   def getFramework(
       config: JsEnvConfig,
       frameworkName: String,
-      linkedFile: File,
+      linkedModules: LinkedModules,
       moduleKind: ModuleKind
   ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config).loadLibs(
-      Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))
+      Seq(ResolvedJSDependency.minimal(jsFile(linkedModules)))
     )
 
-    val moduleIdentifier = Option[String](linkedFile.getAbsolutePath)
+    val moduleIdentifier = Option[String](linkedModules.modules.head._2.getAbsolutePath)
 
     val tconfig = moduleKind match {
       case ModuleKind.NoModule => TestAdapter.Config().withLogger(new ScalaConsoleLogger)
@@ -167,4 +167,8 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
           .withAutoExit(config.autoExit)
       )
   }
+
+  def jsFile(linkedModules: LinkedModules): VirtualJSFile =
+    // TODO: Handle empty modules map
+    FileVirtualJSFile(linkedModules.modules.head._2)
 }
