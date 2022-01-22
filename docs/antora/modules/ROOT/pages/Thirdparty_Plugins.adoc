@@ -529,6 +529,33 @@ Publishing to custom local Maven repository
 Publishing to /tmp/m2repo
 ----
 
+== ScalablyTyped
+
+[Scalablytyped](https://scalablytyped.org/) support for mill.
+
+Project home: https://github.com/lolgab/mill-scalablytyped
+
+=== Quickstart
+
+Mix-in the `ScalablyTyped` trait into your `ScalaJSModule` and
+set-up a `package.json` file with your TypeScript dependencies.
+
+[source,scala]
+----
+import mill._, scalalib._
+
+import $ivy.`com.github.lolgab::mill-scalablytyped::0.0.2`
+import com.github.lolgab.mill.scalablytyped._
+
+object main extends ScalaJSModule with ScalablyTyped {
+
+  // other settings ...
+
+}
+----
+
+It will run ScalablyTyped and add the converted dependencies to the module's `ivyDeps`.
+
 == Scalafix
 
 https://scalacenter.github.io/scalafix/[Scalafix] support for mill.
