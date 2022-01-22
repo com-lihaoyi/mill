@@ -531,7 +531,7 @@ Publishing to /tmp/m2repo
 
 == ScalablyTyped
 
-[Scalablytyped](https://scalablytyped.org/) support for mill.
+https://scalablytyped.org/[Scalablytyped] support for mill.
 
 Project home: https://github.com/lolgab/mill-scalablytyped
 
