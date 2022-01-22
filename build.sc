@@ -68,10 +68,10 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.0"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.0"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.0"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.0"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.2"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.2"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.2"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.2"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
@@ -720,7 +720,7 @@ object scalanativelib extends MillModule {
   }
   object worker extends Cross[WorkerModule]("0.4")
   class WorkerModule(scalaNativeWorkerVersion: String) extends MillInternalModule {
-    override def scalaVersion = Deps.workerScalaVersion212
+    override def scalaVersion = Deps.scalaVersion
     override def moduleDeps = Seq(scalanativelib.api)
     override def ivyDeps = scalaNativeWorkerVersion match {
       case "0.4" =>

@@ -47,15 +47,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       workerKey,
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
       repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-scalanativelib-worker"),
-      artifactSuffix = "_2.12"
+      resolveFilter = _.toString.contains("mill-scalanativelib-worker")
     )
   }
 
   def toolsIvyDeps = T {
     Agg(
-      ivy"org.scala-native:tools_2.12:${scalaNativeVersion()}",
-      ivy"org.scala-native:test-runner_2.12:${scalaNativeVersion()}"
+      ivy"org.scala-native::tools:${scalaNativeVersion()}",
+      ivy"org.scala-native::test-runner:${scalaNativeVersion()}"
     )
   }
 
@@ -82,12 +81,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     super.mandatoryIvyDeps() ++ nativeIvyDeps()
   }
 
-  // Using `resolveDeps` from `CoursierModule` incorrectly resolves
-  // scala-library 2.13 instead of the required 2.12
   def bridgeFullClassPath: T[Agg[os.Path]] = T {
     Lib.resolveDependencies(
       repositoriesTask(),
-      resolveCoursierDependency().apply(_),
+      Lib.depToDependency(_, mill.BuildInfo.scalaVersion, ""),
       toolsIvyDeps(),
       ctx = Some(T.log)
     ).map(t => (scalaNativeWorkerClasspath() ++ t).map(_.path))
