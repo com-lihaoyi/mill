@@ -18,6 +18,11 @@ trait GenIdeaModule extends Module {
   def skipIdea: Boolean = false
 
   /**
+   * Map containing a map of source folder names to package prefixes for Idea project file generation.
+   */
+  def packagePrefix: Map[String, String] = Map.empty[String, String]
+
+  /**
    * Contribute facets to the Java module configuration.
    * @param ideaConfigVersion The IDEA configuration version in use. Probably `4`.
    * @return

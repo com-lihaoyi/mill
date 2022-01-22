@@ -3,11 +3,11 @@ package mill.scalalib
 import scala.collection.immutable
 import scala.util.Try
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
-
 import ammonite.runtime.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import coursier.{LocalRepositories, Repositories, Repository}
+
 import java.nio.file.Paths
 import mill.Agg
 import mill.api.Ctx.{Home, Log}
@@ -18,6 +18,8 @@ import mill.modules.Util
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.{BuildInfo, T, scalalib}
 import os.{Path, SubPath}
+
+import scala.util.chaining.scalaUtilChainingOps
 
 case class GenIdeaImpl(
     evaluator: Evaluator,
@@ -243,6 +245,7 @@ case class GenIdeaImpl(
 
     val allResolved: Seq[Path] =
       (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildLibraryPaths ++ buildDepsPaths)
+        .filter(_.toIO.exists())
         .distinct
         .sorted
 
@@ -411,7 +414,7 @@ case class GenIdeaImpl(
         case WithSourcesResolved(path, _) =>
           Seq(pathToLibName(path))
         case OtherResolved(path) =>
-          Seq(pathToLibName(path))
+          pathToLibName.get(path).map(Seq(_)).getOrElse(Seq.empty)
       }
 
     def resolvedLibraries(resolved: Seq[os.Path]): Seq[ResolvedLibrary] =
@@ -465,6 +468,7 @@ case class GenIdeaImpl(
             val compilerCp: Agg[Path] = librariesProperties.getOrElse(resolved.path, Agg.empty)
             val languageLevel = name match {
               case _ if compilerCp.iterator.isEmpty => None
+              case _ if name.startsWith("scala3-library_3-3.1.") => Some("Scala_3_1")
               case _ if name.startsWith("scala3-library_3-3.0.") => Some("Scala_3_0")
               case _ if name.startsWith("scala-library-2.13.") => Some("Scala_2_13")
               case _ if name.startsWith("scala-library-2.12.") => Some("Scala_2_12")
@@ -573,6 +577,7 @@ case class GenIdeaImpl(
 
         val elem = moduleXmlTemplate(
           basePath = mod.intellijModulePath,
+          pkgPrefix = mod.packagePrefix,
           scalaVersionOpt = scalaVersionOpt,
           resourcePaths = Strict.Agg.from(resourcesPathRefs.map(_.path)),
           normalSourcePaths = Strict.Agg.from(normalSourcePaths),
@@ -765,6 +770,7 @@ case class GenIdeaImpl(
   }
   def moduleXmlTemplate(
       basePath: os.Path,
+      pkgPrefix: Map[String, String],
       scalaVersionOpt: Option[String],
       resourcePaths: Strict.Agg[os.Path],
       normalSourcePaths: Strict.Agg[os.Path],
@@ -775,6 +781,13 @@ case class GenIdeaImpl(
       isTest: Boolean,
       facets: Seq[GenIdeaModule.JavaFacet]
   ): Elem = {
+    def prefixOf(p: os.Path): Option[String] = {
+      val srcName = p.relativeTo(basePath).pipe(r => {
+        (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
+      })
+      pkgPrefix.get(srcName)
+    }
+
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         {
@@ -786,32 +799,39 @@ case class GenIdeaImpl(
     }
         <exclude-output />
         {
-      for (generatedSourcePath <- generatedSourcePaths.toSeq.distinct.sorted) yield {
-        val rel = relify(generatedSourcePath)
-        <content url={"file://$MODULE_DIR$/" + rel}>
-                <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={isTest.toString} generated="true" />
-              </content>
-      }
-    }
+        <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
+          {
+            for (
+              generatedSourcePath <- generatedSourcePaths.iterator.toSeq.distinct.sorted
+            ) yield {
+              prefixOf(generatedSourcePath) match {
+                case Some(value) => <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource={isTest.toString} generated="true" packagePrefix={value} />
+                case None => <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource={isTest.toString} generated="true" />
+              }
+            }
+          }
 
-        {
-      // keep the "real" base path as last content, to ensure, Idea picks it up as "main" module dir
-      for (normalSourcePath <- normalSourcePaths.iterator.toSeq.sorted) yield {
-        val rel = relify(normalSourcePath)
-        <content url={"file://$MODULE_DIR$/" + rel}>
-              <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={isTest.toString} />
-            </content>
-      }
-    }
-        {
-      val resourceType = if (isTest) "java-test-resource" else "java-resource"
-      for (resourcePath <- resourcePaths.iterator.toSeq.sorted) yield {
-        val rel = relify(resourcePath)
-        <content url={"file://$MODULE_DIR$/" + rel}>
-                <sourceFolder url={"file://$MODULE_DIR$/" + rel} type={resourceType} />
-              </content>
-      }
-    }
+          {
+            for (
+              normalSourcePath <- normalSourcePaths.iterator.toSeq.sorted
+            ) yield {
+              prefixOf(normalSourcePath) match {
+                case Some(value) => <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource={isTest.toString} packagePrefix={value} />
+                case None => <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource={isTest.toString} />
+              }
+
+            }
+          }
+          {
+            val resourceType = if (isTest) "java-test-resource" else "java-resource"
+            for (
+              resourcePath <- resourcePaths.iterator.toSeq.sorted
+            ) yield {
+                <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} type={resourceType} />
+            }
+          }
+        </content>
+        }
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
 
