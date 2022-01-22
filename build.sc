@@ -192,14 +192,14 @@ trait MillMimaConfig extends mima.Mima {
   )
 }
 
-trait MillApiModule
+trait MillInternalModule
     extends MillPublishModule
     with ScalaModule
-    with MillCoursierModule
-    with MillMimaConfig {
+    with MillCoursierModule {
   def scalaVersion = Deps.scalaVersion
   override def ammoniteVersion = Deps.ammonite.dep.version
 }
+trait MillApiModule extends MillInternalModule with MillMimaConfig
 
 trait MillModule extends MillApiModule { outer =>
   override def scalacPluginClasspath =
@@ -405,7 +405,7 @@ object scalalib extends MillModule {
   object api extends MillApiModule {
     override def moduleDeps = Seq(main.api)
   }
-  object worker extends MillApiModule {
+  object worker extends MillInternalModule {
 
     override def moduleDeps = Seq(scalalib.api)
 
@@ -491,7 +491,7 @@ object scalajslib extends MillModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.6", "1")
-  class WorkerModule(scalajsWorkerVersion: String) extends MillApiModule {
+  class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
     override def moduleDeps = Seq(scalajslib.api)
     override def ivyDeps = scalajsWorkerVersion match {
       case "0.6" =>
@@ -563,7 +563,7 @@ object contrib extends MillModule {
     object api extends MillPublishModule
 
     object worker extends Cross[WorkerModule]("2.6", "2.7", "2.8")
-    class WorkerModule(playBinary: String) extends MillApiModule {
+    class WorkerModule(playBinary: String) extends MillInternalModule {
       override def sources = T.sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
@@ -719,7 +719,7 @@ object scalanativelib extends MillModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.4")
-  class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
+  class WorkerModule(scalaNativeWorkerVersion: String) extends MillInternalModule {
     override def scalaVersion = Deps.workerScalaVersion212
     override def moduleDeps = Seq(scalanativelib.api)
     override def ivyDeps = scalaNativeWorkerVersion match {
