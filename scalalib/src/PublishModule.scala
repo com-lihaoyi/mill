@@ -130,9 +130,9 @@ trait PublishModule extends JavaModule { outer =>
       ).map(PathRef(_))
   }
 
-  def sonatypeUri: String = "https://oss.sonatype.org/service/local"
+  def sonatypeUri: String = "https://s01.oss.sonatype.org/service/local"
 
-  def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
+  def sonatypeSnapshotUri: String = "https://s01.oss.sonatype.org/content/repositories/snapshots"
 
   def publishArtifacts = T {
     val baseName = s"${artifactId()}-${publishVersion()}"
@@ -212,8 +212,8 @@ object PublishModule extends ExternalModule {
       signed: Boolean = true,
       gpgArgs: String = defaultGpgArgs.mkString(","),
       release: Boolean = false,
-      sonatypeUri: String = "https://oss.sonatype.org/service/local",
-      sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
+      sonatypeUri: String = "https://s01.oss.sonatype.org/service/local",
+      sonatypeSnapshotUri: String = "https://s01.oss.sonatype.org/content/repositories/snapshots",
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000,
       awaitTimeout: Int = 120 * 1000,
