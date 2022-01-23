@@ -91,7 +91,7 @@ trait ScalaModule extends JavaModule { outer =>
     }
 
   /**
-   * Allows you to make use of Scala compiler plugins from maven central
+   * Allows you to make use of Scala compiler plugins.
    */
   def scalacPluginIvyDeps: Target[Agg[Dep]] = T { Agg.empty[Dep] }
 
@@ -112,7 +112,7 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   /**
-   * Scalac options to active the compiler plugins.
+   * Scalac options to active the compiler plugins for ScalaDoc generation.
    */
   private def enableScalaDocPluginScalacOption: Target[Seq[String]] = T {
     val resolvedJars = resolveDeps(scalaDocPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
