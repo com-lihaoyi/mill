@@ -2,9 +2,8 @@ package mill
 package scalalib
 
 import scala.annotation.nowarn
-
 import mill.define.{Command, Sources, Target, Task}
-import mill.api.{DummyInputStream, PathRef, Result, internal}
+import mill.api.{DummyInputStream, Loose, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
 import Lib._
@@ -13,8 +12,8 @@ import mill.api.Loose.Agg
 import mill.eval.{Evaluator, EvaluatorPathsResolver}
 import mill.scalalib.api.{CompilationResult, ZincWorkerUtil}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import scala.jdk.CollectionConverters._
 
+import scala.jdk.CollectionConverters._
 import mainargs.Flag
 
 /**
@@ -86,7 +85,7 @@ trait ScalaModule extends JavaModule { outer =>
       publish.Artifact.fromDep(
         _: Dep,
         scalaVersion(),
-        mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion()),
+        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platformSuffix()
       )
     }
@@ -94,36 +93,45 @@ trait ScalaModule extends JavaModule { outer =>
   /**
    * Allows you to make use of Scala compiler plugins from maven central
    */
-  def scalacPluginIvyDeps = T { Agg.empty[Dep] }
+  def scalacPluginIvyDeps: Target[Agg[Dep]] = T { Agg.empty[Dep] }
 
-  def scalaDocPluginIvyDeps = T { scalacPluginIvyDeps() }
+  def scalaDocPluginIvyDeps: Target[Agg[Dep]] = T { scalacPluginIvyDeps() }
 
   /**
    * Mandatory command-line options to pass to the Scala compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
-  protected def mandatoryScalacOptions = T { Seq.empty[String] }
+  protected def mandatoryScalacOptions: Target[Seq[String]] = T { Seq.empty[String] }
 
   /**
    * Scalac options to active the compiler plugins.
    */
-  protected def enablePluginScalacOption: Target[Seq[String]] = T {
+  private def enablePluginScalacOptions: Target[Seq[String]] = T {
     val resolvedJars = resolveDeps(scalacPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
-    resolvedJars.iterator.toSeq.map(jar => s"-Xplugin:${jar}")
+    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
+  }
+
+  /**
+   * Scalac options to active the compiler plugins.
+   */
+  private def enableScalaDocPluginScalacOption: Target[Seq[String]] = T {
+    val resolvedJars = resolveDeps(scalaDocPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
+    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
   /**
    * Command-line options to pass to the Scala compiler defined by the user.
    * Consumers should use `allScalacOptions` to read them.
    */
-  def scalacOptions = T { Seq.empty[String] }
+  def scalacOptions: Target[Seq[String]] = T { Seq.empty[String] }
 
   /**
    * Aggregation of all the options passed to the Scala compiler.
    * In most cases, instead of overriding this Target you want to override `scalacOptions` instead.
    */
-  def allScalacOptions =
-    T { mandatoryScalacOptions() ++ enablePluginScalacOption() ++ scalacOptions() }
+  def allScalacOptions: Target[Seq[String]] = T {
+    mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions()
+  }
 
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
@@ -133,7 +141,7 @@ trait ScalaModule extends JavaModule { outer =>
           artifactName()
         )
       else Seq()
-    allScalacOptions() ++ defaults
+    mandatoryScalacOptions() ++ enableScalaDocPluginScalacOption() ++ scalacOptions() ++ defaults
   }
 
   /**
@@ -232,8 +240,6 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   override def docJar: T[PathRef] = T {
-    val pluginOptions =
-      scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
     val compileCp = Seq(
       "-classpath",
       compileClasspath()
@@ -252,7 +258,7 @@ trait ScalaModule extends JavaModule { outer =>
             scalaOrganization(),
             scalaDocClasspath().map(_.path),
             scalacPluginClasspath().map(_.path),
-            files ++ options ++ pluginOptions ++ compileCp ++ scalaDocOptions()
+            files ++ options ++ compileCp ++ scalaDocOptions()
           ) match {
           case true =>
             Result.Success(createJar(Agg(javadocDir))(T.dest))
