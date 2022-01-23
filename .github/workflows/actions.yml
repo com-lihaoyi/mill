@@ -54,7 +54,7 @@ jobs:
       - name: Run '${{ matrix.buildcmd }}'
         run: ${{ matrix.buildcmd }}
 
-  test-optional:
+  test-bin-compat:
     strategy:
       fail-fast: false
       matrix:
@@ -63,7 +63,8 @@ jobs:
           - ./mill -i -k __.mimaReportBinaryIssues
 
     runs-on: ubuntu-latest
-    continue-on-error: true
+    # when doing milestone builds, this may be true
+    continue-on-error: false
 
     steps:
       - uses: actions/checkout@v2
@@ -110,7 +111,7 @@ jobs:
   publish-sonatype:
     # when in master repo: all commits to main branch and all additional tags
     if: github.repository == 'com-lihaoyi/mill' && ( github.ref == 'refs/heads/main' || (github.ref != 'refs/heads/main' && startsWith( github.ref, 'refs/tags/') ) )
-    needs: [test, test-windows]
+    needs: [test, test-windows, test-bin-compat]
 
     runs-on: ubuntu-latest
 

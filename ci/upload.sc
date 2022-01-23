@@ -1,17 +1,6 @@
 #!/usr/bin/env amm
-import scalaj.http._
 
-@main
-def shorten(longUrl: String) = {
-  println("shorten longUrl " + longUrl)
-  val shortUrl = Http("https://git.io")
-    .postForm(Seq("url" -> longUrl))
-    .asString
-    .headers("Location")
-    .head
-  println("shorten shortUrl " + shortUrl)
-  shortUrl
-}
+import scalaj.http._
 
 @main
 def apply(
@@ -24,7 +13,8 @@ def apply(
 ): String = {
 
   val response = Http(
-    s"https://api.github.com/repos/${githubOrg}/${githubRepo}/releases/tags/${tagName}")
+    s"https://api.github.com/repos/${githubOrg}/${githubRepo}/releases/tags/${tagName}"
+  )
     .header("Authorization", "token " + authKey)
     .header("Accept", "application/vnd.github.v3+json")
     .asString
@@ -52,9 +42,5 @@ def apply(
   val longUrl = ujson.read(res.body)("browser_download_url").str
 
   println("Long Url " + longUrl)
-
-  val shortUrl = shorten(longUrl)
-
-  println("Short Url " + shortUrl)
-  shortUrl
+  longUrl
 }

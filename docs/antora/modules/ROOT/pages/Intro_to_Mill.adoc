@@ -1062,8 +1062,7 @@ rebuilt, e.g. by deleting the `out/main/` or `out/main/test/compile/` folders.
 
 == Overriding Mill Versions
 
-Apart from downloading and installing new versions of Mill globally, there are a few ways of selecting/updating your
-Mill version:
+Apart from downloading and installing new versions of Mill globally, there are a few ways of selecting/updating your Mill version:
 
 * Create a `.mill-version` file to specify the version of Mill you wish to use:
 [source,bash]
@@ -1091,6 +1090,12 @@ to override the Mill version manually. This takes precedence over the version sp
 
 Note that both of these overrides only work for versions 0.5.0 and above.
 
+=== Automatic Mill updates
+
+If your project is hosted on GitHub, GitLab, or Bitbucket, you can use https://github.com/scala-steward-org/scala-steward[Scala Steward] to automatically open a pull request to update your Mill version (in `.mill-version` file), whenever there is a newer version available.
+
+TIP: Scala Steward can also xref:Configuring_Mill.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies] and keep them up-to-date.
+
 === Development Releases
 
 In case you want to try out the latest features and improvements that are currently in the main branch, unstable versions of Mill
@@ -1106,8 +1111,7 @@ or
 == Running Mill with custom JVM options
 
 It's possible to pass JVM options to the Mill launcher. To do this you need to create a `.mill-jvm-opts` file in your
-project's root. This file should contain JVM options (strings, starting with `-X`), one per line. All other lines will
-be ignored.
+project's root. This file should contain JVM options, one per line.
 
 For example, if your build requires a lot of memory and bigger stack size, your `.mill-jvm-opts` could look like this:
 

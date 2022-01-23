@@ -5,7 +5,7 @@ import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.PathRef
 import mill.main.Tasks
 import mill.modules.Jvm
-import mill.scalalib.publish.{Artifact, SonatypePublisher}
+import mill.scalalib.publish.{Artifact, VersionScheme, SonatypePublisher}
 
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar
@@ -17,6 +17,22 @@ trait PublishModule extends JavaModule { outer =>
 
   def pomSettings: T[PomSettings]
   def publishVersion: T[String]
+
+  /**
+   * Optional information about the used version scheme.
+   * This may enable dependency resolvers to properly resolve version ranges and version mismatches (conflicts).
+   * This information will be written as `info.versionScheme` property in the `pom.xml`.
+   * See [[VersionScheme]] for possible values.
+   *
+   * You can find more info under these links:
+   * - https://docs.scala-lang.org/overviews/core/binary-compatibility-for-library-authors.html#recommended-versioning-scheme
+   * - https://www.scala-lang.org/blog/2021/02/16/preventing-version-conflicts-with-versionscheme.html
+   * - https://www.scala-sbt.org/1.x/docs/Publishing.html#Version+scheme
+   * - https://semver.org
+   *
+   * @since Mill after 0.10.0-M5
+   */
+  def versionScheme: Target[Option[VersionScheme]] = T { None }
 
   def publishSelfDependency: Target[Artifact] = T {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
@@ -41,7 +57,8 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def pom: Target[PathRef] = T {
-    val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
+    val pom =
+      Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings(), publishProperties())
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)
     PathRef(pomPath)
@@ -62,6 +79,15 @@ trait PublishModule extends JavaModule { outer =>
    * Extra artifacts to publish.
    */
   def extraPublish: Target[Seq[PublishInfo]] = T { Seq.empty[PublishInfo] }
+
+  /**
+   * Properties to be published with the published pom/ivy XML.
+   * Use `super.publishProperties() ++` when overriding to avoid losing default properties.
+   * @since Mill after 0.10.0-M5
+   */
+  def publishProperties: Target[Map[String, String]] = T {
+    versionScheme().map(_.toProperty).toMap
+  }
 
   /**
    * Publish artifacts to a local ivy repository.

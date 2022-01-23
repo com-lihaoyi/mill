@@ -1,9 +1,9 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2-4-dcde72`
-import $ivy.`com.github.lolgab::mill-mima::0.0.6`
-import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
+import $ivy.`com.github.lolgab::mill-mima::0.0.9`
+import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 import java.nio.file.attribute.PosixFilePermission
 
 import com.github.lolgab.mill.mima
@@ -18,7 +18,7 @@ import mill.main.MainModule
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
-import os.RelPath
+import mill.define.SelectMode
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -36,20 +36,22 @@ object Settings {
     "0.9.9",
     "0.9.10",
     "0.9.11",
+    "0.9.12",
     "0.10.0-M2",
     "0.10.0-M3",
     "0.10.0-M4",
-    "0.10.0-M5"
+    "0.10.0-M5",
+    "0.10.0"
   )
-  val mimaBaseVersions = Seq("0.10.0-M4")
+  val mimaBaseVersions = Seq("0.10.0")
 }
 
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.7"
+  val scalaVersion = "2.13.8"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.13"
+  val workerScalaVersion212 = "2.12.15"
 
   object Scalajs_0_6 {
     val scalajsJsEnvs = ivy"org.scala-js::scalajs-js-envs:0.6.33"
@@ -59,7 +61,7 @@ object Deps {
 
   object Scalajs_1 {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
-    val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.2.0"
+    val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.2.1"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
     val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.8.0"
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.8.0"
@@ -72,9 +74,10 @@ object Deps {
     val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.0"
   }
 
-  val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.5.0"
-  val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:2.5.0"
+  val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
+  val ammoniteVersion = "2.5.0-6-01d7b780"
+  val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
+  val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -110,16 +113,16 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.2"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.0"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.0"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.0.8"
-  val scalametaTrees = ivy"org.scalameta::trees:4.4.31"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.32"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.10"
+  def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
   val upickle = ivy"com.lihaoyi::upickle:1.4.3"
   val utest = ivy"com.lihaoyi::utest:0.7.10"
@@ -186,30 +189,6 @@ trait MillMimaConfig extends mima.Mima {
     issueFilterByModule.getOrElse(this, Seq())
   }
   lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
-    main.api -> Seq(
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.args"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx.this"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.api.Ctx#Args.args")
-    ),
-    main.core -> Seq(
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.makeT"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.Target.args"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.define.ParseArgs.standaloneIdent"),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.plainChars"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.braceParser"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.parser"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem](
-        "mill.define.ParseArgs#BraceExpansionParser.toExpand"
-      ),
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.EvaluatorPaths.*"),
-      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.eval.EvaluatorPaths.*")
-    )
   )
 }
 
@@ -616,13 +595,15 @@ object contrib extends MillModule {
     object api extends MillApiModule {
       override def compileModuleDeps = Seq(main.api)
     }
-
     override def moduleDeps = Seq(scoverage.api)
     override def compileModuleDeps = Seq(scalalib)
 
     override def testArgs = T {
       val mapping = Map(
-        "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path
+        "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path,
+        "MILL_SCALA_2_13_VERSION" -> Deps.scalaVersion,
+        "MILL_SCALA_2_12_VERSION" -> Deps.workerScalaVersion212,
+        "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -727,7 +708,7 @@ object scalanativelib extends MillModule {
 
   override def testArgs = T {
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").assembly().path
+      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").compile().classes.path
     )
     scalalib.worker.testArgs() ++
       scalalib.backgroundwrapper.testArgs() ++
@@ -1258,6 +1239,7 @@ def uploadToGithub(authKey: String) = T.command {
   ))
 
   if (releaseTag == label) {
+    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
     scalaj.http.Http(
       s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
     )
@@ -1273,49 +1255,45 @@ def uploadToGithub(authKey: String) = T.command {
       .asString
   }
 
-  for (example <- Seq("example-1", "example-2", "example-3")) {
-    os.copy(os.pwd / "example" / example, T.dest / example)
-    os.copy(launcher().path, T.dest / example / "mill")
-    os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
+  val exampleZips = Seq("example-1", "example-2", "example-3")
+    .map { example =>
+      os.copy(os.pwd / "example" / example, T.dest / example)
+      os.copy(launcher().path, T.dest / example / "mill")
+      os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
+      (T.dest / s"$example.zip", label + "-" + example + ".zip")
+    }
+
+  val zips = exampleZips ++ Seq(
+    (assembly().path, label + "-assembly"),
+    (launcher().path, label)
+  )
+
+  for ((zip, name) <- zips) {
     upload.apply(
-      T.dest / s"$example.zip",
+      zip,
       releaseTag,
-      label + "-" + example + ".zip",
+      name,
       authKey,
       Settings.githubOrg,
       Settings.githubRepo
     )
   }
-  upload.apply(
-    assembly().path,
-    releaseTag,
-    label + "-assembly",
-    authKey,
-    Settings.githubOrg,
-    Settings.githubRepo
-  )
-
-  upload.apply(launcher().path, releaseTag, label, authKey, Settings.githubOrg, Settings.githubRepo)
 }
 
 def validate(ev: Evaluator): Command[Unit] = T.command {
   T.task(MainModule.evaluateTasks(
     ev.copy(failFast = false),
-    Seq("__.compile", "__.mimaReportBinaryIssues"),
-    multiSelect = true
+    Seq(
+      "__.compile",
+      "+",
+      "__.mimaReportBinaryIssues",
+      "+",
+      "mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll",
+      "__.sources",
+      "+",
+      "docs.antora.localPages"
+    ),
+    selectMode = SelectMode.Separated
   )(identity))()
-
-  T.task(MainModule.evaluateTasks(
-    ev.copy(failFast = false),
-    Seq("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll", "__.sources"),
-    multiSelect = false
-  )(identity))()
-
-  T.task(MainModule.evaluateTasks(
-    ev.copy(failFast = false),
-    Seq("docs.antora.localPages"),
-    multiSelect = false
-  )(identity))()
-
   ()
 }

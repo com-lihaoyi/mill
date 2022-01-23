@@ -6,9 +6,15 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import java.io.File
 import mill.api.{Result, internal}
-import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
+import mill.scalajslib.api.{ESFeatures, ESVersion, JsEnvConfig, ModuleKind}
+import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.linker.{PathIRContainer, PathIRFile, PathOutputFile, StandardImpl}
-import org.scalajs.linker.interface.{ModuleKind => ScalaJSModuleKind, _}
+import org.scalajs.linker.interface.{
+  ESFeatures => ScalaJSESFeatures,
+  ESVersion => ScalaJSESVersion,
+  ModuleKind => ScalaJSModuleKind,
+  _
+}
 import org.scalajs.logging.ScalaConsoleLogger
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.jsenv.nodejs.NodeJSEnv.SourceMap
@@ -23,7 +29,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   private case class LinkerInput(
       fullOpt: Boolean,
       moduleKind: ModuleKind,
-      useECMAScript2015: Boolean,
+      esFeatures: ESFeatures,
       dest: File
   )
   private object ScalaJSLinker {
@@ -35,6 +41,10 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
         cache.update(input, WeakReference(newLinker))
         newLinker
     }
+    private def minorIsGreaterThan(number: Int) = ScalaJSVersions.binaryEmitted match {
+      case s"1.$n" if n.toIntOption.exists(_ < number) => false
+      case _ => true
+    }
     private def createLinker(input: LinkerInput): Linker = {
       val semantics = input.fullOpt match {
         case true => Semantics.Defaults.optimized
@@ -45,13 +55,48 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
         case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
         case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
       }
+      def withESVersion_1_5_minus(esFeatures: ScalaJSESFeatures): ScalaJSESFeatures = {
+        val useECMAScript2015: Boolean = input.esFeatures.esVersion match {
+          case ESVersion.ES5_1 => false
+          case ESVersion.ES2015 => true
+          case v => throw new Exception(
+              s"ESVersion $v is not supported with Scala.js < 1.6. Either update Scala.js or use one of ESVersion.ES5_1 or ESVersion.ES2015"
+            )
+        }
+        esFeatures.withUseECMAScript2015(useECMAScript2015)
+      }
+      def withESVersion_1_6_plus(esFeatures: ScalaJSESFeatures): ScalaJSESFeatures = {
+        val scalaJSESVersion: ScalaJSESVersion = input.esFeatures.esVersion match {
+          case ESVersion.ES5_1 => ScalaJSESVersion.ES5_1
+          case ESVersion.ES2015 => ScalaJSESVersion.ES2015
+          case ESVersion.ES2016 => ScalaJSESVersion.ES2016
+          case ESVersion.ES2017 => ScalaJSESVersion.ES2017
+          case ESVersion.ES2018 => ScalaJSESVersion.ES2018
+          case ESVersion.ES2019 => ScalaJSESVersion.ES2019
+          case ESVersion.ES2020 => ScalaJSESVersion.ES2020
+          case ESVersion.ES2021 => ScalaJSESVersion.ES2021
+        }
+        esFeatures.withESVersion(scalaJSESVersion)
+      }
+      var scalaJSESFeatures: ScalaJSESFeatures = ScalaJSESFeatures.Defaults
+        .withAllowBigIntsForLongs(input.esFeatures.allowBigIntsForLongs)
+
+      if (minorIsGreaterThan(3)) {
+        scalaJSESFeatures = scalaJSESFeatures
+          .withAvoidClasses(input.esFeatures.avoidClasses)
+          .withAvoidLetsAndConsts(input.esFeatures.avoidLetsAndConsts)
+      }
+      scalaJSESFeatures =
+        if (minorIsGreaterThan(6)) withESVersion_1_6_plus(scalaJSESFeatures)
+        else withESVersion_1_5_minus(scalaJSESFeatures)
+
       val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule
       val config = StandardConfig()
         .withOptimizer(input.fullOpt)
         .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
-        .withESFeatures(_.withUseECMAScript2015(input.useECMAScript2015))
+        .withESFeatures(scalaJSESFeatures)
       StandardImpl.linker(config)
     }
   }
@@ -63,11 +108,11 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: ModuleKind,
-      useECMAScript2015: Boolean
+      esFeatures: ESFeatures
   ) = {
     import scala.concurrent.ExecutionContext.Implicits.global
     val linker =
-      ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, useECMAScript2015, dest))
+      ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures, dest))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
     val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))

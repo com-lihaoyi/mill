@@ -16,7 +16,7 @@ object CacherTests extends TestSuite {
   object Middle extends Middle
   trait Middle extends Base {
     override def value = T { super.value() + 2 }
-    def overriden = T { super.value() }
+    def overridden = T { super.value() }
   }
   object Terminal extends Terminal
   trait Terminal extends Middle {
@@ -45,13 +45,13 @@ object CacherTests extends TestSuite {
       Predef.assert(Middle.value eq Middle.value)
     }
 
-    "overridenDefRemainsAvailable" - {
-      Predef.assert(eval(Middle, Middle.overriden) == 1)
+    "overriddenDefRemainsAvailable" - {
+      Predef.assert(eval(Middle, Middle.overridden) == 1)
     }
 
     "multipleOverridesWork" - {
       Predef.assert(eval(Terminal, Terminal.value) == 7)
-      Predef.assert(eval(Terminal, Terminal.overriden) == 1)
+      Predef.assert(eval(Terminal, Terminal.overridden) == 1)
     }
     //    Doesn't fail, presumably compileError doesn't go far enough in the
     //    compilation pipeline to hit the override checks

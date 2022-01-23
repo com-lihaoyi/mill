@@ -1,16 +1,17 @@
 package mill.main
 
 import sun.misc.{Signal, SignalHandler}
+
 import java.io._
 import java.net.Socket
-
 import scala.jdk.CollectionConverters._
-
 import org.scalasbt.ipcsocket._
 import mill.{BuildInfo, MillMain}
 import mill.main.client._
 import mill.api.DummyInputStream
 import mill.main.client.lock.{Lock, Locks}
+
+import java.util.function.Consumer
 
 trait MillServerMain[T] {
   var stateCache = Option.empty[T]
@@ -140,7 +141,7 @@ class Server[T](
     val pipedOutput = new PipedOutputStream()
     pipedOutput.connect(pipedInput)
     val pumper = new InputPumper(in, pipedOutput, false)
-    val pumperThread = new Thread(pumper)
+    val pumperThread = new Thread(pumper, "proxyInputStreamThroughPumper")
     pumperThread.setDaemon(true)
     pumperThread.start()
     pipedInput
@@ -230,7 +231,7 @@ class Server[T](
       // It seems OK to exit the client early and subsequently
       // start up mill client again (perhaps closing the server
       // socket helps speed up the process).
-      val t = new Thread(() => clientSocket.close())
+      val t = new Thread(() => clientSocket.close(), "clientSocketCloser")
       t.setDaemon(true)
       t.start()
     } else clientSocket.close()

@@ -78,9 +78,7 @@ public class MillClientMain {
             try (Scanner sc = new Scanner(millJvmOptsFile)) {
                 while (sc.hasNextLine()) {
                     String arg = sc.nextLine();
-                    if (arg.startsWith("-X")) {
-                        vmOptions.add(arg);
-                    }
+                    vmOptions.add(arg);
                 }
             }
         }
@@ -228,9 +226,9 @@ public class MillClientMain {
         OutputStream in = ioSocket.getOutputStream();
         ProxyStreamPumper outPump = new ProxyStreamPumper(outErr, stdout, stderr);
         InputPumper inPump = new InputPumper(stdin, in, true);
-        Thread outThread = new Thread(outPump);
+        Thread outThread = new Thread(outPump, "outPump");
         outThread.setDaemon(true);
-        Thread inThread = new Thread(inPump);
+        Thread inThread = new Thread(inPump, "inPump");
         inThread.setDaemon(true);
         outThread.start();
         inThread.start();

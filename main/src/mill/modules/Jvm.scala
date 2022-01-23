@@ -22,6 +22,8 @@ import scala.util.Using
 import mill.BuildInfo
 import upickle.default.{ReadWriter => RW}
 
+import java.util.function.Consumer
+
 object Jvm {
 
   /**
@@ -200,13 +202,18 @@ object Jvm {
       )
 
       val sources = Seq(
-        process.stdout -> System.out,
-        process.stderr -> System.err,
-        System.in -> process.stdin
+        (process.stdout, System.out, "spawnSubprocess.stdout", false, () => true),
+        (process.stderr,  System.err, "spawnSubprocess.stderr", false, () => true),
+        (System.in, process.stdin, "spawnSubprocess.stdin", true, () => process.isAlive())
       )
 
-      for ((std, dest) <- sources) {
-        new Thread(new InputPumper(std, dest, false)).start()
+      for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
+        val t = new Thread(
+          new InputPumper(std, dest, checkAvailable, () => runningCheck()),
+          name
+        )
+        t.setDaemon(true)
+        t.start()
       }
 
       process

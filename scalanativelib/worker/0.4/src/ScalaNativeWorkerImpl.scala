@@ -15,6 +15,7 @@ import scala.scalanative.build.{
   Mode,
   NativeConfig => ScalaNativeNativeConfig
 }
+import scala.scalanative.nir.Versions
 import mill.scalanativelib.api.{GetFrameworkResult, LTO, NativeConfig, NativeLogLevel, ReleaseMode}
 import sbt.testing.Framework
 
@@ -52,8 +53,10 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
       nativeOptimize: Boolean,
       logLevel: NativeLogLevel
   ): NativeConfig = {
-    val entry = mainClass + "$"
-
+    val entry = Versions.current match {
+      case "0.4.0" | "0.4.1" | "0.4.2" => mainClass + "$"
+      case _ => mainClass
+    }
     val config =
       Config.empty
         .withMainClass(entry)

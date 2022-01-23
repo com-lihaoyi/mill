@@ -209,15 +209,38 @@ corresponding version of Mill.
 
 === 'main' branch
 :version: main
-:prev-version: 0.10.0-M5
-:milestone: 57
-:milestone-name: after 0.10.0-M5
+:prev-version: 0.10.0
+:milestone: 59
+:milestone-name: after 0.10.0
 
 _Changes since {prev-version}:_
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.0 - 2022-01-14
+:version: 0.10.0
+:prev-version: 0.10.0-M5
+:milestone: 57
+:milestone-name: 0.10.0
+
+_Changes since {prev-version}:_
+
+* Changed structure of `out` directory, `out/foo/dest` is now `out/foo.dest`
+* Fixed issues with loading of predef scripts
+* `--watch` now supports manual re-runs by pressing enter
+* Improved subprocess handling
+* Published poms can now contain properties and `versionScheme` information
+* Improved Scala.js support, including more target configuration options and support for Node 17
+* Improved Scala Native for version > 0.4.2 and support Scala 3
+* Internal improvements, fixes and dependency version updates
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 
 === 0.10.0-M5 - 2021-12-18
@@ -315,6 +338,20 @@ _Changes since {prev-version}:_
 * Various fixes and improvements
 * Various dependency updates
 
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.9.12 - 2022-01-07
+:version: 0.9.12
+:prev-version: 0.9.11
+:milestone: 58
+:milestone-name: 0.9.12
+
+* fixed parsing of command parameters in `show` command
+* zinc worker: Updated log4j2 to 2.17.1
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]

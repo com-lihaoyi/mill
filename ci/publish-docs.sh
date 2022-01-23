@@ -24,7 +24,7 @@ git worktree add -b gh-pages gh-pages origin/gh-pages
 
 # we want to keep history, so we prepare a new commit
 rm -r ${PAGES_REPO}/*
-cp -r out/docs/antora/githubPages/dest/site/* ${PAGES_REPO}/
+cp -r out/docs/antora/githubPages.dest/site/* ${PAGES_REPO}/
 touch ${PAGES_REPO}/.nojekyll
 
 cd $PAGES_REPO
