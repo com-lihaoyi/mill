@@ -17,8 +17,7 @@ class ScalaNativeWorker {
       case _ =>
         val cl = mill.api.ClassLoader.create(
           toolsClasspath.map(_.toIO.toURI.toURL).toSeq,
-          null,
-          sharedPrefixes = Seq("mill.scalanativelib.api.", "sbt.testing.")
+          getClass.getClassLoader
         )
         try {
           val bridge = cl
