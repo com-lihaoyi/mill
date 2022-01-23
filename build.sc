@@ -85,7 +85,7 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.11"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.12"
   val coursier = ivy"io.get-coursier::coursier:2.0.16-200-ge888c6dea"
   val coursierReducedDeps = coursier.exclude(
     "com.lihaoyi" -> "utest",
@@ -111,7 +111,7 @@ object Deps {
   val jna = ivy"net.java.dev.jna:jna:5.10.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.10.0"
 
-  val junitInterface = ivy"com.github.sbt:junit-interface:0.13.2"
+  val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.0"
@@ -119,12 +119,12 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.3.3"
-  val scalametaTrees = ivy"org.scalameta::trees:4.4.32"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.0.8"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.33"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
-  val upickle = ivy"com.lihaoyi::upickle:1.4.3"
+  val upickle = ivy"com.lihaoyi::upickle:1.4.4"
   val utest = ivy"com.lihaoyi::utest:0.7.10"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.5.9"
@@ -192,14 +192,14 @@ trait MillMimaConfig extends mima.Mima {
   )
 }
 
-trait MillApiModule
+trait MillInternalModule
     extends MillPublishModule
     with ScalaModule
-    with MillCoursierModule
-    with MillMimaConfig {
+    with MillCoursierModule {
   def scalaVersion = Deps.scalaVersion
   override def ammoniteVersion = Deps.ammonite.dep.version
 }
+trait MillApiModule extends MillInternalModule with MillMimaConfig
 
 trait MillModule extends MillApiModule { outer =>
   override def scalacPluginClasspath =
@@ -405,7 +405,7 @@ object scalalib extends MillModule {
   object api extends MillApiModule {
     override def moduleDeps = Seq(main.api)
   }
-  object worker extends MillApiModule {
+  object worker extends MillInternalModule {
 
     override def moduleDeps = Seq(scalalib.api)
 
@@ -491,7 +491,7 @@ object scalajslib extends MillModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.6", "1")
-  class WorkerModule(scalajsWorkerVersion: String) extends MillApiModule {
+  class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
     override def moduleDeps = Seq(scalajslib.api)
     override def ivyDeps = scalajsWorkerVersion match {
       case "0.6" =>
@@ -563,7 +563,7 @@ object contrib extends MillModule {
     object api extends MillPublishModule
 
     object worker extends Cross[WorkerModule]("2.6", "2.7", "2.8")
-    class WorkerModule(playBinary: String) extends MillApiModule {
+    class WorkerModule(playBinary: String) extends MillInternalModule {
       override def sources = T.sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
@@ -719,7 +719,7 @@ object scalanativelib extends MillModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.4")
-  class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
+  class WorkerModule(scalaNativeWorkerVersion: String) extends MillInternalModule {
     override def scalaVersion = Deps.workerScalaVersion212
     override def moduleDeps = Seq(scalanativelib.api)
     override def ivyDeps = scalaNativeWorkerVersion match {
