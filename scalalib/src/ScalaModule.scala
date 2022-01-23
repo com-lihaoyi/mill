@@ -105,6 +105,14 @@ trait ScalaModule extends JavaModule { outer =>
   protected def mandatoryScalacOptions = T { Seq.empty[String] }
 
   /**
+   * Scalac options to active the compiler plugins.
+   */
+  protected def enablePluginScalacOption: Target[Seq[String]] = T {
+    val resolvedJars = resolveDeps(scalacPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
+    resolvedJars.iterator.toSeq.map(jar => s"-Xplugin:${jar}")
+  }
+
+  /**
    * Command-line options to pass to the Scala compiler defined by the user.
    * Consumers should use `allScalacOptions` to read them.
    */
@@ -114,7 +122,8 @@ trait ScalaModule extends JavaModule { outer =>
    * Aggregation of all the options passed to the Scala compiler.
    * In most cases, instead of overriding this Target you want to override `scalacOptions` instead.
    */
-  def allScalacOptions = T { mandatoryScalacOptions() ++ scalacOptions() }
+  def allScalacOptions =
+    T { mandatoryScalacOptions() ++ enablePluginScalacOption() ++ scalacOptions() }
 
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
