@@ -207,7 +207,7 @@ trait MillModule extends MillApiModule { outer =>
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
   }
   override def scalacOptions = T {
-    super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar()}")
+    super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar().path}")
   }
 
   def testArgs = T { Seq.empty[String] }
@@ -221,12 +221,6 @@ trait MillModule extends MillApiModule { outer =>
       else Seq(outer, main.test)
     override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
     override def testFramework = "mill.UTestFramework"
-    override def scalacPluginClasspath = T {
-      super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
-    }
-    override def scalacOptions = T {
-      super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar()}")
-    }
   }
 }
 
