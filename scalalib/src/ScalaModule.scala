@@ -114,7 +114,7 @@ trait ScalaModule extends JavaModule { outer =>
   /**
    * Scalac options to active the compiler plugins for ScalaDoc generation.
    */
-  private def enableScalaDocPluginScalacOption: Target[Seq[String]] = T {
+  private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = T {
     val resolvedJars = resolveDeps(scalaDocPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
@@ -141,7 +141,7 @@ trait ScalaModule extends JavaModule { outer =>
           artifactName()
         )
       else Seq()
-    mandatoryScalacOptions() ++ enableScalaDocPluginScalacOption() ++ scalacOptions() ++ defaults
+    mandatoryScalacOptions() ++ enableScalaDocPluginScalacOptions() ++ scalacOptions() ++ defaults
   }
 
   /**
