@@ -199,11 +199,16 @@ trait MillInternalModule
   def scalaVersion = Deps.scalaVersion
   override def ammoniteVersion = Deps.ammonite.dep.version
 }
+
 trait MillApiModule extends MillInternalModule with MillMimaConfig
 
 trait MillModule extends MillApiModule { outer =>
-  override def scalacPluginClasspath =
+  override def scalacPluginClasspath = T {
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
+  }
+  override def scalacOptions = T {
+    super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar()}")
+  }
 
   def testArgs = T { Seq.empty[String] }
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
@@ -216,8 +221,12 @@ trait MillModule extends MillApiModule { outer =>
       else Seq(outer, main.test)
     override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
     override def testFramework = "mill.UTestFramework"
-    override def scalacPluginClasspath =
+    override def scalacPluginClasspath = T {
       super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
+    }
+    override def scalacOptions = T {
+      super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar()}")
+    }
   }
 }
 
