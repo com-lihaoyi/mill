@@ -104,7 +104,7 @@ trait ScalaModule extends JavaModule { outer =>
   protected def mandatoryScalacOptions: Target[Seq[String]] = T { Seq.empty[String] }
 
   /**
-   * Scalac options to active the compiler plugins.
+   * Scalac options to activate the compiler plugins.
    */
   private def enablePluginScalacOptions: Target[Seq[String]] = T {
     val resolvedJars = resolveDeps(scalacPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
@@ -112,7 +112,7 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   /**
-   * Scalac options to active the compiler plugins for ScalaDoc generation.
+   * Scalac options to activate the compiler plugins for ScalaDoc generation.
    */
   private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = T {
     val resolvedJars = resolveDeps(scalaDocPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
