@@ -23,7 +23,7 @@ object MultiModuleTests extends TestSuite {
       override def mainClass = Some("Main")
       object test extends Tests {
         def testFrameworks = Seq("utest.runner.Framework")
-        override def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.10")
+        override def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
       }
     }
 
