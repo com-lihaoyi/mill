@@ -1,12 +1,18 @@
-
 import mill._
 import mill.scalalib._
 import coursier.MavenRepository
 import mill.modules.Jvm
 import $file.deps
-import deps.{benchmarkLibraries, benchmarkVersions, libraries, testLibraries, testVersions, versions}
+import deps.{
+  benchmarkLibraries,
+  benchmarkVersions,
+  libraries,
+  testLibraries,
+  testVersions,
+  versions
+}
 
-trait CaffeineModule extends MavenModule{
+trait CaffeineModule extends MavenModule {
   override def repositoriesTask = T.task {
     super.repositoriesTask() ++ Seq(
       coursier.ivy.IvyRepository.parse(
@@ -24,7 +30,7 @@ trait CaffeineModule extends MavenModule{
       libraries.guava,
       testLibraries.mockito,
       testLibraries.hamcrest,
-      testLibraries.awaitility,
+      testLibraries.awaitility
     ) ++
       testLibraries.testng ++
       testLibraries.osgiRuntime ++
@@ -34,16 +40,16 @@ trait CaffeineModule extends MavenModule{
 object caffeine extends CaffeineModule {
 
   def ivyDeps = Agg(
-    libraries.jsr305,
+    libraries.jsr305
   )
 
-  def generatedSources = T{
+  def generatedSources = T {
     val out = T.ctx.dest
     val mains = Seq(
       "com.github.benmanes.caffeine.cache.NodeFactoryGenerator",
-      "com.github.benmanes.caffeine.cache.LocalCacheFactoryGenerator",
+      "com.github.benmanes.caffeine.cache.LocalCacheFactoryGenerator"
     )
-    for(mainCls <- mains) Jvm.runSubprocess(
+    for (mainCls <- mains) Jvm.runSubprocess(
       mainCls,
       javaPoet.runClasspath().map(_.path),
       javaPoet.forkArgs(),
@@ -55,7 +61,7 @@ object caffeine extends CaffeineModule {
     Seq(PathRef(out))
   }
 
-  object javaPoet extends MavenModule{
+  object javaPoet extends MavenModule {
     def millSourcePath = caffeine.millSourcePath
     def sources = T.sources(
       millSourcePath / "src" / "javaPoet" / "java"
@@ -79,7 +85,7 @@ object caffeine extends CaffeineModule {
       libraries.commonsLang3,
       testLibraries.junit,
       testLibraries.jctools,
-      testLibraries.guavaTestLib,
+      testLibraries.guavaTestLib
     ) ++
       testLibraries.testng
 
@@ -90,7 +96,7 @@ object caffeine extends CaffeineModule {
 object guava extends CaffeineModule {
   def moduleDeps = Seq(caffeine)
   def ivyDeps = Agg(libraries.guava)
-  object test extends Tests{
+  object test extends Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       testLibraries.junit,
       testLibraries.truth,
@@ -110,7 +116,7 @@ object guava extends CaffeineModule {
 object jcache extends CaffeineModule {
   def moduleDeps = Seq(caffeine)
   def ivyDeps = Agg(libraries.jcache, libraries.config, libraries.jsr330)
-  object test extends Tests{
+  object test extends Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       testLibraries.junit,
       testLibraries.jcacheTck,
@@ -144,7 +150,7 @@ object simulator extends CaffeineModule {
     benchmarkLibraries.expiringMap,
     benchmarkLibraries.elasticSearch
   )
-  object test extends Tests{
+  object test extends Tests {
 
     def ivyDeps = super.ivyDeps() ++ testLibraries.testng
   }

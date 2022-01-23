@@ -17,12 +17,20 @@ trait HelloWorldModule extends scalalib.ScalaModule {
     ideaConfigVersion match {
       case 4 =>
         Seq(
-          JavaFacet("AspectJ", "AspectJ",
-            Element("configuration", childs = Seq(
-              Element("projectLibrary", childs = Seq(
-                Element("option", Map("name" -> "name", "value" -> "/tmp"))
-              ))
-            ))
+          JavaFacet(
+            "AspectJ",
+            "AspectJ",
+            Element(
+              "configuration",
+              childs = Seq(
+                Element(
+                  "projectLibrary",
+                  childs = Seq(
+                    Element("option", Map("name" -> "name", "value" -> "/tmp"))
+                  )
+                )
+              )
+            )
           )
         )
     }
@@ -35,7 +43,9 @@ trait HelloWorldModule extends scalalib.ScalaModule {
           IdeaConfigFile(
             name = "compiler.xml",
             component = "AjcSettings",
-            config = Seq(Element("option", Map("name" -> "ajcPath", "value" -> "/tmp/aspectjtools.jar")))),
+            config =
+              Seq(Element("option", Map("name" -> "ajcPath", "value" -> "/tmp/aspectjtools.jar")))
+          ),
           IdeaConfigFile(
             name = "compiler.xml",
             component = "CompilerConfiguration",

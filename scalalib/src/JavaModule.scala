@@ -614,16 +614,16 @@ trait JavaModule
    */
   def run(args: String*): Command[Unit] = T.command {
     try Result.Success(
-      Jvm.runSubprocess(
-        finalMainClass(),
-        runClasspath().map(_.path),
-        forkArgs(),
-        forkEnv(),
-        args,
-        workingDir = forkWorkingDir(),
-        useCpPassingJar = runUseArgsFile()
+        Jvm.runSubprocess(
+          finalMainClass(),
+          runClasspath().map(_.path),
+          forkArgs(),
+          forkEnv(),
+          args,
+          workingDir = forkWorkingDir(),
+          useCpPassingJar = runUseArgsFile()
+        )
       )
-    )
     catch {
       case e: Exception =>
         Result.Failure("subprocess failed")
@@ -677,17 +677,17 @@ trait JavaModule
   def runBackground(args: String*): Command[Unit] = T.command {
     val (procId, procTombstone, token) = backgroundSetup(T.dest)
     try Result.Success(
-      Jvm.runSubprocess(
-        "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-        (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
-        forkArgs(),
-        forkEnv(),
-        Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
-        workingDir = forkWorkingDir(),
-        background = true,
-        useCpPassingJar = runUseArgsFile()
+        Jvm.runSubprocess(
+          "mill.scalalib.backgroundwrapper.BackgroundWrapper",
+          (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
+          forkArgs(),
+          forkEnv(),
+          Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
+          workingDir = forkWorkingDir(),
+          background = true,
+          useCpPassingJar = runUseArgsFile()
+        )
       )
-    )
     catch {
       case e: Exception =>
         Result.Failure("subprocess failed")
@@ -701,18 +701,18 @@ trait JavaModule
     T.command {
       val (procId, procTombstone, token) = backgroundSetup(T.dest)
       try Result.Success(
-        Jvm.runSubprocess(
-          "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-          (runClasspath() ++ zincWorker.backgroundWrapperClasspath())
-            .map(_.path),
-          forkArgs(),
-          forkEnv(),
-          Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
-          workingDir = forkWorkingDir(),
-          background = true,
-          useCpPassingJar = runUseArgsFile()
+          Jvm.runSubprocess(
+            "mill.scalalib.backgroundwrapper.BackgroundWrapper",
+            (runClasspath() ++ zincWorker.backgroundWrapperClasspath())
+              .map(_.path),
+            forkArgs(),
+            forkEnv(),
+            Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
+            workingDir = forkWorkingDir(),
+            background = true,
+            useCpPassingJar = runUseArgsFile()
+          )
         )
-      )
       catch {
         case e: Exception =>
           Result.Failure("subprocess failed")
@@ -736,16 +736,16 @@ trait JavaModule
    */
   def runMain(mainClass: String, args: String*): Command[Unit] = T.command {
     try Result.Success(
-      Jvm.runSubprocess(
-        mainClass,
-        runClasspath().map(_.path),
-        forkArgs(),
-        forkEnv(),
-        args,
-        workingDir = forkWorkingDir(),
-        useCpPassingJar = runUseArgsFile()
+        Jvm.runSubprocess(
+          mainClass,
+          runClasspath().map(_.path),
+          forkArgs(),
+          forkEnv(),
+          args,
+          workingDir = forkWorkingDir(),
+          useCpPassingJar = runUseArgsFile()
+        )
       )
-    )
     catch {
       case e: Exception =>
         Result.Failure("subprocess failed")

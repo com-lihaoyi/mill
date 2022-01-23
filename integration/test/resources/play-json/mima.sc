@@ -1,4 +1,3 @@
-
 //import $ivy.`com.typesafe::mima-reporter:0.1.18`
 //import com.typesafe.tools.mima.lib.MiMaLib
 //import com.typesafe.tools.mima.core._

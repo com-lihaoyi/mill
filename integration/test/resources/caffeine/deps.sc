@@ -1,8 +1,7 @@
-
 import mill._
 import mill.scalalib._
 
-object versions{
+object versions {
   val akka = "2.5.11"
   val commonsCompress = "1.16.1"
   val commonsLang3 = "3.7"
@@ -19,7 +18,7 @@ object versions{
   val ycsb = "0.13.0"
   val xz = "1.8"
 }
-object testVersions{
+object testVersions {
   val awaitility = "3.1.0"
   val easymock = "3.5.1"
   val hamcrest = "2.0.0.0"
@@ -31,7 +30,7 @@ object testVersions{
   val testng = "6.14.3"
   val truth = "0.24"
 }
-object benchmarkVersions{
+object benchmarkVersions {
   val cache2k = "1.0.2.Final"
   val collision = "0.3.3"
   val concurrentlinkedhashmap = "1.4.2"
@@ -48,12 +47,13 @@ object benchmarkVersions{
   val slf4j = "1.7.25"
   val tcache = "1.0.5"
 }
-object libraries{
+object libraries {
   val akka = ivy"com.typesafe.akka:akka-actor_2.12:${versions.akka}"
   val commonsCompress = ivy"org.apache.commons:commons-compress:${versions.commonsCompress}"
   val commonsLang3 = ivy"org.apache.commons:commons-lang3:${versions.commonsLang3}"
   val config = ivy"com.typesafe:config:${versions.config}"
-  val errorProneAnnotations = ivy"com.google.errorprone:error_prone_annotations:${versions.errorProne}"
+  val errorProneAnnotations =
+    ivy"com.google.errorprone:error_prone_annotations:${versions.errorProne}"
   val errorProneCore = ivy"com.google.errorprone:error_prone_core:${versions.errorProne}"
   val fastutil = ivy"it.unimi.dsi:fastutil:${versions.fastutil}"
   val flipTables = ivy"com.jakewharton.fliptables:fliptables:${versions.flipTables}"
@@ -66,7 +66,7 @@ object libraries{
   val ycsb = ivy"com.github.brianfrankcooper.ycsb:core:${versions.ycsb}"
   val xz = ivy"org.tukaani:xz:${versions.xz}"
 }
-object testLibraries{
+object testLibraries {
   val awaitility = ivy"org.awaitility:awaitility:${testVersions.awaitility}"
     .excludeOrg("org.hamcrest")
 
@@ -104,10 +104,11 @@ object testLibraries{
 
   val truth = ivy"com.google.truth:truth:${testVersions.truth}"
 }
-object benchmarkLibraries{
+object benchmarkLibraries {
   val cache2k = ivy"org.cache2k:cache2k-core:${benchmarkVersions.cache2k}"
   val collision = ivy"systems.comodal:collision:${benchmarkVersions.collision}"
-  val concurrentlinkedhashmap = ivy"com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:${benchmarkVersions.concurrentlinkedhashmap}"
+  val concurrentlinkedhashmap =
+    ivy"com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:${benchmarkVersions.concurrentlinkedhashmap}"
   val ehcache3 = ivy"org.ehcache:ehcache:${benchmarkVersions.ehcache3}"
 
   val elasticSearch = ivy"org.elasticsearch:elasticsearch:${benchmarkVersions.elasticSearch}"
@@ -123,7 +124,7 @@ object benchmarkLibraries{
 
   val koloboke = Seq(
     ivy"net.openhft:koloboke-api-jdk8:${benchmarkVersions.koloboke}",
-    ivy"net.openhft:koloboke-impl-jdk8:${benchmarkVersions.koloboke}",
+    ivy"net.openhft:koloboke-impl-jdk8:${benchmarkVersions.koloboke}"
   )
 
   val ohc = ivy"org.caffinitas.ohc:ohc-core-j8:${benchmarkVersions.ohc}"

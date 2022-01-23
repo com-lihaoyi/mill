@@ -15,14 +15,14 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with P
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github("lihaoyi", "acyclic"),
     developers = Seq(
-      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
+      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
     )
   )
 
   def ivyDeps = Agg(
     ivy"${scalaOrganization()}:scala-compiler:${scalaVersion()}"
   )
-  object test extends Tests{
+  object test extends Tests {
     def forkWorkingDir = os.pwd / "target" / "workspace" / "acyclic"
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest:0.6.0"
