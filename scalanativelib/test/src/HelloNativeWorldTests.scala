@@ -24,7 +24,7 @@ object HelloNativeWorldTests extends TestSuite {
   }
 
   val scala213 = "2.13.6"
-  val scalaNative04 = "0.4.0"
+  val scalaNative04 = "0.4.3"
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
@@ -231,7 +231,7 @@ object HelloNativeWorldTests extends TestSuite {
       )
 
     val scalaNativeVersionSpecific =
-      if (scalaNativeVersion == "0.4.0") Set.empty
+      if (scalaNativeVersion == "0.4.3") Set.empty
       else Set("Main.nir", "ArgsParser.nir")
 
     common ++ scalaVersionSpecific ++ scalaNativeVersionSpecific

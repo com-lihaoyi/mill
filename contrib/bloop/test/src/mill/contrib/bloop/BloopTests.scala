@@ -52,7 +52,7 @@ object BloopTests extends TestSuite {
     object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
       override def skipBloop: Boolean = scala.util.Properties.isWin
       override def scalaVersion = "2.13.4"
-      override def scalaNativeVersion = "0.4.0"
+      override def scalaNativeVersion = "0.4.3"
       override def releaseMode = T(ReleaseMode.Debug)
     }
 
