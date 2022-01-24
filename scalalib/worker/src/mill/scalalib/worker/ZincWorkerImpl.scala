@@ -309,19 +309,19 @@ class ZincWorkerImpl(
       reporter: Option[CompileProblemReporter]
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     withCompilers(
-      scalaVersion,
-      scalaOrganization,
-      compilerClasspath,
-      scalacPluginClasspath
+      scalaVersion = scalaVersion,
+      scalaOrganization = scalaOrganization,
+      compilerClasspath = compilerClasspath,
+      scalacPluginClasspath = scalacPluginClasspath
     ) { compilers: Compilers =>
       compileInternal(
-        upstreamCompileOutput,
-        sources,
-        compileClasspath,
-        javacOptions,
-        scalacOptions = scalacPluginClasspath.map(jar => s"-Xplugin:$jar").toSeq ++ scalacOptions,
-        compilers,
-        reporter
+        upstreamCompileOutput = upstreamCompileOutput,
+        sources = sources,
+        compileClasspath = compileClasspath,
+        javacOptions = javacOptions,
+        scalacOptions = scalacOptions,
+        compilers = compilers,
+        reporter = reporter
       )
     }
   }
