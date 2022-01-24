@@ -173,19 +173,12 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
     val scalaConfig = module match {
       case s: ScalaModule =>
         T.task {
-          val pluginCp = s.scalacPluginClasspath()
-          val pluginOptions = pluginCp.map { pathRef =>
-            s"-Xplugin:${pathRef.path}"
-          }
-
-          val allScalacOptions =
-            (s.allScalacOptions() ++ pluginOptions).toList
           Some(
             BloopConfig.Scala(
               organization = s.scalaOrganization(),
               name = "scala-compiler",
               version = s.scalaVersion(),
-              options = allScalacOptions,
+              options = s.allScalacOptions().toList,
               jars = s.scalaCompilerClasspath().map(_.path.toNIO).toList,
               analysis = None,
               setup = None
