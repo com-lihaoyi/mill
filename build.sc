@@ -115,7 +115,7 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.0"
-  val testng = ivy"org.testng:testng:7.4.0"
+  val testng = ivy"org.testng:testng:7.5"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
@@ -125,7 +125,7 @@ object Deps {
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
   val upickle = ivy"com.lihaoyi::upickle:1.4.4"
-  val utest = ivy"com.lihaoyi::utest:0.7.10"
+  val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.5.9"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0"
@@ -199,11 +199,16 @@ trait MillInternalModule
   def scalaVersion = Deps.scalaVersion
   override def ammoniteVersion = Deps.ammonite.dep.version
 }
+
 trait MillApiModule extends MillInternalModule with MillMimaConfig
 
 trait MillModule extends MillApiModule { outer =>
-  override def scalacPluginClasspath =
+  override def scalacPluginClasspath = T {
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
+  }
+  override def scalacOptions = T {
+    super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar().path}")
+  }
 
   def testArgs = T { Seq.empty[String] }
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
@@ -216,8 +221,6 @@ trait MillModule extends MillApiModule { outer =>
       else Seq(outer, main.test)
     override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
     override def testFramework = "mill.UTestFramework"
-    override def scalacPluginClasspath =
-      super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
   }
 }
 
