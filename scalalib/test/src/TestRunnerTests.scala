@@ -18,7 +18,7 @@ object TestRunnerTests extends TestSuite {
     object test extends super.Tests with TestModule.Utest {
 
       override def ivyDeps = T {
-        super.ivyDeps() ++ Agg(ivy"com.lihaoyi::utest:0.7.10")
+        super.ivyDeps() ++ Agg(ivy"com.lihaoyi::utest:0.7.11")
       }
     }
   }
