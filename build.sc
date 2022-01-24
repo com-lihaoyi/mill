@@ -75,7 +75,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
-  val ammoniteVersion = "2.5.0-9-b0470ac2"
+  val ammoniteVersion = "2.5.1"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   // Exclude trees here to force the version of we have defined. We use this
