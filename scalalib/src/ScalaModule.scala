@@ -3,13 +3,13 @@ package scalalib
 
 import scala.annotation.nowarn
 import mill.define.{Command, Sources, Target, Task}
-import mill.api.{DummyInputStream, Loose, PathRef, Result, internal}
+import mill.api.{DummyInputStream, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
 import Lib._
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.Loose.Agg
-import mill.eval.{Evaluator, EvaluatorPathsResolver}
+import mill.eval.EvaluatorPathsResolver
 import mill.scalalib.api.{CompilationResult, ZincWorkerUtil}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 
@@ -191,7 +191,7 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   // Keep in sync with [[bspCompileClassesInfo]]
-  override def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
+  override def compile: T[CompilationResult] = T.persistent {
     val sv = scalaVersion()
     if (sv == "2.12.4") T.log.error(
       """Attention: Zinc is known to not work properly for Scala version 2.12.4.
