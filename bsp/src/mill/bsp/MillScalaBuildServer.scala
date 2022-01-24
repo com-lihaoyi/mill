@@ -37,9 +37,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
       ) {
         case (id, m: JavaModule) =>
           val optionsTask = m match {
-            case sm: ScalaModule => T.task {
-                sm.allScalacOptions() ++ sm.scalacPluginClasspath().map(jar => s"-Xplugin:$jar")
-              }
+            case sm: ScalaModule => sm.allScalacOptions
             case _ => T.task { Seq.empty[String] }
           }
 
