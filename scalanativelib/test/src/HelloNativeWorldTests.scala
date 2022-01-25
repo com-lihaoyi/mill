@@ -29,7 +29,7 @@ object HelloNativeWorldTests extends TestSuite {
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
       scala <- Seq("3.1.0", scala213, "2.12.13", "2.11.12")
-      scalaNative <- Seq(scalaNative04, "0.4.3-RC2")
+      scalaNative <- Seq(scalaNative04, "0.4.3")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
       if !(isScala3(scala) && scalaNative == scalaNative04)
     } yield (scala, scalaNative, mode)
@@ -231,7 +231,7 @@ object HelloNativeWorldTests extends TestSuite {
       )
 
     val scalaNativeVersionSpecific =
-      if (scalaNativeVersion == "0.4.3") Set.empty
+      if (scalaNativeVersion == scalaNative04) Set.empty
       else Set("Main.nir", "ArgsParser.nir")
 
     common ++ scalaVersionSpecific ++ scalaNativeVersionSpecific
