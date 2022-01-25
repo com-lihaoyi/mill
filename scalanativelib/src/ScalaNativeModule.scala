@@ -41,21 +41,29 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     mill.scalanativelib.ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath())
   }
 
+  private def scalaNativeWorkerScalaVersion = T.task {
+    scalaNativeVersion() match {
+      case "0.4.0" | "0.4.1" => mill.BuildInfo.workerScalaVersion212
+      case _ => mill.BuildInfo.scalaVersion
+    }
+  }
+
   def scalaNativeWorkerClasspath = T {
-    val workerKey = "MILL_SCALANATIVE_WORKER_" + scalaNativeWorkerVersion().replace('.', '_')
+    val workerScalaBinaryVersion = scalaBinaryVersion(scalaNativeWorkerScalaVersion())
+    val workerKey = s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}_$workerScalaBinaryVersion".replace('.', '_')
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
       repositoriesTask(),
       resolveFilter = _.toString.contains("mill-scalanativelib-worker"),
-      artifactSuffix = "_2.12"
+      artifactSuffix = s"_$workerScalaBinaryVersion"
     )
   }
 
   def toolsIvyDeps = T {
     Agg(
-      ivy"org.scala-native:tools_2.12:${scalaNativeVersion()}",
-      ivy"org.scala-native:test-runner_2.12:${scalaNativeVersion()}"
+      ivy"org.scala-native::tools:${scalaNativeVersion()}",
+      ivy"org.scala-native::test-runner:${scalaNativeVersion()}"
     )
   }
 
@@ -82,12 +90,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     super.mandatoryIvyDeps() ++ nativeIvyDeps()
   }
 
-  // Using `resolveDeps` from `CoursierModule` incorrectly resolves
-  // scala-library 2.13 instead of the required 2.12
   def bridgeFullClassPath: T[Agg[os.Path]] = T {
     Lib.resolveDependencies(
       repositoriesTask(),
-      resolveCoursierDependency().apply(_),
+      Lib.depToDependency(_, scalaNativeWorkerScalaVersion(), ""),
       toolsIvyDeps(),
       ctx = Some(T.log)
     ).map(t => (scalaNativeWorkerClasspath() ++ t).map(_.path))
