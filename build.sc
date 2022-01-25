@@ -68,10 +68,10 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.2"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.2"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.2"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.2"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.3"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.3"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.3"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.3"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
@@ -713,7 +713,10 @@ object scalanativelib extends MillModule {
 
   override def testArgs = T {
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_4_2_12" -> worker("0.4", Deps.workerScalaVersion212).compile().classes.path,
+      "MILL_SCALANATIVE_WORKER_0_4_2_12" -> worker(
+        "0.4",
+        Deps.workerScalaVersion212
+      ).compile().classes.path,
       "MILL_SCALANATIVE_WORKER_0_4_2_13" -> worker("0.4", Deps.scalaVersion).compile().classes.path
     )
     scalalib.worker.testArgs() ++
@@ -724,8 +727,10 @@ object scalanativelib extends MillModule {
   object api extends MillPublishModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
-  object worker extends Cross[WorkerModule](("0.4", Deps.scalaVersion), ("0.4", Deps.workerScalaVersion212))
-  class WorkerModule(scalaNativeWorkerVersion: String, val crossScalaVersion: String) extends CrossModuleBase with MillInternalModule {
+  object worker
+      extends Cross[WorkerModule](("0.4", Deps.scalaVersion), ("0.4", Deps.workerScalaVersion212))
+  class WorkerModule(scalaNativeWorkerVersion: String, val crossScalaVersion: String)
+      extends CrossModuleBase with MillInternalModule {
     override def scalaVersion = T { crossScalaVersion }
     override def moduleDeps = Seq(scalanativelib.api)
     override def ivyDeps = scalaNativeWorkerVersion match {
