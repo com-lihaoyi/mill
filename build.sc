@@ -75,7 +75,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
-  val ammoniteVersion = "2.5.0-9-b0470ac2"
+  val ammoniteVersion = "2.5.1"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   // Exclude trees here to force the version of we have defined. We use this
@@ -123,7 +123,7 @@ object Deps {
   val scalametaTrees = ivy"org.scalameta::trees:4.4.33"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
   val upickle = ivy"com.lihaoyi::upickle:1.4.4"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
