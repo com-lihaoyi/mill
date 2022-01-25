@@ -155,7 +155,12 @@ trait PublishModule extends JavaModule { outer =>
   def publish(
       sonatypeCreds: String,
       signed: Boolean = true,
-      gpgArgs: Seq[String] = PublishModule.defaultGpgArgs,
+      // mainargs wasn't handling a default value properly, 
+      // so we instead use the empty Seq as default.
+      // see https://github.com/com-lihaoyi/mill/pull/1678
+      // TODO: In mill 0.11, we may want to change to a String argument 
+      // which we can split at `,` symbols, as we do in `PublishModule.publishAll`.
+      gpgArgs: Seq[String] = Seq.empty,
       release: Boolean = false,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000,
@@ -168,7 +173,7 @@ trait PublishModule extends JavaModule { outer =>
       sonatypeSnapshotUri,
       sonatypeCreds,
       signed,
-      gpgArgs.flatMap(_.split("[,]")),
+      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgs else gpgArgs,
       readTimeout,
       connectTimeout,
       T.log,
