@@ -291,6 +291,8 @@ object main extends MillModule {
            |object BuildInfo {
            |  /** Scala version used to compile mill core. */
            |  val scalaVersion = "$scalaVersion"
+           |  /** Scala 2.12 version used by some workers. */
+           |  val workerScalaVersion212 = "${Deps.workerScalaVersion212}"
            |  /** Mill version. */
            |  val millVersion = "$millVersion"
            |  /** Mill binary platform version. */
@@ -708,7 +710,8 @@ object scalanativelib extends MillModule {
 
   override def testArgs = T {
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").compile().classes.path
+      "MILL_SCALANATIVE_WORKER_0_4_2_12" -> worker("0.4", Deps.workerScalaVersion212).compile().classes.path,
+      "MILL_SCALANATIVE_WORKER_0_4_2_13" -> worker("0.4", Deps.scalaVersion).compile().classes.path
     )
     scalalib.worker.testArgs() ++
       scalalib.backgroundwrapper.testArgs() ++
@@ -718,9 +721,9 @@ object scalanativelib extends MillModule {
   object api extends MillPublishModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
-  object worker extends Cross[WorkerModule]("0.4")
-  class WorkerModule(scalaNativeWorkerVersion: String) extends MillInternalModule {
-    override def scalaVersion = Deps.scalaVersion
+  object worker extends Cross[WorkerModule](("0.4", Deps.scalaVersion), ("0.4", Deps.workerScalaVersion212))
+  class WorkerModule(scalaNativeWorkerVersion: String, val crossScalaVersion: String) extends CrossModuleBase with MillInternalModule {
+    override def scalaVersion = T { crossScalaVersion }
     override def moduleDeps = Seq(scalanativelib.api)
     override def ivyDeps = scalaNativeWorkerVersion match {
       case "0.4" =>

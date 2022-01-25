@@ -12,12 +12,14 @@ class ScalaNativeWorker {
 
   def impl(toolsClasspath: Agg[os.Path])(implicit ctx: mill.api.Ctx.Home): ScalaNativeWorkerApi = {
     val classloaderSig = toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
+    val isScala213 = toolsClasspath.exists(_.last.endsWith("_2.13.jar"))
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
         val cl = mill.api.ClassLoader.create(
           toolsClasspath.map(_.toIO.toURI.toURL).toSeq,
-          getClass.getClassLoader
+          parent = if(isScala213) getClass.getClassLoader else null,
+          sharedPrefixes = if(isScala213) Seq.empty else Seq("mill.scalanativelib.api.", "sbt.testing.")
         )
         try {
           val bridge = cl

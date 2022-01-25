@@ -54,7 +54,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
       logLevel: NativeLogLevel
   ): NativeConfig = {
     val entry = Versions.current match {
-      case "0.4.2" => mainClass + "$"
+      case "0.4.0" | "0.4.1" | "0.4.2" => mainClass + "$"
       case _ => mainClass
     }
     val config =

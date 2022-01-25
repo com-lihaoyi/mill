@@ -41,13 +41,22 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     mill.scalanativelib.ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath())
   }
 
+  private def scalaNativeWorkerScalaVersion = T.task {
+    scalaNativeVersion() match {
+      case "0.4.0" | "0.4.1" => mill.BuildInfo.workerScalaVersion212
+      case _ => mill.BuildInfo.scalaVersion
+    }
+  }
+
   def scalaNativeWorkerClasspath = T {
-    val workerKey = "MILL_SCALANATIVE_WORKER_" + scalaNativeWorkerVersion().replace('.', '_')
+    val workerScalaBinaryVersion = scalaBinaryVersion(scalaNativeWorkerScalaVersion())
+    val workerKey = s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}_$workerScalaBinaryVersion".replace('.', '_')
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
       repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-scalanativelib-worker")
+      resolveFilter = _.toString.contains("mill-scalanativelib-worker"),
+      artifactSuffix = s"_$workerScalaBinaryVersion"
     )
   }
 
@@ -84,7 +93,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def bridgeFullClassPath: T[Agg[os.Path]] = T {
     Lib.resolveDependencies(
       repositoriesTask(),
-      Lib.depToDependency(_, mill.BuildInfo.scalaVersion, ""),
+      Lib.depToDependency(_, scalaNativeWorkerScalaVersion(), ""),
       toolsIvyDeps(),
       ctx = Some(T.log)
     ).map(t => (scalaNativeWorkerClasspath() ++ t).map(_.path))
