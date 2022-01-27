@@ -190,14 +190,14 @@ trait HelloWorldTests extends utest.TestSuite {
 
 object HelloWorldTests_2_12 extends HelloWorldTests {
   override def threadCount = Some(1)
-  override def testScalaVersion: String = sys.props("TEST_SCALA_2_12_VERSION")
-  override def testScoverageVersion = sys.props("MILL_SCOVERAGE_VERSION")
+  override def testScalaVersion: String = sys.props.getOrElse("MILL_SCALA_2_12_VERSION", ???)
+  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
   override def testScalatestVersion = "3.0.8"
 }
 
 object HelloWorldTests_2_13 extends HelloWorldTests {
   override def threadCount = Some(1)
-  override def testScalaVersion: String = sys.props("TEST_SCALA_2_13_VERSION")
-  override def testScoverageVersion = sys.props("MILL_SCOVERAGE_VERSION")
+  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
   override def testScalatestVersion = "3.0.8"
 }
