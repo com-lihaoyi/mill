@@ -124,7 +124,7 @@ object Deps {
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
-  val upickle = ivy"com.lihaoyi::upickle:1.4.4"
+  val upickle = ivy"com.lihaoyi::upickle:1.5.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.6.1"
@@ -713,7 +713,10 @@ object scalanativelib extends MillModule {
 
   override def testArgs = T {
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_4_2_12" -> worker("0.4", Deps.workerScalaVersion212).compile().classes.path,
+      "MILL_SCALANATIVE_WORKER_0_4_2_12" -> worker(
+        "0.4",
+        Deps.workerScalaVersion212
+      ).compile().classes.path,
       "MILL_SCALANATIVE_WORKER_0_4_2_13" -> worker("0.4", Deps.scalaVersion).compile().classes.path
     )
     scalalib.worker.testArgs() ++
@@ -724,8 +727,10 @@ object scalanativelib extends MillModule {
   object api extends MillPublishModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
-  object worker extends Cross[WorkerModule](("0.4", Deps.scalaVersion), ("0.4", Deps.workerScalaVersion212))
-  class WorkerModule(scalaNativeWorkerVersion: String, val crossScalaVersion: String) extends CrossModuleBase with MillInternalModule {
+  object worker
+      extends Cross[WorkerModule](("0.4", Deps.scalaVersion), ("0.4", Deps.workerScalaVersion212))
+  class WorkerModule(scalaNativeWorkerVersion: String, val crossScalaVersion: String)
+      extends CrossModuleBase with MillInternalModule {
     override def scalaVersion = T { crossScalaVersion }
     override def moduleDeps = Seq(scalanativelib.api)
     override def ivyDeps = scalaNativeWorkerVersion match {
