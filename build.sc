@@ -53,6 +53,10 @@ object Deps {
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.15"
 
+  val testScala213Version = "2.13.8"
+  val testScala212Version = "2.12.4"
+  val testScala30Version = "3.0.2"
+
   object Scalajs_0_6 {
     val scalajsJsEnvs = ivy"org.scala-js::scalajs-js-envs:0.6.33"
     val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.33"
@@ -214,8 +218,18 @@ trait MillModule extends MillApiModule { outer =>
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
 
   val test = new Tests(implicitly)
+
+  /** Default tests module used in all mill modules, if not overridden. */
   class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests {
-    override def forkArgs = T { testArgs() }
+    override def forkArgs = T {
+      Seq(
+        s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
+        s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
+        s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
+        s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
+        s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}"
+      ) ++ testArgs()
+    }
     override def moduleDeps =
       if (this == main.test) Seq(main)
       else Seq(outer, main.test)
@@ -606,8 +620,6 @@ object contrib extends MillModule {
     override def testArgs = T {
       val mapping = Map(
         "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path,
-        "MILL_SCALA_2_13_VERSION" -> Deps.scalaVersion,
-        "MILL_SCALA_2_12_VERSION" -> Deps.workerScalaVersion212,
         "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version
       )
       scalalib.worker.testArgs() ++

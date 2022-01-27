@@ -3,14 +3,14 @@ package mill.scalajslib
 import mill._
 import mill.define.Discover
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.scalalib.{CrossScalaModule, DepSyntax}
+import mill.scalalib.{CrossScalaModule, DepSyntax, TestModule}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import mill.scalajslib.api._
 
 object NodeJSConfigTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
-  val scalaVersion = "2.12.4"
+  val scalaVersion = sys.props("TEST_SCALA_2_12_VERSION")
   val scalaJSVersion = "0.6.32"
   val utestVersion = "0.7.5"
   val nodeArgsEmpty = List()
@@ -40,9 +40,8 @@ object NodeJSConfigTests extends TestSuite {
     object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
     class BuildModuleUtest(crossScalaVersion: String, nodeArgs: List[String])
         extends BuildModule(crossScalaVersion, nodeArgs) {
-      object test extends super.Tests {
+      object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
-        def testFrameworks = Seq("utest.runner.Framework")
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
