@@ -11,7 +11,7 @@ import utest.{Tests, _}
 
 object GenIdeaTests extends ScriptTestSuite(false) {
 
-  val scalaVersionLibPart = "2_12_4"
+  val scalaVersionLibPart = "2_12_5"
 
   private val ignoreString = "<!-- IGNORE -->"
 
