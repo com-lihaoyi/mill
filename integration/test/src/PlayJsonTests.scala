@@ -17,7 +17,7 @@ class PlayJsonTests(fork: Boolean)
     "jvm" - {
       assert(eval(s"playJsonJvm[${scalaVersion}].{test-scalatest,test-specs2}"))
       val jvmMeta: Seq[String] = Seq(
-        meta("playJsonJvm[2.12.4].test-scalatest.test"),
+        meta(s"playJsonJvm[${scalaVersion}].test-scalatest.test"),
         meta("playJsonJvm[2.12.4].test-specs2.test")
       )
 
@@ -31,9 +31,9 @@ class PlayJsonTests(fork: Boolean)
         jvmMeta.exists(_.contains("JSON reads should::validate Dates"))
       )
     }
-    'js - {
+    "js" - {
       assert(eval(s"playJsonJs[${scalaVersion}].test"))
-      val jsMeta = meta("playJsonJs[2.12.4].test.test")
+      val jsMeta = meta(s"playJsonJs[${scalaVersion}].test.test")
 
       assert(
         jsMeta.contains("play.api.libs.json.JsonSharedSpec"),
@@ -47,9 +47,9 @@ class PlayJsonTests(fork: Boolean)
         )
       )
     }
-    'playJoda - {
+    "playJoda" - {
       assert(eval(s"playJoda[${scalaVersion}].test"))
-      val metaFile = meta("playJoda[2.12.4].test.test")
+      val metaFile = meta(s"playJoda[${scalaVersion}].test.test")
 
       assert(
         metaFile.contains("play.api.libs.json.JsonJodaValidSpec"),
@@ -57,7 +57,7 @@ class PlayJsonTests(fork: Boolean)
       )
     }
 
-    'benchmarks - {
+    "benchmarks" - {
 //      "benchmarks[2.12.4].runJmh" -i 1 -wi 1 -f1 -t1
     }
   }

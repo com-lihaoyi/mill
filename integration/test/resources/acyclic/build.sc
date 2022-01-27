@@ -1,8 +1,8 @@
 import mill.Cross
-import mill.scalalib.{SbtModule, PublishModule, Dep, CrossSbtModule, DepSyntax}
-import mill.scalalib.publish.{PomSettings, License, Developer, VersionControl}
+import mill.scalalib.{CrossSbtModule, Dep, DepSyntax, PublishModule, SbtModule, TestModule}
+import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 
-object acyclic extends Cross[AcyclicModule]("2.10.6", "2.11.8", "2.12.3", "2.12.4")
+object acyclic extends Cross[AcyclicModule]("2.10.6", "2.11.8", "2.12.3", "2.12.5")
 class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with PublishModule {
   def millSourcePath = super.millSourcePath / os.up
   def artifactName = "acyclic"
@@ -22,11 +22,10 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with P
   def ivyDeps = Agg(
     ivy"${scalaOrganization()}:scala-compiler:${scalaVersion()}"
   )
-  object test extends Tests{
+  object test extends Tests with TestModule.Utest {
     def forkWorkingDir = os.pwd / "target" / "workspace" / "acyclic"
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest:0.6.0"
     )
-    def testFrameworks = Seq("utest.runner.Framework")
   }
 }

@@ -3,7 +3,7 @@ import mill._, scalalib._, publish._
 val binCrossScalaVersions = Seq("2.11.12", "2.12.7")
 val fullCrossScalaVersions = Seq(
   "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8", "2.11.9", "2.11.11", "2.11.12",
-  "2.12.0", "2.12.1", "2.12.2", "2.12.3", "2.12.4", "2.12.6", "2.12.7"
+  "2.12.0", "2.12.1", "2.12.2", "2.12.3", "2.12.6", "2.12.7"
 )
 
 val latestAssemblies = binCrossScalaVersions.map(amm(_).assembly)

@@ -1,5 +1,7 @@
 import mill._, mill.scalalib._, mill.scalalib.publish._, mill.scalajslib._
 
+val scala21111Version = "2.11.11"
+val scala212Version = "2.12.5"
 
 trait UpickleModule extends CrossSbtModule with PublishModule{
 
@@ -90,7 +92,7 @@ trait UpickleModule extends CrossSbtModule with PublishModule{
   def platformSegment: String
 }
 
-trait UpickleTestModule extends TestModule with ScalaModule{
+trait UpickleTestModule extends TestModule with ScalaModule with TestModule.Utest {
   def platformSegment: String
 
   def ivyDeps = Agg(
@@ -102,10 +104,9 @@ trait UpickleTestModule extends TestModule with ScalaModule{
     millSourcePath / platformSegment / "src" / "test",
     millSourcePath / "shared" / "src" / "test"
   )
-  def testFrameworks = Seq("utest.runner.Framework")
 }
 
-object upickleJvm extends Cross[UpickleJvmModule]("2.11.11", "2.12.4")
+object upickleJvm extends Cross[UpickleJvmModule](scala21111Version, scala212Version)
 class UpickleJvmModule(val crossScalaVersion: String) extends UpickleModule{
   def platformSegment = "jvm"
 
@@ -118,7 +119,7 @@ class UpickleJvmModule(val crossScalaVersion: String) extends UpickleModule{
   }
 }
 
-object upickleJs extends Cross[UpickleJsModule]("2.11.11", "2.12.4")
+object upickleJs extends Cross[UpickleJsModule](scala21111Version, scala212Version)
 class UpickleJsModule(val crossScalaVersion: String) extends UpickleModule with ScalaJSModule {
   def platformSegment = "js"
 
@@ -137,7 +138,7 @@ class UpickleJsModule(val crossScalaVersion: String) extends UpickleModule with 
 }
 
 object test extends ScalaModule{
-  def scalaVersion = "2.12.4"
-  def moduleDeps = Seq(upickleJvm("2.12.4"))
+  def scalaVersion = scala212Version
+  def moduleDeps = Seq(upickleJvm(scala212Version))
   def sources = T.sources{millSourcePath}
 }
