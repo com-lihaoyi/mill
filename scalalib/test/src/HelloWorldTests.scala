@@ -19,7 +19,7 @@ object HelloWorldTests extends TestSuite {
   val scala2106Version = "2.10.6"
   val scala21111Version = "2.11.11"
   val scala2123Version = "2.12.3"
-  val scala2124Version = "2.12.4"
+  val scala2126Version = "2.12.6"
   val scala2131Version = "2.13.1"
 
   trait HelloBase extends TestUtil.BaseModule {
@@ -28,7 +28,7 @@ object HelloWorldTests extends TestSuite {
   }
 
   trait HelloWorldModule extends scalalib.ScalaModule {
-    def scalaVersion = scala2124Version
+    def scalaVersion = scala2126Version
   }
 
   trait HelloWorldModuleWithMain extends HelloWorldModule {
@@ -39,7 +39,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule
   }
   object CrossHelloWorld extends HelloBase {
-    object core extends Cross[HelloWorldCross](scala2106Version, scala21111Version, scala2123Version, scala2124Version, scala2131Version)
+    object core extends Cross[HelloWorldCross](scala2106Version, scala21111Version, scala2123Version, scala2126Version, scala2131Version)
     class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
   }
 
@@ -226,7 +226,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldMacros extends HelloBase {
     object core extends ScalaModule {
-      def scalaVersion = scala2124Version
+      def scalaVersion = scala2126Version
 
       override def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
@@ -239,7 +239,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldFlags extends HelloBase {
     object core extends ScalaModule {
-      def scalaVersion = scala2124Version
+      def scalaVersion = scala2126Version
 
       override def scalacOptions = super.scalacOptions() ++ Seq(
         "-Ypartial-unification"
@@ -249,7 +249,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloScalacheck extends HelloBase {
     object foo extends ScalaModule {
-      def scalaVersion = scala2124Version
+      def scalaVersion = scala2126Version
       object test extends Tests {
         override def ivyDeps = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
         override def testFramework = "org.scalacheck.ScalaCheckFramework"
@@ -314,7 +314,7 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalaVersion)
 
         assert(
-          result == scala2124Version,
+          result == scala2126Version,
           evalCount > 0
         )
       }
@@ -526,7 +526,7 @@ object HelloWorldTests extends TestSuite {
           s"${scala21111Version} pwns"
         )))
         "v2123" - workspaceTest(CrossHelloWorld)(cross(_, scala2123Version, s"${scala2123Version} leet"))
-        "v2124" - workspaceTest(CrossHelloWorld)(cross(_, scala2124Version, s"${scala2124Version} leet"))
+        "v2124" - workspaceTest(CrossHelloWorld)(cross(_, scala2126Version, s"${scala2126Version} leet"))
         "v2131" - workspaceTest(CrossHelloWorld)(cross(_, scala2131Version, s"${scala2131Version} idk"))
       }
 
