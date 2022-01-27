@@ -18,7 +18,7 @@ class PlayJsonTests(fork: Boolean)
       assert(eval(s"playJsonJvm[${scalaVersion}].{test-scalatest,test-specs2}"))
       val jvmMeta: Seq[String] = Seq(
         meta(s"playJsonJvm[${scalaVersion}].test-scalatest.test"),
-        meta("playJsonJvm[2.12.4].test-specs2.test")
+        meta(s"playJsonJvm[${scalaVersion}].test-specs2.test")
       )
 
       assert(
