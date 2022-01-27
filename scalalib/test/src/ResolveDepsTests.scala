@@ -7,12 +7,13 @@ import mill.api.Loose.Agg
 import utest._
 
 object ResolveDepsTests extends TestSuite {
+  val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val repos =
     Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
 
   def evalDeps(deps: Agg[Dep]): Result[Agg[PathRef]] = Lib.resolveDependencies(
     repos,
-    Lib.depToDependency(_, "2.12.4", ""),
+    Lib.depToDependency(_, scala212Version, ""),
     deps
   )
 
