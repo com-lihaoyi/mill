@@ -16,9 +16,8 @@ trait AmmInternalModule extends mill.scalalib.CrossSbtModule{
   def scalacOptions = Seq("-P:acyclic:force", "-target:jvm-1.7")
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
-  trait Tests extends super.Tests{
+  trait Tests extends super.Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFrameworks = Seq("utest.runner.Framework")
     def forkArgs = Seq("-XX:MaxPermSize=2g", "-Xmx4g", "-Dfile.encoding=UTF8")
   }
   def externalSources = T{
