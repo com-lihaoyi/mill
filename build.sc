@@ -54,8 +54,10 @@ object Deps {
   val workerScalaVersion212 = "2.12.15"
 
   val testScala213Version = "2.13.8"
-  val testScala212Version = "2.12.5"
+  val testScala212Version = "2.12.6"
   val testScala30Version = "3.0.2"
+
+  val testScalaJs06Version = "0.6.33"
 
   object Scalajs_0_6 {
     val scalajsJsEnvs = ivy"org.scala-js::scalajs-js-envs:0.6.33"
@@ -227,7 +229,9 @@ trait MillModule extends MillApiModule { outer =>
         s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
         s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
         s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
-        s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}"
+        s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
+        s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
+        s"-DTEST_SCALAJS_0_6_VERSION=${Deps.testScalaJs06Version}"
       ) ++ testArgs()
     }
     override def moduleDeps =

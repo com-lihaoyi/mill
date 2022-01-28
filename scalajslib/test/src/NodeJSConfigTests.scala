@@ -11,8 +11,8 @@ import mill.scalajslib.api._
 object NodeJSConfigTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
   val scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
-  val scalaJSVersion = "0.6.33"
-  val utestVersion = "0.7.5"
+  val scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_0_6_VERSION", ???)
+  val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
   val nodeArgsEmpty = List()
   val nodeArgs2G = List("--max-old-space-size=2048")
   val nodeArgs4G = List("--max-old-space-size=4096")
