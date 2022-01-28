@@ -54,7 +54,7 @@ object Deps {
   val workerScalaVersion212 = "2.12.15"
 
   val testScala213Version = "2.13.8"
-  val testScala212Version = "2.12.4"
+  val testScala212Version = "2.12.5"
   val testScala30Version = "3.0.2"
 
   object Scalajs_0_6 {
