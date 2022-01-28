@@ -13,7 +13,7 @@ import jmh.Jmh
 
 import mill.define.Task
 
-val scala212Version = "2.12.5"
+val scala212Version = "2.12.3"
 val ScalaVersions = Seq("2.10.7", "2.11.12", scala212Version, "2.13.0-M3")
 
 trait BaseModule extends CrossSbtModule with Scalariform /*with Headers*/

@@ -5,7 +5,7 @@ import utest._
 class PlayJsonTests(fork: Boolean)
     extends IntegrationTestSuite("MILL_PLAY_JSON_REPO", "play-json", fork) {
 
-  val scalaVersion = "2.12.5"
+  val scalaVersion = "2.12.3"
 
   override def buildFiles: Seq[os.Path] = {
     os.list(buildFilePath).filter(_.ext == "sc")
