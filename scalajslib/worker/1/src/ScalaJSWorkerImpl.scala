@@ -8,7 +8,13 @@ import java.io.File
 import mill.api.{Result, internal}
 import mill.scalajslib.api.{ESFeatures, ESVersion, JsEnvConfig, ModuleKind}
 import org.scalajs.ir.ScalaJSVersions
-import org.scalajs.linker.{PathIRContainer, PathIRFile, PathOutputFile, StandardImpl}
+import org.scalajs.linker.{
+  PathIRContainer,
+  PathIRFile,
+  PathOutputDirectory,
+  PathOutputFile,
+  StandardImpl
+}
 import org.scalajs.linker.interface.{
   ESFeatures => ScalaJSESFeatures,
   ESVersion => ScalaJSESVersion,
@@ -32,6 +38,10 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       esFeatures: ESFeatures,
       dest: File
   )
+  private def minorIsGreaterThan(number: Int) = ScalaJSVersions.binaryEmitted match {
+    case s"1.$n" if n.toIntOption.exists(_ < number) => false
+    case _ => true
+  }
   private object ScalaJSLinker {
     private val cache = mutable.Map.empty[LinkerInput, WeakReference[Linker]]
     def reuseOrCreate(input: LinkerInput): Linker = cache.get(input) match {
@@ -40,10 +50,6 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
         val newLinker = createLinker(input)
         cache.update(input, WeakReference(newLinker))
         newLinker
-    }
-    private def minorIsGreaterThan(number: Int) = ScalaJSVersions.binaryEmitted match {
-      case s"1.$n" if n.toIntOption.exists(_ < number) => false
-      case _ => true
     }
     private def createLinker(input: LinkerInput): Linker = {
       val semantics = input.fullOpt match {
@@ -111,18 +117,12 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       esFeatures: ESFeatures
   ) = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val linker =
-      ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures, dest))
+    val outFile = new File(dest, "out.js")
+    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures, dest))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
     val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))
     val libraryIRsFuture = irContainersPairs.flatMap(pair => cache.cached(pair._1))
-    val jsFile = dest.toPath()
-    val sourceMap = jsFile.resolveSibling(jsFile.getFileName + ".map")
-    val linkerOutput = LinkerOutput(PathOutputFile(jsFile))
-      .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
-      .withSourceMap(PathOutputFile(sourceMap))
-      .withSourceMapURI(java.net.URI.create(sourceMap.getFileName.toString))
     val logger = new ScalaConsoleLogger
     val mainInitializer = Option(main).map { cls =>
       ModuleInitializer.mainMethodWithArgs(cls, "main")
@@ -136,9 +136,26 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val resultFuture = (for {
       sourceIRs <- sourceIRsFuture
       libraryIRs <- libraryIRsFuture
-      _ <- linker.link(sourceIRs ++ libraryIRs, moduleInitializers, linkerOutput, logger)
+      _ <-
+        if (minorIsGreaterThan(2)) {
+          val linkerOutput = PathOutputDirectory(dest.toPath())
+          linker.link(
+            sourceIRs ++ libraryIRs,
+            moduleInitializers.map(_.withModuleID("out")),
+            linkerOutput,
+            logger
+          )
+        } else {
+          val jsFile = outFile.toPath()
+          val sourceMap = jsFile.resolveSibling(jsFile.getFileName + ".map")
+          val linkerOutput = LinkerOutput(PathOutputFile(jsFile))
+            .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
+            .withSourceMap(PathOutputFile(sourceMap))
+            .withSourceMapURI(java.net.URI.create(sourceMap.getFileName.toString))
+          linker.link(sourceIRs ++ libraryIRs, moduleInitializers, linkerOutput, logger)
+        }
     } yield {
-      Result.Success(dest)
+      Result.Success(outFile)
     }).recover {
       case e: org.scalajs.linker.interface.LinkingException =>
         Result.Failure(e.getMessage)
