@@ -13,17 +13,16 @@ object MultiModuleTests extends TestSuite {
 
   object MultiModule extends TestUtil.BaseModule {
     trait BaseModule extends ScalaJSModule {
-      def scalaVersion = "2.13.3"
-      def scalaJSVersion = "0.6.33"
+      def scalaVersion = "2.13.4" // the last 2.13 with JS 0.6 support
+      def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_0_6_VERSION", ???)
     }
 
     object client extends BaseModule {
       override def millSourcePath = workspacePath / "client"
       override def moduleDeps = Seq(shared)
       override def mainClass = Some("Main")
-      object test extends Tests {
-        def testFrameworks = Seq("utest.runner.Framework")
-        override def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
+      object test extends Tests with TestModule.Utest {
+        override def ivyDeps = Agg(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
       }
     }
 

@@ -1,8 +1,12 @@
 import mill.scalalib
 import mill.Cross
-import mill.scalalib.{Dep, TestModule, DepSyntax, Lib}
-object jawn extends Cross[JawnModule]("2.10.6", "2.11.11", "2.12.3")
-class JawnModule(crossVersion: String) extends mill.Module {
+import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
+
+val scala212Version = "2.12.3"
+
+object jawn extends Cross[JawnModule]("2.10.6", "2.11.11", scala212Version)
+class JawnModule(crossVersion: String) extends mill.Module{
   override def millSourcePath = super.millSourcePath / os.up / os.up
 
   trait JawnModule extends scalalib.SbtModule {
@@ -39,9 +43,9 @@ class JawnModule(crossVersion: String) extends mill.Module {
     object argonaut extends Support(ivy"io.argonaut::argonaut:6.2")
     object json4s extends Support(ivy"org.json4s::json4s-ast:3.5.2")
 
-    object play extends Support() {
-      def ivyDeps = mill.T {
-        mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion()) match {
+    object play extends Support(){
+      def ivyDeps = mill.T{
+        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()) match{
           case "2.10" => Agg(ivy"com.typesafe.play::play-json:2.4.11")
           case "2.11" => Agg(ivy"com.typesafe.play::play-json:2.5.15")
           case _ => Agg(ivy"com.typesafe.play::play-json:2.6.0")

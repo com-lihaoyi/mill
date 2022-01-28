@@ -1,0 +1,19 @@
+<component name="libraryTable">
+    <library name="scala-library-2.12.5.jar" type="Scala">
+        <properties>
+            <language-level>Scala_2_12</language-level>
+            <compiler-classpath>
+                <root url="file://COURSIER_HOME/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"/>
+                <root url="file://COURSIER_HOME/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.5/scala-compiler-2.12.5.jar"/>
+                <root url="file://COURSIER_HOME/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.5/scala-library-2.12.5.jar"/>
+                <root url="file://COURSIER_HOME/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.5/scala-reflect-2.12.5.jar"/>
+            </compiler-classpath>
+        </properties>
+        <CLASSES>
+            <root url="jar://COURSIER_HOME/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.5/scala-library-2.12.5.jar!/"/>
+        </CLASSES>
+        <SOURCES>
+            <root url="jar://COURSIER_HOME/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.5/scala-library-2.12.5-sources.jar!/"/>
+        </SOURCES>
+    </library>
+</component>
