@@ -21,7 +21,7 @@ object ScalafmtTests extends TestSuite {
 
   object ScalafmtTestModule extends TestBase {
     object core extends ScalaModule with ScalafmtModule with BuildSrcModule {
-      def scalaVersion = "2.12.4"
+      def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
       def buildSources: Sources = T.sources {
         millSourcePath / "util.sc"

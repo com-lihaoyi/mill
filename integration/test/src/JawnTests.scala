@@ -24,7 +24,7 @@ class JawnTests(fork: Boolean) extends IntegrationTestSuite("MILL_JAWN_REPO", "j
       assert(!brokenCompile)
     }
 
-    'scala21111 - check("2.11.11")
-    'scala2123 - check("2.12.3")
+    "scala21111" - check("2.11.11")
+    "scala2123" - check("2.12.3")
   }
 }
