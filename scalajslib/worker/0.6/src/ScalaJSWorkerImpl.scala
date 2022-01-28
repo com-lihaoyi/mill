@@ -72,7 +72,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   def link(
       sources: Array[File],
       libraries: Array[File],
-      dest: File,
+      destDir: File,
       main: String,
       testBridgeInit: Boolean, // ignored in 0.6
       fullOpt: Boolean,
@@ -84,6 +84,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val jars =
       libraries.map(jar => IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile))
     val jarSJSIRs = jars.flatMap(_.jar.sjsirFiles)
+    val dest = new File(destDir, "out.js")
     val destFile = AtomicWritableFileVirtualJSFile(dest)
     val logger = new ScalaConsoleLogger
     val initializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
