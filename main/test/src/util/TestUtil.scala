@@ -10,17 +10,17 @@ import utest.framework.TestPath
 import scala.collection.mutable
 
 object TestUtil {
-  def getOutPath()(implicit fullName: sourcecode.FullName, tp: TestPath) = {
-    os.pwd / "target" / "workspace" / (fullName.value.split('.') ++ tp.value)
+  def getOutPath()(implicit fullName: sourcecode.FullName, tp: TestPath): os.Path = {
+    getOutPathStatic() / tp.value
   }
-  def getOutPathStatic()(implicit fullName: sourcecode.FullName) = {
+  def getOutPathStatic()(implicit fullName: sourcecode.FullName): os.Path = {
     os.pwd / "target" / "workspace" / fullName.value.split('.')
   }
 
-  def getSrcPathStatic()(implicit fullName: sourcecode.FullName) = {
-    os.pwd / "target" / "worksources" / fullName.value.split('.')
+  def getSrcPathStatic()(implicit fullName: sourcecode.FullName): os.Path = {
+    getSrcPathBase() / fullName.value.split('.')
   }
-  def getSrcPathBase() = {
+  def getSrcPathBase(): os.Path = {
     os.pwd / "target" / "worksources"
   }
 

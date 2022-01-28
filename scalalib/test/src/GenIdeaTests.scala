@@ -11,6 +11,8 @@ import utest.{Tests, _}
 
 object GenIdeaTests extends ScriptTestSuite(false) {
 
+  val scalaVersionLibPart = "2_12_5"
+
   private val ignoreString = "<!-- IGNORE -->"
 
   /**
@@ -94,7 +96,7 @@ object GenIdeaTests extends ScriptTestSuite(false) {
         os.sub / "mill_modules" / "helloworld.iml",
         os.sub / "mill_modules" / "helloworld.test.iml",
         os.sub / "mill_modules" / "mill-build.iml",
-        os.sub / "libraries" / "scala_library_2_12_4_jar.xml",
+        os.sub / "libraries" / s"scala_library_${scalaVersionLibPart}_jar.xml",
         os.sub / "modules.xml",
         os.sub / "misc.xml"
       ).map { resource =>

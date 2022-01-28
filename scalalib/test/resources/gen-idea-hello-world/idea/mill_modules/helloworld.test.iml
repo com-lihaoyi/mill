@@ -13,7 +13,7 @@
         <orderEntry type="library" scope="PROVIDED" name="jcl-over-slf4j-1.7.25.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="logback-classic-1.2.3.jar" level="project"/>
         <orderEntry type="library" name="logback-core-1.2.3.jar" level="project"/>
-        <orderEntry type="library" name="scala-library-2.12.4.jar" level="project"/>
+        <orderEntry type="library" name="scala-library-2.12.5.jar" level="project"/>
         <orderEntry type="library" name="slf4j-api-1.7.25.jar" level="project"/>
         <orderEntry type="module" module-name="helloworld" exported=""/>
     </component>

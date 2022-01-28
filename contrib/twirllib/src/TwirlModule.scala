@@ -25,7 +25,7 @@ trait TwirlModule extends mill.Module {
         coursier.LocalRepositories.ivy2Local,
         MavenRepository("https://repo1.maven.org/maven2")
       ),
-      Lib.depToDependency(_, "2.12.4"),
+      Lib.depToDependency(_, "2.12.5"),
       Seq(
         ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}",
         ivy"org.scala-lang.modules::scala-parser-combinators:1.1.0"
