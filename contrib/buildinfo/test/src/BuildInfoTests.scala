@@ -14,7 +14,7 @@ import utest.framework.TestPath
 
 object BuildInfoTests extends TestSuite {
 
-  val scalaVersionString = sys.props("TEST_SCALA_2_12_VERSION")
+  val scalaVersionString = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   trait BuildInfoModule extends TestUtil.BaseModule with scalalib.ScalaModule with BuildInfo {
     // override build root to test custom builds/modules
     override def millSourcePath: Path = TestUtil.getSrcPathStatic()

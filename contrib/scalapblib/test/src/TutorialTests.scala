@@ -14,7 +14,7 @@ object TutorialTests extends TestSuite {
   }
 
   trait TutorialModule extends ScalaPBModule {
-    def scalaVersion = sys.props("TEST_SCALA_2_12_VERSION")
+    def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
     def scalaPBVersion = "0.10.1"
     def scalaPBFlatPackage = true
     def scalaPBIncludePath = Seq(scalaPBUnpackProto())
