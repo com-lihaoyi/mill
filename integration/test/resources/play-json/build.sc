@@ -13,7 +13,8 @@ import jmh.Jmh
 
 import mill.define.Task
 
-val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M3")
+val scala212Version = "2.12.3"
+val ScalaVersions = Seq("2.10.7", "2.11.12", scala212Version, "2.13.0-M3")
 
 trait BaseModule extends CrossSbtModule with Scalariform /*with Headers*/
 
@@ -248,16 +249,16 @@ class Benchmarks(val crossScalaVersion: String) extends BaseModule with Jmh {
 
 // TODO: we should have a way to "take all modules in this build"
 val testModules = Seq(
-  playJsonJvm("2.12.4").`test-scalatest`,
-  playJsonJvm("2.12.4").`test-specs2`,
-  playJsonJs("2.12.4").test,
-  playJoda("2.12.4").test
+  playJsonJvm(scala212Version).`test-scalatest`,
+  playJsonJvm(scala212Version).`test-specs2`,
+  playJsonJs(scala212Version).test,
+  playJoda(scala212Version).test
 )
 
 val sourceModules = Seq(
-  playJsonJvm("2.12.4"),
-  playJsonJs("2.12.4"),
-  playJoda("2.12.4"),
+  playJsonJvm(scala212Version),
+  playJsonJs(scala212Version),
+  playJoda(scala212Version),
 )
 
 val allModules = testModules ++ sourceModules

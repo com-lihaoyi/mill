@@ -6,7 +6,7 @@ class BetterFilesTests(fork: Boolean)
     extends IntegrationTestSuite("MILL_BETTERFILES_REPO", "better-files", fork) {
   val tests = Tests {
     initWorkspace()
-    'test - {
+    "test" - {
 
       assert(eval("core.test"))
       assert(eval("akka.test"))
