@@ -13,12 +13,11 @@ object TestRunnerTests extends TestSuite {
   object testrunner extends TestUtil.BaseModule with ScalaModule {
     override def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
-    def scalaVersion = "2.12.4"
+    def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
     object test extends super.Tests with TestModule.Utest {
-
       override def ivyDeps = T {
-        super.ivyDeps() ++ Agg(ivy"com.lihaoyi::utest:0.7.11")
+        super.ivyDeps() ++ Agg(ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
       }
     }
   }
