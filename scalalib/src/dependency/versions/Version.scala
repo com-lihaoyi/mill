@@ -47,9 +47,9 @@ case class ValidVersion(
 ) extends Version {
   def major: Long = releasePart.headOption getOrElse 0
 
-  def minor: Long = releasePart.drop(1).headOption getOrElse 1
+  def minor: Long = releasePart.drop(1).headOption getOrElse 0
 
-  def patch: Long = releasePart.drop(2).headOption getOrElse 1
+  def patch: Long = releasePart.drop(2).headOption getOrElse 0
 
   override def toString: String = text
 }
@@ -117,7 +117,7 @@ private[dependency] object BuildVersion {
   }
 }
 
-private[dependency] object Version {
+object Version {
   def apply(text: String): Version = synchronized {
     VersionParser
       .parse(text)
