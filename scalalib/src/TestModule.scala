@@ -165,9 +165,7 @@ trait TestModule extends JavaModule with TaskModule {
    * Discovers and runs the module's tests in-process in an isolated classloader,
    * reporting the results to the console
    */
-  def testLocal(args: String*) = T.command {
-    val outputPath = T.dest / "out.json"
-
+  def testLocal(args: String*): Command[(String, Seq[TestRunner.Result])] = T.command {
     val (doneMsg, results) = TestRunner.runTestFramework(
       TestRunner.framework(testFramework()),
       runClasspath().map(_.path),
@@ -175,9 +173,7 @@ trait TestModule extends JavaModule with TaskModule {
       args,
       T.testReporter
     )
-
     TestModule.handleResults(doneMsg, results)
-
   }
 
   override def bspBuildTarget: BspBuildTarget = {
