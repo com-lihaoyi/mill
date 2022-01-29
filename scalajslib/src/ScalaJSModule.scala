@@ -134,10 +134,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
   )(implicit ctx: Ctx): Result[PathRef] = {
-    val outputPath = ctx.dest / "out.js"
+    val outputPath = ctx.dest
 
     os.makeDir.all(ctx.dest)
-    os.remove.all(outputPath)
 
     val classpath = runClasspath.map(_.path)
     val sjsirFiles = classpath
