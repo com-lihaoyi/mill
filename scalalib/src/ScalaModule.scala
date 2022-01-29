@@ -15,6 +15,7 @@ import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 
 import scala.jdk.CollectionConverters._
 import mainargs.Flag
+import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -424,8 +425,15 @@ trait ScalaModule extends JavaModule { outer =>
     if (T.log.inStream == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     } else {
+      val mainClass = Version(ammoniteVersion()) match {
+        case v: ValidVersion if Version.versionOrdering.compare(v, Version("2.5.0")) < 0 =>
+          "ammonite.Main"
+        case _ => "ammonite.AmmoniteMain"
+
+      }
+      T.log.debug(s"Using ammonite main class: ${mainClass}")
       Jvm.runSubprocess(
-        mainClass = "ammonite.Main",
+        mainClass = mainClass,
         classPath = ammoniteReplClasspath().map(_.path),
         jvmArgs = forkArgs(),
         envArgs = forkEnv(),
