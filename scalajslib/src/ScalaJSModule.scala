@@ -3,12 +3,11 @@ package scalajslib
 
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.{Loose, PathRef, Result, internal}
-import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
+import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule}
 import mill.testrunner.TestRunner
-import mill.util.Ctx
-import mill.define.Task
+import mill.define.{Command, Target, Task}
 import mill.scalajslib.api._
 
 import scala.jdk.CollectionConverters._
@@ -25,9 +24,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def moduleDeps = Seq(outer)
   }
 
-  def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaJSBinaryVersion(scalaJSVersion()) }
+  def scalaJSBinaryVersion = T { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 
-  def scalaJSWorkerVersion = T { mill.scalalib.api.Util.scalaJSWorkerVersion(scalaJSVersion()) }
+  def scalaJSWorkerVersion = T { ZincWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
   def scalaJSWorkerClasspath = T {
     val workerKey = "MILL_SCALAJS_WORKER_" + scalaJSWorkerVersion().replace('.', '_')
@@ -75,26 +74,21 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
   def fastOpt = T {
-    link(
-      worker = ScalaJSWorkerApi.scalaJSWorker(),
-      toolsClasspath = scalaJSToolsClasspath(),
-      runClasspath = runClasspath(),
-      mainClass = finalMainClassOpt().toOption,
-      testBridgeInit = false,
-      mode = FastOpt,
-      moduleKind = moduleKind(),
-      esFeatures = esFeatures()
-    )
+    linkTask(FastOpt)()
   }
 
   def fullOpt = T {
+    linkTask(FullOpt)()
+  }
+
+  private def linkTask(mode: OptimizeMode): Task[PathRef] = T.task {
     link(
       worker = ScalaJSWorkerApi.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = runClasspath(),
       mainClass = finalMainClassOpt().toOption,
       testBridgeInit = false,
-      mode = FullOpt,
+      mode = mode,
       moduleKind = moduleKind(),
       esFeatures = esFeatures()
     )
@@ -133,7 +127,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mode: OptimizeMode,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
-  )(implicit ctx: Ctx): Result[PathRef] = {
+  )(implicit ctx: mill.api.Ctx): Result[PathRef] = {
     val outputPath = ctx.dest
 
     os.makeDir.all(ctx.dest)
@@ -159,14 +153,14 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   override def mandatoryScalacOptions = T {
     super.mandatoryScalacOptions() ++ {
-      if (isScala3(scalaVersion())) Seq("-scalajs")
+      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("-scalajs")
       else Seq.empty
     }
   }
 
   override def scalacPluginIvyDeps = T {
     super.scalacPluginIvyDeps() ++ {
-      if (isScala3(scalaVersion())) {
+      if (ZincWorkerUtil.isScala3(scalaVersion())) {
         Seq.empty
       } else {
         Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
@@ -188,16 +182,16 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     else scalaJSBinaryVersion()
   }
 
-  override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
+  override def artifactSuffix: Target[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
 
-  override def platformSuffix = s"_sjs${artifactScalaJSVersion()}"
+  override def platformSuffix: Target[String] = s"_sjs${artifactScalaJSVersion()}"
 
-  def jsEnvConfig: T[JsEnvConfig] = T { JsEnvConfig.NodeJs() }
+  def jsEnvConfig: Target[JsEnvConfig] = T { JsEnvConfig.NodeJs() }
 
-  def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
+  def moduleKind: Target[ModuleKind] = T { ModuleKind.NoModule }
 
   @deprecated("Use esFeatures().esVersion instead", since = "mill after 0.10.0-M5")
-  def useECMAScript2015: T[Boolean] = T {
+  def useECMAScript2015: Target[Boolean] = T {
     !scalaJSVersion().startsWith("0.")
   }
 
@@ -216,7 +210,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       new ScalaBuildTarget(
         scalaOrganization(),
         scalaVersion(),
-        scalaBinaryVersion(scalaVersion()),
+        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.JS,
         scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
       )
@@ -229,7 +223,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   def scalaJSTestDeps = T {
     resolveDeps(T.task {
       val bridgeOrInterface =
-        if (mill.scalalib.api.Util.scalaJSUsesTestBridge(scalaJSVersion())) "bridge"
+        if (ZincWorkerUtil.scalaJSUsesTestBridge(scalaJSVersion())) "bridge"
         else "interface"
       Loose.Agg(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
@@ -251,14 +245,14 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  override def testLocal(args: String*) = T.command { test(args: _*) }
+  override def testLocal(args: String*): Command[(String, Seq[TestRunner.Result])] = T.command { test(args: _*) }
 
   override protected def testTask(
       args: Task[Seq[String]],
-      globSeletors: Task[Seq[String]]
+      globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestRunner.Result])] = T.task {
 
-    val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
+    val (close, framework) = ScalaJSWorkerApi.scalaJSWorker().getFramework(
       scalaJSToolsClasspath().map(_.path),
       jsEnvConfig(),
       testFramework(),
@@ -272,7 +266,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       Agg(compile().classes.path),
       args(),
       T.testReporter,
-      TestRunner.globFilter(globSeletors())
+      TestRunner.globFilter(globSelectors())
     )
     val res = TestModule.handleResults(doneMsg, results)
     // Hack to try and let the Node.js subprocess finish streaming it's stdout
