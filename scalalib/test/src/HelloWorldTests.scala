@@ -39,7 +39,13 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule
   }
   object CrossHelloWorld extends HelloBase {
-    object core extends Cross[HelloWorldCross](scala2106Version, scala21111Version, scala2123Version, scala2126Version, scala2131Version)
+    object core extends Cross[HelloWorldCross](
+          scala2106Version,
+          scala21111Version,
+          scala2123Version,
+          scala2126Version,
+          scala2131Version
+        )
     class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
   }
 
@@ -265,6 +271,17 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object AmmoniteReplMainClass extends HelloBase {
+    object oldAmmonite extends ScalaModule {
+      override def scalaVersion = T("2.13.5")
+      override def ammoniteVersion = T("2.4.1")
+    }
+    object newAmmonite extends ScalaModule {
+      override def scalaVersion = T("2.13.5")
+      override def ammoniteVersion = T("2.5.0")
+    }
+  }
+
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -482,7 +499,8 @@ object HelloWorldTests extends TestSuite {
 
     "artifactNameCross" - {
       workspaceTest(CrossHelloWorld) { eval =>
-        val Right((artifactName, _)) = eval.apply(CrossHelloWorld.core(scala2131Version).artifactName)
+        val Right((artifactName, _)) =
+          eval.apply(CrossHelloWorld.core(scala2131Version).artifactName)
         assert(artifactName == "core")
       }
     }
@@ -525,9 +543,21 @@ object HelloWorldTests extends TestSuite {
           scala21111Version,
           s"${scala21111Version} pwns"
         )))
-        "v2123" - workspaceTest(CrossHelloWorld)(cross(_, scala2123Version, s"${scala2123Version} leet"))
-        "v2124" - workspaceTest(CrossHelloWorld)(cross(_, scala2126Version, s"${scala2126Version} leet"))
-        "v2131" - workspaceTest(CrossHelloWorld)(cross(_, scala2131Version, s"${scala2131Version} idk"))
+        "v2123" - workspaceTest(CrossHelloWorld)(cross(
+          _,
+          scala2123Version,
+          s"${scala2123Version} leet"
+        ))
+        "v2124" - workspaceTest(CrossHelloWorld)(cross(
+          _,
+          scala2126Version,
+          s"${scala2126Version} leet"
+        ))
+        "v2131" - workspaceTest(CrossHelloWorld)(cross(
+          _,
+          scala2131Version,
+          s"${scala2131Version} idk"
+        ))
       }
 
       "notRunInvalidMainObject" - workspaceTest(HelloWorld) { eval =>
@@ -1012,6 +1042,13 @@ object HelloWorldTests extends TestSuite {
             (n \ "@name").text == "scala-library" && (n \ "@org").text == "org.scala-lang"
         ))
       }
+    }
+
+    "replAmmoniteMainClass" - workspaceTest(AmmoniteReplMainClass) { eval =>
+      val Right((oldResult, _)) = eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass)
+      assert(oldResult == "ammonite.Main")
+      val Right((newResult, _)) = eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass)
+      assert(newResult == "ammonite.AmmoniteMain")
     }
   }
 }
