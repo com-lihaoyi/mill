@@ -416,6 +416,15 @@ trait ScalaModule extends JavaModule { outer =>
     })()
   }
 
+  @internal
+  private[scalalib] def ammoniteMainClass: Task[String] = T.task {
+    Version(ammoniteVersion()) match {
+      case v: ValidVersion if Version.versionOrdering.compare(v, Version("2.4.1")) <= 0 =>
+        "ammonite.Main"
+      case _ => "ammonite.AmmoniteMain"
+    }
+  }
+
   /**
    * Opens up an Ammonite Scala REPL with your module and all dependencies present,
    * for you to test and operate your code interactively.
@@ -425,12 +434,7 @@ trait ScalaModule extends JavaModule { outer =>
     if (T.log.inStream == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     } else {
-      val mainClass = Version(ammoniteVersion()) match {
-        case v: ValidVersion if Version.versionOrdering.compare(v, Version("2.5.0")) < 0 =>
-          "ammonite.Main"
-        case _ => "ammonite.AmmoniteMain"
-
-      }
+      val mainClass = ammoniteMainClass()
       T.log.debug(s"Using ammonite main class: ${mainClass}")
       Jvm.runSubprocess(
         mainClass = mainClass,
