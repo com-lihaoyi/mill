@@ -857,7 +857,7 @@ def launcherScript(
     shellClassPath: Agg[String],
     cmdClassPath: Agg[String]
 ) = {
-  val millMainClass = "mill.MillMain"
+  val millMainClass = "mill.main.client.MillClientMain"
   val millClientMainClass = "mill.main.client.MillClientMain"
 
   mill.modules.Jvm.universalScript(
