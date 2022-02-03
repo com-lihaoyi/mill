@@ -1,7 +1,9 @@
 package mill.main.client;
 
-import java.io.File;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 class IsolatedMillMainLoader {
@@ -45,22 +47,34 @@ class IsolatedMillMainLoader {
     public static void runMain(String[] args) throws Exception {
         LoadResult loadResult = load();
         if (loadResult.millMainMethod.isPresent()) {
-            String propApplied = System.getProperty("mill.jvm_opts_applied");
-            String propOptsFileName = System.getenv("MILL_JVM_OPTS_PATH");
-            File propOptsFile;
-            if (propOptsFileName == null || propOptsFileName.trim().equals("")) {
-                propOptsFile = new File(".mill-jvm-opts");
+            if (!MillEnv.millJvmOptsAlreadyApplied() && MillEnv.millJvmOptsFile().exists()) {
+//                System.err.println("Warning: Settings from file `" + propOptsFile + "` are currently ignored.");
+                System.err.println("Launching Mill as sub-process ...");
+                int exitVal = launchMillAsSubProcess(args);
+                System.exit(exitVal);
             } else {
-                propOptsFile = new File(propOptsFileName);
+                // launch mill in-process
+                // it will call System.exit for us
+                Method mainMethod = loadResult.millMainMethod.get();
+                mainMethod.invoke(null, new Object[]{args});
             }
-            if ((propApplied == null || !propApplied.equals("true")) && propOptsFile.exists()) {
-                System.err.println("Warning: Settings from file `" + propOptsFile.getAbsolutePath() + "` are currently ignored.");
-            }
-            // TODO: check for presence of marker property, if not and we have a settings file, spawn extra JVM
-            Method mainMethod = loadResult.millMainMethod.get();
-            mainMethod.invoke(null, new Object[]{args});
         } else {
             throw new RuntimeException("Cannot load mill.MillMain class");
         }
+    }
+
+    private static int launchMillAsSubProcess(String[] args) throws Exception {
+        boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
+
+        List<String> l = new ArrayList<>();
+        l.addAll(MillEnv.millLaunchJvmCommand(setJnaNoSys));
+        l.add("mill.MillMain");
+        l.addAll(Arrays.asList(args));
+
+        Process running = new ProcessBuilder()
+            .command(l)
+            .inheritIO()
+            .start();
+        return running.waitFor();
     }
 }

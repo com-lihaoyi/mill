@@ -44,62 +44,8 @@ public class MillClientMain {
     }
 
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException, URISyntaxException {
-
-        String selfJars = "";
-        List<String> vmOptions = new ArrayList<>();
-        String millOptionsPath = System.getProperty("MILL_OPTIONS_PATH");
-        if (millOptionsPath != null) {
-            // read MILL_CLASSPATH from file MILL_OPTIONS_PATH
-            Properties millProps = new Properties();
-            millProps.load(new FileInputStream(millOptionsPath));
-            for (final String k : millProps.stringPropertyNames()) {
-                String propValue = millProps.getProperty(k);
-                if ("MILL_CLASSPATH".equals(k)) {
-                    selfJars = propValue;
-                }
-            }
-        } else {
-            // read MILL_CLASSPATH from file sys props
-            selfJars = System.getProperty("MILL_CLASSPATH");
-        }
-
-        final Properties sysProps = System.getProperties();
-        for (final String k : sysProps.stringPropertyNames()) {
-            if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
-                vmOptions.add("-D" + k + "=" + sysProps.getProperty(k));
-            }
-        }
-        if (selfJars == null || selfJars.trim().isEmpty()) {
-            // We try to use the currently local classpath as MILL_CLASSPATH
-            selfJars = System.getProperty("java.class.path").replace(File.pathSeparator, ",");
-        }
-        if (selfJars == null || selfJars.trim().isEmpty()) {
-            throw new RuntimeException("MILL_CLASSPATH is empty!");
-        }
-        if (setJnaNoSys) {
-            vmOptions.add("-Djna.nosys=true");
-        }
-
-        String millJvmOptsPath = System.getProperty("MILL_JVM_OPTS_PATH");
-        if (millJvmOptsPath == null) {
-            millJvmOptsPath = ".mill-jvm-opts";
-        }
-
-        File millJvmOptsFile = new File(millJvmOptsPath);
-        if (millJvmOptsFile.exists()) {
-            try (Scanner sc = new Scanner(millJvmOptsFile)) {
-                while (sc.hasNextLine()) {
-                    String arg = sc.nextLine();
-                    vmOptions.add(arg);
-                }
-            }
-        }
-
         List<String> l = new ArrayList<>();
-        l.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
-        l.addAll(vmOptions);
-        l.add("-cp");
-        l.add(String.join(File.pathSeparator, selfJars.split(",")));
+        l.addAll(MillEnv.millLaunchJvmCommand(setJnaNoSys));
         l.add("mill.main.MillServerMain");
         l.add(lockBase);
 
@@ -116,7 +62,7 @@ public class MillClientMain {
     public static void main(String[] args) throws Exception {
         if (args.length > 1) {
             String firstArg = args[0];
-            if (Arrays.asList("-i", "--interactive", "--no-server", "--repl").contains(firstArg)) {
+            if (Arrays.asList("-i", "--interactive", "--no-server", "--repl", "--bsp").contains(firstArg)) {
                 // start in no-server mode
                 IsolatedMillMainLoader.runMain(args);
                 return;
