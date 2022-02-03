@@ -11,23 +11,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
-import java.math.BigInteger;
 import java.net.Socket;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -120,76 +113,37 @@ public class MillClientMain {
             .start();
     }
 
-    private static String sha1HashPath(String path) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest md = MessageDigest.getInstance("SHA1");
-        md.reset();
-        byte[] pathBytes = path.getBytes("UTF-8");
-        md.update(pathBytes);
-        byte[] digest = md.digest();
-        return Base64.getEncoder().encodeToString(digest);
-    }
-
-    private static class LoadResult {
-        public final boolean success;
-        public final long loadTime;
-
-        public LoadResult(final boolean success, final long loadTime) {
-            this.success = success;
-            this.loadTime = loadTime;
-        }
-    }
-
-    private static class IsolatedMillMainRunner {
-
-        private static Optional<Class<?>> millMainClass = Optional.empty();
-        private static long loadTime = 0L;
-
-        public static LoadResult canLoad() {
-            long startTime = System.currentTimeMillis();
-            if (millMainClass.isPresent()) return new LoadResult(true, loadTime);
-
-            try {
-                millMainClass = Optional.ofNullable(IsolatedMillMainRunner.class.getClassLoader().loadClass("mill.MillMain"));
-            } catch (ClassNotFoundException e) {
-                loadTime = System.currentTimeMillis() - startTime;
-                return new LoadResult(false, loadTime);
-            }
-            loadTime = System.currentTimeMillis() - startTime;
-            return new LoadResult(true, loadTime);
-        }
-
-        public static void main(String[] args) throws Exception {
-            if (canLoad().success) {
-                Method mainMethod = millMainClass.get().getMethod("main", String[].class);
-                mainMethod.invoke(null, new Object[]{args});
-            } else {
-                throw new RuntimeException("Cannot load mill.MillMain class");
-            }
-        }
-    }
-
     public static void main(String[] args) throws Exception {
-        boolean started = false;
         if (args.length > 1) {
             String firstArg = args[0];
             if (Arrays.asList("-i", "--interactive", "--no-server", "--repl").contains(firstArg)) {
                 // start in no-server mode
-                IsolatedMillMainRunner.main(args);
-                started = true;
+                IsolatedMillMainLoader.runMain(args);
+                return;
             }
         }
-        if (!started) {
-            // start in client-server mode
-            main1(args);
-        }
-    }
 
-    public static void main1(String[] args) throws Exception {
-        int exitCode = main0(args);
-        if (exitCode == ExitServerCodeWhenVersionMismatch()) {
-            exitCode = main0(args);
+        // start in client-server mode
+        try {
+            int exitCode = main0(args);
+            if (exitCode == ExitServerCodeWhenVersionMismatch()) {
+                exitCode = main0(args);
+            }
+            System.exit(exitCode);
+        } catch (MillServerCouldNotBeStarted e) {
+            // TODO: try to run in-process
+            System.err.println("Could not start a Mill server process.\n" +
+                "This could be caused by too many already running Mill instances " +
+                "or by an unsupported platform.\n");
+            if (IsolatedMillMainLoader.load().canLoad) {
+                System.err.println("Trying to run Mill in-process ...");
+                IsolatedMillMainLoader.runMain(args);
+            } else {
+                System.err.println("Loading Mill in-process isn't possible.\n" +
+                    "Please check your Mill installation!");
+                throw e;
+            }
         }
-        System.exit(exitCode);
     }
 
     public static int main0(String[] args) throws Exception {
@@ -199,7 +153,7 @@ public class MillClientMain {
             System.setProperty("jna.nosys", "true");
         }
 
-        String jvmHomeEncoding = sha1HashPath(System.getProperty("java.home"));
+        String jvmHomeEncoding = Util.sha1Hash(System.getProperty("java.home"));
         int serverProcessesLimit = getServerProcessesLimit(jvmHomeEncoding);
 
         int index = 0;
@@ -247,10 +201,17 @@ public class MillClientMain {
                 }
             }
         }
-        throw new Exception("Reached max server processes limit: " + serverProcessesLimit);
+        throw new MillServerCouldNotBeStarted("Reached max server processes limit: " + serverProcessesLimit);
     }
 
-    public static int run(String lockBase,
+    public static class MillServerCouldNotBeStarted extends Exception {
+        public MillServerCouldNotBeStarted(String msg) {
+            super(msg);
+        }
+    }
+
+    public static int run(
+        String lockBase,
         Runnable initServer,
         Locks locks,
         InputStream stdin,
@@ -283,7 +244,7 @@ public class MillClientMain {
 
         while (ioSocket == null && System.currentTimeMillis() - retryStart < 5000) {
             try {
-                String socketBaseName = "mill-" + md5hex(new File(lockBase).getCanonicalPath());
+                String socketBaseName = "mill-" + Util.md5hex(new File(lockBase).getCanonicalPath());
                 ioSocket = Util.isWindows ?
                     new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + socketBaseName)
                     : new UnixDomainSocket(lockBase + "/" + socketBaseName + "-io");
@@ -336,13 +297,10 @@ public class MillClientMain {
     }
 
     /**
-     * @return Hex encoded MD5 hash of input string.
+     * @deprecated Use {@link Util#md5hex(String)} instead. (Deprecated since after Mill 0.10.0)
      */
     public static String md5hex(String str) throws NoSuchAlgorithmException {
-        return hexArray(MessageDigest.getInstance("md5").digest(str.getBytes(StandardCharsets.UTF_8)));
+        return Util.md5hex(str);
     }
 
-    private static String hexArray(byte[] arr) {
-        return String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr));
-    }
 }

@@ -891,6 +891,7 @@ def launcherScript(
          |        "-X"*) mill_jvm_opts="$${mill_jvm_opts} $$line"
          |      esac
          |    done <"$$mill_jvm_opts_file"
+         |    mill_jvm_opts="$${mill_jvm_opts} -Dmill.jvm_opts_applied=true"
          |  fi
          |}
          |

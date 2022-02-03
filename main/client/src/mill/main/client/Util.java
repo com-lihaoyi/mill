@@ -3,7 +3,13 @@ package mill.main.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,10 +32,11 @@ public class Util {
         }
         return args;
     }
+
     public static void writeArgs(String[] args,
                                  OutputStream argStream) throws IOException {
         writeInt(argStream, args.length);
-        for(String arg: args){
+        for (String arg : args) {
             writeString(argStream, arg);
         }
     }
@@ -63,10 +70,10 @@ public class Util {
         final int length = readInt(inputStream);
         final byte[] arr = new byte[length];
         int total = 0;
-        while(total < length){
-            int res = inputStream.read(arr, total, length-total);
+        while (total < length) {
+            int res = inputStream.read(arr, total, length - total);
             if (res == -1) throw new IOException("Incomplete String");
-            else{
+            else {
                 total += res;
             }
         }
@@ -79,17 +86,38 @@ public class Util {
         outputStream.write(bytes);
     }
 
-    public static void writeInt(OutputStream out, int i) throws IOException{
-        out.write((byte)(i >>> 24));
-        out.write((byte)(i >>> 16));
-        out.write((byte)(i >>> 8));
-        out.write((byte)i);
+    public static void writeInt(OutputStream out, int i) throws IOException {
+        out.write((byte) (i >>> 24));
+        out.write((byte) (i >>> 16));
+        out.write((byte) (i >>> 8));
+        out.write((byte) i);
     }
-    public static int readInt(InputStream in) throws IOException{
+
+    public static int readInt(InputStream in) throws IOException {
         return ((in.read() & 0xFF) << 24) +
-                ((in.read() & 0xFF) << 16) +
-                ((in.read() & 0xFF) << 8) +
-                (in.read() & 0xFF);
+            ((in.read() & 0xFF) << 16) +
+            ((in.read() & 0xFF) << 8) +
+            (in.read() & 0xFF);
+    }
+
+    /**
+     * @return Hex encoded MD5 hash of input string.
+     */
+    public static String md5hex(String str) throws NoSuchAlgorithmException {
+        return hexArray(MessageDigest.getInstance("md5").digest(str.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private static String hexArray(byte[] arr) {
+        return String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr));
+    }
+
+    static String sha1Hash(String path) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA1");
+        md.reset();
+        byte[] pathBytes = path.getBytes(StandardCharsets.UTF_8);
+        md.update(pathBytes);
+        byte[] digest = md.digest();
+        return Base64.getEncoder().encodeToString(digest);
     }
 
 }
