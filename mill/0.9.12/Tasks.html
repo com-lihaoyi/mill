@@ -1,23 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Tasks :: Mill</title>
-    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Tasks.html" />
-    <link rel="prev" href="Common_Project_Layouts.html" />
-    <link rel="next" href="Task_Context_API.html" />
-    <meta name="generator" content="Antora 3.0.1" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Tasks.html">
+    <link rel="prev" href="Common_Project_Layouts.html">
+    <link rel="next" href="Task_Context_API.html">
+    <meta name="generator" content="Antora 3.0.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
     <script>var uiRootPath = '../../_'</script>
-  
-  </head><body class="article">
-  
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" />&nbsp;Mill</a>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
         <span></span>
@@ -135,7 +134,7 @@
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-latest">
-          <a href="../index.html">0.10.0-36-0ff6e0</a>
+          <a href="../index.html">0.10.0-37-3076ad</a>
         </li>
         <li class="version">
           <a href="../0.10.0/index.html">0.10.0</a>
@@ -193,7 +192,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.9.12</button>
   <div class="version-menu">
-    <a class="version" href="../Tasks.html">0.10.0-36-0ff6e0</a>
+    <a class="version" href="../Tasks.html">0.10.0-37-3076ad</a>
     <a class="version" href="../0.10.0/Tasks.html">0.10.0</a>
     <a class="version" href="../0.10.0-M5/Tasks.html">0.10.0-M5</a>
     <a class="version" href="../0.10.0-M4/Tasks.html">0.10.0-M4</a>
@@ -220,7 +219,7 @@
 <h2 id="_task_graphs"><a class="anchor" href="#_task_graphs"></a>Task Graphs</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>One of Mill’s core abstractions is its <em>Task Graph</em>: this is how Mill defines,
+<p>One of Mill&#8217;s core abstractions is its <em>Task Graph</em>: this is how Mill defines,
 orders and caches work it needs to do, and exists independently of any support
 for building Scala.</p>
 </div>
@@ -236,16 +235,16 @@ for building Scala.</p>
 //                                v
 //           resourceRoot ----&gt;  jar
 
-def sourceRoot = T.sources { os.pwd / &quot;src&quot; }
+def sourceRoot = T.sources { os.pwd / "src" }
 
-def resourceRoot = T.sources { os.pwd / &quot;resources&quot; }
+def resourceRoot = T.sources { os.pwd / "resources" }
 
 def allSources = T { sourceRoot().flatMap(p =&gt; os.walk(p.path)).map(PathRef(_)) }
 
 def classFiles = T {
   os.makeDir.all(T.dest)
 
-  os.proc(&quot;javac&quot;, allSources().map(_.path.toString()), &quot;-d&quot;, T.dest)
+  os.proc("javac", allSources().map(_.path.toString()), "-d", T.dest)
     .call(cwd = T.dest)
   PathRef(T.dest)
 }
@@ -253,7 +252,7 @@ def classFiles = T {
 def jar = T { Jvm.createJar(Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
 
 def run(mainClsName: String) = T.command {
-  os.proc(&quot;java&quot;, &quot;-cp&quot;, classFiles().path, mainClsName).call()
+  os.proc("java", "-cp", classFiles().path, mainClsName).call()
 }</code></pre>
 </div>
 </div>
@@ -310,13 +309,13 @@ the cached output of <code>allSources</code> and <code>classFiles</code></p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#_targets">Targets</a>, defined using <code>T {…​}</code></p>
+<p><a href="#_targets">Targets</a>, defined using <code>T {&#8230;&#8203;}</code></p>
 </li>
 <li>
-<p><a href="#_sources">Sources</a>, defined using <code>T.sources {…​}</code></p>
+<p><a href="#_sources">Sources</a>, defined using <code>T.sources {&#8230;&#8203;}</code></p>
 </li>
 <li>
-<p><a href="#_commands">Commands</a>, defined using <code>T.command {…​}</code></p>
+<p><a href="#_commands">Commands</a>, defined using <code>T.command {&#8230;&#8203;}</code></p>
 </li>
 </ul>
 </div>
@@ -328,9 +327,9 @@ the cached output of <code>allSources</code> and <code>classFiles</code></p>
 </div>
 </div>
 <div class="paragraph">
-<p><code>Target</code>s are defined using the <code>def foo = T {…​}</code> syntax, and dependencies on
+<p><code>Target</code>s are defined using the <code>def foo = T {&#8230;&#8203;}</code> syntax, and dependencies on
 other targets are defined using <code>foo()</code> to extract the value from them.
-Apart from the <code>foo()</code> calls, the <code>T {…​}</code> block contains arbitrary code that does some work and returns a result.</p>
+Apart from the <code>foo()</code> calls, the <code>T {&#8230;&#8203;}</code> block contains arbitrary code that does some work and returns a result.</p>
 </div>
 <div class="paragraph">
 <p>Each target, e.g. <code>classFiles</code>, is assigned a path on disk as scratch space &amp; to
@@ -358,10 +357,10 @@ write them to disk within your <code>T.dest</code> available through the
 that hashes the files you wrote.</p>
 </div>
 <div class="paragraph">
-<p>If a target’s inputs change but its output does not, e.g. someone changes a
-comment within the source files that doesn’t affect the classfiles, then
+<p>If a target&#8217;s inputs change but its output does not, e.g. someone changes a
+comment within the source files that doesn&#8217;t affect the classfiles, then
 downstream targets do not re-evaluate.
-This is determined using the <code>.hashCode</code> of the Target’s return value.
+This is determined using the <code>.hashCode</code> of the Target&#8217;s return value.
 For targets returning <code>os.Path</code>s that reference files on disk, you can wrap the <code>Path</code> in a <code>PathRef</code> (shown above) whose <code>.hashCode()</code> will include the hashes of all files on disk at time of creation.</p>
 </div>
 <div class="paragraph">
@@ -379,24 +378,24 @@ within a <code>Module</code> body.</p>
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sourceRootPath = os.pwd / &quot;src&quot;
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sourceRootPath = os.pwd / "src"
 
 def sourceRoots = T.sources { sourceRootPath }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>Source</code>s are defined using <code>T.sources {…​}</code>, taking one-or-more
+<p><code>Source</code>s are defined using <code>T.sources {&#8230;&#8203;}</code>, taking one-or-more
 <code>os.Path</code>s as arguments.
 A <code>Source</code> is a subclass of <code>Target[Seq[PathRef]]</code>: this means that its build signature/<code>hashCode</code> depends not just on the path it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the filesystem tree under that path.</p>
 </div>
 <div class="paragraph">
 <p><code>T.sources</code> also has an overload which takes <code>Seq[PathRef]</code>, to let you
-override-and-extend source lists the same way you would any other <code>T {…​}</code>
+override-and-extend source lists the same way you would any other <code>T {&#8230;&#8203;}</code>
 definition:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def additionalSources = T.sources { os.pwd / &quot;additionalSources&quot; }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def additionalSources = T.sources { os.pwd / "additionalSources" }
 override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources() }</code></pre>
 </div>
 </div>
@@ -406,16 +405,16 @@ override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources(
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClsName: String) = T.command {
-  os.proc(&quot;java&quot;, &quot;-cp&quot;, classFiles().path, mainClsName).call()
+  os.proc("java", "-cp", classFiles().path, mainClsName).call()
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Defined using <code>T.command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
+<p>Defined using <code>T.command {&#8230;&#8203;}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
 Commands can be parametrized, but their output is not cached, so they will
 re-evaluate every time even if none of their inputs have changed.
-A command with no parameter is defined as <code>def myCommand() = T.command {…​}</code>.
+A command with no parameter is defined as <code>def myCommand() = T.command {&#8230;&#8203;}</code>.
 It is a compile error if <code>()</code> is missing.</p>
 </div>
 <div class="paragraph">
@@ -440,7 +439,7 @@ path for consumption by external tools.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#_anonymous_tasks">Anonymous Tasks</a>, defined using <code>T.task {…​}</code></p>
+<p><a href="#_anonymous_tasks">Anonymous Tasks</a>, defined using <code>T.task {&#8230;&#8203;}</code></p>
 </li>
 <li>
 <p><a href="#_persistent_targets">Persistent Targets</a></p>
@@ -461,7 +460,7 @@ path for consumption by external tools.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You can define anonymous tasks using the <code>T.task {…​}</code> syntax.
+<p>You can define anonymous tasks using the <code>T.task {&#8230;&#8203;}</code> syntax.
 These are not runnable from the command-line, but can be used to share common code you find yourself repeating in <code>Target</code>s and <code>Command</code>s.</p>
 </div>
 <div class="listingblock">
@@ -471,7 +470,7 @@ def downstreamCommand(x: Int) = T.command { ... foo(x)() ... }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Anonymous task’s output does not need to be JSON-serializable, their output is
+<p>Anonymous task&#8217;s output does not need to be JSON-serializable, their output is
 not cached, and they can be defined with or without arguments.
 Unlike <a href="#_targets">Targets</a> or <a href="#_commands">Commands</a>, anonymous tasks can be defined
 anywhere and passed around any way you want, until you finally make use of them
@@ -479,7 +478,7 @@ within a downstream target or command.</p>
 </div>
 <div class="paragraph">
 <p>While an anonymous task <code>foo</code>'s own output is not cached, if it is used in a
-downstream target <code>baz</code> and the upstream target <code>bar</code> hasn’t changed,
+downstream target <code>baz</code> and the upstream target <code>bar</code> hasn&#8217;t changed,
 <code>baz</code>'s cached output will be used and <code>foo</code>'s evaluation will be skipped
 altogether.</p>
 </div>
@@ -496,12 +495,12 @@ altogether.</p>
 </div>
 <div class="paragraph">
 <p>This is useful if you are running external incremental-compilers, such as
-Scala’s <a href="https://github.com/sbt/zinc">Zinc</a>, Javascript’s
+Scala&#8217;s <a href="https://github.com/sbt/zinc">Zinc</a>, Javascript&#8217;s
 <a href="https://webpack.js.org/">WebPack</a>, which rely on filesystem caches to speed up
 incremental execution of their particular build step.</p>
 </div>
 <div class="paragraph">
-<p>Since Mill no longer forces a &quot;clean slate&quot; re-evaluation of <code>T.persistent</code>
+<p>Since Mill no longer forces a "clean slate" re-evaluation of <code>T.persistent</code>
 targets, it is up to you to ensure your code (or the third-party incremental
 compilers you rely on!) are deterministic. They should always converge to the
 same outputs for a given set of inputs, regardless of what builds and what
@@ -527,7 +526,7 @@ use of the current git version:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bar = T { ... os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call().out.text() ... }</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bar = T { ... os.proc("git", "rev-parse", "HEAD").call().out.text() ... }</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -541,7 +540,7 @@ be out of date!</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def foo = T.input { os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call().out.text() }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def foo = T.input { os.proc("git", "rev-parse", "HEAD").call().out.text() }
 def bar = T { ... foo() ... }</code></pre>
 </div>
 </div>
@@ -553,7 +552,7 @@ But if <code>git rev-parse HEAD</code> <em>does</em> change, <code>foo</code>'s 
 <div class="paragraph">
 <p>Note that because <code>T.input</code>s re-evaluate every time, you should ensure that the
 code you put in <code>T.input</code> runs quickly. Ideally it should just be a simple check
-&quot;did anything change?&quot; and any heavy-lifting should be delegated to downstream
+"did anything change?" and any heavy-lifting should be delegated to downstream
 targets.</p>
 </div>
 </div>
@@ -599,13 +598,13 @@ different Task types:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 14.2857%;" />
-<col style="width: 14.2857%;" />
-<col style="width: 14.2857%;" />
-<col style="width: 14.2857%;" />
-<col style="width: 14.2857%;" />
-<col style="width: 14.2857%;" />
-<col style="width: 14.2858%;" />
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 14.2858%;">
 </colgroup>
 <thead>
 <tr>
@@ -690,6 +689,6 @@ different Task types:</p>
   <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
 </footer>
 <script src="../../_/js/site.js"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
-  
-</body></html>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
