@@ -48,7 +48,6 @@ class IsolatedMillMainLoader {
         LoadResult loadResult = load();
         if (loadResult.millMainMethod.isPresent()) {
             if (!MillEnv.millJvmOptsAlreadyApplied() && MillEnv.millJvmOptsFile().exists()) {
-//                System.err.println("Warning: Settings from file `" + propOptsFile + "` are currently ignored.");
                 System.err.println("Launching Mill as sub-process ...");
                 int exitVal = launchMillAsSubProcess(args);
                 System.exit(exitVal);
