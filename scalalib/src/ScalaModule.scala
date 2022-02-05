@@ -249,7 +249,7 @@ trait ScalaModule extends JavaModule { outer =>
         .mkString(java.io.File.pathSeparator)
     )
 
-    def packageWithZinc(options: Seq[String], files: Seq[String], javadocDir: os.Path) = {
+    def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
       if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(T.dest))
       else {
         zincWorker
@@ -259,10 +259,10 @@ trait ScalaModule extends JavaModule { outer =>
             scalaOrganization(),
             scalaDocClasspath().map(_.path),
             scalacPluginClasspath().map(_.path),
-            files ++ options ++ compileCp ++ scalaDocOptions()
+            options ++ compileCp ++ scalaDocOptions() ++
+              files.map(_.toString())
           ) match {
-          case true =>
-            Result.Success(createJar(Agg(javadocDir))(T.dest))
+          case true => Result.Success(createJar(Agg(javadocDir))(T.dest))
           case false => Result.Failure("docJar generation failed")
         }
       }
@@ -280,7 +280,7 @@ trait ScalaModule extends JavaModule { outer =>
         if os.exists(docResource) && os.isDir(docResource)
         children = os.walk(docResource)
         child <- children
-        if os.isFile(child)
+        if os.isFile(child) && !child.last.startsWith(".")
       } {
         os.copy.over(
           child,
@@ -290,11 +290,7 @@ trait ScalaModule extends JavaModule { outer =>
       }
       packageWithZinc(
         Seq("-siteroot", javadocDir.toNIO.toString),
-        docSources()
-          .map(_.path)
-          .flatMap(os.walk(_))
-          .filter(os.isFile)
-          .map(_.toString),
+        Lib.findSourceFiles(docSources(), Seq("java", "scala")),
         javadocDir / "_site"
       )
 
@@ -315,7 +311,7 @@ trait ScalaModule extends JavaModule { outer =>
         if os.exists(docResource) && os.isDir(docResource)
         children = os.walk(docResource)
         child <- children
-        if os.isFile(child)
+        if os.isFile(child) && !child.last.startsWith(".")
       } {
         os.copy.over(
           child,
@@ -331,12 +327,7 @@ trait ScalaModule extends JavaModule { outer =>
           "-siteroot",
           combinedStaticDir.toNIO.toString
         ),
-        docSources()
-          .map(_.path)
-          .filter(os.exists)
-          .flatMap(os.walk(_))
-          .filter(_.ext == "tasty")
-          .map(_.toString),
+        Lib.findSourceFiles(docSources(), Seq("tasty")),
         javadocDir
       )
     } else { // scaladoc 2
@@ -345,12 +336,7 @@ trait ScalaModule extends JavaModule { outer =>
 
       packageWithZinc(
         Seq("-d", javadocDir.toNIO.toString),
-        docSources()
-          .map(_.path)
-          .filter(os.exists)
-          .flatMap(os.walk(_))
-          .filter(os.isFile)
-          .map(_.toString),
+        Lib.findSourceFiles(docSources(), Seq("java", "scala")),
         javadocDir
       )
     }
