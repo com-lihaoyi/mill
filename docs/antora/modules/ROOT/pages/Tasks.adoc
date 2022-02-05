@@ -17,9 +17,9 @@ import mill._, mill.modules.Jvm
 //                                v
 //           resourceRoot ---->  jar
 
-def sourceRoot = T.sources { os.pwd / "src" }
+def sourceRoot = T.sources { T.workspace / "src" }
 
-def resourceRoot = T.sources { os.pwd / "resources" }
+def resourceRoot = T.sources { T.workspace / "resources" }
 
 def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
 

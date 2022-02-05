@@ -1042,7 +1042,7 @@ object dev extends MillModule {
     args match {
       case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dev.run")
       case wd0 +: rest =>
-        val wd = os.Path(wd0, os.pwd)
+        val wd = os.Path(wd0, T.workspace)
         os.makeDir.all(wd)
         mill.modules.Jvm.runSubprocess(
           Seq(launcher().path.toString) ++ rest,
@@ -1257,7 +1257,7 @@ def assembly = T {
   PathRef(T.ctx.dest / filename)
 }
 
-def millBootstrap = T.sources(os.pwd / "mill")
+def millBootstrap = T.sources(T.workspace / "mill")
 
 def launcher = T {
   val outputPath = T.ctx.dest / "mill"
@@ -1301,7 +1301,7 @@ def uploadToGithub(authKey: String) = T.command {
 
   val exampleZips = Seq("example-1", "example-2", "example-3")
     .map { example =>
-      os.copy(os.pwd / "example" / example, T.dest / example)
+      os.copy(T.workspace / "example" / example, T.dest / example)
       os.copy(launcher().path, T.dest / example / "mill")
       os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
       (T.dest / s"$example.zip", label + "-" + example + ".zip")
