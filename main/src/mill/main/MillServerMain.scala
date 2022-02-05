@@ -95,7 +95,7 @@ class Server[T](
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock) {
-          val socketBaseName = "mill-" + MillClientMain.md5hex(new File(lockBase).getCanonicalPath)
+          val socketBaseName = "mill-" + Util.md5hex(new File(lockBase).getCanonicalPath)
           val (serverSocket, socketClose) =
             if (Util.isWindows) {
               val socketName = Util.WIN32_PIPE_PREFIX + socketBaseName

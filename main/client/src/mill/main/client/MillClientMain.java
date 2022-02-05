@@ -11,83 +11,41 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.Socket;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.lang.Math;
 import java.util.ArrayList;
-import java.util.Base64;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
 
+/**
+ * This is a Java implementation to speed up repetitive starts.
+ * A Scala implementation would result in the JVM loading much more classes almost doubling the start-up times.
+ */
 public class MillClientMain {
 
     // use methods instead of constants to avoid inlining by compiler
-    public static final int ExitClientCodeCannotReadFromExitCodeFile() { return 1; }
-	public static final int ExitServerCodeWhenIdle() { return 0; }
-	public static final int ExitServerCodeWhenVersionMismatch() { return 101; }
+    public static final int ExitClientCodeCannotReadFromExitCodeFile() {
+        return 1;
+    }
+
+    public static final int ExitServerCodeWhenIdle() {
+        return 0;
+    }
+
+    public static final int ExitServerCodeWhenVersionMismatch() {
+        return 101;
+    }
 
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException, URISyntaxException {
-
-        String selfJars = "";
-        List<String> vmOptions = new ArrayList<>();
-        String millOptionsPath = System.getProperty("MILL_OPTIONS_PATH");
-        if (millOptionsPath != null) {
-            // read MILL_CLASSPATH from file MILL_OPTIONS_PATH
-            Properties millProps = new Properties();
-            millProps.load(new FileInputStream(millOptionsPath));
-            for(final String k: millProps.stringPropertyNames()){
-                String propValue = millProps.getProperty(k);
-                if ("MILL_CLASSPATH".equals(k)){
-                    selfJars = propValue;
-                }
-            }
-        } else {
-            // read MILL_CLASSPATH from file sys props
-            selfJars = System.getProperty("MILL_CLASSPATH");
-        }
-
-        final Properties sysProps = System.getProperties();
-        for (final String k: sysProps.stringPropertyNames()){
-            if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
-                vmOptions.add("-D" + k + "=" + sysProps.getProperty(k));
-            }
-        }
-        if (selfJars == null || selfJars.trim().isEmpty()) {
-            throw new RuntimeException("MILL_CLASSPATH is empty!");
-        }
-        if (setJnaNoSys) {
-            vmOptions.add("-Djna.nosys=true");
-        }
-
-        String millJvmOptsPath = System.getProperty("MILL_JVM_OPTS_PATH");
-        if (millJvmOptsPath == null) {
-            millJvmOptsPath = ".mill-jvm-opts";
-        }
-
-        File millJvmOptsFile =  new File(millJvmOptsPath);
-        if (millJvmOptsFile.exists()) {
-            try (Scanner sc = new Scanner(millJvmOptsFile)) {
-                while (sc.hasNextLine()) {
-                    String arg = sc.nextLine();
-                    vmOptions.add(arg);
-                }
-            }
-        }
-
         List<String> l = new ArrayList<>();
-        l.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
-        l.addAll(vmOptions);
-        l.add("-cp");
-        l.add(String.join(File.pathSeparator, selfJars.split(",")));
+        l.addAll(MillEnv.millLaunchJvmCommand(setJnaNoSys));
         l.add("mill.main.MillServerMain");
         l.add(lockBase);
 
@@ -95,27 +53,43 @@ public class MillClientMain {
         File stderr = new java.io.File(lockBase + "/stderr");
 
         new ProcessBuilder()
-                .command(l)
-                .redirectOutput(stdout)
-                .redirectError(stderr)
-                .start();
+            .command(l)
+            .redirectOutput(stdout)
+            .redirectError(stderr)
+            .start();
     }
 
-    private static String sha1HashPath(String path) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest md = MessageDigest.getInstance("SHA1");
-        md.reset();
-        byte[] pathBytes = path.getBytes("UTF-8");
-        md.update(pathBytes);
-        byte[] digest = md.digest();
-        return Base64.getEncoder().encodeToString(digest);
-    }
-
-    public static void main(String[] args) throws Exception{
-        int exitCode = main0(args);
-        if (exitCode == ExitServerCodeWhenVersionMismatch()) {
-            exitCode = main0(args);
+    public static void main(String[] args) throws Exception {
+        if (args.length > 1) {
+            String firstArg = args[0];
+            if (Arrays.asList("-i", "--interactive", "--no-server", "--repl", "--bsp").contains(firstArg)) {
+                // start in no-server mode
+                IsolatedMillMainLoader.runMain(args);
+                return;
+            }
         }
-        System.exit(exitCode);
+
+        // start in client-server mode
+        try {
+            int exitCode = main0(args);
+            if (exitCode == ExitServerCodeWhenVersionMismatch()) {
+                exitCode = main0(args);
+            }
+            System.exit(exitCode);
+        } catch (MillServerCouldNotBeStarted e) {
+            // TODO: try to run in-process
+            System.err.println("Could not start a Mill server process.\n" +
+                "This could be caused by too many already running Mill instances " +
+                "or by an unsupported platform.\n");
+            if (IsolatedMillMainLoader.load().canLoad) {
+                System.err.println("Trying to run Mill in-process ...");
+                IsolatedMillMainLoader.runMain(args);
+            } else {
+                System.err.println("Loading Mill in-process isn't possible.\n" +
+                    "Please check your Mill installation!");
+                throw e;
+            }
+        }
     }
 
     public static int main0(String[] args) throws Exception {
@@ -124,8 +98,8 @@ public class MillClientMain {
         if (setJnaNoSys) {
             System.setProperty("jna.nosys", "true");
         }
-        
-        String jvmHomeEncoding = sha1HashPath(System.getProperty("java.home"));
+
+        String jvmHomeEncoding = Util.sha1Hash(System.getProperty("java.home"));
         int serverProcessesLimit = getServerProcessesLimit(jvmHomeEncoding);
 
         int index = 0;
@@ -173,21 +147,28 @@ public class MillClientMain {
                 }
             }
         }
-        throw new Exception("Reached max server processes limit: " + serverProcessesLimit);
+        throw new MillServerCouldNotBeStarted("Reached max server processes limit: " + serverProcessesLimit);
     }
 
-    public static int run(String lockBase,
-                          Runnable initServer,
-                          Locks locks,
-                          InputStream stdin,
-                          OutputStream stdout,
-                          OutputStream stderr,
-                          String[] args,
-                          Map<String, String> env) throws Exception{
+    public static class MillServerCouldNotBeStarted extends Exception {
+        public MillServerCouldNotBeStarted(String msg) {
+            super(msg);
+        }
+    }
+
+    public static int run(
+        String lockBase,
+        Runnable initServer,
+        Locks locks,
+        InputStream stdin,
+        OutputStream stdout,
+        OutputStream stderr,
+        String[] args,
+        Map<String, String> env) throws Exception {
 
         try (FileOutputStream f = new FileOutputStream(lockBase + "/run")) {
             f.write(System.console() != null ? 1 : 0);
-            Util.writeString(f, System.getProperty("MILL_VERSION"));
+            Util.writeString(f, BuildInfo.millVersion());
             Util.writeArgs(args, f);
             Util.writeMap(env, f);
         }
@@ -209,11 +190,11 @@ public class MillClientMain {
 
         while (ioSocket == null && System.currentTimeMillis() - retryStart < 5000) {
             try {
-                String socketBaseName = "mill-" + md5hex(new File(lockBase).getCanonicalPath());
-                ioSocket = Util.isWindows?
-                        new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + socketBaseName)
-                        : new UnixDomainSocket(lockBase + "/" + socketBaseName + "-io");
-            } catch (Throwable e){
+                String socketBaseName = "mill-" + Util.md5hex(new File(lockBase).getCanonicalPath());
+                ioSocket = Util.isWindows ?
+                    new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + socketBaseName)
+                    : new UnixDomainSocket(lockBase + "/" + socketBaseName + "-io");
+            } catch (Throwable e) {
                 socketThrowable = e;
                 Thread.sleep(1);
             }
@@ -247,8 +228,8 @@ public class MillClientMain {
     // 5 processes max
     private static int getServerProcessesLimit(String jvmHomeEncoding) {
         File outFolder = new File("out");
-        String[] totalProcesses = outFolder.list((dir,name) -> name.startsWith("mill-worker-"));
-        String[] thisJdkProcesses = outFolder.list((dir,name) -> name.startsWith("mill-worker-" + jvmHomeEncoding));
+        String[] totalProcesses = outFolder.list((dir, name) -> name.startsWith("mill-worker-"));
+        String[] thisJdkProcesses = outFolder.list((dir, name) -> name.startsWith("mill-worker-" + jvmHomeEncoding));
 
         int processLimit = 5;
         if (totalProcesses != null) {
@@ -261,12 +242,11 @@ public class MillClientMain {
         return processLimit;
     }
 
-    /** @return Hex encoded MD5 hash of input string. */
+    /**
+     * @deprecated Use {@link Util#md5hex(String)} instead. (Deprecated since after Mill 0.10.0)
+     */
     public static String md5hex(String str) throws NoSuchAlgorithmException {
-        return hexArray(MessageDigest.getInstance("md5").digest(str.getBytes(StandardCharsets.UTF_8)));
+        return Util.md5hex(str);
     }
 
-    private static String hexArray(byte[] arr) {
-        return String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr));
-    }
 }
