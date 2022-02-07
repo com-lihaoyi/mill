@@ -80,7 +80,6 @@ object MillServerMain extends mill.main.MillServerMain[EvaluatorState] {
   }
 }
 
-
 class Server[T](
     lockBase: String,
     sm: MillServerMain[T],

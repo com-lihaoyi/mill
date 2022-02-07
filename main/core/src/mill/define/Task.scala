@@ -287,7 +287,8 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     new Task.Sequence[V](source.map(f))
   }
   def sequence[T](source: Seq[Task[T]]) = new Task.Sequence[T](source)
-  def traverseCtx[I, R](xs: Seq[Task[I]])(f: (IndexedSeq[I], mill.api.Ctx) => Result[R]): Task[R] = {
+  def traverseCtx[I, R](xs: Seq[Task[I]])(f: (IndexedSeq[I], mill.api.Ctx) => Result[R])
+      : Task[R] = {
     new Task.TraverseCtx[I, R](xs, f)
   }
 }
@@ -363,16 +364,18 @@ object Task {
     val inputs = inputs0
     def evaluate(args: mill.api.Ctx) = {
       for (i <- 0 until args.length)
-      yield args(i).asInstanceOf[T]
+        yield args(i).asInstanceOf[T]
     }
   }
-  class TraverseCtx[+T, V](inputs0: Seq[Task[T]],
-                           f: (IndexedSeq[T], mill.api.Ctx) => Result[V]) extends Task[V] {
+  class TraverseCtx[+T, V](
+      inputs0: Seq[Task[T]],
+      f: (IndexedSeq[T], mill.api.Ctx) => Result[V]
+  ) extends Task[V] {
     val inputs = inputs0
     def evaluate(args: mill.api.Ctx) = {
       f(
         for (i <- 0 until args.length)
-        yield args(i).asInstanceOf[T],
+          yield args(i).asInstanceOf[T],
         args
       )
     }
