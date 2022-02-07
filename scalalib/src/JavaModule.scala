@@ -464,13 +464,7 @@ trait JavaModule
     val javadocDir = outDir / "javadoc"
     os.makeDir.all(javadocDir)
 
-    val files = for {
-      ref <- docSources()
-      if os.exists(ref.path)
-      p <- (if (os.isDir(ref.path)) os.walk(ref.path) else Seq(ref.path))
-      if os.isFile(p) && (p.ext == "java")
-    } yield p.toNIO.toString
-
+    val files = Lib.findSourceFiles(docSources(), Seq("java"))
     val options = javadocOptions() ++ Seq("-d", javadocDir.toNIO.toString)
 
     if (files.nonEmpty)
