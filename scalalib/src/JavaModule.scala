@@ -174,6 +174,7 @@ trait JavaModule
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[Dep]] = T {
+    // NOTE: If you update this, reflect the changes in ScalaNativeModule
     ivyDeps() ++ mandatoryIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 

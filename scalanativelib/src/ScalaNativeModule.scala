@@ -51,10 +51,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeWorkerClasspath = T {
     val workerScalaBinaryVersion = scalaBinaryVersion(scalaNativeWorkerScalaVersion())
     val workerKey =
-      s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}_$workerScalaBinaryVersion".replace(
-        '.',
-        '_'
-      )
+      s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}_$workerScalaBinaryVersion"
+        .replace('.', '_')
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
@@ -227,6 +225,33 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
       )
     ))
+  }
+
+  override def transitiveIvyDeps: T[Agg[Dep]] = T {
+    // TODO when in bin-compat breaking window: Change list to `super.transitiveIvyDeps()`
+    (ivyDeps() ++ mandatoryIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten).map { dep =>
+      // Exclude cross published version dependencies leading to conflicts in Scala 3 vs 2.13
+      // When using Scala 3 exclude Scala 2.13 standard native libraries,
+      // when using Scala 2.13 exclude Scala 3 standard native libraries
+      // Use full name, Maven style published artifacts cannot use artifact/cross version for exclusion rules
+      val nativeStandardLibraries =
+        Seq("nativelib", "clib", "posixlib", "windowslib", "javalib", "auxlib")
+
+      val scalaBinaryVersionToExclude = artifactScalaVersion() match {
+        case "3" => "2.13" :: Nil
+        case "2.13" => "3" :: Nil
+        case _ => Nil
+      }
+
+      val nativeSuffix = platformSuffix()
+
+      val exclusions = scalaBinaryVersionToExclude.flatMap { scalaBinVersion =>
+        nativeStandardLibraries.map(library =>
+          "org.scala-native" -> s"$library${nativeSuffix}_$scalaBinVersion"
+        )
+      }
+      dep.exclude(exclusions: _*)
+    }
   }
 }
 
