@@ -228,7 +228,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   override def transitiveIvyDeps: T[Agg[Dep]] = T {
-    super.transitiveIvyDeps().map { dep =>
+    // TODO when in bin-compat breaking window: Change list to `super.transitiveIvyDeps()`
+    (ivyDeps() ++ mandatoryIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten).map { dep =>
       // Exclude cross published version dependencies leading to conflicts in Scala 3 vs 2.13
       // When using Scala 3 exclude Scala 2.13 standard native libraries,
       // when using Scala 2.13 exclude Scala 3 standard native libraries
