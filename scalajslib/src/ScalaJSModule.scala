@@ -245,7 +245,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  override def testLocal(args: String*): Command[(String, Seq[TestRunner.Result])] = T.command { test(args: _*) }
+  override def testLocal(args: String*): Command[(String, Seq[TestRunner.Result])] =
+    T.command { test(args: _*) }
 
   override protected def testTask(
       args: Task[Seq[String]],

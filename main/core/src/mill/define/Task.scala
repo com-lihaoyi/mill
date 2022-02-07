@@ -367,8 +367,10 @@ object Task {
         yield args(i).asInstanceOf[T]
     }
   }
-  class TraverseCtx[+T, V](inputs0: Seq[Task[T]], f: (IndexedSeq[T], mill.api.Ctx) => Result[V])
-      extends Task[V] {
+  class TraverseCtx[+T, V](
+      inputs0: Seq[Task[T]],
+      f: (IndexedSeq[T], mill.api.Ctx) => Result[V]
+  ) extends Task[V] {
     val inputs = inputs0
     def evaluate(args: mill.api.Ctx) = {
       f(

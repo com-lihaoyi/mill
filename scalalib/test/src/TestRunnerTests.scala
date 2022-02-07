@@ -17,7 +17,9 @@ object TestRunnerTests extends TestSuite {
 
     object test extends super.Tests with TestModule.Utest {
       override def ivyDeps = T {
-        super.ivyDeps() ++ Agg(ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
+        super.ivyDeps() ++ Agg(
+          ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
+        )
       }
     }
   }

@@ -22,7 +22,8 @@ object MultiModuleTests extends TestSuite {
       override def moduleDeps = Seq(shared)
       override def mainClass = Some("Main")
       object test extends Tests with TestModule.Utest {
-        override def ivyDeps = Agg(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
+        override def ivyDeps =
+          Agg(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
       }
     }
 
