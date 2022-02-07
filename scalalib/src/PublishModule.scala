@@ -155,10 +155,10 @@ trait PublishModule extends JavaModule { outer =>
   def publish(
       sonatypeCreds: String,
       signed: Boolean = true,
-      // mainargs wasn't handling a default value properly, 
+      // mainargs wasn't handling a default value properly,
       // so we instead use the empty Seq as default.
       // see https://github.com/com-lihaoyi/mill/pull/1678
-      // TODO: In mill 0.11, we may want to change to a String argument 
+      // TODO: In mill 0.11, we may want to change to a String argument
       // which we can split at `,` symbols, as we do in `PublishModule.publishAll`.
       gpgArgs: Seq[String] = Seq.empty,
       release: Boolean = false,

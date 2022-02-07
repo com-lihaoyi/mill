@@ -50,7 +50,11 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def scalaNativeWorkerClasspath = T {
     val workerScalaBinaryVersion = scalaBinaryVersion(scalaNativeWorkerScalaVersion())
-    val workerKey = s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}_$workerScalaBinaryVersion".replace('.', '_')
+    val workerKey =
+      s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}_$workerScalaBinaryVersion".replace(
+        '.',
+        '_'
+      )
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",

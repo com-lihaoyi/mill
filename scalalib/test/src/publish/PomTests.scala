@@ -164,7 +164,13 @@ object PomTests extends TestSuite {
 
     test("pomNoDeps") {
       val pomNoDeps =
-        pomXml(artifact, dependencies = Agg.empty, artifactId = artifactId, pomSettings = settings, properties)
+        pomXml(
+          artifact,
+          dependencies = Agg.empty,
+          artifactId = artifactId,
+          pomSettings = settings,
+          properties
+        )
 
       test("dependencies") {
         assert(
@@ -187,7 +193,13 @@ object PomTests extends TestSuite {
     }
 
     test("pomProperties") {
-      val pom = pomXml(artifact, deps, artifactId, settings, Map("myVersion" -> "1.0", "scala.version" -> "2.13.7"))
+      val pom = pomXml(
+        artifact,
+        deps,
+        artifactId,
+        settings,
+        Map("myVersion" -> "1.0", "scala.version" -> "2.13.7")
+      )
       assert(
         (pom \ "properties").nonEmpty,
         (pom \ "properties" \ "myVersion").text == "1.0",
