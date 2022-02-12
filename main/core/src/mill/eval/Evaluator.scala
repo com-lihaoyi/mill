@@ -33,31 +33,50 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
 
 /**
  * Evaluate tasks.
- * @param home
- * @param outPath The output base path.
- * @param externalOutPath The output base path to use for external modules.
- * @param rootModule The projects root module.
- * @param baseLogger
- * @param classLoaderSig
- * @param workerCache Mutable worker cache.
- * @param env
- * @param failFast If `true` the first failing task will fail the evaluation.
- *                 If `false`, it tries to evaluate all tasks, running longer and reporting possibly more than one failure.
- * @param threadCount If a [[Some]] the explicit number of threads to use for parallel task evaluation,
- *                    or [[None]] to use n threads where n is the number of available logical processors.
  */
-case class Evaluator(
-    home: os.Path,
-    outPath: os.Path,
-    externalOutPath: os.Path,
-    rootModule: mill.define.BaseModule,
-    baseLogger: ColorLogger,
-    classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-    workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-    env: Map[String, String] = Evaluator.defaultEnv,
-    failFast: Boolean = true,
-    threadCount: Option[Int] = Some(1)
-) {
+class Evaluator @deprecated(message = "Use apply instead", since = "0.10.1") (
+    _home: os.Path,
+    _outPath: os.Path,
+    _externalOutPath: os.Path,
+    _rootModule: mill.define.BaseModule,
+    _baseLogger: ColorLogger,
+    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
+    _workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+    _env: Map[String, String] = Evaluator.defaultEnv,
+    _failFast: Boolean = true,
+    _threadCount: Option[Int] = Some(1)
+) extends Product with Serializable { // TODO: Remove extends Product with Serializable before 0.11.0
+
+  def home: os.Path = _home
+  /**
+   * The output base path.
+   */
+  def outPath: os.Path = _outPath
+  /**
+   * The output base path to use for external modules.
+   */
+  def externalOutPath: os.Path = _externalOutPath
+  /**
+   * The projects root module.
+   */
+  def rootModule: mill.define.BaseModule = _rootModule
+  def baseLogger: ColorLogger = _baseLogger
+  def classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = _classLoaderSig
+  /**
+   * Mutable worker cache.
+   */
+  def workerCache: mutable.Map[Segments, (Int, Any)] = _workerCache
+  def env: Map[String, String] = _env
+  /**
+   * If `true` the first failing task will fail the evaluation.
+   * If `false`, it tries to evaluate all tasks, running longer and reporting possibly more than one failure.
+   */
+  def failFast: Boolean = _failFast
+  /**
+   * If a [[Some]] the explicit number of threads to use for parallel task evaluation,
+   * or [[None]] to use n threads where n is the number of available logical processors.
+   */
+  def threadCount: Option[Int] = _threadCount
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
@@ -590,6 +609,105 @@ case class Evaluator(
       msgParts.mkString
   }
 
+  @deprecated("Use withX methods instead", since = "0.10.0")
+  def copy(
+      home: os.Path = this.home,
+      outPath: os.Path = this.outPath,
+      externalOutPath: os.Path = this.externalOutPath,
+      rootModule: mill.define.BaseModule = this.rootModule,
+      baseLogger: ColorLogger = this.baseLogger,
+      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = this.classLoaderSig,
+      workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache,
+      env: Map[String, String] = this.env,
+      failFast: Boolean = this.failFast,
+      threadCount: Option[Int] = this.threadCount
+  ): Evaluator = new Evaluator(
+    home,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSig,
+    workerCache,
+    env,
+    failFast,
+    threadCount
+  )
+
+  override def toString(): String = {
+    s"""Evaluator(
+       |  home = $home,
+       |  outPath = $outPath,
+       |  externalOutPath = $externalOutPath,
+       |  rootModule = $rootModule,
+       |  baseLogger = $baseLogger,
+       |  classLoaderSig = $classLoaderSig,
+       |  workerCache = $workerCache,
+       |  env = $env,
+       |  failFast = $failFast,
+       |  threadCount = $threadCount
+       |)""".stripMargin
+  }
+
+  // Rename to copy once the other copy is gone (before 0.11.0)
+  private def myCopy(
+      home: os.Path = this.home,
+      outPath: os.Path = this.outPath,
+      externalOutPath: os.Path = this.externalOutPath,
+      rootModule: mill.define.BaseModule = this.rootModule,
+      baseLogger: ColorLogger = this.baseLogger,
+      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = this.classLoaderSig,
+      workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache,
+      env: Map[String, String] = this.env,
+      failFast: Boolean = this.failFast,
+      threadCount: Option[Int] = this.threadCount
+  ): Evaluator = new Evaluator(
+    home,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSig,
+    workerCache,
+    env,
+    failFast,
+    threadCount
+  )
+
+  def withHome(home: os.Path): Evaluator = myCopy(home = home)
+  def withOutPath(outPath: os.Path): Evaluator = myCopy(outPath = outPath)
+  def withExternalOutPath(externalOutPath: os.Path): Evaluator =
+    myCopy(externalOutPath = externalOutPath)
+  def withRootModule(rootModule: mill.define.BaseModule): Evaluator =
+    myCopy(rootModule = rootModule)
+  def withBaseLogger(baseLogger: ColorLogger): Evaluator = myCopy(baseLogger = baseLogger)
+  def withClassLoaderSig(classLoaderSig: Seq[(Either[String, java.net.URL], Long)]): Evaluator =
+    myCopy(classLoaderSig = classLoaderSig)
+  def withWorkerCache(workerCache: mutable.Map[Segments, (Int, Any)]): Evaluator =
+    myCopy(workerCache = workerCache)
+  def withEnv(env: Map[String, String]): Evaluator = myCopy(env = env)
+  def withFailFast(failFast: Boolean): Evaluator = myCopy(failFast = failFast)
+  def withThreadCount(threadCount: Option[Int]): Evaluator = myCopy(threadCount = threadCount)
+
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "0.10.1")
+  def canEqual(that: Any): Boolean = that.isInstanceOf[Evaluator]
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "0.10.1")
+  def productArity: Int = 10
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "0.10.1")
+  def productElement(n: Int): Any = n match {
+    case 0 => home
+    case 1 => outPath
+    case 2 => externalOutPath
+    case 3 => rootModule
+    case 4 => baseLogger
+    case 5 => classLoaderSig
+    case 6 => workerCache
+    case 7 => env
+    case 8 => failFast
+    case 9 => threadCount
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+
 }
 
 object Evaluator {
@@ -792,4 +910,68 @@ object Evaluator {
   }
 
   private val dynamicTickerPrefix = new DynamicVariable("")
+
+  def apply(
+      home: os.Path,
+      outPath: os.Path,
+      externalOutPath: os.Path,
+      rootModule: mill.define.BaseModule,
+      baseLogger: ColorLogger
+  ): Evaluator = new Evaluator(
+    home,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger
+  )
+
+  @deprecated(message = "Use other apply and withX methods instead", since = "0.10.1")
+  def apply(
+      home: os.Path,
+      outPath: os.Path,
+      externalOutPath: os.Path,
+      rootModule: mill.define.BaseModule,
+      baseLogger: ColorLogger,
+      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
+      workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+      env: Map[String, String] = Evaluator.defaultEnv,
+      failFast: Boolean = true,
+      threadCount: Option[Int] = Some(1)
+  ): Evaluator = new Evaluator(
+    home,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSig,
+    workerCache,
+    env,
+    failFast,
+    threadCount
+  )
+
+  @deprecated(message = "Pattern matching not supported with EvaluatorState", since = "0.10.0")
+  def unapply(evaluator: Evaluator): Option[(
+      os.Path,
+      os.Path,
+      os.Path,
+      mill.define.BaseModule,
+      ColorLogger,
+      Seq[(Either[String, java.net.URL], Long)],
+      mutable.Map[Segments, (Int, Any)],
+      Map[String, String],
+      Boolean,
+      Option[Int]
+  )] = Some((
+    evaluator.home,
+    evaluator.outPath,
+    evaluator.externalOutPath,
+    evaluator.rootModule,
+    evaluator.baseLogger,
+    evaluator.classLoaderSig,
+    evaluator.workerCache,
+    evaluator.env,
+    evaluator.failFast,
+    evaluator.threadCount
+  ))
 }
