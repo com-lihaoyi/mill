@@ -5,7 +5,7 @@ import scala.collection.mutable
 import mill.define.Segments
 
 // TODO: Remove extends Product with Serializable before 0.11.0
-class EvaluatorState @deprecated(since = "0.10.1") private[main] (
+class EvaluatorState @deprecated(message = "Use apply instead", since = "0.10.1") private[main] (
     _rootModule: mill.define.BaseModule,
     _classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
     _workerCache: mutable.Map[Segments, (Int, Any)],
