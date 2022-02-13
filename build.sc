@@ -136,7 +136,7 @@ object Deps {
   val zinc = ivy"org.scala-sbt::zinc:1.6.1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0"
   val fansi = ivy"com.lihaoyi::fansi:0.3.1"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.0"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
