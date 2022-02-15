@@ -1005,8 +1005,7 @@ object Evaluator {
     outPath,
     externalOutPath,
     rootModule,
-    baseLogger,
-    classLoaderSig
+    baseLogger
   )
 
   @deprecated(message = "Use other apply and withX methods instead", since = "mill 0.10.1")
