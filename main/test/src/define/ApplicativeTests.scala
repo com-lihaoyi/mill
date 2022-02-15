@@ -14,7 +14,8 @@ object ApplicativeTests extends TestSuite {
     val injectedCtx = "helloooo"
     def apply[T](t: T): Option[T] = macro Applicative.impl[Option, T, String]
 
-    def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (IndexedSeq[I], String) => Applicative.Id[R]): Option[R] = {
+    def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (IndexedSeq[I], String) => Applicative.Id[R])
+        : Option[R] = {
       if (xs.exists(_.self.isEmpty)) None
       else Some(f(xs.map(_.self.get).toVector, injectedCtx))
     }
@@ -53,16 +54,16 @@ object ApplicativeTests extends TestSuite {
         assert(
           Opt(
             "lol " +
-            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-            Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")()
+              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
+              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")()
           ) == Some("lol abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde")
         )
       }

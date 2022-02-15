@@ -39,13 +39,15 @@ object ReplApplyHandler {
 
     new ReplApplyHandler(
       pprinter0,
-      Evaluator(
+      new Evaluator(
         home,
         os.pwd / "out",
         os.pwd / "out",
         rootModule,
-        logger
-      ).withFailFast(!keepGoing).withThreadCount(threadCount),
+        logger,
+        failFast = !keepGoing,
+        threadCount = threadCount
+      ),
       systemProperties = systemProperties
     )
   }
@@ -135,6 +137,7 @@ object ReplApplyHandler {
       ) ++ t.inputs.distinct.iterator.flatMap(rec).map("\n    " + _.render)
     )
   }
+
 }
 
 class ReplApplyHandler(
