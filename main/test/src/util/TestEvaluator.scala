@@ -57,15 +57,13 @@ class TestEvaluator(
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
-  val evaluator = new Evaluator(
+  val evaluator = Evaluator(
     mill.api.Ctx.defaultHome,
     outPath,
     TestEvaluator.externalOutPath,
     module,
-    logger,
-    failFast = failFast,
-    threadCount = threads
-  )
+    logger
+  ).withFailFast(failFast).withThreadCount(threads)
 
   def apply[T](t: Task[T]): Either[mill.api.Result.Failing[T], (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))
