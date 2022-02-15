@@ -11,7 +11,7 @@ import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Loose
 import mill.api.Strict.Agg
 import mill.define.{Ctx => _, _}
-import mill.internal.Utils
+import mill.internal.AmmoniteUtils
 import mill.util
 import mill.util._
 
@@ -50,18 +50,18 @@ class Evaluator private (
     _importTree: Seq[ScriptNode]
 ) extends Product with Serializable { // TODO: Remove extends Product with Serializable before 0.11.0
 
-  @deprecated(message = "Use apply instead", since = "mill 0.10.1") 
+  @deprecated(message = "Use apply instead", since = "mill 0.10.1")
   def this(
-    _home: os.Path,
-    _outPath: os.Path,
-    _externalOutPath: os.Path,
-    _rootModule: mill.define.BaseModule,
-    _baseLogger: ColorLogger,
-    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-    _workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-    _env: Map[String, String] = Evaluator.defaultEnv,
-    _failFast: Boolean = true,
-    _threadCount: Option[Int] = Some(1)
+      _home: os.Path,
+      _outPath: os.Path,
+      _externalOutPath: os.Path,
+      _rootModule: mill.define.BaseModule,
+      _baseLogger: ColorLogger,
+      _classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
+      _workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+      _env: Map[String, String] = Evaluator.defaultEnv,
+      _failFast: Boolean = true,
+      _threadCount: Option[Int] = Some(1)
   ) = this(
     _home,
     _outPath,
@@ -126,7 +126,9 @@ class Evaluator private (
   // We're interested of the whole file hash.
   // So we sum the hash of all classes that normalize to the same name.
   private val scriptsSigMap =
-    scriptsClassLoader.groupMapReduce(e => Utils.normalizeAmmoniteImportPath(e._1))(_._2)(_ + _)
+    scriptsClassLoader.groupMapReduce(e =>
+      AmmoniteUtils.normalizeAmmoniteImportPath(e._1)
+    )(_._2)(_ + _)
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
@@ -369,7 +371,7 @@ class Evaluator private (
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
         case namedTask: NamedTask[_] =>
           val cls = namedTask.ctx.enclosingCls.getName
-          val normalized = Utils.normalizeAmmoniteImportPath(cls)
+          val normalized = AmmoniteUtils.normalizeAmmoniteImportPath(cls)
           classes.append(normalized)
         case _ =>
       }

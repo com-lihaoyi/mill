@@ -12,7 +12,7 @@ import mill.define.SelectMode
 import mill.define.ParseArgs
 import mill.api.{Logger, PathRef, Result}
 import mill.api.Strict.Agg
-import mill.internal.Utils
+import mill.internal.AmmoniteUtils
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -68,7 +68,7 @@ object RunScript {
                 yield {
                   val importTreeMap = mutable.Map.empty[String, Seq[String]]
                   interp.alreadyLoadedFiles.foreach { case (a, b) =>
-                    val filePath = Utils.normalizeAmmoniteImportPath(a.filePathPrefix)
+                    val filePath = AmmoniteUtils.normalizeAmmoniteImportPath(a.filePathPrefix)
                     val importPaths = b.blockInfo.flatMap { b =>
                       val relativePath = b.hookInfo.trees.map { t =>
                         val prefix = t.prefix
@@ -78,7 +78,7 @@ object RunScript {
                       relativePath.collect {
                         case "$file" :: tail =>
                           val concatenated = filePath.init ++ tail
-                          Utils.normalizeAmmoniteImportPath(concatenated)
+                          AmmoniteUtils.normalizeAmmoniteImportPath(concatenated)
                       }
                     }
                     def toCls(segments: Seq[String]): String = segments.mkString(".")

@@ -1,7 +1,7 @@
 package mill.internal
 
 @mill.api.internal
-private[mill] object Utils {
+private[mill] object AmmoniteUtils {
   def normalizeAmmoniteImportPath(segments: Seq[String]): Seq[String] = {
     def loop(l: List[String], up: Int): List[String] = l match {
       case ("^" | "$up") :: tail => loop(tail, up + 1)

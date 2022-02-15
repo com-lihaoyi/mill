@@ -2,11 +2,11 @@ package mill.internal
 
 import utest._
 
-object UtilsTests extends TestSuite {
+object AmmoniteUtilsTests extends TestSuite {
   val tests = Tests {
     test("normalizeAmmoniteImportPath") {
       def normalize(s: String): String =
-        Utils.normalizeAmmoniteImportPath(s.split('.')).mkString(".")
+        AmmoniteUtils.normalizeAmmoniteImportPath(s.split('.')).mkString(".")
       test("should normalize classes compiled from multiple scripts") {
         val input1 = "ammonite.$file.e.$up.a.inputA"
         val input2 = "ammonite.$file.a.inputA"
