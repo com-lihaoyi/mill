@@ -35,58 +35,88 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
 
 /**
  * Evaluate tasks.
- * @param home
- * @param outPath The output base path.
- * @param externalOutPath The output base path to use for external modules.
- * @param rootModule The projects root module.
- * @param baseLogger
- * @param classLoaderSig
- * @param workerCache Mutable worker cache.
- * @param env
- * @param failFast If `true` the first failing task will fail the evaluation.
- *                 If `false`, it tries to evaluate all tasks, running longer and reporting possibly more than one failure.
- * @param threadCount If a [[Some]] the explicit number of threads to use for parallel task evaluation,
- *                    or [[None]] to use n threads where n is the number of available logical processors.
- * @param importTree The tree of imports of the build ammonite scripts
  */
-class Evaluator(
-    val home: os.Path,
-    val outPath: os.Path,
-    val externalOutPath: os.Path,
-    val rootModule: mill.define.BaseModule,
-    val baseLogger: ColorLogger,
-    val classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-    val workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-    val env: Map[String, String] = Evaluator.defaultEnv,
-    val failFast: Boolean = true,
-    val threadCount: Option[Int] = Some(1),
-    val importTree: Seq[ScriptNode]
+class Evaluator private (
+    _home: os.Path,
+    _outPath: os.Path,
+    _externalOutPath: os.Path,
+    _rootModule: mill.define.BaseModule,
+    _baseLogger: ColorLogger,
+    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
+    _workerCache: mutable.Map[Segments, (Int, Any)],
+    _env: Map[String, String],
+    _failFast: Boolean,
+    _threadCount: Option[Int],
+    _importTree: Seq[ScriptNode]
 ) extends Product with Serializable { // TODO: Remove extends Product with Serializable before 0.11.0
-  @deprecated(since = "0.10.0")
+
+  @deprecated(message = "Use apply instead", since = "mill 0.10.1") 
   def this(
-      home: os.Path,
-      outPath: os.Path,
-      externalOutPath: os.Path,
-      rootModule: mill.define.BaseModule,
-      baseLogger: ColorLogger,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
-      workerCache: mutable.Map[Segments, (Int, Any)],
-      env: Map[String, String],
-      failFast: Boolean,
-      threadCount: Option[Int]
+    _home: os.Path,
+    _outPath: os.Path,
+    _externalOutPath: os.Path,
+    _rootModule: mill.define.BaseModule,
+    _baseLogger: ColorLogger,
+    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
+    _workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+    _env: Map[String, String] = Evaluator.defaultEnv,
+    _failFast: Boolean = true,
+    _threadCount: Option[Int] = Some(1)
   ) = this(
-    home,
-    outPath,
-    externalOutPath,
-    rootModule,
-    baseLogger,
-    classLoaderSig,
-    workerCache,
-    env,
-    failFast,
-    threadCount,
+    _home,
+    _outPath,
+    _externalOutPath,
+    _rootModule,
+    _baseLogger,
+    _classLoaderSig,
+    _workerCache,
+    _env,
+    _failFast,
+    _threadCount,
     Seq.empty
   )
+
+  def home: os.Path = _home
+
+  /**
+   * The output base path.
+   */
+  def outPath: os.Path = _outPath
+
+  /**
+   * The output base path to use for external modules.
+   */
+  def externalOutPath: os.Path = _externalOutPath
+
+  /**
+   * The projects root module.
+   */
+  def rootModule: mill.define.BaseModule = _rootModule
+  def baseLogger: ColorLogger = _baseLogger
+  def classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = _classLoaderSig
+
+  /**
+   * Mutable worker cache.
+   */
+  def workerCache: mutable.Map[Segments, (Int, Any)] = _workerCache
+  def env: Map[String, String] = _env
+
+  /**
+   * If `true` the first failing task will fail the evaluation.
+   * If `false`, it tries to evaluate all tasks, running longer and reporting possibly more than one failure.
+   */
+  def failFast: Boolean = _failFast
+
+  /**
+   * If a [[Some]] the explicit number of threads to use for parallel task evaluation,
+   * or [[None]] to use n threads where n is the number of available logical processors.
+   */
+  def threadCount: Option[Int] = _threadCount
+
+  /**
+   * The tree of imports of the build ammonite scripts
+   */
+  def importTree: Seq[ScriptNode] = _importTree
 
   private val (scriptsClassLoader, externalClassLoader) = classLoaderSig.partitionMap {
     case (Right(elem), sig) => Right((elem, sig))
@@ -106,7 +136,7 @@ class Evaluator(
   private val externalClassLoaderSigHash = externalClassLoader.hashCode()
 
   // Binary compatibility shim
-  @deprecated(since = "0.10.0")
+  @deprecated("To be removed", since = "mill 0.10.1")
   def classLoaderSignHash = classLoaderSig.hashCode()
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
@@ -656,7 +686,7 @@ class Evaluator(
       msgParts.mkString
   }
 
-  @deprecated(since = "0.10.0")
+  @deprecated("Use withX methods instead", since = "mill 0.10.1")
   def copy(
       home: os.Path = this.home,
       outPath: os.Path = this.outPath,
@@ -741,11 +771,11 @@ class Evaluator(
   def withThreadCount(threadCount: Option[Int]): Evaluator = myCopy(threadCount = threadCount)
   def withImportTree(importTree: Seq[ScriptNode]): Evaluator = myCopy(importTree = importTree)
 
-  @deprecated(since = "0.10.0")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def canEqual(that: Any): Boolean = that.isInstanceOf[Evaluator]
-  @deprecated(since = "0.10.0")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def productArity: Int = 10
-  @deprecated(since = "0.10.0")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def productElement(n: Int): Any = n match {
     case 0 => home
     case 1 => outPath
@@ -964,7 +994,22 @@ object Evaluator {
 
   private val dynamicTickerPrefix = new DynamicVariable("")
 
-  @deprecated(since = "0.10.0")
+  def apply(
+      home: os.Path,
+      outPath: os.Path,
+      externalOutPath: os.Path,
+      rootModule: mill.define.BaseModule,
+      baseLogger: ColorLogger
+  ): Evaluator = new Evaluator(
+    home,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSig
+  )
+
+  @deprecated(message = "Use other apply and withX methods instead", since = "mill 0.10.1")
   def apply(
       home: os.Path,
       outPath: os.Path,
@@ -990,7 +1035,7 @@ object Evaluator {
     Seq.empty
   )
 
-  @deprecated(since = "0.10.0")
+  @deprecated(message = "Pattern matching not supported with EvaluatorState", since = "mill 0.10.1")
   def unapply(evaluator: Evaluator): Option[(
       os.Path,
       os.Path,

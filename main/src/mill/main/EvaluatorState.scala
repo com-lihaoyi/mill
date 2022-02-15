@@ -5,14 +5,36 @@ import scala.collection.mutable
 import mill.define.{ScriptNode, Segments}
 
 // TODO: Remove extends Product with Serializable before 0.11.0
-class EvaluatorState private[main] (
-    val rootModule: mill.define.BaseModule,
-    val classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
-    val workerCache: mutable.Map[Segments, (Int, Any)],
-    val watched: Seq[(ammonite.interp.Watchable, Long)],
-    val setSystemProperties: Set[String],
-    val importTree: Seq[ScriptNode]
+class EvaluatorState private (
+    _rootModule: mill.define.BaseModule,
+    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
+    _workerCache: mutable.Map[Segments, (Int, Any)],
+    _watched: Seq[(ammonite.interp.Watchable, Long)],
+    _setSystemProperties: Set[String],
+    _importTree: Seq[ScriptNode]
 ) extends Product with Serializable {
+
+  @deprecated(message = "Use apply instead", since = "mill 0.10.1")
+  private[main] def this(
+    _rootModule: mill.define.BaseModule,
+    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
+    _workerCache: mutable.Map[Segments, (Int, Any)],
+    _watched: Seq[(ammonite.interp.Watchable, Long)],
+    _setSystemProperties: Set[String]) = this(
+      _rootModule,
+      _classLoaderSig,
+      _workerCache,
+      _watched,
+      _setSystemProperties,
+      Seq.empty
+  )
+
+  def rootModule: mill.define.BaseModule = _rootModule
+  def classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = _classLoaderSig
+  def workerCache: mutable.Map[Segments, (Int, Any)] = _workerCache
+  def watched: Seq[(ammonite.interp.Watchable, Long)] = _watched
+  def setSystemProperties: Set[String] = _setSystemProperties
+  def importTree: Seq[ScriptNode] = _importTree
 
   override def toString(): String = {
     s"""EvaluatorState(
@@ -24,37 +46,21 @@ class EvaluatorState private[main] (
        |  importTree = $importTree
        |)""".stripMargin
   }
-  @deprecated(since = "0.10.0")
-  def this(
-      rootModule: mill.define.BaseModule,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
-      workerCache: mutable.Map[Segments, (Int, Any)],
-      watched: Seq[(ammonite.interp.Watchable, Long)],
-      setSystemProperties: Set[String]
-  ) = this(
-    rootModule,
-    classLoaderSig,
-    workerCache,
-    watched,
-    setSystemProperties,
-    Seq.empty
-  )
-  @deprecated(since = "0.10.0")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def canEqual(that: Any): Boolean = that.isInstanceOf[EvaluatorState]
-  @deprecated(since = "0.10.0")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def productArity: Int = 6
-  @deprecated(since = "0.10.0")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def productElement(n: Int): Any = n match {
     case 0 => rootModule
     case 1 => classLoaderSig
     case 2 => workerCache
     case 3 => watched
     case 4 => setSystemProperties
-    case 5 => importTree
     case _ => throw new IndexOutOfBoundsException(n.toString)
   }
-  @deprecated(since = "0.10.0")
-  protected[this] def copy(
+  @deprecated("Construct a new instance with apply instead", since = "mill 0.10.1")
+  def copy(
       rootModule: mill.define.BaseModule = this.rootModule,
       classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = this.classLoaderSig,
       workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache,
@@ -69,7 +75,7 @@ class EvaluatorState private[main] (
     this.importTree
   )
 }
-// TODO: Remove the extends runtime.AbstractFunction5[...] before 0.11.0 
+// TODO: Remove the extends runtime.AbstractFunction5[...] before 0.11.0
 object EvaluatorState extends runtime.AbstractFunction5[mill.define.BaseModule, Seq[(
         Either[String, java.net.URL],
         Long
@@ -78,7 +84,23 @@ object EvaluatorState extends runtime.AbstractFunction5[mill.define.BaseModule, 
         Long
     )], Set[String], EvaluatorState] {
 
-  @deprecated(since = "0.10.0")
+  def apply(
+      rootModule: mill.define.BaseModule,
+      classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
+      workerCache: mutable.Map[Segments, (Int, Any)],
+      watched: Seq[(ammonite.interp.Watchable, Long)],
+      setSystemProperties: Set[String],
+      importTree: Seq[ScriptNode]
+  ): EvaluatorState = new EvaluatorState(
+    rootModule,
+    classLoaderSig,
+    workerCache,
+    watched,
+    setSystemProperties,
+    importTree
+  )
+
+  @deprecated(message = "Use other apply instead", since = "mill 0.10.1")
   def apply(
       rootModule: mill.define.BaseModule,
       classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
@@ -93,14 +115,21 @@ object EvaluatorState extends runtime.AbstractFunction5[mill.define.BaseModule, 
     setSystemProperties,
     Seq.empty
   )
-  @deprecated(since = "0.10.0")
-  def unapply(evaluatorState: EvaluatorState): Option[(mill.define.BaseModule, Seq[(
-        Either[String, java.net.URL],
-        Long
-    )], mutable.Map[Segments, (Int, Any)], Seq[(
-        ammonite.interp.Watchable,
-        Long
-    )], Set[String])] =
+
+  @deprecated(message = "Pattern matching not supported with EvaluatorState", since = "mill 0.10.1")
+  def unapply(evaluatorState: EvaluatorState): Option[(
+      mill.define.BaseModule,
+      Seq[(
+          Either[String, java.net.URL],
+          Long
+      )],
+      mutable.Map[Segments, (Int, Any)],
+      Seq[(
+          ammonite.interp.Watchable,
+          Long
+      )],
+      Set[String]
+  )] =
     Some((
       evaluatorState.rootModule,
       evaluatorState.classLoaderSig,

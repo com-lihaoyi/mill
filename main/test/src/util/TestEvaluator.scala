@@ -62,10 +62,8 @@ class TestEvaluator(
     outPath,
     TestEvaluator.externalOutPath,
     module,
-    logger,
-    failFast = failFast,
-    threadCount = threads
-  )
+    logger
+  ).withFailFast(failFast).withThreadCount(threads)
 
   def apply[T](t: Task[T]): Either[mill.api.Result.Failing[T], (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))

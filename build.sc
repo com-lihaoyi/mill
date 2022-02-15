@@ -69,8 +69,8 @@ object Deps {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.3.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.8.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.8.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.9.0"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.9.0"
   }
 
   object Scalanative_0_4 {
@@ -136,7 +136,7 @@ object Deps {
   val zinc = ivy"org.scala-sbt::zinc:1.6.1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0"
   val fansi = ivy"com.lihaoyi::fansi:0.3.1"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.0"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }

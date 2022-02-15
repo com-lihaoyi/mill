@@ -39,16 +39,13 @@ object ReplApplyHandler {
 
     new ReplApplyHandler(
       pprinter0,
-      new Evaluator(
+      Evaluator(
         home,
         os.pwd / "out",
         os.pwd / "out",
         rootModule,
-        logger,
-        failFast = !keepGoing,
-        threadCount = threadCount,
-        importTree = Seq.empty
-      ),
+        logger
+      ).withFailFast(!keepGoing).withThreadCount(threadCount),
       systemProperties = systemProperties
     )
   }
