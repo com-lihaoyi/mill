@@ -5,7 +5,10 @@ import scala.collection.mutable
 import mill.define.Segments
 
 // TODO: Remove extends Product with Serializable before 0.11.0
-class EvaluatorState @deprecated(message = "Use apply instead", since = "0.10.1") private[main] (
+class EvaluatorState @deprecated(
+  message = "Use apply instead",
+  since = "mill 0.10.1"
+) private[main] (
     _rootModule: mill.define.BaseModule,
     _classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
     _workerCache: mutable.Map[Segments, (Int, Any)],
@@ -28,11 +31,11 @@ class EvaluatorState @deprecated(message = "Use apply instead", since = "0.10.1"
        |  setSystemProperties = $setSystemProperties
        |)""".stripMargin
   }
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "0.10.1")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def canEqual(that: Any): Boolean = that.isInstanceOf[EvaluatorState]
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "0.10.1")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def productArity: Int = 6
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "0.10.1")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def productElement(n: Int): Any = n match {
     case 0 => rootModule
     case 1 => classLoaderSig
@@ -41,7 +44,7 @@ class EvaluatorState @deprecated(message = "Use apply instead", since = "0.10.1"
     case 4 => setSystemProperties
     case _ => throw new IndexOutOfBoundsException(n.toString)
   }
-  @deprecated("Construct a new instance with apply instead", since = "0.10.1")
+  @deprecated("Construct a new instance with apply instead", since = "mill 0.10.1")
   def copy(
       rootModule: mill.define.BaseModule = this.rootModule,
       classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = this.classLoaderSig,
@@ -79,7 +82,7 @@ object EvaluatorState extends runtime.AbstractFunction5[mill.define.BaseModule, 
     setSystemProperties
   )
 
-  @deprecated(message = "Pattern matching not supported with EvaluatorState", since = "0.10.1")
+  @deprecated(message = "Pattern matching not supported with EvaluatorState", since = "mill 0.10.1")
   def unapply(evaluatorState: EvaluatorState): Option[(
       mill.define.BaseModule,
       Seq[(

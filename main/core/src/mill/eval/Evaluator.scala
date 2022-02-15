@@ -34,7 +34,7 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
 /**
  * Evaluate tasks.
  */
-class Evaluator @deprecated(message = "Use apply instead", since = "0.10.1") (
+class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1") (
     _home: os.Path,
     _outPath: os.Path,
     _externalOutPath: os.Path,
@@ -48,30 +48,36 @@ class Evaluator @deprecated(message = "Use apply instead", since = "0.10.1") (
 ) extends Product with Serializable { // TODO: Remove extends Product with Serializable before 0.11.0
 
   def home: os.Path = _home
+
   /**
    * The output base path.
    */
   def outPath: os.Path = _outPath
+
   /**
    * The output base path to use for external modules.
    */
   def externalOutPath: os.Path = _externalOutPath
+
   /**
    * The projects root module.
    */
   def rootModule: mill.define.BaseModule = _rootModule
   def baseLogger: ColorLogger = _baseLogger
   def classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = _classLoaderSig
+
   /**
    * Mutable worker cache.
    */
   def workerCache: mutable.Map[Segments, (Int, Any)] = _workerCache
   def env: Map[String, String] = _env
+
   /**
    * If `true` the first failing task will fail the evaluation.
    * If `false`, it tries to evaluate all tasks, running longer and reporting possibly more than one failure.
    */
   def failFast: Boolean = _failFast
+
   /**
    * If a [[Some]] the explicit number of threads to use for parallel task evaluation,
    * or [[None]] to use n threads where n is the number of available logical processors.
@@ -689,11 +695,11 @@ class Evaluator @deprecated(message = "Use apply instead", since = "0.10.1") (
   def withFailFast(failFast: Boolean): Evaluator = myCopy(failFast = failFast)
   def withThreadCount(threadCount: Option[Int]): Evaluator = myCopy(threadCount = threadCount)
 
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "0.10.1")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def canEqual(that: Any): Boolean = that.isInstanceOf[Evaluator]
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "0.10.1")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def productArity: Int = 10
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "0.10.1")
+  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def productElement(n: Int): Any = n match {
     case 0 => home
     case 1 => outPath
@@ -925,7 +931,7 @@ object Evaluator {
     baseLogger
   )
 
-  @deprecated(message = "Use other apply and withX methods instead", since = "0.10.1")
+  @deprecated(message = "Use other apply and withX methods instead", since = "mill 0.10.1")
   def apply(
       home: os.Path,
       outPath: os.Path,
