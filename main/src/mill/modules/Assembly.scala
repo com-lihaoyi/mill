@@ -27,9 +27,10 @@ object Assembly {
     case class Append(path: String, separator: String = defaultSeparator) extends Rule
 
     object AppendPattern {
-      def apply(pattern: String): AppendPattern = AppendPattern(Pattern.compile(pattern))
+      def apply(pattern: String, separator: String = defaultSeparator): AppendPattern =
+        AppendPattern(Pattern.compile(pattern), separator)
     }
-    case class AppendPattern(pattern: Pattern) extends Rule
+    case class AppendPattern(pattern: Pattern, separator: String) extends Rule
 
     case class Exclude(path: String) extends Rule
 
@@ -50,26 +51,23 @@ object Assembly {
       case r @ Rule.Exclude(path) => path -> r
     }.toMap
 
-    val appendPatterns = assemblyRules.collect {
-      case Rule.AppendPattern(pattern) => pattern.asPredicate().test(_)
-    }
-
-    val excludePatterns = assemblyRules.collect {
-      case Rule.ExcludePattern(pattern) => pattern.asPredicate().test(_)
+    val matchPatterns = assemblyRules.collect {
+      case r @ Rule.AppendPattern(pattern, _) => pattern.asPredicate() -> r
+      case r @ Rule.ExcludePattern(pattern) => pattern.asPredicate() -> r
     }
 
     mappings.foldLeft(Map.empty[String, GroupedEntry]) {
       case (entries, (mapping, entry)) =>
-        rulesMap.get(mapping) match {
-          case Some(_: Assembly.Rule.Exclude) =>
+        rulesMap.get(mapping) orElse matchPatterns.find(_._1.test(mapping)).map(_._2) match {
+          case Some(_: Rule.Exclude) =>
             entries
-          case Some(a: Assembly.Rule.Append) =>
+          case Some(a: Rule.Append) =>
             val newEntry = entries.getOrElse(mapping, AppendEntry(Nil, a.separator)).append(entry)
             entries + (mapping -> newEntry)
-          case _ if excludePatterns.exists(_(mapping)) =>
+          case Some(_: Rule.ExcludePattern) =>
             entries
-          case _ if appendPatterns.exists(_(mapping)) =>
-            val newEntry = entries.getOrElse(mapping, AppendEntry.empty).append(entry)
+          case Some(a: Rule.AppendPattern) =>
+            val newEntry = entries.getOrElse(mapping, AppendEntry(Nil, a.separator)).append(entry)
             entries + (mapping -> newEntry)
           case _ if !entries.contains(mapping) =>
             entries + (mapping -> WriteOnceEntry(entry))
