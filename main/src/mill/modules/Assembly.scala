@@ -26,29 +26,18 @@ object Assembly {
   object Rule {
     case class Append(path: String, separator: String = defaultSeparator) extends Rule
 
+    @deprecated("Use mill.modules.Assembly.Rule.AppendByPattern instead", since = "mill 0.10.1")
     object AppendPattern {
-      def apply(pattern: Pattern): AppendPattern = new AppendPattern(pattern, defaultSeparator)
-      def apply(pattern: String): AppendPattern = apply(pattern, defaultSeparator)
-      def apply(pattern: String, separator: String): AppendPattern =
-        new AppendPattern(Pattern.compile(pattern), separator)
-
-      @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
-      def unapply(value: AppendPattern): Option[Pattern] = Some(value.pattern)
+      def apply(pattern: String): AppendPattern = AppendPattern(Pattern.compile(pattern))
     }
-    class AppendPattern(val pattern: Pattern, val separator: String) extends Rule {
-      def this(pattern: Pattern) = this(pattern, defaultSeparator)
+    @deprecated("Use mill.modules.Assembly.Rule.AppendByPattern instead", since = "mill 0.10.1")
+    case class AppendPattern(pattern: Pattern) extends Rule
 
-      override def productArity: Int = 2
-      override def productElement(n: Int): Any = n match {
-        case 0 => pattern
-        case 1 => separator
-        case _ => throw new IndexOutOfBoundsException(n.toString)
-      }
-      override def canEqual(that: Any): Boolean = that.isInstanceOf[AppendPattern]
-
-      @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
-      def copy(pattern: Pattern = pattern): AppendPattern = new AppendPattern(pattern, separator)
+    object AppendByPattern {
+      def apply(pattern: String, separator: String = defaultSeparator): AppendByPattern =
+        AppendByPattern(Pattern.compile(pattern), separator)
     }
+    case class AppendByPattern(pattern: Pattern, separator: String) extends Rule
 
     case class Exclude(path: String) extends Rule
 
@@ -70,7 +59,8 @@ object Assembly {
     }.toMap
 
     val matchPatterns = assemblyRules.collect {
-      case r : Rule.AppendPattern => r.pattern.asPredicate() -> r
+      case r @ Rule.AppendPattern(pattern) => pattern.asPredicate() -> r
+      case r @ Rule.AppendByPattern(pattern, _) => pattern.asPredicate() -> r
       case r @ Rule.ExcludePattern(pattern) => pattern.asPredicate() -> r
     }
 
@@ -84,7 +74,10 @@ object Assembly {
             entries + (mapping -> newEntry)
           case Some(_: Rule.ExcludePattern) =>
             entries
-          case Some(a: Rule.AppendPattern) =>
+          case Some(_: Rule.AppendPattern) =>
+            val newEntry = entries.getOrElse(mapping, AppendEntry.empty).append(entry)
+            entries + (mapping -> newEntry)
+          case Some(a: Rule.AppendByPattern) =>
             val newEntry = entries.getOrElse(mapping, AppendEntry(Nil, a.separator)).append(entry)
             entries + (mapping -> newEntry)
           case _ if !entries.contains(mapping) =>

@@ -408,9 +408,9 @@ object Jvm {
                   .flatMap(inputStream =>
                     Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream())
                   )
-                  .drop(1)
+                val cleaned = if (Files.exists(path)) separated else separated.drop(1)
                 val concatenated =
-                  new SequenceInputStream(Collections.enumeration(separated.asJava))
+                  new SequenceInputStream(Collections.enumeration(cleaned.asJava))
                 writeEntry(path, concatenated, append = true)
               case entry: WriteOnceEntry => writeEntry(path, entry.inputStream(), append = false)
             }

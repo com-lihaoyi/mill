@@ -131,6 +131,22 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
+  object HelloWorldMultiAppendByPattern extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      override def moduleDeps = Seq(model)
+      override def assemblyRules = Seq(Assembly.Rule.AppendByPattern(".*.conf"))
+    }
+    object model extends HelloWorldModule
+  }
+
+  object HelloWorldMultiAppendByPatternWithSeparator extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      override def moduleDeps = Seq(model)
+      override def assemblyRules = Seq(Assembly.Rule.AppendByPattern(".*.conf", "\n"))
+    }
+    object model extends HelloWorldModule
+  }
+
   object HelloWorldMultiExcludePattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
       override def moduleDeps = Seq(model)
@@ -757,6 +773,28 @@ object HelloWorldTests extends TestSuite {
             }
           }
 
+        def checkAppendWithSeparator[M <: TestUtil.BaseModule](
+          module: M,
+          target: Target[PathRef],
+        ): Unit =
+          workspaceTest(
+            module,
+            resourcePath = helloWorldMultiResourcePath
+          ) { eval =>
+            val Right((result, _)) = eval.apply(target)
+
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(jarEntries(jarFile).contains("without-new-line.conf"))
+
+              val fileContent = readFileFromJar(jarFile, "without-new-line.conf")
+
+              assert(
+                "without-new-line\\.first=first(?:\n|$)".r.findFirstIn(fileContent).isDefined,
+                "without-new-line\\.second=second(?:\n|$)".r.findFirstIn(fileContent).isDefined,
+              )
+            }
+          }
+
         "appendWithDeps" - checkAppend(
           HelloWorldAkkaHttpAppend,
           HelloWorldAkkaHttpAppend.core.assembly
@@ -772,6 +810,14 @@ object HelloWorldTests extends TestSuite {
         "appendPatternMultiModule" - checkAppendMulti(
           HelloWorldMultiAppendPattern,
           HelloWorldMultiAppendPattern.core.assembly
+        )
+        "appendByPatternMultiModule" - checkAppendMulti(
+          HelloWorldMultiAppendByPattern,
+          HelloWorldMultiAppendByPattern.core.assembly
+        )
+        "appendByPatternWithSeparator" - checkAppendWithSeparator(
+          HelloWorldMultiAppendByPatternWithSeparator,
+          HelloWorldMultiAppendByPatternWithSeparator.core.assembly
         )
 
         def checkExclude[M <: TestUtil.BaseModule](
