@@ -131,18 +131,10 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
-  object HelloWorldMultiAppendByPattern extends HelloBase {
-    object core extends HelloWorldModuleWithMain {
-      override def moduleDeps = Seq(model)
-      override def assemblyRules = Seq(Assembly.Rule.AppendByPattern(".*.conf"))
-    }
-    object model extends HelloWorldModule
-  }
-
   object HelloWorldMultiAppendByPatternWithSeparator extends HelloBase {
     object core extends HelloWorldModuleWithMain {
       override def moduleDeps = Seq(model)
-      override def assemblyRules = Seq(Assembly.Rule.AppendByPattern(".*.conf", "\n"))
+      override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf", "\n"))
     }
     object model extends HelloWorldModule
   }
@@ -811,11 +803,7 @@ object HelloWorldTests extends TestSuite {
           HelloWorldMultiAppendPattern,
           HelloWorldMultiAppendPattern.core.assembly
         )
-        "appendByPatternMultiModule" - checkAppendMulti(
-          HelloWorldMultiAppendByPattern,
-          HelloWorldMultiAppendByPattern.core.assembly
-        )
-        "appendByPatternWithSeparator" - checkAppendWithSeparator(
+        "appendPatternMultiModuleWithSeparator" - checkAppendWithSeparator(
           HelloWorldMultiAppendByPatternWithSeparator,
           HelloWorldMultiAppendByPatternWithSeparator.core.assembly
         )

@@ -26,18 +26,36 @@ object Assembly {
   object Rule {
     case class Append(path: String, separator: String = defaultSeparator) extends Rule
 
-    @deprecated("Use mill.modules.Assembly.Rule.AppendByPattern instead", since = "mill 0.10.1")
     object AppendPattern {
-      def apply(pattern: String): AppendPattern = AppendPattern(Pattern.compile(pattern))
-    }
-    @deprecated("Use mill.modules.Assembly.Rule.AppendByPattern instead", since = "mill 0.10.1")
-    case class AppendPattern(pattern: Pattern) extends Rule
+      def apply(pattern: Pattern): AppendPattern = new AppendPattern(pattern, defaultSeparator)
+      def apply(pattern: String): AppendPattern = apply(pattern, defaultSeparator)
+      def apply(pattern: String, separator: String): AppendPattern =
+        new AppendPattern(Pattern.compile(pattern), separator)
 
-    object AppendByPattern {
-      def apply(pattern: String, separator: String = defaultSeparator): AppendByPattern =
-        AppendByPattern(Pattern.compile(pattern), separator)
+      @deprecated(message = "Binary compatibility shim. Don't use it. To be removed", since = "mill 0.10.1")
+      def unapply(value: AppendPattern): Option[Pattern] = Some(value.pattern)
     }
-    case class AppendByPattern(pattern: Pattern, separator: String) extends Rule
+    class AppendPattern(val pattern: Pattern, val separator: String) extends Rule {
+      def this(pattern: Pattern) = this(pattern, defaultSeparator)
+
+      override def productPrefix: String = "AppendPattern"
+      override def productArity: Int = 2
+      override def productElement(n: Int): Any = n match {
+        case 0 => pattern
+        case 1 => separator
+        case _ => throw new IndexOutOfBoundsException(n.toString)
+      }
+      override def canEqual(that: Any): Boolean = that.isInstanceOf[AppendPattern]
+      override def hashCode(): Int = scala.runtime.ScalaRunTime._hashCode(this)
+      override def equals(obj: Any): Boolean = obj match {
+        case that: AppendPattern => this.pattern == that.pattern && this.separator == that.separator
+        case _ => false
+      }
+      override def toString: String = scala.runtime.ScalaRunTime._toString(this)
+
+      @deprecated(message = "Binary compatibility shim. Don't use it. To be removed", since = "mill 0.10.1")
+      def copy(pattern: Pattern = pattern): AppendPattern = new AppendPattern(pattern, separator)
+    }
 
     case class Exclude(path: String) extends Rule
 
@@ -59,14 +77,15 @@ object Assembly {
     }.toMap
 
     val matchPatterns = assemblyRules.collect {
-      case r @ Rule.AppendPattern(pattern) => pattern.asPredicate() -> r
-      case r @ Rule.AppendByPattern(pattern, _) => pattern.asPredicate() -> r
+      case r : Rule.AppendPattern => r.pattern.asPredicate() -> r
       case r @ Rule.ExcludePattern(pattern) => pattern.asPredicate() -> r
     }
 
     mappings.foldLeft(Map.empty[String, GroupedEntry]) {
       case (entries, (mapping, entry)) =>
-        rulesMap.get(mapping) orElse matchPatterns.find(_._1.test(mapping)).map(_._2) match {
+        def simpleRule = rulesMap.get(mapping)
+        def patternRule = matchPatterns.find(_._1.test(mapping)).map(_._2)
+        simpleRule orElse patternRule match {
           case Some(_: Rule.Exclude) =>
             entries
           case Some(a: Rule.Append) =>
@@ -74,10 +93,7 @@ object Assembly {
             entries + (mapping -> newEntry)
           case Some(_: Rule.ExcludePattern) =>
             entries
-          case Some(_: Rule.AppendPattern) =>
-            val newEntry = entries.getOrElse(mapping, AppendEntry.empty).append(entry)
-            entries + (mapping -> newEntry)
-          case Some(a: Rule.AppendByPattern) =>
+          case Some(a: Rule.AppendPattern) =>
             val newEntry = entries.getOrElse(mapping, AppendEntry(Nil, a.separator)).append(entry)
             entries + (mapping -> newEntry)
           case _ if !entries.contains(mapping) =>
