@@ -15,7 +15,7 @@ import scala.reflect.macros.blackbox.Context
  * Generally not instantiated manually, but instead constructed via the
  * [[Target.apply]] & similar macros.
  */
-abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
+abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with GraphNode[Task[_]] {
 
   /**
    * What other Targets does this Target depend on?

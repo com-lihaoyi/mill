@@ -129,7 +129,8 @@ class MainRunner(
               classLoaderSig = eval.classLoaderSig,
               workerCache = eval.workerCache,
               watched = interpWatched,
-              setSystemProperties = systemProperties.keySet
+              setSystemProperties = systemProperties.keySet,
+              importTree = eval.importTree
             ))
             val watched = () => {
               val alreadyStale = evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)

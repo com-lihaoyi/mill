@@ -12,6 +12,7 @@ import mill.define.SelectMode
 import mill.define.ParseArgs
 import mill.api.{Logger, PathRef, Result}
 import mill.api.Strict.Agg
+import mill.internal.AmmoniteUtils
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -64,15 +65,41 @@ object RunScript {
             interp.watch(path)
             val eval =
               for (rootModule <- evaluateRootModule(wd, path, interp, log))
-                yield EvaluatorState(
-                  rootModule,
-                  rootModule.getClass.getClassLoader.asInstanceOf[
-                    SpecialClassLoader
-                  ].classpathSignature,
-                  mutable.Map.empty[Segments, (Int, Any)],
-                  interp.watchedValues.toSeq,
-                  systemProperties.keySet
-                )
+                yield {
+                  val importTreeMap = mutable.Map.empty[String, Seq[String]]
+                  interp.alreadyLoadedFiles.foreach { case (a, b) =>
+                    val filePath = AmmoniteUtils.normalizeAmmoniteImportPath(a.filePathPrefix)
+                    val importPaths = b.blockInfo.flatMap { b =>
+                      val relativePath = b.hookInfo.trees.map { t =>
+                        val prefix = t.prefix
+                        val mappings = t.mappings.toSeq.flatMap(_.map(_._1))
+                        prefix ++ mappings
+                      }
+                      relativePath.collect {
+                        case "$file" :: tail =>
+                          val concatenated = filePath.init ++ tail
+                          AmmoniteUtils.normalizeAmmoniteImportPath(concatenated)
+                      }
+                    }
+                    def toCls(segments: Seq[String]): String = segments.mkString(".")
+                    val key = toCls(filePath)
+                    val toAppend = importPaths.map(toCls)
+                    importTreeMap(key) = importTreeMap.getOrElse(key, Seq.empty) ++ toAppend
+                  }
+
+                  val importTree = GraphUtils.linksToScriptNodeGraph(importTreeMap)
+
+                  EvaluatorState(
+                    rootModule,
+                    rootModule.getClass.getClassLoader.asInstanceOf[
+                      SpecialClassLoader
+                    ].classpathSignature,
+                    mutable.Map.empty[Segments, (Int, Any)],
+                    interp.watchedValues.toSeq,
+                    systemProperties.keySet,
+                    importTree
+                  )
+                }
             (eval, interp.watchedValues)
         }
     }
@@ -90,6 +117,7 @@ object RunScript {
           .withEnv(env)
           .withFailFast(!keepGoing)
           .withThreadCount(threadCount)
+          .withImportTree(s.importTree)
 
     val evaluated = for {
       evaluator <- evalRes
