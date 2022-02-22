@@ -3,7 +3,7 @@ package mill.main
 import java.nio.file.NoSuchFileException
 import ammonite.runtime.SpecialClassLoader
 import ammonite.util.Util.CodeSource
-import ammonite.util.{Name, Res, Util}
+import ammonite.util.{Name, Res, ScriptOutput, Util}
 import mill.define
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
@@ -66,29 +66,6 @@ object RunScript {
             val eval =
               for (rootModule <- evaluateRootModule(wd, path, interp, log))
                 yield {
-                  val importTreeMap = mutable.Map.empty[String, Seq[String]]
-                  interp.alreadyLoadedFiles.foreach { case (a, b) =>
-                    val filePath = AmmoniteUtils.normalizeAmmoniteImportPath(a.filePathPrefix)
-                    val importPaths = b.blockInfo.flatMap { b =>
-                      val relativePath = b.hookInfo.trees.map { t =>
-                        val prefix = t.prefix
-                        val mappings = t.mappings.toSeq.flatMap(_.map(_._1))
-                        prefix ++ mappings
-                      }
-                      relativePath.collect {
-                        case "$file" :: tail =>
-                          val concatenated = filePath.init ++ tail
-                          AmmoniteUtils.normalizeAmmoniteImportPath(concatenated)
-                      }
-                    }
-                    def toCls(segments: Seq[String]): String = segments.mkString(".")
-                    val key = toCls(filePath)
-                    val toAppend = importPaths.map(toCls)
-                    importTreeMap(key) = importTreeMap.getOrElse(key, Seq.empty) ++ toAppend
-                  }
-
-                  val importTree = GraphUtils.linksToScriptNodeGraph(importTreeMap)
-
                   EvaluatorState(
                     rootModule,
                     rootModule.getClass.getClassLoader.asInstanceOf[
@@ -97,7 +74,7 @@ object RunScript {
                     mutable.Map.empty[Segments, (Int, Any)],
                     interp.watchedValues.toSeq,
                     systemProperties.keySet,
-                    importTree
+                    importTree(interp.alreadyLoadedFiles)
                   )
                 }
             (eval, interp.watchedValues)
@@ -130,6 +107,31 @@ object RunScript {
 
   def watchedSigUnchanged(sig: Seq[(ammonite.interp.Watchable, Long)]) = {
     sig.forall { case (p, l) => p.poll() == l }
+  }
+
+  private def importTree(alreadyLoadedFiles: collection.Map[CodeSource, ScriptOutput.Metadata]): Seq[ScriptNode] = {
+    val importTreeMap = mutable.Map.empty[String, Seq[String]]
+    alreadyLoadedFiles.foreach { case (a, b) =>
+      val filePath = AmmoniteUtils.normalizeAmmoniteImportPath(a.filePathPrefix)
+      val importPaths = b.blockInfo.flatMap { b =>
+        val relativePath = b.hookInfo.trees.map { t =>
+          val prefix = t.prefix
+          val mappings = t.mappings.toSeq.flatMap(_.map(_._1))
+          prefix ++ mappings
+        }
+        relativePath.collect {
+          case "$file" :: tail =>
+            val concatenated = filePath.init ++ tail
+            AmmoniteUtils.normalizeAmmoniteImportPath(concatenated)
+        }
+      }
+      def toCls(segments: Seq[String]): String = segments.mkString(".")
+      val key = toCls(filePath)
+      val toAppend = importPaths.map(toCls)
+      importTreeMap(key) = importTreeMap.getOrElse(key, Seq.empty) ++ toAppend
+    }
+
+    GraphUtils.linksToScriptNodeGraph(importTreeMap)
   }
 
   def evaluateRootModule(
