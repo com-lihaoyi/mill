@@ -726,7 +726,7 @@ class Evaluator private (
        |  env = $env,
        |  failFast = $failFast,
        |  threadCount = $threadCount,
-       |  importTree = $importTree,
+       |  importTree = $importTree
        |)""".stripMargin
   }
 
