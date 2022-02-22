@@ -1,0 +1,3 @@
+def method() = {
+  println("d")
+}

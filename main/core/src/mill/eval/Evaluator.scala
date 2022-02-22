@@ -8,8 +8,10 @@ import mainargs.MainData
 import scala.util.DynamicVariable
 import mill.api.{CompileProblemReporter, DummyTestReporter, TestReporter}
 import mill.api.Result.{Aborted, OuterStack, Success}
+import mill.api.Loose
 import mill.api.Strict.Agg
 import mill.define.{Ctx => _, _}
+import mill.internal.AmmoniteUtils
 import mill.util
 import mill.util._
 
@@ -34,18 +36,45 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
 /**
  * Evaluate tasks.
  */
-class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1") (
+class Evaluator private (
     _home: os.Path,
     _outPath: os.Path,
     _externalOutPath: os.Path,
     _rootModule: mill.define.BaseModule,
     _baseLogger: ColorLogger,
-    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-    _workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-    _env: Map[String, String] = Evaluator.defaultEnv,
-    _failFast: Boolean = true,
-    _threadCount: Option[Int] = Some(1)
+    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
+    _workerCache: mutable.Map[Segments, (Int, Any)],
+    _env: Map[String, String],
+    _failFast: Boolean,
+    _threadCount: Option[Int],
+    _importTree: Seq[ScriptNode]
 ) extends Product with Serializable { // TODO: Remove extends Product with Serializable before 0.11.0
+
+  @deprecated(message = "Use apply instead", since = "mill 0.10.1")
+  def this(
+      _home: os.Path,
+      _outPath: os.Path,
+      _externalOutPath: os.Path,
+      _rootModule: mill.define.BaseModule,
+      _baseLogger: ColorLogger,
+      _classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
+      _workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+      _env: Map[String, String] = Evaluator.defaultEnv,
+      _failFast: Boolean = true,
+      _threadCount: Option[Int] = Some(1)
+  ) = this(
+    _home,
+    _outPath,
+    _externalOutPath,
+    _rootModule,
+    _baseLogger,
+    _classLoaderSig,
+    _workerCache,
+    _env,
+    _failFast,
+    _threadCount,
+    Seq.empty
+  )
 
   def home: os.Path = _home
 
@@ -84,12 +113,33 @@ class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1"
    */
   def threadCount: Option[Int] = _threadCount
 
+  /**
+   * The tree of imports of the build ammonite scripts
+   */
+  def importTree: Seq[ScriptNode] = _importTree
+
+  private val (scriptsClassLoader, externalClassLoader) = classLoaderSig.partitionMap {
+    case (Right(elem), sig) => Right((elem, sig))
+    case (Left(elem), sig) => Left((elem, sig))
+  }
+
+  // We're interested of the whole file hash.
+  // So we sum the hash of all classes that normalize to the same name.
+  private val scriptsSigMap =
+    scriptsClassLoader.groupMapReduce(e =>
+      AmmoniteUtils.normalizeAmmoniteImportPath(e._1)
+    )(_._2)(_ + _)
+
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   import Evaluator.Evaluated
 
-  val classLoaderSignHash = classLoaderSig.hashCode()
+  private val externalClassLoaderSigHash = externalClassLoader.hashCode()
+
+  // Binary compatibility shim
+  @deprecated("To be removed", since = "mill 0.10.1")
+  def classLoaderSignHash = classLoaderSig.hashCode()
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
@@ -316,7 +366,30 @@ class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1"
       group.iterator.map(_.sideHash)
     )
 
-    val inputsHash = externalInputsHash + sideHashes + classLoaderSignHash
+    val scriptsHash = {
+      val classes = new Loose.Agg.Mutable[String]()
+      group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
+        case namedTask: NamedTask[_] =>
+          val cls = namedTask.ctx.enclosingCls.getName
+          val normalized = AmmoniteUtils.normalizeAmmoniteImportPath(cls)
+          classes.append(normalized)
+        case _ =>
+      }
+      val importClasses = importTree.filter(e => classes.contains(e.cls))
+      val dependendentScripts = Graph.transitiveNodes(importClasses).map(_.cls)
+      val dependendentScriptsSig = dependendentScripts.map(s => s -> scriptsSigMap(s))
+      dependendentScriptsSig.hashCode()
+    }
+
+    val classLoaderSigHash =
+      if (importTree.nonEmpty) {
+        externalClassLoaderSigHash + scriptsHash
+      } else {
+        // We fallback to the old mechanism when the importTree was not populated
+        classLoaderSignHash
+      }
+
+    val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash
 
     terminal match {
       case Left(task) =>
@@ -615,7 +688,7 @@ class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1"
       msgParts.mkString
   }
 
-  @deprecated("Use withX methods instead", since = "0.10.0")
+  @deprecated("Use withX methods instead", since = "mill 0.10.1")
   def copy(
       home: os.Path = this.home,
       outPath: os.Path = this.outPath,
@@ -637,7 +710,8 @@ class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1"
     workerCache,
     env,
     failFast,
-    threadCount
+    threadCount,
+    this.importTree
   )
 
   override def toString(): String = {
@@ -651,7 +725,8 @@ class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1"
        |  workerCache = $workerCache,
        |  env = $env,
        |  failFast = $failFast,
-       |  threadCount = $threadCount
+       |  threadCount = $threadCount,
+       |  importTree = $importTree,
        |)""".stripMargin
   }
 
@@ -666,7 +741,8 @@ class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1"
       workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache,
       env: Map[String, String] = this.env,
       failFast: Boolean = this.failFast,
-      threadCount: Option[Int] = this.threadCount
+      threadCount: Option[Int] = this.threadCount,
+      importTree: Seq[ScriptNode] = this.importTree
   ): Evaluator = new Evaluator(
     home,
     outPath,
@@ -677,7 +753,8 @@ class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1"
     workerCache,
     env,
     failFast,
-    threadCount
+    threadCount,
+    importTree
   )
 
   def withHome(home: os.Path): Evaluator = myCopy(home = home)
@@ -694,6 +771,7 @@ class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1"
   def withEnv(env: Map[String, String]): Evaluator = myCopy(env = env)
   def withFailFast(failFast: Boolean): Evaluator = myCopy(failFast = failFast)
   def withThreadCount(threadCount: Option[Int]): Evaluator = myCopy(threadCount = threadCount)
+  def withImportTree(importTree: Seq[ScriptNode]): Evaluator = myCopy(importTree = importTree)
 
   @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
   def canEqual(that: Any): Boolean = that.isInstanceOf[Evaluator]
@@ -711,6 +789,7 @@ class Evaluator @deprecated(message = "Use apply instead", since = "mill 0.10.1"
     case 7 => env
     case 8 => failFast
     case 9 => threadCount
+    case 10 => importTree
     case _ => throw new IndexOutOfBoundsException(n.toString)
   }
 
@@ -953,10 +1032,11 @@ object Evaluator {
     workerCache,
     env,
     failFast,
-    threadCount
+    threadCount,
+    Seq.empty
   )
 
-  @deprecated(message = "Pattern matching not supported with EvaluatorState", since = "0.10.0")
+  @deprecated(message = "Pattern matching not supported with EvaluatorState", since = "mill 0.10.1")
   def unapply(evaluator: Evaluator): Option[(
       os.Path,
       os.Path,

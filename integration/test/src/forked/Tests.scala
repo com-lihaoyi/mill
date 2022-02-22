@@ -9,3 +9,6 @@ object UpickleTests extends mill.integration.UpickleTests(fork = true)
 object PlayJsonTests extends mill.integration.PlayJsonTests(fork = true)
 object CaffeineTests extends mill.integration.CaffeineTests(fork = true)
 object DocAnnotationsTests extends mill.integration.DocAnnotationsTests(fork = true)
+object ScriptsInvalidationTests extends mill.integration.ScriptsInvalidationTests(fork = true)
+object ScriptsInvalidationForeignTests
+    extends mill.integration.ScriptsInvalidationForeignTests(fork = true)
