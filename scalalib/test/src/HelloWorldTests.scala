@@ -778,12 +778,9 @@ object HelloWorldTests extends TestSuite {
             Using.resource(new JarFile(result.path.toIO)) { jarFile =>
               assert(jarEntries(jarFile).contains("without-new-line.conf"))
 
-              val fileContent = readFileFromJar(jarFile, "without-new-line.conf")
-
-              assert(
-                "without-new-line\\.first=first(?:\n|$)".r.findFirstIn(fileContent).isDefined,
-                "without-new-line\\.second=second(?:\n|$)".r.findFirstIn(fileContent).isDefined,
-              )
+              val result  = readFileFromJar(jarFile, "without-new-line.conf").split('\n').toSet
+              val expected = Set("without-new-line.first=first", "without-new-line.second=second")
+              assert(result == expected)
             }
           }
 
