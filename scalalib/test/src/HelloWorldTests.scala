@@ -131,6 +131,14 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
+  object HelloWorldMultiAppendByPatternWithSeparator extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      override def moduleDeps = Seq(model)
+      override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf", "\n"))
+    }
+    object model extends HelloWorldModule
+  }
+
   object HelloWorldMultiExcludePattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
       override def moduleDeps = Seq(model)
@@ -757,6 +765,25 @@ object HelloWorldTests extends TestSuite {
             }
           }
 
+        def checkAppendWithSeparator[M <: TestUtil.BaseModule](
+          module: M,
+          target: Target[PathRef],
+        ): Unit =
+          workspaceTest(
+            module,
+            resourcePath = helloWorldMultiResourcePath
+          ) { eval =>
+            val Right((result, _)) = eval.apply(target)
+
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(jarEntries(jarFile).contains("without-new-line.conf"))
+
+              val result  = readFileFromJar(jarFile, "without-new-line.conf").split('\n').toSet
+              val expected = Set("without-new-line.first=first", "without-new-line.second=second")
+              assert(result == expected)
+            }
+          }
+
         "appendWithDeps" - checkAppend(
           HelloWorldAkkaHttpAppend,
           HelloWorldAkkaHttpAppend.core.assembly
@@ -772,6 +799,10 @@ object HelloWorldTests extends TestSuite {
         "appendPatternMultiModule" - checkAppendMulti(
           HelloWorldMultiAppendPattern,
           HelloWorldMultiAppendPattern.core.assembly
+        )
+        "appendPatternMultiModuleWithSeparator" - checkAppendWithSeparator(
+          HelloWorldMultiAppendByPatternWithSeparator,
+          HelloWorldMultiAppendByPatternWithSeparator.core.assembly
         )
 
         def checkExclude[M <: TestUtil.BaseModule](
