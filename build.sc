@@ -92,7 +92,7 @@ object Deps {
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.13"
-  val coursier = ivy"io.get-coursier::coursier:2.1.0-M2"
+  val coursier = ivy"io.get-coursier::coursier:2.1.0-M5"
   val coursierReducedDeps = coursier.exclude(
     "org.codehaus.plexus" -> "*"
   )
