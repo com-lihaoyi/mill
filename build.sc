@@ -92,10 +92,7 @@ object Deps {
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.13"
-  val coursier = ivy"io.get-coursier::coursier:2.1.0-M2"
-  val coursierReducedDeps = coursier.exclude(
-    "org.codehaus.plexus" -> "*"
-  )
+  val coursier = ivy"io.get-coursier::coursier:2.1.0-M5"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.0.2"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
@@ -278,7 +275,7 @@ object main extends MillModule {
     override def ivyDeps = Agg(
       Deps.ammoniteExcludingTrees,
       Deps.scalametaTrees,
-      Deps.coursierReducedDeps,
+      Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
