@@ -39,6 +39,7 @@ private[dependency] object VersionsFinder {
         val repos = javaModule.repositoriesTask()
         val mapDeps = javaModule.mapDependencies()
         val custom = javaModule.resolutionCustomizer()
+        val cacheCustom = javaModule.cacheCustomizer()
 
         val (dependencies, _) =
           Lib.resolveDependenciesMetadata(
@@ -47,6 +48,7 @@ private[dependency] object VersionsFinder {
             deps = deps ++ compileIvyDeps ++ runIvyDeps,
             mapDependencies = Some(mapDeps),
             customizer = custom,
+            cacheCustomizer = cacheCustom,
             ctx = Some(T.log)
           )
 

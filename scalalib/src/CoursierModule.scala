@@ -1,7 +1,8 @@
 package mill.scalalib
 
-import scala.annotation.nowarn
+import coursier.cache.FileCache
 
+import scala.annotation.nowarn
 import coursier.{Dependency, Repository, Resolve}
 import coursier.core.Resolution
 import mill.{Agg, T}
@@ -35,6 +36,7 @@ trait CoursierModule extends mill.Module {
       sources = sources,
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
+      cacheCustomizer = cacheCustomizer(),
       ctx = Some(implicitly[mill.api.Ctx.Log])
     )
   }
@@ -70,6 +72,22 @@ trait CoursierModule extends mill.Module {
    * @return
    */
   def resolutionCustomizer: Task[Option[Resolution => Resolution]] = T.task { None }
+
+  /**
+   * Customize the coursier file cache.
+   *
+   * This is rarely needed to be changed, but sometimes e.g you want to load a coursier plugin.
+   * Doing so requires adding to coursier's classpath. To do this you could use the following:
+   * {{{
+   *   override def cacheCustomizer = T.task {
+   *      Some( (fc: coursier.cache.FileCache[Task]) =>
+   *        fc.withClassLoaders(Seq(classOf[coursier.cache.protocol.S3Handler].getClassLoader))
+   *      )
+   *   }
+   * }}}
+   * @return
+   */
+  def cacheCustomizer: Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] = T.task { None }
 
   /**
    * The repositories used to resolved dependencies with [[resolveDeps()]].

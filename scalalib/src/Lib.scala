@@ -6,6 +6,7 @@ import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
 import java.util.zip.ZipInputStream
 
+import coursier.util.Task
 import coursier.{Dependency, Fetch, Repository, Resolution}
 import mill.api.{Ctx, Loose, PathRef, Result}
 import sbt.testing._
@@ -29,6 +30,7 @@ object Lib {
       deps: IterableOnce[Dep],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      cacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
       ctx: Option[Ctx.Log] = None
   ): (Seq[Dependency], Resolution) = {
     val depSeq = deps.iterator.toSeq
@@ -38,6 +40,7 @@ object Lib {
       force = depSeq.filter(_.force).map(depToDependency),
       mapDependencies = mapDependencies,
       customizer = customizer,
+      cacheCustomizer = cacheCustomizer,
       ctx = ctx
     )
   }
@@ -56,6 +59,7 @@ object Lib {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      cacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
       ctx: Option[Ctx.Log] = None
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
@@ -66,6 +70,7 @@ object Lib {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = customizer,
+      cacheCustomizer = cacheCustomizer,
       ctx = ctx
     )
   }
@@ -137,6 +142,7 @@ object Lib {
       deps = deps,
       mapDependencies = mapDependencies,
       customizer = None,
+      cacheCustomizer = None,
       ctx = ctx
     )
 
@@ -159,6 +165,7 @@ object Lib {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = None,
+      cacheCustomizer = None,
       ctx = ctx
     )
 

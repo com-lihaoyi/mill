@@ -534,6 +534,7 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      cacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
       ctx: Option[mill.api.Ctx.Log] = None
   ): Result[Agg[PathRef]] = {
 
@@ -543,6 +544,7 @@ object Jvm {
       force,
       mapDependencies,
       customizer,
+      cacheCustomizer,
       ctx
     )
     val errs = resolution.errors
@@ -611,6 +613,7 @@ object Jvm {
       force: IterableOnce[coursier.Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      cacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
       ctx: Option[mill.api.Ctx.Log] = None
   ): (Seq[Dependency], Resolution) = {
 
@@ -631,13 +634,14 @@ object Jvm {
     val start = customizer.getOrElse(identity[Resolution](_)).apply(start0)
 
     val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
-    val cache = resolutionLogger match {
+    val cache0 = resolutionLogger match {
       case None => coursier.cache.FileCache[Task].withCachePolicies(cachePolicies)
       case Some(l) =>
         coursier.cache.FileCache[Task]
           .withCachePolicies(cachePolicies)
           .withLogger(l)
     }
+    val cache = cacheCustomizer.getOrElse(identity[coursier.cache.FileCache[Task]](_)).apply(cache0)
 
     val fetches = cache.fetchs
 
@@ -781,6 +785,7 @@ object Jvm {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = None,
+      cacheCustomizer = None,
       ctx = ctx
     )
 
@@ -801,6 +806,7 @@ object Jvm {
       force = force,
       mapDependencies = mapDependencies,
       customizer = None,
+      cacheCustomizer = None,
       ctx = ctx
     )
 
