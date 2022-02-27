@@ -115,7 +115,7 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.1"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.2"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
   val testng = ivy"org.testng:testng:7.5"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
