@@ -10,6 +10,8 @@ import utest.framework.TestPath
 
 object ScalafmtTests extends TestSuite {
 
+  val scalafmtTestVersion = sys.props.getOrElse("TEST_SCALAFMT_VERSION", ???)
+
   trait TestBase extends TestUtil.BaseModule {
     def millSourcePath =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
@@ -43,6 +45,12 @@ object ScalafmtTests extends TestSuite {
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
     os.copy(resourcePath, m.millSourcePath)
+    os.write(
+      m.millSourcePath / ".scalafmt.conf",
+      s"""version = $scalafmtTestVersion
+         |runner.dialect = scala213
+         |""".stripMargin
+    )
     t(eval)
   }
 

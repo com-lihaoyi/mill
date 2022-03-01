@@ -1,6 +1,7 @@
 package mill.scalalib.scalafmt
 
 import mill._
+import mill.api.Result
 import mill.define._
 import mill.scalalib._
 
@@ -11,7 +12,7 @@ trait ScalafmtModule extends JavaModule {
       .worker()
       .reformat(
         filesToFormat(sources()),
-        scalafmtConfig().head
+        resolvedScalafmtConfig()
       )
   }
 
@@ -20,11 +21,27 @@ trait ScalafmtModule extends JavaModule {
       .worker()
       .checkFormat(
         filesToFormat(sources()),
-        scalafmtConfig().head
+        resolvedScalafmtConfig()
       )
   }
 
   def scalafmtConfig: Sources = T.sources(T.workspace / ".scalafmt.conf")
+
+  // TODO: Do we want provide some defaults or write a default file?
+  private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = T.task {
+    val locs = scalafmtConfig()
+    locs.find(p => os.exists(p.path)) match {
+      case None => Result.Failure(s"None of the specified `scalafmtConfig` locations exist. Searched in: ${locs.map(_.path).mkString(", ")}")
+      case Some(c) if (os.read.lines.stream(c.path).find(_.trim.startsWith("version")).isEmpty) =>
+        Result.Failure(
+          s"""Found scalafmtConfig file does not specify the scalafmt version to use.
+            |Please specify the scalafmt version in ${c.path}
+            |Example:
+            |version = "2.4.3"
+            |""".stripMargin)
+      case Some(c) => Result.Success(c)
+    }
+  }
 
   protected def filesToFormat(sources: Seq[PathRef]) = {
     for {
@@ -52,7 +69,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
         .worker()
         .reformat(
           files,
-          scalafmtConfig().head
+          resolvedScalafmtConfig()
         )
     }
 
@@ -63,7 +80,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
         .worker()
         .checkFormat(
           files,
-          scalafmtConfig().head
+          resolvedScalafmtConfig()
         )
     }
 
