@@ -124,7 +124,7 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.0.8"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.4.3"
   val scalametaTrees = ivy"org.scalameta::trees:4.5.0"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
@@ -428,7 +428,8 @@ object scalalib extends MillModule {
       Seq(
         "-Djna.nosys=true",
         "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-        "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(",")
+        "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(","),
+        s"-DTEST_SCALAFMT_VERSION=${Deps.scalafmtDynamic.dep.version}"
       )
   }
   object backgroundwrapper extends MillPublishModule {

@@ -66,7 +66,6 @@ private[scalafmt] class ScalafmtWorker {
 
       val scalafmt = Scalafmt
         .create(this.getClass.getClassLoader)
-        .withRespectVersion(false)
 
       def readDefaultScalafmtConfig(): Try[Path] = {
         Try(JPaths.get(getClass.getResource("default.scalafmt.conf").toURI))
