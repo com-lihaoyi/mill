@@ -34,8 +34,8 @@ trait ScalafmtModule extends JavaModule {
       case None => Result.Failure(s"None of the specified `scalafmtConfig` locations exist. Searched in: ${locs.map(_.path).mkString(", ")}")
       case Some(c) if (os.read.lines.stream(c.path).find(_.trim.startsWith("version")).isEmpty) =>
         Result.Failure(
-          s"""Found scalafmtConfig file does not specify to scalafmt version to use.
-            |Please specify the scalafmt version in ${c}
+          s"""Found scalafmtConfig file does not specify the scalafmt version to use.
+            |Please specify the scalafmt version in ${c.path}
             |Example:
             |version = "2.4.3"
             |""".stripMargin)
