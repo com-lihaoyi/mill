@@ -109,7 +109,8 @@ object RunScript {
     sig.forall { case (p, l) => p.poll() == l }
   }
 
-  private def importTree(alreadyLoadedFiles: collection.Map[CodeSource, ScriptOutput.Metadata]): Seq[ScriptNode] = {
+  private def importTree(alreadyLoadedFiles: collection.Map[CodeSource, ScriptOutput.Metadata])
+      : Seq[ScriptNode] = {
     val importTreeMap = mutable.Map.empty[String, Seq[String]]
     alreadyLoadedFiles.foreach { case (a, b) =>
       val filePath = AmmoniteUtils.normalizeAmmoniteImportPath(a.filePathPrefix)

@@ -32,11 +32,17 @@ object Assembly {
       def apply(pattern: String, separator: String): AppendPattern =
         new AppendPattern(Pattern.compile(pattern), separator)
 
-      @deprecated(message = "Binary compatibility shim. Don't use it. To be removed", since = "mill 0.10.1")
+      @deprecated(
+        message = "Binary compatibility shim. Don't use it. To be removed",
+        since = "mill 0.10.1"
+      )
       def unapply(value: AppendPattern): Option[Pattern] = Some(value.pattern)
     }
-    class AppendPattern private(val pattern: Pattern, val separator: String) extends Rule {
-      @deprecated(message = "Binary compatibility shim. Don't use it. To be removed", since = "mill 0.10.1")
+    class AppendPattern private (val pattern: Pattern, val separator: String) extends Rule {
+      @deprecated(
+        message = "Binary compatibility shim. Don't use it. To be removed",
+        since = "mill 0.10.1"
+      )
       def this(pattern: Pattern) = this(pattern, defaultSeparator)
 
       override def productPrefix: String = "AppendPattern"
@@ -54,7 +60,10 @@ object Assembly {
       }
       override def toString: String = scala.runtime.ScalaRunTime._toString(this)
 
-      @deprecated(message = "Binary compatibility shim. Don't use it. To be removed", since = "mill 0.10.1")
+      @deprecated(
+        message = "Binary compatibility shim. Don't use it. To be removed",
+        since = "mill 0.10.1"
+      )
       def copy(pattern: Pattern = pattern): AppendPattern = new AppendPattern(pattern, separator)
     }
 
@@ -79,7 +88,7 @@ object Assembly {
 
     val matchPatterns = assemblyRules.collect {
       case r: Rule.AppendPattern => r.pattern.asPredicate() -> r
-      case r@Rule.ExcludePattern(pattern) => pattern.asPredicate() -> r
+      case r @ Rule.ExcludePattern(pattern) => pattern.asPredicate() -> r
     }
 
     mappings.foldLeft(Map.empty[String, GroupedEntry]) {
