@@ -766,8 +766,8 @@ object HelloWorldTests extends TestSuite {
           }
 
         def checkAppendWithSeparator[M <: TestUtil.BaseModule](
-          module: M,
-          target: Target[PathRef],
+            module: M,
+            target: Target[PathRef]
         ): Unit =
           workspaceTest(
             module,
@@ -778,7 +778,7 @@ object HelloWorldTests extends TestSuite {
             Using.resource(new JarFile(result.path.toIO)) { jarFile =>
               assert(jarEntries(jarFile).contains("without-new-line.conf"))
 
-              val result  = readFileFromJar(jarFile, "without-new-line.conf").split('\n').toSet
+              val result = readFileFromJar(jarFile, "without-new-line.conf").split('\n').toSet
               val expected = Set("without-new-line.first=first", "without-new-line.second=second")
               assert(result == expected)
             }

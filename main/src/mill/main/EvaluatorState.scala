@@ -16,17 +16,18 @@ class EvaluatorState private (
 
   @deprecated(message = "Use apply instead", since = "mill 0.10.1")
   private[main] def this(
-    _rootModule: mill.define.BaseModule,
-    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
-    _workerCache: mutable.Map[Segments, (Int, Any)],
-    _watched: Seq[(ammonite.interp.Watchable, Long)],
-    _setSystemProperties: Set[String]) = this(
-      _rootModule,
-      _classLoaderSig,
-      _workerCache,
-      _watched,
-      _setSystemProperties,
-      Seq.empty
+      _rootModule: mill.define.BaseModule,
+      _classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
+      _workerCache: mutable.Map[Segments, (Int, Any)],
+      _watched: Seq[(ammonite.interp.Watchable, Long)],
+      _setSystemProperties: Set[String]
+  ) = this(
+    _rootModule,
+    _classLoaderSig,
+    _workerCache,
+    _watched,
+    _setSystemProperties,
+    Seq.empty
   )
 
   def rootModule: mill.define.BaseModule = _rootModule
