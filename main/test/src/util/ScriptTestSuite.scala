@@ -1,12 +1,13 @@
 package mill.util
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
-
 import mainargs.Flag
-import scala.util.Try
 
+import scala.util.Try
 import os.Path
 import utest._
+
+import java.nio.file.NoSuchFileException
 
 abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
   def workspaceSlug: String
@@ -79,8 +80,17 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
     }
   }
   private def evalFork(stdout: os.ProcessOutput, s: Seq[String]): Boolean = {
+    val millRelease = Option(System.getenv("MILL_TEST_RELEASE"))
+      .getOrElse(throw new NoSuchElementException(
+        s"System environment variable `MILL_TEST_RELEASE` not defined. It needs to point to the Mill binary to use for the test."
+      ))
+    val millReleaseFile = os.Path(millRelease, os.pwd)
+    if (!os.exists(millReleaseFile)) {
+      throw new NoSuchFileException(s"Mill binary to use for test not found under: ${millRelease}")
+    }
+
     try {
-      os.proc(os.home / "mill-release", "-i", s).call(
+      os.proc(millReleaseFile, "-i", s).call(
         wd,
         stdin = os.Inherit,
         stdout = stdout,

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 set -eux
 
@@ -18,7 +18,9 @@ rm -rf ~/.mill/ammonite
 # Patch local build
 ci/patch-mill-bootstrap.sh
 
-# Run tests
-~/mill-release -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests,PlayJsonTests}"
+MILL_RELEASE="$(pwd)/target/mill-release"
 
-~/mill-release -i integration.test "mill.integration.forked.CaffeineTests"
+# Run tests
+MILL_TEST_RELEASE="$MILL_RELEASE" "$MILL_RELEASE" -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests,PlayJsonTests}"
+
+MILL_TEST_RELEASE="$MILL_RELEASE" "$MILL_RELEASE" -i integration.test "mill.integration.forked.CaffeineTests"
