@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 set -eux
 
@@ -6,4 +6,6 @@ set -eux
 
 ./mill -i show main.publishVersion
 
-cp out/assembly.dest/mill ~/mill-release
+mkdir -p target
+
+cp out/assembly.dest/mill target/mill-release

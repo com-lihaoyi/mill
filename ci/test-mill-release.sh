@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 set -eux
 
@@ -10,15 +10,19 @@ git stash -a
 ci/publish-local.sh
 
 # Clean up
+git stash -a -m "preserve mill-release" -- target/mill-release
 git stash -u
 git stash -a
+git stash pop "$(git stash list | grep "preserve mill-release" | head -n1 | sed -E 's/([^:]+):.*/\1/')"
 
 rm -rf ~/.mill/ammonite
 
 # Patch local build
 ci/patch-mill-bootstrap.sh
 
-# Run tests
-~/mill-release -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests,PlayJsonTests}"
+export MILL_TEST_RELEASE="$(pwd)/target/mill-release"
 
-~/mill-release -i integration.test "mill.integration.forked.CaffeineTests"
+# Run tests
+"$MILL_TEST_RELEASE" -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests,PlayJsonTests}"
+
+"$MILL_TEST_RELEASE" -i integration.test "mill.integration.forked.CaffeineTests"
