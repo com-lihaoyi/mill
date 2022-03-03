@@ -20,9 +20,9 @@ rm -rf ~/.mill/ammonite
 # Patch local build
 ci/patch-mill-bootstrap.sh
 
-MILL_RELEASE="$(pwd)/target/mill-release"
+export MILL_TEST_RELEASE="$(pwd)/target/mill-release"
 
 # Run tests
-MILL_TEST_RELEASE="$MILL_RELEASE" "$MILL_RELEASE" -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests,PlayJsonTests}"
+"$MILL_TEST_RELEASE" -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests,PlayJsonTests}"
 
-MILL_TEST_RELEASE="$MILL_RELEASE" "$MILL_RELEASE" -i integration.test "mill.integration.forked.CaffeineTests"
+"$MILL_TEST_RELEASE" -i integration.test "mill.integration.forked.CaffeineTests"
