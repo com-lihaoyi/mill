@@ -563,12 +563,15 @@ object Jvm {
       Result.Failure(msg)
     } else {
 
+      val cache0 = coursier.cache.FileCache[Task].noCredentials
+      val cache = cacheCustomizer.getOrElse(identity[coursier.cache.FileCache[Task]](_)).apply(cache0)
+
       def load(artifacts: Seq[coursier.util.Artifact]) = {
 
         import scala.concurrent.ExecutionContext.Implicits.global
         val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
-            yield coursier.cache.Cache.default.file(a).run.map(a.optional -> _)
+            yield cache.file(a).run.map(a.optional -> _)
         ).unsafeRun
 
         val errors = loadedArtifacts.collect {
