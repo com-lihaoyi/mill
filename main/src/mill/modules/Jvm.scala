@@ -534,7 +534,8 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None
   ): Result[Agg[PathRef]] = {
 
     val (_, resolution) = resolveDependenciesMetadata(
@@ -543,7 +544,8 @@ object Jvm {
       force,
       mapDependencies,
       customizer,
-      ctx
+      ctx,
+      coursierCacheCustomizer
     )
     val errs = resolution.errors
 
@@ -561,12 +563,15 @@ object Jvm {
       Result.Failure(msg)
     } else {
 
+      val coursierCache0 = coursier.cache.FileCache[Task].noCredentials
+      val coursierCache = coursierCacheCustomizer.getOrElse(identity[coursier.cache.FileCache[Task]](_)).apply(coursierCache0)
+
       def load(artifacts: Seq[coursier.util.Artifact]) = {
 
         import scala.concurrent.ExecutionContext.Implicits.global
         val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
-            yield coursier.cache.Cache.default.file(a).run.map(a.optional -> _)
+            yield coursierCache.file(a).run.map(a.optional -> _)
         ).unsafeRun
 
         val errors = loadedArtifacts.collect {
@@ -611,7 +616,8 @@ object Jvm {
       force: IterableOnce[coursier.Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None
   ): (Seq[Dependency], Resolution) = {
 
     val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
@@ -631,15 +637,16 @@ object Jvm {
     val start = customizer.getOrElse(identity[Resolution](_)).apply(start0)
 
     val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
-    val cache = resolutionLogger match {
+    val coursierCache0 = resolutionLogger match {
       case None => coursier.cache.FileCache[Task].withCachePolicies(cachePolicies)
       case Some(l) =>
         coursier.cache.FileCache[Task]
           .withCachePolicies(cachePolicies)
           .withLogger(l)
     }
+    val coursierCache = coursierCacheCustomizer.getOrElse(identity[coursier.cache.FileCache[Task]](_)).apply(coursierCache0)
 
-    val fetches = cache.fetchs
+    val fetches = coursierCache.fetchs
 
     val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail)
 
@@ -764,6 +771,52 @@ object Jvm {
 
   @deprecated(
     "Use alternative overload. This one is only for binary backwards compatibility.",
+    "mill after 0.10.0"
+  )
+  def resolveDependencies(
+       repositories: Seq[Repository],
+       deps: IterableOnce[coursier.Dependency],
+       force: IterableOnce[coursier.Dependency],
+       sources: Boolean,
+       mapDependencies: Option[Dependency => Dependency],
+       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+       ctx: Option[mill.api.Ctx.Log]
+   ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories = repositories,
+      deps = deps,
+      force = force,
+      sources = sources,
+      mapDependencies = mapDependencies,
+      customizer = customizer,
+      ctx = ctx,
+      coursierCacheCustomizer = None
+    )
+
+  @deprecated(
+    "Use alternative overload. This one is only for binary backwards compatibility.",
+    "mill after 0.10.0"
+  )
+  def resolveDependenciesMetadata(
+       repositories: Seq[Repository],
+       deps: IterableOnce[coursier.Dependency],
+       force: IterableOnce[coursier.Dependency],
+       mapDependencies: Option[Dependency => Dependency],
+       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+       ctx: Option[mill.api.Ctx.Log]
+  ): (Seq[Dependency], Resolution) =
+    resolveDependenciesMetadata(
+      repositories = repositories,
+      deps = deps,
+      force = force,
+      mapDependencies = mapDependencies,
+      customizer = customizer,
+      ctx = ctx,
+      coursierCacheCustomizer = None
+    )
+
+  @deprecated(
+    "Use alternative overload. This one is only for binary backwards compatibility.",
     "mill after 0.9.6"
   )
   def resolveDependencies(
@@ -781,7 +834,8 @@ object Jvm {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = None,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = None
     )
 
   @deprecated(
@@ -801,7 +855,8 @@ object Jvm {
       force = force,
       mapDependencies = mapDependencies,
       customizer = None,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = None
     )
 
 }
