@@ -30,8 +30,8 @@ object Lib {
       deps: IterableOnce[Dep],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[Ctx.Log] = None,
       coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
-      ctx: Option[Ctx.Log] = None
   ): (Seq[Dependency], Resolution) = {
     val depSeq = deps.iterator.toSeq
     mill.modules.Jvm.resolveDependenciesMetadata(
@@ -40,8 +40,8 @@ object Lib {
       force = depSeq.filter(_.force).map(depToDependency),
       mapDependencies = mapDependencies,
       customizer = customizer,
-      coursierCacheCustomizer = coursierCacheCustomizer,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = coursierCacheCustomizer
     )
   }
 
@@ -59,8 +59,8 @@ object Lib {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
-      ctx: Option[Ctx.Log] = None
+      ctx: Option[Ctx.Log] = None,
+      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.modules.Jvm.resolveDependencies(
@@ -70,8 +70,8 @@ object Lib {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = customizer,
-      coursierCacheCustomizer = coursierCacheCustomizer,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = coursierCacheCustomizer
     )
   }
 
@@ -143,8 +143,8 @@ object Lib {
       deps = deps,
       mapDependencies = mapDependencies,
       customizer = customizer,
-      coursierCacheCustomizer = None,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = None
     )
 
   @deprecated(
@@ -167,8 +167,8 @@ object Lib {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = customizer,
-      coursierCacheCustomizer = None,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = None
     )
 
   @deprecated(
@@ -188,8 +188,8 @@ object Lib {
       deps = deps,
       mapDependencies = mapDependencies,
       customizer = None,
-      coursierCacheCustomizer = None,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = None
     )
 
   @deprecated(
@@ -211,8 +211,8 @@ object Lib {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = None,
-      coursierCacheCustomizer = None,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = None
     )
 
   def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {

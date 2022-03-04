@@ -534,8 +534,8 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
-      ctx: Option[mill.api.Ctx.Log] = None
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None
   ): Result[Agg[PathRef]] = {
 
     val (_, resolution) = resolveDependenciesMetadata(
@@ -544,8 +544,8 @@ object Jvm {
       force,
       mapDependencies,
       customizer,
-      coursierCacheCustomizer,
-      ctx
+      ctx,
+      coursierCacheCustomizer
     )
     val errs = resolution.errors
 
@@ -616,8 +616,8 @@ object Jvm {
       force: IterableOnce[coursier.Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
-      ctx: Option[mill.api.Ctx.Log] = None
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None
   ): (Seq[Dependency], Resolution) = {
 
     val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
@@ -789,8 +789,8 @@ object Jvm {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = customizer,
-      coursierCacheCustomizer = None,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = None
     )
 
   @deprecated(
@@ -811,8 +811,8 @@ object Jvm {
       force = force,
       mapDependencies = mapDependencies,
       customizer = customizer,
-      coursierCacheCustomizer = None,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = None
     )
 
   @deprecated(
@@ -834,8 +834,8 @@ object Jvm {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = None,
-      coursierCacheCustomizer = None,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = None
     )
 
   @deprecated(
@@ -855,8 +855,8 @@ object Jvm {
       force = force,
       mapDependencies = mapDependencies,
       customizer = None,
-      coursierCacheCustomizer = None,
-      ctx = ctx
+      ctx = ctx,
+      coursierCacheCustomizer = None
     )
 
 }
