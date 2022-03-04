@@ -25,6 +25,7 @@ trait ScalaModule extends JavaModule { outer =>
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
+    override def scalaOutputVersion: T[String] = outer.scalaOutputVersion()
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
     override def scalacPluginClasspath = outer.scalacPluginClasspath
     override def scalacOptions = outer.scalacOptions
@@ -56,6 +57,8 @@ trait ScalaModule extends JavaModule { outer =>
    * What version of Scala to use
    */
   def scalaVersion: T[String]
+
+  def scalaOutputVersion: T[String] = scalaVersion
 
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
     d: coursier.Dependency =>
@@ -102,7 +105,12 @@ trait ScalaModule extends JavaModule { outer =>
    * Mandatory command-line options to pass to the Scala compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
-  protected def mandatoryScalacOptions: Target[Seq[String]] = T { Seq.empty[String] }
+  protected def mandatoryScalacOptions: Target[Seq[String]] = T { 
+    if (scalaOutputVersion() != scalaVersion()) {
+      val scalaOutputMinorVersion = scalaOutputVersion().split("\\.").toSeq.take(2).mkString(".")
+      Seq("-scala-output-version", scalaOutputMinorVersion)
+    } else Seq()
+  }
 
   /**
    * Scalac options to activate the compiler plugins.
@@ -171,10 +179,14 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   def scalaLibraryIvyDeps: T[Agg[Dep]] = T {
+    scalaRuntimeIvyDeps(scalaOrganization(), scalaOutputVersion())
+  }
+
+  def compilationScalaLibraryIvyDeps: T[Agg[Dep]] = T {
     scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
   }
 
-  /** Adds the Scala Library is a mandatory dependency. */
+  /** Adds the Scala Library as a mandatory dependency. */
   override def mandatoryIvyDeps: T[Agg[Dep]] = T {
     super.mandatoryIvyDeps() ++ scalaLibraryIvyDeps()
   }
@@ -186,9 +198,20 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDeps(
       T.task {
         scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
-          scalaLibraryIvyDeps()
+          compilationScalaLibraryIvyDeps()
       }
     )()
+  }
+
+  override def resolvedCompilationIvyDeps: T[Agg[PathRef]] = T {
+    resolveDeps(T.task {
+      val deps = transitiveIvyDeps() ++ transitiveCompileIvyDeps()
+      deps.map { dep =>
+        if (dep.dep.module.organization.value == "org.scala-lang" && dep.dep.module.name.value == "scala3-library") {
+          ivy"${scalaOrganization()}::scala3-library::${scalaVersion()}".forceVersion()
+        } else dep 
+      }
+    })()
   }
 
   // Keep in sync with [[bspCompileClassesInfo]]

@@ -25,6 +25,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     override def zincWorker = outer.zincWorker
     override def scalaOrganization = outer.scalaOrganization()
     override def scalaVersion = outer.scalaVersion()
+    override def scalaOutputVersion = outer.scalaOutputVersion()
     override def scalaNativeVersion = outer.scalaNativeVersion()
     override def releaseMode = outer.releaseMode()
     override def logLevel = outer.logLevel()

@@ -20,6 +20,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def zincWorker = outer.zincWorker
     override def scalaOrganization = outer.scalaOrganization()
     override def scalaVersion = outer.scalaVersion()
+    override def scalaOutputVersion = outer.scalaOutputVersion()
     override def scalaJSVersion = outer.scalaJSVersion()
     override def moduleDeps = Seq(outer)
   }

@@ -307,7 +307,7 @@ trait JavaModule
     transitiveLocalClasspath() ++
       resources() ++
       unmanagedClasspath() ++
-      resolvedIvyDeps()
+      resolvedCompilationIvyDeps()
   }
 
   /** Same as [[compileClasspath]], but does not trigger compilation targets, if possible. */
@@ -344,7 +344,7 @@ trait JavaModule
       lcp() ++
         resources() ++
         unmanagedClasspath() ++
-        resolvedIvyDeps()
+        resolvedCompilationIvyDeps()
     }
   }
 
@@ -356,6 +356,11 @@ trait JavaModule
       transitiveCompileIvyDeps() ++ transitiveIvyDeps()
     })()
   }
+
+  /**
+   * Like [[resolvedIvyDeps]] but used only for compiling this module .
+   */
+  def resolvedCompilationIvyDeps: T[Agg[PathRef]] = resolvedIvyDeps
 
   /**
    * All upstream classfiles and resources necessary to build and executable
