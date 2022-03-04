@@ -36,7 +36,7 @@ trait CoursierModule extends mill.Module {
       sources = sources,
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
-      cacheCustomizer = cacheCustomizer(),
+      coursierCacheCustomizer = coursierCacheCustomizer(),
       ctx = Some(implicitly[mill.api.Ctx.Log])
     )
   }
@@ -79,7 +79,7 @@ trait CoursierModule extends mill.Module {
    * This is rarely needed to be changed, but sometimes e.g you want to load a coursier plugin.
    * Doing so requires adding to coursier's classpath. To do this you could use the following:
    * {{{
-   *   override def cacheCustomizer = T.task {
+   *   override def coursierCacheCustomizer = T.task {
    *      Some( (fc: coursier.cache.FileCache[Task]) =>
    *        fc.withClassLoaders(Seq(classOf[coursier.cache.protocol.S3Handler].getClassLoader))
    *      )
@@ -87,7 +87,7 @@ trait CoursierModule extends mill.Module {
    * }}}
    * @return
    */
-  def cacheCustomizer: Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] = T.task { None }
+  def coursierCacheCustomizer: Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] = T.task { None }
 
   /**
    * The repositories used to resolved dependencies with [[resolveDeps()]].

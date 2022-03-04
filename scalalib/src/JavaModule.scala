@@ -537,7 +537,7 @@ trait JavaModule
         additionalDeps() ++ transitiveIvyDeps(),
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
-        cacheCustomizer = cacheCustomizer(),
+        coursierCacheCustomizer = coursierCacheCustomizer(),
       )
 
       println(

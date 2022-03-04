@@ -30,7 +30,7 @@ object Lib {
       deps: IterableOnce[Dep],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      cacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
+      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
       ctx: Option[Ctx.Log] = None
   ): (Seq[Dependency], Resolution) = {
     val depSeq = deps.iterator.toSeq
@@ -40,7 +40,7 @@ object Lib {
       force = depSeq.filter(_.force).map(depToDependency),
       mapDependencies = mapDependencies,
       customizer = customizer,
-      cacheCustomizer = cacheCustomizer,
+      coursierCacheCustomizer = coursierCacheCustomizer,
       ctx = ctx
     )
   }
@@ -59,7 +59,7 @@ object Lib {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      cacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
+      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
       ctx: Option[Ctx.Log] = None
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
@@ -70,7 +70,7 @@ object Lib {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = customizer,
-      cacheCustomizer = cacheCustomizer,
+      coursierCacheCustomizer = coursierCacheCustomizer,
       ctx = ctx
     )
   }
@@ -127,6 +127,52 @@ object Lib {
 
   @deprecated(
     "User other overload instead. Only for binary backward compatibility.",
+    "mill after 0.10.0"
+  )
+  def resolveDependenciesMetadata(
+       repositories: Seq[Repository],
+       depToDependency: Dep => coursier.Dependency,
+       deps: IterableOnce[Dep],
+       mapDependencies: Option[Dependency => Dependency],
+       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+       ctx: Option[Ctx.Log]
+   ): (Seq[Dependency], Resolution) =
+    resolveDependenciesMetadata(
+      repositories = repositories,
+      depToDependency = depToDependency,
+      deps = deps,
+      mapDependencies = mapDependencies,
+      customizer = customizer,
+      coursierCacheCustomizer = None,
+      ctx = ctx
+    )
+
+  @deprecated(
+    "User other overload instead. Only for binary backward compatibility.",
+    "mill after 0.10.0"
+  )
+  def resolveDependencies(
+       repositories: Seq[Repository],
+       depToDependency: Dep => coursier.Dependency,
+       deps: IterableOnce[Dep],
+       sources: Boolean,
+       mapDependencies: Option[Dependency => Dependency],
+       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+       ctx: Option[Ctx.Log]
+   ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories = repositories,
+      depToDependency = depToDependency,
+      deps = deps,
+      sources = sources,
+      mapDependencies = mapDependencies,
+      customizer = customizer,
+      coursierCacheCustomizer = None,
+      ctx = ctx
+    )
+
+  @deprecated(
+    "User other overload instead. Only for binary backward compatibility.",
     "mill after 0.9.6"
   )
   def resolveDependenciesMetadata(
@@ -142,7 +188,7 @@ object Lib {
       deps = deps,
       mapDependencies = mapDependencies,
       customizer = None,
-      cacheCustomizer = None,
+      coursierCacheCustomizer = None,
       ctx = ctx
     )
 
@@ -165,7 +211,7 @@ object Lib {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = None,
-      cacheCustomizer = None,
+      coursierCacheCustomizer = None,
       ctx = ctx
     )
 
