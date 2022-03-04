@@ -110,6 +110,7 @@ case class GenIdeaImpl(
               sources = false,
               mapDependencies = None,
               customizer = None,
+              coursierCacheCustomizer = None,
               ctx = ctx
             )
 
@@ -122,6 +123,7 @@ case class GenIdeaImpl(
                 sources = true,
                 mapDependencies = None,
                 customizer = None,
+                coursierCacheCustomizer = None,
                 ctx = ctx
               )
             }

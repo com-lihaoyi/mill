@@ -536,7 +536,8 @@ trait JavaModule
         resolveCoursierDependency().apply(_),
         additionalDeps() ++ transitiveIvyDeps(),
         Some(mapDependencies()),
-        customizer = resolutionCustomizer()
+        customizer = resolutionCustomizer(),
+        coursierCacheCustomizer = coursierCacheCustomizer(),
       )
 
       println(
