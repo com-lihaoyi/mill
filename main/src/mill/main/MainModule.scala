@@ -267,8 +267,6 @@ trait MainModule extends mill.Module {
     ) { res: Seq[(Any, Option[(String, Value)])] =>
       val nameAndJson = res.flatMap(_._2)
       val output = ujson.Obj.from(nameAndJson)
-      // it would be nice to also have the task name in the result
-      // as described in https://github.com/com-lihaoyi/mill/issues/1763#issuecomment-1059329035
       T.log.outputStream.println(output.render(indent = 2))
     }
   }
