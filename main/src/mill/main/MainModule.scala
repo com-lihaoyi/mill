@@ -2,12 +2,13 @@ package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
-import mill.api.{Ctx, PathRef, Result}
+import mill.api.{Ctx, PathRef, Result, internal}
 import mill.define.{Command, NamedTask, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{PrintLogger, Watched}
 import mill.define.SelectMode
 import pprint.{Renderer, Truncated}
+import ujson.Value
 
 object MainModule {
   @deprecated(
@@ -49,6 +50,21 @@ object MainModule {
       selectMode: SelectMode
   )(f: Seq[(Any, Option[ujson.Value])] => T): Result[Watched[Unit]] = {
     RunScript.evaluateTasks(evaluator, targets, selectMode) match {
+      case Left(err) => Result.Failure(err)
+      case Right((watched, Left(err))) => Result.Failure(err, Some(Watched((), watched)))
+      case Right((watched, Right(res))) =>
+        f(res)
+        Result.Success(Watched((), watched))
+    }
+  }
+
+  @internal
+  def evaluateTasks1[T](
+      evaluator: Evaluator,
+      targets: Seq[String],
+      selectMode: SelectMode
+  )(f: Seq[(Any, Option[(String, ujson.Value)])] => T): Result[Watched[Unit]] = {
+    RunScript.evaluateTasks1(evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) => Result.Failure(err, Some(Watched((), watched)))
       case Right((watched, Right(res))) =>
@@ -236,7 +252,7 @@ trait MainModule extends mill.Module {
    * to integrate Mill into external scripts and tooling.
    */
   def show(evaluator: Evaluator, targets: String*) = T.command {
-    MainModule.evaluateTasks(
+    MainModule.evaluateTasks1(
       evaluator.withBaseLogger(
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
@@ -248,10 +264,12 @@ trait MainModule extends mill.Module {
       ),
       targets,
       SelectMode.Separated
-    ) { res =>
-      for (json <- res.flatMap(_._2)) {
-        T.log.outputStream.println(json.render(indent = 4))
-      }
+    ) { res: Seq[(Any, Option[(String, Value)])] =>
+      val nameAndJson = res.flatMap(_._2)
+      val output = ujson.Obj.from(nameAndJson)
+      // it would be nice to also have the task name in the result
+      // as described in https://github.com/com-lihaoyi/mill/issues/1763#issuecomment-1059329035
+      T.log.outputStream.println(output.render(indent = 2))
     }
   }
 
