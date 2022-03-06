@@ -63,13 +63,13 @@ object MainModule {
       evaluator: Evaluator,
       targets: Seq[String],
       selectMode: SelectMode
-  )(f: Seq[(Any, Option[(String, ujson.Value)])] => T): Result[Watched[Unit]] = {
+  )(f: Seq[(Any, Option[(String, ujson.Value)])] => T): Result[Watched[Option[T]]] = {
     RunScript.evaluateTasks1(evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
-      case Right((watched, Left(err))) => Result.Failure(err, Some(Watched((), watched)))
+      case Right((watched, Left(err))) => Result.Failure(err, Some(Watched(None, watched)))
       case Right((watched, Right(res))) =>
-        f(res)
-        Result.Success(Watched((), watched))
+        val fRes = f(res)
+        Result.Success(Watched(Some(fRes), watched))
     }
   }
 }
@@ -264,10 +264,14 @@ trait MainModule extends mill.Module {
       ),
       targets,
       SelectMode.Separated
-    ) { res: Seq[(Any, Option[(String, Value)])] =>
+    ) { res: Seq[(Any, Option[(String, ujson.Value)])] =>
       val nameAndJson = res.flatMap(_._2)
-      val output = ujson.Obj.from(nameAndJson)
+      val output: ujson.Value = ujson.Obj.from(nameAndJson)
       T.log.outputStream.println(output.render(indent = 2))
+      output
+    }.map { res =>
+      val Watched(Some(json), _) = res
+      json
     }
   }
 
