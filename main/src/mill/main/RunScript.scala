@@ -343,10 +343,17 @@ object RunScript {
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
   ): (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]]) = {
-    val res = evaluate1(evaluator, targets)
-    (res._1, res._2.map(_.map(p => (p._1, p._2.map(_._2)))))
+    val (watched, results) = evaluate1(evaluator, targets)
+    // we drop the task name in the inner tuple
+    (watched, results.map(_.map(p => (p._1, p._2.map(_._2)))))
   }
 
+  /**
+   *
+   * @param evaluator
+   * @param targets
+   * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
+   */
   def evaluate1(
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
