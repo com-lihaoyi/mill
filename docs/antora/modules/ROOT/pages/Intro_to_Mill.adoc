@@ -660,6 +660,46 @@ $ mill show foo.compileClasspath
 `show` is also useful for interacting with Mill from external tools, since the JSON it outputs is structured and easily
 parsed and manipulated.
 
+When `show` is used with multiple targets, it's output will slightly change to a JSON array, containing all the results of the given targets.
+
+[source,bash]
+----
+$ mill show "foo.{sources,compileClasspath}"
+[1/1] show
+[2/11] foo.resources
+[
+  [
+    "ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src"
+  ],
+  [
+    "ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources",
+    ".../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar"
+  ]
+]
+----
+
+=== showNamed
+
+Same as `show`, but the output will always be structured in a JSON dictionary, with the task names as key and the task results as JSON values.
+
+[source,bash]
+----
+$ mill showNamed "foo.{sources,compileClasspath}"
+[1/1] show
+[2/11] foo.resources
+{
+  "foo.sources":
+  [
+    "ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src"
+  ],
+  "foo.compileClasspath":
+  [
+    "ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources",
+    ".../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar"
+  ]
+}
+----
+
 === path
 
 [source,bash]
