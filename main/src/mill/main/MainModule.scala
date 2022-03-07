@@ -251,7 +251,37 @@ trait MainModule extends mill.Module {
    * Runs a given task and prints the JSON result to stdout. This is useful
    * to integrate Mill into external scripts and tooling.
    */
-  def show(evaluator: Evaluator, targets: String*) = T.command {
+  def show(evaluator: Evaluator, targets: String*): Command[Value] = T.command {
+    MainModule.evaluateTasks1(
+      evaluator.withBaseLogger(
+        // When using `show`, redirect all stdout of the evaluated tasks so the
+        // printed JSON is the only thing printed to stdout.
+        evaluator.baseLogger match {
+          case PrintLogger(c1, d, c2, c3, _, i, e, in, de, uc) =>
+            PrintLogger(c1, d, c2, c3, e, i, e, in, de, uc)
+          case l => l
+        }
+      ),
+      targets,
+      SelectMode.Separated
+    ) { res: Seq[(Any, Option[(String, ujson.Value)])] =>
+      val jsons = res.flatMap(_._2).map(_._2)
+      val output: ujson.Value =
+        if (jsons.size == 1) jsons.head
+        else { ujson.Arr.from(jsons) }
+      T.log.outputStream.println(output.render(indent = 2))
+      output
+    }.map { res =>
+      val Watched(Some(json), _) = res
+      json
+    }
+  }
+
+  /**
+   * Runs a given task and prints the results as JSON dictionary to stdout. This is useful
+   * to integrate Mill into external scripts and tooling.
+   */
+  def showNamed(evaluator: Evaluator, targets: String*): Command[Value] = T.command {
     MainModule.evaluateTasks1(
       evaluator.withBaseLogger(
         // When using `show`, redirect all stdout of the evaluated tasks so the
