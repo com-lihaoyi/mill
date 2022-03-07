@@ -660,7 +660,7 @@ $ mill show foo.compileClasspath
 `show` is also useful for interacting with Mill from external tools, since the JSON it outputs is structured and easily
 parsed and manipulated.
 
-When `show` is used with multiple targets, it's output will slightly change to a JSON array, containing all the results of the given targets.
+When `show` is used with multiple targets, its output will slightly change to a JSON array, containing all the results of the given targets.
 
 [source,bash]
 ----
