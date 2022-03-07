@@ -128,8 +128,7 @@ Project home: https://github.com/kierendavies/mill-explicit-deps
 
 === Quickstart
 
-_build.sc_:
-
+.`build.sc`
 [source,scala]
 ----
 import $ivy.`io.github.kierendavies::mill-explicit-deps::0.1.0`
