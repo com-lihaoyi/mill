@@ -120,6 +120,39 @@ Optionally, you can specify the ensime server version using the –server flag l
 mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"
 ----
 
+== Explicit Deps
+
+A plugin that checks that `ivyDeps` and `ivyCompileDeps` accurately reflect the direct dependencies of your source code.
+
+Project home: https://github.com/kierendavies/mill-explicit-deps
+
+=== Quickstart
+
+.`build.sc`
+[source,scala]
+----
+import $ivy.`io.github.kierendavies::mill-explicit-deps::0.1.0`
+import io.github.kierendavies.mill.explicitdeps.ExplicitDepsModule
+
+object foo extends ScalaModule with ExplicitDepsModule {
+    // ...
+}
+----
+
+[source,shell script]
+----
+> mill foo.checkExplicitDeps
+[37/37] main.checkExplicitDeps
+Found undeclared dependencies: (add these to ivyDeps)
+    ivy"org.typelevel::cats-kernel:2.7.0",
+
+Found unimported dependencies: (remove these from ivyDeps)
+    ivy"org.typelevel::cats-effect:3.3.6",
+
+1 targets failed
+main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies
+----
+
 == Git
 
 A git version plugin for mill.
