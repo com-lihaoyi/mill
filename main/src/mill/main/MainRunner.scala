@@ -49,7 +49,6 @@ class MainRunner(
   var stateCache = stateCache0
 
   override def watchAndWait(watched: Seq[(ammonite.interp.Watchable, Long)]) = {
-
     setIdle(true)
     super.watchAndWait(watched)
     setIdle(false)
@@ -86,7 +85,7 @@ class MainRunner(
   val colored = config.core.color.getOrElse(mainInteractive)
 
   override val colors = if (colored) Colors.Default else Colors.BlackWhite
-  override def runScript(scriptPath: os.Path, scriptArgs: List[String]) =
+  override def runScript(scriptPath: os.Path, scriptArgs: List[String]): Boolean =
     watchLoop2(
       isRepl = false,
       printing = true,

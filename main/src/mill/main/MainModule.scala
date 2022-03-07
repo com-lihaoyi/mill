@@ -2,12 +2,13 @@ package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
-import mill.api.{Ctx, PathRef, Result}
+import mill.api.{Ctx, PathRef, Result, internal}
 import mill.define.{Command, NamedTask, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{PrintLogger, Watched}
 import mill.define.SelectMode
 import pprint.{Renderer, Truncated}
+import ujson.Value
 
 object MainModule {
   @deprecated(
@@ -54,6 +55,21 @@ object MainModule {
       case Right((watched, Right(res))) =>
         f(res)
         Result.Success(Watched((), watched))
+    }
+  }
+
+  @internal
+  def evaluateTasksNamed[T](
+      evaluator: Evaluator,
+      targets: Seq[String],
+      selectMode: SelectMode
+  )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => T): Result[Watched[Option[T]]] = {
+    RunScript.evaluateTasksNamed(evaluator, targets, selectMode) match {
+      case Left(err) => Result.Failure(err)
+      case Right((watched, Left(err))) => Result.Failure(err, Some(Watched(None, watched)))
+      case Right((watched, Right(res))) =>
+        val fRes = f(res)
+        Result.Success(Watched(Some(fRes), watched))
     }
   }
 }
@@ -235,8 +251,8 @@ trait MainModule extends mill.Module {
    * Runs a given task and prints the JSON result to stdout. This is useful
    * to integrate Mill into external scripts and tooling.
    */
-  def show(evaluator: Evaluator, targets: String*) = T.command {
-    MainModule.evaluateTasks(
+  def show(evaluator: Evaluator, targets: String*): Command[Value] = T.command {
+    MainModule.evaluateTasksNamed(
       evaluator.withBaseLogger(
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
@@ -248,10 +264,44 @@ trait MainModule extends mill.Module {
       ),
       targets,
       SelectMode.Separated
-    ) { res =>
-      for (json <- res.flatMap(_._2)) {
-        T.log.outputStream.println(json.render(indent = 4))
-      }
+    ) { res: Seq[(Any, Option[(String, ujson.Value)])] =>
+      val jsons = res.flatMap(_._2).map(_._2)
+      val output: ujson.Value =
+        if (jsons.size == 1) jsons.head
+        else { ujson.Arr.from(jsons) }
+      T.log.outputStream.println(output.render(indent = 2))
+      output
+    }.map { res =>
+      val Watched(Some(json), _) = res
+      json
+    }
+  }
+
+  /**
+   * Runs a given task and prints the results as JSON dictionary to stdout. This is useful
+   * to integrate Mill into external scripts and tooling.
+   */
+  def showNamed(evaluator: Evaluator, targets: String*): Command[Value] = T.command {
+    MainModule.evaluateTasksNamed(
+      evaluator.withBaseLogger(
+        // When using `show`, redirect all stdout of the evaluated tasks so the
+        // printed JSON is the only thing printed to stdout.
+        evaluator.baseLogger match {
+          case PrintLogger(c1, d, c2, c3, _, i, e, in, de, uc) =>
+            PrintLogger(c1, d, c2, c3, e, i, e, in, de, uc)
+          case l => l
+        }
+      ),
+      targets,
+      SelectMode.Separated
+    ) { res: Seq[(Any, Option[(String, ujson.Value)])] =>
+      val nameAndJson = res.flatMap(_._2)
+      val output: ujson.Value = ujson.Obj.from(nameAndJson)
+      T.log.outputStream.println(output.render(indent = 2))
+      output
+    }.map { res =>
+      val Watched(Some(json), _) = res
+      json
     }
   }
 
