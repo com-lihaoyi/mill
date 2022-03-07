@@ -323,14 +323,14 @@ object RunScript {
       }
   }
 
-  def evaluateTasks1[T](
+  def evaluateTasksNamed[T](
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] = {
     for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, selectMode))
       yield {
-        val (watched, res) = evaluate1(evaluator, Agg.from(targets.distinct))
+        val (watched, res) = evaluateNamed(evaluator, Agg.from(targets.distinct))
 
         val watched2 = for {
           x <- res.toSeq
@@ -346,7 +346,7 @@ object RunScript {
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
   ): (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]]) = {
-    val (watched, results) = evaluate1(evaluator, targets)
+    val (watched, results) = evaluateNamed(evaluator, targets)
     // we drop the task name in the inner tuple
     (watched, results.map(_.map(p => (p._1, p._2.map(_._2)))))
   }
@@ -357,7 +357,7 @@ object RunScript {
    * @param targets
    * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
    */
-  def evaluate1(
+  def evaluateNamed(
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
   ): (Seq[PathRef], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {

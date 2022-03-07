@@ -59,12 +59,12 @@ object MainModule {
   }
 
   @internal
-  def evaluateTasks1[T](
+  def evaluateTasksNamed[T](
       evaluator: Evaluator,
       targets: Seq[String],
       selectMode: SelectMode
   )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => T): Result[Watched[Option[T]]] = {
-    RunScript.evaluateTasks1(evaluator, targets, selectMode) match {
+    RunScript.evaluateTasksNamed(evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) => Result.Failure(err, Some(Watched(None, watched)))
       case Right((watched, Right(res))) =>
@@ -252,7 +252,7 @@ trait MainModule extends mill.Module {
    * to integrate Mill into external scripts and tooling.
    */
   def show(evaluator: Evaluator, targets: String*): Command[Value] = T.command {
-    MainModule.evaluateTasks1(
+    MainModule.evaluateTasksNamed(
       evaluator.withBaseLogger(
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
@@ -282,7 +282,7 @@ trait MainModule extends mill.Module {
    * to integrate Mill into external scripts and tooling.
    */
   def showNamed(evaluator: Evaluator, targets: String*): Command[Value] = T.command {
-    MainModule.evaluateTasks1(
+    MainModule.evaluateTasksNamed(
       evaluator.withBaseLogger(
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
