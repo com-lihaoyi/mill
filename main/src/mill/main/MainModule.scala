@@ -63,7 +63,7 @@ object MainModule {
       evaluator: Evaluator,
       targets: Seq[String],
       selectMode: SelectMode
-  )(f: Seq[(Any, Option[(String, ujson.Value)])] => T): Result[Watched[Option[T]]] = {
+  )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => T): Result[Watched[Option[T]]] = {
     RunScript.evaluateTasks1(evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) => Result.Failure(err, Some(Watched(None, watched)))

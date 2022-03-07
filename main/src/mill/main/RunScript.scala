@@ -25,6 +25,9 @@ import ujson.Value
  * subsystem
  */
 object RunScript {
+
+  type TaskName = String
+
   def runScript(
       home: os.Path,
       wd: os.Path,
@@ -324,7 +327,7 @@ object RunScript {
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
-  ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[(String, ujson.Value)])]])] = {
+  ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] = {
     for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluate1(evaluator, Agg.from(targets.distinct))
@@ -357,7 +360,7 @@ object RunScript {
   def evaluate1(
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
-  ): (Seq[PathRef], Either[String, Seq[(Any, Option[(String, ujson.Value)])]]) = {
+  ): (Seq[PathRef], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
     val evaluated: Evaluator.Results = evaluator.evaluate(targets)
     val watched = evaluated.results
       .iterator
