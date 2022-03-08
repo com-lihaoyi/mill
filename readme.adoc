@@ -220,7 +220,7 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
-=== 'main' branch
+=== 0.10.1 - 2022-03-08
 :version: 0.10.1
 :prev-version: 0.10.0
 :milestone: 59
