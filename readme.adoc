@@ -209,11 +209,43 @@ corresponding version of Mill.
 
 === 'main' branch
 :version: main
-:prev-version: 0.10.0
-:milestone: 59
-:milestone-name: after 0.10.0
+:prev-version: 0.10.1
+:milestone: 60
+:milestone-name: after 0.10.1
 
 _Changes since {prev-version}:_
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.1 - 2022-03-08
+:version: 0.10.1
+:prev-version: 0.10.0
+:milestone: 59
+:milestone-name: 0.10.1
+
+_Changes since {prev-version}:_
+
+* `MillClienMain` can now act as universal main to start mill with or without a server process
+* Improved `show` command that always returns valid JSON
+* Added `showNamed` command that includes the task names in the output
+* Implemented more granular cache invalidation which keeps more caches intact when you split your build setup over multiple `.sc` files with `import $file`.
+* The local `.mill-jvm-opts` file is no longer restricted to `-X` options
+
+* `CoursierModule`: Added `coursierCacheCustomizer` to support a `FileCache` customizers
+* `JavaModule`: the `docJar` target no longer includes hidden files
+* `ScalaModule`: Updated to latest zinc version
+* `ScalaModule`: Reworked scalac plugins handling for the better and to support Scala 3
+* `ScalaNativeModule`: fixed `Dep.withDottyCompat` behavior
+* `ScalaJSModule`: support for linking multiple modules
+* `ScalafmtModule`: Support for newer Scalafmt versions
+
+* Tool chain: Update to Mill 0.10.0
+* Tool chain: we no longer create files outside the mill project directory (e.g. `~/mill-release` is now under `target/mill-release`)
+* Various dependency updates
+* Lots of internal improvements
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
