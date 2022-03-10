@@ -102,8 +102,8 @@ object Jvm {
         val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
         ctx.log.debug(
           s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.iterator.map(
-            _.toNIO.toUri().toURL().toExternalForm()
-          ).mkString(" ")}"
+              _.toNIO.toUri().toURL().toExternalForm()
+            ).mkString(" ")}"
         )
         createClasspathPassingJar(passingJar, classPath)
         Agg(passingJar)
@@ -489,12 +489,12 @@ object Jvm {
     universalScript(
       shellCommands =
         s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(
-          ":"
-        )}" '$mainClass' "$$@"""",
+            ":"
+          )}" '$mainClass' "$$@"""",
       cmdCommands =
         s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.mkString(
-          ";"
-        )}" $mainClass %*""",
+            ";"
+          )}" $mainClass %*""",
       shebang = shebang
     )
   }
@@ -536,7 +536,9 @@ object Jvm {
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ] = None
   ): Result[Agg[PathRef]] = {
 
     val (_, resolution) = resolveDependenciesMetadata(
@@ -565,7 +567,9 @@ object Jvm {
     } else {
 
       val coursierCache0 = coursier.cache.FileCache[Task].noCredentials
-      val coursierCache = coursierCacheCustomizer.getOrElse(identity[coursier.cache.FileCache[Task]](_)).apply(coursierCache0)
+      val coursierCache = coursierCacheCustomizer.getOrElse(
+        identity[coursier.cache.FileCache[Task]](_)
+      ).apply(coursierCache0)
 
       def load(artifacts: Seq[coursier.util.Artifact]) = {
 
@@ -618,12 +622,14 @@ object Jvm {
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ] = None
   ): (Seq[Dependency], Resolution) = {
 
     val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
 
-    val forceVersions = force
+    val forceVersions = force.iterator
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
       .map { d => d.module -> d.version }
       .toMap
@@ -777,14 +783,14 @@ object Jvm {
     "mill after 0.10.0"
   )
   def resolveDependencies(
-       repositories: Seq[Repository],
-       deps: IterableOnce[coursier.Dependency],
-       force: IterableOnce[coursier.Dependency],
-       sources: Boolean,
-       mapDependencies: Option[Dependency => Dependency],
-       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-       ctx: Option[mill.api.Ctx.Log]
-   ): Result[Agg[PathRef]] =
+      repositories: Seq[Repository],
+      deps: IterableOnce[coursier.Dependency],
+      force: IterableOnce[coursier.Dependency],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[mill.api.Ctx.Log]
+  ): Result[Agg[PathRef]] =
     resolveDependencies(
       repositories = repositories,
       deps = deps,
@@ -801,12 +807,12 @@ object Jvm {
     "mill after 0.10.0"
   )
   def resolveDependenciesMetadata(
-       repositories: Seq[Repository],
-       deps: IterableOnce[coursier.Dependency],
-       force: IterableOnce[coursier.Dependency],
-       mapDependencies: Option[Dependency => Dependency],
-       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-       ctx: Option[mill.api.Ctx.Log]
+      repositories: Seq[Repository],
+      deps: IterableOnce[coursier.Dependency],
+      force: IterableOnce[coursier.Dependency],
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[mill.api.Ctx.Log]
   ): (Seq[Dependency], Resolution) =
     resolveDependenciesMetadata(
       repositories = repositories,
