@@ -271,9 +271,8 @@ trait MainModule extends mill.Module {
         else { ujson.Arr.from(jsons) }
       T.log.outputStream.println(output.render(indent = 2))
       output
-    }.map { res =>
-      val Watched(Some(json), _) = res
-      json
+    }.map { res: Watched[Option[Value]] =>
+      res.value.getOrElse(ujson.Null)
     }
   }
 
@@ -299,9 +298,8 @@ trait MainModule extends mill.Module {
       val output: ujson.Value = ujson.Obj.from(nameAndJson)
       T.log.outputStream.println(output.render(indent = 2))
       output
-    }.map { res =>
-      val Watched(Some(json), _) = res
-      json
+    }.map { res: Watched[Option[Value]] =>
+      res.value.getOrElse(ujson.Null)
     }
   }
 
