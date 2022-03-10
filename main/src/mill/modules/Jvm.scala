@@ -1,5 +1,7 @@
 package mill.modules
 
+import coursier.cache.ArtifactError
+
 import java.io.{
   ByteArrayInputStream,
   File,
@@ -29,10 +31,12 @@ import scala.util.Using
 import mill.BuildInfo
 import upickle.default.{ReadWriter => RW}
 
-import java.util.function.Consumer
 import scala.annotation.tailrec
 
 object Jvm {
+
+  private val ConcurrentRetryCount = 5
+  private val ConcurrentRetryWait = 100
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -571,8 +575,7 @@ object Jvm {
         identity[coursier.cache.FileCache[Task]](_)
       ).apply(coursierCache0)
 
-      def load(artifacts: Seq[coursier.util.Artifact]) = {
-
+      @tailrec def load(artifacts: Seq[coursier.util.Artifact], retry: Int): (Seq[ArtifactError], Seq[File]) = {
         import scala.concurrent.ExecutionContext.Implicits.global
         val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
@@ -584,7 +587,15 @@ object Jvm {
           case (true, Left(x)) if !x.notFound => x
         }
         val successes = loadedArtifacts.collect { case (_, Right(x)) => x }
-        (errors, successes)
+
+        if(retry > 0 && errors.exists(_.describe.contains("concurrent download"))) {
+          ctx.foreach(_.log.debug(
+            s"Detected a concurrent download issue in coursier. Attempting a retry (${retry} left)"
+          ))
+          Thread.sleep(ConcurrentRetryWait)
+          load(artifacts, retry - 1)
+        }
+        else(errors, successes)
       }
 
       val sourceOrJar =
@@ -603,14 +614,16 @@ object Jvm {
             coursier.Type("maven-plugin")
           )
         )
-      val (errors, successes) = load(sourceOrJar)
+      val (errors, successes) = load(sourceOrJar, ConcurrentRetryCount)
       if (errors.isEmpty) {
         mill.Agg.from(
           successes.map(p => PathRef(os.Path(p), quick = true)).filter(_.path.ext == "jar")
         )
       } else {
-        val errorDetails = errors.map(e => s"${ammonite.util.Util.newLine}  ${e.describe}").mkString
-        Result.Failure("Failed to load source dependencies" + errorDetails)
+        val errorDetails = errors.map(e => s"${System.lineSeparator()}  ${e.describe}").mkString
+        Result.Failure(
+          s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
+        )
       }
     }
   }
@@ -672,12 +685,12 @@ object Jvm {
         ctx.foreach(_.log.debug(
           s"Detected a concurrent download issue in coursier. Attempting a retry (${count} left)"
         ))
-        Thread.sleep(100)
+        Thread.sleep(ConcurrentRetryWait)
         retriedResolution(count - 1)
       } else resolution
     }
 
-    val resolution = retriedResolution(5)
+    val resolution = retriedResolution(ConcurrentRetryCount)
     (deps.iterator.to(Seq), resolution)
   }
 
