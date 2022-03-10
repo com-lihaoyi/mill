@@ -30,6 +30,7 @@ import mill.BuildInfo
 import upickle.default.{ReadWriter => RW}
 
 import java.util.function.Consumer
+import scala.annotation.tailrec
 
 object Jvm {
 
@@ -644,31 +645,33 @@ object Jvm {
           .withCachePolicies(cachePolicies)
           .withLogger(l)
     }
-    val coursierCache = coursierCacheCustomizer.getOrElse(identity[coursier.cache.FileCache[Task]](_)).apply(coursierCache0)
+    val coursierCache = coursierCacheCustomizer.getOrElse(
+      identity[coursier.cache.FileCache[Task]](_)
+    ).apply(coursierCache0)
 
     val fetches = coursierCache.fetchs
 
     val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail)
 
-    // Workaround for https://github.com/com-lihaoyi/mill/issues/1028
-    // retry snippet taken from: https://github.com/coursier/coursier/issues/2022#issuecomment-812553102
-    def fetchWithRetry(m: Int): Task[Resolution] = Task.tailRecM[Int, Resolution](m) { (n: Int) =>
-      if (n <= 0) start.process.run(fetch).map(Right(_))
-      else
-        start.process.run(fetch).attempt map {
-          case Right(r) => Right(r)
-          case Left(e) if e.getMessage.contains("concurrent download") =>
-            ctx.foreach(_.log.debug(
-              s"Detected a concurrent download issue in coursier, attempting a retry. Recovered exception message: ${e.getMessage}"
-            ))
-            Thread.sleep(100)
-            Left(n - 1)
-          case Left(e) => throw e
-        }
-    }
     import scala.concurrent.ExecutionContext.Implicits.global
-    val resolution = fetchWithRetry(5).unsafeRun()
 
+    // Workaround for https://github.com/com-lihaoyi/mill/issues/1028
+    @tailrec def retriedResolution(count: Int): Resolution = {
+      val resolution = start.process.run(fetch).unsafeRun()
+      if (
+        count > 0 &&
+        resolution.errors.nonEmpty &&
+        resolution.errors.exists(_._2.exists(_.contains("concurrent download")))
+      ) {
+        ctx.foreach(_.log.debug(
+          s"Detected a concurrent download issue in coursier. Attempting a retry (${count} left)"
+        ))
+        Thread.sleep(100)
+        retriedResolution(count - 1)
+      } else resolution
+    }
+
+    val resolution = retriedResolution(5)
     (deps.iterator.to(Seq), resolution)
   }
 
