@@ -575,7 +575,7 @@ object Jvm {
         identity[coursier.cache.FileCache[Task]](_)
       ).apply(coursierCache0)
 
-      @tailrec def load(artifacts: Seq[coursier.util.Artifact], retry: Int): (Seq[ArtifactError], Seq[File]) = {
+      @tailrec def load(artifacts: Seq[coursier.util.Artifact], retry: Int = ConcurrentRetryCount): (Seq[ArtifactError], Seq[File]) = {
         import scala.concurrent.ExecutionContext.Implicits.global
         val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
@@ -614,7 +614,7 @@ object Jvm {
             coursier.Type("maven-plugin")
           )
         )
-      val (errors, successes) = load(sourceOrJar, ConcurrentRetryCount)
+      val (errors, successes) = load(sourceOrJar)
       if (errors.isEmpty) {
         mill.Agg.from(
           successes.map(p => PathRef(os.Path(p), quick = true)).filter(_.path.ext == "jar")
@@ -675,7 +675,7 @@ object Jvm {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     // Workaround for https://github.com/com-lihaoyi/mill/issues/1028
-    @tailrec def retriedResolution(count: Int): Resolution = {
+    @tailrec def retriedResolution(count: Int = ConcurrentRetryCount): Resolution = {
       val resolution = start.process.run(fetch).unsafeRun()
       if (
         count > 0 &&
@@ -690,7 +690,7 @@ object Jvm {
       } else resolution
     }
 
-    val resolution = retriedResolution(ConcurrentRetryCount)
+    val resolution = retriedResolution()
     (deps.iterator.to(Seq), resolution)
   }
 
