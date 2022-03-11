@@ -1,0 +1,24 @@
+= External References
+
+Mill comes bundled with a set of external Open Source libraries and projects.
+
+
+== OS-lib
+
+OS-Lib is a simple, flexible, high-performance Scala interface to common OS filesystem and subprocess APIs.
+
+Mill uses OS-Lib for all of its file system operations.
+
+Project page:: https://github.com/com-lihaoyi/os-lib
+Documentation:: https://github.com/com-lihaoyi/os-lib/blob/master/readme.md
+ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/os-lib_2.13/latest/index.html
+
+== Ammonite
+
+Project page:: https://github.com/com-lihaoyi/Ammonite
+Documentation:: https://ammonite.io/
+
+== Coursier
+
+Project page:: https://github.com/coursier/coursier
+Documentation:: https://get-coursier.io/docs/overview
