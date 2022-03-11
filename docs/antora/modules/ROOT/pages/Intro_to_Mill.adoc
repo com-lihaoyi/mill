@@ -913,11 +913,13 @@ object foo extends ScalaModule with ScalaMetalsSupport {
 }
 ----
 
+--
+
 === Using Bloop (standalone BSP server)
 
 If you wish to use Bloop as your build server (it is the default metals BSP implementation) with metals / vscode, consider using the mill bloop plugin. 
 
-https://com-lihaoyi.github.io/mill/mill/Contrib_Plugins.html#_bloop[Bloop Plugin]
+xref:Contrib_Plugins.adoc#_bloop[Bloop Plugin]
 
 
 This is preferred to the instructions (currently) on the bloop website.
