@@ -1,0 +1,36 @@
+= BuildInfo
+
+Generate scala code from your buildfile.
+This plugin generates a single object containing information from your build.
+
+To declare a module that uses BuildInfo you must extend the `mill.contrib.buildinfo.BuildInfo` trait when defining your module.
+
+Quickstart:
+
+.`build.sc`
+[source,scala]
+----
+import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
+import mill.contrib.buildinfo.BuildInfo
+
+object project extends BuildInfo {
+  val name = "poject-name"
+  def  buildInfoMembers: T[Map[String, String]] = T {
+    Map(
+      "name" -> name),
+      "scalaVersion" -> scalaVersion()
+    )
+  }
+}
+----
+
+== Configuration options
+
+* `def buildInfoMembers: T[Map[String, String]]`
+The map containing all member names and values for the generated info object.
+
+* `def buildInfoObjectName: String`, default: `BuildInfo`
+The name of the object which contains all the members from `buildInfoMembers`.
+
+* `def buildInfoPackageName: Option[String]`, default: `None`
+The package name of the object.

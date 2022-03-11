@@ -181,7 +181,7 @@ import $ivy.`<group>:::<plugin>::<version>` // <2>
 ----
 import $ivy.`<group>::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
 ----
-<1> This is equivalent to
+<2> This is equivalent to
 +
 [source,scala]
 ----
