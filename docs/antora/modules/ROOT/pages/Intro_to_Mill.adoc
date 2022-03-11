@@ -912,18 +912,15 @@ object foo extends ScalaModule with ScalaMetalsSupport {
   def scalaVersion = "{example-scala-version}"
 }
 ----
-=== Using Bloop (standalone BSP server)
+== Using Bloop (standalone BSP server)
 
-If you wish to use Bloop as your build server (it is the default metals BSP implementation) with metals / vscode, you may also consider following the instructions here: 
-https://scalacenter.github.io/bloop/docs/build-tools/mill[Bloop and Mill]. The summary of which is add this to your build.sc
-----
-import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-----
-and run
-----
-./mill --no-server mill.contrib.Bloop/install
-----
-in the terminal. Restarting the build server should then import the build.
+If you wish to use Bloop as your build server (it is the default metals BSP implementation) with metals / vscode, consider using the mill bloop plugin. 
+
+https://com-lihaoyi.github.io/mill/mill/Contrib_Plugins.html#_bloop[Bloop Plugin]
+
+
+This is preferred to the instructions (currently) on the bloop website.
+
 
 == IntelliJ Support
 
