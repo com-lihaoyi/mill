@@ -1,0 +1,7 @@
+= References
+
+_tbd_
+
+// The idea is to provide a list of useful Mill API and
+// a reference documentation of it's Module
+// including a link to scaladoc, once published
