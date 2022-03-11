@@ -912,7 +912,7 @@ object foo extends ScalaModule with ScalaMetalsSupport {
   def scalaVersion = "{example-scala-version}"
 }
 ----
-== Using Bloop (standalone BSP server)
+=== Using Bloop (standalone BSP server)
 
 If you wish to use Bloop as your build server (it is the default metals BSP implementation) with metals / vscode, consider using the mill bloop plugin. 
 
