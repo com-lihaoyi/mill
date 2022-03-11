@@ -9,7 +9,6 @@
 * xref:Mill_Internals.adoc[]
 * xref:Contrib_Plugins.adoc[]
 * xref:Thirdparty_Plugins.adoc[]
-* xref:References.adoc[_(References)_]
 * xref:External_References.adoc[]
 ** xref:External_References.adoc#_ammonite[Ammonite]
 ** xref:External_References.adoc#_coursier[Coursier]
