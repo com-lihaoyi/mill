@@ -27,4 +27,7 @@
 
 * xref:Thirdparty_Plugins.adoc[]
 
-
+* xref:External_References.adoc[]
+** xref:External_References.adoc#_ammonite[Ammonite]
+** xref:External_References.adoc#_coursier[Coursier]
+** xref:External_References.adoc#_os_lib[OS-Lib]
