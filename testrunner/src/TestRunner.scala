@@ -19,17 +19,16 @@ object TestRunner {
 
   type ResourceCleaner = () => Unit
 
-  trait CloseableIterator[T] extends Iterator[T] with AutoCloseable
-  object CloseableIterator {
-    def apply[T](it: Iterator[T], onClose: () => Unit = () => {}): CloseableIterator[T] =
-      new CloseableIterator[T] {
+  private object CloseableIterator {
+    def apply[T](it: Iterator[T], onClose: () => Unit = () => {}): Iterator[T] with AutoCloseable =
+      new Iterator[T] with AutoCloseable {
         override def hasNext: Boolean = it.hasNext
         override def next(): T = it.next()
         override def close(): Unit = onClose()
       }
   }
 
-  def listClassFiles(base: os.Path): CloseableIterator[String] = {
+  def listClassFiles(base: os.Path): Iterator[String] with AutoCloseable = {
     if (os.isDir(base)) {
       val it = os.walk(base).iterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
       CloseableIterator(it)
