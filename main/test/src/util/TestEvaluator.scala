@@ -1,16 +1,15 @@
 package mill.util
 
 import java.io.{InputStream, PrintStream}
-
 import mill.define.{Input, Target, Task}
 import mill.api.Result.OuterStack
-import mill.eval.{Evaluator, Result}
+import mill.eval.Evaluator
 import mill.api.Strict.Agg
 import utest.assert
 import utest.framework.TestPath
-import language.experimental.macros
 
-import mill.api.DummyInputStream
+import language.experimental.macros
+import mill.api.{DummyInputStream, Result}
 object TestEvaluator {
   val externalOutPath = os.pwd / "target" / "external"
 

@@ -296,6 +296,24 @@ mutable state, and it is up to the implementation to ensure that this mutable
 state is only used for caching/performance and does not affect the
 externally-visible behavior of the worker.
 
+=== `Autoclosable` Workers
+
+As <<Workers>> may also hold limited resources, it may be necessary to free up these resources once a worker is no longer needed.
+This is especially the case, when your worker tasks depends on other tasks and these tasks change, as Mill will then also create a new worker instance.
+
+To implement resource cleanup, your worker can implement `java.lang.AutoClosable`.
+Once the worker is no longer needed, Mill will call the `close()` method on it before any newer version of this worker is created.
+
+[source,scala]
+----
+def myWorker = T.worker {
+  new MyWorker with AutoCloseable {
+    // ...
+    override def close() = { /* cleanup and free resources */ }
+  }
+}
+----
+
 == Task Cheat Sheet
 
 The following table might help you make sense of the small collection of
