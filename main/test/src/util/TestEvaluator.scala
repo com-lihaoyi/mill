@@ -29,9 +29,10 @@ class TestEvaluator(
     threads: Option[Int] = Some(1),
     outStream: PrintStream = System.out,
     inStream: InputStream = DummyInputStream,
-    debugEnabled: Boolean = false
+    debugEnabled: Boolean = false,
+    extraPathEnd: Seq[String] = Seq.empty
 )(implicit fullName: sourcecode.FullName, tp: TestPath) {
-  val outPath = TestUtil.getOutPath()
+  val outPath = TestUtil.getOutPath() / extraPathEnd
 
 //  val logger = DummyLogger
   val logger = new PrintLogger(
