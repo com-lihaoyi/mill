@@ -180,7 +180,6 @@ object MillMain {
                    |  threadCount = ${threadCount}
                    |)
                    |repl.pprinter() = replApplyHandler.pprinter
-                   |import replApplyHandler.generatedEval._
                    |""".stripMargin
 
             val importsPredefCode: String = config.imports.map {
