@@ -519,11 +519,11 @@ class Evaluator private[Evaluator] (
       metaPath: os.Path,
       inputsHash: Int,
       labelledNamedTask: Labelled[_]
-  ) = {
+  ): Unit = {
     labelledNamedTask.task.asWorker match {
       case Some(w) =>
         workerCache.synchronized {
-          workerCache.put(w.ctx.segments, (inputsHash, v))
+          workerCache.update(w.ctx.segments, (inputsHash, v))
         }
       case None =>
         val terminalResult = labelledNamedTask
