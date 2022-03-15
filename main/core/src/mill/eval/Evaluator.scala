@@ -430,17 +430,15 @@ class Evaluator private[Evaluator] (
         val previousWorker = labelledNamedTask.task.asWorker.flatMap { w =>
           workerCache.synchronized { workerCache.get(w.ctx.segments) }
         }
-        val workerCached: Option[Any] = previousWorker.collect { case (`inputsHash`, v) => v }
-
-        // Cleanup outdated worker
-        previousWorker
-          .collect {
-            case (hash, v) if v.isInstanceOf[AutoCloseable] && inputsHash != hash => v
-          }
-          .foreach { closableWorkerValue =>
+        val upToDateWorker: Option[Any] = previousWorker.flatMap {
+          case (`inputsHash`, upToDate) =>
+            // worker cached and up-to-date
+            Some(upToDate)
+          case (_, obsolete: AutoCloseable) =>
+            // worker cached but obsolete, needs to be closed
             try {
               logger.debug(s"Closing previous worker: ${labelledNamedTask.segments.render}")
-              closableWorkerValue.asInstanceOf[AutoCloseable].close()
+              obsolete.close()
             } catch {
               case NonFatal(e) =>
                 logger.error(
@@ -449,13 +447,15 @@ class Evaluator private[Evaluator] (
             }
             // make sure, we can no longer re-use a closed worker
             labelledNamedTask.task.asWorker.foreach { w =>
-              workerCache.synchronized {
-                workerCache.remove(w.ctx.segments)
-              }
+              workerCache.synchronized { workerCache.remove(w.ctx.segments) }
             }
-          }
+            None
+          case _ =>
+            // worker not cached or obsolete
+            None
+        }
 
-        workerCached.map((_, inputsHash)) orElse cached match {
+        upToDateWorker.map((_, inputsHash)) orElse cached match {
           case Some((v, hashCode)) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
             newResults(labelledNamedTask.task) = mill.api.Result.Success((v, hashCode))
