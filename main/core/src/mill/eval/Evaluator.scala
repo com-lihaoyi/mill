@@ -556,9 +556,6 @@ class Evaluator private[Evaluator] (
       logger: Logger
   ): (mutable.LinkedHashMap[Task[_], mill.api.Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
-    val namedTasks = group.collect {
-      case t: NamedTask[_] => t
-    }
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
 
