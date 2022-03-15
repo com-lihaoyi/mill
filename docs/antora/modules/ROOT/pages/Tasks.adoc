@@ -301,11 +301,14 @@ externally-visible behavior of the worker.
 As <<Workers>> may also hold limited resources, it may be necessary to free up these resources once a worker is no longer needed.
 This is especially the case, when your worker tasks depends on other tasks and these tasks change, as Mill will then also create a new worker instance.
 
-To implement resource cleanup, your worker can implement `java.lang.AutoClosable`.
+To implement resource cleanup, your worker can implement `java.lang.AutoCloseable`.
 Once the worker is no longer needed, Mill will call the `close()` method on it before any newer version of this worker is created.
 
 [source,scala]
 ----
+import mill._
+import java.lang.AutoCloseable
+
 def myWorker = T.worker {
   new MyWorker with AutoCloseable {
     // ...
