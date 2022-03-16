@@ -36,7 +36,7 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
 /**
  * Evaluate tasks.
  */
-class Evaluator private (
+class Evaluator private[Evaluator] (
     _home: os.Path,
     _outPath: os.Path,
     _externalOutPath: os.Path,
@@ -170,7 +170,6 @@ class Evaluator private (
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
     val (sortedGroups, transitive) = Evaluator.plan(goals)
-
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
     var someTaskFailed: Boolean = false
@@ -190,9 +189,10 @@ class Evaluator private (
         )
 
         val startTime = System.currentTimeMillis()
-        // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
 
+        // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
         val counterMsg = (i + 1) + "/" + sortedGroups.keyCount
+
         val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
           terminal = terminal,
           group = group,
@@ -386,7 +386,7 @@ class Evaluator private (
         externalClassLoaderSigHash + scriptsHash
       } else {
         // We fallback to the old mechanism when the importTree was not populated
-        classLoaderSignHash
+        classLoaderSig.hashCode()
       }
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash
@@ -405,6 +405,7 @@ class Evaluator private (
           logger
         )
         Evaluated(newResults, newEvaluated.toSeq, false)
+
       case lntRight @ Right(labelledNamedTask) =>
         val out =
           if (!labelledNamedTask.task.ctx.external) outPath
@@ -426,11 +427,35 @@ class Evaluator private (
             catch { case e: Throwable => None }
         } yield (parsed, cached.valueHash)
 
-        val workerCached: Option[Any] = labelledNamedTask.task.asWorker
-          .flatMap { w => synchronized { workerCache.get(w.ctx.segments) } }
-          .collect { case (`inputsHash`, v) => v }
+        val previousWorker = labelledNamedTask.task.asWorker.flatMap { w =>
+          workerCache.synchronized { workerCache.get(w.ctx.segments) }
+        }
+        val upToDateWorker: Option[Any] = previousWorker.flatMap {
+          case (`inputsHash`, upToDate) =>
+            // worker cached and up-to-date
+            Some(upToDate)
+          case (_, obsolete: AutoCloseable) =>
+            // worker cached but obsolete, needs to be closed
+            try {
+              logger.debug(s"Closing previous worker: ${labelledNamedTask.segments.render}")
+              obsolete.close()
+            } catch {
+              case NonFatal(e) =>
+                logger.error(
+                  s"${labelledNamedTask.segments.render}: Errors while closing obsolete worker: ${e.getMessage()}"
+                )
+            }
+            // make sure, we can no longer re-use a closed worker
+            labelledNamedTask.task.asWorker.foreach { w =>
+              workerCache.synchronized { workerCache.remove(w.ctx.segments) }
+            }
+            None
+          case _ =>
+            // worker not cached or obsolete
+            None
+        }
 
-        workerCached.map((_, inputsHash)) orElse cached match {
+        upToDateWorker.map((_, inputsHash)) orElse cached match {
           case Some((v, hashCode)) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
             newResults(labelledNamedTask.task) = mill.api.Result.Success((v, hashCode))
@@ -494,9 +519,12 @@ class Evaluator private (
       metaPath: os.Path,
       inputsHash: Int,
       labelledNamedTask: Labelled[_]
-  ) = {
+  ): Unit = {
     labelledNamedTask.task.asWorker match {
-      case Some(w) => synchronized { workerCache(w.ctx.segments) = (inputsHash, v) }
+      case Some(w) =>
+        workerCache.synchronized {
+          workerCache.update(w.ctx.segments, (inputsHash, v))
+        }
       case None =>
         val terminalResult = labelledNamedTask
           .writer
@@ -864,7 +892,7 @@ object Evaluator {
     val topoSorted = Graph.topoSorted(transitive)
     val seen = collection.mutable.Set.empty[Segments]
     val overridden = collection.mutable.Set.empty[Task[_]]
-    topoSorted.values.reverse.foreach {
+    topoSorted.values.reverse.iterator.foreach {
       case x: NamedTask[_] =>
         if (!seen.contains(x.ctx.segments)) seen.add(x.ctx.segments)
         else overridden.add(x)
@@ -872,6 +900,7 @@ object Evaluator {
     }
 
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
+      // important: all named tasks and those explicitly requested
       case t: NamedTask[Any] =>
         val segments = t.ctx.segments
         Right(
@@ -1036,7 +1065,7 @@ object Evaluator {
     Seq.empty
   )
 
-  @deprecated(message = "Pattern matching not supported with EvaluatorState", since = "mill 0.10.1")
+  @deprecated(message = "Pattern matching not supported with Evaluator", since = "mill 0.10.1")
   def unapply(evaluator: Evaluator): Option[(
       os.Path,
       os.Path,
