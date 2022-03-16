@@ -5,7 +5,7 @@ import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
 import mill.scalalib.api.CompilationResult
 import mill.{Agg, T}
 
-private[playlib] class RouteCompilerWorker {
+private[playlib] class RouteCompilerWorker extends AutoCloseable {
 
   private var routeCompilerInstanceCache =
     Option.empty[(Long, mill.playlib.api.RouteCompilerWorkerApi)]
@@ -62,5 +62,9 @@ private[playlib] class RouteCompilerWorker {
         Result.Success(CompilationResult(T.dest / "zinc", PathRef(T.dest)))
       case err => Result.Failure(err)
     }
+  }
+
+  override def close(): Unit = {
+    routeCompilerInstanceCache = None
   }
 }

@@ -9,7 +9,7 @@ import mill.api.PathRef
 import mill.T
 import mill.define.{Discover, ExternalModule, Worker}
 
-class ScalaPBWorker {
+class ScalaPBWorker extends AutoCloseable {
 
   private var scalaPBInstanceCache = Option.empty[(Long, ScalaPBWorkerApi)]
 
@@ -99,6 +99,10 @@ class ScalaPBWorker {
     scalaPBSources.foreach(compileScalaPBDir)
 
     mill.api.Result.Success(PathRef(dest))
+  }
+
+  override def close(): Unit = {
+    scalaPBInstanceCache = None
   }
 }
 
