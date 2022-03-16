@@ -1,10 +1,10 @@
 package mill.testrunner
 
 import mill.api.Loose.Agg
-import mill.api.{DummyTestReporter, Loose, TestReporter}
+import mill.api.{Ctx, DummyTestReporter, Loose, TestReporter}
 import mill.util.Jvm
 import mill.scalalib.api._
-import mill.util.{Ctx, PrintLogger}
+import mill.util.PrintLogger
 import mill.api.JsonFormatters._
 import sbt.testing._
 

@@ -77,7 +77,7 @@ object Module {
     // For some reason, this fails to pick up concrete `object`s nested directly within
     // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
     // script/REPL runner always wraps user code in a wrapper object/trait
-    def reflectNestedObjects[T: ClassTag] = {
+    def reflectNestedObjects[T: ClassTag]: Array[T] = {
       (reflectAll[T] ++
         outer
           .getClass

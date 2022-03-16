@@ -38,16 +38,16 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with GraphNo
   def asTarget: Option[Target[T]] = None
   def asCommand: Option[Command[T]] = None
   def asWorker: Option[Worker[T]] = None
-  def self = this
+  def self: Task[T] = this
 }
 
 trait NamedTask[+T] extends Task[T] {
   def ctx: mill.define.Ctx
-  def label = ctx.segment match { case Segment.Label(v) => v }
+  def label: String = ctx.segment match { case Segment.Label(v) => v }
   override def toString = ctx.segments.render
 }
 trait Target[+T] extends NamedTask[T] {
-  override def asTarget = Some(this)
+  override def asTarget: Option[Target[T]] = Some(this)
   def readWrite: RW[_]
 }
 

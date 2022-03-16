@@ -1,8 +1,8 @@
 package mill.scalalib
 
-import mill.{Agg, BuildInfo, T}
+import mill.{Agg, T}
 import mill.define.{Command, Task, TaskModule}
-import mill.eval.Result
+import mill.api.Result
 import mill.modules.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.TestRunner

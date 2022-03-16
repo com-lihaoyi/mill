@@ -19,7 +19,7 @@ object Graph {
   ]): MultiBiMap[T, Task[_]] = {
 
     val output = new MultiBiMap.Mutable[T, Task[_]]()
-    for ((target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _)))) {
+    for ((target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _))).iterator) {
 
       val transitiveTargets = new Agg.Mutable[Task[_]]
       def rec(t: Task[_]): Unit = {
@@ -51,7 +51,7 @@ object Graph {
   def transitiveNodes[T <: GraphNode[T]](sourceNodes: Agg[T]): Agg[T] = {
     val transitiveNodes = new Agg.Mutable[T]
     def rec(t: T): Unit = {
-      if (transitiveNodes.contains(t)) () // do nothing
+      if (transitiveNodes.contains(t)) {} // do nothing
       else {
         transitiveNodes.append(t)
         t.inputs.foreach(rec)

@@ -19,6 +19,6 @@ private[mill] object AmmoniteUtils {
     loop(withoutCompanions, 0).reverse
   }
   def normalizeAmmoniteImportPath(cls: String): String = {
-    normalizeAmmoniteImportPath(cls.split('.')).mkString(".")
+    normalizeAmmoniteImportPath(cls.split('.').toIndexedSeq).mkString(".")
   }
 }

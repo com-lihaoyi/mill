@@ -49,16 +49,16 @@ object Cross {
 class Cross[T: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.define.Ctx)
     extends mill.define.Module()(ctx) {
 
-  override lazy val millModuleDirectChildren =
-    this.millInternal.reflectNestedObjects[Module] ++
-      items.collect { case (k, v: mill.define.Module) => v }
+  override lazy val millModuleDirectChildren: Seq[Module] =
+    this.millInternal.reflectNestedObjects[Module].toIndexedSeq ++
+      items.collect { case (_, v: mill.define.Module) => v }
 
-  private val products = cases.toList.map {
+  private val products: List[Product] = cases.toList.map {
     case p: Product => p
     case v => Tuple1(v)
   }
 
-  val items = for (c <- products) yield {
+  val items: List[(Seq[Any], T)] = for (c <- products) yield {
     val crossValues = c.productIterator.toList
     val relPath = ctx.segment.pathSegments
     val sub = ci.make(
@@ -72,17 +72,17 @@ class Cross[T: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.d
     )
     (crossValues, sub)
   }
-  val itemMap = items.toMap
+  val itemMap: Map[Seq[Any], T] = items.toMap
 
   /**
    * Fetch the cross module corresponding to the given cross values
    */
-  def get(args: Seq[Any]) = itemMap(args.toList)
+  def get(args: Seq[Any]): T = itemMap(args.toList)
 
   /**
    * Fetch the cross module corresponding to the given cross values
    */
-  def apply(arg0: Any, args: Any*) = itemMap(arg0 :: args.toList)
+  def apply(arg0: Any, args: Any*): T = itemMap(arg0 :: args.toList)
 
   /**
    * Fetch the relevant cross module given the implicit resolver you have in

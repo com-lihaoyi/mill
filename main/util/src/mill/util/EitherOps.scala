@@ -10,7 +10,7 @@ object EitherOps {
       implicit cbf: BuildFrom[M[Either[A, B]], B, M[B]]
   ): Either[A, M[B]] = {
     in.iterator
-      .foldLeft[Either[A, mutable.Builder[B, M[B]]]](Right(cbf(in))) {
+      .foldLeft[Either[A, mutable.Builder[B, M[B]]]](Right(cbf.newBuilder(in))) {
         case (acc, el) =>
           for (a <- acc; e <- el) yield a += e
       }

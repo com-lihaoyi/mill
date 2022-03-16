@@ -17,7 +17,7 @@ object Result {
   implicit def create[T](t: => T): Result[T] = {
     try Success(t)
     catch {
-      case e: Throwable => Exception(e, new OuterStack(new java.lang.Exception().getStackTrace))
+      case e: Throwable => Exception(e, new OuterStack(new java.lang.Exception().getStackTrace().toIndexedSeq))
     }
   }
 

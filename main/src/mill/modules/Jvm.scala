@@ -29,6 +29,7 @@ import scala.util.Properties.isWin
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 import mill.BuildInfo
+import os.SubProcess
 import upickle.default.{ReadWriter => RW}
 
 import scala.annotation.tailrec
@@ -198,7 +199,7 @@ object Jvm {
       commandArgs: Seq[String],
       envArgs: Map[String, String],
       workingDir: os.Path
-  ) = {
+  ): SubProcess = {
     // If System.in is fake, then we pump output manually rather than relying
     // on `os.Inherit`. That is because `os.Inherit` does not follow changes
     // to System.in/System.out/System.err, so the subprocess's streams get sent
@@ -314,7 +315,7 @@ object Jvm {
   def createJar(
       inputPaths: Agg[os.Path],
       manifest: JarManifest = JarManifest.Default,
-      fileFilter: (os.Path, os.RelPath) => Boolean = (p: os.Path, r: os.RelPath) => true
+      fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true
   )(implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
     createJar(
@@ -489,14 +490,14 @@ object Jvm {
       cmdClassPath: Agg[String],
       jvmArgs: Seq[String],
       shebang: Boolean = false
-  ) = {
+  ): String = {
     universalScript(
       shellCommands =
-        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(
+        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.iterator.mkString(
             ":"
           )}" '$mainClass' "$$@"""",
       cmdCommands =
-        s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.mkString(
+        s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.iterator.mkString(
             ";"
           )}" $mainClass %*""",
       shebang = shebang
@@ -504,12 +505,10 @@ object Jvm {
   }
   def createLauncher(mainClass: String, classPath: Agg[os.Path], jvmArgs: Seq[String])(implicit
       ctx: Ctx.Dest
-  ) = {
+  ): PathRef = {
     val isWin = scala.util.Properties.isWin
-    val isBatch = isWin &&
-      !(org.jline.utils.OSUtils.IS_CYGWIN
-        || org.jline.utils.OSUtils.IS_MINGW
-        || "MSYS" == System.getProperty("MSYSTEM"))
+    val isBatch =
+      isWin && !(org.jline.utils.OSUtils.IS_CYGWIN || org.jline.utils.OSUtils.IS_MSYSTEM)
     val outputPath = ctx.dest / (if (isBatch) "run.bat" else "run")
     val classPathStrs = classPath.map(_.toString)
 
@@ -575,7 +574,10 @@ object Jvm {
         identity[coursier.cache.FileCache[Task]](_)
       ).apply(coursierCache0)
 
-      @tailrec def load(artifacts: Seq[coursier.util.Artifact], retry: Int = ConcurrentRetryCount): (Seq[ArtifactError], Seq[File]) = {
+      @tailrec def load(
+          artifacts: Seq[coursier.util.Artifact],
+          retry: Int = ConcurrentRetryCount
+      ): (Seq[ArtifactError], Seq[File]) = {
         import scala.concurrent.ExecutionContext.Implicits.global
         val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
@@ -588,14 +590,13 @@ object Jvm {
         }
         val successes = loadedArtifacts.collect { case (_, Right(x)) => x }
 
-        if(retry > 0 && errors.exists(_.describe.contains("concurrent download"))) {
+        if (retry > 0 && errors.exists(_.describe.contains("concurrent download"))) {
           ctx.foreach(_.log.debug(
             s"Detected a concurrent download issue in coursier. Attempting a retry (${retry} left)"
           ))
           Thread.sleep(ConcurrentRetryWait)
           load(artifacts, retry - 1)
-        }
-        else(errors, successes)
+        } else (errors, successes)
       }
 
       val sourceOrJar =
@@ -701,7 +702,7 @@ object Jvm {
    * In practice, this ticker output gets prefixed with the current target for which
    * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
    */
-  class TickerResolutionLogger(ctx: mill.util.Ctx.Log) extends coursier.cache.CacheLogger {
+  class TickerResolutionLogger(ctx: Ctx.Log) extends coursier.cache.CacheLogger {
     case class DownloadState(var current: Long, var total: Long)
     var downloads = new mutable.TreeMap[String, DownloadState]()
     var totalDownloadCount = 0

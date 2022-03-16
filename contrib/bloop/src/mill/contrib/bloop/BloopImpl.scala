@@ -143,7 +143,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         m.millModuleSegments.render -> paths.map(_.path)
       }
     }()
-    mill.eval.Result.Success(sources.toMap)
+    mill.api.Result.Success(sources.toMap)
   }
 
   protected def name(m: JavaModule) = m.millModuleSegments.render

@@ -2,8 +2,9 @@ package mill.scalanativelib
 
 import java.util.jar.JarFile
 import mill._
+import mill.api.Result
 import mill.define.Discover
-import mill.eval.{EvaluatorPaths, Result}
+import mill.eval.EvaluatorPaths
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
 import mill.scalalib.api.Util.isScala3
 import mill.testrunner.TestRunner

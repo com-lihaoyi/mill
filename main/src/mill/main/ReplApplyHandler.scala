@@ -1,12 +1,13 @@
 package mill.main
 
-import scala.collection.mutable
+import mill.api.Result
 
+import scala.collection.mutable
 import mill.api.Strict.Agg
 import mill.define.Applicative.ApplyHandler
 import mill.define.Segment.Label
 import mill.define._
-import mill.eval.{Evaluator, Result}
+import mill.eval.Evaluator
 import pprint.Tree
 
 object ReplApplyHandler {
@@ -158,7 +159,7 @@ class ReplApplyHandler(
       case Nil =>
         val msg = new mutable.StringBuilder()
         msg.append(res.failing.keyCount + " targets failed\n")
-        for ((k, vs) <- res.failing.items) {
+        for ((k, vs) <- res.failing.items()) {
           msg.append(k match {
             case Left(t) => "Anonymous Task\n"
             case Right(k) => k.segments.render + "\n"

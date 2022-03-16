@@ -1,6 +1,8 @@
 package mill.api
 
+import scala.annotation.nowarn
 import scala.collection.mutable
+import scala.language.implicitConversions
 
 object Strict extends AggWrapper(true)
 object Loose extends AggWrapper(false)
@@ -38,7 +40,7 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
           Agg.from(_)
         )
 
-    def apply[V](items: V*) = from(items)
+    def apply[V](items: V*): Agg[V] = from(items)
 
     implicit def from[V](items: IterableOnce[V]): Agg[V] = {
       val set = new Agg.Mutable[V]()
@@ -49,16 +51,16 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
     class Mutable[V]() extends Agg[V] {
 
       private[this] val set0 = mutable.LinkedHashSet.empty[V]
-      def contains(v: V) = set0.contains(v)
-      def append(v: V) =
+      def contains(v: V): Boolean = set0.contains(v)
+      def append(v: V): AnyVal =
         if (!contains(v)) {
           set0.add(v)
 
         } else if (strictUniqueness) {
           throw new Exception("Duplicated item inserted into OrderedSet: " + v)
         }
-      def appendAll(vs: Seq[V]) = vs.foreach(append)
-      def items = set0.iterator
+      def appendAll(vs: Seq[V]): Unit = vs.foreach(append)
+      def items: Iterator[V] = set0.iterator
       def indexed: IndexedSeq[V] = items.toIndexedSeq
       def set: collection.Set[V] = set0
 
@@ -69,7 +71,7 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       }
       def flatMap[T](f: V => IterableOnce[T]): Agg[T] = {
         val output = new Agg.Mutable[T]
-        for (i <- items) for (i0 <- f(i)) output.append(i0)
+        for (i <- items) for (i0 <- f(i).iterator) output.append(i0)
         output
       }
       def filter(f: V => Boolean): Agg[V] = {
@@ -79,7 +81,7 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       }
       def withFilter(f: V => Boolean): Agg[V] = filter(f)
 
-      def collect[T](f: PartialFunction[V, T]) =
+      def collect[T](f: PartialFunction[V, T]): Agg[T] =
         this.filter(f.isDefinedAt).map(x => f(x))
 
       def zipWithIndex: Agg[(V, Int)] = {
@@ -92,8 +94,8 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
 
       def reverse: Agg[V] = Agg.from(indexed.reverseIterator)
 
-      def zip[T](other: Agg[T]) = Agg.from(items.zip(other.items))
-      def ++[T >: V](other: IterableOnce[T]) = Agg.from(items ++ other)
+      def zip[T](other: Agg[T]): Agg[(V, T)] = Agg.from(items.zip(other.items))
+      def ++[T >: V](other: IterableOnce[T]): Agg[T] = Agg.from(items ++ other)
       def length: Int = set0.size
 
       // Members declared in scala.collection.GenTraversableOnce
@@ -101,7 +103,7 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       @deprecated("Use .iterator instead", "mill after 0.9.6")
       def toIterator: Iterator[V] = iterator
       @deprecated("Use .to(LazyList) instead", "mill after 0.9.6")
-      def toStream: Stream[V] = items.toStream
+      def toStream: Stream[V] = items.toStream: @nowarn
 
       // Members declared in scala.collection.TraversableOnce
       def copyToArray[B >: V](xs: Array[B], start: Int, len: Int): Unit =
@@ -118,12 +120,12 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       def toTraversable: Iterable[V] = Iterable.from(items)
       def iterator: Iterator[V] = items
 
-      override def hashCode() = items.map(_.hashCode()).sum
-      override def equals(other: Any) = other match {
+      override def hashCode(): Int = items.map(_.hashCode()).sum
+      override def equals(other: Any): Boolean = other match {
         case s: Agg[_] => items.sameElements(s.items)
         case _ => super.equals(other)
       }
-      override def toString = items.mkString("Agg(", ", ", ")")
+      override def toString: String = items.mkString("Agg(", ", ", ")")
     }
   }
 }
