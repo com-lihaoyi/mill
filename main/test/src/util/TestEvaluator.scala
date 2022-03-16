@@ -1,16 +1,15 @@
 package mill.util
 
 import java.io.{InputStream, PrintStream}
-
 import mill.define.{Input, Target, Task}
 import mill.api.Result.OuterStack
-import mill.eval.{Evaluator, Result}
+import mill.eval.Evaluator
 import mill.api.Strict.Agg
 import utest.assert
 import utest.framework.TestPath
-import language.experimental.macros
 
-import mill.api.DummyInputStream
+import language.experimental.macros
+import mill.api.{DummyInputStream, Result}
 object TestEvaluator {
   val externalOutPath = os.pwd / "target" / "external"
 
@@ -30,9 +29,10 @@ class TestEvaluator(
     threads: Option[Int] = Some(1),
     outStream: PrintStream = System.out,
     inStream: InputStream = DummyInputStream,
-    debugEnabled: Boolean = false
+    debugEnabled: Boolean = false,
+    extraPathEnd: Seq[String] = Seq.empty
 )(implicit fullName: sourcecode.FullName, tp: TestPath) {
-  val outPath = TestUtil.getOutPath()
+  val outPath = TestUtil.getOutPath() / extraPathEnd
 
 //  val logger = DummyLogger
   val logger = new PrintLogger(
