@@ -1,15 +1,24 @@
 package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
-
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
 import mill.T
 import mill.define.{Discover, ExternalModule}
 import mill.api.{PathRef, Result}
+import mill.main.VisualizeModule.VizWorker
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
+
+  private[main] class VizWorker(
+      val in: LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
+      val out: LinkedBlockingQueue[Result[scala.Seq[PathRef]]],
+      closer: () => Unit = () => {}
+  ) extends AutoCloseable {
+    override def close(): Unit = closer()
+  }
+
   def repositories = Seq(
     LocalRepositories.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2"),
@@ -19,6 +28,7 @@ object VisualizeModule extends ExternalModule with VisualizeModule {
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
   lazy val millDiscover = Discover[this.type]
 }
+
 trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
@@ -55,6 +65,12 @@ trait VisualizeModule extends mill.define.TaskModule {
     )
     visualizeThread.setDaemon(true)
     visualizeThread.start()
-    (in, out)
+    new VizWorker(
+      in,
+      out,
+      () => {
+        visualizeThread.interrupt()
+      }
+    )
   }
 }

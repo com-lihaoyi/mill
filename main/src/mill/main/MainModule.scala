@@ -7,6 +7,7 @@ import mill.define.{Command, NamedTask, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{PrintLogger, Watched}
 import mill.define.SelectMode
+import mill.main.VisualizeModule.VizWorker
 import pprint.{Renderer, Truncated}
 import ujson.Value
 
@@ -380,11 +381,6 @@ trait MainModule extends mill.Module {
     System.exit(0)
   }
 
-  private type VizWorker = (
-      LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
-      LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
-  )
-
   private def visualize0(
       evaluator: Evaluator,
       targets: Seq[String],
@@ -396,9 +392,8 @@ trait MainModule extends mill.Module {
         rs: List[NamedTask[Any]],
         allRs: List[NamedTask[Any]]
     ): Result[Seq[PathRef]] = {
-      val (in, out) = vizWorker
-      in.put((rs, allRs, ctx.dest))
-      out.take()
+      vizWorker.in.put((rs, allRs, ctx.dest))
+      vizWorker.out.take()
     }
 
     RunScript.resolveTasks(
