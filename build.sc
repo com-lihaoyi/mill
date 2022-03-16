@@ -203,7 +203,11 @@ trait MillInternalModule
   override def ammoniteVersion = Deps.ammonite.dep.version
 }
 
-trait MillApiModule extends MillInternalModule with MillMimaConfig
+trait MillApiModule extends MillInternalModule with MillMimaConfig {
+  override def scalacOptions = T {
+    super.scalacOptions() ++ Seq("-deprecation")
+  }
+}
 
 trait MillModule extends MillApiModule { outer =>
   override def scalacPluginClasspath = T {
@@ -318,8 +322,8 @@ object main extends MillModule {
            |  val millBinPlatform = "$millBinPlatform"
            |  /** Dependency artifacts embedded in mill assembly by default. */
            |  val millEmbeddedDeps = ${artifacts.map(artifact =>
-          s""""${artifact.group}:${artifact.id}:${artifact.version}""""
-        )}
+            s""""${artifact.group}:${artifact.id}:${artifact.version}""""
+          )}
            |}
       """.stripMargin.trim
 
@@ -865,8 +869,8 @@ def launcherScript(
       def java(mainClass: String, passMillJvmOpts: Boolean) = {
         val millJvmOpts = if (passMillJvmOpts) "$mill_jvm_opts" else ""
         s"""exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(
-          ":"
-        )}" $mainClass "$$@""""
+            ":"
+          )}" $mainClass "$$@""""
       }
 
       s"""if [ -z "$$JAVA_HOME" ] ; then
@@ -920,8 +924,8 @@ def launcherScript(
       def java(mainClass: String, passMillJvmOpts: Boolean) = {
         val millJvmOpts = if (passMillJvmOpts) "!mill_jvm_opts!" else ""
         s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% $millJvmOpts -cp "${cmdClassPath.mkString(
-          ";"
-        )}" $mainClass %*"""
+            ";"
+          )}" $mainClass %*"""
       }
 
       s"""setlocal EnableDelayedExpansion
@@ -1113,7 +1117,7 @@ object docs extends Module {
          |  sources:
          |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
          |      branches: ${if (Settings.docBranches.isEmpty) "~"
-      else Settings.docBranches.map("'" + _ + "'").mkString("[", ",", "]")}
+        else Settings.docBranches.map("'" + _ + "'").mkString("[", ",", "]")}
          |      tags: ${Settings.docTags.map("'" + _ + "'").mkString("[", ",", "]")}
          |      start_path: docs/antora
          |    # the master documentation (always in author mode)
