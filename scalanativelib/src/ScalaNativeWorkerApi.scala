@@ -7,7 +7,7 @@ import mill.define.{Discover, Worker}
 import mill.{Agg, T}
 import mill.scalanativelib.api._
 
-class ScalaNativeWorker {
+class ScalaNativeWorker extends AutoCloseable {
   private var scalaInstanceCache = Option.empty[(Long, ScalaNativeWorkerApi)]
 
   def impl(toolsClasspath: Agg[os.Path])(implicit ctx: mill.api.Ctx.Home): ScalaNativeWorkerApi = {
@@ -36,6 +36,11 @@ class ScalaNativeWorker {
             throw e
         }
     }
+  }
+
+  override def close(): Unit = {
+    // drop instance
+    scalaInstanceCache = None
   }
 }
 
