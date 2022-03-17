@@ -17,8 +17,6 @@ import scala.util.{Try, Using}
 
 object TestRunner {
 
-  type ResourceCleaner = () => Unit
-
   private object CloseableIterator {
     def apply[T](it: Iterator[T], onClose: () => Unit = () => {}): Iterator[T] with AutoCloseable =
       new Iterator[T] with AutoCloseable {
