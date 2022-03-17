@@ -14,7 +14,7 @@ object ScalafmtWorkerModule extends ExternalModule {
   lazy val millDiscover = Discover[this.type]
 }
 
-private[scalafmt] class ScalafmtWorker {
+private[scalafmt] class ScalafmtWorker extends AutoCloseable {
   private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0
 
@@ -94,4 +94,8 @@ private[scalafmt] class ScalafmtWorker {
     }
   }
 
+  override def close(): Unit = {
+    reformatted.clear()
+    configSig = 0
+  }
 }
