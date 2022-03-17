@@ -1,11 +1,13 @@
 package mill.scalalib
 
-import mill.{Agg, BuildInfo, T}
+import mill.{Agg, T}
 import mill.define.{Command, Task, TaskModule}
-import mill.eval.Result
+import mill.api.Result
 import mill.modules.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.TestRunner
+
+import scala.annotation.nowarn
 
 trait TestModule extends JavaModule with TaskModule {
   override def defaultCommandName() = "test"
@@ -20,7 +22,7 @@ trait TestModule extends JavaModule with TaskModule {
    * The test framework to use.
    */
   def testFramework: T[String] = T {
-    val frameworks = testFrameworks()
+    val frameworks = testFrameworks(): @nowarn
     val msg =
       "Target testFrameworks is deprecated. Please use target testFramework or use one of the " +
         "predefined TestModules: TestNg, Junit, Scalatest, ..."
@@ -262,9 +264,9 @@ object TestModule {
         else s"\n  and ${badTests.length - reportCount} more ..."
 
       val msg = s"${badTests.size} tests failed: ${badTests
-        .take(reportCount)
-        .map(t => s"${t.fullyQualifiedName} ${t.selector}")
-        .mkString("\n  ", "\n  ", "")}$suffix"
+          .take(reportCount)
+          .map(t => s"${t.fullyQualifiedName} ${t.selector}")
+          .mkString("\n  ", "\n  ", "")}$suffix"
 
       Result.Failure(msg, Some((doneMsg, results)))
     }

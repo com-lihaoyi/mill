@@ -1,10 +1,9 @@
 package mill.testrunner
 
 import mill.api.Loose.Agg
-import mill.api.{DummyTestReporter, Loose, TestReporter}
+import mill.api.{Ctx, DummyTestReporter, Loose, TestReporter}
 import mill.util.Jvm
-import mill.scalalib.api._
-import mill.util.{Ctx, PrintLogger}
+import mill.util.PrintLogger
 import mill.api.JsonFormatters._
 import sbt.testing._
 
@@ -14,17 +13,32 @@ import java.lang.reflect.Modifier
 import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
 import scala.collection.mutable
-import scala.util.Try
+import scala.util.{Try, Using}
 
 object TestRunner {
-  def listClassFiles(base: os.Path): Iterator[String] = {
-    if (os.isDir(base))
-      os.walk(base).iterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
-    else {
+
+  private object CloseableIterator {
+    def apply[T](it: Iterator[T], onClose: () => Unit = () => {}): Iterator[T] with AutoCloseable =
+      new Iterator[T] with AutoCloseable {
+        override def hasNext: Boolean = it.hasNext
+        override def next(): T = it.next()
+        override def close(): Unit = onClose()
+      }
+  }
+
+  def listClassFiles(base: os.Path): Iterator[String] with AutoCloseable = {
+    if (os.isDir(base)) {
+      val it = os.walk(base).iterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
+      CloseableIterator(it)
+    } else {
       val zip = new ZipInputStream(new FileInputStream(base.toIO))
-      Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(
-        ".class"
-      ))
+      val it = Iterator.continually(zip.getNextEntry)
+        .takeWhile(_ != null)
+        .map(_.getName)
+        .filter(_.endsWith(
+          ".class"
+        ))
+      CloseableIterator(it, () => zip.close())
     }
   }
 
@@ -40,20 +54,22 @@ object TestRunner {
       // Don't blow up if there are no classfiles representing
       // the tests to run Instead just don't run anything
       if (!os.exists(base)) Nil
-      else listClassFiles(base).flatMap { path =>
-        val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
-        val publicConstructorCount =
-          cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
+      else Using.resource(listClassFiles(base)) { classfiles =>
+        classfiles.flatMap { path =>
+          val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
+          val publicConstructorCount =
+            cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
 
-        if (
-          Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
-        ) {
-          None
-        } else {
-          (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
-            case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
-            case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
-            case _ => None
+          if (
+            Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
+          ) {
+            None
+          } else {
+            (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
+              case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
+              case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
+              case _ => None
+            }
           }
         }
       }
@@ -71,7 +87,7 @@ object TestRunner {
     fingerprints.find {
       case f: SubclassFingerprint =>
         f.isModule == isModule &&
-          cl.loadClass(f.superclassName()).isAssignableFrom(cls)
+        cl.loadClass(f.superclassName()).isAssignableFrom(cls)
 
       case f: AnnotatedFingerprint =>
         val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
