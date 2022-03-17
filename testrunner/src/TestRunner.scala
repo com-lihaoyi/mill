@@ -54,23 +54,21 @@ object TestRunner {
       // Don't blow up if there are no classfiles representing
       // the tests to run Instead just don't run anything
       if (!os.exists(base)) Nil
-      else {
-        Using.resource(listClassFiles(base)) { classfiles =>
-          classfiles.flatMap { path =>
-            val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
-            val publicConstructorCount =
-              cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
+      else Using.resource(listClassFiles(base)) { classfiles =>
+        classfiles.flatMap { path =>
+          val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
+          val publicConstructorCount =
+            cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
 
-            if (
-              Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
-            ) {
-              None
-            } else {
-              (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
-                case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
-                case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
-                case _ => None
-              }
+          if (
+            Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
+          ) {
+            None
+          } else {
+            (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
+              case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
+              case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
+              case _ => None
             }
           }
         }
