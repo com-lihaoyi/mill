@@ -37,12 +37,9 @@ object Settings {
     "0.9.10",
     "0.9.11",
     "0.9.12",
-    "0.10.0-M2",
-    "0.10.0-M3",
-    "0.10.0-M4",
-    "0.10.0-M5",
     "0.10.0",
-    "0.10.1"
+    "0.10.1",
+    "0.10.2"
   )
   val mimaBaseVersions = Seq("0.10.0")
 }
@@ -1136,11 +1133,12 @@ object docs extends Module {
          |
          |""".stripMargin
     }
-    def githubPages = T {
+    def githubPages: Target[PathRef] = T {
       generatePages(authorMode = false)()
     }
     def localPages = T {
-      generatePages(authorMode = true)()
+      val pages = generatePages(authorMode = true)()
+      T.log.outputStream.println(s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}")
     }
     def generatePages(authorMode: Boolean) = T.task {
       // dependency to sources
