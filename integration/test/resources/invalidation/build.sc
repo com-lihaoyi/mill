@@ -3,7 +3,7 @@ import $file.b.{inputB => inputBRenamed}
 import $file.inputC
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $file.e.inputE
-import $file.`-#!|\\?+*<→:&>%=~`.inputSymbols
+import $file.`-#!+→&%=~`.inputSymbols
 
 def task = T {
   inputA.input()
