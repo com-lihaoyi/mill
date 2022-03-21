@@ -120,7 +120,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.4.3"
-  val scalametaTrees = ivy"org.scalameta::trees:4.5.0"
+  val scalametaTrees = ivy"org.scalameta::trees:4.5.1"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
@@ -315,8 +315,8 @@ object main extends MillModule {
            |  val millBinPlatform = "$millBinPlatform"
            |  /** Dependency artifacts embedded in mill assembly by default. */
            |  val millEmbeddedDeps = ${artifacts.map(artifact =>
-          s""""${artifact.group}:${artifact.id}:${artifact.version}""""
-        )}
+            s""""${artifact.group}:${artifact.id}:${artifact.version}""""
+          )}
            |}
       """.stripMargin.trim
 
@@ -862,8 +862,8 @@ def launcherScript(
       def java(mainClass: String, passMillJvmOpts: Boolean) = {
         val millJvmOpts = if (passMillJvmOpts) "$mill_jvm_opts" else ""
         s"""exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(
-          ":"
-        )}" $mainClass "$$@""""
+            ":"
+          )}" $mainClass "$$@""""
       }
 
       s"""if [ -z "$$JAVA_HOME" ] ; then
@@ -917,8 +917,8 @@ def launcherScript(
       def java(mainClass: String, passMillJvmOpts: Boolean) = {
         val millJvmOpts = if (passMillJvmOpts) "!mill_jvm_opts!" else ""
         s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% $millJvmOpts -cp "${cmdClassPath.mkString(
-          ";"
-        )}" $mainClass %*"""
+            ";"
+          )}" $mainClass %*"""
       }
 
       s"""setlocal EnableDelayedExpansion
@@ -1110,7 +1110,7 @@ object docs extends Module {
          |  sources:
          |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
          |      branches: ${if (Settings.docBranches.isEmpty) "~"
-      else Settings.docBranches.map("'" + _ + "'").mkString("[", ",", "]")}
+        else Settings.docBranches.map("'" + _ + "'").mkString("[", ",", "]")}
          |      tags: ${Settings.docTags.map("'" + _ + "'").mkString("[", ",", "]")}
          |      start_path: docs/antora
          |    # the master documentation (always in author mode)
@@ -1138,7 +1138,9 @@ object docs extends Module {
     }
     def localPages = T {
       val pages = generatePages(authorMode = true)()
-      T.log.outputStream.println(s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}")
+      T.log.outputStream.println(
+        s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+      )
     }
     def generatePages(authorMode: Boolean) = T.task {
       // dependency to sources
