@@ -38,7 +38,7 @@ object BspModuleTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    test("bspClasspath") {
+    test("bspCompileClasspath") {
       test("single module") {
         workspaceTest(MultiBase) { eval =>
           val Right((result, evalCount)) = eval.apply(
