@@ -313,7 +313,7 @@ trait JavaModule
   /** Same as [[compileClasspath]], but does not trigger compilation targets, if possible. */
   // Keep in sync with [[compileClasspath]]
   @internal
-  def bspCompileClasspath(pathsResolver: Task[EvaluatorPathsResolver]): Task[Seq[PathRef]] = {
+  def bspCompileClasspath(pathsResolver: Task[EvaluatorPathsResolver]): Task[Agg[PathRef]] = {
     def bspLocalClasspath(
         j: JavaModule,
         pathsResolver: Task[EvaluatorPathsResolver]
@@ -332,19 +332,21 @@ trait JavaModule
         case head :: tail                        => bspTransitiveModuleDeps(head.moduleDeps ++: head.compileModuleDeps ++: tail, seen + head, head :: acc)
     }
 
-    def bspTransitiveLocalClasspath(pathsResolver: Task[EvaluatorPathsResolver]): Task[Seq[PathRef]] = {
+    def bspTransitiveLocalClasspath(pathsResolver: Task[EvaluatorPathsResolver]): Task[Iterator[PathRef]] = {
       // Exclude `this` so as not to include `bspCompileClassesPath`
       val transitiveModuleDeps = bspTransitiveModuleDeps(List.concat(moduleDeps, compileModuleDeps), Set(this), Nil)
       val cps = T.traverse(transitiveModuleDeps)(bspLocalClasspath(_, pathsResolver))
-      T.task { cps().flatten[PathRef] }
+      T.task { cps().iterator.flatten[PathRef] }
     }
 
     val lcp = bspTransitiveLocalClasspath(pathsResolver)
     T.task {
-      lcp() ++
-        resources() ++
-        unmanagedClasspath() ++
-        resolvedIvyDeps()
+      Agg.from(
+        lcp() ++
+          resources() ++
+          unmanagedClasspath() ++
+          resolvedIvyDeps()
+      )
     }
   }
 
