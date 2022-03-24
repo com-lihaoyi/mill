@@ -46,7 +46,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
             new ScalacOptionsItem(
               id,
               optionsTask().asJava,
-              m.bspCompileClasspath(pathResolver)().map(sanitizeUri.apply).iterator.toSeq.asJava,
+              m.bspCompileClasspath(pathResolver)().iterator.map(sanitizeUri.apply).toSeq.asJava,
               sanitizeUri(m.bspCompileClassesPath(pathResolver)())
             )
           }
