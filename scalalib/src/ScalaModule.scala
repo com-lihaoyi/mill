@@ -191,7 +191,7 @@ trait ScalaModule extends JavaModule { outer =>
     )()
   }
 
-  // Keep in sync with [[bspCompileClassesInfo]]
+  // Keep in sync with [[bspCompileClassesPath]]
   override def compile: T[CompilationResult] = T.persistent {
     val sv = scalaVersion()
     if (sv == "2.12.4") T.log.error(
@@ -244,6 +244,7 @@ trait ScalaModule extends JavaModule { outer =>
     val compileCp = Seq(
       "-classpath",
       compileClasspath()
+        .iterator
         .filter(_.path.ext != "pom")
         .map(_.path)
         .mkString(java.io.File.pathSeparator)

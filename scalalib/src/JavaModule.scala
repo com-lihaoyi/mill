@@ -318,9 +318,9 @@ trait JavaModule
         j: JavaModule,
         pathsResolver: Task[EvaluatorPathsResolver]
     ): Task[Seq[PathRef]] = {
-      val cl = bspCompileClassesPath(pathsResolver)
+      val cl = j.bspCompileClassesPath(pathsResolver)
       T.task {
-        resources() ++ Seq(cl())
+        j.resources() ++ Seq(cl())
       }
     }
 
