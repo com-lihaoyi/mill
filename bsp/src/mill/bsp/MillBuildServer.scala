@@ -92,8 +92,10 @@ class MillBuildServer(
       def init(): Unit = synchronized {
         idToModule match {
           case None =>
-            val modules: Seq[Module] =
-              evaluator.rootModule.millInternal.modules ++ Seq(`mill-build`)
+            val modules: Seq[Module] = evaluator.rootModule.millInternal.modules.flatMap {
+              case jm: JavaModule => jm +: jm.moduleDeps
+              case other => Seq(other)
+            }.distinct ++ Seq(`mill-build`)
             val map = modules.collect {
               case m: MillBuildTarget =>
                 val uri = sanitizeUri(m.millSourcePath) +
