@@ -212,6 +212,9 @@ trait MillModule extends MillApiModule { outer =>
 
   def testArgs = T { Seq.empty[String] }
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
+  def testModuleDeps: Seq[JavaModule] =
+    if (this == main) Seq(main)
+    else Seq(this, main.test)
 
   val test = new Tests(implicitly)
 
@@ -228,9 +231,7 @@ trait MillModule extends MillApiModule { outer =>
         s"-DTEST_SCALAJS_0_6_VERSION=${Deps.testScalaJs06Version}"
       ) ++ testArgs()
     }
-    override def moduleDeps =
-      if (this == main.test) Seq(main)
-      else Seq(outer, main.test)
+    override def moduleDeps = outer.testModuleDeps
     override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
     override def testFramework = "mill.UTestFramework"
   }
@@ -247,8 +248,7 @@ object main extends MillModule {
   override def testArgs = Seq(
     "-DMILL_VERSION=" + publishVersion()
   )
-  override val test = new Tests(implicitly)
-  class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {}
+
   object api extends MillApiModule {
     override def ivyDeps = Agg(
       Deps.osLib,
@@ -568,15 +568,15 @@ object contrib extends MillModule {
         "-DMILL_TESTNG_LIB=" + runClasspath().map(_.path).mkString(",")
       ) ++ scalalib.worker.testArgs()
     }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
+      scalalib
+    )
     override def docJar: T[PathRef] = super[JavaModule].docJar
-    override val test = new Tests(implicitly)
-    class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {
-      override def compileModuleDeps = Seq(scalalib)
-    }
   }
 
   object twirllib extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object playlib extends MillModule {
@@ -594,6 +594,7 @@ object contrib extends MillModule {
         scalalib.backgroundwrapper.testArgs() ++
         (for ((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
     }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
 
     object api extends MillPublishModule
 
@@ -624,6 +625,7 @@ object contrib extends MillModule {
 
   object scalapblib extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object scoverage extends MillModule {
@@ -644,12 +646,13 @@ object contrib extends MillModule {
     }
 
     // So we can test with buildinfo in the classpath
-    override val test = new Tests(implicitly)
-    class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {
-      override def moduleDeps = super.moduleDeps :+ contrib.buildinfo
-    }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
+      scalalib,
+      contrib.buildinfo
+    )
 
     object worker extends MillApiModule {
+      override def compileModuleDeps = Seq(main.api)
       override def moduleDeps = Seq(scoverage.api)
       override def compileIvyDeps = T {
         Agg(
@@ -670,6 +673,7 @@ object contrib extends MillModule {
         scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs()
     }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object proguard extends MillModule {
@@ -680,11 +684,13 @@ object contrib extends MillModule {
         "-DMILL_PROGUARD_LIB=" + runClasspath().map(_.path).mkString(",")
       ) ++ scalalib.worker.testArgs()
     }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object flyway extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = Agg(Deps.flywayCore)
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object docker extends MillModule {
@@ -694,6 +700,7 @@ object contrib extends MillModule {
         scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs()
     }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object bloop extends MillModule {
@@ -702,9 +709,14 @@ object contrib extends MillModule {
       Deps.bloopConfig
     )
     override def testArgs = T(scalanativelib.testArgs())
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
+      scalalib,
+      scalajslib,
+      scalanativelib
+    )
     override def generatedSources = T {
       val dest = T.ctx.dest
-      val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
       os.write(
         dest / "Versions.scala",
         s"""package mill.contrib.bloop
