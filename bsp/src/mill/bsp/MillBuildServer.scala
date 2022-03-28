@@ -54,6 +54,7 @@ import mill.api.{DummyTestReporter, Result, Strict}
 import mill.define.Segment.Label
 import mill.define.{BaseModule, Discover, ExternalModule, Segments, Task}
 import mill.eval.Evaluator
+import mill.internal.ModuleUtils
 import mill.main.{BspServerResult, EvaluatorScopt, MainModule}
 import mill.scalalib.{JavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, MillBuildTarget}
@@ -93,7 +94,7 @@ class MillBuildServer(
         idToModule match {
           case None =>
             val modules: Seq[Module] =
-              evaluator.rootModule.millInternal.modules ++ Seq(`mill-build`)
+              ModuleUtils.transitiveModules(evaluator.rootModule) ++ Seq(`mill-build`)
             val map = modules.collect {
               case m: MillBuildTarget =>
                 val uri = sanitizeUri(m.millSourcePath) +

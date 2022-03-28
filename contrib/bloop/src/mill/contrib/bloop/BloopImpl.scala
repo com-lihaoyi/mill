@@ -4,6 +4,7 @@ import bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
 import mill.define.{Module => MillModule, _}
 import mill.eval.Evaluator
+import mill.internal.ModuleUtils
 import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import mill.scalalib._
@@ -100,23 +101,12 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   }
 
   // Compute all transitive modules from build children and via moduleDeps
+  @deprecated("Internal use only. To be removed", since = "mill 0.10.3")
   def transitiveModules(
       mod: define.Module,
       found: Seq[define.Module] = Seq.empty
   ): Seq[define.Module] = {
-    val skip = mod match {
-      case jm: JavaModule => skippable(jm)
-      case _ => false
-    }
-    if (found.contains(mod) || skip)
-      found
-    else {
-      val subMods = mod.millModuleDirectChildren ++ (mod match {
-        case jm: JavaModule => jm.moduleDeps
-        case other => Seq.empty
-      })
-      subMods.foldLeft(found ++ Seq(mod)) { (all, mod) => transitiveModules(mod, all) }
-    }
+    ModuleUtils.transitiveModules(mod, toSkip)
   }
 
   protected def computeModules: Seq[JavaModule] = {
@@ -128,8 +118,9 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   }
 
   // class-based pattern matching against path-dependant types doesn't seem to work.
-  private def skippable(module: scalalib.JavaModule): Boolean =
-    if (module.isInstanceOf[outer.Module]) module.asInstanceOf[outer.Module].skipBloop
+  private def toSkip(module: MillModule): Boolean =
+    if (module.isInstanceOf[JavaModule] && module.isInstanceOf[outer.Module])
+      module.asInstanceOf[outer.Module].skipBloop
     else false
 
   /**
