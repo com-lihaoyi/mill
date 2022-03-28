@@ -103,37 +103,33 @@ object BspModuleTests extends TestSuite {
         }
         test("interdependencies are fast") {
           test("reference (no BSP)") {
-            def runNoBsp(entry: Int) = workspaceTest(MultiBase) { eval =>
+            def runNoBsp(entry: Int, maxTime: Int) = workspaceTest(MultiBase) { eval =>
               val start = System.currentTimeMillis()
               val Right((result, evalCount)) = eval.apply(
                 InterDeps.Mod(entry).compileClasspath
               )
               val timeSpent = System.currentTimeMillis() - start
-
-              assert(timeSpent < 15000)
-
+              assert(timeSpent < maxTime)
               s"${timeSpent} msec"
             }
-            test("index 1 (no deps)") { run(1) }
-            test("index 10") { run(10) }
-            test("index 20") { run(20) }
-            test("index 25") { run(25) }
+            test("index 1 (no deps)") { runNoBsp(1, 5000) }
+            test("index 10") { runNoBsp(10, 5000) }
+            test("index 20") { runNoBsp(20, 5000) }
+            test("index 25") { runNoBsp(25, 40000) }
           }
-          def run(entry: Int) = workspaceTest(MultiBase) { eval =>
+          def run(entry: Int, maxTime: Int) = workspaceTest(MultiBase) { eval =>
             val start = System.currentTimeMillis()
             val Right((result, evalCount)) = eval.apply(
               InterDeps.Mod(entry).bspCompileClasspath
             )
             val timeSpent = System.currentTimeMillis() - start
-
-            assert(timeSpent < 5000)
-
+            assert(timeSpent < maxTime)
             s"${timeSpent} msec"
           }
-          test("index 1 (no deps)") { run(1) }
-          test("index 10") { run(10) }
-          test("index 20") { run(20) }
-          test("index 25") { run(25) }
+          test("index 1 (no deps)") { run(1, 500) }
+          test("index 10") { run(10, 5000) }
+          test("index 20") { run(20, 5000) }
+          test("index 25") { run(25, 15000) }
         }
       }
     }
