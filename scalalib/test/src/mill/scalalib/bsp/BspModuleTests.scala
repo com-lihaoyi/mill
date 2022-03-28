@@ -1,8 +1,9 @@
 package mill.scalalib.bsp
 
+import mill.define.Cross
 import mill.eval.EvaluatorPaths
 import mill.{Agg, T}
-import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
+import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.util.{TestEvaluator, TestUtil}
 import os.{BasePathImpl, FilePath}
 import utest.framework.TestPath
@@ -29,6 +30,20 @@ object BspModuleTests extends TestSuite {
     }
   }
 
+  object InterDeps extends BspBase {
+    val maxCrossCount = 25
+    val configs = 1.to(maxCrossCount)
+    object Mod extends Cross[ModCross](configs: _*)
+    class ModCross(index: Int) extends ScalaModule {
+      override def scalaVersion: T[String] = testScalaVersion
+      // each depends on all others with lower index
+      override def moduleDeps: Seq[JavaModule] =
+        configs
+          .filter(c => c < index)
+          .map(i => Mod(i))
+    }
+  }
+
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
@@ -42,12 +57,12 @@ object BspModuleTests extends TestSuite {
       test("single module") {
         workspaceTest(MultiBase) { eval =>
           val Right((result, evalCount)) = eval.apply(
-            MultiBase.HelloBsp.bspCompileClasspath(T.task(eval.evaluator.pathsResolver))
+            MultiBase.HelloBsp.bspCompileClasspath
           )
 
           assert(
             result.size == 3,
-            result.map(_.path.last).toSet == Set(
+            result.map(_.resolve(eval.evaluator.pathsResolver).last).toSet == Set(
               "resources",
               "slf4j-api-1.7.34.jar",
               s"scala-library-${testScalaVersion}.jar"
@@ -58,14 +73,15 @@ object BspModuleTests extends TestSuite {
         test("dependent module") {
           workspaceTest(MultiBase) { eval =>
             val Right((result, evalCount)) = eval.apply(
-              MultiBase.HelloBsp2.bspCompileClasspath(T.task(eval.evaluator.pathsResolver))
+              MultiBase.HelloBsp2.bspCompileClasspath
             )
 
-            val relResults: Seq[FilePath] = result.map { p =>
-              val name = p.path.last
+            val relResults: Seq[FilePath] = result.iterator.map { p =>
+              val path = p.resolve(eval.evaluator.pathsResolver)
+              val name = path.last
               if (name.endsWith(".jar")) os.rel / name
-              else p.path
-            }.sortBy(_.toString)
+              else path
+            }.toSeq.sortBy(_.toString)
 
             val expected: Seq[FilePath] = Seq(
               MultiBase.HelloBsp.millSourcePath / "resources",
@@ -84,6 +100,40 @@ object BspModuleTests extends TestSuite {
               evalCount > 0
             )
           }
+        }
+        test("interdependencies are fast") {
+          test("reference (no BSP)") {
+            def runNoBsp(entry: Int) = workspaceTest(MultiBase) { eval =>
+              val start = System.currentTimeMillis()
+              val Right((result, evalCount)) = eval.apply(
+                InterDeps.Mod(entry).compileClasspath
+              )
+              val timeSpent = System.currentTimeMillis() - start
+
+              assert(timeSpent < 15000)
+
+              s"${timeSpent} msec"
+            }
+            test("index 1 (no deps)") { run(1) }
+            test("index 10") { run(10) }
+            test("index 20") { run(20) }
+            test("index 25") { run(25) }
+          }
+          def run(entry: Int) = workspaceTest(MultiBase) { eval =>
+            val start = System.currentTimeMillis()
+            val Right((result, evalCount)) = eval.apply(
+              InterDeps.Mod(entry).bspCompileClasspath
+            )
+            val timeSpent = System.currentTimeMillis() - start
+
+            assert(timeSpent < 5000)
+
+            s"${timeSpent} msec"
+          }
+          test("index 1 (no deps)") { run(1) }
+          test("index 10") { run(10) }
+          test("index 20") { run(20) }
+          test("index 25") { run(25) }
         }
       }
     }

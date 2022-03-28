@@ -41,13 +41,16 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
             case _ => T.task { Seq.empty[String] }
           }
 
-          val pathResolver = T.task(evaluator.pathsResolver)
+          val pathResolver = evaluator.pathsResolver
           T.task {
             new ScalacOptionsItem(
               id,
               optionsTask().asJava,
-              m.bspCompileClasspath(pathResolver)().map(sanitizeUri.apply).iterator.toSeq.asJava,
-              sanitizeUri(m.bspCompileClassesPath(pathResolver)())
+              m.bspCompileClasspath()
+                .iterator
+                .map(_.resolve(pathResolver))
+                .map(sanitizeUri.apply).toSeq.asJava,
+              sanitizeUri(m.bspCompileClassesPath().resolve(pathResolver))
             )
           }
       }

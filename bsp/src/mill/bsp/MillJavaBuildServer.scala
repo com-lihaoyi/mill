@@ -23,15 +23,16 @@ trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
         agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava)
       ) {
         case (id, m: JavaModule) =>
-          val pathResolver = T.task(evaluator.pathsResolver)
+          val pathResolver = evaluator.pathsResolver
           T.task {
             val options = m.javacOptions()
-            val classpath = m.bspCompileClasspath(pathResolver)().map(sanitizeUri.apply)
+            val classpath =
+              m.bspCompileClasspath().map(_.resolve(pathResolver)).map(sanitizeUri.apply)
             new JavacOptionsItem(
               id,
               options.asJava,
               classpath.iterator.toSeq.asJava,
-              sanitizeUri(m.bspCompileClassesPath(pathResolver)())
+              sanitizeUri(m.bspCompileClassesPath().resolve(pathResolver))
             )
           }
       }

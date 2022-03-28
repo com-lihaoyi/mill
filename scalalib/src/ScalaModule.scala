@@ -215,22 +215,24 @@ trait ScalaModule extends JavaModule { outer =>
       )
   }
 
-  /** the path to the compiles classes without forcing to actually run the target */
+  /** the path to the compiled classes without forcing the compilation. */
   @internal
-  override def bspCompileClassesPath(pathsResolver: Task[EvaluatorPathsResolver]): Task[PathRef] = {
-    if (compile.ctx.enclosing == s"${classOf[ScalaModule].getName}#compile") T.task {
-      T.log.debug(
-        s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
-      )
-      PathRef(pathsResolver().resolveDest(compile).dest / "classes")
+  override def bspCompileClassesPath: Target[UnresolvedPath] =
+    if (compile.ctx.enclosing == s"${classOf[ScalaModule].getName}#compile") {
+      T {
+        T.log.debug(
+          s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
+        )
+        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
+      }
+    } else {
+      T {
+        T.log.debug(
+          s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
+        )
+        UnresolvedPath.ResolvedPath(compile().classes.path)
+      }
     }
-    else T.task {
-      T.log.debug(
-        s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
-      )
-      compile().classes
-    }
-  }
 
   override def docSources: Sources = T.sources {
     // Scaladoc 3.0.0 is consuming tasty files
