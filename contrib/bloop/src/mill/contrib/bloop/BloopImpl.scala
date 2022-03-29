@@ -101,12 +101,12 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   }
 
   // Compute all transitive modules from build children and via moduleDeps
-  @deprecated("Internal use only. To be removed", since = "mill 0.10.3")
+  @deprecated("Use mill.internal.ModuleUtils.transitiveModules instead", since = "mill 0.10.3")
   def transitiveModules(
       mod: define.Module,
       found: Seq[define.Module] = Seq.empty
   ): Seq[define.Module] = {
-    ModuleUtils.transitiveModules(mod, toSkip)
+    ModuleUtils.transitiveModules(mod, accept)
   }
 
   protected def computeModules: Seq[JavaModule] = {
@@ -118,10 +118,10 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   }
 
   // class-based pattern matching against path-dependant types doesn't seem to work.
-  private def toSkip(module: MillModule): Boolean =
+  private def accept(module: MillModule): Boolean =
     if (module.isInstanceOf[JavaModule] && module.isInstanceOf[outer.Module])
-      module.asInstanceOf[outer.Module].skipBloop
-    else false
+      !module.asInstanceOf[outer.Module].skipBloop
+    else true
 
   /**
    * Computes sources files paths for the whole project. Cached in a way
