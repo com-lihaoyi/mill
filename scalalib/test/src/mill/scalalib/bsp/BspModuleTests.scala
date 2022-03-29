@@ -113,9 +113,9 @@ object BspModuleTests extends TestSuite {
               s"${timeSpent} msec"
             }
             test("index 1 (no deps)") { runNoBsp(1, 5000) }
-            test("index 10") { runNoBsp(10, 5000) }
-            test("index 20") { runNoBsp(20, 5000) }
-            test("index 25") { runNoBsp(25, 40000) }
+            test("index 10") { runNoBsp(10, 10000) }
+            test("index 20") { runNoBsp(20, 20000) }
+            test("index 25") { runNoBsp(25, 50000) }
           }
           def run(entry: Int, maxTime: Int) = workspaceTest(MultiBase) { eval =>
             val start = System.currentTimeMillis()
