@@ -129,7 +129,7 @@ object BspModuleTests extends TestSuite {
           test("index 1 (no deps)") { run(1, 500) }
           test("index 10") { run(10, 5000) }
           test("index 20") { run(20, 5000) }
-          test("index 25") { run(25, 15000) }
+          test("index 25") { run(25, 25000) }
         }
       }
     }
