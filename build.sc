@@ -37,12 +37,9 @@ object Settings {
     "0.9.10",
     "0.9.11",
     "0.9.12",
-    "0.10.0-M2",
-    "0.10.0-M3",
-    "0.10.0-M4",
-    "0.10.0-M5",
     "0.10.0",
-    "0.10.1"
+    "0.10.1",
+    "0.10.2"
   )
   val mimaBaseVersions = Seq("0.10.0")
 }
@@ -123,7 +120,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.4.3"
-  val scalametaTrees = ivy"org.scalameta::trees:4.5.0"
+  val scalametaTrees = ivy"org.scalameta::trees:4.5.1"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
@@ -1140,11 +1137,14 @@ object docs extends Module {
          |
          |""".stripMargin
     }
-    def githubPages = T {
+    def githubPages: Target[PathRef] = T {
       generatePages(authorMode = false)()
     }
     def localPages = T {
-      generatePages(authorMode = true)()
+      val pages = generatePages(authorMode = true)()
+      T.log.outputStream.println(
+        s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+      )
     }
     def generatePages(authorMode: Boolean) = T.task {
       // dependency to sources

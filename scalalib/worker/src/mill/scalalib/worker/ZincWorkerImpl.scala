@@ -27,7 +27,7 @@ class ZincWorkerImpl(
     compilerJarNameGrep: (Agg[os.Path], String) => os.Path,
     compilerCache: KeyedLockedCache[Compilers],
     compileToJar: Boolean
-) extends ZincWorkerApi {
+) extends ZincWorkerApi with AutoCloseable {
   private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
   lazy val javaOnlyCompilers = {
     // Keep the classpath as written by the user
@@ -557,5 +557,9 @@ class ZincWorkerImpl(
     } finally {
       reporter.foreach(_.finish())
     }
+  }
+
+  override def close(): Unit = {
+    classloaderCache.clear()
   }
 }

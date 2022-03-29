@@ -5,7 +5,7 @@ import mill.api.{ClassLoader, Ctx}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi
 import mill.define.{Discover, ExternalModule, Worker}
 
-class ScoverageReportWorker {
+class ScoverageReportWorker extends AutoCloseable {
   private[this] var scoverageClCache = Option.empty[(Long, ClassLoader)]
 
   def bridge(classpath: Agg[os.Path])(implicit ctx: Ctx): ScoverageReportWorkerApi = {
@@ -30,6 +30,10 @@ class ScoverageReportWorker {
       .getDeclaredConstructor()
       .newInstance()
       .asInstanceOf[api.ScoverageReportWorkerApi]
+  }
+
+  override def close(): Unit = {
+    scoverageClCache = None
   }
 }
 

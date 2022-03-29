@@ -2,6 +2,7 @@ package mill.util
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 import mainargs.Flag
+import mill.define.SelectMode
 
 import scala.util.Try
 import os.Path
@@ -100,7 +101,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
     } catch { case e: Throwable => false }
   }
   def meta(s: String): String = {
-    val (List(selector), args) = mill.define.ParseArgs.apply(Seq(s), multiSelect = false).right.get
+    val Seq((List(selector), _)) = mill.define.ParseArgs.apply(Seq(s), SelectMode.Single).getOrElse(???)
 
     val segments = selector._2.value.flatMap(_.pathSegments)
     os.read(wd / "out" / segments.init / s"${segments.last}.json")

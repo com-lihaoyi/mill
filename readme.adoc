@@ -209,11 +209,30 @@ corresponding version of Mill.
 
 === 'main' branch
 :version: main
-:prev-version: 0.10.1
-:milestone: 60
-:milestone-name: after 0.10.1
+:prev-version: 0.10.2
+:milestone: 61
+:milestone-name: after 0.10.2
 
 _Changes since {prev-version}:_
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+=== 0.10.2 - 2022-03-18
+:version: 0.10.2
+:prev-version: 0.10.1
+:milestone: 60
+:milestone-name: 0.10.2
+
+_Changes since {prev-version}:_
+
+* Mill workers can now implement `AutoCloseable` to properly free resources
+* `ScalaModule`: Fixed `repl` start
+* `CoursierModule`: Fixed concurrent download issues with coursier (we detect and retry)
+* `MainModule`: Fixed potential match error with `show`  and `showNamed`
+* Restructured contrib module documentation
+* Internal improvements
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]

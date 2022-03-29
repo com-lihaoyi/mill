@@ -58,6 +58,13 @@ object AmmoniteUtilsTests extends TestSuite {
 
         assert(result == expected)
       }
+      test("should handle special symbols") {
+        val input = "ammonite.$file.-#!|\\?+*<→:&>%=~.inputSymbols"
+        val result = normalize(input)
+        val expected = "ammonite.$file.$minus$hash$bang$bar$bslash$qmark$plus$times$less$u2192$colon$amp$greater$percent$eq$tilde.inputSymbols"
+
+        assert(result == expected)
+      }
     }
   }
 }

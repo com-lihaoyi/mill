@@ -109,5 +109,13 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
         assert(result == expected)
       }
     }
+    test("should handle ammonite paths with symbols") {
+      initWorkspace()
+
+      val result = runTask("taskSymbols")
+      val expected = Seq("taskSymbols")
+
+      assert(result == expected)
+    }
   }
 }

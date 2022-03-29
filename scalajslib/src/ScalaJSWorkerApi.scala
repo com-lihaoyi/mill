@@ -6,7 +6,7 @@ import mill.api.{Ctx, Result}
 import mill.define.Discover
 import mill.scalajslib.api._
 import mill.{Agg, T}
-class ScalaJSWorker {
+class ScalaJSWorker extends AutoCloseable {
   private var scalaInstanceCache = Option.empty[(Long, ScalaJSWorkerApi)]
 
   private def bridge(toolsClasspath: Agg[os.Path])(implicit ctx: Ctx.Home) = {
@@ -68,6 +68,9 @@ class ScalaJSWorker {
     bridge(toolsClasspath).getFramework(config, frameworkName, linkedFile, moduleKind)
   }
 
+  override def close(): Unit = {
+    scalaInstanceCache = None
+  }
 }
 
 object ScalaJSWorkerApi extends mill.define.ExternalModule {
