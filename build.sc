@@ -792,6 +792,8 @@ object bsp extends MillModule {
     Deps.bsp,
     Deps.sbtTestInterface
   )
+
+  override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ compileModuleDeps
 }
 
 def testRepos = T {
