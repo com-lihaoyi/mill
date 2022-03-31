@@ -4,7 +4,7 @@ import bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
 import mill.define.{Module => MillModule, _}
 import mill.eval.Evaluator
-import mill.internal.ModuleUtils
+import mill.scalalib.internal.ModuleUtils
 import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import mill.scalalib._

@@ -54,7 +54,7 @@ import mill.api.{DummyTestReporter, Result, Strict}
 import mill.define.Segment.Label
 import mill.define.{BaseModule, Discover, ExternalModule, Segments, Task}
 import mill.eval.Evaluator
-import mill.internal.ModuleUtils
+import mill.scalalib.internal.ModuleUtils
 import mill.main.{BspServerResult, EvaluatorScopt, MainModule}
 import mill.scalalib.{JavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, MillBuildTarget}

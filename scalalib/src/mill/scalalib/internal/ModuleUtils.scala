@@ -1,4 +1,4 @@
-package mill.internal
+package mill.scalalib.internal
 
 import mill.define.Module
 import mill.scalalib.JavaModule
@@ -7,7 +7,7 @@ import mill.scalalib.JavaModule
  * Compute all transitive modules from module children and via moduleDeps
  */
 @mill.api.internal
-private[mill] object ModuleUtils {
+object ModuleUtils {
   def transitiveModules(module: Module, accept: Module => Boolean = _ => true): Seq[Module] = {
     def loop(mod: Module, found: Seq[Module]): Seq[Module] = {
       if (!accept(mod) || found.contains(mod))
