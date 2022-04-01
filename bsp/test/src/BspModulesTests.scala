@@ -25,7 +25,7 @@ object BspModulesTests extends ScriptTestSuite(false) {
           "HelloBsp.test",
           "foreign-modules.proj1.proj1",
           "foreign-modules.proj2.proj2",
-          // "proj3" // still not detected
+          // "foreign-modules.proj3.proj3" // still not detected
         ).sorted
         readModules ==> expectedModules
       }
