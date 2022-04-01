@@ -12,8 +12,8 @@
 
 {link-github}/actions/workflows/actions.yml[image:{link-github}/actions/workflows/actions.yml/badge.svg[Build and Release]]
 {link-gitter}?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge[image:https://badges.gitter.im/Join%20Chat.svg[Gitter Chat]]
+https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
 https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
-
 
 Your shiny new Scala build tool! Confused by SBT? Frustrated by Maven? Perplexed by Gradle?
 Give Mill a try!
@@ -568,6 +568,9 @@ _(We also tagged `0.9.0`, `0.9.1`, and `0.9.2`, but due to release difficulties,
 
 _For details refer to {link-milestone}/44?closed=1[milestone 0.9.3]
 and the {link-compare}/0.8.0\...0.9.3[list of commits]._
+
+=== Older releases
+:leveloffset: +1
 
 === 0.8.0 - 2020-07-20
 
