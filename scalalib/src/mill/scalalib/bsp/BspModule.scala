@@ -15,7 +15,7 @@ trait BspModule extends Module {
   /** Use to fill most fields of `BuildTarget`. */
   @internal
   def bspBuildTarget: BspBuildTarget = BspBuildTarget(
-    displayName = Some(millModuleSegments.render),
+    displayName = Some(s"${millOuterCtx.foreign.map(f => s"${f.render}.").mkString}${millModuleSegments.render}"),
     baseDirectory = Some(millSourcePath),
     tags = Seq(Tag.Library, Tag.Application),
     languageIds = Seq(),
