@@ -243,6 +243,11 @@ trait JavaModule
   def resources: Sources = T.sources { millSourcePath / "resources" }
 
   /**
+   * The folders where the compile time resource files for this module live
+   */
+  def compileResources: Sources = T.sources { millSourcePath / "compile-resources" }
+
+  /**
    * Folders containing source files that are generated rather than
    * hand-written; these files can be generated in this target itself,
    * or can refer to files generated from other targets
@@ -325,7 +330,7 @@ trait JavaModule
   // Keep in sync with [[bspCompileClasspath]]
   def compileClasspath: T[Agg[PathRef]] = T {
     transitiveLocalClasspath() ++
-      resources() ++
+      compileResources() ++
       unmanagedClasspath() ++
       resolvedIvyDeps()
   }
@@ -335,7 +340,7 @@ trait JavaModule
   @internal
   def bspCompileClasspath: Target[Agg[UnresolvedPath]] = T {
     bspTransitiveLocalClasspath() ++
-      (resources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
+      (compileResources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
         .map(p => UnresolvedPath.ResolvedPath(p.path))
   }
 
@@ -515,7 +520,7 @@ trait JavaModule
    */
   def sourceJar: Target[PathRef] = T {
     Jvm.createJar(
-      (allSources() ++ resources()).map(_.path).filter(os.exists),
+      (allSources() ++ resources() ++ compileResources()).map(_.path).filter(os.exists),
       manifest()
     )
   }
