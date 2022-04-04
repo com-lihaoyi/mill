@@ -2,8 +2,10 @@ package mill.contrib.bloop
 
 import bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
+import mill.api.Result
 import mill.define.{Module => MillModule, _}
 import mill.eval.Evaluator
+import mill.scalalib.internal.ModuleUtils
 import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import mill.scalalib._
@@ -100,23 +102,12 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   }
 
   // Compute all transitive modules from build children and via moduleDeps
+  @deprecated("Use mill.internal.ModuleUtils.transitiveModules instead", since = "mill 0.10.3")
   def transitiveModules(
       mod: define.Module,
       found: Seq[define.Module] = Seq.empty
   ): Seq[define.Module] = {
-    val skip = mod match {
-      case jm: JavaModule => skippable(jm)
-      case _ => false
-    }
-    if (found.contains(mod) || skip)
-      found
-    else {
-      val subMods = mod.millModuleDirectChildren ++ (mod match {
-        case jm: JavaModule => jm.moduleDeps
-        case other => Seq.empty
-      })
-      subMods.foldLeft(found ++ Seq(mod)) { (all, mod) => transitiveModules(mod, all) }
-    }
+    ModuleUtils.transitiveModules(mod, accept)
   }
 
   protected def computeModules: Seq[JavaModule] = {
@@ -128,9 +119,10 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   }
 
   // class-based pattern matching against path-dependant types doesn't seem to work.
-  private def skippable(module: scalalib.JavaModule): Boolean =
-    if (module.isInstanceOf[outer.Module]) module.asInstanceOf[outer.Module].skipBloop
-    else false
+  private def accept(module: MillModule): Boolean =
+    if (module.isInstanceOf[JavaModule] && module.isInstanceOf[outer.Module])
+      !module.asInstanceOf[outer.Module].skipBloop
+    else true
 
   /**
    * Computes sources files paths for the whole project. Cached in a way
@@ -143,10 +135,10 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         m.millModuleSegments.render -> paths.map(_.path)
       }
     }()
-    mill.api.Result.Success(sources.toMap)
+    Result.Success(sources.toMap)
   }
 
-  protected def name(m: JavaModule) = m.millModuleSegments.render
+  protected def name(m: JavaModule) = ModuleUtils.moduleDisplayName(m)
 
   protected def bloopConfigPath(module: JavaModule): os.Path =
     bloopDir / s"${name(module)}.json"
@@ -157,10 +149,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
 
   def bloopConfig(module: JavaModule): Task[BloopConfig.File] = {
     import _root_.bloop.config.Config
-    def out(m: JavaModule) = {
-      val allSegs = m.millModuleShared.value.getOrElse(Segments()) ++ m.millModuleSegments
-      bloopDir / "out" / allSegs.render
-    }
+    def out(m: JavaModule) = bloopDir / "out" / name(m)
     def classes(m: JavaModule) = out(m) / "classes"
 
     val javaConfig =
