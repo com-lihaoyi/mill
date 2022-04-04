@@ -22,7 +22,7 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
    */
   object millInternal extends Module.Internal(this)
 
-  lazy val millModuleDirectChildren = millInternal.reflectNestedObjects[Module].toSeq
+  lazy val millModuleDirectChildren: Seq[Module] = millInternal.reflectNestedObjects[Module].toSeq
   def millOuterCtx = outerCtx0
   def millSourcePath: os.Path = millOuterCtx.millSourcePath / millOuterCtx.segment.pathSegments
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
