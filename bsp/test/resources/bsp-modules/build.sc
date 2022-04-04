@@ -25,7 +25,7 @@ def validate() = T.command {
   val transitiveModules = mill.scalalib.internal.ModuleUtils.transitiveModules(build)
   val file = T.dest / "transitive-modules.json"
   val moduleNames = transitiveModules.map(m =>
-    s"${m.millOuterCtx.foreign.map(f => s"${f.render}.").mkString}${m.millModuleSegments.render}"
+    mill.scalalib.internal.ModuleUtils.moduleDisplayName(m)
   ).mkString("\n")
   val content =
     s"""${moduleNames}
