@@ -4,11 +4,10 @@ import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
 import $ivy.`com.github.lolgab::mill-mima::0.0.9`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
-import java.nio.file.attribute.PosixFilePermission
 
 import com.github.lolgab.mill.mima
 import com.github.lolgab.mill.mima.ProblemFilter
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleSignatureProblem}
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleMethTypeProblem}
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -189,6 +188,38 @@ trait MillMimaConfig extends mima.Mima {
     issueFilterByModule.getOrElse(this, Seq())
   }
   lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
+    scalalib -> Seq(
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.scalalib.JavaModule.bspCompileClassesPath"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.scalalib.JavaModule.bspCompileClasspath"
+      ),
+      ProblemFilter.exclude[IncompatibleMethTypeProblem](
+        "mill.scalalib.ScalaModule.bspCompileClassesPath"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.scalalib.scalafmt.ScalafmtModule.bspCompileClassesPath"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.scalalib.scalafmt.ScalafmtModule.bspCompileClasspath"
+      )
+    ),
+    contrib.scoverage -> Seq(
+      // this one is @internal but MiMa is reporting it anyway
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.contrib.scoverage.ScoverageModule#ScoverageData.bspCompileClassesPath"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.contrib.scoverage.ScoverageModule#ScoverageData.bspCompileClasspath"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.contrib.scoverage.ScoverageReport#workerModule.bspCompileClassesPath"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.contrib.scoverage.ScoverageReport#workerModule.bspCompileClasspath"
+      )
+    )
   )
 }
 
