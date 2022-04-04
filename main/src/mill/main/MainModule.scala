@@ -10,6 +10,8 @@ import mill.define.SelectMode
 import pprint.{Renderer, Truncated}
 import ujson.Value
 
+import scala.util.chaining.scalaUtilChainingOps
+
 object MainModule {
   @deprecated(
     "use resolveTasks(Evaluator, Seq[String], SelectMode) instead",
@@ -188,8 +190,7 @@ trait MainModule extends mill.Module {
    */
   def inspect(evaluator: Evaluator, targets: String*): Command[String] = mill.T.command {
     MainModule.resolveTasks(evaluator, targets, SelectMode.Multi) { tasks =>
-      val output = new StringBuilder
-      for {
+      val output = for {
         task <- tasks
         tree = ReplApplyHandler.pprintTask(task, evaluator)
         defaults = pprint.PPrinter()
@@ -201,11 +202,12 @@ trait MainModule extends mill.Module {
         )
         rendered = renderer.rec(tree, 0, 0).iter
         truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
-        str <- truncated ++ Iterator("\n")
-      } {
-        output.append(str)
+      } yield {
+        new StringBuilder().tap { sb =>
+          for { str <- truncated ++ Iterator("\n") } sb.append(str)
+        }.toString()
       }
-      T.log.outputStream.println(output)
+      T.log.outputStream.println(output.mkString("\n"))
       output.toString
     }
   }
