@@ -189,6 +189,13 @@ trait MillMimaConfig extends mima.Mima {
     issueFilterByModule.getOrElse(this, Seq())
   }
   lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
+    main.core -> Seq(
+      // fixed from Some[T] to Option[T]
+      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.define.Target.asTarget"),
+      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.define.TargetImpl.asTarget"),
+      // refined generic parameter, should be ok
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.Evaluator.plan"),
+    )
   )
 }
 

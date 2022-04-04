@@ -26,7 +26,7 @@ case class BasePath(value: os.Path)
 case class Segments(value: Segment*) {
   def ++(other: Seq[Segment]): Segments = Segments(value ++ other: _*)
   def ++(other: Segments): Segments = Segments(value ++ other.value: _*)
-  def parts: Seq[String] = value.toList match {
+  def parts: List[String] = value.toList match {
     case Nil => Nil
     case Segment.Label(head) :: rest =>
       val stringSegments = rest.flatMap {
