@@ -72,10 +72,10 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.4"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.4"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.4"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.4"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.2"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.2"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.2"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.2"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
