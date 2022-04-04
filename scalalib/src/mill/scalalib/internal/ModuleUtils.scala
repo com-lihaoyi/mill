@@ -1,6 +1,6 @@
 package mill.scalalib.internal
 
-import mill.define.Module
+import mill.define.{Module, Segments}
 import mill.scalalib.JavaModule
 
 /**
@@ -22,5 +22,8 @@ object ModuleUtils {
     }
 
     loop(module, Seq.empty)
+  }
+  def moduleDisplayName(module: Module): String = {
+    (module.millModuleShared.value.getOrElse(Segments()) ++ module.millModuleSegments).render
   }
 }

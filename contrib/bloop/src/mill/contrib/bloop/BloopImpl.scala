@@ -2,6 +2,7 @@ package mill.contrib.bloop
 
 import bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
+import mill.api.Result
 import mill.define.{Module => MillModule, _}
 import mill.eval.Evaluator
 import mill.scalalib.internal.ModuleUtils
@@ -134,10 +135,10 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         m.millModuleSegments.render -> paths.map(_.path)
       }
     }()
-    mill.eval.Result.Success(sources.toMap)
+    Result.Success(sources.toMap)
   }
 
-  protected def name(m: JavaModule) = m.millModuleSegments.render
+  protected def name(m: JavaModule) = ModuleUtils.moduleDisplayName(m)
 
   protected def bloopConfigPath(module: JavaModule): os.Path =
     bloopDir / s"${name(module)}.json"
@@ -149,8 +150,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   def bloopConfig(module: JavaModule): Task[BloopConfig.File] = {
     import _root_.bloop.config.Config
     def out(m: JavaModule) = {
-      val allSegs = m.millModuleShared.value.getOrElse(Segments()) ++ m.millModuleSegments
-      bloopDir / "out" / allSegs.render
+      bloopDir / "out" / ModuleUtils.moduleDisplayName(m)
     }
     def classes(m: JavaModule) = out(m) / "classes"
 
