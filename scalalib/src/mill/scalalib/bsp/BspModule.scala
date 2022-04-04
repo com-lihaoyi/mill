@@ -2,7 +2,7 @@ package mill.scalalib.bsp
 
 import ammonite.runtime.SpecialClassLoader
 import mill.api.{Loose, PathRef, internal}
-import mill.define.{BaseModule, Sources, Task}
+import mill.define.{BaseModule, Segments, Sources, Task}
 import mill.eval.EvaluatorPathsResolver
 import mill.modules.Jvm
 import mill.scalalib.api.CompilationResult
@@ -15,7 +15,7 @@ trait BspModule extends Module {
   /** Use to fill most fields of `BuildTarget`. */
   @internal
   def bspBuildTarget: BspBuildTarget = BspBuildTarget(
-    displayName = Some(s"${millOuterCtx.foreign.map(f => s"${f.render}.").mkString}${millModuleSegments.render}"),
+    displayName = Some((millModuleShared.value.getOrElse(Segments()) ++ millModuleSegments).render),
     baseDirectory = Some(millSourcePath),
     tags = Seq(Tag.Library, Tag.Application),
     languageIds = Seq(),
