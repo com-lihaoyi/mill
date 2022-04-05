@@ -487,7 +487,10 @@ trait JavaModule
 
       val cmdArgs =
         if (docJarUseArgsFile()) {
-          val content = options.map(s => s""""${s}"""").mkString(" ")
+          val content = options.map(s =>
+            // make sure we properly mask backslashes (path separators on Windows)
+            s""""${s.replace("\\", "\\\\")}""""
+          ).mkString(" ")
           val argsFile = os.temp(
             contents = content,
             prefix = "javadoc-",
