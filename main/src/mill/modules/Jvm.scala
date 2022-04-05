@@ -74,6 +74,16 @@ object Jvm {
       .filter(f => f.exists())
       .fold("java")(_.getAbsolutePath())
 
+  def javaDocExe: String =
+    sys.props
+      .get("java.home")
+      .map(h =>
+        if (isWin) new File(h, "bin\\javadoc.exe")
+        else new File(h, "bin/javadoc")
+      )
+      .filter(f => f.exists())
+      .fold("javadoc")(_.getAbsolutePath())
+
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
