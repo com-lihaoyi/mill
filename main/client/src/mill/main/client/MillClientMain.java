@@ -114,14 +114,9 @@ public class MillClientMain {
 
             try (
                 Locks locks = Locks.files(lockBase);
-                FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMillis);
-                FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMillis);
             ) {
                 Locked clientLock = locks.clientLock.tryLock();
                 if (clientLock != null) {
-                    stdoutTailer.start();
-                    stderrTailer.start();
-
                     int exitCode = run(
                         lockBase,
                         () -> {
@@ -139,9 +134,6 @@ public class MillClientMain {
                         System.getenv()
                     );
 
-                    // Here, we ensure we process the tails of the output files before interrupting the threads
-                    stdoutTailer.flush();
-                    stderrTailer.flush();
                     clientLock.release();
                     return exitCode;
                 }
@@ -215,6 +207,15 @@ public class MillClientMain {
         inThread.start();
 
         locks.serverLock.await();
+
+        // Although the process that the server was running has terminated and the server has sent all the stdout/stderr
+        // over the unix pipe and released its lock we don't know that all the data has arrived at the client
+        // The outThread of the ProxyStreamPumper will not close until the socket is closed (so we can't join on it)
+        // but we also can't close the socket until all the data has arrived. Catch 22. We could signal termination
+        // in the stream (ProxyOutputStream / ProxyStreamPumper) but that would require a new protocol.
+        // So we just wait until there has been X ms with no data
+
+        outPump.getLastData().waitForSilence(50);
 
         try {
             return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/exitCode")).get(0));
