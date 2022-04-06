@@ -508,7 +508,7 @@ trait JavaModule
       T.log.info("options: " + cmdArgs)
 
       Jvm.runSubprocess(
-        commandArgs = Seq(Jvm.javaDocExe) ++ cmdArgs,
+        commandArgs = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
         envArgs = Map(),
         workingDir = T.dest
       )
