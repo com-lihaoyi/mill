@@ -47,7 +47,8 @@ trait NamedTask[+T] extends Task[T] {
   override def toString = ctx.segments.render
 }
 trait Target[+T] extends NamedTask[T] {
-  override def asTarget: Option[Target[T]] = Some(this)
+  // TODO: change from Some[Target[T]] to Option[Target[T]] in 0.11
+  override def asTarget: Some[Target[T]] = Some(this)
   def readWrite: RW[_]
 }
 
