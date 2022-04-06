@@ -2,13 +2,12 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
-import $ivy.`com.github.lolgab::mill-mima::0.0.9`
+import $ivy.`com.github.lolgab::mill-mima::0.0.10`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
-import java.nio.file.attribute.PosixFilePermission
 
+import java.nio.file.attribute.PosixFilePermission
 import com.github.lolgab.mill.mima
-import com.github.lolgab.mill.mima.ProblemFilter
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleSignatureProblem}
+import com.github.lolgab.mill.mima.{DirectMissingMethodProblem, IncompatibleSignatureProblem, ProblemFilter}
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -67,15 +66,15 @@ object Deps {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.3.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.9.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.9.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.10.0"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.10.0"
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.2"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.2"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.2"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.2"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.4"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.4"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.4"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.4"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
