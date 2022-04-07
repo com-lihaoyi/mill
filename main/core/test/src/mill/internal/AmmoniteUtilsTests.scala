@@ -6,7 +6,7 @@ object AmmoniteUtilsTests extends TestSuite {
   val tests = Tests {
     test("normalizeAmmoniteImportPath") {
       def normalize(s: String): String =
-        AmmoniteUtils.normalizeAmmoniteImportPath(s.split('.')).mkString(".")
+        AmmoniteUtils.normalizeAmmoniteImportPath(s.split('.').toIndexedSeq).mkString(".")
       test("should normalize classes compiled from multiple scripts") {
         val input1 = "ammonite.$file.e.$up.a.inputA"
         val input2 = "ammonite.$file.a.inputA"

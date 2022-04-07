@@ -40,12 +40,11 @@ object MultiBiMap {
     def removeAll(k: K): Agg[V] = keyToValues.get(k) match {
       case None => Agg()
       case Some(vs) =>
-        vs.foreach(valueToKey.remove)
-
+        vs.iterator.foreach(valueToKey.remove)
         keyToValues.remove(k)
         vs
     }
-    def addAll(k: K, vs: IterableOnce[V]): Unit = vs.foreach(this.add(k, _))
+    def addAll(k: K, vs: IterableOnce[V]): Unit = vs.iterator.foreach(this.add(k, _))
 
     def keys(): Iterator[K] = keyToValues.keysIterator
 

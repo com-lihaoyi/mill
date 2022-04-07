@@ -2,12 +2,12 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
-import $ivy.`com.github.lolgab::mill-mima::0.0.9`
+import $ivy.`com.github.lolgab::mill-mima::0.0.10`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
+import java.nio.file.attribute.PosixFilePermission
 import com.github.lolgab.mill.mima
-import com.github.lolgab.mill.mima.ProblemFilter
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleMethTypeProblem}
+import com.github.lolgab.mill.mima.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, IncompatibleSignatureProblem, ProblemFilter}
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -66,15 +66,15 @@ object Deps {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.3.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.9.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.9.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.10.0"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.10.0"
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.2"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.2"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.2"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.2"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.4"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.4"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.4"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.4"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
@@ -107,8 +107,8 @@ object Deps {
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.1"
 
-  val jna = ivy"net.java.dev.jna:jna:5.10.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.10.0"
+  val jna = ivy"net.java.dev.jna:jna:5.11.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.11.0"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
@@ -119,7 +119,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.4.3"
-  val scalametaTrees = ivy"org.scalameta::trees:4.5.1"
+  val scalametaTrees = ivy"org.scalameta::trees:4.5.3"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
@@ -188,6 +188,10 @@ trait MillMimaConfig extends mima.Mima {
     issueFilterByModule.getOrElse(this, Seq())
   }
   lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
+    main.core -> Seq(
+      // refined generic parameter, should be ok
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.Evaluator.plan")
+    ),
     scalalib -> Seq(
       ProblemFilter.exclude[DirectMissingMethodProblem](
         "mill.scalalib.JavaModule.bspCompileClassesPath"
@@ -231,7 +235,11 @@ trait MillInternalModule
   override def ammoniteVersion = Deps.ammonite.dep.version
 }
 
-trait MillApiModule extends MillInternalModule with MillMimaConfig
+trait MillApiModule extends MillInternalModule with MillMimaConfig {
+  override def scalacOptions = T {
+    super.scalacOptions() ++ Seq("-deprecation")
+  }
+}
 
 trait MillModule extends MillApiModule { outer =>
   override def scalacPluginClasspath = T {

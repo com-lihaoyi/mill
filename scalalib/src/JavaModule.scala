@@ -8,7 +8,6 @@ import mill.api.Loose.Agg
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.eval.EvaluatorPathsResolver
-import mill.modules.Jvm.{createAssembly, createJar}
 import mill.modules.{Assembly, Jvm}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
@@ -391,7 +390,7 @@ trait JavaModule
    * upstream dependencies do not change
    */
   def upstreamAssembly: T[PathRef] = T {
-    createAssembly(
+    Jvm.createAssembly(
       upstreamAssemblyClasspath().map(_.path),
       manifest(),
       assemblyRules = assemblyRules
@@ -403,7 +402,7 @@ trait JavaModule
    * classfiles from this module and all it's upstream modules and dependencies
    */
   def assembly: T[PathRef] = T {
-    createAssembly(
+    Jvm.createAssembly(
       Agg.from(localClasspath().map(_.path)),
       manifest(),
       prependShellScript(),
@@ -417,7 +416,7 @@ trait JavaModule
    * without those from upstream modules and dependencies
    */
   def jar: T[PathRef] = T {
-    createJar(
+    Jvm.createJar(
       localClasspath().map(_.path).filter(os.exists),
       manifest()
     )
@@ -448,6 +447,13 @@ trait JavaModule
   def docResources: Sources = T.sources(millSourcePath / "docs")
 
   /**
+   * Control whether `docJar`-target should use a file to pass command line arguments to the javadoc tool.
+   * Defaults to `true` on Windows.
+   * Beware: Using an args-file is probably not supported for very old javadoc versions.
+   */
+  def docJarUseArgsFile: T[Boolean] = T { scala.util.Properties.isWin }
+
+  /**
    * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
    * publishing to Maven Central
    */
@@ -458,33 +464,58 @@ trait JavaModule
     os.makeDir.all(javadocDir)
 
     val files = Lib.findSourceFiles(docSources(), Seq("java"))
-    val options = javadocOptions() ++ Seq("-d", javadocDir.toNIO.toString)
 
-    if (files.nonEmpty)
+    if (files.nonEmpty) {
+      val classPath = compileClasspath().iterator.map(_.path).filter(_.ext != "pom").toSeq
+      val cpOptions =
+        if (classPath.isEmpty) Seq()
+        else Seq(
+          "-classpath",
+          classPath.mkString(java.io.File.pathSeparator)
+        )
+
+      val options = javadocOptions() ++
+        Seq("-d", javadocDir.toString) ++
+        cpOptions ++
+        files.map(_.toString)
+
+      val cmdArgs =
+        if (docJarUseArgsFile()) {
+          val content = options.map(s =>
+            // make sure we properly mask backslashes (path separators on Windows)
+            s""""${s.replace("\\", "\\\\")}""""
+          ).mkString(" ")
+          val argsFile = os.temp(
+            contents = content,
+            prefix = "javadoc-",
+            deleteOnExit = false,
+            dir = outDir
+          )
+          T.log.debug(
+            s"Creating javadoc options file @${argsFile} ..."
+          )
+          Seq(s"@${argsFile}")
+        } else {
+          options
+        }
+
+      T.log.info("options: " + cmdArgs)
+
       Jvm.runSubprocess(
-        commandArgs = Seq(
-          "javadoc"
-        ) ++ options ++
-          Seq(
-            "-classpath",
-            compileClasspath()
-              .map(_.path)
-              .filter(_.ext != "pom")
-              .mkString(java.io.File.pathSeparator)
-          ) ++
-          files.map(_.toString),
+        commandArgs = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
         envArgs = Map(),
         workingDir = T.dest
       )
+    }
 
-    createJar(Agg(javadocDir))(outDir)
+    Jvm.createJar(Agg(javadocDir))(outDir)
   }
 
   /**
    * The source jar, containing only source code for publishing to Maven Central
    */
   def sourceJar: Target[PathRef] = T {
-    createJar(
+    Jvm.createJar(
       (allSources() ++ resources()).map(_.path).filter(os.exists),
       manifest()
     )

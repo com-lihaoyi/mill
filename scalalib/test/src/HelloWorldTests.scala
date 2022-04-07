@@ -6,8 +6,9 @@ import scala.jdk.CollectionConverters._
 import scala.util.Using
 import scala.xml.NodeSeq
 import mill._
+import mill.api.Result
 import mill.define.Target
-import mill.eval.{Evaluator, EvaluatorPaths, Result}
+import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.modules.Assembly
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}

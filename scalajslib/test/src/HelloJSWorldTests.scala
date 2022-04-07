@@ -2,8 +2,9 @@ package mill.scalajslib
 
 import java.util.jar.JarFile
 import mill._
+import mill.api.Result
 import mill.define.Discover
-import mill.eval.{EvaluatorPaths, Result}
+import mill.eval.EvaluatorPaths
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
 import mill.testrunner.TestRunner
 import mill.scalalib.api.Util.isScala3
@@ -65,9 +66,8 @@ object HelloJSWorldTests extends TestSuite {
         crossScalaVersion: String,
         sjsVersion0: String
     ) extends BuildModule(crossScalaVersion, sjsVersion0) {
-      object test extends super.Tests {
+      object test extends super.Tests with TestModule.ScalaTest {
         override def sources = T.sources { millSourcePath / "src" / "scalatest" }
-        def testFrameworks = Seq("org.scalatest.tools.Framework")
         override def ivyDeps = Agg(
           ivy"org.scalatest::scalatest::3.1.2"
         )

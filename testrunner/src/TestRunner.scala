@@ -2,6 +2,7 @@ package mill.testrunner
 
 import mill.api.Loose.Agg
 import mill.api.{Ctx, DummyTestReporter, Loose, TestReporter}
+import mill.scalalib.api._
 import mill.util.Jvm
 import mill.util.PrintLogger
 import mill.api.JsonFormatters._

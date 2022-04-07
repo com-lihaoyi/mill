@@ -9,15 +9,15 @@ object Jvm {
       isolated: Boolean,
       closeContextClassLoaderWhenDone: Boolean,
       body: ClassLoader => T
-  )(implicit ctx: Ctx.Home): T = {
+  )(implicit ctx: mill.api.Ctx.Home): T = {
     val urls = classPath.map(_.toIO.toURI.toURL)
     val cl =
       if (classLoaderOverrideSbtTesting) {
-        mill.api.ClassLoader.create(urls.toVector, null, sharedPrefixes = Seq("sbt.testing."))
+        mill.api.ClassLoader.create(urls.iterator.toVector, null, sharedPrefixes = Seq("sbt.testing."))
       } else if (isolated) {
-        mill.api.ClassLoader.create(urls.toVector, null)
+        mill.api.ClassLoader.create(urls.iterator.toVector, null)
       } else {
-        mill.api.ClassLoader.create(urls.toVector, getClass.getClassLoader)
+        mill.api.ClassLoader.create(urls.iterator.toVector, getClass.getClassLoader)
       }
 
     val oldCl = Thread.currentThread().getContextClassLoader

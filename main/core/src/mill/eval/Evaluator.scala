@@ -1,31 +1,30 @@
 package mill.eval
 
-import java.net.URLClassLoader
+import java.net.{URL, URLClassLoader}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import ammonite.runtime.SpecialClassLoader
-import mainargs.MainData
 
 import scala.util.DynamicVariable
-import mill.api.{CompileProblemReporter, DummyTestReporter, TestReporter}
-import mill.api.Result.{Aborted, OuterStack, Success}
-import mill.api.Loose
+import mill.api.{CompileProblemReporter, Ctx, DummyTestReporter, Loose, Strict, TestReporter}
+import mill.api.Result.{Aborted, Failing, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define.{Ctx => _, _}
 import mill.internal.AmmoniteUtils
-import mill.util
-import mill.util._
+import mill.util.{Ctx => _, _}
+import upickle.default
 
+import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 case class Labelled[T](task: NamedTask[T], segments: Segments) {
-  def format = task match {
+  def format: Option[default.ReadWriter[T]] = task match {
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
-  def writer = task match {
+  def writer: Option[default.Writer[T]] = task match {
     case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
     case t: mill.define.Input[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
@@ -49,6 +48,8 @@ class Evaluator private[Evaluator] (
     _threadCount: Option[Int],
     _importTree: Seq[ScriptNode]
 ) extends Product with Serializable { // TODO: Remove extends Product with Serializable before 0.11.0
+
+  import Evaluator.Terminal
 
   @deprecated(message = "Use apply instead", since = "mill 0.10.1")
   def this(
@@ -125,7 +126,7 @@ class Evaluator private[Evaluator] (
 
   // We're interested of the whole file hash.
   // So we sum the hash of all classes that normalize to the same name.
-  private val scriptsSigMap =
+  private val scriptsSigMap: Map[String, Long] =
     scriptsClassLoader.groupMapReduce(e =>
       AmmoniteUtils.normalizeAmmoniteImportPath(e._1)
     )(_._2)(_ + _)
@@ -139,7 +140,7 @@ class Evaluator private[Evaluator] (
 
   // Binary compatibility shim
   @deprecated("To be removed", since = "mill 0.10.1")
-  def classLoaderSignHash = classLoaderSig.hashCode()
+  def classLoaderSignHash: Int = classLoaderSig.hashCode()
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
@@ -150,8 +151,7 @@ class Evaluator private[Evaluator] (
    */
   def evaluate(
       goals: Agg[Task[_]],
-      reporter: Int => Option[CompileProblemReporter] =
-        (int: Int) => Option.empty[CompileProblemReporter],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger
   ): Evaluator.Results = {
@@ -165,8 +165,7 @@ class Evaluator private[Evaluator] (
   def sequentialEvaluate(
       goals: Agg[Task[_]],
       logger: ColorLogger,
-      reporter: Int => Option[CompileProblemReporter] =
-        (int: Int) => Option.empty[CompileProblemReporter],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
     val (sortedGroups, transitive) = Evaluator.plan(goals)
@@ -191,7 +190,7 @@ class Evaluator private[Evaluator] (
         val startTime = System.currentTimeMillis()
 
         // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
-        val counterMsg = (i + 1) + "/" + sortedGroups.keyCount
+        val counterMsg = s"${(i + 1)}/${sortedGroups.keyCount}"
 
         val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
           terminal = terminal,
@@ -226,10 +225,8 @@ class Evaluator private[Evaluator] (
   def getFailing(
       sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]],
       results: collection.Map[Task[_], mill.api.Result[(Any, Int)]]
-  ) = {
-
-    val failing =
-      new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]]
+  ): MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Failing[_]] = {
+    val failing = new MultiBiMap.Mutable[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]]
     for ((k, vs) <- sortedGroups.items()) {
       failing.addAll(
         k,
@@ -243,8 +240,7 @@ class Evaluator private[Evaluator] (
       goals: Agg[Task[_]],
       threadCount: Int,
       logger: ColorLogger,
-      reporter: Int => Option[CompileProblemReporter] =
-        (int: Int) => Option.empty[CompileProblemReporter],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
     os.makeDir.all(outPath)
@@ -256,8 +252,8 @@ class Evaluator private[Evaluator] (
     import scala.concurrent._
     val threadPool = java.util.concurrent.Executors.newFixedThreadPool(threadCount)
     try {
-      implicit val ec = new ExecutionContext {
-        def execute(runnable: Runnable) = threadPool.submit(runnable)
+      implicit val ec: ExecutionContext = new ExecutionContext {
+        def execute(runnable: Runnable): Unit = threadPool.submit(runnable)
         def reportFailure(t: Throwable): Unit = {}
       }
 
@@ -419,12 +415,12 @@ class Evaluator private[Evaluator] (
         val cached = for {
           cached <-
             try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
-            catch { case e: Throwable => None }
+            catch { case NonFatal(_) => None }
           if cached.inputsHash == inputsHash
           reader <- labelledNamedTask.format
           parsed <-
             try Some(upickle.default.read(cached.value)(reader))
-            catch { case e: Throwable => None }
+            catch { case NonFatal(_) => None }
         } yield (parsed, cached.valueHash)
 
         val previousWorker = labelledNamedTask.task.asWorker.flatMap { w =>
@@ -460,7 +456,7 @@ class Evaluator private[Evaluator] (
             val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
             newResults(labelledNamedTask.task) = mill.api.Result.Success((v, hashCode))
 
-            Evaluated(newResults, Nil, true)
+            Evaluated(newResults, Nil, cached = true)
 
           case _ =>
             // uncached
@@ -484,10 +480,10 @@ class Evaluator private[Evaluator] (
               }
 
             newResults(labelledNamedTask.task) match {
-              case mill.api.Result.Failure(_, Some((v, hashCode))) =>
+              case mill.api.Result.Failure(_, Some((v, _))) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
-              case mill.api.Result.Success((v, hashCode)) =>
+              case mill.api.Result.Success((v, _)) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case _ =>
@@ -498,7 +494,7 @@ class Evaluator private[Evaluator] (
                 os.remove.all(paths.meta)
             }
 
-            Evaluated(newResults, newEvaluated.toSeq, false)
+            Evaluated(newResults, newEvaluated.toSeq, cached = false)
         }
     }
   }
@@ -531,7 +527,7 @@ class Evaluator private[Evaluator] (
           .asInstanceOf[Option[upickle.default.Writer[Any]]]
           .map(w => upickle.default.writeJs(v)(w) -> v)
 
-        for ((json, v) <- terminalResult) {
+        for ((json, _) <- terminalResult) {
           os.write.over(
             metaPath,
             upickle.default.stream(
@@ -553,7 +549,7 @@ class Evaluator private[Evaluator] (
       counterMsg: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: Logger
+      logger: mill.api.Logger
   ): (mutable.LinkedHashMap[Task[_], mill.api.Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
@@ -591,13 +587,13 @@ class Evaluator private[Evaluator] (
       newEvaluated.append(task)
       val targetInputValues = task.inputs
         .map { x => newResults.getOrElse(x, results(x)) }
-        .collect { case mill.api.Result.Success((v, hashCode)) => v }
+        .collect { case mill.api.Result.Success((v, _)) => v }
 
       val res =
         if (targetInputValues.length != task.inputs.length) mill.api.Result.Skipped
         else {
           val args = new Ctx(
-            args = targetInputValues.toArray[Any],
+            args = targetInputValues.toArray[Any].toIndexedSeq,
             dest0 = () =>
               paths match {
                 case Some(dest) =>
@@ -631,7 +627,10 @@ class Evaluator private[Evaluator] (
                   try task.evaluate(args)
                   catch {
                     case NonFatal(e) =>
-                      mill.api.Result.Exception(e, new OuterStack(new Exception().getStackTrace))
+                      mill.api.Result.Exception(
+                        e,
+                        new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                      )
                   }
                 }
               }
@@ -664,29 +663,16 @@ class Evaluator private[Evaluator] (
     (newResults, newEvaluated)
   }
 
-  def resolveLogger(logPath: Option[os.Path], logger: Logger): Logger = logPath match {
-    case None => logger
-    case Some(path) => MultiLogger(
-        logger.colored,
-        logger,
-        new FileLogger(logger.colored, path, debugEnabled = true),
-        logger.inStream
-      )
-  }
-
-  /**
-   * A terminal or terminal target is some important work unit, that in most cases has a name (Right[Labelled])
-   * or was directly called by the user (Left[Task]).
-   * It's a T, T.worker, T.input, T.source, T.sources, T.persistent
-   */
-  type Terminal = Either[Task[_], Labelled[Any]]
-
-  /**
-   * A terminal target with all it's inner tasks.
-   * To implement a terminal target, one can delegate to other/inner tasks (T.task), those are contained in
-   * the 2nd parameter of the tuple.
-   */
-  type TerminalGroup = (Terminal, Agg[Task[_]])
+  def resolveLogger(logPath: Option[os.Path], logger: mill.api.Logger): mill.api.Logger =
+    logPath match {
+      case None => logger
+      case Some(path) => MultiLogger(
+          logger.colored,
+          logger,
+          new FileLogger(logger.colored, path, debugEnabled = true),
+          logger.inStream
+        )
+    }
 
   // TODO: we could track the deps of the dependency chain, to prioritize tasks with longer chain
   // TODO: we could also track the number of other tasks that depends on a task to prioritize
@@ -708,7 +694,7 @@ class Evaluator private[Evaluator] (
   def printTerm(term: Terminal): String = term match {
     case Left(task) => task.toString()
     case Right(labelledNamedTask) =>
-      val Seq(first, rest @ _*) = labelledNamedTask.segments.value
+      val Seq(first, rest @ _*) = destSegments(labelledNamedTask).value
       val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map {
         case Segment.Label(s) => "." + s
         case Segment.Cross(s) => "[" + s.mkString(",") + "]"
@@ -824,6 +810,21 @@ class Evaluator private[Evaluator] (
 }
 
 object Evaluator {
+
+  /**
+   * A terminal or terminal target is some important work unit, that in most cases has a name (Right[Labelled])
+   * or was directly called by the user (Left[Task]).
+   * It's a T, T.worker, T.input, T.source, T.sources, T.persistent
+   */
+  type Terminal = Either[Task[_], Labelled[Any]]
+
+  /**
+   * A terminal target with all it's inner tasks.
+   * To implement a terminal target, one can delegate to other/inner tasks (T.task), those are contained in
+   * the 2nd parameter of the tuple.
+   */
+  type TerminalGroup = (Terminal, Agg[Task[_]])
+
   case class Cached(value: ujson.Value, valueHash: Int, inputsHash: Int)
   object Cached {
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
@@ -840,21 +841,23 @@ object Evaluator {
   @deprecated("Use EvaluatorPaths instead", "mill-0.10.0-M3")
   type Paths = EvaluatorPaths
   @deprecated("Use EvaluatorPaths.makeSegmentStrings instead", "mill-0.10.0-M3")
-  def makeSegmentStrings(segments: Segments) = EvaluatorPaths.makeSegmentStrings(segments)
+  def makeSegmentStrings(segments: Segments): Seq[String] =
+    EvaluatorPaths.makeSegmentStrings(segments)
   @deprecated("Use EvaluatorPaths.resolveDestPaths instead", "mill-0.10.0-M3")
   def resolveDestPaths(
       workspacePath: os.Path,
       segments: Segments,
       foreignSegments: Option[Segments] = None
-  ) = EvaluatorPaths.resolveDestPaths(workspacePath, segments, foreignSegments)
+  ): EvaluatorPaths = EvaluatorPaths.resolveDestPaths(workspacePath, segments, foreignSegments)
 
   // check if the build itself has changed
-  def classLoaderSig = Thread.currentThread().getContextClassLoader match {
-    case scl: SpecialClassLoader => scl.classpathSignature
-    case ucl: URLClassLoader =>
-      SpecialClassLoader.initialClasspathSignature(ucl)
-    case _ => Nil
-  }
+  def classLoaderSig: Seq[(Either[String, URL], Long)] =
+    Thread.currentThread().getContextClassLoader match {
+      case scl: SpecialClassLoader => scl.classpathSignature
+      case ucl: URLClassLoader =>
+        SpecialClassLoader.initialClasspathSignature(ucl)
+      case _ => Nil
+    }
 
   case class Timing(label: String, millis: Int, cached: Boolean)
 
@@ -884,10 +887,10 @@ object Evaluator {
       failing: MultiBiMap[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]],
       results: collection.Map[Task[_], mill.api.Result[Any]]
   ) {
-    def values = rawValues.collect { case mill.api.Result.Success(v) => v }
+    def values: Seq[Any] = rawValues.collect { case mill.api.Result.Success(v) => v }
   }
 
-  def plan(goals: Agg[Task[_]]) = {
+  def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
     val seen = collection.mutable.Set.empty[Segments]
@@ -912,7 +915,7 @@ object Evaluator {
               Segments(
                 segments.value.init ++
                   Seq(Segment.Label(tName + ".overridden")) ++
-                  t.ctx.enclosing.split("\\.|#| ").map(Segment.Label): _*
+                  t.ctx.enclosing.split("[.# ]").map(Segment.Label): _*
               )
             }
           )
@@ -935,7 +938,7 @@ object Evaluator {
 
     def apply(): String = {
       counter += 1
-      counter + "/" + taskCount
+      s"${counter}/${taskCount}"
     }
   }
 
@@ -1037,7 +1040,7 @@ object Evaluator {
     externalOutPath,
     rootModule,
     baseLogger
-  )
+  ): @nowarn
 
   @deprecated(message = "Use other apply and withX methods instead", since = "mill 0.10.1")
   def apply(
