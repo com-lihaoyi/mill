@@ -65,7 +65,7 @@ object Jvm {
   }
 
   /**
-   * Resolved a tool to a path under the currently used JDK (if known).
+   * Resolves a tool to a path under the currently used JDK (if known).
    */
   def jdkTool(toolName: String): String = {
     sys.props
