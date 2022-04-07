@@ -117,5 +117,13 @@ class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
 
       assert(result == expected)
     }
+    test("should handle ammonite files with symbols") {
+      initWorkspace()
+
+      val result = runTask("taskSymbolsInFile")
+      val expected = Seq("taskSymbolsInFile")
+
+      assert(result == expected)
+    }
   }
 }
