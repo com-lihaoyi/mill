@@ -5,7 +5,6 @@ import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
 import $ivy.`com.github.lolgab::mill-mima::0.0.10`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
-import java.nio.file.attribute.PosixFilePermission
 import com.github.lolgab.mill.mima
 import com.github.lolgab.mill.mima.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, IncompatibleSignatureProblem, ProblemFilter}
 import coursier.maven.MavenRepository
@@ -898,6 +897,26 @@ object integration extends MillModule {
       (for ((k, v) <- testRepos()) yield s"-D$k=$v")
   }
   override def forkArgs = testArgs()
+}
+
+val DefaultLocalMillReleasePath = "target/mill-release"
+
+/**
+ * Build and install Mill locally.
+ * @param binFile The location where the Mill binary should be installed
+ * @param ivyRepo The local Ivy repository where Mill modules should be published to
+ */
+def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String = null) = {
+  val modules = build.millInternal.modules.collect { case m: PublishModule => m }
+  T.command {
+    T.traverse(modules)(m => m.publishLocal(ivyRepo))()
+    val millBin = assembly()
+    val targetFile = os.Path(binFile, T.workspace)
+    if(os.exists(targetFile)) T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+    os.copy.over(millBin.path, targetFile, createFolders = true)
+    T.log.info(s"Published ${modules.size} modules and installed ${targetFile}")
+    PathRef(targetFile)
+  }
 }
 
 def launcherScript(
