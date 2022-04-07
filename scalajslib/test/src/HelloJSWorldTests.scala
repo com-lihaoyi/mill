@@ -109,12 +109,10 @@ object HelloJSWorldTests extends TestSuite {
     def testRun(
         scalaVersion: String,
         scalaJSVersion: String,
-        mode: OptimizeMode
+        optimize: Boolean
     ): Unit = {
-      val task = mode match {
-        case FullOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fullOpt
-        case FastOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fastOpt
-      }
+      val module = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion)
+      val task = if(optimize) module.fullOpt else module.fastOpt
       val Right((result, evalCount)) = helloWorldEvaluator(task)
       val jsFile = result.path
       val output = ScalaJsUtils.runJS(jsFile)
@@ -131,12 +129,12 @@ object HelloJSWorldTests extends TestSuite {
 
     test("fullOpt") {
       testAllMatrix((scala, scalaJS) =>
-        testRun(scala, scalaJS, FullOpt)
+        testRun(scala, scalaJS, optimize = true)
       )
     }
     test("fastOpt") {
       testAllMatrix((scala, scalaJS) =>
-        testRun(scala, scalaJS, FastOpt)
+        testRun(scala, scalaJS, optimize = true)
       )
     }
     test("jar") {
