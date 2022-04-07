@@ -309,7 +309,7 @@ trait JavaModule
    * modules and third-party dependencies
    */
   def localClasspath: T[Seq[PathRef]] = T {
-    resources() ++ Agg(compile().classes)
+    compileResources() ++ resources() ++ Agg(compile().classes)
   }
 
   /**
@@ -318,7 +318,7 @@ trait JavaModule
    */
   @internal
   def bspLocalClasspath: Target[Agg[UnresolvedPath]] = T {
-    resources().map(p => UnresolvedPath.ResolvedPath(p.path)) ++ Agg(
+    (compileResources() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++ Agg(
       bspCompileClassesPath()
     )
   }
