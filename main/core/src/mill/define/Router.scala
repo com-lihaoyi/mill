@@ -1,16 +1,13 @@
 package mill.define
 
-import mill.define.{Cross, Discover}
-
 import language.experimental.macros
 import scala.collection.mutable
-import scala.reflect.macros.blackbox.Context
+import scala.reflect.macros.blackbox
 
-class Router(val ctx: Context) extends mainargs.Macros(ctx) {
+class Router(val ctx: blackbox.Context) extends mainargs.Macros(ctx) {
   import c.universe._
 
   def applyImpl[T: WeakTypeTag]: Expr[Discover[T]] = {
-    import compat._
     val seen = mutable.Set.empty[Type]
     def rec(tpe: Type): Unit = {
       if (!seen(tpe)) {
@@ -37,7 +34,7 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
     }
     rec(weakTypeOf[T])
 
-    def assertParamListCounts(methods: Iterable[MethodSymbol], cases: (Type, Int, String)*) = {
+    def assertParamListCounts(methods: Iterable[MethodSymbol], cases: (Type, Int, String)*): Unit = {
       for (m <- methods.toList) {
         for ((tt, n, label) <- cases) {
           if (
@@ -45,7 +42,7 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
             m.paramLists.length != n
           ) {
             c.abort(
-              m.pos.asInstanceOf[c.Position],
+              m.pos,
               s"$label definitions must have $n parameter list" + (if (n == 1) "" else "s")
             )
           }
@@ -73,9 +70,9 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
           m.overrides.length,
           extractMethod(
             m.name,
-            m.paramss.flatten,
+            m.paramLists.flatten,
             m.pos,
-            m.annotations.find(_.tpe =:= typeOf[mainargs.main]),
+            m.annotations.find(_.tree.tpe =:= typeOf[mainargs.main]),
             curCls,
             weakTypeOf[Any]
           )

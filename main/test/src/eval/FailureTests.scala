@@ -16,7 +16,7 @@ object FailureTests extends TestSuite {
       check.fail(
         target = singleton.single,
         expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
+        expectedRawValues = Seq(mill.api.Result.Success(0))
       )
 
       singleton.single.failure = Some("lols")
@@ -24,7 +24,7 @@ object FailureTests extends TestSuite {
       check.fail(
         target = singleton.single,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Failure("lols"))
+        expectedRawValues = Seq(mill.api.Result.Failure("lols"))
       )
 
       singleton.single.failure = None
@@ -32,7 +32,7 @@ object FailureTests extends TestSuite {
       check.fail(
         target = singleton.single,
         expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
+        expectedRawValues = Seq(mill.api.Result.Success(0))
       )
 
       val ex = new IndexOutOfBoundsException()
@@ -41,7 +41,7 @@ object FailureTests extends TestSuite {
       check.fail(
         target = singleton.single,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Exception(ex, new OuterStack(Nil)))
+        expectedRawValues = Seq(mill.api.Result.Exception(ex, new OuterStack(Nil)))
       )
     }
     "evaluatePair" - {
@@ -49,7 +49,7 @@ object FailureTests extends TestSuite {
       check.fail(
         pair.down,
         expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
+        expectedRawValues = Seq(mill.api.Result.Success(0))
       )
 
       // inject some fake error
@@ -58,7 +58,7 @@ object FailureTests extends TestSuite {
       check.fail(
         pair.down,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Skipped)
+        expectedRawValues = Seq(mill.api.Result.Skipped)
       )
 
       pair.up.failure = None
@@ -66,7 +66,7 @@ object FailureTests extends TestSuite {
       check.fail(
         pair.down,
         expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
+        expectedRawValues = Seq(mill.api.Result.Success(0))
       )
 
       pair.up.exception = Some(new IndexOutOfBoundsException())
@@ -74,7 +74,7 @@ object FailureTests extends TestSuite {
       check.fail(
         pair.down,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Skipped)
+        expectedRawValues = Seq(mill.api.Result.Skipped)
       )
     }
 
@@ -83,7 +83,7 @@ object FailureTests extends TestSuite {
       check.fail(
         pair.down,
         expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
+        expectedRawValues = Seq(mill.api.Result.Success(0))
       )
 
       pair.up.failure = Some("lols")
@@ -91,7 +91,7 @@ object FailureTests extends TestSuite {
       check.fail(
         pair.down,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Aborted)
+        expectedRawValues = Seq(mill.api.Result.Aborted)
       )
 
       pair.up.failure = None
@@ -99,7 +99,7 @@ object FailureTests extends TestSuite {
       check.fail(
         pair.down,
         expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
+        expectedRawValues = Seq(mill.api.Result.Success(0))
       )
 
       pair.up.exception = Some(new IndexOutOfBoundsException())
@@ -107,7 +107,7 @@ object FailureTests extends TestSuite {
       check.fail(
         pair.down,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Aborted)
+        expectedRawValues = Seq(mill.api.Result.Aborted)
       )
     }
 
@@ -117,7 +117,7 @@ object FailureTests extends TestSuite {
       check.fail(
         `a-down-target`,
         expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
+        expectedRawValues = Seq(mill.api.Result.Success(0))
       )
 
       `up-target`.failure = Some("lols")
@@ -125,7 +125,7 @@ object FailureTests extends TestSuite {
       check.fail(
         `a-down-target`,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Skipped)
+        expectedRawValues = Seq(mill.api.Result.Skipped)
       )
 
       `up-target`.failure = None
@@ -133,7 +133,7 @@ object FailureTests extends TestSuite {
       check.fail(
         `a-down-target`,
         expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
+        expectedRawValues = Seq(mill.api.Result.Success(0))
       )
 
       `up-target`.exception = Some(new IndexOutOfBoundsException())
@@ -141,7 +141,7 @@ object FailureTests extends TestSuite {
       check.fail(
         `a-down-target`,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Skipped)
+        expectedRawValues = Seq(mill.api.Result.Skipped)
       )
     }
 
@@ -151,7 +151,7 @@ object FailureTests extends TestSuite {
       check.fail(
         `a-down-target`,
         expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
+        expectedRawValues = Seq(mill.api.Result.Success(0))
       )
 
       `up-target`.failure = Some("lols")
@@ -159,7 +159,7 @@ object FailureTests extends TestSuite {
       check.fail(
         `a-down-target`,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Aborted)
+        expectedRawValues = Seq(mill.api.Result.Aborted)
       )
 
       `up-target`.failure = None
@@ -167,7 +167,7 @@ object FailureTests extends TestSuite {
       check.fail(
         `a-down-target`,
         expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
+        expectedRawValues = Seq(mill.api.Result.Success(0))
       )
 
       `up-target`.exception = Some(new IndexOutOfBoundsException())
@@ -175,7 +175,7 @@ object FailureTests extends TestSuite {
       check.fail(
         `a-down-target`,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Aborted)
+        expectedRawValues = Seq(mill.api.Result.Aborted)
       )
     }
 

@@ -12,11 +12,11 @@ import utest._
 import mill._
 
 object JavaCompileJarTests extends TestSuite {
-  def compileAll(sources: mill.api.Loose.Agg[PathRef])(implicit ctx: Dest) = {
+  def compileAll(sources: mill.api.Loose.Agg[mill.api.PathRef])(implicit ctx: Dest) = {
     os.makeDir.all(ctx.dest)
 
     os.proc("javac", sources.map(_.path.toString()).toSeq, "-d", ctx.dest).call(ctx.dest)
-    PathRef(ctx.dest)
+    mill.api.PathRef(ctx.dest)
   }
 
   val tests = Tests {
@@ -41,7 +41,7 @@ object JavaCompileJarTests extends TestSuite {
         def readme = T.source { readmePath }
         def sourceRoot = T.sources { sourceRootPath }
         def resourceRoot = T.sources { resourceRootPath }
-        def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
+        def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
         def classFiles = T { compileAll(allSources()) }
         def jar = T {
           Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
@@ -124,7 +124,7 @@ object JavaCompileJarTests extends TestSuite {
 
       val jarContents = os.proc("jar", "-tf", evaluator.outPath / "jar.dest" / "out.jar").call(
         evaluator.outPath
-      ).out.string
+      ).out.text()
       val expectedJarContents =
         """META-INF/MANIFEST.MF
           |test/Bar.class
@@ -145,7 +145,7 @@ object JavaCompileJarTests extends TestSuite {
         "jar",
         "-tf",
         evaluator.outPath / "filterJar.dest" / "out.jar"
-      ).call(evaluator.outPath).out.string
+      ).call(evaluator.outPath).out.text()
       assert(filteredJarContents.linesIterator.toSeq == expectedJarContents.linesIterator.filter(
         noFoos(_)
       ).toSeq)
@@ -155,7 +155,7 @@ object JavaCompileJarTests extends TestSuite {
         "-cp",
         evaluator.outPath / "jar.dest" / "out.jar",
         "test.Foo"
-      ).call(evaluator.outPath).out.string
+      ).call(evaluator.outPath).out.text()
       assert(executed == (31337 + 271828) + System.lineSeparator)
 
       for (i <- 0 until 3) {
@@ -163,12 +163,12 @@ object JavaCompileJarTests extends TestSuite {
         // re-evaluate
         val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))
         assert(
-          runOutput.out.string == (31337 + 271828) + System.lineSeparator,
+          runOutput.out.text() == (31337 + 271828) + System.lineSeparator,
           evalCount == 1
         )
       }
 
-      val Left(Result.Exception(ex, _)) = eval(Build.run("test.BarFour"))
+      val Left(mill.api.Result.Exception(ex, _)) = eval(Build.run("test.BarFour"))
 
       assert(ex.getMessage.contains("Could not find or load main class"))
 
@@ -184,12 +184,12 @@ object JavaCompileJarTests extends TestSuite {
       )
       val Right((runOutput2, evalCount2)) = eval(Build.run("test.BarFour"))
       assert(
-        runOutput2.out.string == "New Cls!" + System.lineSeparator,
+        runOutput2.out.text() == "New Cls!" + System.lineSeparator,
         evalCount2 == 3
       )
       val Right((runOutput3, evalCount3)) = eval(Build.run("test.BarFour"))
       assert(
-        runOutput3.out.string == "New Cls!" + System.lineSeparator,
+        runOutput3.out.text() == "New Cls!" + System.lineSeparator,
         evalCount3 == 1
       )
     }

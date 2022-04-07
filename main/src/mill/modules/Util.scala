@@ -2,9 +2,7 @@ package mill.modules
 
 import coursier.Repository
 import mill.BuildInfo
-import mill.api.{IO, PathRef}
-import mill.util.Ctx
-import mill.api.Loose
+import mill.api.{Ctx, IO, Loose, PathRef}
 
 object Util {
 

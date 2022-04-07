@@ -4,10 +4,10 @@ import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
 import $ivy.`com.github.lolgab::mill-mima::0.0.10`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
-import java.nio.file.attribute.PosixFilePermission
 
+import java.nio.file.attribute.PosixFilePermission
 import com.github.lolgab.mill.mima
-import com.github.lolgab.mill.mima.ProblemFilter
+import com.github.lolgab.mill.mima.{DirectMissingMethodProblem, IncompatibleSignatureProblem, ProblemFilter}
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -188,6 +188,10 @@ trait MillMimaConfig extends mima.Mima {
     issueFilterByModule.getOrElse(this, Seq())
   }
   lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
+    main.core -> Seq(
+      // refined generic parameter, should be ok
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.Evaluator.plan"),
+    )
   )
 }
 
@@ -199,7 +203,11 @@ trait MillInternalModule
   override def ammoniteVersion = Deps.ammonite.dep.version
 }
 
-trait MillApiModule extends MillInternalModule with MillMimaConfig
+trait MillApiModule extends MillInternalModule with MillMimaConfig {
+  override def scalacOptions = T {
+    super.scalacOptions() ++ Seq("-deprecation")
+  }
+}
 
 trait MillModule extends MillApiModule { outer =>
   override def scalacPluginClasspath = T {
