@@ -1,12 +1,9 @@
-package mill
-package scalajslib
-package worker
+package mill.scalajslib.worker
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import java.io.File
-import mill.api.{Result, internal}
-import mill.scalajslib.api.{ESFeatures, ESVersion, JsEnvConfig, ModuleKind}
+import mill.scalajslib.worker.api._
 import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.linker.{
   PathIRContainer,
@@ -19,6 +16,7 @@ import org.scalajs.linker.interface.{
   ESFeatures => ScalaJSESFeatures,
   ESVersion => ScalaJSESVersion,
   ModuleKind => ScalaJSModuleKind,
+  Report => ScalaJSReport,
   _
 }
 import org.scalajs.logging.ScalaConsoleLogger
@@ -30,15 +28,14 @@ import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 import scala.collection.mutable
 import scala.ref.WeakReference
 
-@internal
-class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
+class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
       fullOpt: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       dest: File
   )
-  private def minorIsGreaterThan(number: Int) = ScalaJSVersions.binaryEmitted match {
+  private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.binaryEmitted match {
     case s"1.$n" if n.toIntOption.exists(_ < number) => false
     case _ => true
   }
@@ -87,13 +84,13 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       var scalaJSESFeatures: ScalaJSESFeatures = ScalaJSESFeatures.Defaults
         .withAllowBigIntsForLongs(input.esFeatures.allowBigIntsForLongs)
 
-      if (minorIsGreaterThan(3)) {
+      if (minorIsGreaterThanOrEqual(4)) {
         scalaJSESFeatures = scalaJSESFeatures
           .withAvoidClasses(input.esFeatures.avoidClasses)
           .withAvoidLetsAndConsts(input.esFeatures.avoidLetsAndConsts)
       }
       scalaJSESFeatures =
-        if (minorIsGreaterThan(6)) withESVersion_1_6_plus(scalaJSESFeatures)
+        if (minorIsGreaterThanOrEqual(6)) withESVersion_1_6_plus(scalaJSESFeatures)
         else withESVersion_1_5_minus(scalaJSESFeatures)
 
       val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule
@@ -111,13 +108,16 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       libraries: Array[File],
       dest: File,
       main: String,
+      legacy: Boolean,
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
-  ) = {
+  ): Either[String, Report] = {
+    // On Scala.js 1.2- we want to use the legacy mode either way since
+    // the new mode is not supported and in tests we always use legacy = false
+    val useLegacy = legacy || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
-    val outFile = new File(dest, "out.js")
     val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures, dest))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
@@ -136,37 +136,59 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val resultFuture = (for {
       sourceIRs <- sourceIRsFuture
       libraryIRs <- libraryIRsFuture
-      _ <-
-        if (minorIsGreaterThan(2)) {
-          val linkerOutput = PathOutputDirectory(dest.toPath())
-          linker.link(
-            sourceIRs ++ libraryIRs,
-            moduleInitializers.map(_.withModuleID("out")),
-            linkerOutput,
-            logger
-          )
-        } else {
-          val jsFile = outFile.toPath()
-          val sourceMap = jsFile.resolveSibling(jsFile.getFileName + ".map")
+      report <-
+        if (useLegacy) {
+          val jsFileName = "out.js"
+          val jsFile = new File(dest, jsFileName).toPath()
+          val sourceMapName = jsFile.getFileName + ".map"
+          val sourceMap = jsFile.resolveSibling(sourceMapName)
           val linkerOutput = LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
             .withSourceMap(PathOutputFile(sourceMap))
             .withSourceMapURI(java.net.URI.create(sourceMap.getFileName.toString))
-          linker.link(sourceIRs ++ libraryIRs, moduleInitializers, linkerOutput, logger)
+          linker.link(sourceIRs ++ libraryIRs, moduleInitializers, linkerOutput, logger).map {
+            file =>
+              Report(Seq(Report.Module(
+                moduleID = "main",
+                jsFileName = jsFileName,
+                sourceMapName = Some(sourceMapName),
+                moduleKind = moduleKind
+              )))
+          }
+        } else {
+          val linkerOutput = PathOutputDirectory(dest.toPath())
+          linker.link(
+            sourceIRs ++ libraryIRs,
+            moduleInitializers,
+            linkerOutput,
+            logger
+          ).map { report =>
+            Report(publicModules =
+              report.publicModules.map(module =>
+                Report.Module(
+                  moduleID = module.moduleID,
+                  jsFileName = module.jsFileName,
+                  sourceMapName = module.sourceMapName,
+                  // currently moduleKind is always the input moduleKind
+                  moduleKind = moduleKind
+                )
+              )
+            )
+          }
         }
     } yield {
-      Result.Success(outFile)
+      Right(report)
     }).recover {
       case e: org.scalajs.linker.interface.LinkingException =>
-        Result.Failure(e.getMessage)
+        Left(e.getMessage)
     }
 
     Await.result(resultFuture, Duration.Inf)
   }
 
-  def run(config: JsEnvConfig, linkedFile: File): Unit = {
+  def run(config: JsEnvConfig, dest: File, report: Report): Unit = {
     val env = jsEnv(config)
-    val input = jsEnvInput(linkedFile)
+    val input = jsEnvInput(dest, report)
     val runConfig = RunConfig().withLogger(new ScalaConsoleLogger)
     Run.runInterruptible(env, input, runConfig)
   }
@@ -174,11 +196,11 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   def getFramework(
       config: JsEnvConfig,
       frameworkName: String,
-      linkedFile: File,
-      moduleKind: ModuleKind
+      dest: File,
+      report: Report
   ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
-    val input = jsEnvInput(linkedFile)
+    val input = jsEnvInput(dest, report)
     val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
 
     val adapter = new TestAdapter(env, input, tconfig)
@@ -226,6 +248,18 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       )
   }
 
-  def jsEnvInput(linkedFile: File): Seq[Input] =
-    Seq(Input.Script(linkedFile.toPath()))
+  def jsEnvInput(dest: File, report: Report): Seq[Input] = {
+    val mainModule = report.publicModules.find(_.moduleID == "main").getOrElse(throw new Exception(
+      "Cannot determine `jsEnvInput`: Linking result does not have a " +
+        "module named `main`.\n" +
+        s"Full report:\n$report"
+    ))
+    val path = new File(dest, mainModule.jsFileName).toPath
+    val input = mainModule.moduleKind match {
+      case ModuleKind.NoModule => Input.Script(path)
+      case ModuleKind.ESModule => Input.ESModule(path)
+      case ModuleKind.CommonJSModule => Input.CommonJSModule(path)
+    }
+    Seq(input)
+  }
 }
