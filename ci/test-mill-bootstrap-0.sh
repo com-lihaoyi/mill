@@ -7,9 +7,7 @@ git stash -u
 git stash -a
 
 # First build
-./mill -i "__.publishLocal" + assembly
-mkdir -p target
-cp out/assembly.dest/mill target/mill-1
+./mill -i -j 0 installLocal --binFile target/mill-1
 
 # Clean up
 git stash -a -m "preserve mill-1" -- target/mill-1
@@ -27,8 +25,7 @@ echo "Build 2" > info.txt && git add info.txt && git commit -m "Add info.txt"
 ci/patch-mill-bootstrap.sh
 
 # Second build
-target/mill-1 -i "__.publishLocal" + assembly
-cp out/assembly.dest/mill target/mill-2
+target/mill-1 -i -j 0 installLocal --binFile target/mill-2
 
 # Clean up
 git stash -a -m "preserve mill-2" -- target/mill-2
