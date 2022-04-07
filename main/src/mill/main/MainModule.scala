@@ -1,5 +1,7 @@
 package mill.main
 
+import mainargs.TokensReader
+
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result, internal}
@@ -79,8 +81,13 @@ object MainModule {
 trait MainModule extends mill.Module {
 
   implicit def millDiscover: mill.define.Discover[_]
-  implicit def millScoptTasksReads[T] = new mill.main.Tasks.Scopt[T]()
-  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
+  implicit def millScoptTasksReads[T]: mainargs.TokensReader[Tasks[T]] =
+    new mill.main.Tasks.Scopt[T]()
+  implicit def millScoptEvaluatorReads[T]: TokensReader[Evaluator] =
+    new mill.main.EvaluatorScopt[T]()
+  implicit def taskTokensReader[T](implicit
+      tokensReaderOfT: TokensReader[T]
+  ): TokensReader[Task[T]] = new TaskScopt[T](tokensReaderOfT)
 
   /**
    * Show the mill version.
