@@ -238,12 +238,15 @@ trait JavaModule
   def sources = T.sources { millSourcePath / "src" }
 
   /**
-   * The folders where the resource files for this module live
+   * The folders where the resource files for this module live.
+   * If you need resources to be seen by the compiler, use [[compileResources]].
    */
   def resources: Sources = T.sources { millSourcePath / "resources" }
 
   /**
-   * The folders where the compile time resource files for this module live
+   * The folders where the compile time resource files for this module live.
+   * If your resources files do not necessarily need to be seen by the compiler,
+   * you should use [[resources]] instead.
    */
   def compileResources: Sources = T.sources { millSourcePath / "compile-resources" }
 
