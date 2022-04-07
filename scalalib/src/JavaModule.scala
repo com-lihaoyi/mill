@@ -189,9 +189,21 @@ trait JavaModule
    * The transitive version of `localClasspath`
    */
   def transitiveLocalClasspath: T[Agg[PathRef]] = T {
-    T.traverse(moduleDeps ++ compileModuleDeps)(m =>
-      T.task { m.localClasspath() ++ m.transitiveLocalClasspath() }
-    )()
+    T.traverse(
+      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+    )(m => m.localClasspath)()
+      .flatten
+  }
+
+  /**
+   * The transitive version of `bspLocalClasspath`
+   */
+    // Keep in sync with [[transitiveLocalClasspath]]
+  @internal
+  def bspTransitiveLocalClasspath: Target[Agg[UnresolvedPath]] = T {
+    T.traverse(
+      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+    )(m => m.bspLocalClasspath)()
       .flatten
   }
 
@@ -251,7 +263,9 @@ trait JavaModule
   }
 
   /**
-   * Compiles the current module to generate compiled classfiles/bytecode
+   * Compiles the current module to generate compiled classfiles/bytecode.
+   *
+   * When you override this, you probably also want to override [[bspCompileClassesPath]].
    */
   // Keep in sync with [[bspCompileClassesPath]]
   def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
@@ -269,24 +283,22 @@ trait JavaModule
   /** The path to the compiled classes without forcing to actually run the target. */
   // Keep in sync with [[compile]]
   @internal
-  def bspCompileClassesPath(pathsResolver: Task[EvaluatorPathsResolver]): Task[PathRef] = {
+  def bspCompileClassesPath: Target[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
-      T.task {
-        val pr = PathRef(
-          pathsResolver().resolveDest(compile).dest / "classes"
-        )
+      T {
         T.log.debug(
           s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
         )
-        pr
+        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
       }
-    } else T.task {
-      T.log.debug(
-        s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
-      )
-      compile().classes
+    } else {
+      T {
+        T.log.debug(
+          s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
+        )
+        UnresolvedPath.ResolvedPath(compile().classes.path)
+      }
     }
-  }
 
   /**
    * The output classfiles/resources from this module, excluding upstream
@@ -294,6 +306,17 @@ trait JavaModule
    */
   def localClasspath: T[Seq[PathRef]] = T {
     resources() ++ Agg(compile().classes)
+  }
+
+  /**
+   * The local classpath without forcing to compile the module.
+   * Keep in sync with [[compile]]
+   */
+  @internal
+  def bspLocalClasspath: Target[Agg[UnresolvedPath]] = T {
+    resources().map(p => UnresolvedPath.ResolvedPath(p.path)) ++ Agg(
+      bspCompileClassesPath()
+    )
   }
 
   /**
@@ -311,39 +334,10 @@ trait JavaModule
   /** Same as [[compileClasspath]], but does not trigger compilation targets, if possible. */
   // Keep in sync with [[compileClasspath]]
   @internal
-  def bspCompileClasspath(pathsResolver: Task[EvaluatorPathsResolver]): Task[Seq[PathRef]] = {
-    def bspLocalClasspath(
-        j: JavaModule,
-        pathsResolver: Task[EvaluatorPathsResolver]
-    ): Task[Seq[PathRef]] = {
-      val cl = j.bspCompileClassesPath(pathsResolver)
-      T.task {
-        j.resources() ++ Seq(cl())
-      }
-    }
-
-    def bspTransitiveLocalClasspath(
-        j: JavaModule,
-        pathsResolver: Task[EvaluatorPathsResolver]
-    ): Task[Seq[PathRef]] = {
-      val res = T.traverse(j.moduleDeps ++ j.compileModuleDeps)(m =>
-        T.task {
-          bspLocalClasspath(m, pathsResolver)() ++ bspTransitiveLocalClasspath(m, pathsResolver)()
-        }
-      )
-      T.task {
-        val res2: Seq[PathRef] = res().flatten
-        res2
-      }
-    }
-
-    val lcp = bspTransitiveLocalClasspath(this, pathsResolver)
-    T.task {
-      lcp() ++
-        resources() ++
-        unmanagedClasspath() ++
-        resolvedIvyDeps()
-    }
+  def bspCompileClasspath: Target[Agg[UnresolvedPath]] = T {
+    bspTransitiveLocalClasspath() ++
+      (resources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
+        .map(p => UnresolvedPath.ResolvedPath(p.path))
   }
 
   /**

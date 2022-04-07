@@ -1,11 +1,13 @@
 package mill.eval
 
+import mill.api.internal
 import mill.define.{NamedTask, Segment, Segments}
 
 case class EvaluatorPaths(dest: os.Path, meta: os.Path, log: os.Path)
 
 object EvaluatorPaths {
-  private[eval] def makeSegmentStrings(segments: Segments) = segments.value.flatMap {
+  @internal
+  private[mill] def makeSegmentStrings(segments: Segments): Seq[String] = segments.value.flatMap {
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(values) => values.map(_.toString)
   }

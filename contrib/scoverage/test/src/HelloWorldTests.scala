@@ -2,7 +2,7 @@ package mill.contrib.scoverage
 
 import mill._
 import mill.contrib.buildinfo.BuildInfo
-import mill.scalalib._
+import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
