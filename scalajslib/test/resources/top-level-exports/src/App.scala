@@ -19,8 +19,3 @@ object AppB {
 
   def main(): Unit = x.add("something")
 }
-object App {
-  def main(args: Array[String]): Unit = {
-    println("Hello")
-  }
-}
