@@ -533,7 +533,7 @@ object scalalib extends MillModule {
 
 object scalajslib extends MillModule {
 
-  override def moduleDeps = Seq(scalalib, scalajslib.api)
+  override def moduleDeps = Seq(scalalib, scalajslib.`worker-api`)
 
   override def testArgs = T {
     val mapping = Map(
@@ -575,13 +575,12 @@ object scalajslib extends MillModule {
 
   override def generatedSources: Target[Seq[PathRef]] = Seq(generatedBuildInfo())
 
-  object api extends MillApiModule {
-    override def moduleDeps = Seq(main.api)
+  object `worker-api` extends MillInternalModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.6", "1")
   class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
-    override def moduleDeps = Seq(scalajslib.api)
+    override def moduleDeps = Seq(scalajslib.`worker-api`)
     override def ivyDeps = scalajsWorkerVersion match {
       case "0.6" =>
         Agg(
