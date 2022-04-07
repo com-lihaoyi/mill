@@ -5,8 +5,7 @@ import utest._
 object AmmoniteUtilsTests extends TestSuite {
   val tests = Tests {
     test("normalizeAmmoniteImportPath") {
-      def normalize(s: String): String =
-        AmmoniteUtils.normalizeAmmoniteImportPath(s.split('.').toIndexedSeq).mkString(".")
+      def normalize(s: String): String = AmmoniteUtils.normalizeAmmoniteImportPath(s)
       test("should normalize classes compiled from multiple scripts") {
         val input1 = "ammonite.$file.e.$up.a.inputA"
         val input2 = "ammonite.$file.a.inputA"
@@ -61,7 +60,15 @@ object AmmoniteUtilsTests extends TestSuite {
       test("should handle special symbols") {
         val input = "ammonite.$file.-#!|\\?+*<→:&>%=~.inputSymbols"
         val result = normalize(input)
-        val expected = "ammonite.$file.$minus$hash$bang$bar$bslash$qmark$plus$times$less$u2192$colon$amp$greater$percent$eq$tilde.inputSymbols"
+        val expected =
+          "ammonite.$file.$minus$hash$bang$bar$bslash$qmark$plus$times$less$u2192$colon$amp$greater$percent$eq$tilde.inputSymbols"
+
+        assert(result == expected)
+      }
+      test("should handle special symbols in last file while removing inner classes") {
+        val input = "ammonite.$file.before$minusplus$something$minusafter"
+        val result = normalize(input)
+        val expected = "ammonite.$file.before$minusplus"
 
         assert(result == expected)
       }

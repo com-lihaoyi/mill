@@ -4,6 +4,7 @@ import $file.inputC
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $file.e.inputE
 import $file.`-#!+→&%=~`.inputSymbols
+import $file.`-#+&%`
 
 def task = T {
   inputA.input()
@@ -28,4 +29,9 @@ def taskE = T {
 def taskSymbols = T {
   println("taskSymbols")
   inputSymbols.input()
+}
+
+def taskSymbolsInFile = T {
+  println("taskSymbolsInFile")
+  `-#+&%`.module.input()
 }
