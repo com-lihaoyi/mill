@@ -64,15 +64,22 @@ object Jvm {
     os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
   }
 
-  def javaExe: String =
+  /**
+   * Resolves a tool to a path under the currently used JDK (if known).
+   */
+  def jdkTool(toolName: String): String = {
     sys.props
       .get("java.home")
       .map(h =>
-        if (isWin) new File(h, "bin\\java.exe")
-        else new File(h, "bin/java")
+        if (isWin) new File(h, s"bin\\${toolName}.exe")
+        else new File(h, s"bin/${toolName}")
       )
       .filter(f => f.exists())
-      .fold("java")(_.getAbsolutePath())
+      .fold(toolName)(_.getAbsolutePath())
+
+  }
+
+  def javaExe: String = jdkTool("java")
 
   /**
    * Runs a JVM subprocess with the given configuration and streams
