@@ -10,7 +10,8 @@ class DocAnnotationsTests(fork: Boolean) extends ScriptTestSuite(fork) {
   val tests = Tests {
     initWorkspace()
     "test" - {
-      assert(eval("inspect", "core.test.ivyDeps"))
+      val res = eval("inspect", "core.test.ivyDeps")
+      assert(res == true)
       val inheritedIvyDeps = ujson.read(meta("inspect"))("value").str
       assert(
         inheritedIvyDeps.contains("core.test.ivyDeps"),

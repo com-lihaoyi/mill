@@ -938,8 +938,9 @@ object integration extends MillScalaModule {
   }
   override def forkArgs = testArgs()
 
-  def testMill: Target[PathRef] = T {
-    PathRef(installLocalTask(binFile = T.task((T.dest / "mill").toString()))())
+  def testMill: Target[PathRef] = {
+    val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+    T { PathRef(installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
   }
 
   trait Tests extends super.Tests {
