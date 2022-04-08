@@ -17,9 +17,10 @@ jobs:
           - ci/test-mill-bootstrap-0.sh
           - ci/test-mill-bootstrap-1.sh
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
+            ./mill -i "integration.{local,forked}"
           - ./mill -i -k "contrib.__.prepareOffline" + "contrib._.test"
           # - ./mill -i integration.test "mill.integration.local.JawnTests"
-          - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests,ScriptsInvalidationTests,ScriptsInvalidationForeignTests}"
+          - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests}"
           - ./mill -i docs.antora.githubPages
           # Caffeine tests require a published testng contrib module
           - |
@@ -91,8 +92,10 @@ jobs:
         buildcmd:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests,ScriptsInvalidationTests,ScriptsInvalidationForeignTests}"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.{local,forked}"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.prepareOffline" + "contrib.__.test"
+
 
     runs-on: windows-latest
 
