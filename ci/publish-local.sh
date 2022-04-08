@@ -1,11 +1,5 @@
 #!/usr/bin/env sh
 
-set -eux
+echo "ci/publish-local.sh is deprecated. Use <mill installLocal> instead." 1>&2
 
-./mill -i "$@" __.publishLocal + assembly
-
-./mill -i show main.publishVersion
-
-mkdir -p target
-
-cp out/assembly.dest/mill target/mill-release
+./mill -i installLocal

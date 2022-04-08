@@ -143,7 +143,7 @@ from your checkout, you can run
 
 [source,bash]
 ----
-ci/publish-local.sh
+./mill installLocal
 ----
 
 This creates a standalone assembly at `target/mill-release` you can use, which
@@ -154,6 +154,24 @@ without worrying about stomping over compiled code that the assembly is using.
 This assembly is design to work on bash, bash-like shells and Windows Cmd.
 If you have another default shell like zsh or fish, you probably need to invoke it
 with `sh ~/mill-release` or prepend the file with a proper shebang. 
+
+If you want to install into a different location or a different Ivy repository, you can
+set it's optional parameters
+
+.Install into `/tmp`
+[source,bash]
+----
+$ ./mill inspect installLocal
+[1/1] inspect
+installLocal(build.sc:865)
+    Build and install Mill locally.
+    @param binFile The location where the Mill binary should be installed
+    @param ivyRepo The local Ivy repository where Mill modules should be published to
+...
+$ ./mill installLocal --binFile /tmp/mill --ivyRepo /tmp/millRepo
+...
+Published 44 modules and installed /tmp/mill
+----
 
 === Troubleshooting
 

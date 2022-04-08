@@ -7,7 +7,7 @@ git stash -u
 git stash -a
 
 # Build Mill
-ci/publish-local.sh
+./mill -i -j 0 installLocal
 
 # Clean up
 git stash -a -m "preserve mill-release" -- target/mill-release
