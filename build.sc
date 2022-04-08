@@ -896,7 +896,7 @@ def testRepos = T {
   )
 }
 
-object integration extends MillModule {
+object integration extends MillScalaModule {
   override def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
   override def testArgs = T {
     scalajslib.testArgs() ++
@@ -905,13 +905,15 @@ object integration extends MillModule {
       scalanativelib.testArgs() ++
       Seq(
         "-DMILL_TESTNG=" + contrib.testng.runClasspath().map(_.path).mkString(","),
-        "-DMILL_VERSION=" + publishVersion(),
+        "-DMILL_VERSION=" + millVersion(),
         "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
         "-Djna.nosys=true"
       ) ++
       (for ((k, v) <- testRepos()) yield s"-D$k=$v")
   }
   override def forkArgs = testArgs()
+
+  object test extends Tests
 }
 
 val DefaultLocalMillReleasePath = "target/mill-release"
