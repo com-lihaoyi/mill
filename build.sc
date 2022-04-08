@@ -7,7 +7,12 @@ import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
 import java.nio.file.attribute.PosixFilePermission
 import com.github.lolgab.mill.mima
-import com.github.lolgab.mill.mima.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, IncompatibleSignatureProblem, ProblemFilter}
+import com.github.lolgab.mill.mima.{
+  DirectMissingMethodProblem,
+  IncompatibleMethTypeProblem,
+  IncompatibleSignatureProblem,
+  ProblemFilter
+}
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -116,7 +121,7 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
   val testng = ivy"org.testng:testng:7.5"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
-  val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
+  val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.4.3"
   val scalametaTrees = ivy"org.scalameta::trees:4.5.3"
