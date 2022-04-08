@@ -5,7 +5,7 @@ package mill.main.client;
   */
 
 class WaitForSilence {
-  private long last = 0;
+  private long last = System.currentTimeMillis();
 
   public synchronized long getLast() {
       return last;
@@ -16,8 +16,6 @@ class WaitForSilence {
   }
 
   public void waitForSilence(int millis) throws InterruptedException {
-    poke();
-
     do {
         Thread.sleep(10);
     } while ((System.currentTimeMillis() - getLast()) < millis);
