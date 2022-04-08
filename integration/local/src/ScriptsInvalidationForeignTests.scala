@@ -1,13 +1,16 @@
 package mill.integration
 
 import mill.util.ScriptTestSuite
+import os.Path
 import utest._
 
 import scala.collection.mutable
 
 class ScriptsInvalidationForeignTests(fork: Boolean) extends ScriptTestSuite(fork) {
-  def workspaceSlug: String = "invalidation-foreign"
-  def scriptSourcePath: os.Path = os.pwd / "integration" / "test" / "resources" / workspaceSlug
+  override def workspaceSlug: String = "invalidation-foreign"
+  override def workspacePath: os.Path = os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / getClass().getName()
+  override def scriptSourcePath: os.Path = os.pwd / "integration" / "local" / "resources" / workspaceSlug
+
   override def buildPath = os.sub / "foreignA" / "build.sc"
 
   def runTask(task: String) = {

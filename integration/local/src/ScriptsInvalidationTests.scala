@@ -6,8 +6,9 @@ import utest._
 import scala.collection.mutable
 
 class ScriptsInvalidationTests(fork: Boolean) extends ScriptTestSuite(fork) {
-  def workspaceSlug: String = "invalidation"
-  def scriptSourcePath: os.Path = os.pwd / "integration" / "test" / "resources" / workspaceSlug
+  override def workspaceSlug: String = "invalidation"
+  override def workspacePath: os.Path = os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / workspaceSlug
+  override def scriptSourcePath: os.Path = os.pwd / "integration" / "local" / "resources" / workspaceSlug
 
   def runTask(task: String) = {
     val (successful, stdout) = evalStdout(task)

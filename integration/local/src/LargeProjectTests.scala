@@ -5,7 +5,8 @@ import utest._
 
 class LargeProjectTests(fork: Boolean) extends ScriptTestSuite(fork) {
   def workspaceSlug: String = "large-project"
-  def scriptSourcePath: os.Path = os.pwd / "integration" / "test" / "resources" / workspaceSlug
+  override def workspacePath: os.Path = os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / getClass().getName()
+  def scriptSourcePath: os.Path = os.pwd / "integration" / "local" / "resources" / workspaceSlug
 
   val tests = Tests {
     initWorkspace()

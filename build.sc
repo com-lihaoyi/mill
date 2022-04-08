@@ -4,7 +4,6 @@ import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
 import $ivy.`com.github.lolgab::mill-mima::0.0.10`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
-
 import com.github.lolgab.mill.mima
 import com.github.lolgab.mill.mima.{
   DirectMissingMethodProblem,
@@ -278,6 +277,7 @@ trait MillAutoTestSetup extends MillScalaModule {
 
 /** Published module which does not contain strictly handled API. */
 trait MillInternalModule extends MillScalaModule with MillPublishModule
+
 /** Published moduel which contains strictly handled API. */
 trait MillApiModule extends MillScalaModule with MillPublishModule with MillMimaConfig
 
@@ -896,6 +896,32 @@ def testRepos = T {
   )
 }
 
+val DefaultLocalMillReleasePath = "target/mill-release"
+
+/**
+ * Build and install Mill locally.
+ * @param binFile The location where the Mill binary should be installed
+ * @param ivyRepo The local Ivy repository where Mill modules should be published to
+ */
+def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String = null) =
+  T.command {
+    PathRef(installLocalTask(T.task(binFile), ivyRepo)())
+  }
+
+def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
+  val modules = build.millInternal.modules.collect { case m: PublishModule => m }
+  T.task {
+    T.traverse(modules)(m => m.publishLocal(ivyRepo))()
+    val millBin = assembly()
+    val targetFile = os.Path(binFile(), T.workspace)
+    if (os.exists(targetFile))
+      T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+    os.copy.over(millBin.path, targetFile, createFolders = true)
+    T.log.info(s"Published ${modules.size} modules and installed ${targetFile}")
+    targetFile
+  }
+}
+
 object integration extends MillScalaModule {
   override def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
   override def testArgs = T {
@@ -908,31 +934,37 @@ object integration extends MillScalaModule {
         "-DMILL_VERSION=" + millVersion(),
         "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
         "-Djna.nosys=true"
-      ) ++
-      (for ((k, v) <- testRepos()) yield s"-D$k=$v")
+      )
   }
   override def forkArgs = testArgs()
 
-  object test extends Tests
-}
+  def testMill: Target[PathRef] = T {
+    PathRef(installLocalTask(binFile = T.task((T.dest / "mill").toString()))())
+  }
 
-val DefaultLocalMillReleasePath = "target/mill-release"
+  trait Tests extends super.Tests {
+    def workspaceDir = T.persistent {
+      PathRef(T.dest)
+    }
+    override def forkArgs: Target[Seq[String]] = T {
+      super.forkArgs() ++ Seq(
+        s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}"
+      )
+    }
+  }
 
-/**
- * Build and install Mill locally.
- * @param binFile The location where the Mill binary should be installed
- * @param ivyRepo The local Ivy repository where Mill modules should be published to
- */
-def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String = null) = {
-  val modules = build.millInternal.modules.collect { case m: PublishModule => m }
-  T.command {
-    T.traverse(modules)(m => m.publishLocal(ivyRepo))()
-    val millBin = assembly()
-    val targetFile = os.Path(binFile, T.workspace)
-    if(os.exists(targetFile)) T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
-    os.copy.over(millBin.path, targetFile, createFolders = true)
-    T.log.info(s"Published ${modules.size} modules and installed ${targetFile}")
-    PathRef(targetFile)
+  object test extends Tests {
+    override def forkArgs: Target[Seq[String]] = T {
+      super.forkArgs() ++
+        (for ((k, v) <- testRepos()) yield s"-D$k=$v")
+    }
+  }
+  object local extends Tests
+  object forked extends Tests {
+    override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
+      "MILL_TEST_RELEASE" -> testMill().path.toString()
+    )
+    override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(integration.local)
   }
 }
 
