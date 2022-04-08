@@ -17,7 +17,7 @@ jobs:
           - ci/test-mill-bootstrap-0.sh
           - ci/test-mill-bootstrap-1.sh
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
-            ./mill -i "integration.{local,forked}"
+          - ./mill -i "integration.{local,forked}"
           - ./mill -i -k "contrib.__.prepareOffline" + "contrib._.test"
           # - ./mill -i integration.test "mill.integration.local.JawnTests"
           - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests}"
