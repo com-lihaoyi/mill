@@ -6,10 +6,7 @@ import utest._
 
 import scala.collection.mutable
 
-class ScriptsInvalidationForeignTests(fork: Boolean) extends ScriptTestSuite(fork) {
-  override def workspaceSlug: String = "invalidation-foreign"
-  override def workspacePath: os.Path = os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / getClass().getName()
-  override def scriptSourcePath: os.Path = os.pwd / "integration" / "local" / "resources" / workspaceSlug
+class ScriptsInvalidationForeignTests(fork: Boolean) extends IntegrationTestSuite("invalidation-foreign", fork) {
 
   override def buildPath = os.sub / "foreignA" / "build.sc"
 

@@ -896,7 +896,7 @@ def testRepos = T {
   )
 }
 
-val DefaultLocalMillReleasePath = "target/mill-release"
+val DefaultLocalMillReleasePath = s"target/mill-release${if (scala.util.Properties.isWin) ".bat" else ""}"
 
 /**
  * Build and install Mill locally.
@@ -954,6 +954,7 @@ object integration extends MillScalaModule {
     }
   }
 
+  // Test of various third-party repositories
   object test extends Tests {
     override def forkArgs: Target[Seq[String]] = T {
       super.forkArgs() ++

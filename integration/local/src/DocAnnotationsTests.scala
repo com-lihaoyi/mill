@@ -3,10 +3,7 @@ package mill.integration
 import mill.util.ScriptTestSuite
 import utest._
 
-class DocAnnotationsTests(fork: Boolean) extends ScriptTestSuite(fork) {
-  def workspaceSlug: String = "docannotations"
-  override def workspacePath: os.Path = os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / getClass().getName()
-  def scriptSourcePath: os.Path = os.pwd / "integration" / "local" / "resources" / workspaceSlug
+class DocAnnotationsTests(fork: Boolean) extends IntegrationTestSuite("docannotations", fork) {
   val tests = Tests {
     initWorkspace()
     "test" - {
