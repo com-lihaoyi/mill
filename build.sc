@@ -231,27 +231,17 @@ trait MillMimaConfig extends mima.Mima {
   )
 }
 
-trait MillInternalModule
-    extends MillPublishModule
-    with ScalaModule
-    with MillCoursierModule {
+/**
+ * Some custom scala settings and test convenience
+ */
+trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   def scalaVersion = Deps.scalaVersion
-  override def ammoniteVersion = Deps.ammonite.dep.version
-}
-
-trait MillApiModule extends MillInternalModule with MillMimaConfig {
   override def scalacOptions = T {
     super.scalacOptions() ++ Seq("-deprecation")
   }
-}
+  override def ammoniteVersion = Deps.ammonite.dep.version
 
-trait MillModule extends MillApiModule { outer =>
-  override def scalacPluginClasspath = T {
-    super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
-  }
-  override def scalacOptions = T {
-    super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar().path}")
-  }
+  // Test setup
 
   def testArgs = T { Seq.empty[String] }
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
@@ -259,10 +249,7 @@ trait MillModule extends MillApiModule { outer =>
     if (this == main) Seq(main)
     else Seq(this, main.test)
 
-  val test = new Tests(implicitly)
-
-  /** Default tests module used in all mill modules, if not overridden. */
-  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests {
+  trait MillScalaModuleTests extends ScalaModuleTests {
     override def forkArgs = T {
       Seq(
         s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
@@ -272,11 +259,34 @@ trait MillModule extends MillApiModule { outer =>
         s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
         s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
         s"-DTEST_SCALAJS_0_6_VERSION=${Deps.testScalaJs06Version}"
-      ) ++ testArgs()
+      ) ++ outer.testArgs()
     }
     override def moduleDeps = outer.testModuleDeps
     override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
     override def testFramework = "mill.UTestFramework"
+  }
+  trait Tests extends MillScalaModuleTests
+}
+
+/** A MillScalaModule with default set up test module. */
+trait MillAutoTestSetup extends MillScalaModule {
+  // instead of `object test` which can't be overridden, we hand-made a val+class singleton
+  /** Default tests module. */
+  val test = new Tests(implicitly)
+  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.MillScalaModuleTests
+}
+
+/** Published module which does not contain strictly handled API. */
+trait MillInternalModule extends MillScalaModule with MillPublishModule
+/** Published moduel which contains strictly handled API. */
+trait MillApiModule extends MillScalaModule with MillPublishModule with MillMimaConfig
+
+trait MillModule extends MillApiModule with MillAutoTestSetup { outer =>
+  override def scalacPluginClasspath = T {
+    super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
+  }
+  override def scalacOptions = T {
+    super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar().path}")
   }
 }
 
