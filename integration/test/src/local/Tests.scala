@@ -1,9 +1,10 @@
-package mill.integration.local
+package mill.integration
+package local
 
-object AcyclicTests extends mill.integration.AcyclicTests(fork = false)
-object AmmoniteTests extends mill.integration.AmmoniteTests(fork = false)
-object BetterFilesTests extends mill.integration.BetterFilesTests(fork = false)
-object JawnTests extends mill.integration.JawnTests(fork = false)
-object UpickleTests extends mill.integration.UpickleTests(fork = false)
-object PlayJsonTests extends mill.integration.PlayJsonTests(fork = false)
-object CaffeineTests extends mill.integration.CaffeineTests(fork = false)
+object AcyclicTests extends AcyclicTests(fork = false)
+object AmmoniteTests extends AmmoniteTests(fork = false)
+object BetterFilesTests extends BetterFilesTests(fork = false)
+object JawnTests extends JawnTests(fork = false)
+object UpickleTests extends UpickleTests(fork = false)
+object PlayJsonTests extends PlayJsonTests(fork = false)
+object CaffeineTests extends CaffeineTests(fork = false)

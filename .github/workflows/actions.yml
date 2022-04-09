@@ -14,22 +14,22 @@ jobs:
         buildcmd:
           - ci/test-mill-release.sh
           - ci/test-mill-dev.sh
+          # bootstrap tests
           - ci/test-mill-bootstrap-0.sh
           - ci/test-mill-bootstrap-1.sh
-          - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
-          - ./mill -i "integration.{local,forked}"
-          - ./mill -i -k "contrib.__.prepareOffline" + "contrib._.test"
+          # unit and module tests
+          - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
+          # additional integration tests
+          - ./mill -i -k "integration.{local,forked}"
+          # integrtion tests of thirdparty repos
+          - ./mill -i -k "integration.test"
+          - ./mill -i -k "integration.test.forked"
+          # contrib tests
+          - ./mill -i -k "contrib._.test"
           # - ./mill -i integration.test "mill.integration.local.JawnTests"
-          - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests}"
+          #- ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests}"
           - ./mill -i docs.antora.githubPages
-          # Caffeine tests require a published testng contrib module
-          - |
-            ./mill -i contrib.testng.publishLocal
-            ./mill -i integration.test "mill.integration.local.CaffeineTests"
         include:
-          - java-version: 8
-            # buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
-            buildcmd: ./mill -i integration.test "mill.integration.local.UpickleTests"
           # Just some reporting to enable reasoning about library upgrades
           - java-version: 8
             buildcmd: | 

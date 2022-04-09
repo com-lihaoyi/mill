@@ -896,7 +896,8 @@ def testRepos = T {
   )
 }
 
-val DefaultLocalMillReleasePath = s"target/mill-release${if (scala.util.Properties.isWin) ".bat" else ""}"
+val DefaultLocalMillReleasePath =
+  s"target/mill-release${if (scala.util.Properties.isWin) ".bat" else ""}"
 
 /**
  * Build and install Mill locally.
@@ -924,49 +925,62 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 
 object integration extends MillScalaModule {
   override def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
-  override def testArgs = T {
-    scalajslib.testArgs() ++
-      scalalib.worker.testArgs() ++
-      scalalib.backgroundwrapper.testArgs() ++
-      scalanativelib.testArgs() ++
-      Seq(
-        "-DMILL_TESTNG=" + contrib.testng.runClasspath().map(_.path).mkString(","),
-        "-DMILL_VERSION=" + millVersion(),
-        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
-        "-Djna.nosys=true"
-      )
-  }
-  override def forkArgs = testArgs()
 
+  /** Deploy freshly build mill for use in tests */
   def testMill: Target[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     T { PathRef(installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
   }
 
-  trait Tests extends super.Tests {
-    def workspaceDir = T.persistent {
-      PathRef(T.dest)
-    }
+  trait ITests extends super.Tests {
+    def workspaceDir = T.persistent { PathRef(T.dest) }
     override def forkArgs: Target[Seq[String]] = T {
-      super.forkArgs() ++ Seq(
-        s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}"
-      )
+      super.forkArgs() ++
+        scalajslib.testArgs() ++
+        scalalib.worker.testArgs() ++
+        scalalib.backgroundwrapper.testArgs() ++
+        scalanativelib.testArgs() ++
+        Seq(
+          s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
+          s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
+          s"-DMILL_VERSION=${millVersion()}",
+          s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
+          "-Djna.nosys=true"
+        )
     }
   }
 
   // Test of various third-party repositories
-  object test extends Tests {
+  // TODO: rename to thirdparty
+  object test extends ITests {
     override def forkArgs: Target[Seq[String]] = T {
-      super.forkArgs() ++
-        (for ((k, v) <- testRepos()) yield s"-D$k=$v")
+      super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
+    }
+
+    override def runClasspath: T[Seq[PathRef]] = T {
+      // we need to trigger installation of testng-contrib for Caffeine
+      contrib.testng.publishLocal()()
+      super.runClasspath()
+    }
+    object forked extends ITests {
+      override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(integration.test)
+      override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
+        "MILL_TEST_RELEASE" -> testMill().path.toString()
+      )
+      override def forkArgs: Target[Seq[String]] = T {
+        super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
+      }
     }
   }
-  object local extends Tests
-  object forked extends Tests {
+
+  // Integration test of Mill
+  object local extends ITests
+  object forked extends ITests {
+    override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(integration.local)
+
     override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
       "MILL_TEST_RELEASE" -> testMill().path.toString()
     )
-    override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(integration.local)
   }
 }
 
