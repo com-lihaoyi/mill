@@ -8,4 +8,4 @@ git stash -a
 
 # Run tests
 
-./mill -i "{main.__,scalalib,scalajslib,scalanativelib,bsp,contrib._}.test"
+./mill -i -k "{main.__,scalalib,scalajslib,scalanativelib,testrunner,bsp,contrib._}.test"
