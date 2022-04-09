@@ -849,53 +849,6 @@ object bsp extends MillModule {
   override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ compileModuleDeps
 }
 
-def testRepos = T {
-  Seq(
-    "MILL_ACYCLIC_REPO" ->
-      shared.downloadTestRepo(
-        "lihaoyi/acyclic",
-        "bc41cd09a287e2c270271e27ccdb3066173a8598",
-        T.dest / "acyclic"
-      ),
-    "MILL_JAWN_REPO" ->
-      shared.downloadTestRepo(
-        "non/jawn",
-        "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb",
-        T.dest / "jawn"
-      ),
-    "MILL_BETTERFILES_REPO" ->
-      shared.downloadTestRepo(
-        "pathikrit/better-files",
-        "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8",
-        T.dest / "better-files"
-      ),
-    "MILL_AMMONITE_REPO" ->
-      shared.downloadTestRepo(
-        "lihaoyi/ammonite",
-        "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e",
-        T.dest / "ammonite"
-      ),
-    "MILL_UPICKLE_REPO" ->
-      shared.downloadTestRepo(
-        "lihaoyi/upickle",
-        "7f33085c890db7550a226c349832eabc3cd18769",
-        T.dest / "upickle"
-      ),
-    "MILL_PLAY_JSON_REPO" ->
-      shared.downloadTestRepo(
-        "playframework/play-json",
-        "0a5ba16a03f3b343ac335117eb314e7713366fd4",
-        T.dest / "play-json"
-      ),
-    "MILL_CAFFEINE_REPO" ->
-      shared.downloadTestRepo(
-        "ben-manes/caffeine",
-        "c02c623aedded8174030596989769c2fecb82fe4",
-        T.dest / "caffeine"
-      )
-  )
-}
-
 val DefaultLocalMillReleasePath =
   s"target/mill-release${if (scala.util.Properties.isWin) ".bat" else ""}"
 
@@ -962,6 +915,53 @@ object integration extends MillScalaModule {
 
   // Test of various third-party repositories
   object thirdparty extends Module {
+    def testRepos = T {
+      Seq(
+        "MILL_ACYCLIC_REPO" ->
+          shared.downloadTestRepo(
+            "lihaoyi/acyclic",
+            "bc41cd09a287e2c270271e27ccdb3066173a8598",
+            T.dest / "acyclic"
+          ),
+        "MILL_JAWN_REPO" ->
+          shared.downloadTestRepo(
+            "non/jawn",
+            "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb",
+            T.dest / "jawn"
+          ),
+        "MILL_BETTERFILES_REPO" ->
+          shared.downloadTestRepo(
+            "pathikrit/better-files",
+            "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8",
+            T.dest / "better-files"
+          ),
+        "MILL_AMMONITE_REPO" ->
+          shared.downloadTestRepo(
+            "lihaoyi/ammonite",
+            "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e",
+            T.dest / "ammonite"
+          ),
+        "MILL_UPICKLE_REPO" ->
+          shared.downloadTestRepo(
+            "lihaoyi/upickle",
+            "7f33085c890db7550a226c349832eabc3cd18769",
+            T.dest / "upickle"
+          ),
+        "MILL_PLAY_JSON_REPO" ->
+          shared.downloadTestRepo(
+            "playframework/play-json",
+            "0a5ba16a03f3b343ac335117eb314e7713366fd4",
+            T.dest / "play-json"
+          ),
+        "MILL_CAFFEINE_REPO" ->
+          shared.downloadTestRepo(
+            "ben-manes/caffeine",
+            "c02c623aedded8174030596989769c2fecb82fe4",
+            T.dest / "caffeine"
+          )
+      )
+    }
+
     object local extends ITests {
       override def forkArgs: Target[Seq[String]] = T {
         super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
