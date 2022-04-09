@@ -1,4 +1,4 @@
-package mill.integration
+package mill.integration.thirdparty
 package forked
 
 object AcyclicTests extends AcyclicTests(fork = true)

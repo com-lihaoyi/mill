@@ -1,11 +1,11 @@
-package mill.integration
+package mill.integration.thirdparty
 
 import mill.util.ScriptTestSuite
 import utest._
 
 abstract class IntegrationTestSuite(repoKey: String, val workspaceSlug: String, fork: Boolean)
     extends ScriptTestSuite(fork) {
-  val buildFilePath = os.pwd / "integration" / "test" / "resources" / workspaceSlug
+  val buildFilePath = os.pwd / "integration" / "thirdparty" / "local" / "resources" / workspaceSlug
   override def workspacePath: os.Path =
     os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / workspaceSlug
 

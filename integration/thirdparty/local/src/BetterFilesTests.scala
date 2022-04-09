@@ -1,4 +1,4 @@
-package mill.integration
+package mill.integration.thirdparty
 
 import utest._
 

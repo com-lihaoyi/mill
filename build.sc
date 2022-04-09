@@ -855,43 +855,43 @@ def testRepos = T {
       shared.downloadTestRepo(
         "lihaoyi/acyclic",
         "bc41cd09a287e2c270271e27ccdb3066173a8598",
-        T.ctx.dest / "acyclic"
+        T.dest / "acyclic"
       ),
     "MILL_JAWN_REPO" ->
       shared.downloadTestRepo(
         "non/jawn",
         "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb",
-        T.ctx.dest / "jawn"
+        T.dest / "jawn"
       ),
     "MILL_BETTERFILES_REPO" ->
       shared.downloadTestRepo(
         "pathikrit/better-files",
         "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8",
-        T.ctx.dest / "better-files"
+        T.dest / "better-files"
       ),
     "MILL_AMMONITE_REPO" ->
       shared.downloadTestRepo(
         "lihaoyi/ammonite",
         "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e",
-        T.ctx.dest / "ammonite"
+        T.dest / "ammonite"
       ),
     "MILL_UPICKLE_REPO" ->
       shared.downloadTestRepo(
         "lihaoyi/upickle",
         "7f33085c890db7550a226c349832eabc3cd18769",
-        T.ctx.dest / "upickle"
+        T.dest / "upickle"
       ),
     "MILL_PLAY_JSON_REPO" ->
       shared.downloadTestRepo(
         "playframework/play-json",
         "0a5ba16a03f3b343ac335117eb314e7713366fd4",
-        T.ctx.dest / "play-json"
+        T.dest / "play-json"
       ),
     "MILL_CAFFEINE_REPO" ->
       shared.downloadTestRepo(
         "ben-manes/caffeine",
         "c02c623aedded8174030596989769c2fecb82fe4",
-        T.ctx.dest / "caffeine"
+        T.dest / "caffeine"
       )
   )
 }
@@ -950,29 +950,6 @@ object integration extends MillScalaModule {
     }
   }
 
-  // Test of various third-party repositories
-  // TODO: rename to thirdparty
-  object test extends ITests {
-    override def forkArgs: Target[Seq[String]] = T {
-      super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
-    }
-
-    override def runClasspath: T[Seq[PathRef]] = T {
-      // we need to trigger installation of testng-contrib for Caffeine
-      contrib.testng.publishLocal()()
-      super.runClasspath()
-    }
-    object forked extends ITests {
-      override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(integration.test)
-      override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
-        "MILL_TEST_RELEASE" -> testMill().path.toString()
-      )
-      override def forkArgs: Target[Seq[String]] = T {
-        super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
-      }
-    }
-  }
-
   // Integration test of Mill
   object local extends ITests
   object forked extends ITests {
@@ -981,6 +958,30 @@ object integration extends MillScalaModule {
     override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
       "MILL_TEST_RELEASE" -> testMill().path.toString()
     )
+  }
+
+  // Test of various third-party repositories
+  object thirdparty extends Module {
+    object local extends ITests {
+      override def forkArgs: Target[Seq[String]] = T {
+        super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
+      }
+
+      override def runClasspath: T[Seq[PathRef]] = T {
+        // we need to trigger installation of testng-contrib for Caffeine
+        contrib.testng.publishLocal()()
+        super.runClasspath()
+      }
+    }
+    object forked extends ITests {
+      override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(integration.thirdparty.local)
+      override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
+        "MILL_TEST_RELEASE" -> testMill().path.toString()
+      )
+      override def forkArgs: Target[Seq[String]] = T {
+        super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
+      }
+    }
   }
 }
 
