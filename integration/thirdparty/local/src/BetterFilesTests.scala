@@ -8,7 +8,9 @@ class BetterFilesTests(fork: Boolean)
     initWorkspace()
     "test" - {
       if (!sys.props("java.version").startsWith("1.")) {
-        println(s"*** Beware: Tests is not supported with this Java version! ***")
+        println(s"*** Beware: Skipping unsupported tests under this Java version! ***")
+      } else if(scala.util.Properties.isWin) {
+        println(s"*** Beware: Skipping unsupported tests under Windows! ***")
       } else {
 
         assert(eval("core.test"))

@@ -15,21 +15,25 @@ class PlayJsonTests(fork: Boolean)
     initWorkspace()
 
     "jvm" - {
-      assert(eval(s"playJsonJvm[${scalaVersion}].{test-scalatest,test-specs2}"))
-      val jvmMeta: Seq[String] = Seq(
-        meta(s"playJsonJvm[${scalaVersion}].test-scalatest.test"),
-        meta(s"playJsonJvm[${scalaVersion}].test-specs2.test")
-      )
+      if (scala.util.Properties.isWin && fork == true) {
+        println(s"*** Beware: Skipping unsupported tests under Windows in forked mode! ***")
+      } else {
+        assert(eval(s"playJsonJvm[${scalaVersion}].{test-scalatest,test-specs2}"))
+        val jvmMeta: Seq[String] = Seq(
+          meta(s"playJsonJvm[${scalaVersion}].test-scalatest.test"),
+          meta(s"playJsonJvm[${scalaVersion}].test-specs2.test")
+        )
 
-      assert(
-        jvmMeta.exists(_.contains("play.api.libs.json.JsonSharedSpec")),
-        jvmMeta.exists(_.contains("JSON should support basic array operations"))
-      )
+        assert(
+          jvmMeta.exists(_.contains("play.api.libs.json.JsonSharedSpec")),
+          jvmMeta.exists(_.contains("JSON should support basic array operations"))
+        )
 
-      assert(
-        jvmMeta.exists(_.contains("play.api.libs.json.JsonValidSpec")),
-        jvmMeta.exists(_.contains("JSON reads should::validate Dates"))
-      )
+        assert(
+          jvmMeta.exists(_.contains("play.api.libs.json.JsonValidSpec")),
+          jvmMeta.exists(_.contains("JSON reads should::validate Dates"))
+        )
+      }
     }
     "js" - {
       assert(eval(s"playJsonJs[${scalaVersion}].test"))
