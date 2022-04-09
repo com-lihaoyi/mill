@@ -1,8 +1,8 @@
-import mill.scalalib.{SbtModule, Dep, DepSyntax}
+import mill.scalalib.{Dep, DepSyntax, SbtModule, TestModule}
 
 trait BetterFilesModule extends SbtModule{
-  def scalaVersion = "2.12.4"
-  def scalacOptions = Seq(
+  override def scalaVersion = "2.12.5"
+  override def scalacOptions = Seq(
     "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
     "-encoding", "utf-8",                // Specify character encoding used by source files.
     "-explaintypes",                     // Explain type errors in more detail.
@@ -13,7 +13,8 @@ trait BetterFilesModule extends SbtModule{
     "-language:implicitConversions",     // Allow definition of implicit functions called views
     "-unchecked",                        // Enable additional warnings where generated code depends on assumptions.
     "-Xcheckinit",                       // Wrap field accessors to throw an exception on uninitialized access.
-    "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.
+    // we need to drop this, as we had to switch Scala version, which introduced new deprecations
+    // "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.
     "-Xfuture",                          // Turn on future language features.
     "-Xlint:adapted-args",               // Warn if an argument list is modified to match the receiver.
     "-Xlint:by-name-right-associative",  // By-name parameter of right associative operator.
@@ -50,29 +51,28 @@ trait BetterFilesModule extends SbtModule{
     "-Ywarn-value-discard"               // Warn when non-Unit expression results are unused.
   )
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-Xlint")
-  object test extends Tests{
-    def moduleDeps =
+  object test extends Tests with TestModule.ScalaTest {
+    override def moduleDeps =
       if (this == core.test) super.moduleDeps
       else super.moduleDeps ++ Seq(core.test)
     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
-    def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
 }
 
 object core extends BetterFilesModule
 
 object akka extends BetterFilesModule{
-  def moduleDeps = Seq(core)
+  override def moduleDeps = Seq(core)
   def ivyDeps = Agg(ivy"com.typesafe.akka::akka-actor:2.5.6")
 }
 
 object shapeless extends BetterFilesModule{
-  def moduleDeps = Seq(core)
+  override def moduleDeps = Seq(core)
   def ivyDeps = Agg(ivy"com.chuusai::shapeless:2.3.2")
 }
 
 object benchmarks extends BetterFilesModule{
-  def moduleDeps = Seq(core)
+  override def moduleDeps = Seq(core)
   def ivyDeps = Agg(
     ivy"commons-io:commons-io:2.5"
   )
