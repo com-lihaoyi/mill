@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.{Agg, T}
 import mill.define.{Command, Task, TaskModule}
-import mill.api.Result
+import mill.api.{Ctx, Result}
 import mill.modules.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.TestRunner
@@ -156,7 +156,7 @@ trait TestModule extends JavaModule with TaskModule {
           val jsonOutput = ujson.read(outputPath.toIO)
           val (doneMsg, results) =
             upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
-          TestModule.handleResults(doneMsg, results)
+          TestModule.handleResults(doneMsg, results, Some(T.ctx))
         } catch {
           case e: Throwable =>
             Result.Failure("Test reporting failed: " + e)
@@ -175,7 +175,7 @@ trait TestModule extends JavaModule with TaskModule {
       args,
       T.testReporter
     )
-    TestModule.handleResults(doneMsg, results)
+    TestModule.handleResults(doneMsg, results, Some(T.ctx))
   }
 
   override def bspBuildTarget: BspBuildTarget = {
@@ -188,6 +188,7 @@ trait TestModule extends JavaModule with TaskModule {
 }
 
 object TestModule {
+  private val FailedTestReportCount = 5
 
   /**
    * TestModule using TestNG Framework to run tests.
@@ -248,9 +249,16 @@ object TestModule {
     override def testFramework: T[String] = "munit.Framework"
   }
 
+  @deprecated("Use other overload instead", "Mill after 0.10.2")
   def handleResults(
       doneMsg: String,
       results: Seq[TestRunner.Result]
+  ): Result[(String, Seq[TestRunner.Result])] = handleResults(doneMsg, results, None)
+
+  def handleResults(
+      doneMsg: String,
+      results: Seq[TestRunner.Result],
+      ctx: Option[Ctx.Env]
   ): Result[(String, Seq[TestRunner.Result])] = {
 
     val badTests: Seq[TestRunner.Result] =
@@ -258,7 +266,9 @@ object TestModule {
     if (badTests.isEmpty) {
       Result.Success((doneMsg, results))
     } else {
-      val reportCount = 5
+      val reportCount =
+        if (ctx.fold(false)(_.env.contains("CI"))) badTests.length
+        else FailedTestReportCount
       val suffix =
         if (badTests.length <= reportCount) ""
         else s"\n  and ${badTests.length - reportCount} more ..."
