@@ -225,17 +225,45 @@ corresponding version of Mill.
 
 == Changelog
 
+
 === 'main' branch
 :version: main
-:prev-version: 0.10.2
-:milestone: 61
-:milestone-name: after 0.10.2
+:prev-version: 0.10.3
+:milestone: 62
+:milestone-name: after 0.10.3
 
 _Changes since {prev-version}:_
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.3 - 2022-04-11
+:version: 0.10.3
+:prev-version: 0.10.2
+:milestone: 61
+:milestone-name: 0.10.3
+
+_Changes since {prev-version}:_
+
+* Fixed `import $file` for files with hyphens and other symbols in its name
+* Fixed an issues with truncated output just before Mill finishes
+
+* Mill commands now support arguments of type `Task[T]`, which can improve writing re-usable commands, especially, they can be called from other tasks more easily
+
+* `JavaModule`: Improved correctness and performance of `compileClasspath` and `bspCompileClasspath` targets. This fixes an issue with BSP for large projects. Also, compile-time dependencies no longer sneak into the classpath transitively.
+* `JavaModule`:  Added `docJarUseArgsFile` target and fix issue with Windows command length restrictions in `docJar`
+
+* `BSP` and `Bloop`: Better detect foreign modules
+
+* Various internal API refinements and improvements
+* Reorganized integration test suite and build setup
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 === 0.10.2 - 2022-03-18
 :version: 0.10.2
