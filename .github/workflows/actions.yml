@@ -20,13 +20,11 @@ jobs:
           # unit and module tests
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
           # additional integration tests
-          - ./mill -i -k "integration.{local,forked}"
+          - ./mill -i -k "integration.{local,forked,forked-server}"
           # integrtion tests of thirdparty repos
           - ./mill -i -k "integration.thirdparty.{local,forked}"
           # contrib tests
           - ./mill -i -k "contrib._.test"
-          # - ./mill -i integration.test "mill.integration.local.JawnTests"
-          #- ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests}"
           - ./mill -i docs.antora.githubPages
         include:
           # Just some reporting to enable reasoning about library upgrades
@@ -91,7 +89,7 @@ jobs:
         buildcmd:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.{local,forked}"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.{local,forked,forked-server}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.{local,forked}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
 

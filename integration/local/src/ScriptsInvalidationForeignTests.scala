@@ -6,7 +6,8 @@ import utest._
 
 import scala.collection.mutable
 
-class ScriptsInvalidationForeignTests(fork: Boolean) extends IntegrationTestSuite("invalidation-foreign", fork) {
+class ScriptsInvalidationForeignTests(fork: Boolean, clientServer: Boolean)
+    extends IntegrationTestSuite("invalidation-foreign", fork, clientServer) {
 
   override def buildPath = os.sub / "foreignA" / "build.sc"
 

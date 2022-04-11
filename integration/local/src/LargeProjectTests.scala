@@ -3,7 +3,8 @@ package mill.integration
 import mill.util.ScriptTestSuite
 import utest._
 
-class LargeProjectTests(fork: Boolean) extends IntegrationTestSuite("large-project", fork) {
+class LargeProjectTests(fork: Boolean, clientServer: Boolean)
+    extends IntegrationTestSuite("large-project", fork, clientServer) {
   val tests = Tests {
     initWorkspace()
     "test" - {

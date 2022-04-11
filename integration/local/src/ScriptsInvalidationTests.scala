@@ -5,7 +5,8 @@ import utest._
 
 import scala.collection.mutable
 
-class ScriptsInvalidationTests(fork: Boolean) extends IntegrationTestSuite("invalidation", fork) {
+class ScriptsInvalidationTests(fork: Boolean, clientServer: Boolean)
+    extends IntegrationTestSuite("invalidation", fork, clientServer) {
 
   def runTask(task: String) = {
     val (successful, stdout) = evalStdout(task)
