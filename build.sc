@@ -4,7 +4,6 @@ import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
 import $ivy.`com.github.lolgab::mill-mima::0.0.10`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
-
 import com.github.lolgab.mill.mima
 import com.github.lolgab.mill.mima.{
   DirectMissingMethodProblem,
@@ -231,27 +230,17 @@ trait MillMimaConfig extends mima.Mima {
   )
 }
 
-trait MillInternalModule
-    extends MillPublishModule
-    with ScalaModule
-    with MillCoursierModule {
+/**
+ * Some custom scala settings and test convenience
+ */
+trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   def scalaVersion = Deps.scalaVersion
-  override def ammoniteVersion = Deps.ammonite.dep.version
-}
-
-trait MillApiModule extends MillInternalModule with MillMimaConfig {
   override def scalacOptions = T {
     super.scalacOptions() ++ Seq("-deprecation")
   }
-}
+  override def ammoniteVersion = Deps.ammonite.dep.version
 
-trait MillModule extends MillApiModule { outer =>
-  override def scalacPluginClasspath = T {
-    super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
-  }
-  override def scalacOptions = T {
-    super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar().path}")
-  }
+  // Test setup
 
   def testArgs = T { Seq.empty[String] }
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
@@ -259,10 +248,7 @@ trait MillModule extends MillApiModule { outer =>
     if (this == main) Seq(main)
     else Seq(this, main.test)
 
-  val test = new Tests(implicitly)
-
-  /** Default tests module used in all mill modules, if not overridden. */
-  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests {
+  trait MillScalaModuleTests extends ScalaModuleTests {
     override def forkArgs = T {
       Seq(
         s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
@@ -272,11 +258,35 @@ trait MillModule extends MillApiModule { outer =>
         s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
         s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
         s"-DTEST_SCALAJS_0_6_VERSION=${Deps.testScalaJs06Version}"
-      ) ++ testArgs()
+      ) ++ outer.testArgs()
     }
     override def moduleDeps = outer.testModuleDeps
     override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
     override def testFramework = "mill.UTestFramework"
+  }
+  trait Tests extends MillScalaModuleTests
+}
+
+/** A MillScalaModule with default set up test module. */
+trait MillAutoTestSetup extends MillScalaModule {
+  // instead of `object test` which can't be overridden, we hand-made a val+class singleton
+  /** Default tests module. */
+  val test = new Tests(implicitly)
+  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.MillScalaModuleTests
+}
+
+/** Published module which does not contain strictly handled API. */
+trait MillInternalModule extends MillScalaModule with MillPublishModule
+
+/** Published moduel which contains strictly handled API. */
+trait MillApiModule extends MillScalaModule with MillPublishModule with MillMimaConfig
+
+trait MillModule extends MillApiModule with MillAutoTestSetup { outer =>
+  override def scalacPluginClasspath = T {
+    super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
+  }
+  override def scalacOptions = T {
+    super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar().path}")
   }
 }
 
@@ -839,88 +849,139 @@ object bsp extends MillModule {
   override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ compileModuleDeps
 }
 
-def testRepos = T {
-  Seq(
-    "MILL_ACYCLIC_REPO" ->
-      shared.downloadTestRepo(
-        "lihaoyi/acyclic",
-        "bc41cd09a287e2c270271e27ccdb3066173a8598",
-        T.ctx.dest / "acyclic"
-      ),
-    "MILL_JAWN_REPO" ->
-      shared.downloadTestRepo(
-        "non/jawn",
-        "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb",
-        T.ctx.dest / "jawn"
-      ),
-    "MILL_BETTERFILES_REPO" ->
-      shared.downloadTestRepo(
-        "pathikrit/better-files",
-        "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8",
-        T.ctx.dest / "better-files"
-      ),
-    "MILL_AMMONITE_REPO" ->
-      shared.downloadTestRepo(
-        "lihaoyi/ammonite",
-        "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e",
-        T.ctx.dest / "ammonite"
-      ),
-    "MILL_UPICKLE_REPO" ->
-      shared.downloadTestRepo(
-        "lihaoyi/upickle",
-        "7f33085c890db7550a226c349832eabc3cd18769",
-        T.ctx.dest / "upickle"
-      ),
-    "MILL_PLAY_JSON_REPO" ->
-      shared.downloadTestRepo(
-        "playframework/play-json",
-        "0a5ba16a03f3b343ac335117eb314e7713366fd4",
-        T.ctx.dest / "play-json"
-      ),
-    "MILL_CAFFEINE_REPO" ->
-      shared.downloadTestRepo(
-        "ben-manes/caffeine",
-        "c02c623aedded8174030596989769c2fecb82fe4",
-        T.ctx.dest / "caffeine"
-      )
-  )
-}
-
-object integration extends MillModule {
-  override def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
-  override def testArgs = T {
-    scalajslib.testArgs() ++
-      scalalib.worker.testArgs() ++
-      scalalib.backgroundwrapper.testArgs() ++
-      scalanativelib.testArgs() ++
-      Seq(
-        "-DMILL_TESTNG=" + contrib.testng.runClasspath().map(_.path).mkString(","),
-        "-DMILL_VERSION=" + publishVersion(),
-        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
-        "-Djna.nosys=true"
-      ) ++
-      (for ((k, v) <- testRepos()) yield s"-D$k=$v")
-  }
-  override def forkArgs = testArgs()
-}
-
-val DefaultLocalMillReleasePath = "target/mill-release"
+val DefaultLocalMillReleasePath =
+  s"target/mill-release${if (scala.util.Properties.isWin) ".bat" else ""}"
 
 /**
  * Build and install Mill locally.
  * @param binFile The location where the Mill binary should be installed
  * @param ivyRepo The local Ivy repository where Mill modules should be published to
  */
-def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String = null) = {
-  val modules = build.millInternal.modules.collect { case m: PublishModule => m }
+def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String = null) =
   T.command {
+    PathRef(installLocalTask(T.task(binFile), ivyRepo)())
+  }
+
+def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
+  val modules = build.millInternal.modules.collect { case m: PublishModule => m }
+  T.task {
     T.traverse(modules)(m => m.publishLocal(ivyRepo))()
     val millBin = assembly()
-    val targetFile = os.Path(binFile, T.workspace)
-    if(os.exists(targetFile)) T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+    val targetFile = os.Path(binFile(), T.workspace)
+    if (os.exists(targetFile))
+      T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
     os.copy.over(millBin.path, targetFile, createFolders = true)
     T.log.info(s"Published ${modules.size} modules and installed ${targetFile}")
-    PathRef(targetFile)
+    targetFile
+  }
+}
+
+object integration extends MillScalaModule {
+  override def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
+
+  /** Deploy freshly build mill for use in tests */
+  def testMill: Target[PathRef] = {
+    val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+    T { PathRef(installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
+  }
+
+  trait ITests extends super.Tests {
+    def workspaceDir = T.persistent { PathRef(T.dest) }
+    override def forkArgs: Target[Seq[String]] = T {
+      super.forkArgs() ++
+        scalajslib.testArgs() ++
+        scalalib.worker.testArgs() ++
+        scalalib.backgroundwrapper.testArgs() ++
+        scalanativelib.testArgs() ++
+        Seq(
+          s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
+          s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
+          s"-DMILL_VERSION=${millVersion()}",
+          s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
+          "-Djna.nosys=true"
+        )
+    }
+  }
+
+  // Integration test of Mill
+  object local extends ITests
+  object forked extends ITests {
+    override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(integration.local)
+
+    override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
+      "MILL_TEST_RELEASE" -> testMill().path.toString()
+    )
+  }
+
+  // Test of various third-party repositories
+  object thirdparty extends Module {
+    def testRepos = T {
+      Seq(
+        "MILL_ACYCLIC_REPO" ->
+          shared.downloadTestRepo(
+            "lihaoyi/acyclic",
+            "bc41cd09a287e2c270271e27ccdb3066173a8598",
+            T.dest / "acyclic"
+          ),
+        "MILL_JAWN_REPO" ->
+          shared.downloadTestRepo(
+            "non/jawn",
+            "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb",
+            T.dest / "jawn"
+          ),
+        "MILL_BETTERFILES_REPO" ->
+          shared.downloadTestRepo(
+            "pathikrit/better-files",
+            "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8",
+            T.dest / "better-files"
+          ),
+        "MILL_AMMONITE_REPO" ->
+          shared.downloadTestRepo(
+            "lihaoyi/ammonite",
+            "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e",
+            T.dest / "ammonite"
+          ),
+        "MILL_UPICKLE_REPO" ->
+          shared.downloadTestRepo(
+            "lihaoyi/upickle",
+            "7f33085c890db7550a226c349832eabc3cd18769",
+            T.dest / "upickle"
+          ),
+        "MILL_PLAY_JSON_REPO" ->
+          shared.downloadTestRepo(
+            "playframework/play-json",
+            "0a5ba16a03f3b343ac335117eb314e7713366fd4",
+            T.dest / "play-json"
+          ),
+        "MILL_CAFFEINE_REPO" ->
+          shared.downloadTestRepo(
+            "ben-manes/caffeine",
+            "c02c623aedded8174030596989769c2fecb82fe4",
+            T.dest / "caffeine"
+          )
+      )
+    }
+
+    object local extends ITests {
+      override def forkArgs: Target[Seq[String]] = T {
+        super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
+      }
+
+      override def runClasspath: T[Seq[PathRef]] = T {
+        // we need to trigger installation of testng-contrib for Caffeine
+        contrib.testng.publishLocal()()
+        super.runClasspath()
+      }
+    }
+    object forked extends ITests {
+      override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(integration.thirdparty.local)
+      override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
+        "MILL_TEST_RELEASE" -> testMill().path.toString()
+      )
+      override def forkArgs: Target[Seq[String]] = T {
+        super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
+      }
+    }
   }
 }
 

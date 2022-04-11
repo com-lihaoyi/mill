@@ -15,8 +15,8 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
   def scriptSourcePath: os.Path
   def buildPath: os.SubPath = os.sub / "build.sc"
 
-  val workspacePath = os.pwd / "target" / "workspace" / workspaceSlug
-  val wd = workspacePath / buildPath / os.up
+  def workspacePath: os.Path = os.pwd / "target" / "workspace" / workspaceSlug
+  def wd = workspacePath / buildPath / os.up
   val stdOutErr = System.out // new PrintStream(new ByteArrayOutputStream())
   val stdIn = new ByteArrayInputStream(Array())
   val disableTicker = false
