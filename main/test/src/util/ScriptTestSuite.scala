@@ -9,8 +9,9 @@ import os.Path
 import utest._
 
 import java.nio.file.NoSuchFileException
+import scala.util.control.NonFatal
 
-abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
+abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) extends TestSuite {
   def workspaceSlug: String
   def scriptSourcePath: os.Path
   def buildPath: os.SubPath = os.sub / "build.sc"
@@ -90,18 +91,35 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
       throw new NoSuchFileException(s"Mill binary to use for test not found under: ${millRelease}")
     }
 
+    val extraArgs = if (clientServer) Seq() else Seq("--no-server")
+    val env = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+
     try {
-      os.proc(millReleaseFile, "-i", s).call(
-        wd,
+      os.proc(millReleaseFile, extraArgs, s).call(
+        cwd = wd,
         stdin = os.Inherit,
         stdout = stdout,
-        stderr = os.Inherit
+        stderr = os.Inherit,
+        env = env
       )
+      if (clientServer) {
+        // try to stop the server
+        try {
+          os.proc(millReleaseFile, "shutdown").call(
+            cwd = wd,
+            stdin = os.Inherit,
+            stdout = stdout,
+            stderr = os.Inherit,
+            env = env
+          )
+        } catch { case NonFatal(_) => }
+      }
       true
-    } catch { case e: Throwable => false }
+    } catch { case NonFatal(_) => false }
   }
   def meta(s: String): String = {
-    val Seq((List(selector), _)) = mill.define.ParseArgs.apply(Seq(s), SelectMode.Single).getOrElse(???)
+    val Seq((List(selector), _)) =
+      mill.define.ParseArgs.apply(Seq(s), SelectMode.Single).getOrElse(???)
 
     val segments = selector._2.value.flatMap(_.pathSegments)
     os.read(wd / "out" / segments.init / s"${segments.last}.json")

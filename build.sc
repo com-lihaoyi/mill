@@ -906,13 +906,15 @@ object integration extends MillScalaModule {
 
   // Integration test of Mill
   object local extends ITests
-  object forked extends ITests {
+  trait Forked extends ITests {
     override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(integration.local)
 
     override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
       "MILL_TEST_RELEASE" -> testMill().path.toString()
     )
   }
+  object forked extends Forked
+  object `forked-server` extends Forked
 
   // Test of various third-party repositories
   object thirdparty extends Module {

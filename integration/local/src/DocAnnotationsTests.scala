@@ -3,7 +3,8 @@ package mill.integration
 import mill.util.ScriptTestSuite
 import utest._
 
-class DocAnnotationsTests(fork: Boolean) extends IntegrationTestSuite("docannotations", fork) {
+class DocAnnotationsTests(fork: Boolean, clientServer: Boolean)
+    extends IntegrationTestSuite("docannotations", fork, clientServer) {
   val tests = Tests {
     initWorkspace()
     "test" - {
