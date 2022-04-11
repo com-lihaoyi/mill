@@ -20,16 +20,19 @@ object MainModuleTests extends TestSuite {
         val Result.Success(value: String) = res.rawValues.head
         assert(
           res.failing.keyCount == 0,
-          value.startsWith("hello(MainModuleTests.scala:")
+          value.startsWith("hello("),
+          value.contains("MainModuleTests.scala:")
         )
       }
       test("multi") {
-        val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello", "hello2")))
+        val res =
+          eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello", "hello2")))
         val Result.Success(value: String) = res.rawValues.head
         assert(
           res.failing.keyCount == 0,
-          value.startsWith("hello(MainModuleTests.scala:"),
-          value.contains("\n\nhello2(MainModuleTests.scala:")
+          value.startsWith("hello("),
+          value.contains("MainModuleTests.scala:"),
+          value.contains("\n\nhello2(")
         )
       }
     }
