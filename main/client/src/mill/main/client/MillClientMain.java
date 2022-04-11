@@ -114,9 +114,13 @@ public class MillClientMain {
 
             try (
                 Locks locks = Locks.files(lockBase);
+                FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMillis);
+                FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMillis);
             ) {
                 Locked clientLock = locks.clientLock.tryLock();
                 if (clientLock != null) {
+                    stdoutTailer.start();
+                    stderrTailer.start();
                     int exitCode = run(
                         lockBase,
                         () -> {
@@ -134,6 +138,9 @@ public class MillClientMain {
                         System.getenv()
                     );
 
+                    // Here, we ensure we process the tails of the output files before interrupting the threads
+                    stdoutTailer.flush();
+                    stderrTailer.flush();
                     clientLock.release();
                     return exitCode;
                 }
