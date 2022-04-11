@@ -197,7 +197,7 @@ trait MainModule extends mill.Module {
    */
   def inspect(evaluator: Evaluator, targets: String*): Command[String] = mill.T.command {
     MainModule.resolveTasks(evaluator, targets, SelectMode.Multi) { tasks =>
-      val output = for {
+      val output = (for {
         task <- tasks
         tree = ReplApplyHandler.pprintTask(task, evaluator)
         defaults = pprint.PPrinter()
@@ -213,9 +213,9 @@ trait MainModule extends mill.Module {
         new StringBuilder().tap { sb =>
           for { str <- truncated ++ Iterator("\n") } sb.append(str)
         }.toString()
-      }
-      T.log.outputStream.println(output.mkString("\n"))
-      output.toString
+      }).mkString("\n")
+      T.log.outputStream.println(output)
+      fansi.Str(output).plainText
     }
   }
 

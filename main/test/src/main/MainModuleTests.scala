@@ -3,7 +3,7 @@ package mill.main
 import mill.api.Result
 import mill.{Agg, T}
 import mill.util.{TestEvaluator, TestUtil}
-import utest.{TestSuite, Tests, test}
+import utest.{assert, TestSuite, Tests, test}
 
 object MainModuleTests extends TestSuite {
 
@@ -13,6 +13,29 @@ object MainModuleTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
+    test("inspect") {
+      val eval = new TestEvaluator(mainModule)
+      test("single") {
+        val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
+        val Result.Success(value: String) = res.rawValues.head
+        assert(
+          res.failing.keyCount == 0,
+          value.startsWith("hello("),
+          value.contains("MainModuleTests.scala:")
+        )
+      }
+      test("multi") {
+        val res =
+          eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello", "hello2")))
+        val Result.Success(value: String) = res.rawValues.head
+        assert(
+          res.failing.keyCount == 0,
+          value.startsWith("hello("),
+          value.contains("MainModuleTests.scala:"),
+          value.contains("\n\nhello2(")
+        )
+      }
+    }
     test("show") {
       val evaluator = new TestEvaluator(mainModule)
       test("single") {
