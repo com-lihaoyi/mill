@@ -1,5 +1,5 @@
 package mill.scalalib.publish
-
+import upickle.default.{macroRW, ReadWriter}
 sealed abstract class VersionScheme(val value: String) {
   def toProperty: (String, String) = "info.versionScheme" -> value
 }
@@ -13,19 +13,25 @@ object VersionScheme {
    *  1.1.0 is bincompat with 1.0.0.
    */
   case object EarlySemVer extends VersionScheme("early-semver")
+  implicit val rwEarlySemVer: ReadWriter[EarlySemVer.type] = macroRW
 
   /**
    *  Haskell Package Versioning Policy where X.Y are treated as major version
    */
   case object PVP extends VersionScheme("pvp")
+  implicit val rwPVP: ReadWriter[PVP.type] = macroRW
 
   /**
    * Semantic Versioning where all 0.y.z are treated as initial development (no bincompat guarantees)
    */
   case object SemVerSpec extends VersionScheme("semver-spec")
+  implicit val rwSemVerSpec: ReadWriter[SemVerSpec.type] = macroRW
 
   /**
    * Requires exact match of version
    */
   case object Strict extends VersionScheme("strict")
+  implicit val rwStrict: ReadWriter[Strict.type] = macroRW
+
+  implicit val rwVersionScheme: ReadWriter[VersionScheme.type] = macroRW
 }
