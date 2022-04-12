@@ -38,9 +38,9 @@ object ModuleKind {
   object CommonJSModule extends ModuleKind
   object ESModule extends ModuleKind
   
-  implicit def rwNoModule: RW[NoModule] = macroRW
-  implicit def rwCommonJSModule: RW[CommonJSModule] = macroRW
-  implicit def rwESModule: RW[ESModule] = macroRW
+  implicit def rwNoModule: RW[NoModule.type] = macroRW
+  implicit def rwCommonJSModule: RW[CommonJSModule.type] = macroRW
+  implicit def rwESModule: RW[ESModule.type] = macroRW
   implicit def rw: RW[ModuleKind] = macroRW
 }
 
