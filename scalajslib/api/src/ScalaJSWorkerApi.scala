@@ -41,15 +41,22 @@ object ModuleKind {
 
 sealed trait ESVersion
 object ESVersion {
-  implicit val rw: RW[ESVersion] = macroRW[ESVersion]
   object ES2015 extends ESVersion
+  implicit val rw: RW[ES2015.type] = macroRW
   object ES2016 extends ESVersion
+  implicit val rw: RW[ES2016.type] = macroRW
   object ES2017 extends ESVersion
+  implicit val rw: RW[ES2017.type] = macroRW
   object ES2018 extends ESVersion
+  implicit val rw: RW[ES2018.type] = macroRW
   object ES2019 extends ESVersion
+  implicit val rw: RW[ES2019.type] = macroRW
   object ES2020 extends ESVersion
+  implicit val rw: RW[ES2020.type] = macroRW
   object ES2021 extends ESVersion
+  implicit val rw: RW[ES2021.type] = macroRW
   object ES5_1 extends ESVersion
+  implicit val rw: RW[ESVersion] = macroRW[ESVersion]
 }
 
 case class ESFeatures private (
