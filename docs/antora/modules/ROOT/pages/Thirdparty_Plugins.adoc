@@ -87,6 +87,15 @@ import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
 sh> mill plugin.dgraph.browseDeps(proj)()
 ----
 
+== Docusaurus 2
+
+Simple Docusaurus runner for Mill
+
+The plugin provides a mill module that allows to build the project web site using https://docusaurus.io/[Docusaurus 2] as a static content generator.
+
+Project home. https://github.com/atooni/mill-docusaurus2
+
+
 == Ensime
 
 Create an http://ensime.github.io/[.ensime] file for your build.
@@ -401,6 +410,15 @@ object main extends KotlinModule {
 For documentation please visit the https://github.com/lefou/mill-kotlin[mill-kotlin project page].
 
 You will find there also a version compatibility matrix.
+
+== MDoc
+
+Simple MDoc runner for Mill
+
+This plugin provides a mill module that allows to execute https://scalameta.org/mdoc/[Scala MDoc] from within a mill build.
+Scala MDoc simply compiles properly marked Scala snippets in plain md files and optionally runs them through an interpreter, augmenting the code with the interpreter output.
+
+Project home: https://github.com/atooni/mill-mdoc
 
 == Mill Wrapper Scripts
 
