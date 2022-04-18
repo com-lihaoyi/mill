@@ -35,6 +35,14 @@ object BloopTests extends TestSuite {
         "-language:higherKinds"
       )
 
+      override def compileIvyDeps = Agg(
+        ivy"org.reactivestreams:reactive-streams:1.0.3"
+      )
+
+      override def runIvyDeps = Agg(
+        ivy"org.postgresql:postgresql:42.3.3"
+      )
+
       object test extends super.Tests with TestModule.Utest
     }
 
@@ -98,10 +106,10 @@ object BloopTests extends TestSuite {
         val sources = p.sources.map(Path(_))
         val options = p.scala.get.options
         val version = p.scala.get.version
-        val classpath = p.classpath.map(_.toString)
-        val platform = p.platform.get.name
-        val jvmOptions = p.platform.get.asInstanceOf[Jvm].config.options
-        val mainCLass = p.platform.get.mainClass.get
+        val compileClasspath = p.classpath.map(_.toString)
+        val platform = p.platform.get.asInstanceOf[Jvm]
+        val jvmOptions = platform.config.options
+        val runtimeClasspath = platform.classpath.get.map(_.toString)
         val resolution = p.resolution.get.modules
 
         assert(name == "scalaModule")
@@ -110,10 +118,21 @@ object BloopTests extends TestSuite {
         assert(options.contains("-language:higherKinds"))
         assert(version == "2.12.8")
         assert(
-          classpath.exists(_.contains(s"bloop-config_2.12-${build.scalaModule.bloopVersion}.jar"))
+          compileClasspath.exists(
+            _.contains(s"bloop-config_2.12-${build.scalaModule.bloopVersion}.jar")
+          )
         )
-        assert(platform == "jvm")
-        assert(mainCLass == "foo.bar.Main")
+        assert(compileClasspath.exists(_.contains("reactive-streams-1.0.3.jar")))
+        assert(
+          compileClasspath.filterNot(_.contains("reactive-streams-1.0.3.jar")).forall(
+            runtimeClasspath.contains
+          )
+        )
+        assert(
+          runtimeClasspath.exists(_.contains("postgresql-42.3.3.jar"))
+        )
+        assert(platform.name == "jvm")
+        assert(platform.mainClass.get == "foo.bar.Main")
         assert(jvmOptions.contains(s"-Duser.dir=$workdir"))
 
         val bloopConfigDep = resolution.find(_.name == "bloop-config_2.12").get
@@ -136,7 +155,11 @@ object BloopTests extends TestSuite {
         assert(sources == List(workdir / "scalaModule" / "test" / "src"))
         assert(framework == "utest.runner.Framework")
         assert(dep == "scalaModule")
-        assert(mainModuleClasspath.forall(p.classpath.contains))
+        assert(
+          mainModuleClasspath.filterNot(_.toString.contains("reactive-streams-1.0.3.jar")).forall(
+            p.classpath.contains
+          )
+        )
       }
       "configAccessTest" - {
         val (accessedConfig, _) =
