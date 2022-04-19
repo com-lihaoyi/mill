@@ -130,7 +130,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:1.6.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
-  val zinc = ivy"org.scala-sbt::zinc:1.6.1"
+  val zinc = ivy"org.scala-sbt::zinc:1.7.0-M2"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0"
   val fansi = ivy"com.lihaoyi::fansi:0.3.1"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
