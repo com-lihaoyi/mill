@@ -818,6 +818,14 @@ case class GenIdeaImpl(
         <orderEntry type="sourceFolder" forTests="false" />
 
         {
+      for (dep <- depNames.sorted)
+        yield dep.scope match {
+          case None => <orderEntry type="module" module-name={dep.value} exported="" />
+          case Some(scope) =>
+            <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
+        }
+    }
+        {
       for (name <- libNames.sorted)
         yield name.scope match {
           case None => <orderEntry type="library" name={name.value} level="project" />
@@ -825,14 +833,6 @@ case class GenIdeaImpl(
             <orderEntry type="library" scope={scope} name={name.value} level="project" />
         }
 
-    }
-        {
-      for (dep <- depNames.sorted)
-        yield dep.scope match {
-          case None => <orderEntry type="module" module-name={dep.value} exported="" />
-          case Some(scope) =>
-            <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
-        }
     }
       </component>
       {
