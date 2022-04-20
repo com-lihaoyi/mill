@@ -10,7 +10,7 @@
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
-        <orderEntry type="library" name="scala-library-2.13.6.jar" level="project"/>
         <orderEntry type="module" module-name="helloworld" exported=""/>
+        <orderEntry type="library" name="scala-library-2.13.6.jar" level="project"/>
     </component>
 </module>
