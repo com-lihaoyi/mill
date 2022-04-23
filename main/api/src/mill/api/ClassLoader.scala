@@ -58,8 +58,8 @@ object ClassLoader {
    *  mill could be compiled only with jdk 9 or above. We don't want to introduce this restriction now.
    */
   private def refinePlatformParent(parent: java.lang.ClassLoader): ClassLoader = {
-    if (!java9OrAbove || parent != null) parent
-    else {
+    if (parent != null) parent
+    else if (java9OrAbove) {
       // Make sure when `parent == null`, we only delegate java.* classes
       // to the parent getPlatformClassLoader. This is necessary because
       // in Java 9+, somehow the getPlatformClassLoader ends up with all
@@ -69,6 +69,19 @@ object ClassLoader {
         .getMethod("getPlatformClassLoader")
         .invoke(null)
         .asInstanceOf[ClassLoader]
+    } else {
+      // With Java 8 we want a clean classloader that still contains classes
+      // coming from com.sun.* etc.
+      // We get the application classloader parent which happens to be of
+      // type sun.misc.Launcher$ExtClassLoader
+      // We can't call the method directly since it doesn't exist in Java 9
+      // So we load it via reflection.
+      val launcherClass = getClass.getClassLoader().loadClass("sun.misc.Launcher")
+      val getLauncherMethod = launcherClass.getMethod("getLauncher")
+      val launcher = getLauncherMethod.invoke(null)
+      val getClassLoaderMethod = launcher.getClass().getMethod("getClassLoader")
+      val appClassLoader = getClassLoaderMethod.invoke(launcher).asInstanceOf[ClassLoader]
+      appClassLoader.getParent()
     }
   }
 
