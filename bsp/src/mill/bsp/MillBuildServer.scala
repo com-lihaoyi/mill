@@ -218,6 +218,8 @@ class MillBuildServer(
         false
       )
       capabilities.setCanReload(canReload)
+      capabilities.setJvmRunEnvironmentProvider(true)
+      capabilities.setJvmTestEnvironmentProvider(true)
 
       request.getData match {
         case d: JsonObject =>
