@@ -74,8 +74,9 @@ object ClassLoader {
       // coming from com.sun.* etc.
       // We get the application classloader parent which happens to be of
       // type sun.misc.Launcher$ExtClassLoader
-      // We can't call the method directly since it doesn't exist in Java 9
-      // So we load it via reflection.
+      // We can't call the method directly since it would not compile on Java 9+
+      // So we load it via reflection to allow compilation in Java 9+ but only
+      // on Java 8
       val launcherClass = getClass.getClassLoader().loadClass("sun.misc.Launcher")
       val getLauncherMethod = launcherClass.getMethod("getLauncher")
       val launcher = getLauncherMethod.invoke(null)
