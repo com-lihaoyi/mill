@@ -41,7 +41,7 @@ object TestClassLoaderTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    test("classloader can load com.sun.* on Java 8") {
+    test("com.sun classes exist in tests classpath (Java 8 only)") {
       workspaceTest(testclassloader) { eval =>
         assert(eval.apply(testclassloader.test.test()).isRight)
       }
