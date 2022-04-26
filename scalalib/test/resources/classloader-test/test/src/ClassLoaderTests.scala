@@ -3,11 +3,12 @@ package mill.scalalib
 import utest._
 
 object ClassLoaderTests extends TestSuite {
-  try {
-    getClass().getClassLoader().loadClass("com.sun.nio.zipfs.ZipFileSystemProvider")
-  } catch {
-    case _: ClassNotFoundException if !System.getProperty("java.specification.version").startsWith("1.") =>
-      // Don't fail on Java 9+
+  val tests = Tests {
+    val isJava8 = System.getProperty("java.specification.version").startsWith("1.")
+    test("com.sun classes exist in tests classpath (Java 8 only)") {
+      if (isJava8) {
+        getClass().getClassLoader().loadClass("com.sun.nio.zipfs.ZipFileSystemProvider")
+      }
+    }
   }
-  val tests = Tests {}
 }
