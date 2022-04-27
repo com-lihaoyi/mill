@@ -151,7 +151,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     esFeatures = esFeatures
   ).map(report => report.publicModules.head.jsFile)
 
-  protected def linkJs(
+  private[scalajslib] protected def linkJs(
       worker: ScalaJSWorker,
       toolsClasspath: Agg[PathRef],
       runClasspath: Agg[PathRef],
