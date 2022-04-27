@@ -8,8 +8,9 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule}
 import mill.testrunner.TestRunner
 import mill.define.{Command, Target, Task}
+import mill.scalajslib.{ScalaJSWorker => DeprecatedScalaJSWorker}
 import mill.scalajslib.api._
-import mill.scalajslib.worker.{ScalaJSWorker => NewScalaJSWorker, _}
+import mill.scalajslib.worker._
 
 import scala.jdk.CollectionConverters._
 
@@ -130,7 +131,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   @deprecated("Intended for internal usage. To be removed.", since = "0.10.3")
   def link(
-      worker: ScalaJSWorker,
+      worker: DeprecatedScalaJSWorker,
       toolsClasspath: Agg[PathRef],
       runClasspath: Agg[PathRef],
       mainClass: Option[String],
@@ -151,7 +152,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   ).map(report => report.publicModules.head.jsFile)
 
   protected def linkJs(
-      worker: NewScalaJSWorker,
+      worker: ScalaJSWorker,
       toolsClasspath: Agg[PathRef],
       runClasspath: Agg[PathRef],
       mainClass: Option[String],
