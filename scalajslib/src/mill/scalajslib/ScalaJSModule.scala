@@ -282,7 +282,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     ).map { report => report.publicModules.head.jsFile }
   }
 
-  def fastLinkJSTest = T {
+  def fastLinkJSTest: Target[Report] = T {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),

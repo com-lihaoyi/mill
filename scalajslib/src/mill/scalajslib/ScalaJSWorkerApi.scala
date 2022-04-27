@@ -7,7 +7,7 @@ import mill.define.Discover
 import mill.scalajslib.api._
 import mill.{Agg, T}
 
-@deprecated("Use mill.scalajslib.worker.ScalaJSWorker instead", since = "mill 0.10.3")
+@deprecated("Use mill.scalajslib.worker.ScalaJSWorker instead", since = "mill 0.10.4")
 class ScalaJSWorker extends AutoCloseable {
   private[scalajslib] val newWorker = new worker.ScalaJSWorker()
 
@@ -64,7 +64,7 @@ class ScalaJSWorker extends AutoCloseable {
 
   override def close(): Unit = newWorker.close()
 }
-@deprecated("Use mill.scalajslib.worker.ScalaJSExternalModule instead", since = "mill 0.10.3")
+@deprecated("Use mill.scalajslib.worker.ScalaJSExternalModule instead", since = "mill 0.10.4")
 object ScalaJSWorkerApi extends mill.define.ExternalModule {
 
   def scalaJSWorker = T.worker { new ScalaJSWorker() }

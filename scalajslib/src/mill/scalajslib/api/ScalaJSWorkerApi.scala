@@ -4,7 +4,7 @@ import java.io.File
 import mill.api.Result
 import upickle.default.{ReadWriter => RW, macroRW}
 
-@deprecated("To be removed. Internal use only. Report to maintainers if you have any usage of it.", since = "mill 0.10.3")
+@deprecated("To be removed. Internal use only. Report to maintainers if you have any usage of it.", since = "mill 0.10.4")
 trait ScalaJSWorkerApi {
   def link(
       sources: Array[File],
