@@ -97,12 +97,8 @@ object Deps {
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.0.2"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
-  // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
-  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
-  val ipcsocketExcludingJna = ipcsocket.exclude(
-    "net.java.dev.jna" -> "jna",
-    "net.java.dev.jna" -> "jna-platform"
-  )
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.4.0"
+
   object jetty {
     val version = "8.2.0.v20160908"
     val server = ivy"org.eclipse.jetty:jetty-server:${version}"
@@ -388,7 +384,7 @@ object main extends MillModule {
 
   object client extends MillPublishModule {
     override def ivyDeps = Agg(
-      Deps.ipcsocketExcludingJna
+      Deps.junixsocket
     )
     def generatedBuildInfo = T {
       val dest = T.dest
