@@ -427,7 +427,7 @@ trait JavaModule
    * You should not set the `-d` setting for specifying the target directory,
    * as that is done in the [[docJar]] target.
    */
-  def javadocOptions: T[Seq[String]] = T { Seq[String]("-encoding UTF8") }
+  def javadocOptions: T[Seq[String]] = T { Seq[String]("-encoding", "UTF8") }
 
   /**
    * Directories to be processed by the API documentation tool.
