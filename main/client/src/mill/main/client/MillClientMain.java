@@ -187,7 +187,7 @@ public class MillClientMain {
             try {
                 String socketBaseName = "mill-" + Util.md5hex(new File(lockBase).getCanonicalPath());
                 AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketBaseName));
-                ioSocket = AFUNIXSocket.connectTo​(addr);
+                ioSocket = AFUNIXSocket.connectTo(addr);
             } catch (Throwable e) {
                 socketThrowable = e;
                 Thread.sleep(1);
