@@ -79,9 +79,11 @@ object TestUtil {
       }
     }
   }
-  def disableInJava9OrAbove(f: => Any): Unit = {
-    if (!ammonite.util.Util.java9OrAbove) {
+  def disableInJava9OrAbove(f: => Any): Any = {
+    if (System.getProperty("java.specification.version").startsWith("1.")) {
       f
+    } else {
+      "*** Disabled in Java 9+ ***"
     }
   }
 }
