@@ -155,14 +155,14 @@ trait HelloWorldTests extends utest.TestSuite {
             )
           }
           // TODO: document why we disable for Java9+
-          "runClasspath" - TestUtil.disableInJava9OrAbove(workspaceTest(HelloWorld) { eval =>
+          "runClasspath" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.runClasspath)
 
             assert(
               result.map(_.toString).exists(_.contains("scalac-scoverage-runtime")),
               evalCount > 0
             )
-          })
+          }
         }
       }
     }

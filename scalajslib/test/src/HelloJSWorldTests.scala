@@ -131,12 +131,12 @@ object HelloJSWorldTests extends TestSuite {
 
     test("fullOpt") {
       testAllMatrix((scala, scalaJS) =>
-        TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FullOpt))
+        testRun(scala, scalaJS, FullOpt)
       )
     }
     test("fastOpt") {
       testAllMatrix((scala, scalaJS) =>
-        TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FastOpt))
+        testRun(scala, scalaJS, FastOpt)
       )
     }
     test("jar") {

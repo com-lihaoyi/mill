@@ -7,12 +7,12 @@ class UpickleTests(fork: Boolean)
   val tests = Tests {
     initWorkspace()
     "jvm21111" - {
-      mill.util.TestUtil.disableInJava9OrAbove({
+      mill.util.TestUtil.disableInJava9OrAbove {
         assert(eval("upickleJvm[2.11.11].test"))
         val jvmMeta = meta("upickleJvm[2.11.11].test.test")
         assert(jvmMeta.contains("example.ExampleTests.simple"))
         assert(jvmMeta.contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
-      })
+      }
     }
     "jvm2123" - {
       assert(eval("upickleJvm[2.12.3].test"))

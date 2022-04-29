@@ -42,7 +42,7 @@ trait AmmModule extends AmmInternalModule with PublishModule{
 trait AmmDependenciesResourceFileModule extends JavaModule{
   def crossScalaVersion: String
   def dependencyResourceFileName: String
-  def resources = T.sources {
+  override def resources = T.sources {
 
     val deps0 = T.task{compileIvyDeps() ++ transitiveIvyDeps()}()
     val (_, res) = mill.modules.Jvm.resolveDependenciesMetadata(
