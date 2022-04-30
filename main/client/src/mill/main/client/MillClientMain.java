@@ -193,6 +193,7 @@ public class MillClientMain {
                 Thread.sleep(1);
             }
         }
+        
         if (ioSocket == null) {
             throw new Exception("Failed to connect to server", socketThrowable);
         }
