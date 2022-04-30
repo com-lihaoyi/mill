@@ -1,15 +1,16 @@
 package mill.integration.thirdparty
 
+import mill.util.TestUtil
 import utest._
 
 class JawnTests(fork: Boolean) extends IntegrationTestSuite("MILL_JAWN_REPO", "jawn", fork) {
   val tests = Tests {
     initWorkspace()
 
-    def check(scalaVersion: String) = {
-      if (!sys.props("java.version").startsWith("1.")) {
-        println(s"*** Beware: Tests is not supported with this Java version! ***")
-      } else {
+    def check(scalaVersion: String) = TestUtil.disableInJava9OrAbove("Old tests don't work") {
+      val tccl = Thread.currentThread().getContextClassLoader()
+      try {
+        Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader())
         val firstCompile = eval(s"jawn[$scalaVersion].parser.test")
 
         assert(
@@ -25,6 +26,8 @@ class JawnTests(fork: Boolean) extends IntegrationTestSuite("MILL_JAWN_REPO", "j
         val brokenCompile = eval(s"jawn[$scalaVersion].parser.test")
 
         assert(!brokenCompile)
+      } finally {
+        Thread.currentThread().setContextClassLoader(tccl)
       }
     }
 
