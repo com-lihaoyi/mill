@@ -64,7 +64,7 @@ class ScalaJSWorker extends AutoCloseable {
 
   override def close(): Unit = newWorker.close()
 }
-@deprecated("Use mill.scalajslib.worker.ScalaJSExternalModule instead", since = "mill 0.10.4")
+@deprecated("Use mill.scalajslib.worker.ScalaJSWorkerExternalModule instead", since = "mill 0.10.4")
 object ScalaJSWorkerApi extends mill.define.ExternalModule {
 
   def scalaJSWorker = T.worker { new ScalaJSWorker() }
