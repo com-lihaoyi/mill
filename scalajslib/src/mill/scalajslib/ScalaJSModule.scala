@@ -129,7 +129,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     mill.api.Result.Failure("runMain is not supported in Scala.js")
   }
 
-  @deprecated("Intended for internal usage. To be removed.", since = "0.10.3")
+  @deprecated("Intended for internal usage. To be removed.", since = "0.10.4")
   def link(
       worker: DeprecatedScalaJSWorker,
       toolsClasspath: Agg[PathRef],
