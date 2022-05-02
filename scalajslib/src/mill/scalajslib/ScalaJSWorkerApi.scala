@@ -8,16 +8,12 @@ import mill.scalajslib.worker.ScalaJSWorkerExternalModule
 import mill.{Agg, T}
 
 @deprecated("Use mill.scalajslib.worker.ScalaJSWorker instead", since = "mill 0.10.4")
-class ScalaJSWorker(initialBridgeWorker: Option[worker.ScalaJSWorker]) extends AutoCloseable {
-
-  def this() = this(None)
-
-  protected[scalajslib] def bridgeWorker: worker.ScalaJSWorker = initialBridgeWorker.getOrElse(
-    throw new IllegalStateException(
-      "If you still use the deprecated mill.scalajslib.ScalaJSWorker, you need to make sure to initialize it correctly." +
-        " Please override bridgeWorker to fix this."
-    )
-  )
+class ScalaJSWorker(val bridgeWorker: worker.ScalaJSWorker) extends AutoCloseable {
+  private var createdInternally = false
+  def this() = {
+    this(new worker.ScalaJSWorker)
+    createdInternally = true
+  }
 
   def link(
       toolsClasspath: Agg[os.Path],
@@ -71,7 +67,10 @@ class ScalaJSWorker(initialBridgeWorker: Option[worker.ScalaJSWorker]) extends A
   }
 
   override def close(): Unit = {
-    // we only delegate, so we should no longer close
+    if (createdInternally) bridgeWorker.close()
+    else {
+      // we only delegate, so we shouldn't close it
+    }
   }
 }
 
@@ -83,7 +82,7 @@ object ScalaJSWorkerApi extends mill.define.ExternalModule {
       "mill.scalajslib.ScalaJSWorkerApi is deprecated, use mill.scalajslib.worker.ScalaJSWorkerExternalModule instead"
     )
     // delegate to the successor implementation, it's a singleton
-    new ScalaJSWorker(Some(ScalaJSWorkerExternalModule.scalaJSWorker()))
+    new ScalaJSWorker(ScalaJSWorkerExternalModule.scalaJSWorker())
   }
   lazy val millDiscover = Discover[this.type]
 }
