@@ -185,8 +185,8 @@ public class MillClientMain {
 
         while (ioSocket == null && System.currentTimeMillis() - retryStart < 5000) {
             try {
-                String socketBaseName = "mill-" + Util.md5hex(new File(lockBase).getCanonicalPath());
-                AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketBaseName));
+                String socketName = lockBase + "/mill-" + Util.md5hex(new File(lockBase).getCanonicalPath()) + "-io";
+                AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
                 ioSocket = AFUNIXSocket.connectTo(addr);
             } catch (Throwable e) {
                 socketThrowable = e;

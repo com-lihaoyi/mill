@@ -96,9 +96,9 @@ class Server[T](
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock) {
-          val socketBaseName = "mill-" + Util.md5hex(new File(lockBase).getCanonicalPath)
-          new File(socketBaseName).delete()
-          val addr = AFUNIXSocketAddress.of(new File(socketBaseName))
+          val socketName = lockBase + "/mill-" + Util.md5hex(new File(lockBase).getCanonicalPath()) + "-io"
+          new File(socketName).delete()
+          val addr = AFUNIXSocketAddress.of(new File(socketName))
           val serverSocket = AFUNIXServerSocket.bindOn(addr)
           val socketClose = () => serverSocket.close()
 
