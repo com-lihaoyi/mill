@@ -5,7 +5,8 @@ import sun.misc.{Signal, SignalHandler}
 import java.io._
 import java.net.Socket
 import scala.jdk.CollectionConverters._
-import org.scalasbt.ipcsocket._
+import org.newsclub.net.unix.AFUNIXServerSocket
+import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.{BuildInfo, MillMain}
 import mill.main.client._
 import mill.api.DummyInputStream
@@ -95,22 +96,11 @@ class Server[T](
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock) {
-          val socketBaseName = "mill-" + Util.md5hex(new File(lockBase).getCanonicalPath)
-          val (serverSocket, socketClose) =
-            if (Util.isWindows) {
-              val socketName = Util.WIN32_PIPE_PREFIX + socketBaseName
-              (
-                new Win32NamedPipeServerSocket(socketName),
-                () => new Win32NamedPipeSocket(socketName).close()
-              )
-            } else {
-              val socketName = lockBase + "/" + socketBaseName + "-io"
-              new File(socketName).delete()
-              (
-                new UnixDomainServerSocket(socketName),
-                () => new UnixDomainSocket(socketName).close()
-              )
-            }
+          val socketName = lockBase + "/mill-" + Util.md5hex(new File(lockBase).getCanonicalPath()) + "-io"
+          new File(socketName).delete()
+          val addr = AFUNIXSocketAddress.of(new File(socketName))
+          val serverSocket = AFUNIXServerSocket.bindOn(addr)
+          val socketClose = () => serverSocket.close()
 
           val sockOpt = Server.interruptWith(
             "MillSocketTimeoutInterruptThread",
@@ -225,15 +215,7 @@ class Server[T](
     System.out.flush()
     System.err.flush()
 
-    if (Util.isWindows) {
-      // Closing Win32NamedPipeSocket can often take ~5s
-      // It seems OK to exit the client early and subsequently
-      // start up mill client again (perhaps closing the server
-      // socket helps speed up the process).
-      val t = new Thread(() => clientSocket.close(), "clientSocketCloser")
-      t.setDaemon(true)
-      t.start()
-    } else clientSocket.close()
+    clientSocket.close()
   }
 }
 

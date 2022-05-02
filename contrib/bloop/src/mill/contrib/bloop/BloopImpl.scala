@@ -188,6 +188,27 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         case None => T.task(None)
       }).map(_.getOrElse(Config.LinkerMode.Debug))
 
+    // //////////////////////////////////////////////////////////////////////////
+    //  Classpath
+    // //////////////////////////////////////////////////////////////////////////
+
+    val classpath = T.task {
+      val depModules = (module.compileModuleDeps ++ module.recursiveModuleDeps).distinct
+      // dep modules ++ ivy deps ++ unmanaged
+      depModules.map(classes) ++
+        module.resolvedIvyDeps().map(_.path) ++
+        module.unmanagedClasspath().map(_.path)
+    }
+
+    val runtimeClasspath = T.task {
+      // dep modules ++ ivy deps ++ unmanaged
+      module.recursiveModuleDeps.map(classes) ++
+        module.resolvedRunIvyDeps().map(_.path) ++
+        module.unmanagedClasspath().map(_.path)
+    }
+
+    val resources = T.task(module.resources().map(_.path.toNIO).toList)
+
     val platform: Task[BloopConfig.Platform] = module match {
       case m: ScalaJSModule =>
         T.task {
@@ -247,7 +268,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
             ),
             mainClass = module.mainClass(),
             runtimeConfig = None,
-            classpath = None,
+            classpath = Some(runtimeClasspath().map(_.toNIO).toList),
             resources = Some(module.resources().map(_.path.toNIO).toList)
           )
         }
@@ -356,23 +377,6 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         allIvyDeps.map(module.resolveCoursierDependency()).toList
       BloopConfig.Resolution(artifacts(repos, coursierDeps))
     }
-
-    // //////////////////////////////////////////////////////////////////////////
-    //  Classpath
-    // //////////////////////////////////////////////////////////////////////////
-
-    val ivyDepsClasspath = module.resolvedIvyDeps.map(_.map(_.path).toSeq)
-
-    def transitiveClasspath(m: JavaModule): Task[Seq[os.Path]] = T.task {
-      (m.moduleDeps ++ m.compileModuleDeps).map(classes) ++
-        m.unmanagedClasspath().map(_.path) ++
-        T.traverse(m.moduleDeps ++ m.compileModuleDeps)(transitiveClasspath)().flatten
-    }
-
-    val classpath = T
-      .task(transitiveClasspath(module)() ++ ivyDepsClasspath())
-      .map(_.distinct)
-    val resources = T.task(module.resources().map(_.path.toNIO).toList)
 
     // //////////////////////////////////////////////////////////////////////////
     //  Tying up
