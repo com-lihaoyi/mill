@@ -131,12 +131,12 @@ object HelloJSWorldTests extends TestSuite {
 
     test("fullOpt") {
       testAllMatrix((scala, scalaJS) =>
-        TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FullOpt))
+        testRun(scala, scalaJS, FullOpt)
       )
     }
     test("fastOpt") {
       testAllMatrix((scala, scalaJS) =>
-        TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FastOpt))
+        testRun(scala, scalaJS, FastOpt)
       )
     }
     test("jar") {
@@ -318,7 +318,7 @@ object HelloJSWorldTests extends TestSuite {
       if !skipScalaJS(scalaJS)
     } {
       if (scala.startsWith("2.11.")) {
-        TestUtil.disableInJava9OrAbove(f(scala, scalaJS))
+        TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't run under Java 9+")(f(scala, scalaJS))
       } else {
         f(scala, scalaJS)
       }
