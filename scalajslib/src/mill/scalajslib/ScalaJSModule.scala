@@ -9,8 +9,8 @@ import mill.scalalib.{DepSyntax, Lib, TestModule}
 import mill.testrunner.TestRunner
 import mill.define.{Command, Target, Task}
 import mill.scalajslib.{ScalaJSWorker => DeprecatedScalaJSWorker}
-import mill.scalajslib.api._
-import mill.scalajslib.worker._
+import mill.scalajslib.api.{ESFeatures, ESVersion, FullOpt, JsEnvConfig, ModuleKind, OptimizeMode, Report}
+import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 
 import scala.jdk.CollectionConverters._
 
@@ -140,7 +140,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
   )(implicit ctx: mill.api.Ctx): Result[PathRef] = linkJs(
-    worker = worker.newWorker,
+    worker = worker.bridgeWorker,
     toolsClasspath = toolsClasspath,
     runClasspath = runClasspath,
     mainClass = mainClass,
@@ -255,6 +255,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
+
   def scalaJSTestDeps = T {
     resolveDeps(T.task {
       val bridgeOrInterface =

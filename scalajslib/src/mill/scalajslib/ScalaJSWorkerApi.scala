@@ -8,7 +8,7 @@ import mill.scalajslib.worker.ScalaJSWorkerExternalModule
 import mill.{Agg, T}
 
 @deprecated("Use mill.scalajslib.worker.ScalaJSWorker instead", since = "mill 0.10.4")
-class ScalaJSWorker(bridgeWorker: worker.ScalaJSWorker) extends AutoCloseable {
+class ScalaJSWorker(private[scalajslib] val bridgeWorker: worker.ScalaJSWorker) extends AutoCloseable {
 
   def link(
       toolsClasspath: Agg[os.Path],
