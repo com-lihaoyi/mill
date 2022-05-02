@@ -129,7 +129,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     mill.api.Result.Failure("runMain is not supported in Scala.js")
   }
 
-  @deprecated("Intended for internal usage. To be removed.", since = "0.10.4")
+  @deprecated("Intended for internal usage. To be removed.", since = "mill 0.10.4")
   def link(
       worker: DeprecatedScalaJSWorker,
       toolsClasspath: Agg[PathRef],
@@ -268,7 +268,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     })
   }
 
-  @deprecated("To be removed. Use fastLinkJSTest instead", since = "0.10.4")
+  @deprecated("To be removed. Use fastLinkJSTest instead", since = "mill 0.10.4")
   def fastOptTest = T {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
