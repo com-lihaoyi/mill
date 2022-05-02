@@ -2,8 +2,8 @@ package mill.main.client;
 
 import mill.main.client.lock.Locked;
 import mill.main.client.lock.Locks;
-import org.scalasbt.ipcsocket.UnixDomainSocket;
-import org.scalasbt.ipcsocket.Win32NamedPipeSocket;
+import org.newsclub.net.unix.AFUNIXSocket;
+import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -179,25 +179,21 @@ public class MillClientMain {
         }
         while (locks.processLock.probe()) Thread.sleep(3);
 
-        // Need to give sometime for Win32NamedPipeSocket to work
-        // if the server is just initialized
-        if (serverInit && Util.isWindows) Thread.sleep(1000);
-
         Socket ioSocket = null;
         Throwable socketThrowable = null;
         long retryStart = System.currentTimeMillis();
 
         while (ioSocket == null && System.currentTimeMillis() - retryStart < 5000) {
             try {
-                String socketBaseName = "mill-" + Util.md5hex(new File(lockBase).getCanonicalPath());
-                ioSocket = Util.isWindows ?
-                    new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + socketBaseName)
-                    : new UnixDomainSocket(lockBase + "/" + socketBaseName + "-io");
+                String socketName = lockBase + "/mill-" + Util.md5hex(new File(lockBase).getCanonicalPath()) + "-io";
+                AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
+                ioSocket = AFUNIXSocket.connectTo(addr);
             } catch (Throwable e) {
                 socketThrowable = e;
                 Thread.sleep(1);
             }
         }
+        
         if (ioSocket == null) {
             throw new Exception("Failed to connect to server", socketThrowable);
         }

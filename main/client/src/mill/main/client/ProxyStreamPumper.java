@@ -46,10 +46,6 @@ public class ProxyStreamPumper implements Runnable{
                     lastData.poke();
                 }                
             } catch (IOException e) {
-                // when client pipe handle is closed, it throws an exception on read()...
-                if (Util.isWindows && e.getMessage().endsWith("233")) {
-                    return; // ignore
-                }
                 e.printStackTrace();
                 System.exit(1);
             }
