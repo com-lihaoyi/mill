@@ -467,6 +467,7 @@ case class GenIdeaImpl(
             val compilerCp: Agg[Path] = librariesProperties.getOrElse(resolved.path, Agg.empty)
             val languageLevel = name match {
               case _ if compilerCp.iterator.isEmpty => None
+              case _ if name.startsWith("scala3-library_3-3.1.") => Some("Scala_3_1")
               case _ if name.startsWith("scala3-library_3-3.0.") => Some("Scala_3_0")
               case _ if name.startsWith("scala-library-2.13.") => Some("Scala_2_13")
               case _ if name.startsWith("scala-library-2.12.") => Some("Scala_2_12")
