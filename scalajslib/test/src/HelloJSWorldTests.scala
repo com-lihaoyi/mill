@@ -109,14 +109,19 @@ object HelloJSWorldTests extends TestSuite {
     def testRun(
         scalaVersion: String,
         scalaJSVersion: String,
-        mode: OptimizeMode
+        optimize: Boolean,
+        legacy: Boolean
     ): Unit = {
-      val task = mode match {
-        case FullOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fullOpt
-        case FastOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fastOpt
+      val module = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion)
+      val jsFile = if(legacy) {
+        val task = if(optimize) module.fullOpt else module.fastOpt
+        val Right((result, evalCount)) = helloWorldEvaluator(task)
+        result.path
+      } else {
+        val task = if(optimize) module.fullLinkJS else module.fastLinkJS
+        val Right((result, evalCount)) = helloWorldEvaluator(task)
+        result.publicModules.head.jsFile.path
       }
-      val Right((result, evalCount)) = helloWorldEvaluator(task)
-      val jsFile = result.path
       val output = ScalaJsUtils.runJS(jsFile)
       assert(output == "Hello Scala.js\n")
       val sourceMap = jsFile / os.up / (jsFile.last + ".map")
@@ -131,12 +136,22 @@ object HelloJSWorldTests extends TestSuite {
 
     test("fullOpt") {
       testAllMatrix((scala, scalaJS) =>
-        testRun(scala, scalaJS, FullOpt)
+        testRun(scala, scalaJS, optimize = true, legacy = true)
       )
     }
     test("fastOpt") {
       testAllMatrix((scala, scalaJS) =>
-        testRun(scala, scalaJS, FastOpt)
+        testRun(scala, scalaJS, optimize = true, legacy = true)
+      )
+    }
+    test("fastLinkJS") {
+      testAllMatrix((scala, scalaJS) =>
+        testRun(scala, scalaJS, optimize = true, legacy = false)
+      )
+    }
+    test("fullLinkJS") {
+      testAllMatrix((scala, scalaJS) =>
+        testRun(scala, scalaJS, optimize = true, legacy = false)
       )
     }
     test("jar") {
