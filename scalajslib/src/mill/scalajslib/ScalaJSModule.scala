@@ -9,7 +9,15 @@ import mill.scalalib.{DepSyntax, Lib, TestModule}
 import mill.testrunner.TestRunner
 import mill.define.{Command, Target, Task}
 import mill.scalajslib.{ScalaJSWorker => DeprecatedScalaJSWorker}
-import mill.scalajslib.api.{ESFeatures, ESVersion, FullOpt, JsEnvConfig, ModuleKind, OptimizeMode, Report}
+import mill.scalajslib.api.{
+  ESFeatures,
+  ESVersion,
+  FullOpt,
+  JsEnvConfig,
+  ModuleKind,
+  OptimizeMode,
+  Report
+}
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 
 import scala.jdk.CollectionConverters._
@@ -76,28 +84,28 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
   def fastLinkJS: Target[Report] = T {
-    linkTask(optimize = false, legacy = false)()
+    linkTask(optimize = false, forceOutJs = false)()
   }
 
   def fullLinkJS: Target[Report] = T {
-    linkTask(optimize = true, legacy = false)()
+    linkTask(optimize = true, forceOutJs = false)()
   }
 
   def fastOpt: Target[PathRef] = T {
-    linkTask(optimize = false, legacy = true)().publicModules.head.jsFile
+    linkTask(optimize = false, forceOutJs = true)().publicModules.head.jsFile
   }
 
   def fullOpt: Target[PathRef] = T {
-    linkTask(optimize = true, legacy = true)().publicModules.head.jsFile
+    linkTask(optimize = true, forceOutJs = true)().publicModules.head.jsFile
   }
 
-  private def linkTask(optimize: Boolean, legacy: Boolean): Task[Report] = T.task {
+  private def linkTask(optimize: Boolean, forceOutJs: Boolean): Task[Report] = T.task {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = runClasspath(),
       mainClass = finalMainClassOpt().toOption,
-      legacy = legacy,
+      forceOutJs = forceOutJs,
       testBridgeInit = false,
       optimize = optimize,
       moduleKind = moduleKind(),
@@ -144,7 +152,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     toolsClasspath = toolsClasspath,
     runClasspath = runClasspath,
     mainClass = mainClass,
-    legacy = true,
+    forceOutJs = true,
     testBridgeInit = testBridgeInit,
     optimize = mode == FullOpt,
     moduleKind = moduleKind,
@@ -156,7 +164,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       toolsClasspath: Agg[PathRef],
       runClasspath: Agg[PathRef],
       mainClass: Option[String],
-      legacy: Boolean,
+      forceOutJs: Boolean,
       testBridgeInit: Boolean,
       optimize: Boolean,
       moduleKind: ModuleKind,
@@ -178,7 +186,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       libraries,
       outputPath.toIO,
       mainClass,
-      legacy,
+      forceOutJs,
       testBridgeInit,
       optimize,
       moduleKind,
@@ -275,7 +283,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = scalaJSTestDeps() ++ runClasspath(),
       mainClass = None,
-      legacy = true,
+      forceOutJs = true,
       testBridgeInit = true,
       optimize = false,
       moduleKind = moduleKind(),
@@ -289,7 +297,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = scalaJSTestDeps() ++ runClasspath(),
       mainClass = None,
-      legacy = false,
+      forceOutJs = false,
       testBridgeInit = true,
       optimize = false,
       moduleKind = moduleKind(),

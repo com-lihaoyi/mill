@@ -108,7 +108,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       libraries: Array[File],
       dest: File,
       main: String,
-      legacy: Boolean,
+      forceOutJs: Boolean,
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: ModuleKind,
@@ -116,7 +116,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
-    val useLegacy = legacy || !minorIsGreaterThanOrEqual(3)
+    val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
     val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures, dest))
     val cache = StandardImpl.irFileCache().newCache

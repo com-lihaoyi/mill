@@ -73,7 +73,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       libraries: Array[File],
       destDir: File,
       main: String,
-      legacy: Boolean, // ignored in 0.6
+      forceOutJs: Boolean, // ignored in 0.6
       testBridgeInit: Boolean, // ignored in 0.6
       fullOpt: Boolean,
       moduleKind: ModuleKind,

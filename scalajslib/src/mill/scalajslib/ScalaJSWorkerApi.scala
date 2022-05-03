@@ -30,7 +30,7 @@ class ScalaJSWorker private (val bridgeWorker: worker.ScalaJSWorker, createdInte
     libraries = libraries,
     dest = dest,
     main = main,
-    legacy = true,
+    forceOutJs = true,
     testBridgeInit = testBridgeInit,
     fullOpt = fullOpt,
     moduleKind = moduleKind,

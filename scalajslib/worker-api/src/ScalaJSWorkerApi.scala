@@ -8,7 +8,7 @@ private[scalajslib] trait ScalaJSWorkerApi {
       libraries: Array[File],
       dest: File,
       main: String,
-      legacy: Boolean,
+      forceOutJs: Boolean,
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: ModuleKind,

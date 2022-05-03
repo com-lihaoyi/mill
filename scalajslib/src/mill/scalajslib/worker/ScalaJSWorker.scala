@@ -117,22 +117,22 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       libraries: Agg[os.Path],
       dest: File,
       main: Option[String],
-      legacy: Boolean,
+      forceOutJs: Boolean,
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: api.ModuleKind,
       esFeatures: api.ESFeatures
   )(implicit ctx: Ctx.Home): Result[api.Report] = {
     bridge(toolsClasspath).link(
-      sources.items.map(_.toIO).toArray,
-      libraries.items.map(_.toIO).toArray,
-      dest,
-      main.orNull,
-      legacy,
-      testBridgeInit,
-      fullOpt,
-      toWorkerApi(moduleKind),
-      toWorkerApi(esFeatures)
+      sources = sources.items.map(_.toIO).toArray,
+      libraries = libraries.items.map(_.toIO).toArray,
+      dest = dest,
+      main = main.orNull,
+      forceOutJs = forceOutJs,
+      testBridgeInit = testBridgeInit,
+      fullOpt = fullOpt,
+      moduleKind = toWorkerApi(moduleKind),
+      esFeatures = toWorkerApi(esFeatures)
     ) match {
       case Right(report) => Result.Success(fromWorkerApi(report, os.Path(dest)))
       case Left(message) => Result.Failure(message)
@@ -150,8 +150,8 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
   def run(toolsClasspath: Agg[os.Path], config: api.JsEnvConfig, report: api.Report)(
       implicit ctx: Ctx.Home
   ): Unit = {
-    val dest = 
-    bridge(toolsClasspath).run(toWorkerApi(config), getDest(report), toWorkerApi(report))
+    val dest =
+      bridge(toolsClasspath).run(toWorkerApi(config), getDest(report), toWorkerApi(report))
   }
 
   def getFramework(
