@@ -3,6 +3,11 @@
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
       <a class="navbar-item" href="{{{or site.url (or siteRootUrl siteRootPath)}}}"><img src="{{{uiRootPath}}}/logo-white.svg" height="20" />&nbsp;{{site.title}}</a>
+      <div class="navbar-item search">
+      {{#if env.SITE_SEARCH_PROVIDER}}
+        <input id="search-input" type="text" placeholder="Search the docs">
+      {{/if}}
+      </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
         <span></span>
