@@ -67,8 +67,8 @@ object TestRunner {
             None
           } else {
             (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
-              case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
-              case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
+              case (true, true) => matchFingerprints(framework.name(), cl, cls, fingerprints, isModule = true)
+              case (false, false) => matchFingerprints(framework.name(), cl, cls, fingerprints, isModule = false)
               case _ => None
             }
           }
@@ -80,6 +80,7 @@ object TestRunner {
   }
 
   def matchFingerprints(
+      frameworkName: String,
       cl: ClassLoader,
       cls: Class[_],
       fingerprints: Array[Fingerprint],
@@ -92,6 +93,8 @@ object TestRunner {
 
       case f: AnnotatedFingerprint =>
         val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
+        // sbt-jupiter-interface ignores fingerprinting since JUnit5 has its own resolving mechanism
+        frameworkName == "Jupiter" ||
         f.isModule == isModule &&
         (
           cls.isAnnotationPresent(annotationCls) ||
@@ -328,7 +331,7 @@ object TestRunner {
           val testClasses = discoverTests(cl, framework, testClassfilePath)
 
           val tasks = runner.tasks(
-            for ((cls, fingerprint) <- testClasses.toArray if classFilter(cls))
+            for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
               yield new TaskDef(
                 cls.getName.stripSuffix("$"),
                 fingerprint,

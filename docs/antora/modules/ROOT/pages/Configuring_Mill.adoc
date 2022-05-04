@@ -180,7 +180,8 @@ object foo extends ScalaModule {
 
 For convenience, you can also use one of the predefined test frameworks:
 
-* `TestModule.Junit`
+* `TestModule.Junit4`
+* `TestModule.Junit5`
 * `TestModule.TestNg`
 * `TestModule.Munit`
 * `TestModule.ScalaTest`
