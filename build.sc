@@ -1192,15 +1192,18 @@ object docs extends Module {
 
   /** Generates the mill documentation with Antora. */
   object antora extends Module {
+    private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
+    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
     def npmBase: T[os.Path] = T.persistent { T.dest }
     def prepareAntora(npmDir: os.Path) = {
       Jvm.runSubprocess(
         commandArgs = Seq(
-          "npm",
+          npmExe,
           "install",
           "@antora/cli",
           "@antora/site-generator-default",
-          "gitlab:antora/xref-validator"
+          "gitlab:antora/xref-validator",
+          "@antora/lunr-extension"
         ),
         envArgs = Map(),
         workingDir = npmDir
@@ -1211,7 +1214,7 @@ object docs extends Module {
     ) = {
       prepareAntora(npmDir)
       val cmdArgs =
-        Seq(s"${npmDir}/node_modules/@antora/cli/bin/antora") ++ args
+        Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
       ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
       Jvm.runSubprocess(
         commandArgs = cmdArgs,
@@ -1267,6 +1270,11 @@ object docs extends Module {
          |    mill-doc-url: ${Settings.docUrl}
          |    utest-github-url: https://github.com/com-lihaoyi/utest
          |    upickle-github-url: https://github.com/com-lihaoyi/upickle
+         |
+         |antora:
+         |  extensions:
+         |  - require: '@antora/lunr-extension'
+         |    index_latest_only: true
          |
          |""".stripMargin
     }
