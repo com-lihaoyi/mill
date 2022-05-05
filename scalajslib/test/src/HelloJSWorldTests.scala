@@ -113,15 +113,16 @@ object HelloJSWorldTests extends TestSuite {
         legacy: Boolean
     ): Unit = {
       val module = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion)
-      val jsFile = if(legacy) {
-        val task = if(optimize) module.fullOpt else module.fastOpt
-        val Right((result, evalCount)) = helloWorldEvaluator(task)
-        result.path
-      } else {
-        val task = if(optimize) module.fullLinkJS else module.fastLinkJS
-        val Right((result, evalCount)) = helloWorldEvaluator(task)
-        result.publicModules.head.jsFile.path
-      }
+      val jsFile =
+        if (legacy) {
+          val task = if (optimize) module.fullOpt else module.fastOpt
+          val Right((result, evalCount)) = helloWorldEvaluator(task)
+          result.path
+        } else {
+          val task = if (optimize) module.fullLinkJS else module.fastLinkJS
+          val Right((report, evalCount)) = helloWorldEvaluator(task)
+          report.dest.path / report.publicModules.head.jsFileName
+        }
       val output = ScalaJsUtils.runJS(jsFile)
       assert(output == "Hello Scala.js\n")
       val sourceMap = jsFile / os.up / (jsFile.last + ".map")
@@ -333,7 +334,10 @@ object HelloJSWorldTests extends TestSuite {
       if !skipScalaJS(scalaJS)
     } {
       if (scala.startsWith("2.11.")) {
-        TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't run under Java 9+")(f(scala, scalaJS))
+        TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't run under Java 9+")(f(
+          scala,
+          scalaJS
+        ))
       } else {
         f(scala, scalaJS)
       }

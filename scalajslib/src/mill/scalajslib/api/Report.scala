@@ -2,23 +2,24 @@ package mill.scalajslib.api
 
 import upickle.default.{ReadWriter => RW, macroRW}
 
-final class Report private (val publicModules: Iterable[Report.Module]) {
+final class Report private (val publicModules: Iterable[Report.Module], val dest: mill.PathRef) {
   override def toString(): String =
     s"""Report(
-       |  publicModules = $publicModules
+       |  publicModules = $publicModules,
+       |  dest = $dest
        |)""".stripMargin
 }
 object Report {
   final class Module private (
       val moduleID: String,
-      val jsFile: mill.PathRef,
+      val jsFileName: String,
       val sourceMapName: Option[String],
       val moduleKind: ModuleKind
   ) {
     override def toString(): String =
       s"""Module(
          |  moduleID = $moduleID,
-         |  jsFile = $jsFile,
+         |  jsFileName = $jsFileName,
          |  sourceMapName = $sourceMapName,
          |  moduleKind = $moduleKind
          |)""".stripMargin
@@ -26,19 +27,19 @@ object Report {
   object Module {
     def apply(
         moduleID: String,
-        jsFile: mill.PathRef,
+        jsFileName: String,
         sourceMapName: Option[String],
         moduleKind: ModuleKind
     ): Module =
       new Module(
         moduleID = moduleID,
-        jsFile = jsFile,
+        jsFileName = jsFileName,
         sourceMapName = sourceMapName,
         moduleKind = moduleKind
       )
     implicit val rw: RW[Module] = macroRW[Module]
   }
-  def apply(publicModules: Iterable[Report.Module]): Report =
-    new Report(publicModules = publicModules)
+  def apply(publicModules: Iterable[Report.Module], dest: mill.PathRef): Report =
+    new Report(publicModules = publicModules, dest = dest)
   implicit val rw: RW[Report] = macroRW[Report]
 }
