@@ -17,6 +17,7 @@ import org.scalajs.linker.interface.{
   ESVersion => ScalaJSESVersion,
   ModuleKind => ScalaJSModuleKind,
   Report => ScalaJSReport,
+  ModuleSplitStyle => ScalaJSModuleSplitStyle,
   _
 }
 import org.scalajs.logging.ScalaConsoleLogger
@@ -33,10 +34,11 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       fullOpt: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
+      moduleSplitStyle: ModuleSplitStyle,
       dest: File
   )
-  private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.binaryEmitted match {
-    case s"1.$n" if n.toIntOption.exists(_ < number) => false
+  private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
+    case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
     case _ => true
   }
   private object ScalaJSLinker {
@@ -94,12 +96,49 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         else withESVersion_1_5_minus(scalaJSESFeatures)
 
       val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule
-      val config = StandardConfig()
+      var config = StandardConfig()
         .withOptimizer(input.fullOpt)
         .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
         .withESFeatures(scalaJSESFeatures)
+
+      // Separating ModuleSplitStyle.SmallModulesFor in a standalone object
+      // avoids early classloading which fails in Scala.js 1.9- where this
+      // class doesn't exist
+      object ScalaJSSmallModulesFor {
+        def apply(packages: List[String]): ScalaJSModuleSplitStyle =
+          ScalaJSModuleSplitStyle.SmallModulesFor(packages)
+      }
+
+      def withModuleSplitStyle_1_3_plus(config: StandardConfig): StandardConfig = {
+        config.withModuleSplitStyle(
+          input.moduleSplitStyle match {
+            case ModuleSplitStyle.FewestModules => ScalaJSModuleSplitStyle.FewestModules
+            case ModuleSplitStyle.SmallestModules => ScalaJSModuleSplitStyle.SmallestModules
+            case v @ ModuleSplitStyle.SmallModulesFor(packages) =>
+              if (minorIsGreaterThanOrEqual(10)) ScalaJSSmallModulesFor(packages)
+              else throw new Exception(
+                s"ModuleSplitStyle $v is not supported with Scala.js < 1.10. Either update Scala.js or use one of ModuleSplitStyle.SmallestModules or ModuleSplitStyle.FewestModules"
+              )
+          }
+        )
+      }
+
+      def withModuleSplitStyle_1_2_minus(config: StandardConfig): StandardConfig = {
+        input.moduleSplitStyle match {
+          case ModuleSplitStyle.FewestModules =>
+          case v => throw new Exception(
+              s"ModuleSplitStyle $v is not supported with Scala.js < 1.2. Either update Scala.js or use ModuleSplitStyle.FewestModules"
+            )
+        }
+        config
+      }
+
+      config =
+        if (minorIsGreaterThanOrEqual(3)) withModuleSplitStyle_1_3_plus(config)
+        else withModuleSplitStyle_1_2_minus(config)
+
       StandardImpl.linker(config)
     }
   }
@@ -112,13 +151,20 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: ModuleKind,
-      esFeatures: ESFeatures
+      esFeatures: ESFeatures,
+      moduleSplitStyle: ModuleSplitStyle
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
     val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
-    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures, dest))
+    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(
+      fullOpt,
+      moduleKind,
+      esFeatures,
+      moduleSplitStyle,
+      dest
+    ))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
     val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))

@@ -12,7 +12,8 @@ private[scalajslib] trait ScalaJSWorkerApi {
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: ModuleKind,
-      esFeatures: ESFeatures
+      esFeatures: ESFeatures,
+      moduleSplitStyle: ModuleSplitStyle
   ): Either[String, Report]
 
   def run(config: JsEnvConfig, dest: File, report: Report): Unit
@@ -83,4 +84,11 @@ private[scalajslib] object Report {
       val sourceMapName: Option[String],
       val moduleKind: ModuleKind
   )
+}
+
+private[scalajslib] sealed trait ModuleSplitStyle
+private[scalajslib] object ModuleSplitStyle {
+  case object FewestModules extends ModuleSplitStyle
+  case object SmallestModules extends ModuleSplitStyle
+  final case class SmallModulesFor(packages: List[String]) extends ModuleSplitStyle
 }

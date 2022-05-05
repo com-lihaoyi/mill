@@ -77,7 +77,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       testBridgeInit: Boolean, // ignored in 0.6
       fullOpt: Boolean,
       moduleKind: ModuleKind,
-      esFeatures: ESFeatures
+      esFeatures: ESFeatures,
+      moduleSplitStyle: ModuleSplitStyle // ignored in 0.6
   ): Either[String, Report] = {
     val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures))
     val sourceSJSIRs = sources.map(new FileVirtualScalaJSIRFile(_))

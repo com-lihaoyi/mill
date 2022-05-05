@@ -34,7 +34,8 @@ class ScalaJSWorker private (val bridgeWorker: worker.ScalaJSWorker, createdInte
     testBridgeInit = testBridgeInit,
     fullOpt = fullOpt,
     moduleKind = moduleKind,
-    esFeatures = esFeatures
+    esFeatures = esFeatures,
+    moduleSplitStyle = ModuleSplitStyle.FewestModules
   ).map(report => report.publicModules.head.jsFile.path)
 
   def run(toolsClasspath: Agg[os.Path], config: JsEnvConfig, linkedFile: File)(implicit
