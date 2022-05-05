@@ -15,6 +15,7 @@ import mill.scalajslib.api.{
   FullOpt,
   JsEnvConfig,
   ModuleKind,
+  ModuleSplitStyle,
   OptimizeMode,
   Report
 }
@@ -83,11 +84,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
-  def fastLinkJS: Target[Report] = T {
+  def fastLinkJS: Target[Report] = T.persistent {
     linkTask(optimize = false, forceOutJs = false)()
   }
 
-  def fullLinkJS: Target[Report] = T {
+  def fullLinkJS: Target[Report] = T.persistent {
     linkTask(optimize = true, forceOutJs = false)()
   }
 
@@ -109,7 +110,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       testBridgeInit = false,
       optimize = optimize,
       moduleKind = moduleKind(),
-      esFeatures = esFeatures()
+      esFeatures = esFeatures(),
+      moduleSplitStyle = moduleSplitStyle()
     )
   }
 
@@ -156,7 +158,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     testBridgeInit = testBridgeInit,
     optimize = mode == FullOpt,
     moduleKind = moduleKind,
-    esFeatures = esFeatures
+    esFeatures = esFeatures,
+    moduleSplitStyle = ModuleSplitStyle.FewestModules
   ).map(report => report.publicModules.head.jsFile)
 
   private[scalajslib] def linkJs(
@@ -168,7 +171,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       testBridgeInit: Boolean,
       optimize: Boolean,
       moduleKind: ModuleKind,
-      esFeatures: ESFeatures
+      esFeatures: ESFeatures,
+      moduleSplitStyle: ModuleSplitStyle
   )(implicit ctx: mill.api.Ctx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -190,7 +194,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       testBridgeInit,
       optimize,
       moduleKind,
-      esFeatures
+      esFeatures,
+      moduleSplitStyle
     )
   }
 
@@ -246,6 +251,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     else ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
   }
 
+  def moduleSplitStyle: Target[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }
+
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((
@@ -287,11 +294,12 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       testBridgeInit = true,
       optimize = false,
       moduleKind = moduleKind(),
-      esFeatures = esFeatures()
+      esFeatures = esFeatures(),
+      moduleSplitStyle = moduleSplitStyle()
     ).map { report => report.publicModules.head.jsFile }
   }
 
-  def fastLinkJSTest: Target[Report] = T {
+  def fastLinkJSTest: Target[Report] = T.persistent {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
@@ -301,7 +309,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       testBridgeInit = true,
       optimize = false,
       moduleKind = moduleKind(),
-      esFeatures = esFeatures()
+      esFeatures = esFeatures(),
+      moduleSplitStyle = moduleSplitStyle()
     )
   }
 

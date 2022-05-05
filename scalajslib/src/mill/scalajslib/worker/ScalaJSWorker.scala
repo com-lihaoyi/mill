@@ -54,6 +54,14 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
     }
   )
 
+  private def toWorkerApi(moduleSplitStyle: api.ModuleSplitStyle): workerApi.ModuleSplitStyle =
+    moduleSplitStyle match {
+      case api.ModuleSplitStyle.FewestModules => workerApi.ModuleSplitStyle.FewestModules
+      case api.ModuleSplitStyle.SmallestModules => workerApi.ModuleSplitStyle.SmallestModules
+      case api.ModuleSplitStyle.SmallModulesFor(packages) =>
+        workerApi.ModuleSplitStyle.SmallModulesFor(packages)
+    }
+
   private def toWorkerApi(jsEnvConfig: api.JsEnvConfig): workerApi.JsEnvConfig = {
     jsEnvConfig match {
       case config: api.JsEnvConfig.NodeJs =>
@@ -121,7 +129,8 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       testBridgeInit: Boolean,
       fullOpt: Boolean,
       moduleKind: api.ModuleKind,
-      esFeatures: api.ESFeatures
+      esFeatures: api.ESFeatures,
+      moduleSplitStyle: api.ModuleSplitStyle
   )(implicit ctx: Ctx.Home): Result[api.Report] = {
     bridge(toolsClasspath).link(
       sources = sources.items.map(_.toIO).toArray,
@@ -132,7 +141,8 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       testBridgeInit = testBridgeInit,
       fullOpt = fullOpt,
       moduleKind = toWorkerApi(moduleKind),
-      esFeatures = toWorkerApi(esFeatures)
+      esFeatures = toWorkerApi(esFeatures),
+      moduleSplitStyle = toWorkerApi(moduleSplitStyle)
     ) match {
       case Right(report) => Result.Success(fromWorkerApi(report, os.Path(dest)))
       case Left(message) => Result.Failure(message)
