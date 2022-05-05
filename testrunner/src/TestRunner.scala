@@ -79,7 +79,7 @@ object TestRunner {
     testClasses
   }
 
-  // for binary compatibility
+  // Only for binary compatibility
   def matchFingerprints(
       cl: ClassLoader,
       cls: Class[_],
