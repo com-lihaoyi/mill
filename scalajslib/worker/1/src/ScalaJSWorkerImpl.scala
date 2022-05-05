@@ -17,7 +17,7 @@ import org.scalajs.linker.interface.{
   ESVersion => ScalaJSESVersion,
   ModuleKind => ScalaJSModuleKind,
   Report => ScalaJSReport,
-  ModuleSplitStyle => ScalaJSModuleSplitStyle,
+  ModuleSplitStyle => _,
   _
 }
 import org.scalajs.logging.ScalaConsoleLogger
@@ -103,21 +103,30 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         .withModuleKind(scalaJSModuleKind)
         .withESFeatures(scalaJSESFeatures)
 
-      // Separating ModuleSplitStyle.SmallModulesFor in a standalone object
-      // avoids early classloading which fails in Scala.js 1.9- where this
-      // class doesn't exist
-      object ScalaJSSmallModulesFor {
-        def apply(packages: List[String]): ScalaJSModuleSplitStyle =
-          ScalaJSModuleSplitStyle.SmallModulesFor(packages)
+      // Separating ModuleSplitStyle in a standalone object avoids 
+      // early classloading which fails in Scala.js versions where
+      // the classes don't exist
+      object ScalaJSModuleSplitStyle {
+        import org.scalajs.linker.interface.ModuleSplitStyle
+        object SmallModulesFor {
+          def apply(packages: List[String]): ModuleSplitStyle =
+            ModuleSplitStyle.SmallModulesFor(packages)
+        }
+        object FewestModules {
+          def apply(): ModuleSplitStyle = ModuleSplitStyle.FewestModules
+        }
+        object SmallestModules {
+          def apply(): ModuleSplitStyle = ModuleSplitStyle.SmallestModules
+        }
       }
 
       def withModuleSplitStyle_1_3_plus(config: StandardConfig): StandardConfig = {
         config.withModuleSplitStyle(
           input.moduleSplitStyle match {
-            case ModuleSplitStyle.FewestModules => ScalaJSModuleSplitStyle.FewestModules
-            case ModuleSplitStyle.SmallestModules => ScalaJSModuleSplitStyle.SmallestModules
+            case ModuleSplitStyle.FewestModules => ScalaJSModuleSplitStyle.FewestModules()
+            case ModuleSplitStyle.SmallestModules => ScalaJSModuleSplitStyle.SmallestModules()
             case v @ ModuleSplitStyle.SmallModulesFor(packages) =>
-              if (minorIsGreaterThanOrEqual(10)) ScalaJSSmallModulesFor(packages)
+              if (minorIsGreaterThanOrEqual(10)) ScalaJSModuleSplitStyle.SmallModulesFor(packages)
               else throw new Exception(
                 s"ModuleSplitStyle $v is not supported with Scala.js < 1.10. Either update Scala.js or use one of ModuleSplitStyle.SmallestModules or ModuleSplitStyle.FewestModules"
               )
