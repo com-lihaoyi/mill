@@ -96,14 +96,14 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         else withESVersion_1_5_minus(scalaJSESFeatures)
 
       val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule
-      var config = StandardConfig()
+      val partialConfig = StandardConfig()
         .withOptimizer(input.fullOpt)
         .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
         .withESFeatures(scalaJSESFeatures)
 
-      // Separating ModuleSplitStyle in a standalone object avoids 
+      // Separating ModuleSplitStyle in a standalone object avoids
       // early classloading which fails in Scala.js versions where
       // the classes don't exist
       object ScalaJSModuleSplitStyle {
@@ -144,9 +144,9 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         config
       }
 
-      config =
-        if (minorIsGreaterThanOrEqual(3)) withModuleSplitStyle_1_3_plus(config)
-        else withModuleSplitStyle_1_2_minus(config)
+      val config =
+        if (minorIsGreaterThanOrEqual(3)) withModuleSplitStyle_1_3_plus(partialConfig)
+        else withModuleSplitStyle_1_2_minus(partialConfig)
 
       StandardImpl.linker(config)
     }
