@@ -79,6 +79,15 @@ object TestRunner {
     testClasses
   }
 
+  // for binary compatibility
+  def matchFingerprints(
+      cl: ClassLoader,
+      cls: Class[_],
+      fingerprints: Array[Fingerprint],
+      isModule: Boolean
+  ): Option[(Class[_], Fingerprint)] =
+    matchFingerprints("<unknown>", cl, cls, fingerprints, isModule)
+
   def matchFingerprints(
       frameworkName: String,
       cl: ClassLoader,
