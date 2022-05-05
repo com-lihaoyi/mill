@@ -80,6 +80,7 @@ object TestRunner {
   }
 
   // Only for binary compatibility
+  @deprecated("Use other overload instead.", "mill 0.10.4")
   def matchFingerprints(
       cl: ClassLoader,
       cls: Class[_],
