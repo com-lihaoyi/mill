@@ -16,12 +16,11 @@ private[scalajslib] trait ScalaJSWorkerApi {
       moduleSplitStyle: ModuleSplitStyle
   ): Either[String, Report]
 
-  def run(config: JsEnvConfig, dest: File, report: Report): Unit
+  def run(config: JsEnvConfig, report: Report): Unit
 
   def getFramework(
       config: JsEnvConfig,
       frameworkName: String,
-      dest: File,
       report: Report
   ): (() => Unit, sbt.testing.Framework)
 
@@ -76,7 +75,10 @@ private[scalajslib] object JsEnvConfig {
   ) extends JsEnvConfig
 }
 
-private[scalajslib] final case class Report(val publicModules: Iterable[Report.Module])
+private[scalajslib] final case class Report(
+    val publicModules: Iterable[Report.Module],
+    val dest: File
+)
 private[scalajslib] object Report {
   final case class Module(
       val moduleID: String,

@@ -35,13 +35,13 @@ object TopLevelExportsTests extends TestSuite {
       val publicModules = report.publicModules.toSeq
       assert(publicModules.length == 2)
       val b = publicModules(0)
-      assert(os.exists(b.jsFile.path))
-      assert(b.jsFile.path.last == "b.js")
-      assert(os.exists(b.jsFile.path / os.up / "b.js.map"))
+      assert(b.jsFileName == "b.js")
+      assert(os.exists(report.dest.path / "b.js"))
+      assert(os.exists(report.dest.path / "b.js.map"))
       val a = publicModules(1)
-      assert(os.exists(a.jsFile.path))
-      assert(a.jsFile.path.last == "a.js")
-      assert(os.exists(a.jsFile.path / os.up / "a.js.map"))
+      assert(a.jsFileName == "a.js")
+      assert(os.exists(report.dest.path / "a.js"))
+      assert(os.exists(report.dest.path / "a.js.map"))
     }
   }
 

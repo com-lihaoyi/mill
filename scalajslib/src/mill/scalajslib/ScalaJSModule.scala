@@ -19,6 +19,7 @@ import mill.scalajslib.api.{
   OptimizeMode,
   Report
 }
+import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 
 import scala.jdk.CollectionConverters._
@@ -93,11 +94,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   def fastOpt: Target[PathRef] = T {
-    linkTask(optimize = false, forceOutJs = true)().publicModules.head.jsFile
+    getReportMainFilePathRef(linkTask(optimize = false, forceOutJs = true)())
   }
 
   def fullOpt: Target[PathRef] = T {
-    linkTask(optimize = true, forceOutJs = true)().publicModules.head.jsFile
+    getReportMainFilePathRef(linkTask(optimize = true, forceOutJs = true)())
   }
 
   private def linkTask(optimize: Boolean, forceOutJs: Boolean): Task[Report] = T.task {
@@ -160,7 +161,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     moduleKind = moduleKind,
     esFeatures = esFeatures,
     moduleSplitStyle = ModuleSplitStyle.FewestModules
-  ).map(report => report.publicModules.head.jsFile)
+  ).map(getReportMainFilePathRef)
 
   private[scalajslib] def linkJs(
       worker: ScalaJSWorker,
@@ -296,7 +297,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       moduleKind = moduleKind(),
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle()
-    ).map { report => report.publicModules.head.jsFile }
+    ).map(getReportMainFilePathRef)
   }
 
   def fastLinkJSTest: Target[Report] = T.persistent {

@@ -93,29 +93,32 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
     case workerApi.ModuleKind.CommonJSModule => api.ModuleKind.CommonJSModule
   }
 
-  private def fromWorkerApi(report: workerApi.Report, dest: os.Path): api.Report = {
-    api.Report(publicModules =
-      report.publicModules.map(module =>
-        api.Report.Module(
-          moduleID = module.moduleID,
-          jsFile = mill.PathRef(dest / module.jsFileName),
-          sourceMapName = module.sourceMapName,
-          moduleKind = fromWorkerApi(module.moduleKind)
-        )
-      )
+  private def fromWorkerApi(report: workerApi.Report): api.Report = {
+    api.Report(
+      publicModules =
+        report.publicModules.map(module =>
+          api.Report.Module(
+            moduleID = module.moduleID,
+            jsFileName = module.jsFileName,
+            sourceMapName = module.sourceMapName,
+            moduleKind = fromWorkerApi(module.moduleKind)
+          )
+        ),
+      dest = mill.PathRef(os.Path(report.dest))
     )
   }
 
   private def toWorkerApi(report: api.Report): workerApi.Report = {
-    workerApi.Report(publicModules =
-      report.publicModules.map(module =>
+    workerApi.Report(
+      publicModules = report.publicModules.map(module =>
         workerApi.Report.Module(
           moduleID = module.moduleID,
-          jsFileName = module.jsFile.path.last,
+          jsFileName = module.jsFileName,
           sourceMapName = module.sourceMapName,
           moduleKind = toWorkerApi(module.moduleKind)
         )
-      )
+      ),
+      dest = report.dest.path.toIO
     )
   }
 
@@ -144,16 +147,8 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       esFeatures = toWorkerApi(esFeatures),
       moduleSplitStyle = toWorkerApi(moduleSplitStyle)
     ) match {
-      case Right(report) => Result.Success(fromWorkerApi(report, os.Path(dest)))
+      case Right(report) => Result.Success(fromWorkerApi(report))
       case Left(message) => Result.Failure(message)
-    }
-  }
-
-  private def getDest(report: api.Report) = {
-    report.publicModules.collectFirst {
-      case module if module.moduleID == "main" => (module.jsFile.path / os.up).toIO
-    }.getOrElse {
-      throw new Exception("Linking result does not have a module named `main`")
     }
   }
 
@@ -161,7 +156,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       implicit ctx: Ctx.Home
   ): Unit = {
     val dest =
-      bridge(toolsClasspath).run(toWorkerApi(config), getDest(report), toWorkerApi(report))
+      bridge(toolsClasspath).run(toWorkerApi(config), toWorkerApi(report))
   }
 
   def getFramework(
@@ -173,7 +168,6 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
     bridge(toolsClasspath).getFramework(
       toWorkerApi(config),
       frameworkName,
-      getDest(report),
       toWorkerApi(report)
     )
   }
