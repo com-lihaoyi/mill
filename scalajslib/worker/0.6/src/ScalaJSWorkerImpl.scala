@@ -94,12 +94,15 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     }
     try {
       linker.link(sourceSJSIRs ++ jarSJSIRs, initializer.toSeq, destFile, logger)
-      Right(Report(Seq(Report.Module(
-        moduleID = "main",
-        jsFileName = jsFileName,
-        sourceMapName = Some(s"${jsFileName}.map"),
-        moduleKind = moduleKind
-      ))))
+      Right(Report(
+        publicModules = Seq(Report.Module(
+          moduleID = "main",
+          jsFileName = jsFileName,
+          sourceMapName = Some(s"${jsFileName}.map"),
+          moduleKind = moduleKind
+        )),
+        dest = destDir
+      ))
     } catch {
       case e: org.scalajs.core.tools.linker.LinkingException =>
         Left(e.getMessage)
@@ -112,21 +115,20 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
   private def getLinkedFile(dest: File, module: Report.Module) = new File(dest, module.jsFileName)
 
-  def run(config: JsEnvConfig, dest: File, report: Report): Unit = {
+  def run(config: JsEnvConfig, report: Report): Unit = {
     jsEnv(config)
-      .jsRunner(FileVirtualJSFile(getLinkedFile(dest, getMainModule(report))))
+      .jsRunner(FileVirtualJSFile(getLinkedFile(report.dest, getMainModule(report))))
       .run(new ScalaConsoleLogger, ConsoleJSConsole)
   }
 
   def getFramework(
       config: JsEnvConfig,
       frameworkName: String,
-      dest: File,
       report: Report
   ): (() => Unit, sbt.testing.Framework) = {
     val mainModule = getMainModule(report)
     val moduleKind = mainModule.moduleKind
-    val linkedFile = getLinkedFile(dest, mainModule)
+    val linkedFile = getLinkedFile(report.dest, mainModule)
 
     val env = jsEnv(config).loadLibs(
       Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))

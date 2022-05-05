@@ -4,6 +4,7 @@ import java.io.File
 import mill.api.{Ctx, Result}
 import mill.define.Discover
 import mill.scalajslib.api._
+import mill.scalajslib.internal.ScalaJSUtils.{getReportMainFilePath, getReportMainFilePathRef}
 import mill.scalajslib.worker.ScalaJSWorkerExternalModule
 import mill.{Agg, T}
 
@@ -36,7 +37,7 @@ class ScalaJSWorker private (val bridgeWorker: worker.ScalaJSWorker, createdInte
     moduleKind = moduleKind,
     esFeatures = esFeatures,
     moduleSplitStyle = ModuleSplitStyle.FewestModules
-  ).map(report => report.publicModules.head.jsFile.path)
+  ).map(getReportMainFilePath)
 
   def run(toolsClasspath: Agg[os.Path], config: JsEnvConfig, linkedFile: File)(implicit
       ctx: Ctx.Home
@@ -51,12 +52,13 @@ class ScalaJSWorker private (val bridgeWorker: worker.ScalaJSWorker, createdInte
   )(implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
     val linkedFilePath = os.Path(linkedFile)
     val report = Report(
-      Seq(Report.Module(
+      publicModules = Seq(Report.Module(
         moduleID = "main",
-        jsFile = mill.PathRef(linkedFilePath),
+        jsFileName = linkedFilePath.last,
         sourceMapName = Some(linkedFilePath.last),
         moduleKind = moduleKind
-      ))
+      )),
+      dest = mill.PathRef(linkedFilePath / os.up)
     )
     bridgeWorker.getFramework(
       toolsClasspath = toolsClasspath,

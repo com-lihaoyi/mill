@@ -203,12 +203,15 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
             .withSourceMapURI(java.net.URI.create(sourceMap.getFileName.toString))
           linker.link(sourceIRs ++ libraryIRs, moduleInitializers, linkerOutput, logger).map {
             file =>
-              Report(Seq(Report.Module(
-                moduleID = "main",
-                jsFileName = jsFileName,
-                sourceMapName = Some(sourceMapName),
-                moduleKind = moduleKind
-              )))
+              Report(
+                publicModules = Seq(Report.Module(
+                  moduleID = "main",
+                  jsFileName = jsFileName,
+                  sourceMapName = Some(sourceMapName),
+                  moduleKind = moduleKind
+                )),
+                dest = dest
+              )
           }
         } else {
           val linkerOutput = PathOutputDirectory(dest.toPath())
@@ -218,16 +221,18 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
             linkerOutput,
             logger
           ).map { report =>
-            Report(publicModules =
-              report.publicModules.map(module =>
-                Report.Module(
-                  moduleID = module.moduleID,
-                  jsFileName = module.jsFileName,
-                  sourceMapName = module.sourceMapName,
-                  // currently moduleKind is always the input moduleKind
-                  moduleKind = moduleKind
-                )
-              )
+            Report(
+              publicModules =
+                report.publicModules.map(module =>
+                  Report.Module(
+                    moduleID = module.moduleID,
+                    jsFileName = module.jsFileName,
+                    sourceMapName = module.sourceMapName,
+                    // currently moduleKind is always the input moduleKind
+                    moduleKind = moduleKind
+                  )
+                ),
+              dest = dest
             )
           }
         }
@@ -241,9 +246,9 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     Await.result(resultFuture, Duration.Inf)
   }
 
-  def run(config: JsEnvConfig, dest: File, report: Report): Unit = {
+  def run(config: JsEnvConfig, report: Report): Unit = {
     val env = jsEnv(config)
-    val input = jsEnvInput(dest, report)
+    val input = jsEnvInput(report)
     val runConfig = RunConfig().withLogger(new ScalaConsoleLogger)
     Run.runInterruptible(env, input, runConfig)
   }
@@ -251,11 +256,10 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   def getFramework(
       config: JsEnvConfig,
       frameworkName: String,
-      dest: File,
       report: Report
   ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
-    val input = jsEnvInput(dest, report)
+    val input = jsEnvInput(report)
     val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
 
     val adapter = new TestAdapter(env, input, tconfig)
@@ -303,13 +307,13 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       )
   }
 
-  def jsEnvInput(dest: File, report: Report): Seq[Input] = {
+  def jsEnvInput(report: Report): Seq[Input] = {
     val mainModule = report.publicModules.find(_.moduleID == "main").getOrElse(throw new Exception(
       "Cannot determine `jsEnvInput`: Linking result does not have a " +
         "module named `main`.\n" +
         s"Full report:\n$report"
     ))
-    val path = new File(dest, mainModule.jsFileName).toPath
+    val path = new File(report.dest, mainModule.jsFileName).toPath
     val input = mainModule.moduleKind match {
       case ModuleKind.NoModule => Input.Script(path)
       case ModuleKind.ESModule => Input.ESModule(path)

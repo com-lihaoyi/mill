@@ -33,15 +33,14 @@ object SmallModulesForTests extends TestSuite {
       println(evaluator(SmallModulesForModule.smallModulesForModule.sources))
       val Right((report, _)) =
         evaluator(SmallModulesForModule.smallModulesForModule.fastLinkJS)
-      val publicModules = report.publicModules.toSeq
+      val publicModules = report.publicModules
       test("it should have a single publicModule") {
-        assert(publicModules.length == 1)
+        assert(publicModules.size == 1)
       }
       val mainModule = publicModules.head
-      val directory = mainModule.jsFile.path / os.up
-      val modulesLength = os.list(directory).length
+      val modulesLength = os.list(report.dest.path).length
       test("my.Foo should not have its own file since it is in a separate package") {
-        assert(!os.exists(directory / "otherpackage.Foo.js"))
+        assert(!os.exists(report.dest.path / "otherpackage.Foo.js"))
       }
       assert(modulesLength == 10)
     }
