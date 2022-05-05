@@ -14,6 +14,9 @@
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
       <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="/mill/_/logo-white.svg" height="20" />&nbsp;Mill</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
         <span></span>
@@ -82,7 +85,7 @@
       <a class="title" href="/mill/mill/index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-latest">
-          <a href="/mill/mill/index.html">0.10.3-37-decf50</a>
+          <a href="/mill/mill/index.html">0.10.3-38-bc1c5c</a>
         </li>
         <li class="version">
           <a href="/mill/mill/0.10.3/index.html">0.10.3</a>
@@ -151,5 +154,8 @@ If you typed the URL of this page manually, please double check that you entered
 </footer>
 <script src="/mill/_/js/site.js"></script>
 <script async src="/mill/_/js/vendor/highlight.js"></script>
+<script src="/mill/_/js/vendor/lunr.js"></script>
+<script src="/mill/_/js/search-ui.js" id="search-ui-script" data-site-root-path="/mill" data-snippet-length="100" data-stylesheet="/mill/_/css/search.css"></script>
+<script async src="/mill/search-index.js"></script>
   </body>
 </html>
