@@ -120,8 +120,8 @@ object HelloJSWorldTests extends TestSuite {
           result.path
         } else {
           val task = if (optimize) module.fullLinkJS else module.fastLinkJS
-          val Right((result, evalCount)) = helloWorldEvaluator(task)
-          result.dest.path / "out.js"
+          val Right((report, evalCount)) = helloWorldEvaluator(task)
+          report.dest.path / report.publicModules.head.jsFileName
         }
       val output = ScalaJsUtils.runJS(jsFile)
       assert(output == "Hello Scala.js\n")
