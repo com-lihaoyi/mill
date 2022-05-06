@@ -61,14 +61,17 @@ object TestRunner {
           val publicConstructorCount =
             cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
 
-          if (
+          if (framework.name() == "Jupiter") {
+            // sbt-jupiter-interface ignores fingerprinting since JUnit5 has its own resolving mechanism
+            Some((cls, fingerprints.head))
+          } else if (
             Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
           ) {
             None
           } else {
             (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
-              case (true, true) => matchFingerprints(framework.name(), cl, cls, fingerprints, isModule = true)
-              case (false, false) => matchFingerprints(framework.name(), cl, cls, fingerprints, isModule = false)
+              case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
+              case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
               case _ => None
             }
           }
@@ -79,18 +82,7 @@ object TestRunner {
     testClasses
   }
 
-  // Only for binary compatibility
-  @deprecated("Use other overload instead.", "mill 0.10.4")
   def matchFingerprints(
-      cl: ClassLoader,
-      cls: Class[_],
-      fingerprints: Array[Fingerprint],
-      isModule: Boolean
-  ): Option[(Class[_], Fingerprint)] =
-    matchFingerprints("<unknown>", cl, cls, fingerprints, isModule)
-
-  def matchFingerprints(
-      frameworkName: String,
       cl: ClassLoader,
       cls: Class[_],
       fingerprints: Array[Fingerprint],
@@ -103,8 +95,6 @@ object TestRunner {
 
       case f: AnnotatedFingerprint =>
         val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
-        // sbt-jupiter-interface ignores fingerprinting since JUnit5 has its own resolving mechanism
-        frameworkName == "Jupiter" ||
         f.isModule == isModule &&
         (
           cls.isAnnotationPresent(annotationCls) ||

@@ -1,8 +1,11 @@
 package hello;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class Junit5Tests {
 
@@ -17,4 +20,22 @@ public class Junit5Tests {
         // not executed
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "racecar", "radar" })
+    void palindromes(String candidate) {
+        assertTrue(isPalindrome(candidate));
+    }
+
+    static boolean isPalindrome(String str) {
+        String reversed = new StringBuilder(str).reverse().toString();
+        return str.equals(reversed);
+    }
+}
+
+class Junit5TestsPackagePrivate {
+
+    @Test
+    void packagePrivateTest() {
+        assertEquals(Core.msg(), "Hello World");
+    }
 }
