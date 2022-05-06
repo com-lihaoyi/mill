@@ -19,6 +19,7 @@ object HelloJavaTests extends TestSuite {
       override def docJarUseArgsFile = true
       override def moduleDeps = Seq(core)
       object test extends Tests with TestModule.Junit4
+      object testJunit5 extends Tests with TestModule.Junit5
     }
   }
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-java"
@@ -80,6 +81,17 @@ object HelloJavaTests extends TestSuite {
         v2._2(0).status == "Success",
         v2._2(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
         v2._2(1).status == "Success"
+      )
+
+      val Right((v3, _)) = eval.apply(HelloJava.app.testJunit5.test())
+
+      assert(
+        v3._2(0).fullyQualifiedName == "hello.Junit5Tests",
+        v3._2(0).selector == "coreTest()",
+        v3._2(0).status == "Success",
+        v3._2(1).fullyQualifiedName == "hello.Junit5Tests",
+        v3._2(1).selector == "skippedTest()",
+        v3._2(1).status == "Skipped"
       )
     }
     "failures" - {
