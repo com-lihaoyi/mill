@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-public class Junit5Tests {
+public class Junit5TestsA {
 
     @Test
     public void coreTest() {
@@ -32,7 +32,7 @@ public class Junit5Tests {
     }
 }
 
-class Junit5TestsPackagePrivate {
+class Junit5TestsB {
 
     @Test
     void packagePrivateTest() {
