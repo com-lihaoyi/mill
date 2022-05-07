@@ -45,7 +45,7 @@ object Settings {
     "0.10.3",
     "0.10.4"
   )
-  val mimaBaseVersions = Seq("0.10.0")
+  val mimaBaseVersions = Seq("0.10.0", "0.10.1", "0.10.2", "0.10.3", "0.10.4")
 }
 
 object Deps {
