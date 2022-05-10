@@ -31,7 +31,8 @@ import scala.ref.WeakReference
 
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
-      fullOpt: Boolean,
+      isFullLinkJS: Boolean,
+      optimizer: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
@@ -51,7 +52,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         newLinker
     }
     private def createLinker(input: LinkerInput): Linker = {
-      val semantics = input.fullOpt match {
+      val semantics = input.isFullLinkJS match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
       }
@@ -95,9 +96,9 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         if (minorIsGreaterThanOrEqual(6)) withESVersion_1_6_plus(scalaJSESFeatures)
         else withESVersion_1_5_minus(scalaJSESFeatures)
 
-      val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule
+      val useClosure = input.isFullLinkJS && input.moduleKind != ModuleKind.ESModule
       val partialConfig = StandardConfig()
-        .withOptimizer(input.fullOpt)
+        .withOptimizer(input.optimizer)
         .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
@@ -158,7 +159,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       main: String,
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
-      fullOpt: Boolean,
+      isFullLinkJS: Boolean,
+      optimizer: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle
@@ -168,11 +170,12 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
     val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(
-      fullOpt,
-      moduleKind,
-      esFeatures,
-      moduleSplitStyle,
-      dest
+      isFullLinkJS = isFullLinkJS,
+      optimizer = optimizer,
+      moduleKind = moduleKind,
+      esFeatures = esFeatures,
+      moduleSplitStyle = moduleSplitStyle,
+      dest = dest
     ))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))

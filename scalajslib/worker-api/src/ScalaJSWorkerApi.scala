@@ -10,7 +10,8 @@ private[scalajslib] trait ScalaJSWorkerApi {
       main: String,
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
-      fullOpt: Boolean,
+      isFullLinkJS: Boolean,
+      optimizer: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle

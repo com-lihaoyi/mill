@@ -33,7 +33,8 @@ class ScalaJSWorker private (val bridgeWorker: worker.ScalaJSWorker, createdInte
     main = main,
     forceOutJs = true,
     testBridgeInit = testBridgeInit,
-    fullOpt = fullOpt,
+    isFullLinkJS = fullOpt,
+    optimizer = fullOpt,
     moduleKind = moduleKind,
     esFeatures = esFeatures,
     moduleSplitStyle = ModuleSplitStyle.FewestModules
