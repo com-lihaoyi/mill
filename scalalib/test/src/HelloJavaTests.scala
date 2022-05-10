@@ -19,6 +19,11 @@ object HelloJavaTests extends TestSuite {
       override def docJarUseArgsFile = true
       override def moduleDeps = Seq(core)
       object test extends Tests with TestModule.Junit4
+      object testJunit5 extends Tests with TestModule.Junit5 {
+        override def ivyDeps: T[Agg[Dep]] = T {
+          super.ivyDeps() ++ Agg(ivy"org.junit.jupiter:junit-jupiter-params:5.7.0")
+        }
+      }
     }
   }
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-java"
@@ -80,6 +85,26 @@ object HelloJavaTests extends TestSuite {
         v2._2(0).status == "Success",
         v2._2(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
         v2._2(1).status == "Success"
+      )
+
+      val Right((v3, _)) = eval.apply(HelloJava.app.testJunit5.test())
+
+      assert(
+        v3._2(0).fullyQualifiedName == "hello.Junit5TestsA",
+        v3._2(0).selector == "coreTest()",
+        v3._2(0).status == "Success",
+        v3._2(1).fullyQualifiedName == "hello.Junit5TestsA",
+        v3._2(1).selector == "skippedTest()",
+        v3._2(1).status == "Skipped",
+        v3._2(2).fullyQualifiedName == "hello.Junit5TestsA",
+        v3._2(2).selector == "palindromes(String):1",
+        v3._2(2).status == "Success",
+        v3._2(3).fullyQualifiedName == "hello.Junit5TestsA",
+        v3._2(3).selector == "palindromes(String):2",
+        v3._2(3).status == "Success", 
+        v3._2(4).fullyQualifiedName == "hello.Junit5TestsB",
+        v3._2(4).selector == "packagePrivateTest()",
+        v3._2(4).status == "Success"
       )
     }
     "failures" - {

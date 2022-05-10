@@ -215,6 +215,17 @@ object TestModule {
   }
 
   /**
+   * TestModule that uses JUnit 5 Framework to run tests.
+   * You may want to provide the junit dependency explicitly to use another version.
+   */
+  trait Junit5 extends TestModule {
+    override def testFramework: T[String] = "net.aichler.jupiter.api.JupiterFramework"
+    override def ivyDeps: T[Agg[Dep]] = T {
+      super.ivyDeps() ++ Agg(ivy"net.aichler:jupiter-interface:0.9.0")
+    }
+  }
+
+  /**
    * TestModule that uses ScalaTest Framework to run tests.
    * You need to provide the scalatest dependencies yourself.
    */
