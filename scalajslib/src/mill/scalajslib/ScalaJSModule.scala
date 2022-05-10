@@ -86,22 +86,22 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
   def fastLinkJS: Target[Report] = T.persistent {
-    linkTask(optimize = false, forceOutJs = false)()
+    linkTask(isFullLinkJS = false, forceOutJs = false)()
   }
 
   def fullLinkJS: Target[Report] = T.persistent {
-    linkTask(optimize = true, forceOutJs = false)()
+    linkTask(isFullLinkJS = true, forceOutJs = false)()
   }
 
   def fastOpt: Target[PathRef] = T {
-    getReportMainFilePathRef(linkTask(optimize = false, forceOutJs = true)())
+    getReportMainFilePathRef(linkTask(isFullLinkJS = false, forceOutJs = true)())
   }
 
   def fullOpt: Target[PathRef] = T {
-    getReportMainFilePathRef(linkTask(optimize = true, forceOutJs = true)())
+    getReportMainFilePathRef(linkTask(isFullLinkJS = true, forceOutJs = true)())
   }
 
-  private def linkTask(optimize: Boolean, forceOutJs: Boolean): Task[Report] = T.task {
+  private def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[Report] = T.task {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
@@ -109,7 +109,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mainClass = finalMainClassOpt().toOption,
       forceOutJs = forceOutJs,
       testBridgeInit = false,
-      optimize = optimize,
+      isFullLinkJS = isFullLinkJS,
+      optimizer = scalaJSOptimizer(),
       moduleKind = moduleKind(),
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle()
@@ -157,7 +158,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     mainClass = mainClass,
     forceOutJs = true,
     testBridgeInit = testBridgeInit,
-    optimize = mode == FullOpt,
+    isFullLinkJS = mode == FullOpt,
+    optimizer = mode == FullOpt,
     moduleKind = moduleKind,
     esFeatures = esFeatures,
     moduleSplitStyle = ModuleSplitStyle.FewestModules
@@ -170,7 +172,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mainClass: Option[String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
-      optimize: Boolean,
+      isFullLinkJS: Boolean,
+      optimizer: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle
@@ -193,7 +196,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mainClass,
       forceOutJs,
       testBridgeInit,
-      optimize,
+      isFullLinkJS,
+      optimizer,
       moduleKind,
       esFeatures,
       moduleSplitStyle
@@ -254,6 +258,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def moduleSplitStyle: Target[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }
 
+  def scalaJSOptimizer: Target[Boolean] = T { true }
+
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((
@@ -293,7 +299,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       mainClass = None,
       forceOutJs = true,
       testBridgeInit = true,
-      optimize = false,
+      isFullLinkJS = false,
+      optimizer = scalaJSOptimizer(),
       moduleKind = moduleKind(),
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle()
@@ -308,7 +315,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       mainClass = None,
       forceOutJs = false,
       testBridgeInit = true,
-      optimize = false,
+      isFullLinkJS = false,
+      optimizer = scalaJSOptimizer(),
       moduleKind = moduleKind(),
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle()
