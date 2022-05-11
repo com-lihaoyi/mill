@@ -60,7 +60,7 @@ public class MillClientMain {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length > 1) {
+        if (args.length > 0) {
             String firstArg = args[0];
             if (Arrays.asList("-i", "--interactive", "--no-server", "--repl", "--bsp").contains(firstArg)) {
                 // start in no-server mode
