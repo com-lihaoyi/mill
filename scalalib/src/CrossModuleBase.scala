@@ -6,7 +6,7 @@ import mill.define.Cross.Resolver
 import mill.api.PathRef
 
 object CrossModuleBase {
-  @deprecated("Use mill.scalalib.api.Util.matchingVersions instead", since = "0.10.0")
+  @deprecated("Use mill.scalalib.api.Util.matchingVersions instead", since = "mill 0.10.0")
   def scalaVersionPaths(scalaVersion: String, f: String => os.Path): Iterator[PathRef] = {
     api.Util.matchingVersions(scalaVersion).iterator.map(version => PathRef(f(version)))
   }

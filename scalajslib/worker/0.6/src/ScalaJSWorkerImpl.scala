@@ -4,8 +4,7 @@ package worker
 
 import java.io.File
 
-import mill.api.Result
-import mill.scalajslib.api.{ESFeatures, ESVersion, JsEnvConfig, ModuleKind}
+import mill.scalajslib.worker.api._
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
@@ -24,9 +23,10 @@ import org.scalajs.testadapter.TestAdapter
 import scala.collection.mutable
 import scala.ref.WeakReference
 
-class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
+class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
-      fullOpt: Boolean,
+      isFullLinkJS: Boolean,
+      optimizer: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
   )
@@ -40,7 +40,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
         newLinker
     }
     private def createLinker(input: LinkerInput): Linker = {
-      val semantics = input.fullOpt match {
+      val semantics = input.isFullLinkJS match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
       }
@@ -58,9 +58,9 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
             )
         })
 
-      val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule
+      val useClosure = input.isFullLinkJS && input.moduleKind != ModuleKind.ESModule
       val config = StandardLinker.Config()
-        .withOptimizer(input.fullOpt)
+        .withOptimizer(input.optimizer)
         .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
@@ -74,41 +74,69 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       libraries: Array[File],
       destDir: File,
       main: String,
+      forceOutJs: Boolean, // ignored in 0.6
       testBridgeInit: Boolean, // ignored in 0.6
-      fullOpt: Boolean,
+      isFullLinkJS: Boolean,
+      optimizer: Boolean,
       moduleKind: ModuleKind,
-      esFeatures: ESFeatures
-  ) = {
-    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, esFeatures))
+      esFeatures: ESFeatures,
+      moduleSplitStyle: ModuleSplitStyle // ignored in 0.6
+  ): Either[String, Report] = {
+    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(
+      isFullLinkJS = isFullLinkJS,
+      optimizer = optimizer,
+      moduleKind = moduleKind,
+      esFeatures = esFeatures
+    ))
     val sourceSJSIRs = sources.map(new FileVirtualScalaJSIRFile(_))
     val jars =
       libraries.map(jar => IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile))
     val jarSJSIRs = jars.flatMap(_.jar.sjsirFiles)
-    val dest = new File(destDir, "out.js")
+    val jsFileName = "out.js"
+    val dest = new File(destDir, jsFileName)
     val destFile = AtomicWritableFileVirtualJSFile(dest)
     val logger = new ScalaConsoleLogger
-    val initializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
+    val initializer = Option(main).map { cls =>
+      ModuleInitializer.mainMethodWithArgs(cls, "main")
+    }
     try {
       linker.link(sourceSJSIRs ++ jarSJSIRs, initializer.toSeq, destFile, logger)
-      Result.Success(dest)
+      Right(Report(
+        publicModules = Seq(Report.Module(
+          moduleID = "main",
+          jsFileName = jsFileName,
+          sourceMapName = Some(s"${jsFileName}.map"),
+          moduleKind = moduleKind
+        )),
+        dest = destDir
+      ))
     } catch {
       case e: org.scalajs.core.tools.linker.LinkingException =>
-        Result.Failure(e.getMessage)
+        Left(e.getMessage)
     }
   }
 
-  def run(config: JsEnvConfig, linkedFile: File): Unit = {
+  private def getMainModule(report: Report): Report.Module = report.publicModules.collectFirst {
+    case module if module.moduleID == "main" => module
+  }.getOrElse(throw new Exception("Linking result does not have a module named `main`"))
+
+  private def getLinkedFile(dest: File, module: Report.Module) = new File(dest, module.jsFileName)
+
+  def run(config: JsEnvConfig, report: Report): Unit = {
     jsEnv(config)
-      .jsRunner(FileVirtualJSFile(linkedFile))
+      .jsRunner(FileVirtualJSFile(getLinkedFile(report.dest, getMainModule(report))))
       .run(new ScalaConsoleLogger, ConsoleJSConsole)
   }
 
   def getFramework(
       config: JsEnvConfig,
       frameworkName: String,
-      linkedFile: File,
-      moduleKind: ModuleKind
+      report: Report
   ): (() => Unit, sbt.testing.Framework) = {
+    val mainModule = getMainModule(report)
+    val moduleKind = mainModule.moduleKind
+    val linkedFile = getLinkedFile(report.dest, mainModule)
+
     val env = jsEnv(config).loadLibs(
       Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))
     )

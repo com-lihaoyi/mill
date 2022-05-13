@@ -13,6 +13,8 @@ import ch.epfl.scala.bsp4j.{
   CompileProvider,
   CompileResult,
   DebugProvider,
+  DebugSessionAddress,
+  DebugSessionParams,
   DependencyModule,
   DependencyModulesItem,
   DependencyModulesParams,
@@ -216,6 +218,8 @@ class MillBuildServer(
         false
       )
       capabilities.setCanReload(canReload)
+      capabilities.setJvmRunEnvironmentProvider(true)
+      capabilities.setJvmTestEnvironmentProvider(true)
 
       request.getData match {
         case d: JsonObject =>
@@ -624,6 +628,12 @@ class MillBuildServer(
         }
 
       new CleanCacheResult(msg, cleaned)
+    }
+
+  override def debugSessionStart(debugParams: DebugSessionParams)
+      : CompletableFuture[DebugSessionAddress] =
+    completable(s"debugSessionStart ${debugParams}") { state =>
+      throw new NotImplementedError("debugSessionStart endpoint is not implemented")
     }
 
   def completableTasks[T: ClassTag, V](

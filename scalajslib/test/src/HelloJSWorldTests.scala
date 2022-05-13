@@ -109,14 +109,20 @@ object HelloJSWorldTests extends TestSuite {
     def testRun(
         scalaVersion: String,
         scalaJSVersion: String,
-        mode: OptimizeMode
+        optimize: Boolean,
+        legacy: Boolean
     ): Unit = {
-      val task = mode match {
-        case FullOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fullOpt
-        case FastOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fastOpt
-      }
-      val Right((result, evalCount)) = helloWorldEvaluator(task)
-      val jsFile = result.path
+      val module = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion)
+      val jsFile =
+        if (legacy) {
+          val task = if (optimize) module.fullOpt else module.fastOpt
+          val Right((result, evalCount)) = helloWorldEvaluator(task)
+          result.path
+        } else {
+          val task = if (optimize) module.fullLinkJS else module.fastLinkJS
+          val Right((report, evalCount)) = helloWorldEvaluator(task)
+          report.dest.path / report.publicModules.head.jsFileName
+        }
       val output = ScalaJsUtils.runJS(jsFile)
       assert(output == "Hello Scala.js\n")
       val sourceMap = jsFile / os.up / (jsFile.last + ".map")
@@ -131,12 +137,22 @@ object HelloJSWorldTests extends TestSuite {
 
     test("fullOpt") {
       testAllMatrix((scala, scalaJS) =>
-        TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FullOpt))
+        testRun(scala, scalaJS, optimize = true, legacy = true)
       )
     }
     test("fastOpt") {
       testAllMatrix((scala, scalaJS) =>
-        TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FastOpt))
+        testRun(scala, scalaJS, optimize = true, legacy = true)
+      )
+    }
+    test("fastLinkJS") {
+      testAllMatrix((scala, scalaJS) =>
+        testRun(scala, scalaJS, optimize = true, legacy = false)
+      )
+    }
+    test("fullLinkJS") {
+      testAllMatrix((scala, scalaJS) =>
+        testRun(scala, scalaJS, optimize = true, legacy = false)
       )
     }
     test("jar") {
@@ -318,7 +334,10 @@ object HelloJSWorldTests extends TestSuite {
       if !skipScalaJS(scalaJS)
     } {
       if (scala.startsWith("2.11.")) {
-        TestUtil.disableInJava9OrAbove(f(scala, scalaJS))
+        TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't run under Java 9+")(f(
+          scala,
+          scalaJS
+        ))
       } else {
         f(scala, scalaJS)
       }

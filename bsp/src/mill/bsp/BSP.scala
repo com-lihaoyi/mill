@@ -132,7 +132,7 @@ object BSP extends ExternalModule {
         serverName = serverName,
         logStream = errStream,
         canReload = canReload
-      ) with MillJavaBuildServer with MillScalaBuildServer
+      ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
     val executor = Executors.newCachedThreadPool()
 

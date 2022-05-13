@@ -228,11 +228,38 @@ corresponding version of Mill.
 
 === 'main' branch
 :version: main
-:prev-version: 0.10.3
-:milestone: 62
-:milestone-name: after 0.10.3
+:prev-version: 0.10.4
+:milestone: 63
+:milestone-name: after 0.10.4
 
 _Changes since {prev-version}:_
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.4 - 2022-05-06
+:version: 0.10.4
+:prev-version: 0.10.3
+:milestone: 62
+:milestone-name: 0.10.4
+
+_Changes since {prev-version}:_
+
+* Switched from ipcsocket to junixsocket library to enhance the robustness of Mill client server communication.
+  This should greatly improve the user experience on Windows.
+* Internal improvements and better support of GraalVM
+* The Mill Documentation site has now built-in search functionality
+
+* `ScalaJsModule`: New targets `fastLinkJS` and `fullLinkJS` and deprecated `fastOpt` and `fullOpt`
+* `ScalaJsModule`: Support for `ModuleSplitStyle`
+* `BSP`: Updated to protocol version 2.1.0-M1, added support for test framework names and support for the JVM extension
+* `GenIdea`: More consistent ordering of libraries and dependent modules and support for Scala 3.1 language level
+* `Bloop`: Added support for runtime dependencies
+
+* Enhanced test suite to cover Mill client server scenarios
+* Various dependency updates
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
@@ -534,7 +561,7 @@ _Changes since {prev-version}:_
 * `ScalaModule`: Support for Scala 3
 * `CoursierModule`: Support customized dependency resolution (needed to work with ScalaFX)
 * `TestModule`: Added new `testFramework` target and only support one test framework. Deprecated `testFrameworks` targets.
-* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit`, `TestModule.ScalaTest`, `TestModule.Utest`, and many more
+* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit4`, `TestModule.ScalaTest`, `TestModule.Utest`, and many more
 * `Bloop`: Added support for foreign modules
 * Better support for Windows environments
 * Various internal improvements, cleanups, and deprecations

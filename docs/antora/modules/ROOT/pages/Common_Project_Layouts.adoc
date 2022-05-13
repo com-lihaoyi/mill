@@ -10,11 +10,11 @@ Scala build:
 [source,scala]
 ----
 object core extends JavaModule {
-  object test extends Tests with TestModule.Junit
+  object test extends Tests with TestModule.Junit4
 }
 object app extends JavaModule {
   def moduleDeps = Seq(core)
-  object test extends Tests with TestModule.Junit
+  object test extends Tests with TestModule.Junit4
 }
 ----
 

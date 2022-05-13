@@ -4,29 +4,7 @@ import java.io.File
 import mill.api.Result
 import upickle.default.{ReadWriter => RW, macroRW}
 
-trait ScalaJSWorkerApi {
-  def link(
-      sources: Array[File],
-      libraries: Array[File],
-      dest: File,
-      main: String,
-      testBridgeInit: Boolean,
-      fullOpt: Boolean,
-      moduleKind: ModuleKind,
-      esFeatures: ESFeatures
-  ): Result[File]
-
-  def run(config: JsEnvConfig, linkedFile: File): Unit
-
-  def getFramework(
-      config: JsEnvConfig,
-      frameworkName: String,
-      linkedFile: File,
-      moduleKind: ModuleKind
-  ): (() => Unit, sbt.testing.Framework)
-
-}
-
+@deprecated("To be removed. Internal use only.", since = "mill 0.10.4")
 sealed trait OptimizeMode
 
 object FastOpt extends OptimizeMode
@@ -37,7 +15,7 @@ object ModuleKind {
   object NoModule extends ModuleKind
   object CommonJSModule extends ModuleKind
   object ESModule extends ModuleKind
-  
+
   implicit def rwNoModule: RW[NoModule.type] = macroRW
   implicit def rwCommonJSModule: RW[CommonJSModule.type] = macroRW
   implicit def rwESModule: RW[ESModule.type] = macroRW
@@ -62,7 +40,7 @@ object ESVersion {
   implicit val rw2021: RW[ES2021.type] = macroRW
   object ES5_1 extends ESVersion
   implicit val rw5_1: RW[ES5_1.type] = macroRW
-  
+
   implicit val rw: RW[ESVersion] = macroRW[ESVersion]
 }
 
@@ -87,6 +65,18 @@ object ESFeatures {
     esVersion = ESVersion.ES2015
   )
   implicit val rw: RW[ESFeatures] = macroRW[ESFeatures]
+}
+
+sealed trait ModuleSplitStyle
+object ModuleSplitStyle {
+  case object FewestModules extends ModuleSplitStyle
+  implicit val rwFewestModules: RW[FewestModules.type] = macroRW
+  case object SmallestModules extends ModuleSplitStyle
+  implicit val rwSmallestModules: RW[SmallestModules.type] = macroRW
+  final case class SmallModulesFor(packages: List[String]) extends ModuleSplitStyle
+  implicit val rwSmallModulesFor: RW[SmallModulesFor] = macroRW
+
+  implicit val rw: RW[ModuleSplitStyle] = macroRW
 }
 
 sealed trait JsEnvConfig

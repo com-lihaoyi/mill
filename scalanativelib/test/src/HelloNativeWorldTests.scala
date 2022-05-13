@@ -257,7 +257,7 @@ object HelloNativeWorldTests extends TestSuite {
       if !skipReleaseMode(releaseMode)
     } {
       if (scala.startsWith("2.11.")) {
-        TestUtil.disableInJava9OrAbove(f(scala, scalaNative, releaseMode))
+        TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't run in Java 9+")(f(scala, scalaNative, releaseMode))
       } else {
         f(scala, scalaNative, releaseMode)
       }

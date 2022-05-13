@@ -467,6 +467,7 @@ case class GenIdeaImpl(
             val compilerCp: Agg[Path] = librariesProperties.getOrElse(resolved.path, Agg.empty)
             val languageLevel = name match {
               case _ if compilerCp.iterator.isEmpty => None
+              case _ if name.startsWith("scala3-library_3-3.1.") => Some("Scala_3_1")
               case _ if name.startsWith("scala3-library_3-3.0.") => Some("Scala_3_0")
               case _ if name.startsWith("scala-library-2.13.") => Some("Scala_2_13")
               case _ if name.startsWith("scala-library-2.12.") => Some("Scala_2_12")
@@ -818,6 +819,14 @@ case class GenIdeaImpl(
         <orderEntry type="sourceFolder" forTests="false" />
 
         {
+      for (dep <- depNames.sorted)
+        yield dep.scope match {
+          case None => <orderEntry type="module" module-name={dep.value} exported="" />
+          case Some(scope) =>
+            <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
+        }
+    }
+        {
       for (name <- libNames.sorted)
         yield name.scope match {
           case None => <orderEntry type="library" name={name.value} level="project" />
@@ -825,14 +834,6 @@ case class GenIdeaImpl(
             <orderEntry type="library" scope={scope} name={name.value} level="project" />
         }
 
-    }
-        {
-      for (dep <- depNames.sorted)
-        yield dep.scope match {
-          case None => <orderEntry type="module" module-name={dep.value} exported="" />
-          case Some(scope) =>
-            <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
-        }
     }
       </component>
       {

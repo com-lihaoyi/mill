@@ -61,7 +61,10 @@ object TestRunner {
           val publicConstructorCount =
             cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
 
-          if (
+          if (framework.name() == "Jupiter") {
+            // sbt-jupiter-interface ignores fingerprinting since JUnit5 has its own resolving mechanism
+            Some((cls, fingerprints.head))
+          } else if (
             Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
           ) {
             None
@@ -204,8 +207,8 @@ object TestRunner {
 
       TestArgs(
         frameworks,
-        classpath,
-        arguments,
+        classpath.toIndexedSeq,
+        arguments.toIndexedSeq,
         sysProps.grouped(2).foldLeft(Map[String, String]()) { (map, prop) =>
           map.updated(prop(0), prop(1))
         },
@@ -213,7 +216,7 @@ object TestRunner {
         colored = Seq("true", "1", "on", "yes").contains(colored),
         testCp = testCp,
         homeStr = homeStr,
-        globFilters
+        globFilters.toIndexedSeq
       )
     }
   }
@@ -328,7 +331,7 @@ object TestRunner {
           val testClasses = discoverTests(cl, framework, testClassfilePath)
 
           val tasks = runner.tasks(
-            for ((cls, fingerprint) <- testClasses.toArray if classFilter(cls))
+            for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
               yield new TaskDef(
                 cls.getName.stripSuffix("$"),
                 fingerprint,
@@ -385,7 +388,7 @@ object TestRunner {
             e.status().toString,
             ex.map(_.getClass.getName),
             ex.map(_.getMessage),
-            ex.map(_.getStackTrace)
+            ex.map(_.getStackTrace.toIndexedSeq)
           )
         }
 
@@ -405,7 +408,7 @@ object TestRunner {
       cl: ClassLoader
   ): sbt.testing.Framework = {
     cl.loadClass(frameworkName)
-      .newInstance()
+      .getDeclaredConstructor().newInstance()
       .asInstanceOf[sbt.testing.Framework]
   }
 

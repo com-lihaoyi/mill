@@ -30,13 +30,18 @@ object TopLevelExportsTests extends TestSuite {
 
     test("top level exports") {
       println(evaluator(TopLevelExportsModule.topLevelExportsModule.sources))
-      val Right((PathRef(outFile, _, _), _)) =
-        evaluator(TopLevelExportsModule.topLevelExportsModule.fastOpt)
-      assert(os.exists(outFile))
-      assert(os.exists(outFile / os.up / "a.js"))
-      assert(os.exists(outFile / os.up / "a.js.map"))
-      assert(os.exists(outFile / os.up / "b.js"))
-      assert(os.exists(outFile / os.up / "b.js.map"))
+      val Right((report, _)) =
+        evaluator(TopLevelExportsModule.topLevelExportsModule.fastLinkJS)
+      val publicModules = report.publicModules.toSeq
+      assert(publicModules.length == 2)
+      val b = publicModules(0)
+      assert(b.jsFileName == "b.js")
+      assert(os.exists(report.dest.path / "b.js"))
+      assert(os.exists(report.dest.path / "b.js.map"))
+      val a = publicModules(1)
+      assert(a.jsFileName == "a.js")
+      assert(os.exists(report.dest.path / "a.js"))
+      assert(os.exists(report.dest.path / "a.js.map"))
     }
   }
 

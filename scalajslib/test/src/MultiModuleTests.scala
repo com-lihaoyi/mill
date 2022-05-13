@@ -39,11 +39,8 @@ object MultiModuleTests extends TestSuite {
   def tests: Tests = Tests {
     prepareWorkspace()
 
-    def checkOpt(mode: OptimizeMode) = {
-      val task = mode match {
-        case FullOpt => MultiModule.client.fullOpt
-        case FastOpt => MultiModule.client.fastOpt
-      }
+    def checkOpt(optimize: Boolean) = {
+      val task = if (optimize) MultiModule.client.fullOpt else MultiModule.client.fastOpt
       val Right((linked, evalCount)) = evaluator(task)
 
       val runOutput = ScalaJsUtils.runJS(linked.path)
@@ -53,10 +50,10 @@ object MultiModuleTests extends TestSuite {
       )
     }
 
-    "fastOpt" - TestUtil.disableInJava9OrAbove(checkOpt(FastOpt))
-    "fullOpt" - TestUtil.disableInJava9OrAbove(checkOpt(FullOpt))
+    "fastOpt" - checkOpt(optimize = false)
+    "fullOpt" - checkOpt(optimize = true)
 
-    "test" - {
+    test("test") {
       val Right(((_, testResults), evalCount)) = evaluator(MultiModule.client.test.test())
 
       assert(
@@ -66,7 +63,7 @@ object MultiModuleTests extends TestSuite {
       )
     }
 
-    "run" - {
+    test("run") {
       val command = MultiModule.client.run()
 
       val Right((_, evalCount)) = evaluator(command)

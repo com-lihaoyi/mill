@@ -42,9 +42,10 @@ object Settings {
     "0.10.0",
     "0.10.1",
     "0.10.2",
-    "0.10.3"
+    "0.10.3",
+    "0.10.4"
   )
-  val mimaBaseVersions = Seq("0.10.0")
+  val mimaBaseVersions = Seq("0.10.0", "0.10.1", "0.10.2", "0.10.3", "0.10.4")
 }
 
 object Deps {
@@ -82,7 +83,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
-  val ammoniteVersion = "2.5.2"
+  val ammoniteVersion = "2.5.3"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   // Exclude trees here to force the version of we have defined. We use this
@@ -92,24 +93,20 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.13"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.0"
   val coursier = ivy"io.get-coursier::coursier:2.1.0-M5"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.0.2"
-  val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
-  // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
-  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
-  val ipcsocketExcludingJna = ipcsocket.exclude(
-    "net.java.dev.jna" -> "jna",
-    "net.java.dev.jna" -> "jna-platform"
-  )
+  val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.4.0"
+
   object jetty {
     val version = "8.2.0.v20160908"
     val server = ivy"org.eclipse.jetty:jetty-server:${version}"
     val websocket = ivy"org.eclipse.jetty:jetty-websocket:${version}"
   }
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
-  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.1"
+  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" //1.5.0+ dont support JDK8
 
   val jna = ivy"net.java.dev.jna:jna:5.11.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.11.0"
@@ -123,7 +120,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.4.3"
-  val scalametaTrees = ivy"org.scalameta::trees:4.5.4"
+  val scalametaTrees = ivy"org.scalameta::trees:4.5.6"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
@@ -131,7 +128,7 @@ object Deps {
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.7.0-M2"
-  val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0"
+  val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
   val fansi = ivy"com.lihaoyi::fansi:0.3.1"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
 }
@@ -388,7 +385,7 @@ object main extends MillModule {
 
   object client extends MillPublishModule {
     override def ivyDeps = Agg(
-      Deps.ipcsocketExcludingJna
+      Deps.junixsocket
     )
     def generatedBuildInfo = T {
       val dest = T.dest
@@ -533,7 +530,7 @@ object scalalib extends MillModule {
 
 object scalajslib extends MillModule {
 
-  override def moduleDeps = Seq(scalalib, scalajslib.api)
+  override def moduleDeps = Seq(scalalib, scalajslib.`worker-api`)
 
   override def testArgs = T {
     val mapping = Map(
@@ -575,13 +572,12 @@ object scalajslib extends MillModule {
 
   override def generatedSources: Target[Seq[PathRef]] = Seq(generatedBuildInfo())
 
-  object api extends MillApiModule {
-    override def moduleDeps = Seq(main.api)
+  object `worker-api` extends MillInternalModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.6", "1")
   class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
-    override def moduleDeps = Seq(scalajslib.api)
+    override def moduleDeps = Seq(scalajslib.`worker-api`)
     override def ivyDeps = scalajsWorkerVersion match {
       case "0.6" =>
         Agg(
@@ -1197,15 +1193,18 @@ object docs extends Module {
 
   /** Generates the mill documentation with Antora. */
   object antora extends Module {
+    private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
+    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
     def npmBase: T[os.Path] = T.persistent { T.dest }
     def prepareAntora(npmDir: os.Path) = {
       Jvm.runSubprocess(
         commandArgs = Seq(
-          "npm",
+          npmExe,
           "install",
           "@antora/cli",
           "@antora/site-generator-default",
-          "gitlab:antora/xref-validator"
+          "gitlab:antora/xref-validator",
+          "@antora/lunr-extension"
         ),
         envArgs = Map(),
         workingDir = npmDir
@@ -1216,7 +1215,7 @@ object docs extends Module {
     ) = {
       prepareAntora(npmDir)
       val cmdArgs =
-        Seq(s"${npmDir}/node_modules/@antora/cli/bin/antora") ++ args
+        Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
       ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
       Jvm.runSubprocess(
         commandArgs = cmdArgs,
@@ -1272,6 +1271,11 @@ object docs extends Module {
          |    mill-doc-url: ${Settings.docUrl}
          |    utest-github-url: https://github.com/com-lihaoyi/utest
          |    upickle-github-url: https://github.com/com-lihaoyi/upickle
+         |
+         |antora:
+         |  extensions:
+         |  - require: '@antora/lunr-extension'
+         |    index_latest_only: true
          |
          |""".stripMargin
     }

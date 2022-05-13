@@ -8,7 +8,19 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule}
 import mill.testrunner.TestRunner
 import mill.define.{Command, Target, Task}
-import mill.scalajslib.api._
+import mill.scalajslib.{ScalaJSWorker => DeprecatedScalaJSWorker}
+import mill.scalajslib.api.{
+  ESFeatures,
+  ESVersion,
+  FullOpt,
+  JsEnvConfig,
+  ModuleKind,
+  ModuleSplitStyle,
+  OptimizeMode,
+  Report
+}
+import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
+import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 
 import scala.jdk.CollectionConverters._
 
@@ -73,24 +85,35 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
-  def fastOpt = T {
-    linkTask(FastOpt)()
+  def fastLinkJS: Target[Report] = T.persistent {
+    linkTask(isFullLinkJS = false, forceOutJs = false)()
   }
 
-  def fullOpt = T {
-    linkTask(FullOpt)()
+  def fullLinkJS: Target[Report] = T.persistent {
+    linkTask(isFullLinkJS = true, forceOutJs = false)()
   }
 
-  private def linkTask(mode: OptimizeMode): Task[PathRef] = T.task {
-    link(
-      worker = ScalaJSWorkerApi.scalaJSWorker(),
+  def fastOpt: Target[PathRef] = T {
+    getReportMainFilePathRef(linkTask(isFullLinkJS = false, forceOutJs = true)())
+  }
+
+  def fullOpt: Target[PathRef] = T {
+    getReportMainFilePathRef(linkTask(isFullLinkJS = true, forceOutJs = true)())
+  }
+
+  private def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[Report] = T.task {
+    linkJs(
+      worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = runClasspath(),
       mainClass = finalMainClassOpt().toOption,
+      forceOutJs = forceOutJs,
       testBridgeInit = false,
-      mode = mode,
+      isFullLinkJS = isFullLinkJS,
+      optimizer = scalaJSOptimizer(),
       moduleKind = moduleKind(),
-      esFeatures = esFeatures()
+      esFeatures = esFeatures(),
+      moduleSplitStyle = moduleSplitStyle()
     )
   }
 
@@ -100,10 +123,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
       case Right(_) =>
-        ScalaJSWorkerApi.scalaJSWorker().run(
+        ScalaJSWorkerExternalModule.scalaJSWorker().run(
           scalaJSToolsClasspath().map(_.path),
           jsEnvConfig(),
-          fastOpt().path.toIO
+          fastLinkJS()
         )
         Result.Success(())
     }
@@ -118,8 +141,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     mill.api.Result.Failure("runMain is not supported in Scala.js")
   }
 
+  @deprecated("Intended for internal usage. To be removed.", since = "mill 0.10.4")
   def link(
-      worker: ScalaJSWorker,
+      worker: DeprecatedScalaJSWorker,
       toolsClasspath: Agg[PathRef],
       runClasspath: Agg[PathRef],
       mainClass: Option[String],
@@ -127,7 +151,33 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mode: OptimizeMode,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
-  )(implicit ctx: mill.api.Ctx): Result[PathRef] = {
+  )(implicit ctx: mill.api.Ctx): Result[PathRef] = linkJs(
+    worker = worker.bridgeWorker,
+    toolsClasspath = toolsClasspath,
+    runClasspath = runClasspath,
+    mainClass = mainClass,
+    forceOutJs = true,
+    testBridgeInit = testBridgeInit,
+    isFullLinkJS = mode == FullOpt,
+    optimizer = mode == FullOpt,
+    moduleKind = moduleKind,
+    esFeatures = esFeatures,
+    moduleSplitStyle = ModuleSplitStyle.FewestModules
+  ).map(getReportMainFilePathRef)
+
+  private[scalajslib] def linkJs(
+      worker: ScalaJSWorker,
+      toolsClasspath: Agg[PathRef],
+      runClasspath: Agg[PathRef],
+      mainClass: Option[String],
+      forceOutJs: Boolean,
+      testBridgeInit: Boolean,
+      isFullLinkJS: Boolean,
+      optimizer: Boolean,
+      moduleKind: ModuleKind,
+      esFeatures: ESFeatures,
+      moduleSplitStyle: ModuleSplitStyle
+  )(implicit ctx: mill.api.Ctx): Result[Report] = {
     val outputPath = ctx.dest
 
     os.makeDir.all(ctx.dest)
@@ -144,11 +194,14 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       libraries,
       outputPath.toIO,
       mainClass,
+      forceOutJs,
       testBridgeInit,
-      mode == FullOpt,
+      isFullLinkJS,
+      optimizer,
       moduleKind,
-      esFeatures
-    ).map(PathRef(_))
+      esFeatures,
+      moduleSplitStyle
+    )
   }
 
   override def mandatoryScalacOptions = T {
@@ -203,6 +256,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     else ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
   }
 
+  def moduleSplitStyle: Target[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }
+
+  def scalaJSOptimizer: Target[Boolean] = T { true }
+
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((
@@ -220,6 +277,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
+
   def scalaJSTestDeps = T {
     resolveDeps(T.task {
       val bridgeOrInterface =
@@ -232,16 +290,36 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     })
   }
 
+  @deprecated("To be removed. Use fastLinkJSTest instead", since = "mill 0.10.4")
   def fastOptTest = T {
-    link(
-      ScalaJSWorkerApi.scalaJSWorker(),
-      scalaJSToolsClasspath(),
-      scalaJSTestDeps() ++ runClasspath(),
-      None,
+    linkJs(
+      worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
+      toolsClasspath = scalaJSToolsClasspath(),
+      runClasspath = scalaJSTestDeps() ++ runClasspath(),
+      mainClass = None,
+      forceOutJs = true,
       testBridgeInit = true,
-      FastOpt,
-      moduleKind(),
-      esFeatures()
+      isFullLinkJS = false,
+      optimizer = scalaJSOptimizer(),
+      moduleKind = moduleKind(),
+      esFeatures = esFeatures(),
+      moduleSplitStyle = moduleSplitStyle()
+    ).map(getReportMainFilePathRef)
+  }
+
+  def fastLinkJSTest: Target[Report] = T.persistent {
+    linkJs(
+      worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
+      toolsClasspath = scalaJSToolsClasspath(),
+      runClasspath = scalaJSTestDeps() ++ runClasspath(),
+      mainClass = None,
+      forceOutJs = false,
+      testBridgeInit = true,
+      isFullLinkJS = false,
+      optimizer = scalaJSOptimizer(),
+      moduleKind = moduleKind(),
+      esFeatures = esFeatures(),
+      moduleSplitStyle = moduleSplitStyle()
     )
   }
 
@@ -253,12 +331,11 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestRunner.Result])] = T.task {
 
-    val (close, framework) = ScalaJSWorkerApi.scalaJSWorker().getFramework(
+    val (close, framework) = ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
       scalaJSToolsClasspath().map(_.path),
       jsEnvConfig(),
       testFramework(),
-      fastOptTest().path.toIO,
-      moduleKind()
+      fastLinkJSTest()
     )
 
     val (doneMsg, results) = TestRunner.runTestFramework(

@@ -96,22 +96,23 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
           val testFramework = m.testFramework()
           val compResult = m.compile()
 
-          val classFingerprint: Agg[(Class[_], Fingerprint)] = Jvm.inprocess(
+          val (frameworkName, classFingerprint): (String, Agg[(Class[_], Fingerprint)]) = Jvm.inprocess(
             classpath.map(_.path),
             classLoaderOverrideSbtTesting = true,
             isolated = true,
             closeContextClassLoaderWhenDone = false,
             cl => {
               val framework = TestRunner.framework(testFramework)(cl)
-              TestRunner.discoverTests(
+              val discoveredTests = TestRunner.discoverTests(
                 cl,
                 framework,
                 Agg(compResult.classes.path)
               )
+              (framework.name(), discoveredTests)
             }
           )
           val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
-          new ScalaTestClassesItem(id, classes.asJava)
+          new ScalaTestClassesItem(id, classes.asJava, frameworkName)
         }
       case (id, _) => T.task {
           // Not a test module, so no test classes
