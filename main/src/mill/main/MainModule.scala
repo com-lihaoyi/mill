@@ -389,6 +389,11 @@ trait MainModule extends mill.Module {
     System.exit(0)
   }
 
+  def `new`(args: String*): Command[Int] = T.command {
+    T.log.info("Creating a new project...")
+    giter8.Giter8.run(args.toArray)
+  }
+
   private type VizWorker = (
       LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
       LinkedBlockingQueue[Result[scala.Seq[PathRef]]]

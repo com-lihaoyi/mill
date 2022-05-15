@@ -131,6 +131,7 @@ object Deps {
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
   val fansi = ivy"com.lihaoyi::fansi:0.3.1"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
+  val giter8 = ivy"org.foundweekends.giter8::giter8:0.14.0"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
@@ -291,7 +292,8 @@ trait MillModule extends MillApiModule with MillAutoTestSetup { outer =>
 object main extends MillModule {
   override def moduleDeps = Seq(core, client)
   override def ivyDeps = Agg(
-    Deps.windowsAnsi
+    Deps.windowsAnsi,
+    Deps.giter8
   )
   override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
