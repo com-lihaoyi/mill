@@ -89,6 +89,7 @@ class MillBuildServer(
   var clientInitialized = false
   var shutdownRequested = false
   var clientWantsSemanticDb = false
+  var clientIsIntelliJ = false
 
   class State(val evaluator: Evaluator) {
     private[this] object internal {
@@ -221,6 +222,11 @@ class MillBuildServer(
       capabilities.setJvmRunEnvironmentProvider(true)
       capabilities.setJvmTestEnvironmentProvider(true)
 
+      request.getDisplayName match {
+        case "IntelliJ-BSP" => clientIsIntelliJ = true
+        case _ => clientIsIntelliJ = false
+      }
+
       request.getData match {
         case d: JsonObject =>
           log.debug(s"extra data: ${d} of type ${d.getClass}")
@@ -335,6 +341,15 @@ class MillBuildServer(
         targetIds = sourcesParams.getTargets.asScala.toSeq,
         agg = (items: Seq[SourcesItem]) => new SourcesResult(items.asJava)
       ) {
+        case (id, _: MillBuildTarget) if clientIsIntelliJ =>
+          T.task {
+            val sources = new SourcesItem(
+              id,
+              Seq(sourceItem(evaluator.rootModule.millSourcePath / ".bsp", false)).asJava
+            )
+            sources.setRoots(Seq(sanitizeUri(evaluator.rootModule.millSourcePath)).asJava)
+            sources
+          }
 //        case (id, `millBuildTarget`) =>
 //          T.task {
 //            new SourcesItem(
