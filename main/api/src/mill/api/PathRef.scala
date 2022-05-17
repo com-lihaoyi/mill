@@ -2,6 +2,7 @@ package mill.api
 
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
+import scala.util.Using
 
 import upickle.default.{ReadWriter => RW}
 
@@ -45,9 +46,21 @@ object PathRef {
               val value = (attrs.mtime, attrs.size).hashCode()
               updateWithInt(value)
             } else if (jnio.Files.isReadable(path.toNIO)) {
-              val is = os.read.inputStream(path)
-              StreamSupport.stream(is, digestOut)
-              is.close()
+              val is =
+                try Some(os.read.inputStream(path))
+                catch {
+                  case _: jnio.FileSystemException =>
+                    // This is known to happen, when we try to digest a socket file.
+                    // We ignore the content of this file for now, as we would do,
+                    // when the file isn't readable.
+                    // See https://github.com/com-lihaoyi/mill/issues/1875
+                    None
+                }
+              is.foreach {
+                Using.resource(_) { is =>
+                  StreamSupport.stream(is, digestOut)
+                }
+              }
             }
           }
         }
