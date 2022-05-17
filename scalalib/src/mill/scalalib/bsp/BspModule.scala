@@ -142,4 +142,7 @@ trait MillBuildTarget // (rootModule: BaseModule, ctx0: mill.define.Ctx)
     os.makeDir(T.dest / "classes")
     CompilationResult(T.dest / "dummy", PathRef(T.dest / "classes"))
   }
+
+  /** Used in BSP IntelliJ, which can only work with directories */
+  def dummySources: Sources = T.sources(T.dest)
 }

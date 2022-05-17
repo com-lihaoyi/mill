@@ -341,11 +341,11 @@ class MillBuildServer(
         targetIds = sourcesParams.getTargets.asScala.toSeq,
         agg = (items: Seq[SourcesItem]) => new SourcesResult(items.asJava)
       ) {
-        case (id, _: MillBuildTarget) if clientIsIntelliJ =>
+        case (id, module: MillBuildTarget) if clientIsIntelliJ =>
           T.task {
             val sources = new SourcesItem(
               id,
-              Seq(sourceItem(evaluator.rootModule.millSourcePath / ".bsp", false)).asJava
+              module.dummySources().map(p => sourceItem(p.path, true)).asJava
             )
             sources.setRoots(Seq(sanitizeUri(evaluator.rootModule.millSourcePath)).asJava)
             sources
