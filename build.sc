@@ -106,7 +106,7 @@ object Deps {
     val websocket = ivy"org.eclipse.jetty:jetty-websocket:${version}"
   }
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
-  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" //1.5.0+ dont support JDK8
+  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
   val jna = ivy"net.java.dev.jna:jna:5.11.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.11.0"
@@ -115,7 +115,7 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.2"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
-  val testng = ivy"org.testng:testng:7.5"
+  val testng = ivy"org.testng:testng:7.6.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
