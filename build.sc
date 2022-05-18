@@ -106,7 +106,7 @@ object Deps {
     val websocket = ivy"org.eclipse.jetty:jetty-websocket:${version}"
   }
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
-  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
+  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" //1.5.0+ dont support JDK8
 
   val jna = ivy"net.java.dev.jna:jna:5.11.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.11.0"
@@ -120,7 +120,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.4.3"
-  val scalametaTrees = ivy"org.scalameta::trees:4.5.7"
+  val scalametaTrees = ivy"org.scalameta::trees:4.5.6"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
