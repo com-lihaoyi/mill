@@ -389,9 +389,12 @@ trait MainModule extends mill.Module {
     System.exit(0)
   }
 
-  def `new`(args: String*): Command[Int] = T.command {
-    T.log.info("Creating a new project...")
-    giter8.Giter8.run(args.toArray)
+  def init(evaluator: Evaluator, args: String*): Command[Unit] = T.command {
+    MainModule.evaluateTasks(
+      evaluator,
+      Seq("mill.scalalib.Giter8Module/init") ++ args,
+      selectMode = SelectMode.Single
+    )(identity).map(_.value)
   }
 
   private type VizWorker = (
