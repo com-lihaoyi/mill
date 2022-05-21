@@ -1,27 +1,21 @@
-package mill
-package scalalib
-
-import scala.util.control.NonFatal
+package mill.scalalib.giter8
 
 import mill.T
 import mill.define.{Command, Discover, ExternalModule}
 import mill.modules.Jvm
-import mill.define.Task
+import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib._
+import mill.BuildInfo
+import mill.api.Loose
 
 object Giter8Module extends ExternalModule with CoursierModule {
 
-  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
-    T.task { (dep: Dep) =>
-      val scalaVersion = scala.util.Properties.releaseVersion.getOrElse("2.13.8")
-      Lib.depToDependency(dep, scalaVersion)
-    }
-
   def init(args: String*): Command[Unit] = T.command {
     T.log.info("Creating a new project...")
-
     val giter8Dependencies = resolveDeps(
       T.task {
-        Agg(ivy"org.foundweekends.giter8::giter8:0.14.0")
+        val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
+        Loose.Agg(ivy"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0")
       }
     )()
 

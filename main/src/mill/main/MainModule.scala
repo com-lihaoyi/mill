@@ -392,7 +392,7 @@ trait MainModule extends mill.Module {
   def init(evaluator: Evaluator, args: String*): Command[Unit] = T.command {
     MainModule.evaluateTasks(
       evaluator,
-      Seq("mill.scalalib.Giter8Module/init") ++ args,
+      Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
       selectMode = SelectMode.Single
     )(identity).map(_.value)
   }
