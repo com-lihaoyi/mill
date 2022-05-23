@@ -8,7 +8,11 @@ import mill.scalalib._
 import mill.BuildInfo
 import mill.api.Loose
 
-object Giter8Module extends ExternalModule with CoursierModule {
+object Giter8Module extends ExternalModule with Giter8Module {
+  lazy val millDiscover = Discover[this.type]
+}
+
+trait Giter8Module extends CoursierModule {
 
   def init(args: String*): Command[Unit] = T.command {
     T.log.info("Creating a new project...")
@@ -25,7 +29,4 @@ object Giter8Module extends ExternalModule with CoursierModule {
       mainArgs = args
     )
   }
-
-  lazy val millDiscover = Discover[this.type]
-
 }
