@@ -19,10 +19,10 @@ object Giter8Module extends ExternalModule with CoursierModule {
       }
     )()
 
-    Jvm.runLocal(
+    Jvm.runSubprocess(
       "giter8.Giter8",
       giter8Dependencies.map(_.path),
-      args
+      mainArgs = args
     )
   }
 
