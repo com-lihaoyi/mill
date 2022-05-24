@@ -389,6 +389,14 @@ trait MainModule extends mill.Module {
     System.exit(0)
   }
 
+  def init(evaluator: Evaluator, args: String*): Command[Unit] = T.command {
+    MainModule.evaluateTasks(
+      evaluator,
+      Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
+      selectMode = SelectMode.Single
+    )(identity).map(_.value)
+  }
+
   private type VizWorker = (
       LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
       LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
