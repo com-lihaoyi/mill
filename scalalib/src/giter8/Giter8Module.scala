@@ -26,7 +26,8 @@ trait Giter8Module extends CoursierModule {
     Jvm.runSubprocess(
       "giter8.Giter8",
       giter8Dependencies.map(_.path),
-      mainArgs = args
+      mainArgs = args,
+      workingDir = T.workspace
     )
   }
 }
