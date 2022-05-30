@@ -1201,10 +1201,10 @@ object docs extends Module {
         commandArgs = Seq(
           npmExe,
           "install",
-          "@antora/cli",
-          "@antora/site-generator-default",
+          "@antora/cli@3.0.1",
+          "@antora/site-generator-default@3.0.1",
           "gitlab:antora/xref-validator",
-          "@antora/lunr-extension"
+          "@antora/lunr-extension@v1.0.0-alpha.6"
         ),
         envArgs = Map(),
         workingDir = npmDir
