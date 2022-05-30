@@ -69,6 +69,12 @@ Limited bash completion support.
 
 Project home: https://github.com/lefou/mill-bash-completion
 
+== PowerShell Completion
+
+Basic PowerShell completion support.
+
+Project home: https://github.com/sake92/mill-powershell-completion
+
 == DGraph
 
 Show transitive dependencies of your build in your browser.
