@@ -535,6 +535,13 @@ object project extends ScalaModule with OsgiBundleModule {
 }
 ----
 
+== PowerShell Completion
+
+Basic PowerShell completion support.
+
+Project home: https://github.com/sake92/mill-powershell-completion
+
+
 == PublishM2
 
 _Since Mill `0.6.1-27-f265a4` there is a built-in `publishM2Local` target in `PublishModule`._
