@@ -164,6 +164,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   // Whether to link `@stub` methods, or ignore them
   def nativeLinkStubs = T { false }
 
+  /**
+   * Shall the resource files be embedded in the resulting binary file? Allows
+   *  the use of getClass().getResourceAsStream() on the included files. Will
+   *  not embed files with certain extensions, including ".c", ".h", ".scala"
+   *  and ".class".
+   */
+  def nativeEmbedResources = T { false }
+
   // The LTO mode to use used during a release build
   protected def nativeLTOInput: Target[Option[LTO]] = T.input {
     readEnvVariable[LTO](T.env, "SCALANATIVE_LTO", LTO.values, _.value)
@@ -195,7 +203,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeLTO(),
       releaseMode(),
       nativeOptimize(),
-      logLevel()
+      nativeEmbedResources(),
+      logLevel(),
     )
   }
 

@@ -51,6 +51,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
       nativeLTO: LTO,
       releaseMode: ReleaseMode,
       nativeOptimize: Boolean,
+      nativeEmbedResources: Boolean,
       logLevel: NativeLogLevel
   ): NativeConfig = {
     val entry = Versions.current match {
@@ -74,6 +75,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
             .withMode(Mode(releaseMode.value))
             .withOptimize(nativeOptimize)
             .withLTO(ScalaNativeLTO(nativeLTO.value))
+            .withEmbedResources(nativeEmbedResources)
         )
         .withLogger(logger(logLevel))
     new NativeConfig(config)

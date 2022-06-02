@@ -1,4 +1,5 @@
 package mill.scalanativelib.api;
+
 import sbt.testing.Framework;
 
 public interface ScalaNativeWorkerApi {
@@ -20,6 +21,7 @@ public interface ScalaNativeWorkerApi {
                         LTO nativeLTO,
                         ReleaseMode releaseMode,
                         boolean optimize,
+                        boolean embedResources,
                         NativeLogLevel logLevel);
 
     String defaultGarbageCollector();
