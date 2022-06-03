@@ -9,6 +9,7 @@ import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
 import org.scalajs.core.tools.linker.{
+  ClearableLinker,
   ESFeatures => ScalaJSESFeatures,
   Linker,
   ModuleInitializer,
@@ -31,15 +32,15 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       esFeatures: ESFeatures
   )
   private object ScalaJSLinker {
-    private val cache = mutable.Map.empty[LinkerInput, WeakReference[Linker]]
-    def reuseOrCreate(input: LinkerInput): Linker = cache.get(input) match {
+    private val cache = mutable.Map.empty[LinkerInput, WeakReference[ClearableLinker]]
+    def reuseOrCreate(input: LinkerInput): ClearableLinker = cache.get(input) match {
       case Some(WeakReference(linker)) => linker
       case _ =>
         val newLinker = createLinker(input)
         cache.update(input, WeakReference(newLinker))
         newLinker
     }
-    private def createLinker(input: LinkerInput): Linker = {
+    private def createLinker(input: LinkerInput): ClearableLinker = {
       val semantics = input.isFullLinkJS match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
@@ -65,7 +66,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
         .withESFeatures(scalaJSESFeatures)
-      StandardLinker(config)
+        .withBatchMode(true)
+      new ClearableLinker(() => StandardLinker(config), config.batchMode)
     }
   }
 
