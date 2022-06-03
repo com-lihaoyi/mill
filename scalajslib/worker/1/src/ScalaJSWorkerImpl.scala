@@ -149,7 +149,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         if (minorIsGreaterThanOrEqual(3)) withModuleSplitStyle_1_3_plus(partialConfig)
         else withModuleSplitStyle_1_2_minus(partialConfig)
 
-      StandardImpl.linker(config)
+      StandardImpl.clearableLinker(config)
     }
   }
   def link(
