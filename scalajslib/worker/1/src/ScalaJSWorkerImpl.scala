@@ -103,7 +103,6 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
         .withESFeatures(scalaJSESFeatures)
-        .withBatchMode(true)
 
       // Separating ModuleSplitStyle in a standalone object avoids
       // early classloading which fails in Scala.js versions where

@@ -66,7 +66,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
         .withESFeatures(scalaJSESFeatures)
-        .withBatchMode(true)
+
       new ClearableLinker(() => StandardLinker(config), config.batchMode)
     }
   }
