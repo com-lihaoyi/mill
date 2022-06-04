@@ -24,7 +24,7 @@ import scala.util.{Success, Try}
 
 class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi {
   private def patchIsGreaterThanOrEqual(number: Int) = {
-    val patch = Versions.current.stripSuffix("0.4.")
+    val patch = Versions.current.stripPrefix("0.4.")
     Try(patch.toInt) match {
       case Success(n) if n < number => false
       case _ => true
