@@ -3,6 +3,8 @@ package mill.scalanativelib.worker
 import java.io.File
 import java.lang.System.{err, out}
 
+import mill.scalanativelib.api.{GetFrameworkResult, LTO, NativeConfig, NativeLogLevel, ReleaseMode}
+import sbt.testing.Framework
 import scala.scalanative.util.Scope
 import scala.scalanative.build.{
   Build,
@@ -16,15 +18,17 @@ import scala.scalanative.build.{
   NativeConfig => ScalaNativeNativeConfig
 }
 import scala.scalanative.nir.Versions
-import mill.scalanativelib.api.{GetFrameworkResult, LTO, NativeConfig, NativeLogLevel, ReleaseMode}
-import sbt.testing.Framework
-
 import scala.scalanative.testinterface.adapter.TestAdapter
 
+import scala.util.{Success, Try}
+
 class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi {
-  private def patchIsGreaterThanOrEqual(number: Int) = Versions.current match {
-    case s"0.4.$n" if n.toIntOption.exists(_ < number) => false
-    case _ => true
+  private def patchIsGreaterThanOrEqual(number: Int) = {
+    val patch = Versions.current.stripSuffix("0.4.")
+    Try(patch.toInt) match {
+      case Success(n) if n < number => false
+      case _ => true
+    }
   }
 
   def logger(level: NativeLogLevel) =
