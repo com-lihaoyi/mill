@@ -63,7 +63,7 @@ public class MillClientMain {
         if (Util.isWindows) {
             // workaround for Windows 11 and Windows Server
             // until this is merged: https://github.com/kohlschutter/junixsocket/pull/105
-            System.setProperty("os.name", "Windows10")
+            System.setProperty("os.name", "Windows10");
         }
 
         if (args.length > 0) {
