@@ -60,6 +60,12 @@ public class MillClientMain {
     }
 
     public static void main(String[] args) throws Exception {
+        if (Util.isWindows) {
+            // workaround for Windows 11 and Windows Server
+            // until this is merged: https://github.com/kohlschutter/junixsocket/pull/105
+            System.setProperty("os.name", "Windows10")
+        }
+
         if (args.length > 0) {
             String firstArg = args[0];
             if (Arrays.asList("-i", "--interactive", "--no-server", "--repl", "--bsp").contains(firstArg)) {
