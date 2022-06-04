@@ -60,11 +60,6 @@ public class MillClientMain {
     }
 
     public static void main(String[] args) throws Exception {
-        if (Util.isWindows) {
-            // workaround for Windows 11 and Windows Server
-            // until this is merged: https://github.com/kohlschutter/junixsocket/pull/105
-            System.setProperty("os.name", "Windows10");
-        }
 
         if (args.length > 0) {
             String firstArg = args[0];
@@ -170,6 +165,12 @@ public class MillClientMain {
         OutputStream stderr,
         String[] args,
         Map<String, String> env) throws Exception {
+
+        if (Util.isWindows) {
+            // workaround for Windows 11 and Windows Server
+            // TODO remove after this is merged: https://github.com/kohlschutter/junixsocket/pull/105
+            System.setProperty("os.name", "Windows10");
+        }
 
         try (FileOutputStream f = new FileOutputStream(lockBase + "/run")) {
             f.write(System.console() != null ? 1 : 0);
