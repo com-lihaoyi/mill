@@ -419,6 +419,12 @@ object main extends MillModule {
       "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
     )
   }
+
+  object testutil extends MillPublishModule with ScalaModule {
+    def scalaVersion = Deps.scalaVersion
+    def moduleDeps = Seq(core, util)
+  }
+
 }
 
 object testrunner extends MillModule {
