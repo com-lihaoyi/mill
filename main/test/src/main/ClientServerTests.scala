@@ -42,12 +42,6 @@ class EchoServer extends MillServerMain[Int] {
 
 object ClientServerTests extends TestSuite {
 
-  if (scala.util.Properties.isWin) {
-    // workaround for CI issue
-    // https://github.com/com-lihaoyi/mill/pull/1852#issuecomment-1114332274
-    System.setProperty("os.name", "Windows10")
-  }
-
   val ENDL = System.lineSeparator()
 
   def initStreams() = {
