@@ -3,6 +3,8 @@ package mill.scalanativelib.worker
 import java.io.File
 import java.lang.System.{err, out}
 
+import mill.scalanativelib.api.{GetFrameworkResult, LTO, NativeConfig, NativeLogLevel, ReleaseMode}
+import sbt.testing.Framework
 import scala.scalanative.util.Scope
 import scala.scalanative.build.{
   Build,
@@ -16,12 +18,19 @@ import scala.scalanative.build.{
   NativeConfig => ScalaNativeNativeConfig
 }
 import scala.scalanative.nir.Versions
-import mill.scalanativelib.api.{GetFrameworkResult, LTO, NativeConfig, NativeLogLevel, ReleaseMode}
-import sbt.testing.Framework
-
 import scala.scalanative.testinterface.adapter.TestAdapter
 
+import scala.util.{Success, Try}
+
 class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi {
+  private def patchIsGreaterThanOrEqual(number: Int) = {
+    val patch = Versions.current.stripPrefix("0.4.")
+    Try(patch.toInt) match {
+      case Success(n) if n < number => false
+      case _ => true
+    }
+  }
+
   def logger(level: NativeLogLevel) =
     Logger(
       traceFn = msg => if (level.value >= NativeLogLevel.Trace.value) err.println(s"[trace] $msg"),
@@ -51,30 +60,31 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
       nativeLTO: LTO,
       releaseMode: ReleaseMode,
       nativeOptimize: Boolean,
+      nativeEmbedResources: Boolean,
       logLevel: NativeLogLevel
   ): NativeConfig = {
-    val entry = Versions.current match {
-      case "0.4.0" | "0.4.1" | "0.4.2" => mainClass + "$"
-      case _ => mainClass
+    val entry = if (patchIsGreaterThanOrEqual(3)) mainClass else mainClass + "$"
+    var nativeConfig =
+      ScalaNativeNativeConfig.empty
+        .withClang(nativeClang.toPath)
+        .withClangPP(nativeClangPP.toPath)
+        .withTargetTriple(if (nativeTarget.isPresent) Some(nativeTarget.get) else None)
+        .withCompileOptions(nativeCompileOptions)
+        .withLinkingOptions(nativeLinkingOptions)
+        .withGC(GC(nativeGC))
+        .withLinkStubs(nativeLinkStubs)
+        .withMode(Mode(releaseMode.value))
+        .withOptimize(nativeOptimize)
+        .withLTO(ScalaNativeLTO(nativeLTO.value))
+    if (patchIsGreaterThanOrEqual(4)) {
+      nativeConfig = nativeConfig.withEmbedResources(nativeEmbedResources)
     }
     val config =
       Config.empty
         .withMainClass(entry)
         .withClassPath(classpath.map(_.toPath))
         .withWorkdir(nativeWorkdir.toPath)
-        .withCompilerConfig(
-          ScalaNativeNativeConfig.empty
-            .withClang(nativeClang.toPath)
-            .withClangPP(nativeClangPP.toPath)
-            .withTargetTriple(if (nativeTarget.isPresent) Some(nativeTarget.get) else None)
-            .withCompileOptions(nativeCompileOptions)
-            .withLinkingOptions(nativeLinkingOptions)
-            .withGC(GC(nativeGC))
-            .withLinkStubs(nativeLinkStubs)
-            .withMode(Mode(releaseMode.value))
-            .withOptimize(nativeOptimize)
-            .withLTO(ScalaNativeLTO(nativeLTO.value))
-        )
+        .withCompilerConfig(nativeConfig)
         .withLogger(logger(logLevel))
     new NativeConfig(config)
   }
