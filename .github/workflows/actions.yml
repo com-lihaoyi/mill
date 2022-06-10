@@ -33,7 +33,8 @@ jobs:
           - ./mill -i docs.antora.githubPages
         include:
           # Just some reporting to enable reasoning about library upgrades
-          - java-version: 8
+          - os: ubuntu-latest
+            java-version: 8
             buildcmd: | 
               ./mill -i -k __.ivyDepsTree
               ./mill -i -k __.ivyDepsTree --withRuntime true
