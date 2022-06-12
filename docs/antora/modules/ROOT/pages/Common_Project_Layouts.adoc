@@ -40,11 +40,10 @@ You can then run the junit tests using `mill app.test` or `mill core.test`, and
 configure which exact tests you want to run using the flags defined on the
 https://github.com/sbt/junit-interface#junit-interface[JUnit Test Interface].
 
-For a more more complex, real-world example of a Java build, check out our
-example build for the popular https://github.com/ben-manes/caffeine[Caffeine]
+For a more more complex, real-world example of a Java build, check out our example build for the popular https://github.com/ben-manes/caffeine[Caffeine]
 project:
 
-* https://github.com/com-lihaoyi/mill/blob/main/integration/test/resources/caffeine/build.sc[Example Build]
+* {mill-github-url}/blob/main/integration/thirdparty/local/resources/caffeine/build.sc[Example Build]
 
 == Cross Scala-Version Modules
 
@@ -376,14 +375,14 @@ integration tests and examples:
 
 === Acyclic
 
-* {mill-github-url}/blob/main/integration/test/resources/acyclic/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/main/integration/thirdparty/local/resources/acyclic/build.sc#L1[Mill Build]
 
 A small single-module cross-build, with few sources, minimal dependencies, and
 wired up for publishing to Maven Central.
 
 === Better-Files
 
-* {mill-github-url}/blob/main/integration/test/resources/better-files/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/main/integration/thirdparty/local/resources/better-files/build.sc#L1[Mill Build]
 
 A collection of small modules compiled for a single Scala version.
 
@@ -392,21 +391,21 @@ compiler flags, and download artifacts as part of the build.
 
 === Jawn
 
-* {mill-github-url}/blob/main/integration/test/resources/jawn/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/main/integration/thirdparty/local/resources/jawn/build.sc#L1[Mill Build]
 
 A collection of relatively small modules, all cross-built across the same few
 versions of Scala.
 
 === Upickle
 
-* {mill-github-url}/blob/main/integration/test/resources/upickle/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/main/integration/thirdparty/local/resources/upickle/build.sc#L1[Mill Build]
 
 A single cross-platform Scala.js/Scala-JVM module cross-built against multiple
 versions of Scala, including the setup necessary for publishing to Maven Central.
 
 === Ammonite
 
-* {mill-github-url}/blob/main/integration/test/resources/ammonite/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/main/integration/thirdparty/local/resources/ammonite/build.sc#L1[Mill Build]
 
 A relatively complex build with numerous submodules, some cross-built across
 Scala major versions while others are cross-built against Scala minor versions.
