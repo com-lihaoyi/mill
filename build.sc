@@ -421,7 +421,7 @@ object main extends MillModule {
     )
   }
 
-  object testkit extends MillPublishModule with ScalaModule {
+  object testkit extends MillModule {
     def scalaVersion = Deps.scalaVersion
     def moduleDeps = Seq(core, util)
   }

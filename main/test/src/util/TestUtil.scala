@@ -1,7 +1,7 @@
 package mill.util
 
 import mill.define._
-import mill.testkit.MillTestkit
+import mill.testkit.MillTestKit
 import mill.api.Result
 import mill.api.Result.OuterStack
 import utest.assert
@@ -10,7 +10,7 @@ import utest.framework.TestPath
 
 import scala.collection.mutable
 
-object TestUtil extends MillTestkit(os.pwd / "target") {
+object TestUtil extends MillTestKit(os.pwd / "target") {
   def getOutPath()(implicit fullName: sourcecode.FullName, tp: TestPath): os.Path = {
     getOutPath(tp.value)
   }

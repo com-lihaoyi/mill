@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.testkit.MillTestkit
+import mill.testkit.MillTestKit
 import java.io.{InputStream, PrintStream}
 import mill.define.{Input, Target, Task}
 import mill.api.Result.OuterStack
