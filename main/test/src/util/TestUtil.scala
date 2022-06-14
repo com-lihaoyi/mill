@@ -1,6 +1,7 @@
 package mill.util
 
 import mill.define._
+import mill.testkit.MillTestkit
 import mill.api.Result
 import mill.api.Result.OuterStack
 import utest.assert
@@ -9,33 +10,9 @@ import utest.framework.TestPath
 
 import scala.collection.mutable
 
-object TestUtil {
+object TestUtil extends MillTestkit(os.pwd / "target") {
   def getOutPath()(implicit fullName: sourcecode.FullName, tp: TestPath): os.Path = {
-    getOutPathStatic() / tp.value
-  }
-  def getOutPathStatic()(implicit fullName: sourcecode.FullName): os.Path = {
-    os.pwd / "target" / "workspace" / fullName.value.split('.')
-  }
-
-  def getSrcPathStatic()(implicit fullName: sourcecode.FullName): os.Path = {
-    getSrcPathBase() / fullName.value.split('.')
-  }
-  def getSrcPathBase(): os.Path = {
-    os.pwd / "target" / "worksources"
-  }
-
-  class BaseModule(implicit
-      millModuleEnclosing0: sourcecode.Enclosing,
-      millModuleLine0: sourcecode.Line,
-      millName0: sourcecode.Name
-  ) extends mill.define.BaseModule(getSrcPathBase() / millModuleEnclosing0.value.split("\\.| |#"))(
-        implicitly,
-        implicitly,
-        implicitly,
-        implicitly,
-        implicitly
-      ) {
-    lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    getOutPath(tp.value)
   }
 
   object test {

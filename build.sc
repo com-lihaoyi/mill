@@ -289,6 +289,7 @@ trait MillModule extends MillApiModule with MillAutoTestSetup { outer =>
 }
 
 object main extends MillModule {
+
   override def moduleDeps = Seq(core, client)
   override def ivyDeps = Agg(
     Deps.windowsAnsi
@@ -420,10 +421,12 @@ object main extends MillModule {
     )
   }
 
-  object testutil extends MillPublishModule with ScalaModule {
+  object testkit extends MillPublishModule with ScalaModule {
     def scalaVersion = Deps.scalaVersion
     def moduleDeps = Seq(core, util)
   }
+
+  def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
 
 }
 

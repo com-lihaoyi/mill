@@ -1,4 +1,4 @@
-package mill.testutil
+package mill.testkit
 
 import mill.define._
 import mill.api.Result
@@ -12,13 +12,11 @@ import mill.api.{DummyInputStream, Result}
 
 import scala.collection.mutable
 
-object MillTests extends MillTests(os.pwd / "target")
-
-class MillTests(targetDir: os.Path) {
+class MillTestkit(targetDir: os.Path) {
 
   val externalOutPath: os.Path = targetDir / "external"
 
-  def getOutPath(testPath: os.RelPath)(implicit fullName: sourcecode.FullName): os.Path = {
+  def getOutPath(testPath: Seq[String])(implicit fullName: sourcecode.FullName): os.Path = {
     getOutPathStatic() / testPath
   }
 
@@ -33,7 +31,7 @@ class MillTests(targetDir: os.Path) {
     targetDir / "worksources"
   }
 
-  class TestBaseModule(implicit
+  class BaseModule(implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
       millName0: sourcecode.Name
@@ -55,7 +53,7 @@ class MillTests(targetDir: os.Path) {
    */
   class TestEvaluator(
       module: mill.define.BaseModule,
-      testPath: os.RelPath,
+      testPath: Seq[String],
       failFast: Boolean = false,
       threads: Option[Int] = Some(1),
       outStream: PrintStream = System.out,
