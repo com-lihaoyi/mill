@@ -44,6 +44,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     )
   }
 
+  def zincLogDebug: T[Boolean] = T(T.ctx.log.debugEnabled)
+
   def worker: Worker[ZincWorkerApi] = T.worker {
     val ctx = T.ctx()
     val jobs = T.ctx() match {
@@ -61,11 +63,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
           (ZincWorkerApi.Ctx, (String, String) => (Option[Array[os.Path]], os.Path)),
           String => os.Path
         ]
-      ],
-      classOf[(Agg[os.Path], String) => os.Path],
-      classOf[(Agg[os.Path], String) => os.Path],
-      classOf[KeyedLockedCache[_]],
-      classOf[Boolean]
+      ], // compilerBridge
+      classOf[(Agg[os.Path], String) => os.Path], // libraryJarNameGrep
+      classOf[(Agg[os.Path], String) => os.Path], // compilerJarNameGrep
+      classOf[KeyedLockedCache[_]], // compilerCache
+      classOf[Boolean], // compileToJar
+      classOf[Boolean] // zincLogDebug
     )
       .newInstance(
         Left((
@@ -76,7 +79,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false),
         ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),
         new FixSizedCache(jobs),
-        false.asInstanceOf[AnyRef]
+        java.lang.Boolean.FALSE,
+        java.lang.Boolean.valueOf(zincLogDebug())
       )
     instance.asInstanceOf[ZincWorkerApi]
   }

@@ -36,5 +36,10 @@ trait Logger {
   def ticker(s: String): Unit
   def debug(s: String): Unit
 
+  /**
+   * @since Mill 0.10.5
+   */
+  def debugEnabled: Boolean
+
   def close(): Unit = ()
 }
