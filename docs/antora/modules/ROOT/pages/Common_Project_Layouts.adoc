@@ -380,15 +380,6 @@ integration tests and examples:
 A small single-module cross-build, with few sources, minimal dependencies, and
 wired up for publishing to Maven Central.
 
-=== Better-Files
-
-* {mill-github-url}/blob/main/integration/thirdparty/local/resources/better-files/build.sc#L1[Mill Build]
-
-A collection of small modules compiled for a single Scala version.
-
-Also demonstrates how to define shared configuration in a `trait`, enable Scala
-compiler flags, and download artifacts as part of the build.
-
 === Jawn
 
 * {mill-github-url}/blob/main/integration/thirdparty/local/resources/jawn/build.sc#L1[Mill Build]
