@@ -1,13 +1,12 @@
 package mill.scalalib
 
 import scala.annotation.nowarn
-
 import coursier.Repository
 import mainargs.Flag
 import mill.Agg
 import mill.T
 import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, Loose, PathRef, Result}
-import mill.define.{Command, Discover, ExternalModule, Target, Worker}
+import mill.define.{Command, Discover, ExternalModule, Input, Target, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil}
@@ -44,7 +43,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     )
   }
 
-  def zincLogDebug: T[Boolean] = T(T.ctx.log.debugEnabled)
+  def zincLogDebug: Input[Boolean] = T.input(T.ctx.log.debugEnabled)
 
   def worker: Worker[ZincWorkerApi] = T.worker {
     val ctx = T.ctx()
