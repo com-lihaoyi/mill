@@ -13,6 +13,9 @@ case class MockedLookup(am: VirtualFile => Optional[CompileAnalysis])
   override def analysis(classpathEntry: VirtualFile): Optional[CompileAnalysis] =
     am(classpathEntry)
 
-  override def definesClass(classpathEntry: VirtualFile): DefinesClass =
-    Locate.definesClass(classpathEntry)
+  override def definesClass(classpathEntry: VirtualFile): DefinesClass = {
+    if (classpathEntry.name.toString != "rt.jar")
+      Locate.definesClass(classpathEntry)
+    else (_: String) => false
+  }
 }

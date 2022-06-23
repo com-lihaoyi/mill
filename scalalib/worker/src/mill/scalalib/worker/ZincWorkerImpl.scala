@@ -474,7 +474,7 @@ class ZincWorkerImpl(
 
     val store = FileAnalysisStore.binary(zincFile.toIO)
 
-    val converter = PlainVirtualFileConverter.converter
+    val converter = MappedFileConverter.empty
     val classpath = (compileClasspath.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
