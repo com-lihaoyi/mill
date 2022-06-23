@@ -928,12 +928,6 @@ object integration extends MillScalaModule {
             "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb",
             T.dest / "jawn"
           ),
-        "MILL_BETTERFILES_REPO" ->
-          shared.downloadTestRepo(
-            "pathikrit/better-files",
-            "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8",
-            T.dest / "better-files"
-          ),
         "MILL_AMMONITE_REPO" ->
           shared.downloadTestRepo(
             "lihaoyi/ammonite",
