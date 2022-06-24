@@ -474,6 +474,7 @@ class ZincWorkerImpl(
 
     val store = FileAnalysisStore.binary(zincFile.toIO)
 
+    // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
     val classpath = (compileClasspath.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
