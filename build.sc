@@ -93,7 +93,7 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.0"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.1"
   val coursier = ivy"io.get-coursier::coursier:2.1.0-M6"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.0.2"
