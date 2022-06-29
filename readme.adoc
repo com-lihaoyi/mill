@@ -60,6 +60,10 @@ motivation:
 * http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Build Tools as Pure Functional Programs]
 * http://www.lihaoyi.com/post/MillBetterScalaBuilds.html[Mill: Better Scala Builds]
 
+Mill is profiled using the 
+https://www.ej-technologies.com/products/jprofiler/overview.html[JProfiler Java Profiler], 
+by courtesy of EJ Technologies.
+
 == How to build and test
 
 Mill is built using Mill. To begin, first download & install Mill as described
