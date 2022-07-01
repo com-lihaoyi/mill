@@ -455,6 +455,7 @@ class ZincWorkerImpl(
     val newReporter = reporter match {
       case None => new ManagedLoggedReporter(10, logger)
       case Some(r) => new ManagedLoggedReporter(10, logger) {
+
           override def logError(problem: xsbti.Problem): Unit = {
             r.logError(new ZincProblem(problem))
             super.logError(problem)

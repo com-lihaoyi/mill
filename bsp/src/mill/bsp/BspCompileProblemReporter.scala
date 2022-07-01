@@ -130,7 +130,6 @@ class BspCompileProblemReporter(
       pos.endColumn.orElse(pos.pointer).getOrElse[Int](start.getCharacter.intValue())
     )
     val diagnostic = new bsp.Diagnostic(new bsp.Range(start, end), problem.message)
-    diagnostic.setCode(pos.lineContent)
     diagnostic.setSource("mill")
     diagnostic.setSeverity(
       problem.severity match {
@@ -139,6 +138,7 @@ class BspCompileProblemReporter(
         case mill.api.Warn => bsp.DiagnosticSeverity.WARNING
       }
     )
+    problem.diagnosticCode.foreach { existingCode => diagnostic.setCode(existingCode.code) }
     diagnostic
   }
 
