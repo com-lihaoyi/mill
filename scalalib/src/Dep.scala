@@ -101,7 +101,7 @@ object Dep {
       case Array(a, b, "", c) => Dep(a, b, c, cross = empty(platformed = true))
       case Array(a, "", b, c) => Dep(a, b, c, cross = Binary(platformed = true))
       case Array(a, "", b, "", c) => Dep(a, b, c, cross = Binary(platformed = true))
-      case Array(a, "", "", b, c) => Dep(a, b, c, cross = Full(platformed = true))
+      case Array(a, "", "", b, c) => Dep(a, b, c, cross = Full(platformed = false))
       case Array(a, "", "", b, "", c) => Dep(a, b, c, cross = Full(platformed = true))
       case _ => throw new Exception(s"Unable to parse signature: [$signature]")
     }).configure(attributes = attributes)
