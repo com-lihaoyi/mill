@@ -261,7 +261,7 @@ _Changes since {prev-version}:_
 
 * `ScalaModule` / `ZincWorkerModule`: Fixed incremental compilation issue with JRE 17 (and probably others)
 * `TestModule` now better supports JUnit5 test suites
-* `ScalaJsModule`: internal improvements to the stability of the Scala.js linker
+* `ScalaJSModule`: internal improvements to the stability of the Scala.js linker
 * `ScalaNativeModule`: Added support for `nativeEmbedResources`
 * `BSP`: improved handling of the `mill-build` module when the BSP client is IntelliJ IDEA
 
@@ -286,8 +286,8 @@ _Changes since {prev-version}:_
 * Internal improvements and better support of GraalVM
 * The Mill Documentation site has now built-in search functionality
 
-* `ScalaJsModule`: New targets `fastLinkJS` and `fullLinkJS` and deprecated `fastOpt` and `fullOpt`
-* `ScalaJsModule`: Support for `ModuleSplitStyle`
+* `ScalaJSModule`: New targets `fastLinkJS` and `fullLinkJS` and deprecated `fastOpt` and `fullOpt`
+* `ScalaJSModule`: Support for `ModuleSplitStyle`
 * `BSP`: Updated to protocol version 2.1.0-M1, added support for test framework names and support for the JVM extension
 * `GenIdea`: More consistent ordering of libraries and dependent modules and support for Scala 3.1 language level
 * `Bloop`: Added support for runtime dependencies
