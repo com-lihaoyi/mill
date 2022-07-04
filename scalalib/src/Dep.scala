@@ -75,7 +75,11 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
         this
     }
   def withPlatformed(platformed: Boolean): Dep =
-    copy(cross = cross.withPlatformed(platformed))
+    copy(cross = cross match {
+      case c: CrossVersion.Constant => c.copy(platformed = platformed)
+      case c: CrossVersion.Binary => c.copy(platformed = platformed)
+      case c: CrossVersion.Full => c.copy(platformed = platformed)
+    })
 }
 
 object Dep {
@@ -125,7 +129,6 @@ sealed trait CrossVersion {
 
   /** If true, the cross-version suffix should start with a platform suffix if it exists */
   def platformed: Boolean
-  def withPlatformed(platformed: Boolean): CrossVersion
 
   def isBinary: Boolean =
     this.isInstanceOf[Binary]
@@ -148,21 +151,15 @@ sealed trait CrossVersion {
   }
 }
 object CrossVersion {
-  case class Constant(value: String, platformed: Boolean) extends CrossVersion {
-    def withPlatformed(platformed: Boolean): CrossVersion = copy(platformed = platformed)
-  }
+  case class Constant(value: String, platformed: Boolean) extends CrossVersion
   object Constant {
     implicit def rw: RW[Constant] = macroRW
   }
-  case class Binary(platformed: Boolean) extends CrossVersion {
-    def withPlatformed(platformed: Boolean): CrossVersion = copy(platformed = platformed)
-  }
+  case class Binary(platformed: Boolean) extends CrossVersion
   object Binary {
     implicit def rw: RW[Binary] = macroRW
   }
-  case class Full(platformed: Boolean) extends CrossVersion {
-    def withPlatformed(platformed: Boolean): CrossVersion = copy(platformed = platformed)
-  }
+  case class Full(platformed: Boolean) extends CrossVersion
   object Full {
     implicit def rw: RW[Full] = macroRW
   }
