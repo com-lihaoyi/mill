@@ -117,8 +117,8 @@ object Lib {
       )
     } else if (mill.scalalib.api.Util.isScala3(scalaVersion))
       Agg(
-        // note that dotty-library has a binary version suffix, hence the :: is necessary here
-        ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion().withPlatformed(false)
+        // note that scala3-library has a binary version suffix, hence the :: is necessary here
+        ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
       )
     else
       Agg(
