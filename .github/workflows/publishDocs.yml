@@ -18,5 +18,6 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           java-version: 8
+          distribution: zulu
 
       - run: ci/publish-docs.sh
