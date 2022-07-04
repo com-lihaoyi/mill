@@ -157,8 +157,7 @@ https://www.scalacheck.org/[scalacheck] should be possible when the relevant
 artifacts have been published for scala native.
 
 Here's a slightly larger example, demonstrating how to use third party
-dependencies (note the two sets of double-colons `::` necessary) and a test
-suite:
+dependencies and a test suite:
 
 .`build.sc`
 [source,scala]
@@ -166,11 +165,11 @@ suite:
 import mill._, scalalib._, scalanativelib._
 
 object hello extends ScalaNativeModule {
-  def scalaNativeVersion = "0.3.8"
-  def scalaVersion = "2.11.12"
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.6.7")
+  def scalaNativeVersion = "0.4.5"
+  def scalaVersion = "2.13.8"
+  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.11.1")
   object test extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.6.3")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.0")
   }
 }
 ----

@@ -74,6 +74,8 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
       case _ =>
         this
     }
+  def withPlatformed(platformed: Boolean): Dep =
+    copy(cross = cross.withPlatformed(platformed))
 }
 
 object Dep {
@@ -93,9 +95,9 @@ object Dep {
     (module.split(':') match {
       case Array(a, b, c) => Dep(a, b, c, cross = empty(platformed = false))
       case Array(a, b, "", c) => Dep(a, b, c, cross = empty(platformed = true))
-      case Array(a, "", b, c) => Dep(a, b, c, cross = Binary(platformed = false))
+      case Array(a, "", b, c) => Dep(a, b, c, cross = Binary(platformed = true))
       case Array(a, "", b, "", c) => Dep(a, b, c, cross = Binary(platformed = true))
-      case Array(a, "", "", b, c) => Dep(a, b, c, cross = Full(platformed = false))
+      case Array(a, "", "", b, c) => Dep(a, b, c, cross = Full(platformed = true))
       case Array(a, "", "", b, "", c) => Dep(a, b, c, cross = Full(platformed = true))
       case _ => throw new Exception(s"Unable to parse signature: [$signature]")
     }).configure(attributes = attributes)
@@ -123,6 +125,7 @@ sealed trait CrossVersion {
 
   /** If true, the cross-version suffix should start with a platform suffix if it exists */
   def platformed: Boolean
+  def withPlatformed(platformed: Boolean): CrossVersion
 
   def isBinary: Boolean =
     this.isInstanceOf[Binary]
@@ -145,15 +148,21 @@ sealed trait CrossVersion {
   }
 }
 object CrossVersion {
-  case class Constant(value: String, platformed: Boolean) extends CrossVersion
+  case class Constant(value: String, platformed: Boolean) extends CrossVersion {
+    def withPlatformed(platformed: Boolean): CrossVersion = copy(platformed = platformed)
+  }
   object Constant {
     implicit def rw: RW[Constant] = macroRW
   }
-  case class Binary(platformed: Boolean) extends CrossVersion
+  case class Binary(platformed: Boolean) extends CrossVersion {
+    def withPlatformed(platformed: Boolean): CrossVersion = copy(platformed = platformed)
+  }
   object Binary {
     implicit def rw: RW[Binary] = macroRW
   }
-  case class Full(platformed: Boolean) extends CrossVersion
+  case class Full(platformed: Boolean) extends CrossVersion {
+    def withPlatformed(platformed: Boolean): CrossVersion = copy(platformed = platformed)
+  }
   object Full {
     implicit def rw: RW[Full] = macroRW
   }

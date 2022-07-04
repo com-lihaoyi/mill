@@ -78,32 +78,32 @@ object Lib {
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (mill.scalalib.api.Util.isDotty(scalaVersion))
       Agg(
-        ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion().withPlatformed(false)
       )
     else if (mill.scalalib.api.Util.isScala3(scalaVersion))
       Agg(
-        ivy"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion().withPlatformed(false)
       )
     else
       Agg(
-        ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
-        ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion().withPlatformed(false),
+        ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion().withPlatformed(false)
       )
 
   def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (mill.scalalib.api.Util.isDotty(scalaVersion))
       Agg(
-        ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion().withPlatformed(false)
       )
     else if (mill.scalalib.api.Util.isScala3Milestone(scalaVersion))
       Agg(
         // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
-        ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion().withPlatformed(false)
       )
     else if (mill.scalalib.api.Util.isScala3(scalaVersion))
       Agg(
         // scalaVersion >= 3.0.0-RC1 uses scaladoc
-        ivy"$scalaOrganization::scaladoc:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::scaladoc:$scalaVersion".forceVersion().withPlatformed(false)
       )
     else
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
@@ -113,16 +113,16 @@ object Lib {
     if (mill.scalalib.api.Util.isDotty(scalaVersion)) {
       Agg(
         // note that dotty-library has a binary version suffix, hence the :: is necessary here
-        ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion().withPlatformed(false)
       )
     } else if (mill.scalalib.api.Util.isScala3(scalaVersion))
       Agg(
         // note that dotty-library has a binary version suffix, hence the :: is necessary here
-        ivy"$scalaOrganization::scala3-library::$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion().withPlatformed(false)
       )
     else
       Agg(
-        ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion().withPlatformed(false)
       )
 
   @deprecated(

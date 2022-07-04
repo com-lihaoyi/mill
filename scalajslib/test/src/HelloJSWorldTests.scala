@@ -56,7 +56,7 @@ object HelloJSWorldTests extends TestSuite {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         val utestVersion = if (isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi::utest::$utestVersion"
+          ivy"com.lihaoyi::utest:$utestVersion"
         )
       }
     }
@@ -69,7 +69,7 @@ object HelloJSWorldTests extends TestSuite {
       object test extends super.Tests with TestModule.ScalaTest {
         override def sources = T.sources { millSourcePath / "src" / "scalatest" }
         override def ivyDeps = Agg(
-          ivy"org.scalatest::scalatest::3.1.2"
+          ivy"org.scalatest::scalatest:3.1.2"
         )
       }
     }

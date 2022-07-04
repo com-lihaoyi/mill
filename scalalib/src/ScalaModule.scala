@@ -72,8 +72,7 @@ trait ScalaModule extends JavaModule { outer =>
           d.module.withOrganization(
             coursier.Organization(scalaOrganization())
           )
-        )
-          .withVersion(scalaVersion())
+        ).withVersion(scalaVersion())
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =

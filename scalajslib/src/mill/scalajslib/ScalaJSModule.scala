@@ -216,7 +216,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       if (ZincWorkerUtil.isScala3(scalaVersion())) {
         Seq.empty
       } else {
-        Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
+        Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}".withPlatformed(false))
       }
     }
   }
@@ -224,7 +224,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   /** Adds the Scala.js Library as mandatory dependency. */
   override def mandatoryIvyDeps = T {
     super.mandatoryIvyDeps() ++ Seq(
-      ivy"org.scala-js::scalajs-library:${scalaJSVersion()}".withDottyCompat(scalaVersion())
+      ivy"org.scala-js::scalajs-library:${scalaJSVersion()}"
+        .withPlatformed(false)
+        .withDottyCompat(scalaVersion())
     )
   }
 
@@ -286,7 +288,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       Loose.Agg(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
-      ).map(_.withDottyCompat(scalaVersion()))
+      ).map(_.withPlatformed(false).withDottyCompat(scalaVersion()))
     })
   }
 

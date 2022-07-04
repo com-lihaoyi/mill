@@ -72,14 +72,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeIvyDeps: T[Agg[Dep]] = T {
     val scalaVersionSpecific =
       if (isScala3(scalaVersion()))
-        Agg(ivy"org.scala-native::scala3lib::${scalaNativeVersion()}")
+        Agg(ivy"org.scala-native::scala3lib:${scalaNativeVersion()}")
       else
-        Agg(ivy"org.scala-native::scalalib::${scalaNativeVersion()}")
+        Agg(ivy"org.scala-native::scalalib:${scalaNativeVersion()}")
 
     Agg(
-      ivy"org.scala-native::nativelib::${scalaNativeVersion()}",
-      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
-      ivy"org.scala-native::auxlib::${scalaNativeVersion()}"
+      ivy"org.scala-native::nativelib:${scalaNativeVersion()}",
+      ivy"org.scala-native::javalib:${scalaNativeVersion()}",
+      ivy"org.scala-native::auxlib:${scalaNativeVersion()}"
     ) ++ scalaVersionSpecific
   }
 
@@ -103,7 +103,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = T {
     super.scalacPluginIvyDeps() ++ Agg(
-      ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}"
+      ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}".withPlatformed(false)
     )
   }
 
@@ -298,7 +298,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
     res
   }
   override def ivyDeps = super.ivyDeps() ++ Agg(
-    ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
+    ivy"org.scala-native::test-interface:${scalaNativeVersion()}"
   )
   override def mainClass: T[Option[String]] = Some("scala.scalanative.testinterface.TestMain")
 }
