@@ -43,6 +43,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: zulu
 
       - name: Prepare git config
         run: |
@@ -72,6 +73,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: zulu
 
       - name: Prepare git config
         run: |
@@ -104,6 +106,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: zulu
 
       - name: Run '${{ matrix.buildcmd }}'
         run: ${{ matrix.buildcmd }}
@@ -136,6 +139,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           java-version: 8
+          distribution: zulu
 
       - run: ci/release-maven.sh
 
@@ -156,5 +160,6 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           java-version: 8
+          distribution: zulu
 
       - run: ./mill -i uploadToGithub $REPO_ACCESS_TOKEN
