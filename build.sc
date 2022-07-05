@@ -116,7 +116,7 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.2"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
-  val testng = ivy"org.testng:testng:7.5"
+  val testng = ivy"org.testng:testng:7.6.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
