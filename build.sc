@@ -77,10 +77,10 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.4"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.4"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.4"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.4"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.5"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.5"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.5"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.5"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
@@ -99,7 +99,7 @@ object Deps {
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.0.2"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.5.0"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.5.1"
 
   object jetty {
     val version = "8.2.0.v20160908"
@@ -114,14 +114,14 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.2"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.18.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
   val testng = ivy"org.testng:testng:7.5"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.4.3"
-  val scalametaTrees = ivy"org.scalameta::trees:4.5.8"
+  val scalametaTrees = ivy"org.scalameta::trees:4.5.9"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
