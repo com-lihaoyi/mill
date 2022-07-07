@@ -114,7 +114,7 @@ public class MillEnv {
         ) {
             while (sc.hasNextLine()) {
                 String arg = sc.nextLine();
-                if (!arg.trim().isEmpty() && arg.startsWith("#")) {
+                if (!arg.trim().isEmpty() && !arg.startsWith("#")) {
                     vmOptions.add(arg);
                 }
             }
