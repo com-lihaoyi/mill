@@ -1,0 +1,3 @@
+
+# comment after an empty line
+-DPROPERTY_PROPERLY_SET_VIA_JVM_OPTS=value-from-file
