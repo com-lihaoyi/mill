@@ -97,7 +97,7 @@ object Deps {
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.2"
   val coursier = ivy"io.get-coursier::coursier:2.1.0-M6"
 
-  val flywayCore = ivy"org.flywaydb:flyway-core:8.0.2"
+  val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.5.1"
 
@@ -116,21 +116,21 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.18.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
-  val testng = ivy"org.testng:testng:7.5"
+  val testng = ivy"org.testng:testng:7.6.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.4.3"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.5.8"
   val scalametaTrees = ivy"org.scalameta::trees:4.5.9"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
+  def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:2.0.0"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
-  val zinc = ivy"org.scala-sbt::zinc:1.6.1"
+  val zinc = ivy"org.scala-sbt::zinc:1.7.0"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
-  val fansi = ivy"com.lihaoyi::fansi:0.3.1"
+  val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
 }
 
@@ -665,7 +665,7 @@ object contrib extends MillModule {
       def playVersion = playBinary match {
         case "2.6" => "2.6.25"
         case "2.7" => "2.7.9"
-        case "2.8" => "2.8.8"
+        case "2.8" => "2.8.16"
       }
       override def ivyDeps = Agg(
         Deps.osLib,
