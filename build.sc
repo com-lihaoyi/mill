@@ -72,8 +72,8 @@ object Deps {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.3.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.10.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.10.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.10.1"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.10.1"
   }
 
   object Scalanative_0_4 {
@@ -109,8 +109,8 @@ object Deps {
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jna = ivy"net.java.dev.jna:jna:5.11.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.11.0"
+  val jna = ivy"net.java.dev.jna:jna:5.12.1"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.12.1"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
