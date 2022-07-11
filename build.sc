@@ -130,7 +130,7 @@ object Deps {
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.6.1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
-  val fansi = ivy"com.lihaoyi::fansi:0.3.1"
+  val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
 }
 
