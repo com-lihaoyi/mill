@@ -1016,9 +1016,7 @@ def launcherScript(
          |  if [ -f "$$mill_jvm_opts_file" ] ; then
          |    while IFS= read line
          |    do
-         |      case $$line in
-         |        "-X"*) mill_jvm_opts="$${mill_jvm_opts} $$line"
-         |      esac
+         |      mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
          |    done <"$$mill_jvm_opts_file"
          |    mill_jvm_opts="$${mill_jvm_opts} -Dmill.jvm_opts_applied=true"
          |  fi
