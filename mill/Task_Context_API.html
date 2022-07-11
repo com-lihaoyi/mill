@@ -196,14 +196,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.5-11-7d34b4</span>
+    <span class="version">0.10.5-13-1cd1f3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.5-11-7d34b4</a>
+          <a href="index.html">0.10.5-13-1cd1f3</a>
         </li>
         <li class="version">
           <a href="0.10.5/index.html">0.10.5</a>
@@ -263,9 +263,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-11-7d34b4</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-13-1cd1f3</button>
   <div class="version-menu">
-    <a class="version is-current" href="Task_Context_API.html">0.10.5-11-7d34b4</a>
+    <a class="version is-current" href="Task_Context_API.html">0.10.5-13-1cd1f3</a>
     <a class="version" href="0.10.5/Task_Context_API.html">0.10.5</a>
     <a class="version" href="0.10.4/Task_Context_API.html">0.10.4</a>
     <a class="version" href="0.10.3/Task_Context_API.html">0.10.3</a>
@@ -299,12 +299,15 @@ Command:</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_mill_api_ctx_dest"><a class="anchor" href="#_mill_api_ctx_dest"></a>mill.api.Ctx.Dest</h2>
+<h2 id="_mill_api_ctx_dest"><a class="anchor" href="#_mill_api_ctx_dest"></a><code>mill.api.Ctx.Dest</code></h2>
 <div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
 <p><code>T.dest</code></p>
+</li>
+<li>
+<p><code>T.ctx.dest</code></p>
 </li>
 <li>
 <p><code>implicitly[mill.api.Ctx.Dest]</code></p>
@@ -323,39 +326,13 @@ to those same paths.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_mill_api_ctx_log"><a class="anchor" href="#_mill_api_ctx_log"></a>mill.api.Ctx.Log</h2>
+<h2 id="_mill_api_ctx_env"><a class="anchor" href="#_mill_api_ctx_env"></a><code>mill.api.Ctx.Env</code></h2>
 <div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
-<p><code>T.ctx.log</code></p>
+<p><code>T.env</code></p>
 </li>
-<li>
-<p><code>T.log</code></p>
-</li>
-<li>
-<p><code>implicitly[mill.api.Ctx.Log]</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>This is the default logger provided for every task. While your task is running,
-<code>System.out</code> and <code>System.in</code> are also redirected to this logger. The logs for a
-task are streamed to standard out/error as you would expect, but each task’s
-specific output is also streamed to a log file on disk, e.g. <code>out/run.log</code> or
-<code>out/classFiles.log</code> for you to inspect later.</p>
-</div>
-<div class="paragraph">
-<p>Messages logged with <code>log.debug</code> appear by default only in the log files.
-You can use the <code>--debug</code> option when running mill to show them on the console too.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_mill_api_ctx_env"><a class="anchor" href="#_mill_api_ctx_env"></a>mill.api.Ctx.Env</h2>
-<div class="sectionbody">
-<div class="ulist">
-<ul>
 <li>
 <p><code>T.ctx.env</code></p>
 </li>
@@ -380,6 +357,58 @@ be wrapped in an <code>Input</code> as such :</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def envVar = T.input { T.ctx.env.get(&quot;ENV_VAR&quot;) }</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_api_ctx_log"><a class="anchor" href="#_mill_api_ctx_log"></a><code>mill.api.Ctx.Log</code></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>T.log</code></p>
+</li>
+<li>
+<p><code>T.ctx.log</code></p>
+</li>
+<li>
+<p><code>implicitly[mill.api.Ctx.Log]</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is the default logger provided for every task. While your task is running,
+<code>System.out</code> and <code>System.in</code> are also redirected to this logger. The logs for a
+task are streamed to standard out/error as you would expect, but each task’s
+specific output is also streamed to a log file on disk, e.g. <code>out/run.log</code> or
+<code>out/classFiles.log</code> for you to inspect later.</p>
+</div>
+<div class="paragraph">
+<p>Messages logged with <code>log.debug</code> appear by default only in the log files.
+You can use the <code>--debug</code> option when running mill to show them on the console too.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_api_ctx_workspace"><a class="anchor" href="#_mill_api_ctx_workspace"></a><code>mill.api.Ctx.Workspace</code></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>T.workspace</code></p>
+</li>
+<li>
+<p><code>T.ctx.workspace</code></p>
+</li>
+<li>
+<p><code>implicitly[mill.api.Ctx.Workspace]</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is the <code>os.Path</code> pointing to the project root directory.
+This is the preferred access to the project directory, and should always be prefered over <code>os.pwd</code>
+(which might also point to the project directory in classic cli scenarios, but might not in other use cases like BSP or LSP server usage).</p>
 </div>
 </div>
 </div>
