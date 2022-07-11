@@ -94,8 +94,9 @@ import mill.scalajslib._
 object foo extends ScalaJSModule {
   def scalaVersion = "2.13.8"
   def scalaJSVersion = "1.10.1"
+  // Make the DOM available by using the jsdom library (as in Scala.js tutorial)
   def jsEnvConfig = T(scalajslib.api.JsEnvConfig.JsDom())
-  ivy"org.scala-js::scalajs-dom::2.2.0"
+  def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
   
   object test extends Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.0")
