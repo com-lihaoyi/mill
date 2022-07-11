@@ -124,13 +124,13 @@ object Deps {
   val scalametaTrees = ivy"org.scalameta::trees:4.5.9"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
-  val zinc = ivy"org.scala-sbt::zinc:1.7.0"
+  val zinc = ivy"org.scala-sbt::zinc:1.6.1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
-  val fansi = ivy"com.lihaoyi::fansi:0.4.0"
+  val fansi = ivy"com.lihaoyi::fansi:0.3.1"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
 }
 
