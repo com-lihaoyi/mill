@@ -8,7 +8,7 @@ jobs:
 
   test:
     # don't build dependabot branches on push, we already build them on pull request
-    if: !(github.event == 'push' && startsWith(github.ref, 'refs/heads/dependabot'))
+    if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
 
     strategy:
       fail-fast: false
