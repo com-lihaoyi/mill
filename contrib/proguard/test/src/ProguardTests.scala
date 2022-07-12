@@ -59,18 +59,9 @@ object ProguardTests extends TestSuite {
       }
 
       test("should create a proguarded jar") - workspaceTest(proguard) { eval =>
-        val isGithubActions = sys.env.get("GITHUB_ACTIONS") == Some("true")
-        val javaVersion = sys.props("java.version")
-        val acceptFailure = isGithubActions && javaVersion.startsWith("11")
         try {
-
           val Right((path, _)) = eval.apply(proguard.proguard)
           assert(os.exists(path.path))
-
-        } catch {
-          case NonFatal(e) if acceptFailure =>
-            e.printStackTrace(Console.err)
-            s"TEST FAILED: Ignoring failure on Github Actions with Java ${javaVersion}"
         }
       }
     }
