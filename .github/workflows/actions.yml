@@ -57,6 +57,9 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   test-bin-compat:
+    # don't build dependabot branches on push, we already build them on pull request
+    if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
+
     strategy:
       fail-fast: false
       matrix:
@@ -87,6 +90,9 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   test-windows:
+    # don't build dependabot branches on push, we already build them on pull request
+    if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
+
     strategy:
       fail-fast: false
       matrix:
