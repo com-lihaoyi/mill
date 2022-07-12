@@ -15,7 +15,7 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
 
-    def twirlVersion = "1.3.15"
+    def twirlVersion = "1.5.1"
 
   }
 
@@ -86,7 +86,7 @@ object HelloWorldTests extends TestSuite {
           eval.apply(HelloWorld.core.twirlVersion)
 
         assert(
-          result == "1.3.15",
+          result == "1.5.1",
           evalCount > 0
         )
       }
