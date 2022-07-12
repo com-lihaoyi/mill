@@ -250,7 +250,7 @@ object MillMain {
 
                 stderr.println("Running in BSP mode with hardcoded startSession command")
 
-                val bspServerHandle = Promise[BspServerHandle]
+                val bspServerHandle = Promise[BspServerHandle]()
 
                 stderr.println("Trying to load BSP server...")
                 val bspServerFuture = Future {

@@ -145,7 +145,7 @@ class MillBuildServer(
     }
   }
 
-  private[this] var statePromise: Promise[State] = Promise[State]
+  private[this] var statePromise: Promise[State] = Promise[State]()
   initialEvaluator.foreach(e => statePromise.success(new State(e)))
 
 //  private[this] def stateFuture: Future[State] = statePromise.future
@@ -154,7 +154,7 @@ class MillBuildServer(
     log.debug(s"Updating Evaluator: ${evaluator}")
     if (statePromise.isCompleted) {
       // replace the promise
-      statePromise = Promise[State]
+      statePromise = Promise[State]()
     }
     evaluator.foreach(e => statePromise.success(new State(e)))
   }

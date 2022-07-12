@@ -5,15 +5,15 @@ import mill._
 import mill.api.Result
 import mill.define.Discover
 import mill.eval.EvaluatorPaths
+import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
-import mill.scalalib.api.Util.isScala3
 import mill.testrunner.TestRunner
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object HelloNativeWorldTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-native-world"
@@ -32,7 +32,7 @@ object HelloNativeWorldTests extends TestSuite {
       scala <- Seq("3.1.0", scala213, "2.12.13", "2.11.12")
       scalaNative <- Seq(scalaNative04, "0.4.3")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
-      if !(isScala3(scala) && scalaNative == scalaNative04)
+      if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04)
     } yield (scala, scalaNative, mode)
 
     object helloNativeWorld extends Cross[BuildModule](matrix: _*)
@@ -185,14 +185,14 @@ object HelloNativeWorldTests extends TestSuite {
 
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScala = isScala3 // Remove this once utest is released for Scala 3
+        skipScala = ZincWorkerUtil.isScala3 // Remove this once utest is released for Scala 3
       )
     }
     "testCached" - {
       val cached = true
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScala = isScala3 // Remove this once utest is released for Scala 3
+        skipScala = ZincWorkerUtil.isScala3 // Remove this once utest is released for Scala 3
       )
     }
 
@@ -202,7 +202,7 @@ object HelloNativeWorldTests extends TestSuite {
       val Right((_, evalCount)) = helloWorldEvaluator(task)
 
       val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task)
-      val stdout = os.proc(paths.dest / "out").call().out.lines
+      val stdout = os.proc(paths.dest / "out").call().out.lines()
       assert(
         stdout.contains("Hello Scala Native"),
         evalCount > 0
@@ -225,7 +225,7 @@ object HelloNativeWorldTests extends TestSuite {
     )
 
     val scalaVersionSpecific =
-      if (isScala3(scalaVersion)) Set("ArgsParser.tasty", "Main.tasty")
+      if (ZincWorkerUtil.isScala3(scalaVersion)) Set("ArgsParser.tasty", "Main.tasty")
       else Set(
         "Main$delayedInit$body.class",
         "Main$delayedInit$body.nir"
