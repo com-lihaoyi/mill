@@ -102,7 +102,7 @@ object Deps {
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.5.1"
 
   object jetty {
-    val version = "8.2.0.v20160908"
+    val version = "9.2.25.v20180606"
     val server = ivy"org.eclipse.jetty:jetty-server:${version}"
     val websocket = ivy"org.eclipse.jetty:jetty-websocket:${version}"
   }
