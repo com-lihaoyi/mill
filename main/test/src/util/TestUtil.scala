@@ -10,7 +10,10 @@ import utest.framework.TestPath
 
 import scala.collection.mutable
 
-object TestUtil extends MillTestKit(os.pwd / "target") {
+object TestUtil extends MillTestKit {
+
+  override val targetDir = os.pwd / "out" / "target"
+
   def getOutPath()(implicit fullName: sourcecode.FullName, tp: TestPath): os.Path = {
     getOutPath(tp.value)
   }

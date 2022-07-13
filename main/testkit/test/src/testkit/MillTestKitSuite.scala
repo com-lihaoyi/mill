@@ -1,4 +1,4 @@
-package mill.contrib.bloop
+package mill.testkit
 
 import mill.testkit.MillTestKit
 import mill._
@@ -6,8 +6,8 @@ import utest._
 
 object MillTestKitSuite extends TestSuite {
 
-  val targetDir = os.pwd / "target"
-  val testKit = new MillTestKit(targetDir)
+  object testKit extends MillTestKit
+
   val testEvaluator = testKit.staticTestEvaluator(build)
 
   object build extends testKit.BaseModule {

@@ -12,13 +12,20 @@ import mill.api.{DummyInputStream, Result}
 
 import scala.collection.mutable
 
-class MillTestKit(targetDir: os.Path) {
+trait MillTestKit {
 
-  def staticTestEvaluator(module: => mill.define.BaseModule)(implicit fullName: sourcecode.FullName) = {
-    new TestEvaluator(module, Seq.empty)(fullName)
-  }
+  lazy val defaultTargetDir: os.Path =
+    sys.env.get("MILL_TESTKIT_BASEDIR").map(os.pwd / os.RelPath(_)).getOrElse(os.temp.dir())
+
+  def targetDir: os.Path = defaultTargetDir
 
   val externalOutPath: os.Path = targetDir / "external"
+
+  def staticTestEvaluator(module: => mill.define.BaseModule)(implicit
+      fullName: sourcecode.FullName
+  ) = {
+    new TestEvaluator(module, Seq.empty)(fullName)
+  }
 
   def getOutPath(testPath: Seq[String])(implicit fullName: sourcecode.FullName): os.Path = {
     getOutPathStatic() / testPath
