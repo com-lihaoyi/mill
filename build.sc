@@ -421,8 +421,7 @@ object main extends MillModule {
     )
   }
 
-  object testkit extends MillModule {
-    def scalaVersion = Deps.scalaVersion
+  object testkit extends MillInternalModule with MillAutoTestSetup {
     def moduleDeps = Seq(core, util)
   }
 
