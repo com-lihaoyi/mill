@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - submit-dep-graph
 
 jobs:
   submit-dependency-graph:
