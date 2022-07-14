@@ -27,7 +27,10 @@ trait Proguard extends ScalaModule {
    * The version of proguard to download from Maven.
    * https://mvnrepository.com/artifact/com.guardsquare/proguard-base
    */
-  def proguardVersion: T[String] = T { "7.2.2" }
+  def proguardVersion: T[String] = T { 
+    T.log.error("Using default proguard version is deprecated. Please override target proguardVersion to specify the version.")
+    "7.2.2" 
+  }
 
   /** Run the "shrink" step in the proguard pipeline. Defaults to true. */
   def shrink: T[Boolean] = T { true }
