@@ -365,6 +365,12 @@ mill mill.scalalib.PublishModule/publishAll \
         --sonatypeSnaphostUri http://example.company.com/snapshot
 ----
 
+NOTE: That as of Feb. 2021 any new Sonatype accounts have been created on
+`s01.oss.sonatype.org`, so you'll want to ensure you set the relevant URIs to
+match.
+  - `https://s01.oss.sonatype.org/service/local` - for the `--sonatypeUri`
+  - `https://s01.oss.sonatype.org/content/repositories/snapshots` - for `sonatypeSnapshotUri`
+
 If the site does not support staging release as `oss.sonatype.org` does (for
 example, a self-hosted OSS nexus site), you can pass in the
 `--stagingRelease false` to simply upload release artifacts to corresponding
