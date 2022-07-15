@@ -366,7 +366,7 @@ mill mill.scalalib.PublishModule/publishAll \
 ----
 
 NOTE: That as of Feb. 2021 any new Sonatype accounts have been created on
-`so1.oss.sonatype.org`, so you'll want to ensure you set the relevant URIs to
+`s01.oss.sonatype.org`, so you'll want to ensure you set the relevant URIs to
 match.
   - `https://s01.oss.sonatype.org/service/local` - for the `--sonatypeUri`
   - `https://s01.oss.sonatype.org/content/repositories/snapshots` - for `sonatypeSnapshotUri`
