@@ -196,14 +196,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.5-20-62cf00</span>
+    <span class="version">0.10.5-22-eb0be2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.5-20-62cf00</a>
+          <a href="index.html">0.10.5-22-eb0be2</a>
         </li>
         <li class="version">
           <a href="0.10.5/index.html">0.10.5</a>
@@ -262,9 +262,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-20-62cf00</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-22-eb0be2</button>
   <div class="version-menu">
-    <a class="version is-current" href="Common_Project_Layouts.html">0.10.5-20-62cf00</a>
+    <a class="version is-current" href="Common_Project_Layouts.html">0.10.5-22-eb0be2</a>
     <a class="version" href="0.10.5/Common_Project_Layouts.html">0.10.5</a>
     <a class="version" href="0.10.4/Common_Project_Layouts.html">0.10.4</a>
     <a class="version" href="0.10.3/Common_Project_Layouts.html">0.10.3</a>
@@ -702,6 +702,22 @@ nexus at <code>example.company.com</code>, you can pass in the <code>--sonatypeU
         --sonatypeUri http://example.company.com/release \
         --sonatypeSnaphostUri http://example.company.com/snapshot</code></pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+That as of Feb. 2021 any new Sonatype accounts have been created on
+<code>s01.oss.sonatype.org</code>, so you’ll want to ensure you set the relevant URIs to
+match.
+  - <code><a href="https://s01.oss.sonatype.org/service/local" class="bare">https://s01.oss.sonatype.org/service/local</a></code> - for the <code>--sonatypeUri</code>
+  - <code><a href="https://s01.oss.sonatype.org/content/repositories/snapshots" class="bare">https://s01.oss.sonatype.org/content/repositories/snapshots</a></code> - for <code>sonatypeSnapshotUri</code>
+</td>
+</tr>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>If the site does not support staging release as <code>oss.sonatype.org</code> does (for

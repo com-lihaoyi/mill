@@ -196,14 +196,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.5-20-62cf00</span>
+    <span class="version">0.10.5-22-eb0be2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.5-20-62cf00</a>
+          <a href="index.html">0.10.5-22-eb0be2</a>
         </li>
         <li class="version">
           <a href="0.10.5/index.html">0.10.5</a>
@@ -262,9 +262,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-20-62cf00</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-22-eb0be2</button>
   <div class="version-menu">
-    <a class="version is-current" href="Thirdparty_Plugins.html">0.10.5-20-62cf00</a>
+    <a class="version is-current" href="Thirdparty_Plugins.html">0.10.5-22-eb0be2</a>
     <a class="version" href="0.10.5/Thirdparty_Plugins.html">0.10.5</a>
     <a class="version" href="0.10.4/Thirdparty_Plugins.html">0.10.4</a>
     <a class="version" href="0.10.3/Thirdparty_Plugins.html">0.10.3</a>
@@ -549,6 +549,49 @@ object `jvm-project` extends JavaModule with GitVersionedPublishModule {
 </div>
 </div>
 <div class="sect1">
+<h2 id="_github_dependency_graph_submission"><a class="anchor" href="#_github_dependency_graph_submission"></a>GitHub Dependency Graph Submission</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A plugin to submit your mill dependency graph to GiHub through their
+<a href="https://github.blog/2022-06-17-creating-comprehensive-dependency-graph-build-time-detection/">Dependency
+Submission API</a>.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/ckipp01/mill-github-dependency-graph" class="bare">https://github.com/ckipp01/mill-github-dependency-graph</a></p>
+</div>
+<div class="sect2">
+<h3 id="_quickstart_6"><a class="anchor" href="#_quickstart_6"></a>Quickstart</h3>
+<div class="paragraph">
+<p>The easiest way to use this plugin is with the
+<a href="https://github.com/ckipp01/mill-github-dependency-graph">mill-dependency-submission</a>
+action. You can add it as a workflow:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">name: github-dependency-graph
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  submit-dependency-graph:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: coursier/cache-action@v6
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - uses: ckipp01/mill-dependency-submission@v1</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_integration_testing_mill_plugins"><a class="anchor" href="#_integration_testing_mill_plugins"></a>Integration Testing Mill Plugins</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -558,7 +601,7 @@ object `jvm-project` extends JavaModule with GitVersionedPublishModule {
 <p>Project home: <a href="https://github.com/lefou/mill-integrationtest" class="bare">https://github.com/lefou/mill-integrationtest</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_6"><a class="anchor" href="#_quickstart_6"></a>Quickstart</h3>
+<h3 id="_quickstart_7"><a class="anchor" href="#_quickstart_7"></a>Quickstart</h3>
 <div class="paragraph">
 <p>We assume, you have a mill plugin named <code>mill-demo</code></p>
 </div>
@@ -660,7 +703,7 @@ import $exec.plugins</code></pre>
 <p>JBake home: <a href="https://jbake.org" class="bare">https://jbake.org</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_7"><a class="anchor" href="#_quickstart_7"></a>Quickstart</h3>
+<h3 id="_quickstart_8"><a class="anchor" href="#_quickstart_8"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.sc
@@ -786,7 +829,7 @@ public class BuildInfo {
 <p>Project home: <a href="https://github.com/lefou/mill-kotlin" class="bare">https://github.com/lefou/mill-kotlin</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_8"><a class="anchor" href="#_quickstart_8"></a>Quickstart</h3>
+<h3 id="_quickstart_9"><a class="anchor" href="#_quickstart_9"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// Load the plugin from Maven Central via ivy/coursier
@@ -926,7 +969,7 @@ Example: setting mill 0.3.6 as best local mill version</p>
 <p>Project home: <a href="https://github.com/lolgab/mill-mima" class="bare">https://github.com/lolgab/mill-mima</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_9"><a class="anchor" href="#_quickstart_9"></a>Quickstart</h3>
+<h3 id="_quickstart_10"><a class="anchor" href="#_quickstart_10"></a>Quickstart</h3>
 <div class="paragraph">
 <p>Just mix-in the <code>Mima</code> trait into your <code>ScalaModule</code>.
 And set the previous artifacts you want to check binary compatibility.</p>
@@ -971,7 +1014,7 @@ Binary compatibility check passed.</code></pre>
 <p>Project home: <a href="https://github.com/lefou/mill-osgi" class="bare">https://github.com/lefou/mill-osgi</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_10"><a class="anchor" href="#_quickstart_10"></a>Quickstart</h3>
+<h3 id="_quickstart_11"><a class="anchor" href="#_quickstart_11"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, mill.scalalib._
@@ -1019,7 +1062,7 @@ object project extends ScalaModule with OsgiBundleModule {
 <p>Project home: <a href="https://github.com/lefou/mill-publishM2" class="bare">https://github.com/lefou/mill-publishM2</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_11"><a class="anchor" href="#_quickstart_11"></a>Quickstart</h3>
+<h3 id="_quickstart_12"><a class="anchor" href="#_quickstart_12"></a>Quickstart</h3>
 <div class="paragraph">
 <p>Just mix-in the <code>PublishM2Module</code> into your project.
 <code>PublishM2Module</code> already extends mill’s built-in <code>PublishModule</code>.</p>
@@ -1072,7 +1115,7 @@ Publishing to /tmp/m2repo</code></pre>
 <p>Project home: <a href="https://github.com/lolgab/mill-scalablytyped" class="bare">https://github.com/lolgab/mill-scalablytyped</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_12"><a class="anchor" href="#_quickstart_12"></a>Quickstart</h3>
+<h3 id="_quickstart_13"><a class="anchor" href="#_quickstart_13"></a>Quickstart</h3>
 <div class="paragraph">
 <p>Mix-in the <code>ScalablyTyped</code> trait into your <code>ScalaJSModule</code> and
 set-up a <code>package.json</code> file with your TypeScript dependencies.</p>
@@ -1150,7 +1193,7 @@ project.fix A Scalafix linter error was reported</code></pre>
 When used with its defaults, the outcome is identical to the version scheme used by mill.</p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_13"><a class="anchor" href="#_quickstart_13"></a>Quickstart</h3>
+<h3 id="_quickstart_14"><a class="anchor" href="#_quickstart_14"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
