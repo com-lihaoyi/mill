@@ -196,14 +196,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.5-22-eb0be2</span>
+    <span class="version">0.10.5-23-8c516f</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.5-22-eb0be2</a>
+          <a href="index.html">0.10.5-23-8c516f</a>
         </li>
         <li class="version">
           <a href="0.10.5/index.html">0.10.5</a>
@@ -262,9 +262,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-22-eb0be2</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-23-8c516f</button>
   <div class="version-menu">
-    <a class="version is-current" href="Common_Project_Layouts.html">0.10.5-22-eb0be2</a>
+    <a class="version is-current" href="Common_Project_Layouts.html">0.10.5-23-8c516f</a>
     <a class="version" href="0.10.5/Common_Project_Layouts.html">0.10.5</a>
     <a class="version" href="0.10.4/Common_Project_Layouts.html">0.10.4</a>
     <a class="version" href="0.10.3/Common_Project_Layouts.html">0.10.3</a>
@@ -647,9 +647,14 @@ object foo extends ScalaModule with PublishModule {
 </div>
 <div class="paragraph">
 <p><code>PublishModule</code> then needs you to define a <code>publishVersion</code> and <code>pomSettings</code>.
-The <code>artifactName</code> defaults to the name of your module (in this case <code>foo</code>) but
-can be overridden. The <code>organization</code> is defined in <code>pomSettings</code>.</p>
+The <code>artifactName</code> defaults to the name of your module (in this case <code>foo</code>) but can be overridden.
+The <code>organization</code> is defined in <code>pomSettings</code>.</p>
 </div>
+<div class="paragraph">
+<p>You may also check and update the values of <code>sonatypeUri</code> and <code>sonatypeSnapshotUri</code>, which may not be correct if you have a newer Sonatype account (when created after Feb. 2021).</p>
+</div>
+<div class="sect2">
+<h3 id="_staging_releases"><a class="anchor" href="#_staging_releases"></a>Staging Releases</h3>
 <div class="paragraph">
 <p>Once you’ve mixed in <code>PublishModule</code>, you can publish your libraries to maven
 central via:</p>
@@ -710,19 +715,31 @@ nexus at <code>example.company.com</code>, you can pass in the <code>--sonatypeU
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-That as of Feb. 2021 any new Sonatype accounts have been created on
-<code>s01.oss.sonatype.org</code>, so you’ll want to ensure you set the relevant URIs to
-match.
-  - <code><a href="https://s01.oss.sonatype.org/service/local" class="bare">https://s01.oss.sonatype.org/service/local</a></code> - for the <code>--sonatypeUri</code>
-  - <code><a href="https://s01.oss.sonatype.org/content/repositories/snapshots" class="bare">https://s01.oss.sonatype.org/content/repositories/snapshots</a></code> - for <code>sonatypeSnapshotUri</code>
+<div class="paragraph">
+<p>Since Feb. 2021 any new Sonatype accounts have been created on
+<code>s01.oss.sonatype.org</code>, so you’ll want to ensure you set the relevant URIs to match.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code><a href="https://s01.oss.sonatype.org/service/local" class="bare">https://s01.oss.sonatype.org/service/local</a></code> - for the <code>--sonatypeUri</code></p>
+</li>
+<li>
+<p><code><a href="https://s01.oss.sonatype.org/content/repositories/snapshots" class="bare">https://s01.oss.sonatype.org/content/repositories/snapshots</a></code> - for <code>sonatypeSnapshotUri</code></p>
+</li>
+</ul>
+</div>
 </td>
 </tr>
 </tbody></table>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_non_staging_releases_classic_maven_uploads"><a class="anchor" href="#_non_staging_releases_classic_maven_uploads"></a>Non-Staging Releases (classic Maven uploads)</h3>
 <div class="paragraph">
-<p>If the site does not support staging release as <code>oss.sonatype.org</code> does (for
+<p>If the site does not support staging releases as <code>oss.sonatype.org</code> and <code>s01.oss.sonatype.org</code> do (for
 example, a self-hosted OSS nexus site), you can pass in the
-<code>--stagingRelease false</code> to simply upload release artifacts to corresponding
+<code>--stagingRelease false</code> option to simply upload release artifacts to corresponding
 maven path under <code>sonatypeUri</code> instead of staging path.</p>
 </div>
 <div class="listingblock">
@@ -732,6 +749,7 @@ maven path under <code>sonatypeUri</code> instead of staging path.</p>
         lihaoyi:$SONATYPE_PASSWORD \
         --sonatypeUri http://example.company.com/release \
         --stagingRelease false</code></pre>
+</div>
 </div>
 </div>
 </div>
