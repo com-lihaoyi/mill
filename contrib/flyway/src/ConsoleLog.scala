@@ -38,6 +38,10 @@ class ConsoleLog(val level: ConsoleLog.Level.Level) extends Log {
     System.out.println("WARNING: " + message)
   }
 
+  override def notice(message: String): Unit = {
+    System.err.println("NOTICE: " + message)
+  }
+
   override def error(message: String): Unit = {
     System.err.println("ERROR: " + message)
   }
