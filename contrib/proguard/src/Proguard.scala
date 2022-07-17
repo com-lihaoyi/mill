@@ -167,5 +167,8 @@ trait Proguard extends ScalaModule {
    *
    * These are fed as-is to the proguard command.
    */
-  def additionalOptions: T[Seq[String]] = T { Seq[String]() }
+  def additionalOptions: T[Seq[String]] = T {
+    T.log.error("Proguard is set to not warn about message: can't find referenced method 'void invoke()' in library class java.lang.invoke.MethodHandle")
+    Seq[String]("-dontwarn java.lang.invoke.MethodHandle")
+  }
 }
