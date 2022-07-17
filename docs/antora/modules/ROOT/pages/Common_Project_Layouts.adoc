@@ -89,6 +89,7 @@ version lives in `src-x.y`.
 [source,scala]
 ----
 import mill._
+import mill.scalalib._
 import mill.scalajslib._
 import mill.scalajslib.api._
 
