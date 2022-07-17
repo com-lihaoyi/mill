@@ -19,7 +19,7 @@ object ProguardTests extends TestSuite {
     override def millSourcePath: os.Path =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
-    override def scalaVersion = "2.12.1"
+    override def scalaVersion: T[String] = T(sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???))
 
     def proguardContribClasspath = T {
       mill.modules.Util.millProjectModule(
