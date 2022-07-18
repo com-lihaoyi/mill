@@ -89,11 +89,18 @@ version lives in `src-x.y`.
 [source,scala]
 ----
 import mill._
+import mill.scalalib._
 import mill.scalajslib._
+import mill.scalajslib.api._
 
 object foo extends ScalaJSModule {
-  def scalaVersion = "2.12.4"
-  def scalaJSVersion = "0.6.22"
+  def scalaVersion = "2.13.8"
+  def scalaJSVersion = "1.10.1"
+  def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
+
+  object test extends Tests with TestModule.Utest {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.0")
+  }
 }
 ----
 
@@ -102,6 +109,11 @@ Scala.js. In addition to the standard `foo.compile` and `foo.run` commands (the
 latter of which runs your code on Node.js, which must be pre-installed)
 `ScalaJSModule` also exposes the `foo.fastOpt` and `foo.fullOpt` tasks for
 generating the optimized Javascript file.
+
+ScalaJSModule requires declaring it's dependencies as third party
+libraries (don't forget to use double-colons `::` between the library name and the version for Scala.js dependencies).
+
+If you are following the https://www.scala-js.org/doc/tutorial/basic/[Scala.js Tutorial], in the section where you test the code, it's mentioned that you need to make the DOM available to Node.js. Install the `jsdom` node library as instructed then add `def jsEnvConfig = T(JsEnvConfig.JsDom())` to your `build.sc` object. In Scala 3, the "scalajs-env-jsdom-nodejs" mentioned in the tutorial is no longer required.
 
 == Scala Native Modules
 
@@ -302,8 +314,12 @@ object foo extends ScalaModule with PublishModule {
 You can make a module publishable by extending `PublishModule`.
 
 `PublishModule` then needs you to define a `publishVersion` and `pomSettings`.
-The `artifactName` defaults to the name of your module (in this case `foo`) but
-can be overridden. The `organization` is defined in `pomSettings`.
+The `artifactName` defaults to the name of your module (in this case `foo`) but can be overridden.
+The `organization` is defined in `pomSettings`.
+
+You may also check and update the values of `sonatypeUri` and `sonatypeSnapshotUri`, which may not be correct if you have a newer Sonatype account (when created after Feb. 2021).
+
+=== Staging Releases
 
 Once you've mixed in `PublishModule`, you can publish your libraries to maven
 central via:
@@ -354,9 +370,20 @@ mill mill.scalalib.PublishModule/publishAll \
         --sonatypeSnaphostUri http://example.company.com/snapshot
 ----
 
-If the site does not support staging release as `oss.sonatype.org` does (for
+[NOTE]
+--
+Since Feb. 2021 any new Sonatype accounts have been created on
+`s01.oss.sonatype.org`, so you'll want to ensure you set the relevant URIs to match.
+
+* `https://s01.oss.sonatype.org/service/local` - for the `--sonatypeUri`
+* `https://s01.oss.sonatype.org/content/repositories/snapshots` - for `sonatypeSnapshotUri`
+--
+
+=== Non-Staging Releases (classic Maven uploads)
+
+If the site does not support staging releases as `oss.sonatype.org` and `s01.oss.sonatype.org` do (for
 example, a self-hosted OSS nexus site), you can pass in the
-`--stagingRelease false` to simply upload release artifacts to corresponding
+`--stagingRelease false` option to simply upload release artifacts to corresponding
 maven path under `sonatypeUri` instead of staging path.
 
 [source,bash]
