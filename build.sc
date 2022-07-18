@@ -665,7 +665,7 @@ object contrib extends MillModule {
       def playVersion = playBinary match {
         case "2.6" => "2.6.25"
         case "2.7" => "2.7.9"
-        case "2.8" => "2.8.8"
+        case "2.8" => "2.8.16"
       }
       override def ivyDeps = Agg(
         Deps.osLib,
