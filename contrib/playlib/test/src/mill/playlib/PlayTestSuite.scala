@@ -5,9 +5,9 @@ import utest.framework.TestPath
 
 trait PlayTestSuite {
   val matrix = Seq(
-    ("2.12.13", "2.6.15"),
-    ("2.12.13", "2.7.9"),
-    ("2.13.6", "2.8.8")
+    ("2.12.16", "2.6.25"),
+    ("2.12.16", "2.7.9"),
+    ("2.13.8", "2.8.16")
   )
 
   def resourcePath: os.Path
