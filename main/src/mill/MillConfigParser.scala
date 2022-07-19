@@ -14,17 +14,12 @@ object MillConfigParser {
 
   def parse(args: Array[String]): Either[String, MillConfig] = {
     parser.constructEither(
-      args,
+      args.toIndexedSeq,
       allowRepeats = true,
       autoPrintHelpAndExit = None,
       customName = customName,
       customDoc = customDoc
     )
-      .map { config =>
-        config.copy(
-          ammoniteCore = config.ammoniteCore.copy(home = config.home)
-        )
-      }
   }
 
 }
