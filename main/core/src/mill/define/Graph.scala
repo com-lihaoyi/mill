@@ -19,7 +19,9 @@ object Graph {
   ]): MultiBiMap[T, Task[_]] = {
 
     val output = new MultiBiMap.Mutable[T, Task[_]]()
-    for ((target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _))).iterator) {
+    for (
+      (target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _))).iterator
+    ) {
 
       val transitiveTargets = new Agg.Mutable[Task[_]]
       def rec(t: Task[_]): Unit = {

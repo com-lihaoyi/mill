@@ -15,7 +15,7 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with P
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github("lihaoyi", "acyclic"),
     developers = Seq(
-      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
+      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
     )
   )
 
