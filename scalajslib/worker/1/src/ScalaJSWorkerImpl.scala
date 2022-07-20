@@ -27,7 +27,7 @@ import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
 import scala.collection.mutable
-import scala.ref.WeakReference
+import scala.ref.SoftReference
 
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
@@ -43,12 +43,12 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     case _ => true
   }
   private object ScalaJSLinker {
-    private val cache = mutable.Map.empty[LinkerInput, WeakReference[Linker]]
+    private val cache = mutable.Map.empty[LinkerInput, SoftReference[Linker]]
     def reuseOrCreate(input: LinkerInput): Linker = cache.get(input) match {
-      case Some(WeakReference(linker)) => linker
+      case Some(SoftReference(linker)) => linker
       case _ =>
         val newLinker = createLinker(input)
-        cache.update(input, WeakReference(newLinker))
+        cache.update(input, SoftReference(newLinker))
         newLinker
     }
     private def createLinker(input: LinkerInput): Linker = {
