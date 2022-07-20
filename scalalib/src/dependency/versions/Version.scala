@@ -39,16 +39,17 @@ sealed trait Version {
   def patch: Long
 }
 
-case class ValidVersion(text: String,
-                                            releasePart: List[Long],
-                                            preReleasePart: List[String],
-                                            buildPart: List[String])
-    extends Version {
+case class ValidVersion(
+    text: String,
+    releasePart: List[Long],
+    preReleasePart: List[String],
+    buildPart: List[String]
+) extends Version {
   def major: Long = releasePart.headOption getOrElse 0
 
-  def minor: Long = releasePart.drop(1).headOption getOrElse 1
+  def minor: Long = releasePart.drop(1).headOption getOrElse 0
 
-  def patch: Long = releasePart.drop(2).headOption getOrElse 1
+  def patch: Long = releasePart.drop(2).headOption getOrElse 0
 
   override def toString: String = text
 }
@@ -82,8 +83,7 @@ private[dependency] object ReleaseVersion {
 
 private[dependency] object PreReleaseVersion {
   def unapply(v: Version): Option[(List[Long], List[String])] = v match {
-    case ValidVersion(_, releasePart, preReleasePart, Nil)
-        if preReleasePart.nonEmpty =>
+    case ValidVersion(_, releasePart, preReleasePart, Nil) if preReleasePart.nonEmpty =>
       Some(releasePart, preReleasePart)
     case _ => None
   }
@@ -117,13 +117,13 @@ private[dependency] object BuildVersion {
   }
 }
 
-private[dependency] object Version {
+object Version {
   def apply(text: String): Version = synchronized {
     VersionParser
       .parse(text)
       .fold(
         (_, _, _) => InvalidVersion(text),
-        { case ((a, b, c), _) => ValidVersion(text, a.toList, b.toList, c.toList)}
+        { case ((a, b, c), _) => ValidVersion(text, a.toList, b.toList, c.toList) }
       )
   }
 
@@ -143,8 +143,7 @@ private[dependency] object VersionOrdering extends Ordering[Version] {
         .matchData
         .flatMap {
           case Groups(num, str) =>
-            Seq(Option(num).map(_.toInt).map(Left.apply),
-                Option(str).map(Right.apply))
+            Seq(Option(num).map(_.toInt).map(Left.apply), Option(str).map(Right.apply))
         }
         .flatten
         .toList
@@ -158,9 +157,9 @@ private[dependency] object VersionOrdering extends Ordering[Version] {
     if (a == b) None
     else
       (parsePart(a) zip parsePart(b)) map {
-        case (Left(x), Left(y))   => x compareTo y
-        case (Left(_), Right(_))  => -1
-        case (Right(_), Left(_))  => 1
+        case (Left(x), Left(y)) => x compareTo y
+        case (Left(_), Right(_)) => -1
+        case (Right(_), Left(_)) => 1
         case (Right(x), Right(y)) => x compareTo y
       } find (0 != _) orElse Some(a compareTo b)
   }
@@ -216,8 +215,7 @@ private[dependency] object VersionOrdering extends Ordering[Version] {
       compareNumericParts(r1, r2) getOrElse -1
     case (PreReleaseBuildVersion(r1, p1, b1), PreReleaseVersion(r2, p2)) =>
       compareNumericParts(r1, r2) orElse compareParts(p1, p2) getOrElse 1
-    case (PreReleaseBuildVersion(r1, p1, b1),
-          PreReleaseBuildVersion(r2, p2, b2)) =>
+    case (PreReleaseBuildVersion(r1, p1, b1), PreReleaseBuildVersion(r2, p2, b2)) =>
       compareNumericParts(r1, r2) orElse
         compareParts(p1, p2) orElse
         compareParts(b1, b2) getOrElse

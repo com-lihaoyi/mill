@@ -3,11 +3,11 @@ package mill.define
 import utest._
 import mill.{T, Module}
 import mill.util.TestUtil
-object MacroErrorTests extends TestSuite{
+object MacroErrorTests extends TestSuite {
 
-  val tests = Tests{
+  val tests = Tests {
 
-    'errors{
+    "errors" - {
       val expectedMsg =
         "T{} members must be defs defined in a Cacher class/trait/object body"
 
@@ -15,8 +15,8 @@ object MacroErrorTests extends TestSuite{
       assert(err.msg == expectedMsg)
     }
 
-    'badParameterSets - {
-      'command - {
+    "badParameterSets" - {
+      "command" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
             def w = T.command{1}
@@ -28,7 +28,7 @@ object MacroErrorTests extends TestSuite{
           e.pos.contains("def w = ")
         )
       }
-      'target - {
+      "target" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
             def x() = T{1}
@@ -40,7 +40,7 @@ object MacroErrorTests extends TestSuite{
           e.pos.contains("def x() = ")
         )
       }
-      'input - {
+      "input" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
             def y() = T.input{1}
@@ -52,10 +52,10 @@ object MacroErrorTests extends TestSuite{
           e.pos.contains("def y() = ")
         )
       }
-      'sources - {
+      "sources" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def z() = T.sources{ammonite.ops.pwd}
+            def z() = T.sources{os.pwd}
           }
           mill.define.Discover[foo.type]
         """)
@@ -64,7 +64,7 @@ object MacroErrorTests extends TestSuite{
           e.pos.contains("def z() = ")
         )
       }
-      'persistent - {
+      "persistent" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
             def a() = T.persistent{1}
@@ -77,11 +77,11 @@ object MacroErrorTests extends TestSuite{
         )
       }
     }
-    'badTmacro - {
+    "badTmacro" - {
       // Make sure we can reference values from outside the T{...} block as part
       // of our `Target#apply()` calls, but we cannot reference any values that
       // come from inside the T{...} block
-      'pos - {
+      "pos" - {
         val e = compileError("""
           val a = T{ 1 }
           val arr = Array(a)
@@ -93,10 +93,10 @@ object MacroErrorTests extends TestSuite{
           }
         """)
         assert(e.msg.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module")
-        )
+          "Modules, Targets and Commands can only be defined within a mill Module"
+        ))
       }
-      'neg - {
+      "neg" - {
 
         val expectedMsg =
           "Target#apply() call cannot use `value n` defined within the T{...} block"
@@ -112,7 +112,7 @@ object MacroErrorTests extends TestSuite{
         }""")
         assert(err.msg == expectedMsg)
       }
-      'neg2 - {
+      "neg2" - {
 
         val expectedMsg =
           "Target#apply() call cannot use `value x` defined within the T{...} block"
@@ -127,7 +127,7 @@ object MacroErrorTests extends TestSuite{
         }""")
         assert(err.msg == expectedMsg)
       }
-      'neg3{
+      "neg3" - {
         val borkedCachedDiamond1 = utest.compileError("""
           object borkedCachedDiamond1 {
             def up = T{ TestUtil.test() }
@@ -137,8 +137,8 @@ object MacroErrorTests extends TestSuite{
           }
         """)
         assert(borkedCachedDiamond1.msg.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module")
-        )
+          "Modules, Targets and Commands can only be defined within a mill Module"
+        ))
       }
     }
   }

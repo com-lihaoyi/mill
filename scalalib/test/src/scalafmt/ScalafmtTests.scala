@@ -10,6 +10,8 @@ import utest.framework.TestPath
 
 object ScalafmtTests extends TestSuite {
 
+  val scalafmtTestVersion = sys.props.getOrElse("TEST_SCALAFMT_VERSION", ???)
+
   trait TestBase extends TestUtil.BaseModule {
     def millSourcePath =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
@@ -21,7 +23,7 @@ object ScalafmtTests extends TestSuite {
 
   object ScalafmtTestModule extends TestBase {
     object core extends ScalaModule with ScalafmtModule with BuildSrcModule {
-      def scalaVersion = "2.12.4"
+      def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
       def buildSources: Sources = T.sources {
         millSourcePath / "util.sc"
@@ -30,23 +32,31 @@ object ScalafmtTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.pwd / 'scalalib / 'test / 'resources / 'scalafmt
+  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,
-      resourcePath: os.Path = resourcePath)(t: TestEvaluator => T)(
-      implicit tp: TestPath): T = {
+      resourcePath: os.Path = resourcePath
+  )(t: TestEvaluator => T)(
+      implicit tp: TestPath
+  ): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
     os.copy(resourcePath, m.millSourcePath)
+    os.write(
+      m.millSourcePath / ".scalafmt.conf",
+      s"""version = $scalafmtTestVersion
+         |runner.dialect = scala213
+         |""".stripMargin
+    )
     t(eval)
   }
 
   def tests: Tests = Tests {
-    'scalafmt - {
-      def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded:Boolean) =
+    "scalafmt" - {
+      def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) =
         workspaceTest(ScalafmtTestModule) { eval =>
           val before = getProjectFiles(ScalafmtTestModule.core, eval)
 
@@ -62,10 +72,11 @@ object ScalafmtTests extends TestSuite {
             firstReformat("Person.scala").content != before("Person.scala").content,
             // resources files aren't modified
             firstReformat("application.conf").modifyTime == before(
-              "application.conf").modifyTime
+              "application.conf"
+            ).modifyTime
           )
 
-          if(buildSrcIncluded){
+          if (buildSrcIncluded) {
             assert(
               firstReformat("util.sc").modifyTime > before("util.sc").modifyTime,
               firstReformat("util.sc").content != before("util.sc").content
@@ -73,7 +84,7 @@ object ScalafmtTests extends TestSuite {
           } else {
             assert(
               firstReformat("util.sc").modifyTime == before("util.sc").modifyTime,
-              firstReformat("util.sc").content == before("util.sc").content,
+              firstReformat("util.sc").content == before("util.sc").content
             )
           }
 
@@ -87,12 +98,12 @@ object ScalafmtTests extends TestSuite {
             cached("Person.scala").modifyTime == firstReformat("Person.scala").modifyTime,
             cached("util.sc").modifyTime == firstReformat("util.sc").modifyTime,
             cached("application.conf").modifyTime == firstReformat(
-              "application.conf").modifyTime
+              "application.conf"
+            ).modifyTime
           )
 
           // reformat after change
-          os.write.over(cached("Main.scala").path,
-                     cached("Main.scala").content + "\n object Foo")
+          os.write.over(cached("Main.scala").path, cached("Main.scala").content + "\n object Foo")
 
           val Right(_) = eval.apply(reformatCommand)
 
@@ -102,15 +113,18 @@ object ScalafmtTests extends TestSuite {
             afterChange("Main.scala").modifyTime > cached("Main.scala").modifyTime,
             afterChange("Person.scala").modifyTime == cached("Person.scala").modifyTime,
             afterChange("application.conf").modifyTime == cached(
-              "application.conf").modifyTime
+              "application.conf"
+            ).modifyTime
           )
         }
 
-      'reformat - checkReformat(ScalafmtTestModule.core.reformat(), false)
-      'reformatAll - checkReformat(
+      "reformat" - checkReformat(ScalafmtTestModule.core.reformat(), false)
+      "reformatAll" - checkReformat(
         ScalafmtModule.reformatAll(
-          Tasks(Seq(ScalafmtTestModule.core.sources, ScalafmtTestModule.core.buildSources)),
-        ), true)
+          Tasks(Seq(ScalafmtTestModule.core.sources, ScalafmtTestModule.core.buildSources))
+        ),
+        true
+      )
     }
   }
 

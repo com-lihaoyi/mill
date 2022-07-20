@@ -9,29 +9,36 @@ object IvyTests extends TestSuite {
 
   def tests: Tests = Tests {
 
-    val dummyFile : PathRef =  PathRef(os.temp.dir() / "dummy.txt")
+    val dummyFile: PathRef = PathRef(os.temp.dir() / "dummy.txt")
 
     val artifact =
       Artifact("com.lihaoyi", "mill-scalalib_2.12", "0.0.1")
 
     val deps = Agg(
-      Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"),
-        Scope.Compile),
-      Dependency(Artifact("org.scala-sbt", "test-interface", "1.0"),
-        Scope.Compile),
-      Dependency(Artifact("com.lihaoyi", "pprint_2.12", "0.5.3"),
-        Scope.Compile, exclusions = List("com.lihaoyi" -> "fansi_2.12", "*" -> "sourcecode_2.12"))
+      Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"), Scope.Compile),
+      Dependency(Artifact("org.scala-sbt", "test-interface", "1.0"), Scope.Compile),
+      Dependency(
+        Artifact("com.lihaoyi", "pprint_2.12", "0.5.3"),
+        Scope.Compile,
+        exclusions = List("com.lihaoyi" -> "fansi_2.12", "*" -> "sourcecode_2.12")
+      )
     )
 
     val extras = Seq(
       PublishInfo(file = dummyFile, classifier = Some("dist"), ivyConfig = "compile"),
-      PublishInfo(file = dummyFile, ivyType = "dist", ext = "zip", ivyConfig = "runtime", classifier = None)
+      PublishInfo(
+        file = dummyFile,
+        ivyType = "dist",
+        ext = "zip",
+        ivyConfig = "runtime",
+        classifier = None
+      )
     )
 
-    'fullIvy - {
+    test("fullIvy") {
       val fullIvy = XML.loadString(Ivy(artifact, deps, extras))
 
-      'topLevel - {
+      test("topLevel") {
         val info = singleNode(fullIvy \ "info")
         assert(
           mandatoryAttr(info, "organisation") == artifact.group,
@@ -40,23 +47,30 @@ object IvyTests extends TestSuite {
         )
       }
 
-      'publications - {
-        val publications : List[IvyInfo] = (fullIvy \ "publications" \ "artifact").iterator.map(IvyInfo.apply).toList
+      test("publications") {
+        val publications: List[IvyInfo] =
+          (fullIvy \ "publications" \ "artifact").iterator.map(IvyInfo.apply).toList
         assert(publications.size == 4 + extras.size)
 
-        val expected : List[IvyInfo] = List(
+        val expected: List[IvyInfo] = List(
           IvyInfo(artifact.id, "pom", "pom", "pom", None),
           IvyInfo(artifact.id, "jar", "jar", "compile", None),
           IvyInfo(artifact.id, "src", "jar", "compile", Some("sources")),
-          IvyInfo(artifact.id, "doc", "jar", "compile", Some("javadoc")),
-        ) ++ extras.map(e => IvyInfo(
-          artifact.id, e.ivyType, e.ext, e.ivyConfig, e.classifier
-        ))
+          IvyInfo(artifact.id, "doc", "jar", "compile", Some("javadoc"))
+        ) ++ extras.map(e =>
+          IvyInfo(
+            artifact.id,
+            e.ivyType,
+            e.ext,
+            e.ivyConfig,
+            e.classifier
+          )
+        )
 
         expected.foreach(exp => assert(publications.contains(exp)))
       }
 
-      'dependencies - {
+      test("dependencies") {
         val dependencies = fullIvy \ "dependencies" \ "dependency"
         val ivyDeps = deps.indexed
 
@@ -69,7 +83,7 @@ object IvyTests extends TestSuite {
             mandatoryAttr(dep, "rev") == ivyDeps(index).artifact.version,
             (dep \ "exclude").zipWithIndex forall { case (exclude, j) =>
               mandatoryAttr(exclude, "org") == ivyDeps(index).exclusions(j)._1 &&
-                mandatoryAttr(exclude, "name") == ivyDeps(index).exclusions(j)._2
+              mandatoryAttr(exclude, "name") == ivyDeps(index).exclusions(j)._2
             }
           )
         }
@@ -83,20 +97,20 @@ object IvyTests extends TestSuite {
   private def mandatoryAttr(node: Node, attr: String): String =
     optionalAttr(node, attr).getOrElse(throw new RuntimeException(s"empty attr $attr"))
 
-  private def optionalAttr(node : Node, attr: String) : Option[String] = {
+  private def optionalAttr(node: Node, attr: String): Option[String] = {
     node.attributes.asAttrMap.get(attr)
   }
 
   private case class IvyInfo(
-    name : String,
-    ivyType : String,
-    ext: String,
-    ivyConf: String,
-    classifier: Option[String]
+      name: String,
+      ivyType: String,
+      ext: String,
+      ivyConf: String,
+      classifier: Option[String]
   )
 
   private object IvyInfo {
-    def apply(node : Node) : IvyInfo = {
+    def apply(node: Node): IvyInfo = {
       IvyInfo(
         name = mandatoryAttr(node, "name"),
         ivyType = mandatoryAttr(node, "type"),

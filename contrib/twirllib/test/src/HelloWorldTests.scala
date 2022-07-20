@@ -9,7 +9,8 @@ import scala.io.Codec
 object HelloWorldTests extends TestSuite {
 
   trait HelloBase extends TestUtil.BaseModule {
-    override def millSourcePath: os.Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath: os.Path =
+      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
@@ -21,7 +22,8 @@ object HelloWorldTests extends TestSuite {
   object HelloWorld extends HelloBase {
 
     object core extends HelloWorldModule {
-      override def twirlAdditionalImports: Seq[String] = testAdditionalImports
+      override def twirlImports = super.twirlImports() ++ testAdditionalImports
+      override def twirlFormats = super.twirlFormats() ++ Map("svg" -> "play.twirl.api.HtmlFormat")
       override def twirlConstructorAnnotations: Seq[String] = testConstructorAnnotations
     }
 
@@ -31,6 +33,7 @@ object HelloWorldTests extends TestSuite {
 
     object core extends HelloWorldModule {
       override def twirlInclusiveDot: Boolean = true
+      override def twirlFormats = super.twirlFormats() ++ Map("svg" -> "play.twirl.api.HtmlFormat")
     }
 
   }
@@ -44,15 +47,16 @@ object HelloWorldTests extends TestSuite {
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
     os.copy(
-      os.pwd / 'contrib / 'twirllib / 'test / 'resources / resourcePathSuffix,
+      os.pwd / "contrib" / "twirllib" / "test" / "resources" / resourcePathSuffix,
       m.millSourcePath
     )
     t(eval)
   }
 
   def compileClassfiles: Seq[os.RelPath] = Seq[os.RelPath](
-    os.rel / "hello.template.scala",
-    os.rel / "wrapper.template.scala"
+    os.rel / "html" / "hello.template.scala",
+    os.rel / "html" / "wrapper.template.scala",
+    os.rel / "svg" / "test.template.scala"
   )
 
   def expectedDefaultImports: Seq[String] = Seq(
@@ -70,14 +74,14 @@ object HelloWorldTests extends TestSuite {
   )
 
   def testConstructorAnnotations = Seq(
-  "@org.springframework.stereotype.Component()",
-  "@something.else.Thing()"
+    "@org.springframework.stereotype.Component()",
+    "@something.else.Thing()"
   )
 
   def tests: Tests = Tests {
-    'twirlVersion - {
+    "twirlVersion" - {
 
-      'fromBuild - workspaceTest(HelloWorld, "hello-world") { eval =>
+      "fromBuild" - workspaceTest(HelloWorld, "hello-world") { eval =>
         val Right((result, evalCount)) =
           eval.apply(HelloWorld.core.twirlVersion)
 
@@ -87,30 +91,31 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
-    'compileTwirl - workspaceTest(HelloWorld, "hello-world") { eval =>
+    "compileTwirl" - workspaceTest(HelloWorld, "hello-world") { eval =>
       val Right((result, evalCount)) = eval.apply(HelloWorld.core.compileTwirl)
 
       val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
       val expectedClassfiles = compileClassfiles.map(
-        eval.outPath / 'core / 'compileTwirl / 'dest / 'html / _
+        eval.outPath / "core" / "compileTwirl.dest" / _
       )
 
       assert(
-        result.classes.path == eval.outPath / 'core / 'compileTwirl / 'dest,
+        result.classes.path == eval.outPath / "core" / "compileTwirl.dest",
         outputFiles.nonEmpty,
         outputFiles.forall(expectedClassfiles.contains),
-        outputFiles.size == 2,
+        outputFiles.size == 3,
         evalCount > 0,
         outputFiles.forall { p =>
           val lines = os.read.lines(p).map(_.trim)
-          (expectedDefaultImports ++ testAdditionalImports.map(s => s"import $s")).forall(lines.contains)
+          (expectedDefaultImports ++ testAdditionalImports.map(s => s"import $s")).forall(
+            lines.contains
+          )
         },
         outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
           val lines = os.read.lines(p).map(_.trim)
           val expectedClassDeclaration = s"class hello ${testConstructorAnnotations.mkString}"
           lines.exists(_.startsWith(expectedClassDeclaration))
-        },
-
+        }
       )
 
       // don't recompile if nothing changed
@@ -119,27 +124,32 @@ object HelloWorldTests extends TestSuite {
 
       assert(unchangedEvalCount == 0)
     }
-    'compileTwirlInclusiveDot - workspaceTest(HelloWorldWithInclusiveDot, "hello-world-inclusive-dot") { eval =>
+    "compileTwirlInclusiveDot" - workspaceTest(
+      HelloWorldWithInclusiveDot,
+      "hello-world-inclusive-dot"
+    ) { eval =>
       val Right((result, evalCount)) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
 
       val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
-      val expectedClassfiles = compileClassfiles.map( name =>
-        eval.outPath / 'core / 'compileTwirl / 'dest / 'html / name.toString().replace(".template.scala", "$$TwirlInclusiveDot.template.scala")
+      val expectedClassfiles = compileClassfiles.map(name =>
+        eval.outPath / "core" / "compileTwirl.dest" / name / os.RelPath.up / name.last.replace(
+          ".template.scala",
+          "$$TwirlInclusiveDot.template.scala"
+        )
       )
 
       println(s"outputFiles: $outputFiles")
 
       assert(
-        result.classes.path == eval.outPath / 'core / 'compileTwirl / 'dest,
+        result.classes.path == eval.outPath / "core" / "compileTwirl.dest",
         outputFiles.nonEmpty,
         outputFiles.forall(expectedClassfiles.contains),
-        outputFiles.size == 2,
+        outputFiles.size == 3,
         evalCount > 0,
         outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
           val lines = os.read.lines(p).map(_.trim)
           lines.exists(_.contains("$$TwirlInclusiveDot"))
-        },
-
+        }
       )
 
       // don't recompile if nothing changed

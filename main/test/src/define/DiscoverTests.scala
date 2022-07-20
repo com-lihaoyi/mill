@@ -3,37 +3,41 @@ package mill.define
 import mill.util.TestGraphs
 import utest._
 
-object DiscoverTests extends TestSuite{
+object DiscoverTests extends TestSuite {
   val testGraphs = new TestGraphs
-  val tests = Tests{
+  val tests = Tests {
     def check[T <: Module](m: T)(targets: (T => Target[_])*) = {
       val discovered = m.millInternal.targets
       val expected = targets.map(_(m)).toSet
       assert(discovered == expected)
     }
-    'singleton - {
+    "singleton" - {
       check(testGraphs.singleton)(_.single)
     }
-    'backtickIdentifiers {
-      check(testGraphs.bactickIdentifiers)(_.`up-target`, _.`a-down-target`, _.`nested-module`.`nested-target`)
+    "backtickIdentifiers" - {
+      check(testGraphs.bactickIdentifiers)(
+        _.`up-target`,
+        _.`a-down-target`,
+        _.`nested-module`.`nested-target`
+      )
     }
-    'separateGroups - {
+    "separateGroups" - {
       check(TestGraphs.triangleTask)(_.left, _.right)
     }
-    'TraitWithModuleObject - {
+    "TraitWithModuleObject" - {
       check(TestGraphs.TraitWithModuleObject)(_.TraitModule.testFrameworks)
     }
-    'nestedModule - {
+    "nestedModule" - {
       check(TestGraphs.nestedModule)(_.single, _.nested.single, _.classInstance.single)
     }
-    'singleCross - {
+    "singleCross" - {
       check(TestGraphs.singleCross)(
         _.cross("210").suffix,
         _.cross("211").suffix,
         _.cross("212").suffix
       )
     }
-    'doubleCross - {
+    "doubleCross" - {
       check(TestGraphs.doubleCross)(
         _.cross("210", "jvm").suffix,
         _.cross("210", "js").suffix,
@@ -44,7 +48,7 @@ object DiscoverTests extends TestSuite{
         _.cross("212", "native").suffix
       )
     }
-    'nestedCrosses - {
+    "nestedCrosses" - {
       check(TestGraphs.nestedCrosses)(
         _.cross("210").cross2("jvm").suffix,
         _.cross("210").cross2("js").suffix,
@@ -60,4 +64,3 @@ object DiscoverTests extends TestSuite{
 
   }
 }
-

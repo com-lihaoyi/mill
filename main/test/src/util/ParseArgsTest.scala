@@ -1,17 +1,20 @@
 package mill.util
 
-import mill.define.{Segment, Segments}
+import mill.define.{ParseArgs, Segment, Segments, SelectMode}
 import mill.define.Segment.{Cross, Label}
+import mill.define.ParseArgs.{TargetSeparator, TargetsWithParams}
 import utest._
 
 object ParseArgsTest extends TestSuite {
 
   val tests = Tests {
-    'extractSelsAndArgs - {
-      def check(input: Seq[String],
-                expectedSelectors: Seq[String],
-                expectedArgs: Seq[String],
-                multiSelect: Boolean) = {
+    "extractSelsAndArgs" - {
+      def check(
+          input: Seq[String],
+          expectedSelectors: Seq[String],
+          expectedArgs: Seq[String],
+          multiSelect: Boolean
+      ) = {
         val (selectors, args) = ParseArgs.extractSelsAndArgs(input, multiSelect)
 
         assert(
@@ -20,79 +23,85 @@ object ParseArgsTest extends TestSuite {
         )
       }
 
-      'empty - check(input = Seq.empty,
-                     expectedSelectors = Seq.empty,
-                     expectedArgs = Seq.empty,
-                     multiSelect = false)
-      'singleSelector - check(
+      "empty" - check(
+        input = Seq.empty,
+        expectedSelectors = Seq.empty,
+        expectedArgs = Seq.empty,
+        multiSelect = false
+      )
+      "singleSelector" - check(
         input = Seq("core.compile"),
         expectedSelectors = Seq("core.compile"),
         expectedArgs = Seq.empty,
         multiSelect = false
       )
-      'singleSelectorWithArgs - check(
+      "singleSelectorWithArgs" - check(
         input = Seq("application.run", "hello", "world"),
         expectedSelectors = Seq("application.run"),
         expectedArgs = Seq("hello", "world"),
         multiSelect = false
       )
-      'singleSelectorWithAllInArgs - check(
+      "singleSelectorWithAllInArgs" - check(
         input = Seq("application.run", "hello", "world", "--all"),
         expectedSelectors = Seq("application.run"),
         expectedArgs = Seq("hello", "world", "--all"),
         multiSelect = false
       )
-      'multiSelectors - check(
+      "multiSelectors" - check(
         input = Seq("core.jar", "core.docJar", "core.sourcesJar"),
         expectedSelectors = Seq("core.jar", "core.docJar", "core.sourcesJar"),
         expectedArgs = Seq.empty,
         multiSelect = true
       )
-      'multiSelectorsSeq - check(
+      "multiSelectorsSeq" - check(
         input = Seq("core.jar", "core.docJar", "core.sourcesJar"),
         expectedSelectors = Seq("core.jar", "core.docJar", "core.sourcesJar"),
         expectedArgs = Seq.empty,
         multiSelect = true
       )
-      'multiSelectorsWithArgs - check(
-        input = Seq("core.compile",
-                    "application.runMain",
-                    "--",
-                    "Main",
-                    "hello",
-                    "world"),
+      "multiSelectorsWithArgs" - check(
+        input = Seq(
+          "core.compile",
+          "application.runMain",
+          ParseArgs.MultiArgsSeparator,
+          "Main",
+          "hello",
+          "world"
+        ),
         expectedSelectors = Seq("core.compile", "application.runMain"),
         expectedArgs = Seq("Main", "hello", "world"),
         multiSelect = true
       )
-      'multiSelectorsWithArgsWithAllInArgs - check(
-        input = Seq("core.compile",
-                    "application.runMain",
-                    "--",
-                    "Main",
-                    "--all",
-                    "world"),
+      "multiSelectorsWithArgsWithAllInArgs" - check(
+        input = Seq(
+          "core.compile",
+          "application.runMain",
+          ParseArgs.MultiArgsSeparator,
+          "Main",
+          "--all",
+          "world"
+        ),
         expectedSelectors = Seq("core.compile", "application.runMain"),
         expectedArgs = Seq("Main", "--all", "world"),
         multiSelect = true
       )
     }
-    'expandBraces - {
+    "expandBraces" - {
       def check(input: String, expectedExpansion: List[String]) = {
         val Right(expanded) = ParseArgs.expandBraces(input)
 
         assert(expanded == expectedExpansion)
       }
 
-      'expandLeft - check(
+      "expandLeft" - check(
         "{application,core}.compile",
         List("application.compile", "core.compile")
       )
-      'expandRight - check(
+      "expandRight" - check(
         "application.{jar,docJar,sourcesJar}",
         List("application.jar", "application.docJar", "application.sourcesJar")
       )
-      'expandBoth - check(
+      "expandBoth" - check(
         "{core,application}.{jar,docJar}",
         List(
           "core.jar",
@@ -101,9 +110,8 @@ object ParseArgsTest extends TestSuite {
           "application.docJar"
         )
       )
-      'expandNested - {
-        check("{hello,world.{cow,moo}}",
-              List("hello", "world.cow", "world.moo"))
+      "expandNested" - {
+        check("{hello,world.{cow,moo}}", List("hello", "world.cow", "world.moo"))
         check("{a,b{c,d}}", List("a", "bc", "bd"))
         check("{a,b,{c,d}}", List("a", "b", "c", "d"))
         check("{a,b{c,d{e,f}}}", List("a", "bc", "bde", "bdf"))
@@ -112,11 +120,11 @@ object ParseArgsTest extends TestSuite {
         check("{a{b,c},d{e,f}}", List("ab", "ac", "de", "df"))
         check("{a,b{c,d},e{f,g}}", List("a", "bc", "bd", "ef", "eg"))
       }
-      'expandMixed - check(
+      "expandMixed" - check(
         "{a,b}.{c}.{}.e",
         List("a.{c}.{}.e", "b.{c}.{}.e")
       )
-      'malformed - {
+      "malformed" - {
         val malformed = Seq("core.{compile", "core.{compile,test]")
 
         malformed.foreach { m =>
@@ -124,12 +132,12 @@ object ParseArgsTest extends TestSuite {
           assert(error.contains("Parsing exception"))
         }
       }
-      'dontExpand - {
+      "dontExpand" - {
         check("core.compile", List("core.compile"))
         check("{}.compile", List("{}.compile"))
         check("{core}.compile", List("{core}.compile"))
       }
-      'keepUnknownSymbols - {
+      "keepUnknownSymbols" - {
         check("{a,b}.e<>", List("a.e<>", "b.e<>"))
         check("a[99]&&", List("a[99]&&"))
         check(
@@ -139,14 +147,16 @@ object ParseArgsTest extends TestSuite {
       }
     }
 
-    'apply - {
-      def check(input: Seq[String],
-                expectedSelectors: List[(Option[List[Segment]], List[Segment])],
-                expectedArgs: Seq[String],
-                multiSelect: Boolean) = {
+    "apply(multiselect)" - {
+      def check(
+          input: Seq[String],
+          expectedSelectors: List[(Option[List[Segment]], List[Segment])],
+          expectedArgs: Seq[String],
+          multiSelect: Boolean
+      ) = {
         val Right((selectors0, args)) = ParseArgs(input, multiSelect)
 
-        val selectors = selectors0.map{
+        val selectors = selectors0.map {
           case (Some(v1), v2) => (Some(v1.value), v2.value)
           case (None, v2) => (None, v2.value)
         }
@@ -156,10 +166,10 @@ object ParseArgsTest extends TestSuite {
         )
       }
 
-      'rejectEmpty {
+      "rejectEmpty" - {
         assert(ParseArgs(Seq.empty, multiSelect = false) == Left("Selector cannot be empty"))
       }
-      'singleSelector - check(
+      "singleSelector" - check(
         input = Seq("core.compile"),
         expectedSelectors = List(
           None -> List(Label("core"), Label("compile"))
@@ -167,7 +177,7 @@ object ParseArgsTest extends TestSuite {
         expectedArgs = Seq.empty,
         multiSelect = false
       )
-      'externalSelector - check(
+      "externalSelector" - check(
         input = Seq("foo.bar/core.compile"),
         expectedSelectors = List(
           Some(List(Label("foo"), Label("bar"))) -> List(Label("core"), Label("compile"))
@@ -175,7 +185,7 @@ object ParseArgsTest extends TestSuite {
         expectedArgs = Seq.empty,
         multiSelect = false
       )
-      'singleSelectorWithArgs - check(
+      "singleSelectorWithArgs" - check(
         input = Seq("application.run", "hello", "world"),
         expectedSelectors = List(
           None -> List(Label("application"), Label("run"))
@@ -183,7 +193,7 @@ object ParseArgsTest extends TestSuite {
         expectedArgs = Seq("hello", "world"),
         multiSelect = false
       )
-      'singleSelectorWithCross - check(
+      "singleSelectorWithCross" - check(
         input = Seq("bridges[2.12.4,jvm].compile"),
         expectedSelectors = List(
           None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("compile"))
@@ -191,7 +201,7 @@ object ParseArgsTest extends TestSuite {
         expectedArgs = Seq.empty,
         multiSelect = false
       )
-      'multiSelectorsBraceExpansion - check(
+      "multiSelectorsBraceExpansion" - check(
         input = Seq("{core,application}.compile"),
         expectedSelectors = List(
           None -> List(Label("core"), Label("compile")),
@@ -200,8 +210,8 @@ object ParseArgsTest extends TestSuite {
         expectedArgs = Seq.empty,
         multiSelect = true
       )
-      'multiSelectorsBraceExpansionWithArgs - check(
-        input = Seq("{core,application}.run", "--", "hello", "world"),
+      "multiSelectorsBraceExpansionWithArgs" - check(
+        input = Seq("{core,application}.run", ParseArgs.MultiArgsSeparator, "hello", "world"),
         expectedSelectors = List(
           None -> List(Label("core"), Label("run")),
           None -> List(Label("application"), Label("run"))
@@ -209,7 +219,18 @@ object ParseArgsTest extends TestSuite {
         expectedArgs = Seq("hello", "world"),
         multiSelect = true
       )
-      'multiSelectorsBraceExpansionWithCross - check(
+      "multiSelectorsBraceWithMissingArgsSeparator" - check(
+        input = Seq("{core,application}.run", "hello", "world"),
+        expectedSelectors = List(
+          None -> List(Label("core"), Label("run")),
+          None -> List(Label("application"), Label("run")),
+          None -> List(Label("hello")),
+          None -> List(Label("world"))
+        ),
+        expectedArgs = Seq.empty,
+        multiSelect = true
+      )
+      "multiSelectorsBraceExpansionWithCross" - check(
         input = Seq("bridges[2.12.4,jvm].{test,jar}"),
         expectedSelectors = List(
           None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("test")),
@@ -218,7 +239,7 @@ object ParseArgsTest extends TestSuite {
         expectedArgs = Seq.empty,
         multiSelect = true
       )
-      'multiSelectorsBraceExpansionInsideCross - check(
+      "multiSelectorsBraceExpansionInsideCross" - check(
         input = Seq("bridges[{2.11.11,2.11.8,2.13.0-M3}].jar"),
         expectedSelectors = List(
           None -> List(Label("bridges"), Cross(Seq("2.11.11")), Label("jar")),
@@ -228,7 +249,7 @@ object ParseArgsTest extends TestSuite {
         expectedArgs = Seq.empty,
         multiSelect = true
       )
-      'multiSelectorsBraceExpansionWithoutAll - {
+      "multiSelectorsBraceExpansionWithoutAll" - {
         val res = ParseArgs(Seq("{core,application}.compile"), multiSelect = false)
         val expected = Right(
           List(
@@ -239,7 +260,7 @@ object ParseArgsTest extends TestSuite {
         )
         assert(res == expected)
       }
-      'multiSelectorsWithoutAllAsSingle - check(
+      "multiSelectorsWithoutAllAsSingle" - check(
         // this is how it works when we pass multiple tasks without --all flag
         input = Seq("core.compile", "application.compile"),
         expectedSelectors = List(
@@ -249,6 +270,136 @@ object ParseArgsTest extends TestSuite {
         multiSelect = false
       )
     }
-  }
 
+    test("apply(SelectMode.Separated)") {
+      val selectMode = SelectMode.Separated
+      def parsed(args: String*) = ParseArgs(args, selectMode)
+      test("rejectEmpty") {
+        assert(parsed("") == Left("Selector cannot be empty"))
+      }
+      def check(
+          input: Seq[String],
+          expectedSelectorArgPairs: Seq[(Seq[(Option[Seq[Segment]], Seq[Segment])], Seq[String])]
+      ) = {
+        val Right(parsed) = ParseArgs(input, selectMode)
+        val actual = parsed.map {
+          case (selectors0, args) =>
+            val selectors = selectors0.map {
+              case (Some(v1), v2) => (Some(v1.value), v2.value)
+              case (None, v2) => (None, v2.value)
+            }
+            (selectors, args)
+        }
+        assert(
+          actual == expectedSelectorArgPairs
+        )
+      }
+
+      test("singleTopLevelTarget") {
+        check(
+          Seq("compile"),
+          Seq(
+            Seq(
+              None -> Seq(Label("compile"))
+            ) -> Seq.empty
+          )
+        )
+      }
+      test("singleTarget") {
+        check(
+          Seq("core.compile"),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("compile"))
+            ) -> Seq.empty
+          )
+        )
+      }
+      test("multiTargets") {
+        check(
+          Seq("core.compile", ParseArgs.TargetSeparator, "app.compile"),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("compile"))
+            ) -> Seq.empty,
+            Seq(
+              None -> Seq(Label("app"), Label("compile"))
+            ) -> Seq.empty
+          )
+        )
+      }
+      test("multiTargetsSupportMaskingSeparator") {
+        check(
+          Seq(
+            "core.run",
+            """\""" + ParseArgs.TargetSeparator,
+            "arg2",
+            "+",
+            "run",
+            """\\""" + ParseArgs.TargetSeparator,
+            """\\\""" + ParseArgs.TargetSeparator,
+            """x\\""" + ParseArgs.TargetSeparator
+          ),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("run"))
+            ) -> Seq(ParseArgs.TargetSeparator, "arg2"),
+            Seq(
+              None -> Seq(Label("run"))
+            ) -> Seq(
+              """\""" + TargetSeparator,
+              """\\""" + TargetSeparator,
+              """x\\""" + TargetSeparator
+            )
+          )
+        )
+      }
+      test("singleTargetWithArgs") {
+        check(
+          Seq("core.run", "arg1", "arg2"),
+          Seq(
+            Seq(
+              None -> List(Label("core"), Label("run"))
+            ) -> Seq("arg1", "arg2")
+          )
+        )
+      }
+      test("multiTargetsWithArgs") {
+        check(
+          Seq("core.run", "arg1", "arg2", ParseArgs.TargetSeparator, "core.runMain", "my.main"),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("run"))
+            ) -> Seq("arg1", "arg2"),
+            Seq(
+              None -> Seq(Label("core"), Label("runMain"))
+            ) -> Seq("my.main")
+          )
+        )
+      }
+      test("multiTargetsWithArgsAndBrace") {
+        check(
+          Seq(
+            "{core,app,test._}.run",
+            "arg1",
+            "arg2",
+            ParseArgs.TargetSeparator,
+            "core.runMain",
+            "my.main"
+          ),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("run")),
+              None -> Seq(Label("app"), Label("run")),
+              None -> Seq(Label("test"), Label("_"), Label("run"))
+            ) -> Seq("arg1", "arg2"),
+            Seq(
+              None -> Seq(Label("core"), Label("runMain"))
+            ) -> Seq("my.main")
+          )
+        )
+      }
+    }
+
+  }
 }

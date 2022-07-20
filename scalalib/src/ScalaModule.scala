@@ -1,34 +1,45 @@
 package mill
 package scalalib
 
-import coursier.Repository
-import mill.define.{Target, Task, TaskModule}
-import mill.eval.{PathRef, Result}
+import scala.annotation.nowarn
+import mill.define.{Command, Sources, Target, Task}
+import mill.api.{DummyInputStream, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import mill.scalalib.api.Util.isDotty
 import Lib._
+import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.Loose.Agg
-import mill.api.DummyInputStream
+import mill.eval.EvaluatorPathsResolver
+import mill.scalalib.api.{CompilationResult, ZincWorkerUtil}
+import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+
+import scala.jdk.CollectionConverters._
+import mainargs.Flag
+import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
 /**
-  * Core configuration required to compile a single Scala compilation target
-  */
+ * Core configuration required to compile a single Scala compilation target
+ */
 trait ScalaModule extends JavaModule { outer =>
 
-  trait Tests extends super.Tests with ScalaModule {
-    override def scalaOrganization = outer.scalaOrganization()
-    def scalaVersion = outer.scalaVersion()
+  trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
+    override def scalaOrganization: T[String] = outer.scalaOrganization()
+    override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
+    override def scalacPluginClasspath = outer.scalacPluginClasspath
     override def scalacOptions = outer.scalacOptions
+    override def mandatoryScalacOptions = outer.mandatoryScalacOptions
   }
 
+  trait Tests extends ScalaModuleTests
+
   /**
-    * What Scala organization to use
-    * @return
-    */
+   * What Scala organization to use
+   *
+   * @return
+   */
   def scalaOrganization: T[String] = T {
-    if (isDotty(scalaVersion()))
+    if (ZincWorkerUtil.isDotty(scalaVersion()))
       "ch.epfl.lamp"
     else
       "org.scala-lang"
@@ -37,209 +48,327 @@ trait ScalaModule extends JavaModule { outer =>
   /**
    * All individual source files fed into the Zinc compiler.
    */
-  override def allSourceFiles = T{
-    def isHiddenFile(path: os.Path) = path.last.startsWith(".")
-    for {
-      root <- allSources()
-      if os.exists(root.path)
-      path <- if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path)
-      if os.isFile(path) && ((path.ext == "scala" || path.ext == "java") && !isHiddenFile(path))
-    } yield PathRef(path)
+  override def allSourceFiles: T[Seq[PathRef]] = T {
+    Lib.findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
   }
 
   /**
-    * What version of Scala to use
-    */
+   * What version of Scala to use
+   */
   def scalaVersion: T[String]
 
-  override def mapDependencies = T.task{ d: coursier.Dependency =>
-    val artifacts =
-      if (isDotty(scalaVersion()))
-        Set("dotty-library", "dotty-compiler")
+  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
+    d: coursier.Dependency =>
+      val artifacts =
+        if (ZincWorkerUtil.isDotty(scalaVersion()))
+          Set("dotty-library", "dotty-compiler")
+        else if (ZincWorkerUtil.isScala3(scalaVersion()))
+          Set("scala3-library", "scala3-compiler")
+        else
+          Set("scala-library", "scala-compiler", "scala-reflect")
+      if (!artifacts(d.module.name.value)) d
       else
-        Set("scala-library", "scala-compiler", "scala-reflect")
-    if (!artifacts(d.module.name.value)) d
-    else d.withModule(
-      d.module.withOrganization(
-        coursier.Organization(scalaOrganization())
+        d.withModule(
+          d.module.withOrganization(
+            coursier.Organization(scalaOrganization())
+          )
+        )
+          .withVersion(scalaVersion())
+  }
+
+  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
+    T.task {
+      Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
+    }
+
+  override def resolvePublishDependency: Task[Dep => publish.Dependency] =
+    T.task {
+      publish.Artifact.fromDep(
+        _: Dep,
+        scalaVersion(),
+        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        platformSuffix()
       )
-    ).withVersion(scalaVersion())
-  }
+    }
 
-  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
-    Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
-  }
+  /**
+   * Allows you to make use of Scala compiler plugins.
+   */
+  def scalacPluginIvyDeps: Target[Agg[Dep]] = T { Agg.empty[Dep] }
 
-  override def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{
-    publish.Artifact.fromDep(
-      _: Dep,
-      scalaVersion(),
-      mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion()),
-      platformSuffix()
-    )
+  def scalaDocPluginIvyDeps: Target[Agg[Dep]] = T { scalacPluginIvyDeps() }
+
+  /**
+   * Mandatory command-line options to pass to the Scala compiler
+   * that shouldn't be removed by overriding `scalacOptions`
+   */
+  protected def mandatoryScalacOptions: Target[Seq[String]] = T { Seq.empty[String] }
+
+  /**
+   * Scalac options to activate the compiler plugins.
+   */
+  private def enablePluginScalacOptions: Target[Seq[String]] = T {
+    val resolvedJars = resolveDeps(scalacPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
+    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
   /**
-    * Allows you to make use of Scala compiler plugins from maven central
-    */
-  def scalacPluginIvyDeps = T{ Agg.empty[Dep] }
-
-  def scalaDocPluginIvyDeps = T{ scalacPluginIvyDeps() }
-
-  /**
-    * Command-line options to pass to the Scala compiler
-    */
-  def scalacOptions = T{ Seq.empty[String] }
-
-  def scalaDocOptions: T[Seq[String]] = T{
-    val defaults = if (isDotty(scalaVersion())) Seq(
-      "-project", artifactName()
-    ) else Seq()
-    scalacOptions() ++ defaults
+   * Scalac options to activate the compiler plugins for ScalaDoc generation.
+   */
+  private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = T {
+    val resolvedJars = resolveDeps(scalaDocPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
+    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
   /**
-    * The local classpath of Scala compiler plugins on-disk; you can add
-    * additional jars here if you have some copiler plugin that isn't present
-    * on maven central
-    */
+   * Command-line options to pass to the Scala compiler defined by the user.
+   * Consumers should use `allScalacOptions` to read them.
+   */
+  def scalacOptions: Target[Seq[String]] = T { Seq.empty[String] }
+
+  /**
+   * Aggregation of all the options passed to the Scala compiler.
+   * In most cases, instead of overriding this Target you want to override `scalacOptions` instead.
+   */
+  def allScalacOptions: Target[Seq[String]] = T {
+    mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions()
+  }
+
+  def scalaDocOptions: T[Seq[String]] = T {
+    val defaults =
+      if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
+        Seq(
+          "-project",
+          artifactName()
+        )
+      else Seq()
+    mandatoryScalacOptions() ++ enableScalaDocPluginScalacOptions() ++ scalacOptions() ++ defaults
+  }
+
+  /**
+   * The local classpath of Scala compiler plugins on-disk; you can add
+   * additional jars here if you have some copiler plugin that isn't present
+   * on maven central
+   */
   def scalacPluginClasspath: T[Agg[PathRef]] = T {
     resolveDeps(scalacPluginIvyDeps)()
   }
 
   /**
-    * Classpath of the scaladoc (or dottydoc) tool.
-    */
+   * Classpath of the scaladoc (or dottydoc) tool.
+   */
   def scalaDocClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
-      T.task{scalaDocIvyDeps(scalaOrganization(), scalaVersion())}
+      T.task { scalaDocIvyDeps(scalaOrganization(), scalaVersion()) }
     )()
   }
 
   /**
-    * The ivy coordinates of Scala's own standard library
-    */
+   * The ivy coordinates of Scala's own standard library
+   */
   def scalaDocPluginClasspath: T[Agg[PathRef]] = T {
     resolveDeps(scalaDocPluginIvyDeps)()
   }
 
-  def scalaLibraryIvyDeps = T{ scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion()) }
+  def scalaLibraryIvyDeps: T[Agg[Dep]] = T {
+    scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
+  }
+
+  /** Adds the Scala Library is a mandatory dependency. */
+  override def mandatoryIvyDeps: T[Agg[Dep]] = T {
+    super.mandatoryIvyDeps() ++ scalaLibraryIvyDeps()
+  }
 
   /**
-    * Classpath of the Scala Compiler & any compiler plugins
-    */
-  def scalaCompilerClasspath: T[Agg[PathRef]] = T{
+   * Classpath of the Scala Compiler & any compiler plugins
+   */
+  def scalaCompilerClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
-      T.task{
+      T.task {
         scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
-        scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
+          scalaLibraryIvyDeps()
       }
     )()
   }
-  override def compileClasspath = T{
-    transitiveLocalClasspath() ++
-    resources() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
-  }
 
-  override def upstreamAssemblyClasspath = T{
-    transitiveLocalClasspath() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
-  }
-
-  override def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
-
-    zincWorker.worker().compileMixed(
-      upstreamCompileOutput(),
-      allSourceFiles().map(_.path),
-      compileClasspath().map(_.path),
-      javacOptions(),
-      scalaVersion(),
-      scalaOrganization(),
-      scalacOptions(),
-      scalaCompilerClasspath().map(_.path),
-      scalacPluginClasspath().map(_.path),
-      T.reporter.apply(hashCode)
+  // Keep in sync with [[bspCompileClassesPath]]
+  override def compile: T[CompilationResult] = T.persistent {
+    val sv = scalaVersion()
+    if (sv == "2.12.4") T.log.error(
+      """Attention: Zinc is known to not work properly for Scala version 2.12.4.
+        |You may want to select another version. Upgrading to a more recent Scala version is recommended.
+        |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
+    zincWorker
+      .worker()
+      .compileMixed(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = javacOptions(),
+        scalaVersion = sv,
+        scalaOrganization = scalaOrganization(),
+        scalacOptions = allScalacOptions(),
+        compilerClasspath = scalaCompilerClasspath().map(_.path),
+        scalacPluginClasspath = scalacPluginClasspath().map(_.path),
+        reporter = T.reporter.apply(hashCode)
+      )
   }
 
-  override def docJar = T {
-    val outDir = T.dest
+  /** the path to the compiled classes without forcing the compilation. */
+  @internal
+  override def bspCompileClassesPath: Target[UnresolvedPath] =
+    if (compile.ctx.enclosing == s"${classOf[ScalaModule].getName}#compile") {
+      T {
+        T.log.debug(
+          s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
+        )
+        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
+      }
+    } else {
+      T {
+        T.log.debug(
+          s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
+        )
+        UnresolvedPath.ResolvedPath(compile().classes.path)
+      }
+    }
 
-    val javadocDir = outDir / 'javadoc
-    os.makeDir.all(javadocDir)
+  override def docSources: Sources = T.sources {
+    // Scaladoc 3.0.0 is consuming tasty files
+    if (
+      ZincWorkerUtil.isScala3(scalaVersion()) && !ZincWorkerUtil.isScala3Milestone(scalaVersion())
+    ) Seq(compile().classes)
+    else allSources()
+  }
 
-    if (isDotty(scalaVersion())) {
-      // merge all docSources into one directory by copying all children
+  override def docJar: T[PathRef] = T {
+    val compileCp = Seq(
+      "-classpath",
+      compileClasspath()
+        .iterator
+        .filter(_.path.ext != "pom")
+        .map(_.path)
+        .mkString(java.io.File.pathSeparator)
+    )
+
+    def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
+      if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(T.dest))
+      else {
+        zincWorker
+          .worker()
+          .docJar(
+            scalaVersion(),
+            scalaOrganization(),
+            scalaDocClasspath().map(_.path),
+            scalacPluginClasspath().map(_.path),
+            options ++ compileCp ++ scalaDocOptions() ++
+              files.map(_.toString())
+          ) match {
+          case true => Result.Success(createJar(Agg(javadocDir))(T.dest))
+          case false => Result.Failure("docJar generation failed")
+        }
+      }
+    }
+
+    if (
+      ZincWorkerUtil.isDotty(scalaVersion()) || ZincWorkerUtil.isScala3Milestone(scalaVersion())
+    ) { // dottydoc
+      val javadocDir = T.dest / "javadoc"
+      os.makeDir.all(javadocDir)
+
       for {
-        ref <- docSources()
-        docSource = ref.path
-        if os.exists(docSource) && os.isDir(docSource)
-        children = os.walk(docSource)
+        ref <- docResources()
+        docResource = ref.path
+        if os.exists(docResource) && os.isDir(docResource)
+        children = os.walk(docResource)
         child <- children
-        if os.isFile(child)
+        if os.isFile(child) && !child.last.startsWith(".")
       } {
-        os.copy.over(child, javadocDir / (child.subRelativeTo(docSource)), createFolders = true)
+        os.copy.over(
+          child,
+          javadocDir / (child.subRelativeTo(docResource)),
+          createFolders = true
+        )
       }
+      packageWithZinc(
+        Seq("-siteroot", javadocDir.toNIO.toString),
+        Lib.findSourceFiles(docSources(), Seq("java", "scala")),
+        javadocDir / "_site"
+      )
+
+    } else if (ZincWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
+      val javadocDir = T.dest / "javadoc"
+      os.makeDir.all(javadocDir)
+
+      // Scaladoc 3 allows including static files in documentation, but it only
+      // supports one directory. Hence, to allow users to generate files
+      // dynamically, we consolidate all files from all `docSources` into one
+      // directory.
+      val combinedStaticDir = T.dest / "static"
+      os.makeDir.all(combinedStaticDir)
+
+      for {
+        ref <- docResources()
+        docResource = ref.path
+        if os.exists(docResource) && os.isDir(docResource)
+        children = os.walk(docResource)
+        child <- children
+        if os.isFile(child) && !child.last.startsWith(".")
+      } {
+        os.copy.over(
+          child,
+          combinedStaticDir / child.subRelativeTo(docResource),
+          createFolders = true
+        )
+      }
+
+      packageWithZinc(
+        Seq(
+          "-d",
+          javadocDir.toNIO.toString,
+          "-siteroot",
+          combinedStaticDir.toNIO.toString
+        ),
+        Lib.findSourceFiles(docSources(), Seq("tasty")),
+        javadocDir
+      )
+    } else { // scaladoc 2
+      val javadocDir = T.dest / "javadoc"
+      os.makeDir.all(javadocDir)
+
+      packageWithZinc(
+        Seq("-d", javadocDir.toNIO.toString),
+        Lib.findSourceFiles(docSources(), Seq("java", "scala")),
+        javadocDir
+      )
     }
 
-    val files = allSourceFiles().map(_.path.toString)
-
-    val outputOptions =
-      if (isDotty(scalaVersion()))
-        Seq("-siteroot", javadocDir.toNIO.toString)
-      else
-        Seq("-d", javadocDir.toNIO.toString)
-
-    val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
-    val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
-    val options = Seq(
-      "-classpath", compileCp.mkString(java.io.File.pathSeparator)
-    ) ++
-      outputOptions ++
-      pluginOptions ++
-      scalaDocOptions() // user options come last, so they can override any other settings
-
-    if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(outDir))
-    else {
-      zincWorker.worker().docJar(
-        scalaVersion(),
-        scalaOrganization(),
-        scalaDocClasspath().map(_.path),
-        scalacPluginClasspath().map(_.path),
-        files ++ options
-      ) match{
-        case true =>
-          val inputPath =
-            if (isDotty(scalaVersion())) javadocDir / '_site
-            else javadocDir
-          Result.Success(createJar(Agg(inputPath))(outDir))
-        case false => Result.Failure("docJar generation failed")
-      }
-    }
   }
 
   /**
-    * Opens up a Scala console with your module and all dependencies present,
-    * for you to test and operate your code interactively
-    */
-  def console() = T.command{
-    if (T.log.inStream == DummyInputStream){
-      Result.Failure("repl needs to be run with the -i/--interactive flag")
-    }else{
+   * Opens up a Scala console with your module and all dependencies present,
+   * for you to test and operate your code interactively.
+   */
+  def console(): Command[Unit] = T.command {
+    if (T.log.inStream == DummyInputStream) {
+      Result.Failure("console needs to be run with the -i/--interactive flag")
+    } else {
       Jvm.runSubprocess(
         mainClass =
-          if (isDotty(scalaVersion()))
+          if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
             "dotty.tools.repl.Main"
           else
             "scala.tools.nsc.MainGenericRunner",
-        classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(_.path),
+        classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(
+          _.path
+        ),
+        jvmArgs = forkArgs(),
+        envArgs = forkEnv(),
         mainArgs = Seq("-usejavacp"),
-        workingDir = os.pwd
+        workingDir = forkWorkingDir()
       )
-      Result.Success()
+      Result.Success(())
     }
   }
 
@@ -247,58 +376,134 @@ trait ScalaModule extends JavaModule { outer =>
    * Ammonite's version used in the `repl` command is by default
    * set to the one Mill is built against.
    */
-  def ammoniteVersion = T(Versions.ammonite)
-
-  /**
-    * Dependencies that are necessary to run the Ammonite Scala REPL
-    */
-  def ammoniteReplClasspath = T{
-    localClasspath() ++
-    transitiveLocalClasspath() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{
-      runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
-      Agg(ivy"com.lihaoyi:::ammonite:${ammoniteVersion()}")
-    })()
+  def ammoniteVersion: T[String] = T {
+    Versions.ammonite
   }
 
   /**
-    * Opens up an Ammonite Scala REPL with your module and all dependencies present,
-    * for you to test and operate your code interactively
-    */
-  def repl(replOptions: String*) = T.command{
-    if (T.log.inStream == DummyInputStream){
+   * Dependencies that are necessary to run the Ammonite Scala REPL
+   */
+  def ammoniteReplClasspath: T[Seq[PathRef]] = T {
+    localClasspath() ++
+      transitiveLocalClasspath() ++
+      unmanagedClasspath() ++
+      resolvedAmmoniteReplIvyDeps()
+  }
+
+  def resolvedAmmoniteReplIvyDeps = T {
+    resolveDeps(T.task {
+      val scaVersion = scalaVersion()
+      val ammVersion = ammoniteVersion()
+      if (scaVersion != BuildInfo.scalaVersion && ammVersion == Versions.ammonite) {
+        T.log.info(
+          s"""Resolving Ammonite Repl ${ammVersion} for Scala ${scaVersion} ...
+             |If you encounter dependency resolution failures, please review/override `def ammoniteVersion` to select a compatible release.""".stripMargin
+        )
+      }
+      runIvyDeps() ++ transitiveIvyDeps() ++
+        Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}")
+    })()
+  }
+
+  @internal
+  private[scalalib] def ammoniteMainClass: Task[String] = T.task {
+    Version(ammoniteVersion()) match {
+      case v: ValidVersion if Version.versionOrdering.compare(v, Version("2.4.1")) <= 0 =>
+        "ammonite.Main"
+      case _ => "ammonite.AmmoniteMain"
+    }
+  }
+
+  /**
+   * Opens up an Ammonite Scala REPL with your module and all dependencies present,
+   * for you to test and operate your code interactively.
+   * Use [[ammoniteVersion]] to customize the Ammonite version to use.
+   */
+  def repl(replOptions: String*): Command[Unit] = T.command {
+    if (T.log.inStream == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
-    }else{
+    } else {
+      val mainClass = ammoniteMainClass()
+      T.log.debug(s"Using ammonite main class: ${mainClass}")
       Jvm.runSubprocess(
-        mainClass = "ammonite.Main",
+        mainClass = mainClass,
         classPath = ammoniteReplClasspath().map(_.path),
+        jvmArgs = forkArgs(),
+        envArgs = forkEnv(),
         mainArgs = replOptions,
-        workingDir = os.pwd
+        workingDir = forkWorkingDir()
       )
-      Result.Success()
+      Result.Success(())
     }
 
   }
 
   /**
-    * Whether to publish artifacts with name "mill_2.12.4" instead of "mill_2.12"
-    */
+   * Whether to publish artifacts with name "mill_2.12.4" instead of "mill_2.12"
+   */
   def crossFullScalaVersion: T[Boolean] = false
 
   /**
-    * What Scala version string to use when publishing
-    */
+   * What Scala version string to use when publishing
+   */
   def artifactScalaVersion: T[String] = T {
     if (crossFullScalaVersion()) scalaVersion()
-    else mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion())
+    else ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   }
 
   /**
-    * The suffix appended to the artifact IDs during publishing
-    */
+   * The suffix appended to the artifact IDs during publishing
+   */
   def artifactSuffix: T[String] = s"_${artifactScalaVersion()}"
 
   override def artifactId: T[String] = artifactName() + artifactSuffix()
+
+  /**
+   * @param all If `true` , fetches also sources, Ammonite and compiler dependencies.
+   */
+  @nowarn("msg=pure expression does nothing")
+  override def prepareOffline(all: Flag): Command[Unit] = {
+    val tasks =
+      if (all.value) Seq(
+        resolvedAmmoniteReplIvyDeps,
+        T.task {
+          zincWorker.scalaCompilerBridgeJar(scalaVersion(), scalaOrganization(), repositoriesTask())
+        }
+      )
+      else Seq()
+
+    T.command {
+      super.prepareOffline(all)()
+      resolveDeps(scalacPluginIvyDeps)()
+      resolveDeps(scalaDocPluginIvyDeps)()
+      T.sequence(tasks)()
+      ()
+    }
+  }
+
+  override def manifest: T[Jvm.JarManifest] = T {
+    super.manifest().add("Scala-Version" -> scalaVersion())
+  }
+
+  @internal
+  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+    languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Scala),
+    canCompile = true,
+    canRun = true
+  )
+
+  @internal
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+    Some((
+      BuildTargetDataKind.SCALA,
+      new ScalaBuildTarget(
+        scalaOrganization(),
+        scalaVersion(),
+        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        ScalaPlatform.JVM,
+        scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
+      )
+    ))
+  }
 
 }

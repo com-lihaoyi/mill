@@ -1,14 +1,13 @@
 package mill.eval
 
-
 import mill.define.Discover
 import mill.util.TestEvaluator
 
 import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, singleCross}
 import utest._
-object CrossTests extends TestSuite{
-  val tests = Tests{
-    'singleCross - {
+object CrossTests extends TestSuite {
+  val tests = Tests {
+    "singleCross" - {
       val check = new TestEvaluator(singleCross)
 
       val Right(("210", 1)) = check.apply(singleCross.cross("210").suffix)
@@ -16,7 +15,7 @@ object CrossTests extends TestSuite{
       val Right(("212", 1)) = check.apply(singleCross.cross("212").suffix)
     }
 
-    'crossResolved - {
+    "crossResolved" - {
       val check = new TestEvaluator(crossResolved)
 
       val Right(("2.10", 1)) = check.apply(crossResolved.foo("2.10").suffix)
@@ -28,8 +27,7 @@ object CrossTests extends TestSuite{
       val Right(("_2.12", 1)) = check.apply(crossResolved.bar("2.12").longSuffix)
     }
 
-
-    'doubleCross - {
+    "doubleCross" - {
       val check = new TestEvaluator(doubleCross)
 
       val Right(("210_jvm", 1)) = check.apply(doubleCross.cross("210", "jvm").suffix)
@@ -41,7 +39,7 @@ object CrossTests extends TestSuite{
       val Right(("212_native", 1)) = check.apply(doubleCross.cross("212", "native").suffix)
     }
 
-    'nestedCrosses - {
+    "nestedCrosses" - {
       val check = new TestEvaluator(nestedCrosses)
 
       val Right(("210_jvm", 1)) = check.apply(nestedCrosses.cross("210").cross2("jvm").suffix)

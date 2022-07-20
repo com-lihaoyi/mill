@@ -9,22 +9,33 @@ import java.util.Base64
 import scala.concurrent.duration._
 
 class BintrayHttpApi(
-  owner: String,
-  repo: String,
-  credentials: String,
-  readTimeout: Int,
-  connectTimeout: Int,
-  log: Logger
+    owner: String,
+    repo: String,
+    credentials: String,
+    readTimeout: Int,
+    connectTimeout: Int,
+    log: Logger
 ) {
-  val http = requests.Session(readTimeout = readTimeout, connectTimeout = connectTimeout, maxRedirects = 0, check = false)
+  val http = requests.Session(
+    readTimeout = readTimeout,
+    connectTimeout = connectTimeout,
+    maxRedirects = 0,
+    check = false
+  )
 
   private val uploadTimeout = 5.minutes.toMillis.toInt
 
   def now = ZonedDateTime.now(ZoneOffset.UTC)
 
   // https://www.jfrog.com/confluence/display/BT/Bintray+REST+API#BintrayRESTAPI-UploadContent
-  def upload(pkg: String, version: String, path: String, contentType: String, data: Array[Byte]): requests.Response =
-    send (s"Uploading $path") {
+  def upload(
+      pkg: String,
+      version: String,
+      path: String,
+      contentType: String,
+      data: Array[Byte]
+  ): requests.Response =
+    send(s"Uploading $path") {
       http.put(
         s"${Paths.upload(pkg, version)}/$path",
         readTimeout = uploadTimeout,
@@ -37,28 +48,29 @@ class BintrayHttpApi(
     }
 
   def createVersion(
-    pkg: String,
-    version: String,
-    releaseDate: ZonedDateTime = now,
-    description: String = ""
+      pkg: String,
+      version: String,
+      releaseDate: ZonedDateTime = now,
+      description: String = ""
   ): requests.Response =
-    send (s"Creating version $version") {
+    send(s"Creating version $version") {
       http.post(
         Paths.version(pkg),
         headers = Seq(
           "Content-Type" -> ContentTypes.json,
           "Authorization" -> Auth.basic
         ),
-        data = s"""{
-                  |  "desc": "$description",
-                  |  "released": "${releaseDate.format(DateTimeFormatter.ISO_INSTANT)}",
-                  |  "name": "$version"
-                  |}""".stripMargin
+        data =
+          s"""{
+             |  "desc": "$description",
+             |  "released": "${releaseDate.format(DateTimeFormatter.ISO_INSTANT)}",
+             |  "name": "$version"
+             |}""".stripMargin
       )
     }
 
   def publish(pkg: String, version: String): requests.Response =
-    send (s"Publishing version $version") {
+    send(s"Publishing version $version") {
       http.post(
         Paths.publish(pkg, version),
         headers = Seq(
@@ -84,8 +96,8 @@ class BintrayHttpApi(
   }
 
   object ContentTypes {
-    val jar  = "application/java-archive"
-    val xml  = "application/xml"
+    val jar = "application/java-archive"
+    val xml = "application/xml"
     val json = "application/json"
   }
 

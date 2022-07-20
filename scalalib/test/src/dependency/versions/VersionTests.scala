@@ -31,11 +31,13 @@ package mill.scalalib.dependency.versions
 import utest._
 import fastparse.Parsed
 
+import scala.util.chaining.scalaUtilChainingOps
+
 object VersionTests extends TestSuite {
 
   val tests = Tests {
-    'versionsClassification - {
-      'ReleaseVersion - {
+    "versionsClassification" - {
+      "ReleaseVersion" - {
         List("1.0.0", "1.0.0.Final", "1.0.0-FINAL", "1.0.0.RELEASE") foreach {
           rel =>
             assertMatch(Version(rel)) {
@@ -43,26 +45,36 @@ object VersionTests extends TestSuite {
             }
         }
       }
-      'PreReleaseVersion - {
+      "PreReleaseVersion" - {
         assertMatch(Version("1.0.0-alpha.1")) {
           case PreReleaseVersion(List(1, 0, 0), List("alpha", "1")) =>
         }
       }
-      'PreReleaseBuildVersion - {
+      "PreReleaseBuildVersion" - {
         assertMatch(Version("1.0.0-alpha.1+build.10")) {
-          case PreReleaseBuildVersion(List(1, 0, 0),
-                                      List("alpha", "1"),
-                                      List("build", "10")) =>
+          case PreReleaseBuildVersion(List(1, 0, 0), List("alpha", "1"), List("build", "10")) =>
         }
       }
-      'BuildVersion - {
+      "BuildVersion" - {
         assertMatch(Version("1.0.0+build.10")) {
           case BuildVersion(List(1, 0, 0), List("build", "10")) =>
         }
       }
     }
 
-    'semverVersionsOrdering - {
+    "short version defaults" - {
+      "1" - Version("1").tap { v =>
+        assert(v.major == 1, v.minor == 0, v.patch == 0)
+      }
+      "1.0" - Version("1.0").tap { v =>
+        assert(v.major == 1, v.minor == 0, v.patch == 0)
+      }
+      "1.1" - Version("1.1").tap { v =>
+        assert(v.major == 1, v.minor == 1, v.patch == 0)
+      }
+    }
+
+    "semverVersionsOrdering" - {
       import scala.Ordered._
 
       val v = List(
@@ -86,7 +98,7 @@ object VersionTests extends TestSuite {
       ).map(Version.apply)
       val pairs = v.tails.flatMap {
         case h :: t => t.map((h, _))
-        case Nil    => List.empty
+        case Nil => List.empty
       }
       pairs.foreach {
         case (a, b) =>
@@ -95,42 +107,45 @@ object VersionTests extends TestSuite {
       }
     }
 
-    'parser - {
+    "parser" - {
 
-      Symbol("parse 1.0.5") - {
+      "parse 1.0.5" - {
         assertMatch(VersionParser.parse("1.0.5")) {
           case Parsed.Success((Seq(1, 0, 5), Seq(), Seq()), _) =>
         }
       }
 
-      Symbol("parse 1.0.M3") - {
+      "parse 1.0.M3" - {
         assertMatch(VersionParser.parse("1.0.M3")) {
           case Parsed.Success((Seq(1, 0), Seq("M3"), Seq()), _) =>
         }
       }
-      Symbol("parse 1.0.3m") - {
+      "parse 1.0.3m" - {
         assertMatch(VersionParser.parse("1.0.3m")) {
           case Parsed.Success((Seq(1, 0), Seq("3m"), Seq()), _) =>
         }
       }
-      Symbol("parse 1.0.3m.4") - {
+      "parse 1.0.3m.4" - {
         assertMatch(VersionParser.parse("1.0.3m.4")) {
           case Parsed.Success((Seq(1, 0), Seq("3m", "4"), Seq()), _) =>
         }
       }
-      Symbol("parse  9.1-901-1.jdbc4") - {
+      "parse  9.1-901-1.jdbc4" - {
         assertMatch(VersionParser.parse("9.1-901-1.jdbc4")) {
           case Parsed.Success((Seq(9, 1), Seq("901", "1", "jdbc4"), Seq()), _) =>
         }
       }
-      Symbol("parse 1.33.7+build/11.e0f985a") - {
+      "parse 1.33.7+build/11.e0f985a" - {
         assertMatch(VersionParser.parse("1.33.7+build/11.e0f985a")) {
           case Parsed.Success((Seq(1, 33, 7), Seq(), Seq("build/11", "e0f985a")), _) =>
         }
       }
-      Symbol("parse 9.1-901-1.jdbc4+build/11.e0f985a") - {
+      "parse 9.1-901-1.jdbc4+build/11.e0f985a" - {
         assertMatch(VersionParser.parse("9.1-901-1.jdbc4+build/11.e0f985a")) {
-          case Parsed.Success((Seq(9, 1), Seq("901", "1", "jdbc4"), Seq("build/11", "e0f985a")), _) =>
+          case Parsed.Success(
+                (Seq(9, 1), Seq("901", "1", "jdbc4"), Seq("build/11", "e0f985a")),
+                _
+              ) =>
         }
       }
     }

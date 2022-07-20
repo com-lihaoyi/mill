@@ -1,0 +1,187 @@
+package mill.scalajslib.worker
+
+import java.io.File
+
+import mill.scalajslib.api
+import mill.scalajslib.worker.{api => workerApi}
+import mill.api.{Ctx, internal, Result}
+import mill.define.Discover
+import mill.{Agg, T}
+
+@internal
+private[scalajslib] class ScalaJSWorker extends AutoCloseable {
+  private var scalaJSWorkerInstanceCache = Option.empty[(Long, workerApi.ScalaJSWorkerApi)]
+
+  private def bridge(toolsClasspath: Agg[os.Path])(implicit ctx: Ctx.Home) = {
+    val classloaderSig =
+      toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
+    scalaJSWorkerInstanceCache match {
+      case Some((sig, bridge)) if sig == classloaderSig => bridge
+      case _ =>
+        val cl = mill.api.ClassLoader.create(
+          toolsClasspath.map(_.toIO.toURI.toURL).toVector,
+          getClass.getClassLoader
+        )
+        val bridge = cl
+          .loadClass("mill.scalajslib.worker.ScalaJSWorkerImpl")
+          .getDeclaredConstructor()
+          .newInstance()
+          .asInstanceOf[workerApi.ScalaJSWorkerApi]
+        scalaJSWorkerInstanceCache = Some((classloaderSig, bridge))
+        bridge
+    }
+  }
+
+  private def toWorkerApi(moduleKind: api.ModuleKind): workerApi.ModuleKind = moduleKind match {
+    case api.ModuleKind.NoModule => workerApi.ModuleKind.NoModule
+    case api.ModuleKind.CommonJSModule => workerApi.ModuleKind.CommonJSModule
+    case api.ModuleKind.ESModule => workerApi.ModuleKind.ESModule
+  }
+
+  private def toWorkerApi(esFeatures: api.ESFeatures): workerApi.ESFeatures = workerApi.ESFeatures(
+    allowBigIntsForLongs = esFeatures.allowBigIntsForLongs,
+    avoidClasses = esFeatures.avoidClasses,
+    avoidLetsAndConsts = esFeatures.avoidLetsAndConsts,
+    esVersion = esFeatures.esVersion match {
+      case api.ESVersion.ES2015 => workerApi.ESVersion.ES2015
+      case api.ESVersion.ES2016 => workerApi.ESVersion.ES2016
+      case api.ESVersion.ES2017 => workerApi.ESVersion.ES2017
+      case api.ESVersion.ES2018 => workerApi.ESVersion.ES2018
+      case api.ESVersion.ES2019 => workerApi.ESVersion.ES2019
+      case api.ESVersion.ES2020 => workerApi.ESVersion.ES2020
+      case api.ESVersion.ES2021 => workerApi.ESVersion.ES2021
+      case api.ESVersion.ES5_1 => workerApi.ESVersion.ES5_1
+    }
+  )
+
+  private def toWorkerApi(moduleSplitStyle: api.ModuleSplitStyle): workerApi.ModuleSplitStyle =
+    moduleSplitStyle match {
+      case api.ModuleSplitStyle.FewestModules => workerApi.ModuleSplitStyle.FewestModules
+      case api.ModuleSplitStyle.SmallestModules => workerApi.ModuleSplitStyle.SmallestModules
+      case api.ModuleSplitStyle.SmallModulesFor(packages) =>
+        workerApi.ModuleSplitStyle.SmallModulesFor(packages)
+    }
+
+  private def toWorkerApi(jsEnvConfig: api.JsEnvConfig): workerApi.JsEnvConfig = {
+    jsEnvConfig match {
+      case config: api.JsEnvConfig.NodeJs =>
+        workerApi.JsEnvConfig.NodeJs(
+          executable = config.executable,
+          args = config.args,
+          env = config.env,
+          sourceMap = config.sourceMap
+        )
+      case config: api.JsEnvConfig.JsDom =>
+        workerApi.JsEnvConfig.JsDom(
+          executable = config.executable,
+          args = config.args,
+          env = config.env
+        )
+      case config: api.JsEnvConfig.Phantom =>
+        workerApi.JsEnvConfig.Phantom(
+          executable = config.executable,
+          args = config.args,
+          env = config.env,
+          autoExit = config.autoExit
+        )
+    }
+  }
+
+  private def fromWorkerApi(moduleKind: workerApi.ModuleKind): api.ModuleKind = moduleKind match {
+    case workerApi.ModuleKind.NoModule => api.ModuleKind.NoModule
+    case workerApi.ModuleKind.ESModule => api.ModuleKind.ESModule
+    case workerApi.ModuleKind.CommonJSModule => api.ModuleKind.CommonJSModule
+  }
+
+  private def fromWorkerApi(report: workerApi.Report): api.Report = {
+    api.Report(
+      publicModules =
+        report.publicModules.map(module =>
+          api.Report.Module(
+            moduleID = module.moduleID,
+            jsFileName = module.jsFileName,
+            sourceMapName = module.sourceMapName,
+            moduleKind = fromWorkerApi(module.moduleKind)
+          )
+        ),
+      dest = mill.PathRef(os.Path(report.dest))
+    )
+  }
+
+  private def toWorkerApi(report: api.Report): workerApi.Report = {
+    workerApi.Report(
+      publicModules = report.publicModules.map(module =>
+        workerApi.Report.Module(
+          moduleID = module.moduleID,
+          jsFileName = module.jsFileName,
+          sourceMapName = module.sourceMapName,
+          moduleKind = toWorkerApi(module.moduleKind)
+        )
+      ),
+      dest = report.dest.path.toIO
+    )
+  }
+
+  def link(
+      toolsClasspath: Agg[os.Path],
+      sources: Agg[os.Path],
+      libraries: Agg[os.Path],
+      dest: File,
+      main: Option[String],
+      forceOutJs: Boolean,
+      testBridgeInit: Boolean,
+      isFullLinkJS: Boolean,
+      optimizer: Boolean,
+      moduleKind: api.ModuleKind,
+      esFeatures: api.ESFeatures,
+      moduleSplitStyle: api.ModuleSplitStyle
+  )(implicit ctx: Ctx.Home): Result[api.Report] = {
+    bridge(toolsClasspath).link(
+      sources = sources.items.map(_.toIO).toArray,
+      libraries = libraries.items.map(_.toIO).toArray,
+      dest = dest,
+      main = main.orNull,
+      forceOutJs = forceOutJs,
+      testBridgeInit = testBridgeInit,
+      isFullLinkJS = isFullLinkJS,
+      optimizer = optimizer,
+      moduleKind = toWorkerApi(moduleKind),
+      esFeatures = toWorkerApi(esFeatures),
+      moduleSplitStyle = toWorkerApi(moduleSplitStyle)
+    ) match {
+      case Right(report) => Result.Success(fromWorkerApi(report))
+      case Left(message) => Result.Failure(message)
+    }
+  }
+
+  def run(toolsClasspath: Agg[os.Path], config: api.JsEnvConfig, report: api.Report)(
+      implicit ctx: Ctx.Home
+  ): Unit = {
+    val dest =
+      bridge(toolsClasspath).run(toWorkerApi(config), toWorkerApi(report))
+  }
+
+  def getFramework(
+      toolsClasspath: Agg[os.Path],
+      config: api.JsEnvConfig,
+      frameworkName: String,
+      report: api.Report
+  )(implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
+    bridge(toolsClasspath).getFramework(
+      toWorkerApi(config),
+      frameworkName,
+      toWorkerApi(report)
+    )
+  }
+
+  override def close(): Unit = {
+    scalaJSWorkerInstanceCache = None
+  }
+}
+
+@internal
+private[scalajslib] object ScalaJSWorkerExternalModule extends mill.define.ExternalModule {
+
+  def scalaJSWorker = T.worker { new ScalaJSWorker() }
+  lazy val millDiscover = Discover[this.type]
+}

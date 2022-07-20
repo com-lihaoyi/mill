@@ -1,11 +1,11 @@
 package mill.scalalib
-import mill.util.JsonFormatters._
+import JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
-
 import CrossVersion._
+import mill.scalalib.api.Util.Scala3EarlyVersion
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
-  import mill.scalalib.api.Util.{isDotty, DottyVersion}
+  import mill.scalalib.api.Util.{isDottyOrScala3, DottyVersion, Scala3Version}
 
   def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
@@ -16,7 +16,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def exclude(exclusions: (String, String)*) = copy(
     dep = dep.withExclusions(
       dep.exclusions ++
-      exclusions.map{case (k, v) => (coursier.Organization(k), coursier.ModuleName(v))}
+        exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
     )
   )
   def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*"): _*)
@@ -35,31 +35,31 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   )
 
   /**
-    * If scalaVersion is a Dotty version, replace the cross-version suffix
-    * by the Scala 2.x version that the Dotty version is retro-compatible with,
-    * otherwise do nothing.
-    *
-    * This setting is useful when your build contains dependencies that have only
-    * been published with Scala 2.x, if you have:
-    * {{{
-    * def ivyDeps = Agg(ivy"a::b:c")
-    * }}}
-    * you can replace it by:
-    * {{{
-    * def ivyDeps = Agg(ivy"a::b:c".withDottyCompat(scalaVersion()))
-    * }}}
-    * This will have no effect when compiling with Scala 2.x, but when compiling
-    * with Dotty this will change the cross-version to a Scala 2.x one. This
-    * works because Dotty is currently retro-compatible with Scala 2.x.
-    */
+   * If scalaVersion is a Dotty version, replace the cross-version suffix
+   * by the Scala 2.x version that the Dotty version is retro-compatible with,
+   * otherwise do nothing.
+   *
+   * This setting is useful when your build contains dependencies that have only
+   * been published with Scala 2.x, if you have:
+   * {{{
+   * def ivyDeps = Agg(ivy"a::b:c")
+   * }}}
+   * you can replace it by:
+   * {{{
+   * def ivyDeps = Agg(ivy"a::b:c".withDottyCompat(scalaVersion()))
+   * }}}
+   * This will have no effect when compiling with Scala 2.x, but when compiling
+   * with Dotty this will change the cross-version to a Scala 2.x one. This
+   * works because Dotty is currently retro-compatible with Scala 2.x.
+   */
   def withDottyCompat(scalaVersion: String): Dep =
     cross match {
-      case cross: Binary if isDotty(scalaVersion) =>
+      case cross: Binary if isDottyOrScala3(scalaVersion) =>
         val compatSuffix =
           scalaVersion match {
-            case DottyVersion("3", _) =>
+            case Scala3Version(_, _) | Scala3EarlyVersion(_) =>
               "_2.13"
-            case DottyVersion("0", minor, patch) =>
+            case DottyVersion(minor, patch) =>
               if (minor.toInt > 18 || minor.toInt == 18 && patch.toInt >= 1)
                 "_2.13"
               else
@@ -100,7 +100,13 @@ object Dep {
       case _ => throw new Exception(s"Unable to parse signature: [$signature]")
     }).configure(attributes = attributes)
   }
-  def apply(org: String, name: String, version: String, cross: CrossVersion, force: Boolean = false): Dep = {
+  def apply(
+      org: String,
+      name: String,
+      version: String,
+      cross: CrossVersion,
+      force: Boolean = false
+  ): Dep = {
     apply(
       coursier.Dependency(
         coursier.Module(coursier.Organization(org), coursier.ModuleName(name)),
@@ -114,6 +120,7 @@ object Dep {
 }
 
 sealed trait CrossVersion {
+
   /** If true, the cross-version suffix should start with a platform suffix if it exists */
   def platformed: Boolean
 
@@ -140,15 +147,15 @@ sealed trait CrossVersion {
 object CrossVersion {
   case class Constant(value: String, platformed: Boolean) extends CrossVersion
   object Constant {
-     implicit def rw: RW[Constant] = macroRW
+    implicit def rw: RW[Constant] = macroRW
   }
   case class Binary(platformed: Boolean) extends CrossVersion
   object Binary {
-     implicit def rw: RW[Binary] = macroRW
+    implicit def rw: RW[Binary] = macroRW
   }
   case class Full(platformed: Boolean) extends CrossVersion
   object Full {
-     implicit def rw: RW[Full] = macroRW
+    implicit def rw: RW[Full] = macroRW
   }
 
   def empty(platformed: Boolean) = Constant(value = "", platformed)

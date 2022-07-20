@@ -1,5 +1,4 @@
-package mill
-package playlib
+package mill.playlib
 
 import coursier.MavenRepository
 import mill.api.PathRef
@@ -7,24 +6,25 @@ import mill.playlib.api.RouteCompilerType
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.scalalib.api._
+import mill.{Agg, T}
 
 trait RouterModule extends ScalaModule with Version {
 
-  def routes: T[Seq[PathRef]] = T.sources { millSourcePath / 'routes }
+  def routes: T[Seq[PathRef]] = T.sources { millSourcePath / "routes" }
 
-  private def routeFiles = T {
+  def routeFiles = T {
     val paths = routes().flatMap(file => os.walk(file.path))
-    val routeFiles=paths.filter(_.ext=="routes") ++ paths.filter(_.last == "routes")
-    routeFiles.map(f=>PathRef(f))
+    val routeFiles = paths.filter(_.ext == "routes") ++ paths.filter(_.last == "routes")
+    routeFiles.map(f => PathRef(f))
   }
 
   /**
-    * A [[Seq]] of additional imports to be added to the routes file.
-    * Defaults to :
-    *
-    * - controllers.Assets.Asset
-    * - play.libs.F
-    */
+   * A [[Seq]] of additional imports to be added to the routes file.
+   * Defaults to :
+   *
+   * - controllers.Assets.Asset
+   * - play.libs.F
+   */
   def routesAdditionalImport: Seq[String] = Seq(
     "controllers.Assets.Asset",
     "play.libs.F"
@@ -37,61 +37,60 @@ trait RouterModule extends ScalaModule with Version {
   def namespaceReverseRouter: Boolean = false
 
   /**
-    * The routes compiler type to be used.
-    *
-    * Can only be one of:
-    *
-    * - [[RouteCompilerType.InjectedGenerator]]
-    * - [[RouteCompilerType.StaticGenerator]]
-    */
+   * The routes compiler type to be used.
+   *
+   * Can only be one of:
+   *
+   * - [[RouteCompilerType.InjectedGenerator]]
+   * - [[RouteCompilerType.StaticGenerator]]
+   */
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
   def routerClasspath: T[Agg[PathRef]] = T {
-    resolveDependencies(
-      Seq(
-        coursier.LocalRepositories.ivy2Local,
-        MavenRepository("https://repo1.maven.org/maven2")
-      ),
-      Lib.depToDependency(_, scalaVersion()),
-      Seq(
-        ivy"com.typesafe.play::routes-compiler:${playVersion()}"
-      )
+    resolveDeps(T.task { Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}") })()
+  }
+
+  protected val routeCompilerWorker: RouteCompilerWorkerModule = RouteCompilerWorkerModule
+
+  def compileRouter: T[CompilationResult] = T.persistent {
+    T.log.debug(s"compiling play routes with ${playVersion()} worker")
+    routeCompilerWorker.routeCompilerWorker().compile(
+      routerClasspath = playRouterToolsClasspath().map(_.path),
+      files = routeFiles().map(_.path),
+      additionalImports = routesAdditionalImport,
+      forwardsRouter = generateForwardsRouter,
+      reverseRouter = generateReverseRouter,
+      namespaceReverseRouter = namespaceReverseRouter,
+      generatorType = generatorType,
+      dest = T.dest
     )
   }
 
-  final def compileRouter: T[CompilationResult] = T.persistent {
-    T.log.debug(s"compiling play routes with ${playVersion()} worker")
-    RouteCompilerWorkerModule.routeCompilerWorker().compile(
-      toolsClasspath().map(_.path),
-      routeFiles().map(_.path),
-      routesAdditionalImport,
-      generateForwardsRouter,
-      generateReverseRouter,
-      namespaceReverseRouter,
-      generatorType,
-      T.dest)
-  }
+  def playRouteCompilerWorkerClasspath = T {
+    val workerKey =
+      "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_" + playMinorVersion().replace(".", "_")
 
-  private def playRouteCompilerWorkerClasspath = T {
-    val workerKey = "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_" + playMinorVersion().replace(".", "_")
-
-    //While the following seems to work (tests pass), I am not completely
-    //confident that the strings I used for artifact and resolveFilter are
-    //actually correct
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-contrib-playlib-worker-${playMinorVersion()}",
-      repositories,
-      resolveFilter = _.toString.contains("mill-contrib-playlib-worker"),
-      artifactSuffix = "_2.12"
+      repositoriesTask(),
+      artifactSuffix = playMinorVersion() match {
+        case "2.6" => "_2.12"
+        case _ => "_2.13"
+      }
     )
   }
 
-  private def toolsClasspath = T {
+  @deprecated("Use playRouterToolsClasspath instead", "mill after 0.10.0-M1")
+  def toolsClasspath = T {
+    playRouterToolsClasspath()
+  }
+
+  def playRouterToolsClasspath = T {
     playRouteCompilerWorkerClasspath() ++ routerClasspath()
   }
 
-  def routerClasses = T{
+  def routerClasses = T {
     Seq(compileRouter().classes)
   }
 

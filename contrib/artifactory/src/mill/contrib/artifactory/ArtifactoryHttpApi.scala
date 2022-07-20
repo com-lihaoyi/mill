@@ -5,11 +5,16 @@ import java.util.Base64
 import scala.concurrent.duration._
 
 class ArtifactoryHttpApi(
-  credentials: String,
-  readTimeout: Int,
-  connectTimeout: Int
+    credentials: String,
+    readTimeout: Int,
+    connectTimeout: Int
 ) {
-  val http = requests.Session(readTimeout = readTimeout, connectTimeout = connectTimeout, maxRedirects = 0, check = false)
+  val http = requests.Session(
+    readTimeout = readTimeout,
+    connectTimeout = connectTimeout,
+    maxRedirects = 0,
+    check = false
+  )
 
   private val base64Creds = base64(credentials)
   private val uploadTimeout = 5.minutes.toMillis.toInt

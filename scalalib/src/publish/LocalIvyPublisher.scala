@@ -24,7 +24,10 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
       ivy -> releaseDir / "ivys" / "ivy.xml"
     )
     writeFiles(extras.map { entry =>
-      (entry.file.path, releaseDir / s"${entry.ivyType}s" / s"${artifact.id}${entry.classifierPart}.${entry.ext}")
+      (
+        entry.file.path,
+        releaseDir / s"${entry.ivyType}s" / s"${artifact.id}${entry.classifierPart}.${entry.ext}"
+      )
     }: _*)
   }
 
@@ -37,4 +40,9 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
 
 }
 
-object LocalIvyPublisher extends LocalIvyPublisher(os.home / ".ivy2" / "local")
+object LocalIvyPublisher
+    extends LocalIvyPublisher(
+      sys.props.get("ivy.home")
+        .map(os.Path(_))
+        .getOrElse(os.home / ".ivy2") / "local"
+    )

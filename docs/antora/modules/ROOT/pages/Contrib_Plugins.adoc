@@ -1,0 +1,46 @@
+= Contrib Plugins
+:page-aliases: Contrib_Modules.adoc
+
+The ((plugins)) in this section are developed/maintained in the mill git tree.
+
+For details about including plugins in your `build.sc` read xref:Extending_Mill.adoc#_using_mill_plugins_import_ivy[Using Mill Plugins].
+
+[CAUTION]
+--
+When using one of these contribution modules, it is important that the versions you load match your mill version.
+To facilitate this, Mill will automatically replace the `$MILL_VERSION` literal in your ivy imports with the correct value.
+You can also leave the version completely empty to default to the mill version (but don't forget to keep the trailing colon).
+
+For instance:
+
+[source,scala]
+----
+import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
+----
+
+or
+
+[source,scala]
+----
+import $ivy.`com.lihaoyi::mill-contrib-bloop:`
+----
+
+--
+
+== List of Contrib Plugins
+
+* xref:Plugin_Artifactory.adoc[]
+* xref:Plugin_Bintray.adoc[]
+* xref:Plugin_Bloop.adoc[]
+* xref:Plugin_BuildInfo.adoc[]
+* xref:Plugin_BSP.adoc[]
+* xref:Plugin_Codeartifact.adoc[]
+* xref:Plugin_Docker.adoc[]
+* xref:Plugin_Flyway.adoc[]
+* xref:Plugin_Play.adoc[]
+* xref:Plugin_Proguard.adoc[]
+* xref:Plugin_ScalaPB.adoc[]
+* xref:Plugin_Scoverage.adoc[]
+* xref:TestNG_TestFramework.adoc[]
+* xref:Plugin_Twirl.adoc[]
+* xref:Plugin_VersionFile.adoc[]

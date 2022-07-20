@@ -4,12 +4,12 @@ import org.flywaydb.core.api.logging.Log
 import org.flywaydb.core.api.logging.LogCreator
 
 /**
-  * Adapted from https://github.com/flyway/flyway/blob/25f562283e45d717bf56e44fb9988b4adc98a0ef/flyway-commandline/src/main/java/org/flywaydb/commandline/ConsoleLog.java
-  */
+ * Adapted from https://github.com/flyway/flyway/blob/25f562283e45d717bf56e44fb9988b4adc98a0ef/flyway-commandline/src/main/java/org/flywaydb/commandline/ConsoleLog.java
+ */
 
 /**
-  * Wrapper around a simple Console output.
-  */
+ * Wrapper around a simple Console output.
+ */
 object ConsoleLog {
 
   object Level extends Enumeration {
@@ -19,10 +19,10 @@ object ConsoleLog {
 }
 
 /**
-  * Creates a new Console Log.
-  *
-  * @param level the log level.
-  */
+ * Creates a new Console Log.
+ *
+ * @param level the log level.
+ */
 class ConsoleLog(val level: ConsoleLog.Level.Level) extends Log {
   override def isDebugEnabled: Boolean = level eq ConsoleLog.Level.DEBUG
 
@@ -38,6 +38,10 @@ class ConsoleLog(val level: ConsoleLog.Level.Level) extends Log {
     System.out.println("WARNING: " + message)
   }
 
+  override def notice(message: String): Unit = {
+    System.err.println("NOTICE: " + message)
+  }
+
   override def error(message: String): Unit = {
     System.err.println("ERROR: " + message)
   }
@@ -48,11 +52,9 @@ class ConsoleLog(val level: ConsoleLog.Level.Level) extends Log {
   }
 }
 
-
-
 /**
-  * Log Creator for the Command-Line console.
-  */
+ * Log Creator for the Command-Line console.
+ */
 class ConsoleLogCreator(val level: ConsoleLog.Level.Level) extends LogCreator {
   override def createLogger(clazz: Class[_]): Log = new ConsoleLog(level)
 }

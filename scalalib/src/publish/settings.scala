@@ -12,10 +12,7 @@ object Artifact {
     fromDep(dep, "", "", "")
   }
 
-  def fromDep(dep: Dep,
-              scalaFull: String,
-              scalaBin: String,
-              platformSuffix: String): Dependency = {
+  def fromDep(dep: Dep, scalaFull: String, scalaBin: String, platformSuffix: String): Dependency = {
     val name = dep.artifactName(
       binaryVersion = scalaBin,
       fullVersion = scalaFull,
@@ -30,7 +27,7 @@ object Artifact {
       Scope.Compile,
       dep.dep.optional,
       if (dep.dep.configuration.isEmpty) None else Some(dep.dep.configuration.value),
-      dep.dep.exclusions.toList.map{case (a, b) => (a.value, b.value)}
+      dep.dep.exclusions.toList.map { case (a, b) => (a.value, b.value) }
     )
   }
 }
@@ -65,29 +62,6 @@ case class PomSettings(
     url: String,
     licenses: Seq[License],
     versionControl: VersionControl,
-    developers: Seq[Developer]
+    developers: Seq[Developer],
+    packaging: String = "jar"
 )
-
-object PomSettings {
-  @deprecated("use VersionControl instead of SCM", "0.1.3")
-  def apply(description: String,
-            organization: String,
-            url: String,
-            licenses: Seq[License],
-            scm: SCM,
-            developers: Seq[Developer]): PomSettings = {
-    PomSettings(
-      description = description,
-      organization = organization,
-      url = url,
-      licenses = licenses,
-      versionControl = VersionControl(
-        browsableRepository = Some(scm.url),
-        connection = Some(scm.connection),
-        developerConnection = None,
-        tag = None
-      ),
-      developers = developers
-    )
-  }
-}

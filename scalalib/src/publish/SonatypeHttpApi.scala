@@ -4,18 +4,24 @@ import java.util.Base64
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 import mill.BuildInfo
 import requests.BaseSession
-
+import ujson.ParseException
 
 class SonatypeHttpApi(
-  uri: String,
-  credentials: String,
-  readTimeout: Int,
-  connectTimeout: Int
+    uri: String,
+    credentials: String,
+    readTimeout: Int,
+    connectTimeout: Int
 ) {
-  val http = requests.Session(readTimeout = readTimeout, connectTimeout = connectTimeout, maxRedirects = 0, check = false)
+  val http = requests.Session(
+    readTimeout = readTimeout,
+    connectTimeout = connectTimeout,
+    maxRedirects = 0,
+    check = false
+  )
 
   private val base64Creds = base64(credentials)
 
@@ -23,7 +29,7 @@ class SonatypeHttpApi(
     "Authorization" -> s"Basic $base64Creds",
     "Accept" -> "application/json",
     "Content-Type" -> "application/json",
-    "User-Agent" -> s"mill-${BuildInfo.millVersion}${BaseSession.defaultHeaders.get("User-Agent").map(" ("+_+")").getOrElse("")}"
+    "User-Agent" -> s"mill-${BuildInfo.millVersion}${BaseSession.defaultHeaders.get("User-Agent").map(" (" + _ + ")").getOrElse("")}"
   )
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles.html
@@ -43,13 +49,13 @@ class SonatypeHttpApi(
       ujson
         .read(response.text())("data")
         .arr
-        .find(profile =>
-          groupId.split('.').startsWith(profile("name").str.split('.')))
-        .map(_("resourceURI").str.toString)
+        .find(profile => groupId.split('.').startsWith(profile("name").str.split('.')))
+        .map(_("resourceURI").str)
 
     resourceUri.getOrElse(
       throw new RuntimeException(
-        s"Could not find staging profile for groupId: ${groupId}")
+        s"Could not find staging profile for groupId: ${groupId}"
+      )
     )
   }
 
@@ -58,7 +64,15 @@ class SonatypeHttpApi(
       s"${uri}/staging/repository/${stagingRepoId}",
       headers = commonHeaders
     )
-    ujson.read(response.text())("type").str.toString
+    try {
+      ujson.read(response.text())("type").str
+    } catch {
+      case e: ParseException =>
+        throw new RuntimeException(
+          s"Could not parse HTTP response. ${e.getMessage()}" + "\n" + s"Raw response: ${response}",
+          e
+        )
+    }
   }
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_start.html
@@ -70,10 +84,12 @@ class SonatypeHttpApi(
     ))
 
     if (!response.is2xx) {
-      throw new Exception(s"$uri/staging/profiles returned ${response.statusCode}\n${response.text()}")
+      throw new RuntimeException(
+        s"$uri/staging/profiles returned ${response.statusCode}\n${response.text()}"
+      )
     }
 
-    ujson.read(response.text())("data")("stagedRepositoryId").str.toString
+    ujson.read(response.text())("data")("stagedRepositoryId").str
   }
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_finish.html
@@ -82,7 +98,8 @@ class SonatypeHttpApi(
       http.post(
         s"${profileUri}/finish",
         headers = commonHeaders,
-        data = s"""{"data": {"stagedRepositoryId": "${repositoryId}", "description": "closing staging repository"}}"""
+        data =
+          s"""{"data": {"stagedRepositoryId": "${repositoryId}", "description": "closing staging repository"}}"""
       )
     )
 
@@ -95,7 +112,8 @@ class SonatypeHttpApi(
       http.post(
         s"${profileUri}/promote",
         headers = commonHeaders,
-        data = s"""{"data": {"stagedRepositoryId": "${repositoryId}", "description": "promote staging repository"}}"""
+        data =
+          s"""{"data": {"stagedRepositoryId": "${repositoryId}", "description": "promote staging repository"}}"""
       )
     )
 
@@ -108,7 +126,8 @@ class SonatypeHttpApi(
       http.post(
         s"${profileUri}/drop",
         headers = commonHeaders,
-        data = s"""{"data": {"stagedRepositoryId": "${repositoryId}", "description": "drop staging repository"}}"""
+        data =
+          s"""{"data": {"stagedRepositoryId": "${repositoryId}", "description": "drop staging repository"}}"""
       )
     )
 
@@ -130,9 +149,11 @@ class SonatypeHttpApi(
   }
 
   @tailrec
-  private def withRetry(request: => requests.Response,
-                        retries: Int = 10,
-                        initialTimeout: FiniteDuration = 100.millis): requests.Response = {
+  private def withRetry(
+      request: => requests.Response,
+      retries: Int = 10,
+      initialTimeout: FiniteDuration = 100.millis
+  ): requests.Response = {
     val resp = request
     if (resp.is5xx && retries > 0) {
       Thread.sleep(initialTimeout.toMillis)

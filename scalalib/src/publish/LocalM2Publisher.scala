@@ -5,12 +5,12 @@ import mill.api.Ctx
 class LocalM2Publisher(m2Repo: os.Path) {
 
   def publish(
-    jar: os.Path,
-    sourcesJar: os.Path,
-    docJar: os.Path,
-    pom: os.Path,
-    artifact: Artifact,
-    extras: Seq[PublishInfo]
+      jar: os.Path,
+      sourcesJar: os.Path,
+      docJar: os.Path,
+      pom: os.Path,
+      artifact: Artifact,
+      extras: Seq[PublishInfo]
   )(implicit ctx: Ctx.Log): Seq[os.Path] = {
 
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
@@ -25,10 +25,10 @@ class LocalM2Publisher(m2Repo: os.Path) {
       e.file.path -> releaseDir / s"${artifact.id}-${artifact.version}${e.classifierPart}.${e.ext}"
     }
     toCopy.map {
-        case (from, to) =>
-          os.copy.over(from, to)
-          to
-      }
+      case (from, to) =>
+        os.copy.over(from, to)
+        to
+    }
   }
 
 }

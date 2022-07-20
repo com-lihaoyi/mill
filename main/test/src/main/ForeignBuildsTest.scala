@@ -6,12 +6,12 @@ import utest._
 object ForeignBuildsTest extends ScriptTestSuite(fork = false) {
   def workspaceSlug = "foreign-builds"
   def scriptSourcePath =
-    os.pwd / 'main / 'test / 'resources / 'examples / 'foreign
-  override def buildPath = os.sub / 'project / "build.sc"
+    os.pwd / "main" / "test" / "resources" / "examples" / "foreign"
+  override def buildPath = os.sub / "project" / "build.sc"
 
   val tests = Tests {
     initWorkspace()
-    'test - {
+    "test" - {
       // See https://github.com/lihaoyi/mill/issues/302
       if (!ammonite.util.Util.java9OrAbove) {
         assert(

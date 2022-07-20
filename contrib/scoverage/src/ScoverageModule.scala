@@ -1,16 +1,14 @@
-package mill
-package contrib
-package scoverage
+package mill.contrib.scoverage
 
-import coursier.{MavenRepository, Repository}
-import mill.api.Loose
+import coursier.Repository
+import mill._
+import mill.api.{Loose, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.{Command, Persistent, Sources, Target, Task}
-import mill.eval.PathRef
-import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib, ScalaModule}
+import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 
-
-/** Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
+/**
+ * Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
  *
  * This module allows you to generate code coverage reports for Scala projects with
  * [[https://github.com/scoverage Scoverage]] via the
@@ -47,42 +45,48 @@ import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib, ScalaModule}
  * - mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
  * - mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
  *
- * The measurement data by default is available at `out/foo/scoverage/dataDir/dest/`,
- * the html report is saved in `out/foo/scoverage/htmlReport/dest/`,
- * and the xml report is saved in `out/foo/scoverage/xmlReport/dest/`.
+ * The measurement data by default is available at `out/foo/scoverage/dataDir.dest/`,
+ * the html report is saved in `out/foo/scoverage/htmlReport.dest/`,
+ * and the xml report is saved in `out/foo/scoverage/xmlReport.dest/`.
  */
 trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
+
   /**
-    * The Scoverage version to use.
-    */
+   * The Scoverage version to use.
+   */
   def scoverageVersion: T[String]
 
-  def scoverageRuntimeDep = T {
+  def scoverageRuntimeDep: T[Dep] = T {
     ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}"
   }
-  def scoveragePluginDep = T {
-    ivy"org.scoverage::scalac-scoverage-plugin:${outer.scoverageVersion()}"
+  def scoveragePluginDep: T[Dep] = T {
+    ivy"org.scoverage:::scalac-scoverage-plugin:${outer.scoverageVersion()}"
   }
 
-  def toolsClasspath = T {
-    scoverageReportWorkerClasspath() ++ scoverageClasspath()
+  @deprecated("Use scoverageToolsClasspath instead.", "mill after 0.10.0-M1")
+  def toolsClasspath: T[Agg[PathRef]] = T {
+    scoverageToolsClasspath()
   }
 
-  def scoverageClasspath = T {
-    Lib.resolveDependencies(
-      Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-      Lib.depToDependency(_, "2.13.1"),
-      Seq(scoveragePluginDep()),
-      ctx = Some(implicitly[mill.util.Ctx.Log])
-    )
+  def scoverageToolsClasspath: T[Agg[PathRef]] = T {
+    scoverageReportWorkerClasspath() ++
+      resolveDeps(T.task {
+        Agg(
+          ivy"org.scoverage:scalac-scoverage-plugin_${mill.BuildInfo.scalaVersion}:${outer.scoverageVersion()}"
+        )
+      })()
   }
 
-  def scoverageReportWorkerClasspath = T {
+  def scoverageClasspath: T[Agg[PathRef]] = T {
+    resolveDeps(T.task { Agg(scoveragePluginDep()) })()
+  }
+
+  def scoverageReportWorkerClasspath: T[Agg[PathRef]] = T {
     val workerKey = "MILL_SCOVERAGE_REPORT_WORKER"
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-contrib-scoverage-worker",
-      repositories,
+      repositoriesTask(),
       resolveFilter = _.toString.contains("mill-contrib-scoverage-worker")
     )
   }
@@ -93,33 +97,40 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def doReport(reportType: ReportType): Task[Unit] = T.task {
       ScoverageReportWorker
         .scoverageReportWorker()
-        .bridge(toolsClasspath().map(_.path))
+        .bridge(scoverageToolsClasspath().map(_.path))
         .report(reportType, allSources().map(_.path), Seq(data().path))
     }
 
     /**
-      * The persistent data dir used to store scoverage coverage data.
-      * Use to store coverage data at compile-time and by the various report targets.
-      */
+     * The persistent data dir used to store scoverage coverage data.
+     * Use to store coverage data at compile-time and by the various report targets.
+     */
     def data: Persistent[PathRef] = T.persistent {
       // via the persistent target, we ensure, the dest dir doesn't get cleared
       PathRef(T.dest)
     }
 
-    override def generatedSources: Target[Seq[PathRef]] = T{ outer.generatedSources() }
-    override def allSources: Target[Seq[PathRef]] = T{ outer.allSources() }
+    override def generatedSources: Target[Seq[PathRef]] = T { outer.generatedSources() }
+    override def allSources: Target[Seq[PathRef]] = T { outer.allSources() }
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
+    override def compileModuleDeps: Seq[JavaModule] = outer.compileModuleDeps
     override def sources: Sources = T.sources { outer.sources() }
     override def resources: Sources = T.sources { outer.resources() }
-    override def scalaVersion = T{ outer.scalaVersion() }
+    override def scalaVersion = T { outer.scalaVersion() }
     override def repositories: Seq[Repository] = outer.repositories
-    override def compileIvyDeps: Target[Loose.Agg[Dep]] = T{ outer.compileIvyDeps() }
-    override def ivyDeps: Target[Loose.Agg[Dep]] = T{ outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep()) }
-    override def unmanagedClasspath: Target[Loose.Agg[PathRef]] = T{ outer.unmanagedClasspath() }
+    override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
+    override def compileIvyDeps: Target[Loose.Agg[Dep]] = T { outer.compileIvyDeps() }
+    override def ivyDeps: Target[Loose.Agg[Dep]] =
+      T { outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep()) }
+    override def unmanagedClasspath: Target[Loose.Agg[PathRef]] = T { outer.unmanagedClasspath() }
+
     /** Add the scoverage scalac plugin. */
-    override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = T{ outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep()) }
+    override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] =
+      T { outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep()) }
+
     /** Add the scoverage specific plugin settings (`dataDir`). */
-    override def scalacOptions: Target[Seq[String]] = T{ outer.scalacOptions() ++ Seq(s"-P:scoverage:dataDir:${data().path.toIO.getPath()}") }
+    override def scalacOptions: Target[Seq[String]] =
+      T { outer.scalacOptions() ++ Seq(s"-P:scoverage:dataDir:${data().path.toIO.getPath()}") }
 
     def htmlReport(): Command[Unit] = T.command { doReport(ReportType.Html) }
     def xmlReport(): Command[Unit] = T.command { doReport(ReportType.Xml) }
@@ -131,15 +142,15 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   trait ScoverageTests extends outer.Tests {
     override def upstreamAssemblyClasspath = T {
       super.upstreamAssemblyClasspath() ++
-      resolveDeps(T.task{Agg(outer.scoverageRuntimeDep())})()
+        resolveDeps(T.task { Agg(outer.scoverageRuntimeDep()) })()
     }
     override def compileClasspath = T {
       super.compileClasspath() ++
-      resolveDeps(T.task{Agg(outer.scoverageRuntimeDep())})()
+        resolveDeps(T.task { Agg(outer.scoverageRuntimeDep()) })()
     }
     override def runClasspath = T {
       super.runClasspath() ++
-      resolveDeps(T.task{Agg(outer.scoverageRuntimeDep())})()
+        resolveDeps(T.task { Agg(outer.scoverageRuntimeDep()) })()
     }
 
     // Need the sources compiled with scoverage instrumentation to run.

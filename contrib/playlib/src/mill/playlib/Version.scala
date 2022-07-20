@@ -1,10 +1,10 @@
-package mill
-package playlib
+package mill.playlib
 
-import mill.define.{Target, Task}
+import mill.T
+import mill.define.Module
 import mill.scalalib._
 
-private[playlib] trait Version extends Module{
+private[playlib] trait Version extends Module {
 
   def playVersion: T[String]
 

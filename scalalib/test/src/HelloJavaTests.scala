@@ -1,31 +1,32 @@
 package mill
 package scalalib
 
-
 import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
 
-
 object HelloJavaTests extends TestSuite {
 
-  object HelloJava extends TestUtil.BaseModule{
-    def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-    trait JUnitTests extends TestModule{
-      def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-      def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
-    }
+  object HelloJava extends TestUtil.BaseModule {
+    def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
-    object core extends JavaModule{
-      object test extends Tests with JUnitTests
+    object core extends JavaModule {
+      override def docJarUseArgsFile = false
+      object test extends Tests with TestModule.Junit4
     }
-    object app extends JavaModule{
-      def moduleDeps = Seq(core)
-      object test extends Tests with JUnitTests
+    object app extends JavaModule {
+      override def docJarUseArgsFile = true
+      override def moduleDeps = Seq(core)
+      object test extends Tests with TestModule.Junit4
+      object testJunit5 extends Tests with TestModule.Junit5 {
+        override def ivyDeps: T[Agg[Dep]] = T {
+          super.ivyDeps() ++ Agg(ivy"org.junit.jupiter:junit-jupiter-params:5.7.0")
+        }
+      }
     }
   }
-  val resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-java"
+  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-java"
 
   def init()(implicit tp: TestPath) = {
     val eval = new TestEvaluator(HelloJava)
@@ -36,7 +37,7 @@ object HelloJavaTests extends TestSuite {
     eval
   }
   def tests: Tests = Tests {
-    'compile - {
+    "compile" - {
       val eval = init()
 
       val Right((res1, n1)) = eval.apply(HelloJava.core.compile)
@@ -53,18 +54,19 @@ object HelloJavaTests extends TestSuite {
         !os.walk(res3.classes.path).exists(_.last == "Core.class")
       )
     }
-    'docJar  - {
-      val eval = init()
-
-      val Right((ref1, _)) = eval.apply(HelloJava.core.docJar)
-      val Right((ref2, _)) = eval.apply(HelloJava.app.docJar)
-
-      assert(
-        os.proc("jar", "tf", ref1.path).call().out.lines.contains("hello/Core.html"),
-        os.proc("jar", "tf", ref2.path).call().out.lines.contains("hello/Main.html")
-      )
+    "docJar" - {
+      "withoutArgsFile" - {
+        val eval = init()
+        val Right((ref1, _)) = eval.apply(HelloJava.core.docJar)
+        assert(os.proc("jar", "tf", ref1.path).call().out.lines.contains("hello/Core.html"))
+      }
+      "withArgsFile" - {
+        val eval = init()
+        val Right((ref2, _)) = eval.apply(HelloJava.app.docJar)
+        assert(os.proc("jar", "tf", ref2.path).call().out.lines.contains("hello/Main.html"))
+      }
     }
-    'test - {
+    "test" - {
       val eval = init()
 
       val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
@@ -84,28 +86,41 @@ object HelloJavaTests extends TestSuite {
         v2._2(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
         v2._2(1).status == "Success"
       )
+
+      val Right((v3, _)) = eval.apply(HelloJava.app.testJunit5.test())
+
+      val testResults = v3._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
+      val expected = Seq(
+        ("hello.Junit5TestsA", "coreTest()", "Success"),
+        ("hello.Junit5TestsA", "palindromes(String):1", "Success"),
+        ("hello.Junit5TestsA", "palindromes(String):2", "Success"),
+        ("hello.Junit5TestsA", "skippedTest()", "Skipped"),
+        ("hello.Junit5TestsB", "packagePrivateTest()", "Success")
+      )
+
+      assert(testResults == expected)
     }
-    'failures - {
+    "failures" - {
       val eval = init()
 
-      val mainJava = HelloJava.millSourcePath / 'app / 'src / "Main.java"
-      val coreJava = HelloJava.millSourcePath / 'core / 'src / "Core.java"
+      val mainJava = HelloJava.millSourcePath / "app" / "src" / "Main.java"
+      val coreJava = HelloJava.millSourcePath / "core" / "src" / "Core.java"
 
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Right(_) = eval.apply(HelloJava.app.compile)
 
-      ammonite.ops.write.over(mainJava, ammonite.ops.read(mainJava) + "}")
+      os.write.over(mainJava, os.read(mainJava) + "}")
 
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Left(_) = eval.apply(HelloJava.app.compile)
 
-      ammonite.ops.write.over(coreJava, ammonite.ops.read(coreJava) + "}")
+      os.write.over(coreJava, os.read(coreJava) + "}")
 
       val Left(_) = eval.apply(HelloJava.core.compile)
       val Left(_) = eval.apply(HelloJava.app.compile)
 
-      ammonite.ops.write.over(mainJava, ammonite.ops.read(mainJava).dropRight(1))
-      ammonite.ops.write.over(coreJava, ammonite.ops.read(coreJava).dropRight(1))
+      os.write.over(mainJava, os.read(mainJava).dropRight(1))
+      os.write.over(coreJava, os.read(coreJava).dropRight(1))
 
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Right(_) = eval.apply(HelloJava.app.compile)

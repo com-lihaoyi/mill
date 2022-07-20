@@ -5,12 +5,22 @@ import upickle.default.{ReadWriter, macroRW, readwriter}
 
 object BloopFormats {
 
-  implicit val pathRW: ReadWriter[java.nio.file.Path] = readwriter[String].bimap[java.nio.file.Path](
-    _.toString,
-    java.nio.file.Paths.get(_)
-  )
+  implicit val pathRW: ReadWriter[java.nio.file.Path] =
+    readwriter[String].bimap[java.nio.file.Path](
+      _.toString,
+      java.nio.file.Paths.get(_)
+    )
   implicit val artifactRW: ReadWriter[BloopConfig.Artifact] = macroRW
   implicit val checksumRW: ReadWriter[BloopConfig.Checksum] = macroRW
+  implicit val linkerModeDebugRW: ReadWriter[BloopConfig.LinkerMode.Debug.type] = macroRW
+  implicit val linkerModeReleaseRW: ReadWriter[BloopConfig.LinkerMode.Release.type] = macroRW
+  implicit val moduleKindJSCommonJSModuleRW
+      : ReadWriter[BloopConfig.ModuleKindJS.CommonJSModule.type] = macroRW
+  implicit val moduleKindJSNoModuleRW: ReadWriter[BloopConfig.ModuleKindJS.NoModule.type] = macroRW
+  implicit val moduleKindJSESModuleRW: ReadWriter[BloopConfig.ModuleKindJS.ESModule.type] = macroRW
+  implicit val javaThenScalaRW: ReadWriter[BloopConfig.JavaThenScala.type] = macroRW
+  implicit val scalaThenJavaRW: ReadWriter[BloopConfig.ScalaThenJava.type] = macroRW
+  implicit val mixedRW: ReadWriter[BloopConfig.Mixed.type] = macroRW
   implicit val compileOrderRW: ReadWriter[BloopConfig.CompileOrder] = macroRW
   implicit val compileSetupRW: ReadWriter[BloopConfig.CompileSetup] = macroRW
   implicit val fileRW: ReadWriter[BloopConfig.File] = macroRW
@@ -30,6 +40,7 @@ object BloopFormats {
   implicit val resolutionRW: ReadWriter[BloopConfig.Resolution] = macroRW
   implicit val sbtRW: ReadWriter[BloopConfig.Sbt] = macroRW
   implicit val scalaRw: ReadWriter[BloopConfig.Scala] = macroRW
+  implicit val sourcesGlobsRW: ReadWriter[BloopConfig.SourcesGlobs] = macroRW
   implicit val testArgumentRW: ReadWriter[BloopConfig.TestArgument] = macroRW
   implicit val testFrameworkRW: ReadWriter[BloopConfig.TestFramework] = macroRW
   implicit val testOptionsRW: ReadWriter[BloopConfig.TestOptions] = macroRW

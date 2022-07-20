@@ -12,7 +12,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * in scala-js/scala-js.
  */
 private[worker] object Run {
-  /** Starts and waits for a run on the given [[JSEnv]] interruptibly.
+
+  /**
+   * Starts and waits for a run on the given [[JSEnv]] interruptibly.
    *
    *  Interruption can be triggered by typing anything into stdin.
    */

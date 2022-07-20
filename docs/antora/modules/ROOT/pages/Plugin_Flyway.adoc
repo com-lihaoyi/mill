@@ -1,0 +1,42 @@
+= Flyway
+
+Enables you to configure and run https://flywaydb.org/[Flyway] commands from your mill build file.
+The flyway module currently supports the most common flyway use cases with file based migrations.
+
+Configure flyway by overriding settings in your module. For example
+
+.`build.sc`
+[source,scala]
+----
+import mill._, scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-flyway:`
+import contrib.flyway.FlywayModule
+
+object foo extends ScalaModule with FlywayModule {
+  def scalaVersion = "2.12.8"
+
+  //region flyway
+  def flywayUrl = "jdbc:postgresql:myDb" // required
+  def flywayDriverDeps = Agg(ivy"org.postgresql:postgresql:42.2.5") // required
+  def flywayUser = "postgres" // optional
+  // def flywayPassword = "" // optional
+  //endregion
+}
+----
+
+Flyway will look for migration files in `db/migration` in all resources folders by default.
+This should work regardless of if you are using a mill or sbt project layout.
+
+You can then run common flyway commands like
+
+[source,bash]
+----
+mill foo.flywayClean
+mill foo.flywayInfo
+mill foo.flywayMigrate
+----
+
+CAUTION: You should never hard-code credentials or check them into a version control system.
+You should write some code to populate the settings for flyway instead.
+For example `def flywayPassword = T.input(T.ctx.env("FLYWAY_PASSWORD"))`

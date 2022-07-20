@@ -11,11 +11,13 @@ object IO extends StreamSupport {
   /**
    * Unpacks the given `src` path into the context specific destination directory.
    * @param src The ZIP file
-   * @param dest The relative ouput folder under the context specifix destination directory.
+   * @param dest The relative output folder under the context specifix destination directory.
    * @param ctx The target context
    * @return The [[PathRef]] to the unpacked folder.
    */
-  def unpackZip(src: os.Path, dest: os.RelPath = os.rel / "unpacked")(implicit ctx: Ctx.Dest): PathRef = {
+  def unpackZip(src: os.Path, dest: os.RelPath = os.rel / "unpacked")(implicit
+      ctx: Ctx.Dest
+  ): PathRef = {
 
     val byteStream = os.read.inputStream(src)
     val zipStream = new java.util.zip.ZipInputStream(byteStream)

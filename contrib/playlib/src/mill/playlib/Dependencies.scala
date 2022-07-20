@@ -1,9 +1,9 @@
-package mill
-package playlib
+package mill.playlib
 
+import mill.{Agg, T}
 import mill.scalalib._
 
-private [playlib] trait Dependencies extends ScalaModule with Version{
+private[playlib] trait Dependencies extends ScalaModule with Version {
   def core = T { component("play") }
   def guice = T { component("play-guice") }
   def server = T { component("play-server") }
@@ -14,11 +14,12 @@ private [playlib] trait Dependencies extends ScalaModule with Version{
   def ws = T { component("play-ahc-ws") }
   def caffeine = T { component("play-caffeine-cache") }
 
-  override def ivyDeps = T{
+  override def ivyDeps = T {
     super.ivyDeps() ++ Agg(
-    core(),
-    guice(),
-    server(),
-    logback()
-  )}
+      core(),
+      guice(),
+      server(),
+      logback()
+    )
+  }
 }

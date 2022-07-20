@@ -28,7 +28,8 @@ sealed trait Version {
       case Bump.major => (major + 1, 0, 0)
       case Bump.minor => (major, minor + 1, 0)
       case Bump.patch => (major, minor, patch + 1)
-      case _ => throw new RuntimeException(s"Valid arguments for bump are: ${Bump.values.mkString(", ")}")
+      case _ =>
+        throw new RuntimeException(s"Valid arguments for bump are: ${Bump.values.mkString(", ")}")
     }
 
     this match {
@@ -53,7 +54,7 @@ object Version {
         Release(major.toInt, minor.toInt, patch.toInt)
 
       case MinorSnapshotVersion(major, minor, patch) =>
-        Snapshot(major.toInt, minor.toInt, patch.toInt)        
+        Snapshot(major.toInt, minor.toInt, patch.toInt)
     }
 
   case class Release(major: Int, minor: Int, patch: Int) extends Version
@@ -68,6 +69,8 @@ object Version {
   implicit val readWriter: ReadWriter[Version] =
     readwriter[String].bimap(_.toString, Version.of)
 
-  implicit val read: scopt.Read[Version] =
-    scopt.Read.reads(Version.of)
+  implicit val read: mainargs.TokensReader[Version] = new mainargs.TokensReader[Version](
+    "<version>",
+    s => Right(Version.of(s.last))
+  )
 }

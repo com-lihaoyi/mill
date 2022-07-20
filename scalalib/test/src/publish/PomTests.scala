@@ -12,12 +12,13 @@ object PomTests extends TestSuite {
     val artifact =
       Artifact("com.lihaoyi", "mill-scalalib_2.12", "0.0.1")
     val deps = Agg(
-      Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"),
-                 Scope.Compile),
-      Dependency(Artifact("org.scala-sbt", "test-interface", "1.0"),
-                 Scope.Compile),
-      Dependency(Artifact("com.lihaoyi", "pprint_2.12", "0.5.3"),
-                 Scope.Compile, exclusions = List("com.lihaoyi" -> "fansi_2.12", "*" -> "sourcecode_2.12"))
+      Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"), Scope.Compile),
+      Dependency(Artifact("org.scala-sbt", "test-interface", "1.0"), Scope.Compile),
+      Dependency(
+        Artifact("com.lihaoyi", "pprint_2.12", "0.5.3"),
+        Scope.Compile,
+        exclusions = List("com.lihaoyi" -> "fansi_2.12", "*" -> "sourcecode_2.12")
+      )
     )
     val settings = PomSettings(
       description = "mill-scalalib",
@@ -26,23 +27,22 @@ object PomTests extends TestSuite {
       licenses = Seq(License.`MIT`),
       versionControl = VersionControl.github("lihaoyi", "mill"),
       developers = List(
-        Developer("lihaoyi",
-                  "Li Haoyi",
-                  "https://github.com/lihaoyi",
-                  None,
-                  None),
-        Developer("rockjam",
-                  "Nikolai Tatarinov",
-                  "https://github.com/rockjam",
-                  Some("80pct done Inc."),
-                  Some("https://80pctdone.com/"))
+        Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi", None, None),
+        Developer(
+          "rockjam",
+          "Nikolai Tatarinov",
+          "https://github.com/rockjam",
+          Some("80pct done Inc."),
+          Some("https://80pctdone.com/")
+        )
       )
     )
+    val properties = Map[String, String]()
 
-    'fullPom - {
-      val fullPom = pomXml(artifact, deps, artifactId, settings)
+    test("fullPom") {
+      val fullPom = pomXml(artifact, deps, artifactId, settings, properties)
 
-      'topLevel - {
+      test("topLevel") {
         assert(
           singleText(fullPom \ "modelVersion") == "4.0.0",
           singleText(fullPom \ "name") == artifactId,
@@ -55,7 +55,7 @@ object PomTests extends TestSuite {
         )
       }
 
-      'licenses - {
+      test("licenses") {
         val licenses = fullPom \ "licenses" \ "license"
 
         assert(licenses.size == 1)
@@ -69,7 +69,7 @@ object PomTests extends TestSuite {
         )
       }
 
-      'scm - {
+      test("scm") {
         val scm = (fullPom \ "scm").head
         val pomScm = settings.versionControl
 
@@ -81,7 +81,7 @@ object PomTests extends TestSuite {
         )
       }
 
-      'developers - {
+      test("developers") - {
         val developers = fullPom \ "developers" \ "developer"
 
         assert(developers.size == 2)
@@ -103,7 +103,7 @@ object PomTests extends TestSuite {
         )
       }
 
-      'dependencies - {
+      test("dependencies") {
         val dependencies = fullPom \ "dependencies" \ "dependency"
 
         assert(dependencies.size == 3)
@@ -119,24 +119,25 @@ object PomTests extends TestSuite {
               optText(dep \ "scope").isEmpty,
               (dep \ "exclusions").zipWithIndex.forall { case (node, j) =>
                 singleText(node \ "exclusion" \ "groupId") == pomDeps(index).exclusions(j)._1 &&
-                  singleText(node \ "exclusion" \ "artifactId") == pomDeps(index).exclusions(j)._2
+                singleText(node \ "exclusion" \ "artifactId") == pomDeps(index).exclusions(j)._2
               }
             )
         }
       }
     }
 
-    'pomEmptyScm - {
+    test("pomEmptyScm") {
       val updatedSettings = settings.copy(
         versionControl = VersionControl(
           browsableRepository = Some("git://github.com/lihaoyi/mill.git"),
           connection = None,
           developerConnection = None,
           tag = None
-        ))
-      val pomEmptyScm = pomXml(artifact, deps, artifactId, updatedSettings)
+        )
+      )
+      val pomEmptyScm = pomXml(artifact, deps, artifactId, updatedSettings, properties)
 
-      'scm - {
+      test("scm") {
         val scm = (pomEmptyScm \ "scm").head
         val pomScm = updatedSettings.versionControl
 
@@ -149,11 +150,11 @@ object PomTests extends TestSuite {
       }
     }
 
-    'pomNoLicenses - {
+    test("pomNoLicenses") {
       val updatedSettings = settings.copy(licenses = Seq.empty)
-      val pomNoLicenses = pomXml(artifact, deps, artifactId, updatedSettings)
+      val pomNoLicenses = pomXml(artifact, deps, artifactId, updatedSettings, properties)
 
-      'licenses - {
+      test("licenses") {
         assert(
           (pomNoLicenses \ "licenses").nonEmpty,
           (pomNoLicenses \ "licenses" \ "licenses").isEmpty
@@ -161,13 +162,17 @@ object PomTests extends TestSuite {
       }
     }
 
-    'pomNoDeps - {
-      val pomNoDeps = pomXml(artifact,
-                             dependencies = Agg.empty,
-                             artifactId = artifactId,
-                             pomSettings = settings)
+    test("pomNoDeps") {
+      val pomNoDeps =
+        pomXml(
+          artifact,
+          dependencies = Agg.empty,
+          artifactId = artifactId,
+          pomSettings = settings,
+          properties
+        )
 
-      'dependencies - {
+      test("dependencies") {
         assert(
           (pomNoDeps \ "dependencies").nonEmpty,
           (pomNoDeps \ "dependencies" \ "dependency").isEmpty
@@ -175,24 +180,43 @@ object PomTests extends TestSuite {
       }
     }
 
-    'pomNoDevelopers - {
+    test("pomNoDevelopers") {
       val updatedSettings = settings.copy(developers = Seq.empty)
-      val pomNoDevelopers = pomXml(artifact, deps, artifactId, updatedSettings)
+      val pomNoDevelopers = pomXml(artifact, deps, artifactId, updatedSettings, properties)
 
-      'developers - {
+      test("developers") {
         assert(
           (pomNoDevelopers \ "developers").nonEmpty,
           (pomNoDevelopers \ "developers" \ "developer").isEmpty
         )
       }
     }
+
+    test("pomProperties") {
+      val pom = pomXml(
+        artifact,
+        deps,
+        artifactId,
+        settings,
+        Map("myVersion" -> "1.0", "scala.version" -> "2.13.7")
+      )
+      assert(
+        (pom \ "properties").nonEmpty,
+        (pom \ "properties" \ "myVersion").text == "1.0",
+        (pom \ "properties" \ "scala.version").text == "2.13.7"
+      )
+      pom \ "properties"
+    }
   }
 
-  def pomXml(artifact: Artifact,
-             dependencies: Agg[Dependency],
-             artifactId: String,
-             pomSettings: PomSettings) =
-    XML.loadString(Pom(artifact, dependencies, artifactId, pomSettings))
+  def pomXml(
+      artifact: Artifact,
+      dependencies: Agg[Dependency],
+      artifactId: String,
+      pomSettings: PomSettings,
+      properties: Map[String, String]
+  ) =
+    XML.loadString(Pom(artifact, dependencies, artifactId, pomSettings, properties))
 
   def singleText(seq: NodeSeq) =
     seq

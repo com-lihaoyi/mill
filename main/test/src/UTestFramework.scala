@@ -6,6 +6,6 @@ class UTestFramework extends utest.runner.Framework {
   }
   override def setup() = {
 
-    os.remove.all(os.pwd / 'target / 'workspace)
+    os.remove.all(os.pwd / "target" / "workspace")
   }
 }

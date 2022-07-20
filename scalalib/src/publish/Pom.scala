@@ -10,26 +10,28 @@ object Pom {
 
   implicit class XmlOps(val e: Elem) extends AnyVal {
     // source: https://stackoverflow.com/a/5254068/449071
-    def optional : NodeSeq = {
+    def optional: NodeSeq = {
       require(e.child.length == 1)
       e.child.head match {
         case atom: Atom[Option[_]] => atom.data match {
-          case None    => NodeSeq.Empty
-          case Some(x) => e.copy(child = x match {
-            case n: NodeSeq => n
-            case x => new Atom(x)
-          })
-        }
+            case None => NodeSeq.Empty
+            case Some(x) => e.copy(child = x match {
+                case n: NodeSeq => n
+                case x => new Atom(x)
+              })
+          }
         case _ => e
       }
     }
   }
 
-  //TODO - not only jar packaging support?
-  def apply(artifact: Artifact,
-            dependencies: Agg[Dependency],
-            name: String,
-            pomSettings: PomSettings): String = {
+  def apply(
+      artifact: Artifact,
+      dependencies: Agg[Dependency],
+      name: String,
+      pomSettings: PomSettings,
+      properties: Map[String, String]
+  ): String = {
     val xml =
       <project
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -40,7 +42,7 @@ object Pom {
         <name>{name}</name>
         <groupId>{artifact.group}</groupId>
         <artifactId>{artifact.id}</artifactId>
-        <packaging>jar</packaging>
+        <packaging>{pomSettings.packaging}</packaging>
         <description>{pomSettings.description}</description>
 
         <version>{artifact.version}</version>
@@ -49,16 +51,23 @@ object Pom {
           {pomSettings.licenses.map(renderLicense)}
         </licenses>
         <scm>
-          { <connection>{pomSettings.versionControl.connection}</connection>.optional }
-          { <developerConnection>{pomSettings.versionControl.developerConnection}</developerConnection>.optional }
-          { <tag>{pomSettings.versionControl.tag}</tag>.optional }
-          { <url>{pomSettings.versionControl.browsableRepository}</url>.optional }
+          {<connection>{pomSettings.versionControl.connection}</connection>.optional}
+          {
+        <developerConnection>{
+          pomSettings.versionControl.developerConnection
+        }</developerConnection>.optional
+      }
+          {<tag>{pomSettings.versionControl.tag}</tag>.optional}
+          {<url>{pomSettings.versionControl.browsableRepository}</url>.optional}
         </scm>
         <developers>
           {pomSettings.developers.map(renderDeveloper)}
         </developers>
+        <properties>
+          {properties.map(renderProperty _).iterator}
+        </properties>
         <dependencies>
-          {dependencies.map(renderDependency).toSeq}
+          {dependencies.map(renderDependency).iterator}
         </dependencies>
       </project>
 
@@ -79,17 +88,21 @@ object Pom {
       <id>{d.id}</id>
       <name>{d.name}</name>
       <url>{d.url}</url>
-      { <organization>{d.organization}</organization>.optional }
-      { <organizationUrl>{d.organizationUrl}</organizationUrl>.optional }
+      {<organization>{d.organization}</organization>.optional}
+      {<organizationUrl>{d.organizationUrl}</organizationUrl>.optional}
     </developer>
+  }
+
+  private def renderProperty(property: (String, String)): Elem = {
+    <prop>{property._2}</prop>.copy(label = property._1)
   }
 
   private def renderDependency(d: Dependency): Elem = {
     val scope = d.scope match {
-      case Scope.Compile  => NodeSeq.Empty
+      case Scope.Compile => NodeSeq.Empty
       case Scope.Provided => <scope>provided</scope>
-      case Scope.Test     => <scope>test</scope>
-      case Scope.Runtime  => <scope>runtime</scope>
+      case Scope.Test => <scope>test</scope>
+      case Scope.Runtime => <scope>runtime</scope>
     }
 
     val optional = if (d.optional) <optional>true</optional> else NodeSeq.Empty
@@ -108,12 +121,12 @@ object Pom {
         <artifactId>{d.artifact.id}</artifactId>
         <version>{d.artifact.version}</version>
         <exclusions>
-          {d.exclusions.map(ex =>
-            <exclusion>
+          {
+        d.exclusions.map(ex => <exclusion>
               <groupId>{ex._1}</groupId>
               <artifactId>{ex._2}</artifactId>
-            </exclusion>
-          )}
+            </exclusion>)
+      }
         </exclusions>
         {scope}
         {optional}

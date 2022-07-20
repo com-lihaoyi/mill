@@ -1,3 +1,3 @@
 import mill._
 
-def selfDest = T { T.dest / os.up / os.up }
+def selfDest = T { T.dest / os.up }

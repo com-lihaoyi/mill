@@ -16,7 +16,10 @@ sealed trait Result[+T] {
 object Result {
   implicit def create[T](t: => T): Result[T] = {
     try Success(t)
-    catch { case e: Throwable => Exception(e, new OuterStack(new java.lang.Exception().getStackTrace)) }
+    catch {
+      case e: Throwable =>
+        Exception(e, new OuterStack(new java.lang.Exception().getStackTrace().toIndexedSeq))
+    }
   }
 
   /**
@@ -63,7 +66,8 @@ object Result {
    */
   case class Failure[T](msg: String, value: Option[T] = None) extends Failing[T] {
     def map[V](f: T => V): Failure[V] = Result.Failure(msg, value.map(f(_)))
-    def flatMap[V](f: T => Result[V]): Failure[V] = Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
+    def flatMap[V](f: T => Result[V]): Failure[V] =
+      Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
   }
 
   /**

@@ -33,21 +33,19 @@ import utest._
 
 object UpdatesFinderTests extends TestSuite {
 
-  private def updates(current: String,
-                      available: Seq[String],
-                      allowPreRelease: Boolean) = {
+  private def updates(current: String, available: Seq[String], allowPreRelease: Boolean) = {
     val dependency = coursier.Dependency(
       coursier.Module(
         coursier.Organization("com.example.organization"),
         coursier.ModuleName("example-artifact")
       ),
-      current)
+      current
+    )
     val currentVersion = Version(current)
     val allVersions = available.map(Version(_)).toSet
 
     UpdatesFinder
-      .findUpdates(DependencyVersions(dependency, currentVersion, allVersions),
-                   allowPreRelease)
+      .findUpdates(DependencyVersions(dependency, currentVersion, allVersions), allowPreRelease)
       .updates
       .map(_.toString)
   }

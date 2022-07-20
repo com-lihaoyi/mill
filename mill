@@ -3,7 +3,7 @@
 # This is a wrapper script, that automatically download mill from GitHub release pages
 # You can give the required mill version with MILL_VERSION env variable
 # If no version is given, it falls back to the value of DEFAULT_MILL_VERSION
-DEFAULT_MILL_VERSION=0.8.0
+DEFAULT_MILL_VERSION=0.10.5
 
 set -e
 
@@ -12,7 +12,7 @@ if [ -z "$MILL_VERSION" ] ; then
     MILL_VERSION="$(head -n 1 .mill-version 2> /dev/null)"
   elif [ -f ".config/mill-version" ] ; then
     MILL_VERSION="$(head -n 1 .config/mill-version 2> /dev/null)"
-  elif [ -f "mill" ] && [ "$BASH_SOURCE" != "mill" ] ; then
+  elif [ -f "mill" ] && [ "$0" != "mill" ] ; then
     MILL_VERSION=$(grep -F "DEFAULT_MILL_VERSION=" "mill" | head -n 1 | cut -d= -f2)
   else
     MILL_VERSION=$DEFAULT_MILL_VERSION
@@ -30,13 +30,14 @@ version_remainder="$MILL_VERSION"
 MILL_MAJOR_VERSION="${version_remainder%%.*}"; version_remainder="${version_remainder#*.}"
 MILL_MINOR_VERSION="${version_remainder%%.*}"; version_remainder="${version_remainder#*.}"
 
-if [ ! -x "$MILL_EXEC_PATH" ] ; then
-  mkdir -p $MILL_DOWNLOAD_PATH
+if [ ! -s "$MILL_EXEC_PATH" ] ; then
+  mkdir -p "$MILL_DOWNLOAD_PATH"
   if [ "$MILL_MAJOR_VERSION" -gt 0 ] || [ "$MILL_MINOR_VERSION" -ge 5 ] ; then
     ASSEMBLY="-assembly"
   fi
   DOWNLOAD_FILE=$MILL_EXEC_PATH-tmp-download
-  MILL_DOWNLOAD_URL="https://github.com/lihaoyi/mill/releases/download/${MILL_VERSION%%-*}/$MILL_VERSION${ASSEMBLY}"
+  MILL_VERSION_TAG=$(echo $MILL_VERSION | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
+  MILL_DOWNLOAD_URL="https://github.com/lihaoyi/mill/releases/download/${MILL_VERSION_TAG}/$MILL_VERSION${ASSEMBLY}"
   curl --fail -L -o "$DOWNLOAD_FILE" "$MILL_DOWNLOAD_URL"
   chmod +x "$DOWNLOAD_FILE"
   mv "$DOWNLOAD_FILE" "$MILL_EXEC_PATH"

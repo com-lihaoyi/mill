@@ -16,7 +16,7 @@ trait TwirlModule extends mill.Module {
   def twirlVersion: T[String]
 
   def twirlSources: Sources = T.sources {
-    millSourcePath / 'views
+    millSourcePath / "views"
   }
 
   def twirlClasspath: T[Loose.Agg[PathRef]] = T {
@@ -25,7 +25,7 @@ trait TwirlModule extends mill.Module {
         coursier.LocalRepositories.ivy2Local,
         MavenRepository("https://repo1.maven.org/maven2")
       ),
-      Lib.depToDependency(_, "2.12.4"),
+      Lib.depToDependency(_, "2.12.5"),
       Seq(
         ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}",
         ivy"org.scala-lang.modules::scala-parser-combinators:1.1.0"
@@ -33,7 +33,11 @@ trait TwirlModule extends mill.Module {
     )
   }
 
-  def twirlAdditionalImports: Seq[String] = Nil
+  def twirlImports: T[Seq[String]] = T {
+    TwirlWorkerApi.twirlWorker.defaultImports(twirlClasspath().map(_.path))
+  }
+
+  def twirlFormats: T[Map[String, String]] = TwirlWorkerApi.twirlWorker.defaultFormats
 
   def twirlConstructorAnnotations: Seq[String] = Nil
 
@@ -47,9 +51,11 @@ trait TwirlModule extends mill.Module {
         twirlClasspath().map(_.path),
         twirlSources().map(_.path),
         T.dest,
-        twirlAdditionalImports,
+        twirlImports(),
+        twirlFormats(),
         twirlConstructorAnnotations,
         twirlCodec,
-        twirlInclusiveDot)
+        twirlInclusiveDot
+      )
   }
 }

@@ -1,6 +1,5 @@
 package mill.moduledefs
 
-
 import scala.collection.mutable.ListBuffer
 import scala.reflect.internal.Flags
 import scala.tools.nsc.doc.ScaladocSyntaxAnalyzer
@@ -12,7 +11,7 @@ import scala.tools.nsc.transform.Transform
 
 class AutoOverridePlugin(val global: Global) extends Plugin {
   import global._
-  override def init(options: List[String],  error: String => Unit): Boolean = true
+  override def init(options: List[String], error: String => Unit): Boolean = true
 
   val name = "auto-override-plugin"
   val description = "automatically inserts `override` keywords for you"
@@ -28,14 +27,15 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
       }
       import global._
 
-
       class ScaladocTransformer extends global.Transformer {
 
         val comments = new Comments()
 
-        override def transformUnit(unit: CompilationUnit)= {
-          if (unit.source.file.name.endsWith(".scala") ||
-            unit.source.file.name.endsWith(".sc")){
+        override def transformUnit(unit: CompilationUnit) = {
+          if (
+            unit.source.file.name.endsWith(".scala") ||
+            unit.source.file.name.endsWith(".sc")
+          ) {
             comments.parseComments(unit)
             super.transformUnit(unit)
           }
@@ -46,7 +46,13 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
             case x: global.ClassDef =>
               comments.getComment(x.pos) match {
                 case Some(comment) =>
-                  global.treeCopy.ClassDef(tree, newMods(x.mods, comment), x.name, x.tparams, x.impl)
+                  global.treeCopy.ClassDef(
+                    tree,
+                    newMods(x.mods, comment),
+                    x.name,
+                    x.tparams,
+                    x.impl
+                  )
                 case None => x
               }
 
@@ -60,7 +66,15 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
             case x: global.DefDef =>
               comments.getComment(x.pos) match {
                 case Some(comment) =>
-                  global.treeCopy.DefDef(tree, newMods(x.mods, comment), x.name, x.tparams, x.vparamss, x.tpt, x.rhs)
+                  global.treeCopy.DefDef(
+                    tree,
+                    newMods(x.mods, comment),
+                    x.name,
+                    x.tparams,
+                    x.vparamss,
+                    x.tpt,
+                    x.rhs
+                  )
                 case None => x
               }
 
@@ -102,7 +116,7 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
 
       }
 
-      class Comments extends ScaladocSyntaxAnalyzer[global.type](global){
+      class Comments extends ScaladocSyntaxAnalyzer[global.type](global) {
         val comments = ListBuffer[(Position, String)]()
 
         def getComment(pos: Position): Option[String] = {
@@ -151,14 +165,13 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
 
         def apply(unit: global.CompilationUnit): Unit = {
           object AutoOverrider extends global.Transformer {
-            override def transform(tree: global.Tree) = tree match{
+            override def transform(tree: global.Tree) = tree match {
               case d: DefDef
-                if d.symbol.overrideChain.count(!_.isAbstract) > 1
-                && !d.mods.isOverride
-                && isCacher(d.symbol.owner) =>
-
-                  d.symbol.flags = d.symbol.flags | Flags.OVERRIDE
-                  copyDefDef(d)(mods = d.mods | Flags.OVERRIDE)
+                  if d.symbol.overrideChain.count(!_.isAbstract) > 1
+                    && !d.mods.isOverride
+                    && isCacher(d.symbol.owner) =>
+                d.symbol.flags = d.symbol.flags | Flags.OVERRIDE
+                copyDefDef(d)(mods = d.mods | Flags.OVERRIDE)
               case _ => super.transform(tree)
 
             }

@@ -1,47 +1,71 @@
 package mill.scalalib.dependency.versions
 
+import scala.reflect.ClassTag
+
+import coursier.Dependency
 import mill.define.{BaseModule, Task}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.metadata.MetadataLoaderFactory
 import mill.scalalib.{Dep, JavaModule, Lib}
 import mill.api.Ctx.{Home, Log}
-import mill.api.{Loose, Strict}
+import mill.T
 
 private[dependency] object VersionsFinder {
 
   def findVersions(
-    evaluator: Evaluator,
-    ctx: Log with Home,
-    rootModule: BaseModule): Seq[ModuleDependenciesVersions] = {
+      evaluator: Evaluator,
+      ctx: Log with Home,
+      rootModule: BaseModule
+  ): Seq[ModuleDependenciesVersions] = {
 
     val javaModules = rootModule.millInternal.modules.collect {
       case javaModule: JavaModule => javaModule
     }
 
     val resolvedDependencies = resolveDependencies(evaluator, javaModules)
-    resolveVersions(resolvedDependencies)
+    resolveVersions(evaluator, resolvedDependencies)
   }
 
-  private def resolveDependencies(evaluator: Evaluator,
-                                  javaModules: Seq[JavaModule]) =
+  private def resolveDependencies(
+      evaluator: Evaluator,
+      javaModules: Seq[JavaModule]
+  ): Seq[(JavaModule, Seq[Dependency])] = Evaluator.evalOrThrow(evaluator) {
     javaModules.map { javaModule =>
-      val depToDependency =
-        eval(evaluator, javaModule.resolveCoursierDependency)
-      val deps = evalOrElse(evaluator, javaModule.ivyDeps, Loose.Agg.empty[Dep])
+      T.task {
+        val depToDependency = javaModule.resolveCoursierDependency()
+        val deps = javaModule.ivyDeps()
+        val compileIvyDeps = javaModule.compileIvyDeps()
+        val runIvyDeps = javaModule.runIvyDeps()
+        val repos = javaModule.repositoriesTask()
+        val mapDeps = javaModule.mapDependencies()
+        val custom = javaModule.resolutionCustomizer()
+        val cacheCustom = javaModule.coursierCacheCustomizer()
 
-      val (dependencies, _) =
-        Lib.resolveDependenciesMetadata(javaModule.repositories,
-                                        depToDependency,
-                                        deps)
+        val (dependencies, _) =
+          Lib.resolveDependenciesMetadata(
+            repositories = repos,
+            depToDependency = depToDependency,
+            deps = deps ++ compileIvyDeps ++ runIvyDeps,
+            mapDependencies = Some(mapDeps),
+            customizer = custom,
+            coursierCacheCustomizer = cacheCustom,
+            ctx = Some(T.log)
+          )
 
-      (javaModule, dependencies)
+        (javaModule, dependencies)
+      }
     }
+  }
 
-  private def resolveVersions(resolvedDependencies: Seq[ResolvedDependencies]) =
+  private def resolveVersions(
+      evaluator: Evaluator,
+      resolvedDependencies: Seq[ResolvedDependencies]
+  ): Seq[ModuleDependenciesVersions] =
     resolvedDependencies.map {
       case (javaModule, dependencies) =>
         val metadataLoaders =
-          javaModule.repositories.flatMap(MetadataLoaderFactory(_))
+          Evaluator.evalOrThrow(evaluator)(javaModule.repositoriesTask)
+            .flatMap(MetadataLoaderFactory(_))
 
         val versions = dependencies.map { dependency =>
           val currentVersion = Version(dependency.version)
@@ -53,20 +77,6 @@ private[dependency] object VersionsFinder {
         }
 
         ModuleDependenciesVersions(javaModule.toString, versions)
-    }
-
-  private def eval[T](evaluator: Evaluator, e: Task[T]): T =
-    evaluator.evaluate(Strict.Agg(e)).values match {
-      case Seq()     => throw new NoSuchElementException
-      case Seq(e: T) => e
-    }
-
-  private def evalOrElse[T](evaluator: Evaluator,
-                            e: Task[T],
-                            default: => T): T =
-    evaluator.evaluate(Strict.Agg(e)).values match {
-      case Seq()     => default
-      case Seq(e: T) => e
     }
 
   private type ResolvedDependencies = (JavaModule, Seq[coursier.Dependency])

@@ -2,40 +2,51 @@ package mill.scalalib
 
 import java.io.ByteArrayOutputStream
 import java.util.jar.JarFile
-
+import scala.jdk.CollectionConverters._
+import scala.util.Using
+import scala.xml.NodeSeq
 import mill._
+import mill.api.Result
 import mill.define.Target
-import mill.api.Result.Exception
-import mill.eval.{Evaluator, Result}
+import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.modules.Assembly
-import mill.scalalib.publish._
+import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
-import mill.scalalib.publish.VersionControl
 import utest._
 import utest.framework.TestPath
 
-import scala.collection.JavaConverters._
-import scala.util.Properties.isJavaAtLeast
-
-
 object HelloWorldTests extends TestSuite {
-  trait HelloBase extends TestUtil.BaseModule{
-    def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+
+  val scala2106Version = "2.10.6"
+  val scala21111Version = "2.11.11"
+  val scala2123Version = "2.12.3"
+  val scala2126Version = "2.12.6"
+  val scala2131Version = "2.13.1"
+
+  trait HelloBase extends TestUtil.BaseModule {
+    override def millSourcePath: os.Path =
+      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloWorldModule extends scalalib.ScalaModule {
-    def scalaVersion = "2.12.4"
+    def scalaVersion = scala2126Version
   }
 
   trait HelloWorldModuleWithMain extends HelloWorldModule {
-    def mainClass = Some("Main")
+    override def mainClass: T[Option[String]] = Some("Main")
   }
 
   object HelloWorld extends HelloBase {
     object core extends HelloWorldModule
   }
   object CrossHelloWorld extends HelloBase {
-    object core extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4", "2.13.1")
+    object core extends Cross[HelloWorldCross](
+          scala2106Version,
+          scala21111Version,
+          scala2123Version,
+          scala2126Version,
+          scala2131Version
+        )
     class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
   }
 
@@ -44,8 +55,8 @@ object HelloWorldTests extends TestSuite {
   }
 
   object HelloWorldWithoutMain extends HelloBase {
-    object core extends HelloWorldModule{
-      def mainClass = None
+    object core extends HelloWorldModule {
+      override def mainClass = None
     }
   }
 
@@ -57,128 +68,131 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldAkkaHttpAppend extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def ivyDeps = akkaHttpDeps
-
-      def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
+      override def ivyDeps = akkaHttpDeps
+      override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
   }
 
   object HelloWorldAkkaHttpExclude extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def ivyDeps = akkaHttpDeps
-
-      def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
+      override def ivyDeps = akkaHttpDeps
+      override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
   }
 
   object HelloWorldAkkaHttpAppendPattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def ivyDeps = akkaHttpDeps
-
-      def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
+      override def ivyDeps = akkaHttpDeps
+      override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
   }
 
   object HelloWorldAkkaHttpExcludePattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def ivyDeps = akkaHttpDeps
+      override def ivyDeps = akkaHttpDeps
+      override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
+    }
+  }
 
-      def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
+  object HelloWorldAkkaHttpRelocate extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      override def ivyDeps = akkaHttpDeps
+      override def assemblyRules = Seq(Assembly.Rule.Relocate("akka.**", "shaded.akka.@1"))
     }
   }
 
   object HelloWorldAkkaHttpNoRules extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def ivyDeps = akkaHttpDeps
-
-      def assemblyRules = Seq.empty
+      override def ivyDeps = akkaHttpDeps
+      override def assemblyRules = Seq.empty
     }
   }
 
   object HelloWorldMultiAppend extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def moduleDeps = Seq(model)
-
-      def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
+      override def moduleDeps = Seq(model)
+      override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
     object model extends HelloWorldModule
   }
 
   object HelloWorldMultiExclude extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def moduleDeps = Seq(model)
-
-      def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
+      override def moduleDeps = Seq(model)
+      override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
     object model extends HelloWorldModule
   }
 
   object HelloWorldMultiAppendPattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def moduleDeps = Seq(model)
+      override def moduleDeps = Seq(model)
+      override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
+    }
+    object model extends HelloWorldModule
+  }
 
-      def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
+  object HelloWorldMultiAppendByPatternWithSeparator extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      override def moduleDeps = Seq(model)
+      override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf", "\n"))
     }
     object model extends HelloWorldModule
   }
 
   object HelloWorldMultiExcludePattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def moduleDeps = Seq(model)
-
-      def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
+      override def moduleDeps = Seq(model)
+      override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
     object model extends HelloWorldModule
   }
 
   object HelloWorldMultiNoRules extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def moduleDeps = Seq(model)
-
-      def assemblyRules = Seq.empty
+      override def moduleDeps = Seq(model)
+      override def assemblyRules = Seq.empty
     }
     object model extends HelloWorldModule
   }
 
   object HelloWorldWarnUnused extends HelloBase {
     object core extends HelloWorldModule {
-      def scalacOptions = T(Seq("-Ywarn-unused"))
+      override def scalacOptions = T(Seq("-Ywarn-unused"))
     }
   }
 
   object HelloWorldFatalWarnings extends HelloBase {
     object core extends HelloWorldModule {
-      def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
     }
   }
 
   object HelloWorldWithDocVersion extends HelloBase {
     object core extends HelloWorldModule {
-      def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
-      def scalaDocOptions = super.scalaDocOptions() ++ Seq("-doc-version", "1.2.3")
+      override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      override def scalaDocOptions = super.scalaDocOptions() ++ Seq("-doc-version", "1.2.3")
     }
   }
 
   object HelloWorldOnlyDocVersion extends HelloBase {
     object core extends HelloWorldModule {
-      def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
-      def scalaDocOptions = T(Seq("-doc-version", "1.2.3"))
+      override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      override def scalaDocOptions = T(Seq("-doc-version", "1.2.3"))
     }
   }
 
   object HelloWorldDocTitle extends HelloBase {
     object core extends HelloWorldModule {
-      def scalaDocOptions = T(Seq("-doc-title", "Hello World"))
+      override def scalaDocOptions = T(Seq("-doc-title", "Hello World"))
     }
   }
 
-  object HelloWorldWithPublish extends HelloBase{
-    object core extends HelloWorldModule with PublishModule{
-
-      def artifactName = "hello-world"
-      def publishVersion = "0.0.1"
-
-      def pomSettings = PomSettings(
+  object HelloWorldWithPublish extends HelloBase {
+    object core extends HelloWorldModule with PublishModule {
+      override def artifactName = "hello-world"
+      override def publishVersion = "0.0.1"
+      override def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello world ready for real world publishing",
         url = "https://github.com/lihaoyi/hello-world-publish",
@@ -187,19 +201,18 @@ object HelloWorldTests extends TestSuite {
         developers =
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
+      override def versionScheme = Some(VersionScheme.EarlySemVer)
     }
   }
 
-  object HelloWorldScalaOverride extends HelloBase{
+  object HelloWorldScalaOverride extends HelloBase {
     object core extends HelloWorldModule {
-
-      override def scalaVersion: Target[String] = "2.13.1"
+      override def scalaVersion: Target[String] = scala2131Version
     }
   }
 
-  object HelloWorldIvyDeps extends HelloBase{
+  object HelloWorldIvyDeps extends HelloBase {
     object moduleA extends HelloWorldModule {
-
       override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.3")
     }
     object moduleB extends HelloWorldModule {
@@ -208,53 +221,53 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldTypeLevel extends HelloBase{
+  object HelloWorldTypeLevel extends HelloBase {
     object foo extends ScalaModule {
-      def scalaVersion = "2.11.8"
+      override def scalaVersion = "2.11.8"
       override def scalaOrganization = "org.typelevel"
       override def ammoniteVersion = "1.6.7"
 
-      def ivyDeps = Agg(
+      override def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
       )
-      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
         ivy"org.scalamacros:::paradise:2.1.0"
       )
-      def scalaDocPluginIvyDeps = super.scalaDocPluginIvyDeps() ++ Agg(
+      override def scalaDocPluginIvyDeps = super.scalaDocPluginIvyDeps() ++ Agg(
         ivy"com.typesafe.genjavadoc:::genjavadoc-plugin:0.11"
       )
     }
   }
 
-  object HelloWorldMacros extends HelloBase{
+  object HelloWorldMacros extends HelloBase {
     object core extends ScalaModule {
-      def scalaVersion = "2.12.4"
+      def scalaVersion = scala2126Version
 
-      def ivyDeps = Agg(
+      override def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
       )
-      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
         ivy"org.scalamacros:::paradise:2.1.0"
       )
     }
   }
 
-  object HelloWorldFlags extends HelloBase{
+  object HelloWorldFlags extends HelloBase {
     object core extends ScalaModule {
-      def scalaVersion = "2.12.4"
+      def scalaVersion = scala2126Version
 
-      def scalacOptions = super.scalacOptions() ++ Seq(
+      override def scalacOptions = super.scalacOptions() ++ Seq(
         "-Ypartial-unification"
       )
     }
   }
 
-  object HelloScalacheck extends HelloBase{
+  object HelloScalacheck extends HelloBase {
     object foo extends ScalaModule {
-      def scalaVersion = "2.12.4"
+      def scalaVersion = scala2126Version
       object test extends Tests {
-        def ivyDeps     = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
-        def testFrameworks = Seq("org.scalacheck.ScalaCheckFramework")
+        override def ivyDeps = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
+        override def testFramework = "org.scalacheck.ScalaCheckFramework"
       }
     }
   }
@@ -262,11 +275,23 @@ object HelloWorldTests extends TestSuite {
   object Dotty213 extends HelloBase {
     object foo extends ScalaModule {
       def scalaVersion = "0.18.1-RC1"
-      def ivyDeps = Agg(ivy"org.scala-lang.modules::scala-xml:1.2.0".withDottyCompat(scalaVersion()))
+      override def ivyDeps =
+        Agg(ivy"org.scala-lang.modules::scala-xml:1.2.0".withDottyCompat(scalaVersion()))
     }
   }
 
-  val resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
+  object AmmoniteReplMainClass extends HelloBase {
+    object oldAmmonite extends ScalaModule {
+      override def scalaVersion = T("2.13.5")
+      override def ammoniteVersion = T("2.4.1")
+    }
+    object newAmmonite extends ScalaModule {
+      override def scalaVersion = T("2.13.5")
+      override def ammoniteVersion = T("2.5.0")
+    }
+  }
+
+  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
     import java.util.jar.Attributes._
@@ -279,10 +304,11 @@ object HelloWorldTests extends TestSuite {
   }
 
   def readFileFromJar(jar: JarFile, name: String): String = {
-    val is = jar.getInputStream(jar.getEntry(name))
-    val baos = new ByteArrayOutputStream()
-    os.Internals.transfer(is, baos)
-    new String(baos.toByteArray)
+    Using.resource(jar.getInputStream(jar.getEntry(name))) { is =>
+      val baos = new ByteArrayOutputStream()
+      os.Internals.transfer(is, baos)
+      new String(baos.toByteArray)
+    }
   }
 
   def compileClassfiles = Seq[os.RelPath](
@@ -295,9 +321,10 @@ object HelloWorldTests extends TestSuite {
     os.rel / "Person$.class"
   )
 
-  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: os.Path = resourcePath)
-                      (t: TestEvaluator => T)
-                      (implicit tp: TestPath): T = {
+  def workspaceTest[T](
+      m: TestUtil.BaseModule,
+      resourcePath: os.Path = resourcePath
+  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
@@ -306,32 +333,29 @@ object HelloWorldTests extends TestSuite {
     t(eval)
   }
 
-
-
-
   def tests: Tests = Tests {
-    'scalaVersion - {
+    "scalaVersion" - {
 
-      'fromBuild - workspaceTest(HelloWorld){eval =>
+      "fromBuild" - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalaVersion)
 
         assert(
-          result == "2.12.4",
+          result == scala2126Version,
           evalCount > 0
         )
       }
-      'override - workspaceTest(HelloWorldScalaOverride){eval =>
+      "override" - workspaceTest(HelloWorldScalaOverride) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldScalaOverride.core.scalaVersion)
 
         assert(
-          result == "2.13.1",
+          result == scala2131Version,
           evalCount > 0
         )
       }
     }
 
-    'scalacOptions - {
-      'emptyByDefault - workspaceTest(HelloWorld){eval =>
+    "scalacOptions" - {
+      "emptyByDefault" - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalacOptions)
 
         assert(
@@ -339,7 +363,7 @@ object HelloWorldTests extends TestSuite {
           evalCount > 0
         )
       }
-      'override - workspaceTest(HelloWorldFatalWarnings){ eval =>
+      "override" - workspaceTest(HelloWorldFatalWarnings) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions)
 
         assert(
@@ -349,22 +373,22 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    'scalaDocOptions - {
-      'emptyByDefault - workspaceTest(HelloWorld){eval =>
+    "scalaDocOptions" - {
+      "emptyByDefault" - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalaDocOptions)
         assert(
           result.isEmpty,
           evalCount > 0
         )
       }
-      'override - workspaceTest(HelloWorldDocTitle){ eval =>
+      "override" - workspaceTest(HelloWorldDocTitle) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldDocTitle.core.scalaDocOptions)
         assert(
           result == Seq("-doc-title", "Hello World"),
           evalCount > 0
         )
       }
-      'extend - workspaceTest(HelloWorldWithDocVersion){ eval =>
+      "extend" - workspaceTest(HelloWorldWithDocVersion) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithDocVersion.core.scalaDocOptions)
         assert(
           result == Seq("-Ywarn-unused", "-Xfatal-warnings", "-doc-version", "1.2.3"),
@@ -372,37 +396,36 @@ object HelloWorldTests extends TestSuite {
         )
       }
       // make sure options are passed during ScalaDoc generation
-      'docJarWithTitle - workspaceTest(
+      "docJarWithTitle" - workspaceTest(
         HelloWorldDocTitle,
-        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
-      ){ eval =>
+        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
+      ) { eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldDocTitle.core.docJar)
         assert(
           evalCount > 0,
-          os.read(eval.outPath / 'core / 'docJar / 'dest / 'javadoc / "index.html").contains("<span id=\"doc-title\">Hello World")
+          os.read(eval.outPath / "core" / "docJar.dest" / "javadoc" / "index.html").contains(
+            "<span id=\"doc-title\">Hello World"
+          )
         )
       }
-      'docJarWithVersion - workspaceTest(
+      "docJarWithVersion" - workspaceTest(
         HelloWorldWithDocVersion,
-        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
-      ){ eval =>
+        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
+      ) { eval =>
         // scaladoc generation fails because of "-Xfatal-warnings" flag
-        val Left(Result.Failure("docJar generation failed", None)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
+        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
       }
-      'docJarOnlyVersion - workspaceTest(
+      "docJarOnlyVersion" - workspaceTest(
         HelloWorldOnlyDocVersion,
-        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
-      ){ eval =>
-        val Right((_, evalCount)) = eval.apply(HelloWorldOnlyDocVersion.core.docJar)
-        assert(
-          evalCount > 0,
-          os.read(eval.outPath / 'core / 'docJar / 'dest / 'javadoc / "index.html").contains("<span id=\"doc-version\">1.2.3")
-        )
+        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
+      ) { eval =>
+        // `docJar` requires the `compile` task to succeed (since the addition of Scaladoc 3)
+        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldOnlyDocVersion.core.docJar)
       }
     }
 
-    'scalacPluginClasspath - {
-      'withMacroParadise - workspaceTest(HelloWorldTypeLevel){eval =>
+    "scalacPluginClasspath" - {
+      "withMacroParadise" - workspaceTest(HelloWorldTypeLevel) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath)
         assert(
           result.nonEmpty,
@@ -412,29 +435,29 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    'scalaDocPluginClasspath - {
-      'extend - workspaceTest(HelloWorldTypeLevel){eval =>
+    "scalaDocPluginClasspath" - {
+      "extend" - workspaceTest(HelloWorldTypeLevel) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath)
         assert(
-          result.nonEmpty,
-          result.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
-          result.exists { pathRef => pathRef.path.segments.contains("genjavadoc") },
+          result.iterator.nonEmpty,
+          result.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
+          result.iterator.exists { pathRef => pathRef.path.segments.contains("genjavadoc") },
           evalCount > 0
         )
       }
     }
 
-    'compile - {
-      'fromScratch - workspaceTest(HelloWorld){eval =>
+    "compile" - {
+      "fromScratch" - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
 
         val analysisFile = result.analysisFile
         val outputFiles = os.walk(result.classes.path)
         val expectedClassfiles = compileClassfiles.map(
-          eval.outPath / 'core / 'compile / 'dest / 'classes / _
+          eval.outPath / "core" / "compile.dest" / "classes" / _
         )
         assert(
-          result.classes.path == eval.outPath / 'core / 'compile / 'dest / 'classes,
+          result.classes.path == eval.outPath / "core" / "compile.dest" / "classes",
           os.exists(analysisFile),
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
@@ -446,47 +469,54 @@ object HelloWorldTests extends TestSuite {
 
         assert(unchangedEvalCount == 0)
       }
-      'recompileOnChange - workspaceTest(HelloWorld){eval =>
+      "recompileOnChange" - workspaceTest(HelloWorld) { eval =>
         val Right((_, freshCount)) = eval.apply(HelloWorld.core.compile)
         assert(freshCount > 0)
 
-        os.write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "\n")
+        os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "\n")
 
         val Right((_, incCompileCount)) = eval.apply(HelloWorld.core.compile)
         assert(incCompileCount > 0, incCompileCount < freshCount)
       }
-      'failOnError - workspaceTest(HelloWorld){eval =>
-        os.write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
+      "failOnError" - workspaceTest(HelloWorld) { eval =>
+        os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "val x: ")
 
         val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.compile)
 
-
-        val paths = Evaluator.resolveDestPaths(
-          eval.outPath,
-          HelloWorld.core.compile.ctx.segments
-        )
+        val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
 
         assert(
-          os.walk(paths.dest / 'classes).isEmpty,
+          os.walk(paths.dest / "classes").isEmpty,
           !os.exists(paths.meta)
         )
         // Works when fixed
         os.write.over(
-          HelloWorld.millSourcePath / 'core / 'src / "Main.scala",
-          os.read(HelloWorld.millSourcePath / 'core / 'src / "Main.scala").dropRight("val x: ".length)
+          HelloWorld.millSourcePath / "core" / "src" / "Main.scala",
+          os.read(HelloWorld.millSourcePath / "core" / "src" / "Main.scala").dropRight(
+            "val x: ".length
+          )
         )
 
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
       }
-      'passScalacOptions - workspaceTest(HelloWorldFatalWarnings){ eval =>
+      "passScalacOptions" - workspaceTest(HelloWorldFatalWarnings) { eval =>
         // compilation fails because of "-Xfatal-warnings" flag
-        val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorldFatalWarnings.core.compile)
+        val Left(Result.Failure("Compilation failed", _)) =
+          eval.apply(HelloWorldFatalWarnings.core.compile)
       }
     }
 
-    'runMain - {
-      'runMainObject - workspaceTest(HelloWorld){eval =>
-        val runResult = eval.outPath / 'core / 'runMain / 'dest / "hello-mill"
+    "artifactNameCross" - {
+      workspaceTest(CrossHelloWorld) { eval =>
+        val Right((artifactName, _)) =
+          eval.apply(CrossHelloWorld.core(scala2131Version).artifactName)
+        assert(artifactName == "core")
+      }
+    }
+
+    "runMain" - {
+      "runMainObject" - workspaceTest(HelloWorld) { eval =>
+        val runResult = eval.outPath / "core" / "runMain.dest" / "hello-mill"
 
         val Right((_, evalCount)) = eval.apply(HelloWorld.core.runMain("Main", runResult.toString))
         assert(evalCount > 0)
@@ -496,8 +526,8 @@ object HelloWorldTests extends TestSuite {
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      'runCross - {
-        def cross(eval: TestEvaluator, v: String, expectedOut: String) {
+      "runCross" - {
+        def cross(eval: TestEvaluator, v: String, expectedOut: String): Unit = {
 
           val runResult = eval.outPath / "hello-mill"
 
@@ -507,64 +537,86 @@ object HelloWorldTests extends TestSuite {
 
           assert(evalCount > 0)
 
-
           assert(
             os.exists(runResult),
             os.read(runResult) == expectedOut
           )
         }
-        'v210 - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.10.6", "2.10.6 rox")))
-        'v211 - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.11.11", "2.11.11 pwns")))
-        'v2123 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.3", "2.12.3 leet"))
-        'v2124 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.4", "2.12.4 leet"))
-        'v2131 - workspaceTest(CrossHelloWorld)(cross(_, "2.13.1", "2.13.1 idk"))
+        "v210" - TestUtil.disableInJava9OrAbove("Scala 2.10 tests don't work with Java 9+")(
+          workspaceTest(CrossHelloWorld)(cross(
+            _,
+            scala2106Version,
+            s"${scala2106Version} rox"
+          ))
+        )
+        "v211" - TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't work with Java 9+")(
+          workspaceTest(CrossHelloWorld)(cross(
+            _,
+            scala21111Version,
+            s"${scala21111Version} pwns"
+          ))
+        )
+        "v2123" - workspaceTest(CrossHelloWorld)(cross(
+          _,
+          scala2123Version,
+          s"${scala2123Version} leet"
+        ))
+        "v2124" - workspaceTest(CrossHelloWorld)(cross(
+          _,
+          scala2126Version,
+          s"${scala2126Version} leet"
+        ))
+        "v2131" - workspaceTest(CrossHelloWorld)(cross(
+          _,
+          scala2131Version,
+          s"${scala2131Version} idk"
+        ))
       }
 
-
-      'notRunInvalidMainObject - workspaceTest(HelloWorld){eval =>
-        val Left(Result.Failure("subprocess failed", _)) = eval.apply(HelloWorld.core.runMain("Invalid"))
+      "notRunInvalidMainObject" - workspaceTest(HelloWorld) { eval =>
+        val Left(Result.Failure("subprocess failed", _)) =
+          eval.apply(HelloWorld.core.runMain("Invalid"))
       }
-      'notRunWhenCompileFailed - workspaceTest(HelloWorld){eval =>
-        os.write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
+      "notRunWhenCompileFailed" - workspaceTest(HelloWorld) { eval =>
+        os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "val x: ")
 
-        val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.runMain("Main"))
+        val Left(Result.Failure("Compilation failed", _)) =
+          eval.apply(HelloWorld.core.runMain("Main"))
 
       }
     }
 
-    'forkRun - {
-      'runIfMainClassProvided - workspaceTest(HelloWorldWithMain){eval =>
-        val runResult = eval.outPath / 'core / 'run / 'dest / "hello-mill"
+    "forkRun" - {
+      "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
+        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldWithMain.core.run(runResult.toString)
         )
 
         assert(evalCount > 0)
 
-
         assert(
           os.exists(runResult),
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      'notRunWithoutMainClass - workspaceTest(
+      "notRunWithoutMainClass" - workspaceTest(
         HelloWorldWithoutMain,
-        os.pwd / 'scalalib / 'test / 'resources / "hello-world-no-main"
-      ){eval =>
+        os.pwd / "scalalib" / "test" / "resources" / "hello-world-no-main"
+      ) { eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run())
       }
 
-      'runDiscoverMainClass - workspaceTest(HelloWorldWithoutMain){eval =>
+      "runDiscoverMainClass" - workspaceTest(HelloWorldWithoutMain) { eval =>
         // Make sure even if there isn't a main class defined explicitly, it gets
         // discovered by Zinc and used
-        val runResult = eval.outPath / 'core / 'run / 'dest / "hello-mill"
+        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldWithoutMain.core.run(runResult.toString)
         )
 
         assert(evalCount > 0)
 
-
         assert(
           os.exists(runResult),
           os.read(runResult) == "hello rockjam, your age is: 25"
@@ -572,46 +624,44 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    'run - {
-      'runIfMainClassProvided - workspaceTest(HelloWorldWithMain){eval =>
-        val runResult = eval.outPath / 'core / 'run / 'dest / "hello-mill"
+    "run" - {
+      "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
+        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldWithMain.core.runLocal(runResult.toString)
         )
 
         assert(evalCount > 0)
 
-
         assert(
           os.exists(runResult),
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      'runWithDefaultMain - workspaceTest(HelloWorldDefaultMain){eval =>
-        val runResult = eval.outPath / 'core / 'run / 'dest / "hello-mill"
+      "runWithDefaultMain" - workspaceTest(HelloWorldDefaultMain) { eval =>
+        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldDefaultMain.core.runLocal(runResult.toString)
         )
 
         assert(evalCount > 0)
 
-
         assert(
           os.exists(runResult),
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      'notRunWithoutMainClass - workspaceTest(
+      "notRunWithoutMainClass" - workspaceTest(
         HelloWorldWithoutMain,
-        os.pwd / 'scalalib / 'test / 'resources / "hello-world-no-main"
-      ){eval =>
+        os.pwd / "scalalib" / "test" / "resources" / "hello-world-no-main"
+      ) { eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
 
       }
     }
 
-    'jar - {
-      'nonEmpty - workspaceTest(HelloWorldWithMain){eval =>
+    "jar" - {
+      "nonEmpty" - workspaceTest(HelloWorldWithMain) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.jar)
 
         assert(
@@ -619,35 +669,36 @@ object HelloWorldTests extends TestSuite {
           evalCount > 0
         )
 
-        val jarFile = new JarFile(result.path.toIO)
-        val entries = jarFile.entries().asScala.map(_.getName).toSet
+        Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+          val entries = jarFile.entries().asScala.map(_.getName).toSet
 
-        val otherFiles = Seq[os.RelPath](
-          os.rel / "META-INF" / "MANIFEST.MF",
-          os.rel / "reference.conf"
-        )
-        val expectedFiles = compileClassfiles ++ otherFiles
+          val otherFiles = Seq[os.RelPath](
+            os.rel / "META-INF" / "MANIFEST.MF",
+            os.rel / "reference.conf"
+          )
+          val expectedFiles = compileClassfiles ++ otherFiles
 
-        assert(
-          entries.nonEmpty,
-          entries == expectedFiles.map(_.toString()).toSet
-        )
+          assert(
+            entries.nonEmpty,
+            entries == expectedFiles.map(_.toString()).toSet
+          )
 
-        val mainClass = jarMainClass(jarFile)
-        assert(mainClass.contains("Main"))
+          val mainClass = jarMainClass(jarFile)
+          assert(mainClass.contains("Main"))
+        }
       }
 
-      'logOutputToFile - workspaceTest(HelloWorld){eval =>
+      "logOutputToFile" - workspaceTest(HelloWorld) { eval =>
         val outPath = eval.outPath
         eval.apply(HelloWorld.core.compile)
 
-        val logFile = outPath / 'core / 'compile / 'log
+        val logFile = outPath / "core" / "compile.log"
         assert(os.exists(logFile))
       }
     }
 
-    'assembly - {
-      'assembly - workspaceTest(HelloWorldWithMain){ eval =>
+    "assembly" - {
+      "assembly" - workspaceTest(HelloWorldWithMain) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
         assert(
           os.exists(result.path),
@@ -664,156 +715,209 @@ object HelloWorldTests extends TestSuite {
         assert(mainClass.contains("Main"))
       }
 
-      'assemblyRules - {
-        def checkAppend[M <: TestUtil.BaseModule](module: M,
-                                                  target: Target[PathRef]) =
+      "assemblyRules" - {
+        def checkAppend[M <: TestUtil.BaseModule](module: M, target: Target[PathRef]) =
           workspaceTest(module) { eval =>
             val Right((result, _)) = eval.apply(target)
 
-            val jarFile = new JarFile(result.path.toIO)
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(jarEntries(jarFile).contains("reference.conf"))
 
-            assert(jarEntries(jarFile).contains("reference.conf"))
+              val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
-            val referenceContent = readFileFromJar(jarFile, "reference.conf")
-
-            assert(
-              // akka modules configs are present
-              referenceContent.contains("akka-http Reference Config File"),
-              referenceContent.contains("akka-http-core Reference Config File"),
-              referenceContent.contains("Akka Actor Reference Config File"),
-              referenceContent.contains("Akka Stream Reference Config File"),
-              // our application config is present too
-              referenceContent.contains("My application Reference Config File"),
-              referenceContent.contains(
-                """akka.http.client.user-agent-header="hello-world-client""""
+              assert(
+                // akka modules configs are present
+                referenceContent.contains("akka-http Reference Config File"),
+                referenceContent.contains("akka-http-core Reference Config File"),
+                referenceContent.contains("Akka Actor Reference Config File"),
+                referenceContent.contains("Akka Stream Reference Config File"),
+                // our application config is present too
+                referenceContent.contains("My application Reference Config File"),
+                referenceContent.contains(
+                  """akka.http.client.user-agent-header="hello-world-client""""
+                )
               )
-            )
+            }
           }
 
-        val helloWorldMultiResourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-multi"
+        val helloWorldMultiResourcePath =
+          os.pwd / "scalalib" / "test" / "resources" / "hello-world-multi"
 
         def checkAppendMulti[M <: TestUtil.BaseModule](
             module: M,
-            target: Target[PathRef]) =
+            target: Target[PathRef]
+        ): Unit =
           workspaceTest(
             module,
             resourcePath = helloWorldMultiResourcePath
           ) { eval =>
             val Right((result, _)) = eval.apply(target)
 
-            val jarFile = new JarFile(result.path.toIO)
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(jarEntries(jarFile).contains("reference.conf"))
 
-            assert(jarEntries(jarFile).contains("reference.conf"))
+              val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
-            val referenceContent = readFileFromJar(jarFile, "reference.conf")
-
-            assert(
-              // reference config from core module
-              referenceContent.contains("Core Reference Config File"),
-              // reference config from model module
-              referenceContent.contains("Model Reference Config File"),
-              // concatenated content
-              referenceContent.contains("bar.baz=hello"),
-              referenceContent.contains("foo.bar=2")
-            )
+              assert(
+                // reference config from core module
+                referenceContent.contains("Core Reference Config File"),
+                // reference config from model module
+                referenceContent.contains("Model Reference Config File"),
+                // concatenated content
+                referenceContent.contains("bar.baz=hello"),
+                referenceContent.contains("foo.bar=2")
+              )
+            }
           }
 
-        'appendWithDeps - checkAppend(
+        def checkAppendWithSeparator[M <: TestUtil.BaseModule](
+            module: M,
+            target: Target[PathRef]
+        ): Unit =
+          workspaceTest(
+            module,
+            resourcePath = helloWorldMultiResourcePath
+          ) { eval =>
+            val Right((result, _)) = eval.apply(target)
+
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(jarEntries(jarFile).contains("without-new-line.conf"))
+
+              val result = readFileFromJar(jarFile, "without-new-line.conf").split('\n').toSet
+              val expected = Set("without-new-line.first=first", "without-new-line.second=second")
+              assert(result == expected)
+            }
+          }
+
+        "appendWithDeps" - checkAppend(
           HelloWorldAkkaHttpAppend,
           HelloWorldAkkaHttpAppend.core.assembly
         )
-        'appendMultiModule - checkAppendMulti(
+        "appendMultiModule" - checkAppendMulti(
           HelloWorldMultiAppend,
           HelloWorldMultiAppend.core.assembly
         )
-        'appendPatternWithDeps - checkAppend(
+        "appendPatternWithDeps" - checkAppend(
           HelloWorldAkkaHttpAppendPattern,
           HelloWorldAkkaHttpAppendPattern.core.assembly
         )
-        'appendPatternMultiModule - checkAppendMulti(
+        "appendPatternMultiModule" - checkAppendMulti(
           HelloWorldMultiAppendPattern,
           HelloWorldMultiAppendPattern.core.assembly
         )
+        "appendPatternMultiModuleWithSeparator" - checkAppendWithSeparator(
+          HelloWorldMultiAppendByPatternWithSeparator,
+          HelloWorldMultiAppendByPatternWithSeparator.core.assembly
+        )
 
-        def checkExclude[M <: TestUtil.BaseModule](module: M,
-                                                   target: Target[PathRef],
-                                                   resourcePath: os.Path = resourcePath
-                                                  ) =
+        def checkExclude[M <: TestUtil.BaseModule](
+            module: M,
+            target: Target[PathRef],
+            resourcePath: os.Path = resourcePath
+        ) =
           workspaceTest(module, resourcePath) { eval =>
             val Right((result, _)) = eval.apply(target)
 
-            val jarFile = new JarFile(result.path.toIO)
-
-            assert(!jarEntries(jarFile).contains("reference.conf"))
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(!jarEntries(jarFile).contains("reference.conf"))
+            }
           }
 
-        'excludeWithDeps - checkExclude(
+        "excludeWithDeps" - checkExclude(
           HelloWorldAkkaHttpExclude,
           HelloWorldAkkaHttpExclude.core.assembly
         )
-        'excludeMultiModule - checkExclude(
+        "excludeMultiModule" - checkExclude(
           HelloWorldMultiExclude,
           HelloWorldMultiExclude.core.assembly,
           resourcePath = helloWorldMultiResourcePath
-
         )
-        'excludePatternWithDeps - checkExclude(
+        "excludePatternWithDeps" - checkExclude(
           HelloWorldAkkaHttpExcludePattern,
           HelloWorldAkkaHttpExcludePattern.core.assembly
         )
-        'excludePatternMultiModule - checkExclude(
+        "excludePatternMultiModule" - checkExclude(
           HelloWorldMultiExcludePattern,
           HelloWorldMultiExcludePattern.core.assembly,
           resourcePath = helloWorldMultiResourcePath
         )
 
-        'writeDownstreamWhenNoRule - {
-          'withDeps - workspaceTest(HelloWorldAkkaHttpNoRules) { eval =>
-            val Right((result, _)) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly)
-
-            val jarFile = new JarFile(result.path.toIO)
-
-            assert(jarEntries(jarFile).contains("reference.conf"))
-
-            val referenceContent = readFileFromJar(jarFile, "reference.conf")
-
-            val allOccurrences = Seq(
-              referenceContent.contains("akka-http Reference Config File"),
-              referenceContent.contains("akka-http-core Reference Config File"),
-              referenceContent.contains("Akka Actor Reference Config File"),
-              referenceContent.contains("Akka Stream Reference Config File"),
-              referenceContent.contains("My application Reference Config File")
-            )
-
-            val timesOcccurres = allOccurrences.find(identity).size
-
-            assert(timesOcccurres == 1)
+        def checkRelocate[M <: TestUtil.BaseModule](
+            module: M,
+            target: Target[PathRef],
+            resourcePath: os.Path = resourcePath
+        ) =
+          workspaceTest(module, resourcePath) { eval =>
+            val Right((result, _)) = eval.apply(target)
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(!jarEntries(jarFile).contains("akka/http/scaladsl/model/HttpEntity.class"))
+              assert(
+                jarEntries(jarFile).contains("shaded/akka/http/scaladsl/model/HttpEntity.class")
+              )
+            }
           }
 
-          'multiModule - workspaceTest(
+        "relocate" - {
+          "withDeps" - checkRelocate(
+            HelloWorldAkkaHttpRelocate,
+            HelloWorldAkkaHttpRelocate.core.assembly
+          )
+
+          "run" - workspaceTest(
+            HelloWorldAkkaHttpRelocate,
+            resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-deps"
+          ) { eval =>
+            val Right((_, evalCount)) = eval.apply(HelloWorldAkkaHttpRelocate.core.runMain("Main"))
+            assert(evalCount > 0)
+          }
+        }
+
+        "writeDownstreamWhenNoRule" - {
+          "withDeps" - workspaceTest(HelloWorldAkkaHttpNoRules) { eval =>
+            val Right((result, _)) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly)
+
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(jarEntries(jarFile).contains("reference.conf"))
+
+              val referenceContent = readFileFromJar(jarFile, "reference.conf")
+
+              val allOccurrences = Seq(
+                referenceContent.contains("akka-http Reference Config File"),
+                referenceContent.contains("akka-http-core Reference Config File"),
+                referenceContent.contains("Akka Actor Reference Config File"),
+                referenceContent.contains("Akka Stream Reference Config File"),
+                referenceContent.contains("My application Reference Config File")
+              )
+
+              val timesOcccurres = allOccurrences.find(identity).size
+
+              assert(timesOcccurres == 1)
+            }
+          }
+
+          "multiModule" - workspaceTest(
             HelloWorldMultiNoRules,
             resourcePath = helloWorldMultiResourcePath
           ) { eval =>
             val Right((result, _)) = eval.apply(HelloWorldMultiNoRules.core.assembly)
 
-            val jarFile = new JarFile(result.path.toIO)
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(jarEntries(jarFile).contains("reference.conf"))
 
-            assert(jarEntries(jarFile).contains("reference.conf"))
+              val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
-            val referenceContent = readFileFromJar(jarFile, "reference.conf")
-
-            assert(
-              !referenceContent.contains("Model Reference Config File"),
-              !referenceContent.contains("foo.bar=2"),
-
-              referenceContent.contains("Core Reference Config File"),
-              referenceContent.contains("bar.baz=hello")
-            )
+              assert(
+                !referenceContent.contains("Model Reference Config File"),
+                !referenceContent.contains("foo.bar=2"),
+                referenceContent.contains("Core Reference Config File"),
+                referenceContent.contains("bar.baz=hello")
+              )
+            }
           }
         }
       }
 
-      'run - workspaceTest(HelloWorldWithMain){eval =>
+      "run" - workspaceTest(HelloWorldWithMain) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
 
         assert(
@@ -831,7 +935,7 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    'ivyDeps - workspaceTest(HelloWorldIvyDeps){ eval =>
+    "ivyDeps" - workspaceTest(HelloWorldIvyDeps) { eval =>
       val Right((result, _)) = eval.apply(HelloWorldIvyDeps.moduleA.runClasspath)
       assert(
         result.exists(_.path.last == "sourcecode_2.12-0.1.3.jar"),
@@ -845,68 +949,69 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
-    'typeLevel - workspaceTest(HelloWorldTypeLevel){ eval =>
+    "typeLevel" - workspaceTest(HelloWorldTypeLevel) { eval =>
       val classPathsToCheck = Seq(
         HelloWorldTypeLevel.foo.runClasspath,
         HelloWorldTypeLevel.foo.ammoniteReplClasspath,
         HelloWorldTypeLevel.foo.compileClasspath
       )
-      for(cp <- classPathsToCheck){
+      for (cp <- classPathsToCheck) {
         val Right((result, _)) = eval.apply(cp)
         assert(
           // Make sure every relevant piece org.scala-lang has been substituted for org.typelevel
           !result.map(_.toString).exists(x =>
             x.contains("scala-lang") &&
-            (x.contains("scala-library") || x.contains("scala-compiler") || x.contains("scala-reflect"))
+              (x.contains("scala-library") || x.contains("scala-compiler") || x.contains(
+                "scala-reflect"
+              ))
           ),
           result.map(_.toString).exists(x => x.contains("typelevel") && x.contains("scala-library"))
-
         )
       }
     }
 
-    'macros - {
+    "macros" - {
       // make sure macros are applied when compiling/running
-      'runMain - workspaceTest(
+      "runMain" - workspaceTest(
         HelloWorldMacros,
-        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
-      ){ eval =>
+        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+      ) { eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.runMain("Main"))
         assert(evalCount > 0)
       }
       // make sure macros are applied when compiling during scaladoc generation
-      'docJar - workspaceTest(
+      "docJar" - workspaceTest(
         HelloWorldMacros,
-        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
-      ){ eval =>
+        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+      ) { eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.docJar)
         assert(evalCount > 0)
       }
     }
 
-    'flags - {
+    "flags" - {
       // make sure flags are passed when compiling/running
-      'runMain - workspaceTest(
+      "runMain" - workspaceTest(
         HelloWorldFlags,
-        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-flags"
-      ){ eval =>
+        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-flags"
+      ) { eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldFlags.core.runMain("Main"))
         assert(evalCount > 0)
       }
       // make sure flags are passed during ScalaDoc generation
-      'docJar - workspaceTest(
+      "docJar" - workspaceTest(
         HelloWorldFlags,
-        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-flags"
-      ){ eval =>
+        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-flags"
+      ) { eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldFlags.core.docJar)
         assert(evalCount > 0)
       }
     }
 
-    'scalacheck - workspaceTest(
+    "scalacheck" - workspaceTest(
       HelloScalacheck,
-      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-scalacheck"
-    ){ eval =>
+      resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-scalacheck"
+    ) { eval =>
       val Right((res, evalCount)) = eval.apply(HelloScalacheck.foo.test.test())
       assert(
         evalCount > 0,
@@ -919,12 +1024,67 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
-    'dotty213 - workspaceTest(
+    "dotty213" - workspaceTest(
       Dotty213,
-      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "dotty213"
-    ){ eval =>
+      resourcePath = os.pwd / "scalalib" / "test" / "resources" / "dotty213"
+    ) { eval =>
       val Right((_, evalCount)) = eval.apply(Dotty213.foo.run())
       assert(evalCount > 0)
+    }
+
+    "pom" - {
+      "should include scala-library dependency" - workspaceTest(HelloWorldWithPublish) { eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
+
+        assert(
+          os.exists(result.path),
+          evalCount > 0
+        )
+
+        val pomXml = scala.xml.XML.loadFile(result.path.toString)
+        val scalaLibrary = pomXml \ "dependencies" \ "dependency"
+        assert(
+          (scalaLibrary \ "artifactId").text == "scala-library",
+          (scalaLibrary \ "groupId").text == "org.scala-lang"
+        )
+      }
+      "versionScheme" - workspaceTest(HelloWorldWithPublish) { eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
+
+        assert(
+          os.exists(result.path),
+          evalCount > 0
+        )
+
+        val pomXml = scala.xml.XML.loadFile(result.path.toString)
+        val versionScheme = pomXml \ "properties" \ "info.versionScheme"
+        assert(versionScheme.text == "early-semver")
+      }
+    }
+
+    "ivy" - {
+      "should include scala-library dependency" - workspaceTest(HelloWorldWithPublish) { eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.ivy)
+
+        assert(
+          os.exists(result.path),
+          evalCount > 0
+        )
+
+        val ivyXml = scala.xml.XML.loadFile(result.path.toString)
+        val deps: NodeSeq = (ivyXml \ "dependencies" \ "dependency")
+        assert(deps.exists(n =>
+          (n \ "@conf").text == "compile->default(compile)" &&
+            (n \ "@name").text == "scala-library" && (n \ "@org").text == "org.scala-lang"
+        ))
+      }
+    }
+
+    "replAmmoniteMainClass" - workspaceTest(AmmoniteReplMainClass) { eval =>
+      val Right((oldResult, _)) = eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass)
+      assert(oldResult == "ammonite.Main")
+      val Right((newResult, _)) = eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass)
+      assert(newResult == "ammonite.AmmoniteMain")
     }
   }
 }

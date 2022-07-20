@@ -7,11 +7,13 @@ trait ArtifactoryPublishModule extends PublishModule {
 
   def artifactorySnapshotUri: String
 
-  def publishArtifactory(credentials: String,
-                         artifactoryUri: String = artifactoryUri,
-                         artifactorySnapshotUri: String = artifactorySnapshotUri,
-                         readTimeout: Int = 60000,
-                         connectTimeout: Int = 5000): define.Command[Unit] = T.command {
+  def publishArtifactory(
+      credentials: String,
+      artifactoryUri: String = artifactoryUri,
+      artifactorySnapshotUri: String = artifactorySnapshotUri,
+      readTimeout: Int = 60000,
+      connectTimeout: Int = 5000
+  ): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new ArtifactoryPublisher(
       artifactoryUri,
@@ -20,20 +22,22 @@ trait ArtifactoryPublishModule extends PublishModule {
       readTimeout,
       connectTimeout,
       T.log
-    ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo)
+    ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
   }
 }
 
 object ArtifactoryPublishModule extends ExternalModule {
-  def publishAll(credentials: String,
-                 artifactoryUri: String,
-                 artifactorySnapshotUri: String,
-                 publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
-                 readTimeout: Int = 60000,
-                 connectTimeout: Int = 5000) = T.command {
+  def publishAll(
+      credentials: String,
+      artifactoryUri: String,
+      artifactorySnapshotUri: String,
+      publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+      readTimeout: Int = 60000,
+      connectTimeout: Int = 5000
+  ) = T.command {
 
-    val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map{
-      case PublishModule.PublishData(a, s) => (s.map{case (p, f) => (p.path, f)}, a)
+    val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
+      case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
     }
     new ArtifactoryPublisher(
       artifactoryUri,
@@ -43,7 +47,7 @@ object ArtifactoryPublishModule extends ExternalModule {
       connectTimeout,
       T.log
     ).publishAll(
-      x:_*
+      x: _*
     )
   }
 

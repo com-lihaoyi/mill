@@ -46,35 +46,40 @@ object Ctx {
   }
 
   /**
-    * Access to the selected parallel job count (`mill --jobs`).
-    */
+   * Access to the selected parallel job count (`mill --jobs`).
+   */
   trait Jobs {
     def jobs: Int
+  }
+
+  /** Access to the project root (aka workspace) directory. */
+  trait Workspace {
+    def workspace: os.Path
   }
 
   def defaultHome = os.home / ".mill" / "ammonite"
 
   /**
-    * Marker annotation.
-    */
+   * Marker annotation.
+   */
   class ImplicitStub extends StaticAnnotation
 }
 
-
 class Ctx(
-  val args: IndexedSeq[_],
-  dest0: () => os.Path,
-  val log: Logger,
-  val home: os.Path,
-  val env: Map[String, String],
-  val reporter: Int => Option[BuildProblemReporter],
-  val testReporter: TestReporter
-)
-  extends Ctx.Dest
-  with Ctx.Log
-  with Ctx.Args
-  with Ctx.Home
-  with Ctx.Env {
+    val args: IndexedSeq[_],
+    dest0: () => os.Path,
+    val log: Logger,
+    val home: os.Path,
+    val env: Map[String, String],
+    val reporter: Int => Option[CompileProblemReporter],
+    val testReporter: TestReporter,
+    val workspace: os.Path
+) extends Ctx.Dest
+    with Ctx.Log
+    with Ctx.Args
+    with Ctx.Home
+    with Ctx.Env
+    with Ctx.Workspace {
 
   def dest: Path = dest0()
   def length: Int = args.length
