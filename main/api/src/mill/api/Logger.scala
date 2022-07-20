@@ -39,7 +39,8 @@ trait Logger {
   /**
    * @since Mill 0.10.5
    */
-  def debugEnabled: Boolean
+  // We only default-implement it to keep binary compatibility in 0.10.x
+  def debugEnabled: Boolean = false
 
   def close(): Unit = ()
 }
