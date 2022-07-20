@@ -30,7 +30,9 @@ object Util {
       .reverse
   }
 
-  def download(url: String, dest: os.RelPath = os.rel / "download")(implicit ctx: Ctx.Dest): PathRef = {
+  def download(url: String, dest: os.RelPath = os.rel / "download")(implicit
+      ctx: Ctx.Dest
+  ): PathRef = {
     val out = ctx.dest / dest
 
     val website = new java.net.URI(url).toURL

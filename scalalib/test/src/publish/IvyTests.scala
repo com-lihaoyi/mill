@@ -83,7 +83,7 @@ object IvyTests extends TestSuite {
             mandatoryAttr(dep, "rev") == ivyDeps(index).artifact.version,
             (dep \ "exclude").zipWithIndex forall { case (exclude, j) =>
               mandatoryAttr(exclude, "org") == ivyDeps(index).exclusions(j)._1 &&
-                mandatoryAttr(exclude, "name") == ivyDeps(index).exclusions(j)._2
+              mandatoryAttr(exclude, "name") == ivyDeps(index).exclusions(j)._2
             }
           )
         }

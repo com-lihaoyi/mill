@@ -34,7 +34,10 @@ class Router(val ctx: blackbox.Context) extends mainargs.Macros(ctx) {
     }
     rec(weakTypeOf[T])
 
-    def assertParamListCounts(methods: Iterable[MethodSymbol], cases: (Type, Int, String)*): Unit = {
+    def assertParamListCounts(
+        methods: Iterable[MethodSymbol],
+        cases: (Type, Int, String)*
+    ): Unit = {
       for (m <- methods.toList) {
         for ((tt, n, label) <- cases) {
           if (

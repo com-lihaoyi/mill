@@ -14,7 +14,8 @@ object BloopFormats {
   implicit val checksumRW: ReadWriter[BloopConfig.Checksum] = macroRW
   implicit val linkerModeDebugRW: ReadWriter[BloopConfig.LinkerMode.Debug.type] = macroRW
   implicit val linkerModeReleaseRW: ReadWriter[BloopConfig.LinkerMode.Release.type] = macroRW
-  implicit val moduleKindJSCommonJSModuleRW: ReadWriter[BloopConfig.ModuleKindJS.CommonJSModule.type] = macroRW
+  implicit val moduleKindJSCommonJSModuleRW
+      : ReadWriter[BloopConfig.ModuleKindJS.CommonJSModule.type] = macroRW
   implicit val moduleKindJSNoModuleRW: ReadWriter[BloopConfig.ModuleKindJS.NoModule.type] = macroRW
   implicit val moduleKindJSESModuleRW: ReadWriter[BloopConfig.ModuleKindJS.ESModule.type] = macroRW
   implicit val javaThenScalaRW: ReadWriter[BloopConfig.JavaThenScala.type] = macroRW
