@@ -7,49 +7,48 @@ import com.virtuslab.using_directives.custom.utils.ast.{StringLiteral, UsingDef}
 import com.virtuslab.using_directives.custom.{Parser, SimpleCommentExtractor}
 import com.virtuslab.using_directives.reporter.ConsoleReporter
 import upickle.default.{ReadWriter, macroRW}
+import mill.api.JsonFormatters._
 
 import java.nio.charset.Charset
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 case class ParsedMillSetup(
-    projectDir: String,
+    projectDir: os.Path,
     directives: Seq[MillUsingDirective],
-    buildScriptPresent: Boolean
+    buildScript: Option[os.Path]
 ) {
   lazy val includedSourceFiles: Seq[os.Path] = directives.collect {
-    case MillUsingDirective.File(file) => os.Path(projectDir) / file
+    case MillUsingDirective.File(file, src) => projectDir / file
   }
   lazy val millVersion: Option[String] = directives.collect {
-    case MillUsingDirective.MillVersion(version) => version
+    case MillUsingDirective.MillVersion(version, src) => version
   }.headOption
   lazy val ivyDeps: Seq[String] = directives.collect {
-    case MillUsingDirective.Dep(dep) => dep
+    case MillUsingDirective.Dep(dep, src) => dep
   }
 }
 
 object ParsedMillSetup {
-//  implicit def pathUpickleRW: ReadWriter[os.Path] = upickle.default.readwriter[String].bimap[os.Path](
-//    p => p.toString(),
-//    s => os.Path(s)
-//  )
   implicit val upickleRW: ReadWriter[ParsedMillSetup] = macroRW
 }
 
-sealed trait MillUsingDirective
+sealed trait MillUsingDirective {
+  def sourceFile: os.Path
+}
 
 object MillUsingDirective {
 
-  case class Dep(raw: String) extends MillUsingDirective
+  case class Dep(raw: String, sourceFile: os.Path) extends MillUsingDirective
   object Dep {
     implicit val upickleRW: ReadWriter[Dep] = macroRW
   }
 
-  case class File(file: String) extends MillUsingDirective
+  case class File(file: String, sourceFile: os.Path) extends MillUsingDirective
   object File {
     implicit val upickleRW: ReadWriter[File] = macroRW
   }
 
-  case class MillVersion(version: String) extends MillUsingDirective
+  case class MillVersion(version: String, sourceFile: os.Path) extends MillUsingDirective
   object MillVersion {
     implicit val upickleRW: ReadWriter[MillVersion] = macroRW
   }
@@ -59,12 +58,13 @@ object MillUsingDirective {
     File.upickleRW,
     MillVersion.upickleRW
   )
+
 }
 
 object ReadDirectives {
 
   def readUsingDirectives(buildSc: os.Path): ParsedMillSetup = {
-    val (directives, exists, code, codeOffset) =
+    val (directives, buildScript, code, codeOffset) =
       if (os.exists(buildSc)) {
         val content = new String(os.read.bytes(buildSc), Charset.forName("UTF-8"))
         val extractor = new SimpleCommentExtractor(content.toCharArray(), true)
@@ -87,25 +87,23 @@ object ReadDirectives {
             val settings = u.getSettingDefs.getSettings
             settings.asScala.map { s =>
               (s.getKey, s.getValue) match {
-                case ("dep", v: StringLiteral) => MillUsingDirective.Dep(v.getValue)
-                case ("file", v: StringLiteral) => MillUsingDirective.File(v.getValue)
+                case ("dep", v: StringLiteral) => MillUsingDirective.Dep(v.getValue, buildSc)
+                case ("file", v: StringLiteral) => MillUsingDirective.File(v.getValue, buildSc)
                 case ("mill.version", v: StringLiteral) =>
-                  MillUsingDirective.MillVersion(v.getValue)
+                  MillUsingDirective.MillVersion(v.getValue, buildSc)
               }
 
             }
         }.toList
 
-        (directives, true, rest, parsed.getCodeOffset())
+        (directives, Some(buildSc), rest, parsed.getCodeOffset())
 
-      } else (Seq.empty[MillUsingDirective], false, "", 0)
+      } else (Seq.empty[MillUsingDirective], None, "", 0)
 
     ParsedMillSetup(
-      projectDir = (buildSc / os.up).toString,
+      projectDir = buildSc / os.up,
       directives = directives,
-      buildScriptPresent = exists
-//      buildScriptCode = code,
-//      buildScriptCodeOffset = codeOffset
+      buildScript = buildScript
     )
   }
 }

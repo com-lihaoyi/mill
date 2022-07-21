@@ -351,6 +351,7 @@ object main extends MillModule {
   )
 
   object buildfile extends MillModule {
+    override def moduleDeps = Seq(main.api)
     override def ivyDeps = Agg(
       Deps.osLib,
       Deps.usingDirectives,
