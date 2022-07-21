@@ -12,7 +12,7 @@ import scala.collection.mutable
 
 object TestUtil extends MillTestKit {
 
-  override val targetDir = os.pwd / "out" / "target"
+  override val targetDir = os.pwd / "target"
 
   def getOutPath()(implicit fullName: sourcecode.FullName, tp: TestPath): os.Path = {
     getOutPath(tp.value)
