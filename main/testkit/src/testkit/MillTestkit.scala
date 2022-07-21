@@ -14,12 +14,12 @@ import scala.collection.mutable
 
 trait MillTestKit {
 
-  lazy val defaultTargetDir: os.Path =
+  def defaultTargetDir: os.Path =
     sys.env.get("MILL_TESTKIT_BASEDIR").map(os.pwd / os.RelPath(_)).getOrElse(os.temp.dir())
 
   def targetDir: os.Path = defaultTargetDir
 
-  val externalOutPath: os.Path = targetDir / "external"
+  def externalOutPath: os.Path = targetDir / "external"
 
   def staticTestEvaluator(module: => mill.define.BaseModule)(implicit
       fullName: sourcecode.FullName
