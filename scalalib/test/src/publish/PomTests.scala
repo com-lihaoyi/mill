@@ -119,7 +119,7 @@ object PomTests extends TestSuite {
               optText(dep \ "scope").isEmpty,
               (dep \ "exclusions").zipWithIndex.forall { case (node, j) =>
                 singleText(node \ "exclusion" \ "groupId") == pomDeps(index).exclusions(j)._1 &&
-                  singleText(node \ "exclusion" \ "artifactId") == pomDeps(index).exclusions(j)._2
+                singleText(node \ "exclusion" \ "artifactId") == pomDeps(index).exclusions(j)._2
               }
             )
         }

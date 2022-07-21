@@ -3,12 +3,14 @@
 
 The Plugins in this section are developed/maintained outside the mill git tree.
 This list is most likely not complete.
-If you're missing an external plugin or developed one which is not listed here, please open a https://github.com/com-lihaoyi/mill/pulls[pull request] and add that plugin with a short description.
+If you wrote a Mill plugin or find that one is missing in this list, please open a {mill-github-url}/pulls[pull request] and add that plugin with a short description (in alphabetical order).
 
 For details about including plugins in your `build.sc` read xref:Extending_Mill.adoc#_using_mill_plugins_import_ivy[Using Mill Plugins].
 
 CAUTION: Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
 The usage examples given here are most probably incomplete and sometimes outdated!
+
+Additional to this list, you can also search the https://github.com/topics/mill-plugin[`mill-plugin` topic on GitHub] for more plugins.
 
 
 == Antlr
@@ -68,6 +70,7 @@ For documentation, please refer to the https://github.com/lefou/mill-aspectj[pro
 Limited bash completion support.
 
 Project home: https://github.com/lefou/mill-bash-completion
+
 
 == DGraph
 
@@ -161,6 +164,14 @@ Found unimported dependencies: (remove these from ivyDeps)
 1 targets failed
 main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies
 ----
+
+== Fish Completion
+
+Limited fish completion support.
+
+Project home: https://github.com/ckipp01/mill-fish-completions
+
+
 
 == Git
 
@@ -456,7 +467,7 @@ Scala MDoc simply compiles properly marked Scala snippets in plain md files and 
 
 Project home: https://github.com/atooni/mill-mdoc
 
-== Mill Wrapper Scripts
+== `millw` / `millw.bat` - Mill Wrapper Scripts
 
 Small script to automatically fetch and execute mill build tool.
 
@@ -682,6 +693,14 @@ object project extends ScalaModule with ScalafixModule {
 project.fix A Scalafix linter error was reported
 ----
 
+== Shell Completions
+
+As Mill is a tool often used from the CLI (Command line interface), you may be also interested in installing some completion support for your preferred shell:
+
+* <<_bash_completion>>
+* <<_fish_completion>>
+* <<_zsh_completion>>
+
 == VCS Version
 
 Mill plugin to derive a version from (last) git tag and edit state. It may support other VCS as well.
@@ -706,3 +725,12 @@ object main extends JavaModule with PublishModule {
   override def publishVersion: T[String] = VcsVersion.vcsState().format()
 }
 ----
+
+== Zsh Completion
+
+Limited zsh completion support.
+
+This script is part of a collection of configuration files and comes without documentation, but might be useful nonetheless, if you are a zsh user.
+
+
+Project home: https://github.com/carlosedp/dotfiles/blob/master/completion/_mill

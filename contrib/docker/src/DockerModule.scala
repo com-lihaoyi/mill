@@ -140,7 +140,7 @@ trait DockerModule { outer: JavaModule =>
         .call(stdout = os.Inherit, stderr = os.Inherit)
 
       log.info(s"Docker build completed ${if (result.exitCode == 0) "successfully"
-      else "unsuccessfully"} with ${result.exitCode}")
+        else "unsuccessfully"} with ${result.exitCode}")
       tags()
     }
 

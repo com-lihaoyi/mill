@@ -28,7 +28,9 @@ object Ivy {
     val xml =
       <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
         <info
-        organisation={artifact.group} module={artifact.id} revision={artifact.version} status="release">
+        organisation={artifact.group} module={artifact.id} revision={
+        artifact.version
+      } status="release">
           <description/>
         </info>
         <configurations>

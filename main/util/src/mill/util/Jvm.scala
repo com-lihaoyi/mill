@@ -13,7 +13,11 @@ object Jvm {
     val urls = classPath.map(_.toIO.toURI.toURL)
     val cl =
       if (classLoaderOverrideSbtTesting) {
-        mill.api.ClassLoader.create(urls.iterator.toVector, null, sharedPrefixes = Seq("sbt.testing."))
+        mill.api.ClassLoader.create(
+          urls.iterator.toVector,
+          null,
+          sharedPrefixes = Seq("sbt.testing.")
+        )
       } else if (isolated) {
         mill.api.ClassLoader.create(urls.iterator.toVector, null)
       } else {

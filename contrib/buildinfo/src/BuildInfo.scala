@@ -31,8 +31,8 @@ trait BuildInfo extends ScalaModule {
         case (name, _) => s""""${name}" -> ${name}"""
       }.mkString(",")
       logger.debug(s"Generating object [${buildInfoPackageName.map(_ + ".").getOrElse(
-        ""
-      )}${buildInfoObjectName}] with [${members.size}] members to [${outputFile}]")
+          ""
+        )}${buildInfoObjectName}] with [${members.size}] members to [${outputFile}]")
       os.write(
         outputFile,
         s"""|${buildInfoPackageName.map(packageName => s"package ${packageName}\n").getOrElse("")}

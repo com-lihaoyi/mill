@@ -12,7 +12,7 @@ object foo extends ScalaModule with PublishModule {
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github("lihaoyi", "example"),
     developers = Seq(
-      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
+      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
     )
   )
 }
