@@ -2,13 +2,13 @@ package mill.scalalib.bsp
 
 import ammonite.runtime.SpecialClassLoader
 import mill.api.{Loose, PathRef, internal}
-import mill.define.{BaseModule, Segments, Sources, Task}
-import mill.eval.EvaluatorPathsResolver
-import mill.modules.Jvm
+import mill.define.{BaseModule, Input, Sources, Target, Task}
 import mill.scalalib.api.CompilationResult
+import mill.scalalib.buildfile.{MillBuildModule, MillSetupScannerModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
 import mill.{Agg, BuildInfo, Module, T}
+import upickle.default.{ReadWriter, macroRW}
 
 trait BspModule extends Module {
   import BspModule._
@@ -75,15 +75,24 @@ object BspUri {
  * @param outerCtx0
  */
 @internal
-trait MillBuildTarget // (rootModule: BaseModule, ctx0: mill.define.Ctx)
-    extends // Module()(ctx0) with
-    ScalaModule {
+trait MillBuildTarget
+    extends ScalaModule
+    with MillSetupScannerModule {
   protected def rootModule: BaseModule
   override def millSourcePath: os.Path = rootModule.millSourcePath
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
+
+  protected def millEmbeddedDeps: Input[Seq[String]] = T.input {
+    BuildInfo.millEmbeddedDeps
+  }
+
+  override def compileIvyDeps: T[Agg[Dep]] = T {
+    Agg.from(millEmbeddedDeps().map(d => parseDeps(d)))
+  }
+
   override def ivyDeps: T[Agg[Dep]] = T {
-    T.log.errorStream.println(s"ivyDeps: ${T.dest}")
-    Agg.from(BuildInfo.millEmbeddedDeps.map(d => ivy"${d}"))
+    val deps = parsedMillSetup().ivyDeps
+    Agg.from(deps.map(d => parseDeps(d)))
   }
 
   /**
@@ -100,24 +109,22 @@ trait MillBuildTarget // (rootModule: BaseModule, ctx0: mill.define.Ctx)
     )
   }
 
-  // The buildfile and single source of truth
-  def buildScFile = T.source(millSourcePath / "build.sc")
-  def ammoniteFiles = T {
-    T.log.errorStream.println(s"ammoniteFiles: ${T.dest}")
-    // we depend on buildScFile, to recompute whenever build.sc changes
-    findSources(Seq(millSourcePath), excludes = Seq(millSourcePath / "out"))
-  }
-  // We need to be careful here to not include the out/ directory
   override def sources: Sources = T.sources {
-    T.log.errorStream.println(s"sources: ${T.dest}")
-    val sources = ammoniteFiles()
-    T.log.errorStream.println(s"sources: ${sources}")
-    sources
+    val optsFileName =
+      T.env.get("MILL_JVM_OPTS_PATH").filter(!_.isEmpty).getOrElse(".mill-jvm-opts")
+
+    Seq(
+      PathRef(millSourcePath / ".mill-version"),
+      PathRef(millSourcePath / optsFileName),
+      buildScFile()
+    ) ++ includedSourceFiles()
   }
+
   override def allSourceFiles: T[Seq[PathRef]] = T {
     findSources(sources().map(_.path))
   }
-  def findSources(paths: Seq[os.Path], excludes: Seq[os.Path] = Seq()): Seq[PathRef] = {
+
+  protected def findSources(paths: Seq[os.Path], excludes: Seq[os.Path] = Seq()): Seq[PathRef] = {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
     (for {
       root <- paths
@@ -126,22 +133,27 @@ trait MillBuildTarget // (rootModule: BaseModule, ctx0: mill.define.Ctx)
       if os.isFile(path) && ((path.ext == "sc") && !isHiddenFile(path))
     } yield PathRef(path)).distinct
   }
+
+  override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = T{
+    super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefs)
+  }
+
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     displayName = Some("mill-build"),
     baseDirectory = Some(rootModule.millSourcePath),
     languageIds = Seq(BspModule.LanguageId.Scala),
     canRun = false,
-    canCompile = false,
+//    canCompile = false,
     canTest = false,
     canDebug = false,
     tags = Seq(BspModule.Tag.Library, BspModule.Tag.Application)
   )
-  override def compile: T[CompilationResult] = T {
-    T.log.errorStream.println(s"compile: ${T.dest}")
-    os.write(T.dest / "dummy", "")
-    os.makeDir(T.dest / "classes")
-    CompilationResult(T.dest / "dummy", PathRef(T.dest / "classes"))
-  }
+//  override def compile: T[CompilationResult] = T {
+//    T.log.errorStream.println(s"compile: ${T.dest}")
+//    os.write(T.dest / "dummy", "")
+//    os.makeDir(T.dest / "classes")
+//    CompilationResult(T.dest / "dummy", PathRef(T.dest / "classes"))
+//  }
 
   /** Used in BSP IntelliJ, which can only work with directories */
   def dummySources: Sources = T.sources(T.dest)

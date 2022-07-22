@@ -18,8 +18,8 @@ case class ParsedMillSetup(
     buildScript: Option[os.Path]
 ) {
   lazy val includedSourceFiles: Seq[os.Path] = directives.collect {
-    case MillUsingDirective.File(file, src) => projectDir / file
-  }
+    case MillUsingDirective.File(file, src) => os.Path(file, projectDir)
+  }.distinct
   lazy val millVersion: Option[String] = directives.collect {
     case MillUsingDirective.MillVersion(version, src) => version
   }.headOption
