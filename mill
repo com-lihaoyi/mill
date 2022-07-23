@@ -10,6 +10,8 @@ set -e
 if [ -z "$MILL_VERSION" ] ; then
   if [ -f ".mill-version" ] ; then
     MILL_VERSION="$(head -n 1 .mill-version 2> /dev/null)"
+  elif [ -f ".config/mill-version" ] ; then
+    MILL_VERSION="$(head -n 1 .config/mill-version 2> /dev/null)"
   elif [ -f "mill" ] && [ "$0" != "mill" ] ; then
     MILL_VERSION=$(grep -F "DEFAULT_MILL_VERSION=" "mill" | head -n 1 | cut -d= -f2)
   else

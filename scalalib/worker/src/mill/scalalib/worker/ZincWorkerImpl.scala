@@ -4,7 +4,7 @@ import java.io.File
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 
-import scala.ref.WeakReference
+import scala.ref.SoftReference
 import scala.util.Properties.isWin
 
 import mill.api.Loose.Agg
@@ -329,14 +329,14 @@ class ZincWorkerImpl(
   // for now this just grows unbounded; YOLO
   // But at least we do not prevent unloading/garbage collecting of classloaders
   private[this] val classloaderCache =
-    collection.mutable.LinkedHashMap.empty[Long, WeakReference[ClassLoader]]
+    collection.mutable.LinkedHashMap.empty[Long, SoftReference[ClassLoader]]
 
   def getCachedClassLoader(compilersSig: Long, combinedCompilerJars: Array[java.io.File])(implicit
       ctx: ZincWorkerApi.Ctx
   ) = {
     classloaderCache.synchronized {
       classloaderCache.get(compilersSig) match {
-        case Some(WeakReference(cl)) => cl
+        case Some(SoftReference(cl)) => cl
         case _ =>
           // the Scala compiler must load the `xsbti.*` classes from the same loader than `ZincWorkerImpl`
           val sharedPrefixes = Seq("xsbti")
@@ -346,7 +346,7 @@ class ZincWorkerImpl(
             sharedLoader = getClass.getClassLoader,
             sharedPrefixes
           )
-          classloaderCache.update(compilersSig, WeakReference(cl))
+          classloaderCache.update(compilersSig, SoftReference(cl))
           cl
       }
     }
