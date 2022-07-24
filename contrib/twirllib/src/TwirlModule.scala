@@ -1,36 +1,50 @@
 package mill
 package twirllib
 
-import coursier.MavenRepository
-import mill.define.Sources
+import coursier.{Dependency, Repository}
+import mill.define.{Sources, Task}
 import mill.api.PathRef
-import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.api.Loose
 
 import scala.io.Codec
 import scala.util.Properties
 
-trait TwirlModule extends mill.Module {
+trait TwirlModule extends mill.Module { twirlModule =>
 
   def twirlVersion: T[String]
+
+  /**
+   * The Scala version matching the twirl version.
+   */
+  def twirlScalaVersion: T[String]
 
   def twirlSources: Sources = T.sources {
     millSourcePath / "views"
   }
 
-  def twirlClasspath: T[Loose.Agg[PathRef]] = T {
-    resolveDependencies(
-      Seq(
-        coursier.LocalRepositories.ivy2Local,
-        MavenRepository("https://repo1.maven.org/maven2")
-      ),
-      Lib.depToDependency(_, "2.13.8"),
-      Seq(
-        ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}",
-        ivy"org.scala-lang.modules::scala-parser-combinators:2.1.1"
-      )
+  def twirlIvyDeps: T[Agg[Dep]] = T {
+    Agg(
+      ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}",
+      ivy"org.scala-lang.modules::scala-parser-combinators:1.1.2"
     )
+  }
+
+  /** Class instead of an object, to allow re-configuration. */
+  class TwirlResolver()(implicit ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with CoursierModule {
+    override def resolveCoursierDependency: Task[Dep => Dependency] = T.task { d: Dep =>
+      Lib.depToDependency(d, twirlScalaVersion())
+    }
+
+    override def repositoriesTask: Task[Seq[Repository]] = twirlModule match {
+      case m: CoursierModule => m.repositoriesTask
+      case _ => super.repositoriesTask
+    }
+  }
+  val twirlCoursierResolver = new TwirlResolver()
+
+  def twirlClasspath: T[Loose.Agg[PathRef]] = T {
+    twirlCoursierResolver.resolveDeps(twirlIvyDeps)
   }
 
   def twirlImports: T[Seq[String]] = T {

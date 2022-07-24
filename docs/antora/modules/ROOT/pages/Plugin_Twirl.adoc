@@ -59,7 +59,11 @@ object app extends ScalaModule with TwirlModule {
 
 === +def twirlVersion: T[String]+
 
-Mandatory - the version of the twirl compiler to use, like "1.5.1".
+Mandatory - the version of the Twirl compiler to use.
+
+=== +def twirlScalaVersion: T[String]+
+
+Mandatory - the Scala version matching the `twirlVersion`. Older Twirl versions (before 1.4.2) only supported Scala 2.12.
 
 === +def twirlImports: T[Seq[String]]+
 
@@ -88,6 +92,7 @@ import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"
+  def twirlScalaVersion = "2.13.8"
   override def twirlImports = super.twirlImports() ++ Seq("my.additional.stuff._", "my.other.stuff._")
   def generatedSources = T{ Seq(compileTwirl().classes) }
 }
