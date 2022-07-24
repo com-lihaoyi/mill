@@ -9,7 +9,6 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingleapi extends TestUtil.BaseModule with PlayApiModule with SingleModule {
     override def playVersion = T { "2.7.0" }
-    def twirlVersion = T { "1.4.0" }
     override def scalaVersion = T { "2.12.8" }
     object test extends PlayTests
   }
