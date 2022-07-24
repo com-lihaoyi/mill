@@ -10,7 +10,6 @@ trait HelloWorldTests extends TestSuite {
   val testTwirlVersion: String
   val testTwirlScalaVersion: String
 
-
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath: os.Path =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
@@ -173,4 +172,3 @@ object HelloWorldTests2_13 extends HelloWorldTests {
   override val testTwirlVersion = "1.5.1"
   override val testTwirlScalaVersion = sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???)
 }
-
