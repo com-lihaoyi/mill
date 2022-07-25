@@ -55,6 +55,10 @@ case class MillConfig(
     )
     keepGoing: Flag,
     @arg(
+      doc = "(Experimental) Enable next-gen operation mode."
+    )
+    nextGen: Flag,
+    @arg(
       name = "no-server",
       doc =
         "Run Mill in single-process mode. In this mode, no mill server will be started or used. " +
@@ -76,7 +80,7 @@ case class MillConfig(
     @arg(
       short = 'h',
       doc =
-        "(internal) The home directory of internally used Ammonite script engine; " +
+        "(Internal) The home directory of internally used Ammonite script engine; " +
           "where it looks for config and caches."
     )
     home: os.Path = mill.api.Ctx.defaultHome,

@@ -34,8 +34,9 @@ object MillMain {
         Seq(err)
       } else Seq()
 
-    if (Properties.isWin && System.console() != null)
+    if (Properties.isWin && System.console() != null) {
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
+    }
 
     val (result, _) =
       try {
@@ -72,6 +73,8 @@ object MillMain {
       systemProperties: Map[String, String],
       initialSystemProperties: Map[String, String]
   ): (Boolean, Option[EvaluatorState]) = {
+
+    val buildSc = os.pwd / "build.sc"
 
     MillConfigParser.parse(args) match {
       case Left(msg) =>
@@ -142,204 +145,22 @@ object MillMain {
             )
             (false, stateCache)
           } else {
-            if (useRepl && config.interactive.value) {
-              stderr.println(
-                "WARNING: Starting a build REPL without --repl is deprecated"
-              )
-            }
-            val systemProps =
-              systemProperties ++ config.extraSystemProperties
-
-            val threadCount = config.threadCountRaw match {
-              case None => Some(1)
-              case Some(0) => None
-              case Some(n) => Some(n)
-            }
-
-            val predefCode =
-              if (!useRepl) ""
-              else
-                s"""import $$file.build, build._
-                   |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                   |  os.Path(${pprint
-                    .apply(
-                      config.home.toIO.getCanonicalPath
-                        .replace("$", "$$")
-                    )
-                    .plainText}),
-                   |  ${config.disableTicker.value},
-                   |  interp.colors(),
-                   |  repl.pprinter(),
-                   |  build.millSelf.get,
-                   |  build.millDiscover,
-                   |  debugLog = ${config.debugLog.value},
-                   |  keepGoing = ${config.keepGoing.value},
-                   |  systemProperties = ${systemProps.toSeq
-                    .map(p => s""""${p._1}" -> "${p._2}"""")
-                    .mkString("Map[String,String](", ",", ")")},
-                   |  threadCount = ${threadCount}
-                   |)
-                   |repl.pprinter() = replApplyHandler.pprinter
-                   |""".stripMargin
-
-            val importsPredefCode: String = config.imports.map {
-              _.split("[:]", 2) match {
-                case Array("ivy", dep) =>
-                  s"""import $$ivy.`${dep}`"""
-                case x => throw new Exception(s"Unsupported plugin declaration: '$x'.")
-              }
-            }.mkString("\n")
-
-            val ammConfig = ammonite.main.Config(
-              core = ammonite.main.Config.Core(
-                noDefaultPredef = Flag(),
-                silent = Flag(),
-                watch = config.watch,
-                bsp = Flag(),
-                code = None,
-                home = config.home,
-                predefFile = None,
-                color = None,
-                thin = Flag(),
-                help = config.help,
-                showVersion = Flag()
-              ),
-              predef = ammonite.main.Config.Predef(
-                predefCode = Seq(predefCode, importsPredefCode).filter(_.nonEmpty).mkString("\n"),
-                noHomePredef = Flag()
-              ),
-              repl = ammonite.main.Config.Repl(
-                banner = MillConfigParser.customName,
-                noRemoteLogging = Flag(),
-                classBased = Flag()
-              )
-            )
-
-            val runner = new mill.main.MainRunner(
-              config = ammConfig,
+            runWithAmmonite(
+              buildSc = buildSc,
+              useRepl = useRepl,
+              config = config,
+              stderr = stderr,
+              stdout = stdout,
+              stdin = stdin,
+              systemProperties = systemProperties,
               mainInteractive = mainInteractive,
-              disableTicker = config.disableTicker.value,
-              outprintStream = stdout,
-              errPrintStream = stderr,
-              stdIn = stdin,
-              stateCache0 = stateCache,
+              stateCache = stateCache,
               env = env,
               setIdle = setIdle,
-              debugLog = config.debugLog.value,
-              keepGoing = config.keepGoing.value,
-              systemProperties = systemProps,
-              threadCount = threadCount,
-              ringBell = config.ringBell.value,
-              wd = os.pwd,
-              initialSystemProperties = initialSystemProperties
+              initialSystemProperties = initialSystemProperties,
+              bspMode = bspMode,
+              nextGen = config.nextGen.value
             )
-
-            if (mill.main.client.Util.isJava9OrAbove) {
-              val rt = config.home / Export.rtJarName
-              if (!os.exists(rt)) {
-                runner.printInfo(
-                  s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
-                )
-                Export.rtTo(rt.toIO, false)
-              }
-            }
-
-            if (useRepl) {
-              runner.printInfo("Loading...")
-              (
-                runner.watchLoop(isRepl = true, printing = false, _.run()),
-                runner.stateCache
-              )
-            } else {
-              class BspContext {
-                // BSP mode, run with a simple evaluator command to inject the evaluator
-                // The command returns when the server exists or the workspace should be reloaded
-                // if the `lastResult` is `ReloadWorkspace` we re-run the script in a loop
-
-                //              import scala.concurrent.ExecutionContext.Implicits._
-                val serverThreadContext =
-                  ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
-
-                stderr.println("Running in BSP mode with hardcoded startSession command")
-
-                val bspServerHandle = Promise[BspServerHandle]()
-
-                stderr.println("Trying to load BSP server...")
-                val bspServerFuture = Future {
-                  try {
-                    val bspClass = MillMain.this.getClass.getClassLoader.loadClass("mill.bsp.BSP")
-                    val method = bspClass.getMethod(
-                      "startBspServer",
-                      Seq[Class[_]](
-                        classOf[Option[Evaluator]],
-                        classOf[PrintStream],
-                        classOf[PrintStream],
-                        classOf[InputStream],
-                        classOf[os.Path],
-                        classOf[Boolean],
-                        classOf[Option[Promise[BspServerHandle]]]
-                      ): _*
-                    )
-
-                    method.invoke(
-                      null,
-                      Seq[Object](
-                        None,
-                        MillMain.initialSystemStreams.out,
-                        System.err,
-                        MillMain.initialSystemStreams.in,
-                        os.pwd / ".bsp",
-                        java.lang.Boolean.TRUE,
-                        Some(bspServerHandle)
-                      ): _*
-                    )
-                  } catch {
-                    case NonFatal(e) =>
-                      stderr.println(s"Could not start BSP server. ${e.getMessage}")
-                      e.printStackTrace(stderr)
-                      BspServerResult.Failure
-                  }
-                }(serverThreadContext)
-
-                val handle = Await.result(bspServerHandle.future, Duration.Inf).tap { _ =>
-                  stderr.println("BSP server started")
-                }
-
-                val millArgs = List("mill.bsp.BSP/startSession")
-              }
-
-              val bspContext = if (bspMode) Some(new BspContext()) else None
-              val targetsAndParams =
-                bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
-
-              var repeatForBsp = true
-              var loopRes: (Boolean, Option[EvaluatorState]) = (false, None)
-              while (repeatForBsp) {
-                repeatForBsp = false
-
-                val runnerRes = runner.runScript(
-                  os.pwd / "build.sc",
-                  targetsAndParams
-                )
-                bspContext.foreach { ctx =>
-                  repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)
-                  stderr.println(
-                    s"`${ctx.millArgs.mkString(" ")}` returned with ${ctx.handle.lastResult}"
-                  )
-                }
-                loopRes = (
-                  runnerRes,
-                  runner.stateCache
-                )
-              } // while repeatForBsp
-              bspContext.foreach { ctx =>
-                stderr.println(
-                  s"Exiting BSP runner loop. Stopping BSP server. Last result: ${ctx.handle.lastResult}"
-                )
-                ctx.handle.stop()
-              }
-              loopRes
-            }
           }
         if (config.ringBell.value) {
           if (success) println("\u0007")
@@ -352,4 +173,221 @@ object MillMain {
         (success, nextStateCache)
     }
   }
+
+  private def runWithAmmonite(
+      buildSc: os.Path,
+      useRepl: Boolean,
+      config: MillConfig,
+      stderr: PrintStream,
+      stdout: PrintStream,
+      stdin: InputStream,
+      systemProperties: Map[String, String],
+      mainInteractive: Boolean,
+      stateCache: Option[EvaluatorState],
+      env: Map[String, String],
+      setIdle: Boolean => Unit,
+      initialSystemProperties: Map[String, String],
+      bspMode: Boolean,
+      nextGen: Boolean
+  ) = {
+
+    if (useRepl && config.interactive.value) {
+      stderr.println(
+        "WARNING: Starting a build REPL without --repl is deprecated"
+      )
+    }
+    val systemProps = systemProperties ++ config.extraSystemProperties
+
+    val threadCount = config.threadCountRaw match {
+      case None => Some(1)
+      case Some(0) => None
+      case Some(n) => Some(n)
+    }
+
+    val predefCode =
+      if (!useRepl) ""
+      else
+        s"""import $$file.build, build._
+           |implicit val replApplyHandler = mill.main.ReplApplyHandler(
+           |  os.Path(${pprint
+            .apply(
+              config.home.toIO.getCanonicalPath
+                .replace("$", "$$")
+            )
+            .plainText}),
+           |  ${config.disableTicker.value},
+           |  interp.colors(),
+           |  repl.pprinter(),
+           |  build.millSelf.get,
+           |  build.millDiscover,
+           |  debugLog = ${config.debugLog.value},
+           |  keepGoing = ${config.keepGoing.value},
+           |  systemProperties = ${systemProps.toSeq
+            .map(p => s""""${p._1}" -> "${p._2}"""")
+            .mkString("Map[String,String](", ",", ")")},
+           |  threadCount = ${threadCount}
+           |)
+           |repl.pprinter() = replApplyHandler.pprinter
+           |""".stripMargin
+
+    val importsPredefCode: String = config.imports.map {
+      _.split("[:]", 2) match {
+        case Array("ivy", dep) =>
+          s"""import $$ivy.`${dep}`"""
+        case x => throw new Exception(s"Unsupported plugin declaration: '$x'.")
+      }
+    }.mkString("\n")
+
+    val ammConfig = ammonite.main.Config(
+      core = ammonite.main.Config.Core(
+        noDefaultPredef = Flag(),
+        silent = Flag(),
+        watch = config.watch,
+        bsp = Flag(),
+        code = None,
+        home = config.home,
+        predefFile = None,
+        color = None,
+        thin = Flag(),
+        help = config.help,
+        showVersion = Flag()
+      ),
+      predef = ammonite.main.Config.Predef(
+        predefCode = Seq(predefCode, importsPredefCode).filter(_.nonEmpty).mkString("\n"),
+        noHomePredef = Flag()
+      ),
+      repl = ammonite.main.Config.Repl(
+        banner = MillConfigParser.customName,
+        noRemoteLogging = Flag(),
+        classBased = Flag()
+      )
+    )
+
+    val runner = new mill.main.MainRunner(
+      config = ammConfig,
+      mainInteractive = mainInteractive,
+      disableTicker = config.disableTicker.value,
+      outprintStream = stdout,
+      errPrintStream = stderr,
+      stdIn = stdin,
+      stateCache0 = stateCache,
+      env = env,
+      setIdle = setIdle,
+      debugLog = config.debugLog.value,
+      keepGoing = config.keepGoing.value,
+      systemProperties = systemProps,
+      threadCount = threadCount,
+      ringBell = config.ringBell.value,
+      wd = os.pwd,
+      initialSystemProperties = initialSystemProperties
+    )
+
+    if (mill.main.client.Util.isJava9OrAbove) {
+      val rt = config.home / Export.rtJarName
+      if (!os.exists(rt)) {
+        runner.printInfo(
+          s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
+        )
+        Export.rtTo(rt.toIO, false)
+      }
+    }
+
+    if (useRepl) {
+      runner.printInfo("Loading...")
+      (
+        runner.watchLoop(isRepl = true, printing = false, _.run()),
+        runner.stateCache
+      )
+    } else {
+      class BspContext {
+        // BSP mode, run with a simple evaluator command to inject the evaluator
+        // The command returns when the server exists or the workspace should be reloaded
+        // if the `lastResult` is `ReloadWorkspace` we re-run the script in a loop
+
+        //              import scala.concurrent.ExecutionContext.Implicits._
+        val serverThreadContext =
+          ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
+
+        stderr.println("Running in BSP mode with hardcoded startSession command")
+
+        val bspServerHandle = Promise[BspServerHandle]()
+
+        stderr.println("Trying to load BSP server...")
+        val bspServerFuture = Future {
+          try {
+            val bspClass = MillMain.this.getClass.getClassLoader.loadClass("mill.bsp.BSP")
+            val method = bspClass.getMethod(
+              "startBspServer",
+              Seq[Class[_]](
+                classOf[Option[Evaluator]],
+                classOf[PrintStream],
+                classOf[PrintStream],
+                classOf[InputStream],
+                classOf[os.Path],
+                classOf[Boolean],
+                classOf[Option[Promise[BspServerHandle]]]
+              ): _*
+            )
+
+            method.invoke(
+              null,
+              Seq[Object](
+                None,
+                MillMain.initialSystemStreams.out,
+                System.err,
+                MillMain.initialSystemStreams.in,
+                os.pwd / ".bsp",
+                java.lang.Boolean.TRUE,
+                Some(bspServerHandle)
+              ): _*
+            )
+          } catch {
+            case NonFatal(e) =>
+              stderr.println(s"Could not start BSP server. ${e.getMessage}")
+              e.printStackTrace(stderr)
+              BspServerResult.Failure
+          }
+        }(serverThreadContext)
+
+        val handle = Await.result(bspServerHandle.future, Duration.Inf).tap { _ =>
+          stderr.println("BSP server started")
+        }
+
+        val millArgs = List("mill.bsp.BSP/startSession")
+      }
+
+      val bspContext = if (bspMode) Some(new BspContext()) else None
+      val targetsAndParams =
+        bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
+
+      var repeatForBsp = true
+      var loopRes: (Boolean, Option[EvaluatorState]) = (false, None)
+      while (repeatForBsp) {
+        repeatForBsp = false
+
+        val runnerRes = runner.runScript(
+          buildSc,
+          targetsAndParams
+        )
+        bspContext.foreach { ctx =>
+          repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)
+          stderr.println(
+            s"`${ctx.millArgs.mkString(" ")}` returned with ${ctx.handle.lastResult}"
+          )
+        }
+        loopRes = (
+          runnerRes,
+          runner.stateCache
+        )
+      } // while repeatForBsp
+      bspContext.foreach { ctx =>
+        stderr.println(
+          s"Exiting BSP runner loop. Stopping BSP server. Last result: ${ctx.handle.lastResult}"
+        )
+        ctx.handle.stop()
+      }
+      loopRes
+    }
+  }
+
 }
