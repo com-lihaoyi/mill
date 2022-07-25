@@ -2,14 +2,16 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
-import $ivy.`com.github.lolgab::mill-mima::0.0.10`
+import $ivy.`com.github.lolgab::mill-mima::0.0.11`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 import com.github.lolgab.mill.mima
 import com.github.lolgab.mill.mima.{
+  CheckDirection,
   DirectMissingMethodProblem,
   IncompatibleMethTypeProblem,
   IncompatibleSignatureProblem,
-  ProblemFilter
+  ProblemFilter,
+  ReversedMissingMethodProblem
 }
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
@@ -21,6 +23,7 @@ import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
 import mill.define.SelectMode
+import upickle.default.{ReadWriter, macroRW}
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -186,6 +189,16 @@ trait MillMimaConfig extends mima.Mima {
     "mill.api.internal",
     "mill.api.experimental"
   )
+
+  implicit val checkDirectionBackwardUpickleRW: ReadWriter[CheckDirection.Backward.type] = macroRW
+  implicit val checkDirectionBothUpickleRW: ReadWriter[CheckDirection.Both.type] = macroRW
+  implicit val checkDirectionForwardUpickleRW: ReadWriter[CheckDirection.Forward.type] = macroRW
+  implicit val checkDirectionUpickleRW: ReadWriter[CheckDirection] = ReadWriter.merge(
+    checkDirectionBackwardUpickleRW,
+    checkDirectionBothUpickleRW,
+    checkDirectionForwardUpickleRW
+  )
+  override def mimaCheckDirection: Target[CheckDirection] = T { CheckDirection.Backward }
   override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
     issueFilterByModule.getOrElse(this, Seq())
   }
@@ -224,6 +237,18 @@ trait MillMimaConfig extends mima.Mima {
       ),
       ProblemFilter.exclude[DirectMissingMethodProblem](
         "mill.contrib.scoverage.ScoverageReport#workerModule.bspCompileClasspath"
+      )
+    ),
+    // we added a new target and a submodule after 0.10.5
+    contrib.twirllib -> Seq(
+      ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.twirllib.TwirlModule.twirlScalaVersion"
+      ),
+      ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.twirllib.TwirlModule.twirlCoursierResolver"
+      ),
+      ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.twirllib.TwirlModule.mill$twirllib$TwirlModule$_setter_$twirlCoursierResolver_="
       )
     )
   )
@@ -290,6 +315,7 @@ trait MillModule extends MillApiModule with MillAutoTestSetup { outer =>
 }
 
 object main extends MillModule {
+
   override def moduleDeps = Seq(core, client)
   override def ivyDeps = Agg(
     Deps.windowsAnsi
@@ -420,6 +446,13 @@ object main extends MillModule {
       "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
     )
   }
+
+  object testkit extends MillInternalModule with MillAutoTestSetup {
+    def moduleDeps = Seq(core, util)
+  }
+
+  def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
+
 }
 
 object testrunner extends MillModule {
