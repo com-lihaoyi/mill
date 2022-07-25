@@ -6,7 +6,9 @@ import utest.{TestSuite, Tests, assert, _}
 
 import scala.io.Codec
 
-object HelloWorldTests extends TestSuite {
+trait HelloWorldTests extends TestSuite {
+  val testTwirlVersion: String
+  val testTwirlScalaVersion: String
 
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath: os.Path =
@@ -14,9 +16,8 @@ object HelloWorldTests extends TestSuite {
   }
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
-
-    def twirlVersion = "1.3.15"
-
+    def twirlVersion = testTwirlVersion
+    val twirlScalaVersion = testTwirlScalaVersion
   }
 
   object HelloWorld extends HelloBase {
@@ -86,13 +87,15 @@ object HelloWorldTests extends TestSuite {
           eval.apply(HelloWorld.core.twirlVersion)
 
         assert(
-          result == "1.3.15",
+          result == testTwirlVersion,
           evalCount > 0
         )
       }
     }
     "compileTwirl" - workspaceTest(HelloWorld, "hello-world") { eval =>
-      val Right((result, evalCount)) = eval.apply(HelloWorld.core.compileTwirl)
+      val res = eval.apply(HelloWorld.core.compileTwirl)
+      assert(res.isRight)
+      val Right((result, evalCount)) = res
 
       val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
       val expectedClassfiles = compileClassfiles.map(
@@ -159,4 +162,13 @@ object HelloWorldTests extends TestSuite {
       assert(unchangedEvalCount == 0)
     }
   }
+}
+
+object HelloWorldTests2_12 extends HelloWorldTests {
+  override val testTwirlVersion = "1.3.15"
+  override val testTwirlScalaVersion = sys.props.getOrElse("MILL_SCALA_2_12_VERSION", ???)
+}
+object HelloWorldTests2_13 extends HelloWorldTests {
+  override val testTwirlVersion = "1.5.1"
+  override val testTwirlScalaVersion = sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???)
 }
