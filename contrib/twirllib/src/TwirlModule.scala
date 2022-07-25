@@ -16,6 +16,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
 
   /**
    * The Scala version matching the twirl version.
+   * @since Mill after 0.10.5
    */
   def twirlScalaVersion: T[String]
 
@@ -23,6 +24,9 @@ trait TwirlModule extends mill.Module { twirlModule =>
     millSourcePath / "views"
   }
 
+  /**
+   * @since Mill after 0.10.5
+   */
   def twirlIvyDeps: T[Agg[Dep]] = T {
     Agg(
       ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}",
@@ -30,7 +34,9 @@ trait TwirlModule extends mill.Module { twirlModule =>
     )
   }
 
-  /** Class instead of an object, to allow re-configuration. */
+  /** Class instead of an object, to allow re-configuration.
+   * @since Mill after 0.10.5
+   */
   class TwirlResolver()(implicit ctx0: mill.define.Ctx) extends mill.Module()(ctx0)
       with CoursierModule {
     override def resolveCoursierDependency: Task[Dep => Dependency] = T.task { d: Dep =>
@@ -42,6 +48,9 @@ trait TwirlModule extends mill.Module { twirlModule =>
       case _ => super.repositoriesTask
     }
   }
+  /**
+   * @since Mill after 0.10.5
+   */
   val twirlCoursierResolver = new TwirlResolver()
 
   def twirlClasspath: T[Loose.Agg[PathRef]] = T {
