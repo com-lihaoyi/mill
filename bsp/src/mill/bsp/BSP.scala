@@ -26,7 +26,7 @@ object BSP extends ExternalModule {
   val languages = Seq("scala", "java")
   val serverName = "mill-bsp"
 
-  private[this] var millServerHandle = Promise[BspServerHandle]
+  private[this] var millServerHandle = Promise[BspServerHandle]()
 
   /**
    * Installs the mill-bsp server. It creates a json file
@@ -162,7 +162,7 @@ object BSP extends ExternalModule {
         override def runSession(evaluator: Evaluator): BspServerResult = {
           _lastResult = None
           millServer.updateEvaluator(Option(evaluator))
-          val onReload = Promise[BspServerResult]
+          val onReload = Promise[BspServerResult]()
           millServer.onSessionEnd = Some { serverResult =>
             if (!onReload.isCompleted) {
               errStream.println("Unsetting evaluator on session end")

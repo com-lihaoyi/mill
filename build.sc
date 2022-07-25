@@ -2,14 +2,16 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
-import $ivy.`com.github.lolgab::mill-mima::0.0.10`
+import $ivy.`com.github.lolgab::mill-mima::0.0.11`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 import com.github.lolgab.mill.mima
 import com.github.lolgab.mill.mima.{
+  CheckDirection,
   DirectMissingMethodProblem,
   IncompatibleMethTypeProblem,
   IncompatibleSignatureProblem,
-  ProblemFilter
+  ProblemFilter,
+  ReversedMissingMethodProblem
 }
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
@@ -21,6 +23,7 @@ import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
 import mill.define.SelectMode
+import upickle.default.{ReadWriter, macroRW}
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -43,7 +46,8 @@ object Settings {
     "0.10.1",
     "0.10.2",
     "0.10.3",
-    "0.10.4"
+    "0.10.4",
+    "0.10.5"
   )
   val mimaBaseVersions = Seq("0.10.0", "0.10.1", "0.10.2", "0.10.3", "0.10.4")
 }
@@ -71,15 +75,15 @@ object Deps {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.3.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.10.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.10.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.10.1"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.10.1"
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.4"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.4"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.4"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.4"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.5"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.5"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.5"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.5"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
@@ -93,12 +97,12 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.0"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.2"
   val coursier = ivy"io.get-coursier::coursier:2.1.0-M6"
 
-  val flywayCore = ivy"org.flywaydb:flyway-core:8.0.2"
+  val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.5.0"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.5.1"
 
   object jetty {
     val version = "8.2.0.v20160908"
@@ -108,28 +112,28 @@ object Deps {
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jna = ivy"net.java.dev.jna:jna:5.11.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.11.0"
+  val jna = ivy"net.java.dev.jna:jna:5.12.1"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.12.1"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.17.2"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.18.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
   val testng = ivy"org.testng:testng:7.5"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.4.3"
-  val scalametaTrees = ivy"org.scalameta::trees:4.5.8"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.5.8"
+  val scalametaTrees = ivy"org.scalameta::trees:4.5.9"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.8"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
-  val zinc = ivy"org.scala-sbt::zinc:1.6.1"
+  val zinc = ivy"org.scala-sbt::zinc:1.7.1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
-  val fansi = ivy"com.lihaoyi::fansi:0.3.1"
+  val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
 }
 
@@ -185,6 +189,16 @@ trait MillMimaConfig extends mima.Mima {
     "mill.api.internal",
     "mill.api.experimental"
   )
+
+  implicit val checkDirectionBackwardUpickleRW: ReadWriter[CheckDirection.Backward.type] = macroRW
+  implicit val checkDirectionBothUpickleRW: ReadWriter[CheckDirection.Both.type] = macroRW
+  implicit val checkDirectionForwardUpickleRW: ReadWriter[CheckDirection.Forward.type] = macroRW
+  implicit val checkDirectionUpickleRW: ReadWriter[CheckDirection] = ReadWriter.merge(
+    checkDirectionBackwardUpickleRW,
+    checkDirectionBothUpickleRW,
+    checkDirectionForwardUpickleRW
+  )
+  override def mimaCheckDirection: Target[CheckDirection] = T { CheckDirection.Backward }
   override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
     issueFilterByModule.getOrElse(this, Seq())
   }
@@ -223,6 +237,18 @@ trait MillMimaConfig extends mima.Mima {
       ),
       ProblemFilter.exclude[DirectMissingMethodProblem](
         "mill.contrib.scoverage.ScoverageReport#workerModule.bspCompileClasspath"
+      )
+    ),
+    // we added a new target and a submodule after 0.10.5
+    contrib.twirllib -> Seq(
+      ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.twirllib.TwirlModule.twirlScalaVersion"
+      ),
+      ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.twirllib.TwirlModule.twirlCoursierResolver"
+      ),
+      ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.twirllib.TwirlModule.mill$twirllib$TwirlModule$_setter_$twirlCoursierResolver_="
       )
     )
   )
@@ -289,6 +315,7 @@ trait MillModule extends MillApiModule with MillAutoTestSetup { outer =>
 }
 
 object main extends MillModule {
+
   override def moduleDeps = Seq(core, client)
   override def ivyDeps = Agg(
     Deps.windowsAnsi
@@ -419,6 +446,13 @@ object main extends MillModule {
       "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
     )
   }
+
+  object testkit extends MillInternalModule with MillAutoTestSetup {
+    def moduleDeps = Seq(core, util)
+  }
+
+  def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
+
 }
 
 object testrunner extends MillModule {
@@ -1015,9 +1049,7 @@ def launcherScript(
          |  if [ -f "$$mill_jvm_opts_file" ] ; then
          |    while IFS= read line
          |    do
-         |      case $$line in
-         |        "-X"*) mill_jvm_opts="$${mill_jvm_opts} $$line"
-         |      esac
+         |      mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
          |    done <"$$mill_jvm_opts_file"
          |    mill_jvm_opts="$${mill_jvm_opts} -Dmill.jvm_opts_applied=true"
          |  fi

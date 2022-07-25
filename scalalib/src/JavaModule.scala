@@ -198,7 +198,7 @@ trait JavaModule
   /**
    * The transitive version of `bspLocalClasspath`
    */
-    // Keep in sync with [[transitiveLocalClasspath]]
+  // Keep in sync with [[transitiveLocalClasspath]]
   @internal
   def bspTransitiveLocalClasspath: Target[Agg[UnresolvedPath]] = T {
     T.traverse(

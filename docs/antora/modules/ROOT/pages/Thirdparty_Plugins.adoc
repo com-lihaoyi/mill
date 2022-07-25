@@ -3,12 +3,14 @@
 
 The Plugins in this section are developed/maintained outside the mill git tree.
 This list is most likely not complete.
-If you're missing an external plugin or developed one which is not listed here, please open a https://github.com/com-lihaoyi/mill/pulls[pull request] and add that plugin with a short description.
+If you wrote a Mill plugin or find that one is missing in this list, please open a {mill-github-url}/pulls[pull request] and add that plugin with a short description (in alphabetical order).
 
 For details about including plugins in your `build.sc` read xref:Extending_Mill.adoc#_using_mill_plugins_import_ivy[Using Mill Plugins].
 
 CAUTION: Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
 The usage examples given here are most probably incomplete and sometimes outdated!
+
+Additional to this list, you can also search the https://github.com/topics/mill-plugin[`mill-plugin` topic on GitHub] for more plugins.
 
 
 == Antlr
@@ -68,6 +70,7 @@ For documentation, please refer to the https://github.com/lefou/mill-aspectj[pro
 Limited bash completion support.
 
 Project home: https://github.com/lefou/mill-bash-completion
+
 
 == DGraph
 
@@ -162,6 +165,14 @@ Found unimported dependencies: (remove these from ivyDeps)
 main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies
 ----
 
+== Fish Completion
+
+Limited fish completion support.
+
+Project home: https://github.com/ckipp01/mill-fish-completions
+
+
+
 == Git
 
 A git version plugin for mill.
@@ -195,6 +206,42 @@ object `jvm-project` extends JavaModule with GitVersionedPublishModule {
 [1/1] show 
 [2/2] com.goyeau.mill.git.GitVersionModule.version 
 "0.0.0-470-6d0b3d9"
+----
+
+== GitHub Dependency Graph Submission
+
+A plugin to submit your mill dependency graph to GiHub through their
+https://github.blog/2022-06-17-creating-comprehensive-dependency-graph-build-time-detection/[Dependency
+Submission API].
+
+Project home: https://github.com/ckipp01/mill-github-dependency-graph
+
+=== Quickstart
+
+The easiest way to use this plugin is with the
+https://github.com/ckipp01/mill-github-dependency-graph[mill-dependency-submission]
+action. You can add it as a workflow:
+
+[source,yaml]
+----
+name: github-dependency-graph
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  submit-dependency-graph:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: coursier/cache-action@v6
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - uses: ckipp01/mill-dependency-submission@v1
 ----
 
 == Integration Testing Mill Plugins
@@ -420,7 +467,7 @@ Scala MDoc simply compiles properly marked Scala snippets in plain md files and 
 
 Project home: https://github.com/atooni/mill-mdoc
 
-== Mill Wrapper Scripts
+== `millw` / `millw.bat` - Mill Wrapper Scripts
 
 Small script to automatically fetch and execute mill build tool.
 
@@ -646,6 +693,14 @@ object project extends ScalaModule with ScalafixModule {
 project.fix A Scalafix linter error was reported
 ----
 
+== Shell Completions
+
+As Mill is a tool often used from the CLI (Command line interface), you may be also interested in installing some completion support for your preferred shell:
+
+* <<_bash_completion>>
+* <<_fish_completion>>
+* <<_zsh_completion>>
+
 == VCS Version
 
 Mill plugin to derive a version from (last) git tag and edit state. It may support other VCS as well.
@@ -670,3 +725,12 @@ object main extends JavaModule with PublishModule {
   override def publishVersion: T[String] = VcsVersion.vcsState().format()
 }
 ----
+
+== Zsh Completion
+
+Limited zsh completion support.
+
+This script is part of a collection of configuration files and comes without documentation, but might be useful nonetheless, if you are a zsh user.
+
+
+Project home: https://github.com/carlosedp/dotfiles/blob/master/completion/_mill

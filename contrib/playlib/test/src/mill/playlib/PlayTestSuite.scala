@@ -4,10 +4,14 @@ import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 
 trait PlayTestSuite {
+
+  val testScala212 = sys.props.getOrElse("MILL_SCALA_2_12_VERSION", ???)
+  val testScala213 = sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???)
+
   val matrix = Seq(
-    ("2.12.13", "2.6.15"),
-    ("2.12.13", "2.7.9"),
-    ("2.13.6", "2.8.8")
+    (testScala212, "2.6.15"),
+    (testScala212, "2.7.9"),
+    (testScala213, "2.8.8")
   )
 
   def resourcePath: os.Path

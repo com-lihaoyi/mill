@@ -3,7 +3,8 @@ package mill.scalalib.worker
 import java.io.File
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
-import scala.ref.WeakReference
+
+import scala.ref.SoftReference
 import scala.util.Properties.isWin
 import mill.api.Loose.Agg
 import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, internal}
@@ -331,14 +332,14 @@ class ZincWorkerImpl(
   // for now this just grows unbounded; YOLO
   // But at least we do not prevent unloading/garbage collecting of classloaders
   private[this] val classloaderCache =
-    collection.mutable.LinkedHashMap.empty[Long, WeakReference[ClassLoader]]
+    collection.mutable.LinkedHashMap.empty[Long, SoftReference[ClassLoader]]
 
   def getCachedClassLoader(compilersSig: Long, combinedCompilerJars: Array[java.io.File])(implicit
       ctx: ZincWorkerApi.Ctx
   ) = {
     classloaderCache.synchronized {
       classloaderCache.get(compilersSig) match {
-        case Some(WeakReference(cl)) => cl
+        case Some(SoftReference(cl)) => cl
         case _ =>
           // the Scala compiler must load the `xsbti.*` classes from the same loader than `ZincWorkerImpl`
           val sharedPrefixes = Seq("xsbti")
@@ -348,7 +349,7 @@ class ZincWorkerImpl(
             sharedLoader = getClass.getClassLoader,
             sharedPrefixes
           )
-          classloaderCache.update(compilersSig, WeakReference(cl))
+          classloaderCache.update(compilersSig, SoftReference(cl))
           cl
       }
     }
@@ -477,7 +478,8 @@ class ZincWorkerImpl(
 
     val store = FileAnalysisStore.binary(zincFile.toIO)
 
-    val converter = PlainVirtualFileConverter.converter
+    // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
+    val converter = MappedFileConverter.empty
     val classpath = (compileClasspath.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray

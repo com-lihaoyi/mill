@@ -7,6 +7,9 @@ on:
 jobs:
 
   test:
+    # don't build dependabot branches on push, we already build them on pull request
+    if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
+
     strategy:
       fail-fast: false
       matrix:
@@ -36,13 +39,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-java@v1
+      - uses: coursier/cache-action@v6
+
+      - uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: temurin
 
       - name: Prepare git config
         run: |
@@ -53,6 +59,9 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   test-bin-compat:
+    # don't build dependabot branches on push, we already build them on pull request
+    if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
+
     strategy:
       fail-fast: false
       matrix:
@@ -65,13 +74,16 @@ jobs:
     continue-on-error: false
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-java@v1
+      - uses: coursier/cache-action@v6
+
+      - uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: temurin
 
       - name: Prepare git config
         run: |
@@ -82,6 +94,9 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   test-windows:
+    # don't build dependabot branches on push, we already build them on pull request
+    if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
+
     strategy:
       fail-fast: false
       matrix:
@@ -97,13 +112,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-java@v1
+      - uses: coursier/cache-action@v6
+
+      - uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: temurin
 
       - name: Run '${{ matrix.buildcmd }}'
         run: ${{ matrix.buildcmd }}
@@ -129,13 +147,16 @@ jobs:
       LC_ALL: "en_US.UTF-8"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-java@v1
+      - uses: coursier/cache-action@v6
+
+      - uses: actions/setup-java@v3
         with:
           java-version: 8
+          distribution: temurin
 
       - run: ci/release-maven.sh
 
@@ -149,12 +170,15 @@ jobs:
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-java@v1
+      - uses: coursier/cache-action@v6
+
+      - uses: actions/setup-java@v3
         with:
           java-version: 8
+          distribution: temurin
 
       - run: ./mill -i uploadToGithub $REPO_ACCESS_TOKEN

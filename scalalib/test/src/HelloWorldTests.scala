@@ -542,16 +542,20 @@ object HelloWorldTests extends TestSuite {
             os.read(runResult) == expectedOut
           )
         }
-        "v210" - TestUtil.disableInJava9OrAbove("Scala 2.10 tests don't work with Java 9+")(workspaceTest(CrossHelloWorld)(cross(
-          _,
-          scala2106Version,
-          s"${scala2106Version} rox"
-        )))
-        "v211" - TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't work with Java 9+")(workspaceTest(CrossHelloWorld)(cross(
-          _,
-          scala21111Version,
-          s"${scala21111Version} pwns"
-        )))
+        "v210" - TestUtil.disableInJava9OrAbove("Scala 2.10 tests don't work with Java 9+")(
+          workspaceTest(CrossHelloWorld)(cross(
+            _,
+            scala2106Version,
+            s"${scala2106Version} rox"
+          ))
+        )
+        "v211" - TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't work with Java 9+")(
+          workspaceTest(CrossHelloWorld)(cross(
+            _,
+            scala21111Version,
+            s"${scala21111Version} pwns"
+          ))
+        )
         "v2123" - workspaceTest(CrossHelloWorld)(cross(
           _,
           scala2123Version,

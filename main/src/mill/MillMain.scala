@@ -85,16 +85,16 @@ object MillMain {
         stdout.println(
           s"""Mill Build Tool version ${BuildInfo.millVersion}
              |Java version: ${p("java.version", "<unknown Java version")}, vendor: ${p(
-            "java.vendor",
-            "<unknown Java vendor"
-          )}, runtime: ${p("java.home", "<unknown runtime")}
+              "java.vendor",
+              "<unknown Java vendor"
+            )}, runtime: ${p("java.home", "<unknown runtime")}
              |Default locale: ${Locale.getDefault()}, platform encoding: ${p(
-            "file.encoding",
-            "<unknown encoding>"
-          )}
+              "file.encoding",
+              "<unknown encoding>"
+            )}
              |OS name: "${p("os.name")}", version: ${p("os.version")}, arch: ${p(
-            "os.arch"
-          )}""".stripMargin
+              "os.arch"
+            )}""".stripMargin
         )
         (true, None)
       case Right(config)
@@ -162,11 +162,11 @@ object MillMain {
                 s"""import $$file.build, build._
                    |implicit val replApplyHandler = mill.main.ReplApplyHandler(
                    |  os.Path(${pprint
-                  .apply(
-                    config.ammoniteCore.home.toIO.getCanonicalPath
-                      .replace("$", "$$")
-                  )
-                  .plainText}),
+                    .apply(
+                      config.ammoniteCore.home.toIO.getCanonicalPath
+                        .replace("$", "$$")
+                    )
+                    .plainText}),
                    |  ${config.disableTicker.value},
                    |  interp.colors(),
                    |  repl.pprinter(),
@@ -175,8 +175,8 @@ object MillMain {
                    |  debugLog = ${config.debugLog.value},
                    |  keepGoing = ${config.keepGoing.value},
                    |  systemProperties = ${systemProps.toSeq
-                  .map(p => s""""${p._1}" -> "${p._2}"""")
-                  .mkString("Map[String,String](", ",", ")")},
+                    .map(p => s""""${p._1}" -> "${p._2}"""")
+                    .mkString("Map[String,String](", ",", ")")},
                    |  threadCount = ${threadCount}
                    |)
                    |repl.pprinter() = replApplyHandler.pprinter
@@ -250,7 +250,7 @@ object MillMain {
 
                 stderr.println("Running in BSP mode with hardcoded startSession command")
 
-                val bspServerHandle = Promise[BspServerHandle]
+                val bspServerHandle = Promise[BspServerHandle]()
 
                 stderr.println("Trying to load BSP server...")
                 val bspServerFuture = Future {

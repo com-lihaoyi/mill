@@ -60,6 +60,10 @@ motivation:
 * http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Build Tools as Pure Functional Programs]
 * http://www.lihaoyi.com/post/MillBetterScalaBuilds.html[Mill: Better Scala Builds]
 
+Mill is profiled using the 
+https://www.ej-technologies.com/products/jprofiler/overview.html[JProfiler Java Profiler], 
+by courtesy of EJ Technologies.
+
 == How to build and test
 
 Mill is built using Mill. To begin, first download & install Mill as described
@@ -228,11 +232,43 @@ corresponding version of Mill.
 
 === 'main' branch
 :version: main
-:prev-version: 0.10.4
-:milestone: 63
-:milestone-name: after 0.10.4
+:prev-version: 0.10.5
+:milestone: 64
+:milestone-name: after 0.10.5
 
 _Changes since {prev-version}:_
+
+* `mill.twirllib.TwirlModule` - new mandatory target `twirlScalaVersion` to configure the Scala version used by Twirl compiler
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+
+
+=== 0.10.5 - 2022-07-01
+:version: 0.10.5
+:prev-version: 0.10.4
+:milestone: 63
+:milestone-name: 0.10.5
+
+_Changes since {prev-version}:_
+
+* New `init` command, to create new Mill projects from Gitter8 (g8) templates
+* `PathRef` now gracefully ignores socket files. This also fixes an annoying issue when Mill was previously ran in a source directory.
+* Fixed a bug with using `mill --repl` without any further arguments, which was introduced in Mill 0.10.2 and prevented proper no-server mode
+* Fixed the `visualize` command which wasn't working on some newer JREs
+* Improved Mill server support for Windows 11 and some Windows Server versions
+
+* `ScalaModule` / `ZincWorkerModule`: Fixed incremental compilation issue with JRE 17 (and probably others)
+* `TestModule` now better supports JUnit5 test suites
+* `ScalaJsModule`: internal improvements to the stability of the Scala.js linker
+* `ScalaNativeModule`: Added support for `nativeEmbedResources`
+* `BSP`: improved handling of the `mill-build` module when the BSP client is IntelliJ IDEA
+
+* Documentation updates and link fixes
+* Various dependency updates
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]

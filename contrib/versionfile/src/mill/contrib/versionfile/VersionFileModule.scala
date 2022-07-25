@@ -32,7 +32,7 @@ trait VersionFileModule extends Module {
   }
 
   protected def setVersionTask(version: T[Version]) = T.task {
-    T.ctx.log.info(generateCommitMessage(version()))
+    T.log.info(generateCommitMessage(version()))
     writeVersionToFile(versionFile(), version())
   }
 

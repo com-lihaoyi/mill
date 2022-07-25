@@ -1,8 +1,8 @@
 /**
-  * Utility code that is shared between our SBT build and our Mill build. SBT
-  * calls this by shelling out to Ammonite in a subprocess, while Mill loads it
-  * via import $file
-  */
+ * Utility code that is shared between our SBT build and our Mill build. SBT
+ * calls this by shelling out to Ammonite in a subprocess, while Mill loads it
+ * via import $file
+ */
 
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 
@@ -10,11 +10,12 @@ def unpackZip(zipDest: os.Path, url: String) = {
   println(s"Unpacking zip $url into $zipDest")
   os.makeDir.all(zipDest)
 
-  val bytes = scalaj.http.Http.apply(url).option(scalaj.http.HttpOptions.followRedirects(true)).asBytes
+  val bytes =
+    scalaj.http.Http.apply(url).option(scalaj.http.HttpOptions.followRedirects(true)).asBytes
   val byteStream = new java.io.ByteArrayInputStream(bytes.body)
   val zipStream = new java.util.zip.ZipInputStream(byteStream)
-  while({
-    zipStream.getNextEntry match{
+  while ({
+    zipStream.getNextEntry match {
       case null => false
       case entry =>
         if (!entry.isDirectory) {
@@ -22,7 +23,7 @@ def unpackZip(zipDest: os.Path, url: String) = {
           os.makeDir.all(dest / os.up)
           val fileOut = new java.io.FileOutputStream(dest.toString)
           val buffer = new Array[Byte](4096)
-          while ( {
+          while ({
             zipStream.read(buffer) match {
               case -1 => false
               case n =>
@@ -35,10 +36,8 @@ def unpackZip(zipDest: os.Path, url: String) = {
         zipStream.closeEntry()
         true
     }
-  })()
+  }) ()
 }
-
-
 
 @main
 def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
@@ -47,22 +46,22 @@ def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
 }
 
 /**
-  * Copy of os-lib copy utility providing an additional `mergeFolders` option.
-  * See pr https://github.com/com-lihaoyi/os-lib/pull/65
-  */
+ * Copy of os-lib copy utility providing an additional `mergeFolders` option.
+ * See pr https://github.com/com-lihaoyi/os-lib/pull/65
+ */
 object mycopy {
   import os._
   import java.nio.file
   import java.nio.file.{CopyOption, LinkOption, StandardCopyOption, Files}
   def apply(
-             from: os.Path,
-             to: os.Path,
-             followLinks: Boolean = true,
-             replaceExisting: Boolean = false,
-             copyAttributes: Boolean = false,
-             createFolders: Boolean = false,
-             mergeFolders: Boolean = false
-           ): Unit = {
+      from: os.Path,
+      to: os.Path,
+      followLinks: Boolean = true,
+      replaceExisting: Boolean = false,
+      copyAttributes: Boolean = false,
+      createFolders: Boolean = false,
+      mergeFolders: Boolean = false
+  ): Unit = {
     if (createFolders) makeDir.all(to / up)
     val opts1 =
       if (followLinks) Array[CopyOption]()
@@ -94,15 +93,23 @@ object mycopy {
 
   object into {
     def apply(
-               from: os.Path,
-               to: os.Path,
-               followLinks: Boolean = true,
-               replaceExisting: Boolean = false,
-               copyAttributes: Boolean = false,
-               createFolders: Boolean = false,
-               mergeFolders: Boolean = false
-             ): Unit = {
-      mycopy(from, to / from.last, followLinks, replaceExisting, copyAttributes, createFolders, mergeFolders)
+        from: os.Path,
+        to: os.Path,
+        followLinks: Boolean = true,
+        replaceExisting: Boolean = false,
+        copyAttributes: Boolean = false,
+        createFolders: Boolean = false,
+        mergeFolders: Boolean = false
+    ): Unit = {
+      mycopy(
+        from,
+        to / from.last,
+        followLinks,
+        replaceExisting,
+        copyAttributes,
+        createFolders,
+        mergeFolders
+      )
     }
   }
 }
