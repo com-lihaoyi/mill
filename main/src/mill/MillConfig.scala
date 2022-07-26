@@ -10,8 +10,16 @@ case class MillConfig(
         "Ring the bell once if the run completes successfully, twice if it fails."
     )
     ringBell: Flag,
-    @arg(doc = """Enable BSP server mode.""")
+    @arg(
+      name = "bsp",
+      doc = """Enable BSP server mode.""")
     bsp: Flag,
+    @arg(
+      name = "color",
+      doc = """Enable or disable colored output; by default colors are enabled
+          in both REPL and scripts if the console is interactive, and disabled
+          otherwise""")
+    color: Option[Boolean] = None,
     @arg(
       name = "define",
       short = 'D',
@@ -55,6 +63,7 @@ case class MillConfig(
     )
     keepGoing: Flag,
     @arg(
+      name = "next-gen",
       doc = "(Experimental) Enable next-gen operation mode."
     )
     nextGen: Flag,

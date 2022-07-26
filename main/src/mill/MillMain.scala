@@ -247,7 +247,7 @@ object MillMain {
         code = None,
         home = config.home,
         predefFile = None,
-        color = None,
+        color = config.color,
         thin = Flag(),
         help = config.help,
         showVersion = Flag()
