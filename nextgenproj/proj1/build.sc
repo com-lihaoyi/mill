@@ -5,7 +5,7 @@
 // using file "build_deps.sc"
 //> using file "Deps2.scala"
 
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`, de.tobiasroeser.mill.vcs.version.MillVcsVersion
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`, de.tobiasroeser.mill.vcs.version.VcsVersion
 import $file.build_deps
 
 import mill._

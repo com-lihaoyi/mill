@@ -127,6 +127,7 @@ object Deps {
   val scalametaTrees = ivy"org.scalameta::trees:4.5.9"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.4.32"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
@@ -495,6 +496,8 @@ object scalalib extends MillModule {
          |  val ammonite = "${Deps.ammonite.dep.version}"
          |  /** Version of Zinc. */
          |  val zinc = "${Deps.zinc.dep.version}"
+         |  /** SemanticDB version. */
+         |  val semanticDBVersion = "${Deps.semanticDB.dep.version}"
          |}
          |
          |""".stripMargin

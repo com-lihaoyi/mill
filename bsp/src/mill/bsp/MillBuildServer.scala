@@ -359,8 +359,7 @@ class MillBuildServer(
 //          }
         case (id, module: JavaModule) =>
           T.task {
-            val items = module.sources().map(p => sourceItem(p.path, false)) ++
-              module.generatedSources().map(p => sourceItem(p.path, true))
+            val items = module.allSources().map(p => sourceItem(p.path, false))
             new SourcesItem(id, items.asJava)
           }
       }

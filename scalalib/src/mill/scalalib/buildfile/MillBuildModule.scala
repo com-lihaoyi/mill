@@ -1,13 +1,15 @@
 package mill.scalalib.buildfile
 
 import mill.api.JsonFormatters._
-import mill.api.{Loose, PathRef}
+import mill.api.{Loose, PathRef, internal}
 import mill.buildfile.{AmmoniteParser, ParsedMillSetup, ReadDirectives}
 import mill.define._
+import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.BspBuildTarget
 import mill.scalalib.buildfile.MillBuildModule.millDiscover
-import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
+import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule, UnresolvedPath}
 import mill.{Agg, BuildInfo, T}
+import os.Path
 import upickle.default.{ReadWriter, macroRW}
 
 trait MillSetupScannerModule extends Module {
@@ -177,6 +179,10 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
     destFile
   }
 
+  override def allSourceFiles: T[Seq[PathRef]] = T {
+    Lib.findSourceFiles(allSources(), Seq("java", "sc", "scala")).map(PathRef(_))
+  }
+
   def wrappedSourceFiles: T[Seq[WrappedSource]] = T {
     val millSetup = parsedMillSetup()
     val replacements = AmmoniteParser.replaceAmmoniteImports(millSetup)
@@ -184,8 +190,9 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
     val dest = T.dest
     val baseDir = millSetup.projectDir
     val buildSc = buildScFile().path
-    Lib.findSourceFiles(allSources(), Seq("scala", "sc"))
-      .map { file =>
+    allSourceFiles()
+      .map { pr =>
+        val file = pr.path
         val mappedFile =
           if (file == buildSc) {
             Some(wrapMainBuildScToScala(file, dest, baseDir, contentReader))
@@ -202,17 +209,44 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
       }
   }
 
-  override def allSourceFiles: T[Seq[PathRef]] = T {
-    wrappedSourceFiles().map { w => w.wrapped.getOrElse(w.orig) }
+  override def compile: T[CompilationResult] = T {
+    // we want to compile modified classes
+    // TOOD: we need to map source locations in error messages
+    val sourceFiles = T.task {
+      wrappedSourceFiles().map { w => w.wrapped.getOrElse(w.orig).path }
+    }
+    scalaMixedCompileTask(sourceFiles, allScalacOptions)
   }
 
-  override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = T{
+  /** the path to the compiled classes without forcing the compilation. */
+  override def bspCompileClassesPath: Target[UnresolvedPath] =
+    if (compile.ctx.enclosing == s"${classOf[MillBuildModule].getName}#compile") {
+      T {
+        T.log.debug(
+          s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
+        )
+        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
+      }
+    } else {
+      T {
+        T.log.debug(
+          s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
+        )
+        UnresolvedPath.ResolvedPath(compile().classes.path)
+      }
+    }
+
+  override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = T {
     super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefs)
   }
 
-  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    displayName = Some("mill-build")
-  )
+  override def scalacOptions: Target[Seq[String]] = T {
+    super.scalacOptions() ++ Seq("-deprecation")
+  }
+
+//  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+//    displayName = Some("mill-build")
+//  )
 }
 
 object MillBuildModule extends ExternalModule with MillBuildModule {

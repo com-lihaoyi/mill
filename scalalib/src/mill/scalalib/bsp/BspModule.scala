@@ -6,7 +6,7 @@ import mill.define.{BaseModule, Input, Sources, Target, Task}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.buildfile.{MillBuildModule, MillSetupScannerModule}
 import mill.scalalib.internal.ModuleUtils
-import mill.scalalib.{Dep, DepSyntax, ScalaModule}
+import mill.scalalib.{Dep, DepSyntax, ScalaModule, Versions}
 import mill.{Agg, BuildInfo, Module, T}
 import upickle.default.{ReadWriter, macroRW}
 
@@ -77,66 +77,14 @@ object BspUri {
 @internal
 trait MillBuildTarget
     extends ScalaModule
-    with MillSetupScannerModule {
+    with MillBuildModule
+    with ScalaMetalsSupport {
   protected def rootModule: BaseModule
   override def millSourcePath: os.Path = rootModule.millSourcePath
-  override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
-  protected def millEmbeddedDeps: Input[Seq[String]] = T.input {
-    BuildInfo.millEmbeddedDeps
-  }
+  override def semanticDbVersion: T[String] = T{ Versions.semanticDBVersion }
 
-  override def compileIvyDeps: T[Agg[Dep]] = T {
-    Agg.from(millEmbeddedDeps().map(d => parseDeps(d)))
-  }
-
-  override def ivyDeps: T[Agg[Dep]] = T {
-    val deps = parsedMillSetup().ivyDeps
-    Agg.from(deps.map(d => parseDeps(d)))
-  }
-
-  /**
-   * We need to add all resources from Ammonites cache,
-   * which typically also include resolved `ivy`-imports and compiled `$file`-imports.
-   */
-  override def unmanagedClasspath: T[Agg[PathRef]] = T {
-    super.unmanagedClasspath() ++ (
-      rootModule.getClass.getClassLoader match {
-        case cl: SpecialClassLoader =>
-          cl.allJars.map(url => PathRef(os.Path(java.nio.file.Paths.get(url.toURI))))
-        case _ => Seq()
-      }
-    )
-  }
-
-  override def sources: Sources = T.sources {
-    val optsFileName =
-      T.env.get("MILL_JVM_OPTS_PATH").filter(!_.isEmpty).getOrElse(".mill-jvm-opts")
-
-    Seq(
-      PathRef(millSourcePath / ".mill-version"),
-      PathRef(millSourcePath / optsFileName),
-      buildScFile()
-    ) ++ includedSourceFiles()
-  }
-
-  override def allSourceFiles: T[Seq[PathRef]] = T {
-    findSources(sources().map(_.path))
-  }
-
-  protected def findSources(paths: Seq[os.Path], excludes: Seq[os.Path] = Seq()): Seq[PathRef] = {
-    def isHiddenFile(path: os.Path) = path.last.startsWith(".")
-    (for {
-      root <- paths
-      if os.exists(root) && !excludes.exists(excl => root.startsWith(excl))
-      path <- if (os.isDir(root)) os.walk(root) else Seq(root)
-      if os.isFile(path) && ((path.ext == "sc") && !isHiddenFile(path))
-    } yield PathRef(path)).distinct
-  }
-
-  override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = T{
-    super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefs)
-  }
+  override def supportUsingDirectives: T[Boolean] = T(false)
 
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     displayName = Some("mill-build"),
