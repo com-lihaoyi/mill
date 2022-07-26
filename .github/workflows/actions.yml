@@ -43,6 +43,8 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: coursier/cache-action@v6
+
       - uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
@@ -75,6 +77,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - uses: coursier/cache-action@v6
 
       - uses: actions/setup-java@v3
         with:
@@ -112,6 +116,8 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: coursier/cache-action@v6
+
       - uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
@@ -145,6 +151,8 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: coursier/cache-action@v6
+
       - uses: actions/setup-java@v3
         with:
           java-version: 8
@@ -165,6 +173,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - uses: coursier/cache-action@v6
 
       - uses: actions/setup-java@v3
         with:
