@@ -5,6 +5,7 @@ import mill.scalalib.JavaModule
 
 @mill.api.internal
 object ModuleUtils {
+
   /**
    * Compute all transitive modules from module children and via moduleDeps + compileModuleDeps
    */

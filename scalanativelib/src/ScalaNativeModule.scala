@@ -204,7 +204,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       releaseMode(),
       nativeOptimize(),
       nativeEmbedResources(),
-      logLevel(),
+      logLevel()
     )
   }
 

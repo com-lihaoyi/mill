@@ -291,8 +291,8 @@ case class GenIdeaImpl(
             }
             val msg =
               s"Config collision in file `${conf.name}` and component `${conf.component}`: ${details(
-                conf.config
-              )} vs. ${details(existing)}"
+                  conf.config
+                )} vs. ${details(existing)}"
             ctx.map(_.log.error(msg))
         }
       }
@@ -602,7 +602,7 @@ case class GenIdeaImpl(
       if (map.nonEmpty) {
         ctx.map(_.log.error(
           s"Config file collisions detected. Check you `ideaConfigFiles` targets. Colliding files: ${map
-            .map(_._1)}. All project files: ${map}"
+              .map(_._1)}. All project files: ${map}"
         ))
       }
     }
@@ -792,7 +792,9 @@ case class GenIdeaImpl(
       for (generatedSourcePath <- generatedSourcePaths.toSeq.distinct.sorted) yield {
         val rel = relify(generatedSourcePath)
         <content url={"file://$MODULE_DIR$/" + rel}>
-                <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={isTest.toString} generated="true" />
+                <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={
+          isTest.toString
+        } generated="true" />
               </content>
       }
     }
@@ -860,7 +862,9 @@ case class GenIdeaImpl(
       <component name="ScalaCompilerConfiguration">
         {
       for ((((plugins, params), mods), i) <- settings.toSeq.zip(1 to settings.size))
-        yield <profile name={s"mill $i"} modules={mods.map(m => moduleName(m.millModuleSegments)).mkString(",")}>
+        yield <profile name={s"mill $i"} modules={
+          mods.map(m => moduleName(m.millModuleSegments)).mkString(",")
+        }>
             <parameters>
               {
           for (param <- params)

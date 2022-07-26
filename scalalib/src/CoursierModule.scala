@@ -87,7 +87,9 @@ trait CoursierModule extends mill.Module {
    * }}}
    * @return
    */
-  def coursierCacheCustomizer: Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] = T.task { None }
+  def coursierCacheCustomizer
+      : Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] =
+    T.task { None }
 
   /**
    * The repositories used to resolved dependencies with [[resolveDeps()]].

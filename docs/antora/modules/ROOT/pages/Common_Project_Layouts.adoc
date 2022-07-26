@@ -97,7 +97,7 @@ object foo extends ScalaJSModule {
   def scalaVersion = "2.13.8"
   def scalaJSVersion = "1.10.1"
   def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
-
+  def moduleKind = T { ModuleKind.CommonJSModule }
   object test extends Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.0")
   }
@@ -107,7 +107,7 @@ object foo extends ScalaJSModule {
 `ScalaJSModule` is a variant of `ScalaModule` that builds your code using
 Scala.js. In addition to the standard `foo.compile` and `foo.run` commands (the
 latter of which runs your code on Node.js, which must be pre-installed)
-`ScalaJSModule` also exposes the `foo.fastOpt` and `foo.fullOpt` tasks for
+`ScalaJSModule` also exposes the `foo.fastLinkJS` and `foo.fullLinkJS` tasks for
 generating the optimized Javascript file.
 
 ScalaJSModule requires declaring it's dependencies as third party

@@ -11,4 +11,3 @@ trait DestAware extends mill.Module {
 object sub extends PathAware with DestAware {
   object sub extends PathAware with DestAware
 }
-

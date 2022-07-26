@@ -19,12 +19,12 @@ object sourcepathmod extends mill.Module {
   object jvm extends mill.Module {
     def selfDest = T { T.dest / os.up }
     def millSourcePath = sourcepathmod.millSourcePath
-    def sources = T.sources( millSourcePath / "src", millSourcePath / "src-jvm" )
+    def sources = T.sources(millSourcePath / "src", millSourcePath / "src-jvm")
   }
 
   object js extends mill.Module {
     def selfDest = T { T.dest / os.up }
     def millSourcePath = sourcepathmod.millSourcePath
-    def sources = T.sources( millSourcePath / "src", millSourcePath / "src-js" )
+    def sources = T.sources(millSourcePath / "src", millSourcePath / "src-js")
   }
 }

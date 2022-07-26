@@ -116,7 +116,7 @@ class CodeartifactPublisher(
       }
       throw new RuntimeException(
         s"Failed to publish ${artifacts.map(_.id).mkString(", ")} to AWS Codeartifact. Errors: \n${errors
-          .mkString("\n")}"
+            .mkString("\n")}"
       )
     }
   }

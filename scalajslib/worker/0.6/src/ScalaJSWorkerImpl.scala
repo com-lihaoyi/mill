@@ -22,7 +22,7 @@ import org.scalajs.jsenv._
 import org.scalajs.testadapter.TestAdapter
 
 import scala.collection.mutable
-import scala.ref.WeakReference
+import scala.ref.SoftReference
 
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
@@ -32,12 +32,12 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       esFeatures: ESFeatures
   )
   private object ScalaJSLinker {
-    private val cache = mutable.Map.empty[LinkerInput, WeakReference[ClearableLinker]]
+    private val cache = mutable.Map.empty[LinkerInput, SoftReference[ClearableLinker]]
     def reuseOrCreate(input: LinkerInput): ClearableLinker = cache.get(input) match {
-      case Some(WeakReference(linker)) => linker
+      case Some(SoftReference(linker)) => linker
       case _ =>
         val newLinker = createLinker(input)
-        cache.update(input, WeakReference(newLinker))
+        cache.update(input, SoftReference(newLinker))
         newLinker
     }
     private def createLinker(input: LinkerInput): ClearableLinker = {

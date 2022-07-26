@@ -18,13 +18,13 @@ object BspServerResult {
 
   implicit val jsonifyReloadWorkspace: upickle.default.ReadWriter[ReloadWorkspace.type] =
     upickle.default.macroRW
-  
+
   implicit val jsonifyShutdown: upickle.default.ReadWriter[Shutdown.type] =
     upickle.default.macroRW
-  
+
   implicit val jsonifyFailure: upickle.default.ReadWriter[Failure.type] =
     upickle.default.macroRW
-  
+
   implicit val jsonify: upickle.default.ReadWriter[BspServerResult] =
     upickle.default.macroRW
 }

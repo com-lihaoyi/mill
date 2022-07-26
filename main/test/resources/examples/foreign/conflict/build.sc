@@ -8,12 +8,12 @@ import mill._
 // be different to avoid both modules over-writing
 // each other's caches .
 
-def checkPaths : T[Unit] = T {
+def checkPaths: T[Unit] = T {
   if (innerBuild.millSourcePath != inner.millSourcePath)
     throw new Exception("Source paths should be the same")
 }
 
-def checkDests : T[Unit] = T {
+def checkDests: T[Unit] = T {
   if (innerBuild.selfDest == inner.selfDest)
     throw new Exception("Dest paths should be different")
 }
