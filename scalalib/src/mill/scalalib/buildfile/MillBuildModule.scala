@@ -12,6 +12,7 @@ import mill.{Agg, BuildInfo, T}
 import os.Path
 import upickle.default.{ReadWriter, macroRW}
 
+/** A module that scans a mill project by inspecting the `build.sc`. */
 trait MillSetupScannerModule extends Module {
 
   object Deps {
