@@ -124,7 +124,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.5.8"
-  val scalametaTrees = ivy"org.scalameta::trees:4.5.9"
+  val scalametaTrees = ivy"org.scalameta::trees:4.5.11"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
