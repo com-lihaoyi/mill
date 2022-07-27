@@ -9,9 +9,9 @@ trait PlayTestSuite {
   val testScala213 = sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???)
 
   val matrix = Seq(
-    (testScala212, "2.6.15"),
+    (testScala212, "2.6.25"),
     (testScala212, "2.7.9"),
-    (testScala213, "2.8.8")
+    (testScala213, "2.8.16")
   )
 
   def resourcePath: os.Path

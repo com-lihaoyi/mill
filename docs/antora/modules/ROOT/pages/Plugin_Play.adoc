@@ -47,9 +47,9 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule {
     //config
-    override def scalaVersion= T{"2.12.8"}
-    override def playVersion= T{"2.7.0"}
-    override def twirlVersion= T{"1.4.0"}
+    override def scalaVersion= T{"2.13.8"}
+    override def playVersion= T{"2.8.16"}
+    override def twirlVersion= T{"1.5.1"}
 
     object test extends PlayTests
 }
@@ -95,7 +95,7 @@ added (the actual version depends on the version of Play you are pulling `2.6.x`
 
 [source,scala]
 ----
-ivy"org.scalatestplus.play::scalatestplus-play::4.0.1"
+ivy"org.scalatestplus.play::scalatestplus-play::5.1.0"
 ----
 
 In order to have a working `start` command the following runtime dependency is also added:
@@ -117,8 +117,8 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
 
 object core extends PlayApiModule {
     //config
-    override def scalaVersion= T{"2.12.8"}
-    override def playVersion= T{"2.7.0"}
+    override def scalaVersion= T{"2.13.8"}
+    override def playVersion= T{"2.8.16"}
 
     object test extends PlayTests
 }
@@ -154,8 +154,8 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
 
 object core extends PlayApiModule {
     //config
-    override def scalaVersion= T{"2.12.8"}
-    override def playVersion= T{"2.7.0"}
+    override def scalaVersion= T{"2.13.8"}
+    override def playVersion= T{"2.8.16"}
 
     object test extends PlayTests
 
@@ -195,9 +195,9 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
 
 object core extends PlayModule {
     //config
-    override def scalaVersion= T{"2.12.8"}
-    override def playVersion= T{"2.7.0"}
-    override def twirlVersion= T{"1.4.0"}
+    override def scalaVersion= T{"2.13.8"}
+    override def playVersion= T{"2.8.16"}
+    override def twirlVersion= T{"1.5.1"}
 
     object test extends PlayTests
 }
@@ -236,9 +236,9 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule with SingleModule {
 	//config
-	override def scalaVersion= T{"2.12.8"}
-	override def playVersion= T{"2.7.0"}
-	override def twirlVersion= T{"1.4.0"}
+	override def scalaVersion= T{"2.13.8"}
+	override def playVersion= T{"2.8.16"}
+	override def twirlVersion= T{"1.5.1"}
 
 	object test extends PlayTests
 }
@@ -280,8 +280,8 @@ import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
-  def playVersion= T{"2.7.0"}
-  def scalaVersion= T{"2.12.8"}
+  def playVersion= T{"2.8.16"}
+  def scalaVersion= T{"2.13.8"}
 }
 ----
 
@@ -335,7 +335,7 @@ import mill.scalalib._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
-  def playVersion = "2.7.0"
+  def playVersion = "2.8.16"
   override def routesAdditionalImport = Seq("my.additional.stuff._", "my.other.stuff._")
 }
 ----

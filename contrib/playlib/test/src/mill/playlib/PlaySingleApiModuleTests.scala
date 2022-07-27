@@ -8,8 +8,9 @@ import utest.{TestSuite, Tests, assert, _}
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingleapi extends TestUtil.BaseModule with PlayApiModule with SingleModule {
-    override def playVersion = T { "2.7.0" }
-    override def scalaVersion = T { "2.12.8" }
+    override def playVersion = T { "2.8.16" }
+    def twirlVersion = T { "1.5.1" }
+    override def scalaVersion = T { "2.13.8" }
     object test extends PlayTests
   }
 
@@ -22,7 +23,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
         workspaceTest(playsingleapi) { eval =>
           val Right((result, evalCount)) = eval.apply(playsingleapi.playVersion)
           assert(
-            result == "2.7.0",
+            result == "2.8.16",
             evalCount > 0
           )
         }
