@@ -11,10 +11,10 @@ object BuildTest extends TestSuite {
 
       override def resources = T.sources(os.pwd / "contrib" / "flyway" / "test" / "resources")
 
-      def postgres = ivy"com.h2database:h2:1.4.199"
+      def h2 = ivy"com.h2database:h2:2.1.214"
 
       def flywayUrl = "jdbc:h2:mem:test_db;DB_CLOSE_DELAY=-1"
-      def flywayDriverDeps = Agg(postgres)
+      def flywayDriverDeps = Agg(h2)
     }
   }
 
