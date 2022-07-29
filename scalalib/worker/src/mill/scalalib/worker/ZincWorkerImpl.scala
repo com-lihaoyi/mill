@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 import scala.ref.SoftReference
 import scala.util.Properties.isWin
-
 import mill.api.Loose.Agg
 import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, internal}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil => Util}
@@ -17,6 +16,8 @@ import sbt.util.LogExchange
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import xsbti.{PathBasedFile, VirtualFile}
 
+import scala.annotation.nowarn
+
 @internal
 class ZincWorkerImpl(
     compilerBridge: Either[
@@ -26,9 +27,11 @@ class ZincWorkerImpl(
     libraryJarNameGrep: (Agg[os.Path], String) => os.Path,
     compilerJarNameGrep: (Agg[os.Path], String) => os.Path,
     compilerCache: KeyedLockedCache[Compilers],
-    compileToJar: Boolean
+    compileToJar: Boolean,
+    zincLogDebug: Boolean
 ) extends ZincWorkerApi with AutoCloseable {
-  private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
+  private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
+  private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
   lazy val javaOnlyCompilers = {
     // Keep the classpath as written by the user
     val classpathOptions = ClasspathOptions.of(
@@ -424,9 +427,10 @@ class ZincWorkerImpl(
     // suggested alternatives aren't public API, so we can't really do anything
     // to avoid calling these deprecated API.
     // See issue https://github.com/sbt/sbt/issues/6734
+    // Also, these are no longer deprecated in newer zinc versions
     val logger = LogExchange.logger(loggerId)
-    LogExchange.unbindLoggerAppenders(loggerId)
-    LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> sbt.util.Level.Info) :: Nil)
+    LogExchange.unbindLoggerAppenders(loggerId): @nowarn
+    LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> zincLogLevel) :: Nil): @nowarn
 
     val newReporter = reporter match {
       case None => new ManagedLoggedReporter(10, logger)

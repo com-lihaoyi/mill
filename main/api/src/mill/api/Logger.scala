@@ -36,5 +36,11 @@ trait Logger {
   def ticker(s: String): Unit
   def debug(s: String): Unit
 
+  /**
+   * @since Mill 0.10.5
+   */
+  // We only default-implement it to keep binary compatibility in 0.10.x
+  def debugEnabled: Boolean = false
+
   def close(): Unit = ()
 }
