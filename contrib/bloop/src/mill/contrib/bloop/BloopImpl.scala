@@ -133,7 +133,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   def moduleSourceMap = T.input {
     val sources = T.traverse(computeModules) { m =>
       m.allSources.map { paths =>
-        m.millModuleSegments.render -> paths.map(_.path)
+        name(m) -> paths.map(_.path)
       }
     }()
     Result.Success(sources.toMap)
