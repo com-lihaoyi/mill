@@ -5,6 +5,8 @@ import mill.{Agg, BuildInfo, T}
 import mill.define.{Ctx, Input, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
 
+import java.nio.file.{CopyOption, Files, LinkOption, StandardCopyOption}
+
 @experimental
 trait SemanticDbScalaModule extends JavaModule { hostModule =>
 
@@ -97,6 +99,39 @@ trait SemanticDbScalaModule extends JavaModule { hostModule =>
           )
           .map(_.classes)
       }
+  }
+
+  def compileClassAndSemanticDbFiles = T {
+    val dest = T.dest
+    val classes = compile().classes.path
+    val sems = semanticDbData().path
+    if (os.exists(sems)) os.copy(sems, dest, mergeFolders = true)
+    if (os.exists(classes)) os.copy(classes, dest, mergeFolders = true, replaceExisting = true)
+    PathRef(dest)
+  }
+
+  def bspCompileClassAndSemanticDbFiles: Target[UnresolvedPath] = {
+    if (
+      compile.ctx.enclosing == s"${classOf[SemanticDbScalaModule].getName}#compileClassAndSemanticDbFiles"
+    ) {
+      T {
+        T.log.debug(
+          s"compileClassAndSemanticDbFiles target was not overridden, assuming hard-coded classes directory for target ${compileClassAndSemanticDbFiles}"
+        )
+        UnresolvedPath.DestPath(
+          os.sub,
+          compileClassAndSemanticDbFiles.ctx.segments,
+          compileClassAndSemanticDbFiles.ctx.foreign
+        )
+      }
+    } else {
+      T {
+        T.log.debug(
+          s"compileClassAndSemanticDbFiles target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compileClassAndSemanticDbFiles}"
+        )
+        UnresolvedPath.ResolvedPath(compileClassAndSemanticDbFiles().path)
+      }
+    }
   }
 
 }

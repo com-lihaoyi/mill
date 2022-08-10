@@ -468,12 +468,7 @@ class MillBuildServer(
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
       val compileTasks = params.getTargets.distinct.map(bspModulesById).map {
-        case m: SemanticDbScalaModule => T.task {
-          m.compile()
-          // we also generate semantic db data
-          m.semanticDbData()
-          ()
-        }
+        case m: SemanticDbScalaModule if clientWantsSemanticDb => m.compileClassAndSemanticDbFiles
         case m: JavaModule => m.compile
         case m => T.task {
             Result.Failure(

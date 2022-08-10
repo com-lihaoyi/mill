@@ -7,7 +7,7 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsResult
 }
 import mill.T
-import mill.scalalib.JavaModule
+import mill.scalalib.{JavaModule, SemanticDbScalaModule}
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
@@ -23,6 +23,12 @@ trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
         agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava)
       ) {
         case (id, m: JavaModule) =>
+          val classesPathTask = m match {
+            case sem: SemanticDbScalaModule if clientWantsSemanticDb =>
+              sem.bspCompileClassAndSemanticDbFiles
+            case _ => m.bspCompileClassesPath
+          }
+
           val pathResolver = evaluator.pathsResolver
           T.task {
             val options = m.javacOptions()
@@ -32,7 +38,7 @@ trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
               id,
               options.asJava,
               classpath.iterator.toSeq.asJava,
-              sanitizeUri(m.bspCompileClassesPath().resolve(pathResolver))
+              sanitizeUri(classesPathTask().resolve(pathResolver))
             )
           }
       }
