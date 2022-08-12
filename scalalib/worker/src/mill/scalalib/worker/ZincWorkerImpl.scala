@@ -4,8 +4,6 @@ import java.io.File
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 
-import scala.ref.SoftReference
-import scala.util.Properties.isWin
 import mill.api.Loose.Agg
 import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, internal}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil => Util}
@@ -17,6 +15,9 @@ import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance 
 import xsbti.{PathBasedFile, VirtualFile}
 
 import scala.annotation.nowarn
+import scala.collection.mutable
+import scala.ref.SoftReference
+import scala.util.Properties.isWin
 
 @internal
 class ZincWorkerImpl(
@@ -32,39 +33,56 @@ class ZincWorkerImpl(
 ) extends ZincWorkerApi with AutoCloseable {
   private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
   private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
-  lazy val javaOnlyCompilers = {
-    // Keep the classpath as written by the user
-    val classpathOptions = ClasspathOptions.of(
-      /*bootLibrary*/ false,
-      /*compiler*/ false,
-      /*extra*/ false,
-      /*autoBoot*/ false,
-      /*filterLibrary*/ false
-    )
+  private val javaOnlyCompilersCache = mutable.Map.empty[Seq[String], Compilers]
 
-    val dummyFile = new java.io.File("")
-    // Zinc does not have an entry point for Java-only compilation, so we need
-    // to make up a dummy ScalaCompiler instance.
-    val scalac = ZincUtil.scalaCompiler(
-      new ScalaInstance(
-        version = "",
-        loader = null,
-        loaderCompilerOnly = null,
-        loaderLibraryOnly = null,
-        libraryJars = Array(dummyFile),
-        compilerJars = Array(dummyFile),
-        allJars = new Array(0),
-        explicitActual = Some("")
-      ),
-      dummyFile,
-      classpathOptions // this is used for javac too
-    )
+  def javaOnlyCompilers(javacOptions: Seq[String]) = {
+    javaOnlyCompilersCache.getOrElseUpdate(
+      javacOptions, {
+        // Keep the classpath as written by the user
+        val classpathOptions = ClasspathOptions.of(
+          /*bootLibrary*/ false,
+          /*compiler*/ false,
+          /*extra*/ false,
+          /*autoBoot*/ false,
+          /*filterLibrary*/ false
+        )
 
-    ic.compilers(
-      instance = null,
-      classpathOptions,
-      None,
-      scalac
+        val dummyFile = new java.io.File("")
+        // Zinc does not have an entry point for Java-only compilation, so we need
+        // to make up a dummy ScalaCompiler instance.
+        val scalac = ZincUtil.scalaCompiler(
+          new ScalaInstance(
+            version = "",
+            loader = null,
+            loaderCompilerOnly = null,
+            loaderLibraryOnly = null,
+            libraryJars = Array(dummyFile),
+            compilerJars = Array(dummyFile),
+            allJars = new Array(0),
+            explicitActual = Some("")
+          ),
+          dummyFile,
+          classpathOptions // this is used for javac too
+        )
+
+        val javaTools = {
+          val (javaCompiler, javaDoc) =
+            // Local java compilers don't accept -J flags so when we put this together if we detect
+            // any javacOptions starting with -J we ensure we have a non-local Java compiler which
+            // can handle them.
+            if (javacOptions.exists(_.startsWith("-J"))) {
+              (javac.JavaCompiler.fork(None), javac.Javadoc.fork(None))
+
+            } else {
+              val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork(None))
+              val docs = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
+              (compiler, docs)
+            }
+          javac.JavaTools(javaCompiler, javaDoc)
+        }
+
+        ic.compilers(javaTools, scalac)
+      }
     )
   }
 
@@ -265,7 +283,7 @@ class ZincWorkerImpl(
       compileClasspath,
       javacOptions,
       scalacOptions = Nil,
-      javaOnlyCompilers,
+      javaOnlyCompilers(javacOptions),
       reporter
     )
   }
