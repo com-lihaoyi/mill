@@ -234,7 +234,7 @@ class MillBuildServer(
             val semDb = d.get("semanticdbVersion")
             if (semDb.isJsonPrimitive) {
               val semDbVersion = semDb.getAsJsonPrimitive.getAsString
-              log.debug(s"Got client semanticdbVersion: ${semDbVersion}")
+              log.debug(s"Got client semanticdbVersion: ${semDbVersion}. Enabling SemanticDB support.")
               clientWantsSemanticDb = true
             }
           }
