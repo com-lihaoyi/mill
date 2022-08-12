@@ -101,7 +101,7 @@ trait SemanticDbScalaModule extends JavaModule { hostModule =>
       }
   }
 
-  def compileClassAndSemanticDbFiles = T {
+  def compiledClassesAndSemanticDbFiles = T {
     val dest = T.dest
     val classes = compile().classes.path
     val sems = semanticDbData().path
@@ -116,20 +116,20 @@ trait SemanticDbScalaModule extends JavaModule { hostModule =>
     ) {
       T {
         T.log.debug(
-          s"compileClassAndSemanticDbFiles target was not overridden, assuming hard-coded classes directory for target ${compileClassAndSemanticDbFiles}"
+          s"compileClassAndSemanticDbFiles target was not overridden, assuming hard-coded classes directory for target ${compiledClassesAndSemanticDbFiles}"
         )
         UnresolvedPath.DestPath(
           os.sub,
-          compileClassAndSemanticDbFiles.ctx.segments,
-          compileClassAndSemanticDbFiles.ctx.foreign
+          compiledClassesAndSemanticDbFiles.ctx.segments,
+          compiledClassesAndSemanticDbFiles.ctx.foreign
         )
       }
     } else {
       T {
         T.log.debug(
-          s"compileClassAndSemanticDbFiles target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compileClassAndSemanticDbFiles}"
+          s"compileClassAndSemanticDbFiles target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compiledClassesAndSemanticDbFiles}"
         )
-        UnresolvedPath.ResolvedPath(compileClassAndSemanticDbFiles().path)
+        UnresolvedPath.ResolvedPath(compiledClassesAndSemanticDbFiles().path)
       }
     }
   }
