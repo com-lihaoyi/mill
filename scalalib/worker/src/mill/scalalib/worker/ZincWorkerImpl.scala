@@ -33,11 +33,12 @@ class ZincWorkerImpl(
 ) extends ZincWorkerApi with AutoCloseable {
   private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
   private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
-  private val javaOnlyCompilersCache = mutable.Map.empty[Seq[String], Compilers]
+  private val javaOnlyCompilersCache = mutable.Map.empty[Seq[String], SoftReference[Compilers]]
 
   def javaOnlyCompilers(javacOptions: Seq[String]) = {
-    javaOnlyCompilersCache.getOrElseUpdate(
-      javacOptions, {
+    javaOnlyCompilersCache.get(javacOptions) match {
+      case Some(SoftReference(compilers)) => compilers
+      case _ =>
         // Keep the classpath as written by the user
         val classpathOptions = ClasspathOptions.of(
           /*bootLibrary*/ false,
@@ -81,9 +82,10 @@ class ZincWorkerImpl(
           javac.JavaTools(javaCompiler, javaDoc)
         }
 
-        ic.compilers(javaTools, scalac)
-      }
-    )
+        val compilers = ic.compilers(javaTools, scalac)
+        javaOnlyCompilersCache.update(javacOptions, SoftReference(compilers))
+        compilers
+    }
   }
 
   val compilerBridgeLocks = collection.mutable.Map.empty[String, Object]
