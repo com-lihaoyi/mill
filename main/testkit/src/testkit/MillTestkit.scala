@@ -72,7 +72,7 @@ trait MillTestKit {
       debugEnabled: Boolean = false,
       extraPathEnd: Seq[String] = Seq.empty
   )(implicit fullName: sourcecode.FullName) {
-    val outPath = getOutPath(testPath) / extraPathEnd
+    val outPath = module.millSourcePath / "out" / testPath / extraPathEnd
 
 //  val logger = DummyLogger
     val logger = new mill.util.PrintLogger(
