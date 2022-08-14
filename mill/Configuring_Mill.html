@@ -196,14 +196,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.5-62-080d70</span>
+    <span class="version">0.10.5-63-b77c33</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.5-62-080d70</a>
+          <a href="index.html">0.10.5-63-b77c33</a>
         </li>
         <li class="version">
           <a href="0.10.5/index.html">0.10.5</a>
@@ -262,9 +262,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-62-080d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-63-b77c33</button>
   <div class="version-menu">
-    <a class="version is-current" href="Configuring_Mill.html">0.10.5-62-080d70</a>
+    <a class="version is-current" href="Configuring_Mill.html">0.10.5-63-b77c33</a>
     <a class="version" href="0.10.5/Configuring_Mill.html">0.10.5</a>
     <a class="version" href="0.10.4/Configuring_Mill.html">0.10.4</a>
     <a class="version" href="0.10.3/Configuring_Mill.html">0.10.3</a>
@@ -734,6 +734,102 @@ use the  <code>:::</code> syntax shown above in the example.
 </td>
 </tr>
 </tbody></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_generating_api_documentation"><a class="anchor" href="#_generating_api_documentation"></a>Generating API Documentation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To generate API documenation you can use the <code>docJar</code> task on the module you’d
+like to create the documenation for. For example, given a module called
+<code>example</code> you could do:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill example.docJar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will result in your <code>javaDoc</code> being created in
+<code>out/app/docJar.dest/javadoc</code>.</p>
+</div>
+<div class="paragraph">
+<p>For both Scala and Java modules there may be extra options that you’d like to
+pass specifically to either <code>javadoc</code> or <code>scaladoc</code>. You can pass these with
+<code>javadocOptions</code> and <code>scalaDocOptions</code> respectively.</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object example extends ScalaModule {
+  def scalaVersion = &quot;3.1.3&quot;
+
+  def scalaDocOptions = Seq(
+    &quot;-siteroot&quot;,
+    &quot;mydocs&quot;,
+    &quot;-no-link-warnings&quot;
+  )
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scaladoc_3_site_generation"><a class="anchor" href="#_scaladoc_3_site_generation"></a>Scaladoc 3 Site Generation</h3>
+<div class="paragraph">
+<p>When using Scala 3 you’re also able to use Scaladoc to generate a full static
+site next to your API documenation. This can include general documenation for
+your project and even a blog. While you can find the full documenation for this
+in the <a href="https://docs.scala-lang.org/scala3/guides/scaladoc/index.html">Scala 3
+docs</a>, below you’ll find some useful information to help you generate this with
+Mill.</p>
+</div>
+<div class="paragraph">
+<p>By default Mill will consider the <em>site root</em> as it’s called in
+<a href="https://docs.scala-lang.org/scala3/guides/scaladoc/static-site.html">Scala 3
+docs</a>, to be the value of <code>docResources()</code>. It will look there for your
+<code>_docs/</code> and your <code>_blog/</code> directory if any exist. Let’s pretend we have a
+project called <code>example</code> defined like this:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object example extends ScalaModule {
+  def scalaVersion = &quot;3.1.3&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your project structure for this would look something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>.
+├── build.sc
+├── example
+│  ├── docs
+│  │  ├── _blog
+│  │  │  ├── _posts
+│  │  │  │  └── 2022-08-14-hello-world.md
+│  │  │  └── index.md
+│  │  └── _docs
+│  │     ├── getting-started.md
+│  │     ├── index.html
+│  │     └── index.md
+│  └── src
+│     └── example
+│        └── Hello.scala</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After generating your docs with <code>mill example.docJar</code> you’ll find by opening
+your <code>out/app/docJar.dest/javadoc/index.hmtl</code> locally in your browser you’ll
+have a full static site including your API docs, your blog, and your
+documenation!</p>
+</div>
 </div>
 </div>
 </div>
