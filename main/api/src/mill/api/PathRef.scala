@@ -36,7 +36,10 @@ object PathRef {
         digest.update(value.toByte)
       }
       if (os.exists(path)) {
-        for ((path, attrs) <- os.walk.attrs(path, includeTarget = true, followLinks = true)) {
+        for (
+          (path, attrs) <-
+            os.walk.attrs(path, includeTarget = true, followLinks = true).sortBy(_._1.toString)
+        ) {
           digest.update(path.toString.getBytes)
           if (!attrs.isDir) {
             if (isPosix) {
