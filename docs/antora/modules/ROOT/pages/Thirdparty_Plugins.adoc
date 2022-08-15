@@ -171,7 +171,30 @@ Limited fish completion support.
 
 Project home: https://github.com/ckipp01/mill-fish-completions
 
+== Giter8
 
+A plugin to test the generation of your
+http://www.foundweekends.org/giter8/index.html[Giter8] template and expected
+working targets for your template after generation.
+
+Project home: https://github.com/ckipp01/mill-giter8
+
+=== Quickstart
+
+.`build.sc`
+[source,scala]
+----
+import $ivy.`io.chris-kipp::mill-giter8::0.2.0`
+
+import io.kipp.mill.giter8.G8Module
+
+object g8 extends G8Module {
+  override def validationTargets =
+    Seq("example.compile", "example.fix", "example.reformat")
+}
+----
+
+The most common target you'd then use is `mill g8.validate`.
 
 == Git
 
