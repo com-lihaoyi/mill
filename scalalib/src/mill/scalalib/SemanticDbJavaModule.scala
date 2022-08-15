@@ -8,7 +8,7 @@ import mill.scalalib.api.ZincWorkerUtil
 import java.nio.file.{CopyOption, Files, LinkOption, StandardCopyOption}
 
 @experimental
-trait SemanticDbScalaModule extends JavaModule { hostModule =>
+trait SemanticDbJavaModule extends JavaModule { hostModule =>
 
   def semanticDbVersion: Input[String] = T.input {
     T.env.getOrElse("SEMANTICDB_VERSION", Versions.semanticDBVersion).asInstanceOf[String]
@@ -62,6 +62,7 @@ trait SemanticDbScalaModule extends JavaModule { hostModule =>
   }
 
   def semanticDbData: T[PathRef] = hostModule match {
+    // TODO: also generate semanticDB for Java and Mixed-Java projects
     case m: ScalaModule =>
       T.persistent {
         val sv = m.scalaVersion()
@@ -110,13 +111,13 @@ trait SemanticDbScalaModule extends JavaModule { hostModule =>
     PathRef(dest)
   }
 
-  def bspCompileClassAndSemanticDbFiles: Target[UnresolvedPath] = {
+  def bspCompiledClassesAndSemanticDbFiles: Target[UnresolvedPath] = {
     if (
-      compile.ctx.enclosing == s"${classOf[SemanticDbScalaModule].getName}#compileClassAndSemanticDbFiles"
+      compile.ctx.enclosing == s"${classOf[SemanticDbJavaModule].getName}#compiledClassesAndSemanticDbFiles"
     ) {
       T {
         T.log.debug(
-          s"compileClassAndSemanticDbFiles target was not overridden, assuming hard-coded classes directory for target ${compiledClassesAndSemanticDbFiles}"
+          s"compiledClassesAndSemanticDbFiles target was not overridden, assuming hard-coded classes directory for target ${compiledClassesAndSemanticDbFiles}"
         )
         UnresolvedPath.DestPath(
           os.sub,
@@ -127,7 +128,7 @@ trait SemanticDbScalaModule extends JavaModule { hostModule =>
     } else {
       T {
         T.log.debug(
-          s"compileClassAndSemanticDbFiles target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compiledClassesAndSemanticDbFiles}"
+          s"compiledClassesAndSemanticDbFiles target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compiledClassesAndSemanticDbFiles}"
         )
         UnresolvedPath.ResolvedPath(compiledClassesAndSemanticDbFiles().path)
       }

@@ -7,7 +7,7 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsResult
 }
 import mill.T
-import mill.scalalib.{JavaModule, SemanticDbScalaModule}
+import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
@@ -24,8 +24,8 @@ trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
       ) {
         case (id, m: JavaModule) =>
           val classesPathTask = m match {
-            case sem: SemanticDbScalaModule if clientWantsSemanticDb =>
-              sem.bspCompileClassAndSemanticDbFiles
+            case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+              sem.bspCompiledClassesAndSemanticDbFiles
             case _ => m.bspCompileClassesPath
           }
 

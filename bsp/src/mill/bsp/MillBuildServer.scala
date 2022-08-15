@@ -58,7 +58,7 @@ import mill.define.{BaseModule, Discover, ExternalModule, Segments, Task}
 import mill.eval.Evaluator
 import mill.scalalib.internal.ModuleUtils
 import mill.main.{BspServerResult, EvaluatorScopt, MainModule}
-import mill.scalalib.{JavaModule, SemanticDbScalaModule, TestModule}
+import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, MillBuildTarget}
 import os.Path
 
@@ -468,7 +468,7 @@ class MillBuildServer(
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
       val compileTasks = params.getTargets.distinct.map(bspModulesById).map {
-        case m: SemanticDbScalaModule if clientWantsSemanticDb => m.compiledClassesAndSemanticDbFiles
+        case m: SemanticDbJavaModule if clientWantsSemanticDb => m.compiledClassesAndSemanticDbFiles
         case m: JavaModule => m.compile
         case m => T.task {
             Result.Failure(
