@@ -522,6 +522,25 @@ If you need to feed a `+` as argument to your target, you can mask it by precedi
 
 Mill comes with a few useful command-line utilities built into it:
 
+=== init
+
+[source,bash]
+----
+$ mill -i init com-lihaoyi/mill-scala-hello.g8
+....
+A minimal Scala project.
+
+name [Scala Seed Project]: hello
+
+Template applied in ./hello
+----
+
+The `init` command generates a project based on a Giter8 template.  
+It prompts you to enter project name and creates a folder with that name.  
+You can use it to quickly generate a starter project.  
+There are lots of templates out there for many frameworks and tools!
+
+
 === resolve
 
 [source,bash]
