@@ -50,6 +50,8 @@ trait ZincWorkerUtil {
   val NightlyVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
   val TypelevelVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
 
+  private val FullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
+
   def scalaBinaryVersion(scalaVersion: String) = scalaVersion match {
     case Scala3EarlyVersion(milestone) => s"3.0.0-$milestone"
     case Scala3Version(_, _) => "3"
@@ -61,12 +63,10 @@ trait ZincWorkerUtil {
     case _ => scalaVersion
   }
 
-  private val ScalaJSFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
-
   def scalaJSBinaryVersion(scalaJSVersion: String) = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
       "0.6"
-    case ScalaJSFullVersion(major, minor, patch, suffix) =>
+    case FullVersion(major, minor, patch, suffix) =>
       if (suffix != null && minor == "0" && patch == "0")
         s"$major.$minor$suffix"
       else
@@ -76,14 +76,12 @@ trait ZincWorkerUtil {
   def scalaJSWorkerVersion(scalaJSVersion: String) = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
       "0.6"
-    case ScalaJSFullVersion(major, _, _, _) =>
+    case FullVersion(major, _, _, _) =>
       major
   }
 
-  private val ScalaNativeFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
-
   def scalaNativeBinaryVersion(version: String) = version match {
-    case ScalaNativeFullVersion(major, minor, patch, suffix) =>
+    case FullVersion(major, minor, patch, suffix) =>
       if (suffix != null && patch == "0")
         version
       else
@@ -91,7 +89,7 @@ trait ZincWorkerUtil {
   }
 
   def scalaNativeWorkerVersion(version: String) = version match {
-    case ScalaNativeFullVersion(major, minor, _, _) =>
+    case FullVersion(major, minor, _, _) =>
       s"$major.$minor"
   }
 
@@ -99,7 +97,7 @@ trait ZincWorkerUtil {
    * scalajs-test-bridge instead of scalajs-test-interface.
    */
   def scalaJSUsesTestBridge(scalaJSVersion: String): Boolean = scalaJSVersion match {
-    case ScalaJSFullVersion("0", "6", patch, _) => patch.toInt >= 29
+    case FullVersion("0", "6", patch, _) => patch.toInt >= 29
     case _ => true
   }
 
@@ -148,6 +146,19 @@ trait ZincWorkerUtil {
       all.filter(v => v.nonEmpty && v >= versionParts.take(v.length)).map(_.mkString(".") + "-")
     (plus ++ minus).distinct.toSeq
   }
+
+  /**
+   * Helper to create the Mill plugin artifact structure that is expected by Mill.
+   *
+   * Ex. If your plugin name is example and you're using 0.10.0 this would create:
+   *   - example_mill0.10
+   *
+   * @param name the name of your plugin
+   * @param millVersion the Mill version you're targeting
+   * @return
+   */
+  def pluginArtifact(name: String, millVersion: String) =
+    s"${name}_mill${scalaBinaryVersion(millVersion)}"
 }
 
 object ZincWorkerUtil extends ZincWorkerUtil
