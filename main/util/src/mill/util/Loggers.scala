@@ -235,8 +235,13 @@ class MultiStream(stream1: OutputStream, stream2: OutputStream)
       }
     })
 
-case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStream: InputStream)
-    extends Logger {
+class MultiLogger(
+    override val colored: Boolean,
+    logger1: Logger,
+    logger2: Logger,
+    override val inStream: InputStream,
+    override val debugEnabled: Boolean
+) extends Logger {
 
   lazy val outputStream: PrintStream = new MultiStream(logger1.outputStream, logger2.outputStream)
 
@@ -264,8 +269,32 @@ case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStr
     logger1.close()
     logger2.close()
   }
+}
 
-  override def debugEnabled: Boolean = logger1.debugEnabled || logger2.debugEnabled
+object MultiLogger {
+
+  def apply(
+      colored: Boolean,
+      logger1: Logger,
+      logger2: Logger,
+      inStream: InputStream,
+      debugEnabled: Boolean
+  ): MultiLogger =
+    new MultiLogger(colored, logger1, logger2, inStream, debugEnabled)
+
+  def apply(
+      colored: Boolean,
+      logger1: Logger,
+      logger2: Logger,
+      inStream: InputStream
+  ): MultiLogger =
+    MultiLogger(
+      colored,
+      logger1,
+      logger2,
+      inStream,
+      debugEnabled = logger1.debugEnabled || logger2.debugEnabled
+    )
 }
 
 /**
