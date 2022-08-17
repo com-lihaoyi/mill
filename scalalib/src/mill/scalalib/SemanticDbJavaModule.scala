@@ -6,12 +6,19 @@ import mill.define.{Ctx, Input, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
 
 import java.nio.file.{CopyOption, Files, LinkOption, StandardCopyOption}
+import scala.util.DynamicVariable
 
 @experimental
 trait SemanticDbJavaModule extends JavaModule { hostModule =>
 
   def semanticDbVersion: Input[String] = T.input {
-    T.env.getOrElse("SEMANTICDB_VERSION", Versions.semanticDBVersion).asInstanceOf[String]
+    T.env.getOrElse(
+      "SEMANTICDB_VERSION",
+      SemanticDbJavaModule.contextSemanticDbVersion.get()
+        .getOrElse(
+          SemanticDbJavaModule.buildTimeSemanticDbVersion
+        )
+    ).asInstanceOf[String]
   }
 
   def bspClientWantsSemanticDbData: Input[Boolean] = T.input {
@@ -102,6 +109,7 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
       }
   }
 
+  // keep in sync with bspCompiledClassesAndSemanticDbFiles
   def compiledClassesAndSemanticDbFiles = T {
     val dest = T.dest
     val classes = compile().classes.path
@@ -111,6 +119,7 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
     PathRef(dest)
   }
 
+  // keep in sync with compiledClassesAndSemanticDbFiles
   def bspCompiledClassesAndSemanticDbFiles: Target[UnresolvedPath] = {
     if (
       compile.ctx.enclosing == s"${classOf[SemanticDbJavaModule].getName}#compiledClassesAndSemanticDbFiles"
@@ -135,4 +144,16 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
     }
   }
 
+}
+
+object SemanticDbJavaModule {
+  val buildTimeSemanticDbVersion = Versions.semanticDBVersion
+  private[mill] val contextSemanticDbVersion: InheritableThreadLocal[Option[String]] =
+    new InheritableThreadLocal[Option[String]] {
+      protected override def initialValue(): Option[String] = None.asInstanceOf[Option[String]]
+    }
+  private[mill] val contextJavaSemanticDbVersion: InheritableThreadLocal[Option[String]] =
+    new InheritableThreadLocal[Option[String]] {
+      protected override def initialValue(): Option[String] = None.asInstanceOf[Option[String]]
+    }
 }

@@ -66,7 +66,7 @@ import java.io.PrintStream
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 import scala.util.chaining.scalaUtilChainingOps
 
 class MillBuildServer(
@@ -227,16 +227,28 @@ class MillBuildServer(
         case _ => clientIsIntelliJ = false
       }
 
+      def readVersion(json: JsonObject, name: String): Option[String] =
+        if (json.has(name)) {
+          val rawValue = json.get(name)
+          if (rawValue.isJsonPrimitive) {
+            val version = Try(rawValue.getAsJsonPrimitive.getAsString).toOption.filter(_.nonEmpty)
+            log.debug(s"Got json value for ${name}=${version}")
+            version
+          } else None
+        } else None
+
       request.getData match {
         case d: JsonObject =>
           log.debug(s"extra data: ${d} of type ${d.getClass}")
-          if (d.has("semanticdbVersion")) {
-            val semDb = d.get("semanticdbVersion")
-            if (semDb.isJsonPrimitive) {
-              val semDbVersion = semDb.getAsJsonPrimitive.getAsString
-              log.debug(s"Got client semanticdbVersion: ${semDbVersion}. Enabling SemanticDB support.")
-              clientWantsSemanticDb = true
-            }
+          readVersion(d, "semanticdbVersion").foreach { version =>
+            log.debug(
+              s"Got client semanticdbVersion: ${version}. Enabling SemanticDB support."
+            )
+            clientWantsSemanticDb = true
+            SemanticDbJavaModule.contextSemanticDbVersion.set(Option(version))
+          }
+          readVersion(d, "javaSemanticdbVersion").foreach { version =>
+            SemanticDbJavaModule.contextJavaSemanticDbVersion.set(Option(version))
           }
         case _ => // no op
       }
@@ -252,14 +264,14 @@ class MillBuildServer(
   override def buildShutdown(): CompletableFuture[Object] = {
     log.debug(s"Entered buildShutdown")
     shutdownRequested = true
-
     onSessionEnd match {
       case None =>
       case Some(onEnd) =>
         log.debug("Shutdown build...")
         onEnd(BspServerResult.Shutdown)
     }
-
+    SemanticDbJavaModule.contextSemanticDbVersion.set(None)
+    SemanticDbJavaModule.contextJavaSemanticDbVersion.set(None)
     CompletableFuture.completedFuture(null.asInstanceOf[Object])
   }
   override def onBuildExit(): Unit = {
@@ -270,6 +282,8 @@ class MillBuildServer(
         log.debug("Exiting build...")
         onEnd(BspServerResult.Shutdown)
     }
+    SemanticDbJavaModule.contextSemanticDbVersion.set(None)
+    SemanticDbJavaModule.contextJavaSemanticDbVersion.set(None)
     cancellator(shutdownRequested)
   }
 
