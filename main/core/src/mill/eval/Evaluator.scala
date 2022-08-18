@@ -669,10 +669,8 @@ class Evaluator private[Evaluator] (
       case Some(path) => MultiLogger(
           logger.colored,
           logger,
-          // we always enable debug here, to get some more context in log files
           new FileLogger(logger.colored, path, debugEnabled = true),
-          logger.inStream,
-          debugEnabled = logger.debugEnabled
+          logger.inStream
         )
     }
 

@@ -48,11 +48,11 @@ object BSP extends ExternalModule {
       val bspFile = bspDirectory / s"${serverName}.json"
       if (os.exists(bspFile)) T.log.info(s"Overwriting BSP connection file: ${bspFile}")
       else T.log.info(s"Creating BSP connection file: ${bspFile}")
-      os.write.over(bspFile, createBspConnectionJson(jobs, T.log.debugEnabled), createFolders = true)
+      os.write.over(bspFile, createBspConnectionJson(jobs), createFolders = true)
     }
 
   // creates a Json with the BSP connection details
-  def createBspConnectionJson(jobs: Int, debug: Boolean): String = {
+  def createBspConnectionJson(jobs: Int): String = {
     // we assume, the classpath is an executable jar here, FIXME
     val millPath = sys.props
       .get("java.class.path")
@@ -69,7 +69,8 @@ object BSP extends ExternalModule {
           "false",
           "--jobs",
           s"${jobs}"
-        ) ++ (if(debug) Seq("--debug") else Seq()),
+//          s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
+        ),
         millVersion = BuildInfo.millVersion,
         bspVersion = bspProtocolVersion,
         languages = languages
