@@ -270,8 +270,7 @@ class MillBuildServer(
         log.debug("Shutdown build...")
         onEnd(BspServerResult.Shutdown)
     }
-    SemanticDbJavaModule.contextSemanticDbVersion.set(None)
-    SemanticDbJavaModule.contextJavaSemanticDbVersion.set(None)
+    SemanticDbJavaModule.resetContext()
     CompletableFuture.completedFuture(null.asInstanceOf[Object])
   }
   override def onBuildExit(): Unit = {
@@ -282,8 +281,7 @@ class MillBuildServer(
         log.debug("Exiting build...")
         onEnd(BspServerResult.Shutdown)
     }
-    SemanticDbJavaModule.contextSemanticDbVersion.set(None)
-    SemanticDbJavaModule.contextJavaSemanticDbVersion.set(None)
+    SemanticDbJavaModule.resetContext()
     cancellator(shutdownRequested)
   }
 

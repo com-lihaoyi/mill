@@ -21,11 +21,6 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
     ).asInstanceOf[String]
   }
 
-  def bspClientWantsSemanticDbData: Input[Boolean] = T.input {
-    // TODO: transport this info from BSP client somehow
-    true
-  }
-
   def semanticDbScalaVersion = hostModule match {
     case m: ScalaModule => T { m.scalaVersion }
     case _ => T { BuildInfo.scalaVersion }
@@ -37,7 +32,7 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
     if (!ZincWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
       val msg =
         """|
-           |When using ScalaMetalsSupport with Scala 2 you must provide a semanticDbVersion
+           |With Scala 2 you must provide a semanticDbVersion
            |
            |def semanticDbVersion = ???
            |""".stripMargin
@@ -148,12 +143,19 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
 
 object SemanticDbJavaModule {
   val buildTimeSemanticDbVersion = Versions.semanticDBVersion
+
   private[mill] val contextSemanticDbVersion: InheritableThreadLocal[Option[String]] =
     new InheritableThreadLocal[Option[String]] {
       protected override def initialValue(): Option[String] = None.asInstanceOf[Option[String]]
     }
+
   private[mill] val contextJavaSemanticDbVersion: InheritableThreadLocal[Option[String]] =
     new InheritableThreadLocal[Option[String]] {
       protected override def initialValue(): Option[String] = None.asInstanceOf[Option[String]]
     }
+
+  private[mill] def resetContext(): Unit = {
+    contextJavaSemanticDbVersion.set(None)
+    contextSemanticDbVersion.set(None)
+  }
 }
