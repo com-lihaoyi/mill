@@ -61,13 +61,6 @@ object docker extends DockerConfig {
   def user = "new-user"
   // Optionally override the docker executable to use something else
   def executable = "podman"
-  // Optionally override the content of the Dockerfile. Note: All paths need to be absolute and located within the project.
-  def dockerfile =
-    s"""FROM ${baseImage()}
-       |RUN aptitude install -y pidgin
-       |COPY ${assembly().path} /${assembly().path.last}
-       |ENTRYPOINT ["java", "-jar", "/${assembly().path.last}"]""".stripMargin
-       |""".stripMargin
 }
 ----
 

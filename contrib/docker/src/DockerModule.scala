@@ -85,6 +85,7 @@ trait DockerModule { outer: JavaModule =>
     }
 
     def dockerfile: T[String] = T {
+      val jarName = assembly().path.last
       val labelRhs = labels()
         .map { case (k, v) =>
           val lineBrokenValue = v
@@ -112,17 +113,22 @@ trait DockerModule { outer: JavaModule =>
         if (user().isEmpty) "" else s"USER ${user()}"
       ).filter(_.nonEmpty).mkString(sys.props("line.separator"))
 
-      s"""FROM ${baseImage()}
+      s"""
+         |FROM ${baseImage()}
          |$lines
-         |COPY ["${assembly().path}", "/${assembly().path.last}"]
-         |ENTRYPOINT ["java", "-jar", "/${assembly().path.last}"]""".stripMargin
+         |COPY $jarName /$jarName
+         |ENTRYPOINT ["java", "-jar", "/$jarName"]""".stripMargin
     }
 
     final def build = T {
-      val log = T.log
-      val dockerfilePath = T.dest / "Dockerfile"
+      val dest = T.dest
 
-      os.write(dockerfilePath, dockerfile().replace(T.workspace.toString, ""))
+      val asmPath = outer.assembly().path
+      os.copy(asmPath, dest / asmPath.last)
+
+      os.write(dest / "Dockerfile", dockerfile())
+
+      val log = T.log
 
       val tagArgs = tags().flatMap(t => List("-t", t))
 
@@ -130,7 +136,7 @@ trait DockerModule { outer: JavaModule =>
       val pullLatestBase = IterableShellable(if (pull) Some("--pull") else None)
 
       val result = os
-        .proc(executable(), "build", tagArgs, pullLatestBase, "-f", dockerfilePath, T.workspace)
+        .proc(executable(), "build", tagArgs, pullLatestBase, dest)
         .call(stdout = os.Inherit, stderr = os.Inherit)
 
       log.info(s"Docker build completed ${if (result.exitCode == 0) "successfully"
