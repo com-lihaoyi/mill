@@ -9,10 +9,9 @@ import mill.scalalib.api.ZincWorkerUtil
 
 /*+ Enable some common settings required to properly support Metals Language Server (via BSP). */
 @experimental
+@deprecated("No longer needed. Mill BSP now automatically supports SemanticDB. " +
+  "If you rely on SemanticDB data, have a look at mill.scalalib.SemanticDbJavaModule.", "Mill 0.10.6")
 trait ScalaMetalsSupport extends ScalaModule {
-
-//  /** The semanticDB version to use. It needs to support your configured Scala 2 version. */
-//  def semanticDbVersion: T[String] = T { "" }
 
   override def scalacPluginIvyDeps: Target[Agg[Dep]] = T {
     val sv = scalaVersion()
