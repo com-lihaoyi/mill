@@ -196,14 +196,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.5-70-bc2bcf</span>
+    <span class="version">0.10.5-71-620456</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.5-70-bc2bcf</a>
+          <a href="index.html">0.10.5-71-620456</a>
         </li>
         <li class="version">
           <a href="0.10.5/index.html">0.10.5</a>
@@ -262,9 +262,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-70-bc2bcf</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.5-71-620456</button>
   <div class="version-menu">
-    <a class="version is-current" href="Intro_to_Mill.html">0.10.5-70-bc2bcf</a>
+    <a class="version is-current" href="Intro_to_Mill.html">0.10.5-71-620456</a>
     <a class="version" href="0.10.5/Intro_to_Mill.html">0.10.5</a>
     <a class="version" href="0.10.4/Intro_to_Mill.html">0.10.4</a>
     <a class="version" href="0.10.3/Intro_to_Mill.html">0.10.3</a>
@@ -1406,34 +1406,42 @@ mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre
 </td>
 <td class="content">
 <div class="paragraph">
-<p>When using Metals by default Bloop will be used as your build server unless you
-explicitly choose Mill. When in a Mill workspace use the &quot;Switch Build Server&quot;
-command from Metals which will allow you to switch to using Mill as your build
-server. If no <code>.bsp/mill-bsp.json</code> file exists Metals will automatically create
-it for you and then connect to Mill.</p>
+<p><strong>Using Metals</strong></p>
 </div>
 <div class="paragraph">
-<p>If you want to use Metals, you may also want to enable SemanticDB support. Without it, some functionality like find references may not work.</p>
+<p>When using Metals by default Bloop will be used as your build server unless you explicitly choose Mill.
+When in a Mill workspace use the &quot;Switch Build Server&quot; command from Metals which will allow you to switch to using Mill as your build
+server.
+If no <code>.bsp/mill-bsp.json</code> file exists, Metals will automatically create it for you and then connect to Mill.</p>
 </div>
 <div class="paragraph">
-<p>We still work on a better and automatic SemanticDB support.
-Until we have completed it, you can enable SemanticDB manually in your <code>ScalaModule</code>.</p>
+<p>Metals is relying on SemanticDB to enable many of its features.
+Mill BSP now also supports to provide this SemanticDB data, when the BSP client (like Metals) requests it.</p>
 </div>
 <div class="paragraph">
-<p>For convenience, you can mix-in the <code>mill.scalalib.bsp.ScalaMetalsSupport</code> trait. This enables SemanticDB and also adapts the scalac options to produce more helpful messages in Metals.</p>
+<p>As of writing this, Metals 0.11.8 is the latest available version, which is not able to detect the fact, that Mill <em>is</em> already providing SemanticDB data.
+As a consequence, it reports missing SemanticDB data, although some SemanticDB-based features are already working.
+This may be fixed eventually in a future release of Metals.</p>
 </div>
-<div class="listingblock">
-<div class="title"><code>build.sc</code>: Mix-in of <code>ScalaMetalsSupport</code> trait</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-import mill.scalalib._
-import mill.scalalib.bsp.ScalaMetalsSupport
-
-object foo extends ScalaModule with ScalaMetalsSupport {
-  def semanticDbVersion = &quot;4.4.32&quot;
-  def scalaVersion = &quot;2.13.8&quot;
-}</code></pre>
+</td>
+</tr>
+</tbody></table>
 </div>
+<div class="admonitionblock caution">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Updating older setups</strong></p>
+</div>
+<div class="paragraph">
+<p>In the past, we provided SemanticDB support via <code>mill.scalalib.bsp.ScalaMetalsSupport</code> trait, which had to be mixed-in to your Scala modules.
+This is no longer needed and deprecated.
+You should remove these mix-ins.
+<code>ScalaMetalsSupport</code> trait is now deprecated and will be removed in the future.</p>
 </div>
 </td>
 </tr>
