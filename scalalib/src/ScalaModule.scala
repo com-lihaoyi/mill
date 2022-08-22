@@ -20,7 +20,7 @@ import mill.scalalib.dependency.versions.{ValidVersion, Version}
 /**
  * Core configuration required to compile a single Scala compilation target
  */
-trait ScalaModule extends JavaModule { outer =>
+trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
 
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
