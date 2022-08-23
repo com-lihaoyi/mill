@@ -448,7 +448,7 @@ class ZincWorkerImpl(
     // to avoid calling these deprecated API.
     // See issue https://github.com/sbt/sbt/issues/6734
     // Also, these are no longer deprecated in newer zinc versions
-    val logger = LogExchange.logger(loggerId)
+    val logger = LogExchange.logger(loggerId):  @nowarn
     LogExchange.unbindLoggerAppenders(loggerId): @nowarn
     LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> zincLogLevel) :: Nil): @nowarn
 
@@ -586,5 +586,6 @@ class ZincWorkerImpl(
 
   override def close(): Unit = {
     classloaderCache.clear()
+    javaOnlyCompilersCache.clear()
   }
 }
