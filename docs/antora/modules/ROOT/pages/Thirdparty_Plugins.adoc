@@ -745,8 +745,8 @@ scip-java index
 
 You can also manually trigger this with Mill by doing the following:
 
+[source, shell script]
 ----
-source, shell script]
 
 mill --import ivy:io.chris-kipp::mill-scip::0.2.2 io.kipp.mill.scip.Scip/generate
 ----
