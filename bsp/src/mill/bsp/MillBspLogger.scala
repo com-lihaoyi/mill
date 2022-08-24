@@ -53,7 +53,7 @@ class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
   override def debug(s: String): Unit = {
     super.debug(s)
     if (debugEnabled) {
-      client.onBuildShowMessage(new ShowMessageParams(MessageType.LOG, s))
+      client.onBuildLogMessage(new LogMessageParams(MessageType.LOG, s))
     }
   }
 
