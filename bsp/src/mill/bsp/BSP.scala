@@ -48,11 +48,13 @@ object BSP extends ExternalModule {
       val bspFile = bspDirectory / s"${serverName}.json"
       if (os.exists(bspFile)) T.log.info(s"Overwriting BSP connection file: ${bspFile}")
       else T.log.info(s"Creating BSP connection file: ${bspFile}")
-      os.write.over(bspFile, createBspConnectionJson(jobs), createFolders = true)
+      val withDebug = T.log.debugEnabled
+      if(withDebug) T.log.debug("Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option.")
+      os.write.over(bspFile, createBspConnectionJson(jobs, withDebug), createFolders = true)
     }
 
   // creates a Json with the BSP connection details
-  def createBspConnectionJson(jobs: Int): String = {
+  def createBspConnectionJson(jobs: Int, debug: Boolean): String = {
     // we assume, the classpath is an executable jar here, FIXME
     val millPath = sys.props
       .get("java.class.path")
@@ -69,8 +71,7 @@ object BSP extends ExternalModule {
           "false",
           "--jobs",
           s"${jobs}"
-//          s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
-        ),
+        ) ++ (if(debug) Seq("--debug") else Seq()),
         millVersion = BuildInfo.millVersion,
         bspVersion = bspProtocolVersion,
         languages = languages
