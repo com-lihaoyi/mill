@@ -1,10 +1,8 @@
 package mill.bsp
 
 import java.util.concurrent.CompletableFuture
-
 import scala.jdk.CollectionConverters._
 import scala.util.chaining._
-
 import ch.epfl.scala.bsp4j.{
   ScalaBuildServer,
   ScalaMainClass,
@@ -19,7 +17,7 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsResult
 }
 import mill.modules.Jvm
-import mill.scalalib.{JavaModule, Lib, ScalaModule, TestModule}
+import mill.scalalib.{JavaModule, Lib, ScalaModule, SemanticDbJavaModule, TestModule}
 import mill.testrunner.TestRunner
 import mill.{Agg, T}
 import sbt.testing.Fingerprint
@@ -40,6 +38,11 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
             case sm: ScalaModule => sm.allScalacOptions
             case _ => T.task { Seq.empty[String] }
           }
+          val classesPathTask = m match {
+            case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+              sem.bspCompiledClassesAndSemanticDbFiles
+            case _ => m.bspCompileClassesPath
+          }
 
           val pathResolver = evaluator.pathsResolver
           T.task {
@@ -50,7 +53,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
                 .iterator
                 .map(_.resolve(pathResolver))
                 .map(sanitizeUri.apply).toSeq.asJava,
-              sanitizeUri(m.bspCompileClassesPath().resolve(pathResolver))
+              sanitizeUri(classesPathTask().resolve(pathResolver))
             )
           }
       }

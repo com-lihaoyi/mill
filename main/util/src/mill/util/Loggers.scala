@@ -235,6 +235,7 @@ class MultiStream(stream1: OutputStream, stream2: OutputStream)
       }
     })
 
+// TODO: make this a non-case class
 case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStream: InputStream)
     extends Logger {
 
@@ -265,7 +266,8 @@ case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStr
     logger2.close()
   }
 
-  override def debugEnabled: Boolean = logger1.debugEnabled || logger2.debugEnabled
+  // TODO: this should be a ctr parameter, to let the user decide, but this affects binary compatibility
+  override def debugEnabled: Boolean = logger1.debugEnabled
 }
 
 /**

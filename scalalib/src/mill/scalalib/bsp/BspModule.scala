@@ -75,13 +75,12 @@ object BspUri {
  * @param outerCtx0
  */
 @internal
-trait MillBuildTarget // (rootModule: BaseModule, ctx0: mill.define.Ctx)
-    extends // Module()(ctx0) with
-    ScalaModule {
+trait MillBuildTarget
+    extends ScalaModule {
   protected def rootModule: BaseModule
   override def millSourcePath: os.Path = rootModule.millSourcePath
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
-  override def ivyDeps: T[Agg[Dep]] = T {
+  override def compileIvyDeps: T[Agg[Dep]] = T {
     T.log.errorStream.println(s"ivyDeps: ${T.dest}")
     Agg.from(BuildInfo.millEmbeddedDeps.map(d => ivy"${d}"))
   }
@@ -141,6 +140,11 @@ trait MillBuildTarget // (rootModule: BaseModule, ctx0: mill.define.Ctx)
     os.write(T.dest / "dummy", "")
     os.makeDir(T.dest / "classes")
     CompilationResult(T.dest / "dummy", PathRef(T.dest / "classes"))
+  }
+
+  override def semanticDbData: T[PathRef] = T {
+    T.log.errorStream.println(s"semanticDbData: ${T.dest}")
+    PathRef(T.dest)
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */

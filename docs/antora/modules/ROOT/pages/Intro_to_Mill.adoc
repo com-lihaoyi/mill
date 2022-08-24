@@ -906,32 +906,29 @@ You can fine control some BSP server options by specifying command options:
 
 [NOTE]
 --
-When using Metals by default Bloop will be used as your build server unless you
-explicitly choose Mill. When in a Mill workspace use the "Switch Build Server"
-command from Metals which will allow you to switch to using Mill as your build
-server. If no `.bsp/mill-bsp.json` file exists Metals will automatically create
-it for you and then connect to Mill.
+*Using Metals*
 
-If you want to use Metals, you may also want to enable SemanticDB support. Without it, some functionality like find references may not work.
+When using Metals by default Bloop will be used as your build server unless you explicitly choose Mill.
+When in a Mill workspace use the "Switch Build Server" command from Metals which will allow you to switch to using Mill as your build
+server.
+If no `.bsp/mill-bsp.json` file exists, Metals will automatically create it for you and then connect to Mill.
 
-We still work on a better and automatic SemanticDB support.
-Until we have completed it, you can enable SemanticDB manually in your ``ScalaModule``.
+Metals is relying on SemanticDB to enable many of its features.
+Mill BSP now also supports to provide this SemanticDB data, when the BSP client (like Metals) requests it.
 
-For convenience, you can mix-in the `mill.scalalib.bsp.ScalaMetalsSupport` trait. This enables SemanticDB and also adapts the scalac options to produce more helpful messages in Metals.
+As of writing this, Metals 0.11.8 is the latest available version, which is not able to detect the fact, that Mill _is_ already providing SemanticDB data.
+As a consequence, it reports missing SemanticDB data, although some SemanticDB-based features are already working.
+This may be fixed eventually in a future release of Metals.
+--
 
-.`build.sc`: Mix-in of `ScalaMetalsSupport` trait
-[source,scala,subs="attributes,verbatim"]
-----
-import mill._
-import mill.scalalib._
-import mill.scalalib.bsp.ScalaMetalsSupport
+[CAUTION]
+--
+*Updating older setups*
 
-object foo extends ScalaModule with ScalaMetalsSupport {
-  def semanticDbVersion = "{example-semanticdb-version}"
-  def scalaVersion = "{example-scala-version}"
-}
-----
-
+In the past, we provided SemanticDB support via `mill.scalalib.bsp.ScalaMetalsSupport` trait, which had to be mixed-in to your Scala modules.
+This is no longer needed and deprecated.
+You should remove these mix-ins.
+`ScalaMetalsSupport` trait is now deprecated and will be removed in the future.
 --
 
 === Using Bloop (standalone BSP server)

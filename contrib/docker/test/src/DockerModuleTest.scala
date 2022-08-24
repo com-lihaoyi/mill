@@ -95,9 +95,10 @@ object DockerModuleTest extends TestSuite {
         val eval = new TestEvaluator(Docker)
         val Right((dockerfileString, _)) = eval(Docker.dockerDefault.dockerfile)
         val expected = multineRegex.replaceAllIn(
-          s"""FROM gcr.io/distroless/java:latest
-             |COPY ["${Docker.millSourcePath / "out" / "dockerfile contents" / "default options" / "assembly.dest" / "out.jar"}", "/out.jar"]
-             |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
+          """
+            |FROM gcr.io/distroless/java:latest
+            |COPY out.jar /out.jar
+            |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
           sys.props("line.separator")
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(
@@ -111,18 +112,19 @@ object DockerModuleTest extends TestSuite {
         val eval = new TestEvaluator(Docker)
         val Right((dockerfileString, _)) = eval(Docker.dockerAll.dockerfile)
         val expected = multineRegex.replaceAllIn(
-          s"""FROM docker.io/openjdk:11
-             |LABEL "version"="1.0"
-             |EXPOSE 8080/tcp 443/tcp
-             |EXPOSE 80/udp
-             |ENV foo=bar
-             |ENV foobar=barfoo
-             |VOLUME ["/v1", "/v2"]
-             |RUN /bin/bash -c 'echo Hello World!'
-             |RUN useradd -ms /bin/bash user1
-             |USER user1
-             |COPY ["${Docker.millSourcePath / "out" / "dockerfile contents" / "all options" / "assembly.dest" / "out.jar"}", "/out.jar"]
-             |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
+          """
+            |FROM docker.io/openjdk:11
+            |LABEL "version"="1.0"
+            |EXPOSE 8080/tcp 443/tcp
+            |EXPOSE 80/udp
+            |ENV foo=bar
+            |ENV foobar=barfoo
+            |VOLUME ["/v1", "/v2"]
+            |RUN /bin/bash -c 'echo Hello World!'
+            |RUN useradd -ms /bin/bash user1
+            |USER user1
+            |COPY out.jar /out.jar
+            |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
           sys.props("line.separator")
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(

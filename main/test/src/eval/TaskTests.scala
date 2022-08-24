@@ -209,12 +209,11 @@ object SeqTaskTests extends TaskTests {
 object ParTaskTests extends TaskTests {
   def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath) = {
     object build extends Build
-    val check =
-      new TestEvaluator(
-        build,
-        threads = Some(16),
-        extraPathEnd = Seq(getClass().getSimpleName())
-      )
+    val check = new TestEvaluator(
+      build,
+      threads = Some(16),
+      extraPathEnd = Seq(getClass().getSimpleName())
+    )
     f(build, check)
   }
 }
