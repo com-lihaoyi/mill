@@ -13,6 +13,7 @@ Most trivial publish config is:
 
 ```scala worksheet
 import mill._, scalalib._, mill.scalalib.publish._
+import $ivy.`com.lihaoyi::mill-contrib-gitlab:`
 import mill.contrib.gitlab._
 
 object lib extends ScalaModule with GitlabPublishModule {
