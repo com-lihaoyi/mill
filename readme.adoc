@@ -232,19 +232,39 @@ corresponding version of Mill.
 
 === 'main' branch
 :version: main
-:prev-version: 0.10.5
-:milestone: 64
-:milestone-name: after 0.10.5
+:prev-version: 0.10.6
+:milestone: 66
+:milestone-name: after 0.10.6
 
 _Changes since {prev-version}:_
-
-* `mill.twirllib.TwirlModule` - new mandatory target `twirlScalaVersion` to configure the Scala version used by Twirl compiler
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
+
+=== 0.10.6 - 2022-08-244
+:version: 0.10.6
+:prev-version: 0.10.5
+:milestone: 64
+:milestone-name: 0.10.6
+
+_Changes since {prev-version}:_
+
+* ``PathRef``s sigs are now more reproducible and independent of the used filesystem
+* `JavaModule` can now use a non-local Java Compiler to support all options
+* `Logger`: new `debugEnabled` to detect whether debug logging is enabled
+* New `testkit` module, to use `TestEvaluator` in external projects
+* Fixed reading of `.mill-jvm-opts` in server mode
+* BSP: Automatic SemanticDB enablement to improve Metals support
+* `mill.twirllib.TwirlModule` - new mandatory target `twirlScalaVersion` to configure the Scala version used by Twirl compiler, and support for newer versions
+* Lots of documentation updates and additions
+* Upgraded to Zinc 1.7.1 and various other dependency updates
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 === 0.10.5 - 2022-07-01
