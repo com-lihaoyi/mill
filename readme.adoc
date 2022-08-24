@@ -232,9 +232,9 @@ corresponding version of Mill.
 
 === 'main' branch
 :version: main
-:prev-version: 0.10.6
-:milestone: 66
-:milestone-name: after 0.10.6
+:prev-version: 0.10.7
+:milestone: 67
+:milestone-name: after 0.10.7
 
 _Changes since {prev-version}:_
 
@@ -243,8 +243,22 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
+=== 0.10.7 - 2022-08-24
+:version: 0.10.7
+:prev-version: 0.10.6
+:milestone: 66
+:milestone-name: 0.10.7
 
-=== 0.10.6 - 2022-08-244
+_Changes since {prev-version}:_
+
+* Don't print unwanted debug messages from zinc
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.6 - 2022-08-24
 :version: 0.10.6
 :prev-version: 0.10.5
 :milestone: 64
