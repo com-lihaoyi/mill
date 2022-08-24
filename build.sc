@@ -847,6 +847,10 @@ object contrib extends MillModule {
   object bintray extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
   }
+  
+  object gitlab extends MillModule {
+    override def compileModuleDeps = Seq(scalalib)
+  }
 
 }
 
