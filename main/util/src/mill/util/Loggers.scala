@@ -265,7 +265,7 @@ case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStr
     logger2.close()
   }
 
-  override def debugEnabled: Boolean = logger1.debugEnabled || logger2.debugEnabled
+  override def debugEnabled: Boolean = logger1.debugEnabled
 }
 
 /**
