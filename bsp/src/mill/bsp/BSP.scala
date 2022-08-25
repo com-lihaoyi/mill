@@ -53,6 +53,9 @@ object BSP extends ExternalModule {
       os.write.over(bspFile, createBspConnectionJson(jobs, withDebug), createFolders = true)
     }
 
+  @deprecated("Use other overload instead.", "Mill after 0.10.7")
+  def createBspConnectionJson(jobs: Int): String = BSP.createBspConnectionJson(jobs: Int, debug = false)
+
   // creates a Json with the BSP connection details
   def createBspConnectionJson(jobs: Int, debug: Boolean): String = {
     // we assume, the classpath is an executable jar here, FIXME
