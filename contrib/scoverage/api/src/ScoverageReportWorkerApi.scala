@@ -5,7 +5,12 @@ import mill.api.Ctx
 trait ScoverageReportWorkerApi {
   import ScoverageReportWorkerApi._
 
-  def report(reportType: ReportType, sources: Seq[os.Path], dataDirs: Seq[os.Path])(implicit
+  def report(
+      reportType: ReportType,
+      sources: Seq[os.Path],
+      dataDirs: Seq[os.Path],
+      sourceRoot: os.Path
+  )(implicit
       ctx: Ctx
   ): Unit
 }

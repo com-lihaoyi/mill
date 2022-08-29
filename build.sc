@@ -129,6 +129,10 @@ object Deps {
   val scalametaTrees = ivy"org.scalameta::trees:4.5.13"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
+  def scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:2.0.2"
+  def scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:2.0.2"
+  def scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:2.0.2"
+  def scalacScoverage2Serializer = ivy"org.scoverage::scalac-scoverage-serializer:2.0.2"
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.5.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
@@ -745,7 +749,9 @@ object contrib extends MillModule {
     override def testArgs = T {
       val mapping = Map(
         "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path,
-        "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version
+        "MILL_SCOVERAGE2_REPORT_WORKER" -> worker2.compile().classes.path,
+        "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version,
+        "MILL_SCOVERAGE2_VERSION" -> Deps.scalacScoverage2Plugin.dep.version
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -763,8 +769,26 @@ object contrib extends MillModule {
       override def moduleDeps = Seq(scoverage.api)
       override def compileIvyDeps = T {
         Agg(
-          // compile-time only, need to provide the correct scoverage version runtime
+          // compile-time only, need to provide the correct scoverage version at runtime
           Deps.scalacScoveragePlugin,
+          // provided by mill runtime
+          Deps.osLib
+        )
+      }
+    }
+
+    object worker2 extends MillApiModule {
+      override def compileModuleDeps = Seq(main.api)
+
+      override def moduleDeps = Seq(scoverage.api)
+
+      override def compileIvyDeps = T {
+        Agg(
+          // compile-time only, need to provide the correct scoverage version at runtime
+          Deps.scalacScoverage2Plugin,
+          Deps.scalacScoverage2Reporter,
+          Deps.scalacScoverage2Domain,
+          Deps.scalacScoverage2Serializer,
           // provided by mill runtime
           Deps.osLib
         )
