@@ -764,7 +764,7 @@ object contrib extends MillModule {
       contrib.buildinfo
     )
 
-    object worker extends MillApiModule {
+    object worker extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
       override def moduleDeps = Seq(scoverage.api)
       override def compileIvyDeps = T {
@@ -777,7 +777,7 @@ object contrib extends MillModule {
       }
     }
 
-    object worker2 extends MillApiModule {
+    object worker2 extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
 
       override def moduleDeps = Seq(scoverage.api)
