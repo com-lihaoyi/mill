@@ -101,14 +101,34 @@ trait HelloWorldTests extends utest.TestSuite {
               evalCount > 0
             )
           }
-          "scalacPluginIvyDeps" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) =
-              eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps)
-
-            assert(
-              result == Agg(ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}"),
-              evalCount > 0
-            )
+          "scalacPluginIvyDeps" - {
+            "scoverage1x" - workspaceTest(HelloWorld) { eval =>
+              val Right((result, evalCount)) =
+                eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps)
+              if (testScoverageVersion.startsWith("1.")) {
+                assert(
+                  result == Agg(
+                    ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}"
+                  ),
+                  evalCount > 0
+                )
+              } else "skipped"
+            }
+            "scoverage2x" - workspaceTest(HelloWorld) { eval =>
+              val Right((result, evalCount)) =
+                eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps)
+              if (testScoverageVersion.startsWith("2.")) {
+                assert(
+                  result == Agg(
+                    ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}",
+                    ivy"org.scoverage::scalac-scoverage-domain:${testScoverageVersion}",
+                    ivy"org.scoverage::scalac-scoverage-serializer:${testScoverageVersion}",
+                    ivy"org.scoverage::scalac-scoverage-reporter:${testScoverageVersion}"
+                  ),
+                  evalCount > 0
+                )
+              } else "skipped"
+            }
           }
           "data" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.data)
@@ -199,5 +219,12 @@ object HelloWorldTests_2_13 extends HelloWorldTests {
   override def threadCount = Some(1)
   override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
+  override def testScalatestVersion = "3.0.8"
+}
+
+object Scoverage2Tests_2_13 extends HelloWorldTests {
+  override def threadCount = Some(1)
+  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE2_VERSION", ???)
   override def testScalatestVersion = "3.0.8"
 }
