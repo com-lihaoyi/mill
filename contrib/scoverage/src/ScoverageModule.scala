@@ -59,9 +59,24 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
   private def isScoverage2: Task[Boolean] = T.task { scoverageVersion().startsWith("2.") }
 
+  /** Binary compatibility shim. */
+  @deprecated("Use scoverageRuntimeDeps instead.", "Mill after 0.10.7")
+  def scoverageRuntimeDep: T[Dep] = T {
+    T.log.error("scoverageRuntimeDep is no longer used. To customize your module, use scoverageRuntimeDeps.")
+    scoverageRuntimeDeps().toIndexedSeq.head
+  }
+
   def scoverageRuntimeDeps: T[Agg[Dep]] = T {
     Agg(ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
   }
+
+  /** Binary compatibility shim. */
+  @deprecated("Use scoveragePluginDeps instead.", "Mill after 0.10.7")
+  def scoveragePluginDep: T[Dep] = T {
+    T.log.error("scoveragePluginDep is no longer used. To customize your module, use scoverageRuntimeDeps.")
+    scoveragePluginDeps().toIndexedSeq.head
+  }
+
   def scoveragePluginDeps: T[Agg[Dep]] = T {
     val sv = scoverageVersion()
     if (isScoverage2()) {
@@ -167,7 +182,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       T {
         outer.scalacOptions() ++
           Seq(s"-P:scoverage:dataDir:${data().path.toIO.getPath()}") ++
-          (if(isScoverage2()) Seq(s"-P:scoverage:sourceRoot:${T.workspace}") else Seq())
+          (if (isScoverage2()) Seq(s"-P:scoverage:sourceRoot:${T.workspace}") else Seq())
       }
 
     def htmlReport(): Command[Unit] = T.command { doReport(ReportType.Html) }
