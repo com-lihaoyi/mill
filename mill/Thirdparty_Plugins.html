@@ -196,14 +196,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.7-6-36f5e6</span>
+    <span class="version">0.10.7-7-7e3ac9</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.7-6-36f5e6</a>
+          <a href="index.html">0.10.7-7-7e3ac9</a>
         </li>
         <li class="version">
           <a href="0.10.7/index.html">0.10.7</a>
@@ -268,9 +268,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.7-6-36f5e6</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.7-7-7e3ac9</button>
   <div class="version-menu">
-    <a class="version is-current" href="Thirdparty_Plugins.html">0.10.7-6-36f5e6</a>
+    <a class="version is-current" href="Thirdparty_Plugins.html">0.10.7-7-7e3ac9</a>
     <a class="version" href="0.10.7/Thirdparty_Plugins.html">0.10.7</a>
     <a class="version" href="0.10.6/Thirdparty_Plugins.html">0.10.6</a>
     <a class="version" href="0.10.5/Thirdparty_Plugins.html">0.10.5</a>
@@ -401,6 +401,51 @@ object main extends AspectjModule {
 </div>
 </div>
 <div class="sect1">
+<h2 id="_ci_release"><a class="anchor" href="#_ci_release"></a>CI Release</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>mill-ci-release</code> is a wrapper around the existing publish functionality of
+Mill with the aim to making releasing your project in GitHub Actions to Maven
+easier by automating common setup such as setting up gpg in CI, setting up
+versioning, and ensuring merges to into your main branch get published as a
+SNAPSHOT. If you’re coming from sbt, then you’re likely familiar with
+<a href="https://github.com/sbt/sbt-ci-release"><code>sbt-ci-release</code></a> which this plugin
+imitates.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/ckipp01/mill-ci-release" class="bare">https://github.com/ckipp01/mill-ci-release</a></p>
+</div>
+<div class="sect2">
+<h3 id="_quickstart_3"><a class="anchor" href="#_quickstart_3"></a>Quickstart</h3>
+<div class="paragraph">
+<p>To get started, you’ll want to use <code>CiReleaseModule</code> as a drop in replacement
+where you’d normally use the Mill <code>PublishModule</code> and then ensure you implement
+everything that <code>PublishModule</code> requires.</p>
+</div>
+<div class="paragraph">
+<p>Secondly, you’ll need to ensure you have a few environment variables correctly
+set in your GitHub repo. You can see detailed instuctions on which are
+necessary <a href="https://github.com/ckipp01/mill-ci-release#secrets">here</a>.</p>
+</div>
+<div class="paragraph">
+<p>Then in CI to publish you’ll simply issue a single command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- run: mill -i io.kipp.mill.ci.release.ReleaseModule/publishAll</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will automatically grab all the artifacts that you’ve defined to publish
+in your build and publish them. Your version will automatically be managed by
+<a href="https://github.com/lefou/mill-vcs-version"><code>mill-vcs-version</code></a> and if your
+version ends in <code>-SNAPSHOT</code> you’re project will be published to Sonatype
+Snapshots or to the normal releases if it’s a new tag.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_dgraph"><a class="anchor" href="#_dgraph"></a>DGraph</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -410,7 +455,7 @@ object main extends AspectjModule {
 <p>Project home: <a href="https://github.com/ajrnz/mill-dgraph" class="bare">https://github.com/ajrnz/mill-dgraph</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_3"><a class="anchor" href="#_quickstart_3"></a>Quickstart</h3>
+<h3 id="_quickstart_4"><a class="anchor" href="#_quickstart_4"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`</code></pre>
@@ -448,7 +493,7 @@ object main extends AspectjModule {
 <p>Project home: <a href="https://github.com/davoclavo/mill-ensime" class="bare">https://github.com/davoclavo/mill-ensime</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_4"><a class="anchor" href="#_quickstart_4"></a>Quickstart</h3>
+<h3 id="_quickstart_5"><a class="anchor" href="#_quickstart_5"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
@@ -489,7 +534,7 @@ import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`</code></pre>
 <p>Project home: <a href="https://github.com/kierendavies/mill-explicit-deps" class="bare">https://github.com/kierendavies/mill-explicit-deps</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_5"><a class="anchor" href="#_quickstart_5"></a>Quickstart</h3>
+<h3 id="_quickstart_6"><a class="anchor" href="#_quickstart_6"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
 <div class="content">
@@ -541,7 +586,7 @@ working targets for your template after generation.</p>
 <p>Project home: <a href="https://github.com/ckipp01/mill-giter8" class="bare">https://github.com/ckipp01/mill-giter8</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_6"><a class="anchor" href="#_quickstart_6"></a>Quickstart</h3>
+<h3 id="_quickstart_7"><a class="anchor" href="#_quickstart_7"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
 <div class="content">
@@ -614,7 +659,7 @@ Submission API</a>.</p>
 <p>Project home: <a href="https://github.com/ckipp01/mill-github-dependency-graph" class="bare">https://github.com/ckipp01/mill-github-dependency-graph</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_7"><a class="anchor" href="#_quickstart_7"></a>Quickstart</h3>
+<h3 id="_quickstart_8"><a class="anchor" href="#_quickstart_8"></a>Quickstart</h3>
 <div class="paragraph">
 <p>The easiest way to use this plugin is with the
 <a href="https://github.com/ckipp01/mill-github-dependency-graph">mill-dependency-submission</a>
@@ -655,7 +700,7 @@ jobs:
 <p>Project home: <a href="https://github.com/lefou/mill-integrationtest" class="bare">https://github.com/lefou/mill-integrationtest</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_8"><a class="anchor" href="#_quickstart_8"></a>Quickstart</h3>
+<h3 id="_quickstart_9"><a class="anchor" href="#_quickstart_9"></a>Quickstart</h3>
 <div class="paragraph">
 <p>We assume, you have a mill plugin named <code>mill-demo</code></p>
 </div>
@@ -757,7 +802,7 @@ import $exec.plugins</code></pre>
 <p>JBake home: <a href="https://jbake.org" class="bare">https://jbake.org</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_9"><a class="anchor" href="#_quickstart_9"></a>Quickstart</h3>
+<h3 id="_quickstart_10"><a class="anchor" href="#_quickstart_10"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.sc
@@ -883,7 +928,7 @@ public class BuildInfo {
 <p>Project home: <a href="https://github.com/lefou/mill-kotlin" class="bare">https://github.com/lefou/mill-kotlin</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_10"><a class="anchor" href="#_quickstart_10"></a>Quickstart</h3>
+<h3 id="_quickstart_11"><a class="anchor" href="#_quickstart_11"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// Load the plugin from Maven Central via ivy/coursier
@@ -1023,7 +1068,7 @@ Example: setting mill 0.3.6 as best local mill version</p>
 <p>Project home: <a href="https://github.com/lolgab/mill-mima" class="bare">https://github.com/lolgab/mill-mima</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_11"><a class="anchor" href="#_quickstart_11"></a>Quickstart</h3>
+<h3 id="_quickstart_12"><a class="anchor" href="#_quickstart_12"></a>Quickstart</h3>
 <div class="paragraph">
 <p>Just mix-in the <code>Mima</code> trait into your <code>ScalaModule</code>.
 And set the previous artifacts you want to check binary compatibility.</p>
@@ -1068,7 +1113,7 @@ Binary compatibility check passed.</code></pre>
 <p>Project home: <a href="https://github.com/lefou/mill-osgi" class="bare">https://github.com/lefou/mill-osgi</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_12"><a class="anchor" href="#_quickstart_12"></a>Quickstart</h3>
+<h3 id="_quickstart_13"><a class="anchor" href="#_quickstart_13"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, mill.scalalib._
@@ -1116,7 +1161,7 @@ object project extends ScalaModule with OsgiBundleModule {
 <p>Project home: <a href="https://github.com/lefou/mill-publishM2" class="bare">https://github.com/lefou/mill-publishM2</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_13"><a class="anchor" href="#_quickstart_13"></a>Quickstart</h3>
+<h3 id="_quickstart_14"><a class="anchor" href="#_quickstart_14"></a>Quickstart</h3>
 <div class="paragraph">
 <p>Just mix-in the <code>PublishM2Module</code> into your project.
 <code>PublishM2Module</code> already extends mill’s built-in <code>PublishModule</code>.</p>
@@ -1169,7 +1214,7 @@ Publishing to /tmp/m2repo</code></pre>
 <p>Project home: <a href="https://github.com/lolgab/mill-scalablytyped" class="bare">https://github.com/lolgab/mill-scalablytyped</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_14"><a class="anchor" href="#_quickstart_14"></a>Quickstart</h3>
+<h3 id="_quickstart_15"><a class="anchor" href="#_quickstart_15"></a>Quickstart</h3>
 <div class="paragraph">
 <p>Mix-in the <code>ScalablyTyped</code> trait into your <code>ScalaJSModule</code> and
 set-up a <code>package.json</code> file with your TypeScript dependencies.</p>
@@ -1245,7 +1290,7 @@ code navigation on <a href="https://sourcegraph.com/">Sourcegraph</a>.</p>
 <p>Project home: <a href="https://github.com/ckipp01/mill-scip" class="bare">https://github.com/ckipp01/mill-scip</a></p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_15"><a class="anchor" href="#_quickstart_15"></a>Quickstart</h3>
+<h3 id="_quickstart_16"><a class="anchor" href="#_quickstart_16"></a>Quickstart</h3>
 <div class="paragraph">
 <p>The recommended way to use <code>mill-scip</code> is via the
 <a href="https://sourcegraph.github.io/scip-java/"><code>scip-java</code></a> cli tool that can be
@@ -1315,7 +1360,7 @@ Mill build will generate an index and place it at the root of your project.</p>
 When used with its defaults, the outcome is identical to the version scheme used by mill.</p>
 </div>
 <div class="sect2">
-<h3 id="_quickstart_16"><a class="anchor" href="#_quickstart_16"></a>Quickstart</h3>
+<h3 id="_quickstart_17"><a class="anchor" href="#_quickstart_17"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
