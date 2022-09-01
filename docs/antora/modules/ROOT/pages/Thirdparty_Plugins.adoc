@@ -71,6 +71,40 @@ Limited bash completion support.
 
 Project home: https://github.com/lefou/mill-bash-completion
 
+== CI Release
+
+`mill-ci-release` is a wrapper around the existing publish functionality of
+Mill with the aim to making releasing your project in GitHub Actions to Maven
+easier by automating common setup such as setting up gpg in CI, setting up
+versioning, and ensuring merges to into your main branch get published as a
+SNAPSHOT. If you're coming from sbt, then you're likely familiar with
+https://github.com/sbt/sbt-ci-release[`sbt-ci-release`] which this plugin
+imitates.
+
+Project home: https://github.com/ckipp01/mill-ci-release
+
+=== Quickstart
+
+To get started, you'll want to use `CiReleaseModule` as a drop in replacement
+where you'd normally use the Mill `PublishModule` and then ensure you implement
+everything that `PublishModule` requires.
+
+Secondly, you'll need to ensure you have a few environment variables correctly
+set in your GitHub repo. You can see detailed instuctions on which are
+necessary https://github.com/ckipp01/mill-ci-release#secrets[here].
+
+Then in CI to publish you'll simply issue a single command:
+
+[source,yaml]
+----
+- run: mill -i io.kipp.mill.ci.release.ReleaseModule/publishAll
+----
+
+This will automatically grab all the artifacts that you've defined to publish
+in your build and publish them. Your version will automatically be managed by
+https://github.com/lefou/mill-vcs-version[`mill-vcs-version`] and if your
+version ends in `-SNAPSHOT` you're project will be published to Sonatype
+Snapshots or to the normal releases if it's a new tag.
 
 == DGraph
 
