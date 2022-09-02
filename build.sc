@@ -350,7 +350,7 @@ object main extends MillModule {
     "-DMILL_VERSION=" + publishVersion()
   )
 
-  object buildfile extends MillModule {
+  object buildfile extends MillInternalModule {
     override def moduleDeps = Seq(main.api)
     override def ivyDeps = Agg(
       Deps.osLib,
