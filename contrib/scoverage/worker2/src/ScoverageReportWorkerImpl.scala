@@ -6,7 +6,7 @@ import mill.api.Ctx
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 
 /**
- * Scoverage Worker for Scoverage 1.x
+ * Scoverage Worker for Scoverage 2.x
  */
 class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
 

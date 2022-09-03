@@ -3,6 +3,7 @@ package mill.contrib.scoverage
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
+import mill.scalalib.api.ZincWorkerUtil
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
@@ -96,8 +97,13 @@ trait HelloWorldTests extends utest.TestSuite {
             val Right((result, evalCount)) =
               eval.apply(HelloWorld.core.scoverage.ivyDeps)
 
+            val expected = if (ZincWorkerUtil.isScala3(testScalaVersion)) Agg.empty
+            else Agg(
+              ivy"org.scoverage::scalac-scoverage-runtime:${testScoverageVersion}"
+            )
+
             assert(
-              result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:${testScoverageVersion}"),
+              result == expected,
               evalCount > 0
             )
           }
@@ -117,14 +123,19 @@ trait HelloWorldTests extends utest.TestSuite {
             "scoverage2x" - workspaceTest(HelloWorld) { eval =>
               val Right((result, evalCount)) =
                 eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps)
+
+              val expected = if (ZincWorkerUtil.isScala3(testScalaVersion)) Agg.empty
+              else
+                Agg(
+                  ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}",
+                  ivy"org.scoverage::scalac-scoverage-domain:${testScoverageVersion}",
+                  ivy"org.scoverage::scalac-scoverage-serializer:${testScoverageVersion}",
+                  ivy"org.scoverage::scalac-scoverage-reporter:${testScoverageVersion}"
+                )
+
               if (testScoverageVersion.startsWith("2.")) {
                 assert(
-                  result == Agg(
-                    ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}",
-                    ivy"org.scoverage::scalac-scoverage-domain:${testScoverageVersion}",
-                    ivy"org.scoverage::scalac-scoverage-serializer:${testScoverageVersion}",
-                    ivy"org.scoverage::scalac-scoverage-reporter:${testScoverageVersion}"
-                  ),
+                  result == expected,
                   evalCount > 0
                 )
               } else "skipped"
@@ -161,27 +172,55 @@ trait HelloWorldTests extends utest.TestSuite {
             val Right((result, evalCount)) =
               eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
 
-            assert(
-              result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime")),
-              evalCount > 0
-            )
+            val runtimeExistsOnClasspath =
+              result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
+            if (ZincWorkerUtil.isScala3(testScalaVersion)) {
+              assert(
+                !runtimeExistsOnClasspath,
+                evalCount > 0
+              )
+            } else {
+              assert(
+                runtimeExistsOnClasspath,
+                evalCount > 0
+              )
+            }
           }
           "compileClasspath" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.compileClasspath)
 
-            assert(
-              result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime")),
-              evalCount > 0
-            )
+            val runtimeExistsOnClasspath =
+              result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
+            if (ZincWorkerUtil.isScala3(testScalaVersion)) {
+              assert(
+                !runtimeExistsOnClasspath,
+                evalCount > 0
+              )
+            } else {
+              assert(
+                runtimeExistsOnClasspath,
+                evalCount > 0
+              )
+            }
           }
           // TODO: document why we disable for Java9+
           "runClasspath" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.runClasspath)
 
-            assert(
-              result.map(_.toString).exists(_.contains("scalac-scoverage-runtime")),
-              evalCount > 0
-            )
+            val runtimeExistsOnClasspath =
+              result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
+
+            if (ZincWorkerUtil.isScala3(testScalaVersion)) {
+              assert(
+                !runtimeExistsOnClasspath,
+                evalCount > 0
+              )
+            } else {
+              assert(
+                runtimeExistsOnClasspath,
+                evalCount > 0
+              )
+            }
           }
         }
       }
@@ -212,19 +251,26 @@ object HelloWorldTests_2_12 extends HelloWorldTests {
   override def threadCount = Some(1)
   override def testScalaVersion: String = sys.props.getOrElse("MILL_SCALA_2_12_VERSION", ???)
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
-  override def testScalatestVersion = "3.0.8"
+  override def testScalatestVersion = "3.2.13"
 }
 
 object HelloWorldTests_2_13 extends HelloWorldTests {
   override def threadCount = Some(1)
   override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
-  override def testScalatestVersion = "3.0.8"
+  override def testScalatestVersion = "3.2.13"
 }
 
 object Scoverage2Tests_2_13 extends HelloWorldTests {
   override def threadCount = Some(1)
   override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE2_VERSION", ???)
-  override def testScalatestVersion = "3.0.8"
+  override def testScalatestVersion = "3.2.13"
+}
+
+object Scoverage2Tests_3 extends HelloWorldTests {
+  override def threadCount = Some(1)
+  override def testScalaVersion: String = "3.2.0"
+  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE2_VERSION", ???)
+  override def testScalatestVersion = "3.2.13"
 }
