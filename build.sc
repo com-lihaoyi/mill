@@ -1,7 +1,7 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.2.0`
 import $ivy.`com.github.lolgab::mill-mima::0.0.12`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 import com.github.lolgab.mill.mima
@@ -82,10 +82,10 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.5"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.5"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.5"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.5"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.7"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.7"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.7"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.7"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
