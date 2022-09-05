@@ -1,9 +1,12 @@
+// plugins and dependencies
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.2.0`
-import $ivy.`com.github.lolgab::mill-mima::0.0.11`
+import $ivy.`com.github.lolgab::mill-mima::0.0.12`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
+
+// imports
 import com.github.lolgab.mill.mima
 import com.github.lolgab.mill.mima.{
   CheckDirection,
@@ -23,7 +26,6 @@ import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
 import mill.define.SelectMode
-import upickle.default.{ReadWriter, macroRW}
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -213,15 +215,6 @@ trait MillMimaConfig extends mima.Mima {
   override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
     "mill.api.internal",
     "mill.api.experimental"
-  )
-
-  implicit val checkDirectionBackwardUpickleRW: ReadWriter[CheckDirection.Backward.type] = macroRW
-  implicit val checkDirectionBothUpickleRW: ReadWriter[CheckDirection.Both.type] = macroRW
-  implicit val checkDirectionForwardUpickleRW: ReadWriter[CheckDirection.Forward.type] = macroRW
-  implicit val checkDirectionUpickleRW: ReadWriter[CheckDirection] = ReadWriter.merge(
-    checkDirectionBackwardUpickleRW,
-    checkDirectionBothUpickleRW,
-    checkDirectionForwardUpickleRW
   )
   override def mimaCheckDirection: Target[CheckDirection] = T { CheckDirection.Backward }
   override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
