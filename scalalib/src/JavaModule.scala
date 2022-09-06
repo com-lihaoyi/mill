@@ -784,7 +784,12 @@ trait JavaModule
    * If you want to customize the name of the artifact, override artifactName instead.
    * If you want to customize the scala version in the artifact id, see ScalaModule.artifactScalaVersion
    */
-  def artifactId: T[String] = artifactName()
+  def artifactId: T[String] = artifactName() + artifactSuffix()
+
+  /**
+   * The suffix appended to the artifact IDs during publishing
+   */
+  def artifactSuffix: T[String] = platformSuffix()
 
   def forkWorkingDir: Target[Path] = T { T.workspace }
 

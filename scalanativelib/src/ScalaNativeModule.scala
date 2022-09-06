@@ -19,7 +19,6 @@ import upickle.default.{macroRW, ReadWriter => RW}
 trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
-  override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
 
   trait Tests extends TestScalaNativeModule {
     override def zincWorker = outer.zincWorker
