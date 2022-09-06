@@ -36,7 +36,7 @@ class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
       client.onBuildTaskProgress(params)
       super.ticker(s)
     } catch {
-      case e: Exception =>
+      case e: Exception => // noop
     }
   }
 
@@ -52,7 +52,9 @@ class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
 
   override def debug(s: String): Unit = {
     super.debug(s)
-    client.onBuildShowMessage(new ShowMessageParams(MessageType.LOG, s))
+    if (debugEnabled) {
+      client.onBuildLogMessage(new LogMessageParams(MessageType.LOG, s))
+    }
   }
 
 }
