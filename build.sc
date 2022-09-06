@@ -855,6 +855,10 @@ object contrib extends MillModule {
   
   object gitlab extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
+
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
+      scalalib
+    )
   }
 
 }

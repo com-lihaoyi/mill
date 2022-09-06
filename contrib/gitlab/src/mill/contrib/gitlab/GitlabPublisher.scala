@@ -5,14 +5,12 @@ import mill.scalalib.publish.Artifact
 import requests.Response
 
 class GitlabPublisher(
-    repo: GitlabProjectRepository,
-    authentication: GitlabToken,
+    upload: GitlabUploader.Upload,
+    repo: ProjectRepository,
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger
 ) {
-  private val api =
-    new GitlabHttpApi(authentication, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
   def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact): Unit =
     publishAll(fileMapping -> artifact)
@@ -35,14 +33,14 @@ class GitlabPublisher(
   }
 
   private def publishToRepo(
-      repo: GitlabProjectRepository,
+      repo: ProjectRepository,
       artifact: Artifact,
       payloads: Seq[(String, Array[Byte])]
   ): (Artifact, Seq[Response]) = {
     val publishResults = payloads.map { case (fileName, data) =>
       log.info(s"Uploading $fileName")
       val uploadTarget = repo.uploadUrl(artifact)
-      val resp         = api.upload(s"$uploadTarget/$fileName", data)
+      val resp         = upload(s"$uploadTarget/$fileName", data)
       resp
     }
     artifact -> publishResults

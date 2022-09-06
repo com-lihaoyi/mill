@@ -2,10 +2,14 @@ package mill.contrib.gitlab
 
 import scala.concurrent.duration._
 
-class GitlabHttpApi(
-    authentication: GitlabToken,
-    readTimeout: Int,
-    connectTimeout: Int
+object GitlabUploader {
+  type Upload = (String, Array[Byte]) => requests.Response
+}
+
+class GitlabUploader(
+    authentication: GitlabAuthHeaders,
+    readTimeout: Int = 5000,
+    connectTimeout: Int = 5000
 ) {
   val http = requests.Session(
       readTimeout = readTimeout,
