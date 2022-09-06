@@ -29,8 +29,8 @@ object HelloNativeWorldTests extends TestSuite {
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scala <- Seq("3.1.0", scala213, "2.12.13", "2.11.12")
-      scalaNative <- Seq(scalaNative04, "0.4.3")
+      scala <- Seq("3.2.0", "3.1.3", scala213, "2.12.13", "2.11.12")
+      scalaNative <- Seq(scalaNative04, "0.4.7")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
       if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04)
     } yield (scala, scalaNative, mode)
