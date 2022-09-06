@@ -423,7 +423,7 @@ Your project structure for this would look something like this:
 ----
 
 After generating your docs with `mill example.docJar` you'll find by opening
-your `out/app/docJar.dest/javadoc/index.hmtl` locally in your browser you'll
+your `out/app/docJar.dest/javadoc/index.html` locally in your browser you'll
 have a full static site including your API docs, your blog, and your
 documenation!
 

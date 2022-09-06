@@ -8,7 +8,7 @@ import mill.api.{internal, Result}
 import mill.define.{Target, Task}
 import mill.modules.Jvm
 import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
-import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
+import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.TestRunner
 import mill.scalanativelib.api._
 
@@ -84,7 +84,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   override def scalaLibraryIvyDeps = T {
-    if (isScala3(scalaVersion())) Agg.empty[Dep] else super.scalaLibraryIvyDeps()
+    super.scalaLibraryIvyDeps().map(dep =>
+      dep.copy(cross = dep.cross match {
+        case c: CrossVersion.Constant => c.copy(platformed = false)
+        case c: CrossVersion.Binary => c.copy(platformed = false)
+        case c: CrossVersion.Full => c.copy(platformed = false)
+      })
+    )
   }
 
   /** Adds [[nativeIvyDeps]] as mandatory dependencies. */
