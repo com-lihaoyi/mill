@@ -1,9 +1,12 @@
+// plugins and dependencies
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
-import $ivy.`com.github.lolgab::mill-mima::0.0.11`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.2.0`
+import $ivy.`com.github.lolgab::mill-mima::0.0.12`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
+
+// imports
 import com.github.lolgab.mill.mima
 import com.github.lolgab.mill.mima.{
   CheckDirection,
@@ -23,7 +26,6 @@ import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
 import mill.define.SelectMode
-import upickle.default.{ReadWriter, macroRW}
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -75,17 +77,17 @@ object Deps {
 
   object Scalajs_1 {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
-    val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.3.0"
+    val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
     val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.10.1"
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.10.1"
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.5"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.5"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.5"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.5"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.7"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.7"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.7"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.7"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
@@ -129,6 +131,10 @@ object Deps {
   val scalametaTrees = ivy"org.scalameta::trees:4.5.13"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
+  def scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:2.0.2"
+  def scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:2.0.2"
+  def scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:2.0.2"
+  def scalacScoverage2Serializer = ivy"org.scoverage::scalac-scoverage-serializer:2.0.2"
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.5.11"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
@@ -209,15 +215,6 @@ trait MillMimaConfig extends mima.Mima {
   override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
     "mill.api.internal",
     "mill.api.experimental"
-  )
-
-  implicit val checkDirectionBackwardUpickleRW: ReadWriter[CheckDirection.Backward.type] = macroRW
-  implicit val checkDirectionBothUpickleRW: ReadWriter[CheckDirection.Both.type] = macroRW
-  implicit val checkDirectionForwardUpickleRW: ReadWriter[CheckDirection.Forward.type] = macroRW
-  implicit val checkDirectionUpickleRW: ReadWriter[CheckDirection] = ReadWriter.merge(
-    checkDirectionBackwardUpickleRW,
-    checkDirectionBothUpickleRW,
-    checkDirectionForwardUpickleRW
   )
   override def mimaCheckDirection: Target[CheckDirection] = T { CheckDirection.Backward }
   override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
@@ -745,7 +742,9 @@ object contrib extends MillModule {
     override def testArgs = T {
       val mapping = Map(
         "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path,
-        "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version
+        "MILL_SCOVERAGE2_REPORT_WORKER" -> worker2.compile().classes.path,
+        "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version,
+        "MILL_SCOVERAGE2_VERSION" -> Deps.scalacScoverage2Plugin.dep.version
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -758,13 +757,31 @@ object contrib extends MillModule {
       contrib.buildinfo
     )
 
-    object worker extends MillApiModule {
+    object worker extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
       override def moduleDeps = Seq(scoverage.api)
       override def compileIvyDeps = T {
         Agg(
-          // compile-time only, need to provide the correct scoverage version runtime
+          // compile-time only, need to provide the correct scoverage version at runtime
           Deps.scalacScoveragePlugin,
+          // provided by mill runtime
+          Deps.osLib
+        )
+      }
+    }
+
+    object worker2 extends MillInternalModule {
+      override def compileModuleDeps = Seq(main.api)
+
+      override def moduleDeps = Seq(scoverage.api)
+
+      override def compileIvyDeps = T {
+        Agg(
+          // compile-time only, need to provide the correct scoverage version at runtime
+          Deps.scalacScoverage2Plugin,
+          Deps.scalacScoverage2Reporter,
+          Deps.scalacScoverage2Domain,
+          Deps.scalacScoverage2Serializer,
           // provided by mill runtime
           Deps.osLib
         )
@@ -853,7 +870,7 @@ object contrib extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
   }
   
-  object gitlab extends MillModule {
+  object gitlab extends MillInternalModule {
     override def compileModuleDeps = Seq(scalalib)
 
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(

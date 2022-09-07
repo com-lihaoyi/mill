@@ -5,6 +5,7 @@ import mill._
 import mill.api.{Loose, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.{Command, Persistent, Sources, Target, Task}
+import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 
 /**
@@ -56,11 +57,38 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
    */
   def scoverageVersion: T[String]
 
+  private def isScoverage2: Task[Boolean] = T.task { scoverageVersion().startsWith("2.") }
+
+  /** Binary compatibility shim. */
+  @deprecated("Use scoverageRuntimeDeps instead.", "Mill after 0.10.7")
   def scoverageRuntimeDep: T[Dep] = T {
-    ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}"
+    T.log.error("scoverageRuntimeDep is no longer used. To customize your module, use scoverageRuntimeDeps.")
+    scoverageRuntimeDeps().toIndexedSeq.head
   }
+
+  def scoverageRuntimeDeps: T[Agg[Dep]] = T {
+    Agg(ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
+  }
+
+  /** Binary compatibility shim. */
+  @deprecated("Use scoveragePluginDeps instead.", "Mill after 0.10.7")
   def scoveragePluginDep: T[Dep] = T {
-    ivy"org.scoverage:::scalac-scoverage-plugin:${outer.scoverageVersion()}"
+    T.log.error("scoveragePluginDep is no longer used. To customize your module, use scoverageRuntimeDeps.")
+    scoveragePluginDeps().toIndexedSeq.head
+  }
+
+  def scoveragePluginDeps: T[Agg[Dep]] = T {
+    val sv = scoverageVersion()
+    if (isScoverage2()) {
+      Agg(
+        ivy"org.scoverage:::scalac-scoverage-plugin:${sv}",
+        ivy"org.scoverage::scalac-scoverage-domain:${sv}",
+        ivy"org.scoverage::scalac-scoverage-serializer:${sv}",
+        ivy"org.scoverage::scalac-scoverage-reporter:${sv}"
+      )
+    } else {
+      Agg(ivy"org.scoverage:::scalac-scoverage-plugin:${sv}")
+    }
   }
 
   @deprecated("Use scoverageToolsClasspath instead.", "mill after 0.10.0-M1")
@@ -71,23 +99,44 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   def scoverageToolsClasspath: T[Agg[PathRef]] = T {
     scoverageReportWorkerClasspath() ++
       resolveDeps(T.task {
-        Agg(
-          ivy"org.scoverage:scalac-scoverage-plugin_${mill.BuildInfo.scalaVersion}:${outer.scoverageVersion()}"
-        )
+        // we need to resolve with same Scala version used for Mill, not the project Scala version
+        val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
+        val sv = scoverageVersion()
+        if (isScoverage2()) {
+          Agg(
+            ivy"org.scoverage:scalac-scoverage-plugin_${mill.BuildInfo.scalaVersion}:${sv}",
+            ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
+            ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
+            ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
+          )
+        } else {
+          Agg(
+            ivy"org.scoverage:scalac-scoverage-plugin_${mill.BuildInfo.scalaVersion}:${sv}"
+          )
+        }
       })()
   }
 
   def scoverageClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { Agg(scoveragePluginDep()) })()
+    resolveDeps(scoveragePluginDeps)()
   }
 
   def scoverageReportWorkerClasspath: T[Agg[PathRef]] = T {
-    val workerKey = "MILL_SCOVERAGE_REPORT_WORKER"
+    val isScov2 = isScoverage2()
+
+    val workerKey =
+      if (isScov2) "MILL_SCOVERAGE2_REPORT_WORKER"
+      else "MILL_SCOVERAGE_REPORT_WORKER"
+
+    val workerArtifact =
+      if (isScov2) "mill-contrib-scoverage-worker2"
+      else "mill-contrib-scoverage-worker"
+
     mill.modules.Util.millProjectModule(
       workerKey,
-      s"mill-contrib-scoverage-worker",
+      workerArtifact,
       repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-contrib-scoverage-worker")
+      resolveFilter = _.toString.contains(workerArtifact)
     )
   }
 
@@ -98,7 +147,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath().map(_.path))
-        .report(reportType, allSources().map(_.path), Seq(data().path))
+        .report(reportType, allSources().map(_.path), Seq(data().path), T.workspace)
     }
 
     /**
@@ -121,16 +170,20 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
     override def compileIvyDeps: Target[Loose.Agg[Dep]] = T { outer.compileIvyDeps() }
     override def ivyDeps: Target[Loose.Agg[Dep]] =
-      T { outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep()) }
+      T { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
     override def unmanagedClasspath: Target[Loose.Agg[PathRef]] = T { outer.unmanagedClasspath() }
 
     /** Add the scoverage scalac plugin. */
     override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] =
-      T { outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep()) }
+      T { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
     override def scalacOptions: Target[Seq[String]] =
-      T { outer.scalacOptions() ++ Seq(s"-P:scoverage:dataDir:${data().path.toIO.getPath()}") }
+      T {
+        outer.scalacOptions() ++
+          Seq(s"-P:scoverage:dataDir:${data().path.toIO.getPath()}") ++
+          (if (isScoverage2()) Seq(s"-P:scoverage:sourceRoot:${T.workspace}") else Seq())
+      }
 
     def htmlReport(): Command[Unit] = T.command { doReport(ReportType.Html) }
     def xmlReport(): Command[Unit] = T.command { doReport(ReportType.Xml) }
@@ -142,15 +195,15 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   trait ScoverageTests extends outer.Tests {
     override def upstreamAssemblyClasspath = T {
       super.upstreamAssemblyClasspath() ++
-        resolveDeps(T.task { Agg(outer.scoverageRuntimeDep()) })()
+        resolveDeps(outer.scoverageRuntimeDeps)()
     }
     override def compileClasspath = T {
       super.compileClasspath() ++
-        resolveDeps(T.task { Agg(outer.scoverageRuntimeDep()) })()
+        resolveDeps(outer.scoverageRuntimeDeps)()
     }
     override def runClasspath = T {
       super.runClasspath() ++
-        resolveDeps(T.task { Agg(outer.scoverageRuntimeDep()) })()
+        resolveDeps(outer.scoverageRuntimeDeps)()
     }
 
     // Need the sources compiled with scoverage instrumentation to run.

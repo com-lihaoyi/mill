@@ -1,7 +1,7 @@
 package mill.contrib.scoverage.worker
 
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi
-import _root_.scoverage.report.{CoverageAggregator, ScoverageHtmlWriter, ScoverageXmlWriter}
+import _root_.scoverage.reporter.{CoverageAggregator, ScoverageHtmlWriter, ScoverageXmlWriter}
 import mill.api.Ctx
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 
@@ -14,12 +14,11 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
       reportType: ReportType,
       sources: Seq[os.Path],
       dataDirs: Seq[os.Path],
-      // ignored in Scoverage 1.x
       sourceRoot: os.Path
   )(implicit ctx: Ctx): Unit =
     try {
       ctx.log.info(s"Processing coverage data for ${dataDirs.size} data locations")
-      CoverageAggregator.aggregate(dataDirs.map(_.toIO)) match {
+      CoverageAggregator.aggregate(dataDirs.map(_.toIO), sourceRoot.toIO) match {
         case Some(coverage) =>
           val sourceFolders = sources.map(_.toIO)
           val folder = ctx.dest
@@ -29,7 +28,7 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
               new ScoverageHtmlWriter(sourceFolders, folder.toIO, None)
                 .write(coverage)
             case ReportType.Xml =>
-              new ScoverageXmlWriter(sourceFolders, folder.toIO, false)
+              new ScoverageXmlWriter(sourceFolders, folder.toIO, false, None)
                 .write(coverage)
             case ReportType.Console =>
               ctx.log.info(s"Statement coverage.: ${coverage.statementCoverageFormatted}%")
