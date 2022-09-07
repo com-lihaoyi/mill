@@ -16,9 +16,6 @@ trait CompileProblemReporter {
   def finish(): Unit
 }
 
-@deprecated("Use CompileProblemReporter instead", "mill after 0.10.0-M3")
-trait BuildProblemReporter extends CompileProblemReporter
-
 /**
  * Contains general information about the build problem
  */

@@ -903,10 +903,6 @@ object GenIdeaImpl {
       .mkString
       .toLowerCase()
 
-  @deprecated("See scaladoc of Evaluator.evalOrElse for more information.", "mill after 0.10.0-M3")
-  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T =
-    Evaluator.evalOrElse(evaluator, e, default)
-
   sealed trait ResolvedLibrary { def path: os.Path }
   final case class CoursierResolved(path: os.Path, pom: os.Path, sources: Option[os.Path])
       extends ResolvedLibrary

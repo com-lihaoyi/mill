@@ -150,7 +150,7 @@ class ZincWorkerImpl(
     os.makeDir.all(compileDest)
 
     val sourceFolder = mill.api.IO.unpackZip(compilerBridgeSourcesJar)(workingDir)
-    val classloader = mill.api.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
+    val classloader = mill.api.ClassLoader.create(compilerJars.toIndexedSeq.map(_.toURI.toURL), null)(ctx0)
 
     val (sources, resources) =
       os.walk(sourceFolder.path).filter(os.isFile)

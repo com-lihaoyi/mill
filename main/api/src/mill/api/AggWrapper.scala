@@ -100,10 +100,6 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
 
       // Members declared in scala.collection.GenTraversableOnce
       def isTraversableAgain: Boolean = items.isTraversableAgain
-      @deprecated("Use .iterator instead", "mill after 0.9.6")
-      def toIterator: Iterator[V] = iterator
-      @deprecated("Use .to(LazyList) instead", "mill after 0.9.6")
-      def toStream: Stream[V] = items.toStream: @nowarn
 
       // Members declared in scala.collection.TraversableOnce
       def copyToArray[B >: V](xs: Array[B], start: Int, len: Int): Unit =
@@ -115,8 +111,6 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       def hasDefiniteSize: Boolean = set0.hasDefiniteSize: @nowarn
       def isEmpty: Boolean = items.isEmpty
       def seq: scala.collection.IterableOnce[V] = items
-      @deprecated("Use .iterator instead", "mill after 0.9.6")
-      def toTraversable: Iterable[V] = Iterable.from(items)
       def iterator: Iterator[V] = items
 
       override def hashCode(): Int = items.map(_.hashCode()).sum

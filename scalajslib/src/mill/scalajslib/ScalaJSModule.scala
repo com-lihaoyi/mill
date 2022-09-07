@@ -89,9 +89,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  @deprecated("Use scalaJSToolsClasspath instead", "mill after 0.10.0-M1")
-  def toolsClasspath = T { scalaJSToolsClasspath() }
-
   def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
   def fastLinkJS: Target[Report] = T.persistent {
@@ -252,17 +249,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def moduleKind: Target[ModuleKind] = T { ModuleKind.NoModule }
 
-  @deprecated("Use esFeatures().esVersion instead", since = "mill after 0.10.0-M5")
-  def useECMAScript2015: Target[Boolean] = T {
-    !scalaJSVersion().startsWith("0.")
-  }
-
   def esFeatures: T[ESFeatures] = T {
-    if (useECMAScript2015.ctx.enclosing != s"${classOf[ScalaJSModule].getName}#useECMAScript2015") {
-      T.log.error("Overriding `useECMAScript2015` is deprecated. Override `esFeatures` instead")
-    }
-    if (useECMAScript2015()) ESFeatures.Defaults
-    else ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
+    ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
   }
 
   def moduleSplitStyle: Target[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }
