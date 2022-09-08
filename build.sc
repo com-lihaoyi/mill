@@ -870,7 +870,7 @@ object contrib extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
   }
   
-  object gitlab extends MillInternalModule {
+  object gitlab extends MillInternalModule with MillAutoTestSetup {
     override def compileModuleDeps = Seq(scalalib)
 
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
