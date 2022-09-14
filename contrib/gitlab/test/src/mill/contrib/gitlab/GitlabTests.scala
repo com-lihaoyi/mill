@@ -1,7 +1,7 @@
 package mill.contrib.gitlab
 
-import mill.util.{DummyLogger, TestUtil}
-import utest.{TestSuite, Tests, assert, assertMatch, intercept, test}
+import mill.util.DummyLogger
+import utest.{TestSuite, Tests, assert, assertMatch, test}
 import GitlabTokenLookup._
 import mill.scalalib.publish.Artifact
 
@@ -85,7 +85,7 @@ object GitlabTests extends TestSuite {
           requests.Response(url, 200, "Success", new geny.Bytes("".getBytes()), Map.empty, None)
         }
 
-        val urls = ListBuffer[String]()
+        val urls: ListBuffer[String] = ListBuffer[String]()
       }
 
       val repo      = ProjectRepository("https://gitlab.local", 10)

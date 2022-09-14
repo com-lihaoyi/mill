@@ -60,9 +60,9 @@ trait GitlabTokenLookup {
     }
 
     token match {
-      case Personal(source)             => readSource(source).map(GitlabAuthHeaders.personalHeader)
-      case Deploy(source)               => readSource(source).map(GitlabAuthHeaders.deployHeader)
-      case CIJob(source)                => readSource(source).map(GitlabAuthHeaders.jobHeader)
+      case Personal(source)             => readSource(source).map(GitlabAuthHeaders.privateToken)
+      case Deploy(source)               => readSource(source).map(GitlabAuthHeaders.deployToken)
+      case CIJob(source)                => readSource(source).map(GitlabAuthHeaders.jobToken)
       case CustomHeader(header, source) => readSource(source).map(GitlabAuthHeaders(header, _))
     }
   }

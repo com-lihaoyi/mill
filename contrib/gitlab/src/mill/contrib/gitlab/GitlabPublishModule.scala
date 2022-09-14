@@ -4,7 +4,7 @@ import coursier.core.Authentication
 import coursier.maven.MavenRepository
 import mill._
 import mill.api.{Ctx, Logger}
-import mill.define.{Command, ExternalModule, Input, Target}
+import mill.define.{Command, ExternalModule, Input}
 import mill.scalalib.publish.Artifact
 import scalalib._
 
@@ -71,7 +71,7 @@ object GitlabPublishModule extends ExternalModule {
       connectTimeout: Int = 5000
   ): Command[Unit] = T.command {
     val repo = ProjectRepository(gitlabRoot, projectId)
-    val auth = GitlabAuthHeaders.personalHeader(personalToken)
+    val auth = GitlabAuthHeaders.privateToken(personalToken)
 
     val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
       case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
