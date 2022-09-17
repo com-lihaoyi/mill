@@ -141,7 +141,7 @@ object Deps {
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.7.1"
-  val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M2"
+  val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
   val requests = ivy"com.lihaoyi::requests:0.7.1"
@@ -873,7 +873,7 @@ object contrib extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests) }
   }
-
+  
   object gitlab extends MillInternalModule with MillAutoTestSetup {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests, Deps.osLib) }
