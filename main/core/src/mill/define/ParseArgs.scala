@@ -49,7 +49,7 @@ object ParseArgs {
      */
     @tailrec
     def separated(result: Seq[Seq[String]], rest: Seq[String]): Seq[Seq[String]] = rest match {
-      case Seq() => result
+      case Seq() => if (result.nonEmpty) result else Seq(Seq())
       case r =>
         val (next, r2) = r.span(_ != TargetSeparator)
         separated(
