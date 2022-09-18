@@ -170,7 +170,7 @@ object ResolveTasks extends Resolve[NamedTask[Any]] {
           case None =>
             Left(
               "Cannot find default task to evaluate for module " +
-                Segments((Segment.Cross(last) +: obj.millModuleSegments.value).reverse: _*).render
+                Segments((obj.millModuleSegments.value :+ Segment.Cross(last)): _*).render
             )
           case Some(v) => v.map(Seq(_))
         }

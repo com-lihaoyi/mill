@@ -283,6 +283,10 @@ object MainTests extends TestSuite {
           "cross[211].cross2[jvm].suffix",
           Right(Seq(_.cross("211").cross2("jvm").suffix))
         )
+        "pos2NoDefaultTask" - check(
+          "cross[211].cross2[jvm]",
+          Left("Cannot find default task to evaluate for module cross[211].cross2[jvm]")
+        )
         "wildcard" - {
           "first" - check(
             "cross[_].cross2[jvm].suffix",
