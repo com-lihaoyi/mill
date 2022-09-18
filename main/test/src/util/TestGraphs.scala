@@ -276,9 +276,6 @@ object TestGraphs {
 
       class Cross2(platform: String) extends mill.Module with TaskModule {
         override def defaultCommandName(): String = "suffixCmd"
-//        def suffix(opt: String = "defaultOpt"): Command[String] = T.command {
-//          scalaVersion + "_" + platform + "_" + opt
-//        }
         def suffixCmd(suffix: String = "default"): Command[String] = T.command {
           scalaVersion + "_" + platform + "_" + suffix
         }

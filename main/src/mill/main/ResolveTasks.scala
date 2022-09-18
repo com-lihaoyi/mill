@@ -12,7 +12,7 @@ object ResolveTasks extends Resolve[NamedTask[Any]] {
       rest: Seq[String]
   ): Either[String, Seq[NamedTask[Any]]] = {
     obj match {
-      case c: Cross[Module] =>
+      case _: Cross[Module] =>
         Resolve.runDefault(obj, Segment.Cross(last), discover, rest).flatten.headOption match {
           case None =>
             Left(
@@ -57,12 +57,16 @@ object ResolveTasks extends Resolve[NamedTask[Any]] {
         rest
       ).headOption
 
-      command orElse target orElse Resolve.runDefault(
-        obj,
-        Segment.Label(last),
-        discover,
-        rest
-      ).flatten.headOption match {
+      command
+        .orElse(target)
+        .orElse {
+          Resolve.runDefault(
+            obj,
+            Segment.Label(last),
+            discover,
+            rest
+          ).flatten.headOption
+        } match {
         case None =>
           Resolve.errorMsgLabel(
             singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),

@@ -2,13 +2,11 @@ package mill.main
 
 import mill.define._
 import mill.define.TaskModule
-import ammonite.util.Res
 import mainargs.{MainData, TokenGrouping}
 import mill.main.ResolveMetadata.singleModuleMeta
 
+import scala.collection.immutable
 import scala.reflect.ClassTag
-
-
 
 object Resolve extends LevenshteinDistance {
 
@@ -95,7 +93,12 @@ object Resolve extends LevenshteinDistance {
     )
   }
 
-  def invokeCommand(target: Module, name: String, discover: Discover[Module], rest: Seq[String]) =
+  def invokeCommand(
+      target: Module,
+      name: String,
+      discover: Discover[Module],
+      rest: Seq[String]
+  ): immutable.Iterable[Either[String, Command[_]]] =
     for {
       (cls, entryPoints) <- discover.value
       if cls.isAssignableFrom(target.getClass)
@@ -131,23 +134,50 @@ object Resolve extends LevenshteinDistance {
       }
     }
 
-  def runDefault(obj: Module, last: Segment, discover: Discover[_], rest: Seq[String]) = for {
-    child <- obj.millInternal.reflectNestedObjects[Module]
-    if child.millOuterCtx.segment == last
-    res <- child match {
-      case taskMod: TaskModule =>
-        Some(
-          invokeCommand(
-            child,
-            taskMod.defaultCommandName(),
-            discover.asInstanceOf[Discover[Module]],
-            rest
-          ).headOption
+  def runDefault(
+      obj: Module,
+      last: Segment,
+      discover: Discover[_],
+      rest: Seq[String]
+  ): Array[Option[Either[String, Command[_]]]] = {
+    obj match {
+      case c: Cross[_] =>
+        val res: Option[Option[Either[String, Command[_]]]] = (
+          c.itemMap.get(last.pathSegments.toList) match {
+            case Some(m: TaskModule) =>
+              val res = invokeCommand(
+                m,
+                m.defaultCommandName(),
+                discover.asInstanceOf[Discover[Module]],
+                rest
+              ).headOption
+              Some(res)
+            case _ =>
+              None
+          }
         )
-      case _ => None
+        res.toArray
+      case _ =>
+        val res2 = for {
+          child <- obj.millInternal.reflectNestedObjects[Module]
+          if child.millOuterCtx.segment == last
+          res <- child match {
+            case taskMod: TaskModule =>
+              Some(
+                invokeCommand(
+                  child,
+                  taskMod.defaultCommandName(),
+                  discover.asInstanceOf[Discover[Module]],
+                  rest
+                ).headOption
+              )
+            case _ =>
+              None
+          }
+        } yield res
+        res2
     }
-  } yield res
-
+  }
 }
 abstract class Resolve[R: ClassTag] {
   def endResolveCross(
@@ -178,9 +208,12 @@ abstract class Resolve[R: ClassTag] {
         endResolveLabel(obj, last, discover, rest)
 
       case head :: tail =>
-        def recurse(searchModules: Seq[Module], resolveFailureMsg: => Left[String, Nothing]) = {
+        def recurse(
+            searchModules: Seq[Module],
+            resolveFailureMsg: => Left[String, Nothing]
+        ): Either[String, Seq[R]] = {
           val matching = searchModules
-            .map(resolve(tail, _, discover, rest, remainingCrossSelectors))
+            .map(m => resolve(tail, m, discover, rest, remainingCrossSelectors))
 
           matching match {
             case Seq(Left(err)) => Left(err)
@@ -234,7 +267,7 @@ abstract class Resolve[R: ClassTag] {
           case Segment.Cross(cross) =>
             obj match {
               case c: Cross[Module] =>
-                recurse(
+                val searchModules =
                   if (cross == Seq("__")) for ((_, v) <- c.items) yield v
                   else if (cross.contains("_")) {
                     for {
@@ -242,12 +275,16 @@ abstract class Resolve[R: ClassTag] {
                       if k.length == cross.length
                       if k.zip(cross).forall { case (l, r) => l == r || r == "_" }
                     } yield v
-                  } else c.itemMap.get(cross.toList).toSeq,
-                  Resolve.errorMsgCross(
-                    c.items.map(_._1.map(_.toString)),
-                    cross.map(_.toString),
-                    obj.millModuleSegments.value
-                  )
+                  } else c.itemMap.get(cross.toList).toSeq
+
+                recurse(
+                  searchModules = searchModules,
+                  resolveFailureMsg =
+                    Resolve.errorMsgCross(
+                      c.items.map(_._1.map(_.toString)),
+                      cross.map(_.toString),
+                      obj.millModuleSegments.value
+                    )
                 )
               case _ =>
                 Left(
