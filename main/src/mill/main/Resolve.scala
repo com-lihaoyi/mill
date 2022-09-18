@@ -140,45 +140,25 @@ object Resolve extends LevenshteinDistance {
       discover: Discover[_],
       rest: Seq[String]
   ): Array[Option[Either[String, Command[_]]]] = {
-    obj match {
-      case c: Cross[_] =>
-        val res: Option[Option[Either[String, Command[_]]]] = (
-          c.itemMap.get(last.pathSegments.toList) match {
-            case Some(m: TaskModule) =>
-              val res = invokeCommand(
-                m,
-                m.defaultCommandName(),
-                discover.asInstanceOf[Discover[Module]],
-                rest
-              ).headOption
-              Some(res)
-            case _ =>
-              None
-          }
-        )
-        res.toArray
-      case _ =>
-        val res2 = for {
-          child <- obj.millInternal.reflectNestedObjects[Module]
-          if child.millOuterCtx.segment == last
-          res <- child match {
-            case taskMod: TaskModule =>
-              Some(
-                invokeCommand(
-                  child,
-                  taskMod.defaultCommandName(),
-                  discover.asInstanceOf[Discover[Module]],
-                  rest
-                ).headOption
-              )
-            case _ =>
-              None
-          }
-        } yield res
-        res2
-    }
-  }
+    for {
+      child <- obj.millModuleDirectChildren
+      if child.millOuterCtx.segment == last
+      res <- child match {
+        case taskMod: TaskModule =>
+          Some(
+            invokeCommand(
+              child,
+              taskMod.defaultCommandName(),
+              discover.asInstanceOf[Discover[Module]],
+              rest
+            ).headOption
+          )
+        case _ => None
+      }
+    } yield res
+  }.toArray
 }
+
 abstract class Resolve[R: ClassTag] {
   def endResolveCross(
       obj: Module,
