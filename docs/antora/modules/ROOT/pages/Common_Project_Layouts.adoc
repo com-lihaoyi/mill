@@ -120,7 +120,7 @@ If you are following the https://www.scala-js.org/doc/tutorial/basic/[Scala.js T
 .`build.sc`
 [source,scala]
 ----
-import mill._, scalalib._, scalanativelib._
+import mill._, scalalib._, scalanativelib._, mill.scalanativelib.api._
 
 object hello extends ScalaNativeModule {
   def scalaVersion = "2.11.12"
