@@ -123,7 +123,26 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     scoverageToolsClasspath()
   }
 
+  private def checkVersions = T.task {
+    val sv = scalaVersion()
+    val isSov2 = scoverageVersion().startsWith("2.")
+    (sv.split('.'), isSov2) match {
+      case (Array("3", "0" | "1", _*), _) => Result.Failure(
+          "Scala 3.0 and 3.1 is not supported by Scoverage. You have to update to at least Scala 3.2 and Scoverage 2.0"
+        )
+      case (Array("3", _*), false) => Result.Failure(
+          "Scoverage 1.x does not support Scala 3. You have to update to at least Scala 3.2 and Scoverage 2.0"
+        )
+      case (Array("2", "11", _*), true) => Result.Failure(
+          "Scoverage 2.x is not compatible with Scala 2.11. Consider using Scoverage 1.x or switch to a newer Scala version."
+        )
+      case _ =>
+    }
+  }
+
   def scoverageToolsClasspath: T[Agg[PathRef]] = T {
+    checkVersions()
+
     scoverageReportWorkerClasspath() ++
       resolveDeps(T.task {
         // we need to resolve with same Scala version used for Mill, not the project Scala version
@@ -175,20 +194,6 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   val scoverage: ScoverageData = new ScoverageData(implicitly)
 
   class ScoverageData(ctx0: mill.define.Ctx) extends Module()(ctx0) with ScalaModule {
-
-    /** Coverage in the Scala 3 compilier is only supported in the 3.2.x series and above. */
-    private def isSupportedScala: Task[Boolean] = T.task {
-      val scalaVersion = outer.scalaVersion()
-      scalaVersion.split('.') match {
-        case Array(major, minor, patch) if major == "3" && minor.toIntOption.exists(_ >= 2) => true
-        case Array(major, minor, patch) if major == "3" =>
-          T.log.error(
-            s"Detected Scala version: ${scalaVersion}. However, to use Coverage with Scala 3 you must be at least on Scala 3.2.0."
-          )
-          false
-        case _ => true
-      }
-    }
 
     def doReport(reportType: ReportType): Task[Unit] = T.task {
       ScoverageReportWorker
