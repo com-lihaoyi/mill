@@ -155,7 +155,8 @@ object Hello{
 
 The normal commands `mill hello.compile`, `mill hello.run`, all work. If you
 want to build a standalone executable, you can use `mill show hello.nativeLink`
-to create it.
+to create it. By default the output filename will be `out` but it can be
+customized by setting `def nativeBinaryName = "binaryname"` in the module.
 
 `ScalaNativeModule` builds scala sources to executable binaries using
 http://www.scala-native.org[Scala Native]. You will need to have the
