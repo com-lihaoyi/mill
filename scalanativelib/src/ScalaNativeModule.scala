@@ -215,7 +215,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // Defines the native binary name
-  def nativeBinaryName: String = { "out" }
+  def nativeBinaryName: String = { this.toString }
 
   // Generates native binary
   def nativeLink = T {
