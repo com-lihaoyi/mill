@@ -6,7 +6,7 @@ import scala.util.matching.Regex
 
 object AmmoniteParser {
 
-  private val MatchDep = """^import ([$]ivy[.]`([^`]+)`)""".r
+  private val MatchDep = """^import ([$]ivy[.]`([^`]+)`).*""".r
   private val MatchFile: Regex = """^import ([$]file[.]([^,]+)).*""".r
 
   def parseAmmoniteImports(parsedMillSetup: ParsedMillSetup): ParsedMillSetup = {
@@ -19,8 +19,8 @@ object AmmoniteParser {
     while (queue.nonEmpty) {
       val file = queue.dequeue()
       val directives = os.read.lines(file).collect {
-        case m @ MatchDep(full, dep) => MillUsingDirective.Dep(dep, file)
-        case m @ MatchFile(full, include) =>
+        case m @ MatchDep(_, dep) => MillUsingDirective.Dep(dep, file)
+        case m @ MatchFile(_, include) =>
           val pat = include.split("[.]").map {
             case "^" => os.up
             case x => os.rel / x
