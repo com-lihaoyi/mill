@@ -66,7 +66,7 @@ object Deps {
   val testScala211Version = "2.11.12"
   val testScala30Version = "3.0.2"
   val testScala31Version = "3.1.3"
-  val testScala32Version = "3.2.0-RC1"
+  val testScala32Version = "3.2.0"
 
   val testScalaJs06Version = "0.6.33"
 
