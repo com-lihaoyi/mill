@@ -5,6 +5,7 @@
  */
 
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
+import mainargs.main
 
 def unpackZip(zipDest: os.Path, url: String) = {
   println(s"Unpacking zip $url into $zipDest")
