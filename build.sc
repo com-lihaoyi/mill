@@ -174,6 +174,7 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
+  val usingDirectives = ivy"org.virtuslab:using_directives:0.0.8"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
@@ -338,8 +339,7 @@ trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompi
     with AcyclicConfig
 
 object main extends MillModule {
-
-  override def moduleDeps = Seq(core, client)
+  override def moduleDeps = Seq(buildfile, core, client)
   override def ivyDeps = Agg(
     Deps.windowsAnsi
   )
@@ -349,6 +349,14 @@ object main extends MillModule {
   override def testArgs = Seq(
     "-DMILL_VERSION=" + publishVersion()
   )
+
+  object buildfile extends MillModule {
+    override def ivyDeps = Agg(
+      Deps.osLib,
+      Deps.usingDirectives,
+      Deps.upickle
+    )
+  }
 
   object api extends MillApiModule {
     override def ivyDeps = Agg(
