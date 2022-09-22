@@ -7,7 +7,8 @@ import scala.util.matching.Regex
 object AmmoniteParser {
 
   private val MatchDep = """^import ([$]ivy[.]`([^`]+)`).*""".r
-  private val MatchFile: Regex = """^import ([$]file[.]([^,]+)).*""".r
+  private val MatchFile = """^import ([$]file[.]([^,]+)).*""".r
+  private val MatchShebang = """^(#!.*)$""".r
 
   def parseAmmoniteImports(parsedMillSetup: ParsedMillSetup): ParsedMillSetup = {
     val queue = mutable.Queue.empty[os.Path]
@@ -44,7 +45,8 @@ object AmmoniteParser {
     )
   }
 
-  def replaceAmmoniteImports(parsedMillSetup: ParsedMillSetup): Map[os.Path, Seq[String]] = {
+  def replaceAmmoniteImportsAndShebang(parsedMillSetup: ParsedMillSetup)
+      : Map[os.Path, Seq[String]] = {
     (parsedMillSetup.buildScript.toSeq ++ parsedMillSetup.includedSourceFiles)
       .map(f => (f, f))
       .toMap.view.mapValues { file =>
@@ -54,6 +56,9 @@ object AmmoniteParser {
 
           case m @ MatchFile(full, include) =>
             m.replaceFirst(Pattern.quote(full), "java.lang.Object")
+
+          case m @ MatchShebang(full) =>
+            m.replaceFirst(Pattern.quote(full), "// " + full)
 
           case x => x
         }

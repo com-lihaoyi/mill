@@ -23,7 +23,7 @@ case class ParsedMillSetup(
   lazy val millVersion: Option[String] = directives.collect {
     case MillUsingDirective.MillVersion(version, src) => version
   }.headOption
-  lazy val ivyDeps: Seq[String] = directives.collect {
+  lazy val rawIvyDeps: Seq[String] = directives.collect {
     case MillUsingDirective.Dep(dep, src) => dep
   }
 }
@@ -63,8 +63,29 @@ object MillUsingDirective {
 
 object ReadDirectives {
 
-  def readUsingDirectives(buildSc: os.Path): ParsedMillSetup = {
-    val (directives, buildScript, code, codeOffset) =
+  def readVersionFiles(projectDir: os.Path): Seq[MillUsingDirective.MillVersion] = {
+    val millVersionFiles = Seq(
+      projectDir / ".mill-version",
+      projectDir / ".config" / "mill-version"
+    )
+    for {
+      file <- millVersionFiles
+      if os.exists(file)
+      text = os.read(file).trim()
+      if text.nonEmpty
+    } yield MillUsingDirective.MillVersion(text, file)
+  }
+
+  def readUsingDirectives(
+      buildSc: os.Path,
+      parseVersionFiles: Boolean
+  ): ParsedMillSetup = {
+    val projectDir = buildSc / os.up
+
+    val baseDirectives: Seq[MillUsingDirective] =
+      if (parseVersionFiles) readVersionFiles(projectDir) else Seq()
+
+    val (directives, buildScript) = {
       if (os.exists(buildSc)) {
         val content = new String(os.read.bytes(buildSc), Charset.forName("UTF-8"))
         val extractor = new SimpleCommentExtractor(content.toCharArray(), true)
@@ -78,7 +99,7 @@ object ReadDirectives {
         val usingDefs = parsed.getUsingDefs()
 //        println(s"Found using defs: ${usingDefs}")
 
-        val rest = content.substring(parsed.getCodeOffset())
+//        val rest = content.substring(parsed.getCodeOffset())
 
 //        println(s"Rest of file: ${rest}")
 
@@ -96,13 +117,18 @@ object ReadDirectives {
             }
         }.toList
 
-        (directives, Some(buildSc), rest, parsed.getCodeOffset())
+        (directives, Some(buildSc))
 
-      } else (Seq.empty[MillUsingDirective], None, "", 0)
+      } else {
+        (Seq.empty[MillUsingDirective], None)
+      }
+    }
+
+    val allDirectives = baseDirectives ++ directives
 
     ParsedMillSetup(
-      projectDir = buildSc / os.up,
-      directives = directives,
+      projectDir = projectDir,
+      directives = allDirectives,
       buildScript = buildScript
     )
   }

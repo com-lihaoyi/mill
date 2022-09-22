@@ -15,10 +15,10 @@ import upickle.default.{ReadWriter, macroRW}
 /** A module that scans a mill project by inspecting the `build.sc`. */
 trait MillSetupScannerModule extends Module {
 
-  object Deps {
-    // incorrectly released without patch-level-scala-version
-    val millModuledefs = ivy"com.lihaoyi::mill-main-moduledefs:${BuildInfo.millVersion}"
-  }
+//  object Deps {
+//    // incorrectly released without patch-level-scala-version
+//    val millModuledefs = ivy"com.lihaoyi::mill-main-moduledefs:${BuildInfo.millVersion}"
+//  }
 
   /** The root path of the Mill project to scan. */
   def millProjectPath: T[os.Path] = T { millSourcePath }
@@ -30,13 +30,15 @@ trait MillSetupScannerModule extends Module {
 
   /** The Mill project setup. */
   def parsedMillSetup: T[ParsedMillSetup] = T {
+    val buildSc = buildScFile().path
+
     val pass1 =
       if (supportUsingDirectives()) {
-        ReadDirectives.readUsingDirectives(buildScFile().path)
+        ReadDirectives.readUsingDirectives(buildSc, parseVersionFiles = true)
       } else {
         ParsedMillSetup(
           projectDir = millProjectPath(),
-          directives = Seq(),
+          directives = ReadDirectives.readVersionFiles(buildSc / os.up),
           buildScript = Option(buildScFile().path).filter(os.exists)
         )
       }
@@ -44,11 +46,26 @@ trait MillSetupScannerModule extends Module {
     pass2
   }
 
+  def millVersion: T[String] = T {
+    parsedMillSetup().millVersion.getOrElse(BuildInfo.millVersion)
+  }
+
+  def millBinPlatform: T[String] = T {
+    millVersion().split("[.]") match {
+      case Array("0", "0" | "1" | "2" | "3" | "4" | "5", _*) => ""
+      case Array("0", a, _*) => s"0.${a}"
+      // TODO: support Milestone releases
+    }
+  }
+
   def includedSourceFiles: T[Seq[PathRef]] = T {
     parsedMillSetup().includedSourceFiles.map(PathRef(_))
   }
 
-  protected def parseDeps(signature: String): Dep = {
+  protected def parseDeps: Task[String => Dep] = T.task { signature: String =>
+    val mv = millVersion()
+    val mbp = millBinPlatform()
+
     // a missing version means, we want the Mill version
     val millSig = signature.split("[:]") match {
       case Array(org, "", pname, "", version)
@@ -64,10 +81,10 @@ trait MillSetupScannerModule extends Module {
 
     // replace variables
     val replaced = millSig
-      .replace("$MILL_VERSION", mill.BuildInfo.millVersion)
-      .replace("${MILL_VERSION}", mill.BuildInfo.millVersion)
-      .replace("$MILL_BIN_PLATFORM", mill.BuildInfo.millBinPlatform)
-      .replace("${MILL_BIN_PLATFORM}", mill.BuildInfo.millBinPlatform)
+      .replace("$MILL_VERSION", mv)
+      .replace("${MILL_VERSION}", mv)
+      .replace("$MILL_BIN_PLATFORM", mbp)
+      .replace("${MILL_BIN_PLATFORM}", mbp)
 
     ivy"${replaced}"
   }
@@ -76,22 +93,53 @@ trait MillSetupScannerModule extends Module {
 
 trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
 
-  override def scalaVersion: T[String] = T(BuildInfo.scalaVersion)
-
-  override def platformSuffix: T[String] = T("_mill" + BuildInfo.millBinPlatform)
-  override def artifactSuffix: T[String] = T(s"${platformSuffix()}_${artifactScalaVersion()}")
-
-  protected def millEmbeddedDeps: Input[Seq[String]] = T.input {
-    BuildInfo.millEmbeddedDeps
+  override def scalaVersion: T[String] = T {
+    millBinPlatform() match {
+      case "" | "0.6" => "2.12.17"
+      case _ => "2.13.9"
+    }
   }
 
+  override def platformSuffix: T[String] = T {
+    Option(millBinPlatform()).filter(_.nonEmpty).map("_mill" + _).getOrElse("")
+  }
+
+  override def artifactSuffix: T[String] = T(s"${platformSuffix()}_${artifactScalaVersion()}")
+
+//  protected def millEmbeddedDeps: Input[Seq[String]] = T.input {
+//    millBinPlatform() match {
+//      case "" =>
+//    }
+////    Seq("com.lihaoyi::mill-scalalib_2.13:0.10.7-24-b7869c-DIRTY158cb392",
+  // "com.lihaoyi:mill-scalajslib_2.13:0.10.7-24-b7869c-DIRTY158cb392",
+  // "com.lihaoyi:mill-scalanativelib_2.13:0.10.7-24-b7869c-DIRTY158cb392",
+  // "com.lihaoyi:mill-bsp_2.13:0.10.7-24-b7869c-DIRTY158cb392")
+//    BuildInfo.millEmbeddedDeps
+//  }
+
   override def compileIvyDeps: T[Agg[Dep]] = T {
-    Agg.from(millEmbeddedDeps().map(d => parseDeps(d)))
+//    Agg.from(millEmbeddedDeps().map(d => parseDeps(d)))
+    val mv = millVersion()
+    // TODO: check at which version we introduced which library
+    super.compileIvyDeps() ++ Agg(
+      ivy"com.lihaoyi::mill-scalalib:${mv}",
+      ivy"com.lihaoyi::mill-scalajslib:${mv}",
+      ivy"com.lihaoyi::mill-scalanativelib:${mv}",
+      ivy"com.lihaoyi::mill-bsp:${mv}",
+    )
   }
 
   override def ivyDeps: T[Agg[Dep]] = T {
-    val deps = parsedMillSetup().ivyDeps
-    Agg.from(deps.map(d => parseDeps(d)))
+    val parseDepsTask = parseDeps()
+    val deps = parsedMillSetup().rawIvyDeps
+    super.ivyDeps() ++ Agg.from(deps.map(d => parseDepsTask(d)))
+  }
+
+  override def scalacPluginIvyDeps: T[Loose.Agg[Dep]] = T {
+    super.scalacPluginIvyDeps() ++ Agg(
+      // incorrectly released without patch-level-scala-version
+      ivy"com.lihaoyi::mill-main-moduledefs:${millVersion()}"
+    )
   }
 
   override def sources: Sources = T.sources {
@@ -181,12 +229,14 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {
-    Lib.findSourceFiles(allSources(), Seq("java", "sc", "scala")).map(PathRef(_))
+    Lib.findSourceFiles(allSources(), extensions = Seq("java", "sc", "scala")).map(PathRef(_))
   }
 
   def wrappedSourceFiles: T[Seq[WrappedSource]] = T {
+    // trigger changes in all source files
+    sources()
     val millSetup = parsedMillSetup()
-    val replacements = AmmoniteParser.replaceAmmoniteImports(millSetup)
+    val replacements = AmmoniteParser.replaceAmmoniteImportsAndShebang(millSetup)
     val contentReader = (file: os.Path) => replacements.get(file).getOrElse(os.read.lines(file))
     val dest = T.dest
     val baseDir = millSetup.projectDir
@@ -237,10 +287,6 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
       }
     }
 
-  override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = T {
-    super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefs)
-  }
-
   override def scalacOptions: Target[Seq[String]] = T {
     super.scalacOptions() ++ Seq("-deprecation")
   }
@@ -251,9 +297,13 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
 }
 
 object MillBuildModule extends ExternalModule with MillBuildModule {
+  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+}
 
-  lazy val millDiscover: Discover[MillBuildModule.this.type] = Discover[this.type]
+object MillNextBuildModule extends ExternalModule with MillBuildModule {
+  lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
+  override def supportUsingDirectives: T[Boolean] = T(true)
 }
 
 case class WrappedSource(orig: PathRef, wrapped: Option[PathRef])
