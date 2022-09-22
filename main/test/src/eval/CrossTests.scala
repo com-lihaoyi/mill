@@ -1,8 +1,7 @@
 package mill.eval
 
 import mill.define.Discover
-import mill.util.TestEvaluator
-
+import mill.util.{TestEvaluator, TestGraphs}
 import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, singleCross}
 import utest._
 object CrossTests extends TestSuite {
@@ -49,6 +48,19 @@ object CrossTests extends TestSuite {
       val Right(("212_jvm", 1)) = check.apply(nestedCrosses.cross("212").cross2("jvm").suffix)
       val Right(("212_js", 1)) = check.apply(nestedCrosses.cross("212").cross2("js").suffix)
       val Right(("212_native", 1)) = check.apply(nestedCrosses.cross("212").cross2("native").suffix)
+    }
+
+    "nestedTaskCrosses" - {
+      val model = TestGraphs.nestedTaskCrosses
+      val check = new TestEvaluator(model)
+
+      val Right(("210_jvm_1", 1)) = check.apply(model.cross1("210").cross2("jvm").suffixCmd("1"))
+      val Right(("210_js_2", 1)) = check.apply(model.cross1("210").cross2("js").suffixCmd("2"))
+      val Right(("211_jvm_3", 1)) = check.apply(model.cross1("211").cross2("jvm").suffixCmd("3"))
+      val Right(("211_js_4", 1)) = check.apply(model.cross1("211").cross2("js").suffixCmd("4"))
+      val Right(("212_jvm_5", 1)) = check.apply(model.cross1("212").cross2("jvm").suffixCmd("5"))
+      val Right(("212_js_6", 1)) = check.apply(model.cross1("212").cross2("js").suffixCmd("6"))
+      val Right(("212_native_7", 1)) = check.apply(model.cross1("212").cross2("native").suffixCmd("7"))
     }
   }
 }
