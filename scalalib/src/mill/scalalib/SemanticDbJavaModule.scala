@@ -99,10 +99,16 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
   }
 
   private def resolvedSemanticDbJavaPluginIvyDeps: Target[Agg[PathRef]] = T {
-    resolveDeps(T.task { semanticDbJavaPluginIvyDeps().map(bindDependency()) })()
+    resolveDeps(T.task {
+      semanticDbJavaPluginIvyDeps().map(bindDependency())
+    })()
   }
 
-  def semanticDbData: T[PathRef] = {
+  def semanticDbData: T[PathRef] = T.persistent {
+    semanticDbDataTask(T.task { allSourceFiles().map(_.path) })()
+  }
+
+  protected def semanticDbDataTask(sourceFiles: Task[Seq[os.Path]]): Task[PathRef] = {
     def javacOptionsTask(m: JavaModule): Task[Seq[String]] = T.task {
       // these are only needed for Java 17+
       val extracJavacExports =
@@ -162,7 +168,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
     hostModule match {
       case m: ScalaModule =>
-        T.persistent {
+        T.task {
           val sv = m.scalaVersion()
 
           val scalacOptions = (
@@ -186,10 +192,11 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
           T.log.debug(s"effective scalac options: ${scalacOptions}")
           T.log.debug(s"effective javac options: ${javacOpts}")
 
+          // TODO: re-use ScalaModule.scalaMixedCompileTask instead
           zincWorker.worker()
             .compileMixed(
               upstreamCompileOutput = upstreamCompileOutput(),
-              sources = m.allSourceFiles().map(_.path),
+              sources = sourceFiles(),
               compileClasspath = compileClasspathTask(m)().map(_.path),
               javacOptions = javacOpts,
               scalaVersion = sv,
@@ -202,7 +209,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
             .map(r => copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data"))
         }
       case m: JavaModule =>
-        T.persistent {
+        T.task {
           val javacOpts = javacOptionsTask(m)()
 
           // we currently assume, we don't do incremental java compilation
@@ -213,7 +220,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
           zincWorker.worker()
             .compileJava(
               upstreamCompileOutput(),
-              allSourceFiles().map(_.path),
+              sourceFiles(),
               compileClasspathTask(m)().map(_.path),
               javacOpts,
               T.reporter.apply(m.hashCode())

@@ -211,11 +211,11 @@ trait ScalaModule extends JavaModule { outer =>
 
   // Keep in sync with [[bspCompileClassesPath]]
   override def compile: T[CompilationResult] = T.persistent {
-    scalaMixedCompileTask(allSourceFiles.map(_.map(_.path)), allScalacOptions)()
+    scalaMixedCompileTask(T.task { allSourceFiles().map(_.path) }, allScalacOptions, javacOptions)
   }
 
   // Keep in sync with [[bspCompileClassesPath]]
-  protected final def scalaMixedCompileTask(sourceFiles: Task[Seq[os.Path]], scalacOptions: Task[Seq[String]]) = T.task {
+  def scalaMixedCompileTask(sourceFiles: Task[Seq[os.Path]], scalacOptions: Task[Seq[String]], javacOptions: Task[Seq[String]]) = T.task {
     val sv = scalaVersion()
     if (sv == "2.12.4") T.log.error(
       """Attention: Zinc is known to not work properly for Scala version 2.12.4.
@@ -231,7 +231,7 @@ trait ScalaModule extends JavaModule { outer =>
         javacOptions = javacOptions(),
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),
-        scalacOptions = allScalacOptions(),
+        scalacOptions = scalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         reporter = T.reporter.apply(hashCode)

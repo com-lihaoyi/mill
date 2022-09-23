@@ -1,11 +1,12 @@
 package mill.scalalib.buildfile
 
 import mill.api.{Loose, PathRef, experimental}
-import mill.buildfile.{AmmoniteParser}
+import mill.buildfile.AmmoniteParser
 import mill.define._
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule, UnresolvedPath}
 import mill.{Agg, T}
+import os.Path
 
 @experimental
 trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
@@ -48,7 +49,12 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
     )
   }
 
-  def allMillBuildSourceFiles: Sources = T.sources {
+  def millBuildSourceFiles: T[Seq[PathRef]] = T{
+    val exts = Seq("sc", "scala", "java")
+    allSourceFiles().filter(f => exts.contains(f.path.ext))
+  }
+
+  override def sources: Sources = T.sources {
     val optsFileName =
       T.env.get("MILL_JVM_OPTS_PATH").filter(!_.isEmpty).getOrElse(".mill-jvm-opts")
 
@@ -59,13 +65,6 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
       buildScFile()
     ) ++ includedSourceFiles()
   }
-
-  def millBuildSourceFiles: T[Seq[PathRef]] = T{
-    val exts = Seq("sc", "scala", "java")
-    allMillBuildSourceFiles().filter(f => exts.contains(f.path.ext))
-  }
-
-  override def sources: Sources = T.sources()
 
   def wrapScToScala(
       file: os.Path,
@@ -171,13 +170,23 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {
-    wrappedSourceFiles().map { w => w.wrapped.getOrElse(w.orig) }
+    Lib.findSourceFiles(allSources(), extensions = Seq("java", "sc", "scala")).map(PathRef(_))
+  }
+
+  /** Uses [[allSourceFiles]] but replaces those, that needs wrapping. */
+  private def compileInputFiles: Task[Seq[Path]] = T.task {
+    val wrapped: Map[os.Path, Option[os.Path]] = wrappedSourceFiles().map(w => (w.orig.path, w.wrapped.map(_.path))).toMap
+    allSourceFiles().map(pr => wrapped.get(pr.path).flatten.getOrElse(pr.path))
   }
 
   override def compile: T[CompilationResult] = T {
     // we want to compile modified classes
     // TOOD: we need to map source locations in error messages
-    scalaMixedCompileTask(allSourceFiles.map(_.map(_.path)), allScalacOptions)
+    scalaMixedCompileTask(compileInputFiles, allScalacOptions)
+  }
+
+  override def semanticDbData: T[PathRef] = T{
+    semanticDbDataTask(compileInputFiles)()
   }
 
   /** the path to the compiled classes without forcing the compilation. */
