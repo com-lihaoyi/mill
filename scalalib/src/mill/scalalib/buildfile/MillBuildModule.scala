@@ -48,16 +48,24 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
     )
   }
 
-  override def sources: Sources = T.sources {
+  def allMillBuildSourceFiles: Sources = T.sources {
     val optsFileName =
       T.env.get("MILL_JVM_OPTS_PATH").filter(!_.isEmpty).getOrElse(".mill-jvm-opts")
 
     Seq(
       PathRef(millSourcePath / ".mill-version"),
+      PathRef(millSourcePath / ".config" / "mill-version"),
       PathRef(millSourcePath / optsFileName),
       buildScFile()
     ) ++ includedSourceFiles()
   }
+
+  def millBuildSourceFiles: T[Seq[PathRef]] = T{
+    val exts = Seq("sc", "scala", "java")
+    allMillBuildSourceFiles().filter(f => exts.contains(f.path.ext))
+  }
+
+  override def sources: Sources = T.sources()
 
   def wrapScToScala(
       file: os.Path,
@@ -134,10 +142,6 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
     destFile
   }
 
-  override def allSourceFiles: T[Seq[PathRef]] = T {
-    Lib.findSourceFiles(allSources(), extensions = Seq("java", "sc", "scala")).map(PathRef(_))
-  }
-
   def wrappedSourceFiles: T[Seq[WrappedSource]] = T {
     // trigger changes in all source files
     sources()
@@ -147,7 +151,7 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
     val dest = T.dest
     val baseDir = millSetup.projectDir
     val buildSc = buildScFile().path
-    allSourceFiles()
+    millBuildSourceFiles()
       .map { pr =>
         val file = pr.path
         val mappedFile =
@@ -166,13 +170,14 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
       }
   }
 
+  override def allSourceFiles: T[Seq[PathRef]] = T {
+    wrappedSourceFiles().map { w => w.wrapped.getOrElse(w.orig) }
+  }
+
   override def compile: T[CompilationResult] = T {
     // we want to compile modified classes
     // TOOD: we need to map source locations in error messages
-    val sourceFiles = T.task {
-      wrappedSourceFiles().map { w => w.wrapped.getOrElse(w.orig).path }
-    }
-    scalaMixedCompileTask(sourceFiles, allScalacOptions)
+    scalaMixedCompileTask(allSourceFiles.map(_.map(_.path)), allScalacOptions)
   }
 
   /** the path to the compiled classes without forcing the compilation. */
