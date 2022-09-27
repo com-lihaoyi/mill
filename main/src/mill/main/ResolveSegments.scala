@@ -12,7 +12,7 @@ object ResolveSegments extends Resolve[Segments] {
       rest: Seq[String]
   ): Either[String, Seq[Segments]] = {
     obj match {
-      case c: Cross[Module] =>
+      case c: Cross[_] =>
         last match {
           case List("__") => Right(c.items.map(_._2.millModuleSegments))
           case items =>

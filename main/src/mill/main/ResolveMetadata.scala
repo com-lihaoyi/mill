@@ -52,7 +52,7 @@ object ResolveMetadata extends Resolve[String] {
       rest: Seq[String]
   ): Either[String, List[String]] = {
     obj match {
-      case c: Cross[Module] =>
+      case c: Cross[_] =>
         last match {
           case List("__") => Right(c.items.map(_._2.toString))
           case items =>
