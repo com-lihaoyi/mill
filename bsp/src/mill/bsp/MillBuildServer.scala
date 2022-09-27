@@ -637,7 +637,7 @@ class MillBuildServer(
           case ((msg, cleaned), targetId) =>
             val module = bspModulesById(targetId)
             val mainModule = new MainModule {
-              override implicit def millDiscover: Discover[_] = Discover[this.type]
+              override implicit def millDiscover: Discover[this.type] = Discover[this.type]
             }
             val compileTargetName = (module.millModuleSegments ++ Segments(Label("compile"))).render
             log.debug(s"about to clean: ${compileTargetName}")

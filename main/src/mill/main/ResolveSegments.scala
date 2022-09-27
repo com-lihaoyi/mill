@@ -69,7 +69,7 @@ object ResolveSegments extends Resolve[Segments] {
           obj.millModuleSegments.value
         )
 
-      case Some(either) => either.right.map(Seq(_))
+      case Some(either) => either.map(Seq(_))
     }
   }
 }
