@@ -550,7 +550,7 @@ object Jvm {
       Result.Failure(msg)
     } else {
 
-      val coursierCache0 = coursier.cache.FileCache[Task].noCredentials
+      val coursierCache0 = coursier.cache.FileCache[Task]().noCredentials
       val coursierCache = coursierCacheCustomizer.getOrElse(
         identity[coursier.cache.FileCache[Task]](_)
       ).apply(coursierCache0)
@@ -560,7 +560,7 @@ object Jvm {
         val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
             yield coursierCache.file(a).run.map(a.optional -> _)
-        ).unsafeRun
+        ).unsafeRun()
 
         val errors = loadedArtifacts.collect {
           case (false, Left(x)) => x
@@ -638,9 +638,9 @@ object Jvm {
 
     val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
     val coursierCache0 = resolutionLogger match {
-      case None => coursier.cache.FileCache[Task].withCachePolicies(cachePolicies)
+      case None => coursier.cache.FileCache[Task]().withCachePolicies(cachePolicies)
       case Some(l) =>
-        coursier.cache.FileCache[Task]
+        coursier.cache.FileCache[Task]()
           .withCachePolicies(cachePolicies)
           .withLogger(l)
     }

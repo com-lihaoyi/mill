@@ -38,20 +38,20 @@ import utest._
 object MetadataLoaderFactoryTests extends TestSuite {
 
   val tests = Tests {
-    'mavenRepository - {
+    "mavenRepository" - {
       val mavenRepo = MavenRepository("https://repo1.maven.org/maven2")
       assertMatch(MetadataLoaderFactory(mavenRepo)) {
         case Some(MavenMetadataLoader(`mavenRepo`)) =>
       }
     }
-    'ivyRepository - {
+    "ivyRepository" - {
       val Right(ivyRepo) = IvyRepository.parse(
         "https://dl.bintray.com/sbt/sbt-plugin-releases/" + coursier.ivy.Pattern.default.string,
         dropInfoAttributes = true
       )
       assertMatch(MetadataLoaderFactory(ivyRepo)) { case None => }
     }
-    'otherRepository - {
+    "otherRepository" - {
       val otherRepo = new CustomRepository
       assertMatch(MetadataLoaderFactory(otherRepo)) { case None => }
     }

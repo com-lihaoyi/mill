@@ -3,6 +3,7 @@ package mill.scalalib
 import JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
+import mill.scalalib.api.ZincWorkerUtil
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
@@ -11,13 +12,6 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
       !dep.version.contains("/"),
     "Dependency coordinates must not contain `/`s"
   )
-
-  import mill.scalalib.api.ZincWorkerUtil.{
-    isDottyOrScala3,
-    DottyVersion,
-    Scala3Version,
-    Scala3EarlyVersion
-  }
 
   def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
@@ -66,12 +60,12 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
    */
   def withDottyCompat(scalaVersion: String): Dep =
     cross match {
-      case cross: Binary if isDottyOrScala3(scalaVersion) =>
+      case cross: Binary if ZincWorkerUtil.isDottyOrScala3(scalaVersion) =>
         val compatSuffix =
           scalaVersion match {
-            case Scala3Version(_, _) | Scala3EarlyVersion(_) =>
+            case ZincWorkerUtil.Scala3Version(_, _) | ZincWorkerUtil.Scala3EarlyVersion(_) =>
               "_2.13"
-            case DottyVersion(minor, patch) =>
+            case ZincWorkerUtil.DottyVersion(minor, patch) =>
               if (minor.toInt > 18 || minor.toInt == 18 && patch.toInt >= 1)
                 "_2.13"
               else

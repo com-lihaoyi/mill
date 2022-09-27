@@ -129,7 +129,7 @@ trait TestModule extends JavaModule with TaskModule {
           val jsonOutput = ujson.read(outputPath.toIO)
           val (doneMsg, results) =
             upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
-          TestModule.handleResults(doneMsg, results, Some(T.ctx))
+          TestModule.handleResults(doneMsg, results, Some(T.ctx()))
         } catch {
           case e: Throwable =>
             Result.Failure("Test reporting failed: " + e)
@@ -148,7 +148,7 @@ trait TestModule extends JavaModule with TaskModule {
       args,
       T.testReporter
     )
-    TestModule.handleResults(doneMsg, results, Some(T.ctx))
+    TestModule.handleResults(doneMsg, results, Some(T.ctx()))
   }
 
   override def bspBuildTarget: BspBuildTarget = {

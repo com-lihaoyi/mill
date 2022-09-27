@@ -28,7 +28,7 @@ object ResolveDepsTests extends TestSuite {
       val deps = Agg(ivy"org.lwjgl:lwjgl:3.1.1;classifier=natives-macos")
       val Success(paths) = evalDeps(deps)
       assert(paths.nonEmpty)
-      assert(paths.items.next.path.toString.contains("natives-macos"))
+      assert(paths.items.next().path.toString.contains("natives-macos"))
     }
 
     "resolveTransitiveRuntimeDeps" - {

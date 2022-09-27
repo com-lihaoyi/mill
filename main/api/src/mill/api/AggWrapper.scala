@@ -28,6 +28,9 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
     def zip[T](other: Agg[T]): Agg[(V, T)]
     def ++[T >: V](other: IterableOnce[T]): Agg[T]
     def length: Int
+    def isEmpty: Boolean
+    def nonEmpty: Boolean = !isEmpty
+    def foreach[U](f: V => U): Unit
   }
 
   object Agg {
@@ -119,6 +122,7 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
         case _ => super.equals(other)
       }
       override def toString: String = items.mkString("Agg(", ", ", ")")
+
     }
   }
 }

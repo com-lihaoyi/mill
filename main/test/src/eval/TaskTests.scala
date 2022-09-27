@@ -91,7 +91,7 @@ trait TaskTests extends TestSuite {
     }
   }
 
-  def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath)
+  def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath): Unit
 
   val tests = Tests {
 
