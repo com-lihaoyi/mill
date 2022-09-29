@@ -17,11 +17,11 @@ import utest.framework.TestPath
 
 object HelloWorldTests extends TestSuite {
 
-  val scala2106Version = "2.10.6"
-  val scala21111Version = "2.11.11"
+  val scala210Version = sys.props.getOrElse("TEST_SCALA_2_10_VERSION", ???)
+  val scala211Version = sys.props.getOrElse("TEST_SCALA_2_11_VERSION", ???)
   val scala2123Version = "2.12.3"
-  val scala2126Version = "2.12.6"
-  val scala2131Version = "2.13.1"
+  val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
+  val scala213Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath: os.Path =
@@ -29,7 +29,7 @@ object HelloWorldTests extends TestSuite {
   }
 
   trait HelloWorldModule extends scalalib.ScalaModule {
-    def scalaVersion = scala2126Version
+    def scalaVersion = scala212Version
   }
 
   trait HelloWorldModuleWithMain extends HelloWorldModule {
@@ -41,11 +41,11 @@ object HelloWorldTests extends TestSuite {
   }
   object CrossHelloWorld extends HelloBase {
     object core extends Cross[HelloWorldCross](
-          scala2106Version,
-          scala21111Version,
+          scala210Version,
+          scala211Version,
           scala2123Version,
-          scala2126Version,
-          scala2131Version
+          scala212Version,
+          scala213Version
         )
     class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
   }
@@ -207,7 +207,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldScalaOverride extends HelloBase {
     object core extends HelloWorldModule {
-      override def scalaVersion: Target[String] = scala2131Version
+      override def scalaVersion: Target[String] = scala213Version
     }
   }
 
@@ -241,7 +241,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldMacros extends HelloBase {
     object core extends ScalaModule {
-      def scalaVersion = scala2126Version
+      def scalaVersion = scala212Version
 
       override def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
@@ -254,7 +254,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldFlags extends HelloBase {
     object core extends ScalaModule {
-      def scalaVersion = scala2126Version
+      def scalaVersion = scala212Version
 
       override def scalacOptions = super.scalacOptions() ++ Seq(
         "-Ypartial-unification"
@@ -264,7 +264,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloScalacheck extends HelloBase {
     object foo extends ScalaModule {
-      def scalaVersion = scala2126Version
+      def scalaVersion = scala212Version
       object test extends Tests {
         override def ivyDeps = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
         override def testFramework = "org.scalacheck.ScalaCheckFramework"
@@ -340,7 +340,7 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalaVersion)
 
         assert(
-          result == scala2126Version,
+          result == scala212Version,
           evalCount > 0
         )
       }
@@ -348,7 +348,7 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorldScalaOverride.core.scalaVersion)
 
         assert(
-          result == scala2131Version,
+          result == scala213Version,
           evalCount > 0
         )
       }
@@ -509,7 +509,7 @@ object HelloWorldTests extends TestSuite {
     "artifactNameCross" - {
       workspaceTest(CrossHelloWorld) { eval =>
         val Right((artifactName, _)) =
-          eval.apply(CrossHelloWorld.core(scala2131Version).artifactName)
+          eval.apply(CrossHelloWorld.core(scala213Version).artifactName)
         assert(artifactName == "core")
       }
     }
@@ -545,15 +545,15 @@ object HelloWorldTests extends TestSuite {
         "v210" - TestUtil.disableInJava9OrAbove("Scala 2.10 tests don't work with Java 9+")(
           workspaceTest(CrossHelloWorld)(cross(
             _,
-            scala2106Version,
-            s"${scala2106Version} rox"
+            scala210Version,
+            s"${scala210Version} rox"
           ))
         )
         "v211" - TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't work with Java 9+")(
           workspaceTest(CrossHelloWorld)(cross(
             _,
-            scala21111Version,
-            s"${scala21111Version} pwns"
+            scala211Version,
+            s"${scala211Version} pwns"
           ))
         )
         "v2123" - workspaceTest(CrossHelloWorld)(cross(
@@ -563,13 +563,13 @@ object HelloWorldTests extends TestSuite {
         ))
         "v2124" - workspaceTest(CrossHelloWorld)(cross(
           _,
-          scala2126Version,
-          s"${scala2126Version} leet"
+          scala212Version,
+          s"${scala212Version} leet"
         ))
         "v2131" - workspaceTest(CrossHelloWorld)(cross(
           _,
-          scala2131Version,
-          s"${scala2131Version} idk"
+          scala213Version,
+          s"${scala213Version} idk"
         ))
       }
 

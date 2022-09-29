@@ -66,6 +66,7 @@ object Deps {
   val testScala213Version = "2.13.8"
   val testScala212Version = "2.12.6"
   val testScala211Version = "2.11.12"
+  val testScala210Version = "2.10.6"
   val testScala30Version = "3.0.2"
   val testScala31Version = "3.1.3"
   val testScala32Version = "3.2.0"
@@ -302,6 +303,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
         s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
         s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
         s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
+        s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
         s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
         s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
         s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
