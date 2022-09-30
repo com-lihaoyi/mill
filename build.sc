@@ -61,7 +61,9 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.8"
+  val scalaVersion = "2.13.9"
+  // Scoverage 1.x will not get releases for newer Scala versions
+  val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.15"
 
@@ -770,6 +772,7 @@ object contrib extends MillModule {
       contrib.buildinfo
     )
 
+    // Worker for Scoverage 1.x
     object worker extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
       override def moduleDeps = Seq(scoverage.api)
@@ -781,13 +784,13 @@ object contrib extends MillModule {
           Deps.osLib
         )
       }
+      override def scalaVersion: Target[String] = Deps.scalaVersionForScoverageWorker1
     }
 
+    // Worker for Scoverage 2.0
     object worker2 extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
-
       override def moduleDeps = Seq(scoverage.api)
-
       override def compileIvyDeps = T {
         Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
