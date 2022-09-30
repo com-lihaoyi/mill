@@ -151,7 +151,11 @@ trait HelloWorldTests extends utest.TestSuite {
           "htmlReport" - workspaceTest(HelloWorld) { eval =>
             val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
             val res = eval.apply(HelloWorld.core.scoverage.htmlReport())
-            if(res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith("2.")) {
+            if (
+              res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith(
+                "2."
+              )
+            ) {
               s"""Disabled for Scoverage ${testScoverageVersion} on Scala ${testScalaVersion}, as it fails with "No source root found" message"""
             } else {
               assert(res.isRight)
@@ -162,8 +166,19 @@ trait HelloWorldTests extends utest.TestSuite {
           }
           "xmlReport" - workspaceTest(HelloWorld) { eval =>
             val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.xmlReport())
-            assert(evalCount > 0)
+            val res = eval.apply(HelloWorld.core.scoverage.xmlReport())
+            if (
+              res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith(
+                "2."
+              )
+            ) {
+              s"""Disabled for Scoverage ${testScoverageVersion} on Scala ${testScalaVersion}, as it fails with "No source root found" message"""
+            } else {
+              assert(res.isRight)
+              val Right((_, evalCount)) = res
+              assert(evalCount > 0)
+              ""
+            }
           }
           "console" - workspaceTest(HelloWorld) { eval =>
             val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
