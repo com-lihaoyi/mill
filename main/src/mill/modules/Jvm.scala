@@ -36,8 +36,8 @@ import scala.annotation.tailrec
 
 object Jvm {
 
-  private val ConcurrentRetryCount = 5
-  private val ConcurrentRetryWait = 100
+  private val CoursierRetryCount = 5
+  private val CoursierRetryWait = 100
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -583,7 +583,7 @@ object Jvm {
 
       @tailrec def load(
           artifacts: Seq[coursier.util.Artifact],
-          retry: Int = ConcurrentRetryCount
+          retry: Int = CoursierRetryCount
       ): (Seq[ArtifactError], Seq[File]) = {
         import scala.concurrent.ExecutionContext.Implicits.global
         val loadedArtifacts = Gather[Task].gather(
@@ -597,12 +597,19 @@ object Jvm {
         }
         val successes = loadedArtifacts.collect { case (_, Right(x)) => x }
 
-        if (retry > 0 && errors.exists(_.describe.contains("concurrent download"))) {
+        if (retry > 0 && errors.exists(e => e.describe.contains("concurrent download"))) {
           ctx.foreach(_.log.debug(
             s"Detected a concurrent download issue in coursier. Attempting a retry (${retry} left)"
           ))
-          Thread.sleep(ConcurrentRetryWait)
+          Thread.sleep(CoursierRetryWait)
           load(artifacts, retry - 1)
+        } else if (retry > 0 && errors.exists(e => e.describe.contains("checksum not found"))) {
+          ctx.foreach(_.log.debug(
+            s"Detected a checksum download issue in coursier. Attempting a retry (${retry} left)"
+          ))
+          Thread.sleep(CoursierRetryWait)
+          load(artifacts, retry - 1)
+
         } else (errors, successes)
       }
 
@@ -683,7 +690,7 @@ object Jvm {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     // Workaround for https://github.com/com-lihaoyi/mill/issues/1028
-    @tailrec def retriedResolution(count: Int = ConcurrentRetryCount): Resolution = {
+    @tailrec def retriedResolution(count: Int = CoursierRetryCount): Resolution = {
       val resolution = start.process.run(fetch).unsafeRun()
       if (
         count > 0 &&
@@ -693,7 +700,7 @@ object Jvm {
         ctx.foreach(_.log.debug(
           s"Detected a concurrent download issue in coursier. Attempting a retry (${count} left)"
         ))
-        Thread.sleep(ConcurrentRetryWait)
+        Thread.sleep(CoursierRetryWait)
         retriedResolution(count - 1)
       } else resolution
     }
