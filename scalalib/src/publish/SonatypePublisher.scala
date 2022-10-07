@@ -175,7 +175,7 @@ class SonatypePublisher(
     val fileName = file.toString
     val command = "gpg" +: args :+ fileName
 
-    Jvm.runSubprocess(command, Map.empty[String, String], workingDir = null)
+    Jvm.runSubprocess(command, sys.env, workingDir = null)
     os.Path(fileName + ".asc")
   }
 
