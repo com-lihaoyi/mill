@@ -4,6 +4,7 @@ import java.math.BigInteger
 import java.security.MessageDigest
 
 import mill.api.Logger
+import mill.modules.Jvm
 import os.Shellable
 
 class SonatypePublisher(
@@ -174,8 +175,7 @@ class SonatypePublisher(
     val fileName = file.toString
     val command = "gpg" +: args :+ fileName
 
-    os.proc(command.map(v => v: Shellable))
-      .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
+    Jvm.runSubprocess(command, Map.empty[String, String], workingDir = null)
     os.Path(fileName + ".asc")
   }
 
