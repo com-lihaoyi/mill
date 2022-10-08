@@ -177,6 +177,8 @@ trait PublishModule extends JavaModule { outer =>
       readTimeout,
       connectTimeout,
       T.log,
+      T.workspace,
+      T.env,
       awaitTimeout,
       stagingRelease
     ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
@@ -236,6 +238,8 @@ object PublishModule extends ExternalModule {
       readTimeout,
       connectTimeout,
       T.log,
+      T.workspace,
+      T.env,
       awaitTimeout,
       stagingRelease
     ).publishAll(
