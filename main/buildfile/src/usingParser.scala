@@ -8,10 +8,12 @@ import com.virtuslab.using_directives.custom.{Parser, SimpleCommentExtractor}
 import com.virtuslab.using_directives.reporter.ConsoleReporter
 import upickle.default.{ReadWriter, macroRW}
 import mill.api.JsonFormatters._
+import mill.api.experimental
 
 import java.nio.charset.Charset
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
+@experimental
 case class ParsedMillSetup(
     projectDir: os.Path,
     directives: Seq[MillUsingDirective],
@@ -28,14 +30,17 @@ case class ParsedMillSetup(
   }
 }
 
+@experimental
 object ParsedMillSetup {
   implicit val upickleRW: ReadWriter[ParsedMillSetup] = macroRW
 }
 
+@experimental
 sealed trait MillUsingDirective {
   def sourceFile: os.Path
 }
 
+@experimental
 object MillUsingDirective {
 
   case class Dep(raw: String, sourceFile: os.Path) extends MillUsingDirective
@@ -61,6 +66,7 @@ object MillUsingDirective {
 
 }
 
+@experimental
 object ReadDirectives {
 
   def readVersionFiles(projectDir: os.Path): Seq[MillUsingDirective.MillVersion] = {

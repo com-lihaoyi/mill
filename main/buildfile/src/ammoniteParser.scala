@@ -1,9 +1,12 @@
 package mill.buildfile
 
+import mill.api.experimental
+
 import java.util.regex.Pattern
 import scala.collection.mutable
 import scala.util.matching.Regex
 
+@experimental
 object AmmoniteParser {
 
   private val MatchDep = """^import ([$]ivy[.]`([^`]+)`).*""".r
