@@ -732,7 +732,7 @@ object foo extends ScalaModule {
   def assemblyRules = Seq(
     Rule.Append("application.conf"), // all application.conf files will be concatenated into single file
     Rule.AppendPattern(".*\\.conf"), // all *.conf files will be concatenated into single file
-    Rule.ExcludePattern("*.temp"), // all *.temp files will be excluded from a final jar
+    Rule.ExcludePattern(".*\\.temp"), // all *.temp files will be excluded from a final jar
     Rule.Relocate("shapeless.**", "shade.shapless.@1") // the `shapeless` package will be shaded under the `shade` package
   )
 }
