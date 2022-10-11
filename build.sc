@@ -54,7 +54,8 @@ object Settings {
     "0.10.7",
     "0.10.8"
   )
-  val mimaBaseVersions = Seq("0.10.0", "0.10.1", "0.10.2", "0.10.3", "0.10.4", "0.10.5", "0.10.6", "0.10.7")
+  val mimaBaseVersions =
+    Seq("0.10.0", "0.10.1", "0.10.2", "0.10.3", "0.10.4", "0.10.5", "0.10.6", "0.10.7", "0.10.8")
 }
 
 object Deps {
@@ -140,7 +141,8 @@ object Deps {
   def scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   def scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   def scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
-  def scalacScoverage2Serializer = ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
+  def scalacScoverage2Serializer =
+    ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.6.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
@@ -883,7 +885,7 @@ object contrib extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests) }
   }
-  
+
   object gitlab extends MillInternalModule with MillAutoTestSetup {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests, Deps.osLib) }
