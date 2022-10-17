@@ -131,6 +131,9 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.18.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
+  val millModuledefsVersion = "0.10.9-alpha-1"
+  val millModuledefs = ivy"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
+  val millModuledefsPlugin = ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   val testng = ivy"org.testng:testng:7.5"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
@@ -296,12 +299,13 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   // Test setup
 
   def testArgs = T { Seq.empty[String] }
-  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
+  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest, Deps.millModuledefs)
   def testModuleDeps: Seq[JavaModule] =
     if (this == main) Seq(main)
     else Seq(this, main.test)
 
   trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule {
+    override def scalacPluginIvyDeps: Target[Agg[Dep]] = super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefsPlugin)
     override def forkArgs = T {
       Seq(
         s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
@@ -335,17 +339,11 @@ trait MillAutoTestSetup extends MillScalaModule {
 /** Published module which does not contain strictly handled API. */
 trait MillInternalModule extends MillScalaModule with MillPublishModule
 
-/** Published moduel which contains strictly handled API. */
+/** Publishable module which contains strictly handled API. */
 trait MillApiModule extends MillScalaModule with MillPublishModule with MillMimaConfig
 
-trait MillModule extends MillApiModule with MillAutoTestSetup { outer =>
-  override def scalacPluginClasspath = T {
-    super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
-  }
-  override def scalacOptions = T {
-    super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar().path}")
-  }
-}
+/** Publishable module with tests. */
+trait MillModule extends MillApiModule with MillAutoTestSetup
 
 object main extends MillModule {
 
@@ -375,13 +373,12 @@ object main extends MillModule {
     )
   }
   object core extends MillModule {
-    override def moduleDeps = Seq(moduledefs, api, util)
-
+    override def moduleDeps = Seq(api, util)
     override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
     )
-
     override def ivyDeps = Agg(
+      Deps.millModuledefs,
       Deps.ammoniteExcludingTrees,
       Deps.scalametaTrees,
       Deps.coursier,
@@ -390,7 +387,6 @@ object main extends MillModule {
       Deps.jnaPlatform,
       Deps.jarjarabrams
     )
-
     override def generatedSources = T {
       val dest = T.ctx.dest
       writeBuildInfo(
@@ -433,14 +429,6 @@ object main extends MillModule {
 
       os.write(dir / "mill" / "BuildInfo.scala", code, createFolders = true)
     }
-  }
-
-  object moduledefs extends MillPublishModule with ScalaModule {
-    def scalaVersion = Deps.scalaVersion
-    override def ivyDeps = Agg(
-      Deps.scalaCompiler(scalaVersion()),
-      Deps.sourcecode
-    )
   }
 
   object client extends MillPublishModule {
@@ -531,7 +519,7 @@ object scalalib extends MillModule {
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T {
     val genIdeaArgs =
-      genTask(main.moduledefs)() ++
+//      genTask(main.moduledefs)() ++
         genTask(main.core)() ++
         genTask(main)() ++
         genTask(scalalib)() ++
@@ -977,7 +965,7 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 }
 
 object integration extends MillScalaModule {
-  override def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
+  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
 
   /** Deploy freshly build mill for use in tests */
   def testMill: Target[PathRef] = {
