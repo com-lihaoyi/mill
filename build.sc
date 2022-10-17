@@ -299,7 +299,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   // Test setup
 
   def testArgs = T { Seq.empty[String] }
-  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest, Deps.millModuledefs)
+  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest, Deps.millModuledefs, Deps.millModuledefsPlugin)
   def testModuleDeps: Seq[JavaModule] =
     if (this == main) Seq(main)
     else Seq(this, main.test)
@@ -379,6 +379,7 @@ object main extends MillModule {
     )
     override def ivyDeps = Agg(
       Deps.millModuledefs,
+      Deps.millModuledefsPlugin,
       Deps.ammoniteExcludingTrees,
       Deps.scalametaTrees,
       Deps.coursier,
