@@ -286,6 +286,12 @@ trait MillMimaConfig extends mima.Mima {
   )
 }
 
+/** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs.  */
+trait WithMillCompiler extends ScalaModule {
+  override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(Deps.millModuledefs)
+  override def scalacPluginIvyDeps: Target[Agg[Dep]] = super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefsPlugin)
+}
+
 /**
  * Some custom scala settings and test convenience
  */
@@ -299,13 +305,12 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   // Test setup
 
   def testArgs = T { Seq.empty[String] }
-  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest, Deps.millModuledefs, Deps.millModuledefsPlugin)
+  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
   def testModuleDeps: Seq[JavaModule] =
     if (this == main) Seq(main)
     else Seq(this, main.test)
 
-  trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule {
-    override def scalacPluginIvyDeps: Target[Agg[Dep]] = super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefsPlugin)
+  trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule with WithMillCompiler {
     override def forkArgs = T {
       Seq(
         s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
@@ -322,7 +327,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
       ) ++ outer.testArgs()
     }
     override def moduleDeps = outer.testModuleDeps
-    override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
+    override def ivyDeps: T[Agg[Dep]] = T{ super.ivyDeps() ++ outer.testIvyDeps() }
     override def testFramework = "mill.UTestFramework"
   }
   trait Tests extends MillScalaModuleTests
@@ -343,7 +348,7 @@ trait MillInternalModule extends MillScalaModule with MillPublishModule
 trait MillApiModule extends MillScalaModule with MillPublishModule with MillMimaConfig
 
 /** Publishable module with tests. */
-trait MillModule extends MillApiModule with MillAutoTestSetup
+trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompiler
 
 object main extends MillModule {
 
