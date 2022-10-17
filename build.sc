@@ -112,7 +112,7 @@ object Deps {
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.5.2"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.0"
 
   object jetty {
     val version = "8.2.0.v20160908"
