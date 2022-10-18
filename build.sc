@@ -759,7 +759,8 @@ object contrib extends MillModule {
         "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path,
         "MILL_SCOVERAGE2_REPORT_WORKER" -> worker2.compile().classes.path,
         "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version,
-        "MILL_SCOVERAGE2_VERSION" -> Deps.scalacScoverage2Plugin.dep.version
+        "MILL_SCOVERAGE2_VERSION" -> Deps.scalacScoverage2Plugin.dep.version,
+        "TEST_SCALA_2_12_VERSION" -> Deps.workerScalaVersion212
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
