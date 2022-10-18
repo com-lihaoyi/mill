@@ -304,7 +304,7 @@ trait FailedWorldTests extends HelloWorldTests {
 }
 
 object Scoverage1Tests_2_12 extends HelloWorldTests {
-  override def testScalaVersion: String = sys.props.getOrElse("MILL_SCALA_2_12_VERSION", ???)
+  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
 }
 

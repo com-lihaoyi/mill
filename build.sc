@@ -61,7 +61,9 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.8"
+  val scalaVersion = "2.13.10"
+  // Scoverage 1.x will not get releases for newer Scala versions
+  val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.15"
 
@@ -136,12 +138,12 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.5.8"
   val scalametaTrees = ivy"org.scalameta::trees:4.6.0"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val scoverage2Version = "2.0.5"
-  def scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
-  def scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
-  def scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
-  def scalacScoverage2Serializer =
+  val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
+  val scoverage2Version = "2.0.7"
+  val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
+  val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
+  val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
+  val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.6.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
@@ -757,7 +759,8 @@ object contrib extends MillModule {
         "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path,
         "MILL_SCOVERAGE2_REPORT_WORKER" -> worker2.compile().classes.path,
         "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version,
-        "MILL_SCOVERAGE2_VERSION" -> Deps.scalacScoverage2Plugin.dep.version
+        "MILL_SCOVERAGE2_VERSION" -> Deps.scalacScoverage2Plugin.dep.version,
+        "TEST_SCALA_2_12_VERSION" -> Deps.workerScalaVersion212
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -770,6 +773,7 @@ object contrib extends MillModule {
       contrib.buildinfo
     )
 
+    // Worker for Scoverage 1.x
     object worker extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
       override def moduleDeps = Seq(scoverage.api)
@@ -781,13 +785,13 @@ object contrib extends MillModule {
           Deps.osLib
         )
       }
+      override def scalaVersion: Target[String] = Deps.scalaVersionForScoverageWorker1
     }
 
+    // Worker for Scoverage 2.0
     object worker2 extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
-
       override def moduleDeps = Seq(scoverage.api)
-
       override def compileIvyDeps = T {
         Agg(
           // compile-time only, need to provide the correct scoverage version at runtime

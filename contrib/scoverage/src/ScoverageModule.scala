@@ -9,6 +9,8 @@ import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 import mill.api.Result
 
+import scala.util.Try
+
 /**
  * Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
  *
@@ -155,8 +157,21 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
           ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
         )
 
+        val scalaVersion = BuildInfo.scalaVersion.split("[.]").toList match {
+          // Scoverage 1 is not released for Scala > 2.13.8, but we don't need to compiler specific code,
+          // only the reporter API, which does not depend on the Compiler API, so using another full Scala version
+          // should be safe
+          case "2" :: "13" :: c :: _ if sv.startsWith("1.") && Try(c.toInt).getOrElse(0) > 8 =>
+            val v = "2.13.8"
+            T.log.outputStream.println(
+              s"Detected an unsupported Scala version (${BuildInfo.scalaVersion}). Using Scala version ${v} to resolve scoverage ${sv} reporting API."
+            )
+            v
+          case _ => BuildInfo.scalaVersion
+        }
+
         val pluginDep =
-          Agg(ivy"org.scoverage:scalac-scoverage-plugin_${mill.BuildInfo.scalaVersion}:${sv}")
+          Agg(ivy"org.scoverage:scalac-scoverage-plugin_${scalaVersion}:${sv}")
 
         if (isScala3() && isScoverage2()) {
           baseDeps
