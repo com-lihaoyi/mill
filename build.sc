@@ -61,7 +61,7 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.9"
+  val scalaVersion = "2.13.10"
   // Scoverage 1.x will not get releases for newer Scala versions
   val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
@@ -99,7 +99,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
-  val ammoniteVersion = "2.5.4-33-0af04a5b"
+  val ammoniteVersion = "2.5.5"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   // Exclude trees here to force the version of we have defined. We use this
