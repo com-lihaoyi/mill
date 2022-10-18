@@ -1,25 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Extending Mill :: Mill</title>
-    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Extending_Mill.html" />
-    <link rel="prev" href="Cross_Builds.html" />
-    <link rel="next" href="Mill_Internals.html" />
-    <meta name="generator" content="Antora 3.0.1" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Extending_Mill.html">
+    <link rel="prev" href="Cross_Builds.html">
+    <link rel="next" href="Mill_Internals.html">
+    <meta name="generator" content="Antora 3.0.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
     <script>var uiRootPath = '../../_'</script>
-  
-  </head><body class="article">
-  
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" />&nbsp;Mill</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -140,7 +139,7 @@
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-latest">
-          <a href="../index.html">0.10.8-4-9c88d8</a>
+          <a href="../index.html">0.10.8-5-9b222b</a>
         </li>
         <li class="version">
           <a href="../0.10.8/index.html">0.10.8</a>
@@ -210,7 +209,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.9.12</button>
   <div class="version-menu">
-    <a class="version" href="../Extending_Mill.html">0.10.8-4-9c88d8</a>
+    <a class="version" href="../Extending_Mill.html">0.10.8-5-9b222b</a>
     <a class="version" href="../0.10.8/Extending_Mill.html">0.10.8</a>
     <a class="version" href="../0.10.7/Extending_Mill.html">0.10.7</a>
     <a class="version" href="../0.10.6/Extending_Mill.html">0.10.6</a>
@@ -259,7 +258,7 @@ def bar(x: Int, s: String) = T.command { ... }</code></pre>
 </div>
 <div class="paragraph">
 <p>These can depend on other Targets, contain arbitrary code, and be placed top-level or within any module.
-If you have something you just want to <em>do</em> that isn’t covered by the built-in <code>ScalaModule</code>s/<code>ScalaJSModule</code>s, simply write a custom Target (for cached computations) or Command (for un-cached actions) and you’re done.</p>
+If you have something you just want to <em>do</em> that isn&#8217;t covered by the built-in <code>ScalaModule</code>s/<code>ScalaJSModule</code>s, simply write a custom Target (for cached computations) or Command (for un-cached actions) and you&#8217;re done.</p>
 </div>
 <div class="paragraph">
 <p>For subprocess/filesystem operations, you can use the
@@ -276,7 +275,7 @@ Each target gets its own
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def doWebpackStuff(sources: Seq[PathRef]): PathRef = ???
 
-def javascriptSources = T.sources { millSourcePath / &quot;js&quot; }
+def javascriptSources = T.sources { millSourcePath / "js" }
 def compiledJavascript = T { doWebpackStuff(javascriptSources()) }
 object foo extends ScalaModule {
   def runClasspath = T { super.runClasspath() ++ compiledJavascript() }
@@ -306,7 +305,7 @@ def deployFoo(credentials: String) = T.command {
 <div class="paragraph">
 <p><a href="#_custom_targets_commands">Custom Targets &amp; Commands</a> are re-computed from scratch each time; sometimes you want to keep values around in-memory when using
 <code>--watch</code> or the Build REPL.
-E.g. you may want to keep a webpack process running so webpack’s own internal caches are hot and compilation is fast:</p>
+E.g. you may want to keep a webpack process running so webpack&#8217;s own internal caches are hot and compilation is fast:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -314,7 +313,7 @@ E.g. you may want to keep a webpack process running so webpack’s own internal 
   // Spawn a process using java.lang.Process and return it
 }
 
-def javascriptSources = T.sources { millSourcePath / &quot;js&quot; }
+def javascriptSources = T.sources { millSourcePath / "js" }
 
 def doWebpackStuff(webpackProcess: Process, sources: Seq[PathRef]): PathRef =
   ???
@@ -335,8 +334,8 @@ def compiledJavascript = T {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait FooModule extends mill.Module {
-  def bar = T { &quot;hello&quot; }
-  def baz = T { &quot;world&quot; }
+  def bar = T { "hello" }
+  def baz = T { "world" }
 }</code></pre>
 </div>
 </div>
@@ -349,7 +348,7 @@ inheriting from <code>mill.Module</code>, and then use that <code>trait</code> a
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo1 extends FooModule
 object foo2 extends FooModule {
-  def qux = T { &quot;I am Cow&quot; }
+  def qux = T { "I am Cow" }
 }</code></pre>
 </div>
 </div>
@@ -359,9 +358,9 @@ object foo2 extends FooModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait FooModule extends ScalaModule {
-  def scalaVersion = &quot;2.11.11&quot;
+  def scalaVersion = "2.11.11"
   object test extends Tests with TestModule.ScalaTest {
-    def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.0.4&quot;)
+    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
   }
 }</code></pre>
 </div>
@@ -389,7 +388,7 @@ def printFoo() = T.command { println(foo.fooValue()) }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s <code>import $file</code> syntax supports the full functionality of
+<p>Mill&#8217;s <code>import $file</code> syntax supports the full functionality of
 <a href="http://ammonite.io/#ScalaScripts">Ammonite Scripts</a></p>
 </div>
 </div>
@@ -410,8 +409,8 @@ def generatedHtml = T {
   html(
     head(),
     body(
-      h1(&quot;Hello&quot;),
-      p(&quot;World&quot;)
+      h1("Hello"),
+      p("World")
     )
   ).render
 }</code></pre>
@@ -419,7 +418,7 @@ def generatedHtml = T {
 </div>
 <div class="colist arabic">
 <table>
-<tbody><tr>
+<tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td>Import the scalatags library from Mavel Central repository.</td>
 </tr>
@@ -427,13 +426,13 @@ def generatedHtml = T {
 <td><i class="conum" data-value="2"></i><b>2</b></td>
 <td>Creates the <code>generatedHtml</code> target which is used here to generate a simple Hello World HTML document. It can be used however you would like: written to a file, further processed, etc.</td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>Please also read the next section <a href="#_using_mill_plugins_import_ivy">Using Mill Plugins (<code>import $ivy</code>)</a>].</p>
 </div>
 <div class="paragraph">
-<p>For more information, see Ammonite’s
+<p>For more information, see Ammonite&#8217;s
 <a href="http://ammonite.io/#import$ivy">Ivy Dependencies documentation</a>.</p>
 </div>
 </div>
@@ -460,7 +459,7 @@ import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" d
 </div>
 <div class="colist arabic">
 <table>
-<tbody><tr>
+<tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td>This is equivalent to
 <div class="listingblock">
@@ -478,7 +477,7 @@ import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" d
 </div>
 </div></td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -502,7 +501,7 @@ This is typical required for Mill contrib modules, which are developed in the Mi
 <div class="paragraph">
 <p>There is the even more convenient option to leave the version completely empty.
 Mill will substitute it with its current version.
-But don’t forget to provide the trailing colon!</p>
+But don&#8217;t forget to provide the trailing colon!</p>
 </div>
 <div class="listingblock">
 <div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
@@ -533,7 +532,7 @@ But don’t forget to provide the trailing colon!</p>
 <div class="content">
 <div class="admonitionblock tip">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-tip" title="Tip"></i>
 </td>
@@ -541,7 +540,7 @@ But don’t forget to provide the trailing colon!</p>
 If you want to publish re-usable libraries that <em>other</em> people can use in their builds, simply publish your code as a library to maven central.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>== Evaluator Commands (experimental)</p>
@@ -590,9 +589,9 @@ If you want a way to run Mill commands and programmatically manipulate the tasks
   <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
 </footer>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>
