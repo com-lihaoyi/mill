@@ -198,16 +198,16 @@ trait MillCoursierModule extends CoursierModule {
         t._1 == dep.module.organization.value && t._2 == dep.module.name.value
       ).map { forced =>
         val newDep = dep.withVersion(forced._3)
-        T.log.debug(s"Mapping ${dep} to ${newDep}")
+        T.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
         newDep
       }.getOrElse(dep)
     }
   }
-  val forcedVersions = Seq(
+  val forcedVersions: Seq[(String, String, String)] = Seq(
     ("org.apache.ant", "ant", "1.10.12"),
     ("commons-io", "commons-io", "2.11.0"),
-    ("com.google.code.gson", "gson", "2.9.0"),
-    ("com.google.protobuf", "protobuf-java", "3.21.2"),
+    ("com.google.code.gson", "gson", "2.9.1"),
+    ("com.google.protobuf", "protobuf-java", "3.21.8"),
     ("com.google.guava", "guava", "31.1-jre")
   )
 }
