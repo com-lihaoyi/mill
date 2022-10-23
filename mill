@@ -48,4 +48,4 @@ fi
 unset MILL_DOWNLOAD_PATH
 unset MILL_VERSION
 
-exec $MILL_EXEC_PATH "$@"
+exec $MILL_EXEC_PATH -D "mill.main.cli=${0}" "$@"

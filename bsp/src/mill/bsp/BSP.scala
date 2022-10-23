@@ -62,8 +62,10 @@ object BSP extends ExternalModule {
   // creates a Json with the BSP connection details
   def createBspConnectionJson(jobs: Int, debug: Boolean): String = {
     // we assume, the classpath is an executable jar here, FIXME
-    val millPath = sys.props
-      .get("java.class.path")
+    val props = sys.props
+    val millPath = props
+      .get("mill.main.cli")
+      .orElse(props.get("java.class.path"))
       .getOrElse(throw new IllegalStateException("System property 'java.class.path' not set"))
 
     write(
