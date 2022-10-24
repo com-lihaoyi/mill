@@ -227,6 +227,23 @@ These are maintained as part of the primary Mill Github repo for easy testing/up
 APIs evolve, ensuring that they are always tested and passing against the
 corresponding version of Mill.
 
+== Project Maintenance
+
+=== Pull Requests
+
+* Changes to the main branch need a pull request. Exceptions are preparation commits for releases, which are meant to be pushed with tags in one go
+* Merged pull request (and closed issues) need to be assigned to a Milestone
+* Pull requests are typically merged via "Squash and merge", so we get a linear and useful history
+* Larger pull request, where it makes sense to keep single commits, or with multiple authors may be committed via merge commits.
+
+=== Commit Messages
+
+* The title should be meaningful and may contain the pull request number in parentheses (typically automatically generated on GitHub)
+* The description should contain additional required details, which typically reflect the content of the first PR comment
+* A full link to the pull request should be added via a line: `Pull request: <link>`
+* If the PR has multiple authors but is merged as merge commit, those authors should be included via a line for each co-author: `Co-authored-by: <author>`
+* If the message contains links to other issues or pull requests, you should use full URLs to reference them
+
 == Changelog
 
 
