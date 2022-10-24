@@ -127,7 +127,8 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
   val millModuledefsVersion = "0.10.9-alpha-1"
   val millModuledefs = ivy"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
-  val millModuledefsPlugin = ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
+  val millModuledefsPlugin =
+    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   val testng = ivy"org.testng:testng:7.5"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
@@ -283,10 +284,11 @@ trait MillMimaConfig extends mima.Mima {
   )
 }
 
-/** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs.  */
+/** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
 trait WithMillCompiler extends ScalaModule {
   override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(Deps.millModuledefs)
-  override def scalacPluginIvyDeps: Target[Agg[Dep]] = super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefsPlugin)
+  override def scalacPluginIvyDeps: Target[Agg[Dep]] =
+    super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefsPlugin)
 }
 
 /**
@@ -307,7 +309,8 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
     if (this == main) Seq(main)
     else Seq(this, main.test)
 
-  trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule with WithMillCompiler {
+  trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
+      with WithMillCompiler {
     override def forkArgs = T {
       Seq(
         s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
@@ -324,7 +327,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
       ) ++ outer.testArgs()
     }
     override def moduleDeps = outer.testModuleDeps
-    override def ivyDeps: T[Agg[Dep]] = T{ super.ivyDeps() ++ outer.testIvyDeps() }
+    override def ivyDeps: T[Agg[Dep]] = T { super.ivyDeps() ++ outer.testIvyDeps() }
     override def testFramework = "mill.UTestFramework"
   }
   trait Tests extends MillScalaModuleTests
@@ -523,7 +526,7 @@ object scalalib extends MillModule {
   def testArgs = T {
     val genIdeaArgs =
 //      genTask(main.moduledefs)() ++
-        genTask(main.core)() ++
+      genTask(main.core)() ++
         genTask(main)() ++
         genTask(scalalib)() ++
         genTask(scalajslib)() ++
