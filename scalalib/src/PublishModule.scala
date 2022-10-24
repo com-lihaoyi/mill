@@ -13,7 +13,17 @@ import mill.scalalib.publish.{Artifact, VersionScheme, SonatypePublisher}
 trait PublishModule extends JavaModule { outer =>
   import mill.scalalib.publish._
 
-  override def moduleDeps: Seq[PublishModule] = Seq.empty[PublishModule]
+  private class Error(msg: String) extends scala.util.control.NoStackTrace {
+    override def getMessage() = msg
+  }
+
+  override def moduleDeps: Seq[PublishModule] = super.moduleDeps.map {
+    case m: PublishModule => m
+    case other =>
+      throw new Error(
+        s"PublishModule moduleDeps need to be also PublishModules. $other is not a PublishModule"
+      )
+  }
 
   def pomSettings: T[PomSettings]
   def publishVersion: T[String]
