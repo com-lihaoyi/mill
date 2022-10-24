@@ -248,6 +248,9 @@ trait MillMimaConfig extends mima.Mima {
       ),
       ProblemFilter.exclude[DirectMissingMethodProblem](
         "mill.scalalib.scalafmt.ScalafmtModule.bspCompileClasspath"
+      ),
+      ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.scalalib.PublishModule.mill$scalalib$PublishModule$$super$moduleDeps"
       )
     ),
     contrib.scoverage -> Seq(
