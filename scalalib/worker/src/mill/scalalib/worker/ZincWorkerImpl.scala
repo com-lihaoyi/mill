@@ -11,11 +11,9 @@ import sbt.internal.inc._
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
-import sbt.util.LogExchange
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import xsbti.{PathBasedFile, VirtualFile}
 
-import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.ref.SoftReference
 import scala.util.Properties.isWin
