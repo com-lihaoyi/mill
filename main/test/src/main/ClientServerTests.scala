@@ -181,7 +181,7 @@ object ClientServerTests extends TestSuite {
 
         // Give a bit of time for the server to release the lock and
         // re-acquire it to signal to the client that it's done
-        Thread.sleep(100)
+        Thread.sleep(500)
 
         assert(
           locks.clientLock.probe(),
