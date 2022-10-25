@@ -26,14 +26,14 @@ trait GitlabPublishModule extends PublishModule {
     val auth = tokenLookup.resolveGitlabToken(log, env, props)
     if (auth.isEmpty) {
       throw new GitlabAuthenticationException(
-          s"Unable to resolve authentication with $tokenLookup"
+        s"Unable to resolve authentication with $tokenLookup"
       )
     }
     auth.get
   }
 
   def env: Input[Map[String, String]] = T.input(T.ctx().env)
-  def props: Map[String, String]      = sys.props.toMap
+  def props: Map[String, String] = sys.props.toMap
 
   def publishGitlab(
       readTimeout: Int = 60000,
@@ -49,11 +49,11 @@ trait GitlabPublishModule extends PublishModule {
     } else {
       val uploader = new GitlabUploader(gitlabAuth)
       new GitlabPublisher(
-          uploader.upload,
-          gitlabRepo,
-          readTimeout,
-          connectTimeout,
-          T.log
+        uploader.upload,
+        gitlabRepo,
+        readTimeout,
+        connectTimeout,
+        T.log
       ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
     }
 
@@ -73,20 +73,21 @@ object GitlabPublishModule extends ExternalModule {
     val repo = ProjectRepository(gitlabRoot, projectId)
     val auth = GitlabAuthHeaders.privateToken(personalToken)
 
-    val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
-      case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
-    }
+    val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
+      T.sequence(publishArtifacts.value)().map {
+        case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
+      }
 
     val uploader = new GitlabUploader(auth)
 
     new GitlabPublisher(
-        uploader.upload,
-        repo,
-        readTimeout,
-        connectTimeout,
-        T.log
+      uploader.upload,
+      repo,
+      readTimeout,
+      connectTimeout,
+      T.log
     ).publishAll(
-        artifacts: _*
+      artifacts: _*
     )
   }
 
@@ -101,7 +102,7 @@ trait GitlabMavenRepository {
 
   def mavenRepo(implicit context: Ctx): MavenRepository = {
     val gitlabAuth = tokenLookup.resolveGitlabToken(context.log, context.env, sys.props.toMap).get
-    val auth       = Authentication(gitlabAuth.headers)
+    val auth = Authentication(gitlabAuth.headers)
     MavenRepository(repository.url(), Some(auth))
   }
 }

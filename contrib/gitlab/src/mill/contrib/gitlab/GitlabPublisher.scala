@@ -40,7 +40,7 @@ class GitlabPublisher(
     val publishResults = payloads.map { case (fileName, data) =>
       log.info(s"Uploading $fileName")
       val uploadTarget = repo.uploadUrl(artifact)
-      val resp         = upload(s"$uploadTarget/$fileName", data)
+      val resp = upload(s"$uploadTarget/$fileName", data)
       resp
     }
     artifact -> publishResults
@@ -58,7 +58,7 @@ class GitlabPublisher(
       }
       // Or just log? Fail later?
       throw new RuntimeException(
-          s"Failed to publish $artifact to Gitlab. Errors: \n${errors.mkString("\n")}"
+        s"Failed to publish $artifact to Gitlab. Errors: \n${errors.mkString("\n")}"
       )
     }
   }

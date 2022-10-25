@@ -60,7 +60,8 @@ object CrossTests extends TestSuite {
       val Right(("211_js_4", 1)) = check.apply(model.cross1("211").cross2("js").suffixCmd("4"))
       val Right(("212_jvm_5", 1)) = check.apply(model.cross1("212").cross2("jvm").suffixCmd("5"))
       val Right(("212_js_6", 1)) = check.apply(model.cross1("212").cross2("js").suffixCmd("6"))
-      val Right(("212_native_7", 1)) = check.apply(model.cross1("212").cross2("native").suffixCmd("7"))
+      val Right(("212_native_7", 1)) =
+        check.apply(model.cross1("212").cross2("native").suffixCmd("7"))
     }
   }
 }

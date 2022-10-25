@@ -34,7 +34,8 @@ trait TwirlModule extends mill.Module { twirlModule =>
     )
   }
 
-  /** Class instead of an object, to allow re-configuration.
+  /**
+   * Class instead of an object, to allow re-configuration.
    * @since Mill after 0.10.5
    */
   class TwirlResolver()(implicit ctx0: mill.define.Ctx) extends mill.Module()(ctx0)
@@ -48,6 +49,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
       case _ => super.repositoriesTask
     }
   }
+
   /**
    * @since Mill after 0.10.5
    */
