@@ -49,12 +49,15 @@ object BSP extends ExternalModule {
       if (os.exists(bspFile)) T.log.info(s"Overwriting BSP connection file: ${bspFile}")
       else T.log.info(s"Creating BSP connection file: ${bspFile}")
       val withDebug = T.log.debugEnabled
-      if(withDebug) T.log.debug("Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option.")
+      if (withDebug) T.log.debug(
+        "Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option."
+      )
       os.write.over(bspFile, createBspConnectionJson(jobs, withDebug), createFolders = true)
     }
 
   @deprecated("Use other overload instead.", "Mill after 0.10.7")
-  def createBspConnectionJson(jobs: Int): String = BSP.createBspConnectionJson(jobs: Int, debug = false)
+  def createBspConnectionJson(jobs: Int): String =
+    BSP.createBspConnectionJson(jobs: Int, debug = false)
 
   // creates a Json with the BSP connection details
   def createBspConnectionJson(jobs: Int, debug: Boolean): String = {
@@ -74,7 +77,7 @@ object BSP extends ExternalModule {
           "false",
           "--jobs",
           s"${jobs}"
-        ) ++ (if(debug) Seq("--debug") else Seq()),
+        ) ++ (if (debug) Seq("--debug") else Seq()),
         millVersion = BuildInfo.millVersion,
         bspVersion = bspProtocolVersion,
         languages = languages
