@@ -8,11 +8,14 @@ trait PlayTestSuite {
   val testScala212 = sys.props.getOrElse("MILL_SCALA_2_12_VERSION", ???)
   val testScala213 = sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???)
 
-  val testPlay28 = "2.8.18"
+  val testPlay26 = sys.props.getOrElse("TEST_PLAY_VERSION_2_6", ???)
+  val testPlay27 = sys.props.getOrElse("TEST_PLAY_VERSION_2_7", ???)
+  val testPlay28 = sys.props.getOrElse("TEST_PLAY_VERSION_2_8", ???)
 
   val matrix = Seq(
-    (testScala212, "2.6.25"),
-    (testScala212, "2.7.9"),
+    (testScala212, testPlay26),
+    (testScala212, testPlay27),
+    (testScala213, testPlay27),
     (testScala213, testPlay28)
   )
 
