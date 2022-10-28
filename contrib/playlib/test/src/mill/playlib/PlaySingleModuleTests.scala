@@ -75,11 +75,8 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
           evalCount > 0
         )
 
-        // don"t" recompile if nothing changed
+        // don't recompile if nothing changed
         val Right((_, unchangedEvalCount)) = eval.apply(playsingle.compile)
-
-      // FIXME the following test should be uncommented once
-      // https://github.com/lihaoyi/mill/issues/554 is resolved
       // assert(unchangedEvalCount == 0)
       }
     }
