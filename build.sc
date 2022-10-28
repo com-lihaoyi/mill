@@ -890,6 +890,15 @@ object contrib extends MillModule {
     )
   }
 
+  object jmh extends MillModule {
+    override def compileModuleDeps = Seq(scalalib)
+    override def testArgs = T {
+      Seq(
+        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(",")
+      ) ++ scalalib.worker.testArgs()
+    }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+  }
 }
 
 object scalanativelib extends MillModule {
