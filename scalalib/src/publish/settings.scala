@@ -3,6 +3,12 @@ package mill.scalalib.publish
 import mill.scalalib.Dep
 
 case class Artifact(group: String, id: String, version: String) {
+  require(
+    !group.contains("/") &&
+      !id.contains("/") &&
+      !version.contains("/"),
+    "Dependency coordinate must not contain `/`s"
+  )
   def isSnapshot: Boolean = version.endsWith("-SNAPSHOT")
 }
 
