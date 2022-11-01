@@ -412,15 +412,19 @@ class Evaluator private[Evaluator] (
           destSegments(labelledNamedTask)
         )
 
-        val cached = for {
+        val cached: Option[(Any, Int)] = for {
           cached <-
             try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
-            catch { case NonFatal(_) => None }
+            catch {
+              case NonFatal(_) => None
+            }
           if cached.inputsHash == inputsHash
           reader <- labelledNamedTask.format
           parsed <-
             try Some(upickle.default.read(cached.value)(reader))
-            catch { case NonFatal(_) => None }
+            catch {
+              case NonFatal(_) => None
+            }
         } yield (parsed, cached.valueHash)
 
         val previousWorker = labelledNamedTask.task.asWorker.flatMap { w =>
