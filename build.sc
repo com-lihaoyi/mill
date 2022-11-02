@@ -3,7 +3,7 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.0`
-import $ivy.`com.github.lolgab::mill-mima::0.0.12`
+import $ivy.`com.github.lolgab::mill-mima::0.0.13`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
 // imports
@@ -87,8 +87,8 @@ object Deps {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.10.1"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.10.1"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.11.0"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.11.0"
   }
 
   object Scalanative_0_4 {
@@ -97,6 +97,24 @@ object Deps {
     val scalanativeNir = ivy"org.scala-native::nir:0.4.7"
     val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.7"
   }
+
+  trait Play {
+    def playVersion: String
+    def playBinVersion: String = playVersion.split("[.]").take(2).mkString(".")
+    def routesCompiler = ivy"com.typesafe.play::routes-compiler::$playVersion"
+    def scalaVersion: String = Deps.scalaVersion
+  }
+  object Play_2_6 extends Play {
+    val playVersion = "2.6.25"
+    override def scalaVersion: String = Deps.workerScalaVersion212
+  }
+  object Play_2_7 extends Play {
+    val playVersion = "2.7.9"
+  }
+  object Play_2_8 extends Play {
+    val playVersion = "2.8.18"
+  }
+  val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
   val ammoniteVersion = "2.5.5"
@@ -110,11 +128,11 @@ object Deps {
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.3"
-  val coursier = ivy"io.get-coursier::coursier:2.1.0-M6"
+  val coursier = ivy"io.get-coursier::coursier:2.1.0-M7-39-gb8f3d7532"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.0"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.1"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
@@ -123,7 +141,7 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.18.0"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.19.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
   val millModuledefsVersion = "0.10.9-alpha-1"
   val millModuledefs = ivy"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
@@ -131,7 +149,7 @@ object Deps {
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   val testng = ivy"org.testng:testng:7.5"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
-  val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
+  val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.0"
   val scalametaTrees = ivy"org.scalameta::trees:4.6.0"
@@ -697,7 +715,10 @@ object contrib extends MillModule {
       val mapping = Map(
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6" -> worker("2.6").assembly().path,
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7" -> worker("2.7").assembly().path,
-        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path,
+        "TEST_PLAY_VERSION_2_6" -> Deps.Play_2_6.playVersion,
+        "TEST_PLAY_VERSION_2_7" -> Deps.Play_2_7.playVersion,
+        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion,
       )
 
       scalalib.worker.testArgs() ++
@@ -708,7 +729,7 @@ object contrib extends MillModule {
 
     object api extends MillPublishModule
 
-    object worker extends Cross[WorkerModule]("2.6", "2.7", "2.8")
+    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
     class WorkerModule(playBinary: String) extends MillInternalModule {
       override def sources = T.sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
@@ -716,19 +737,11 @@ object contrib extends MillModule {
         // just remove the shared source dir for that worker and implement directly.
         Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
       }
-      override def scalaVersion = playBinary match {
-        case "2.6" => Deps.workerScalaVersion212
-        case _ => Deps.scalaVersion
-      }
+      override def scalaVersion = Deps.play(playBinary).scalaVersion
       override def moduleDeps = Seq(playlib.api)
-      def playVersion = playBinary match {
-        case "2.6" => "2.6.25"
-        case "2.7" => "2.7.9"
-        case "2.8" => "2.8.16"
-      }
       override def ivyDeps = Agg(
         Deps.osLib,
-        ivy"com.typesafe.play::routes-compiler::$playVersion"
+        Deps.play(playBinary).routesCompiler
       )
     }
   }
