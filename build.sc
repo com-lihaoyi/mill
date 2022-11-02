@@ -127,7 +127,7 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.3"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.4"
   val coursier = ivy"io.get-coursier::coursier:2.1.0-M7-39-gb8f3d7532"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
@@ -718,7 +718,7 @@ object contrib extends MillModule {
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path,
         "TEST_PLAY_VERSION_2_6" -> Deps.Play_2_6.playVersion,
         "TEST_PLAY_VERSION_2_7" -> Deps.Play_2_7.playVersion,
-        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion,
+        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion
       )
 
       scalalib.worker.testArgs() ++
