@@ -101,8 +101,18 @@ trait GitlabMavenRepository {
   def repository: GitlabPackageRepository // For package discovery
 
   def mavenRepo(implicit context: Ctx): MavenRepository = {
-    val gitlabAuth = tokenLookup.resolveGitlabToken(context.log, context.env, sys.props.toMap).get
-    val auth = Authentication(gitlabAuth.headers)
-    MavenRepository(repository.url(), Some(auth))
+    val maybeRepository = tokenLookup
+      .resolveGitlabToken(context.log, context.env, sys.props.toMap)
+      .map(gitlabAuth => Authentication(gitlabAuth.headers))
+      .map(auth => MavenRepository(repository.url(), Some(auth)))
+
+    maybeRepository.getOrElse {
+      val indent = "      "
+      val tokenSearchPlaces = tokenLookup.tokenSearchOrder.mkString("", s",\n$indent", "\n")
+      val error =
+        s"Could not find Gitlab authentication for $repository, \n  Searched from:\n$indent$tokenSearchPlaces"
+      context.log.error(error)
+      throw new RuntimeException()
+    }
   }
 }
