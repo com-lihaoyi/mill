@@ -153,6 +153,12 @@ Making mill to fetch package from gitlab package repository is simple:
 
 [source,scala]
 ----
+import mill._, scalalib._, mill.scalalib.publish._
+import coursier.MavenRepository
+import coursier.core.Authentication
+import $ivy.`com.lihaoyi::mill-contrib-gitlab:`
+import mill.contrib.gitlab._
+
 // DON'T DO THIS
 def repositoriesTask = T.task {
   super.repositoriesTask() ++ Seq(
@@ -178,7 +184,7 @@ object myPackageRepository extends GitlabMavenRepository {
 object myModule extends ScalaModule {
   // ...
   def repositoriesTask = T.task {
-    super.repositoriesTask() ++ Seq(myPackageRepository.mavenRepo())
+    super.repositoriesTask() ++ Seq(myPackageRepository.mavenRepo)
   }
 }
 ----
@@ -188,8 +194,8 @@ the same configuration mechanisms as described <<Configuring token lookup,above>
 
 _Why the intermediate `packageRepository` object?_
 
-Nothing actually prevents you from implementing `GitlabMavenRepository` trait. Having
-a separate object makes configuration more sharable when you have multiple registries.
+Nothing actually prevents you from implementing `GitlabMavenRepository` trait with your module.
+Having a separate object makes configuration more sharable when you have multiple registries.
 
 Gitlab supports instance, group and project registries. When depending on
 multiple private packages is more convenient to depend on instance or
