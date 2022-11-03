@@ -111,8 +111,7 @@ trait GitlabMavenRepository {
       val tokenSearchPlaces = tokenLookup.tokenSearchOrder.mkString("", s",\n$indent", "\n")
       val error =
         s"Could not find Gitlab authentication for $repository, \n  Searched from:\n$indent$tokenSearchPlaces"
-      context.log.error(error)
-      throw new RuntimeException()
+      throw new RuntimeException(error)
     }
   }
 }
