@@ -890,7 +890,7 @@ object contrib extends MillModule {
     )
   }
 
-  object jmh extends MillModule {
+  object jmh extends MillInternalModule with MillAutoTestSetup with WithMillCompiler {
     override def compileModuleDeps = Seq(scalalib)
     override def testArgs = T {
       Seq(
