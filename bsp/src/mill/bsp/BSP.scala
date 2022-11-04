@@ -42,18 +42,17 @@ object BSP extends ExternalModule {
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
    */
-  def install(evaluator: Evaluator, jobs: Int = 1): Command[Unit] =
-    T.command {
-      val bspDirectory = evaluator.rootModule.millSourcePath / ".bsp"
-      val bspFile = bspDirectory / s"${serverName}.json"
-      if (os.exists(bspFile)) T.log.info(s"Overwriting BSP connection file: ${bspFile}")
-      else T.log.info(s"Creating BSP connection file: ${bspFile}")
-      val withDebug = T.log.debugEnabled
-      if (withDebug) T.log.debug(
-        "Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option."
-      )
-      os.write.over(bspFile, createBspConnectionJson(jobs, withDebug), createFolders = true)
-    }
+  def install(evaluator: Evaluator, jobs: Int = 1): Command[Unit] = T.command {
+    val bspDirectory = evaluator.rootModule.millSourcePath / ".bsp"
+    val bspFile = bspDirectory / s"${serverName}.json"
+    if (os.exists(bspFile)) T.log.info(s"Overwriting BSP connection file: ${bspFile}")
+    else T.log.info(s"Creating BSP connection file: ${bspFile}")
+    val withDebug = T.log.debugEnabled
+    if (withDebug) T.log.debug(
+      "Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option."
+    )
+    os.write.over(bspFile, createBspConnectionJson(jobs, withDebug), createFolders = true)
+  }
 
   @deprecated("Use other overload instead.", "Mill after 0.10.7")
   def createBspConnectionJson(jobs: Int): String =
@@ -61,10 +60,10 @@ object BSP extends ExternalModule {
 
   // creates a Json with the BSP connection details
   def createBspConnectionJson(jobs: Int, debug: Boolean): String = {
-    // we assume, the classpath is an executable jar here, FIXME
     val props = sys.props
     val millPath = props
       .get("mill.main.cli")
+      // we assume, the classpath is an executable jar here
       .orElse(props.get("java.class.path"))
       .getOrElse(throw new IllegalStateException("System property 'java.class.path' not set"))
 
