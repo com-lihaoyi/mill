@@ -34,17 +34,16 @@ object JmhModuleTest extends TestSuite {
 
   def tests = Tests {
     test("jmh") {
-      "detects benchmarks" - workspaceTest(jmh) { eval =>
+      "listJmhBenchmarks" - workspaceTest(jmh) { eval =>
         val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, jmh.listJmhBenchmarks())
         val outFile = paths.dest / "benchmarks.out"
-        println(outFile)
         val Right((result, _)) = eval(jmh.listJmhBenchmarks("-o", outFile.toString))
         val expected = """Benchmarks:
                          |mill.contrib.jmh.Bench2.log
                          |mill.contrib.jmh.Bench2.sqrt
                          |mill.contrib.jmh.Bench1.measureShared
                          |mill.contrib.jmh.Bench1.measureUnshared""".stripMargin
-        val out = os.read.lines(outFile).map(_.trim).mkString("\n")
+        val out = os.read.lines(outFile).map(_.trim).mkString(System.lineSeparator())
         assert(out == expected)
       }
     }
