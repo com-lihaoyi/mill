@@ -1,24 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Cross Builds :: Mill</title>
-    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Cross_Builds.html">
-    <link rel="prev" href="Modules.html">
-    <link rel="next" href="Extending_Mill.html">
-    <meta name="generator" content="Antora 3.0.1">
-    <link rel="stylesheet" href="../../_/css/site.css">
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Cross_Builds.html" />
+    <link rel="prev" href="Modules.html" />
+    <link rel="next" href="Extending_Mill.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
     <script>var uiRootPath = '../../_'</script>
-  </head>
-  <body class="article">
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" />&nbsp;Mill</a>
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -139,7 +140,7 @@
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-latest">
-          <a href="../index.html">0.10.8-24-76eef9</a>
+          <a href="../index.html">0.10.8-29-72ea15</a>
         </li>
         <li class="version">
           <a href="../0.10.8/index.html">0.10.8</a>
@@ -209,7 +210,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.9.10</button>
   <div class="version-menu">
-    <a class="version" href="../Cross_Builds.html">0.10.8-24-76eef9</a>
+    <a class="version" href="../Cross_Builds.html">0.10.8-29-72ea15</a>
     <a class="version" href="../0.10.8/Cross_Builds.html">0.10.8</a>
     <a class="version" href="../0.10.7/Cross_Builds.html">0.10.7</a>
     <a class="version" href="../0.10.6/Cross_Builds.html">0.10.6</a>
@@ -251,7 +252,7 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
   def bigSuffix = T { suffix().toUpperCase() }
@@ -259,7 +260,7 @@ class FooModule(crossVersion: String) extends Module {
 </div>
 </div>
 <div class="paragraph">
-<p>This defines three copies of <code>FooModule</code>: <code>"210"</code>, <code>"211"</code> and <code>"212"</code>, each of
+<p>This defines three copies of <code>FooModule</code>: <code>&quot;210&quot;</code>, <code>&quot;211&quot;</code> and <code>&quot;212&quot;</code>, each of
 which has their own <code>suffix</code> target. You can then run them via</p>
 </div>
 <div class="listingblock">
@@ -302,14 +303,14 @@ foo/2.12/bigSuffix</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val crossMatrix = for {
-  crossVersion &lt;- Seq("210", "211", "212")
-  platform &lt;- Seq("jvm", "js", "native")
-  if !(platform == "native" &amp;&amp; crossVersion != "212")
+  crossVersion &lt;- Seq(&quot;210&quot;, &quot;211&quot;, &quot;212&quot;)
+  platform &lt;- Seq(&quot;jvm&quot;, &quot;js&quot;, &quot;native&quot;)
+  if !(platform == &quot;native&quot; &amp;&amp; crossVersion != &quot;212&quot;)
 } yield (crossVersion, platform)
 
 object foo extends mill.Cross[FooModule](crossMatrix:_*)
 class FooModule(crossVersion: String, platform: String) extends Module {
-  def suffix = T { crossVersion + "_" + platform }
+  def suffix = T { crossVersion + &quot;_&quot; + platform }
 }</code></pre>
 </div>
 </div>
@@ -340,27 +341,27 @@ mill show foo[212,native].suffix</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
 
-def bar = T { "hello " + foo("2.10").suffix }</code></pre>
+def bar = T { &quot;hello &quot; + foo(&quot;2.10&quot;).suffix }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Here, <code>foo("2.10")</code> references the <code>"2.10"</code> instance of <code>FooModule</code>. You can
+<p>Here, <code>foo(&quot;2.10&quot;)</code> references the <code>&quot;2.10&quot;</code> instance of <code>FooModule</code>. You can
 refer to whatever versions of the cross-module you want, even using multiple
 versions of the cross-module in the same target:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
 
-def bar = T { "hello " + foo("2.10").suffix + " world " + foo("2.12").suffix }</code></pre>
+def bar = T { &quot;hello &quot; + foo(&quot;2.10&quot;).suffix + &quot; world &quot; + foo(&quot;2.12&quot;).suffix }</code></pre>
 </div>
 </div>
 </div>
@@ -374,12 +375,12 @@ targets:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
 
-object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class BarModule(crossVersion: String) extends Module {
   def bigSuffix = T { foo(crossVersion).suffix().toUpperCase() }
 }</code></pre>
@@ -417,14 +418,14 @@ to other cross-modules with an identical set of cross values:</p>
   }
 }
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(val crossVersion: String) extends MyModule {
   def suffix = T { crossVersion }
 }
 
-object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class BarModule(val crossVersion: String) extends MyModule {
-  def longSuffix = T { "_" + foo().suffix() }
+  def longSuffix = T { &quot;_&quot; + foo().suffix() }
 }</code></pre>
 </div>
 </div>
@@ -450,9 +451,9 @@ looks for a cross-module instance whose <code>scalaVersion</code> is binary comp
   <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
 </footer>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>
