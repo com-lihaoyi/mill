@@ -22,7 +22,7 @@ class MillBuildModuleTests(fork: Boolean, clientServer: Boolean)
   val tests = Tests {
     test("Mill itself") {
       initWorkspace()
-      checkShow("millVersion", """"0.10.7"""")
+      if(fork) checkShow("millVersion", """"0.10.7"""")
       checkShow(
         "sources",
         s"""[
