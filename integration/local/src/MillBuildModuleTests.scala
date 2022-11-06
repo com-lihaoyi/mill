@@ -10,7 +10,7 @@ class MillBuildModuleTests(fork: Boolean, clientServer: Boolean)
 
   val ExtMod = MillBuildModule.millModuleSegments.render
 
-  def cleanRefs(string: String): String = string.replaceAll("[\"]ref:[0-9a-e]{8}:", "\"")
+  def cleanRefs(string: String): String = string.replaceAll("[\"]ref:[0-9a-f]{8}:", "\"")
 
   def checkShow(target: String, expected: String) = {
     val (true, out) = evalStdout("show", s"${ExtMod}/${target}")
