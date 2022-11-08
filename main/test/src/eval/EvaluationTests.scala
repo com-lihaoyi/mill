@@ -361,7 +361,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       // the main publicly-available command
       import StackableOverrides._
 
-      val checker = new Checker(canOverrideSuper)
+      val checker = new Checker(StackableOverrides)
       checker(
         m.f,
         6,
@@ -381,6 +381,26 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           .contains(" 3,")
       )
       assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))
+    }
+    "privateTasksInMixedTraits" - {
+      // Make sure we can have private cached targets in different trait with the same name,
+      // and caching still works when these traits are mixed together
+      import PrivateTasksInMixedTraits._
+      val checker = new Checker(PrivateTasksInMixedTraits)
+      checker(
+        mod.bar,
+        "foo-m1",
+        Agg(mod.bar),
+        extraEvaled = -1
+      )
+      // If we evaluate to "foo-m1" instead of "foo-m2",
+      // we don't properly distinguish between the two private `foo` targets
+      checker(
+        mod.baz,
+        "foo-m2",
+        Agg(mod.baz),
+        extraEvaled = -1
+      )
     }
   }
 }
