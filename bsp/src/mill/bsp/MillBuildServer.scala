@@ -183,14 +183,6 @@ class MillBuildServer(
 
       // TODO: scan BspModules and infer their capabilities
 
-//      if (request.getRootUri != bspIdByModule(millBuildTarget).getUri) {
-//        log.debug(
-//          s"Workspace root differs from mill build root! Requested root: ${request.getRootUri} Mill root: ${millBuildTarget.buildTargetId.getUri}"
-//        )
-//      }
-
-//      val moduleBspInfo = bspModulesById.values.map(_.bspBuildTarget).toSeq
-
       val clientCaps = request.getCapabilities().getLanguageIds().asScala
 
 //      val compileLangs = moduleBspInfo.filter(_.canCompile).flatMap(_.languageIds).distinct.filter(
