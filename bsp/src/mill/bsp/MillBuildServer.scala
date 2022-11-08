@@ -358,13 +358,6 @@ class MillBuildServer(
             sources.setRoots(Seq(sanitizeUri(evaluator.rootModule.millSourcePath)).asJava)
             sources
           }
-//        case (id, `millBuildTarget`) =>
-//          T.task {
-//            new SourcesItem(
-//              id,
-//              Seq(sourceItem(evaluator.rootModule.millSourcePath / "build.sc", false)).asJava
-//            )
-//          }
         case (id, module: JavaModule) =>
           T.task {
             val items = module.sources().map(p => sourceItem(p.path, false)) ++
@@ -408,13 +401,6 @@ class MillBuildServer(
         targetIds = p.getTargets.asScala.toSeq,
         agg = (items: Seq[DependencySourcesItem]) => new DependencySourcesResult(items.asJava)
       ) {
-//        case (id, `millBuildTarget`) =>
-//          T.task {
-//            new DependencySourcesItem(
-//              id,
-//              ModuleUtils.getMillBuildClasspath(evaluator, sources = true).asJava
-//            )
-//          }
         case (id, m: JavaModule) =>
           T.task {
             val sources = m.resolveDeps(
