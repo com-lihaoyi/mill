@@ -26,6 +26,11 @@ import ch.epfl.scala.bsp4j.{
   InitializeBuildResult,
   InverseSourcesParams,
   InverseSourcesResult,
+  OutputPathItem,
+  OutputPathItemKind,
+  OutputPathsItem,
+  OutputPathsParams,
+  OutputPathsResult,
   ResourcesItem,
   ResourcesParams,
   ResourcesResult,
@@ -498,6 +503,36 @@ class MillBuildServer(
       val compileResult = new CompileResult(Utils.getStatusCode(result))
       compileResult.setOriginId(p.getOriginId)
       compileResult // TODO: See in what form IntelliJ expects data about products of compilation in order to set data field
+    }
+
+  override def buildTargetOutputPaths(params: OutputPathsParams)
+      : CompletableFuture[OutputPathsResult] =
+    completable(s"buildTargetOutputPaths ${params}") { state =>
+      import state._
+
+      val outItems = new OutputPathItem(
+        // Spec says, a directory must end with a forward slash
+        sanitizeUri.apply(evaluator.outPath) + "/",
+        OutputPathItemKind.DIRECTORY
+      )
+
+      val extItems = new OutputPathItem(
+        // Spec says, a directory must end with a forward slash
+        sanitizeUri.apply(evaluator.externalOutPath) + "/",
+        OutputPathItemKind.DIRECTORY
+      )
+
+      val items = for {
+        target <- params.getTargets.asScala
+        module <- bspModulesById.get(target)
+      } yield {
+        val items =
+          if (module.millOuterCtx.external) List(extItems)
+          else List(outItems)
+        new OutputPathsItem(target, items.asJava)
+      }
+
+      new OutputPathsResult(items.asJava)
     }
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
