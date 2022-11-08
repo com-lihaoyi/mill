@@ -211,21 +211,20 @@ class MillBuildServer(
 
       val supportedLangs = Seq("java", "scala").asJava
       val capabilities = new BuildServerCapabilities
-      capabilities.setCompileProvider(new CompileProvider(supportedLangs))
-      capabilities.setRunProvider(new RunProvider(supportedLangs))
-      capabilities.setTestProvider(new TestProvider(supportedLangs))
-      capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
-      capabilities.setDependencySourcesProvider(true)
 
-      capabilities.setDependencyModulesProvider(true)
-      capabilities.setInverseSourcesProvider(true)
-      capabilities.setResourcesProvider(true)
-      capabilities.setBuildTargetChangedProvider(
-        false
-      )
+      capabilities.setBuildTargetChangedProvider(false)
       capabilities.setCanReload(canReload)
+      capabilities.setCompileProvider(new CompileProvider(supportedLangs))
+      capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
+      capabilities.setDependencyModulesProvider(true)
+      capabilities.setDependencySourcesProvider(true)
+      capabilities.setInverseSourcesProvider(true)
       capabilities.setJvmRunEnvironmentProvider(true)
       capabilities.setJvmTestEnvironmentProvider(true)
+      capabilities.setOutputPathsProvider(true)
+      capabilities.setResourcesProvider(true)
+      capabilities.setRunProvider(new RunProvider(supportedLangs))
+      capabilities.setTestProvider(new TestProvider(supportedLangs))
 
       request.getDisplayName match {
         case "IntelliJ-BSP" => clientIsIntelliJ = true
