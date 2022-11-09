@@ -9,7 +9,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
     !dep.module.name.value.contains("/") &&
       !dep.module.organization.value.contains("/") &&
       !dep.version.contains("/"),
-    "Dependency coordinate must not contain `/`s"
+    "Dependency coordinates must not contain `/`s"
   )
 
   import mill.scalalib.api.ZincWorkerUtil.{

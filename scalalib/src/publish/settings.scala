@@ -7,7 +7,7 @@ case class Artifact(group: String, id: String, version: String) {
     !group.contains("/") &&
       !id.contains("/") &&
       !version.contains("/"),
-    "Dependency coordinate must not contain `/`s"
+    "Artifact coordinates must not contain `/`s"
   )
   def isSnapshot: Boolean = version.endsWith("-SNAPSHOT")
 }
