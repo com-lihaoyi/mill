@@ -1,11 +1,23 @@
 package mill.scalalib
+
 import JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
-import mill.scalalib.api.Util.Scala3EarlyVersion
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
-  import mill.scalalib.api.Util.{isDottyOrScala3, DottyVersion, Scala3Version}
+  require(
+    !dep.module.name.value.contains("/") &&
+      !dep.module.organization.value.contains("/") &&
+      !dep.version.contains("/"),
+    "Dependency coordinates must not contain `/`s"
+  )
+
+  import mill.scalalib.api.ZincWorkerUtil.{
+    isDottyOrScala3,
+    DottyVersion,
+    Scala3Version,
+    Scala3EarlyVersion
+  }
 
   def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
@@ -134,7 +146,7 @@ sealed trait CrossVersion {
   /** The string that should be appended to the module name to get the artifact name */
   def suffixString(binaryVersion: String, fullVersion: String, platformSuffix: String): String = {
     val firstSuffix = if (platformed) platformSuffix else ""
-    this match {
+    val suffix = this match {
       case cross: Constant =>
         s"${firstSuffix}${cross.value}"
       case cross: Binary =>
@@ -142,6 +154,8 @@ sealed trait CrossVersion {
       case cross: Full =>
         s"${firstSuffix}_${fullVersion}"
     }
+    require(!suffix.contains("/"), "Artifact suffix must not contain `/`s")
+    suffix
   }
 }
 object CrossVersion {
