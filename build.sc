@@ -92,10 +92,10 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.7"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.7"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.7"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.7"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.8"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.8"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.8"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.8"
   }
 
   trait Play {
@@ -718,7 +718,7 @@ object contrib extends MillModule {
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path,
         "TEST_PLAY_VERSION_2_6" -> Deps.Play_2_6.playVersion,
         "TEST_PLAY_VERSION_2_7" -> Deps.Play_2_7.playVersion,
-        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion,
+        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion
       )
 
       scalalib.worker.testArgs() ++
