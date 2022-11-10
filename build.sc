@@ -56,7 +56,18 @@ object Settings {
     "0.10.9"
   )
   val mimaBaseVersions =
-    Seq("0.10.0", "0.10.1", "0.10.2", "0.10.3", "0.10.4", "0.10.5", "0.10.6", "0.10.7", "0.10.8")
+    Seq(
+      "0.10.0",
+      "0.10.1",
+      "0.10.2",
+      "0.10.3",
+      "0.10.4",
+      "0.10.5",
+      "0.10.6",
+      "0.10.7",
+      "0.10.8",
+      "0.10.9"
+    )
 }
 
 object Deps {
@@ -719,7 +730,7 @@ object contrib extends MillModule {
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path,
         "TEST_PLAY_VERSION_2_6" -> Deps.Play_2_6.playVersion,
         "TEST_PLAY_VERSION_2_7" -> Deps.Play_2_7.playVersion,
-        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion,
+        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion
       )
 
       scalalib.worker.testArgs() ++
