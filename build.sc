@@ -143,7 +143,7 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.19.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
-  val millModuledefsVersion = "0.10.9-alpha-1"
+  val millModuledefsVersion = "0.10.9"
   val millModuledefs = ivy"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
