@@ -167,7 +167,7 @@ object Deps {
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.7.2"
-  val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
+  val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
   val requests = ivy"com.lihaoyi::requests:0.7.1"
@@ -718,7 +718,7 @@ object contrib extends MillModule {
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path,
         "TEST_PLAY_VERSION_2_6" -> Deps.Play_2_6.playVersion,
         "TEST_PLAY_VERSION_2_7" -> Deps.Play_2_7.playVersion,
-        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion
+        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion,
       )
 
       scalalib.worker.testArgs() ++
