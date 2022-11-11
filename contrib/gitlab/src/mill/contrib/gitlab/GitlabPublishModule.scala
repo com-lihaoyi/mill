@@ -3,12 +3,11 @@ package mill.contrib.gitlab
 import coursier.core.Authentication
 import coursier.maven.MavenRepository
 import mill._
-import mill.api.{Ctx, Logger}
-import mill.define.{Command, ExternalModule, Input}
+import mill.api.Result.{Failure, Success}
+import mill.api.Result
+import mill.define.{Command, ExternalModule, Task}
 import mill.scalalib.publish.Artifact
 import scalalib._
-
-class GitlabAuthenticationException(message: String) extends Exception(message)
 
 trait GitlabPublishModule extends PublishModule {
 
@@ -19,21 +18,17 @@ trait GitlabPublishModule extends PublishModule {
   def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {}
 
   def gitlabHeaders(
-      log: Logger,
-      env: Map[String, String],
-      props: Map[String, String]
-  ): GitlabAuthHeaders = {
-    val auth = tokenLookup.resolveGitlabToken(log, env, props)
-    if (auth.isEmpty) {
-      throw new GitlabAuthenticationException(
-        s"Unable to resolve authentication with $tokenLookup"
-      )
+      systemProps: Map[String, String] = sys.props.toMap
+  ): Task[GitlabAuthHeaders] = T.task {
+    val auth = tokenLookup.resolveGitlabToken(T.env.get, systemProps.get)()
+    auth match {
+      case Left(msg) =>
+        Failure(
+          s"Token lookup for PUBLISH repository ($publishRepository) failed with $msg"
+        ): Result[GitlabAuthHeaders]
+      case Right(value) => Success(value)
     }
-    auth.get
   }
-
-  def env: Input[Map[String, String]] = T.input(T.ctx().env)
-  def props: Map[String, String] = sys.props.toMap
 
   def publishGitlab(
       readTimeout: Int = 60000,
@@ -41,13 +36,12 @@ trait GitlabPublishModule extends PublishModule {
   ): define.Command[Unit] = T.command {
 
     val gitlabRepo = publishRepository
-    val gitlabAuth = gitlabHeaders(T.log, env(), props)
 
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     if (skipPublish) {
       T.log.info(s"SkipPublish = true, skipping publishing of $artifactInfo")
     } else {
-      val uploader = new GitlabUploader(gitlabAuth)
+      val uploader = new GitlabUploader(gitlabHeaders()())
       new GitlabPublisher(
         uploader.upload,
         gitlabRepo,
@@ -98,20 +92,21 @@ object GitlabPublishModule extends ExternalModule {
 
 trait GitlabMavenRepository {
   def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {} // For token discovery
-  def repository: GitlabPackageRepository // For package discovery
+  def gitlabRepository: GitlabPackageRepository // For package discovery
 
-  def mavenRepo(implicit context: Ctx): MavenRepository = {
-    val maybeRepository = tokenLookup
-      .resolveGitlabToken(context.log, context.env, sys.props.toMap)
-      .map(gitlabAuth => Authentication(gitlabAuth.headers))
-      .map(auth => MavenRepository(repository.url(), Some(auth)))
+  def mavenRepository: Task[MavenRepository] = T.task {
 
-    maybeRepository.getOrElse {
-      val indent = "      "
-      val tokenSearchPlaces = tokenLookup.tokenSearchOrder.mkString("", s",\n$indent", "\n")
-      val error =
-        s"Could not find Gitlab authentication for $repository, \n  Searched from:\n$indent$tokenSearchPlaces"
-      throw new RuntimeException(error)
+    val gitlabAuth = tokenLookup.resolveGitlabToken(T.env.get, sys.props.get)()
+      .map(auth => Authentication(auth.headers))
+      .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
+
+    gitlabAuth match {
+      case Left(msg) =>
+        Failure(
+          s"Token lookup for PACKAGE repository ($gitlabRepository) failed with $msg"
+        ): Result[MavenRepository]
+      case Right(value) => Success(value)
     }
   }
+
 }

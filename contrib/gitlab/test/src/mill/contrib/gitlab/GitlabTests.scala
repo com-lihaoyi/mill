@@ -3,6 +3,7 @@ package mill.contrib.gitlab
 import mill.util.DummyLogger
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 import GitlabTokenLookup._
+import mill.T
 import mill.scalalib.publish.Artifact
 
 import scala.collection.mutable.ListBuffer
@@ -14,41 +15,34 @@ object GitlabTests extends TestSuite {
 
     test("Token search returns first applicable") {
       object testLookup extends GitlabTokenLookup {
-        override def tokenSearchOrder: Seq[GitlabToken] = Seq(
-          Personal(Property("gl.token1")),
-          Personal(Property("gl.token2"))
-        )
+        override def tokenSearchOrder = T.task {
+          Seq(
+            Personal(Property("gl.token1")),
+            Personal(Property("gl.token2"))
+          )
+        }
       }
 
-      val none = testLookup.resolveGitlabToken(DummyLogger, Map.empty, Map.empty)
-      val first = testLookup.resolveGitlabToken(DummyLogger, Map.empty, Map("gl.token1" -> "1"))
-      val second = testLookup.resolveGitlabToken(DummyLogger, Map.empty, Map("gl.token2" -> "2"))
-      val both = testLookup.resolveGitlabToken(
-        DummyLogger,
-        Map.empty,
-        Map("gl.token1" -> "1", "gl.token2" -> "2")
-      )
+      val none = testLookup.resolveGitlabToken(Map.empty, Map.empty)
+      val first = testLookup.resolveGitlabToken(Map.empty, Map("gl.token1" -> "1"))
+      val second = testLookup.resolveGitlabToken(Map.empty, Map("gl.token2" -> "2"))
+      val both =
+        testLookup.resolveGitlabToken(Map.empty, Map("gl.token1" -> "1", "gl.token2" -> "2"))
 
-      assert(none.isEmpty)
-      assertMatch(first) { case Some(GitlabAuthHeaders(Seq(("Private-Token", "1")))) => }
-      assertMatch(second) { case Some(GitlabAuthHeaders(Seq(("Private-Token", "2")))) => }
-      assertMatch(both) { case Some(GitlabAuthHeaders(Seq(("Private-Token", "1")))) => }
+      assert(none().isLeft)
+      assertMatch(first()) { case Some(GitlabAuthHeaders(Seq(("Private-Token", "1")))) => }
+      assertMatch(second()) { case Some(GitlabAuthHeaders(Seq(("Private-Token", "2")))) => }
+      assertMatch(both()) { case Some(GitlabAuthHeaders(Seq(("Private-Token", "1")))) => }
     }
 
     test("Token from environment variable") {
-      val token =
-        defaultLookup.resolveGitlabToken(
-          DummyLogger,
-          Map("GITLAB_PERSONAL_ACCESS_TOKEN" -> "t"),
-          Map.empty
-        )
+      val token = defaultLookup.resolveGitlabToken(Map("GITLAB_PRIVATE_TOKEN" -> "t"), Map.empty)
 
       assertMatch(token) { case Some(GitlabAuthHeaders(Seq(("Private-Token", "t")))) => }
     }
 
     test("Token from property") {
       val token = defaultLookup.resolveGitlabToken(
-        DummyLogger,
         Map("GITLAB_DEPLOY_TOKEN" -> "t"),
         Map("gitlab.personal-access-token" -> "pt")
       )
@@ -62,12 +56,12 @@ object GitlabTests extends TestSuite {
       os.write(tokenFile, "foo")
 
       object fileEnv extends GitlabTokenLookup {
-        override def tokenSearchOrder: Seq[GitlabToken] = Seq(
+        override def tokenSearchOrder = T.task(Seq(
           Deploy(File(tokenFile))
-        )
+        ))
       }
 
-      val token = fileEnv.resolveGitlabToken(DummyLogger, Map.empty, Map.empty)
+      val token = fileEnv.resolveGitlabToken(Map.empty, Map.empty)
 
       os.remove(tokenFile)
 
@@ -76,12 +70,12 @@ object GitlabTests extends TestSuite {
 
     test("Custom token source.") {
       object customEnv extends GitlabTokenLookup {
-        override def tokenSearchOrder: Seq[GitlabToken] = Seq(
+        override def tokenSearchOrder = T.task(Seq(
           Deploy(Custom(() => Right("tok")))
-        )
+        ))
       }
 
-      val token = customEnv.resolveGitlabToken(DummyLogger, Map.empty, Map.empty)
+      val token = customEnv.resolveGitlabToken(Map.empty, Map.empty)
 
       assertMatch(token) { case Some(GitlabAuthHeaders(Seq(("Deploy-Token", "tok")))) => }
     }

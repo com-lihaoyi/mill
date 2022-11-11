@@ -1,61 +1,76 @@
 package mill.contrib.gitlab
 
-import mill.api.Logger
-
-import scala.util.Try
+import mill.T
+import mill.api.Result
+import mill.api.Result.Failure
+import mill.api.Result.Success
+import mill.define.Task
 
 trait GitlabTokenLookup {
   import GitlabTokenLookup._
 
   // Default search places for token
-  def personalTokenEnv: String = "GITLAB_PERSONAL_ACCESS_TOKEN"
-  def personalTokenProperty: String = "gitlab.personal-access-token"
-  def personalTokenFile: os.Path = os.home / os.RelPath(".mill/gitlab/personal-access-token")
-  def personalTokenFileWD: os.Path = os.home / os.RelPath(".gitlab/personal-access-token")
-  def deployTokenEnv: String = "GITLAB_DEPLOY_TOKEN"
-  def deployTokenProperty: String = "gitlab.deploy-token"
-  def deployTokenFile: os.Path = os.home / os.RelPath(".mill/gitlab/deploy-token")
-  def deployTokenFileWD: os.Path = os.pwd / os.RelPath(".gitlab/deploy-token")
-  def jobTokenEnv: String = "CI_JOB_TOKEN"
+  def personalTokenEnv: Task[String] = T.task("GITLAB_PERSONAL_ACCESS_TOKEN")
+  def personalTokenProperty: Task[String] = T.task("gitlab.personal-access-token")
+  def personalTokenFile: Task[os.Path] =
+    T.task(os.home / os.RelPath(".mill/gitlab/personal-access-token"))
+  def personalTokenFileWD: Task[os.Path] =
+    T.task(T.workspace / os.RelPath(".gitlab/personal-access-token"))
+  def deployTokenEnv: Task[String] = T.task("GITLAB_DEPLOY_TOKEN")
+  def deployTokenProperty: Task[String] = T.task("gitlab.deploy-token")
+  def deployTokenFile: Task[os.Path] = T.task(os.home / os.RelPath(".mill/gitlab/deploy-token"))
+  def deployTokenFileWD: Task[os.Path] = T.task(T.workspace / os.RelPath(".gitlab/deploy-token"))
+  def jobTokenEnv: Task[String] = T.task("CI_JOB_TOKEN")
 
   // Default token search order. Implementation picks first found and does not look for the rest.
-  def tokenSearchOrder: Seq[GitlabToken] = Seq(
-    Personal(Env(personalTokenEnv)),
-    Personal(Property(personalTokenProperty)),
-    Personal(File(personalTokenFile)),
-    Personal(File(personalTokenFileWD)),
-    Deploy(Env(deployTokenEnv)),
-    Deploy(Property(deployTokenProperty)),
-    Deploy(File(deployTokenFile)),
-    Deploy(File(deployTokenFileWD)),
-    CIJob(Env(jobTokenEnv))
+  def tokenSearchOrder: Task[Seq[GitlabToken]] = T.task(
+    Seq(
+      Personal(Env(personalTokenEnv())),
+      Personal(Property(personalTokenProperty())),
+      Personal(File(personalTokenFile())),
+      Personal(File(personalTokenFileWD())),
+      Deploy(Env(deployTokenEnv())),
+      Deploy(Property(deployTokenProperty())),
+      Deploy(File(deployTokenFile())),
+      Deploy(File(deployTokenFileWD())),
+      CIJob(Env(jobTokenEnv()))
+    )
   )
 
   // Finds gitlab token from this environment. Overriding this is not generally necessary.
   def resolveGitlabToken(
-      log: Logger,
-      env: Map[String, String],
-      props: Map[String, String]
-  ): Option[GitlabAuthHeaders] = {
-    LazyList
-      .from(tokenSearchOrder)
-      .map(tt => buildHeaders(tt, env, props))
-      .tapEach(e => e.left.foreach(msg => log.debug(msg)))
+      // env: Map[String, String],
+      env: String => Option[String],
+      prop: String => Option[String]
+  ): Task[Either[String, GitlabAuthHeaders]] = T.task {
+
+    val searchFrom = tokenSearchOrder()
+
+    val token = LazyList
+      .from(searchFrom)
+      .map(token => buildHeaders(token, env, prop))
+      .tapEach(e => e.left.foreach(msg => T.log.debug(msg)))
       .find(_.isRight)
       .flatMap(_.toOption)
+    token match {
+      case None => Left(s"Unable to find token from $searchFrom")
+      case Some(headers) => Right(headers)
+    }
   }
 
   // Converts GitlabToken to GitlabAuthHeaders. Overriding this is not generally necessary.
   def buildHeaders(
       token: GitlabToken,
-      env: Map[String, String],
-      props: Map[String, String]
+      env: String => Option[String],
+      prop: String => Option[String]
   ): Either[String, GitlabAuthHeaders] = {
 
+    import scala.util.Try
+
     def readSource(source: TokenSource): Either[String, String] = source match {
-      case Env(name) => env.get(name).toRight(s"Could not read environment variable $name")
-      case Property(prop) =>
-        props.get(prop).toRight(s"Could not read system property variable $prop")
+      case Env(name) => env(name).toRight(s"Could not read environment variable $name")
+      case Property(property) =>
+        prop(property).toRight(s"Could not read system property variable $prop")
       case File(path) =>
         Try(os.read(path)).map(_.trim).toEither.left.map(e => s"failed to read file $e")
       case Custom(f) => f()
@@ -68,9 +83,6 @@ trait GitlabTokenLookup {
       case CustomHeader(header, source) => readSource(source).map(GitlabAuthHeaders(header, _))
     }
   }
-
-  override def toString(): String =
-    s"GitlabEnvironment looking token from ${tokenSearchOrder.mkString(", ")}"
 }
 
 object GitlabTokenLookup {

@@ -182,9 +182,13 @@ object myPackageRepository extends GitlabMavenRepository {
 
 //
 object myModule extends ScalaModule {
-  // ...
+  //
   def repositoriesTask = T.task {
-    super.repositoriesTask() ++ Seq(myPackageRepository.mavenRepo)
+    super.repositoriesTask() ++
+      Seq(
+        MavenRepository("https://oss.sonatype.org/content/repositories/releases"),
+        myPackageRegistry.mavenRepo()
+      )
   }
 }
 ----
