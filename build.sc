@@ -52,10 +52,22 @@ object Settings {
     "0.10.5",
     "0.10.6",
     "0.10.7",
-    "0.10.8"
+    "0.10.8",
+    "0.10.9"
   )
   val mimaBaseVersions =
-    Seq("0.10.0", "0.10.1", "0.10.2", "0.10.3", "0.10.4", "0.10.5", "0.10.6", "0.10.7", "0.10.8")
+    Seq(
+      "0.10.0",
+      "0.10.1",
+      "0.10.2",
+      "0.10.3",
+      "0.10.4",
+      "0.10.5",
+      "0.10.6",
+      "0.10.7",
+      "0.10.8",
+      "0.10.9"
+    )
 }
 
 object Deps {
@@ -128,7 +140,7 @@ object Deps {
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.3"
-  val coursier = ivy"io.get-coursier::coursier:2.1.0-M7-39-gb8f3d7532"
+  val coursier = ivy"io.get-coursier::coursier:2.1.0-RC1"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -143,7 +155,7 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.19.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
-  val millModuledefsVersion = "0.10.9-alpha-1"
+  val millModuledefsVersion = "0.10.9"
   val millModuledefs = ivy"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
@@ -718,7 +730,7 @@ object contrib extends MillModule {
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path,
         "TEST_PLAY_VERSION_2_6" -> Deps.Play_2_6.playVersion,
         "TEST_PLAY_VERSION_2_7" -> Deps.Play_2_7.playVersion,
-        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion,
+        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion
       )
 
       scalalib.worker.testArgs() ++
@@ -903,6 +915,15 @@ object contrib extends MillModule {
     )
   }
 
+  object jmh extends MillInternalModule with MillAutoTestSetup with WithMillCompiler {
+    override def compileModuleDeps = Seq(scalalib)
+    override def testArgs = T {
+      Seq(
+        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(",")
+      ) ++ scalalib.worker.testArgs()
+    }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+  }
 }
 
 object scalanativelib extends MillModule {

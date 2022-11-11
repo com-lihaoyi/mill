@@ -45,7 +45,11 @@ if [ ! -s "$MILL_EXEC_PATH" ] ; then
   unset MILL_DOWNLOAD_URL
 fi
 
+if [ -z "$MILL_MAIN_CLI" ] ; then
+  MILL_MAIN_CLI="${0}"
+fi
+
 unset MILL_DOWNLOAD_PATH
 unset MILL_VERSION
 
-exec $MILL_EXEC_PATH "$@"
+exec $MILL_EXEC_PATH -D "mill.main.cli=${MILL_MAIN_CLI}" "$@"
