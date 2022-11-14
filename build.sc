@@ -104,10 +104,10 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.7"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.7"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.7"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.7"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.8"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.8"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.8"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.8"
   }
 
   trait Play {
@@ -178,7 +178,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
-  val zinc = ivy"org.scala-sbt::zinc:1.7.2"
+  val zinc = ivy"org.scala-sbt::zinc:1.8.0"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
