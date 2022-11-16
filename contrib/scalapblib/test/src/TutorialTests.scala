@@ -1,7 +1,8 @@
 package mill.contrib.scalapblib
 
 import mill.T
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
+import mill.define.Sources
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
@@ -15,7 +16,7 @@ object TutorialTests extends TestSuite {
 
   trait TutorialModule extends ScalaPBModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
-    def scalaPBVersion = "0.10.1"
+    def scalaPBVersion = "0.11.7"
     def scalaPBFlatPackage = true
     def scalaPBIncludePath = Seq(scalaPBUnpackProto())
   }
@@ -23,7 +24,7 @@ object TutorialTests extends TestSuite {
   object Tutorial extends TutorialBase {
 
     object core extends TutorialModule {
-      override def scalaPBVersion = "0.10.1"
+      override def scalaPBVersion = "0.11.7"
     }
   }
 
@@ -40,6 +41,20 @@ object TutorialTests extends TestSuite {
           "--additional-test=..."
         )
       }
+    }
+  }
+
+  object TutorialWithSpecificSources extends TutorialBase {
+    object core extends TutorialModule {
+      override def scalaPBSources: Sources = T.sources {
+        millSourcePath / "protobuf" / "tutorial" / "Tutorial.proto"
+      }
+
+      override def scalaPBIncludePath = Seq(
+        scalaPBUnpackProto(),
+        PathRef(millSourcePath / "protobuf" / "tutorial")
+      )
+
     }
   }
 
@@ -74,7 +89,7 @@ object TutorialTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(Tutorial.core.scalaPBVersion)
 
         assert(
-          result == "0.10.1",
+          result == "0.11.7",
           evalCount > 0
         )
       }
@@ -95,6 +110,34 @@ object TutorialTests extends TestSuite {
           outputFiles.nonEmpty,
           outputFiles.forall(expectedSourcefiles.contains),
           outputFiles.size == 5,
+          evalCount > 0
+        )
+
+        // don't recompile if nothing changed
+        val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+
+        assert(unchangedEvalCount == 0)
+      }
+
+      "calledWithSpecificFile" - workspaceTest(TutorialWithSpecificSources) { eval =>
+        val Right((result, evalCount)) =  eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
+
+        val outPath = protobufOutPath(eval)
+
+        val outputFiles = os.walk(result.path).filter(os.isFile)
+
+        val expectedSourcefiles = Seq[os.RelPath](
+          os.rel / "AddressBook.scala",
+          os.rel / "Person.scala",
+          os.rel / "TutorialProto.scala",
+          os.rel / "IncludeProto.scala"
+        ).map(outPath / _)
+
+        assert(
+          result.path == eval.outPath / "core" / "compileScalaPB.dest",
+          outputFiles.nonEmpty,
+          outputFiles.forall(expectedSourcefiles.contains),
+          outputFiles.size == 3,
           evalCount > 0
         )
 

@@ -25,7 +25,7 @@ class ScalaPBWorker extends AutoCloseable {
 
         val instance = new ScalaPBWorkerApi {
           override def compileScalaPB(
-              root: File,
+              roots: Seq[File],
               sources: Seq[File],
               scalaPBOptions: String,
               generatedDirectory: File,
@@ -34,8 +34,7 @@ class ScalaPBWorker extends AutoCloseable {
             val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
             val args = otherArgs ++ Seq(
               s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
-              s"--proto_path=${root.getCanonicalPath}"
-            ) ++ sources.map(_.getCanonicalPath)
+            ) ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(_.getCanonicalPath)
             ctx.log.debug(s"ScalaPBC args: ${args.mkString(" ")}")
             mainMethod.invoke(null, args.toArray)
           }
@@ -83,21 +82,20 @@ class ScalaPBWorker extends AutoCloseable {
       scalaPBCExtraArgs: Seq[String]
   )(implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
-
-    def compileScalaPBDir(inputDir: os.Path): Unit = {
-      // ls throws if the path doesn't exist
-      if (inputDir.toIO.exists) {
-        val files = os
-          .walk(inputDir)
-          .filter(_.last.matches(".*.proto"))
-          .map(_.toIO)
-          .toIndexedSeq
-        compiler.compileScalaPB(inputDir.toIO, files, scalaPBOptions, dest.toIO, scalaPBCExtraArgs)
-      }
+    val sources = scalaPBSources.flatMap {
+      path =>
+        val ioFile = path.toIO
+        // ls throws if the path doesn't exist
+        if (ioFile.exists() && ioFile.isDirectory)
+          os
+            .walk(path)
+            .filter(_.last.matches(".*.proto"))
+            .map(_.toIO)
+        else
+          Seq(ioFile)
     }
-
-    scalaPBSources.foreach(compileScalaPBDir)
-
+    val roots = scalaPBSources.map(_.toIO).filter(_.isDirectory)
+    compiler.compileScalaPB(roots, sources, scalaPBOptions, dest.toIO, scalaPBCExtraArgs)
     mill.api.Result.Success(PathRef(dest))
   }
 
@@ -108,7 +106,7 @@ class ScalaPBWorker extends AutoCloseable {
 
 trait ScalaPBWorkerApi {
   def compileScalaPB(
-      root: File,
+      roots: Seq[File],
       source: Seq[File],
       scalaPBOptions: String,
       generatedDirectory: File,
