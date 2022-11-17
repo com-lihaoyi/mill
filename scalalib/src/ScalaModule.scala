@@ -20,7 +20,7 @@ import mill.scalalib.dependency.versions.{ValidVersion, Version}
 /**
  * Core configuration required to compile a single Scala compilation target
  */
-trait ScalaModule extends JavaModule { outer =>
+trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
 
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
@@ -134,6 +134,9 @@ trait ScalaModule extends JavaModule { outer =>
     mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions()
   }
 
+  /**
+   * Options to pass directly into Scaladoc.
+   */
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
       if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
@@ -235,7 +238,6 @@ trait ScalaModule extends JavaModule { outer =>
     }
 
   override def docSources: Sources = T.sources {
-    // Scaladoc 3.0.0 is consuming tasty files
     if (
       ZincWorkerUtil.isScala3(scalaVersion()) && !ZincWorkerUtil.isScala3Milestone(scalaVersion())
     ) Seq(compile().classes)

@@ -113,7 +113,7 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       def forall(p: V => Boolean): Boolean = items.forall(p)
       @deprecated("Use .iterator.foreach(...) instead", "mill after 0.9.6")
       def foreach[U](f: V => U): Unit = items.foreach(f)
-      def hasDefiniteSize: Boolean = set0.hasDefiniteSize
+      def hasDefiniteSize: Boolean = set0.hasDefiniteSize: @nowarn
       def isEmpty: Boolean = items.isEmpty
       def seq: scala.collection.IterableOnce[V] = items
       @deprecated("Use .iterator instead", "mill after 0.9.6")

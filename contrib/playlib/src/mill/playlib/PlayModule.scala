@@ -8,7 +8,7 @@ trait PlayApiModule extends Dependencies with Router with Server {
   trait PlayTests extends super.Tests with TestModule.ScalaTest {
     override def ivyDeps = T {
       val scalatestPlusPlayVersion = playMinorVersion() match {
-        case Versions.PLAY_2_6 => "3.1.2"
+        case Versions.PLAY_2_6 => "3.1.3"
         case Versions.PLAY_2_7 => "4.0.3"
         case Versions.PLAY_2_8 => "5.1.0"
       }

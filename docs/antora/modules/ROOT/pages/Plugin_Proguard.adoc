@@ -22,12 +22,10 @@ import $ivy.`com.lihaoyi::mill-contrib-proguard:`
 import contrib.proguard._
 
 object foo extends ScalaModule with Proguard {
-  def scalaVersion = "2.12.0"
+  def scalaVersion = "2.13.8"
 
   override def shrink: T[Boolean] = T { true }
   override def optimize: T[Boolean] = T { false }
   override def obfuscate: T[Boolean] = T { false }
 }
 ----
-
-Also, please note that Proguard doesn't seem to work with scala 2.13 yet.

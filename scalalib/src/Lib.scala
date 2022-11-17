@@ -31,7 +31,9 @@ object Lib {
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[Ctx.Log] = None,
-      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None,
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ] = None
   ): (Seq[Dependency], Resolution) = {
     val depSeq = deps.iterator.toSeq
     mill.modules.Jvm.resolveDependenciesMetadata(
@@ -60,7 +62,9 @@ object Lib {
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[Ctx.Log] = None,
-      coursierCacheCustomizer: Option[coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]] = None
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ] = None
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.modules.Jvm.resolveDependencies(
@@ -130,13 +134,13 @@ object Lib {
     "mill after 0.10.0"
   )
   def resolveDependenciesMetadata(
-       repositories: Seq[Repository],
-       depToDependency: Dep => coursier.Dependency,
-       deps: IterableOnce[Dep],
-       mapDependencies: Option[Dependency => Dependency],
-       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-       ctx: Option[Ctx.Log]
-   ): (Seq[Dependency], Resolution) =
+      repositories: Seq[Repository],
+      depToDependency: Dep => coursier.Dependency,
+      deps: IterableOnce[Dep],
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[Ctx.Log]
+  ): (Seq[Dependency], Resolution) =
     resolveDependenciesMetadata(
       repositories = repositories,
       depToDependency = depToDependency,
@@ -152,14 +156,14 @@ object Lib {
     "mill after 0.10.0"
   )
   def resolveDependencies(
-       repositories: Seq[Repository],
-       depToDependency: Dep => coursier.Dependency,
-       deps: IterableOnce[Dep],
-       sources: Boolean,
-       mapDependencies: Option[Dependency => Dependency],
-       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-       ctx: Option[Ctx.Log]
-   ): Result[Agg[PathRef]] =
+      repositories: Seq[Repository],
+      depToDependency: Dep => coursier.Dependency,
+      deps: IterableOnce[Dep],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[Ctx.Log]
+  ): Result[Agg[PathRef]] =
     resolveDependencies(
       repositories = repositories,
       depToDependency = depToDependency,

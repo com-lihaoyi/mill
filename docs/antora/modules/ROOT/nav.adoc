@@ -17,6 +17,7 @@
 ** xref:Plugin_Codeartifact.adoc[]
 ** xref:Plugin_Docker.adoc[]
 ** xref:Plugin_Flyway.adoc[]
+** xref:Plugin_Gitlab.adoc[]
 ** xref:Plugin_Play.adoc[]
 ** xref:Plugin_Proguard.adoc[]
 ** xref:Plugin_ScalaPB.adoc[]

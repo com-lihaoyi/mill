@@ -52,10 +52,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T {
     val commonDeps = Seq(
-      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}",
-      ivy"${ScalaJSBuildInfo.Deps.jettyWebsocket}",
-      ivy"${ScalaJSBuildInfo.Deps.jettyServer}",
-      ivy"${ScalaJSBuildInfo.Deps.javaxServlet}"
+      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
     )
     val envDeps = scalaJSBinaryVersion() match {
       case "0.6" =>
@@ -346,7 +343,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       T.testReporter,
       TestRunner.globFilter(globSelectors())
     )
-    val res = TestModule.handleResults(doneMsg, results, Some(T.ctx))
+    val res = TestModule.handleResults(doneMsg, results, Some(T.ctx()))
     // Hack to try and let the Node.js subprocess finish streaming it's stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`
     // is called, and some of the output is dropped onto the floor.

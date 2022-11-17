@@ -16,6 +16,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
       override def twirlVersion = "1.5.1"
+      override def twirlScalaVersion = sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???)
       object test extends PlayTests
       override def ivyDeps = T { super.ivyDeps() ++ Agg(ws()) }
     }
@@ -110,13 +111,10 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
             evalCount > 0
           )
 
-          // don"t" recompile if nothing changed
+          // don't recompile if nothing changed
           val Right((_, unchangedEvalCount)) =
             eval.apply(playmulti.core(scalaVersion, playVersion).compile)
-
-        // FIXME the following test should be uncommented once
-        // https://github.com/lihaoyi/mill/issues/554 is resolved
-        // assert(unchangedEvalCount == 0)
+          assert(unchangedEvalCount == 0)
         }
       }
     }

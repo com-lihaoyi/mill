@@ -32,15 +32,20 @@ trait HelloWorldModule extends scalalib.ScalaModule {
                     childs = Seq(
                       Element(
                         "option",
-                        Map("name" -> "name", "value" -> "/tmp"))
-                    ))
-                )))
+                        Map("name" -> "name", "value" -> "/tmp")
+                      )
+                    )
+                  )
+                )
+              )
+            )
           )
       }
     }
 
   override def ideaConfigFiles(
-      ideaConfigVersion: Int): Command[Seq[IdeaConfigFile]] = T.command {
+      ideaConfigVersion: Int
+  ): Command[Seq[IdeaConfigFile]] = T.command {
     ideaConfigVersion match {
       case 4 =>
         Seq(
@@ -48,7 +53,8 @@ trait HelloWorldModule extends scalalib.ScalaModule {
           IdeaConfigFile(
             os.sub / "runConfigurations" / "testrun.xml",
             None,
-            Seq(Element("test"))),
+            Seq(Element("test"))
+          ),
           // components in project file
           IdeaConfigFile(
             name = "compiler.xml",
@@ -56,14 +62,19 @@ trait HelloWorldModule extends scalalib.ScalaModule {
             config = Seq(
               Element(
                 "option",
-                Map("name" -> "ajcPath", "value" -> "/tmp/aspectjtools.jar")))),
+                Map("name" -> "ajcPath", "value" -> "/tmp/aspectjtools.jar")
+              )
+            )
+          ),
           IdeaConfigFile(
             name = "compiler.xml",
             component = "CompilerConfiguration",
             config = Seq(
               Element(
                 "option",
-                Map("name" -> "DEFAULT_COMPILER", "value" -> "ajc")))
+                Map("name" -> "DEFAULT_COMPILER", "value" -> "ajc")
+              )
+            )
           )
         )
     }

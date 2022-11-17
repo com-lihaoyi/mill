@@ -5,12 +5,17 @@ import _root_.scoverage.report.{CoverageAggregator, ScoverageHtmlWriter, Scovera
 import mill.api.Ctx
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 
+/**
+ * Scoverage Worker for Scoverage 1.x
+ */
 class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
 
   override def report(
       reportType: ReportType,
       sources: Seq[os.Path],
-      dataDirs: Seq[os.Path]
+      dataDirs: Seq[os.Path],
+      // ignored in Scoverage 1.x
+      sourceRoot: os.Path
   )(implicit ctx: Ctx): Unit =
     try {
       ctx.log.info(s"Processing coverage data for ${dataDirs.size} data locations")
@@ -34,7 +39,7 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
           ctx.log.error(s"No coverage data found in [${dataDirs.mkString(", ")}]")
       }
     } catch {
-      case e =>
+      case e: Throwable =>
         ctx.log.error(s"Exception while building coverage report. ${e.getMessage()}")
         e.printStackTrace()
         throw e

@@ -4,6 +4,7 @@ import java.math.BigInteger
 import java.security.MessageDigest
 
 import mill.api.Logger
+import mill.modules.Jvm
 import os.Shellable
 
 class SonatypePublisher(
@@ -15,9 +16,37 @@ class SonatypePublisher(
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
+    workspace: os.Path,
+    env: Map[String, String],
     awaitTimeout: Int,
-    stagingRelease: Boolean = true
+    stagingRelease: Boolean
 ) {
+  @deprecated("Use other constructor instead", since = "mill 0.10.8")
+  def this(
+      uri: String,
+      snapshotUri: String,
+      credentials: String,
+      signed: Boolean,
+      gpgArgs: Seq[String],
+      readTimeout: Int,
+      connectTimeout: Int,
+      log: Logger,
+      awaitTimeout: Int,
+      stagingRelease: Boolean = true
+  ) = this(
+    uri = uri,
+    snapshotUri = snapshotUri,
+    credentials = credentials,
+    signed = signed,
+    gpgArgs = gpgArgs,
+    readTimeout = readTimeout,
+    connectTimeout = connectTimeout,
+    log = log,
+    workspace = os.pwd,
+    env = sys.env,
+    awaitTimeout = awaitTimeout,
+    stagingRelease = stagingRelease
+  )
 
   private val api = new SonatypeHttpApi(
     uri,
@@ -174,8 +203,7 @@ class SonatypePublisher(
     val fileName = file.toString
     val command = "gpg" +: args :+ fileName
 
-    os.proc(command.map(v => v: Shellable))
-      .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
+    Jvm.runSubprocess(command, env, workspace)
     os.Path(fileName + ".asc")
   }
 

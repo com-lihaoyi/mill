@@ -276,6 +276,7 @@ object ParseArgsTest extends TestSuite {
       def parsed(args: String*) = ParseArgs(args, selectMode)
       test("rejectEmpty") {
         assert(parsed("") == Left("Selector cannot be empty"))
+        assert(parsed() == Left("Selector cannot be empty"))
       }
       def check(
           input: Seq[String],

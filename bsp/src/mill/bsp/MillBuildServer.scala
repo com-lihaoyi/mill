@@ -58,7 +58,7 @@ import mill.define.{BaseModule, Discover, ExternalModule, Segments, Task}
 import mill.eval.Evaluator
 import mill.scalalib.internal.ModuleUtils
 import mill.main.{BspServerResult, EvaluatorScopt, MainModule}
-import mill.scalalib.{JavaModule, TestModule}
+import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, MillBuildTarget}
 import os.Path
 
@@ -66,7 +66,7 @@ import java.io.PrintStream
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 import scala.util.chaining.scalaUtilChainingOps
 
 class MillBuildServer(
@@ -145,7 +145,7 @@ class MillBuildServer(
     }
   }
 
-  private[this] var statePromise: Promise[State] = Promise[State]
+  private[this] var statePromise: Promise[State] = Promise[State]()
   initialEvaluator.foreach(e => statePromise.success(new State(e)))
 
 //  private[this] def stateFuture: Future[State] = statePromise.future
@@ -154,7 +154,7 @@ class MillBuildServer(
     log.debug(s"Updating Evaluator: ${evaluator}")
     if (statePromise.isCompleted) {
       // replace the promise
-      statePromise = Promise[State]
+      statePromise = Promise[State]()
     }
     evaluator.foreach(e => statePromise.success(new State(e)))
   }
@@ -227,16 +227,28 @@ class MillBuildServer(
         case _ => clientIsIntelliJ = false
       }
 
+      def readVersion(json: JsonObject, name: String): Option[String] =
+        if (json.has(name)) {
+          val rawValue = json.get(name)
+          if (rawValue.isJsonPrimitive) {
+            val version = Try(rawValue.getAsJsonPrimitive.getAsString).toOption.filter(_.nonEmpty)
+            log.debug(s"Got json value for ${name}=${version}")
+            version
+          } else None
+        } else None
+
       request.getData match {
         case d: JsonObject =>
           log.debug(s"extra data: ${d} of type ${d.getClass}")
-          if (d.has("semanticdbVersion")) {
-            val semDb = d.get("semanticdbVersion")
-            if (semDb.isJsonPrimitive) {
-              val semDbVersion = semDb.getAsJsonPrimitive.getAsString
-              log.debug(s"Got client semanticdbVersion: ${semDbVersion}")
-              clientWantsSemanticDb = true
-            }
+          readVersion(d, "semanticdbVersion").foreach { version =>
+            log.debug(
+              s"Got client semanticdbVersion: ${version}. Enabling SemanticDB support."
+            )
+            clientWantsSemanticDb = true
+            SemanticDbJavaModule.contextSemanticDbVersion.set(Option(version))
+          }
+          readVersion(d, "javaSemanticdbVersion").foreach { version =>
+            SemanticDbJavaModule.contextJavaSemanticDbVersion.set(Option(version))
           }
         case _ => // no op
       }
@@ -252,14 +264,13 @@ class MillBuildServer(
   override def buildShutdown(): CompletableFuture[Object] = {
     log.debug(s"Entered buildShutdown")
     shutdownRequested = true
-
     onSessionEnd match {
       case None =>
       case Some(onEnd) =>
         log.debug("Shutdown build...")
         onEnd(BspServerResult.Shutdown)
     }
-
+    SemanticDbJavaModule.resetContext()
     CompletableFuture.completedFuture(null.asInstanceOf[Object])
   }
   override def onBuildExit(): Unit = {
@@ -270,6 +281,7 @@ class MillBuildServer(
         log.debug("Exiting build...")
         onEnd(BspServerResult.Shutdown)
     }
+    SemanticDbJavaModule.resetContext()
     cancellator(shutdownRequested)
   }
 
@@ -468,6 +480,7 @@ class MillBuildServer(
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
       val compileTasks = params.getTargets.distinct.map(bspModulesById).map {
+        case m: SemanticDbJavaModule if clientWantsSemanticDb => m.compiledClassesAndSemanticDbFiles
         case m: JavaModule => m.compile
         case m => T.task {
             Result.Failure(

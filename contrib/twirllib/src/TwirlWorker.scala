@@ -18,7 +18,7 @@ class TwirlWorker {
   private var twirlInstanceCache = Option.empty[(Long, (TwirlWorkerApi, Class[_]))]
 
   private def twirlCompilerAndClass(twirlClasspath: Agg[os.Path]): (TwirlWorkerApi, Class[_]) = {
-    val classloaderSig = twirlClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
+    val classloaderSig = twirlClasspath.map(p => p.toString().hashCode + os.mtime(p)).iterator.sum
     twirlInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
       case _ =>

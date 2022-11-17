@@ -11,7 +11,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
     )
     override def ivyDeps: Target[Agg[Dep]] = Agg(
       ivy"org.slf4j:slf4j-api:1.7.25",
-      ivy"ch.qos.logback:logback-core:1.2.3",
+      ivy"ch.qos.logback:logback-core:1.2.3"
     )
     override def runIvyDeps: Target[Agg[Dep]] = Agg(
       ivy"ch.qos.logback:logback-core:1.2.3",

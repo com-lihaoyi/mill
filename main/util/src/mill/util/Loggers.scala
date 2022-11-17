@@ -18,6 +18,7 @@ object DummyLogger extends Logger {
   def error(s: String) = ()
   def ticker(s: String) = ()
   def debug(s: String) = ()
+  override val debugEnabled: Boolean = false
 }
 
 class CallbackStream(
@@ -92,18 +93,20 @@ case class PrefixLogger(out: ColorLogger, context: String, tickerContext: String
   override def ticker(s: String): Unit = out.ticker(context + tickerContext + s)
 
   override def debug(s: String): Unit = out.debug(context + s)
+
+  override def debugEnabled: Boolean = out.debugEnabled
 }
 
 case class PrintLogger(
-    colored: Boolean,
+    override val colored: Boolean,
     disableTicker: Boolean,
-    infoColor: fansi.Attrs,
-    errorColor: fansi.Attrs,
+    override val infoColor: fansi.Attrs,
+    override val errorColor: fansi.Attrs,
     outStream: PrintStream,
     infoStream: PrintStream,
     errStream: PrintStream,
-    inStream: InputStream,
-    debugEnabled: Boolean,
+    override val inStream: InputStream,
+    override val debugEnabled: Boolean,
     context: String
 ) extends ColorLogger {
 
@@ -160,7 +163,7 @@ case class PrintLogger(
 class FileLogger(
     override val colored: Boolean,
     file: os.Path,
-    debugEnabled: Boolean,
+    override val debugEnabled: Boolean,
     append: Boolean = false
 ) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
@@ -232,6 +235,7 @@ class MultiStream(stream1: OutputStream, stream2: OutputStream)
       }
     })
 
+// TODO: make this a non-case class
 case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStream: InputStream)
     extends Logger {
 
@@ -261,6 +265,9 @@ case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStr
     logger1.close()
     logger2.close()
   }
+
+  // TODO: this should be a ctr parameter, to let the user decide, but this affects binary compatibility
+  override def debugEnabled: Boolean = logger1.debugEnabled
 }
 
 /**
@@ -278,6 +285,8 @@ class ProxyLogger(logger: Logger) extends Logger {
   def error(s: String) = logger.error(s)
   def ticker(s: String) = logger.ticker(s)
   def debug(s: String) = logger.debug(s)
+
+  override def debugEnabled: Boolean = logger.debugEnabled
 
   override def close() = logger.close()
 }

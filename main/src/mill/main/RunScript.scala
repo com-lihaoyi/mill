@@ -352,7 +352,6 @@ object RunScript {
   }
 
   /**
-   *
    * @param evaluator
    * @param targets
    * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])

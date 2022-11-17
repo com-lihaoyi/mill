@@ -12,15 +12,14 @@ case class MillConfig(
     home: os.Path = mill.api.Ctx.defaultHome,
     @arg(
       doc =
-        """Run Mill in interactive mode and start a build REPL. In this mode, no
+        """Run Mill in interactive mode and start a build REPL. This implies --no-server and no
     mill server will be used. Must be the first argument."""
     )
     repl: Flag,
     @arg(
       name = "no-server",
       doc =
-        """Run Mill in interactive mode, suitable for opening REPLs and taking user
-      input. In this mode, no mill server will be used. Must be the first argument."""
+        """Run Mill in single-process mode. In this mode, no mill server will be started or used. Must be the first argument."""
     )
     noServer: Flag,
     @arg(
@@ -31,7 +30,7 @@ case class MillConfig(
       short = 'i',
       doc =
         """Run Mill in interactive mode, suitable for opening REPLs and taking user
-      input. In this mode, no mill server will be used. Must be the first argument."""
+      input. This implies --no-server and no mill server will be used. Must be the first argument."""
     )
     interactive: Flag,
     @arg(name = "version", short = 'v', doc = "Show mill version and exit.")

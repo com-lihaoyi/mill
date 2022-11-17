@@ -26,7 +26,7 @@ object BSP extends ExternalModule {
   val languages = Seq("scala", "java")
   val serverName = "mill-bsp"
 
-  private[this] var millServerHandle = Promise[BspServerHandle]
+  private[this] var millServerHandle = Promise[BspServerHandle]()
 
   /**
    * Installs the mill-bsp server. It creates a json file
@@ -42,20 +42,29 @@ object BSP extends ExternalModule {
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
    */
-  def install(evaluator: Evaluator, jobs: Int = 1): Command[Unit] =
-    T.command {
-      val bspDirectory = evaluator.rootModule.millSourcePath / ".bsp"
-      val bspFile = bspDirectory / s"${serverName}.json"
-      if (os.exists(bspFile)) T.log.info(s"Overwriting BSP connection file: ${bspFile}")
-      else T.log.info(s"Creating BSP connection file: ${bspFile}")
-      os.write.over(bspFile, createBspConnectionJson(jobs), createFolders = true)
-    }
+  def install(evaluator: Evaluator, jobs: Int = 1): Command[Unit] = T.command {
+    val bspDirectory = evaluator.rootModule.millSourcePath / ".bsp"
+    val bspFile = bspDirectory / s"${serverName}.json"
+    if (os.exists(bspFile)) T.log.info(s"Overwriting BSP connection file: ${bspFile}")
+    else T.log.info(s"Creating BSP connection file: ${bspFile}")
+    val withDebug = T.log.debugEnabled
+    if (withDebug) T.log.debug(
+      "Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option."
+    )
+    os.write.over(bspFile, createBspConnectionJson(jobs, withDebug), createFolders = true)
+  }
+
+  @deprecated("Use other overload instead.", "Mill after 0.10.7")
+  def createBspConnectionJson(jobs: Int): String =
+    BSP.createBspConnectionJson(jobs: Int, debug = false)
 
   // creates a Json with the BSP connection details
-  def createBspConnectionJson(jobs: Int): String = {
-    // we assume, the classpath is an executable jar here, FIXME
-    val millPath = sys.props
-      .get("java.class.path")
+  def createBspConnectionJson(jobs: Int, debug: Boolean): String = {
+    val props = sys.props
+    val millPath = props
+      .get("mill.main.cli")
+      // we assume, the classpath is an executable jar here
+      .orElse(props.get("java.class.path"))
       .getOrElse(throw new IllegalStateException("System property 'java.class.path' not set"))
 
     write(
@@ -69,8 +78,7 @@ object BSP extends ExternalModule {
           "false",
           "--jobs",
           s"${jobs}"
-//          s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
-        ),
+        ) ++ (if (debug) Seq("--debug") else Seq()),
         millVersion = BuildInfo.millVersion,
         bspVersion = bspProtocolVersion,
         languages = languages
@@ -162,7 +170,7 @@ object BSP extends ExternalModule {
         override def runSession(evaluator: Evaluator): BspServerResult = {
           _lastResult = None
           millServer.updateEvaluator(Option(evaluator))
-          val onReload = Promise[BspServerResult]
+          val onReload = Promise[BspServerResult]()
           millServer.onSessionEnd = Some { serverResult =>
             if (!onReload.isCompleted) {
               errStream.println("Unsetting evaluator on session end")

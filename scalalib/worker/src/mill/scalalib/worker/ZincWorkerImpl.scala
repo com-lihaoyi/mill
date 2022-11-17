@@ -4,18 +4,19 @@ import java.io.File
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 
-import scala.ref.WeakReference
-import scala.util.Properties.isWin
-
 import mill.api.Loose.Agg
 import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, internal}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil => Util}
 import sbt.internal.inc._
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
-import sbt.util.LogExchange
+import sbt.mill.SbtLoggerUtils
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import xsbti.{PathBasedFile, VirtualFile}
+
+import scala.collection.mutable
+import scala.ref.SoftReference
+import scala.util.Properties.isWin
 
 @internal
 class ZincWorkerImpl(
@@ -26,43 +27,64 @@ class ZincWorkerImpl(
     libraryJarNameGrep: (Agg[os.Path], String) => os.Path,
     compilerJarNameGrep: (Agg[os.Path], String) => os.Path,
     compilerCache: KeyedLockedCache[Compilers],
-    compileToJar: Boolean
+    compileToJar: Boolean,
+    zincLogDebug: Boolean
 ) extends ZincWorkerApi with AutoCloseable {
-  private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
-  lazy val javaOnlyCompilers = {
-    // Keep the classpath as written by the user
-    val classpathOptions = ClasspathOptions.of(
-      /*bootLibrary*/ false,
-      /*compiler*/ false,
-      /*extra*/ false,
-      /*autoBoot*/ false,
-      /*filterLibrary*/ false
-    )
+  private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
+  private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
+  private val javaOnlyCompilersCache = mutable.Map.empty[Seq[String], SoftReference[Compilers]]
 
-    val dummyFile = new java.io.File("")
-    // Zinc does not have an entry point for Java-only compilation, so we need
-    // to make up a dummy ScalaCompiler instance.
-    val scalac = ZincUtil.scalaCompiler(
-      new ScalaInstance(
-        version = "",
-        loader = null,
-        loaderCompilerOnly = null,
-        loaderLibraryOnly = null,
-        libraryJars = Array(dummyFile),
-        compilerJars = Array(dummyFile),
-        allJars = new Array(0),
-        explicitActual = Some("")
-      ),
-      dummyFile,
-      classpathOptions // this is used for javac too
-    )
+  def javaOnlyCompilers(javacOptions: Seq[String]) = {
+    javaOnlyCompilersCache.get(javacOptions) match {
+      case Some(SoftReference(compilers)) => compilers
+      case _ =>
+        // Keep the classpath as written by the user
+        val classpathOptions = ClasspathOptions.of(
+          /*bootLibrary*/ false,
+          /*compiler*/ false,
+          /*extra*/ false,
+          /*autoBoot*/ false,
+          /*filterLibrary*/ false
+        )
 
-    ic.compilers(
-      instance = null,
-      classpathOptions,
-      None,
-      scalac
-    )
+        val dummyFile = new java.io.File("")
+        // Zinc does not have an entry point for Java-only compilation, so we need
+        // to make up a dummy ScalaCompiler instance.
+        val scalac = ZincUtil.scalaCompiler(
+          new ScalaInstance(
+            version = "",
+            loader = null,
+            loaderCompilerOnly = null,
+            loaderLibraryOnly = null,
+            libraryJars = Array(dummyFile),
+            compilerJars = Array(dummyFile),
+            allJars = new Array(0),
+            explicitActual = Some("")
+          ),
+          dummyFile,
+          classpathOptions // this is used for javac too
+        )
+
+        val javaTools = {
+          val (javaCompiler, javaDoc) =
+            // Local java compilers don't accept -J flags so when we put this together if we detect
+            // any javacOptions starting with -J we ensure we have a non-local Java compiler which
+            // can handle them.
+            if (javacOptions.exists(_.startsWith("-J"))) {
+              (javac.JavaCompiler.fork(None), javac.Javadoc.fork(None))
+
+            } else {
+              val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork(None))
+              val docs = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
+              (compiler, docs)
+            }
+          javac.JavaTools(javaCompiler, javaDoc)
+        }
+
+        val compilers = ic.compilers(javaTools, scalac)
+        javaOnlyCompilersCache.update(javacOptions, SoftReference(compilers))
+        compilers
+    }
   }
 
   val compilerBridgeLocks = collection.mutable.Map.empty[String, Object]
@@ -262,7 +284,7 @@ class ZincWorkerImpl(
       compileClasspath,
       javacOptions,
       scalacOptions = Nil,
-      javaOnlyCompilers,
+      javaOnlyCompilers(javacOptions),
       reporter
     )
   }
@@ -329,14 +351,14 @@ class ZincWorkerImpl(
   // for now this just grows unbounded; YOLO
   // But at least we do not prevent unloading/garbage collecting of classloaders
   private[this] val classloaderCache =
-    collection.mutable.LinkedHashMap.empty[Long, WeakReference[ClassLoader]]
+    collection.mutable.LinkedHashMap.empty[Long, SoftReference[ClassLoader]]
 
   def getCachedClassLoader(compilersSig: Long, combinedCompilerJars: Array[java.io.File])(implicit
       ctx: ZincWorkerApi.Ctx
   ) = {
     classloaderCache.synchronized {
       classloaderCache.get(compilersSig) match {
-        case Some(WeakReference(cl)) => cl
+        case Some(SoftReference(cl)) => cl
         case _ =>
           // the Scala compiler must load the `xsbti.*` classes from the same loader than `ZincWorkerImpl`
           val sharedPrefixes = Seq("xsbti")
@@ -346,7 +368,7 @@ class ZincWorkerImpl(
             sharedLoader = getClass.getClassLoader,
             sharedPrefixes
           )
-          classloaderCache.update(compilersSig, WeakReference(cl))
+          classloaderCache.update(compilersSig, SoftReference(cl))
           cl
       }
     }
@@ -420,17 +442,11 @@ class ZincWorkerImpl(
       _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
-    // The following three calls to [[LogExchange]] are deprecated, but the
-    // suggested alternatives aren't public API, so we can't really do anything
-    // to avoid calling these deprecated API.
-    // See issue https://github.com/sbt/sbt/issues/6734
-    val logger = LogExchange.logger(loggerId)
-    LogExchange.unbindLoggerAppenders(loggerId)
-    LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> sbt.util.Level.Info) :: Nil)
-
+    val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
     val newReporter = reporter match {
       case None => new ManagedLoggedReporter(10, logger)
       case Some(r) => new ManagedLoggedReporter(10, logger) {
+
           override def logError(problem: xsbti.Problem): Unit = {
             r.logError(new ZincProblem(problem))
             super.logError(problem)
@@ -474,7 +490,8 @@ class ZincWorkerImpl(
 
     val store = FileAnalysisStore.binary(zincFile.toIO)
 
-    val converter = PlainVirtualFileConverter.converter
+    // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
+    val converter = MappedFileConverter.empty
     val classpath = (compileClasspath.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
@@ -561,5 +578,6 @@ class ZincWorkerImpl(
 
   override def close(): Unit = {
     classloaderCache.clear()
+    javaOnlyCompilersCache.clear()
   }
 }
