@@ -38,6 +38,9 @@ class ScalaPBWorker extends AutoCloseable {
             ctx.log.debug(s"ScalaPBC args: ${args.mkString(" ")}")
             mainMethod.invoke(null, args.toArray)
           }
+
+          override def compileScalaPB(root: File, source: Seq[File], scalaPBOptions: String, generatedDirectory: File, otherArgs: Seq[String]): Unit =
+            compileScalaPB(Seq(root), source, scalaPBOptions, generatedDirectory, otherArgs)
         }
         scalaPBInstanceCache = Some((classloaderSig, instance))
         instance
@@ -105,13 +108,20 @@ class ScalaPBWorker extends AutoCloseable {
 }
 
 trait ScalaPBWorkerApi {
-  def compileScalaPB(
-      roots: Seq[File],
-      source: Seq[File],
-      scalaPBOptions: String,
-      generatedDirectory: File,
-      otherArgs: Seq[String]
-  ): Unit
+
+  @deprecated("Use other overload instead")
+  def compileScalaPB(root: File,
+                     source: Seq[File],
+                     scalaPBOptions: String,
+                     generatedDirectory: File,
+                     otherArgs: Seq[String]): Unit
+
+
+  def compileScalaPB(roots: Seq[File],
+                     source: Seq[File],
+                     scalaPBOptions: String,
+                     generatedDirectory: File,
+                     otherArgs: Seq[String]): Unit
 }
 
 object ScalaPBWorkerApi extends ExternalModule {
