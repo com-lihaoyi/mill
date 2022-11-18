@@ -33,14 +33,13 @@ class ScalaPBWorker extends AutoCloseable {
           ): Unit = {
             val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
             val args = otherArgs ++ Seq(
-              s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
-            ) ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(_.getCanonicalPath)
+              s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}"
+            ) ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(
+              _.getCanonicalPath
+            )
             ctx.log.debug(s"ScalaPBC args: ${args.mkString(" ")}")
             mainMethod.invoke(null, args.toArray)
           }
-
-          override def compileScalaPB(root: File, source: Seq[File], scalaPBOptions: String, generatedDirectory: File, otherArgs: Seq[String]): Unit =
-            compileScalaPB(Seq(root), source, scalaPBOptions, generatedDirectory, otherArgs)
         }
         scalaPBInstanceCache = Some((classloaderSig, instance))
         instance
@@ -109,19 +108,23 @@ class ScalaPBWorker extends AutoCloseable {
 
 trait ScalaPBWorkerApi {
 
-  @deprecated("Use other overload instead")
-  def compileScalaPB(root: File,
-                     source: Seq[File],
-                     scalaPBOptions: String,
-                     generatedDirectory: File,
-                     otherArgs: Seq[String]): Unit
+  @deprecated("Use other overload instead", "Mill after 0.10.9")
+  def compileScalaPB(
+      root: File,
+      source: Seq[File],
+      scalaPBOptions: String,
+      generatedDirectory: File,
+      otherArgs: Seq[String]
+  ): Unit =
+    compileScalaPB(Seq(root), source, scalaPBOptions, generatedDirectory, otherArgs)
 
-
-  def compileScalaPB(roots: Seq[File],
-                     source: Seq[File],
-                     scalaPBOptions: String,
-                     generatedDirectory: File,
-                     otherArgs: Seq[String]): Unit
+  def compileScalaPB(
+      roots: Seq[File],
+      source: Seq[File],
+      scalaPBOptions: String,
+      generatedDirectory: File,
+      otherArgs: Seq[String]
+  ): Unit
 }
 
 object ScalaPBWorkerApi extends ExternalModule {
