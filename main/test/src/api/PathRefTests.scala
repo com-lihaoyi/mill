@@ -2,8 +2,9 @@ package mill.api
 
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
-
 import utest._
+
+import scala.util.Properties
 
 object PathRefTests extends TestSuite {
   val tests: Tests = Tests {
@@ -84,12 +85,14 @@ object PathRefTests extends TestSuite {
         val file = tmpDir / "foo.txt"
         os.write(file, "hello")
         val pr = PathRef(file, quick)
+        val prFile = pr.path.toString().replace("\\", "\\\\")
         val json = upickle.default.write(pr)
         if (quick) {
           assert(json.startsWith(""""qref:"""))
-          assert(json.endsWith(s""":${file}""""))
+          assert(json.endsWith(s""":${prFile}""""))
         } else {
-          val expected = s""""ref:4c7ef487:${file}""""
+          val hash = if(Properties.isWin) "86df6a6a" else "4c7ef487"
+          val expected = s""""ref:${hash}:${prFile}""""
           assert(json == expected)
         }
         val pr1 = upickle.default.read[PathRef](json)
