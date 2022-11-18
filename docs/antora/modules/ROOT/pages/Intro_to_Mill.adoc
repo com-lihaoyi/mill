@@ -102,12 +102,12 @@ docker run -it nightscape/scala-mill
 
 === Manual
 
-To get started, download Mill and install it into your system via the following
+To get started, download Mill and install it into your HOME ".local/bin" via the following
 `curl`/`chmod` command:
 
 [source,bash,subs="verbatim,attributes"]
 ----
-sudo sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > /usr/local/bin/mill && chmod +x /usr/local/bin/mill"
+sudo sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > ~/.local/bin/mill && chmod +x ~/.local/bin/mill"
 ----
 
 === Bootstrap Scripts (Linux/OS-X Only)
