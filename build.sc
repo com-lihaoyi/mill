@@ -299,6 +299,12 @@ trait MillMimaConfig extends mima.Mima {
         "mill.contrib.scoverage.ScoverageReport#workerModule.bspCompileClasspath"
       )
     ),
+    contrib.scalapblib -> Seq(
+      // we changed signature of worker API
+      ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.contrib.scalapblib.ScalaPBWorkerApi.compileScalaPB"
+      )
+    ),
     // we added a new target and a submodule after 0.10.5
     contrib.twirllib -> Seq(
       ProblemFilter.exclude[ReversedMissingMethodProblem](
