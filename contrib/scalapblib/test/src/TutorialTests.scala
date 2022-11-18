@@ -8,6 +8,7 @@ import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
 object TutorialTests extends TestSuite {
+  val testScalaPbVersion = "0.11.7"
 
   trait TutorialBase extends TestUtil.BaseModule {
     override def millSourcePath: os.Path =
@@ -16,7 +17,7 @@ object TutorialTests extends TestSuite {
 
   trait TutorialModule extends ScalaPBModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
-    def scalaPBVersion = "0.11.7"
+    def scalaPBVersion = testScalaPbVersion
     def scalaPBFlatPackage = true
     def scalaPBIncludePath = Seq(scalaPBUnpackProto())
   }
@@ -24,7 +25,7 @@ object TutorialTests extends TestSuite {
   object Tutorial extends TutorialBase {
 
     object core extends TutorialModule {
-      override def scalaPBVersion = "0.11.7"
+      override def scalaPBVersion = testScalaPbVersion
     }
   }
 
@@ -89,7 +90,7 @@ object TutorialTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(Tutorial.core.scalaPBVersion)
 
         assert(
-          result == "0.11.7",
+          result == testScalaPbVersion,
           evalCount > 0
         )
       }
@@ -120,7 +121,7 @@ object TutorialTests extends TestSuite {
       }
 
       "calledWithSpecificFile" - workspaceTest(TutorialWithSpecificSources) { eval =>
-        val Right((result, evalCount)) =  eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
+        val Right((result, evalCount)) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
 
         val outPath = protobufOutPath(eval)
 
