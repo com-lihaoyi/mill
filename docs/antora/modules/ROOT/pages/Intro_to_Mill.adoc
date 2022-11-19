@@ -107,7 +107,7 @@ To get started, download Mill and install it into your HOME ".local/bin" via the
 
 [source,bash,subs="verbatim,attributes"]
 ----
-sudo sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > ~/.local/bin/mill && chmod +x ~/.local/bin/mill"
+sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > ~/.local/bin/mill && chmod +x ~/.local/bin/mill"
 ----
 
 === Bootstrap Scripts (Linux/OS-X Only)
