@@ -65,25 +65,28 @@ def checkProjectDests = T {
 
 def checkInnerDests = T {
   val foreignOut: os.Path = millSourcePath / "out" / "foreign-modules"
-  assertPathsEqual(inner.build.sub.selfDest(), foreignOut / "inner" / "sub")
-  assertPathsEqual(inner.build.sub.sub.selfDest(), foreignOut / "inner" / "sub" / "sub")
+  assertPathsEqual(inner.build.sub.selfDest(), foreignOut / "inner" / "build" / "sub")
+  assertPathsEqual(inner.build.sub.sub.selfDest(), foreignOut / "inner" / "build" / "sub" / "sub")
 }
 
 def checkOuterDests = T {
   val foreignOut: os.Path = millSourcePath / "out" / "foreign-modules"
-  assertPathsEqual(^.outer.build.sub.selfDest(), foreignOut / "up-1" / "outer" / "sub")
-  assertPathsEqual(^.outer.build.sub.sub.selfDest(), foreignOut / "up-1" / "outer" / "sub" / "sub")
+  assertPathsEqual(^.outer.build.sub.selfDest(), foreignOut / "up-1" / "outer" / "build" / "sub")
+  assertPathsEqual(
+    ^.outer.build.sub.sub.selfDest(),
+    foreignOut / "up-1" / "outer" / "build" / "sub" / "sub"
+  )
 }
 
 def checkOuterInnerDests = T {
   val foreignOut: os.Path = millSourcePath / "out" / "foreign-modules"
   assertPathsEqual(
     ^.outer.inner.build.sub.selfDest(),
-    foreignOut / "up-1" / "outer" / "inner" / "sub"
+    foreignOut / "up-1" / "outer" / "inner" / "build" / "sub"
   )
   assertPathsEqual(
     ^.outer.inner.build.sub.sub.selfDest(),
-    foreignOut / "up-1" / "outer" / "inner" / "sub" / "sub"
+    foreignOut / "up-1" / "outer" / "inner" / "build" / "sub" / "sub"
   )
 }
 
