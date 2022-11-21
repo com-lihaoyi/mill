@@ -1,5 +1,6 @@
 import $file.^.outer.build
 import $file.inner.build
+import $file.other
 
 import mill._
 
@@ -56,6 +57,13 @@ def checkOuterInnerPaths = T {
   )
 }
 
+def checkOtherPaths = T {
+  val thisPath: os.Path = millSourcePath
+  assertPathsEqual(other.millSourcePath, thisPath )
+  assertPathsEqual(other.sub.selfPath(), thisPath / "sub")
+  assertPathsEqual(other.sub.sub.selfPath(), thisPath / "sub" / "sub")
+}
+
 def checkProjectDests = T {
   val outPath: os.Path = millSourcePath / "out"
   assertPathsEqual(sub.selfDest(), outPath / "sub")
@@ -88,6 +96,12 @@ def checkOuterInnerDests = T {
     ^.outer.inner.build.sub.sub.selfDest(),
     foreignOut / "up-1" / "outer" / "inner" / "build" / "sub" / "sub"
   )
+}
+
+def checkOtherDests = T {
+  val foreignOut: os.Path = millSourcePath / "out" / "foreign-modules"
+  assertPathsEqual(other.sub.selfDest(), foreignOut / "other" / "sub")
+  assertPathsEqual(other.sub.sub.selfDest(), foreignOut / "other" / "sub" / "sub")
 }
 
 trait PathAware extends mill.Module {
