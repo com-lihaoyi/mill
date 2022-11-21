@@ -188,7 +188,6 @@ class MainRunner(
         .map(_ / os.up)
         .getOrElse(wd)
       val literalPath = pprint.Util.literalize(path.toString)
-      println("path: " + path)
       val foreignPath = path / wrapName
       val foreign =
         if (foreignPath != wd / "build") {
@@ -198,7 +197,6 @@ class MainRunner(
           // Encoding the number of `/..`
           val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
           val segs = Seq("foreign-modules") ++ ups ++ relative.segments
-          println("foreign segments: " + segs)
           val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
           s"Some(_root_.mill.define.Segments.labels($segsList))"
         } else "None"
