@@ -411,7 +411,8 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         test = testConfig(),
         platform = Some(platform()),
         resolution = Some(bloopResolution()),
-        tags = Some(tags)
+        tags = Some(tags),
+        sourceGenerators = None // TODO: are we supposed to hook generated sources here?
       )
     }
 
