@@ -128,7 +128,7 @@ object Deps {
   }
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   val ammoniteVersion = "2.5.5"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
@@ -327,6 +327,14 @@ trait WithMillCompiler extends ScalaModule {
     super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefsPlugin)
 }
 
+trait AcyclicConfig extends ScalaModule {
+  override def scalacPluginIvyDeps: Target[Agg[Dep]] = {
+    super.scalacPluginIvyDeps() ++ Agg(Deps.acyclic)
+  }
+  override def scalacOptions: Target[Seq[String]] =
+    super.scalacOptions() ++ Seq("-P:acyclic:force", "-P:acyclic:warn")
+}
+
 /**
  * Some custom scala settings and test convenience
  */
@@ -384,7 +392,7 @@ trait MillInternalModule extends MillScalaModule with MillPublishModule
 trait MillApiModule extends MillScalaModule with MillPublishModule with MillMimaConfig
 
 /** Publishable module with tests. */
-trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompiler
+trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompiler with AcyclicConfig
 
 object main extends MillModule {
 
