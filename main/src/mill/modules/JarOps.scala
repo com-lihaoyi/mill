@@ -16,6 +16,8 @@ object JarOps {
    * d
    * @param jar The final JAR file
    * @param inputPaths The input paths resembling the content of the JAR file.
+   *     Files will be directly included in the root of the archive,
+   *     whereas for directories their content is added to the root of the archive.
    * @param manifest The JAR Manifest
    * @param fileFilter A filter to support exclusions of selected files
    * @param includeDirs If `true` the JAR archive will contain directory entries.
@@ -34,7 +36,7 @@ object JarOps {
       timestamp: Option[Long] = None
   ): Unit = {
 
-    def curTime() = timestamp.getOrElse(System.currentTimeMillis())
+    val curTime = timestamp.getOrElse(System.currentTimeMillis())
     def mTime(file: os.Path) = timestamp.getOrElse(os.mtime(file))
 
     os.makeDir.all(jar / os.up)
@@ -54,7 +56,7 @@ object JarOps {
 
       if (includeDirs) {
         val entry = new JarEntry("META-INF/")
-        entry.setTime(curTime())
+        entry.setTime(curTime)
         jarStream.putNextEntry(entry)
         jarStream.closeEntry()
       }
