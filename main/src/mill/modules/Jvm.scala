@@ -1,38 +1,28 @@
 package mill.modules
 
 import coursier.cache.ArtifactError
-
-import java.io.{
-  ByteArrayInputStream,
-  File,
-  FileOutputStream,
-  InputStream,
-  PipedInputStream,
-  SequenceInputStream
-}
-import java.lang.reflect.Modifier
-import java.net.URI
-import java.nio.file.{FileSystems, Files, NoSuchFileException, StandardOpenOption}
-import java.nio.file.attribute.PosixFilePermission
-import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
-import coursier.{Dependency, Repository, Resolution}
 import coursier.util.{Gather, Task}
-
-import java.util.Collections
-import mill.main.client.InputPumper
-import mill.api.{Ctx, IO, PathRef, Result}
-import mill.api.Loose.Agg
-import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
-
-import scala.collection.mutable
-import scala.util.Properties.isWin
-import scala.jdk.CollectionConverters._
-import scala.util.{Failure, Success, Try, Using}
+import coursier.{Dependency, Repository, Resolution}
 import mill.BuildInfo
+import mill.api.Loose.Agg
+import mill.api._
+import mill.main.client.InputPumper
+import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import os.SubProcess
 import upickle.default.{ReadWriter => RW}
 
+import java.io._
+import java.lang.reflect.Modifier
+import java.net.URI
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.{FileSystems, Files, NoSuchFileException, StandardOpenOption}
+import java.util.Collections
+import java.util.jar.{Attributes, JarFile, Manifest}
 import scala.annotation.tailrec
+import scala.collection.mutable
+import scala.jdk.CollectionConverters._
+import scala.util.Properties.isWin
+import scala.util.{Failure, Success, Try, Using}
 
 object Jvm {
 
@@ -340,7 +330,7 @@ object Jvm {
       manifest: JarManifest,
       fileFilter: (os.Path, os.RelPath) => Boolean
   ): Unit =
-    JarOps.jar(jar, inputPaths, manifest, fileFilter, includeDirs = true, timestamp = None)
+    JarOps.jar(jar, inputPaths, manifest.build, fileFilter, includeDirs = true, timestamp = None)
 
   def createClasspathPassingJar(jar: os.Path, classpath: Agg[os.Path]): Unit = {
     createJar(
