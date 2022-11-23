@@ -111,7 +111,6 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       def exists(p: V => Boolean): Boolean = items.exists(p)
       def find(p: V => Boolean): Option[V] = items.find(p)
       def forall(p: V => Boolean): Boolean = items.forall(p)
-      @deprecated("Use .iterator.foreach(...) instead", "mill after 0.9.6")
       def foreach[U](f: V => U): Unit = items.foreach(f)
       def hasDefiniteSize: Boolean = set0.hasDefiniteSize: @nowarn
       def isEmpty: Boolean = items.isEmpty
