@@ -670,17 +670,18 @@ object HelloWorldTests extends TestSuite {
         )
 
         Using.resource(new JarFile(result.path.toIO)) { jarFile =>
-          val entries = jarFile.entries().asScala.map(_.getName).toSet
+          val entries = jarFile.entries().asScala.map(_.getName).toSeq.sorted
 
-          val otherFiles = Seq[os.RelPath](
-            os.rel / "META-INF" / "MANIFEST.MF",
-            os.rel / "reference.conf"
+          val otherFiles = Seq(
+            "META-INF/",
+            "META-INF/MANIFEST.MF",
+            "reference.conf"
           )
-          val expectedFiles = compileClassfiles ++ otherFiles
+          val expectedFiles = (compileClassfiles.map(_.toString()) ++ otherFiles).sorted
 
           assert(
             entries.nonEmpty,
-            entries == expectedFiles.map(_.toString()).toSet
+            entries == expectedFiles
           )
 
           val mainClass = jarMainClass(jarFile)
