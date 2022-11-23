@@ -28,7 +28,7 @@ trait JarOps {
   def jar(
       jar: os.Path,
       inputPaths: Agg[os.Path],
-      manifest: Manifest = JarManifest().build,
+      manifest: Manifest,
       fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true,
       includeDirs: Boolean = false,
       timestamp: Option[Long] = None
