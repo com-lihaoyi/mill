@@ -1,38 +1,28 @@
 package mill.modules
 
 import coursier.cache.ArtifactError
-
-import java.io.{
-  ByteArrayInputStream,
-  File,
-  FileOutputStream,
-  InputStream,
-  PipedInputStream,
-  SequenceInputStream
-}
-import java.lang.reflect.Modifier
-import java.net.URI
-import java.nio.file.{FileSystems, Files, NoSuchFileException, StandardOpenOption}
-import java.nio.file.attribute.PosixFilePermission
-import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
-import coursier.{Dependency, Repository, Resolution}
 import coursier.util.{Gather, Task}
-
-import java.util.Collections
-import mill.main.client.InputPumper
-import mill.api.{Ctx, IO, PathRef, Result}
-import mill.api.Loose.Agg
-import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
-
-import scala.collection.mutable
-import scala.util.Properties.isWin
-import scala.jdk.CollectionConverters._
-import scala.util.{Failure, Success, Try, Using}
+import coursier.{Dependency, Repository, Resolution}
 import mill.BuildInfo
+import mill.api.Loose.Agg
+import mill.api._
+import mill.main.client.InputPumper
+import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import os.SubProcess
 import upickle.default.{ReadWriter => RW}
 
+import java.io._
+import java.lang.reflect.Modifier
+import java.net.URI
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.{FileSystems, Files, NoSuchFileException, StandardOpenOption}
+import java.util.Collections
+import java.util.jar.{Attributes, JarFile, Manifest}
 import scala.annotation.tailrec
+import scala.collection.mutable
+import scala.jdk.CollectionConverters._
+import scala.util.Properties.isWin
+import scala.util.{Failure, Success, Try, Using}
 
 object Jvm {
 
@@ -339,38 +329,8 @@ object Jvm {
       inputPaths: Agg[os.Path],
       manifest: JarManifest,
       fileFilter: (os.Path, os.RelPath) => Boolean
-  ): Unit = {
-    os.makeDir.all(jar / os.up)
-    os.remove.all(jar)
-
-    val seen = mutable.Set.empty[os.RelPath]
-    seen.add(os.rel / "META-INF" / "MANIFEST.MF")
-
-    val jarStream = new JarOutputStream(
-      new FileOutputStream(jar.toIO),
-      manifest.build
-    )
-
-    try {
-      assert(inputPaths.iterator.forall(os.exists(_)))
-      for {
-        p <- inputPaths
-        (file, mapping) <-
-          if (os.isFile(p)) Iterator(p -> os.rel / p.last)
-          else os.walk(p).filter(os.isFile).map(sub => sub -> sub.relativeTo(p)).sorted
-        if !seen(mapping) && fileFilter(p, mapping)
-      } {
-        seen.add(mapping)
-        val entry = new JarEntry(mapping.toString)
-        entry.setTime(os.mtime(file))
-        jarStream.putNextEntry(entry)
-        jarStream.write(os.read.bytes(file))
-        jarStream.closeEntry()
-      }
-    } finally {
-      jarStream.close()
-    }
-  }
+  ): Unit =
+    JarOps.jar(jar, inputPaths, manifest.build, fileFilter, includeDirs = true, timestamp = None)
 
   def createClasspathPassingJar(jar: os.Path, classpath: Agg[os.Path]): Unit = {
     createJar(
@@ -553,8 +513,8 @@ object Jvm {
     tried match {
       case Failure(e: NoSuchFileException)
           if retryCount > 0 && e.getMessage.contains("__sha1.computed") =>
-          // this one is not detected by coursier itself, so we try-catch handle it
-          // I assume, this happens when another coursier thread already moved or rename dthe temporary file
+        // this one is not detected by coursier itself, so we try-catch handle it
+        // I assume, this happens when another coursier thread already moved or rename dthe temporary file
         ctx.foreach(_.log.debug(
           s"Detected a concurrent download issue in coursier. Attempting a retry (${retryCount} left)"
         ))
