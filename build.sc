@@ -104,10 +104,10 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.8"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.8"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.8"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.8"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.9"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.9"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.9"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.9"
   }
 
   trait Play {

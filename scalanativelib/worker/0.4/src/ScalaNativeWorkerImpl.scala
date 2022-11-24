@@ -61,6 +61,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
       releaseMode: ReleaseMode,
       nativeOptimize: Boolean,
       nativeEmbedResources: Boolean,
+      nativeIncrementalCompilation: Boolean,
       logLevel: NativeLogLevel
   ): NativeConfig = {
     val entry = if (patchIsGreaterThanOrEqual(3)) mainClass else mainClass + "$"
@@ -78,6 +79,9 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
         .withLTO(ScalaNativeLTO(nativeLTO.value))
     if (patchIsGreaterThanOrEqual(4)) {
       nativeConfig = nativeConfig.withEmbedResources(nativeEmbedResources)
+    }
+    if (patchIsGreaterThanOrEqual(9)) {
+      nativeConfig = nativeConfig.withIncrementalCompilation(nativeIncrementalCompilation)
     }
     val config =
       Config.empty
