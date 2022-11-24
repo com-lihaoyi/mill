@@ -52,6 +52,7 @@ trait JarOps {
       assert(inputPaths.iterator.forall(os.exists(_)))
 
       if (includeDirs) {
+        seen.add(os.sub / "META-INF")
         val entry = new JarEntry("META-INF/")
         entry.setTime(curTime)
         jarStream.putNextEntry(entry)
