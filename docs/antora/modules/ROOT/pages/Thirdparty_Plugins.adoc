@@ -803,7 +803,7 @@ Mill plugin to derive a version from (last) git tag and edit state. It may suppo
 Project home: https://github.com/lefou/mill-vcs-version
 
 Lots of formatting options are provided.
-When used with its defaults, the outcome is identical to the version scheme used by mill.
+When used with its defaults, the outcome is identical to the version scheme that Mill itself uses.
 
 === Quickstart
 
