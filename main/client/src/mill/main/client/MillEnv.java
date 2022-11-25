@@ -98,7 +98,7 @@ public class MillEnv {
         // extra opts
         File millJvmOptsFile = millJvmOptsFile();
         if (millJvmOptsFile.exists()) {
-            vmOptions.addAll(readMillJvmOpts());
+            vmOptions.addAll(readOptsFileLines(millJvmOptsFile));
         }
 
         vmOptions.add("-cp");
