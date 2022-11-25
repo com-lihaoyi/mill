@@ -108,13 +108,23 @@ public class MillEnv {
     }
 
     static List<String> readMillJvmOpts() {
+        return readOptsFileLines(millJvmOptsFile());
+    }
+
+    /**
+     * Reads a file, ignoring empty or comment lines
+     *
+     * @return The non-empty lines of the files or an empty list, if the file does not exists
+     */
+    static List<String> readOptsFileLines(final File file) {
         final List<String> vmOptions = new LinkedList<>();
         try (
-            final Scanner sc = new Scanner(millJvmOptsFile())
+            final Scanner sc = new Scanner(file)
         ) {
             while (sc.hasNextLine()) {
                 String arg = sc.nextLine();
-                if (!arg.trim().isEmpty() && !arg.startsWith("#")) {
+                String trimmed = arg.trim();
+                if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
                     vmOptions.add(arg);
                 }
             }
