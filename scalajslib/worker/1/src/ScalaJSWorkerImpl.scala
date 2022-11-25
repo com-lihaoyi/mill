@@ -301,6 +301,13 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
           .withArgs(config.args)
           .withEnv(config.env)
       )
+    case config: JsEnvConfig.ExoegoJsDomNodeJs =>
+      new net.exoego.jsenv.jsdomnodejs.JSDOMNodeJSEnv(
+        net.exoego.jsenv.jsdomnodejs.JSDOMNodeJSEnv.Config()
+          .withExecutable(config.executable)
+          .withArgs(config.args)
+          .withEnv(config.env)
+      )
     case config: JsEnvConfig.Phantom =>
       new org.scalajs.jsenv.phantomjs.PhantomJSEnv(
         org.scalajs.jsenv.phantomjs.PhantomJSEnv.Config()

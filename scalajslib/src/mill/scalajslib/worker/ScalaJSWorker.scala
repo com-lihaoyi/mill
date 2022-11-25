@@ -77,6 +77,12 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
           args = config.args,
           env = config.env
         )
+      case config: api.JsEnvConfig.ExoegoJsDomNodeJs =>
+        workerApi.JsEnvConfig.ExoegoJsDomNodeJs(
+          executable = config.executable,
+          args = config.args,
+          env = config.env
+        )
       case config: api.JsEnvConfig.Phantom =>
         workerApi.JsEnvConfig.Phantom(
           executable = config.executable,
