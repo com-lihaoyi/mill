@@ -136,6 +136,7 @@ object JavaCompileJarTests extends TestSuite {
           |test/FooTwo.class
           |readme.md
           |hello.txt
+          |META-INF/License
           |""".stripMargin
       assert(jarContents.linesIterator.toSeq == expectedJarContents.linesIterator.toSeq)
 
