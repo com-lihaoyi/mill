@@ -1,6 +1,5 @@
 package mill.main
 import java.io.{InputStream, PrintStream}
-
 import ammonite.Main
 import ammonite.interp.Interpreter
 import ammonite.compiler.iface.Preprocessor
@@ -13,6 +12,8 @@ import mill.util.PrintLogger
 import scala.annotation.tailrec
 import ammonite.runtime.ImportHook
 import mill.define.Segments
+
+import scala.util.Try
 
 /**
  * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
@@ -192,10 +193,19 @@ class MainRunner(
         if (path != wd) {
           // Computing a path in "out" that uniquely reflects the location
           // of the foreign module relatively to the current build.
-          val relative = path.relativeTo(wd)
+          val relativeOrRootBased = Try { Right(path.relativeTo(wd)) }
+            .recover {
+              case e: IllegalArgumentException =>
+                // assumed: 'other' has different root
+                Left(path)
+            }.get
           // Encoding the number of `/..`
-          val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
-          val segs = Seq("foreign-modules") ++ ups ++ relative.segments
+          val (ups, relOrAbsPath) = relativeOrRootBased match {
+            case Right(relative) =>
+              (if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq(), relative)
+            case Left(absolute) => (Seq("root"), absolute)
+          }
+          val segs = Seq("foreign-modules") ++ ups ++ relOrAbsPath.segments
           val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
           s"Some(_root_.mill.define.Segments.labels($segsList))"
         } else "None"
