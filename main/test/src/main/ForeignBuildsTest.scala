@@ -18,10 +18,12 @@ object ForeignBuildsTest extends ScriptTestSuite(fork = false) {
       "checkInnerPaths" - checkTarget()
       "checkOuterPaths" - checkTarget()
       "checkOuterInnerPaths" - checkTarget()
+      "checkOtherPaths" - checkTarget()
       "checkProjectDests" - checkTarget()
       "checkInnerDests" - checkTarget()
       "checkOuterDests" - checkTarget()
       "checkOuterInnerDests" - checkTarget()
+      "checkOtherDests" - checkTarget()
     }
   }
 }
