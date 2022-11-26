@@ -143,7 +143,7 @@ object Deps {
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.4"
   val coursier = ivy"io.get-coursier::coursier:2.1.0-RC2"
 
-  val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
+  val flywayCore = ivy"org.flywaydb:flyway-core:9.8.3"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.1"
 
@@ -393,7 +393,8 @@ trait MillInternalModule extends MillScalaModule with MillPublishModule
 trait MillApiModule extends MillScalaModule with MillPublishModule with MillMimaConfig
 
 /** Publishable module with tests. */
-trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompiler with AcyclicConfig
+trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompiler
+    with AcyclicConfig
 
 object main extends MillModule {
 
@@ -673,7 +674,9 @@ object scalajslib extends MillModule {
          |    val javaxServlet = "org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
          |    val scalajsEnvNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvNodejs)}"
          |    val scalajsEnvJsdomNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)}"
-         |    val scalajsEnvExoegoJsdomNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)}"
+         |    val scalajsEnvExoegoJsdomNodejs = "${formatDep(
+          Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs
+        )}"
          |    val scalajsEnvPhantomJs = "${formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)}"
          |  }
          |}
