@@ -1,4 +1,4 @@
-= Thirdparty Plugins
+= Third-Party Plugins
 :page-aliases: Thirdparty_Modules.adoc
 
 The Plugins in this section are developed/maintained outside the mill git tree.
@@ -70,6 +70,14 @@ For documentation, please refer to the https://github.com/lefou/mill-aspectj[pro
 Limited bash completion support.
 
 Project home: https://github.com/lefou/mill-bash-completion
+
+== Bundler
+
+`mill-bundler` is comparable to `scalajs-bundler` for SBT: It manages NPM dependencies for a Scala.js module and
+bundling it. Currently Webpack and Rollup are implemented but it's easy to use another one.
+
+Project home: https://github.com/nafg/mill-bundler
+
 
 == CI Release
 
