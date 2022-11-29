@@ -1,4 +1,4 @@
-= Configuring Mill
+= Configuring your Project
 
 You can configure your Mill build in a number of ways:
 
