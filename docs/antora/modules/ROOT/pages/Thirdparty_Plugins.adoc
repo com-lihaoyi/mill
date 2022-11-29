@@ -1,4 +1,4 @@
-= Thirdparty Plugins
+= Third-Party Plugins
 :page-aliases: Thirdparty_Modules.adoc
 
 The Plugins in this section are developed/maintained outside the mill git tree.
