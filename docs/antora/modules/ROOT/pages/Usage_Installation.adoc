@@ -1,0 +1,261 @@
+= Installation
+
+== Downloading Mill
+
+=== OS X
+
+Installation via https://github.com/Homebrew/homebrew-core/blob/master/Formula/mill.rb[homebrew]:
+
+[source,sh]
+----
+brew install mill
+
+----
+
+=== Arch Linux
+
+Arch Linux has a https://www.archlinux.org/packages/community/any/mill/[Community package for mill]:
+
+[source,bash]
+----
+pacman -S mill
+
+----
+
+=== FreeBSD
+
+Installation via http://man.freebsd.org/pkg/8[pkg(8)]:
+
+[source,sh]
+----
+pkg install mill
+
+----
+
+=== Gentoo Linux
+
+[source,sh]
+----
+emerge dev-java/mill-bin
+
+----
+
+=== Windows
+
+To get started, download Mill from
+{mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-assembly[Github releases], and save it as `mill.bat`.
+
+If you're using https://scoop.sh[Scoop] you can install Mill via
+
+[source,bash]
+----
+scoop install mill
+----
+
+Mill also works on "sh" environments on Windows (e.g.,
+https://www.msys2.org[MSYS2],
+https://www.cygwin.com[Cygwin],
+https://gitforwindows.org[Git-Bash],
+https://docs.microsoft.com/en-us/windows/wsl[WSL]); to get started, follow the instructions in the <<_manual>>
+section below. Note that:
+
+* In some environments (such as WSL), Mill might have to be run without a server (using `-i`, `--interactive`
+, `--no-server`, or
+`--repl`.)
+
+* On Cygwin, run the following after downloading mill:
+
+[source,bash]
+----
+sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
+----
+
+=== Docker
+
+You can download and run
+a https://hub.docker.com/r/nightscape/scala-mill/["Docker image containing OpenJDK, Scala and Mill"] using
+
+[source,bash]
+----
+docker pull nightscape/scala-mill
+docker run -it nightscape/scala-mill
+----
+
+=== Manual
+
+To get started, download Mill and install it into your HOME ".local/bin" via the following
+`curl`/`chmod` command:
+
+[source,bash,subs="verbatim,attributes"]
+----
+sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > ~/.local/bin/mill && chmod +x ~/.local/bin/mill"
+----
+
+=== Bootstrap Scripts (Linux/OS-X Only)
+
+If you are using Mill in a codebase, you can commit the bootstrap launcher as a
+`./mill` script in the project folder:
+
+[source,bash,subs="verbatim,attributes"]
+----
+curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
+----
+
+Now, anyone who wants to work with the project can simply use the `./mill`
+script directly:
+
+[source,bash]
+----
+./mill version
+./mill __.compile # double underscore
+----
+
+The `mill` command will automatically use the version specified by the bootstrap script, even if you installed it via
+other means. The `./mill` file has a version number embedded within it, which you can update simply by editing the
+script. Note this only works for versions 0.5.0 and above.
+
+Bootstrap scripts are also useful for running Mill in CI, ensuring that your Jenkins/Travis/etc. box has the correct
+version of Mill present to build/compile/test your code.
+
+=== millw
+
+Instead of installing Mill directly, you can also use https://github.com/lefou/millw[lefou/millw] as drop-in
+replacement for `mill`. It provides a small shell script and also a Windows batch file, that transparently downloads `mill`
+and executes it on your behalf. It respects various ways to configure the preferred Mill version (`MILL_VERSION` env
+var, `.mill-version` file, `--mill-version` option) and can also be used as a bootstrap script in your project.
+
+=== Coursier (unsupported)
+
+Installing mill via `coursier` or `cs` is currently not officially supported. There are various issues, especially with
+interactive mode.
+
+
+== Updating Mill
+
+Once installed mill is able to use newer or different versions for each project automatically. You don't need to install
+multiple versions of mill yourself.
+
+See section <<_overriding_mill_versions>> how to do it.
+
+
+== Overriding Mill Versions
+
+Apart from downloading and installing new versions of Mill globally, there are a few ways of selecting/updating your Mill version:
+
+* Create a `.mill-version` file to specify the version of Mill you wish to use:
+[source,bash]
+----
+echo "0.5.0" > .mill-version
+----
+
+`.mill-version` takes precedence over the version of Mill specified in the
+`./mill` script.
+
+* Pass in a `MILL_VERSION` environment variable, e.g.
+[source,bash]
+----
+MILL_VERSION=0.5.0-3-4faefb mill __.compile
+----
+
+or
+
+[source,bash]
+----
+MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
+----
+
+to override the Mill version manually. This takes precedence over the version specified in `./mill` or `.mill-version`
+
+Note that both of these overrides only work for versions 0.5.0 and above.
+
+=== Automatic Mill updates
+
+If your project is hosted on GitHub, GitLab, or Bitbucket, you can use https://github.com/scala-steward-org/scala-steward[Scala Steward] to automatically open a pull request to update your Mill version (in `.mill-version` file), whenever there is a newer version available.
+
+TIP: Scala Steward can also xref:Configuring_Mill.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies] and keep them up-to-date.
+
+=== Development Releases
+
+In case you want to try out the latest features and improvements that are currently in the main branch, unstable versions of Mill
+are
+https://github.com/com-lihaoyi/mill/releases[available] as binaries named
+`+#.#.#-n-hash+` linked to the latest tag. Installing the latest unstable release is recommended for bootstrapping mill.
+
+The easiest way to use a development release is by updating the <<_bootstrap_scripts_linuxos_x_only>>,
+or
+<<_overriding_mill_versions>> via an environment variable or `.mill-version` file.
+
+
+
+== IDE Support
+
+To support various IDEs and Language Servers, Mill supports the https://build-server-protocol.github.io/[Build Server Protocol] in version {bsp-version} and has a <<Build Server Protocol (BSP),built-in BSP server>>.
+
+In addition to BSP, Mill also supports <<IntelliJ Support,IntelliJ IDEA project configuration generation>> directly.
+
+=== Build Server Protocol (BSP)
+
+To install a BSP connection file `.bsp/mill-bsp.json`, run:
+
+[source,bash]
+----
+mill mill.bsp.BSP/install
+----
+
+Working known clients of the BSP server are IntelliJ IDEA and Metals.
+
+You can fine control some BSP server options by specifying command options:
+
+|===
+| Option | Description
+|`--jobs` `n` | Use `n` threads in parallel to run tasks. A value of `0` means use as much threads as the system has cpu cores.
+|===
+
+[source]
+
+[NOTE]
+--
+*Using Metals*
+
+When using Metals by default Bloop will be used as your build server unless you explicitly choose Mill.
+When in a Mill workspace use the "Switch Build Server" command from Metals which will allow you to switch to using Mill as your build
+server.
+If no `.bsp/mill-bsp.json` file exists, Metals will automatically create it for you and then connect to Mill.
+
+Metals is relying on SemanticDB to enable many of its features.
+Mill BSP now also supports to provide this SemanticDB data, when the BSP client (like Metals) requests it.
+
+As of writing this, Metals 0.11.8 is the latest available version, which is not able to detect the fact, that Mill _is_ already providing SemanticDB data.
+As a consequence, it reports missing SemanticDB data, although some SemanticDB-based features are already working.
+This may be fixed eventually in a future release of Metals.
+--
+
+[CAUTION]
+--
+*Updating older setups*
+
+In the past, we provided SemanticDB support via `mill.scalalib.bsp.ScalaMetalsSupport` trait, which had to be mixed-in to your Scala modules.
+This is no longer needed and deprecated.
+You should remove these mix-ins.
+`ScalaMetalsSupport` trait is now deprecated and will be removed in the future.
+--
+
+=== Using Bloop (standalone BSP server)
+
+If you wish to use Bloop as your build server (it is the default metals BSP implementation) with metals / vscode, consider using the mill bloop plugin.
+
+xref:Plugin_Bloop.adoc[Bloop Plugin]
+
+
+This is preferred to the instructions (currently) on the bloop website.
+
+
+
+== IntelliJ Support
+
+To generate IntelliJ IDEA project files into `.idea/`, run:
+
+[source,bash]
+----
+mill mill.scalalib.GenIdea/idea
+----

@@ -1,4 +1,10 @@
 * xref:Intro_to_Mill.adoc[]
+
+* Usage
+** xref:Usage_Installation.adoc[]
+** xref:Usage_Basics.adoc[]
+** xref:Usage_OutDir.adoc[]
+
 * xref:Configuring_Mill.adoc[]
 * xref:Common_Project_Layouts.adoc[]
 * xref:Tasks.adoc[]
