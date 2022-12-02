@@ -1161,10 +1161,20 @@ def launcherScript(
          |  fi
          |
          |  if [ -f "$$mill_jvm_opts_file" ] ; then
-         |    while IFS= read line
-         |    do
-         |      mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
-         |    done <"$$mill_jvm_opts_file"
+         |    # We need to append a newline at the end to fix
+         |    # https://github.com/com-lihaoyi/mill/issues/2140
+         |    newline="
+         |"
+         |    mill_jvm_opts="$$(
+         |      echo "$$newline" | cat "$$mill_jvm_opts_file" - | (
+         |        while IFS= read line
+         |        do
+         |          mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
+         |        done
+         |        # we are in a sub-shell, so need to return it explicitly
+         |        echo "$${mill_jvm_opts}"
+         |      )
+         |    )"
          |    mill_jvm_opts="$${mill_jvm_opts} -Dmill.jvm_opts_applied=true"
          |  fi
          |}
@@ -1515,7 +1525,6 @@ object docs extends Module {
 }
 
 def assembly = T {
-
   val version = millVersion()
   val devRunClasspath = dev.runClasspath().map(_.path)
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
