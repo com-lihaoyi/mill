@@ -140,7 +140,7 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.4"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   val coursier = ivy"io.get-coursier::coursier:2.1.0-RC1"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
@@ -883,7 +883,7 @@ object contrib extends MillModule {
   object bloop extends MillModule {
     override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
     override def ivyDeps = Agg(
-      Deps.bloopConfig
+      Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13")
     )
     override def testArgs = T(scalanativelib.testArgs())
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
@@ -891,11 +891,9 @@ object contrib extends MillModule {
       scalajslib,
       scalanativelib
     )
-    override def generatedSources = T {
-      val dest = T.ctx.dest
-      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+    def generateBuildinfo = T {
       os.write(
-        dest / "Versions.scala",
+        T.dest / "Versions.scala",
         s"""package mill.contrib.bloop
            |
            |object Versions {
@@ -903,7 +901,10 @@ object contrib extends MillModule {
            |}
            |""".stripMargin
       )
-      super.generatedSources() ++ Seq(PathRef(dest))
+      PathRef(T.dest)
+    }
+    override def generatedSources = T {
+      super.generatedSources() ++ Seq(generateBuildinfo())
     }
   }
 
