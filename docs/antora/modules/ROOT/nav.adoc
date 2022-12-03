@@ -2,6 +2,7 @@
 
 * xref:Installation.adoc[]
 * xref:Getting_Started.adoc[]
+* xref:IDE_Support.adoc[]
 * xref:Out_Dir.adoc[]
 
 * xref:Configuration.adoc[]
