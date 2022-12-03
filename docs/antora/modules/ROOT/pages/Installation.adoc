@@ -1,6 +1,53 @@
 = Installation
 
+The best method of installing Mill is to just install a bootstrap script.
+This script can determine the best version to be used by a project (e.g. by reading a `.mill-version` file) and will use this exact Mill version.
+If that version is not installed locally, it will be downloading for you.
+
+== Bootstrap Scripts
+
+There are currently two bootstrap script available, one <<_mills_bootstrap_script_linuxos_x_only,in the Mill repository>>, which only work for Linux and Unix-like machines, and one <<_millw,external `millw` script>>, with more features and also Windows support.
+
+Using `millw` is recommended.
+
+We plan to merge both script in the future.
+
+=== Mill's Bootstrap Script (Linux/OS-X Only)
+
+If you are using Mill in a codebase, you can commit the bootstrap launcher as a
+`./mill` script in the project folder:
+
+[source,bash,subs="verbatim,attributes"]
+----
+curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
+----
+
+Now, anyone who wants to work with the project can simply use the `./mill`
+script directly:
+
+[source,bash]
+----
+./mill version
+./mill __.compile # double underscore
+----
+
+The `mill` command will automatically use the version specified by the bootstrap script, even if you installed it via
+other means. The `./mill` file has a version number embedded within it, which you can update simply by editing the
+script. Note this only works for versions 0.5.0 and above.
+
+Bootstrap scripts are also useful for running Mill in CI, ensuring that your Jenkins/Travis/etc. box has the correct
+version of Mill present to build/compile/test your code.
+
+=== millw
+
+Instead of installing Mill directly, you can also use https://github.com/lefou/millw[lefou/millw] as drop-in
+replacement for `mill`. It provides a small shell script and also a Windows batch file, that transparently downloads `mill`
+and executes it on your behalf. It respects various ways to configure the preferred Mill version (`MILL_VERSION` env
+var, `.mill-version` file, `--mill-version` option) and can also be used as a bootstrap script in your project.
+
+
 == Downloading Mill
+
 
 === OS X
 
@@ -91,39 +138,6 @@ To get started, download Mill and install it into your HOME ".local/bin" via the
 sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > ~/.local/bin/mill && chmod +x ~/.local/bin/mill"
 ----
 
-=== Bootstrap Scripts (Linux/OS-X Only)
-
-If you are using Mill in a codebase, you can commit the bootstrap launcher as a
-`./mill` script in the project folder:
-
-[source,bash,subs="verbatim,attributes"]
-----
-curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
-----
-
-Now, anyone who wants to work with the project can simply use the `./mill`
-script directly:
-
-[source,bash]
-----
-./mill version
-./mill __.compile # double underscore
-----
-
-The `mill` command will automatically use the version specified by the bootstrap script, even if you installed it via
-other means. The `./mill` file has a version number embedded within it, which you can update simply by editing the
-script. Note this only works for versions 0.5.0 and above.
-
-Bootstrap scripts are also useful for running Mill in CI, ensuring that your Jenkins/Travis/etc. box has the correct
-version of Mill present to build/compile/test your code.
-
-=== millw
-
-Instead of installing Mill directly, you can also use https://github.com/lefou/millw[lefou/millw] as drop-in
-replacement for `mill`. It provides a small shell script and also a Windows batch file, that transparently downloads `mill`
-and executes it on your behalf. It respects various ways to configure the preferred Mill version (`MILL_VERSION` env
-var, `.mill-version` file, `--mill-version` option) and can also be used as a bootstrap script in your project.
-
 === Coursier (unsupported)
 
 Installing mill via `coursier` or `cs` is currently not officially supported. There are various issues, especially with
@@ -132,7 +146,7 @@ interactive mode.
 
 == Updating Mill
 
-Once installed mill is able to use newer or different versions for each project automatically. You don't need to install
+Once installed, Mill is able to use newer or different versions for each project automatically. You don't need to install
 multiple versions of mill yourself.
 
 See section <<_overriding_mill_versions>> how to do it.
