@@ -215,6 +215,17 @@ object BloopTests extends TestSuite {
         assert(exists == false)
       }
     }
+    "regenerateAfterBloopDirRemoval" - {
+      testEvaluator(testBloop.install())
+      val bloopDir = workdir / ".bloop"
+      val files = os.list(bloopDir)
+      assert(files.size == 5)
+      os.remove.all(bloopDir)
+      testEvaluator(testBloop.install())
+      val files2 = os.list(bloopDir)
+      assert(files2.size == 5)
+      assert(files2 == files)
+    }
   }
 
 }
