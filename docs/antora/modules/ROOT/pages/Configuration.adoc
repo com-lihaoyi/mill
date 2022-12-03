@@ -1,4 +1,5 @@
 = Configuring your Project
+:page-aliases: Configuring_Mill.adoc
 
 You can configure your Mill build in a number of ways:
 

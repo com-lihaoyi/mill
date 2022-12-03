@@ -1,6 +1,6 @@
-= Basics
+= Getting Started
 
-== Getting Started
+== Simple Project
 
 The simplest Mill build for a Java project looks as follows:
 
@@ -237,7 +237,7 @@ $ mill -w foo.runBackground
 ----
 
 
-== Parallel Task Execution (Experimental)
+== Parallel Task Execution
 
 By default, mill will evaluate all tasks in sequence.
 But mill also supports processing tasks in parallel.

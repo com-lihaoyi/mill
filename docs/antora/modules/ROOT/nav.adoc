@@ -1,14 +1,13 @@
 * xref:Intro_to_Mill.adoc[]
 
-* Usage
-** xref:Usage_Installation.adoc[]
-** xref:Usage_Basics.adoc[]
-** xref:Usage_OutDir.adoc[]
+* xref:Installation.adoc[]
+* xref:Getting_Started.adoc[]
+* xref:Out_Dir.adoc[]
 
 * xref:Configuration.adoc[]
 * xref:Common_Project_Layouts.adoc[]
 * xref:Tasks.adoc[]
-** xref:Task_Context_API.adoc[]
+* xref:Task_Context_API.adoc[]
 * xref:Modules.adoc[]
 * xref:Cross_Builds.adoc[]
 * xref:Extending_Mill.adoc[]
