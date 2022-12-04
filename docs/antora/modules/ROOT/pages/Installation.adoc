@@ -99,16 +99,16 @@ If you're using https://scoop.sh[Scoop] you can install Mill via
 scoop install mill
 ----
 
+=== WSL / MSYS2 / Cycgin / Git-Bash
+
 Mill also works on "sh" environments on Windows (e.g.,
 https://www.msys2.org[MSYS2],
 https://www.cygwin.com[Cygwin],
 https://gitforwindows.org[Git-Bash],
 https://docs.microsoft.com/en-us/windows/wsl[WSL]); to get started, follow the instructions in the <<_manual>>
-section below. Note that:
+section. Note that:
 
-* In some environments (such as WSL), Mill might have to be run without a server (using `-i`, `--interactive`
-, `--no-server`, or
-`--repl`.)
+* In some environments (such as WSL), Mill might have to be run without a server (using `-i`, `--interactive`, `--no-server`, or `--repl`.)
 
 * On Cygwin, run the following after downloading mill:
 
@@ -146,15 +146,14 @@ interactive mode.
 
 == Updating Mill
 
-Once installed, Mill is able to use newer or different versions for each project automatically. You don't need to install
-multiple versions of mill yourself.
+If you have installed Mill via the recommended <<_bootstrap_scripts,`Bootstrap Script`>> method, you don't need to install multiple version of Mill explicitly.
 
-See section <<_overriding_mill_versions>> how to do it.
-
+Follow the next <<_overriding_mill_versions>> section for details.
 
 == Overriding Mill Versions
 
-Apart from downloading and installing new versions of Mill globally, there are a few ways of selecting/updating your Mill version:
+
+Apart from downloading and installing new versions of Mill globally, there are a few ways of selecting/updating your Mill version. This will only work, if you have choosen one of the <<_bootstrap_scripts,Boostrap script methods>>:
 
 * Create a `.mill-version` file to specify the version of Mill you wish to use:
 [source,bash]
@@ -180,8 +179,6 @@ MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
 
 to override the Mill version manually. This takes precedence over the version specified in `./mill` or `.mill-version`
 
-Note that both of these overrides only work for versions 0.5.0 and above.
-
 === Automatic Mill updates
 
 If your project is hosted on GitHub, GitLab, or Bitbucket, you can use https://github.com/scala-steward-org/scala-steward[Scala Steward] to automatically open a pull request to update your Mill version (in `.mill-version` file), whenever there is a newer version available.
@@ -193,9 +190,8 @@ TIP: Scala Steward can also xref:Configuration.adoc#_keeping_up_to_date_with_sca
 In case you want to try out the latest features and improvements that are currently in the main branch, unstable versions of Mill
 are
 https://github.com/com-lihaoyi/mill/releases[available] as binaries named
-`+#.#.#-n-hash+` linked to the latest tag. Installing the latest unstable release is recommended for bootstrapping mill.
+`+#.#.#-n-hash+` linked to the latest tag.
 
-The easiest way to use a development release is by updating the <<_bootstrap_scripts_linuxos_x_only>>,
-or
-<<_overriding_mill_versions>> via an environment variable or `.mill-version` file.
+The easiest way to use a development release is to use one of the <<_bootstrap_scripts>>, which support
+<<_overriding_mill_versions>> via an `MILL_VERSION` environment variable or a `.mill-version` file.
 

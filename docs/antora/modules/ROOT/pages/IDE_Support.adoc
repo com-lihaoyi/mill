@@ -1,4 +1,5 @@
 = IDE Support
+:link-metals: https://scalameta.org/metals/
 
 To support various IDEs and Language Servers, Mill supports the https://build-server-protocol.github.io/[Build Server Protocol] in version {bsp-version} and has a <<Build Server Protocol (BSP),built-in BSP server>>.
 
@@ -13,7 +14,7 @@ To install a BSP connection file `.bsp/mill-bsp.json`, run:
 mill mill.bsp.BSP/install
 ----
 
-Working known clients of the BSP server are IntelliJ IDEA and Metals.
+Working known clients of the BSP server are IntelliJ IDEA and {link-metals}[Metals].
 
 You can fine control some BSP server options by specifying command options:
 
