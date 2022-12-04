@@ -6,7 +6,7 @@
     <title>Extending Mill :: Mill</title>
     <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Extending_Mill.html" />
     <link rel="prev" href="Cross_Builds.html" />
-    <link rel="next" href="Mill_Internals.html" />
+    <link rel="next" href="Using_Plugins.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script>var uiRootPath = '../_'</script>
@@ -94,19 +94,28 @@
     <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Configuring_Mill.html">Configuring Mill</a>
+    <a class="nav-link" href="Installation.html">Installation</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Getting_Started.html">Getting Started</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="IDE_Support.html">IDE Support</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Configuration.html">Configuring your Project</a>
   </li>
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="Tasks.html">Tasks</a>
-<ul class="nav-list">
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
   </li>
-</ul>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
   </li>
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Modules.html">Modules</a>
@@ -116,6 +125,9 @@
   </li>
   <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
   </li>
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
@@ -200,14 +212,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.9-34-bdcb6d</span>
+    <span class="version">0.10.9-41-62a765</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.9-34-bdcb6d</a>
+          <a href="index.html">0.10.9-41-62a765</a>
         </li>
         <li class="version">
           <a href="0.10.9/index.html">0.10.9</a>
@@ -278,9 +290,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.9-34-bdcb6d</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.9-41-62a765</button>
   <div class="version-menu">
-    <a class="version is-current" href="Extending_Mill.html">0.10.9-34-bdcb6d</a>
+    <a class="version is-current" href="Extending_Mill.html">0.10.9-41-62a765</a>
     <a class="version" href="0.10.9/Extending_Mill.html">0.10.9</a>
     <a class="version" href="0.10.8/Extending_Mill.html">0.10.8</a>
     <a class="version" href="0.10.7/Extending_Mill.html">0.10.7</a>
@@ -336,7 +348,7 @@ If you have something you just want to <em>do</em> that isn’t covered by the b
 <p>For subprocess/filesystem operations, you can use the
 <a href="https://github.com/lihaoyi/os-lib">os-lib</a> library that comes bundled with Mill, or even plain <code>java.nio</code>/<code>java.lang.Process</code>.
 Each target gets its own
-<a href="Tasks.html#_mill_api_ctx_dest" class="xref page">T.dest</a> folder that you can use to place files without worrying about colliding with other targets.</p>
+<a href="Task_Context_API.html#_mill_api_ctx_dest" class="xref page">T.dest</a> folder that you can use to place files without worrying about colliding with other targets.</p>
 </div>
 <div class="paragraph">
 <p>This covers use cases like:</p>
@@ -376,10 +388,13 @@ def deployFoo(credentials: String) = T.command {
 <div class="sectionbody">
 <div class="paragraph">
 <p><a href="#_custom_targets_commands">Custom Targets &amp; Commands</a> are re-computed from scratch each time; sometimes you want to keep values around in-memory when using
-<code>--watch</code> or the Build REPL.
-E.g. you may want to keep a webpack process running so webpack’s own internal caches are hot and compilation is fast:</p>
+<code>--watch</code> or the Build REPL.</p>
+</div>
+<div class="paragraph">
+<p>In such a case, you can use a <code>Worker</code>. Workers keep their state between multiple runs. Workers are created with the <code>T.worker</code> macro.</p>
 </div>
 <div class="listingblock">
+<div class="title">Example: Keep a webpack process running so webpack’s own internal caches are hot and compilation is fast</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def webpackWorker = T.worker {
   // Spawn a process using java.lang.Process and return it
@@ -412,7 +427,7 @@ def compiledJavascript = T {
 </div>
 </div>
 <div class="paragraph">
-<p>Custom modules are useful if you have a common set of tasks that you want to re-used across different parts of your build.
+<p>Custom modules are useful if you have a common set of tasks that you want to re-use across different parts of your build.
 You simply define a <code>trait</code>
 inheriting from <code>mill.Module</code>, and then use that <code>trait</code> as many times as you want in various <code>object</code>s:</p>
 </div>
@@ -436,6 +451,9 @@ object foo2 extends FooModule {
   }
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>In fact, the above example of a configuration trait is so convenient, that it is found in almost any non-trivial Mill project, in once form or another.</p>
 </div>
 </div>
 </div>
@@ -461,7 +479,7 @@ def printFoo() = T.command { println(foo.fooValue()) }</code></pre>
 </div>
 <div class="paragraph">
 <p>Mill’s <code>import $file</code> syntax supports the full functionality of
-<a href="http://ammonite.io/#ScalaScripts">Ammonite Scripts</a></p>
+<a href="https://ammonite.io/#ScalaScripts">Ammonite Scripts</a></p>
 </div>
 </div>
 </div>
@@ -501,119 +519,11 @@ def generatedHtml = T {
 </tbody></table>
 </div>
 <div class="paragraph">
-<p>Please also read the next section <a href="#_using_mill_plugins_import_ivy">Using Mill Plugins (<code>import $ivy</code>)</a>].</p>
+<p>Please also read the section <a href="Using_Plugins.html" class="xref page">Using Plugins</a>.</p>
 </div>
 <div class="paragraph">
-<p>For more information, see Ammonite’s
-<a href="http://ammonite.io/#import$ivy">Ivy Dependencies documentation</a>.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_using_mill_plugins_import_ivy"><a class="anchor" href="#_using_mill_plugins_import_ivy"></a>Using Mill Plugins (<code>import $ivy</code>)</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill plugins are ordinary jars and are loaded as any other external dependency with <a href="#_import_ivy"><code>import $ivy</code></a>.</p>
-</div>
-<div class="paragraph">
-<p>Mill plugins are typically bound to a specific version or version range of Mill.
-To ease the use of the correct versions and avoid runtime issues (caused by binary incompatible plugins, which are hard to debug) you can apply one of the following techniques:</p>
-</div>
-<div class="sect2">
-<h3 id="_use_the_specific_mill_binary_platform_notation"><a class="anchor" href="#_use_the_specific_mill_binary_platform_notation"></a>Use the specific Mill Binary Platform notation</h3>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// for classic Scala dependencies
-import $ivy.`&lt;group&gt;::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" data-value="1"></i><b>(1)</b>
-// for dependencies specific to the exact Scala version
-import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tbody><tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>This is equivalent to
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`&lt;group&gt;::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;`</code></pre>
-</div>
-</div></td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>This is equivalent to
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`&lt;group&gt;:::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;`</code></pre>
-</div>
-</div></td>
-</tr>
-</tbody></table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_use_special_placeholders_in_your_import_ivy"><a class="anchor" href="#_use_special_placeholders_in_your_import_ivy"></a>Use special placeholders in your <code>import $ivy</code></h3>
-<div class="dlist">
-<dl>
-<dt class="hdlist1"><code>$MILL_VERSION</code> </dt>
-<dd>
-<div class="openblock">
-<div class="content">
-<div class="paragraph">
-<p>to substitute the currently used Mill version.
-This is typical required for Mill contrib modules, which are developed in the Mill repository and highly bound to the current Mill version.</p>
-</div>
-<div class="listingblock">
-<div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
-<div class="content">
-<pre>import $ivy.`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>There is the even more convenient option to leave the version completely empty.
-Mill will substitute it with its current version.
-But don’t forget to provide the trailing colon!</p>
-</div>
-<div class="listingblock">
-<div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
-<div class="content">
-<pre>import $ivy.`com.lihaoyi:mill-contrib-bloop:`</pre>
-</div>
-</div>
-</div>
-</div>
-</dd>
-<dt class="hdlist1"><code>$MILL_BIN_PLATFORM</code> </dt>
-<dd>
-<div class="openblock">
-<div class="content">
-<div class="paragraph">
-<p>to substitute the currently used Mill binary platform.</p>
-</div>
-<div class="listingblock">
-<div class="title">Example: Using <code>mill-vcs-version</code> plugin matching the current Mill Binary Platfrom</div>
-<div class="content">
-<pre>import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`</pre>
-</div>
-</div>
-</div>
-</div>
-</dd>
-</dl>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-If you want to publish re-usable libraries that <em>other</em> people can use in their builds, simply publish your code as a library to maven central.
-</td>
-</tr>
-</tbody></table>
-</div>
+<p>For more information about this special <code>import</code> syntax, read the
+<a href="https://ammonite.io/#import$ivy">Ammonite Documentation for Ivy Dependencies</a>.</p>
 </div>
 </div>
 </div>
@@ -641,16 +551,16 @@ For example, here is the <code>mill.scalalib.GenIdea/idea</code> command which u
 </div>
 <div class="paragraph">
 <p>Many built-in tools are implemented as custom evaluator commands:
-<a href="Intro_to_Mill.html#_inspect" class="xref page">inspect</a>,
-<a href="Intro_to_Mill.html#_resolve" class="xref page">resolve</a>,
-<a href="Intro_to_Mill.html#_show" class="xref page">show</a>.
+<a href="Getting_Started.html#_inspect" class="xref page">inspect</a>,
+<a href="Getting_Started.html#_resolve" class="xref page">resolve</a>,
+<a href="Getting_Started.html#_show" class="xref page">show</a>.
 If you want a way to run Mill commands and programmatically manipulate the tasks and outputs, you do so with your own evaluator command.</p>
 </div>
 </div>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="Cross_Builds.html">Cross Builds</a></span>
-  <span class="next"><a href="Mill_Internals.html">Mill Internals</a></span>
+  <span class="next"><a href="Using_Plugins.html">Using Plugins</a></span>
 </nav>
 </article>
   </div>
