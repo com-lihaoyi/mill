@@ -1,4 +1,5 @@
-= Configuring Mill
+= Configuring your Project
+:page-aliases: Configuring_Mill.adoc
 
 You can configure your Mill build in a number of ways:
 
@@ -157,7 +158,7 @@ It's always a good idea to keep your dependencies up-to-date.
 
 If your project is hosted on GitHub, GitLab, or Bitbucket, you can use https://github.com/scala-steward-org/scala-steward[Scala Steward] to automatically open a pull request to update your dependencies whenever there is a newer version available.
 
-TIP: Scala Steward can also keep your xref:Intro_to_Mill.adoc#_automatic_mill_updates[Mill version up-to-date].
+TIP: Scala Steward can also keep your xref:Installation.adoc#_automatic_mill_updates[Mill version up-to-date].
 
 
 
