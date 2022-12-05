@@ -5,7 +5,7 @@ The Plugins in this section are developed/maintained outside the mill git tree.
 This list is most likely not complete.
 If you wrote a Mill plugin or find that one is missing in this list, please open a {mill-github-url}/pulls[pull request] and add that plugin with a short description (in alphabetical order).
 
-For details about including plugins in your `build.sc` read xref:Extending_Mill.adoc#_using_mill_plugins_import_ivy[Using Mill Plugins].
+For details about including plugins in your `build.sc` read xref:Using_Plugins.adoc[Using Mill Plugins].
 
 CAUTION: Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
 The usage examples given here are most probably incomplete and sometimes outdated!

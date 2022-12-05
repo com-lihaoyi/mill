@@ -3,7 +3,7 @@
 
 The ((plugins)) in this section are developed/maintained in the mill git tree.
 
-For details about including plugins in your `build.sc` read xref:Extending_Mill.adoc#_using_mill_plugins_import_ivy[Using Mill Plugins].
+For details about including plugins in your `build.sc` read xref:Using_Plugins.adoc[Using Mill Plugins].
 
 [CAUTION]
 --
