@@ -86,12 +86,17 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
     object bloop extends MillModule {
       def config = T { outer.bloopConfig(jm) }
 
-      def writeConfig: Target[(String, PathRef)] = T {
+      def writeConfigFile(): Command[(String, PathRef)] = T.command {
         os.makeDir.all(bloopDir)
         val path = bloopConfigPath(jm)
         _root_.bloop.config.write(config(), path.toNIO)
         T.log.info(s"Wrote $path")
         name(jm) -> PathRef(path)
+      }
+
+      @deprecated("Use writeConfigFile instead.", "Mill after 0.10.9")
+      def writeConfig: Target[(String, PathRef)] = T {
+        writeConfigFile()()
       }
     }
 
