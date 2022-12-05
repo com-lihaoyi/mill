@@ -1,10 +1,12 @@
 = Library Dependencies in Mill
+:link-coursier: https://github.com/coursier/coursier
+:link-coursier-doc: https://get-coursier.io/docs/overview
 
 Beside the dependencies between Mill modules, most non-trivial source projects have dependencies to other libraries.
 
-Mill uses [coursier] to resolve and download dependencies.
+Mill uses {link-coursier}[coursier] to resolve and download dependencies.
 Once downloaded, they are located in the coursier specific cache locations.
-For more details about coursier, refer to the [coursier documentation].
+For more details about coursier, refer to the {link-coursier-doc}[coursier documentation].
 
 == Dependencies in General
 
@@ -19,8 +21,8 @@ When working in other Java and Scala projects, you will find some synonyms, whic
 For example in the Maven ecosystem, the `organization` is called the `group` and the `name` is called the `artifact`.
 The whole tripplet is ofthe called `GAV`.
 
-I Mill we use the additional term `artifactId` which is identical to the `name` when used in the normal form shown above.
-When a different for is used, e.g. some double-colons are used between the parts, the `artifactId` typically contains suffixes, but the name doesn't.
+In Mill we use the additional term `artifactId` which is identical to the `name` when used in the normal form shown above.
+When a different form is used, e.g. some double-colons are used between the parts, the `artifactId` typically contains suffixes, but the name doesn't.
 
 .Example for a simple Java Dependency
 [source,scala]
@@ -33,7 +35,7 @@ def ivyDeps = Agg(
 == Scala dependencies
 
 Scala major releases up until version `2.13` are binary incompatible.
-That means, mixing dependencies of different binary platform will result in non-working runtime and obsure and hard to debug issues.
+That means, mixing dependencies of different binary platforms will result in non-working runtimes and obscure and hard to debug issues.
 
 To easily pick only a compatible version, a convention was established to append the scala major version as a suffix to the package name.footnote:[
 Scala 2 versions have the unusual version format: `{epoch}.{major}.{minor}`.]
@@ -59,7 +61,7 @@ def ivyDeps = Agg(
 
 == Scala 3 interoperability
 
-Since the release of Scala 3, the binary compatibility story for Scala changed.
+Since the release of Scala 3, the binary compatibility story for Scala has changed.
 That means, Scala 3 dependencies can be mixed with Scala 2.13 dependencies.
 In fact, the Scala 3 standard library is the same as for Scala 2.13.
 
@@ -74,7 +76,7 @@ There is currently no mechanism, that impedes to bring the same dependency twice
 
 === Using Scala 2.13 from Scala 3
 
-If your Scala version is a Scala 3, but you want to use the Scala 2.13 version of a specific library, you can use the `.withDottyCompat` method on that dependency.
+If your Scala version is a Scala 3.x, but you want to use the Scala 2.13 version of a specific library, you can use the `.withDottyCompat` method on that dependency.
 
 .Example:
 [source,scala]
@@ -96,12 +98,12 @@ In the early development of Scala 3, the Scala 3 compiler was called "Dotty". La
 The dotty compiler itself is an implementation of the http://lampwww.epfl.ch/~amin/dot/fool.pdf[Dependent Object Types (DOT) calculus], which is the new basis of Scala 3. It also enhances the type system to a next level and allows features like union-types and intersection-types.
 --
 
-== Test dependencies (`test` scope)
+== Test dependencies (there is no `test` scope)
 
 One difference between Mill and other build tools like sbt or Maven is the fact, that tests are ordinary submodules on their own.
-For convenience, most modules already come with a pre-configured traits for a test submodule,
+For convenience, most modules already come with a pre-configured trait for a test submodule,
 which already inherits all dependencies of their parent module.
-If you need additional test dependencies, you simply add them by overriding `def ivyDeps`, as you would do with normal dependencies.
+If you need additional test dependencies, you simply add them by overriding `def ivyDeps`, as you would do with normal library dependencies.
 
 When migrating a sbt project and seeing a dependency like this: `"ch.qos.logback" % "logback-classic" % "1.2.3" % "test"`,
 simply add it to the test module's `ivyDeps` as ordinary dependency.
@@ -131,14 +133,14 @@ def compileIvyDeps = Agg(
 )
 ----
 
-When Mill generated `pom.xml` files to interact with Maven repositories, such compile-only dependencies are mapped to the `provided` scope.
+When Mill generated file to interact with package manager like `pom.xml` for Maven repositories, such compile-only dependencies are mapped to the `provided` scope.
 
-Please note, that dependencies with `provided` scope will never ber resolved transitively. Hence, the name "provided", as the target runtime needs to "provide" them, if they are needed.
+Please note, that dependencies with `provided` scope will never be resolved transitively. Hence, the name "provided", as the target runtime needs to "provide" them, if they are needed.
 
 
 == Runtime dependencies
 
-If you want to declare dependencies to be used at runtime, you can use the `runIvyDeps` targets.
+If you want to declare dependencies to be used at runtime (but not at compile time), you can use the `runIvyDeps` targets.
 
 .Example
 [source,scala]
@@ -148,12 +150,12 @@ def compileIvyDeps = Agg(
 )
 ----
 
-It is also possible to use higher version of the same library dependencies already  defined in `ivyDeps`, to ensure you can compile against a minimal API version, but run with the latest available version.
+It is also possible to use higher version of the same library dependencies already  defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
 
 == Excluding transitive dependencies
 
 You can use the `.exclude` method on a dependency. It accepts  `organization` and `name` tuples, to be excluded.
-
+Use the special name `*` to match all ``organization``s or ``name``s.
 
 == ScalaJS dependencies
 

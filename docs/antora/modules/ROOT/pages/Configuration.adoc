@@ -73,6 +73,8 @@ you can use `:::` as in `ivy"org.scalamacros:::paradise:2.1.1"`.
 To select the test-jars from a dependency use the following syntax:
 `ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`.
 
+Please consult the xref:Library_Dependencies.adoc[] section for even more details.
+
 === Repository configuration
 
 By default, these are resolved from maven central, but you can add your own
@@ -111,7 +113,7 @@ object YourBuild extends ScalaModule {
 
 === Runtime and compile-time dependencies
 
-If you want to use additonal dependencies at runtime or override dependencies and their versions at runtime, you can do so with `runIvyDeps`.
+If you want to use additional dependencies at runtime or override dependencies and their versions at runtime, you can do so with `runIvyDeps`.
 
 .`build.sc`: Declaring runtime dependencies
 [source,scala]
@@ -138,7 +140,7 @@ You can use `ivyDeps` and `runIvyDeps` to declare dependencies in test modules.
 You can also declare compile-time-only dependencies with `compileIvyDeps`.
 These are present in the compile classpath, but will not propagated to the transitive dependencies.
 
-.`build.sc`: Delcaring compile-time-only dependencies
+.`build.sc`: Declaring compile-time-only dependencies
 [source,scala]
 ----
 import mill._, scalalib._
