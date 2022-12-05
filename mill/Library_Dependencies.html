@@ -3,10 +3,10 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>IDE Support :: Mill</title>
-    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/IDE_Support.html" />
-    <link rel="prev" href="Getting_Started.html" />
-    <link rel="next" href="Out_Dir.html" />
+    <title>Library Dependencies in Mill :: Mill</title>
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Library_Dependencies.html" />
+    <link rel="prev" href="Configuration.html" />
+    <link rel="next" href="Common_Project_Layouts.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script>var uiRootPath = '../_'</script>
@@ -99,7 +99,7 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Getting_Started.html">Getting Started</a>
   </li>
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="IDE_Support.html">IDE Support</a>
   </li>
   <li class="nav-item" data-depth="1">
@@ -108,7 +108,7 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Configuration.html">Configuring your Project</a>
   </li>
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
   </li>
   <li class="nav-item" data-depth="1">
@@ -289,13 +289,13 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
-    <li><a href="IDE_Support.html">IDE Support</a></li>
+    <li><a href="Library_Dependencies.html">Library Dependencies in Mill</a></li>
   </ul>
 </nav>
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.10.9-47-759bdc</button>
   <div class="version-menu">
-    <a class="version is-current" href="IDE_Support.html">0.10.9-47-759bdc</a>
+    <a class="version is-current" href="Library_Dependencies.html">0.10.9-47-759bdc</a>
     <a class="version is-missing" href="0.10.9/index.html">0.10.9</a>
     <a class="version is-missing" href="0.10.8/index.html">0.10.8</a>
     <a class="version is-missing" href="0.10.7/index.html">0.10.7</a>
@@ -315,85 +315,98 @@
     <a class="version is-missing" href="0.9.6/index.html">0.9.6</a>
   </div>
 </div>
-  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/antora/modules/ROOT/pages/IDE_Support.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/antora/modules/ROOT/pages/Library_Dependencies.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">IDE Support</h1>
+<h1 class="page">Library Dependencies in Mill</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>To support various IDEs and Language Servers, Mill supports the <a href="https://build-server-protocol.github.io/">Build Server Protocol</a> in version 2.0.0 and has a <a href="#_build_server_protocol_bsp">built-in BSP server</a>.</p>
+<p>Beside the dependencies between Mill modules, most non-trivial source projects have dependencies to other libraries.</p>
 </div>
 <div class="paragraph">
-<p>In addition to BSP, Mill also supports <a href="#_intellij_support">IntelliJ IDEA project configuration generation</a> directly.</p>
+<p>Mill uses <a href="https://github.com/coursier/coursier">coursier</a> to resolve and download dependencies.
+Once downloaded, they are located in the coursier specific cache locations.
+For more details about coursier, refer to the <a href="https://get-coursier.io/docs/overview">coursier documentation</a>.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_build_server_protocol_bsp"><a class="anchor" href="#_build_server_protocol_bsp"></a>Build Server Protocol (BSP)</h2>
+<h2 id="_dependencies_in_general"><a class="anchor" href="#_dependencies_in_general"></a>Dependencies in General</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To install a BSP connection file <code>.bsp/mill-bsp.json</code>, run:</p>
+<p>Mill dependencies have the form:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.bsp.BSP/install</code></pre>
+<pre>ivy&quot;{organization}:{name}:{version}&quot;</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Working known clients of the BSP server are IntelliJ IDEA and <a href="https://scalameta.org/metals/">Metals</a>.</p>
+<p>When working in other Java and Scala projects, you will find some synonyms, which typically all mean the same.</p>
 </div>
 <div class="paragraph">
-<p>You can fine control some BSP server options by specifying command options:</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 50%;" />
-<col style="width: 50%;" />
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Option</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jobs</code> <code>n</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Use <code>n</code> threads in parallel to run tasks. A value of <code>0</code> means use as much threads as the system has cpu cores.</p></td>
-</tr>
-</tbody>
-</table>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p><strong>Using Metals</strong></p>
+<p>For example in the Maven ecosystem, the <code>organization</code> is called the <code>group</code> and the <code>name</code> is called the <code>artifact</code>.
+The whole tripplet is ofthe called <code>GAV</code>.</p>
 </div>
 <div class="paragraph">
-<p>When using Metals by default Bloop will be used as your build server unless you explicitly choose Mill.
-When in a Mill workspace use the &quot;Switch Build Server&quot; command from Metals which will allow you to switch to using Mill as your build
-server.
-If no <code>.bsp/mill-bsp.json</code> file exists, Metals will automatically create it for you and then connect to Mill.</p>
+<p>In Mill we use the additional term <code>artifactId</code> which is identical to the <code>name</code> when used in the normal form shown above.
+When a different form is used, e.g. some double-colons are used between the parts, the <code>artifactId</code> typically contains suffixes, but the name doesn’t.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example for a simple Java Dependency</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(
+  ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
+)</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scala_dependencies"><a class="anchor" href="#_scala_dependencies"></a>Scala dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Scala major releases up until version <code>2.13</code> are binary incompatible.
+That means, mixing dependencies of different binary platforms will result in non-working runtimes and obscure and hard to debug issues.</p>
 </div>
 <div class="paragraph">
-<p>Metals is relying on SemanticDB to enable many of its features.
-Mill BSP now also supports to provide this SemanticDB data, when the BSP client (like Metals) requests it.</p>
+<p>To easily pick only a compatible version, a convention was established to append the scala major version as a suffix to the package name.<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup>
+E.g. to select the Scala 2.13 version of a library <code>foo</code>, the final <code>artifactId</code> will contain the additional suffix <code>_2.13</code>, such that the final <code>artifactId</code> is <code>foo_2.13</code>.</p>
 </div>
 <div class="paragraph">
-<p>As of writing this, Metals 0.11.8 is the latest available version, which is not able to detect the fact, that Mill <em>is</em> already providing SemanticDB data.
-As a consequence, it reports missing SemanticDB data, although some SemanticDB-based features are already working.
-This may be fixed eventually in a future release of Metals.</p>
+<p>To always pick the right version and support cross compiling,
+you can omit the scala version and instead use a double colon (<code>::</code>) between the <code>organization</code> and the <code>name</code>, e.g. <code>ivy&quot;com.typesafe.akka:akka-actor_2.12:2.5.25&quot;</code>.
+Your module needs to <code>extends ScalaModule</code> though.</p>
 </div>
-</td>
-</tr>
-</tbody></table>
+<div class="paragraph">
+<p>If you want to use dependencies that are cross-published against the full Scala version, e.g. <code>2.12.12</code>,
+you can use three colons (<code>:::</code>) between <code>organization</code> and <code>name</code>, e.g.: <code>ivy&quot;org.scalamacros:::paradise:2.1.1&quot;</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(
+  // explicit scala version suffix, NOT RECOMMENDED!
+  ivy&quot;com.typesafe.akka:akka-actor_2.12:2.5.25&quot;,
+  ivy&quot;com.typesafe.akka::akka-actor:2.5.25&quot;,
+  ivy&quot;org.scalamacros:::paradise:2.1.1&quot;
+)</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scala_3_interoperability"><a class="anchor" href="#_scala_3_interoperability"></a>Scala 3 interoperability</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Since the release of Scala 3, the binary compatibility story for Scala has changed.
+That means, Scala 3 dependencies can be mixed with Scala 2.13 dependencies.
+In fact, the Scala 3 standard library is the same as for Scala 2.13.</p>
 </div>
 <div class="admonitionblock caution">
 <table>
@@ -403,48 +416,173 @@ This may be fixed eventually in a future release of Metals.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p><strong>Updating older setups</strong></p>
+<p>As Scala 3 and Scala 2.13 have different binary platforms, but their artifacts are in general compatible, this introduces new challenges.</p>
 </div>
 <div class="paragraph">
-<p>In the past, we provided SemanticDB support via <code>mill.scalalib.bsp.ScalaMetalsSupport</code> trait, which had to be mixed-in to your Scala modules.
-This is no longer needed and deprecated.
-You should remove these mix-ins.
-<code>ScalaMetalsSupport</code> trait is now deprecated and will be removed in the future.</p>
+<p>There is currently no mechanism, that impedes to bring the same dependency twice into the classpath (one for Scala 2.13 and one for Scala 3).</p>
 </div>
 </td>
 </tr>
 </tbody></table>
 </div>
 <div class="sect2">
-<h3 id="_using_bloop_standalone_bsp_server"><a class="anchor" href="#_using_bloop_standalone_bsp_server"></a>Using Bloop (standalone BSP server)</h3>
+<h3 id="_using_scala_2_13_from_scala_3"><a class="anchor" href="#_using_scala_2_13_from_scala_3"></a>Using Scala 2.13 from Scala 3</h3>
 <div class="paragraph">
-<p>If you wish to use Bloop as your build server (it is the default metals BSP implementation) with metals / vscode, consider using the mill bloop plugin.</p>
+<p>If your Scala version is a Scala 3.x, but you want to use the Scala 2.13 version of a specific library, you can use the <code>.withDottyCompat</code> method on that dependency.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def scalaVersion = &quot;3.2.1&quot;
+def ivyDeps = Agg(
+  ivy&quot;com.lihaoyi::upickle:2.0.0&quot;.withDottyCompat(scalaVersion()) //1
+)</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>This will result in a Scala 2.13 dependency <code>com.lihaoyi::upicke_2.13:2.0.0</code></td>
+</tr>
+</tbody></table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Do you wonder where the name &quot;dotty&quot; comes from?</p>
 </div>
 <div class="paragraph">
-<p><a href="Plugin_Bloop.html" class="xref page">Bloop Plugin</a></p>
+<p>In the early development of Scala 3, the Scala 3 compiler was called &quot;Dotty&quot;. Later, the name was changed to Scala 3, but the compiler project itself is still named &quot;dotty&quot;.</p>
 </div>
 <div class="paragraph">
-<p>This is preferred to the instructions (currently) on the bloop website.</p>
+<p>The dotty compiler itself is an implementation of the <a href="http://lampwww.epfl.ch/~amin/dot/fool.pdf">Dependent Object Types (DOT) calculus</a>, which is the new basis of Scala 3. It also enhances the type system to a next level and allows features like union-types and intersection-types.</p>
+</div>
+</td>
+</tr>
+</tbody></table>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_intellij_support"><a class="anchor" href="#_intellij_support"></a>IntelliJ Support</h2>
+<h2 id="_test_dependencies_there_is_no_test_scope"><a class="anchor" href="#_test_dependencies_there_is_no_test_scope"></a>Test dependencies (there is no <code>test</code> scope)</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To generate IntelliJ IDEA project files into <code>.idea/</code>, run:</p>
+<p>One difference between Mill and other build tools like sbt or Maven is the fact, that tests are ordinary submodules on their own.
+For convenience, most modules already come with a pre-configured trait for a test submodule,
+which already inherits all dependencies of their parent module.
+If you need additional test dependencies, you simply add them by overriding <code>def ivyDeps</code>, as you would do with normal library dependencies.</p>
+</div>
+<div class="paragraph">
+<p>When migrating a sbt project and seeing a dependency like this: <code>&quot;ch.qos.logback&quot; % &quot;logback-classic&quot; % &quot;1.2.3&quot; % &quot;test&quot;</code>,
+simply add it to the test module’s <code>ivyDeps</code> as ordinary dependency.
+There is no special test scope in Mill.</p>
 </div>
 <div class="listingblock">
+<div class="title">Example</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.GenIdea/idea</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object main extends JavaModule {
+  object test extends Tests {
+    def ivyDeps = Agg(
+      ivy&quot;org.qos.logback:logback-classic:1.2.3&quot;
+    )
+  }
+}</code></pre>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_compile_only_dependencies_provided_scope"><a class="anchor" href="#_compile_only_dependencies_provided_scope"></a>Compile-only dependencies (<code>provided</code> scope)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to use a dependency only at compile time, you can declare it with the <code>compileIvyDeps</code> target.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileIvyDeps = Agg(
+  ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When Mill generated file to interact with package manager like <code>pom.xml</code> for Maven repositories, such compile-only dependencies are mapped to the <code>provided</code> scope.</p>
+</div>
+<div class="paragraph">
+<p>Please note, that dependencies with <code>provided</code> scope will never be resolved transitively. Hence, the name &quot;provided&quot;, as the target runtime needs to &quot;provide&quot; them, if they are needed.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_runtime_dependencies"><a class="anchor" href="#_runtime_dependencies"></a>Runtime dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to declare dependencies to be used at runtime (but not at compile time), you can use the <code>runIvyDeps</code> targets.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileIvyDeps = Agg(
+  ivy&quot;ch.qos.logback:logback-classic:1.2.0&quot;
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is also possible to use higher version of the same library dependencies already  defined in <code>ivyDeps</code>, to ensure you compile against a minimal API version, but actually run with the latest available version.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_excluding_transitive_dependencies"><a class="anchor" href="#_excluding_transitive_dependencies"></a>Excluding transitive dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use the <code>.exclude</code> method on a dependency. It accepts  <code>organization</code> and <code>name</code> tuples, to be excluded.
+Use the special name <code>*</code> to match all <code>organization</code>s or <code>name</code>s.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scalajs_dependencies"><a class="anchor" href="#_scalajs_dependencies"></a>ScalaJS dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Scala.js introduces an additional binary platform axis.
+To the already required Scala version, there comes the Scala.js version.</p>
+</div>
+<div class="paragraph">
+<p>You can use two colons (<code>::</code>) between <code>name</code> and <code>version</code> to define a Scala.js dependency.
+Your module needs to <code>extends ScalaJSModule</code> to accept Scala.js dependencies.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scala_native_dependencies"><a class="anchor" href="#_scala_native_dependencies"></a>Scala Native dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Scala Native introduces an additional binary platform axis.
+To the already required Scala version, there comes the Scala Native version.</p>
+</div>
+<div class="paragraph">
+<p>You can use two colons (<code>::</code>) between <code>name</code> and <code>version</code> to define a Scala Native dependency.
+Your module needs to <code>extends ScalaNativeModule</code> to accept Scala Native dependencies.</p>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<hr />
+<div class="footnote" id="_footnotedef_1">
+<a href="#_footnoteref_1">1</a>. Scala 2 versions have the unusual version format: <code>{epoch}.{major}.{minor}</code>.
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="Getting_Started.html">Getting Started</a></span>
-  <span class="next"><a href="Out_Dir.html">The Output Directory</a></span>
+  <span class="prev"><a href="Configuration.html">Configuring your Project</a></span>
+  <span class="next"><a href="Common_Project_Layouts.html">Common Project Layouts</a></span>
 </nav>
 </article>
   </div>
