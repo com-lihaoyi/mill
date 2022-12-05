@@ -16,6 +16,7 @@
 * xref:Mill_Internals.adoc[]
 
 * xref:Contrib_Plugins.adoc[]
+// See also the list in Contrib_Plugins.adoc
 ** xref:Plugin_Artifactory.adoc[]
 ** xref:Plugin_Bintray.adoc[]
 ** xref:Plugin_Bloop.adoc[]
