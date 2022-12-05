@@ -11,6 +11,7 @@ import os.Path
 import upickle.default._
 import utest._
 import bloop.config.Config.Platform.Jvm
+import scala.util.Properties.isWin
 
 object BloopTests extends TestSuite {
   import BloopFormats._
@@ -58,7 +59,7 @@ object BloopTests extends TestSuite {
     }
 
     object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
-      override def skipBloop: Boolean = scala.util.Properties.isWin
+      override def skipBloop: Boolean = isWin
       override def scalaVersion = "2.13.4"
       override def scalaNativeVersion = "0.4.2"
       override def releaseMode = T(ReleaseMode.Debug)
@@ -219,11 +220,12 @@ object BloopTests extends TestSuite {
       testEvaluator(testBloop.install())
       val bloopDir = workdir / ".bloop"
       val files = os.list(bloopDir)
-      assert(files.size == 5)
+      val size = (if(isWin) 4 else 5)
+      assert(files.size == size)
       os.remove.all(bloopDir)
       testEvaluator(testBloop.install())
       val files2 = os.list(bloopDir)
-      assert(files2.size == 5)
+      assert(files2.size == size)
       assert(files2 == files)
     }
   }
