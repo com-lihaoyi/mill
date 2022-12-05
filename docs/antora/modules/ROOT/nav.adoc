@@ -1,11 +1,10 @@
 * xref:Intro_to_Mill.adoc[]
-
 * xref:Installation.adoc[]
 * xref:Getting_Started.adoc[]
 * xref:IDE_Support.adoc[]
 * xref:Out_Dir.adoc[]
-
 * xref:Configuration.adoc[]
+* xref:Library_Dependencies.adoc[]
 * xref:Common_Project_Layouts.adoc[]
 * xref:Tasks.adoc[]
 * xref:Task_Context_API.adoc[]
@@ -16,6 +15,7 @@
 * xref:Mill_Internals.adoc[]
 
 * xref:Contrib_Plugins.adoc[]
+// See also the list in Contrib_Plugins.adoc
 ** xref:Plugin_Artifactory.adoc[]
 ** xref:Plugin_Bintray.adoc[]
 ** xref:Plugin_Bloop.adoc[]
