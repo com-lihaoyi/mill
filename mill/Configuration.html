@@ -215,14 +215,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.9-49-080038</span>
+    <span class="version">0.10.9-50-35d6b5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.9-49-080038</a>
+          <a href="index.html">0.10.9-50-35d6b5</a>
         </li>
         <li class="version">
           <a href="0.10.9/index.html">0.10.9</a>
@@ -293,9 +293,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.9-49-080038</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.9-50-35d6b5</button>
   <div class="version-menu">
-    <a class="version is-current" href="Configuration.html">0.10.9-49-080038</a>
+    <a class="version is-current" href="Configuration.html">0.10.9-50-35d6b5</a>
     <a class="version" href="0.10.9/Configuring_Mill.html">0.10.9</a>
     <a class="version" href="0.10.8/Configuring_Mill.html">0.10.8</a>
     <a class="version" href="0.10.7/Configuring_Mill.html">0.10.7</a>
@@ -339,7 +339,7 @@
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
 
   def scalacOptions = Seq(&quot;-Ydelambdafy:inline&quot;)
 
@@ -549,10 +549,10 @@ Scala Steward can also keep your <a href="Installation.html#_automatic_mill_upda
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.1&quot;
+  def scalaVersion = &quot;2.13.10&quot;
 
   object test extends Tests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.1&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.1&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -592,10 +592,10 @@ object foo extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.1&quot;
+  def scalaVersion = &quot;2.13.10&quot;
 
   object test extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.1&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.1&quot;)
   }
 }</code></pre>
 </div>
@@ -671,13 +671,13 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
 
   object test extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.6.0&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.1&quot;)
   }
   object integration extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.6.0&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.1&quot;)
   }
 }</code></pre>
 </div>
@@ -707,7 +707,7 @@ configuration options apply.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
 
   object test extends Tests with TestModule.ScalaTest {
     def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.0.4&quot;)
@@ -724,7 +724,7 @@ object foo extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
 
   object test extends Tests with TestModule.Specs2 {
     def ivyDeps = Agg(ivy&quot;org.specs2::specs2-core:4.6.0&quot;)
@@ -746,7 +746,7 @@ object foo extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
 
   def compileIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.1.7&quot;)
   def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
@@ -824,7 +824,7 @@ docs</a>, below you’ll find some useful information to help you generate this 
 Mill.</p>
 </div>
 <div class="paragraph">
-<p>By default Mill will consider the <em>site root</em> as it’s called in
+<p>By default, Mill will consider the <em>site root</em> as it’s called in
 <a href="https://docs.scala-lang.org/scala3/guides/scaladoc/static-site.html">Scala 3
 docs</a>, to be the value of <code>docResources()</code>. It will look there for your
 <code>_docs/</code> and your <code>_blog/</code> directory if any exist. Let’s pretend we have a
@@ -886,7 +886,7 @@ documenation!</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalafmt._
 
 object foo extends ScalaModule with ScalafmtModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
 }</code></pre>
 </div>
 </div>
@@ -916,7 +916,7 @@ for details.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 trait CommonModule extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
 }
 
 object foo extends CommonModule
@@ -978,7 +978,7 @@ val nexusPassword = &quot;mysecret&quot;</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
 }
 
 def lineCount = T {
@@ -1042,11 +1042,11 @@ your code running in the <code>T {…​}</code> block.</p>
 
 object qux extends Module {
   object foo extends ScalaModule {
-    def scalaVersion = &quot;2.12.4&quot;
+    def scalaVersion = &quot;2.13.10&quot;
   }
   object bar extends ScalaModule {
     def moduleDeps = Seq(foo)
-    def scalaVersion = &quot;2.12.4&quot;
+    def scalaVersion = &quot;2.13.10&quot;
   }
 }</code></pre>
 </div>
@@ -1143,7 +1143,7 @@ mill unhyphenatedModule.unhyphenated_target2</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
   def compile = T {
     println(&quot;Compiling...&quot;)
     super.compile()
@@ -1178,7 +1178,7 @@ REPL.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
   def unmanagedClasspath = T {
     if (!os.exists(millSourcePath / &quot;lib&quot;)) Agg()
     else Agg.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
@@ -1202,7 +1202,7 @@ filesystem, e.g. in the above snippet any jars that happen to live in the
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
   def mainClass = Some(&quot;foo.bar.Baz&quot;)
 }</code></pre>
 </div>
@@ -1234,7 +1234,7 @@ You can also define your own merge/exclude rules.</p>
 import mill.modules.Assembly._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
   def assemblyRules = Seq(
     Rule.Append(&quot;application.conf&quot;), // all application.conf files will be concatenated into single file
     Rule.AppendPattern(&quot;.*\\.conf&quot;), // all *.conf files will be concatenated into single file
@@ -1255,7 +1255,7 @@ object foo extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.4&quot;
+  def scalaVersion = &quot;2.13.10&quot;
   def unmanagedClasspath = Agg(
     mill.modules.Util.download(
       &quot;https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar&quot;,
