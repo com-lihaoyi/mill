@@ -3,15 +3,15 @@
 
 You can configure your Mill build in a number of ways:
 
-== Compilation &amp; Execution Flags
+== Compilation & Execution Flags
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
 
   def scalacOptions = Seq("-Ydelambdafy:inline")
 
@@ -48,7 +48,7 @@ mill foo.runLocal arg1 arg2 arg3
 == Adding Ivy Dependencies
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
@@ -167,15 +167,15 @@ TIP: Scala Steward can also keep your xref:Installation.adoc#_automatic_mill_upd
 == Adding a Test Suite
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "{example-scala-2-13-version}"
 
   object test extends Tests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:{example-utest-version}")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -193,15 +193,15 @@ For convenience, you can also use one of the predefined test frameworks:
 
 
 .`build.sc`: `ScalaModule` with UTest tests using the predefined `TestModule.Utest`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "{example-scala-2-13-version}"
 
   object test extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:{example-utest-version}")
   }
 }
 ----
@@ -262,18 +262,18 @@ mill foo.test foo.MyTestSuite.testCaseName
 You can define multiple test suites if you want, e.g.:
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
 
   object test extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:{example-utest-version}")
   }
   object integration extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:{example-utest-version}")
   }
 }
 ----
@@ -291,12 +291,12 @@ Integrating with test frameworks like Scalatest or specs2 is simply a matter of 
 Scalatest example:
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
 
   object test extends Tests with TestModule.ScalaTest {
     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
@@ -307,12 +307,12 @@ object foo extends ScalaModule {
 Specs2 example:
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
 
   object test extends Tests with TestModule.Specs2 {
     def ivyDeps = Agg(ivy"org.specs2::specs2-core:4.6.0")
@@ -325,12 +325,12 @@ After that, you can follow the instructions in <<_adding_a_test_suite>>, and use
 == Scala Compiler Plugins
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
 
   def compileIvyDeps = Agg(ivy"com.lihaoyi:::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
@@ -389,7 +389,7 @@ in the https://docs.scala-lang.org/scala3/guides/scaladoc/index.html[Scala 3
 docs], below you'll find some useful information to help you generate this with
 Mill.
 
-By default Mill will consider the _site root_ as it's called in
+By default, Mill will consider the _site root_ as it's called in
 https://docs.scala-lang.org/scala3/guides/scaladoc/static-site.html[Scala 3
 docs], to be the value of `docResources()`. It will look there for your
 `_docs/` and your `_blog/` directory if any exist. Let's pretend we have a
@@ -437,12 +437,12 @@ Mill supports code formatting via https://scalameta.org/scalafmt/[scalafmt] out 
 To have a formatting per-module you need to make your module extend `mill.scalalib.scalafmt.ScalafmtModule`:
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._, scalafmt._
 
 object foo extends ScalaModule with ScalafmtModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
 }
 ----
 
@@ -461,12 +461,12 @@ for details.
 == Common Configuration
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 trait CommonModule extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
 }
 
 object foo extends CommonModule
@@ -513,12 +513,12 @@ Everything declared in the above file will be available to any build you run.
 == Custom Tasks
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
 }
 
 def lineCount = T {
@@ -568,17 +568,17 @@ your code running in the `T {...}` block.
 == Custom Modules
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object qux extends Module {
   object foo extends ScalaModule {
-    def scalaVersion = "2.12.4"
+    def scalaVersion = "{example-scala-2-13-version}"
   }
   object bar extends ScalaModule {
     def moduleDeps = Seq(foo)
-    def scalaVersion = "2.12.4"
+    def scalaVersion = "{example-scala-2-13-version}"
   }
 }
 ----
@@ -597,7 +597,7 @@ You can also define your own module traits, with their own set of custom tasks,
 to represent other things e.g. Javascript bundles, docker image building,:
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 trait MySpecialModule extends Module {
   ...
@@ -609,7 +609,7 @@ object bar extends MySpecialModule
 == Module/Task Names
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._
 import mill.scalalib._
@@ -650,12 +650,12 @@ mill unhyphenatedModule.unhyphenated_target2
 == Overriding Tasks
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
   def compile = T {
     println("Compiling...")
     super.compile()
@@ -680,12 +680,12 @@ In Mill builds the `override` keyword is optional.
 == Unmanaged Jars
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
   def unmanagedClasspath = T {
     if (!os.exists(millSourcePath / "lib")) Agg()
     else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
@@ -700,12 +700,12 @@ filesystem, e.g. in the above snippet any jars that happen to live in the
 == Defining a Main Class
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
   def mainClass = Some("foo.bar.Baz")
 }
 ----
@@ -725,13 +725,13 @@ By default mill excludes all `+*.sf+`, `+*.dsa+`, `+*.rsa+`, and `META-INF/MANIF
 You can also define your own merge/exclude rules.
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 import mill.modules.Assembly._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
   def assemblyRules = Seq(
     Rule.Append("application.conf"), // all application.conf files will be concatenated into single file
     Rule.AppendPattern(".*\\.conf"), // all *.conf files will be concatenated into single file
@@ -744,12 +744,12 @@ object foo extends ScalaModule {
 == Downloading Non-Maven Jars
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "{example-scala-2-13-version}"
   def unmanagedClasspath = Agg(
     mill.modules.Util.download(
       "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar",
@@ -774,7 +774,7 @@ But depending on the Scala version you are using, there is probably no matching 
 In order to start the repl, you have to specify a different available Ammonite version.
 
 .Example: Overriding `ammoniteVersion` to select a release compatible to the `scalaVersion`
-[source,scala]
+[source,scala,subs="attributes,verbatim"]
 ----
 import mill._. scalalib._
 
