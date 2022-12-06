@@ -20,7 +20,7 @@ The simplest Mill build for a Scala project looks as follows:
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "{example-scala-version}"
+  def scalaVersion = "{example-scala-2-13-version}"
 }
 ----
 
@@ -101,13 +101,13 @@ object bar extends JavaModule {
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "{example-scala-version}"
+  def scalaVersion = "{example-scala-2-13-version}"
 }
 
 object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
 
-  def scalaVersion = "{example-scala-version}"
+  def scalaVersion = "{example-scala-2-13-version}"
 }
 ----
 
@@ -162,12 +162,12 @@ Modules can also be nested:
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "{example-scala-version}"
+  def scalaVersion = "{example-scala-2-13-version}"
 
   object bar extends ScalaModule {
     def moduleDeps = Seq(foo)
 
-    def scalaVersion = "{example-scala-version}"
+    def scalaVersion = "{example-scala-2-13-version}"
   }
 }
 ----
