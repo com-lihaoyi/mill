@@ -74,12 +74,15 @@ object MillMain {
   ): (Boolean, Option[EvaluatorState]) = {
 
     MillConfigParser.parse(args) match {
+      // Cannot parse args
       case Left(msg) =>
         stderr.println(msg)
         (false, None)
+
       case Right(config) if config.ammoniteCore.help.value =>
         stdout.println(MillConfigParser.usageText)
         (true, None)
+
       case Right(config) if config.showVersion.value =>
         def p(k: String, d: String = "<unknown>") = System.getProperty(k, d)
         stdout.println(
@@ -97,6 +100,7 @@ object MillMain {
             )}""".stripMargin
         )
         (true, None)
+
       case Right(config)
           if (
             config.interactive.value || config.repl.value || config.noServer.value || config.bsp.value
@@ -106,6 +110,7 @@ object MillMain {
           "-i/--interactive/--repl/--no-server/--bsp must be passed in as the first argument"
         )
         (false, None)
+
       case Right(config)
           if Seq(
             config.interactive.value,
@@ -117,7 +122,12 @@ object MillMain {
           "Only one of -i/--interactive, --repl, --no-server or --bsp may be given"
         )
         (false, None)
+
       case Right(config) =>
+        if(!config.ammoniteCore.silent.value) {
+          checkMillVersionFromFile(os.pwd, stderr)
+        }
+
         val useRepl =
           config.repl.value || (config.interactive.value && config.leftoverArgs.value.isEmpty)
 
@@ -340,4 +350,24 @@ object MillMain {
         (success, nextStateCache)
     }
   }
+
+  private def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream) = {
+    Seq(
+      projectDir / ".config" / "mill-version",
+      projectDir / ".mill-version"
+    ).collectFirst {
+      case f if os.exists(f) =>
+        (f, os.read.lines(f).filter(l => l.trim().nonEmpty).headOption)
+    }.foreach { case (file, Some(version)) =>
+      if (BuildInfo.millVersion != version) {
+        val msg =
+          s"""Mill version ${BuildInfo.millVersion} is different than configured for this directory!
+             |Configured version is ${version} (${file})""".stripMargin
+        stderr.println(
+          msg
+        )
+      }
+    }
+  }
+
 }
