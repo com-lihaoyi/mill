@@ -192,7 +192,7 @@ object TestModule {
 
   /**
    * TestModule using TestNG Framework to run tests.
-   * You may want to provide the testng dependency explicitly to use another version.
+   * You need to provide the testng dependency yourself.
    */
   trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"

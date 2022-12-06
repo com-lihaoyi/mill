@@ -719,10 +719,9 @@ object contrib extends MillModule {
     // pure Java implementation
     override def artifactSuffix: T[String] = ""
     override def scalaLibraryIvyDeps: Target[Agg[Dep]] = T { Agg.empty[Dep] }
-    override def ivyDeps = Agg(
-      Deps.sbtTestInterface,
-      Deps.testng
-    )
+    override def ivyDeps = Agg(Deps.sbtTestInterface)
+    override def compileIvyDeps = Agg(Deps.testng)
+    override def runIvyDeps = Agg(Deps.testng)
     override def testArgs = T {
       Seq(
         "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
