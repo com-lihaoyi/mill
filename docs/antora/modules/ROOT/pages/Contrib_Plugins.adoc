@@ -3,7 +3,7 @@
 
 The ((plugins)) in this section are developed/maintained in the mill git tree.
 
-For details about including plugins in your `build.sc` read xref:Extending_Mill.adoc#_using_mill_plugins_import_ivy[Using Mill Plugins].
+For details about including plugins in your `build.sc` read xref:Using_Plugins.adoc[Using Mill Plugins].
 
 [CAUTION]
 --
@@ -29,6 +29,7 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 
 == List of Contrib Plugins
 
+// See also the list in nav.adoc
 * xref:Plugin_Artifactory.adoc[]
 * xref:Plugin_Bintray.adoc[]
 * xref:Plugin_Bloop.adoc[]
@@ -38,6 +39,7 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 * xref:Plugin_Docker.adoc[]
 * xref:Plugin_Flyway.adoc[]
 * xref:Plugin_Gitlab.adoc[]
+* xref:Plugin_Jmh.adoc[]
 * xref:Plugin_Play.adoc[]
 * xref:Plugin_Proguard.adoc[]
 * xref:Plugin_ScalaPB.adoc[]

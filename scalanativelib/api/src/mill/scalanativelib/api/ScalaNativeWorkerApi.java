@@ -22,6 +22,7 @@ public interface ScalaNativeWorkerApi {
                         ReleaseMode releaseMode,
                         boolean optimize,
                         boolean embedResources,
+                        boolean incrementalCompilation,
                         NativeLogLevel logLevel);
 
     String defaultGarbageCollector();

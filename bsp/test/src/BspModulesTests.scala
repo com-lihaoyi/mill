@@ -23,8 +23,8 @@ object BspModulesTests extends ScriptTestSuite(false) {
           "", // the root module has no segemnts at all
           "HelloBsp",
           "HelloBsp.test",
-          "foreign-modules.proj1.proj1",
-          "foreign-modules.proj2.proj2"
+          "foreign-modules.proj1.build.proj1",
+          "foreign-modules.proj2.build.proj2"
           // "foreign-modules.proj3.proj3" // still not detected
         ).sorted
         readModules ==> expectedModules

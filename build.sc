@@ -52,10 +52,23 @@ object Settings {
     "0.10.5",
     "0.10.6",
     "0.10.7",
-    "0.10.8"
+    "0.10.8",
+    "0.10.9",
+    "0.10.10"
   )
   val mimaBaseVersions =
-    Seq("0.10.0", "0.10.1", "0.10.2", "0.10.3", "0.10.4", "0.10.5", "0.10.6", "0.10.7", "0.10.8")
+    Seq(
+      "0.10.0",
+      "0.10.1",
+      "0.10.2",
+      "0.10.3",
+      "0.10.4",
+      "0.10.5",
+      "0.10.6",
+      "0.10.7",
+      "0.10.8",
+      "0.10.9"
+    )
 }
 
 object Deps {
@@ -85,17 +98,18 @@ object Deps {
 
   object Scalajs_1 {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
+    val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.11.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.11.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.12.0"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.12.0"
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.7"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.7"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.7"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.7"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.9"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.9"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.9"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.9"
   }
 
   trait Play {
@@ -116,7 +130,7 @@ object Deps {
   }
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   val ammoniteVersion = "2.5.5"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
@@ -127,8 +141,9 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.3"
-  val coursier = ivy"io.get-coursier::coursier:2.1.0-M7-39-gb8f3d7532"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
+  // avoid version 2.1.0-RC2 for issue https://github.com/coursier/coursier/issues/2603
+  val coursier = ivy"io.get-coursier::coursier:2.1.0-RC1"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -143,7 +158,7 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.19.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
-  val millModuledefsVersion = "0.10.9-alpha-1"
+  val millModuledefsVersion = "0.10.9"
   val millModuledefs = ivy"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
@@ -166,8 +181,8 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
-  val zinc = ivy"org.scala-sbt::zinc:1.7.2"
-  val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
+  val zinc = ivy"org.scala-sbt::zinc:1.8.0"
+  val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
   val requests = ivy"com.lihaoyi::requests:0.7.1"
@@ -287,6 +302,12 @@ trait MillMimaConfig extends mima.Mima {
         "mill.contrib.scoverage.ScoverageReport#workerModule.bspCompileClasspath"
       )
     ),
+    contrib.scalapblib -> Seq(
+      // we changed signature of worker API
+      ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.contrib.scalapblib.ScalaPBWorkerApi.compileScalaPB"
+      )
+    ),
     // we added a new target and a submodule after 0.10.5
     contrib.twirllib -> Seq(
       ProblemFilter.exclude[ReversedMissingMethodProblem](
@@ -307,6 +328,14 @@ trait WithMillCompiler extends ScalaModule {
   override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(Deps.millModuledefs)
   override def scalacPluginIvyDeps: Target[Agg[Dep]] =
     super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefsPlugin)
+}
+
+trait AcyclicConfig extends ScalaModule {
+  override def scalacPluginIvyDeps: Target[Agg[Dep]] = {
+    super.scalacPluginIvyDeps() ++ Agg(Deps.acyclic)
+  }
+  override def scalacOptions: Target[Seq[String]] =
+    super.scalacOptions() ++ Seq("-P:acyclic:force", "-P:acyclic:warn")
 }
 
 /**
@@ -367,6 +396,7 @@ trait MillApiModule extends MillScalaModule with MillPublishModule with MillMima
 
 /** Publishable module with tests. */
 trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompiler
+    with AcyclicConfig
 
 object main extends MillModule {
 
@@ -646,6 +676,9 @@ object scalajslib extends MillModule {
          |    val javaxServlet = "org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
          |    val scalajsEnvNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvNodejs)}"
          |    val scalajsEnvJsdomNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)}"
+         |    val scalajsEnvExoegoJsdomNodejs = "${formatDep(
+          Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs
+        )}"
          |    val scalajsEnvPhantomJs = "${formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)}"
          |  }
          |}
@@ -675,6 +708,7 @@ object scalajslib extends MillModule {
           Deps.Scalajs_1.scalajsSbtTestAdapter,
           Deps.Scalajs_1.scalajsEnvNodejs,
           Deps.Scalajs_1.scalajsEnvJsdomNodejs,
+          Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
           Deps.Scalajs_1.scalajsEnvPhantomjs
         )
     }
@@ -686,10 +720,9 @@ object contrib extends MillModule {
     // pure Java implementation
     override def artifactSuffix: T[String] = ""
     override def scalaLibraryIvyDeps: Target[Agg[Dep]] = T { Agg.empty[Dep] }
-    override def ivyDeps = Agg(
-      Deps.sbtTestInterface,
-      Deps.testng
-    )
+    override def ivyDeps = Agg(Deps.sbtTestInterface)
+    override def compileIvyDeps = Agg(Deps.testng)
+    override def runIvyDeps = Agg(Deps.testng)
     override def testArgs = T {
       Seq(
         "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
@@ -718,7 +751,7 @@ object contrib extends MillModule {
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path,
         "TEST_PLAY_VERSION_2_6" -> Deps.Play_2_6.playVersion,
         "TEST_PLAY_VERSION_2_7" -> Deps.Play_2_7.playVersion,
-        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion,
+        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion
       )
 
       scalalib.worker.testArgs() ++
@@ -851,7 +884,7 @@ object contrib extends MillModule {
   object bloop extends MillModule {
     override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
     override def ivyDeps = Agg(
-      Deps.bloopConfig
+      Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13")
     )
     override def testArgs = T(scalanativelib.testArgs())
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
@@ -859,11 +892,9 @@ object contrib extends MillModule {
       scalajslib,
       scalanativelib
     )
-    override def generatedSources = T {
-      val dest = T.ctx.dest
-      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+    def generateBuildinfo = T {
       os.write(
-        dest / "Versions.scala",
+        T.dest / "Versions.scala",
         s"""package mill.contrib.bloop
            |
            |object Versions {
@@ -871,7 +902,10 @@ object contrib extends MillModule {
            |}
            |""".stripMargin
       )
-      super.generatedSources() ++ Seq(PathRef(dest))
+      PathRef(T.dest)
+    }
+    override def generatedSources = T {
+      super.generatedSources() ++ Seq(generateBuildinfo())
     }
   }
 
@@ -903,6 +937,15 @@ object contrib extends MillModule {
     )
   }
 
+  object jmh extends MillInternalModule with MillAutoTestSetup with WithMillCompiler {
+    override def compileModuleDeps = Seq(scalalib)
+    override def testArgs = T {
+      Seq(
+        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(",")
+      ) ++ scalalib.worker.testArgs()
+    }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+  }
 }
 
 object scalanativelib extends MillModule {
@@ -1120,10 +1163,20 @@ def launcherScript(
          |  fi
          |
          |  if [ -f "$$mill_jvm_opts_file" ] ; then
-         |    while IFS= read line
-         |    do
-         |      mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
-         |    done <"$$mill_jvm_opts_file"
+         |    # We need to append a newline at the end to fix
+         |    # https://github.com/com-lihaoyi/mill/issues/2140
+         |    newline="
+         |"
+         |    mill_jvm_opts="$$(
+         |      echo "$$newline" | cat "$$mill_jvm_opts_file" - | (
+         |        while IFS= read line
+         |        do
+         |          mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
+         |        done
+         |        # we are in a sub-shell, so need to return it explicitly
+         |        echo "$${mill_jvm_opts}"
+         |      )
+         |    )"
          |    mill_jvm_opts="$${mill_jvm_opts} -Dmill.jvm_opts_applied=true"
          |  fi
          |}
@@ -1474,7 +1527,6 @@ object docs extends Module {
 }
 
 def assembly = T {
-
   val version = millVersion()
   val devRunClasspath = dev.runClasspath().map(_.path)
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"

@@ -2,6 +2,7 @@ package mill.main
 
 import mill.util.ScriptTestSuite
 import utest._
+import utest.framework.TestPath
 
 object ForeignBuildsTest extends ScriptTestSuite(fork = false) {
   def workspaceSlug = "foreign-builds"
@@ -11,20 +12,18 @@ object ForeignBuildsTest extends ScriptTestSuite(fork = false) {
 
   val tests = Tests {
     initWorkspace()
+    def checkTarget()(implicit testPath: TestPath): Unit = assert(eval(testPath.value.last))
     "test" - {
-      // See https://github.com/lihaoyi/mill/issues/302
-      if (!ammonite.util.Util.java9OrAbove) {
-        assert(
-          eval("checkProjectPaths"),
-          eval("checkInnerPaths"),
-          eval("checkOuterPaths"),
-          eval("checkOuterInnerPaths"),
-          eval("checkProjectDests"),
-          eval("checkInnerDests"),
-          eval("checkOuterDests"),
-          eval("checkOuterInnerDests")
-        )
-      }
+      "checkProjectPaths" - checkTarget()
+      "checkInnerPaths" - checkTarget()
+      "checkOuterPaths" - checkTarget()
+      "checkOuterInnerPaths" - checkTarget()
+      "checkOtherPaths" - checkTarget()
+      "checkProjectDests" - checkTarget()
+      "checkInnerDests" - checkTarget()
+      "checkOuterDests" - checkTarget()
+      "checkOuterInnerDests" - checkTarget()
+      "checkOtherDests" - checkTarget()
     }
   }
 }
