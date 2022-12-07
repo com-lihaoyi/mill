@@ -101,17 +101,10 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       def ++[T >: V](other: IterableOnce[T]): Agg[T] = Agg.from(items ++ other)
       def length: Int = set0.size
 
-      // Members declared in scala.collection.GenTraversableOnce
-      def isTraversableAgain: Boolean = items.isTraversableAgain
-
-      // Members declared in scala.collection.TraversableOnce
-      def copyToArray[B >: V](xs: Array[B], start: Int, len: Int): Unit =
-        items.copyToArray(xs, start, len)
       def exists(p: V => Boolean): Boolean = items.exists(p)
       def find(p: V => Boolean): Option[V] = items.find(p)
       def forall(p: V => Boolean): Boolean = items.forall(p)
       def foreach[U](f: V => U): Unit = items.foreach(f)
-      def hasDefiniteSize: Boolean = set0.hasDefiniteSize: @nowarn
       def isEmpty: Boolean = items.isEmpty
       def seq: scala.collection.IterableOnce[V] = items
       def iterator: Iterator[V] = items
