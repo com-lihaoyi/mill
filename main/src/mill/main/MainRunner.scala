@@ -188,11 +188,12 @@ class MainRunner(
         .map(_ / os.up)
         .getOrElse(wd)
       val literalPath = pprint.Util.literalize(path.toString)
+      val foreignPath = path / wrapName
       val foreign =
-        if (path != wd) {
+        if (foreignPath != wd / "build") {
           // Computing a path in "out" that uniquely reflects the location
           // of the foreign module relatively to the current build.
-          val relative = path.relativeTo(wd)
+          val relative = foreignPath.relativeTo(wd)
           // Encoding the number of `/..`
           val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
           val segs = Seq("foreign-modules") ++ ups ++ relative.segments

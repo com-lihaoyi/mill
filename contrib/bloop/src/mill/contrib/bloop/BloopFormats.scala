@@ -36,14 +36,15 @@ object BloopFormats {
   implicit val platformJvmRW: ReadWriter[BloopConfig.Platform.Jvm] = macroRW
   implicit val platformNativeRW: ReadWriter[BloopConfig.Platform.Native] = macroRW
   implicit val platformRW: ReadWriter[BloopConfig.Platform] = macroRW
-  implicit val projectRW: ReadWriter[BloopConfig.Project] = macroRW
   implicit val resolutionRW: ReadWriter[BloopConfig.Resolution] = macroRW
   implicit val sbtRW: ReadWriter[BloopConfig.Sbt] = macroRW
   implicit val scalaRw: ReadWriter[BloopConfig.Scala] = macroRW
   implicit val sourcesGlobsRW: ReadWriter[BloopConfig.SourcesGlobs] = macroRW
+  implicit val sourceGeneratorRW: ReadWriter[BloopConfig.SourceGenerator] = macroRW
   implicit val testArgumentRW: ReadWriter[BloopConfig.TestArgument] = macroRW
   implicit val testFrameworkRW: ReadWriter[BloopConfig.TestFramework] = macroRW
   implicit val testOptionsRW: ReadWriter[BloopConfig.TestOptions] = macroRW
   implicit val testRW: ReadWriter[BloopConfig.Test] = macroRW
+  implicit val projectRW: ReadWriter[BloopConfig.Project] = macroRW
 
 }

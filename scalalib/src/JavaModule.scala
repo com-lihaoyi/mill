@@ -103,9 +103,9 @@ trait JavaModule
   def compileIvyDeps = T { Agg.empty[Dep] }
 
   /**
-   * Same as `ivyDeps`, but only present at runtime. Useful for e.g.
+   * Additional dependencies, only present at runtime. Useful for e.g.
    * selecting different versions of a dependency to use at runtime after your
-   * code has already been compiled
+   * code has already been compiled.
    */
   def runIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
 

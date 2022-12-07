@@ -178,6 +178,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
    */
   def nativeEmbedResources = T { false }
 
+  /** Shall we use the incremental compilation? */
+  def nativeIncrementalCompilation = T { false }
+
   // The LTO mode to use used during a release build
   protected def nativeLTOInput: Target[Option[LTO]] = T.input {
     readEnvVariable[LTO](T.env, "SCALANATIVE_LTO", LTO.values, _.value)
@@ -210,6 +213,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       releaseMode(),
       nativeOptimize(),
       nativeEmbedResources(),
+      nativeIncrementalCompilation(),
       logLevel()
     )
   }

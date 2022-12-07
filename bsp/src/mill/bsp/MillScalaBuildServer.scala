@@ -62,7 +62,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
       : CompletableFuture[ScalaMainClassesResult] =
     completableTasks(
-      hint = "buildTragetScalaMainClasses",
+      hint = "buildTargetScalaMainClasses",
       targetIds = p.getTargets.asScala.toSeq,
       agg = (items: Seq[ScalaMainClassesItem]) => new ScalaMainClassesResult(items.asJava)
     ) {

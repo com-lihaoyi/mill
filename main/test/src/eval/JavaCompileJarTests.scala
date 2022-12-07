@@ -127,6 +127,8 @@ object JavaCompileJarTests extends TestSuite {
       ).out.text()
       val expectedJarContents =
         """META-INF/MANIFEST.MF
+          |META-INF/
+          |test/
           |test/Bar.class
           |test/BarThree.class
           |test/BarTwo.class
@@ -134,6 +136,7 @@ object JavaCompileJarTests extends TestSuite {
           |test/FooTwo.class
           |readme.md
           |hello.txt
+          |META-INF/License
           |""".stripMargin
       assert(jarContents.linesIterator.toSeq == expectedJarContents.linesIterator.toSeq)
 
