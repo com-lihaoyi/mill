@@ -241,8 +241,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     else scalaJSBinaryVersion()
   }
 
-  override def artifactSuffix: Target[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
-
   override def platformSuffix: Target[String] = s"_sjs${artifactScalaJSVersion()}"
 
   def jsEnvConfig: Target[JsEnvConfig] = T { JsEnvConfig.NodeJs() }

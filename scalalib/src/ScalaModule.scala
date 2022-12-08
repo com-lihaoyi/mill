@@ -453,10 +453,7 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
     else ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   }
 
-  /**
-   * The suffix appended to the artifact IDs during publishing
-   */
-  def artifactSuffix: T[String] = s"_${artifactScalaVersion()}"
+  override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
 
   override def artifactId: T[String] = artifactName() + artifactSuffix()
 
