@@ -58,12 +58,12 @@ object HelloJavaTests extends TestSuite {
       "withoutArgsFile" - {
         val eval = init()
         val Right((ref1, _)) = eval.apply(HelloJava.core.docJar)
-        assert(os.proc("jar", "tf", ref1.path).call().out.lines.contains("hello/Core.html"))
+        assert(os.proc("jar", "tf", ref1.path).call().out.lines().contains("hello/Core.html"))
       }
       "withArgsFile" - {
         val eval = init()
         val Right((ref2, _)) = eval.apply(HelloJava.app.docJar)
-        assert(os.proc("jar", "tf", ref2.path).call().out.lines.contains("hello/Main.html"))
+        assert(os.proc("jar", "tf", ref2.path).call().out.lines().contains("hello/Main.html"))
       }
     }
     "test" - {

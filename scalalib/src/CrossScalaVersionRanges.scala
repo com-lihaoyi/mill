@@ -1,8 +1,6 @@
 package mill.scalalib
 
-import mill.api.PathRef
-import mill.scalalib.api.Util
-import mill.T
+import mill.scalalib.api.ZincWorkerUtil
 
 /**
  * Adds version range specific sources when mixed-in to a cross module like
@@ -21,5 +19,5 @@ trait CrossScalaVersionRanges extends CrossModuleBase {
   )
   override def scalaVersionDirectoryNames =
     super.scalaVersionDirectoryNames ++
-      Util.versionRanges(crossScalaVersion, crossScalaVersions)
+      ZincWorkerUtil.versionRanges(crossScalaVersion, crossScalaVersions)
 }

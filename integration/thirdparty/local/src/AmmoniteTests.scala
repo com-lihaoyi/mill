@@ -23,7 +23,6 @@ class AmmoniteTests(fork: Boolean)
         )
 
         val compileResult = eval(
-          "all",
           s"{shell,sshd,amm,integration}[$scalaVersion].test.compile"
         )
 

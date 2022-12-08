@@ -5,7 +5,7 @@ import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{DepSyntax, Lib, TestModule}
+import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.TestRunner
 import mill.define.{Command, Target, Task}
 import mill.scalajslib.{ScalaJSWorker => DeprecatedScalaJSWorker}
@@ -50,12 +50,24 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
+  def scalaJSJsEnvIvyDeps: Target[Agg[Dep]] = T {
+    val dep = jsEnvConfig() match {
+      case _: JsEnvConfig.NodeJs =>
+        ivy"${ScalaJSBuildInfo.Deps.scalajsEnvNodejs}"
+      case _: JsEnvConfig.JsDom =>
+        ivy"${ScalaJSBuildInfo.Deps.scalajsEnvJsdomNodejs}"
+      case _: JsEnvConfig.ExoegoJsDomNodeJs =>
+        ivy"${ScalaJSBuildInfo.Deps.scalajsEnvExoegoJsdomNodejs}"
+      case _: JsEnvConfig.Phantom =>
+        ivy"${ScalaJSBuildInfo.Deps.scalajsEnvPhantomJs}"
+    }
+
+    Agg(dep)
+  }
+
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T {
     val commonDeps = Seq(
-      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}",
-      ivy"${ScalaJSBuildInfo.Deps.jettyWebsocket}",
-      ivy"${ScalaJSBuildInfo.Deps.jettyServer}",
-      ivy"${ScalaJSBuildInfo.Deps.javaxServlet}"
+      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
     )
     val envDeps = scalaJSBinaryVersion() match {
       case "0.6" =>
@@ -65,11 +77,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         )
       case "1" =>
         Seq(
-          ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}",
-          ivy"${ScalaJSBuildInfo.Deps.scalajsEnvNodejs}",
-          ivy"${ScalaJSBuildInfo.Deps.scalajsEnvJsdomNodejs}",
-          ivy"${ScalaJSBuildInfo.Deps.scalajsEnvPhantomJs}"
-        )
+          ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}"
+        ) ++ scalaJSJsEnvIvyDeps()
     }
     // we need to use the scala-library of the currently running mill
     resolveDependencies(
@@ -79,9 +88,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ctx = Some(T.log)
     )
   }
-
-  @deprecated("Use scalaJSToolsClasspath instead", "mill after 0.10.0-M1")
-  def toolsClasspath = T { scalaJSToolsClasspath() }
 
   def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
@@ -241,17 +247,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def moduleKind: Target[ModuleKind] = T { ModuleKind.NoModule }
 
-  @deprecated("Use esFeatures().esVersion instead", since = "mill after 0.10.0-M5")
-  def useECMAScript2015: Target[Boolean] = T {
-    !scalaJSVersion().startsWith("0.")
-  }
-
   def esFeatures: T[ESFeatures] = T {
-    if (useECMAScript2015.ctx.enclosing != s"${classOf[ScalaJSModule].getName}#useECMAScript2015") {
-      T.log.error("Overriding `useECMAScript2015` is deprecated. Override `esFeatures` instead")
-    }
-    if (useECMAScript2015()) ESFeatures.Defaults
-    else ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
+    ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
   }
 
   def moduleSplitStyle: Target[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }

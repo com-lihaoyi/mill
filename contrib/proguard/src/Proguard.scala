@@ -27,9 +27,11 @@ trait Proguard extends ScalaModule {
    * The version of proguard to download from Maven.
    * https://mvnrepository.com/artifact/com.guardsquare/proguard-base
    */
-  def proguardVersion: T[String] = T { 
-    T.log.error("Using default proguard version is deprecated. Please override target proguardVersion to specify the version.")
-    "7.2.2" 
+  def proguardVersion: T[String] = T {
+    T.log.error(
+      "Using default proguard version is deprecated. Please override target proguardVersion to specify the version."
+    )
+    "7.2.2"
   }
 
   /** Run the "shrink" step in the proguard pipeline. Defaults to true. */
@@ -168,7 +170,9 @@ trait Proguard extends ScalaModule {
    * These are fed as-is to the proguard command.
    */
   def additionalOptions: T[Seq[String]] = T {
-    T.log.error("Proguard is set to not warn about message: can't find referenced method 'void invoke()' in library class java.lang.invoke.MethodHandle")
+    T.log.error(
+      "Proguard is set to not warn about message: can't find referenced method 'void invoke()' in library class java.lang.invoke.MethodHandle"
+    )
     Seq[String]("-dontwarn java.lang.invoke.MethodHandle")
   }
 }

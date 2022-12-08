@@ -154,7 +154,8 @@ object ParseArgsTest extends TestSuite {
           expectedArgs: Seq[String],
           multiSelect: Boolean
       ) = {
-        val Right((selectors0, args)) = ParseArgs(input, multiSelect)
+        val Right((selectors0, args) :: _) =
+          ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Single)
 
         val selectors = selectors0.map {
           case (Some(v1), v2) => (Some(v1.value), v2.value)
@@ -167,7 +168,10 @@ object ParseArgsTest extends TestSuite {
       }
 
       "rejectEmpty" - {
-        assert(ParseArgs(Seq.empty, multiSelect = false) == Left("Selector cannot be empty"))
+        val parsed = ParseArgs(Seq.empty, selectMode = SelectMode.Single)
+        assert(
+           parsed == Left("Selector cannot be empty")
+        )
       }
       "singleSelector" - check(
         input = Seq("core.compile"),
@@ -250,13 +254,17 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       "multiSelectorsBraceExpansionWithoutAll" - {
-        val res = ParseArgs(Seq("{core,application}.compile"), multiSelect = false)
+        val res = ParseArgs(Seq("{core,application}.compile"), SelectMode.Single)
         val expected = Right(
           List(
-            None -> Segments(Label("core"), Label("compile")),
-            None -> Segments(Label("application"), Label("compile"))
-          ),
-          Nil
+            (
+              List(
+                None -> Segments(Label("core"), Label("compile")),
+                None -> Segments(Label("application"), Label("compile"))
+              ),
+              Nil
+            )
+          )
         )
         assert(res == expected)
       }
@@ -276,6 +284,7 @@ object ParseArgsTest extends TestSuite {
       def parsed(args: String*) = ParseArgs(args, selectMode)
       test("rejectEmpty") {
         assert(parsed("") == Left("Selector cannot be empty"))
+        assert(parsed() == Left("Selector cannot be empty"))
       }
       def check(
           input: Seq[String],

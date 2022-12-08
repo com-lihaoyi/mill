@@ -1,11 +1,17 @@
 package mill.scalalib
+
 import JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
-import mill.scalalib.api.Util.Scala3EarlyVersion
+import mill.scalalib.api.ZincWorkerUtil
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
-  import mill.scalalib.api.Util.{isDottyOrScala3, DottyVersion, Scala3Version}
+  require(
+    !dep.module.name.value.contains("/") &&
+      !dep.module.organization.value.contains("/") &&
+      !dep.version.contains("/"),
+    "Dependency coordinates must not contain `/`s"
+  )
 
   def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
@@ -54,12 +60,12 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
    */
   def withDottyCompat(scalaVersion: String): Dep =
     cross match {
-      case cross: Binary if isDottyOrScala3(scalaVersion) =>
+      case cross: Binary if ZincWorkerUtil.isDottyOrScala3(scalaVersion) =>
         val compatSuffix =
           scalaVersion match {
-            case Scala3Version(_, _) | Scala3EarlyVersion(_) =>
+            case ZincWorkerUtil.Scala3Version(_, _) | ZincWorkerUtil.Scala3EarlyVersion(_) =>
               "_2.13"
-            case DottyVersion(minor, patch) =>
+            case ZincWorkerUtil.DottyVersion(minor, patch) =>
               if (minor.toInt > 18 || minor.toInt == 18 && patch.toInt >= 1)
                 "_2.13"
               else
@@ -134,7 +140,7 @@ sealed trait CrossVersion {
   /** The string that should be appended to the module name to get the artifact name */
   def suffixString(binaryVersion: String, fullVersion: String, platformSuffix: String): String = {
     val firstSuffix = if (platformed) platformSuffix else ""
-    this match {
+    val suffix = this match {
       case cross: Constant =>
         s"${firstSuffix}${cross.value}"
       case cross: Binary =>
@@ -142,6 +148,8 @@ sealed trait CrossVersion {
       case cross: Full =>
         s"${firstSuffix}_${fullVersion}"
     }
+    require(!suffix.contains("/"), "Artifact suffix must not contain `/`s")
+    suffix
   }
 }
 object CrossVersion {

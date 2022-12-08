@@ -2,8 +2,8 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.2.0`
-import $ivy.`com.github.lolgab::mill-mima::0.0.12`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.0`
+import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.13`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
 // imports
@@ -36,7 +36,7 @@ object Settings {
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root
-  val docTags = Seq(
+  val docTags: Seq[String] = Seq(
     "0.9.6",
     "0.9.7",
     "0.9.8",
@@ -51,21 +51,30 @@ object Settings {
     "0.10.4",
     "0.10.5",
     "0.10.6",
-    "0.10.7"
+    "0.10.7",
+    "0.10.8",
+    "0.10.9",
+    "0.10.10"
   )
-  val mimaBaseVersions = Seq("0.10.0", "0.10.1", "0.10.2", "0.10.3", "0.10.4")
+  val mimaBaseVersions: Seq[String] = Seq()
 }
 
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.8"
+  val scalaVersion = "2.13.10"
+  // Scoverage 1.x will not get releases for newer Scala versions
+  val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.15"
 
   val testScala213Version = "2.13.8"
   val testScala212Version = "2.12.6"
+  val testScala211Version = "2.11.12"
+  val testScala210Version = "2.10.6"
   val testScala30Version = "3.0.2"
+  val testScala31Version = "3.1.3"
+  val testScala32Version = "3.2.0"
 
   val testScalaJs06Version = "0.6.33"
 
@@ -77,21 +86,40 @@ object Deps {
 
   object Scalajs_1 {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
+    val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.10.1"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.10.1"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.12.0"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.12.0"
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.7"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.7"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.7"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.7"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.9"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.9"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.9"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.9"
   }
 
-  val acyclic = ivy"com.lihaoyi::acyclic:0.2.1"
-  val ammoniteVersion = "2.5.4"
+  trait Play {
+    def playVersion: String
+    def playBinVersion: String = playVersion.split("[.]").take(2).mkString(".")
+    def routesCompiler = ivy"com.typesafe.play::routes-compiler::$playVersion"
+    def scalaVersion: String = Deps.scalaVersion
+  }
+  object Play_2_6 extends Play {
+    val playVersion = "2.6.25"
+    override def scalaVersion: String = Deps.workerScalaVersion212
+  }
+  object Play_2_7 extends Play {
+    val playVersion = "2.7.9"
+  }
+  object Play_2_8 extends Play {
+    val playVersion = "2.8.18"
+  }
+  val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
+
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
+  val ammoniteVersion = "2.5.5"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   // Exclude trees here to force the version of we have defined. We use this
@@ -101,19 +129,14 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.3"
-  val coursier = ivy"io.get-coursier::coursier:2.1.0-M6"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
+  // avoid version 2.1.0-RC2 for issue https://github.com/coursier/coursier/issues/2603
+  val coursier = ivy"io.get-coursier::coursier:2.1.0-RC1"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.5.1"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.1"
 
-  object jetty {
-    val version = "8.2.0.v20160908"
-    val server = ivy"org.eclipse.jetty:jetty-server:${version}"
-    val websocket = ivy"org.eclipse.jetty:jetty-websocket:${version}"
-  }
-  val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
   val jna = ivy"net.java.dev.jna:jna:5.12.1"
@@ -121,29 +144,36 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.18.0"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.19.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
+  val millModuledefsVersion = "0.10.9"
+  val millModuledefs = ivy"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
+  val millModuledefsPlugin =
+    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   val testng = ivy"org.testng:testng:7.5"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
-  val scalaCheck = ivy"org.scalacheck::scalacheck:1.16.0"
+  val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.5.8"
-  val scalametaTrees = ivy"org.scalameta::trees:4.5.13"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.0"
+  val scalametaTrees = ivy"org.scalameta::trees:4.6.0"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  def scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:2.0.2"
-  def scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:2.0.2"
-  def scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:2.0.2"
-  def scalacScoverage2Serializer = ivy"org.scoverage::scalac-scoverage-serializer:2.0.2"
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.5.11"
+  val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
+  val scoverage2Version = "2.0.7"
+  val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
+  val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
+  val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
+  val scalacScoverage2Serializer =
+    ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.6.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
-  val zinc = ivy"org.scala-sbt::zinc:1.7.1"
-  val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M1"
+  val zinc = ivy"org.scala-sbt::zinc:1.8.0"
+  val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
+  val requests = ivy"com.lihaoyi::requests:0.7.1"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
@@ -193,16 +223,16 @@ trait MillCoursierModule extends CoursierModule {
         t._1 == dep.module.organization.value && t._2 == dep.module.name.value
       ).map { forced =>
         val newDep = dep.withVersion(forced._3)
-        T.log.debug(s"Mapping ${dep} to ${newDep}")
+        T.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
         newDep
       }.getOrElse(dep)
     }
   }
-  val forcedVersions = Seq(
+  val forcedVersions: Seq[(String, String, String)] = Seq(
     ("org.apache.ant", "ant", "1.10.12"),
     ("commons-io", "commons-io", "2.11.0"),
-    ("com.google.code.gson", "gson", "2.9.0"),
-    ("com.google.protobuf", "protobuf-java", "3.21.2"),
+    ("com.google.code.gson", "gson", "2.9.1"),
+    ("com.google.protobuf", "protobuf-java", "3.21.8"),
     ("com.google.guava", "guava", "31.1-jre")
   )
 }
@@ -220,56 +250,22 @@ trait MillMimaConfig extends mima.Mima {
   override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
     issueFilterByModule.getOrElse(this, Seq())
   }
-  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
-    main.core -> Seq(
-      // refined generic parameter, should be ok
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.Evaluator.plan")
-    ),
-    scalalib -> Seq(
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.scalalib.JavaModule.bspCompileClassesPath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.scalalib.JavaModule.bspCompileClasspath"
-      ),
-      ProblemFilter.exclude[IncompatibleMethTypeProblem](
-        "mill.scalalib.ScalaModule.bspCompileClassesPath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.scalalib.scalafmt.ScalafmtModule.bspCompileClassesPath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.scalalib.scalafmt.ScalafmtModule.bspCompileClasspath"
-      )
-    ),
-    contrib.scoverage -> Seq(
-      // this one is @internal but MiMa is reporting it anyway
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.contrib.scoverage.ScoverageModule#ScoverageData.bspCompileClassesPath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.contrib.scoverage.ScoverageModule#ScoverageData.bspCompileClasspath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.contrib.scoverage.ScoverageReport#workerModule.bspCompileClassesPath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.contrib.scoverage.ScoverageReport#workerModule.bspCompileClasspath"
-      )
-    ),
-    // we added a new target and a submodule after 0.10.5
-    contrib.twirllib -> Seq(
-      ProblemFilter.exclude[ReversedMissingMethodProblem](
-        "mill.twirllib.TwirlModule.twirlScalaVersion"
-      ),
-      ProblemFilter.exclude[ReversedMissingMethodProblem](
-        "mill.twirllib.TwirlModule.twirlCoursierResolver"
-      ),
-      ProblemFilter.exclude[ReversedMissingMethodProblem](
-        "mill.twirllib.TwirlModule.mill$twirllib$TwirlModule$_setter_$twirlCoursierResolver_="
-      )
-    )
-  )
+  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
+}
+
+/** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
+trait WithMillCompiler extends ScalaModule {
+  override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(Deps.millModuledefs)
+  override def scalacPluginIvyDeps: Target[Agg[Dep]] =
+    super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefsPlugin)
+}
+
+trait AcyclicConfig extends ScalaModule {
+  override def scalacPluginIvyDeps: Target[Agg[Dep]] = {
+    super.scalacPluginIvyDeps() ++ Agg(Deps.acyclic)
+  }
+  override def scalacOptions: Target[Seq[String]] =
+    super.scalacOptions() ++ Seq("-P:acyclic:force", "-P:acyclic:warn")
 }
 
 /**
@@ -290,20 +286,25 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
     if (this == main) Seq(main)
     else Seq(this, main.test)
 
-  trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule {
+  trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
+      with WithMillCompiler {
     override def forkArgs = T {
       Seq(
         s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
         s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
         s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
         s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
+        s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
+        s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
         s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
+        s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
+        s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
         s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
         s"-DTEST_SCALAJS_0_6_VERSION=${Deps.testScalaJs06Version}"
       ) ++ outer.testArgs()
     }
     override def moduleDeps = outer.testModuleDeps
-    override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
+    override def ivyDeps: T[Agg[Dep]] = T { super.ivyDeps() ++ outer.testIvyDeps() }
     override def testFramework = "mill.UTestFramework"
   }
   trait Tests extends MillScalaModuleTests
@@ -320,17 +321,12 @@ trait MillAutoTestSetup extends MillScalaModule {
 /** Published module which does not contain strictly handled API. */
 trait MillInternalModule extends MillScalaModule with MillPublishModule
 
-/** Published moduel which contains strictly handled API. */
+/** Publishable module which contains strictly handled API. */
 trait MillApiModule extends MillScalaModule with MillPublishModule with MillMimaConfig
 
-trait MillModule extends MillApiModule with MillAutoTestSetup { outer =>
-  override def scalacPluginClasspath = T {
-    super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
-  }
-  override def scalacOptions = T {
-    super.scalacOptions() ++ Seq(s"-Xplugin:${main.moduledefs.jar().path}")
-  }
-}
+/** Publishable module with tests. */
+trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompiler
+    with AcyclicConfig
 
 object main extends MillModule {
 
@@ -360,13 +356,13 @@ object main extends MillModule {
     )
   }
   object core extends MillModule {
-    override def moduleDeps = Seq(moduledefs, api, util)
-
+    override def moduleDeps = Seq(api, util)
     override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
     )
-
     override def ivyDeps = Agg(
+      Deps.millModuledefs,
+      Deps.millModuledefsPlugin,
       Deps.ammoniteExcludingTrees,
       Deps.scalametaTrees,
       Deps.coursier,
@@ -375,7 +371,6 @@ object main extends MillModule {
       Deps.jnaPlatform,
       Deps.jarjarabrams
     )
-
     override def generatedSources = T {
       val dest = T.ctx.dest
       writeBuildInfo(
@@ -418,14 +413,6 @@ object main extends MillModule {
 
       os.write(dir / "mill" / "BuildInfo.scala", code, createFolders = true)
     }
-  }
-
-  object moduledefs extends MillPublishModule with ScalaModule {
-    def scalaVersion = Deps.scalaVersion
-    override def ivyDeps = Agg(
-      Deps.scalaCompiler(scalaVersion()),
-      Deps.sourcecode
-    )
   }
 
   object client extends MillPublishModule {
@@ -516,8 +503,8 @@ object scalalib extends MillModule {
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T {
     val genIdeaArgs =
-      genTask(main.moduledefs)() ++
-        genTask(main.core)() ++
+//      genTask(main.moduledefs)() ++
+      genTask(main.core)() ++
         genTask(main)() ++
         genTask(scalalib)() ++
         genTask(scalajslib)() ++
@@ -611,11 +598,17 @@ object scalajslib extends MillModule {
          |/** Generated by mill at built-time. */
          |object ${className} {
          |  object Deps {
-         |    val jettyWebsocket = "${formatDep(Deps.jetty.websocket)}"
-         |    val jettyServer = "${formatDep(Deps.jetty.server)}"
-         |    val javaxServlet = "${formatDep(Deps.javaxServlet)}"
+         |    @deprecated("No longer a dependency. To be removed.", since = "mill 0.10.9")
+         |    val jettyWebsocket = "org.eclipse.jetty:jetty-websocket:8.2.0.v20160908"
+         |    @deprecated("No longer a dependency. To be removed.", since = "mill 0.10.9")
+         |    val jettyServer = "org.eclipse.jetty:jetty-server:8.2.0.v20160908"
+         |    @deprecated("No longer a dependency. To be removed.", since = "mill 0.10.9")
+         |    val javaxServlet = "org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
          |    val scalajsEnvNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvNodejs)}"
          |    val scalajsEnvJsdomNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)}"
+         |    val scalajsEnvExoegoJsdomNodejs = "${formatDep(
+          Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs
+        )}"
          |    val scalajsEnvPhantomJs = "${formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)}"
          |  }
          |}
@@ -637,10 +630,7 @@ object scalajslib extends MillModule {
         Agg(
           Deps.Scalajs_0_6.scalajsTools,
           Deps.Scalajs_0_6.scalajsSbtTestAdapter,
-          Deps.Scalajs_0_6.scalajsJsEnvs,
-          Deps.jetty.websocket,
-          Deps.jetty.server,
-          Deps.javaxServlet
+          Deps.Scalajs_0_6.scalajsJsEnvs
         )
       case "1" =>
         Agg(
@@ -648,10 +638,8 @@ object scalajslib extends MillModule {
           Deps.Scalajs_1.scalajsSbtTestAdapter,
           Deps.Scalajs_1.scalajsEnvNodejs,
           Deps.Scalajs_1.scalajsEnvJsdomNodejs,
-          Deps.Scalajs_1.scalajsEnvPhantomjs,
-          Deps.jetty.websocket,
-          Deps.jetty.server,
-          Deps.javaxServlet
+          Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
+          Deps.Scalajs_1.scalajsEnvPhantomjs
         )
     }
   }
@@ -662,10 +650,9 @@ object contrib extends MillModule {
     // pure Java implementation
     override def artifactSuffix: T[String] = ""
     override def scalaLibraryIvyDeps: Target[Agg[Dep]] = T { Agg.empty[Dep] }
-    override def ivyDeps = Agg(
-      Deps.sbtTestInterface,
-      Deps.testng
-    )
+    override def ivyDeps = Agg(Deps.sbtTestInterface)
+    override def compileIvyDeps = Agg(Deps.testng)
+    override def runIvyDeps = Agg(Deps.testng)
     override def testArgs = T {
       Seq(
         "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
@@ -691,7 +678,10 @@ object contrib extends MillModule {
       val mapping = Map(
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6" -> worker("2.6").assembly().path,
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7" -> worker("2.7").assembly().path,
-        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path,
+        "TEST_PLAY_VERSION_2_6" -> Deps.Play_2_6.playVersion,
+        "TEST_PLAY_VERSION_2_7" -> Deps.Play_2_7.playVersion,
+        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion
       )
 
       scalalib.worker.testArgs() ++
@@ -702,7 +692,7 @@ object contrib extends MillModule {
 
     object api extends MillPublishModule
 
-    object worker extends Cross[WorkerModule]("2.6", "2.7", "2.8")
+    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
     class WorkerModule(playBinary: String) extends MillInternalModule {
       override def sources = T.sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
@@ -710,19 +700,11 @@ object contrib extends MillModule {
         // just remove the shared source dir for that worker and implement directly.
         Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
       }
-      override def scalaVersion = playBinary match {
-        case "2.6" => Deps.workerScalaVersion212
-        case _ => Deps.scalaVersion
-      }
+      override def scalaVersion = Deps.play(playBinary).scalaVersion
       override def moduleDeps = Seq(playlib.api)
-      def playVersion = playBinary match {
-        case "2.6" => "2.6.25"
-        case "2.7" => "2.7.9"
-        case "2.8" => "2.8.16"
-      }
       override def ivyDeps = Agg(
         Deps.osLib,
-        ivy"com.typesafe.play::routes-compiler::$playVersion"
+        Deps.play(playBinary).routesCompiler
       )
     }
   }
@@ -744,7 +726,8 @@ object contrib extends MillModule {
         "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path,
         "MILL_SCOVERAGE2_REPORT_WORKER" -> worker2.compile().classes.path,
         "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version,
-        "MILL_SCOVERAGE2_VERSION" -> Deps.scalacScoverage2Plugin.dep.version
+        "MILL_SCOVERAGE2_VERSION" -> Deps.scalacScoverage2Plugin.dep.version,
+        "TEST_SCALA_2_12_VERSION" -> Deps.workerScalaVersion212
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -757,6 +740,7 @@ object contrib extends MillModule {
       contrib.buildinfo
     )
 
+    // Worker for Scoverage 1.x
     object worker extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
       override def moduleDeps = Seq(scoverage.api)
@@ -768,13 +752,13 @@ object contrib extends MillModule {
           Deps.osLib
         )
       }
+      override def scalaVersion: Target[String] = Deps.scalaVersionForScoverageWorker1
     }
 
+    // Worker for Scoverage 2.0
     object worker2 extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
-
       override def moduleDeps = Seq(scoverage.api)
-
       override def compileIvyDeps = T {
         Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
@@ -830,7 +814,7 @@ object contrib extends MillModule {
   object bloop extends MillModule {
     override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
     override def ivyDeps = Agg(
-      Deps.bloopConfig
+      Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13")
     )
     override def testArgs = T(scalanativelib.testArgs())
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
@@ -838,11 +822,9 @@ object contrib extends MillModule {
       scalajslib,
       scalanativelib
     )
-    override def generatedSources = T {
-      val dest = T.ctx.dest
-      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+    def generateBuildinfo = T {
       os.write(
-        dest / "Versions.scala",
+        T.dest / "Versions.scala",
         s"""package mill.contrib.bloop
            |
            |object Versions {
@@ -850,16 +832,21 @@ object contrib extends MillModule {
            |}
            |""".stripMargin
       )
-      super.generatedSources() ++ Seq(PathRef(dest))
+      PathRef(T.dest)
+    }
+    override def generatedSources = T {
+      super.generatedSources() ++ Seq(generateBuildinfo())
     }
   }
 
   object artifactory extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
+    override def ivyDeps = T { Agg(Deps.requests) }
   }
 
   object codeartifact extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
+    override def ivyDeps = T { Agg(Deps.requests) }
   }
 
   object versionfile extends MillModule {
@@ -868,8 +855,27 @@ object contrib extends MillModule {
 
   object bintray extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
+    override def ivyDeps = T { Agg(Deps.requests) }
   }
 
+  object gitlab extends MillInternalModule with MillAutoTestSetup {
+    override def compileModuleDeps = Seq(scalalib)
+    override def ivyDeps = T { Agg(Deps.requests, Deps.osLib) }
+
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
+      scalalib
+    )
+  }
+
+  object jmh extends MillInternalModule with MillAutoTestSetup with WithMillCompiler {
+    override def compileModuleDeps = Seq(scalalib)
+    override def testArgs = T {
+      Seq(
+        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(",")
+      ) ++ scalalib.worker.testArgs()
+    }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+  }
 }
 
 object scalanativelib extends MillModule {
@@ -948,7 +954,7 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 }
 
 object integration extends MillScalaModule {
-  override def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
+  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
 
   /** Deploy freshly build mill for use in tests */
   def testMill: Target[PathRef] = {
@@ -1087,10 +1093,20 @@ def launcherScript(
          |  fi
          |
          |  if [ -f "$$mill_jvm_opts_file" ] ; then
-         |    while IFS= read line
-         |    do
-         |      mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
-         |    done <"$$mill_jvm_opts_file"
+         |    # We need to append a newline at the end to fix
+         |    # https://github.com/com-lihaoyi/mill/issues/2140
+         |    newline="
+         |"
+         |    mill_jvm_opts="$$(
+         |      echo "$$newline" | cat "$$mill_jvm_opts_file" - | (
+         |        while IFS= read line
+         |        do
+         |          mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
+         |        done
+         |        # we are in a sub-shell, so need to return it explicitly
+         |        echo "$${mill_jvm_opts}"
+         |      )
+         |    )"
          |    mill_jvm_opts="$${mill_jvm_opts} -Dmill.jvm_opts_applied=true"
          |  fi
          |}
@@ -1441,7 +1457,6 @@ object docs extends Module {
 }
 
 def assembly = T {
-
   val version = millVersion()
   val devRunClasspath = dev.runClasspath().map(_.path)
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"

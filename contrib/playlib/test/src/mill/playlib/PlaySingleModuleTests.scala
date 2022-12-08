@@ -10,7 +10,7 @@ import utest.{TestSuite, Tests, assert, _}
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingle extends TestUtil.BaseModule with PlayModule with SingleModule {
-    override def playVersion = T { "2.8.16" }
+    override def playVersion = T { testPlay28 }
     override def twirlVersion = T { "1.5.1" }
     override def twirlScalaVersion: T[String] =
       T { sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???) }
@@ -75,11 +75,8 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
           evalCount > 0
         )
 
-        // don"t" recompile if nothing changed
+        // don't recompile if nothing changed
         val Right((_, unchangedEvalCount)) = eval.apply(playsingle.compile)
-
-      // FIXME the following test should be uncommented once
-      // https://github.com/lihaoyi/mill/issues/554 is resolved
       // assert(unchangedEvalCount == 0)
       }
     }

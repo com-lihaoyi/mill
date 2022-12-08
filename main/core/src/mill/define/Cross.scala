@@ -31,7 +31,7 @@ object Cross {
     }
   }
 
-  trait Resolver[-T] {
+  trait Resolver[-T <: Module] {
     def resolve[V <: T](c: Cross[V]): V
   }
 }
@@ -46,7 +46,7 @@ object Cross {
  *   ...
  * }
  */
-class Cross[T: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.define.Ctx)
+class Cross[T <: Module : ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.define.Ctx)
     extends mill.define.Module()(ctx) {
 
   // TODO: change to Seq[Module] in 0.11
@@ -90,7 +90,7 @@ class Cross[T: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.d
    * scope. This is often the first cross module whose cross-version is
    * compatible with the current module.
    */
-  def apply[V >: T]()(implicit resolver: Cross.Resolver[V]): T = {
+  def apply[V >: T <: Module]()(implicit resolver: Cross.Resolver[V]): T = {
     resolver.resolve(this.asInstanceOf[Cross[V]]).asInstanceOf[T]
   }
 }

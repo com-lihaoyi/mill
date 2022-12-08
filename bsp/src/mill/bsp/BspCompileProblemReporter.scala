@@ -1,17 +1,16 @@
 package mill.bsp
 
-import java.io.File
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-
 import ch.epfl.scala.bsp4j._
 import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.{CompileProblemReporter, Problem}
-import scala.collection.JavaConverters._
-import scala.collection.concurrent
-import scala.language.implicitConversions
-
 import os.Path
+
+import java.io.File
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+import scala.collection.concurrent
+import scala.jdk.CollectionConverters._
+import scala.language.implicitConversions
 
 /**
  * Specialized reporter that sends compilation diagnostics
@@ -130,7 +129,6 @@ class BspCompileProblemReporter(
       pos.endColumn.orElse(pos.pointer).getOrElse[Int](start.getCharacter.intValue())
     )
     val diagnostic = new bsp.Diagnostic(new bsp.Range(start, end), problem.message)
-    diagnostic.setCode(pos.lineContent)
     diagnostic.setSource("mill")
     diagnostic.setSeverity(
       problem.severity match {
@@ -139,6 +137,7 @@ class BspCompileProblemReporter(
         case mill.api.Warn => bsp.DiagnosticSeverity.WARNING
       }
     )
+    problem.diagnosticCode.foreach { existingCode => diagnostic.setCode(existingCode.code) }
     diagnostic
   }
 

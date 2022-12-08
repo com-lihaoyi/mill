@@ -30,12 +30,6 @@ object ParseArgs {
   /** Separator used in [[SelectMode.Separated]] mode to separate a target-args-tuple from the next target. */
   val TargetSeparator = "+"
 
-  @deprecated("Use apply(Seq[String], SelectMode) instead", "mill after 0.10.0-M3")
-  def apply(
-      scriptArgs: Seq[String],
-      multiSelect: Boolean
-  ): Either[String, TargetsWithParams] = extractAndValidate(scriptArgs, multiSelect)
-
   def apply(
       scriptArgs: Seq[String],
       selectMode: SelectMode
@@ -49,7 +43,7 @@ object ParseArgs {
      */
     @tailrec
     def separated(result: Seq[Seq[String]], rest: Seq[String]): Seq[Seq[String]] = rest match {
-      case Seq() => result
+      case Seq() => if (result.nonEmpty) result else Seq(Seq())
       case r =>
         val (next, r2) = r.span(_ != TargetSeparator)
         separated(

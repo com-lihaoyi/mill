@@ -8,9 +8,9 @@ import scala.util.DynamicVariable
 import mill.api.{CompileProblemReporter, Ctx, DummyTestReporter, Loose, Strict, TestReporter}
 import mill.api.Result.{Aborted, Failing, OuterStack, Success}
 import mill.api.Strict.Agg
-import mill.define.{Ctx => _, _}
+import mill.define._
 import mill.internal.AmmoniteUtils
-import mill.util.{Ctx => _, _}
+import mill.util._
 import upickle.default
 
 import scala.annotation.nowarn
@@ -412,15 +412,19 @@ class Evaluator private[Evaluator] (
           destSegments(labelledNamedTask)
         )
 
-        val cached = for {
+        val cached: Option[(Any, Int)] = for {
           cached <-
             try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
-            catch { case NonFatal(_) => None }
+            catch {
+              case NonFatal(_) => None
+            }
           if cached.inputsHash == inputsHash
           reader <- labelledNamedTask.format
           parsed <-
             try Some(upickle.default.read(cached.value)(reader))
-            catch { case NonFatal(_) => None }
+            catch {
+              case NonFatal(_) => None
+            }
         } yield (parsed, cached.valueHash)
 
         val previousWorker = labelledNamedTask.task.asWorker.flatMap { w =>
@@ -839,18 +843,6 @@ object Evaluator {
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
-  @deprecated("Use EvaluatorPaths instead", "mill-0.10.0-M3")
-  type Paths = EvaluatorPaths
-  @deprecated("Use EvaluatorPaths.makeSegmentStrings instead", "mill-0.10.0-M3")
-  def makeSegmentStrings(segments: Segments): Seq[String] =
-    EvaluatorPaths.makeSegmentStrings(segments)
-  @deprecated("Use EvaluatorPaths.resolveDestPaths instead", "mill-0.10.0-M3")
-  def resolveDestPaths(
-      workspacePath: os.Path,
-      segments: Segments,
-      foreignSegments: Option[Segments] = None
-  ): EvaluatorPaths = EvaluatorPaths.resolveDestPaths(workspacePath, segments, foreignSegments)
-
   // check if the build itself has changed
   def classLoaderSig: Seq[(Either[String, URL], Long)] =
     Thread.currentThread().getContextClassLoader match {
@@ -948,31 +940,6 @@ object Evaluator {
       outPath / "mill-par-profile.json",
       upickle.default.stream(tracings, indent = 2)
     )
-  }
-
-  /**
-   * Evaluate the given task `e`. In case, the task has no successful result(s), return the `default` value instead.
-   *
-   * Note: This method has no sensible error management! Errors are just ignored!
-   * The following pattern will probably suite your use case better:
-   *
-   * {{{
-   * evaluator.evaluate(Agg(task)) match {
-   *   case r if r.failing.items().nonEmpty =>
-   *     throw Exception(s"Failure during task evaluation: ${Evaluator.formatFailing(r)}")
-   *   case r => r.values.asInstanceOf[Seq[YourResultType]]
-   * }
-   * }}}
-   */
-  @deprecated(
-    "This method has no sensible error management and should be avoided. See it's scaladoc for an alternative pattern or use evalOrThrow instead.",
-    "mill after 0.10.0-M3"
-  )
-  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
-    evaluator.evaluate(Agg(e)).values match {
-      case Seq() => default
-      case Seq(e: T) => e
-    }
   }
 
   class EvalOrThrow(evaluator: Evaluator, exceptionFactory: Results => Throwable) {

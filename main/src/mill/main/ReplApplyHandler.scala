@@ -158,7 +158,7 @@ class ReplApplyHandler(
       case Seq(head: V) => head
       case Nil =>
         val msg = new mutable.StringBuilder()
-        msg.append(res.failing.keyCount + " targets failed\n")
+        msg.append(res.failing.keyCount).append(" targets failed\n")
         for ((k, vs) <- res.failing.items()) {
           msg.append(k match {
             case Left(t) => "Anonymous Task\n"

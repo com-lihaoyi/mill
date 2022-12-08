@@ -2,13 +2,12 @@ package mill
 package scalanativelib
 
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
-import coursier.maven.MavenRepository
 import mill.api.Loose.Agg
-import mill.api.{internal, Result}
+import mill.api.{Result, internal}
 import mill.define.{Target, Task}
 import mill.modules.Jvm
-import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
-import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
+import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.TestRunner
 import mill.scalanativelib.api._
 
@@ -31,10 +30,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def scalaNativeBinaryVersion =
-    T { mill.scalalib.api.Util.scalaNativeBinaryVersion(scalaNativeVersion()) }
+    T { ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerVersion =
-    T { mill.scalalib.api.Util.scalaNativeWorkerVersion(scalaNativeVersion()) }
+    T { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorker = T.task {
     mill.scalanativelib.ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath())
@@ -48,7 +47,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def scalaNativeWorkerClasspath = T {
-    val workerScalaBinaryVersion = scalaBinaryVersion(scalaNativeWorkerScalaVersion())
+    val workerScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaNativeWorkerScalaVersion())
     val workerKey =
       s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}_$workerScalaBinaryVersion"
         .replace('.', '_')
@@ -70,7 +69,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def nativeIvyDeps: T[Agg[Dep]] = T {
     val scalaVersionSpecific =
-      if (isScala3(scalaVersion()))
+      if (ZincWorkerUtil.isScala3(scalaVersion()))
         Agg(ivy"org.scala-native::scala3lib::${scalaNativeVersion()}")
       else
         Agg(ivy"org.scala-native::scalalib::${scalaNativeVersion()}")
@@ -83,7 +82,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   override def scalaLibraryIvyDeps = T {
-    if (isScala3(scalaVersion())) Agg.empty[Dep] else super.scalaLibraryIvyDeps()
+    super.scalaLibraryIvyDeps().map(dep =>
+      dep.copy(cross = dep.cross match {
+        case c: CrossVersion.Constant => c.copy(platformed = false)
+        case c: CrossVersion.Binary => c.copy(platformed = false)
+        case c: CrossVersion.Full => c.copy(platformed = false)
+      })
+    )
   }
 
   /** Adds [[nativeIvyDeps]] as mandatory dependencies. */
@@ -171,6 +176,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
    */
   def nativeEmbedResources = T { false }
 
+  /** Shall we use the incremental compilation? */
+  def nativeIncrementalCompilation = T { false }
+
   // The LTO mode to use used during a release build
   protected def nativeLTOInput: Target[Option[LTO]] = T.input {
     readEnvVariable[LTO](T.env, "SCALANATIVE_LTO", LTO.values, _.value)
@@ -203,6 +211,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       releaseMode(),
       nativeOptimize(),
       nativeEmbedResources(),
+      nativeIncrementalCompilation(),
       logLevel()
     )
   }
@@ -228,7 +237,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       new ScalaBuildTarget(
         scalaOrganization(),
         scalaVersion(),
-        scalaBinaryVersion(scalaVersion()),
+        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.NATIVE,
         scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
       )

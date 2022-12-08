@@ -83,6 +83,7 @@ sealed trait JsEnvConfig
 object JsEnvConfig {
   implicit def rwNodeJs: RW[NodeJs] = macroRW
   implicit def rwJsDom: RW[JsDom] = macroRW
+  implicit def rwExoegoJsDomNodeJs: RW[ExoegoJsDomNodeJs] = macroRW
   implicit def rwPhantom: RW[Phantom] = macroRW
   implicit def rw: RW[JsEnvConfig] = macroRW
 
@@ -94,6 +95,12 @@ object JsEnvConfig {
   ) extends JsEnvConfig
 
   final case class JsDom(
+      executable: String = "node",
+      args: List[String] = Nil,
+      env: Map[String, String] = Map.empty
+  ) extends JsEnvConfig
+
+  final case class ExoegoJsDomNodeJs(
       executable: String = "node",
       args: List[String] = Nil,
       env: Map[String, String] = Map.empty
