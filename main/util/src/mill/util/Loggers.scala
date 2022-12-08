@@ -235,9 +235,13 @@ class MultiStream(stream1: OutputStream, stream2: OutputStream)
       }
     })
 
-// TODO: make this a non-case class
-case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStream: InputStream)
-    extends Logger {
+class MultiLogger(
+    val colored: Boolean,
+    val logger1: Logger,
+    val logger2: Logger,
+    val inStream: InputStream,
+    override val debugEnabled: Boolean
+) extends Logger {
 
   lazy val outputStream: PrintStream = new MultiStream(logger1.outputStream, logger2.outputStream)
 
@@ -266,8 +270,6 @@ case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStr
     logger2.close()
   }
 
-  // TODO: this should be a ctr parameter, to let the user decide, but this affects binary compatibility
-  override def debugEnabled: Boolean = logger1.debugEnabled
 }
 
 /**
