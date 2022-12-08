@@ -1,6 +1,8 @@
 package mill.scalalib.worker
 
 import mill.api.{Problem, ProblemPosition, Severity, internal}
+import mill.api.DiagnosticCode
+import scala.jdk.OptionConverters._
 
 @internal
 class ZincProblem(base: xsbti.Problem) extends Problem {
@@ -15,4 +17,7 @@ class ZincProblem(base: xsbti.Problem) extends Problem {
   override def message: String = base.message()
 
   override def position: ProblemPosition = new ZincProblemPosition(base.position())
+
+  override def diagnosticCode: Option[DiagnosticCode] =
+    base.diagnosticCode().toScala.map(ZincDiagnosticCode)
 }

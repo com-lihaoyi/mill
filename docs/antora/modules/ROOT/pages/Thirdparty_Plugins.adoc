@@ -1,11 +1,11 @@
-= Thirdparty Plugins
+= Third-Party Plugins
 :page-aliases: Thirdparty_Modules.adoc
 
 The Plugins in this section are developed/maintained outside the mill git tree.
 This list is most likely not complete.
 If you wrote a Mill plugin or find that one is missing in this list, please open a {mill-github-url}/pulls[pull request] and add that plugin with a short description (in alphabetical order).
 
-For details about including plugins in your `build.sc` read xref:Extending_Mill.adoc#_using_mill_plugins_import_ivy[Using Mill Plugins].
+For details about including plugins in your `build.sc` read xref:Using_Plugins.adoc[Using Mill Plugins].
 
 CAUTION: Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
 The usage examples given here are most probably incomplete and sometimes outdated!
@@ -70,6 +70,14 @@ For documentation, please refer to the https://github.com/lefou/mill-aspectj[pro
 Limited bash completion support.
 
 Project home: https://github.com/lefou/mill-bash-completion
+
+== Bundler
+
+`mill-bundler` is comparable to `scalajs-bundler` for SBT: It manages NPM dependencies for a Scala.js module and
+bundling it. Currently Webpack and Rollup are implemented but it's easy to use another one.
+
+Project home: https://github.com/nafg/mill-bundler
+
 
 == CI Release
 
@@ -803,7 +811,7 @@ Mill plugin to derive a version from (last) git tag and edit state. It may suppo
 Project home: https://github.com/lefou/mill-vcs-version
 
 Lots of formatting options are provided.
-When used with its defaults, the outcome is identical to the version scheme used by mill.
+When used with its defaults, the outcome is identical to the version scheme that Mill itself uses.
 
 === Quickstart
 

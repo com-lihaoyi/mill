@@ -68,6 +68,12 @@ private[scalajslib] object JsEnvConfig {
       env: Map[String, String]
   ) extends JsEnvConfig
 
+  final case class ExoegoJsDomNodeJs(
+      executable: String,
+      args: List[String],
+      env: Map[String, String]
+  ) extends JsEnvConfig
+
   final case class Phantom(
       executable: String,
       args: List[String],

@@ -16,9 +16,6 @@ trait CompileProblemReporter {
   def finish(): Unit
 }
 
-@deprecated("Use CompileProblemReporter instead", "mill after 0.10.0-M3")
-trait BuildProblemReporter extends CompileProblemReporter
-
 /**
  * Contains general information about the build problem
  */
@@ -30,6 +27,18 @@ trait Problem {
   def message: String
 
   def position: ProblemPosition
+
+  // TODO Remove default implementation in 0.11.x series
+  def diagnosticCode: Option[DiagnosticCode] = None
+}
+
+/**
+ * Unique diagnostic code given from the compiler with an optional further explanation.
+ */
+trait DiagnosticCode {
+  def code: String
+
+  def explanation: Option[String]
 }
 
 /**

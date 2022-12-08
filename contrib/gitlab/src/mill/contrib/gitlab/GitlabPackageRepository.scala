@@ -14,8 +14,8 @@ case class ProjectRepository(baseUrl: String, projectId: Int) extends GitlabPack
   // https://docs.gitlab.com/ee/api/packages/maven.html#upload-a-package-file
   def uploadUrl(artifact: Artifact): String = {
     val repoUrl = url()
-    val group   = artifact.group.replace(".", "/")
-    val id      = artifact.id
+    val group = artifact.group.replace(".", "/")
+    val id = artifact.id
     val version = artifact.version
     s"$repoUrl/$group/$id/$version"
   }

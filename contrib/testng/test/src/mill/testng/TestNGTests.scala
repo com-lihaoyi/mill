@@ -16,7 +16,7 @@ object TestNGTests extends TestSuite {
 
     object test extends super.Tests {
       def testngClasspath = T {
-        mill.modules.Util.millProjectModule("MILL_TESTNG_LIB", "mill-contrib-testng", repositories)
+        mill.modules.Util.millProjectModule("MILL_TESTNG_LIB", "mill-contrib-testng", repositoriesTask())
       }
 
       override def runClasspath: Target[Seq[PathRef]] =

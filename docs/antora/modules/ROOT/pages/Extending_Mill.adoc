@@ -1,4 +1,5 @@
 = Extending Mill
+:link-ammonite: https://ammonite.io/
 
 There are different ways of extending Mill, depending on how much customization and flexibility you need.
 This page will go through your options from the easiest/least-flexible to the hardest/most-flexible.
@@ -20,7 +21,7 @@ If you have something you just want to _do_ that isn't covered by the built-in `
 For subprocess/filesystem operations, you can use the
 https://github.com/lihaoyi/os-lib[os-lib] library that comes bundled with Mill, or even plain `java.nio`/`java.lang.Process`.
 Each target gets its own
-xref:Tasks.adoc#_mill_api_ctx_dest[T.dest] folder that you can use to place files without worrying about colliding with other targets.
+xref:Task_Context_API.adoc#_mill_api_ctx_dest[T.dest] folder that you can use to place files without worrying about colliding with other targets.
 
 This covers use cases like:
 
@@ -54,8 +55,10 @@ def deployFoo(credentials: String) = T.command {
 
 <<_custom_targets_commands>> are re-computed from scratch each time; sometimes you want to keep values around in-memory when using
 `--watch` or the Build REPL.
-E.g. you may want to keep a webpack process running so webpack's own internal caches are hot and compilation is fast:
 
+In such a case, you can use a `Worker`. Workers keep their state between multiple runs. Workers are created with the `T.worker` macro.
+
+.Example: Keep a webpack process running so webpack's own internal caches are hot and compilation is fast
 [source,scala]
 ----
 def webpackWorker = T.worker {
@@ -84,7 +87,7 @@ trait FooModule extends mill.Module {
 }
 ----
 
-Custom modules are useful if you have a common set of tasks that you want to re-used across different parts of your build.
+Custom modules are useful if you have a common set of tasks that you want to re-use across different parts of your build.
 You simply define a `trait`
 inheriting from `mill.Module`, and then use that `trait` as many times as you want in various ``object``s:
 
@@ -108,6 +111,8 @@ trait FooModule extends ScalaModule {
 }
 ----
 
+In fact, the above example of a configuration trait is so convenient, that it is found in almost any non-trivial Mill project, in once form or another.
+
 == import $file
 
 If you want to define some functionality that can be used both inside and outside the build, you can create a new `foo.sc` file next to your `build.sc`,
@@ -127,7 +132,7 @@ def printFoo() = T.command { println(foo.fooValue()) }
 ----
 
 Mill's `import $file` syntax supports the full functionality of
-http://ammonite.io/#ScalaScripts[Ammonite Scripts]
+{link-ammonite}#ScalaScripts[Ammonite Scripts]
 
 == import $ivy
 
@@ -153,77 +158,11 @@ def generatedHtml = T {
 <1> Import the scalatags library from Mavel Central repository.
 <2> Creates the `generatedHtml` target which is used here to generate a simple Hello World HTML document. It can be used however you would like: written to a file, further processed, etc.
 
-Please also read the next section xref:_using_mill_plugins_import_ivy[]].
+Please also read the section xref:Using_Plugins.adoc[].
 
-For more information, see Ammonite's
-http://ammonite.io/#import$ivy[Ivy Dependencies documentation].
+For more information about this special `import` syntax, read the
+{link-ammonite}#import$ivy[Ammonite Documentation for Ivy Dependencies].
 
-
-== Using Mill Plugins (`import $ivy`)
-
-Mill plugins are ordinary jars and are loaded as any other external dependency with xref:_import_ivy[`import $ivy`].
-
-Mill plugins are typically bound to a specific version or version range of Mill.
-To ease the use of the correct versions and avoid runtime issues (caused by binary incompatible plugins, which are hard to debug) you can apply one of the following techniques:
-
-=== Use the specific Mill Binary Platform notation
-
-[source,scala]
-----
-// for classic Scala dependencies
-import $ivy.`<group>::<plugin>::<version>` // <1>
-// for dependencies specific to the exact Scala version
-import $ivy.`<group>:::<plugin>::<version>` // <2>
-----
-<1> This is equivalent to
-+
-[source,scala]
-----
-import $ivy.`<group>::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
-----
-<2> This is equivalent to
-+
-[source,scala]
-----
-import $ivy.`<group>:::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
-----
-
-
-=== Use special placeholders in your `import $ivy`
-
-`$MILL_VERSION` ::
-+
---
-to substitute the currently used Mill version.
-This is typical required for Mill contrib modules, which are developed in the Mill repository and highly bound to the current Mill version.
-
-.Example: Use `mill-contrib-bloop` plugin matching the current Mill version
-----
-import $ivy.`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`
-----
-
-There is the even more convenient option to leave the version completely empty.
-Mill will substitute it with its current version.
-But don't forget to provide the trailing colon!
-
-.Example: Use `mill-contrib-bloop` plugin matching the current Mill version
-----
-import $ivy.`com.lihaoyi:mill-contrib-bloop:`
-----
---
-
-`$MILL_BIN_PLATFORM` ::
-+
---
-to substitute the currently used Mill binary platform.
-
-.Example: Using `mill-vcs-version` plugin matching the current Mill Binary Platfrom
-----
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`
-----
---
-
-TIP: If you want to publish re-usable libraries that _other_ people can use in their builds, simply publish your code as a library to maven central.
 
 == Evaluator Commands (experimental)
 
@@ -245,8 +184,8 @@ def idea(ev: Evaluator) = T.command {
 ----
 
 Many built-in tools are implemented as custom evaluator commands:
-xref:Intro_to_Mill.adoc#_inspect[inspect],
-xref:Intro_to_Mill.adoc#_resolve[resolve],
-xref:Intro_to_Mill.adoc#_show[show].
+xref:Getting_Started.adoc#_inspect[inspect],
+xref:Getting_Started.adoc#_resolve[resolve],
+xref:Getting_Started.adoc#_show[show].
 If you want a way to run Mill commands and programmatically manipulate the tasks and outputs, you do so with your own evaluator command.
 

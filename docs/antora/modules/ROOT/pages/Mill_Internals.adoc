@@ -186,7 +186,7 @@ The module hierarchy is the graph of objects, starting from the root of the
 `build.sc` file, that extend `mill.Module`. At the leaves of the hierarchy are
 the ``Target``s you can run.
 
-A `Target`'s position in the module hierarchy tells you many things. For
+A ``Target``'s position in the module hierarchy tells you many things. For
 example, a `Target` at position `core.test.compile` would:
 
 * Cache output metadata at `out/core/test/compile.json`

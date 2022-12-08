@@ -10,11 +10,10 @@ import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil => Ut
 import sbt.internal.inc._
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
-import sbt.util.LogExchange
+import sbt.mill.SbtLoggerUtils
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import xsbti.{PathBasedFile, VirtualFile}
 
-import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.ref.SoftReference
 import scala.util.Properties.isWin
@@ -151,7 +150,7 @@ class ZincWorkerImpl(
     os.makeDir.all(compileDest)
 
     val sourceFolder = mill.api.IO.unpackZip(compilerBridgeSourcesJar)(workingDir)
-    val classloader = mill.api.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
+    val classloader = mill.api.ClassLoader.create(compilerJars.toIndexedSeq.map(_.toURI.toURL), null)(ctx0)
 
     val (sources, resources) =
       os.walk(sourceFolder.path).filter(os.isFile)
@@ -443,18 +442,11 @@ class ZincWorkerImpl(
       _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
-    // The following three calls to [[LogExchange]] are deprecated, but the
-    // suggested alternatives aren't public API, so we can't really do anything
-    // to avoid calling these deprecated API.
-    // See issue https://github.com/sbt/sbt/issues/6734
-    // Also, these are no longer deprecated in newer zinc versions
-    val logger = LogExchange.logger(loggerId):  @nowarn
-    LogExchange.unbindLoggerAppenders(loggerId): @nowarn
-    LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> zincLogLevel) :: Nil): @nowarn
-
+    val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
     val newReporter = reporter match {
       case None => new ManagedLoggedReporter(10, logger)
       case Some(r) => new ManagedLoggedReporter(10, logger) {
+
           override def logError(problem: xsbti.Problem): Unit = {
             r.logError(new ZincProblem(problem))
             super.logError(problem)

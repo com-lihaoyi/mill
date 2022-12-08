@@ -467,6 +467,8 @@ case class GenIdeaImpl(
             val compilerCp: Agg[Path] = librariesProperties.getOrElse(resolved.path, Agg.empty)
             val languageLevel = name match {
               case _ if compilerCp.iterator.isEmpty => None
+              case _ if name.startsWith("scala3-library_3-3.3.") => Some("Scala_3_3")
+              case _ if name.startsWith("scala3-library_3-3.2.") => Some("Scala_3_2")
               case _ if name.startsWith("scala3-library_3-3.1.") => Some("Scala_3_1")
               case _ if name.startsWith("scala3-library_3-3.0.") => Some("Scala_3_0")
               case _ if name.startsWith("scala-library-2.13.") => Some("Scala_2_13")
@@ -900,10 +902,6 @@ object GenIdeaImpl {
       }
       .mkString
       .toLowerCase()
-
-  @deprecated("See scaladoc of Evaluator.evalOrElse for more information.", "mill after 0.10.0-M3")
-  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T =
-    Evaluator.evalOrElse(evaluator, e, default)
 
   sealed trait ResolvedLibrary { def path: os.Path }
   final case class CoursierResolved(path: os.Path, pom: os.Path, sources: Option[os.Path])

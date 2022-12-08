@@ -15,16 +15,6 @@ import ujson.Value
 import scala.util.chaining.scalaUtilChainingOps
 
 object MainModule {
-  @deprecated(
-    "use resolveTasks(Evaluator, Seq[String], SelectMode) instead",
-    "mill after 0.10.0-M3"
-  )
-  def resolveTasks[T](
-      evaluator: Evaluator,
-      targets: Seq[String],
-      multiSelect: Boolean
-  )(f: List[NamedTask[Any]] => T): Result[T] =
-    resolveTasks(evaluator, targets, if (multiSelect) SelectMode.Multi else SelectMode.Single)(f)
 
   def resolveTasks[T](
       evaluator: Evaluator,
@@ -36,17 +26,6 @@ object MainModule {
       case Right(tasks) => Result.Success(f(tasks))
     }
   }
-
-  @deprecated(
-    "use evaluateTasks(Evaluator, Seq[String], SelectMode) instead",
-    "mill after 0.10.0-M3"
-  )
-  def evaluateTasks[T](
-      evaluator: Evaluator,
-      targets: Seq[String],
-      multiSelect: Boolean
-  )(f: Seq[(Any, Option[ujson.Value])] => T): Result[Watched[Unit]] =
-    evaluateTasks(evaluator, targets, if (multiSelect) SelectMode.Multi else SelectMode.Single)(f)
 
   def evaluateTasks[T](
       evaluator: Evaluator,
@@ -81,10 +60,8 @@ object MainModule {
 trait MainModule extends mill.Module {
 
   implicit def millDiscover: mill.define.Discover[_]
-  // TODO: change return type to mainargs.TokensReader[Tasks[T]] when in 0.11 milestone
-  implicit def millScoptTasksReads[T]: Tasks.Scopt[T] = new mill.main.Tasks.Scopt[T]()
-  // TODO: change return type to mainargs.TokensReader[Evaluator] when in 0.11 milestone
-  implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] = new mill.main.EvaluatorScopt[T]()
+  implicit def millScoptTasksReads[T]: mainargs.TokensReader[Tasks[T]] = new mill.main.Tasks.Scopt[T]()
+  implicit def millScoptEvaluatorReads[T]: TokensReader[Evaluator] = new mill.main.EvaluatorScopt[T]()
   implicit def taskTokensReader[T](implicit
       tokensReaderOfT: TokensReader[T]
   ): TokensReader[Task[T]] = new TaskScopt[T](tokensReaderOfT)
@@ -216,43 +193,6 @@ trait MainModule extends mill.Module {
       }).mkString("\n")
       T.log.outputStream.println(output)
       fansi.Str(output).plainText
-    }
-  }
-
-  /**
-   * Runs multiple tasks in a single call.
-   * For compatibility reasons, the tasks are executed single-threaded.
-   */
-  @deprecated(
-    "Use the + separator, wildcards, or brace-expansion to specify multiple targets.",
-    "mill after 0.10.0-M3"
-  )
-  def all(evaluator: Evaluator, targets: String*) = mill.T.command {
-    MainModule.evaluateTasks(
-      evaluator =
-        if (evaluator.effectiveThreadCount > 1) evaluator.withThreadCount(Some(1))
-        else evaluator,
-      targets = targets,
-      SelectMode.Multi
-    ) { res =>
-      res.flatMap(_._2)
-    }
-  }
-
-  /**
-   * Runs multiple tasks in a single call in parallel.
-   */
-  @deprecated(
-    "Use the + separator, wildcards, or brace-expansion to specify multiple targets.",
-    "mill after 0.10.0-M3"
-  )
-  def par(evaluator: Evaluator, targets: String*) = T.command {
-    MainModule.evaluateTasks(
-      evaluator = evaluator,
-      targets = targets,
-      SelectMode.Multi
-    ) { res =>
-      res.flatMap(_._2)
     }
   }
 

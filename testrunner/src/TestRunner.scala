@@ -2,7 +2,6 @@ package mill.testrunner
 
 import mill.api.Loose.Agg
 import mill.api.{Ctx, DummyTestReporter, Loose, TestReporter}
-import mill.scalalib.api._
 import mill.util.Jvm
 import mill.util.PrintLogger
 import mill.api.JsonFormatters._
@@ -144,30 +143,6 @@ object TestRunner {
 
   object TestArgs {
 
-    // only for binary compatibility
-    @deprecated("Use other apply/ctr instead.", "mill after 0.9.6")
-    def apply(
-        frameworks: Seq[String],
-        classpath: Seq[String],
-        arguments: Seq[String],
-        sysProps: Map[String, String],
-        outputPath: String,
-        colored: Boolean,
-        testCp: String,
-        homeStr: String
-    ): TestArgs =
-      TestArgs(
-        framework = frameworks.head,
-        classpath = classpath,
-        arguments = arguments,
-        sysProps = sysProps,
-        outputPath = outputPath,
-        colored = colored,
-        testCp = testCp,
-        homeStr = homeStr,
-        globSelectors = Seq.empty
-      )
-
     def parseArgs(args: Array[String]): Try[TestArgs] = {
       args match {
         case Array(fileArg) if fileArg.startsWith("@") =>
@@ -269,24 +244,6 @@ object TestRunner {
     // Always return 0, even if tests fail. The caller can pick up the detailed test
     // results from the outputPath
     System.exit(0)
-  }
-
-  // Only for binary compatibility
-  @deprecated("Use runTestFramework instead.", "mill after 0.9.6")
-  def runTests(
-      frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
-      entireClasspath: Agg[os.Path],
-      testClassfilePath: Agg[os.Path],
-      args: Seq[String],
-      testReporter: TestReporter
-  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.testrunner.TestRunner.Result]) = {
-    runTestFramework(
-      frameworkInstances = cl => frameworkInstances(cl).head,
-      entireClasspath = entireClasspath,
-      testClassfilePath = testClassfilePath,
-      args = args,
-      testReporter = testReporter
-    )
   }
 
   def runTestFramework(
@@ -395,13 +352,6 @@ object TestRunner {
         (doneMessage, results.toSeq)
       }
     )
-  }
-
-  @deprecated("Use framework instead.", "mill after 0.9.6")
-  def frameworks(frameworkNames: Seq[String])(
-      cl: ClassLoader
-  ): Seq[sbt.testing.Framework] = {
-    frameworkNames.map(name => framework(name)(cl))
   }
 
   def framework(frameworkName: String)(

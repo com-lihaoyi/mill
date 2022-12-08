@@ -28,6 +28,9 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
     def zip[T](other: Agg[T]): Agg[(V, T)]
     def ++[T >: V](other: IterableOnce[T]): Agg[T]
     def length: Int
+    def isEmpty: Boolean
+    def nonEmpty: Boolean = !isEmpty
+    def foreach[U](f: V => U): Unit
   }
 
   object Agg {
@@ -98,26 +101,12 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       def ++[T >: V](other: IterableOnce[T]): Agg[T] = Agg.from(items ++ other)
       def length: Int = set0.size
 
-      // Members declared in scala.collection.GenTraversableOnce
-      def isTraversableAgain: Boolean = items.isTraversableAgain
-      @deprecated("Use .iterator instead", "mill after 0.9.6")
-      def toIterator: Iterator[V] = iterator
-      @deprecated("Use .to(LazyList) instead", "mill after 0.9.6")
-      def toStream: Stream[V] = items.toStream: @nowarn
-
-      // Members declared in scala.collection.TraversableOnce
-      def copyToArray[B >: V](xs: Array[B], start: Int, len: Int): Unit =
-        items.copyToArray(xs, start, len)
       def exists(p: V => Boolean): Boolean = items.exists(p)
       def find(p: V => Boolean): Option[V] = items.find(p)
       def forall(p: V => Boolean): Boolean = items.forall(p)
-      @deprecated("Use .iterator.foreach(...) instead", "mill after 0.9.6")
       def foreach[U](f: V => U): Unit = items.foreach(f)
-      def hasDefiniteSize: Boolean = set0.hasDefiniteSize: @nowarn
       def isEmpty: Boolean = items.isEmpty
       def seq: scala.collection.IterableOnce[V] = items
-      @deprecated("Use .iterator instead", "mill after 0.9.6")
-      def toTraversable: Iterable[V] = Iterable.from(items)
       def iterator: Iterator[V] = items
 
       override def hashCode(): Int = items.map(_.hashCode()).sum
@@ -126,6 +115,7 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
         case _ => super.equals(other)
       }
       override def toString: String = items.mkString("Agg(", ", ", ")")
+
     }
   }
 }

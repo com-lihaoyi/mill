@@ -8,7 +8,8 @@
 :link-compare: https://github.com/com-lihaoyi/mill/compare
 :link-pr: {link-github}/pull
 :link-issue: {link-github}/issues
-:example-scala-version: 3.0.2
+:link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
+:example-scala-version: 3.2.1
 
 {link-github}/actions/workflows/actions.yml[image:{link-github}/actions/workflows/actions.yml/badge.svg[Build and Release]]
 {link-gitter}?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge[image:https://badges.gitter.im/Join%20Chat.svg[Gitter Chat]]
@@ -227,20 +228,113 @@ These are maintained as part of the primary Mill Github repo for easy testing/up
 APIs evolve, ensuring that they are always tested and passing against the
 corresponding version of Mill.
 
+== Project Maintenance
+
+=== Pull Requests
+
+* Changes to the main branch need a pull request. Exceptions are preparation commits for releases, which are meant to be pushed with tags in one go
+* Merged pull request (and closed issues) need to be assigned to a Milestone
+* Pull requests are typically merged via "Squash and merge", so we get a linear and useful history
+* Larger pull request, where it makes sense to keep single commits, or with multiple authors may be committed via merge commits.
+
+=== Commit Messages
+
+* The title should be meaningful and may contain the pull request number in parentheses (typically automatically generated on GitHub)
+* The description should contain additional required details, which typically reflect the content of the first PR comment
+* A full link to the pull request should be added via a line: `Pull request: <link>`
+* If the PR has multiple authors but is merged as merge commit, those authors should be included via a line for each co-author: `Co-authored-by: <author>`
+* If the message contains links to other issues or pull requests, you should use full URLs to reference them
+
 == Changelog
 
 
 === 'main' branch
 :version: main
-:prev-version: 0.10.7
-:milestone: 67
-:milestone-name: after 0.10.7
+:prev-version: 0.10.10
+:milestone: 70
+:milestone-name: after 0.10.10
 
 _Changes since {prev-version}:_
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+
+=== 0.10.10 - 2022-12-06
+:version: 0.10.10
+:prev-version: 0.10.9
+:milestone: 69
+:milestone-name: 0.10.10
+
+After this release, the `main` branch is open for development of the next major version of Mill, which is probably `0.11`.
+Further maintenance work will happen in the `0.10.x` branch.
+
+_Changes since {prev-version}:_
+
+* Lots of documentation improvements, additions and restructurings
+* `core`: Fixed some rare issues with reading the `.mill-jvm-opts` file
+* `core`: We made slight adaptions to the `T.dest` location of target defined in included files, to fix potential colliding cache locations
+* `scalalib`: JAR archives created by Mill now by default contain directory entries
+* `scalalib`: Updated zinc to 1.8.0
+* `scalajslib`: Added support for more `JsEnv` providers
+* `scalanativelib`: Support for incremental compilation since Scala Native 0.4.9
+* `contrib.testng`: The TestNG library is no longer provided transitively; you need to provide it explicitly
+* `contrib.bloop`: Fixed re-generation of bloop config dir; previously, it could happen, that there where no config files at all
+* `BSP`: implement `buildTarget/OutputPaths` request
+* Various version bumps and internal improvements
+
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+
+=== 0.10.9 - 2022-11-10
+:version: 0.10.9
+:prev-version: 0.10.8
+:milestone: 68
+:milestone-name: 0.10.9
+
+_Changes since {prev-version}:_
+
+* **Hardened Maven and Ivy artifact handling to prevent path-traversal attacks** (see https://github.com/advisories/GHSA-wv7w-rj2x-556x[CVE-2022-37866]), also updated coursier dependency to a non-vulnerable version
+* Decoupled `mill-moduledefs` module into a {link-mill-moduledefs}[separate project], to better suite compiler plugin packaging and improve support for various Scala versions
+* Applied more workarounds to coursier concurrency issues to make parallel builds more robust
+* Added support for newer Scala versions in `GenIdea` (2.2 and 2.3)
+* Fixed an issue where `PublishModule` dropped module dependencies when mixed-in after other trait which overrode `moduleDeps`
+* new `JMH` contrib plugin
+* Lots of internal improvements and dependency updates
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.8 - 2022-10-10
+:version: 0.10.8
+:prev-version: 0.10.7
+:milestone: 67
+:milestone-name: 0.10.8
+
+_Changes since {prev-version}:_
+
+* Improvements for better Scala 3.2 support
+* Fixed non-working default commands in cross modules
+* `CoursierModule`: mitigate more download failure situations (e.g. checksum failures)
+* `PublishModule`: properly show `gpg` output in server mode
+* `BSP`: Better compiler message handling (`logMessage` instead of `showMessage`) and support for diagnostic code
+* `ScoverageModule`: Support for Scoverage 2.x
+* New contrib module `GitlabPublishModule`
+* Various internal improvements and version bumps
+* Documentation improvements
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 
 === 0.10.7 - 2022-08-24

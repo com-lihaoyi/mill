@@ -12,10 +12,10 @@ class GitlabUploader(
     connectTimeout: Int = 5000
 ) {
   val http = requests.Session(
-      readTimeout = readTimeout,
-      connectTimeout = connectTimeout,
-      maxRedirects = 0,
-      check = false
+    readTimeout = readTimeout,
+    connectTimeout = connectTimeout,
+    maxRedirects = 0,
+    check = false
   )
 
   private val uploadTimeout = 2.minutes.toMillis.toInt
@@ -23,10 +23,10 @@ class GitlabUploader(
   // https://docs.gitlab.com/ee/user/packages/maven_repository/#publish-a-package
   def upload(uri: String, data: Array[Byte]): requests.Response = {
     http.put(
-        uri,
-        readTimeout = uploadTimeout,
-        headers = authentication.headers,
-        data = data
+      uri,
+      readTimeout = uploadTimeout,
+      headers = authentication.headers,
+      data = data
     )
   }
 }

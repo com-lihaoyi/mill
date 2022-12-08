@@ -2,7 +2,6 @@ package mill.scalalib
 
 import coursier.cache.FileCache
 
-import scala.annotation.nowarn
 import coursier.{Dependency, Repository, Resolve}
 import coursier.core.Resolution
 import mill.{Agg, T}
@@ -22,7 +21,7 @@ trait CoursierModule extends mill.Module {
   }
 
   /**
-   * Task that resolves the given dependencies using the repositories defined with [[repositories]].
+   * Task that resolves the given dependencies using the repositories defined with [[repositoriesTask]].
    *
    * @param deps    The dependencies to resolve.
    * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
@@ -51,7 +50,7 @@ trait CoursierModule extends mill.Module {
    * The repositories used to resolved dependencies with [[resolveDeps()]].
    */
   def repositoriesTask: Task[Seq[Repository]] = T.task {
-    repositories: @nowarn
+    Resolve.defaultRepositories
   }
 
   /**
@@ -90,11 +89,5 @@ trait CoursierModule extends mill.Module {
   def coursierCacheCustomizer
       : Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] =
     T.task { None }
-
-  /**
-   * The repositories used to resolved dependencies with [[resolveDeps()]].
-   */
-  @deprecated("Use repositoriesTask instead", "mill after 0.8.0")
-  def repositories: Seq[Repository] = Resolve.defaultRepositories
 
 }

@@ -151,7 +151,10 @@ trait MillTestKit {
         .flatMap(_.asTarget)
         .filter(module.millInternal.targets.contains)
         .filter(!_.isInstanceOf[Input[_]])
-      assert(evaluated == expected)
+      assert(
+        evaluated == expected,
+        s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"
+      )
     }
 
   }

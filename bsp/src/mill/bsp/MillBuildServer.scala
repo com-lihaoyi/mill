@@ -26,6 +26,11 @@ import ch.epfl.scala.bsp4j.{
   InitializeBuildResult,
   InverseSourcesParams,
   InverseSourcesResult,
+  OutputPathItem,
+  OutputPathItemKind,
+  OutputPathsItem,
+  OutputPathsParams,
+  OutputPathsResult,
   ResourcesItem,
   ResourcesParams,
   ResourcesResult,
@@ -178,14 +183,6 @@ class MillBuildServer(
 
       // TODO: scan BspModules and infer their capabilities
 
-//      if (request.getRootUri != bspIdByModule(millBuildTarget).getUri) {
-//        log.debug(
-//          s"Workspace root differs from mill build root! Requested root: ${request.getRootUri} Mill root: ${millBuildTarget.buildTargetId.getUri}"
-//        )
-//      }
-
-//      val moduleBspInfo = bspModulesById.values.map(_.bspBuildTarget).toSeq
-
       val clientCaps = request.getCapabilities().getLanguageIds().asScala
 
 //      val compileLangs = moduleBspInfo.filter(_.canCompile).flatMap(_.languageIds).distinct.filter(
@@ -206,21 +203,20 @@ class MillBuildServer(
 
       val supportedLangs = Seq("java", "scala").asJava
       val capabilities = new BuildServerCapabilities
-      capabilities.setCompileProvider(new CompileProvider(supportedLangs))
-      capabilities.setRunProvider(new RunProvider(supportedLangs))
-      capabilities.setTestProvider(new TestProvider(supportedLangs))
-      capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
-      capabilities.setDependencySourcesProvider(true)
 
-      capabilities.setDependencyModulesProvider(true)
-      capabilities.setInverseSourcesProvider(true)
-      capabilities.setResourcesProvider(true)
-      capabilities.setBuildTargetChangedProvider(
-        false
-      )
+      capabilities.setBuildTargetChangedProvider(false)
       capabilities.setCanReload(canReload)
+      capabilities.setCompileProvider(new CompileProvider(supportedLangs))
+      capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
+      capabilities.setDependencyModulesProvider(true)
+      capabilities.setDependencySourcesProvider(true)
+      capabilities.setInverseSourcesProvider(true)
       capabilities.setJvmRunEnvironmentProvider(true)
       capabilities.setJvmTestEnvironmentProvider(true)
+      capabilities.setOutputPathsProvider(true)
+      capabilities.setResourcesProvider(true)
+      capabilities.setRunProvider(new RunProvider(supportedLangs))
+      capabilities.setTestProvider(new TestProvider(supportedLangs))
 
       request.getDisplayName match {
         case "IntelliJ-BSP" => clientIsIntelliJ = true
@@ -362,13 +358,6 @@ class MillBuildServer(
             sources.setRoots(Seq(sanitizeUri(evaluator.rootModule.millSourcePath)).asJava)
             sources
           }
-//        case (id, `millBuildTarget`) =>
-//          T.task {
-//            new SourcesItem(
-//              id,
-//              Seq(sourceItem(evaluator.rootModule.millSourcePath / "build.sc", false)).asJava
-//            )
-//          }
         case (id, module: JavaModule) =>
           T.task {
             val items = module.sources().map(p => sourceItem(p.path, false)) ++
@@ -412,13 +401,6 @@ class MillBuildServer(
         targetIds = p.getTargets.asScala.toSeq,
         agg = (items: Seq[DependencySourcesItem]) => new DependencySourcesResult(items.asJava)
       ) {
-//        case (id, `millBuildTarget`) =>
-//          T.task {
-//            new DependencySourcesItem(
-//              id,
-//              ModuleUtils.getMillBuildClasspath(evaluator, sources = true).asJava
-//            )
-//          }
         case (id, m: JavaModule) =>
           T.task {
             val sources = m.resolveDeps(
@@ -498,6 +480,36 @@ class MillBuildServer(
       val compileResult = new CompileResult(Utils.getStatusCode(result))
       compileResult.setOriginId(p.getOriginId)
       compileResult // TODO: See in what form IntelliJ expects data about products of compilation in order to set data field
+    }
+
+  override def buildTargetOutputPaths(params: OutputPathsParams)
+      : CompletableFuture[OutputPathsResult] =
+    completable(s"buildTargetOutputPaths ${params}") { state =>
+      import state._
+
+      val outItems = new OutputPathItem(
+        // Spec says, a directory must end with a forward slash
+        sanitizeUri.apply(evaluator.outPath) + "/",
+        OutputPathItemKind.DIRECTORY
+      )
+
+      val extItems = new OutputPathItem(
+        // Spec says, a directory must end with a forward slash
+        sanitizeUri.apply(evaluator.externalOutPath) + "/",
+        OutputPathItemKind.DIRECTORY
+      )
+
+      val items = for {
+        target <- params.getTargets.asScala
+        module <- bspModulesById.get(target)
+      } yield {
+        val items =
+          if (module.millOuterCtx.external) List(extItems)
+          else List(outItems)
+        new OutputPathsItem(target, items.asJava)
+      }
+
+      new OutputPathsResult(items.asJava)
     }
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
