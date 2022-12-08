@@ -7,34 +7,13 @@ import mill.modules.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.TestRunner
 
-import scala.annotation.nowarn
-
 trait TestModule extends JavaModule with TaskModule {
   override def defaultCommandName() = "test"
 
   /**
-   * What test frameworks to use.
-   */
-  @deprecated("Use testFramework instead.", "mill after 0.9.6")
-  def testFrameworks: T[Seq[String]] = T { Seq.empty[String] }
-
-  /**
    * The test framework to use.
    */
-  def testFramework: T[String] = T {
-    val frameworks = testFrameworks(): @nowarn
-    val msg =
-      "Target testFrameworks is deprecated. Please use target testFramework or use one of the " +
-        "predefined TestModules: TestNg, Junit, Scalatest, ..."
-    if (frameworks.size != 1) {
-      Result.Failure(
-        s"Since mill after-0.9.6 only one test framework per TestModule is supported. ${msg}"
-      )
-    } else {
-      T.log.error(msg)
-      Result.Success(frameworks.head)
-    }
-  }
+  def testFramework: T[String]
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -88,12 +67,6 @@ trait TestModule extends JavaModule with TaskModule {
    * Defaults to `true` on Windows, as Windows has a rather short parameter length limit.
    */
   def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
-
-  @deprecated("Use testTask(args, T.task{Seq.empty[String]}) instead.", "mill after 0.9.7")
-  protected def testTask(
-      args: Task[Seq[String]]
-  ): Task[(String, Seq[TestRunner.Result])] =
-    testTask(args, T.task { Seq.empty[String] })
 
   protected def testTask(
       args: Task[Seq[String]],
@@ -156,7 +129,7 @@ trait TestModule extends JavaModule with TaskModule {
           val jsonOutput = ujson.read(outputPath.toIO)
           val (doneMsg, results) =
             upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
-          TestModule.handleResults(doneMsg, results, Some(T.ctx))
+          TestModule.handleResults(doneMsg, results, Some(T.ctx()))
         } catch {
           case e: Throwable =>
             Result.Failure("Test reporting failed: " + e)
@@ -175,7 +148,7 @@ trait TestModule extends JavaModule with TaskModule {
       args,
       T.testReporter
     )
-    TestModule.handleResults(doneMsg, results, Some(T.ctx))
+    TestModule.handleResults(doneMsg, results, Some(T.ctx()))
   }
 
   override def bspBuildTarget: BspBuildTarget = {

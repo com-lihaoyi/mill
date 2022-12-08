@@ -151,6 +151,3 @@ trait ZincWorkerUtil {
 }
 
 object ZincWorkerUtil extends ZincWorkerUtil
-
-@deprecated("use ZincWorkerUtil instead", "mill after 0.10.0-M3")
-object Util extends ZincWorkerUtil

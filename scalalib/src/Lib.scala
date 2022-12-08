@@ -1,15 +1,10 @@
 package mill
 package scalalib
 
-import java.io.FileInputStream
-import java.lang.annotation.Annotation
-import java.lang.reflect.Modifier
-import java.util.zip.ZipInputStream
-
 import coursier.util.Task
-import coursier.{Dependency, Fetch, Repository, Resolution}
+import coursier.{Dependency, Repository, Resolution}
 import mill.api.{Ctx, Loose, PathRef, Result}
-import sbt.testing._
+import mill.scalalib.api.ZincWorkerUtil
 
 object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
@@ -19,7 +14,7 @@ object Lib {
 
   def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
     dep.toDependency(
-      binaryVersion = mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion),
+      binaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion),
       fullVersion = scalaVersion,
       platformSuffix = platformSuffix
     )
@@ -80,11 +75,11 @@ object Lib {
   }
 
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
-    if (mill.scalalib.api.Util.isDotty(scalaVersion))
+    if (ZincWorkerUtil.isDotty(scalaVersion))
       Agg(
         ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
       )
-    else if (mill.scalalib.api.Util.isScala3(scalaVersion))
+    else if (ZincWorkerUtil.isScala3(scalaVersion))
       Agg(
         ivy"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
       )
@@ -95,16 +90,16 @@ object Lib {
       )
 
   def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
-    if (mill.scalalib.api.Util.isDotty(scalaVersion))
+    if (ZincWorkerUtil.isDotty(scalaVersion))
       Agg(
         ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
       )
-    else if (mill.scalalib.api.Util.isScala3Milestone(scalaVersion))
+    else if (ZincWorkerUtil.isScala3Milestone(scalaVersion))
       Agg(
         // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
         ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
       )
-    else if (mill.scalalib.api.Util.isScala3(scalaVersion))
+    else if (ZincWorkerUtil.isScala3(scalaVersion))
       Agg(
         // scalaVersion >= 3.0.0-RC1 uses scaladoc
         ivy"$scalaOrganization::scaladoc:$scalaVersion".forceVersion()
@@ -114,12 +109,12 @@ object Lib {
       scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
 
   def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
-    if (mill.scalalib.api.Util.isDotty(scalaVersion)) {
+    if (ZincWorkerUtil.isDotty(scalaVersion)) {
       Agg(
         // note that dotty-library has a binary version suffix, hence the :: is necessary here
         ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
       )
-    } else if (mill.scalalib.api.Util.isScala3(scalaVersion))
+    } else if (ZincWorkerUtil.isScala3(scalaVersion))
       Agg(
         // note that dotty-library has a binary version suffix, hence the :: is necessary here
         ivy"$scalaOrganization::scala3-library::$scalaVersion".forceVersion()
@@ -171,50 +166,6 @@ object Lib {
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = customizer,
-      ctx = ctx,
-      coursierCacheCustomizer = None
-    )
-
-  @deprecated(
-    "User other overload instead. Only for binary backward compatibility.",
-    "mill after 0.9.6"
-  )
-  def resolveDependenciesMetadata(
-      repositories: Seq[Repository],
-      depToDependency: Dep => coursier.Dependency,
-      deps: IterableOnce[Dep],
-      mapDependencies: Option[Dependency => Dependency],
-      ctx: Option[Ctx.Log]
-  ): (Seq[Dependency], Resolution) =
-    resolveDependenciesMetadata(
-      repositories = repositories,
-      depToDependency = depToDependency,
-      deps = deps,
-      mapDependencies = mapDependencies,
-      customizer = None,
-      ctx = ctx,
-      coursierCacheCustomizer = None
-    )
-
-  @deprecated(
-    "User other overload instead. Only for binary backward compatibility.",
-    "mill after 0.9.6"
-  )
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      depToDependency: Dep => coursier.Dependency,
-      deps: IterableOnce[Dep],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      ctx: Option[Ctx.Log]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories = repositories,
-      depToDependency = depToDependency,
-      deps = deps,
-      sources = sources,
-      mapDependencies = mapDependencies,
-      customizer = None,
       ctx = ctx,
       coursierCacheCustomizer = None
     )

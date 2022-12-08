@@ -7,13 +7,12 @@ import mill.define.Discover
 import mill.eval.EvaluatorPaths
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
 import mill.testrunner.TestRunner
-import mill.scalalib.api.Util.isScala3
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
 import scala.collection.JavaConverters._
-import mill.scalajslib.api._
+import mill.scalalib.api.ZincWorkerUtil
 
 object HelloJSWorldTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
@@ -30,7 +29,7 @@ object HelloJSWorldTests extends TestSuite {
     val matrix = for {
       scala <- scalaVersions
       scalaJS <- scalaJSVersions
-      if !(isScala3(scala) && scalaJS != scalaJSVersions.head)
+      if !(ZincWorkerUtil.isScala3(scala) && scalaJS != scalaJSVersions.head)
     } yield (scala, scalaJS)
 
     object helloJsWorld extends Cross[BuildModule](matrix: _*)
@@ -54,7 +53,7 @@ object HelloJSWorldTests extends TestSuite {
         extends BuildModule(crossScalaVersion, sjsVersion0) {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
-        val utestVersion = if (isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
+        val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
@@ -253,7 +252,7 @@ object HelloJSWorldTests extends TestSuite {
       )
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
-        skipScala = isScala3
+        skipScala = ZincWorkerUtil.isScala3
       )
     }
 
@@ -265,7 +264,7 @@ object HelloJSWorldTests extends TestSuite {
       )
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
-        skipScala = isScala3
+        skipScala = ZincWorkerUtil.isScala3
       )
     }
 
@@ -305,7 +304,7 @@ object HelloJSWorldTests extends TestSuite {
       )
       else Set.empty
     val scalaVersionSpecific =
-      if (isScala3(scalaVersion)) Set(
+      if (ZincWorkerUtil.isScala3(scalaVersion)) Set(
         parentDir / "ArgsParser.tasty",
         parentDir / "Main.tasty"
       )

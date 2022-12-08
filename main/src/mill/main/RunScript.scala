@@ -17,7 +17,6 @@ import mill.internal.AmmoniteUtils
 import scala.collection.mutable
 import scala.reflect.ClassTag
 import mill.define.ParseArgs.TargetsWithParams
-import ujson.Value
 
 /**
  * Custom version of ammonite.main.Scripts, letting us run the build.sc script
@@ -206,20 +205,6 @@ object RunScript {
     resolvedGroups.map(_.flatten.toList)
   }
 
-  @deprecated(
-    "Use resolveTasks[T, R](Resolve[R], Evaluator, Seq[String], SelectMode) instead",
-    "mill after 0.10.0-M3"
-  )
-  def resolveTasks[T, R: ClassTag](
-      resolver: mill.main.Resolve[R],
-      evaluator: Evaluator,
-      scriptArgs: Seq[String],
-      multiSelect: Boolean
-  ): Either[String, List[R]] = {
-    val parsed: Either[String, TargetsWithParams] = ParseArgs(scriptArgs, multiSelect = multiSelect)
-    resolveTasks(resolver, evaluator, parsed)
-  }
-
   private def resolveTasks[T, R: ClassTag](
       resolver: mill.main.Resolve[R],
       evaluator: Evaluator,
@@ -292,17 +277,6 @@ object RunScript {
         (rootModule, crossSelectors)
       }
   }
-
-  @deprecated(
-    "Use evaluateTasks[T](Evaluator, Seq[String], SelectMode) instead",
-    "mill after 0.10.0-M3"
-  )
-  def evaluateTasks[T](
-      evaluator: Evaluator,
-      scriptArgs: Seq[String],
-      multiSelect: Boolean
-  ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]])] =
-    evaluateTasks(evaluator, scriptArgs, if (multiSelect) SelectMode.Multi else SelectMode.Single)
 
   def evaluateTasks[T](
       evaluator: Evaluator,

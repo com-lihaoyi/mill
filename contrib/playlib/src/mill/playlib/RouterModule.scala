@@ -1,9 +1,7 @@
 package mill.playlib
 
-import coursier.MavenRepository
 import mill.api.PathRef
 import mill.playlib.api.RouteCompilerType
-import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.scalalib.api._
 import mill.{Agg, T}
@@ -79,11 +77,6 @@ trait RouterModule extends ScalaModule with Version {
         case _ => "_2.13"
       }
     )
-  }
-
-  @deprecated("Use playRouterToolsClasspath instead", "mill after 0.10.0-M1")
-  def toolsClasspath = T {
-    playRouterToolsClasspath()
   }
 
   def playRouterToolsClasspath = T {

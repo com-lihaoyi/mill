@@ -120,11 +120,6 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  @deprecated("Use scoverageToolsClasspath instead.", "mill after 0.10.0-M1")
-  def toolsClasspath: T[Agg[PathRef]] = T {
-    scoverageToolsClasspath()
-  }
-
   private def checkVersions = T.task {
     val sv = scalaVersion()
     val isSov2 = scoverageVersion().startsWith("2.")
@@ -233,7 +228,6 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def sources: Sources = T.sources { outer.sources() }
     override def resources: Sources = T.sources { outer.resources() }
     override def scalaVersion = T { outer.scalaVersion() }
-    override def repositories: Seq[Repository] = outer.repositories
     override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
     override def compileIvyDeps: Target[Loose.Agg[Dep]] = T { outer.compileIvyDeps() }
     override def ivyDeps: Target[Loose.Agg[Dep]] =

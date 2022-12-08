@@ -36,7 +36,7 @@ object Settings {
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root
-  val docTags = Seq(
+  val docTags: Seq[String] = Seq(
     "0.9.6",
     "0.9.7",
     "0.9.8",
@@ -56,19 +56,7 @@ object Settings {
     "0.10.9",
     "0.10.10"
   )
-  val mimaBaseVersions =
-    Seq(
-      "0.10.0",
-      "0.10.1",
-      "0.10.2",
-      "0.10.3",
-      "0.10.4",
-      "0.10.5",
-      "0.10.6",
-      "0.10.7",
-      "0.10.8",
-      "0.10.9"
-    )
+  val mimaBaseVersions: Seq[String] = Seq()
 }
 
 object Deps {
@@ -262,65 +250,7 @@ trait MillMimaConfig extends mima.Mima {
   override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
     issueFilterByModule.getOrElse(this, Seq())
   }
-  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
-    main.core -> Seq(
-      // refined generic parameter, should be ok
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.Evaluator.plan")
-    ),
-    scalalib -> Seq(
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.scalalib.JavaModule.bspCompileClassesPath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.scalalib.JavaModule.bspCompileClasspath"
-      ),
-      ProblemFilter.exclude[IncompatibleMethTypeProblem](
-        "mill.scalalib.ScalaModule.bspCompileClassesPath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.scalalib.scalafmt.ScalafmtModule.bspCompileClassesPath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.scalalib.scalafmt.ScalafmtModule.bspCompileClasspath"
-      ),
-      ProblemFilter.exclude[ReversedMissingMethodProblem](
-        "mill.scalalib.PublishModule.mill$scalalib$PublishModule$$super$moduleDeps"
-      )
-    ),
-    contrib.scoverage -> Seq(
-      // this one is @internal but MiMa is reporting it anyway
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.contrib.scoverage.ScoverageModule#ScoverageData.bspCompileClassesPath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.contrib.scoverage.ScoverageModule#ScoverageData.bspCompileClasspath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.contrib.scoverage.ScoverageReport#workerModule.bspCompileClassesPath"
-      ),
-      ProblemFilter.exclude[DirectMissingMethodProblem](
-        "mill.contrib.scoverage.ScoverageReport#workerModule.bspCompileClasspath"
-      )
-    ),
-    contrib.scalapblib -> Seq(
-      // we changed signature of worker API
-      ProblemFilter.exclude[ReversedMissingMethodProblem](
-        "mill.contrib.scalapblib.ScalaPBWorkerApi.compileScalaPB"
-      )
-    ),
-    // we added a new target and a submodule after 0.10.5
-    contrib.twirllib -> Seq(
-      ProblemFilter.exclude[ReversedMissingMethodProblem](
-        "mill.twirllib.TwirlModule.twirlScalaVersion"
-      ),
-      ProblemFilter.exclude[ReversedMissingMethodProblem](
-        "mill.twirllib.TwirlModule.twirlCoursierResolver"
-      ),
-      ProblemFilter.exclude[ReversedMissingMethodProblem](
-        "mill.twirllib.TwirlModule.mill$twirllib$TwirlModule$_setter_$twirlCoursierResolver_="
-      )
-    )
-  )
+  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
 }
 
 /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */

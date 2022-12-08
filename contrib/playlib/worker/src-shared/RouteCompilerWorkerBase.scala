@@ -31,8 +31,8 @@ protected[playlib] class RouteCompilerWorkerBase extends RouteCompilerWorkerApi 
     generatorType match {
       case RouteCompilerType.InjectedGenerator =>
         val result = compileWithPlay(
-          files.map(os.Path(_)),
-          additionalImports,
+          files.toIndexedSeq.map(os.Path(_)),
+          additionalImports.toIndexedSeq,
           forwardsRouter,
           reverseRouter,
           namespaceReverseRouter,

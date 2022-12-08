@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill._
-import mill.scalalib.api.Util
+import mill.scalalib.api.ZincWorkerUtil
 import mill.util.{TestEvaluator, TestUtil}
 
 import utest._
@@ -20,7 +20,7 @@ object ScalaVersionsRangesTests extends TestSuite {
     }
   }
   val resourcePath =
-    os.pwd / 'scalalib / 'test / 'resources / "scala-versions-ranges"
+    os.pwd / "scalalib" / "test" / "resources" / "scala-versions-ranges"
 
   def workspaceTest[T](
       m: TestUtil.BaseModule

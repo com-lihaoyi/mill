@@ -125,40 +125,6 @@ object Jvm {
     else runSubprocess(args, envArgs, workingDir)
   }
 
-  @deprecated("Use runSubprocess instead")
-  def baseInteractiveSubprocess(
-      commandArgs: Seq[String],
-      envArgs: Map[String, String],
-      workingDir: os.Path
-  ) = {
-    runSubprocess(commandArgs, envArgs, workingDir)
-  }
-
-  @deprecated(
-    "Only provided for binary compatibility. Use one of the other overloads.",
-    "mill after 0.9.6"
-  )
-  def runSubprocess(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String],
-      envArgs: Map[String, String],
-      mainArgs: Seq[String],
-      workingDir: os.Path,
-      background: Boolean
-  )(implicit ctx: Ctx): Unit = {
-    runSubprocess(
-      mainClass = mainClass,
-      classPath = classPath,
-      jvmArgs = jvmArgs,
-      envArgs = envArgs,
-      mainArgs = mainArgs,
-      workingDir = workingDir,
-      background = background,
-      useCpPassingJar = false
-    )(ctx)
-  }
-
   /**
    * Runs a generic subprocess and waits for it to terminate.
    */
@@ -584,7 +550,7 @@ object Jvm {
       Result.Failure(msg)
     } else {
 
-      val coursierCache0 = coursier.cache.FileCache[Task].noCredentials
+      val coursierCache0 = coursier.cache.FileCache[Task]().noCredentials
       val coursierCache = coursierCacheCustomizer.getOrElse(
         identity[coursier.cache.FileCache[Task]](_)
       ).apply(coursierCache0)
@@ -594,7 +560,7 @@ object Jvm {
         val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
             yield coursierCache.file(a).run.map(a.optional -> _)
-        ).unsafeRun
+        ).unsafeRun()
 
         val errors = loadedArtifacts.collect {
           case (false, Left(x)) => x
@@ -672,9 +638,9 @@ object Jvm {
 
     val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
     val coursierCache0 = resolutionLogger match {
-      case None => coursier.cache.FileCache[Task].withCachePolicies(cachePolicies)
+      case None => coursier.cache.FileCache[Task]().withCachePolicies(cachePolicies)
       case Some(l) =>
-        coursier.cache.FileCache[Task]
+        coursier.cache.FileCache[Task]()
           .withCachePolicies(cachePolicies)
           .withLogger(l)
     }
@@ -835,50 +801,6 @@ object Jvm {
       force = force,
       mapDependencies = mapDependencies,
       customizer = customizer,
-      ctx = ctx,
-      coursierCacheCustomizer = None
-    )
-
-  @deprecated(
-    "Use alternative overload. This one is only for binary backwards compatibility.",
-    "mill after 0.9.6"
-  )
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      ctx: Option[mill.api.Ctx.Log]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories = repositories,
-      deps = deps,
-      force = force,
-      sources = sources,
-      mapDependencies = mapDependencies,
-      customizer = None,
-      ctx = ctx,
-      coursierCacheCustomizer = None
-    )
-
-  @deprecated(
-    "Use alternative overload. This one is only for binary backwards compatibility.",
-    "mill after 0.9.6"
-  )
-  def resolveDependenciesMetadata(
-      repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
-      mapDependencies: Option[Dependency => Dependency],
-      ctx: Option[mill.api.Ctx.Log]
-  ): (Seq[Dependency], Resolution) =
-    resolveDependenciesMetadata(
-      repositories = repositories,
-      deps = deps,
-      force = force,
-      mapDependencies = mapDependencies,
-      customizer = None,
       ctx = ctx,
       coursierCacheCustomizer = None
     )
