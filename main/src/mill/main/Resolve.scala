@@ -246,7 +246,7 @@ abstract class Resolve[R: ClassTag] {
             )
           case Segment.Cross(cross) =>
             obj match {
-              case c: Cross[Module] =>
+              case c: Cross[_] =>
                 val searchModules =
                   if (cross == Seq("__")) for ((_, v) <- c.items) yield v
                   else if (cross.contains("_")) {
