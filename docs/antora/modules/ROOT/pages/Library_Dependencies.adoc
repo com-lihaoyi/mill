@@ -150,12 +150,26 @@ def compileIvyDeps = Agg(
 )
 ----
 
-It is also possible to use higher version of the same library dependencies already  defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
+It is also possible to use higher version of the same library dependencies already defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
+
+== Detecting transitive dependencies
+
+To render a tree of dependencies (transitive included) and possible upgrades for a given module, you can run `mill myModule.ivyDepsTree`.
+
+You can also compile your module(s) and examine files such as `ivyDeps.json` and `transitiveIvyDeps.json` in your `out` build's folder for a given module. `ivyDepsTree.log` contains file output of the above ivyDepsTree command too.
 
 == Excluding transitive dependencies
 
 You can use the `.exclude` method on a dependency. It accepts  `organization` and `name` tuples, to be excluded.
-Use the special name `*` to match all ``organization``s or ``name``s.
+Use the special name `*` to match all ``organization``s or ``name``s. For example:
+
+.Example
+[source,scala]
+----
+def deps = Agg(
+  ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12")
+)
+----
 
 == ScalaJS dependencies
 
@@ -172,3 +186,6 @@ To the already required Scala version, there comes the Scala Native version.
 
 You can use two colons (`::`) between `name` and `version` to define a Scala Native dependency.
 Your module needs to `extends ScalaNativeModule` to accept Scala Native dependencies.
+
+----
+
