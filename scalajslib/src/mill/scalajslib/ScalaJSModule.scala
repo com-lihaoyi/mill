@@ -34,6 +34,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def scalaVersion = outer.scalaVersion()
     override def scalaJSVersion = outer.scalaJSVersion()
     override def moduleDeps = Seq(outer)
+    override def moduleKind = outer.moduleKind()
+    override def moduleSplitStyle = outer.moduleSplitStyle()
+    override def esFeatures = outer.esFeatures()
+    override def jsEnvConfig = outer.jsEnvConfig()
+    override def scalaJSOptimizer = outer.scalaJSOptimizer()
   }
 
   def scalaJSBinaryVersion = T { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
