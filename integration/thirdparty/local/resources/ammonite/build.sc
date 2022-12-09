@@ -55,12 +55,12 @@ trait AmmDependenciesResourceFileModule extends JavaModule {
   def crossScalaVersion: String
   def dependencyResourceFileName: String
   override def resources = T.sources {
-
-    val deps0 = T.task { compileIvyDeps() ++ transitiveIvyDeps() }()
+    val binder = bindDependency()
+    val deps0 = T.task { compileIvyDeps().map(binder) ++ transitiveIvyDeps() }()
     val (_, res) = mill.modules.Jvm.resolveDependenciesMetadata(
       repositoriesTask(),
-      deps0.map(resolveCoursierDependency().apply(_)),
-      deps0.filter(_.force).map(resolveCoursierDependency().apply(_)),
+      deps0.map(_.dep),
+      deps0.filter(_.force).map(_.dep),
       mapDependencies = Some(mapDependencies())
     )
 

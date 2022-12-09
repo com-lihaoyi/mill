@@ -32,7 +32,7 @@ private[dependency] object VersionsFinder {
   ): Seq[(JavaModule, Seq[Dependency])] = Evaluator.evalOrThrow(evaluator) {
     javaModules.map { javaModule =>
       T.task {
-        val depToDependency = javaModule.resolveCoursierDependency()
+        val bindDependency = javaModule.bindDependency()
         val deps = javaModule.ivyDeps()
         val compileIvyDeps = javaModule.compileIvyDeps()
         val runIvyDeps = javaModule.runIvyDeps()
@@ -44,8 +44,7 @@ private[dependency] object VersionsFinder {
         val (dependencies, _) =
           Lib.resolveDependenciesMetadata(
             repositories = repos,
-            depToDependency = depToDependency,
-            deps = deps ++ compileIvyDeps ++ runIvyDeps,
+            deps = (deps ++ compileIvyDeps ++ runIvyDeps).map(bindDependency),
             mapDependencies = Some(mapDeps),
             customizer = custom,
             coursierCacheCustomizer = cacheCustom,

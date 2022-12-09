@@ -9,6 +9,7 @@ import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
 import mainargs.Flag
+import mil.scalalib.BoundDep
 import mill.api.Loose.Agg
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Command, Sources, Target, Task, TaskModule}
@@ -124,9 +125,9 @@ trait JavaModule
   def compileModuleDeps: Seq[JavaModule] = Seq.empty
 
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
-  def transitiveCompileIvyDeps: T[Agg[Dep]] = T {
+  def transitiveCompileIvyDeps: T[Agg[BoundDep]] = T {
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    compileIvyDeps() ++ T
+    compileIvyDeps().map(bindDependency()) ++ T
       .traverse(compileModuleDeps)(_.transitiveIvyDeps)()
       .flatten
   }
@@ -174,9 +175,10 @@ trait JavaModule
    * The transitive ivy dependencies of this module and all it's upstream modules.
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
-  def transitiveIvyDeps: T[Agg[Dep]] = T {
-    // NOTE: If you update this, reflect the changes in ScalaNativeModule
-    ivyDeps() ++ mandatoryIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+  def transitiveIvyDeps: T[Agg[BoundDep]] = T {
+    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++ T.traverse(moduleDeps)(
+      _.transitiveIvyDeps
+    )().flatten
   }
 
   /**
@@ -571,13 +573,12 @@ trait JavaModule
    */
   protected def printDepsTree(
       inverse: Boolean,
-      additionalDeps: Task[Agg[Dep]],
+      additionalDeps: Task[Agg[BoundDep]],
       whatDependsOn: List[JavaOrScalaModule]
   ): Task[Unit] =
     T.task {
       val (flattened: Seq[Dependency], resolution: Resolution) = Lib.resolveDependenciesMetadata(
         repositoriesTask(),
-        resolveCoursierDependency().apply(_),
         additionalDeps() ++ transitiveIvyDeps(),
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
@@ -630,7 +631,7 @@ trait JavaModule
             printDepsTree(
               args.inverse.value,
               T.task {
-                transitiveCompileIvyDeps() ++ runIvyDeps()
+                transitiveCompileIvyDeps() ++ runIvyDeps().map(bindDependency())
               },
               validModules
             )
@@ -641,11 +642,11 @@ trait JavaModule
           }
         case (Flag(false), Flag(true)) =>
           T.command {
-            printDepsTree(args.inverse.value, runIvyDeps, validModules)
+            printDepsTree(args.inverse.value, T.task { runIvyDeps().map(bindDependency()) }, validModules)
           }
         case _ =>
           T.command {
-            printDepsTree(args.inverse.value, T.task { Agg.empty[Dep] }, validModules)
+            printDepsTree(args.inverse.value, T.task { Agg.empty[BoundDep] }, validModules)
           }
       }
     } else {

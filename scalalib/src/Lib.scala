@@ -3,6 +3,7 @@ package scalalib
 
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution}
+import mil.scalalib.BoundDep
 import mill.api.{Ctx, Loose, PathRef, Result}
 import mill.scalalib.api.ZincWorkerUtil
 
@@ -21,8 +22,7 @@ object Lib {
 
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
-      depToDependency: Dep => coursier.Dependency,
-      deps: IterableOnce[Dep],
+      deps: IterableOnce[BoundDep],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[Ctx.Log] = None,
@@ -33,8 +33,8 @@ object Lib {
     val depSeq = deps.iterator.toSeq
     mill.modules.Jvm.resolveDependenciesMetadata(
       repositories = repositories,
-      deps = depSeq.map(depToDependency),
-      force = depSeq.filter(_.force).map(depToDependency),
+      deps = depSeq.map(_.dep),
+      force = depSeq.filter(_.force).map(_.dep),
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
@@ -51,8 +51,7 @@ object Lib {
    */
   def resolveDependencies(
       repositories: Seq[Repository],
-      depToDependency: Dep => coursier.Dependency,
-      deps: IterableOnce[Dep],
+      deps: IterableOnce[BoundDep],
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
@@ -64,8 +63,8 @@ object Lib {
     val depSeq = deps.iterator.toSeq
     mill.modules.Jvm.resolveDependencies(
       repositories = repositories,
-      deps = depSeq.map(depToDependency),
-      force = depSeq.filter(_.force).map(depToDependency),
+      deps = depSeq.map(_.dep),
+      force = depSeq.filter(_.force).map(_.dep),
       sources = sources,
       mapDependencies = mapDependencies,
       customizer = customizer,
