@@ -132,7 +132,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       case Left(err) => Result.Failure(err)
       case Right(_) =>
         ScalaJSWorkerExternalModule.scalaJSWorker().run(
-          scalaJSToolsClasspath().map(_.path),
+          scalaJSToolsClasspath(),
           jsEnvConfig(),
           fastLinkJS()
         )
@@ -173,7 +173,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       .filter(_.ext == "sjsir")
     val libraries = classpath.filter(_.ext == "jar")
     worker.link(
-      toolsClasspath.map(_.path),
+      toolsClasspath,
       sjsirFiles,
       libraries,
       outputPath.toIO,
@@ -288,7 +288,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   ): Task[(String, Seq[TestRunner.Result])] = T.task {
 
     val (close, framework) = ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
-      scalaJSToolsClasspath().map(_.path),
+      scalaJSToolsClasspath(),
       jsEnvConfig(),
       testFramework(),
       fastLinkJSTest()
