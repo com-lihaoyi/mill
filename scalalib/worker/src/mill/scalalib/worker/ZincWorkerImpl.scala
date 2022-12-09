@@ -389,11 +389,7 @@ class ZincWorkerImpl(
       compilerClasspath
     )
 
-    val compilerBridgeSig = os.mtime(compiledCompilerBridge)
-
-    val compilersSig =
-      compilerBridgeSig +
-        combinedCompilerClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
+    val compilersSig = combinedCompilerClasspath.map(p => p.hashCode).sum
 
     compilerCache.withCachedValue(compilersSig) {
       val loader = getCachedClassLoader(compilersSig, combinedCompilerJars)
