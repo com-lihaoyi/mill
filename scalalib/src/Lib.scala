@@ -5,7 +5,6 @@ import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution}
 import mill.api.{Ctx, Loose, PathRef, Result}
 import mill.scalalib.api.ZincWorkerUtil
-import sbt.testing._
 
 object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {

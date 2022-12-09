@@ -81,8 +81,6 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
       Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
     }
 
-  override def resolveCrossVersion: Task[Dep => Dep] = T.task { dep: Dep => dep.withScalaVersion(scalaVersion()) }
-
   override def resolvePublishDependency: Task[Dep => publish.Dependency] =
     T.task {
       publish.Artifact.fromDep(

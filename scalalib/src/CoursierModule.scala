@@ -16,17 +16,9 @@ import mill.api.PathRef
  */
 trait CoursierModule extends mill.Module {
 
-  def resolveCoursierDependency: Task[Dep => Dependency] = T.task {
+  def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task {
     Lib.depToDependencyJava(_: Dep)
   }
-
-  /**
-   * Task that produces a resolver that replaces any non-constant cross-version
-    * (e.g. [[CrossVersion.Binary]] or [[CrossVersion.Full]]) by a constant version ([[CrossVersion.Constant]]).
-    * This needed, whenever a Dep is used in a different context. e.g. a JavaModule that depends on a ScalaModule,
-    * or a Scala 2.13 Module depends on a Scala 3 Module.
-   */
-  def resolveCrossVersion: Task[Dep => Dep] = T.task { dep: Dep => dep }
 
   /**
    * Task that resolves the given dependencies using the repositories defined with [[repositoriesTask]].
