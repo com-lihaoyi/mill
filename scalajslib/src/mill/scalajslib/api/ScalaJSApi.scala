@@ -4,12 +4,6 @@ import java.io.File
 import mill.api.Result
 import upickle.default.{ReadWriter => RW, macroRW}
 
-@deprecated("To be removed. Internal use only.", since = "mill 0.10.4")
-sealed trait OptimizeMode
-
-object FastOpt extends OptimizeMode
-object FullOpt extends OptimizeMode
-
 sealed trait ModuleKind
 object ModuleKind {
   object NoModule extends ModuleKind
