@@ -8,15 +8,12 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.TestRunner
 import mill.define.{Command, Target, Task}
-import mill.scalajslib.{ScalaJSWorker => DeprecatedScalaJSWorker}
 import mill.scalajslib.api.{
   ESFeatures,
   ESVersion,
-  FullOpt,
   JsEnvConfig,
   ModuleKind,
   ModuleSplitStyle,
-  OptimizeMode,
   Report
 }
 import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
@@ -152,30 +149,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     mill.api.Result.Failure("runMain is not supported in Scala.js")
   }
 
-  @deprecated("Intended for internal usage. To be removed.", since = "mill 0.10.4")
-  def link(
-      worker: DeprecatedScalaJSWorker,
-      toolsClasspath: Agg[PathRef],
-      runClasspath: Agg[PathRef],
-      mainClass: Option[String],
-      testBridgeInit: Boolean,
-      mode: OptimizeMode,
-      moduleKind: ModuleKind,
-      esFeatures: ESFeatures
-  )(implicit ctx: mill.api.Ctx): Result[PathRef] = linkJs(
-    worker = worker.bridgeWorker,
-    toolsClasspath = toolsClasspath,
-    runClasspath = runClasspath,
-    mainClass = mainClass,
-    forceOutJs = true,
-    testBridgeInit = testBridgeInit,
-    isFullLinkJS = mode == FullOpt,
-    optimizer = mode == FullOpt,
-    moduleKind = moduleKind,
-    esFeatures = esFeatures,
-    moduleSplitStyle = ModuleSplitStyle.FewestModules
-  ).map(getReportMainFilePathRef)
-
   private[scalajslib] def linkJs(
       worker: ScalaJSWorker,
       toolsClasspath: Agg[PathRef],
@@ -288,23 +261,6 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
       ).map(_.withDottyCompat(scalaVersion()))
     })
-  }
-
-  @deprecated("To be removed. Use fastLinkJSTest instead", since = "mill 0.10.4")
-  def fastOptTest = T {
-    linkJs(
-      worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
-      toolsClasspath = scalaJSToolsClasspath(),
-      runClasspath = scalaJSTestDeps() ++ runClasspath(),
-      mainClass = None,
-      forceOutJs = true,
-      testBridgeInit = true,
-      isFullLinkJS = false,
-      optimizer = scalaJSOptimizer(),
-      moduleKind = moduleKind(),
-      esFeatures = esFeatures(),
-      moduleSplitStyle = moduleSplitStyle()
-    ).map(getReportMainFilePathRef)
   }
 
   def fastLinkJSTest: Target[Report] = T.persistent {
