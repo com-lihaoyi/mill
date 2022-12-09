@@ -4,6 +4,7 @@ import JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
 import mill.scalalib.api.ZincWorkerUtil
+import coursier.Dependency
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
@@ -27,7 +28,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   )
   def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*"): _*)
   def excludeName(names: String*): Dep = exclude(names.map("*" -> _): _*)
-  def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String) =
+  def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String): Dependency =
     dep.withModule(
       dep.module.withName(
         coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
@@ -80,6 +81,16 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
       case _ =>
         this
     }
+
+  def withScalaVersion(scalaVersion: String): Dep = cross match {
+    case CrossVersion.Binary(platformed) => copy(
+        cross = CrossVersion.Constant(s"_${ZincWorkerUtil.scalaBinaryVersion(scalaVersion)}", platformed)
+      )
+    case CrossVersion.Full(platformed) => copy(
+        cross = CrossVersion.Constant(s"_${scalaVersion}", platformed)
+      )
+    case _ => this
+  }
 }
 
 object Dep {

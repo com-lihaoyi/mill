@@ -125,8 +125,9 @@ trait JavaModule
 
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[Dep]] = T {
+    val crossResolver = resolveCrossVersion()
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    compileIvyDeps() ++ T
+    compileIvyDeps().map(crossResolver) ++ T
       .traverse(compileModuleDeps)(_.transitiveIvyDeps)()
       .flatten
   }
@@ -175,8 +176,9 @@ trait JavaModule
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[Dep]] = T {
+    val crossResolver = resolveCrossVersion()
     // NOTE: If you update this, reflect the changes in ScalaNativeModule
-    ivyDeps() ++ mandatoryIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+    (ivyDeps() ++ mandatoryIvyDeps()).map(crossResolver) ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**
