@@ -670,12 +670,13 @@ class Evaluator private[Evaluator] (
   def resolveLogger(logPath: Option[os.Path], logger: mill.api.Logger): mill.api.Logger =
     logPath match {
       case None => logger
-      case Some(path) => MultiLogger(
+      case Some(path) => new MultiLogger(
           logger.colored,
           logger,
           // we always enable debug here, to get some more context in log files
           new FileLogger(logger.colored, path, debugEnabled = true),
-          logger.inStream
+          logger.inStream,
+          debugEnabled = logger.debugEnabled
         )
     }
 
