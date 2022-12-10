@@ -124,52 +124,6 @@ object Lib {
         ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
       )
 
-  @deprecated(
-    "User other overload instead. Only for binary backward compatibility.",
-    "mill after 0.10.0"
-  )
-  def resolveDependenciesMetadata(
-      repositories: Seq[Repository],
-      depToDependency: Dep => coursier.Dependency,
-      deps: IterableOnce[Dep],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log]
-  ): (Seq[Dependency], Resolution) =
-    resolveDependenciesMetadata(
-      repositories = repositories,
-      depToDependency = depToDependency,
-      deps = deps,
-      mapDependencies = mapDependencies,
-      customizer = customizer,
-      ctx = ctx,
-      coursierCacheCustomizer = None
-    )
-
-  @deprecated(
-    "User other overload instead. Only for binary backward compatibility.",
-    "mill after 0.10.0"
-  )
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      depToDependency: Dep => coursier.Dependency,
-      deps: IterableOnce[Dep],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories = repositories,
-      depToDependency = depToDependency,
-      deps = deps,
-      sources = sources,
-      mapDependencies = mapDependencies,
-      customizer = customizer,
-      ctx = ctx,
-      coursierCacheCustomizer = None
-    )
-
   def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
     for {
