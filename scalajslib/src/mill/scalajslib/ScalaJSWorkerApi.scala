@@ -26,7 +26,7 @@ class ScalaJSWorker private (val bridgeWorker: worker.ScalaJSWorker, createdInte
       moduleKind: ModuleKind,
       esFeatures: ESFeatures
   )(implicit ctx: Ctx.Home): Result[os.Path] = bridgeWorker.link(
-    toolsClasspath = toolsClasspath,
+    toolsClasspath = toolsClasspath.map(mill.PathRef(_)),
     sources = sources,
     libraries = libraries,
     dest = dest,
@@ -62,7 +62,7 @@ class ScalaJSWorker private (val bridgeWorker: worker.ScalaJSWorker, createdInte
       dest = mill.PathRef(linkedFilePath / os.up)
     )
     bridgeWorker.getFramework(
-      toolsClasspath = toolsClasspath,
+      toolsClasspath = toolsClasspath.map(mill.PathRef(_)),
       config = config,
       frameworkName = frameworkName,
       report = report
