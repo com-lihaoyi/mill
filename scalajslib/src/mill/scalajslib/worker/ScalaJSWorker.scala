@@ -12,14 +12,13 @@ import mill.{Agg, T}
 private[scalajslib] class ScalaJSWorker extends AutoCloseable {
   private var scalaJSWorkerInstanceCache = Option.empty[(Long, workerApi.ScalaJSWorkerApi)]
 
-  private def bridge(toolsClasspath: Agg[os.Path])(implicit ctx: Ctx.Home) = {
-    val classloaderSig =
-      toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
+  private def bridge(toolsClasspath: Agg[mill.PathRef])(implicit ctx: Ctx.Home) = {
+    val classloaderSig = toolsClasspath.hashCode
     scalaJSWorkerInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
         val cl = mill.api.ClassLoader.create(
-          toolsClasspath.map(_.toIO.toURI.toURL).toVector,
+          toolsClasspath.map(_.path.toIO.toURI.toURL).toVector,
           getClass.getClassLoader
         )
         val bridge = cl
@@ -129,7 +128,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
   }
 
   def link(
-      toolsClasspath: Agg[os.Path],
+      toolsClasspath: Agg[mill.PathRef],
       sources: Agg[os.Path],
       libraries: Agg[os.Path],
       dest: File,
@@ -160,7 +159,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
     }
   }
 
-  def run(toolsClasspath: Agg[os.Path], config: api.JsEnvConfig, report: api.Report)(
+  def run(toolsClasspath: Agg[mill.PathRef], config: api.JsEnvConfig, report: api.Report)(
       implicit ctx: Ctx.Home
   ): Unit = {
     val dest =
@@ -168,7 +167,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
   }
 
   def getFramework(
-      toolsClasspath: Agg[os.Path],
+      toolsClasspath: Agg[mill.PathRef],
       config: api.JsEnvConfig,
       frameworkName: String,
       report: api.Report
