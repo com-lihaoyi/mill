@@ -161,9 +161,9 @@ You can also compile your module(s) and examine files such as `ivyDeps.json` and
 == Excluding transitive dependencies
 
 You can use the `.exclude` method on a dependency. It accepts  `organization` and `name` tuples, to be excluded.
-Use the special name `*` to match all ``organization``s or ``name``s. For example:
+Use the special name `*` to match all ``organization``s or ``name``s.
 
-.Example
+.Example: Exclude `fansi_2.12` library from transitive dependency set of `pprint`.
 [source,scala]
 ----
 def deps = Agg(
