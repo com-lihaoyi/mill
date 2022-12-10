@@ -171,6 +171,27 @@ def deps = Agg(
 )
 ----
 
+You can also use `.excludeOrg` or `excludeName`:
+
+
+.Example: Exclude all `com.lihaoyi` libraries from transitive dependency set of `pprint`.
+[source,scala]
+----
+val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
+----
+
+Note: You can chain multiple exclusions with `exclude`, `excludeOrg`, and `excludeName`.
+
+.Example: Excluding a library (fansi) by name from transitive dependency set of `pprint`.
+[source,scala]
+----
+val deps = Agg(
+  ivy"com.lihaoyi::pprint:0.5.3"
+    .excludeName("fansi_2.12")
+    .excludeName("sourcecode")
+)
+----
+
 == ScalaJS dependencies
 
 Scala.js introduces an additional binary platform axis.
