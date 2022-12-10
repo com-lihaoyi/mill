@@ -1,6 +1,6 @@
 package mill.scalalib.api
 
-import mill.api.CompileProblemReporter
+import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Loose.Agg
 
 object ZincWorkerApi {
@@ -26,8 +26,8 @@ trait ZincWorkerApi {
       scalaVersion: String,
       scalaOrganization: String,
       scalacOptions: Seq[String],
-      compilerClasspath: Agg[os.Path],
-      scalacPluginClasspath: Agg[os.Path],
+      compilerClasspath: Agg[PathRef],
+      scalacPluginClasspath: Agg[PathRef],
       reporter: Option[CompileProblemReporter]
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
@@ -38,8 +38,8 @@ trait ZincWorkerApi {
   def docJar(
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Agg[os.Path],
-      scalacPluginClasspath: Agg[os.Path],
+      compilerClasspath: Agg[PathRef],
+      scalacPluginClasspath: Agg[PathRef],
       args: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): Boolean
 }
