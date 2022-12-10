@@ -380,7 +380,7 @@ class ZincWorkerImpl(
       scalacPluginClasspath: Agg[PathRef]
   )(f: Compilers => T)(implicit ctx: ZincWorkerApi.Ctx) = {
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
-    val compilersSig = combinedCompilerClasspath.hashCode
+    val compilersSig = combinedCompilerClasspath.hashCode + scalaVersion.hashCode + scalaOrganization.hashCode
     val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
     val compiledCompilerBridge = compileBridgeIfNeeded(
