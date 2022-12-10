@@ -13,8 +13,6 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
   private var scalaJSWorkerInstanceCache = Option.empty[(Long, workerApi.ScalaJSWorkerApi)]
 
   private def bridge(toolsClasspath: Agg[mill.PathRef])(implicit ctx: Ctx.Home) = {
-    // toolsClasspath is stable and made of external libraries which have the versions
-    // in the file names. So we use the paths string to hash since it's ~50x faster
     val classloaderSig = toolsClasspath.hashCode
     scalaJSWorkerInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
