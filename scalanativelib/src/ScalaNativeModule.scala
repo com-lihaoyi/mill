@@ -96,13 +96,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     super.mandatoryIvyDeps() ++ nativeIvyDeps()
   }
 
-  def bridgeFullClassPath: T[Agg[os.Path]] = T {
+  def bridgeFullClassPath: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       repositoriesTask(),
       Lib.depToDependency(_, scalaNativeWorkerScalaVersion(), ""),
       toolsIvyDeps(),
       ctx = Some(T.log)
-    ).map(t => (scalaNativeWorkerClasspath() ++ t).map(_.path))
+    ).map(t => (scalaNativeWorkerClasspath() ++ t))
   }
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = T {

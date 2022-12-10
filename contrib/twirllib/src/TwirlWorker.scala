@@ -15,14 +15,14 @@ import scala.util.matching.Regex
 
 class TwirlWorker {
 
-  private var twirlInstanceCache = Option.empty[(Long, (TwirlWorkerApi, Class[_]))]
+  private var twirlInstanceCache = Option.empty[(Int, (TwirlWorkerApi, Class[_]))]
 
-  private def twirlCompilerAndClass(twirlClasspath: Agg[os.Path]): (TwirlWorkerApi, Class[_]) = {
-    val classloaderSig = twirlClasspath.map(p => p.toString().hashCode + os.mtime(p)).iterator.sum
+  private def twirlCompilerAndClass(twirlClasspath: Agg[PathRef]): (TwirlWorkerApi, Class[_]) = {
+    val classloaderSig = twirlClasspath.hashCode
     twirlInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
       case _ =>
-        val cl = new URLClassLoader(twirlClasspath.map(_.toIO.toURI.toURL).toArray, null)
+        val cl = new URLClassLoader(twirlClasspath.map(_.path.toIO.toURI.toURL).toArray, null)
 
         // Switched to using the java api because of the hack-ish thing going on later.
         //
@@ -122,13 +122,13 @@ class TwirlWorker {
     }
   }
 
-  private def twirl(twirlClasspath: Agg[os.Path]): TwirlWorkerApi =
+  private def twirl(twirlClasspath: Agg[PathRef]): TwirlWorkerApi =
     twirlCompilerAndClass(twirlClasspath)._1
 
-  private def twirlClass(twirlClasspath: Agg[os.Path]): Class[_] =
+  private def twirlClass(twirlClasspath: Agg[PathRef]): Class[_] =
     twirlCompilerAndClass(twirlClasspath)._2
 
-  def defaultImports(twirlClasspath: Agg[os.Path]): Seq[String] =
+  def defaultImports(twirlClasspath: Agg[PathRef]): Seq[String] =
     twirlClass(twirlClasspath).getField("DEFAULT_IMPORTS")
       .get(null).asInstanceOf[java.util.Set[String]].asScala.toSeq
 
@@ -141,7 +141,7 @@ class TwirlWorker {
     )
 
   def compile(
-      twirlClasspath: Agg[os.Path],
+      twirlClasspath: Agg[PathRef],
       sourceDirectories: Seq[os.Path],
       dest: os.Path,
       imports: Seq[String],
