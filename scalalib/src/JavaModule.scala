@@ -238,9 +238,17 @@ trait JavaModule
   def sources = T.sources { millSourcePath / "src" }
 
   /**
-   * The folders where the resource files for this module live
+   * The folders where the resource files for this module live.
+   * If you need resources to be seen by the compiler, use [[compileResources]].
    */
   def resources: Sources = T.sources { millSourcePath / "resources" }
+
+  /**
+   * The folders where the compile time resource files for this module live.
+   * If your resources files do not necessarily need to be seen by the compiler,
+   * you should use [[resources]] instead.
+   */
+  def compileResources: Sources = T.sources { millSourcePath / "compile-resources" }
 
   /**
    * Folders containing source files that are generated rather than
@@ -304,7 +312,7 @@ trait JavaModule
    * modules and third-party dependencies
    */
   def localClasspath: T[Seq[PathRef]] = T {
-    resources() ++ Agg(compile().classes)
+    compileResources() ++ resources() ++ Agg(compile().classes)
   }
 
   /**
@@ -313,7 +321,7 @@ trait JavaModule
    */
   @internal
   def bspLocalClasspath: Target[Agg[UnresolvedPath]] = T {
-    resources().map(p => UnresolvedPath.ResolvedPath(p.path)) ++ Agg(
+    (compileResources() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++ Agg(
       bspCompileClassesPath()
     )
   }
@@ -325,7 +333,7 @@ trait JavaModule
   // Keep in sync with [[bspCompileClasspath]]
   def compileClasspath: T[Agg[PathRef]] = T {
     transitiveLocalClasspath() ++
-      resources() ++
+      compileResources() ++
       unmanagedClasspath() ++
       resolvedIvyDeps()
   }
@@ -335,7 +343,7 @@ trait JavaModule
   @internal
   def bspCompileClasspath: Target[Agg[UnresolvedPath]] = T {
     bspTransitiveLocalClasspath() ++
-      (resources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
+      (compileResources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
         .map(p => UnresolvedPath.ResolvedPath(p.path))
   }
 
@@ -515,7 +523,7 @@ trait JavaModule
    */
   def sourceJar: Target[PathRef] = T {
     Jvm.createJar(
-      (allSources() ++ resources()).map(_.path).filter(os.exists),
+      (allSources() ++ resources() ++ compileResources()).map(_.path).filter(os.exists),
       manifest()
     )
   }
