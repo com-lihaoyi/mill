@@ -94,8 +94,12 @@ trait JmhModule extends JavaModule {
       (sourcesDir, resourcesDir)
     }
 
-  def generatorDeps =
+  def generatorDeps = T {
     resolveDeps(
-      T { Agg(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}") }
-    )
+      T.task {
+        val bind = bindDependency()
+        Agg(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}").map(bind)
+      }
+    )()
+  }
 }
