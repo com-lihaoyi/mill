@@ -220,6 +220,3 @@ To the already required Scala version, there comes the Scala Native version.
 
 You can use two colons (`::`) between `name` and `version` to define a Scala Native dependency.
 Your module needs to `extends ScalaNativeModule` to accept Scala Native dependencies.
-
-----
-
