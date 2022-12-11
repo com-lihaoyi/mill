@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import JsonFormatters._
+import mill.scalalib.JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
 import mil.scalalib.BoundDep
@@ -24,7 +24,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def forceVersion(): Dep = copy(force = true)
   def exclude(exclusions: (String, String)*) = copy(
     dep = dep.withExclusions(
-      dep.exclusions ++
+      dep.exclusions() ++
         exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
     )
   )

@@ -19,7 +19,8 @@ trait Giter8Module extends CoursierModule {
     val giter8Dependencies = resolveDeps(
       T.task {
         val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
-        Loose.Agg(ivy"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0")
+        Loose.Agg(ivy"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0"
+          .bindDep("", "", ""))
       }
     )()
 

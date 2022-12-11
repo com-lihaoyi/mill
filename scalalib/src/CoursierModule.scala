@@ -23,7 +23,6 @@ trait CoursierModule extends mill.Module {
    * @return The [[BoundDep]]
    */
   def bindDependency: Task[Dep => BoundDep] = T.task { dep: Dep =>
-    assert(dep.cross.isConstant, s"Not valid Java dependency: $dep")
     BoundDep((resolveCoursierDependency() : @nowarn).apply(dep), dep.force)
   }
 

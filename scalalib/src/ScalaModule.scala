@@ -108,7 +108,10 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
    * Scalac options to activate the compiler plugins.
    */
   private def enablePluginScalacOptions: Target[Seq[String]] = T {
-    val resolvedJars = resolveDeps(scalacPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
+    val resolvedJars = resolveDeps(T.task {
+      val bind = bindDependency()
+      scalacPluginIvyDeps().map(_.exclude("*" -> "*")).map(bind)
+    })()
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
@@ -116,7 +119,10 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
    * Scalac options to activate the compiler plugins for ScalaDoc generation.
    */
   private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = T {
-    val resolvedJars = resolveDeps(scalaDocPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
+    val resolvedJars = resolveDeps(T.task {
+      val bind = bindDependency()
+      scalaDocPluginIvyDeps().map(bind).map(_.exclude("*" -> "*"))
+    })()
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
@@ -154,7 +160,10 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
    * on maven central
    */
   def scalacPluginClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(scalacPluginIvyDeps)()
+    resolveDeps(T.task {
+      val bind = bindDependency()
+      scalacPluginIvyDeps().map(bind)
+    })()
   }
 
   /**
@@ -162,7 +171,10 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
    */
   def scalaDocClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
-      T.task { scalaDocIvyDeps(scalaOrganization(), scalaVersion()) }
+      T.task {
+        val bind = bindDependency()
+        scalaDocIvyDeps(scalaOrganization(), scalaVersion()).map(bind)
+      }
     )()
   }
 
@@ -170,7 +182,10 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
    * The ivy coordinates of Scala's own standard library
    */
   def scalaDocPluginClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(scalaDocPluginIvyDeps)()
+    resolveDeps(T.task {
+      val bind = bindDependency()
+      scalaDocPluginIvyDeps().map(bind)
+    })()
   }
 
   def scalaLibraryIvyDeps: T[Agg[Dep]] = T {
@@ -188,8 +203,9 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
   def scalaCompilerClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
       T.task {
-        scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
-          scalaLibraryIvyDeps()
+        val bind = bindDependency()
+        (scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
+          scalaLibraryIvyDeps()).map(bind)
       }
     )()
   }
@@ -402,8 +418,9 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
              |If you encounter dependency resolution failures, please review/override `def ammoniteVersion` to select a compatible release.""".stripMargin
         )
       }
-      runIvyDeps() ++ transitiveIvyDeps() ++
-        Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}")
+      val bind = bindDependency()
+      runIvyDeps().map(bind) ++ transitiveIvyDeps() ++
+        Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
     })()
   }
 
@@ -473,8 +490,14 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
 
     T.command {
       super.prepareOffline(all)()
-      resolveDeps(scalacPluginIvyDeps)()
-      resolveDeps(scalaDocPluginIvyDeps)()
+      resolveDeps(T.task {
+        val bind = bindDependency()
+        scalacPluginIvyDeps().map(bind)
+      })()
+      resolveDeps(T.task {
+        val bind = bindDependency()
+        scalaDocPluginIvyDeps().map(bind)
+      })()
       T.sequence(tasks)()
       ()
     }

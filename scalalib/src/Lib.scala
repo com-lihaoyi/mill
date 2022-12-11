@@ -20,6 +20,9 @@ object Lib {
       platformSuffix = platformSuffix
     )
 
+  def depToBoundDep(dep: Dep, scalaVersion: String, platformSuffix: String = ""): BoundDep =
+    BoundDep(depToDependency(dep, scalaVersion, platformSuffix), dep.force)
+
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],

@@ -374,7 +374,7 @@ trait JavaModule
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
-      runIvyDeps() ++ transitiveIvyDeps()
+      runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
     })()
   }
 
@@ -853,7 +853,8 @@ trait JavaModule
         ),
         resolveDeps(
           T.task {
-            runIvyDeps() ++ transitiveIvyDeps()
+            val bind = bindDependency()
+            runIvyDeps().map(bind) ++ transitiveIvyDeps()
           },
           sources = true
         )
