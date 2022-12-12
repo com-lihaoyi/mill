@@ -879,30 +879,24 @@ object contrib extends MillModule {
 }
 
 object scalanativelib extends MillModule {
-  override def moduleDeps = Seq(scalalib, scalanativelib.api)
+  override def moduleDeps = Seq(scalalib, scalanativelib.`worker-api`)
 
   override def testArgs = T {
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_4_2_12" -> worker(
-        "0.4",
-        Deps.workerScalaVersion212
-      ).compile().classes.path,
-      "MILL_SCALANATIVE_WORKER_0_4_2_13" -> worker("0.4", Deps.scalaVersion).compile().classes.path
+      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").compile().classes.path
     )
     scalalib.worker.testArgs() ++
       scalalib.backgroundwrapper.testArgs() ++
       (for ((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
   }
 
-  object api extends MillPublishModule {
+  object `worker-api` extends MillInternalModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
-  object worker
-      extends Cross[WorkerModule](("0.4", Deps.scalaVersion), ("0.4", Deps.workerScalaVersion212))
-  class WorkerModule(scalaNativeWorkerVersion: String, val crossScalaVersion: String)
-      extends CrossModuleBase with MillInternalModule {
-    override def scalaVersion = T { crossScalaVersion }
-    override def moduleDeps = Seq(scalanativelib.api)
+  object worker extends Cross[WorkerModule]("0.4")
+  class WorkerModule(scalaNativeWorkerVersion: String)
+      extends MillInternalModule {
+    override def moduleDeps = Seq(scalanativelib.`worker-api`)
     override def ivyDeps = scalaNativeWorkerVersion match {
       case "0.4" =>
         Agg(

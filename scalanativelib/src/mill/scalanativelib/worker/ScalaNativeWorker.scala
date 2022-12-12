@@ -1,33 +1,33 @@
-package mill.scalanativelib
+package mill.scalanativelib.worker
 
 import java.io.File
 import java.net.URLClassLoader
 
 import mill.define.{Discover, Worker}
 import mill.{Agg, PathRef, T}
-import mill.scalanativelib.api._
+import mill.scalanativelib.api
+import mill.scalanativelib.worker.{api => workerApi}
 
-class ScalaNativeWorker extends AutoCloseable {
-  private var scalaInstanceCache = Option.empty[(Long, ScalaNativeWorkerApi)]
+private[scalanativelib] class ScalaNativeWorker extends AutoCloseable {
+  private var scalaInstanceCache = Option.empty[(Long, workerApi.ScalaNativeWorkerApi)]
 
-  def impl(toolsClasspath: Agg[PathRef])(implicit ctx: mill.api.Ctx.Home): ScalaNativeWorkerApi = {
+  def bridge(toolsClasspath: Agg[PathRef])(implicit
+      ctx: mill.api.Ctx.Home
+  ): workerApi.ScalaNativeWorkerApi = {
     val classloaderSig = toolsClasspath.hashCode
-    val isScala213 = toolsClasspath.exists(_.path.last.endsWith("_2.13.jar"))
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
         val cl = mill.api.ClassLoader.create(
-          toolsClasspath.map(_.path.toIO.toURI.toURL).toSeq,
-          parent = if (isScala213) getClass.getClassLoader else null,
-          sharedPrefixes =
-            if (isScala213) Seq.empty else Seq("mill.scalanativelib.api.", "sbt.testing.")
+          toolsClasspath.iterator.map(_.path.toIO.toURI.toURL).toVector,
+          getClass.getClassLoader
         )
         try {
           val bridge = cl
             .loadClass("mill.scalanativelib.worker.ScalaNativeWorkerImpl")
             .getDeclaredConstructor()
             .newInstance()
-            .asInstanceOf[ScalaNativeWorkerApi]
+            .asInstanceOf[workerApi.ScalaNativeWorkerApi]
           scalaInstanceCache = Some((classloaderSig, bridge))
           bridge
         } catch {
@@ -44,7 +44,7 @@ class ScalaNativeWorker extends AutoCloseable {
   }
 }
 
-object ScalaNativeWorkerApi extends mill.define.ExternalModule {
+private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.define.ExternalModule {
   def scalaNativeWorker: Worker[ScalaNativeWorker] = T.worker { new ScalaNativeWorker() }
   lazy val millDiscover = Discover[this.type]
 }

@@ -25,12 +25,12 @@ object HelloNativeWorldTests extends TestSuite {
   }
 
   val scala213 = "2.13.6"
-  val scalaNative04 = "0.4.0"
+  val scalaNative04 = "0.4.2"
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scala <- Seq("3.2.0", "3.1.3", scala213, "2.12.13", "2.11.12")
-      scalaNative <- Seq(scalaNative04, "0.4.7")
+      scala <- Seq("3.2.1", "3.1.3", scala213, "2.12.13", "2.11.12")
+      scalaNative <- Seq(scalaNative04, "0.4.9")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
       if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04)
     } yield (scala, scalaNative, mode)
@@ -152,6 +152,7 @@ object HelloNativeWorldTests extends TestSuite {
       val (doneMsg, testResults) = res
       testResults
         .groupBy(_.fullyQualifiedName)
+        .view
         .mapValues(_.map(e => e.selector -> e).toMap)
         .toMap
     }
