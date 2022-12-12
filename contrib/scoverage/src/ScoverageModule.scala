@@ -208,7 +208,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def doReport(reportType: ReportType): Task[Unit] = T.task {
       ScoverageReportWorker
         .scoverageReportWorker()
-        .bridge(scoverageToolsClasspath().map(_.path))
+        .bridge(scoverageToolsClasspath())
         .report(reportType, allSources().map(_.path), Seq(data().path), T.workspace)
     }
 

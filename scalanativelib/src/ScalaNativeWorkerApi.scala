@@ -4,20 +4,20 @@ import java.io.File
 import java.net.URLClassLoader
 
 import mill.define.{Discover, Worker}
-import mill.{Agg, T}
+import mill.{Agg, PathRef, T}
 import mill.scalanativelib.api._
 
 class ScalaNativeWorker extends AutoCloseable {
   private var scalaInstanceCache = Option.empty[(Long, ScalaNativeWorkerApi)]
 
-  def impl(toolsClasspath: Agg[os.Path])(implicit ctx: mill.api.Ctx.Home): ScalaNativeWorkerApi = {
-    val classloaderSig = toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
-    val isScala213 = toolsClasspath.exists(_.last.endsWith("_2.13.jar"))
+  def impl(toolsClasspath: Agg[PathRef])(implicit ctx: mill.api.Ctx.Home): ScalaNativeWorkerApi = {
+    val classloaderSig = toolsClasspath.hashCode
+    val isScala213 = toolsClasspath.exists(_.path.last.endsWith("_2.13.jar"))
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
         val cl = mill.api.ClassLoader.create(
-          toolsClasspath.map(_.toIO.toURI.toURL).toSeq,
+          toolsClasspath.map(_.path.toIO.toURI.toURL).toSeq,
           parent = if (isScala213) getClass.getClassLoader else null,
           sharedPrefixes =
             if (isScala213) Seq.empty else Seq("mill.scalanativelib.api.", "sbt.testing.")

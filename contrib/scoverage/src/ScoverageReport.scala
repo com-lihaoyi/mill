@@ -105,7 +105,7 @@ trait ScoverageReport extends Module {
       val dataPaths: Seq[Path] = T.sequence(dataTasks)().map(_.path)
       scoverageReportWorkerModule
         .scoverageReportWorker()
-        .bridge(workerModule.scoverageToolsClasspath().map(_.path))
+        .bridge(workerModule.scoverageToolsClasspath())
         .report(reportType, sourcePaths, dataPaths, T.workspace)
       PathRef(T.dest)
     }
