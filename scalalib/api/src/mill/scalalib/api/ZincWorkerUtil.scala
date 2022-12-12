@@ -1,6 +1,7 @@
 package mill.scalalib.api
 
 import mill.api.Loose.Agg
+import mill.api.PathRef
 
 trait ZincWorkerUtil {
 
@@ -14,11 +15,11 @@ trait ZincWorkerUtil {
   // **/scala-library-2.13.*.jar or
   // **/2.13.*/jars/scala-library.jar
   def grepJar(
-      classPath: Agg[os.Path],
+      classPath: Agg[PathRef],
       name: String,
       versionPrefix: String,
       sources: Boolean = false
-  ) = {
+  ): PathRef = {
     val suffix = if (sources) "-sources.jar" else ".jar"
     lazy val dir = if (sources) "srcs" else "jars"
 
@@ -34,7 +35,7 @@ trait ZincWorkerUtil {
     }
 
     classPath.iterator
-      .find(p => mavenStyleMatch(p.last) || ivyStyleMatch(p))
+      .find(pathRef => mavenStyleMatch(pathRef.path.last) || ivyStyleMatch(pathRef.path))
       .getOrElse(throw new Exception(
         s"Cannot find **/$name-$versionPrefix*$suffix or **/$versionPrefix*/$dir/$name$suffix in ${classPath.iterator.mkString("[", ", ", "]")}"
       ))

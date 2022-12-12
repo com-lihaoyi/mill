@@ -212,8 +212,8 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),
         scalacOptions = allScalacOptions(),
-        compilerClasspath = scalaCompilerClasspath().map(_.path),
-        scalacPluginClasspath = scalacPluginClasspath().map(_.path),
+        compilerClasspath = scalaCompilerClasspath(),
+        scalacPluginClasspath = scalacPluginClasspath(),
         reporter = T.reporter.apply(hashCode)
       )
   }
@@ -262,8 +262,8 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
           .docJar(
             scalaVersion(),
             scalaOrganization(),
-            scalaDocClasspath().map(_.path),
-            scalacPluginClasspath().map(_.path),
+            scalaDocClasspath(),
+            scalacPluginClasspath(),
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {

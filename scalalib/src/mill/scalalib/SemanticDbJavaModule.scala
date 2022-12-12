@@ -96,8 +96,8 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
             scalaVersion = sv,
             scalaOrganization = m.scalaOrganization(),
             scalacOptions = scalacOptions,
-            compilerClasspath = m.scalaCompilerClasspath().map(_.path),
-            scalacPluginClasspath = semanticDbPluginClasspath().map(_.path),
+            compilerClasspath = m.scalaCompilerClasspath(),
+            scalacPluginClasspath = semanticDbPluginClasspath(),
             reporter = T.reporter.apply(hashCode)
           )
           .map(_.classes)
