@@ -196,7 +196,7 @@ val deps = Agg(
 
 == Forcing versions
 
-CAUTION: Please treat forceVersion as experimental; it has some bugs and isn't production-ready.
+CAUTION: Please treat forceVersion as experimental; it has some bugs and isn't production-ready (forced versions https://github.com/com-lihaoyi/mill/issues/1975[aren't propagated to published artifacts]).
 
 You can use the `forceVersion` method to ensure the used version of a dependency is what you have declared.
 
