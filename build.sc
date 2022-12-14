@@ -150,7 +150,7 @@ object Deps {
   val millModuledefs = ivy"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
-  val testng = ivy"org.testng:testng:7.5"
+  val testng = ivy"org.testng:testng:7.7.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
