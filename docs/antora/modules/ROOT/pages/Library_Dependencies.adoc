@@ -154,7 +154,23 @@ It is also possible to use higher version of the same library dependencies alrea
 
 == Detecting transitive dependencies
 
-To render a tree of dependencies (transitive included) and possible upgrades for a given module, you can run `mill myModule.ivyDepsTree`.
+To render a tree of dependencies (transitive included) and possible upgrades for a given module, you can run `mill myModule.ivyDepsTree`. Here is how the start of `./mill __.ivyDepsTree` looks like in the `mill` project itself:
+
+[source,text]
+----
+├─ ch.epfl.scala:bsp4j:2.1.0-M3
+│  ├─ org.eclipse.lsp4j:org.eclipse.lsp4j.generator:0.12.0
+│  │  ├─ org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.12.0
+│  │  │  └─ com.google.code.gson:gson:2.9.1
+│  │  └─ org.eclipse.xtend:org.eclipse.xtend.lib:2.24.0
+│  │     ├─ org.eclipse.xtend:org.eclipse.xtend.lib.macro:2.24.0
+│  │     │  └─ org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.24.0
+...
+│  │  ├─ com.lihaoyi:fastparse_2.13:2.3.0
+│  │  │  ├─ com.lihaoyi:geny_2.13:0.6.0 -> 0.7.1 (possible incompatibility)
+│  │  │  │  └─ org.scala-lang:scala-library:2.13.10
+│  │  │  └─ com.lihaoyi:sourcecode_2.13:0.2.1 -> 0.3.0 (possible incompatibility)
+----
 
 You can also compile your module(s) and examine files such as `ivyDeps.json` and `transitiveIvyDeps.json` in your `out` build's folder for a given module. `ivyDepsTree.log` contains file output of the above ivyDepsTree command too.
 
