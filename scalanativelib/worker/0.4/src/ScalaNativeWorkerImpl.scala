@@ -3,8 +3,7 @@ package mill.scalanativelib.worker
 import java.io.File
 import java.lang.System.{err, out}
 
-import mill.scalanativelib.api.{GetFrameworkResult, LTO, NativeConfig, NativeLogLevel, ReleaseMode}
-import sbt.testing.Framework
+import mill.scalanativelib.worker.api._
 import scala.scalanative.util.Scope
 import scala.scalanative.build.{
   Build,
@@ -13,7 +12,7 @@ import scala.scalanative.build.{
   Discover,
   GC,
   Logger,
-  LTO => ScalaNativeLTO,
+  LTO,
   Mode,
   NativeConfig => ScalaNativeNativeConfig
 }
@@ -22,7 +21,7 @@ import scala.scalanative.testinterface.adapter.TestAdapter
 
 import scala.util.{Success, Try}
 
-class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi {
+class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
   private def patchIsGreaterThanOrEqual(number: Int) = {
     val patch = Versions.current.stripPrefix("0.4.")
     Try(patch.toInt) match {
@@ -40,43 +39,43 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
       errorFn = msg => if (level.value >= NativeLogLevel.Error.value) err.println(s"[error] $msg")
     )
 
-  def discoverClang: java.io.File = Discover.clang().toFile
-  def discoverClangPP: java.io.File = Discover.clangpp().toFile
-  def discoverCompileOptions: Array[String] = Discover.compileOptions().toArray
-  def discoverLinkingOptions: Array[String] = Discover.linkingOptions().toArray
-  def defaultGarbageCollector: String = GC.default.name
+  def discoverClang(): File = Discover.clang().toFile
+  def discoverClangPP(): File = Discover.clangpp().toFile
+  def discoverCompileOptions(): Seq[String] = Discover.compileOptions()
+  def discoverLinkingOptions(): Seq[String] = Discover.linkingOptions()
+  def defaultGarbageCollector(): String = GC.default.name
 
   def config(
       mainClass: String,
-      classpath: Array[java.io.File],
-      nativeWorkdir: java.io.File,
-      nativeClang: java.io.File,
-      nativeClangPP: java.io.File,
-      nativeTarget: java.util.Optional[String],
-      nativeCompileOptions: Array[String],
-      nativeLinkingOptions: Array[String],
+      classpath: Seq[File],
+      nativeWorkdir: File,
+      nativeClang: File,
+      nativeClangPP: File,
+      nativeTarget: Option[String],
+      nativeCompileOptions: Seq[String],
+      nativeLinkingOptions: Seq[String],
       nativeGC: String,
       nativeLinkStubs: Boolean,
-      nativeLTO: LTO,
-      releaseMode: ReleaseMode,
+      nativeLTO: String,
+      releaseMode: String,
       nativeOptimize: Boolean,
       nativeEmbedResources: Boolean,
       nativeIncrementalCompilation: Boolean,
       logLevel: NativeLogLevel
-  ): NativeConfig = {
+  ): Object = {
     val entry = if (patchIsGreaterThanOrEqual(3)) mainClass else mainClass + "$"
     var nativeConfig =
       ScalaNativeNativeConfig.empty
         .withClang(nativeClang.toPath)
         .withClangPP(nativeClangPP.toPath)
-        .withTargetTriple(if (nativeTarget.isPresent) Some(nativeTarget.get) else None)
+        .withTargetTriple(nativeTarget)
         .withCompileOptions(nativeCompileOptions)
         .withLinkingOptions(nativeLinkingOptions)
         .withGC(GC(nativeGC))
         .withLinkStubs(nativeLinkStubs)
-        .withMode(Mode(releaseMode.value))
+        .withMode(Mode(releaseMode))
         .withOptimize(nativeOptimize)
-        .withLTO(ScalaNativeLTO(nativeLTO.value))
+        .withLTO(LTO(nativeLTO))
     if (patchIsGreaterThanOrEqual(4)) {
       nativeConfig = nativeConfig.withEmbedResources(nativeEmbedResources)
     }
@@ -90,34 +89,32 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
         .withWorkdir(nativeWorkdir.toPath)
         .withCompilerConfig(nativeConfig)
         .withLogger(logger(logLevel))
-    new NativeConfig(config)
+    config
   }
 
-  def nativeLink(nativeConfig: NativeConfig, outPath: java.io.File): java.io.File = {
-    val config = nativeConfig.config.asInstanceOf[Config]
+  def nativeLink(nativeConfig: Object, outPath: File): File = {
+    val config = nativeConfig.asInstanceOf[Config]
     Build.build(config, outPath.toPath)(Scope.unsafe())
     outPath
   }
 
   def getFramework(
       testBinary: File,
-      envVars: java.util.Map[String, String],
+      envVars: Map[String, String],
       logLevel: NativeLogLevel,
       frameworkName: String
-  ): GetFrameworkResult = {
+  ): (() => Unit, sbt.testing.Framework) = {
     import collection.JavaConverters._
 
     val config = TestAdapter.Config()
       .withBinaryFile(testBinary)
-      .withEnvVars(envVars.asScala.toMap)
+      .withEnvVars(envVars)
       .withLogger(logger(logLevel))
 
     val adapter = new TestAdapter(config)
 
-    new GetFrameworkResult(
-      new Runnable {
-        def run(): Unit = adapter.close()
-      },
+    (
+      () => adapter.close(),
       adapter
         .loadFrameworks(List(List(frameworkName)))
         .flatten

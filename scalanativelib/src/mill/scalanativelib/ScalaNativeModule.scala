@@ -10,6 +10,7 @@ import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.TestRunner
 import mill.scalanativelib.api._
+import mill.scalanativelib.worker.{api => workerApi, ScalaNativeWorkerExternalModule}
 
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
@@ -24,7 +25,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     override def scalaOrganization = outer.scalaOrganization()
     override def scalaVersion = outer.scalaVersion()
     override def scalaNativeVersion = outer.scalaNativeVersion()
-    override def releaseMode = outer.releaseMode()
+    override def releaseMode = T { outer.releaseMode() }
     override def logLevel = outer.logLevel()
     override def moduleDeps = Seq(outer)
   }
@@ -35,36 +36,31 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeWorkerVersion =
     T { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
-  def scalaNativeWorker = T.task {
-    mill.scalanativelib.ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath())
-  }
-
-  private def scalaNativeWorkerScalaVersion = T.task {
-    scalaNativeVersion() match {
-      case "0.4.0" | "0.4.1" => mill.BuildInfo.workerScalaVersion212
-      case _ => mill.BuildInfo.scalaVersion
-    }
-  }
-
   def scalaNativeWorkerClasspath = T {
-    val workerScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaNativeWorkerScalaVersion())
     val workerKey =
-      s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}_$workerScalaBinaryVersion"
+      s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}"
         .replace('.', '_')
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
       repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-scalanativelib-worker"),
-      artifactSuffix = s"_$workerScalaBinaryVersion"
+      resolveFilter = _.toString.contains("mill-scalanativelib-worker")
     )
   }
 
   def toolsIvyDeps = T {
-    Agg(
-      ivy"org.scala-native::tools:${scalaNativeVersion()}",
-      ivy"org.scala-native::test-runner:${scalaNativeVersion()}"
-    )
+    scalaNativeVersion() match {
+      case v @ ("0.4.0" | "0.4.1") =>
+        Result.Failure(s"Scala Native $v is not supported. Please update to 0.4.2+")
+      case version =>
+        Result.Success(
+          Agg(
+            ivy"org.scala-native::tools:$version",
+            ivy"org.scala-native::test-runner:$version"
+          )
+        )
+
+    }
   }
 
   def nativeIvyDeps: T[Agg[Dep]] = T {
@@ -99,10 +95,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def bridgeFullClassPath: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       repositoriesTask(),
-      Lib.depToDependency(_, scalaNativeWorkerScalaVersion(), ""),
+      Lib.depToDependency(_, mill.BuildInfo.scalaVersion, ""),
       toolsIvyDeps(),
       ctx = Some(T.log)
     ).map(t => (scalaNativeWorkerClasspath() ++ t))
+  }
+
+  private[scalanativelib] def scalaNativeBridge = T.task {
+    ScalaNativeWorkerExternalModule.scalaNativeWorker().bridge(bridgeFullClassPath())
   }
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = T {
@@ -143,10 +143,18 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeWorkdir = T { T.dest }
 
   // Location of the clang compiler
-  def nativeClang = T { os.Path(scalaNativeWorker().discoverClang) }
+  def nativeClang = T {
+    os.Path(
+      scalaNativeBridge().discoverClang()
+    )
+  }
 
   // Location of the clang++ compiler
-  def nativeClangPP = T { os.Path(scalaNativeWorker().discoverClangPP) }
+  def nativeClangPP = T {
+    os.Path(
+      scalaNativeBridge().discoverClangPP()
+    )
+  }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
   protected def nativeGCInput: Target[Option[String]] = T.input {
@@ -154,16 +162,22 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def nativeGC = T {
-    nativeGCInput().getOrElse(scalaNativeWorker().defaultGarbageCollector)
+    nativeGCInput().getOrElse(
+      scalaNativeBridge().defaultGarbageCollector()
+    )
   }
 
   def nativeTarget: Target[Option[String]] = T { None }
 
   // Options that are passed to clang during compilation
-  def nativeCompileOptions = T { scalaNativeWorker().discoverCompileOptions }
+  def nativeCompileOptions = T {
+    scalaNativeBridge().discoverCompileOptions()
+  }
 
   // Options that are passed to clang during linking
-  def nativeLinkingOptions = T { scalaNativeWorker().discoverLinkingOptions }
+  def nativeLinkingOptions = T {
+    scalaNativeBridge().discoverLinkingOptions()
+  }
 
   // Whether to link `@stub` methods, or ignore them
   def nativeLinkStubs = T { false }
@@ -193,32 +207,46 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def nativeOptimize: Target[Boolean] = T { nativeOptimizeInput().getOrElse(true) }
 
-  def nativeConfig = T.task {
+  private def nativeConfig: Task[NativeConfig] = T.task {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 
-    scalaNativeWorker().config(
-      finalMainClass(),
-      classpath.toArray.map(_.toIO),
-      nativeWorkdir().toIO,
-      nativeClang().toIO,
-      nativeClangPP().toIO,
-      nativeTarget().toJava,
-      nativeCompileOptions(),
-      nativeLinkingOptions(),
-      nativeGC(),
-      nativeLinkStubs(),
-      nativeLTO(),
-      releaseMode(),
-      nativeOptimize(),
-      nativeEmbedResources(),
-      nativeIncrementalCompilation(),
-      logLevel()
+    NativeConfig(
+      scalaNativeBridge().config(
+        finalMainClass(),
+        classpath.map(_.toIO),
+        nativeWorkdir().toIO,
+        nativeClang().toIO,
+        nativeClangPP().toIO,
+        nativeTarget(),
+        nativeCompileOptions(),
+        nativeLinkingOptions(),
+        nativeGC(),
+        nativeLinkStubs(),
+        nativeLTO().value,
+        releaseMode().value,
+        nativeOptimize(),
+        nativeEmbedResources(),
+        nativeIncrementalCompilation(),
+        toWorkerApi(logLevel())
+      )
     )
   }
 
+  private[scalanativelib] def toWorkerApi(logLevel: api.NativeLogLevel): workerApi.NativeLogLevel =
+    logLevel match {
+      case api.NativeLogLevel.Error => workerApi.NativeLogLevel.Error
+      case api.NativeLogLevel.Warn => workerApi.NativeLogLevel.Warn
+      case api.NativeLogLevel.Info => workerApi.NativeLogLevel.Info
+      case api.NativeLogLevel.Debug => workerApi.NativeLogLevel.Debug
+      case api.NativeLogLevel.Trace => workerApi.NativeLogLevel.Trace
+    }
+
   // Generates native binary
   def nativeLink = T {
-    os.Path(scalaNativeWorker().nativeLink(nativeConfig(), (T.dest / "out").toIO))
+    os.Path(scalaNativeBridge().nativeLink(
+      nativeConfig().config,
+      (T.dest / "out").toIO
+    ))
   }
 
   // Runs the native binary
@@ -280,14 +308,12 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       globSeletors: Task[Seq[String]]
   ): Task[(String, Seq[TestRunner.Result])] = T.task {
 
-    val getFrameworkResult = scalaNativeWorker().getFramework(
+    val (close, framework) = scalaNativeBridge().getFramework(
       nativeLink().toIO,
-      forkEnv().asJava,
-      logLevel(),
+      forkEnv(),
+      toWorkerApi(logLevel()),
       testFramework()
     )
-    val framework = getFrameworkResult.framework
-    val close = getFrameworkResult.close
 
     val (doneMsg, results) = TestRunner.runTestFramework(
       _ => framework,
@@ -302,7 +328,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
     // to the JVM. Without this, the stdout can still be streaming when `close()`
     // is called, and some of the output is dropped onto the floor.
     Thread.sleep(100)
-    close.run()
+    close()
     res
   }
   override def ivyDeps = super.ivyDeps() ++ Agg(
