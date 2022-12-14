@@ -196,6 +196,8 @@ val deps = Agg(
 
 == Forcing versions
 
+CAUTION: Please treat forceVersion as experimental; it has some bugs and isn't production-ready.
+
 You can use the `forceVersion` method to ensure the used version of a dependency is what you have declared.
 
 * You declare a dependency `val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14")`
