@@ -150,11 +150,11 @@ def compileIvyDeps = Agg(
 )
 ----
 
-It is also possible to use higher version of the same library dependencies already defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
+It is also possible to use a higher version of the same library dependencies already defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
 
 == Detecting transitive dependencies
 
-To render a tree of dependencies (transitive included) and possible upgrades for a given module, you can run `mill myModule.ivyDepsTree`. Here is how the start of `./mill __.ivyDepsTree` looks like in the `mill` project itself:
+To render a tree of dependencies (transitive included) you can run `mill myModule.ivyDepsTree`. Here is how the start of `./mill __.ivyDepsTree` looks like in the `mill` project itself:
 
 [source,text]
 ----
@@ -172,9 +172,43 @@ To render a tree of dependencies (transitive included) and possible upgrades for
 │  │  │  └─ com.lihaoyi:sourcecode_2.13:0.2.1 -> 0.3.0 (possible incompatibility)
 ----
 
-You can also compile your module(s) and examine files such as `ivyDeps.json` and `transitiveIvyDeps.json` in your `out` build's folder for a given module. `ivyDepsTree.log` contains file output of the above ivyDepsTree command too.
+After compiling your module(s) you can find and examine files such as `ivyDeps.json` and `transitiveIvyDeps.json` in your `out` build's folder for a given module.
+After running the `ivyDepsTree` command you'll also find the `ivyDepsTree.json` and `ivyDepsTree.log` file that contain the output of the above `ivyDepsTree` command.
 
 You can observe the actual version being used by running `mill show myModule.resolvedIvyDeps`. If you run `mill myModule.resolvedIvyDeps`, the same information is available in `out/myModule/resolvedIvyDeps.json`.
+
+=== Figuring out where a dependency comes from
+
+There will be times when you want to figure out where a dependency is coming
+from. The output of `ivyDepsTree` can be quite large in larger projects so the
+command provides a nice utility to be able to target the part of the tree that
+brings in a specific dependency.
+
+For example, let's again  use the Mill codebase as an example. We'll search the
+tree in the  `main` module and try to find where the `jsoniter-scala-core_2.13`
+artifact is coming from using the `--whatDependsOn` argument:
+
+[source,txt]
+----
+❯ ./mill -i dev.run ~/Documents/scala-workspace/com-lihaoyi/mill  main.ivyDepsTree --whatDependsOn com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13
+[33/33] main.ivyDepsTree
+└─ com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13:2.13.5
+   ├─ io.get-coursier:coursier_2.13:2.1.0-RC1
+   └─ org.virtuslab.scala-cli:config_2.13:0.1.16
+      └─ io.get-coursier:coursier-cache_2.13:2.1.0-RC1
+         └─ io.get-coursier:coursier_2.13:2.1.0-RC1
+----
+
+By looking at the output we can see that it's our dependency on `coursier_2.13`
+that is bringining in the `jsoniter-scala-core_2.13` artifact.
+
+The `--whatDependsOn` argument can also be repeated to target multiple
+artifacts at once. Just repeat the `--whatDependsOn <artifact>` pattern. Note
+that the artifact pattern follows the `org:artifact` convention. You can't
+include a version as the utility will show you all usages of the `artifact`.
+Also note that when using `--whatDependsOn` on usage of `--inverse` is forced
+in order to make the tree appear in an inverted manner to more easily show you
+where the dependency is coming from.
 
 == Excluding transitive dependencies
 
