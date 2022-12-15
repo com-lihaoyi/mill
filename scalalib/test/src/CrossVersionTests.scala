@@ -10,75 +10,86 @@ object CrossVersionTests extends TestSuite {
 
   object TestCases extends TestUtil.BaseModule {
 
-    object StandaloneScala213 extends ScalaModule {
-      // ├─ com.lihaoyi:upickle_2.13:1.4.0
-      // │  ├─ com.lihaoyi:ujson_2.13:1.4.0
-      // │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │  │     └─ com.lihaoyi:geny_2.13:0.6.10
-      // │  ├─ com.lihaoyi:upack_2.13:1.4.0
-      // │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │  │     └─ com.lihaoyi:geny_2.13:0.6.10
-      // │  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
-      // │     └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │        └─ com.lihaoyi:geny_2.13:0.6.10
-      // └─ org.scala-lang:scala-library:2.13.10
+    trait ExpectedDepsTree {
+      def tree: String
+    }
+    object StandaloneScala213 extends ScalaModule with ExpectedDepsTree {
+      override val tree =
+        """├─ com.lihaoyi:upickle_2.13:1.4.0
+          |│  ├─ com.lihaoyi:ujson_2.13:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │     └─ com.lihaoyi:geny_2.13:0.6.10
+          |│  ├─ com.lihaoyi:upack_2.13:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │     └─ com.lihaoyi:geny_2.13:0.6.10
+          |│  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
+          |│     └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│        └─ com.lihaoyi:geny_2.13:0.6.10
+          |└─ org.scala-lang:scala-library:2.13.10
+          |""".stripMargin
       override def scalaVersion = "2.13.10"
       override def ivyDeps = Agg(ivy"com.lihaoyi::upickle:1.4.0")
     }
 
-    object JavaDependsOnScala213 extends JavaModule {
-      // ├─ org.slf4j:slf4j-api:1.7.35
-      // ├─ com.lihaoyi:upickle_2.13:1.4.0
-      // │  ├─ com.lihaoyi:ujson_2.13:1.4.0
-      // │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │  │     └─ com.lihaoyi:geny_2.13:0.6.10
-      // │  ├─ com.lihaoyi:upack_2.13:1.4.0
-      // │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │  │     └─ com.lihaoyi:geny_2.13:0.6.10
-      // │  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
-      // │     └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │        └─ com.lihaoyi:geny_2.13:0.6.10
-      // └─ org.scala-lang:scala-library:2.13.10
+    object JavaDependsOnScala213 extends JavaModule with ExpectedDepsTree {
+      override val tree =
+        """├─ org.slf4j:slf4j-api:1.7.35
+          |├─ com.lihaoyi:upickle_2.13:1.4.0
+          |│  ├─ com.lihaoyi:ujson_2.13:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │     └─ com.lihaoyi:geny_2.13:0.6.10
+          |│  ├─ com.lihaoyi:upack_2.13:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │     └─ com.lihaoyi:geny_2.13:0.6.10
+          |│  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
+          |│     └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│        └─ com.lihaoyi:geny_2.13:0.6.10
+          |└─ org.scala-lang:scala-library:2.13.10
+          |""".stripMargin
       override def moduleDeps = Seq(StandaloneScala213)
       override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.35")
     }
 
-    object Scala3DependsOnScala213 extends ScalaModule {
-      // ├─ com.lihaoyi:sourcecode_3:0.2.7
-      // ├─ org.scala-lang:scala3-library_3:3.2.1
-      // │  └─ org.scala-lang:scala-library:2.13.10
-      // ├─ com.lihaoyi:upickle_2.13:1.4.0
-      // │  ├─ com.lihaoyi:ujson_2.13:1.4.0
-      // │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │  │     └─ com.lihaoyi:geny_2.13:0.6.10
-      // │  ├─ com.lihaoyi:upack_2.13:1.4.0
-      // │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │  │     └─ com.lihaoyi:geny_2.13:0.6.10
-      // │  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
-      // │     └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │        └─ com.lihaoyi:geny_2.13:0.6.10
-      // └─ org.scala-lang:scala-library:2.13.10
+    object Scala3DependsOnScala213 extends ScalaModule with ExpectedDepsTree {
+      override val tree =
+        """├─ com.lihaoyi:sourcecode_3:0.2.7
+          |├─ org.scala-lang:scala3-library_3:3.2.1
+          |│  └─ org.scala-lang:scala-library:2.13.10
+          |├─ com.lihaoyi:upickle_2.13:1.4.0
+          |│  ├─ com.lihaoyi:ujson_2.13:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │     └─ com.lihaoyi:geny_2.13:0.6.10
+          |│  ├─ com.lihaoyi:upack_2.13:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │     └─ com.lihaoyi:geny_2.13:0.6.10
+          |│  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
+          |│     └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│        └─ com.lihaoyi:geny_2.13:0.6.10
+          |└─ org.scala-lang:scala-library:2.13.10
+          |""".stripMargin
       override def scalaVersion = "3.2.1"
       override def moduleDeps = Seq(StandaloneScala213)
       override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.7")
     }
 
-    object JavaDependsOnScala3 extends JavaModule {
-      // ├─ org.slf4j:slf4j-api:1.7.35
-      // ├─ com.lihaoyi:sourcecode_3:0.2.7
-      // ├─ org.scala-lang:scala3-library_3:3.2.1
-      // │  └─ org.scala-lang:scala-library:2.13.10
-      // ├─ com.lihaoyi:upickle_2.13:1.4.0
-      // │  ├─ com.lihaoyi:ujson_2.13:1.4.0
-      // │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │  │     └─ com.lihaoyi:geny_2.13:0.6.10
-      // │  ├─ com.lihaoyi:upack_2.13:1.4.0
-      // │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │  │     └─ com.lihaoyi:geny_2.13:0.6.10
-      // │  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
-      // │     └─ com.lihaoyi:upickle-core_2.13:1.4.0
-      // │        └─ com.lihaoyi:geny_2.13:0.6.10
-      // └─ org.scala-lang:scala-library:2.13.10
+    object JavaDependsOnScala3 extends JavaModule with ExpectedDepsTree {
+      override val tree =
+        """├─ org.slf4j:slf4j-api:1.7.35
+          |├─ com.lihaoyi:sourcecode_3:0.2.7
+          |├─ org.scala-lang:scala3-library_3:3.2.1
+          |│  └─ org.scala-lang:scala-library:2.13.10
+          |├─ com.lihaoyi:upickle_2.13:1.4.0
+          |│  ├─ com.lihaoyi:ujson_2.13:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │     └─ com.lihaoyi:geny_2.13:0.6.10
+          |│  ├─ com.lihaoyi:upack_2.13:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │     └─ com.lihaoyi:geny_2.13:0.6.10
+          |│  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
+          |│     └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│        └─ com.lihaoyi:geny_2.13:0.6.10
+          |└─ org.scala-lang:scala-library:2.13.10
+          |""".stripMargin
       override def moduleDeps = Seq(Scala3DependsOnScala213)
       override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.35")
     }
@@ -94,11 +105,21 @@ object CrossVersionTests extends TestSuite {
 
   import TestCases._
 
-  def check(mod: JavaModule, expectedDeps: Seq[String], expectedLibs: Seq[String])(implicit
+  def check(
+      mod: JavaModule with ExpectedDepsTree,
+      expectedDeps: Seq[String],
+      expectedLibs: Seq[String]
+  )(implicit
       testPath: TestPath
   ) = {
     val eval = init()
-    eval.apply(mod.ivyDepsTree())
+    eval.apply(mod.ivyDepsTree(IvyDepsTreeArgs()))
+
+    val expectedDepsTree = mod.tree
+    val depsTree =
+      os.read(eval.evaluator.pathsResolver.resolveDest(mod.ivyDepsTree(IvyDepsTreeArgs())).log)
+    assert(depsTree == expectedDepsTree)
+
     val Right((deps, _)) = eval.apply(mod.transitiveIvyDeps)
 
     val depNames = deps.toSeq.map(d => d.name).sorted
