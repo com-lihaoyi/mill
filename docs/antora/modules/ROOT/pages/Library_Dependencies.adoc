@@ -150,12 +150,78 @@ def compileIvyDeps = Agg(
 )
 ----
 
-It is also possible to use higher version of the same library dependencies already  defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
+It is also possible to use higher version of the same library dependencies already defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
+
+== Detecting transitive dependencies
+
+To render a tree of dependencies (transitive included) and possible upgrades for a given module, you can run `mill myModule.ivyDepsTree`. Here is how the start of `./mill __.ivyDepsTree` looks like in the `mill` project itself:
+
+[source,text]
+----
+├─ ch.epfl.scala:bsp4j:2.1.0-M3
+│  ├─ org.eclipse.lsp4j:org.eclipse.lsp4j.generator:0.12.0
+│  │  ├─ org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.12.0
+│  │  │  └─ com.google.code.gson:gson:2.9.1
+│  │  └─ org.eclipse.xtend:org.eclipse.xtend.lib:2.24.0
+│  │     ├─ org.eclipse.xtend:org.eclipse.xtend.lib.macro:2.24.0
+│  │     │  └─ org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.24.0
+...
+│  │  ├─ com.lihaoyi:fastparse_2.13:2.3.0
+│  │  │  ├─ com.lihaoyi:geny_2.13:0.6.0 -> 0.7.1 (possible incompatibility)
+│  │  │  │  └─ org.scala-lang:scala-library:2.13.10
+│  │  │  └─ com.lihaoyi:sourcecode_2.13:0.2.1 -> 0.3.0 (possible incompatibility)
+----
+
+You can also compile your module(s) and examine files such as `ivyDeps.json` and `transitiveIvyDeps.json` in your `out` build's folder for a given module. `ivyDepsTree.log` contains file output of the above ivyDepsTree command too.
+
+You can observe the actual version being used by running `mill show myModule.resolvedIvyDeps`. If you run `mill myModule.resolvedIvyDeps`, the same information is available in `out/myModule/resolvedIvyDeps.json`.
 
 == Excluding transitive dependencies
 
 You can use the `.exclude` method on a dependency. It accepts  `organization` and `name` tuples, to be excluded.
 Use the special name `*` to match all ``organization``s or ``name``s.
+
+.Example: Exclude `fansi_2.12` library from transitive dependency set of `pprint`.
+[source,scala]
+----
+def deps = Agg(
+  ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12")
+)
+----
+
+You can also use `.excludeOrg` or `excludeName`:
+
+
+.Example: Exclude all `com.lihaoyi` libraries from transitive dependency set of `pprint`.
+[source,scala]
+----
+val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
+----
+
+Note: You can chain multiple exclusions with `exclude`, `excludeOrg`, and `excludeName`.
+
+.Example: Excluding a library (fansi) by name from transitive dependency set of `pprint`.
+[source,scala]
+----
+val deps = Agg(
+  ivy"com.lihaoyi::pprint:0.5.3"
+    .excludeName("fansi_2.12")
+    .excludeName("sourcecode")
+)
+----
+
+== Forcing versions
+
+CAUTION: Please treat forceVersion as experimental; it has some bugs and isn't production-ready (forced versions https://github.com/com-lihaoyi/mill/issues/1975[aren't propagated to published artifacts]).
+
+You can use the `forceVersion` method to ensure the used version of a dependency is what you have declared.
+
+* You declare a dependency `val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14")`
+* There is another dependency, `val deps = Agg(ivy"com.lihaoyi::PPrint:0.8.1")`
+* PPrint 0.8.1 uses fansi 0.4.0, so it is a transitive dependency
+* `mill show myModule.resolvedIvyDeps | grep "fansi"` should show fansi 0.4.0
+* If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use `val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14".forceVersion())`
+* `mill show myModule.resolvedIvyDeps | grep "fansi"` should show fansi 0.2.14
 
 == ScalaJS dependencies
 
