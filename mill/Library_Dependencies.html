@@ -215,14 +215,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M0-22-b68339</span>
+    <span class="version">0.11.0-M0-23-88d381</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M0-22-b68339</a>
+          <a href="index.html">0.11.0-M0-23-88d381</a>
         </li>
         <li class="version">
           <a href="0.10.10/index.html">0.10.10</a>
@@ -296,9 +296,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M0-22-b68339</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M0-23-88d381</button>
   <div class="version-menu">
-    <a class="version is-current" href="Library_Dependencies.html">0.11.0-M0-22-b68339</a>
+    <a class="version is-current" href="Library_Dependencies.html">0.11.0-M0-23-88d381</a>
     <a class="version" href="0.10.10/Library_Dependencies.html">0.10.10</a>
     <a class="version is-missing" href="0.10.9/index.html">0.10.9</a>
     <a class="version is-missing" href="0.10.8/index.html">0.10.8</a>
@@ -539,7 +539,37 @@ There is no special test scope in Mill.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>It is also possible to use higher version of the same library dependencies already  defined in <code>ivyDeps</code>, to ensure you compile against a minimal API version, but actually run with the latest available version.</p>
+<p>It is also possible to use higher version of the same library dependencies already defined in <code>ivyDeps</code>, to ensure you compile against a minimal API version, but actually run with the latest available version.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_detecting_transitive_dependencies"><a class="anchor" href="#_detecting_transitive_dependencies"></a>Detecting transitive dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To render a tree of dependencies (transitive included) and possible upgrades for a given module, you can run <code>mill myModule.ivyDepsTree</code>. Here is how the start of <code>./mill __.ivyDepsTree</code> looks like in the <code>mill</code> project itself:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">├─ ch.epfl.scala:bsp4j:2.1.0-M3
+│  ├─ org.eclipse.lsp4j:org.eclipse.lsp4j.generator:0.12.0
+│  │  ├─ org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.12.0
+│  │  │  └─ com.google.code.gson:gson:2.9.1
+│  │  └─ org.eclipse.xtend:org.eclipse.xtend.lib:2.24.0
+│  │     ├─ org.eclipse.xtend:org.eclipse.xtend.lib.macro:2.24.0
+│  │     │  └─ org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.24.0
+...
+│  │  ├─ com.lihaoyi:fastparse_2.13:2.3.0
+│  │  │  ├─ com.lihaoyi:geny_2.13:0.6.0 -&gt; 0.7.1 (possible incompatibility)
+│  │  │  │  └─ org.scala-lang:scala-library:2.13.10
+│  │  │  └─ com.lihaoyi:sourcecode_2.13:0.2.1 -&gt; 0.3.0 (possible incompatibility)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also compile your module(s) and examine files such as <code>ivyDeps.json</code> and <code>transitiveIvyDeps.json</code> in your <code>out</code> build’s folder for a given module. <code>ivyDepsTree.log</code> contains file output of the above ivyDepsTree command too.</p>
+</div>
+<div class="paragraph">
+<p>You can observe the actual version being used by running <code>mill show myModule.resolvedIvyDeps</code>. If you run <code>mill myModule.resolvedIvyDeps</code>, the same information is available in <code>out/myModule/resolvedIvyDeps.json</code>.</p>
 </div>
 </div>
 </div>
@@ -549,6 +579,78 @@ There is no special test scope in Mill.</p>
 <div class="paragraph">
 <p>You can use the <code>.exclude</code> method on a dependency. It accepts  <code>organization</code> and <code>name</code> tuples, to be excluded.
 Use the special name <code>*</code> to match all <code>organization</code>s or <code>name</code>s.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Agg(
+  ivy&quot;com.lihaoyi::pprint:0.5.3&quot;.exclude(&quot;com.lihaoyi&quot; -&gt; &quot;fansi_2.12&quot;)
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also use <code>.excludeOrg</code> or <code>excludeName</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Exclude all <code>com.lihaoyi</code> libraries from transitive dependency set of <code>pprint</code>.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(ivy&quot;com.lihaoyi::pprint:0.5.3&quot;.excludeOrg(&quot;com.lihaoyi&quot;))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note: You can chain multiple exclusions with <code>exclude</code>, <code>excludeOrg</code>, and <code>excludeName</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Excluding a library (fansi) by name from transitive dependency set of <code>pprint</code>.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(
+  ivy&quot;com.lihaoyi::pprint:0.5.3&quot;
+    .excludeName(&quot;fansi_2.12&quot;)
+    .excludeName(&quot;sourcecode&quot;)
+)</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_forcing_versions"><a class="anchor" href="#_forcing_versions"></a>Forcing versions</h2>
+<div class="sectionbody">
+<div class="admonitionblock caution">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Please treat forceVersion as experimental; it has some bugs and isn’t production-ready (forced versions <a href="https://github.com/com-lihaoyi/mill/issues/1975">aren’t propagated to published artifacts</a>).
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>You can use the <code>forceVersion</code> method to ensure the used version of a dependency is what you have declared.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You declare a dependency <code>val deps = Agg(ivy&quot;com.lihaoyi::fansi:0.2.14&quot;)</code></p>
+</li>
+<li>
+<p>There is another dependency, <code>val deps = Agg(ivy&quot;com.lihaoyi::PPrint:0.8.1&quot;)</code></p>
+</li>
+<li>
+<p>PPrint 0.8.1 uses fansi 0.4.0, so it is a transitive dependency</p>
+</li>
+<li>
+<p><code>mill show myModule.resolvedIvyDeps | grep &quot;fansi&quot;</code> should show fansi 0.4.0</p>
+</li>
+<li>
+<p>If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use <code>val deps = Agg(ivy&quot;com.lihaoyi::fansi:0.2.14&quot;.forceVersion())</code></p>
+</li>
+<li>
+<p><code>mill show myModule.resolvedIvyDeps | grep &quot;fansi&quot;</code> should show fansi 0.2.14</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
