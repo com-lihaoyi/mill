@@ -66,7 +66,7 @@ object Deps {
   // Scoverage 1.x will not get releases for newer Scala versions
   val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.15"
+  val workerScalaVersion212 = "2.12.17"
 
   val testScala213Version = "2.13.8"
   val testScala212Version = "2.12.6"
@@ -727,7 +727,7 @@ object contrib extends MillModule {
         "MILL_SCOVERAGE2_REPORT_WORKER" -> worker2.compile().classes.path,
         "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version,
         "MILL_SCOVERAGE2_VERSION" -> Deps.scalacScoverage2Plugin.dep.version,
-        "TEST_SCALA_2_12_VERSION" -> Deps.workerScalaVersion212
+        "TEST_SCALA_2_12_VERSION" -> "2.12.15" // last supported 2.12 version for Scoverage 1.x
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
