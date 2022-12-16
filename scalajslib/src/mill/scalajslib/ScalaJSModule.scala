@@ -85,8 +85,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // we need to use the scala-library of the currently running mill
     resolveDependencies(
       repositoriesTask(),
-      Lib.depToDependency(_, mill.BuildInfo.scalaVersion, ""),
-      commonDeps ++ envDeps,
+      (commonDeps ++ envDeps).map(Lib.depToBoundDep(_, mill.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     )
   }
@@ -253,13 +252,13 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
   def scalaJSTestDeps = T {
     resolveDeps(T.task {
-      val bridgeOrInterface =
-        if (ZincWorkerUtil.scalaJSUsesTestBridge(scalaJSVersion())) "bridge"
-        else "interface"
+      val bind = bindDependency()
       Loose.Agg(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
-      ).map(_.withDottyCompat(scalaVersion()))
+      )
+        .map(_.withDottyCompat(scalaVersion()))
+        .map(bind)
     })
   }
 

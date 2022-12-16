@@ -50,16 +50,25 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
    * Scalac options to activate the compiler plugins.
    */
   private def semanticDbEnablePluginScalacOptions: Target[Seq[String]] = T {
-    val resolvedJars = resolveDeps(semanticDbPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
+    val resolvedJars = resolveDeps(T.task {
+      val bind = bindDependency()
+      semanticDbPluginIvyDeps().map(_.exclude("*" -> "*")).map(bind)
+    })()
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
   private def semanticDbPluginClasspath: T[Agg[PathRef]] = hostModule match {
     case m: ScalaModule => T {
-        resolveDeps(T { m.scalacPluginIvyDeps() ++ semanticDbPluginIvyDeps() })()
+        resolveDeps(T.task {
+          val bind = bindDependency()
+          (m.scalacPluginIvyDeps() ++ semanticDbPluginIvyDeps()).map(bind)
+        })()
       }
     case _ => T {
-        resolveDeps(semanticDbPluginIvyDeps)()
+        resolveDeps(T.task {
+          val bind = bindDependency()
+          semanticDbPluginIvyDeps().map(bind)
+        })()
       }
   }
 

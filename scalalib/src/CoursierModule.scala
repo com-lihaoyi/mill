@@ -1,12 +1,14 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
-
 import coursier.{Dependency, Repository, Resolve}
 import coursier.core.Resolution
+import mil.scalalib.BoundDep
 import mill.{Agg, T}
 import mill.define.Task
 import mill.api.PathRef
+
+import scala.annotation.nowarn
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -16,6 +18,15 @@ import mill.api.PathRef
  */
 trait CoursierModule extends mill.Module {
 
+  /**
+   * Bind a dependency ([[Dep]]) to the actual module contetxt (e.g. the scala version and the platform suffix)
+   * @return The [[BoundDep]]
+   */
+  def bindDependency: Task[Dep => BoundDep] = T.task { dep: Dep =>
+    BoundDep((resolveCoursierDependency() : @nowarn).apply(dep), dep.force)
+  }
+
+  @deprecated("To be replaced by bindDependency", "Mill after 0.11.0-M0")
   def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task {
     Lib.depToDependencyJava(_: Dep)
   }
@@ -27,18 +38,18 @@ trait CoursierModule extends mill.Module {
    * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
    * @return The [[PathRef]]s to the resolved files.
    */
-  def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task {
-    Lib.resolveDependencies(
-      repositories = repositoriesTask(),
-      depToDependency = resolveCoursierDependency().apply(_),
-      deps = deps(),
-      sources = sources,
-      mapDependencies = Some(mapDependencies()),
-      customizer = resolutionCustomizer(),
-      coursierCacheCustomizer = coursierCacheCustomizer(),
-      ctx = Some(implicitly[mill.api.Ctx.Log])
-    )
-  }
+  def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] =
+    T.task {
+      Lib.resolveDependencies(
+        repositories = repositoriesTask(),
+        deps = deps(),
+        sources = sources,
+        mapDependencies = Some(mapDependencies()),
+        customizer = resolutionCustomizer(),
+        coursierCacheCustomizer = coursierCacheCustomizer(),
+        ctx = Some(implicitly[mill.api.Ctx.Log])
+      )
+    }
 
   /**
    * Map dependencies before resolving them.

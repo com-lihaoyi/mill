@@ -56,7 +56,6 @@ trait Static extends ScalaModule {
   def webJars = T {
     Lib.resolveDependencies(
       repositoriesTask(),
-      Lib.depToDependency(_, scalaVersion()),
       webJarDeps()
     )
   }

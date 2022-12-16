@@ -105,14 +105,17 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         val org = "org.scala-sbt"
         val name = "compiler-bridge"
         val version = Versions.zinc
-        (ivy"$org::$name:$version", s"${name}_$scalaBinaryVersion0", version)
+        (
+          ivy"$org:${name}_${scalaBinaryVersion0}:$version",
+          s"${name}_$scalaBinaryVersion0",
+          version
+        )
       }
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
     val bridgeJar = resolveDependencies(
       repositories,
-      Lib.depToDependency(_, scalaVersion0),
-      Seq(bridgeDep),
+      Seq(bridgeDep.bindDep("", "", "")),
       useSources,
       Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     ).map(deps =>
@@ -136,8 +139,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   ): Result[Agg[PathRef]] = {
     resolveDependencies(
       repositories = repositories,
-      depToDependency = Lib.depToDependency(_, scalaVersion, ""),
-      deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}"),
+      deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))

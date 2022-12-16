@@ -168,18 +168,21 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         val pluginDep =
           Agg(ivy"org.scoverage:scalac-scoverage-plugin_${scalaVersion}:${sv}")
 
-        if (isScala3() && isScoverage2()) {
+        val deps = if (isScala3() && isScoverage2()) {
           baseDeps
         } else if (isScoverage2()) {
           baseDeps ++ pluginDep
         } else {
           pluginDep
         }
+        deps.map(bindDependency())
       })()
   }
 
   def scoverageClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(scoveragePluginDeps)()
+    resolveDeps(T.task {
+      scoveragePluginDeps().map(bindDependency())
+    })()
   }
 
   def scoverageReportWorkerClasspath: T[Agg[PathRef]] = T {
@@ -263,15 +266,21 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   trait ScoverageTests extends outer.Tests {
     override def upstreamAssemblyClasspath = T {
       super.upstreamAssemblyClasspath() ++
-        resolveDeps(outer.scoverageRuntimeDeps)()
+        resolveDeps(T.task {
+          outer.scoverageRuntimeDeps().map(bindDependency())
+        })()
     }
     override def compileClasspath = T {
       super.compileClasspath() ++
-        resolveDeps(outer.scoverageRuntimeDeps)()
+        resolveDeps(T.task {
+          outer.scoverageRuntimeDeps().map(bindDependency())
+        })()
     }
     override def runClasspath = T {
       super.runClasspath() ++
-        resolveDeps(outer.scoverageRuntimeDeps)()
+        resolveDeps(T.task {
+          outer.scoverageRuntimeDeps().map(bindDependency())
+        })()
     }
 
     // Need the sources compiled with scoverage instrumentation to run.

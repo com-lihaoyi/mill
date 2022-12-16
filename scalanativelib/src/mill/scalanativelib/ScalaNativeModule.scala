@@ -2,6 +2,7 @@ package mill
 package scalanativelib
 
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
+import mil.scalalib.BoundDep
 import mill.api.Loose.Agg
 import mill.api.{Result, internal}
 import mill.define.{Target, Task}
@@ -95,8 +96,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def bridgeFullClassPath: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       repositoriesTask(),
-      Lib.depToDependency(_, mill.BuildInfo.scalaVersion, ""),
-      toolsIvyDeps(),
+      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     ).map(t => (scalaNativeWorkerClasspath() ++ t))
   }
@@ -272,31 +272,31 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ))
   }
 
-  override def transitiveIvyDeps: T[Agg[Dep]] = T {
-    // TODO when in bin-compat breaking window: Change list to `super.transitiveIvyDeps()`
-    (ivyDeps() ++ mandatoryIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten).map {
-      dep =>
-        // Exclude cross published version dependencies leading to conflicts in Scala 3 vs 2.13
-        // When using Scala 3 exclude Scala 2.13 standard native libraries,
-        // when using Scala 2.13 exclude Scala 3 standard native libraries
-        // Use full name, Maven style published artifacts cannot use artifact/cross version for exclusion rules
-        val nativeStandardLibraries =
-          Seq("nativelib", "clib", "posixlib", "windowslib", "javalib", "auxlib")
+  override def transitiveIvyDeps: T[Agg[BoundDep]] = T {
 
-        val scalaBinaryVersionToExclude = artifactScalaVersion() match {
-          case "3" => "2.13" :: Nil
-          case "2.13" => "3" :: Nil
-          case _ => Nil
-        }
+    // Exclude cross published version dependencies leading to conflicts in Scala 3 vs 2.13
+    // When using Scala 3 exclude Scala 2.13 standard native libraries,
+    // when using Scala 2.13 exclude Scala 3 standard native libraries
+    // Use full name, Maven style published artifacts cannot use artifact/cross version for exclusion rules
+    val nativeStandardLibraries =
+      Seq("nativelib", "clib", "posixlib", "windowslib", "javalib", "auxlib")
 
-        val nativeSuffix = platformSuffix()
+    val scalaBinaryVersionToExclude = artifactScalaVersion() match {
+      case "3" => "2.13" :: Nil
+      case "2.13" => "3" :: Nil
+      case _ => Nil
+    }
 
-        val exclusions = scalaBinaryVersionToExclude.flatMap { scalaBinVersion =>
-          nativeStandardLibraries.map(library =>
-            "org.scala-native" -> s"$library${nativeSuffix}_$scalaBinVersion"
-          )
-        }
-        dep.exclude(exclusions: _*)
+    val nativeSuffix = platformSuffix()
+
+    val exclusions = scalaBinaryVersionToExclude.flatMap { scalaBinVersion =>
+      nativeStandardLibraries.map(library =>
+        "org.scala-native" -> s"$library${nativeSuffix}_$scalaBinVersion"
+      )
+    }
+
+    super.transitiveIvyDeps().map { dep =>
+      dep.exclude(exclusions: _*)
     }
   }
 }
