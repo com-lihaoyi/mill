@@ -10,11 +10,8 @@ object CrossVersionTests extends TestSuite {
 
   object TestCases extends TestUtil.BaseModule {
 
-    trait ExpectedDepsTree {
-      def tree: String
-    }
-    object StandaloneScala213 extends ScalaModule with ExpectedDepsTree {
-      override val tree =
+    object StandaloneScala213 extends ScalaModule {
+      val tree =
         """├─ com.lihaoyi:upickle_2.13:1.4.0
           |│  ├─ com.lihaoyi:ujson_2.13:1.4.0
           |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
@@ -31,8 +28,8 @@ object CrossVersionTests extends TestSuite {
       override def ivyDeps = Agg(ivy"com.lihaoyi::upickle:1.4.0")
     }
 
-    object JavaDependsOnScala213 extends JavaModule with ExpectedDepsTree {
-      override val tree =
+    object JavaDependsOnScala213 extends JavaModule {
+      val tree =
         """├─ org.slf4j:slf4j-api:1.7.35
           |├─ com.lihaoyi:upickle_2.13:1.4.0
           |│  ├─ com.lihaoyi:ujson_2.13:1.4.0
@@ -50,8 +47,8 @@ object CrossVersionTests extends TestSuite {
       override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.35")
     }
 
-    object Scala3DependsOnScala213 extends ScalaModule with ExpectedDepsTree {
-      override val tree =
+    object Scala3DependsOnScala213 extends ScalaModule {
+      val tree =
         """├─ com.lihaoyi:sourcecode_3:0.2.7
           |├─ org.scala-lang:scala3-library_3:3.2.1
           |│  └─ org.scala-lang:scala-library:2.13.10
@@ -72,8 +69,8 @@ object CrossVersionTests extends TestSuite {
       override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.7")
     }
 
-    object JavaDependsOnScala3 extends JavaModule with ExpectedDepsTree {
-      override val tree =
+    object JavaDependsOnScala3 extends JavaModule {
+      val tree =
         """├─ org.slf4j:slf4j-api:1.7.35
           |├─ com.lihaoyi:sourcecode_3:0.2.7
           |├─ org.scala-lang:scala3-library_3:3.2.1
@@ -94,6 +91,32 @@ object CrossVersionTests extends TestSuite {
       override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.35")
     }
 
+    object sandwitch3 extends ScalaModule {
+      override def scalaVersion = "3.0.2"
+      override def ivyDeps = Agg(ivy"com.lihaoyi::upickle:1.4.0")
+    }
+
+    object sandwitch213 extends ScalaModule {
+      override def scalaVersion = "2.13.6"
+      override def moduleDeps = Seq(sandwitch3)
+      override def scalacOptions = Seq("-Ytasty-reader")
+      val tree =
+        """├─ org.scala-lang:scala-library:2.13.6
+          |├─ com.lihaoyi:upickle_3:1.4.0
+          |│  ├─ com.lihaoyi:ujson_3:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_3:1.4.0
+          |│  │     └─ com.lihaoyi:geny_3:0.6.10
+          |│  ├─ com.lihaoyi:upack_3:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_3:1.4.0
+          |│  │     └─ com.lihaoyi:geny_3:0.6.10
+          |│  └─ com.lihaoyi:upickle-implicits_3:1.4.0
+          |│     └─ com.lihaoyi:upickle-core_3:1.4.0
+          |│        └─ com.lihaoyi:geny_3:0.6.10
+          |└─ org.scala-lang:scala3-library_3:3.0.2
+          |   └─ org.scala-lang:scala-library:2.13.6
+          |""".stripMargin
+    }
+
   }
 
   def init()(implicit tp: TestPath) = {
@@ -106,21 +129,24 @@ object CrossVersionTests extends TestSuite {
   import TestCases._
 
   def check(
-      mod: JavaModule with ExpectedDepsTree,
+      mod: JavaModule,
       expectedDeps: Seq[String],
-      expectedLibs: Seq[String]
+      expectedLibs: Seq[String],
+      expectedIvyDepsTree: Option[String] = None
   )(implicit
       testPath: TestPath
   ) = {
     val eval = init()
     eval.apply(mod.ivyDepsTree(IvyDepsTreeArgs()))
 
-    if(!scala.util.Properties.isWin) {
-      // Escape-sequence formatting isn't working under bare Windows
-      val expectedDepsTree = mod.tree
-      val depsTree =
-        os.read(eval.evaluator.pathsResolver.resolveDest(mod.ivyDepsTree(IvyDepsTreeArgs())).log)
-      assert(depsTree == expectedDepsTree)
+    expectedIvyDepsTree.foreach { tree =>
+      if (!scala.util.Properties.isWin) {
+        // Escape-sequence formatting isn't working under bare Windows
+        val expectedDepsTree = tree
+        val depsTree =
+          os.read(eval.evaluator.pathsResolver.resolveDest(mod.ivyDepsTree(IvyDepsTreeArgs())).log)
+        assert(depsTree == expectedDepsTree)
+      }
     }
 
     val Right((deps, _)) = eval.apply(mod.transitiveIvyDeps)
@@ -152,7 +178,8 @@ object CrossVersionTests extends TestSuite {
           "upickle-core_2.13-1.4.0.jar",
           "upickle-implicits_2.13-1.4.0.jar",
           "upickle_2.13-1.4.0.jar"
-        )
+        ),
+        expectedIvyDepsTree = Some(StandaloneScala213.tree)
       )
     }
 
@@ -173,7 +200,8 @@ object CrossVersionTests extends TestSuite {
           "upickle-core_2.13-1.4.0.jar",
           "upickle-implicits_2.13-1.4.0.jar",
           "upickle_2.13-1.4.0.jar"
-        )
+        ),
+        expectedIvyDepsTree = Some(JavaDependsOnScala213.tree)
       )
     }
 
@@ -196,7 +224,8 @@ object CrossVersionTests extends TestSuite {
           "upickle-core_2.13-1.4.0.jar",
           "upickle-implicits_2.13-1.4.0.jar",
           "upickle_2.13-1.4.0.jar"
-        )
+        ),
+        expectedIvyDepsTree = Some(Scala3DependsOnScala213.tree)
       )
     }
 
@@ -221,7 +250,30 @@ object CrossVersionTests extends TestSuite {
           "upickle-core_2.13-1.4.0.jar",
           "upickle-implicits_2.13-1.4.0.jar",
           "upickle_2.13-1.4.0.jar"
-        )
+        ),
+        expectedIvyDepsTree = Some(JavaDependsOnScala3.tree)
+      )
+    }
+
+    test("sndwitch3") {
+      check(
+        mod = sandwitch213,
+        expectedDeps = Seq(
+          "scala-library",
+          "scala3-library_3",
+          "upickle_3"
+        ),
+        expectedLibs = Seq(
+          "scala-library-2.13.6.jar",
+          "scala3-library_3-3.0.2.jar",
+          "upickle_3-1.4.0.jar",
+          "ujson_3-1.4.0.jar",
+          "upickle-core_3-1.4.0.jar",
+          "geny_3-0.6.10.jar",
+          "upack_3-1.4.0.jar",
+          "upickle-implicits_3-1.4.0.jar"
+        ),
+        expectedIvyDepsTree = Some(sandwitch213.tree)
       )
     }
 
