@@ -174,7 +174,7 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
-  val usingDirectives = ivy"org.virtuslab:using_directives:0.0.9"
+  val usingDirectives = ivy"org.virtuslab:using_directives:0.0.10"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"

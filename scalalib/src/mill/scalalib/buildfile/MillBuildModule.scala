@@ -14,7 +14,7 @@ trait MillBuildModule extends ScalaModule with MillSetupScannerModule {
   override def scalaVersion: T[String] = T {
     millBinPlatform() match {
       case "" | "0.6" => "2.12.17"
-      case _ => "2.13.9"
+      case _ => "2.13.10"
     }
   }
 
