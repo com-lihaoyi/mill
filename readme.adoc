@@ -251,10 +251,25 @@ corresponding version of Mill.
 === 'main' branch
 :version: main
 :prev-version: 0.10.10
-:milestone: 70
-:milestone-name: after 0.10.10
+:milestone: 72
+:milestone-name: 0.11.0-M2
 
 _Changes since {prev-version}:_
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.11.0-M1 - 2022-12-17
+:version: 0.11.0-M1
+:prev-version: 0.10.10
+:milestone: 70
+:milestone-name: 0.11.0-M1
+
+_Changes since {prev-version}:_
+
+TBD
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
