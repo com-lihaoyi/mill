@@ -70,7 +70,8 @@ trait MillTestKit {
       outStream: PrintStream = System.out,
       inStream: InputStream = DummyInputStream,
       debugEnabled: Boolean = false,
-      extraPathEnd: Seq[String] = Seq.empty
+      extraPathEnd: Seq[String] = Seq.empty,
+      env: Map[String, String] = Evaluator.defaultEnv
   )(implicit fullName: sourcecode.FullName) {
     val outPath = getOutPath(testPath) / extraPathEnd
 
@@ -103,7 +104,7 @@ trait MillTestKit {
       externalOutPath,
       module,
       logger
-    ).withFailFast(failFast).withThreadCount(threads)
+    ).withFailFast(failFast).withThreadCount(threads).withEnv(env)
 
     def apply[T](t: Task[T]): Either[mill.api.Result.Failing[T], (T, Int)] = {
       val evaluated = evaluator.evaluate(Agg(t))
