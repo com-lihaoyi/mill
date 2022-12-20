@@ -13,8 +13,7 @@ object ResolveDepsTests extends TestSuite {
 
   def evalDeps(deps: Agg[Dep]): Result[Agg[PathRef]] = Lib.resolveDependencies(
     repos,
-    Lib.depToDependency(_, scala212Version, ""),
-    deps
+    deps.map(Lib.depToBoundDep(_, scala212Version, ""))
   )
 
   val tests = Tests {

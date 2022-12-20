@@ -56,11 +56,14 @@ trait TwirlModule extends mill.Module { twirlModule =>
   val twirlCoursierResolver = new TwirlResolver()
 
   def twirlClasspath: T[Loose.Agg[PathRef]] = T {
-    twirlCoursierResolver.resolveDeps(twirlIvyDeps)
+    twirlCoursierResolver.resolveDeps(T.task {
+      val bind = twirlCoursierResolver.bindDependency()
+      twirlIvyDeps().map(bind)
+    })
   }
 
   def twirlImports: T[Seq[String]] = T {
-    TwirlWorkerApi.twirlWorker.defaultImports(twirlClasspath().map(_.path))
+    TwirlWorkerApi.twirlWorker.defaultImports(twirlClasspath())
   }
 
   def twirlFormats: T[Map[String, String]] = TwirlWorkerApi.twirlWorker.defaultFormats
@@ -74,7 +77,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   def compileTwirl: T[mill.scalalib.api.CompilationResult] = T.persistent {
     TwirlWorkerApi.twirlWorker
       .compile(
-        twirlClasspath().map(_.path),
+        twirlClasspath(),
         twirlSources().map(_.path),
         T.dest,
         twirlImports(),

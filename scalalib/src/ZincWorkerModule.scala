@@ -59,12 +59,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     val instance = cls.getConstructor(
       classOf[
         Either[
-          (ZincWorkerApi.Ctx, (String, String) => (Option[Array[os.Path]], os.Path)),
-          String => os.Path
+          (ZincWorkerApi.Ctx, (String, String) => (Option[Agg[PathRef]], PathRef)),
+          String => PathRef
         ]
       ], // compilerBridge
-      classOf[(Agg[os.Path], String) => os.Path], // libraryJarNameGrep
-      classOf[(Agg[os.Path], String) => os.Path], // compilerJarNameGrep
+      classOf[(Agg[PathRef], String) => PathRef], // libraryJarNameGrep
+      classOf[(Agg[PathRef], String) => PathRef], // compilerJarNameGrep
       classOf[KeyedLockedCache[_]], // compilerCache
       classOf[Boolean], // compileToJar
       classOf[Boolean] // zincLogDebug
@@ -88,7 +88,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       scalaVersion: String,
       scalaOrganization: String,
       repositories: Seq[Repository]
-  ): Result[(Option[Array[Path]], Path)] = {
+  ): Result[(Option[Agg[PathRef]], PathRef)] = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, ZincWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -105,25 +105,28 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         val org = "org.scala-sbt"
         val name = "compiler-bridge"
         val version = Versions.zinc
-        (ivy"$org::$name:$version", s"${name}_$scalaBinaryVersion0", version)
+        (
+          ivy"$org:${name}_${scalaBinaryVersion0}:$version",
+          s"${name}_$scalaBinaryVersion0",
+          version
+        )
       }
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
     val bridgeJar = resolveDependencies(
       repositories,
-      Lib.depToDependency(_, scalaVersion0),
-      Seq(bridgeDep),
+      Seq(bridgeDep.bindDep("", "", "")),
       useSources,
       Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     ).map(deps =>
-      ZincWorkerUtil.grepJar(deps.map(_.path), bridgeName, bridgeVersion, useSources)
+      ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
     )
 
     if (useSources) {
       for {
         jar <- bridgeJar
         classpath <- compilerInterfaceClasspath(scalaVersion, scalaOrganization, repositories)
-      } yield (Some(classpath.map(_.path).iterator.toArray), jar)
+      } yield (Some(classpath), jar)
     } else {
       bridgeJar.map((None, _))
     }
@@ -136,8 +139,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   ): Result[Agg[PathRef]] = {
     resolveDependencies(
       repositories = repositories,
-      depToDependency = Lib.depToDependency(_, scalaVersion, ""),
-      deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}"),
+      deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))

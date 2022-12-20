@@ -1,9 +1,12 @@
 package mill.scalalib
 
-import JsonFormatters._
+import mill.scalalib.JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
+import mil.scalalib.BoundDep
 import mill.scalalib.api.ZincWorkerUtil
+
+
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
@@ -21,7 +24,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def forceVersion(): Dep = copy(force = true)
   def exclude(exclusions: (String, String)*) = copy(
     dep = dep.withExclusions(
-      dep.exclusions ++
+      dep.exclusions() ++
         exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
     )
   )
@@ -33,12 +36,26 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
         coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
       )
     )
+  def bindDep(binaryVersion: String, fullVersion: String, platformSuffix: String): BoundDep =
+    BoundDep(
+      dep.withModule(
+        dep.module.withName(
+          coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
+        )
+      ),
+      force
+    )
+
   def withConfiguration(configuration: String): Dep = copy(
     dep = dep.withConfiguration(coursier.core.Configuration(configuration))
   )
   def optional(optional: Boolean = true): Dep = copy(
     dep = dep.withOptional(optional)
   )
+
+  def organization = dep.module.organization.value
+  def name = dep.module.name.value
+  def version = dep.version
 
   /**
    * If scalaVersion is a Dotty version, replace the cross-version suffix

@@ -3,7 +3,13 @@ package scalalib
 
 import scala.annotation.nowarn
 import coursier.Repository
+import coursier.core.Dependency
+import coursier.core.Resolution
+import coursier.parse.JavaOrScalaModule
+import coursier.parse.ModuleParser
+import coursier.util.ModuleMatcher
 import mainargs.Flag
+import mil.scalalib.BoundDep
 import mill.api.Loose.Agg
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Command, Sources, Target, Task, TaskModule}
@@ -40,7 +46,6 @@ trait JavaModule
   trait Tests extends JavaModuleTests
 
   def defaultCommandName() = "run"
-
   def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task {
     Artifact.fromDepJava(_: Dep)
   }
@@ -120,9 +125,9 @@ trait JavaModule
   def compileModuleDeps: Seq[JavaModule] = Seq.empty
 
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
-  def transitiveCompileIvyDeps: T[Agg[Dep]] = T {
+  def transitiveCompileIvyDeps: T[Agg[BoundDep]] = T {
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    compileIvyDeps() ++ T
+    compileIvyDeps().map(bindDependency()) ++ T
       .traverse(compileModuleDeps)(_.transitiveIvyDeps)()
       .flatten
   }
@@ -170,9 +175,10 @@ trait JavaModule
    * The transitive ivy dependencies of this module and all it's upstream modules.
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
-  def transitiveIvyDeps: T[Agg[Dep]] = T {
-    // NOTE: If you update this, reflect the changes in ScalaNativeModule
-    ivyDeps() ++ mandatoryIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+  def transitiveIvyDeps: T[Agg[BoundDep]] = T {
+    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++ T.traverse(moduleDeps)(
+      _.transitiveIvyDeps
+    )().flatten
   }
 
   /**
@@ -368,7 +374,7 @@ trait JavaModule
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
-      runIvyDeps() ++ transitiveIvyDeps()
+      runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
     })()
   }
 
@@ -557,26 +563,51 @@ trait JavaModule
 
   /**
    * Task that print the transitive dependency tree to STDOUT.
+   * NOTE: that when `whatDependsOn` is used with `inverse` it will just
+   *       be ignored since when using `whatDependsOn` the tree _must_ be
+   *       inversed to work, so this will always be set as true.
    * @param inverse Invert the tree representation, so that the root is on the bottom.
    * @param additionalDeps Additional dependency to be included into the tree.
+   * @param whatDependsOn possible list of modules to target in the tree in order to see
+   *                      where a dependency stems from.
    */
-  protected def printDepsTree(inverse: Boolean, additionalDeps: Task[Agg[Dep]]): Task[Unit] =
+  protected def printDepsTree(
+      inverse: Boolean,
+      additionalDeps: Task[Agg[BoundDep]],
+      whatDependsOn: List[JavaOrScalaModule]
+  ): Task[Unit] =
     T.task {
-      val (flattened, resolution) = Lib.resolveDependenciesMetadata(
+      val (flattened: Seq[Dependency], resolution: Resolution) = Lib.resolveDependenciesMetadata(
         repositoriesTask(),
-        resolveCoursierDependency().apply(_),
         additionalDeps() ++ transitiveIvyDeps(),
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer()
       )
 
+      val roots = whatDependsOn match {
+        case List() => flattened
+        case _ =>
+          // We don't really care what scalaVersions is set as here since the user
+          // will be passing in `_2.13` or `._3` anyways. Or it may even be a java
+          // dependency. Looking at the usage upstream, it seems that this is set if
+          // it can be or else defaults to "". Using it, I haven't been able to see
+          // any difference whether or not it's set, and by using "" it greatly simplifies
+          // it.
+          val matchers = whatDependsOn
+            .map(module => module.module(scalaVersion = ""))
+            .map(module => ModuleMatcher(module))
+
+          resolution.minDependencies
+            .filter(dep => matchers.exists(matcher => matcher.matches(dep.module))).toSeq
+      }
+
       println(
         coursier.util.Print.dependencyTree(
-          roots = flattened,
           resolution = resolution,
+          roots = roots,
           printExclusions = false,
-          reverse = inverse
+          reverse = if (whatDependsOn.isEmpty) inverse else true
         )
       )
 
@@ -585,39 +616,46 @@ trait JavaModule
 
   /**
    * Command to print the transitive dependency tree to STDOUT.
-   *
-   * @param inverse Invert the tree representation, so that the root is on the bottom.
-   * @param withCompile Include the compile-time only dependencies (`compileIvyDeps`, provided scope) into the tree.
-   * @param withRuntime Include the runtime dependencies (`runIvyDeps`, runtime scope) into the tree.
    */
-  def ivyDepsTree(
-      inverse: Boolean = false,
-      withCompile: Boolean = false,
-      withRuntime: Boolean = false
-  ): Command[Unit] =
-    (withCompile, withRuntime) match {
-      case (true, true) =>
-        T.command {
-          printDepsTree(
-            inverse,
-            T.task {
-              transitiveCompileIvyDeps() ++ runIvyDeps()
-            }
-          )
-        }
-      case (true, false) =>
-        T.command {
-          printDepsTree(inverse, transitiveCompileIvyDeps)
-        }
-      case (false, true) =>
-        T.command {
-          printDepsTree(inverse, runIvyDeps)
-        }
-      case _ =>
-        T.command {
-          printDepsTree(inverse, T.task { Agg.empty[Dep] })
-        }
+  def ivyDepsTree(args: IvyDepsTreeArgs): Command[Unit] = {
+
+    val dependsOnModules = args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_))
+
+    val (invalidModules, validModules) =
+      args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_)).partitionMap(identity)
+
+    if (invalidModules.isEmpty) {
+      (args.withCompile, args.withRuntime) match {
+        case (Flag(true), Flag(true)) =>
+          T.command {
+            printDepsTree(
+              args.inverse.value,
+              T.task {
+                transitiveCompileIvyDeps() ++ runIvyDeps().map(bindDependency())
+              },
+              validModules
+            )
+          }
+        case (Flag(true), Flag(false)) =>
+          T.command {
+            printDepsTree(args.inverse.value, transitiveCompileIvyDeps, validModules)
+          }
+        case (Flag(false), Flag(true)) =>
+          T.command {
+            printDepsTree(args.inverse.value, T.task { runIvyDeps().map(bindDependency()) }, validModules)
+          }
+        case _ =>
+          T.command {
+            printDepsTree(args.inverse.value, T.task { Agg.empty[BoundDep] }, validModules)
+          }
+      }
+    } else {
+      T.command {
+        val msg = invalidModules.mkString("\n")
+        Result.Failure[Unit](msg)
+      }
     }
+  }
 
   /** Control whether `run*`-targets should use an args file to pass command line args, if possible. */
   def runUseArgsFile: T[Boolean] = T { scala.util.Properties.isWin }
@@ -815,7 +853,8 @@ trait JavaModule
         ),
         resolveDeps(
           T.task {
-            runIvyDeps() ++ transitiveIvyDeps()
+            val bind = bindDependency()
+            runIvyDeps().map(bind) ++ transitiveIvyDeps()
           },
           sources = true
         )

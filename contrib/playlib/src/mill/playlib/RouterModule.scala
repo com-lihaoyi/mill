@@ -45,7 +45,10 @@ trait RouterModule extends ScalaModule with Version {
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
   def routerClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}") })()
+    resolveDeps(T.task {
+      val bind = bindDependency()
+      Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}").map(bind)
+    })()
   }
 
   protected val routeCompilerWorker: RouteCompilerWorkerModule = RouteCompilerWorkerModule
@@ -53,7 +56,7 @@ trait RouterModule extends ScalaModule with Version {
   def compileRouter: T[CompilationResult] = T.persistent {
     T.log.debug(s"compiling play routes with ${playVersion()} worker")
     routeCompilerWorker.routeCompilerWorker().compile(
-      routerClasspath = playRouterToolsClasspath().map(_.path),
+      routerClasspath = playRouterToolsClasspath(),
       files = routeFiles().map(_.path),
       additionalImports = routesAdditionalImport,
       forwardsRouter = generateForwardsRouter,

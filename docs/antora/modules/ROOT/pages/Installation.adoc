@@ -19,7 +19,7 @@ If you are using Mill in a codebase, you can commit the bootstrap launcher as a
 
 [source,bash,subs="verbatim,attributes"]
 ----
-curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
+curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-version} > mill && chmod +x mill
 ----
 
 Now, anyone who wants to work with the project can simply use the `./mill`

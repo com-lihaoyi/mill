@@ -3,11 +3,12 @@ package mill.scalalib
 import scala.collection.immutable
 import scala.util.Try
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
-
 import ammonite.runtime.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import coursier.{LocalRepositories, Repositories, Repository}
+import mil.scalalib.BoundDep
+
 import java.nio.file.Paths
 import mill.Agg
 import mill.api.Ctx.{Home, Log}
@@ -102,10 +103,11 @@ case class GenIdeaImpl(
               LocalRepositories.ivy2Local,
               Repositories.central
             )
-            val millDeps = BuildInfo.millEmbeddedDeps.map(d => ivy"$d")
+            val millDeps = BuildInfo.millEmbeddedDeps.map(d => ivy"$d").map(dep =>
+              BoundDep(Lib.depToDependency(dep, BuildInfo.scalaVersion, ""), dep.force)
+            )
             val Result.Success(res) = scalalib.Lib.resolveDependencies(
               repositories = repos.toList,
-              depToDependency = Lib.depToDependency(_, BuildInfo.scalaVersion, ""),
               deps = millDeps,
               sources = false,
               mapDependencies = None,
@@ -118,7 +120,6 @@ case class GenIdeaImpl(
             {
               scalalib.Lib.resolveDependencies(
                 repositories = repos.toList,
-                depToDependency = Lib.depToDependency(_, BuildInfo.scalaVersion, ""),
                 deps = millDeps,
                 sources = true,
                 mapDependencies = None,
@@ -157,14 +158,20 @@ case class GenIdeaImpl(
         }
 
         val externalLibraryDependencies = T.task {
-          mod.resolveDeps(mod.mandatoryIvyDeps)()
+          mod.resolveDeps(T.task {
+            val bind = mod.bindDependency()
+            mod.mandatoryIvyDeps().map(bind) })()
         }
 
         val externalDependencies = T.task {
           mod.resolvedIvyDeps() ++
             T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
         }
-        val extCompileIvyDeps = mod.resolveDeps(mod.compileIvyDeps)
+        val extCompileIvyDeps =
+          mod.resolveDeps(T.task {
+            val bind = mod.bindDependency()
+            mod.compileIvyDeps().map(bind)
+          })
         val extRunIvyDeps = mod.resolvedRunIvyDeps
 
         val externalSources = T.task {
@@ -180,7 +187,10 @@ case class GenIdeaImpl(
         }
 
         val scalacPluginDependencies = T.task {
-          mod.resolveDeps(scalacPluginsIvyDeps)()
+          mod.resolveDeps(T.task {
+            val bind = mod.bindDependency()
+            scalacPluginsIvyDeps().map(bind)
+          })()
         }
 
         val facets = T.task {

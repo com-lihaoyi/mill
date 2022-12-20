@@ -54,7 +54,8 @@ object Settings {
     "0.10.7",
     "0.10.8",
     "0.10.9",
-    "0.10.10"
+    "0.10.10",
+    "0.11.0-M1"
   )
   val mimaBaseVersions: Seq[String] = Seq()
 }
@@ -66,7 +67,7 @@ object Deps {
   // Scoverage 1.x will not get releases for newer Scala versions
   val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.15"
+  val workerScalaVersion212 = "2.12.17"
 
   val testScala213Version = "2.13.8"
   val testScala212Version = "2.12.6"
@@ -131,7 +132,7 @@ object Deps {
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   // avoid version 2.1.0-RC2 for issue https://github.com/coursier/coursier/issues/2603
-  val coursier = ivy"io.get-coursier::coursier:2.1.0-RC1"
+  val coursier = ivy"io.get-coursier::coursier:2.1.0-RC3"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -155,7 +156,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.0"
-  val scalametaTrees = ivy"org.scalameta::trees:4.6.0"
+  val scalametaTrees = ivy"org.scalameta::trees:4.7.0"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.7"
@@ -727,7 +728,7 @@ object contrib extends MillModule {
         "MILL_SCOVERAGE2_REPORT_WORKER" -> worker2.compile().classes.path,
         "MILL_SCOVERAGE_VERSION" -> Deps.scalacScoveragePlugin.dep.version,
         "MILL_SCOVERAGE2_VERSION" -> Deps.scalacScoverage2Plugin.dep.version,
-        "TEST_SCALA_2_12_VERSION" -> Deps.workerScalaVersion212
+        "TEST_SCALA_2_12_VERSION" -> "2.12.15" // last supported 2.12 version for Scoverage 1.x
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -879,30 +880,24 @@ object contrib extends MillModule {
 }
 
 object scalanativelib extends MillModule {
-  override def moduleDeps = Seq(scalalib, scalanativelib.api)
+  override def moduleDeps = Seq(scalalib, scalanativelib.`worker-api`)
 
   override def testArgs = T {
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_4_2_12" -> worker(
-        "0.4",
-        Deps.workerScalaVersion212
-      ).compile().classes.path,
-      "MILL_SCALANATIVE_WORKER_0_4_2_13" -> worker("0.4", Deps.scalaVersion).compile().classes.path
+      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").compile().classes.path
     )
     scalalib.worker.testArgs() ++
       scalalib.backgroundwrapper.testArgs() ++
       (for ((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
   }
 
-  object api extends MillPublishModule {
+  object `worker-api` extends MillInternalModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
-  object worker
-      extends Cross[WorkerModule](("0.4", Deps.scalaVersion), ("0.4", Deps.workerScalaVersion212))
-  class WorkerModule(scalaNativeWorkerVersion: String, val crossScalaVersion: String)
-      extends CrossModuleBase with MillInternalModule {
-    override def scalaVersion = T { crossScalaVersion }
-    override def moduleDeps = Seq(scalanativelib.api)
+  object worker extends Cross[WorkerModule]("0.4")
+  class WorkerModule(scalaNativeWorkerVersion: String)
+      extends MillInternalModule {
+    override def moduleDeps = Seq(scalanativelib.`worker-api`)
     override def ivyDeps = scalaNativeWorkerVersion match {
       case "0.4" =>
         Agg(
