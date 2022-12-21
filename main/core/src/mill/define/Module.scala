@@ -22,7 +22,17 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
    */
   object millInternal extends Module.Internal(this)
 
-  lazy val millModuleDirectChildren: Seq[Module] = millInternal.reflectNestedObjects[Module].toSeq
+  /**
+   * Override to dynamically disable a module at runtime.
+   * When `enabled = false` the module is ignored by Mill.
+   */
+  def enabled: Boolean = true
+
+  def millModuleDirectChildren: Seq[Module] = millModuleDirectChildrenImpl
+  // We keep a private `lazy val` and a public `def` so
+  // subclasses can call `super.millModuleDirectChildren`
+  private lazy val millModuleDirectChildrenImpl: Seq[Module] =
+    millInternal.reflectNestedObjects[Module].filter(_.enabled).toSeq
   def millOuterCtx = outerCtx0
   def millSourcePath: os.Path = millOuterCtx.millSourcePath / millOuterCtx.segment.pathSegments
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
