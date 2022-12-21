@@ -211,7 +211,8 @@ abstract class Resolve[R: ClassTag] {
                 case "__" => obj.millInternal.modules
                 case "_" => obj.millModuleDirectChildren
                 case _ =>
-                  obj.millInternal.reflectNestedObjects[mill.Module]
+                  obj
+                    .millModuleDirectChildren
                     .find(_.millOuterCtx.segment == Segment.Label(singleLabel))
                     .toSeq
               },
