@@ -57,7 +57,7 @@ object Settings {
     "0.10.10",
     "0.11.0-M1"
   )
-  val mimaBaseVersions: Seq[String] = Seq()
+  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M1")
 }
 
 object Deps {

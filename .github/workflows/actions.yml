@@ -71,7 +71,7 @@ jobs:
 
     runs-on: ubuntu-latest
     # when doing milestone builds, this may be true
-    continue-on-error: false
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v3
