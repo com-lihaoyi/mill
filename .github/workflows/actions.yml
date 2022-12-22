@@ -3,6 +3,7 @@ name: Build and Release
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
 
@@ -71,7 +72,7 @@ jobs:
 
     runs-on: ubuntu-latest
     # when doing milestone builds, this may be true
-    continue-on-error: false
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v3
@@ -127,8 +128,8 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   publish-sonatype:
-    # when in master repo: all commits to main branch and all additional tags
-    if: github.repository == 'com-lihaoyi/mill' && ( github.ref == 'refs/heads/main' || (github.ref != 'refs/heads/main' && startsWith( github.ref, 'refs/tags/') ) )
+    # when in master repo, publish all tags and manual runs
+    if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
     needs: [test, test-windows, test-bin-compat]
 
     runs-on: ubuntu-latest
@@ -161,8 +162,8 @@ jobs:
       - run: ci/release-maven.sh
 
   release-github:
-    # when in master repo: all commits to main branch and all additional tags
-    if: github.repository == 'com-lihaoyi/mill' && ( github.ref == 'refs/heads/main' || (github.ref != 'refs/heads/main' && startsWith( github.ref, 'refs/tags/') ) )
+    # when in master repo, publish all tags and manual runs
+    if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
     needs: publish-sonatype
     runs-on: ubuntu-latest
 
