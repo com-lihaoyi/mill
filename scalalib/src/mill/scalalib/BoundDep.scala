@@ -1,4 +1,4 @@
-package mil.scalalib
+package mill.scalalib
 
 import mill.scalalib.{CrossVersion, Dep}
 import mill.scalalib.JsonFormatters._
