@@ -9,7 +9,6 @@ import mill.modules.Jvm.createJar
 import Lib._
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.Loose.Agg
-import mill.eval.EvaluatorPathsResolver
 import mill.scalalib.api.{CompilationResult, ZincWorkerUtil}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 
