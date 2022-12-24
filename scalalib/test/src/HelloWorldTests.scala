@@ -202,6 +202,10 @@ object HelloWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
       override def versionScheme = Some(VersionScheme.EarlySemVer)
+
+      def checkSonatypeCreds(sonatypeCreds: String) = T.command {
+        PublishModule.checkSonatypeCreds(sonatypeCreds)
+      }
     }
   }
 
@@ -323,9 +327,10 @@ object HelloWorldTests extends TestSuite {
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,
-      resourcePath: os.Path = resourcePath
+      resourcePath: os.Path = resourcePath,
+      env: Map[String, String] = Evaluator.defaultEnv
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new TestEvaluator(m, env = env)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -1060,6 +1065,42 @@ object HelloWorldTests extends TestSuite {
         val pomXml = scala.xml.XML.loadFile(result.path.toString)
         val versionScheme = pomXml \ "properties" \ "info.versionScheme"
         assert(versionScheme.text == "early-semver")
+      }
+    }
+
+    "publish" - {
+      "should retrieve credentials from environment variables if direct argument is empty" - workspaceTest(
+        HelloWorldWithPublish,
+        env = Evaluator.defaultEnv ++ Seq("SONATYPE_USERNAME" -> "user", "SONATYPE_PASSWORD" -> "password")
+      ) { eval =>
+        val Right((credentials, evalCount)) =
+          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
+
+        assert(
+          credentials == "user:password",
+          evalCount > 0
+        )
+      }
+      "should prefer direct argument as credentials over environment variables" - workspaceTest(
+        HelloWorldWithPublish,
+        env = Evaluator.defaultEnv ++ Seq("SONATYPE_USERNAME" -> "user", "SONATYPE_PASSWORD" -> "password")
+      ) { eval =>
+        val directValue = "direct:value"
+        val Right((credentials, evalCount)) =
+          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(directValue))
+
+        assert(
+          credentials == directValue,
+          evalCount > 0
+        )
+      }
+      "should throw exception if neither environment variables or direct argument were not passed" - workspaceTest(
+        HelloWorldWithPublish
+      ) { eval =>
+        val Left(Result.Failure(msg, None)) =
+          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
+
+        assert(msg.contains("Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables"))
       }
     }
 
