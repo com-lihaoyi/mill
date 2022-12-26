@@ -33,6 +33,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
       isFullLinkJS: Boolean,
       optimizer: Boolean,
+      sourceMap: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
@@ -103,6 +104,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
         .withESFeatures(scalaJSESFeatures)
+        .withSourceMap(input.sourceMap)
 
       // Separating ModuleSplitStyle in a standalone object avoids
       // early classloading which fails in Scala.js versions where
@@ -161,6 +163,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
       optimizer: Boolean,
+      sourceMap: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle
@@ -172,6 +175,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(
       isFullLinkJS = isFullLinkJS,
       optimizer = optimizer,
+      sourceMap = sourceMap,
       moduleKind = moduleKind,
       esFeatures = esFeatures,
       moduleSplitStyle = moduleSplitStyle,
@@ -198,19 +202,22 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         if (useLegacy) {
           val jsFileName = "out.js"
           val jsFile = new File(dest, jsFileName).toPath()
-          val sourceMapName = jsFile.getFileName + ".map"
-          val sourceMap = jsFile.resolveSibling(sourceMapName)
-          val linkerOutput = LinkerOutput(PathOutputFile(jsFile))
+          var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
-            .withSourceMap(PathOutputFile(sourceMap))
-            .withSourceMapURI(java.net.URI.create(sourceMap.getFileName.toString))
+          val sourceMapNameOpt = Option.when(sourceMap)(jsFile.getFileName + ".map")
+          sourceMapNameOpt.foreach { sourceMapName =>
+            val sourceMapFile = jsFile.resolveSibling(sourceMapName)
+            linkerOutput = linkerOutput
+              .withSourceMap(PathOutputFile(sourceMapFile))
+              .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
+          }
           linker.link(sourceIRs ++ libraryIRs, moduleInitializers, linkerOutput, logger).map {
             file =>
               Report(
                 publicModules = Seq(Report.Module(
                   moduleID = "main",
                   jsFileName = jsFileName,
-                  sourceMapName = Some(sourceMapName),
+                  sourceMapName = sourceMapNameOpt,
                   moduleKind = moduleKind
                 )),
                 dest = dest

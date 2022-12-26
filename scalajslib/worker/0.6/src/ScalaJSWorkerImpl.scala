@@ -80,6 +80,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       testBridgeInit: Boolean, // ignored in 0.6
       isFullLinkJS: Boolean,
       optimizer: Boolean,
+      sourceMap: Boolean, // ignored in 0.6
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle // ignored in 0.6

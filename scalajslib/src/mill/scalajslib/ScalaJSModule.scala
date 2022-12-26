@@ -118,6 +118,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       testBridgeInit = false,
       isFullLinkJS = isFullLinkJS,
       optimizer = scalaJSOptimizer(),
+      sourceMap = scalaJSSourceMap(),
       moduleKind = moduleKind(),
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle()
@@ -157,6 +158,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
       optimizer: Boolean,
+      sourceMap: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle
@@ -172,18 +174,19 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       .filter(_.ext == "sjsir")
     val libraries = classpath.filter(_.ext == "jar")
     worker.link(
-      toolsClasspath,
-      sjsirFiles,
-      libraries,
-      outputPath.toIO,
-      mainClass,
-      forceOutJs,
-      testBridgeInit,
-      isFullLinkJS,
-      optimizer,
-      moduleKind,
-      esFeatures,
-      moduleSplitStyle
+      toolsClasspath = toolsClasspath,
+      sources = sjsirFiles,
+      libraries = libraries,
+      dest = outputPath.toIO,
+      main = mainClass,
+      forceOutJs = forceOutJs,
+      testBridgeInit = testBridgeInit,
+      isFullLinkJS = isFullLinkJS,
+      optimizer = optimizer,
+      sourceMap = sourceMap,
+      moduleKind = moduleKind,
+      esFeatures = esFeatures,
+      moduleSplitStyle = moduleSplitStyle
     )
   }
 
@@ -232,6 +235,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSOptimizer: Target[Boolean] = T { true }
 
+  def scalaJSSourceMap: Target[Boolean] = T { true }
+
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((
@@ -272,6 +277,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       testBridgeInit = true,
       isFullLinkJS = false,
       optimizer = scalaJSOptimizer(),
+      sourceMap = scalaJSSourceMap(),
       moduleKind = moduleKind(),
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle()
