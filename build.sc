@@ -80,12 +80,6 @@ object Deps {
 
   val testScalaJs06Version = "0.6.33"
 
-  object Scalajs_0_6 {
-    val scalajsJsEnvs = ivy"org.scala-js::scalajs-js-envs:0.6.33"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.33"
-    val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.33"
-  }
-
   object Scalajs_1 {
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
@@ -588,7 +582,6 @@ object scalajslib extends MillModule {
 
   override def testArgs = T {
     val mapping = Map(
-      "MILL_SCALAJS_WORKER_0_6" -> worker("0.6").compile().classes.path,
       "MILL_SCALAJS_WORKER_1" -> worker("1").compile().classes.path
     )
     Seq("-Djna.nosys=true") ++
@@ -635,26 +628,17 @@ object scalajslib extends MillModule {
   object `worker-api` extends MillInternalModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
-  object worker extends Cross[WorkerModule]("0.6", "1")
+  object worker extends Cross[WorkerModule]("1")
   class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
     override def moduleDeps = Seq(scalajslib.`worker-api`)
-    override def ivyDeps = scalajsWorkerVersion match {
-      case "0.6" =>
-        Agg(
-          Deps.Scalajs_0_6.scalajsTools,
-          Deps.Scalajs_0_6.scalajsSbtTestAdapter,
-          Deps.Scalajs_0_6.scalajsJsEnvs
-        )
-      case "1" =>
-        Agg(
-          Deps.Scalajs_1.scalajsLinker,
-          Deps.Scalajs_1.scalajsSbtTestAdapter,
-          Deps.Scalajs_1.scalajsEnvNodejs,
-          Deps.Scalajs_1.scalajsEnvJsdomNodejs,
-          Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
-          Deps.Scalajs_1.scalajsEnvPhantomjs
-        )
-    }
+    override def ivyDeps = Agg(
+      Deps.Scalajs_1.scalajsLinker,
+      Deps.Scalajs_1.scalajsSbtTestAdapter,
+      Deps.Scalajs_1.scalajsEnvNodejs,
+      Deps.Scalajs_1.scalajsEnvJsdomNodejs,
+      Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
+      Deps.Scalajs_1.scalajsEnvPhantomjs
+    )
   }
 }
 

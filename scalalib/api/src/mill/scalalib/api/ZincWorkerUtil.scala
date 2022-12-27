@@ -66,7 +66,7 @@ trait ZincWorkerUtil {
 
   def scalaJSBinaryVersion(scalaJSVersion: String) = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
-      "0.6"
+      throw new Exception("Scala.js 0.6 is not supported")
     case ScalaJSFullVersion(major, minor, patch, suffix) =>
       if (suffix != null && minor == "0" && patch == "0")
         s"$major.$minor$suffix"
@@ -76,7 +76,7 @@ trait ZincWorkerUtil {
 
   def scalaJSWorkerVersion(scalaJSVersion: String) = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
-      "0.6"
+      throw new Exception("Scala.js 0.6 is not supported")
     case ScalaJSFullVersion(major, _, _, _) =>
       major
   }
@@ -99,6 +99,7 @@ trait ZincWorkerUtil {
   /* Starting from Scala.js 0.6.29 and in 1.x, test artifacts must depend on
    * scalajs-test-bridge instead of scalajs-test-interface.
    */
+  @deprecated("No longer used", "Mill after 0.11.0-M0")
   def scalaJSUsesTestBridge(scalaJSVersion: String): Boolean = scalaJSVersion match {
     case ScalaJSFullVersion("0", "6", patch, _) => patch.toInt >= 29
     case _ => true
