@@ -172,13 +172,6 @@ object HelloJSWorldTests extends TestSuite {
         ).artifactMetadata)
         assert(result.id == artifactId)
       }
-      test("artifactId_06") {
-        testArtifactId(
-          HelloJSWorld.scalaVersions.head,
-          "0.6.33",
-          "hello-js-world_sjs0.6_2.13"
-        )
-      }
       test("artifactId_10") {
         testArtifactId(
           HelloJSWorld.scalaVersions.head,

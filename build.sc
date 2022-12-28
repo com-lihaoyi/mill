@@ -78,15 +78,14 @@ object Deps {
   val testScala31Version = "3.1.3"
   val testScala32Version = "3.2.0"
 
-  val testScalaJs06Version = "0.6.33"
-
   object Scalajs_1 {
+    val scalaJsVersion = "1.12.0"
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.12.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.12.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}"
   }
 
   object Scalanative_0_4 {
@@ -302,8 +301,8 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
         s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
         s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
         s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
-        s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
-        s"-DTEST_SCALAJS_0_6_VERSION=${Deps.testScalaJs06Version}"
+        s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
+        s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
       ) ++ outer.testArgs()
     }
     override def moduleDeps = outer.testModuleDeps
