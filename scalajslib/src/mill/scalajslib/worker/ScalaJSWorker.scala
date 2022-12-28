@@ -137,6 +137,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
       optimizer: Boolean,
+      sourceMap: Boolean,
       moduleKind: api.ModuleKind,
       esFeatures: api.ESFeatures,
       moduleSplitStyle: api.ModuleSplitStyle
@@ -150,6 +151,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       testBridgeInit = testBridgeInit,
       isFullLinkJS = isFullLinkJS,
       optimizer = optimizer,
+      sourceMap = sourceMap,
       moduleKind = toWorkerApi(moduleKind),
       esFeatures = toWorkerApi(esFeatures),
       moduleSplitStyle = toWorkerApi(moduleSplitStyle)
