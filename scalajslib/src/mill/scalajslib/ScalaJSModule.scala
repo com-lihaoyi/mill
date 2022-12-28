@@ -235,6 +235,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSOptimizer: Target[Boolean] = T { true }
 
+  /** Whether to emit a source map. */
   def scalaJSSourceMap: Target[Boolean] = T { true }
 
   @internal
