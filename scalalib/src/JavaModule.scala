@@ -616,7 +616,7 @@ trait JavaModule
   /**
    * Command to print the transitive dependency tree to STDOUT.
    */
-  def ivyDepsTree(args: IvyDepsTreeArgs): Command[Unit] = {
+  def ivyDepsTree(args: IvyDepsTreeArgs = IvyDepsTreeArgs()): Command[Unit] = {
 
     val dependsOnModules = args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_))
 
