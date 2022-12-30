@@ -641,7 +641,11 @@ trait JavaModule
           }
         case (Flag(false), Flag(true)) =>
           T.command {
-            printDepsTree(args.inverse.value, T.task { runIvyDeps().map(bindDependency()) }, validModules)
+            printDepsTree(
+              args.inverse.value,
+              T.task { runIvyDeps().map(bindDependency()) },
+              validModules
+            )
           }
         case _ =>
           T.command {

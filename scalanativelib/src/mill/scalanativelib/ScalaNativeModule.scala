@@ -7,7 +7,16 @@ import mill.api.{Result, internal}
 import mill.define.{Target, Task}
 import mill.modules.Jvm
 import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.{BoundDep, CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
+import mill.scalalib.{
+  BoundDep,
+  CrossVersion,
+  Dep,
+  DepSyntax,
+  Lib,
+  SbtModule,
+  ScalaModule,
+  TestModule
+}
 import mill.testrunner.TestRunner
 import mill.scalanativelib.api._
 import mill.scalanativelib.worker.{api => workerApi, ScalaNativeWorkerExternalModule}

@@ -5,8 +5,6 @@ import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
 import mill.scalalib.api.ZincWorkerUtil
 
-
-
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
     !dep.module.name.value.contains("/") &&

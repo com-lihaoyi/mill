@@ -60,7 +60,8 @@ object BspModuleTests extends TestSuite {
             MultiBase.HelloBsp.bspCompileClasspath
           )
 
-          val relResult = result.iterator.map(_.resolve(eval.evaluator.pathsResolver).last).toSeq.sorted
+          val relResult =
+            result.iterator.map(_.resolve(eval.evaluator.pathsResolver).last).toSeq.sorted
           val expected = Seq(
             "compile-resources",
             "slf4j-api-1.7.34.jar",

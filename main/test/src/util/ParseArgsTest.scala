@@ -170,7 +170,7 @@ object ParseArgsTest extends TestSuite {
       "rejectEmpty" - {
         val parsed = ParseArgs(Seq.empty, selectMode = SelectMode.Single)
         assert(
-           parsed == Left("Selector cannot be empty")
+          parsed == Left("Selector cannot be empty")
         )
       }
       "singleSelector" - check(

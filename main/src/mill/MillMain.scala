@@ -124,7 +124,7 @@ object MillMain {
         (false, None)
 
       case Right(config) =>
-        if(!config.ammoniteCore.silent.value) {
+        if (!config.ammoniteCore.silent.value) {
           checkMillVersionFromFile(os.pwd, stderr)
         }
 
