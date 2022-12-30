@@ -8,7 +8,7 @@ import mill.main.ResolveMetadata.singleModuleMeta
 import scala.collection.immutable
 import scala.reflect.ClassTag
 
-object Resolve extends LevenshteinDistance {
+object Resolve {
 
   def unableToResolve(last: Segment, revSelectorsSoFar: Seq[Segment]): String = {
     unableToResolve(Segments((last +: revSelectorsSoFar).reverse: _*).render)
@@ -41,7 +41,10 @@ object Resolve extends LevenshteinDistance {
         .map(x => (x, strings(x)))
         .filter(_._2.length == last.length)
         .map { case (d, s) =>
-          (d, s.zip(last).map { case (a, b) => Resolve.editDistance(editSplit(a), b) }.sum)
+          (
+            d,
+            s.zip(last).map { case (a, b) => LevenshteinDistance.editDistance(editSplit(a), b) }.sum
+          )
         }
         .filter(_._2 < 3)
         .sortBy(_._2)
