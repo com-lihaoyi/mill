@@ -150,7 +150,10 @@ class ZincWorkerImpl(
     os.makeDir.all(compileDest)
 
     val sourceFolder = mill.api.IO.unpackZip(compilerBridgeSourcesJar)(workingDir)
-    val classloader = mill.api.ClassLoader.create(compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq, null)(ctx0)
+    val classloader = mill.api.ClassLoader.create(
+      compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq,
+      null
+    )(ctx0)
 
     val (sources, resources) =
       os.walk(sourceFolder.path).filter(os.isFile)
@@ -165,7 +168,9 @@ class ZincWorkerImpl(
       "-d",
       compileDest.toString,
       "-classpath",
-      (compilerClasspath.iterator ++ compilerBridgeClasspath).map(_.path).mkString(File.pathSeparator)
+      (compilerClasspath.iterator ++ compilerBridgeClasspath).map(_.path).mkString(
+        File.pathSeparator
+      )
     ) ++ sources.map(_.toString)
 
     val allScala = sources.forall(_.ext == "scala")
@@ -380,7 +385,8 @@ class ZincWorkerImpl(
       scalacPluginClasspath: Agg[PathRef]
   )(f: Compilers => T)(implicit ctx: ZincWorkerApi.Ctx) = {
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
-    val compilersSig = combinedCompilerClasspath.hashCode + scalaVersion.hashCode + scalaOrganization.hashCode
+    val compilersSig =
+      combinedCompilerClasspath.hashCode + scalaVersion.hashCode + scalaOrganization.hashCode
     val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
     val compiledCompilerBridge = compileBridgeIfNeeded(

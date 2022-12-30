@@ -56,7 +56,8 @@ trait AmmDependenciesResourceFileModule extends JavaModule {
   def dependencyResourceFileName: String
   override def resources = T.sources {
     val deps0 = T.task {
-      compileIvyDeps().map(bindDependency()) ++ transitiveIvyDeps() }()
+      compileIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
+    }()
     val (_, res) = mill.modules.Jvm.resolveDependenciesMetadata(
       repositoriesTask(),
       deps0.map(_.dep),
@@ -159,9 +160,12 @@ object amm extends Cross[MainModule](fullCrossScalaVersions: _*) {
         (super.resources() ++
           ReplModule.this.sources() ++
           ReplModule.this.externalSources() ++
-          resolveDeps(T.task{
-            ivyDeps().map(bindDependency())
-          }, sources = true)()).distinct
+          resolveDeps(
+            T.task {
+              ivyDeps().map(bindDependency())
+            },
+            sources = true
+          )()).distinct
       }
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"org.scalaz::scalaz-core:7.2.24"

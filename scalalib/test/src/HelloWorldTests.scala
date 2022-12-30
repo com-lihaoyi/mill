@@ -1071,7 +1071,10 @@ object HelloWorldTests extends TestSuite {
     "publish" - {
       "should retrieve credentials from environment variables if direct argument is empty" - workspaceTest(
         HelloWorldWithPublish,
-        env = Evaluator.defaultEnv ++ Seq("SONATYPE_USERNAME" -> "user", "SONATYPE_PASSWORD" -> "password")
+        env = Evaluator.defaultEnv ++ Seq(
+          "SONATYPE_USERNAME" -> "user",
+          "SONATYPE_PASSWORD" -> "password"
+        )
       ) { eval =>
         val Right((credentials, evalCount)) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
@@ -1083,7 +1086,10 @@ object HelloWorldTests extends TestSuite {
       }
       "should prefer direct argument as credentials over environment variables" - workspaceTest(
         HelloWorldWithPublish,
-        env = Evaluator.defaultEnv ++ Seq("SONATYPE_USERNAME" -> "user", "SONATYPE_PASSWORD" -> "password")
+        env = Evaluator.defaultEnv ++ Seq(
+          "SONATYPE_USERNAME" -> "user",
+          "SONATYPE_PASSWORD" -> "password"
+        )
       ) { eval =>
         val directValue = "direct:value"
         val Right((credentials, evalCount)) =
@@ -1100,7 +1106,9 @@ object HelloWorldTests extends TestSuite {
         val Left(Result.Failure(msg, None)) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
 
-        assert(msg.contains("Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables"))
+        assert(
+          msg.contains("Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables")
+        )
       }
     }
 

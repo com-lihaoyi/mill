@@ -159,7 +159,8 @@ case class GenIdeaImpl(
         val externalLibraryDependencies = T.task {
           mod.resolveDeps(T.task {
             val bind = mod.bindDependency()
-            mod.mandatoryIvyDeps().map(bind) })()
+            mod.mandatoryIvyDeps().map(bind)
+          })()
         }
 
         val externalDependencies = T.task {

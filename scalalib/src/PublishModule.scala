@@ -279,7 +279,9 @@ object PublishModule extends ExternalModule {
       } yield {
         Result.Success(s"$username:$password")
       }).getOrElse(
-        Result.Failure("Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables or passing `sonatypeCreds` argument")
+        Result.Failure(
+          "Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables or passing `sonatypeCreds` argument"
+        )
       )
     } else {
       Result.Success(sonatypeCreds)

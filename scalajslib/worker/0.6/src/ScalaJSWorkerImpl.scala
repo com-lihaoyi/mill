@@ -199,7 +199,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
           .withAutoExit(config.autoExit)
       )
     case _: JsEnvConfig.ExoegoJsDomNodeJs => throw new Exception(
-      "Not supported on Scala.js 0.6"
-    )
+        "Not supported on Scala.js 0.6"
+      )
   }
 }
