@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.api.{PathRef, Result, experimental}
+import mill.api.{Loose, PathRef, Result, experimental}
 import mill.{Agg, BuildInfo, T}
 import mill.define.{Ctx, Input, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
@@ -100,86 +100,97 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
   }
 
   private def resolvedJavaSemanticDbPluginIvyDeps: Target[Agg[PathRef]] = T {
-    resolveDeps(javaSemanticDbPluginIvyDeps)()
+    resolveDeps(T.task { javaSemanticDbPluginIvyDeps().map(bindDependency()) })()
   }
 
-  def semanticDbData: T[PathRef] = hostModule match {
-    // TODO: also generate semanticDB for Java and Mixed-Java projects
-    case m: ScalaModule =>
-      T.persistent {
-        val sv = m.scalaVersion()
+  def semanticDbData: T[PathRef] = {
+    // TODO: add extra options for Java 17+
+    def javacOptionsTask(m: JavaModule): Task[Seq[String]] = T.task {
+      m.javacOptions() ++ Seq(
+        s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"}"
+      )
+    }
+    def compileClasspathTask(m: JavaModule): Task[Agg[PathRef]] = T.task {
+      m.compileClasspath() ++ resolvedJavaSemanticDbPluginIvyDeps()
+    }
 
-        val scalacOptions = (
-          m.allScalacOptions() ++
-            semanticDbEnablePluginScalacOptions() ++ {
-              if (ZincWorkerUtil.isScala3(sv)) {
-                Seq("-Xsemanticdb")
-              } else {
-                Seq(
-                  "-Yrangepos",
-                  s"-P:semanticdb:sourceroot:${T.workspace}",
-                  "-Ystop-after:semanticdb-typer"
-                )
+    hostModule match {
+      // TODO: also generate semanticDB for Java and Mixed-Java projects
+      case m: ScalaModule =>
+        T.persistent {
+          val sv = m.scalaVersion()
+
+          val scalacOptions = (
+            m.allScalacOptions() ++
+              semanticDbEnablePluginScalacOptions() ++ {
+                if (ZincWorkerUtil.isScala3(sv)) {
+                  Seq("-Xsemanticdb")
+                } else {
+                  Seq(
+                    "-Yrangepos",
+                    s"-P:semanticdb:sourceroot:${T.workspace}",
+                    "-Ystop-after:semanticdb-typer"
+                  )
+                }
               }
-            }
-        )
-          .filterNot(_ == "-Xfatal-warnings")
-        T.log.debug(s"effective scalac options: ${scalacOptions}")
-
-        zincWorker
-          .worker()
-          .compileMixed(
-            upstreamCompileOutput = upstreamCompileOutput(),
-            sources = m.allSourceFiles().map(_.path),
-            compileClasspath = compileClasspath().map(_.path),
-            javacOptions = javacOptions(),
-            scalaVersion = sv,
-            scalaOrganization = m.scalaOrganization(),
-            scalacOptions = scalacOptions,
-            compilerClasspath = m.scalaCompilerClasspath(),
-            scalacPluginClasspath = semanticDbPluginClasspath(),
-            reporter = T.reporter.apply(hashCode)
           )
-          .map(_.classes)
-      }
-    case m: JavaModule =>
-      T.persistent {
-        // TODO: add extra options for Java 17+
-        val javacOptions = m.javacOptions() ++ Seq(
-          s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"}"
-        )
+            .filterNot(_ == "-Xfatal-warnings")
+          T.log.debug(s"effective scalac options: ${scalacOptions}")
 
-        val compileClasspath = m.compileClasspath() ++ resolvedJavaSemanticDbPluginIvyDeps()
+          zincWorker
+            .worker()
+            .compileMixed(
+              upstreamCompileOutput = upstreamCompileOutput(),
+              sources = m.allSourceFiles().map(_.path),
+              compileClasspath = compileClasspathTask(m)().map(_.path),
+              javacOptions = javacOptionsTask(m)(),
+              scalaVersion = sv,
+              scalaOrganization = m.scalaOrganization(),
+              scalacOptions = scalacOptions,
+              compilerClasspath = m.scalaCompilerClasspath(),
+              scalacPluginClasspath = semanticDbPluginClasspath(),
+              reporter = T.reporter.apply(hashCode)
+            )
+            .map(_.classes)
+        }
+      case m: JavaModule =>
+        T.persistent {
+          val compileClasspath = m.compileClasspath() ++ resolvedJavaSemanticDbPluginIvyDeps()
 
-        val semDbPath = T.dest / "_semanticdb"
-        os.remove.all(semDbPath)
+          // we currently assume, we don't do incremental java compilation
+          val semDbPath = T.dest / "_semanticdb"
+          os.remove.all(semDbPath)
 
-        zincWorker
-          .worker()
-          .compileJava(
-            upstreamCompileOutput(),
-            allSourceFiles().map(_.path),
-            compileClasspath.map(_.path),
-            javacOptions,
-            T.reporter.apply(m.hashCode())
-          ).map { compileResult =>
-            val classes = compileResult.classes.path
-            os.walk(
-              classes,
-              skip = p => !(os.isFile(p) && p.ext == "semanticdb"),
-              preOrder = true
-            ).filter(os.isFile)
-              .foreach { p =>
-                os.copy(
-                  from = p,
-                  to = semDbPath / p.relativeTo(classes),
-                  createFolders = true
-                )
-              }
-            PathRef(semDbPath)
-          }
-      }
+          zincWorker
+            .worker()
+            .compileJava(
+              upstreamCompileOutput(),
+              allSourceFiles().map(_.path),
+              compileClasspathTask(m)().map(_.path),
+              javacOptionsTask(m)(),
+              T.reporter.apply(m.hashCode())
+            ).map { compileResult =>
+              val classes = compileResult.classes.path
 
+              // move generated semanticdb files into separate folder
+              os.walk(
+                classes,
+                skip = p => !(os.isFile(p) && p.ext == "semanticdb"),
+                preOrder = true
+              ).filter(os.isFile)
+                .foreach { p =>
+                  os.copy(
+                    from = p,
+                    to = semDbPath / p.relativeTo(classes),
+                    createFolders = true
+                  )
+                }
+              // and only return folder with semanticdb files
+              PathRef(semDbPath)
+            }
+        }
+
+    }
   }
 
   // keep in sync with bspCompiledClassesAndSemanticDbFiles
