@@ -21,7 +21,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
     ).asInstanceOf[String]
   }
 
-  def javaSemanticDbVersion: Input[String] = T.input {
+  def semanticDbJavaVersion: Input[String] = T.input {
     T.env.getOrElse(
       "JAVASEMANTICDB_VERSION",
       SemanticDbJavaModule.contextJavaSemanticDbVersion.get()
@@ -56,14 +56,14 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
     }
   }
 
-  private def javaSemanticDbPluginIvyDeps: Target[Agg[Dep]] = T {
-    val sv = javaSemanticDbVersion()
+  private def semanticDbJavaPluginIvyDeps: Target[Agg[Dep]] = T {
+    val sv = semanticDbJavaVersion()
     if (sv.isEmpty) {
       val msg =
         """|
            |You must provide a javaSemanticDbVersion
            |
-           |def javaSemanticDbVersion = ???
+           |def semanticDbJavaVersion = ???
            |""".stripMargin
       Result.Failure(msg)
     } else {
@@ -99,23 +99,34 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
       }
   }
 
-  private def resolvedJavaSemanticDbPluginIvyDeps: Target[Agg[PathRef]] = T {
-    resolveDeps(T.task { javaSemanticDbPluginIvyDeps().map(bindDependency()) })()
+  private def resolvedSemanticDbJavaPluginIvyDeps: Target[Agg[PathRef]] = T {
+    resolveDeps(T.task { semanticDbJavaPluginIvyDeps().map(bindDependency()) })()
   }
 
   def semanticDbData: T[PathRef] = {
     // TODO: add extra options for Java 17+
     def javacOptionsTask(m: JavaModule): Task[Seq[String]] = T.task {
+      val more = if(T.log.debugEnabled) " -verbose" else ""
       m.javacOptions() ++ Seq(
-        s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"}"
+        s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"} -build-tool:sbt" + more
       )
     }
     def compileClasspathTask(m: JavaModule): Task[Agg[PathRef]] = T.task {
-      m.compileClasspath() ++ resolvedJavaSemanticDbPluginIvyDeps()
+      m.compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()
+    }
+    def cleanedClassesDir(classesDir: os.Path): PathRef = {
+      os.walk(classesDir, preOrder = true)
+        .filter(os.isFile)
+        .foreach { p =>
+          if (p.ext != "semanticdb") {
+            os.remove(p)
+          }
+        }
+      PathRef(classesDir)
     }
 
     hostModule match {
-      // TODO: also generate semanticDB for Java and Mixed-Java projects
+      // TODO: Avoid fetching the Java semanticdb version when there are no Java sources (better detect mixed)
       case m: ScalaModule =>
         T.persistent {
           val sv = m.scalaVersion()
@@ -137,8 +148,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
             .filterNot(_ == "-Xfatal-warnings")
           T.log.debug(s"effective scalac options: ${scalacOptions}")
 
-          zincWorker
-            .worker()
+          zincWorker.worker()
             .compileMixed(
               upstreamCompileOutput = upstreamCompileOutput(),
               sources = m.allSourceFiles().map(_.path),
@@ -151,45 +161,28 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
               scalacPluginClasspath = semanticDbPluginClasspath(),
               reporter = T.reporter.apply(hashCode)
             )
-            .map(_.classes)
+            .map(r => cleanedClassesDir(r.classes.path))
         }
       case m: JavaModule =>
         T.persistent {
-          val compileClasspath = m.compileClasspath() ++ resolvedJavaSemanticDbPluginIvyDeps()
+          val javacOpts = javacOptionsTask(m)()
 
           // we currently assume, we don't do incremental java compilation
-          val semDbPath = T.dest / "_semanticdb"
-          os.remove.all(semDbPath)
+          os.remove.all(T.dest / "classes")
+//          val semDbPath = T.dest / "_semanticdb"
+//          os.remove.all(semDbPath)
 
-          zincWorker
-            .worker()
+          T.log.debug(s"effective javac options: ${javacOpts}")
+
+          zincWorker.worker()
             .compileJava(
               upstreamCompileOutput(),
               allSourceFiles().map(_.path),
               compileClasspathTask(m)().map(_.path),
-              javacOptionsTask(m)(),
+              javacOpts,
               T.reporter.apply(m.hashCode())
-            ).map { compileResult =>
-              val classes = compileResult.classes.path
-
-              // move generated semanticdb files into separate folder
-              os.walk(
-                classes,
-                skip = p => !(os.isFile(p) && p.ext == "semanticdb"),
-                preOrder = true
-              ).filter(os.isFile)
-                .foreach { p =>
-                  os.copy(
-                    from = p,
-                    to = semDbPath / p.relativeTo(classes),
-                    createFolders = true
-                  )
-                }
-              // and only return folder with semanticdb files
-              PathRef(semDbPath)
-            }
+            ).map(r => cleanedClassesDir(r.classes.path))
         }
-
     }
   }
 
@@ -231,7 +224,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 }
 
 object SemanticDbJavaModule {
-  val buildTimeJavaSemanticDbVersion = "0.8.2"
+  val buildTimeJavaSemanticDbVersion = Versions.semanticDbJavaVersion
   val buildTimeSemanticDbVersion = Versions.semanticDBVersion
 
   private[mill] val contextSemanticDbVersion: InheritableThreadLocal[Option[String]] =

@@ -167,6 +167,7 @@ object Deps {
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.6.0"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.9"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
@@ -488,7 +489,7 @@ object scalalib extends MillModule {
       s"""package mill.scalalib
          |
          |/**
-         | * Dependency versions.
+         | * Dependency versions as they where defined at Mill compile time.
          | * Generated from mill in build.sc.
          | */
          |object Versions {
@@ -498,6 +499,8 @@ object scalalib extends MillModule {
          |  val zinc = "${Deps.zinc.dep.version}"
          |  /** SemanticDB version. */
          |  val semanticDBVersion = "${Deps.semanticDB.dep.version}"
+         |  /** Java SemanticDB plugin version. */
+         |  val semanticDbJavaVersion = "${Deps.semanticDbJava.dep.version}"
          |}
          |
          |""".stripMargin
@@ -1565,4 +1568,12 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
     selectMode = SelectMode.Separated
   )(identity))()
   ()
+}
+
+object DependencyFetchDummy extends JavaModule {
+  def compileIvyDeps = Agg(
+    Deps.semanticDbJava,
+    Deps.semanticDB,
+    Deps.asciidoctorj
+  )
 }
