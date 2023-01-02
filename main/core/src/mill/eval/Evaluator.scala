@@ -47,35 +47,9 @@ class Evaluator private[Evaluator] (
     _failFast: Boolean,
     _threadCount: Option[Int],
     _importTree: Seq[ScriptNode]
-) extends Product with Serializable { // TODO: Remove extends Product with Serializable before 0.11.0
+) {
 
   import Evaluator.Terminal
-
-  @deprecated(message = "Use apply instead", since = "mill 0.10.1")
-  def this(
-      _home: os.Path,
-      _outPath: os.Path,
-      _externalOutPath: os.Path,
-      _rootModule: mill.define.BaseModule,
-      _baseLogger: ColorLogger,
-      _classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-      _workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-      _env: Map[String, String] = Evaluator.defaultEnv,
-      _failFast: Boolean = true,
-      _threadCount: Option[Int] = Some(1)
-  ) = this(
-    _home,
-    _outPath,
-    _externalOutPath,
-    _rootModule,
-    _baseLogger,
-    _classLoaderSig,
-    _workerCache,
-    _env,
-    _failFast,
-    _threadCount,
-    Seq.empty
-  )
 
   def home: os.Path = _home
 
@@ -137,10 +111,6 @@ class Evaluator private[Evaluator] (
   import Evaluator.Evaluated
 
   private val externalClassLoaderSigHash = externalClassLoader.hashCode()
-
-  // Binary compatibility shim
-  @deprecated("To be removed", since = "mill 0.10.1")
-  def classLoaderSignHash: Int = classLoaderSig.hashCode()
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
@@ -708,32 +678,6 @@ class Evaluator private[Evaluator] (
       msgParts.mkString
   }
 
-  @deprecated("Use withX methods instead", since = "mill 0.10.1")
-  def copy(
-      home: os.Path = this.home,
-      outPath: os.Path = this.outPath,
-      externalOutPath: os.Path = this.externalOutPath,
-      rootModule: mill.define.BaseModule = this.rootModule,
-      baseLogger: ColorLogger = this.baseLogger,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = this.classLoaderSig,
-      workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache,
-      env: Map[String, String] = this.env,
-      failFast: Boolean = this.failFast,
-      threadCount: Option[Int] = this.threadCount
-  ): Evaluator = new Evaluator(
-    home,
-    outPath,
-    externalOutPath,
-    rootModule,
-    baseLogger,
-    classLoaderSig,
-    workerCache,
-    env,
-    failFast,
-    threadCount,
-    this.importTree
-  )
-
   override def toString(): String = {
     s"""Evaluator(
        |  home = $home,
@@ -750,8 +694,7 @@ class Evaluator private[Evaluator] (
        |)""".stripMargin
   }
 
-  // Rename to copy once the other copy is gone (before 0.11.0)
-  private def myCopy(
+  private def copy(
       home: os.Path = this.home,
       outPath: os.Path = this.outPath,
       externalOutPath: os.Path = this.externalOutPath,
@@ -777,42 +720,21 @@ class Evaluator private[Evaluator] (
     importTree
   )
 
-  def withHome(home: os.Path): Evaluator = myCopy(home = home)
-  def withOutPath(outPath: os.Path): Evaluator = myCopy(outPath = outPath)
+  def withHome(home: os.Path): Evaluator = copy(home = home)
+  def withOutPath(outPath: os.Path): Evaluator = copy(outPath = outPath)
   def withExternalOutPath(externalOutPath: os.Path): Evaluator =
-    myCopy(externalOutPath = externalOutPath)
+    copy(externalOutPath = externalOutPath)
   def withRootModule(rootModule: mill.define.BaseModule): Evaluator =
-    myCopy(rootModule = rootModule)
-  def withBaseLogger(baseLogger: ColorLogger): Evaluator = myCopy(baseLogger = baseLogger)
+    copy(rootModule = rootModule)
+  def withBaseLogger(baseLogger: ColorLogger): Evaluator = copy(baseLogger = baseLogger)
   def withClassLoaderSig(classLoaderSig: Seq[(Either[String, java.net.URL], Long)]): Evaluator =
-    myCopy(classLoaderSig = classLoaderSig)
+    copy(classLoaderSig = classLoaderSig)
   def withWorkerCache(workerCache: mutable.Map[Segments, (Int, Any)]): Evaluator =
-    myCopy(workerCache = workerCache)
-  def withEnv(env: Map[String, String]): Evaluator = myCopy(env = env)
-  def withFailFast(failFast: Boolean): Evaluator = myCopy(failFast = failFast)
-  def withThreadCount(threadCount: Option[Int]): Evaluator = myCopy(threadCount = threadCount)
-  def withImportTree(importTree: Seq[ScriptNode]): Evaluator = myCopy(importTree = importTree)
-
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Evaluator]
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
-  def productArity: Int = 10
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
-  def productElement(n: Int): Any = n match {
-    case 0 => home
-    case 1 => outPath
-    case 2 => externalOutPath
-    case 3 => rootModule
-    case 4 => baseLogger
-    case 5 => classLoaderSig
-    case 6 => workerCache
-    case 7 => env
-    case 8 => failFast
-    case 9 => threadCount
-    case 10 => importTree
-    case _ => throw new IndexOutOfBoundsException(n.toString)
-  }
-
+    copy(workerCache = workerCache)
+  def withEnv(env: Map[String, String]): Evaluator = copy(env = env)
+  def withFailFast(failFast: Boolean): Evaluator = copy(failFast = failFast)
+  def withThreadCount(threadCount: Option[Int]): Evaluator = copy(threadCount = threadCount)
+  def withImportTree(importTree: Seq[ScriptNode]): Evaluator = copy(importTree = importTree)
 }
 
 object Evaluator {
@@ -1004,61 +926,16 @@ object Evaluator {
       rootModule: mill.define.BaseModule,
       baseLogger: ColorLogger
   ): Evaluator = new Evaluator(
-    home,
-    outPath,
-    externalOutPath,
-    rootModule,
-    baseLogger
-  ): @nowarn
-
-  @deprecated(message = "Use other apply and withX methods instead", since = "mill 0.10.1")
-  def apply(
-      home: os.Path,
-      outPath: os.Path,
-      externalOutPath: os.Path,
-      rootModule: mill.define.BaseModule,
-      baseLogger: ColorLogger,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-      workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-      env: Map[String, String] = Evaluator.defaultEnv,
-      failFast: Boolean = true,
-      threadCount: Option[Int] = Some(1)
-  ): Evaluator = new Evaluator(
-    home,
-    outPath,
-    externalOutPath,
-    rootModule,
-    baseLogger,
-    classLoaderSig,
-    workerCache,
-    env,
-    failFast,
-    threadCount,
-    Seq.empty
+    _home = home,
+    _outPath = outPath,
+    _externalOutPath = externalOutPath,
+    _rootModule = rootModule,
+    _baseLogger = baseLogger,
+    _classLoaderSig = Evaluator.classLoaderSig,
+    _workerCache = mutable.Map.empty,
+    _env = Evaluator.defaultEnv,
+    _failFast = true,
+    _threadCount = Some(1),
+    _importTree = Seq.empty
   )
-
-  @deprecated(message = "Pattern matching not supported with Evaluator", since = "mill 0.10.1")
-  def unapply(evaluator: Evaluator): Option[(
-      os.Path,
-      os.Path,
-      os.Path,
-      mill.define.BaseModule,
-      ColorLogger,
-      Seq[(Either[String, java.net.URL], Long)],
-      mutable.Map[Segments, (Int, Any)],
-      Map[String, String],
-      Boolean,
-      Option[Int]
-  )] = Some((
-    evaluator.home,
-    evaluator.outPath,
-    evaluator.externalOutPath,
-    evaluator.rootModule,
-    evaluator.baseLogger,
-    evaluator.classLoaderSig,
-    evaluator.workerCache,
-    evaluator.env,
-    evaluator.failFast,
-    evaluator.threadCount
-  ))
 }

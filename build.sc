@@ -1547,7 +1547,7 @@ def uploadToGithub(authKey: String) = T.command {
 
 def validate(ev: Evaluator): Command[Unit] = T.command {
   T.task(MainModule.evaluateTasks(
-    ev.copy(failFast = false),
+    ev.withFailFast(false),
     Seq(
       "__.compile",
       "+",
