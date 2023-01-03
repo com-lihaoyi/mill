@@ -32,6 +32,7 @@ object Settings {
   val githubOrg = "com-lihaoyi"
   val githubRepo = "mill"
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
+  val changelogUrl = s"${projectUrl}#changelog"
   val docUrl = "https://com-lihaoyi.github.io/mill"
   // the exact branches containing a doc root
   val docBranches = Seq()
@@ -196,6 +197,9 @@ def baseDir = build.millSourcePath
 trait MillPublishModule extends PublishModule {
   override def artifactName = "mill-" + super.artifactName()
   def publishVersion = millVersion()
+  override def publishProperties: Target[Map[String, String]] = super.publishProperties() ++ Map(
+    "info.releaseNotesURL" -> Settings.changelogUrl
+  )
   def pomSettings = PomSettings(
     description = artifactName(),
     organization = Settings.pomOrg,
