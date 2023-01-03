@@ -2,7 +2,6 @@ import mill._
 import mill.scalalib._
 
 object scala extends ScalaModule {
-
   def scalaVersion = "2.13.10"
 
   object test extends Tests with TestModule.Munit {
@@ -12,5 +11,8 @@ object scala extends ScalaModule {
   }
 }
 
-object java extends JavaModule {
+object java extends JavaModule
+
+object mixed extends ScalaModule {
+  def scalaVersion = "2.13.10"
 }
