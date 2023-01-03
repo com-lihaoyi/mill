@@ -1570,8 +1570,9 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
   ()
 }
 
-object DependencyFetchDummy extends JavaModule {
-  def compileIvyDeps = Agg(
+object DependencyFetchDummy extends ScalaModule {
+  override def scalaVersion = Deps.scalaVersion
+  override def compileIvyDeps = Agg(
     Deps.semanticDbJava,
     Deps.semanticDB,
     Deps.asciidoctorj
