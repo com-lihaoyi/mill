@@ -7,11 +7,12 @@ import scala.util.Using
 import scala.xml.NodeSeq
 import mill._
 import mill.api.Result
-import mill.define.Target
+import mill.define.{Input, Target}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.modules.Assembly
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
+import os.{RelPath, SubPath}
 import utest._
 import utest.framework.TestPath
 
@@ -30,6 +31,10 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
+    override def semanticDbVersion: Input[String] = T.input {
+      // The latest semanticDB release for Scala 2.12.6
+      "4.1.9"
+    }
   }
 
   trait HelloWorldModuleWithMain extends HelloWorldModule {
@@ -315,7 +320,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  def compileClassfiles = Seq[os.RelPath](
+  def compileClassfiles: Seq[os.RelPath] = Seq(
     os.rel / "Main.class",
     os.rel / "Main$.class",
     os.rel / "Main0.class",
@@ -324,6 +329,10 @@ object HelloWorldTests extends TestSuite {
     os.rel / "Person.class",
     os.rel / "Person$.class"
   )
+  def semanticDbFiles: Seq[os.SubPath] = Seq(
+    os.sub / "core" / "src" / "Main.scala.semanticdb",
+    os.sub / "core" / "src" / "Result.scala.semanticdb"
+  ).map(os.sub / "META-INF" / "semanticdb" / _)
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,
@@ -508,6 +517,28 @@ object HelloWorldTests extends TestSuite {
         // compilation fails because of "-Xfatal-warnings" flag
         val Left(Result.Failure("Compilation failed", _)) =
           eval.apply(HelloWorldFatalWarnings.core.compile)
+      }
+    }
+
+    "semanticDbData" - {
+      "fromScratch" - workspaceTest(HelloWorld) { eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorld.core.semanticDbData)
+
+        val outputFiles = os.walk(result.path).filter(os.isFile)
+        val expectedClassfiles = semanticDbFiles.map(
+          eval.outPath / "core" / "semanticDbData.dest" / "classes" / _
+        )
+        assert(
+          result.path == eval.outPath / "core" / "semanticDbData.dest" / "classes",
+          outputFiles.nonEmpty,
+          outputFiles.forall(expectedClassfiles.contains),
+          evalCount > 0
+        )
+
+        // don't recompile if nothing changed
+        val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.semanticDbData)
+
+        assert(unchangedEvalCount == 0)
       }
     }
 
