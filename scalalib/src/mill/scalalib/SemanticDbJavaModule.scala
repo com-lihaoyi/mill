@@ -6,29 +6,29 @@ import mill.define.{Ctx, Input, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
 
 import java.nio.file.{CopyOption, Files, LinkOption, StandardCopyOption}
-import scala.util.DynamicVariable
+import scala.util.{DynamicVariable, Properties}
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
   def semanticDbVersion: Input[String] = T.input {
-    T.env.getOrElse(
+    T.env.getOrElse[String](
       "SEMANTICDB_VERSION",
       SemanticDbJavaModule.contextSemanticDbVersion.get()
         .getOrElse(
           SemanticDbJavaModule.buildTimeSemanticDbVersion
         )
-    ).asInstanceOf[String]
+    )
   }
 
   def semanticDbJavaVersion: Input[String] = T.input {
-    T.env.getOrElse(
+    T.env.getOrElse[String](
       "JAVASEMANTICDB_VERSION",
       SemanticDbJavaModule.contextJavaSemanticDbVersion.get()
         .getOrElse(
           SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
         )
-    ).asInstanceOf[String]
+    )
   }
 
   def semanticDbScalaVersion = hostModule match {
@@ -104,12 +104,27 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
   }
 
   def semanticDbData: T[PathRef] = {
-    // TODO: add extra options for Java 17+
     def javacOptionsTask(m: JavaModule): Task[Seq[String]] = T.task {
+        val extracJavacExports =
+          if (Properties.isJavaAtLeast(17)) List(
+            "-J--add-exports",
+            "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+            "-J--add-exports",
+            "-Jjdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+            "-J--add-exports",
+            "-Jjdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+            "-J--add-exports",
+            "-Jjdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+            "-J--add-exports",
+            "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+          )
+          else Seq.empty
+
       val more = if(T.log.debugEnabled) " -verbose" else ""
       m.javacOptions() ++ Seq(
         s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"} -build-tool:sbt" + more
-      )
+      ) ++ extracJavacExports
+
     }
     def compileClasspathTask(m: JavaModule): Task[Agg[PathRef]] = T.task {
       m.compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()
@@ -146,14 +161,18 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
               }
           )
             .filterNot(_ == "-Xfatal-warnings")
+
+          val javacOpts = javacOptionsTask(m)()
+
           T.log.debug(s"effective scalac options: ${scalacOptions}")
+          T.log.debug(s"effective javac options: ${javacOpts}")
 
           zincWorker.worker()
             .compileMixed(
               upstreamCompileOutput = upstreamCompileOutput(),
               sources = m.allSourceFiles().map(_.path),
               compileClasspath = compileClasspathTask(m)().map(_.path),
-              javacOptions = javacOptionsTask(m)(),
+              javacOptions = javacOpts,
               scalaVersion = sv,
               scalaOrganization = m.scalaOrganization(),
               scalacOptions = scalacOptions,
@@ -169,8 +188,6 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
           // we currently assume, we don't do incremental java compilation
           os.remove.all(T.dest / "classes")
-//          val semDbPath = T.dest / "_semanticdb"
-//          os.remove.all(semDbPath)
 
           T.log.debug(s"effective javac options: ${javacOpts}")
 
