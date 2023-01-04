@@ -1,12 +1,9 @@
 package mill.scalalib
 
-import mill.api.{Loose, PathRef, Result, experimental}
-import mill.{Agg, BuildInfo, T}
-import mill.define.{Ctx, Input, Target, Task}
+import mill.api.{PathRef, Result, experimental}
+import mill.define.{Input, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
-
-import java.nio.file.{CopyOption, Files, LinkOption, StandardCopyOption}
-import scala.util.{DynamicVariable, Properties}
+import mill.{Agg, BuildInfo, T}
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
@@ -132,15 +129,28 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
     def compileClasspathTask(m: JavaModule): Task[Agg[PathRef]] = T.task {
       m.compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()
     }
-    def cleanedClassesDir(classesDir: os.Path): PathRef = {
+    def cleanedClassesDir(classesDir: os.Path, sourceroot: os.Path, targetDir: os.Path): PathRef = {
+      os.remove.all(targetDir)
+      os.makeDir.all(targetDir)
+
+      val ups = sourceroot.segments.size
+      val semanticPath = os.rel / "META-INF" / "semanticdb"
+      val toClean = classesDir / semanticPath / sourceroot.segments.toSeq
+
       os.walk(classesDir, preOrder = true)
         .filter(os.isFile)
         .foreach { p =>
-          if (p.ext != "semanticdb") {
-            os.remove(p)
+          if (p.ext == "semanticdb") {
+            val target =
+              if (ups > 0 && p.startsWith(toClean)) {
+                targetDir / semanticPath / p.relativeTo(toClean)
+              } else {
+                targetDir / p.relativeTo(classesDir)
+              }
+            os.move(p, target, createFolders = true)
           }
         }
-      PathRef(classesDir)
+      PathRef(targetDir)
     }
 
     hostModule match {
@@ -183,7 +193,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
               scalacPluginClasspath = semanticDbPluginClasspath(),
               reporter = T.reporter.apply(hashCode)
             )
-            .map(r => cleanedClassesDir(r.classes.path))
+            .map(r => cleanedClassesDir(r.classes.path, T.workspace, T.dest / "data"))
         }
       case m: JavaModule =>
         T.persistent {
@@ -201,7 +211,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
               compileClasspathTask(m)().map(_.path),
               javacOpts,
               T.reporter.apply(m.hashCode())
-            ).map(r => cleanedClassesDir(r.classes.path))
+            ).map(r => cleanedClassesDir(r.classes.path, T.workspace, T.dest / "data"))
         }
     }
   }
