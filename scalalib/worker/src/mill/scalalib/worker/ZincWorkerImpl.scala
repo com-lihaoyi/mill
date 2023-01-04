@@ -33,8 +33,13 @@ class ZincWorkerImpl(
   private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
   private val javaOnlyCompilersCache = mutable.Map.empty[Seq[String], SoftReference[Compilers]]
 
+  private val filterJavacRuntimeOptions: String => Boolean = opt => opt.startsWith("-J")
+
   def javaOnlyCompilers(javacOptions: Seq[String]): Compilers = {
-    javaOnlyCompilersCache.get(javacOptions) match {
+    // Only options relevant for the compiler runtime influence the cached instance
+    val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
+
+    javaOnlyCompilersCache.get(javacRuntimeOptions) match {
       case Some(SoftReference(compilers)) => compilers
       case _ =>
         // Keep the classpath as written by the user
@@ -64,20 +69,20 @@ class ZincWorkerImpl(
           classpathOptions // this is used for javac too
         )
 
-        val javaTools = getOrCreateJavaTools(javacOptions)
+        val javaTools = getLocalOrCreateJavaTools(javacRuntimeOptions)
 
         val compilers = ic.compilers(javaTools, scalac)
-        javaOnlyCompilersCache.update(javacOptions, SoftReference(compilers))
+        javaOnlyCompilersCache.update(javacRuntimeOptions, SoftReference(compilers))
         compilers
     }
   }
 
-  private def getOrCreateJavaTools(javacOptions: Seq[String]): JavaTools = {
+  private def getLocalOrCreateJavaTools(javacRuntimeOptions: Seq[String]): JavaTools = {
     val (javaCompiler, javaDoc) =
       // Local java compilers don't accept -J flags so when we put this together if we detect
       // any javacOptions starting with -J we ensure we have a non-local Java compiler which
       // can handle them.
-      if (javacOptions.exists(_.startsWith("-J"))) {
+      if (javacRuntimeOptions.exists(filterJavacRuntimeOptions)) {
         (javac.JavaCompiler.fork(None), javac.Javadoc.fork(None))
 
       } else {
@@ -389,8 +394,9 @@ class ZincWorkerImpl(
       javacOptions: Seq[String]
   )(f: Compilers => T)(implicit ctx: ZincWorkerApi.Ctx) = {
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
+    val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
     val compilersSig =
-      combinedCompilerClasspath.hashCode() + scalaVersion.hashCode() + scalaOrganization.hashCode() + javacOptions.hashCode()
+      combinedCompilerClasspath.hashCode() + scalaVersion.hashCode() + scalaOrganization.hashCode() + javacRuntimeOptions.hashCode()
     val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
     val compiledCompilerBridge = compileBridgeIfNeeded(
@@ -417,7 +423,7 @@ class ZincWorkerImpl(
         explicitActual = None
       )
       ic.compilers(
-        javaTools = getOrCreateJavaTools(javacOptions),
+        javaTools = getLocalOrCreateJavaTools(javacRuntimeOptions),
         scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
       )
     }(f)
