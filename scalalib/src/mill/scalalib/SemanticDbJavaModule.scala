@@ -5,6 +5,8 @@ import mill.define.{Input, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.{Agg, BuildInfo, T}
 
+import scala.util.Properties
+
 @experimental
 trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
@@ -106,7 +108,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
       // the semanticdb-javac is not handling the -sourceroot option correctly
       // if I leave these options out
       val extracJavacExports =
-        List(
+        if (Properties.isJavaAtLeast(17)) List(
           "-J--add-exports",
           "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
           "-J--add-exports",
@@ -118,6 +120,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
           "-J--add-exports",
           "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
         )
+        else List.empty
 
       val more = if (T.log.debugEnabled) " -verbose" else ""
       m.javacOptions() ++ Seq(
@@ -131,7 +134,11 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
     }
 
     // The semanticdb-javac plugin has issues with the -sourceroot setting, so we correct this en the fly
-    def copySemanticdbFiles(classesDir: os.Path, sourceroot: os.Path, targetDir: os.Path): PathRef = {
+    def copySemanticdbFiles(
+        classesDir: os.Path,
+        sourceroot: os.Path,
+        targetDir: os.Path
+    ): PathRef = {
       os.remove.all(targetDir)
       os.makeDir.all(targetDir)
 
@@ -156,7 +163,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
     }
 
     hostModule match {
-      // TODO: Avoid fetching the Java semanticdb version when there are no Java sources (better detect mixed)
+      // TODO: support mixed compilation under Java 17+
       case m: ScalaModule =>
         T.persistent {
           val sv = m.scalaVersion()
