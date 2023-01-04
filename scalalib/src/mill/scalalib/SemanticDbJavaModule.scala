@@ -105,23 +105,26 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
   def semanticDbData: T[PathRef] = {
     def javacOptionsTask(m: JavaModule): Task[Seq[String]] = T.task {
-        val extracJavacExports =
-          if (Properties.isJavaAtLeast(17)) List(
-            "-J--add-exports",
-            "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-            "-J--add-exports",
-            "-Jjdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-            "-J--add-exports",
-            "-Jjdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
-            "-J--add-exports",
-            "-Jjdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-            "-J--add-exports",
-            "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
-          )
-          else Seq.empty
+      // these are only needed for Java 17+, but it turns out,
+      // the semanticdb-javac is not handling the -sourceroot option correctly
+      // if I leave these options out
+      val extracJavacExports =
+        List(
+          "-J--add-exports",
+          "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+          "-J--add-exports",
+          "-Jjdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+          "-J--add-exports",
+          "-Jjdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+          "-J--add-exports",
+          "-Jjdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+          "-J--add-exports",
+          "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+        )
 
-      val more = if(T.log.debugEnabled) " -verbose" else ""
+      val more = if (T.log.debugEnabled) " -verbose" else ""
       m.javacOptions() ++ Seq(
+        // FIXME: change to -build-tool:mill once semanticdb-java after 0.8.9 comes out
         s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"} -build-tool:sbt" + more
       ) ++ extracJavacExports
 
