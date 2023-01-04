@@ -8,14 +8,7 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.TestRunner
 import mill.define.{Command, Target, Task}
-import mill.scalajslib.api.{
-  ESFeatures,
-  ESVersion,
-  JsEnvConfig,
-  ModuleKind,
-  ModuleSplitStyle,
-  Report
-}
+import mill.scalajslib.api._
 import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 
@@ -121,7 +114,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       sourceMap = scalaJSSourceMap(),
       moduleKind = moduleKind(),
       esFeatures = esFeatures(),
-      moduleSplitStyle = moduleSplitStyle()
+      moduleSplitStyle = moduleSplitStyle(),
+      outputPatterns = scalaJSOutputPatterns()
     )
   }
 
@@ -161,7 +155,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       sourceMap: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
-      moduleSplitStyle: ModuleSplitStyle
+      moduleSplitStyle: ModuleSplitStyle,
+      outputPatterns: OutputPatterns
   )(implicit ctx: mill.api.Ctx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -186,7 +181,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       sourceMap = sourceMap,
       moduleKind = moduleKind,
       esFeatures = esFeatures,
-      moduleSplitStyle = moduleSplitStyle
+      moduleSplitStyle = moduleSplitStyle,
+      outputPatterns = outputPatterns
     )
   }
 
@@ -238,6 +234,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   /** Whether to emit a source map. */
   def scalaJSSourceMap: Target[Boolean] = T { true }
 
+  /** Name patterns for output. */
+  def scalaJSOutputPatterns: Target[OutputPatterns] = T { OutputPatterns.Defaults }
+
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((
@@ -281,7 +280,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       sourceMap = scalaJSSourceMap(),
       moduleKind = moduleKind(),
       esFeatures = esFeatures(),
-      moduleSplitStyle = moduleSplitStyle()
+      moduleSplitStyle = moduleSplitStyle(),
+      outputPatterns = scalaJSOutputPatterns()
     )
   }
 

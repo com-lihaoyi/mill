@@ -15,7 +15,8 @@ private[scalajslib] trait ScalaJSWorkerApi {
       sourceMap: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
-      moduleSplitStyle: ModuleSplitStyle
+      moduleSplitStyle: ModuleSplitStyle,
+      outputPatterns: OutputPatterns
   ): Either[String, Report]
 
   def run(config: JsEnvConfig, report: Report): Unit
@@ -102,3 +103,11 @@ private[scalajslib] object ModuleSplitStyle {
   case object SmallestModules extends ModuleSplitStyle
   final case class SmallModulesFor(packages: List[String]) extends ModuleSplitStyle
 }
+
+private[scalajslib] final case class OutputPatterns(
+  jsFile: String,
+  sourceMapFile: String,
+  moduleName: String,
+  jsFileURI: String,
+  sourceMapURI: String
+)
