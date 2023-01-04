@@ -129,7 +129,9 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
     def compileClasspathTask(m: JavaModule): Task[Agg[PathRef]] = T.task {
       m.compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()
     }
-    def cleanedClassesDir(classesDir: os.Path, sourceroot: os.Path, targetDir: os.Path): PathRef = {
+
+    // The semanticdb-javac plugin has issues with the -sourceroot setting, so we correct this en the fly
+    def copySemanticdbFiles(classesDir: os.Path, sourceroot: os.Path, targetDir: os.Path): PathRef = {
       os.remove.all(targetDir)
       os.makeDir.all(targetDir)
 
@@ -193,7 +195,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
               scalacPluginClasspath = semanticDbPluginClasspath(),
               reporter = T.reporter.apply(hashCode)
             )
-            .map(r => cleanedClassesDir(r.classes.path, T.workspace, T.dest / "data"))
+            .map(r => copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data"))
         }
       case m: JavaModule =>
         T.persistent {
@@ -211,7 +213,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
               compileClasspathTask(m)().map(_.path),
               javacOpts,
               T.reporter.apply(m.hashCode())
-            ).map(r => cleanedClassesDir(r.classes.path, T.workspace, T.dest / "data"))
+            ).map(r => copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data"))
         }
     }
   }
