@@ -465,13 +465,12 @@ object HelloWorldTests extends TestSuite {
       "fromScratch" - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
 
+        val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
         val analysisFile = result.analysisFile
         val outputFiles = os.walk(result.classes.path)
-        val expectedClassfiles = compileClassfiles.map(
-          eval.outPath / "core" / "compile.dest" / "classes" / _
-        )
+        val expectedClassfiles = compileClassfiles.map(classesPath / _)
         assert(
-          result.classes.path == eval.outPath / "core" / "compile.dest" / "classes",
+          result.classes.path == classesPath,
           os.exists(analysisFile),
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
@@ -525,19 +524,18 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.semanticDbData)
 
         val outputFiles = os.walk(result.path).filter(os.isFile)
-        val expectedClassfiles = semanticDbFiles.map(
-          eval.outPath / "core" / "semanticDbData.dest" / "classes" / _
-        )
+        val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+
+        val expectedSemFiles = semanticDbFiles.map(dataPath / _)
         assert(
-          result.path == eval.outPath / "core" / "semanticDbData.dest" / "classes",
+          result.path == dataPath,
           outputFiles.nonEmpty,
-          outputFiles.forall(expectedClassfiles.contains),
+          outputFiles.forall(expectedSemFiles.contains),
           evalCount > 0
         )
 
         // don't recompile if nothing changed
         val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.semanticDbData)
-
         assert(unchangedEvalCount == 0)
       }
     }
