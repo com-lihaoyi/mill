@@ -2,6 +2,7 @@ package mill
 package scalalib
 
 import mill.api.Result
+import mill.scalalib.HelloWorldTests.{workspaceTest}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
@@ -53,6 +54,25 @@ object HelloJavaTests extends TestSuite {
         os.walk(res3.classes.path).exists(_.last == "Main.class"),
         !os.walk(res3.classes.path).exists(_.last == "Core.class")
       )
+    }
+    "semanticDbData" - {
+      val eval = init()
+      val Right((result, evalCount)) = eval.apply(HelloJava.core.semanticDbData)
+
+      val outputFiles = os.walk(result.path).filter(os.isFile)
+      val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+
+      val expectedSemFiles = Seq(dataPath / "META-INF" / "semanticdb" / "core" / "src" / "Core.java.semanticdb")
+      assert(
+        result.path == dataPath,
+        outputFiles.nonEmpty,
+        outputFiles.forall(expectedSemFiles.contains),
+        evalCount > 0
+      )
+
+      // don't recompile if nothing changed
+      val Right((_, unchangedEvalCount)) = eval.apply(HelloJava.core.semanticDbData)
+      assert(unchangedEvalCount == 0)
     }
     "docJar" - {
       "withoutArgsFile" - {
