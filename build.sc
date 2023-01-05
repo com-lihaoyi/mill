@@ -130,7 +130,7 @@ object Deps {
   val ammoniteExcludingTrees = ammonite.exclude(
     "org.scalameta" -> "trees_2.13"
   )
-  val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
+  val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.5.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   // avoid version 2.1.0-RC2 for issue https://github.com/coursier/coursier/issues/2603
   val coursier = ivy"io.get-coursier::coursier:2.1.0-RC4"
