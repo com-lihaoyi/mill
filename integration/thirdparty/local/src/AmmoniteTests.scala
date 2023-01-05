@@ -2,6 +2,8 @@ package mill.integration.thirdparty
 
 import utest._
 
+import scala.util.Properties
+
 class AmmoniteTests(fork: Boolean)
     extends IntegrationTestSuite("MILL_AMMONITE_REPO", "ammonite", fork) {
   val tests = Tests {
@@ -36,7 +38,10 @@ class AmmoniteTests(fork: Boolean)
       }
     }
 
-    "scala2126" - check("2.12.6")
+    "scala2126" - {
+      if (Properties.isJavaAtLeast(17)) "Scala 2.12 tests don't support Java 17+"
+      else check("2.12.6")
+    }
 
   }
 }
