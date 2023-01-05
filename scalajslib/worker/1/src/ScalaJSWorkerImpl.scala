@@ -16,6 +16,7 @@ import org.scalajs.linker.interface.{
   ESFeatures => ScalaJSESFeatures,
   ESVersion => ScalaJSESVersion,
   ModuleKind => ScalaJSModuleKind,
+  OutputPatterns => ScalaJSOutputPatterns,
   Report => ScalaJSReport,
   ModuleSplitStyle => _,
   _
@@ -37,6 +38,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
+      outputPatterns: OutputPatterns,
       dest: File
   )
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
@@ -98,30 +100,13 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         else withESVersion_1_5_minus(scalaJSESFeatures)
 
       val useClosure = input.isFullLinkJS && input.moduleKind != ModuleKind.ESModule
-      val partialConfig = StandardConfig()
+      var partialConfig = StandardConfig()
         .withOptimizer(input.optimizer)
         .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
         .withESFeatures(scalaJSESFeatures)
         .withSourceMap(input.sourceMap)
-
-      // Separating ModuleSplitStyle in a standalone object avoids
-      // early classloading which fails in Scala.js versions where
-      // the classes don't exist
-      object ScalaJSModuleSplitStyle {
-        import org.scalajs.linker.interface.ModuleSplitStyle
-        object SmallModulesFor {
-          def apply(packages: List[String]): ModuleSplitStyle =
-            ModuleSplitStyle.SmallModulesFor(packages)
-        }
-        object FewestModules {
-          def apply(): ModuleSplitStyle = ModuleSplitStyle.FewestModules
-        }
-        object SmallestModules {
-          def apply(): ModuleSplitStyle = ModuleSplitStyle.SmallestModules
-        }
-      }
 
       def withModuleSplitStyle_1_3_plus(config: StandardConfig): StandardConfig = {
         config.withModuleSplitStyle(
@@ -147,11 +132,24 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         config
       }
 
-      val config =
+      val withModuleSplitStyle =
         if (minorIsGreaterThanOrEqual(3)) withModuleSplitStyle_1_3_plus(partialConfig)
         else withModuleSplitStyle_1_2_minus(partialConfig)
 
-      StandardImpl.clearableLinker(config)
+      val withOutputPatterns =
+        if (minorIsGreaterThanOrEqual(3))
+          withModuleSplitStyle
+            .withOutputPatterns(
+              ScalaJSOutputPatterns.Defaults
+                .withJSFile(input.outputPatterns.jsFile)
+                .withJSFileURI(input.outputPatterns.jsFileURI)
+                .withModuleName(input.outputPatterns.moduleName)
+                .withSourceMapFile(input.outputPatterns.sourceMapFile)
+                .withSourceMapURI(input.outputPatterns.sourceMapURI)
+            )
+        else withModuleSplitStyle
+
+      StandardImpl.clearableLinker(withOutputPatterns)
     }
   }
   def link(
@@ -166,7 +164,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       sourceMap: Boolean,
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
-      moduleSplitStyle: ModuleSplitStyle
+      moduleSplitStyle: ModuleSplitStyle,
+      outputPatterns: OutputPatterns
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
@@ -179,6 +178,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleKind = moduleKind,
       esFeatures = esFeatures,
       moduleSplitStyle = moduleSplitStyle,
+      outputPatterns = outputPatterns,
       dest = dest
     ))
     val cache = StandardImpl.irFileCache().newCache
@@ -337,5 +337,22 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       case ModuleKind.CommonJSModule => Input.CommonJSModule(path)
     }
     Seq(input)
+  }
+}
+
+// Separating ModuleSplitStyle in a standalone object avoids
+// early classloading which fails in Scala.js versions where
+// the classes don't exist
+object ScalaJSModuleSplitStyle {
+  import org.scalajs.linker.interface.ModuleSplitStyle
+  object SmallModulesFor {
+    def apply(packages: List[String]): ModuleSplitStyle =
+      ModuleSplitStyle.SmallModulesFor(packages)
+  }
+  object FewestModules {
+    def apply(): ModuleSplitStyle = ModuleSplitStyle.FewestModules
+  }
+  object SmallestModules {
+    def apply(): ModuleSplitStyle = ModuleSplitStyle.SmallestModules
   }
 }

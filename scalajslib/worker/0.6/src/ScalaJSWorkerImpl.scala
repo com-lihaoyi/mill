@@ -83,7 +83,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       sourceMap: Boolean, // ignored in 0.6
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
-      moduleSplitStyle: ModuleSplitStyle // ignored in 0.6
+      moduleSplitStyle: ModuleSplitStyle, // ignored in 0.6
+      outputPatterns: OutputPatterns // ignored in 0.6
   ): Either[String, Report] = {
     val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(
       isFullLinkJS = isFullLinkJS,
