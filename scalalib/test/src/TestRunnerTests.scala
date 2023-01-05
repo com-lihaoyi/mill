@@ -13,7 +13,7 @@ object TestRunnerTests extends TestSuite {
   object testrunner extends TestUtil.BaseModule with ScalaModule {
     override def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
-    def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
+    def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object test extends super.Tests with TestModule.Utest {
       override def ivyDeps = T {
