@@ -104,9 +104,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
   def semanticDbData: T[PathRef] = {
     def javacOptionsTask(m: JavaModule): Task[Seq[String]] = T.task {
-      // these are only needed for Java 17+, but it turns out,
-      // the semanticdb-javac is not handling the -sourceroot option correctly
-      // if I leave these options out
+      // these are only needed for Java 17+
       val extracJavacExports =
         if (Properties.isJavaAtLeast(17)) List(
           "-J--add-exports",
@@ -133,7 +131,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
       m.compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()
     }
 
-    // The semanticdb-javac plugin has issues with the -sourceroot setting, so we correct this en the fly
+    // The semanticdb-javac plugin has issues with the -sourceroot setting, so we correct this on the fly
     def copySemanticdbFiles(
         classesDir: os.Path,
         sourceroot: os.Path,
@@ -163,7 +161,6 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
     }
 
     hostModule match {
-      // TODO: support mixed compilation under Java 17+
       case m: ScalaModule =>
         T.persistent {
           val sv = m.scalaVersion()
