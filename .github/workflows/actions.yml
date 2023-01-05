@@ -25,7 +25,7 @@ jobs:
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
           # additional integration tests
           - ./mill -i -k "integration.{local,forked,forked-server}"
-          # integrtion tests of thirdparty repos
+          # integration tests of thirdparty repos
           - ./mill -i -k "integration.thirdparty.{local,forked}"
           # contrib tests
           - ./mill -i -k "contrib._.test"
