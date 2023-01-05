@@ -3,7 +3,7 @@ package mill.scalalib
 import java.io.ByteArrayOutputStream
 import java.util.jar.JarFile
 import scala.jdk.CollectionConverters._
-import scala.util.Using
+import scala.util.{Properties, Using}
 import scala.xml.NodeSeq
 import mill._
 import mill.api.Result
@@ -248,16 +248,23 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldMacros extends HelloBase {
+  object HelloWorldMacros212 extends HelloBase {
     object core extends ScalaModule {
-      def scalaVersion = scala212Version
-
+      override def scalaVersion = scala212Version
       override def ivyDeps = Agg(
-        ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
+        ivy"com.github.julien-truffaut::monocle-macro::1.6.0"
       )
       override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
         ivy"org.scalamacros:::paradise:2.1.0"
       )
+    }
+  }
+
+  object HelloWorldMacros213 extends HelloBase {
+    object core extends ScalaModule {
+      override def scalaVersion = scala213Version
+      override def ivyDeps = Agg(ivy"com.github.julien-truffaut::monocle-macro::2.1.0")
+      override def scalacOptions = super.scalacOptions() ++ Seq("-Ymacro-annotations")
     }
   }
 
@@ -443,7 +450,7 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath)
         assert(
           result.nonEmpty,
-          result.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
+          result.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
           evalCount > 0
         )
       }
@@ -1006,21 +1013,50 @@ object HelloWorldTests extends TestSuite {
     }
 
     "macros" - {
-      // make sure macros are applied when compiling/running
-      "runMain" - workspaceTest(
-        HelloWorldMacros,
-        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
-      ) { eval =>
-        val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.runMain("Main"))
-        assert(evalCount > 0)
+      "scala-2.12" - {
+        // Scala 2.12 does not always work with Java 17+
+        // make sure macros are applied when compiling/running
+        val mod = HelloWorldMacros212
+        "runMain" - workspaceTest(
+          mod,
+          resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+        ) { eval =>
+          if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
+          else {
+            val Right((_, evalCount)) = eval.apply(mod.core.runMain("Main"))
+            assert(evalCount > 0)
+          }
+        }
+        // make sure macros are applied when compiling during scaladoc generation
+        "docJar" - workspaceTest(
+          mod,
+          resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+        ) { eval =>
+          if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
+          else {
+            val Right((_, evalCount)) = eval.apply(mod.core.docJar)
+            assert(evalCount > 0)
+          }
+        }
       }
-      // make sure macros are applied when compiling during scaladoc generation
-      "docJar" - workspaceTest(
-        HelloWorldMacros,
-        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
-      ) { eval =>
-        val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.docJar)
-        assert(evalCount > 0)
+      "scala-2.13" - {
+        // make sure macros are applied when compiling/running
+        val mod = HelloWorldMacros213
+        "runMain" - workspaceTest(
+          mod,
+          resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+        ) { eval =>
+          val Right((_, evalCount)) = eval.apply(mod.core.runMain("Main"))
+          assert(evalCount > 0)
+        }
+        // make sure macros are applied when compiling during scaladoc generation
+        "docJar" - workspaceTest(
+          mod,
+          resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+        ) { eval =>
+          val Right((_, evalCount)) = eval.apply(mod.core.docJar)
+          assert(evalCount > 0)
+        }
       }
     }
 
