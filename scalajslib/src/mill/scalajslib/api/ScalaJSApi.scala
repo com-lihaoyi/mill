@@ -109,11 +109,11 @@ object JsEnvConfig {
 }
 
 class OutputPatterns private (
-    private[scalajslib] val jsFile: String,
-    private[scalajslib] val sourceMapFile: String,
-    private[scalajslib] val moduleName: String,
-    private[scalajslib] val jsFileURI: String,
-    private[scalajslib] val sourceMapURI: String
+  val jsFile: String,
+  val sourceMapFile: String,
+  val moduleName: String,
+  val jsFileURI: String,
+  val sourceMapURI: String
 ) {
 
   /** Pattern for the JS file name (the file containing the module's code). */
