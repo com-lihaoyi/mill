@@ -3,11 +3,13 @@
 
 To support various IDEs and Language Servers, Mill supports the https://build-server-protocol.github.io/[Build Server Protocol] in version {bsp-version} and has a <<Build Server Protocol (BSP),built-in BSP server>>.
 
-In addition to BSP, Mill also supports <<IntelliJ Support,IntelliJ IDEA project configuration generation>> directly.
+In addition to BSP, Mill also supports <<IntelliJ IDEA Support,IntelliJ IDEA project configuration generation>> directly.
 
 == Build Server Protocol (BSP)
 
-To install a BSP connection file `.bsp/mill-bsp.json`, run:
+The Build Server Protocol has the concept of BSP server discovery, which means: A BSP client can connect to any BSP server, as long as there is a connection file under the `.bsp/` directory.
+
+To install a BSP connection file `.bsp/mill-bsp.json` for Mill, run:
 
 [source,bash]
 ----
@@ -20,8 +22,9 @@ You can fine control some BSP server options by specifying command options:
 
 |===
 | Option | Description
-|`--jobs` `n` | Use `n` threads in parallel to run tasks. A value of `0` means use as much threads as the system has cpu cores.
+|`--jobs` `n` | Use `n` threads in parallel to run tasks. A value of `0` means to use as many threads as the system has cpu cores.
 |===
+
 
 [source]
 
@@ -52,18 +55,39 @@ You should remove these mix-ins.
 `ScalaMetalsSupport` trait is now deprecated and will be removed in the future.
 --
 
+=== If things go wrong
+
+In case things go wrong, it can be sometimes hard to find the cause.
+BSP is just a protocol, and as such, issues on the server side (the Mill BSP server) might not well propagated to the BSP client (your IDE).
+
+For that reason Mill BSP server is writing a log file under `.bsp/mill-bsp.stderr`, where you can find various information about what's going on.
+Its content should look familiar, as it contains regular Mill output accompanied by additional BSP client-server communication details.
+
+You can increase the verbosity of that log file, when you run Mill with `--debug` at installation time (of the BSP discovery file).
+
+[source,bash]
+----
+mill --debug mill.bsp.BSP/install
+----
+
+
 === Using Bloop (standalone BSP server)
 
 If you wish to use Bloop as your build server (it is the default metals BSP implementation) with metals / vscode, consider using the mill bloop plugin.
 
 xref:Plugin_Bloop.adoc[Bloop Plugin]
 
-
 This is preferred to the instructions (currently) on the bloop website.
 
+Please be aware, that the Bloop contrib plugin is maintained by the community and is probably not on a par with the built-in BSP server.
 
 
-== IntelliJ Support
+== IntelliJ IDEA Support
+
+IntelliJ IDEA also supports the BSP protocol. To use this support, just follow the directions in <<_build_server_protocol_bsp>>.
+
+Additionally, you can generate IDEA project files directly with Mill.
+This is probably the preferred way if you work on polyglot projects and need support for other languages like Kotlin or AspectJ.
 
 To generate IntelliJ IDEA project files into `.idea/`, run:
 
@@ -71,3 +95,4 @@ To generate IntelliJ IDEA project files into `.idea/`, run:
 ----
 mill mill.scalalib.GenIdea/idea
 ----
+
