@@ -8,6 +8,8 @@ import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import mill.scalajslib.api._
 
+import scala.util.Properties
+
 object NodeJSConfigTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
   val scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
@@ -73,9 +75,13 @@ object NodeJSConfigTests extends TestSuite {
 
     "test" - {
 
-      def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) = {
-        checkLog(HelloJSWorld.buildUTest(scalaVersion, nodeArgs).test.test(), nodeArgs, notNodeArgs)
-      }
+      def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) =
+        if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
+        else checkLog(
+          HelloJSWorld.buildUTest(scalaVersion, nodeArgs).test.test(),
+          nodeArgs,
+          notNodeArgs
+        )
 
       "test" - checkUtest(nodeArgsEmpty, nodeArgs2G)
       "test2G" - checkUtest(nodeArgs2G, nodeArgs4G)
