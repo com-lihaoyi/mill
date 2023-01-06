@@ -215,14 +215,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M1-39-bc386a</span>
+    <span class="version">0.11.0-M1-40-682e93</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M1-39-bc386a</a>
+          <a href="index.html">0.11.0-M1-40-682e93</a>
         </li>
         <li class="version">
           <a href="0.11.0-M1/index.html">0.11.0-M1</a>
@@ -299,9 +299,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M1-39-bc386a</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M1-40-682e93</button>
   <div class="version-menu">
-    <a class="version is-current" href="IDE_Support.html">0.11.0-M1-39-bc386a</a>
+    <a class="version is-current" href="IDE_Support.html">0.11.0-M1-40-682e93</a>
     <a class="version" href="0.11.0-M1/IDE_Support.html">0.11.0-M1</a>
     <a class="version" href="0.10.10/IDE_Support.html">0.10.10</a>
     <a class="version is-missing" href="0.10.9/index.html">0.10.9</a>
@@ -337,7 +337,7 @@
 <p>To support various IDEs and Language Servers, Mill supports the <a href="https://build-server-protocol.github.io/">Build Server Protocol</a> in version 2.0.0 and has a <a href="#_build_server_protocol_bsp">built-in BSP server</a>.</p>
 </div>
 <div class="paragraph">
-<p>In addition to BSP, Mill also supports <a href="#_intellij_support">IntelliJ IDEA project configuration generation</a> directly.</p>
+<p>In addition to BSP, Mill also supports <a href="#_intellij_idea_support">IntelliJ IDEA project configuration generation</a> directly.</p>
 </div>
 </div>
 </div>
@@ -345,7 +345,10 @@
 <h2 id="_build_server_protocol_bsp"><a class="anchor" href="#_build_server_protocol_bsp"></a>Build Server Protocol (BSP)</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To install a BSP connection file <code>.bsp/mill-bsp.json</code>, run:</p>
+<p>The Build Server Protocol has the concept of BSP server discovery, which means: A BSP client can connect to any BSP server, as long as there is a connection file under the <code>.bsp/</code> directory.</p>
+</div>
+<div class="paragraph">
+<p>To install a BSP connection file <code>.bsp/mill-bsp.json</code> for Mill, run:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -370,7 +373,7 @@
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jobs</code> <code>n</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Use <code>n</code> threads in parallel to run tasks. A value of <code>0</code> means use as much threads as the system has cpu cores.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use <code>n</code> threads in parallel to run tasks. A value of <code>0</code> means to use as many threads as the system has cpu cores.</p></td>
 </tr>
 </tbody>
 </table>
@@ -424,6 +427,25 @@ You should remove these mix-ins.
 </tbody></table>
 </div>
 <div class="sect2">
+<h3 id="_if_things_go_wrong"><a class="anchor" href="#_if_things_go_wrong"></a>If things go wrong</h3>
+<div class="paragraph">
+<p>In case things go wrong, it can be sometimes hard to find the cause.
+BSP is just a protocol, and as such, issues on the server side (the Mill BSP server) might not well propagated to the BSP client (your IDE).</p>
+</div>
+<div class="paragraph">
+<p>For that reason Mill BSP server is writing a log file under <code>.bsp/mill-bsp.stderr</code>, where you can find various information about what’s going on.
+Its content should look familiar, as it contains regular Mill output accompanied by additional BSP client-server communication details.</p>
+</div>
+<div class="paragraph">
+<p>You can increase the verbosity of that log file, when you run Mill with <code>--debug</code> at installation time (of the BSP discovery file).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill --debug mill.bsp.BSP/install</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_using_bloop_standalone_bsp_server"><a class="anchor" href="#_using_bloop_standalone_bsp_server"></a>Using Bloop (standalone BSP server)</h3>
 <div class="paragraph">
 <p>If you wish to use Bloop as your build server (it is the default metals BSP implementation) with metals / vscode, consider using the mill bloop plugin.</p>
@@ -434,12 +456,22 @@ You should remove these mix-ins.
 <div class="paragraph">
 <p>This is preferred to the instructions (currently) on the bloop website.</p>
 </div>
+<div class="paragraph">
+<p>Please be aware, that the Bloop contrib plugin is maintained by the community and is probably not on a par with the built-in BSP server.</p>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_intellij_support"><a class="anchor" href="#_intellij_support"></a>IntelliJ Support</h2>
+<h2 id="_intellij_idea_support"><a class="anchor" href="#_intellij_idea_support"></a>IntelliJ IDEA Support</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>IntelliJ IDEA also supports the BSP protocol. To use this support, just follow the directions in <a href="#_build_server_protocol_bsp">Build Server Protocol (BSP)</a>.</p>
+</div>
+<div class="paragraph">
+<p>Additionally, you can generate IDEA project files directly with Mill.
+This is probably the preferred way if you work on polyglot projects and need support for other languages like Kotlin or AspectJ.</p>
+</div>
 <div class="paragraph">
 <p>To generate IntelliJ IDEA project files into <code>.idea/</code>, run:</p>
 </div>
