@@ -415,6 +415,8 @@ object main extends MillModule {
            |  val millEmbeddedDeps = ${artifacts.map(artifact =>
             s""""${artifact.group}:${artifact.id}:${artifact.version}""""
           )}
+           |  /** Mill documentation url. */
+           |  val millDocUrl = "${Settings.docUrl}"
            |}
       """.stripMargin.trim
 

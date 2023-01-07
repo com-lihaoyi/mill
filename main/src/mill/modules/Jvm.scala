@@ -543,10 +543,17 @@ object Jvm {
             |--------------------------------------------
             |""".stripMargin
 
+      val helpMessage =
+        s"""|
+            |--------------------------------------------
+            |
+            |For additional information on library dependencies, see the docs at
+            |${mill.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
+
       val errLines = errs.map {
         case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
       }.mkString("\n")
-      val msg = header + errLines + "\n"
+      val msg = header + errLines + "\n" + helpMessage + "\n"
       Result.Failure(msg)
     } else {
 
