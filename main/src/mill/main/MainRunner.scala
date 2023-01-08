@@ -220,6 +220,7 @@ class MainRunner(
            |  // doesn't get picked up during reflective child-module discovery
            |  def millSelf = Some(this)
            |
+           |  @scala.annotation.nowarn("cat=deprecation")
            |  implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
            |}
            |
