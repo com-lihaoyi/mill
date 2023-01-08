@@ -22,11 +22,11 @@ object BSP extends ExternalModule {
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
-  val bspProtocolVersion = "2.0.0"
+  val bspProtocolVersion = _root_.mill.bsp.BuildInfo.bsp4jVersion
   val languages = Seq("scala", "java")
   val serverName = "mill-bsp"
 
-  private[this] var millServerHandle = Promise[BspServerHandle]()
+  private[this] val millServerHandle = Promise[BspServerHandle]()
 
   /**
    * Installs the mill-bsp server. It creates a json file
