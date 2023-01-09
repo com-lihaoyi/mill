@@ -1,8 +1,9 @@
-package mill.bsp
+package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BspConnectionDetails
-import scala.jdk.CollectionConverters._
 import upickle.default._
+
+import scala.jdk.CollectionConverters._
 
 case class BspConfigJson(
     name: String,

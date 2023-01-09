@@ -1,22 +1,18 @@
-package mill.bsp
+package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{
-  JavaBuildServer,
-  JavacOptionsItem,
-  JavacOptionsParams,
-  JavacOptionsResult
-}
+import ch.epfl.scala.bsp4j.{JavaBuildServer, JavacOptionsItem, JavacOptionsParams, JavacOptionsResult}
 import mill.T
+import mill.api.internal
 import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 
+@internal
 trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
     completable(s"buildTargetJavacOptions ${javacOptionsParams}") { state =>
-      import state.evaluator
       targetTasks(
         state,
         targetIds = javacOptionsParams.getTargets.asScala.toSeq,
@@ -29,7 +25,7 @@ trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
             case _ => m.bspCompileClassesPath
           }
 
-          val pathResolver = evaluator.pathsResolver
+          val pathResolver = state.evaluator.pathsResolver
           T.task {
             val options = m.javacOptions()
             val classpath =

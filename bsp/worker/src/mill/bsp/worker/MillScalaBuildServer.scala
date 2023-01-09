@@ -1,33 +1,23 @@
-package mill.bsp
+package mill.bsp.worker
+
+import ch.epfl.scala.bsp4j.{ScalaBuildServer, ScalaMainClass, ScalaMainClassesItem, ScalaMainClassesParams, ScalaMainClassesResult, ScalaTestClassesItem, ScalaTestClassesParams, ScalaTestClassesResult, ScalacOptionsItem, ScalacOptionsParams, ScalacOptionsResult}
+import mill.api.internal
+import mill.modules.Jvm
+import mill.{Agg, T}
+import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule, TestModule}
+import mill.testrunner.TestRunner
+import sbt.testing.Fingerprint
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
-import scala.util.chaining._
-import ch.epfl.scala.bsp4j.{
-  ScalaBuildServer,
-  ScalaMainClass,
-  ScalaMainClassesItem,
-  ScalaMainClassesParams,
-  ScalaMainClassesResult,
-  ScalaTestClassesItem,
-  ScalaTestClassesParams,
-  ScalaTestClassesResult,
-  ScalacOptionsItem,
-  ScalacOptionsParams,
-  ScalacOptionsResult
-}
-import mill.modules.Jvm
-import mill.scalalib.{JavaModule, Lib, ScalaModule, SemanticDbJavaModule, TestModule}
-import mill.testrunner.TestRunner
-import mill.{Agg, T}
-import sbt.testing.Fingerprint
+import scala.util.chaining.scalaUtilChainingOps
 
+@internal
 trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =
     completable(hint = s"buildTargetScalacOptions ${p}") { state =>
-      import state.evaluator
       targetTasks(
         state,
         targetIds = p.getTargets.asScala.toSeq,
@@ -44,7 +34,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
             case _ => m.bspCompileClassesPath
           }
 
-          val pathResolver = evaluator.pathsResolver
+          val pathResolver = state.evaluator.pathsResolver
           T.task {
             new ScalacOptionsItem(
               id,

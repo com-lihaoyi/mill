@@ -1,4 +1,4 @@
-package mill.bsp
+package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.{
   BuildClient,
@@ -53,27 +53,27 @@ import ch.epfl.scala.bsp4j.{
   TestTask,
   WorkspaceBuildTargetsResult
 }
+import ch.epfl.scala.bsp4j
 import com.google.gson.JsonObject
-
-import java.util.concurrent.CompletableFuture
-import mill._
-import mill.api.{DummyTestReporter, Result, Strict}
+import mill.T
+import mill.api.{DummyTestReporter, PathRef, Result, Strict, internal}
 import mill.define.Segment.Label
-import mill.define.{BaseModule, Discover, ExternalModule, Segments, Task}
+import mill.define.{BaseModule, Discover, ExternalModule, Module, Segments, Task}
 import mill.eval.Evaluator
-import mill.scalalib.internal.ModuleUtils
 import mill.main.{BspServerResult, EvaluatorScopt, MainModule}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
-import mill.scalalib.bsp.{BspModule, MillBuildTarget}
-import os.Path
+import mill.scalalib.bsp.{BspModule, JvmBuildTarget, MillBuildTarget, ScalaBuildTarget}
+import mill.scalalib.internal.ModuleUtils
 
 import java.io.PrintStream
-import scala.concurrent.{Future, Promise}
+import java.util.concurrent.CompletableFuture
+import scala.concurrent.Promise
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success, Try}
 import scala.util.chaining.scalaUtilChainingOps
+import scala.util.{Failure, Success, Try}
 
+@internal
 class MillBuildServer(
     initialEvaluator: Option[Evaluator],
     bspVersion: String,
@@ -87,6 +87,7 @@ class MillBuildServer(
   implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] = new mill.main.EvaluatorScopt[T]()
 
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
+
   var cancellator: Boolean => Unit = shutdownBefore => ()
   var onSessionEnd: Option[BspServerResult => Unit] = None
   var client: BuildClient = _
@@ -299,7 +300,31 @@ class MillBuildServer(
                 }
               case _ => Seq()
             }
-            val data = m.bspBuildTargetData()
+            val data = m.bspBuildTargetData() match {
+              case Some((dataKind, d: ScalaBuildTarget)) =>
+                Some((
+                  dataKind,
+                  new bsp4j.ScalaBuildTarget(
+                    d.scalaOrganization,
+                    d.scalaVersion,
+                    d.scalaBinaryVersion,
+                    bsp4j.ScalaPlatform.forValue(d.platform.number),
+                    d.jars.asJava
+                  )
+                ))
+              case Some((dataKind, d: JvmBuildTarget)) =>
+                Some((
+                  dataKind,
+                  new bsp4j.JvmBuildTarget(
+                    d.javaHome.map(_.uri).getOrElse(null),
+                    d.javaVersion.getOrElse(null)
+                  )
+                ))
+              case Some((dataKind, d)) =>
+                // unsupported data kind
+                None
+              case None => None
+            }
 
             new BuildTarget(
               id,
@@ -334,7 +359,7 @@ class MillBuildServer(
   override def buildTargetSources(sourcesParams: SourcesParams)
       : CompletableFuture[SourcesResult] = {
 
-    def sourceItem(source: Path, generated: Boolean) = {
+    def sourceItem(source: os.Path, generated: Boolean) = {
       new SourceItem(
         sanitizeUri(source),
         if (source.toIO.isFile) SourceItemKind.FILE else SourceItemKind.DIRECTORY,
@@ -395,7 +420,6 @@ class MillBuildServer(
   override def buildTargetDependencySources(p: DependencySourcesParams)
       : CompletableFuture[DependencySourcesResult] =
     completable(hint = s"buildTargetDependencySources ${p}") { state: State =>
-      import state._
       targetTasks(
         state,
         targetIds = p.getTargets.asScala.toSeq,

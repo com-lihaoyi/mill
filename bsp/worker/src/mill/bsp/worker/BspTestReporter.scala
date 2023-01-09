@@ -1,28 +1,10 @@
-package mill.bsp
+package mill.bsp.worker
+
+import ch.epfl.scala.bsp4j._
+import mill.api.TestReporter
+import sbt.testing._
 
 import java.io.{PrintWriter, StringWriter}
-import ch.epfl.scala.bsp4j.{
-  BuildClient,
-  BuildTargetIdentifier,
-  StatusCode,
-  TaskDataKind,
-  TaskFinishParams,
-  TaskId,
-  TaskStartParams,
-  TestFinish,
-  TestReport,
-  TestStart,
-  TestStatus
-}
-import mill.api.TestReporter
-import sbt.testing.{
-  Event,
-  NestedSuiteSelector,
-  NestedTestSelector,
-  SuiteSelector,
-  TestSelector,
-  TestWildcardSelector
-}
 
 /**
  * Context class for BSP, specialized for sending `task-start` and

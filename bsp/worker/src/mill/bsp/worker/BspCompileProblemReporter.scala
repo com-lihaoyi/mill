@@ -1,4 +1,4 @@
-package mill.bsp
+package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j._
 import ch.epfl.scala.{bsp4j => bsp}

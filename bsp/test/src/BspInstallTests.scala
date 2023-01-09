@@ -11,7 +11,7 @@ object BspInstallTests extends ScriptTestSuite(false) {
     test("BSP install") {
       val workspacePath = initWorkspace()
       eval("mill.bsp.BSP/install") ==> true
-      val jsonFile = workspacePath / ".bsp" / s"${BSP.serverName}.json"
+      val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
       os.exists(jsonFile) ==> true
       os.read(jsonFile).contains("--debug") ==> false
     }

@@ -1,7 +1,6 @@
 package mill
 package scalajslib
 
-import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.Lib.resolveDependencies
@@ -11,6 +10,7 @@ import mill.define.{Command, Target, Task}
 import mill.scalajslib.api._
 import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
+import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 
 import scala.jdk.CollectionConverters._
 
@@ -240,13 +240,14 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((
-      BuildTargetDataKind.SCALA,
-      new ScalaBuildTarget(
-        scalaOrganization(),
-        scalaVersion(),
-        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
-        ScalaPlatform.JS,
-        scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
+      ScalaBuildTarget.dataKind,
+      ScalaBuildTarget(
+        scalaOrganization = scalaOrganization(),
+        scalaVersion = scalaVersion(),
+        scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        platform = ScalaPlatform.JS,
+        jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
+        jvmBuildTarget = None
       )
     ))
   }
