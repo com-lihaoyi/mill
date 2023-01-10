@@ -118,15 +118,12 @@ object Deps {
   val ammoniteVersion = "2.5.6"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
-  // Exclude trees here to force the version of the dependencies we have defined ourselves.
-  // We use this here instead of a `forceVersion()` on scalametaTrees since it's not
-  // respected in the POM causing issues for Coursier Mill users.
-  val ammoniteExcludingTrees = ammonite.exclude(
-    "org.scalameta" -> "trees_2.13"
-  )
   val ammoniteReducedDeps = ammonite.exclude(
+    // Exclude trees here to force the version of the dependencies we have defined ourselves.
+    // We use this here instead of a `forceVersion()` on scalametaTrees since it's not
+    // respected in the POM causing issues for Coursier Mill users.
     "org.scalameta" -> "trees_2.13",
-//    "org.eclipse.lsp4j" -> "org.eclipse.lsp4j.generator",
+    // only used when ammonite is run with --bsp, which we don't support
     "ch.epfl.scala" -> "bsp4j"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
@@ -373,7 +370,6 @@ object main extends MillModule {
       Deps.millModuledefs,
       Deps.millModuledefsPlugin,
       Deps.ammoniteReducedDeps,
-//      Deps.bsp4j,
       Deps.scalametaTrees,
       Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
