@@ -270,14 +270,14 @@ object MillMain {
                     val method = bspClass.getMethod("get")
                     val serverStarter = method.invoke(null).asInstanceOf[BspServerStarter]
                     serverStarter.startBspServer(
-                      None,
-                      MillMain.initialSystemStreams.out,
-                      System.err,
-                      MillMain.initialSystemStreams.in,
-                      os.pwd,
-                      ammConfig.core.home,
-                      true,
-                      Some(bspServerHandle)
+                      initialEvaluator = None,
+                      outStream = MillMain.initialSystemStreams.out,
+                      errStream = System.err,
+                      inStream = MillMain.initialSystemStreams.in,
+                      workspaceDir = os.pwd,
+                      ammoniteHomeDir = ammConfig.core.home,
+                      canReload = true,
+                      serverHandle = Some(bspServerHandle)
                     )
                   } catch {
                     case NonFatal(e) =>
