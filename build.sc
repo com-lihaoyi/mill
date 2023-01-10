@@ -172,7 +172,7 @@ object Deps {
   // see https://github.com/sourcegraph/scip-java/pull/527
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.9"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
-  val upickle = ivy"com.lihaoyi::upickle:2.0.0"
+  val upickle = ivy"com.lihaoyi::upickle:3.0.0-M1"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
