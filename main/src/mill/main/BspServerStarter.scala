@@ -17,3 +17,12 @@ trait BspServerStarter {
       serverHandle: Option[Promise[BspServerHandle]] = None
   ): BspServerResult
 }
+
+object BspServerStarter {
+  def apply(): BspServerStarter = {
+    // We cannot link this class directly, as it would give us a circular dependency
+    val bspClass = getClass().getClassLoader.loadClass("mill.bsp.BspServerStarterImpl")
+    val method = bspClass.getMethod("get")
+    method.invoke(null).asInstanceOf[BspServerStarter]
+  }
+}

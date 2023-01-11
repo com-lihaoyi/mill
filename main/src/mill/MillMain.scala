@@ -265,11 +265,7 @@ object MillMain {
                 stderr.println("Trying to load BSP server...")
                 val bspServerFuture = Future {
                   try {
-                    // We cannot link this class directly, as it would give us a circular dependency
-                    val bspClass = MillMain.this.getClass.getClassLoader.loadClass("mill.bsp.BspServerStarterImpl")
-                    val method = bspClass.getMethod("get")
-                    val serverStarter = method.invoke(null).asInstanceOf[BspServerStarter]
-                    serverStarter.startBspServer(
+                    BspServerStarter().startBspServer(
                       initialEvaluator = None,
                       outStream = MillMain.initialSystemStreams.out,
                       errStream = System.err,
