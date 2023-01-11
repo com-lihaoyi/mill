@@ -1,25 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Version file :: Mill</title>
-    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Plugin_VersionFile.html">
-    <link rel="prev" href="Plugin_Twirl.html">
-    <link rel="next" href="Thirdparty_Plugins.html">
-    <meta name="generator" content="Antora 3.0.1">
-    <link rel="stylesheet" href="../../_/css/site.css">
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Plugin_VersionFile.html" />
+    <link rel="prev" href="Plugin_Twirl.html" />
+    <link rel="next" href="Thirdparty_Plugins.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
     <script>var uiRootPath = '../../_'</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" />&nbsp;Mill</a>
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -221,7 +222,7 @@
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-latest">
-          <a href="../index.html">0.11.0-M1-44-6c46fd</a>
+          <a href="../index.html">0.11.0-M1-45-067cf0</a>
         </li>
         <li class="version is-current">
           <a href="index.html">0.11.0-M1</a>
@@ -301,7 +302,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M1</button>
   <div class="version-menu">
-    <a class="version" href="../Plugin_VersionFile.html">0.11.0-M1-44-6c46fd</a>
+    <a class="version" href="../Plugin_VersionFile.html">0.11.0-M1-45-067cf0</a>
     <a class="version is-current" href="Plugin_VersionFile.html">0.11.0-M1</a>
     <a class="version" href="../0.10.10/Plugin_VersionFile.html">0.10.10</a>
     <a class="version" href="../0.10.9/Plugin_VersionFile.html">0.10.9</a>
@@ -357,7 +358,7 @@ object versionFile extends VersionFileModule</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The module will read and write to the file <code>version</code> located at the module&#8217;s <code>millSourcePath</code>.
+<p>The module will read and write to the file <code>version</code> located at the module’s <code>millSourcePath</code>.
 In the example above, that would be <code>/versionFile/version</code> relative to the <code>build.sc</code> file.</p>
 </div>
 <div class="paragraph">
@@ -463,7 +464,7 @@ then overwrites the previous content in the version file with this new version.<
 <div class="sect2">
 <h3 id="_parameters"><a class="anchor" href="#_parameters"></a>Parameters</h3>
 <div class="sect3">
-<h4 id="_bump_major_minor_patch"><a class="anchor" href="#_bump_major_minor_patch"></a>–bump (major | minor | patch)</h4>
+<h4 id="_bump_major_minor_patch"><a class="anchor" href="#_bump_major_minor_patch"></a>&ndash;bump (major | minor | patch)</h4>
 <div class="paragraph">
 <p>Sets what segment of the version to bump.</p>
 </div>
@@ -506,7 +507,7 @@ then overwrites the previous content in the version file with this new version.<
 <div class="sect2">
 <h3 id="_parameters_2"><a class="anchor" href="#_parameters_2"></a>Parameters</h3>
 <div class="sect3">
-<h4 id="_version_x_y_z_snapshot"><a class="anchor" href="#_version_x_y_z_snapshot"></a>–version x.y.z[-SNAPSHOT]</h4>
+<h4 id="_version_x_y_z_snapshot"><a class="anchor" href="#_version_x_y_z_snapshot"></a>&ndash;version x.y.z[-SNAPSHOT]</h4>
 <div class="paragraph">
 <p>The version to write to the version file.</p>
 </div>
@@ -587,7 +588,7 @@ $ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.push</code>
 <div class="sect2">
 <h3 id="_custom_operations"><a class="anchor" href="#_custom_operations"></a>Custom operations</h3>
 <div class="paragraph">
-<p>It&#8217;s possible to override the tasks above, or add your own tasks, to adapt the module
+<p>It’s possible to override the tasks above, or add your own tasks, to adapt the module
 to work with other version control systems than git.</p>
 </div>
 </div>
@@ -606,9 +607,9 @@ to work with other version control systems than git.</p>
   <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
 </footer>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

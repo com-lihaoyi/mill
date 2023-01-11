@@ -1,25 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Library Dependencies in Mill :: Mill</title>
-    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Library_Dependencies.html">
-    <link rel="prev" href="Configuration.html">
-    <link rel="next" href="Common_Project_Layouts.html">
-    <meta name="generator" content="Antora 3.0.1">
-    <link rel="stylesheet" href="../../_/css/site.css">
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Library_Dependencies.html" />
+    <link rel="prev" href="Configuration.html" />
+    <link rel="next" href="Common_Project_Layouts.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
     <script>var uiRootPath = '../../_'</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" />&nbsp;Mill</a>
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -221,7 +222,7 @@
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-latest">
-          <a href="../index.html">0.11.0-M1-44-6c46fd</a>
+          <a href="../index.html">0.11.0-M1-45-067cf0</a>
         </li>
         <li class="version is-current">
           <a href="index.html">0.11.0-M1</a>
@@ -300,7 +301,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M1</button>
   <div class="version-menu">
-    <a class="version" href="../Library_Dependencies.html">0.11.0-M1-44-6c46fd</a>
+    <a class="version" href="../Library_Dependencies.html">0.11.0-M1-45-067cf0</a>
     <a class="version is-current" href="Library_Dependencies.html">0.11.0-M1</a>
     <a class="version" href="../0.10.10/Library_Dependencies.html">0.10.10</a>
     <a class="version is-missing" href="../0.10.9/index.html">0.10.9</a>
@@ -350,7 +351,7 @@ For more details about coursier, refer to the <a href="https://get-coursier.io/d
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ivy"{organization}:{name}:{version}"</pre>
+<pre>ivy&quot;{organization}:{name}:{version}&quot;</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -362,13 +363,13 @@ The whole tripplet is ofthe called <code>GAV</code>.</p>
 </div>
 <div class="paragraph">
 <p>In Mill we use the additional term <code>artifactId</code> which is identical to the <code>name</code> when used in the normal form shown above.
-When a different form is used, e.g. some double-colons are used between the parts, the <code>artifactId</code> typically contains suffixes, but the name doesn&#8217;t.</p>
+When a different form is used, e.g. some double-colons are used between the parts, the <code>artifactId</code> typically contains suffixes, but the name doesn’t.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example for a simple Java Dependency</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(
-  ivy"org.slf4j:slf4j-api:1.7.25"
+  ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
 )</code></pre>
 </div>
 </div>
@@ -387,21 +388,21 @@ E.g. to select the Scala 2.13 version of a library <code>foo</code>, the final <
 </div>
 <div class="paragraph">
 <p>To always pick the right version and support cross compiling,
-you can omit the scala version and instead use a double colon (<code>::</code>) between the <code>organization</code> and the <code>name</code>, e.g. <code>ivy"com.typesafe.akka:akka-actor_2.12:2.5.25"</code>.
+you can omit the scala version and instead use a double colon (<code>::</code>) between the <code>organization</code> and the <code>name</code>, e.g. <code>ivy&quot;com.typesafe.akka:akka-actor_2.12:2.5.25&quot;</code>.
 Your module needs to <code>extends ScalaModule</code> though.</p>
 </div>
 <div class="paragraph">
 <p>If you want to use dependencies that are cross-published against the full Scala version, e.g. <code>2.12.12</code>,
-you can use three colons (<code>:::</code>) between <code>organization</code> and <code>name</code>, e.g.: <code>ivy"org.scalamacros:::paradise:2.1.1"</code>.</p>
+you can use three colons (<code>:::</code>) between <code>organization</code> and <code>name</code>, e.g.: <code>ivy&quot;org.scalamacros:::paradise:2.1.1&quot;</code>.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(
   // explicit scala version suffix, NOT RECOMMENDED!
-  ivy"com.typesafe.akka:akka-actor_2.12:2.5.25",
-  ivy"com.typesafe.akka::akka-actor:2.5.25",
-  ivy"org.scalamacros:::paradise:2.1.1"
+  ivy&quot;com.typesafe.akka:akka-actor_2.12:2.5.25&quot;,
+  ivy&quot;com.typesafe.akka::akka-actor:2.5.25&quot;,
+  ivy&quot;org.scalamacros:::paradise:2.1.1&quot;
 )</code></pre>
 </div>
 </div>
@@ -417,7 +418,7 @@ In fact, the Scala 3 standard library is the same as for Scala 2.13.</p>
 </div>
 <div class="admonitionblock caution">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
@@ -430,7 +431,7 @@ In fact, the Scala 3 standard library is the same as for Scala 2.13.</p>
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="sect2">
 <h3 id="_using_scala_2_13_from_scala_3"><a class="anchor" href="#_using_scala_2_13_from_scala_3"></a>Using Scala 2.13 from Scala 3</h3>
@@ -440,39 +441,39 @@ In fact, the Scala 3 standard library is the same as for Scala 2.13.</p>
 <div class="listingblock">
 <div class="title">Example:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def scalaVersion = "3.2.1"
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def scalaVersion = &quot;3.2.1&quot;
 def ivyDeps = Agg(
-  ivy"com.lihaoyi::upickle:2.0.0".withDottyCompat(scalaVersion()) //1
+  ivy&quot;com.lihaoyi::upickle:2.0.0&quot;.withDottyCompat(scalaVersion()) //1
 )</code></pre>
 </div>
 </div>
 <div class="colist arabic">
 <table>
-<tr>
+<tbody><tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td>This will result in a Scala 2.13 dependency <code>com.lihaoyi::upicke_2.13:2.0.0</code></td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Do you wonder where the name "dotty" comes from?</p>
+<p>Do you wonder where the name &quot;dotty&quot; comes from?</p>
 </div>
 <div class="paragraph">
-<p>In the early development of Scala 3, the Scala 3 compiler was called "Dotty". Later, the name was changed to Scala 3, but the compiler project itself is still named "dotty".</p>
+<p>In the early development of Scala 3, the Scala 3 compiler was called &quot;Dotty&quot;. Later, the name was changed to Scala 3, but the compiler project itself is still named &quot;dotty&quot;.</p>
 </div>
 <div class="paragraph">
 <p>The dotty compiler itself is an implementation of the <a href="http://lampwww.epfl.ch/~amin/dot/fool.pdf">Dependent Object Types (DOT) calculus</a>, which is the new basis of Scala 3. It also enhances the type system to a next level and allows features like union-types and intersection-types.</p>
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -487,8 +488,8 @@ which already inherits all dependencies of their parent module.
 If you need additional test dependencies, you simply add them by overriding <code>def ivyDeps</code>, as you would do with normal library dependencies.</p>
 </div>
 <div class="paragraph">
-<p>When migrating a sbt project and seeing a dependency like this: <code>"ch.qos.logback" % "logback-classic" % "1.2.3" % "test"</code>,
-simply add it to the test module&#8217;s <code>ivyDeps</code> as ordinary dependency.
+<p>When migrating a sbt project and seeing a dependency like this: <code>&quot;ch.qos.logback&quot; % &quot;logback-classic&quot; % &quot;1.2.3&quot; % &quot;test&quot;</code>,
+simply add it to the test module’s <code>ivyDeps</code> as ordinary dependency.
 There is no special test scope in Mill.</p>
 </div>
 <div class="listingblock">
@@ -497,7 +498,7 @@ There is no special test scope in Mill.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object main extends JavaModule {
   object test extends Tests {
     def ivyDeps = Agg(
-      ivy"org.qos.logback:logback-classic:1.2.3"
+      ivy&quot;org.qos.logback:logback-classic:1.2.3&quot;
     )
   }
 }</code></pre>
@@ -515,7 +516,7 @@ There is no special test scope in Mill.</p>
 <div class="title">Example</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileIvyDeps = Agg(
-  ivy"org.slf4j:slf4j-api:1.7.25"
+  ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
 )</code></pre>
 </div>
 </div>
@@ -523,7 +524,7 @@ There is no special test scope in Mill.</p>
 <p>When Mill generated file to interact with package manager like <code>pom.xml</code> for Maven repositories, such compile-only dependencies are mapped to the <code>provided</code> scope.</p>
 </div>
 <div class="paragraph">
-<p>Please note, that dependencies with <code>provided</code> scope will never be resolved transitively. Hence, the name "provided", as the target runtime needs to "provide" them, if they are needed.</p>
+<p>Please note, that dependencies with <code>provided</code> scope will never be resolved transitively. Hence, the name &quot;provided&quot;, as the target runtime needs to &quot;provide&quot; them, if they are needed.</p>
 </div>
 </div>
 </div>
@@ -537,7 +538,7 @@ There is no special test scope in Mill.</p>
 <div class="title">Example</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileIvyDeps = Agg(
-  ivy"ch.qos.logback:logback-classic:1.2.0"
+  ivy&quot;ch.qos.logback:logback-classic:1.2.0&quot;
 )</code></pre>
 </div>
 </div>
@@ -569,8 +570,8 @@ There is no special test scope in Mill.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>After compiling your module(s) you can find and examine files such as <code>ivyDeps.json</code> and <code>transitiveIvyDeps.json</code> in your <code>out</code> build&#8217;s folder for a given module.
-After running the <code>ivyDepsTree</code> command you&#8217;ll also find the <code>ivyDepsTree.json</code> and <code>ivyDepsTree.log</code> file that contain the output of the above <code>ivyDepsTree</code> command.</p>
+<p>After compiling your module(s) you can find and examine files such as <code>ivyDeps.json</code> and <code>transitiveIvyDeps.json</code> in your <code>out</code> build’s folder for a given module.
+After running the <code>ivyDepsTree</code> command you’ll also find the <code>ivyDepsTree.json</code> and <code>ivyDepsTree.log</code> file that contain the output of the above <code>ivyDepsTree</code> command.</p>
 </div>
 <div class="paragraph">
 <p>You can observe the actual version being used by running <code>mill show myModule.resolvedIvyDeps</code>. If you run <code>mill myModule.resolvedIvyDeps</code>, the same information is available in <code>out/myModule/resolvedIvyDeps.json</code>.</p>
@@ -584,7 +585,7 @@ command provides a nice utility to be able to target the part of the tree that
 brings in a specific dependency.</p>
 </div>
 <div class="paragraph">
-<p>For example, let&#8217;s again  use the Mill codebase as an example. We&#8217;ll search the
+<p>For example, let’s again  use the Mill codebase as an example. We’ll search the
 tree in the  <code>main</code> module and try to find where the <code>jsoniter-scala-core_2.13</code>
 artifact is coming from using the <code>--whatDependsOn</code> argument:</p>
 </div>
@@ -600,13 +601,13 @@ artifact is coming from using the <code>--whatDependsOn</code> argument:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>By looking at the output we can see that it&#8217;s our dependency on <code>coursier_2.13</code>
+<p>By looking at the output we can see that it’s our dependency on <code>coursier_2.13</code>
 that is bringining in the <code>jsoniter-scala-core_2.13</code> artifact.</p>
 </div>
 <div class="paragraph">
 <p>The <code>--whatDependsOn</code> argument can also be repeated to target multiple
 artifacts at once. Just repeat the <code>--whatDependsOn &lt;artifact&gt;</code> pattern. Note
-that the artifact pattern follows the <code>org:artifact</code> convention. You can&#8217;t
+that the artifact pattern follows the <code>org:artifact</code> convention. You can’t
 include a version as the utility will show you all usages of the <code>artifact</code>.
 Also note that when using <code>--whatDependsOn</code> on usage of <code>--inverse</code> is forced
 in order to make the tree appear in an inverted manner to more easily show you
@@ -626,7 +627,7 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="title">Example: Exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Agg(
-  ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -&gt; "fansi_2.12")
+  ivy&quot;com.lihaoyi::pprint:0.5.3&quot;.exclude(&quot;com.lihaoyi&quot; -&gt; &quot;fansi_2.12&quot;)
 )</code></pre>
 </div>
 </div>
@@ -636,7 +637,7 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="listingblock">
 <div class="title">Example: Exclude all <code>com.lihaoyi</code> libraries from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(ivy&quot;com.lihaoyi::pprint:0.5.3&quot;.excludeOrg(&quot;com.lihaoyi&quot;))</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -646,9 +647,9 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="title">Example: Excluding a library (fansi) by name from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(
-  ivy"com.lihaoyi::pprint:0.5.3"
-    .excludeName("fansi_2.12")
-    .excludeName("sourcecode")
+  ivy&quot;com.lihaoyi::pprint:0.5.3&quot;
+    .excludeName(&quot;fansi_2.12&quot;)
+    .excludeName(&quot;sourcecode&quot;)
 )</code></pre>
 </div>
 </div>
@@ -659,15 +660,15 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="sectionbody">
 <div class="admonitionblock caution">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-Please treat forceVersion as experimental; it has some bugs and isn&#8217;t production-ready (forced versions <a href="https://github.com/com-lihaoyi/mill/issues/1975">aren&#8217;t propagated to published artifacts</a>).
+Please treat forceVersion as experimental; it has some bugs and isn’t production-ready (forced versions <a href="https://github.com/com-lihaoyi/mill/issues/1975">aren’t propagated to published artifacts</a>).
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>You can use the <code>forceVersion</code> method to ensure the used version of a dependency is what you have declared.</p>
@@ -675,22 +676,22 @@ Please treat forceVersion as experimental; it has some bugs and isn&#8217;t prod
 <div class="ulist">
 <ul>
 <li>
-<p>You declare a dependency <code>val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14")</code></p>
+<p>You declare a dependency <code>val deps = Agg(ivy&quot;com.lihaoyi::fansi:0.2.14&quot;)</code></p>
 </li>
 <li>
-<p>There is another dependency, <code>val deps = Agg(ivy"com.lihaoyi::PPrint:0.8.1")</code></p>
+<p>There is another dependency, <code>val deps = Agg(ivy&quot;com.lihaoyi::PPrint:0.8.1&quot;)</code></p>
 </li>
 <li>
 <p>PPrint 0.8.1 uses fansi 0.4.0, so it is a transitive dependency</p>
 </li>
 <li>
-<p><code>mill show myModule.resolvedIvyDeps | grep "fansi"</code> should show fansi 0.4.0</p>
+<p><code>mill show myModule.resolvedIvyDeps | grep &quot;fansi&quot;</code> should show fansi 0.4.0</p>
 </li>
 <li>
-<p>If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use <code>val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14".forceVersion())</code></p>
+<p>If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use <code>val deps = Agg(ivy&quot;com.lihaoyi::fansi:0.2.14&quot;.forceVersion())</code></p>
 </li>
 <li>
-<p><code>mill show myModule.resolvedIvyDeps | grep "fansi"</code> should show fansi 0.2.14</p>
+<p><code>mill show myModule.resolvedIvyDeps | grep &quot;fansi&quot;</code> should show fansi 0.2.14</p>
 </li>
 </ul>
 </div>
@@ -723,7 +724,7 @@ Your module needs to <code>extends ScalaNativeModule</code> to accept Scala Nati
 </div>
 </div>
 <div id="footnotes">
-<hr>
+<hr />
 <div class="footnote" id="_footnotedef_1">
 <a href="#_footnoteref_1">1</a>. Scala 2 versions have the unusual version format: <code>{epoch}.{major}.{minor}</code>.
 </div>
@@ -741,9 +742,9 @@ Your module needs to <code>extends ScalaNativeModule</code> to accept Scala Nati
   <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
 </footer>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>
