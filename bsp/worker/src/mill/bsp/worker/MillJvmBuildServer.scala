@@ -1,6 +1,14 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, JvmBuildServer, JvmEnvironmentItem, JvmRunEnvironmentParams, JvmRunEnvironmentResult, JvmTestEnvironmentParams, JvmTestEnvironmentResult}
+import ch.epfl.scala.bsp4j.{
+  BuildTargetIdentifier,
+  JvmBuildServer,
+  JvmEnvironmentItem,
+  JvmRunEnvironmentParams,
+  JvmRunEnvironmentResult,
+  JvmTestEnvironmentParams,
+  JvmTestEnvironmentResult
+}
 import mill.T
 import mill.api.internal
 import mill.define.Task

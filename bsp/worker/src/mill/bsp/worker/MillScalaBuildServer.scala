@@ -1,9 +1,21 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{ScalaBuildServer, ScalaMainClass, ScalaMainClassesItem, ScalaMainClassesParams, ScalaMainClassesResult, ScalaTestClassesItem, ScalaTestClassesParams, ScalaTestClassesResult, ScalacOptionsItem, ScalacOptionsParams, ScalacOptionsResult}
+import ch.epfl.scala.bsp4j.{
+  ScalaBuildServer,
+  ScalaMainClass,
+  ScalaMainClassesItem,
+  ScalaMainClassesParams,
+  ScalaMainClassesResult,
+  ScalaTestClassesItem,
+  ScalaTestClassesParams,
+  ScalaTestClassesResult,
+  ScalacOptionsItem,
+  ScalacOptionsParams,
+  ScalacOptionsResult
+}
+import mill.{Agg, T}
 import mill.api.internal
 import mill.modules.Jvm
-import mill.{Agg, T}
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule, TestModule}
 import mill.testrunner.TestRunner
 import sbt.testing.Fingerprint

@@ -18,8 +18,6 @@ import scala.util.chaining.scalaUtilChainingOps
 @internal
 class BspWorkerImpl() extends BspWorker {
 
-  // TODO: get the classpath of the worker here and persist it for reuse at start time
-  // creates a Json with the BSP connection details
   def bspConnectionJson(jobs: Int, debug: Boolean): String = {
     val props = sys.props
     val millPath = props
