@@ -240,7 +240,7 @@ trait MillCoursierModule extends CoursierModule {
   val forcedVersions: Seq[(String, String, String)] = Seq(
     ("org.apache.ant", "ant", "1.10.12"),
     ("commons-io", "commons-io", "2.11.0"),
-    ("com.google.code.gson", "gson", "2.9.1"),
+    ("com.google.code.gson", "gson", "2.10.1"),
     ("com.google.protobuf", "protobuf-java", "3.21.8"),
     ("com.google.guava", "guava", "31.1-jre")
   )
