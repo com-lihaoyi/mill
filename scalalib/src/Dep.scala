@@ -3,10 +3,7 @@ package mill.scalalib
 import mill.scalalib.JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
-import mil.scalalib.BoundDep
 import mill.scalalib.api.ZincWorkerUtil
-
-
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(

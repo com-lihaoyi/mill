@@ -1,24 +1,33 @@
 package mill.scalalib
 
 import mill.api.{PathRef, Result, experimental}
-import mill.{Agg, BuildInfo, T}
-import mill.define.{Ctx, Input, Target, Task}
+import mill.define.{Input, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
+import mill.{Agg, BuildInfo, T}
 
-import java.nio.file.{CopyOption, Files, LinkOption, StandardCopyOption}
-import scala.util.DynamicVariable
+import scala.util.Properties
 
 @experimental
-trait SemanticDbJavaModule extends JavaModule { hostModule =>
+trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
   def semanticDbVersion: Input[String] = T.input {
-    T.env.getOrElse(
+    T.env.getOrElse[String](
       "SEMANTICDB_VERSION",
       SemanticDbJavaModule.contextSemanticDbVersion.get()
         .getOrElse(
           SemanticDbJavaModule.buildTimeSemanticDbVersion
         )
-    ).asInstanceOf[String]
+    )
+  }
+
+  def semanticDbJavaVersion: Input[String] = T.input {
+    T.env.getOrElse[String](
+      "JAVASEMANTICDB_VERSION",
+      SemanticDbJavaModule.contextJavaSemanticDbVersion.get()
+        .getOrElse(
+          SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
+        )
+    )
   }
 
   def semanticDbScalaVersion = hostModule match {
@@ -42,6 +51,23 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
     } else {
       Result.Success(Agg(
         ivy"org.scalameta:semanticdb-scalac_${sv}:${semDbVersion}"
+      ))
+    }
+  }
+
+  private def semanticDbJavaPluginIvyDeps: Target[Agg[Dep]] = T {
+    val sv = semanticDbJavaVersion()
+    if (sv.isEmpty) {
+      val msg =
+        """|
+           |You must provide a javaSemanticDbVersion
+           |
+           |def semanticDbJavaVersion = ???
+           |""".stripMargin
+      Result.Failure(msg)
+    } else {
+      Result.Success(Agg(
+        ivy"com.sourcegraph:semanticdb-javac:${sv}"
       ))
     }
   }
@@ -72,45 +98,128 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
       }
   }
 
-  def semanticDbData: T[PathRef] = hostModule match {
-    // TODO: also generate semanticDB for Java and Mixed-Java projects
-    case m: ScalaModule =>
-      T.persistent {
-        val sv = m.scalaVersion()
+  private def resolvedSemanticDbJavaPluginIvyDeps: Target[Agg[PathRef]] = T {
+    resolveDeps(T.task { semanticDbJavaPluginIvyDeps().map(bindDependency()) })()
+  }
 
-        val scalacOptions = (
-          m.allScalacOptions() ++
-            semanticDbEnablePluginScalacOptions() ++ {
-              if (ZincWorkerUtil.isScala3(sv)) {
-                Seq("-Xsemanticdb")
-              } else {
-                Seq(
-                  "-Yrangepos",
-                  s"-P:semanticdb:sourceroot:${T.workspace}",
-                  "-Ystop-after:semanticdb-typer"
-                )
-              }
-            }
+  def semanticDbData: T[PathRef] = {
+    def javacOptionsTask(m: JavaModule): Task[Seq[String]] = T.task {
+      // these are only needed for Java 17+
+      val extracJavacExports =
+        if (Properties.isJavaAtLeast(17)) List(
+          "-J--add-exports",
+          "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+          "-J--add-exports",
+          "-Jjdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+          "-J--add-exports",
+          "-Jjdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+          "-J--add-exports",
+          "-Jjdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+          "-J--add-exports",
+          "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
         )
-          .filterNot(_ == "-Xfatal-warnings")
-        T.log.debug(s"effective scalac options: ${scalacOptions}")
+        else List.empty
 
-        zincWorker
-          .worker()
-          .compileMixed(
-            upstreamCompileOutput = upstreamCompileOutput(),
-            sources = m.allSourceFiles().map(_.path),
-            compileClasspath = compileClasspath().map(_.path),
-            javacOptions = javacOptions(),
-            scalaVersion = sv,
-            scalaOrganization = m.scalaOrganization(),
-            scalacOptions = scalacOptions,
-            compilerClasspath = m.scalaCompilerClasspath(),
-            scalacPluginClasspath = semanticDbPluginClasspath(),
-            reporter = T.reporter.apply(hashCode)
+      val more = if (T.log.debugEnabled) " -verbose" else ""
+      m.javacOptions() ++ Seq(
+        // FIXME: change to -build-tool:mill once semanticdb-java after 0.8.9 comes out
+        s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"} -build-tool:sbt" + more
+      ) ++ extracJavacExports
+
+    }
+    def compileClasspathTask(m: JavaModule): Task[Agg[PathRef]] = T.task {
+      m.compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()
+    }
+
+    // The semanticdb-javac plugin has issues with the -sourceroot setting, so we correct this on the fly
+    def copySemanticdbFiles(
+        classesDir: os.Path,
+        sourceroot: os.Path,
+        targetDir: os.Path
+    ): PathRef = {
+      os.remove.all(targetDir)
+      os.makeDir.all(targetDir)
+
+      val ups = sourceroot.segments.size
+      val semanticPath = os.rel / "META-INF" / "semanticdb"
+      val toClean = classesDir / semanticPath / sourceroot.segments.toSeq
+
+      os.walk(classesDir, preOrder = true)
+        .filter(os.isFile)
+        .foreach { p =>
+          if (p.ext == "semanticdb") {
+            val target =
+              if (ups > 0 && p.startsWith(toClean)) {
+                targetDir / semanticPath / p.relativeTo(toClean)
+              } else {
+                targetDir / p.relativeTo(classesDir)
+              }
+            os.move(p, target, createFolders = true)
+          }
+        }
+      PathRef(targetDir)
+    }
+
+    hostModule match {
+      case m: ScalaModule =>
+        T.persistent {
+          val sv = m.scalaVersion()
+
+          val scalacOptions = (
+            m.allScalacOptions() ++
+              semanticDbEnablePluginScalacOptions() ++ {
+                if (ZincWorkerUtil.isScala3(sv)) {
+                  Seq("-Xsemanticdb")
+                } else {
+                  Seq(
+                    "-Yrangepos",
+                    s"-P:semanticdb:sourceroot:${T.workspace}",
+                    "-Ystop-after:semanticdb-typer"
+                  )
+                }
+              }
           )
-          .map(_.classes)
-      }
+            .filterNot(_ == "-Xfatal-warnings")
+
+          val javacOpts = javacOptionsTask(m)()
+
+          T.log.debug(s"effective scalac options: ${scalacOptions}")
+          T.log.debug(s"effective javac options: ${javacOpts}")
+
+          zincWorker.worker()
+            .compileMixed(
+              upstreamCompileOutput = upstreamCompileOutput(),
+              sources = m.allSourceFiles().map(_.path),
+              compileClasspath = compileClasspathTask(m)().map(_.path),
+              javacOptions = javacOpts,
+              scalaVersion = sv,
+              scalaOrganization = m.scalaOrganization(),
+              scalacOptions = scalacOptions,
+              compilerClasspath = m.scalaCompilerClasspath(),
+              scalacPluginClasspath = semanticDbPluginClasspath(),
+              reporter = T.reporter.apply(hashCode)
+            )
+            .map(r => copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data"))
+        }
+      case m: JavaModule =>
+        T.persistent {
+          val javacOpts = javacOptionsTask(m)()
+
+          // we currently assume, we don't do incremental java compilation
+          os.remove.all(T.dest / "classes")
+
+          T.log.debug(s"effective javac options: ${javacOpts}")
+
+          zincWorker.worker()
+            .compileJava(
+              upstreamCompileOutput(),
+              allSourceFiles().map(_.path),
+              compileClasspathTask(m)().map(_.path),
+              javacOpts,
+              T.reporter.apply(m.hashCode())
+            ).map(r => copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data"))
+        }
+    }
   }
 
   // keep in sync with bspCompiledClassesAndSemanticDbFiles
@@ -151,6 +260,7 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
 }
 
 object SemanticDbJavaModule {
+  val buildTimeJavaSemanticDbVersion = Versions.semanticDbJavaVersion
   val buildTimeSemanticDbVersion = Versions.semanticDBVersion
 
   private[mill] val contextSemanticDbVersion: InheritableThreadLocal[Option[String]] =

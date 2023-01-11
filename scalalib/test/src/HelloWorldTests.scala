@@ -3,15 +3,16 @@ package mill.scalalib
 import java.io.ByteArrayOutputStream
 import java.util.jar.JarFile
 import scala.jdk.CollectionConverters._
-import scala.util.Using
+import scala.util.{Properties, Using}
 import scala.xml.NodeSeq
 import mill._
 import mill.api.Result
-import mill.define.Target
+import mill.define.{Input, Target}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.modules.Assembly
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
+import os.{RelPath, SubPath}
 import utest._
 import utest.framework.TestPath
 
@@ -30,6 +31,10 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
+    override def semanticDbVersion: Input[String] = T.input {
+      // The latest semanticDB release for Scala 2.12.6
+      "4.1.9"
+    }
   }
 
   trait HelloWorldModuleWithMain extends HelloWorldModule {
@@ -202,6 +207,10 @@ object HelloWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
       override def versionScheme = Some(VersionScheme.EarlySemVer)
+
+      def checkSonatypeCreds(sonatypeCreds: String) = T.command {
+        PublishModule.checkSonatypeCreds(sonatypeCreds)
+      }
     }
   }
 
@@ -239,16 +248,23 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldMacros extends HelloBase {
+  object HelloWorldMacros212 extends HelloBase {
     object core extends ScalaModule {
-      def scalaVersion = scala212Version
-
+      override def scalaVersion = scala212Version
       override def ivyDeps = Agg(
-        ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
+        ivy"com.github.julien-truffaut::monocle-macro::1.6.0"
       )
       override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
         ivy"org.scalamacros:::paradise:2.1.0"
       )
+    }
+  }
+
+  object HelloWorldMacros213 extends HelloBase {
+    object core extends ScalaModule {
+      override def scalaVersion = scala213Version
+      override def ivyDeps = Agg(ivy"com.github.julien-truffaut::monocle-macro::2.1.0")
+      override def scalacOptions = super.scalacOptions() ++ Seq("-Ymacro-annotations")
     }
   }
 
@@ -311,7 +327,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  def compileClassfiles = Seq[os.RelPath](
+  def compileClassfiles: Seq[os.RelPath] = Seq(
     os.rel / "Main.class",
     os.rel / "Main$.class",
     os.rel / "Main0.class",
@@ -320,12 +336,17 @@ object HelloWorldTests extends TestSuite {
     os.rel / "Person.class",
     os.rel / "Person$.class"
   )
+  def semanticDbFiles: Seq[os.SubPath] = Seq(
+    os.sub / "core" / "src" / "Main.scala.semanticdb",
+    os.sub / "core" / "src" / "Result.scala.semanticdb"
+  ).map(os.sub / "META-INF" / "semanticdb" / _)
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,
-      resourcePath: os.Path = resourcePath
+      resourcePath: os.Path = resourcePath,
+      env: Map[String, String] = Evaluator.defaultEnv
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new TestEvaluator(m, env = env)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -429,7 +450,7 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath)
         assert(
           result.nonEmpty,
-          result.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
+          result.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
           evalCount > 0
         )
       }
@@ -451,13 +472,12 @@ object HelloWorldTests extends TestSuite {
       "fromScratch" - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
 
+        val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
         val analysisFile = result.analysisFile
         val outputFiles = os.walk(result.classes.path)
-        val expectedClassfiles = compileClassfiles.map(
-          eval.outPath / "core" / "compile.dest" / "classes" / _
-        )
+        val expectedClassfiles = compileClassfiles.map(classesPath / _)
         assert(
-          result.classes.path == eval.outPath / "core" / "compile.dest" / "classes",
+          result.classes.path == classesPath,
           os.exists(analysisFile),
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
@@ -503,6 +523,27 @@ object HelloWorldTests extends TestSuite {
         // compilation fails because of "-Xfatal-warnings" flag
         val Left(Result.Failure("Compilation failed", _)) =
           eval.apply(HelloWorldFatalWarnings.core.compile)
+      }
+    }
+
+    "semanticDbData" - {
+      "fromScratch" - workspaceTest(HelloWorld) { eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorld.core.semanticDbData)
+
+        val outputFiles = os.walk(result.path).filter(os.isFile)
+        val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+
+        val expectedSemFiles = semanticDbFiles.map(dataPath / _)
+        assert(
+          result.path == dataPath,
+          outputFiles.nonEmpty,
+          outputFiles.forall(expectedSemFiles.contains),
+          evalCount > 0
+        )
+
+        // don't recompile if nothing changed
+        val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.semanticDbData)
+        assert(unchangedEvalCount == 0)
       }
     }
 
@@ -972,21 +1013,50 @@ object HelloWorldTests extends TestSuite {
     }
 
     "macros" - {
-      // make sure macros are applied when compiling/running
-      "runMain" - workspaceTest(
-        HelloWorldMacros,
-        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
-      ) { eval =>
-        val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.runMain("Main"))
-        assert(evalCount > 0)
+      "scala-2.12" - {
+        // Scala 2.12 does not always work with Java 17+
+        // make sure macros are applied when compiling/running
+        val mod = HelloWorldMacros212
+        "runMain" - workspaceTest(
+          mod,
+          resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+        ) { eval =>
+          if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
+          else {
+            val Right((_, evalCount)) = eval.apply(mod.core.runMain("Main"))
+            assert(evalCount > 0)
+          }
+        }
+        // make sure macros are applied when compiling during scaladoc generation
+        "docJar" - workspaceTest(
+          mod,
+          resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+        ) { eval =>
+          if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
+          else {
+            val Right((_, evalCount)) = eval.apply(mod.core.docJar)
+            assert(evalCount > 0)
+          }
+        }
       }
-      // make sure macros are applied when compiling during scaladoc generation
-      "docJar" - workspaceTest(
-        HelloWorldMacros,
-        resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
-      ) { eval =>
-        val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.docJar)
-        assert(evalCount > 0)
+      "scala-2.13" - {
+        // make sure macros are applied when compiling/running
+        val mod = HelloWorldMacros213
+        "runMain" - workspaceTest(
+          mod,
+          resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+        ) { eval =>
+          val Right((_, evalCount)) = eval.apply(mod.core.runMain("Main"))
+          assert(evalCount > 0)
+        }
+        // make sure macros are applied when compiling during scaladoc generation
+        "docJar" - workspaceTest(
+          mod,
+          resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+        ) { eval =>
+          val Right((_, evalCount)) = eval.apply(mod.core.docJar)
+          assert(evalCount > 0)
+        }
       }
     }
 
@@ -1060,6 +1130,50 @@ object HelloWorldTests extends TestSuite {
         val pomXml = scala.xml.XML.loadFile(result.path.toString)
         val versionScheme = pomXml \ "properties" \ "info.versionScheme"
         assert(versionScheme.text == "early-semver")
+      }
+    }
+
+    "publish" - {
+      "should retrieve credentials from environment variables if direct argument is empty" - workspaceTest(
+        HelloWorldWithPublish,
+        env = Evaluator.defaultEnv ++ Seq(
+          "SONATYPE_USERNAME" -> "user",
+          "SONATYPE_PASSWORD" -> "password"
+        )
+      ) { eval =>
+        val Right((credentials, evalCount)) =
+          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
+
+        assert(
+          credentials == "user:password",
+          evalCount > 0
+        )
+      }
+      "should prefer direct argument as credentials over environment variables" - workspaceTest(
+        HelloWorldWithPublish,
+        env = Evaluator.defaultEnv ++ Seq(
+          "SONATYPE_USERNAME" -> "user",
+          "SONATYPE_PASSWORD" -> "password"
+        )
+      ) { eval =>
+        val directValue = "direct:value"
+        val Right((credentials, evalCount)) =
+          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(directValue))
+
+        assert(
+          credentials == directValue,
+          evalCount > 0
+        )
+      }
+      "should throw exception if neither environment variables or direct argument were not passed" - workspaceTest(
+        HelloWorldWithPublish
+      ) { eval =>
+        val Left(Result.Failure(msg, None)) =
+          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
+
+        assert(
+          msg.contains("Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables")
+        )
       }
     }
 

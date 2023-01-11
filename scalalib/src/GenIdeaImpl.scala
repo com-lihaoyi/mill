@@ -7,7 +7,6 @@ import ammonite.runtime.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import coursier.{LocalRepositories, Repositories, Repository}
-import mil.scalalib.BoundDep
 
 import java.nio.file.Paths
 import mill.Agg
@@ -160,7 +159,8 @@ case class GenIdeaImpl(
         val externalLibraryDependencies = T.task {
           mod.resolveDeps(T.task {
             val bind = mod.bindDependency()
-            mod.mandatoryIvyDeps().map(bind) })()
+            mod.mandatoryIvyDeps().map(bind)
+          })()
         }
 
         val externalDependencies = T.task {

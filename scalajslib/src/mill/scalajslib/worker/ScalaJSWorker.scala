@@ -127,6 +127,16 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
     )
   }
 
+  private def toWorkerApi(outputPatterns: api.OutputPatterns): workerApi.OutputPatterns = {
+    workerApi.OutputPatterns(
+      jsFile = outputPatterns.jsFile,
+      sourceMapFile = outputPatterns.sourceMapFile,
+      moduleName = outputPatterns.moduleName,
+      jsFileURI = outputPatterns.jsFileURI,
+      sourceMapURI = outputPatterns.sourceMapURI
+    )
+  }
+
   def link(
       toolsClasspath: Agg[mill.PathRef],
       sources: Agg[os.Path],
@@ -137,9 +147,11 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
       optimizer: Boolean,
+      sourceMap: Boolean,
       moduleKind: api.ModuleKind,
       esFeatures: api.ESFeatures,
-      moduleSplitStyle: api.ModuleSplitStyle
+      moduleSplitStyle: api.ModuleSplitStyle,
+      outputPatterns: api.OutputPatterns
   )(implicit ctx: Ctx.Home): Result[api.Report] = {
     bridge(toolsClasspath).link(
       sources = sources.items.map(_.toIO).toArray,
@@ -150,9 +162,11 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       testBridgeInit = testBridgeInit,
       isFullLinkJS = isFullLinkJS,
       optimizer = optimizer,
+      sourceMap = sourceMap,
       moduleKind = toWorkerApi(moduleKind),
       esFeatures = toWorkerApi(esFeatures),
-      moduleSplitStyle = toWorkerApi(moduleSplitStyle)
+      moduleSplitStyle = toWorkerApi(moduleSplitStyle),
+      outputPatterns = toWorkerApi(outputPatterns)
     ) match {
       case Right(report) => Result.Success(fromWorkerApi(report))
       case Left(message) => Result.Failure(message)

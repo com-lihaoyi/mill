@@ -33,3 +33,9 @@ ba4e52433e07bd408fd3e52ab9b06659b687f594
 
 # Reformatted sources
 a769e208cf7e276f11f859ca7e618d5c973e6d4c
+
+# Scala Steward: Reformat with scalafmt 3.6.1
+928a2acd724e006f0c729f7c335ff0d36160cd4c
+
+# Partially revert "Reformat with scalafmt 3.6.1" to fix failing tests
+11ea5481831dc6efb57812a9dbf5d777362d21cb

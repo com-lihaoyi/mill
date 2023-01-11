@@ -32,6 +32,7 @@ object Settings {
   val githubOrg = "com-lihaoyi"
   val githubRepo = "mill"
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
+  val changelogUrl = s"${projectUrl}#changelog"
   val docUrl = "https://com-lihaoyi.github.io/mill"
   // the exact branches containing a doc root
   val docBranches = Seq()
@@ -57,7 +58,7 @@ object Settings {
     "0.10.10",
     "0.11.0-M1"
   )
-  val mimaBaseVersions: Seq[String] = Seq()
+  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M1")
 }
 
 object Deps {
@@ -120,11 +121,11 @@ object Deps {
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
-  val ammoniteVersion = "2.5.5"
+  val ammoniteVersion = "2.5.6"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
-  // Exclude trees here to force the version of we have defined. We use this
-  // here instead of a `forceVersion()` on scalametaTrees since it's not
+  // Exclude trees here to force the version of the dependencies we have defined ourselves.
+  // We use this here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
   val ammoniteExcludingTrees = ammonite.exclude(
     "org.scalameta" -> "trees_2.13"
@@ -132,7 +133,7 @@ object Deps {
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   // avoid version 2.1.0-RC2 for issue https://github.com/coursier/coursier/issues/2603
-  val coursier = ivy"io.get-coursier::coursier:2.1.0-RC3"
+  val coursier = ivy"io.get-coursier::coursier:2.1.0-RC4"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -155,8 +156,8 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.0"
-  val scalametaTrees = ivy"org.scalameta::trees:4.7.0"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.1"
+  val scalametaTrees = ivy"org.scalameta::trees:4.7.1"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.7"
@@ -165,16 +166,20 @@ object Deps {
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.6.0"
+  // keep in sync with doc/antora/antory.yml
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.1"
+  // when bumping this, also update SemanticDbJavaModule.scala to use -build-tool:mill
+  // see https://github.com/sourcegraph/scip-java/pull/527
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.9"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
-  val upickle = ivy"com.lihaoyi::upickle:2.0.0"
+  val upickle = ivy"com.lihaoyi::upickle:3.0.0-M1"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
-  val requests = ivy"com.lihaoyi::requests:0.7.1"
+  val requests = ivy"com.lihaoyi::requests:0.8.0"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
@@ -196,6 +201,9 @@ def baseDir = build.millSourcePath
 trait MillPublishModule extends PublishModule {
   override def artifactName = "mill-" + super.artifactName()
   def publishVersion = millVersion()
+  override def publishProperties: Target[Map[String, String]] = super.publishProperties() ++ Map(
+    "info.releaseNotesURL" -> Settings.changelogUrl
+  )
   def pomSettings = PomSettings(
     description = artifactName(),
     organization = Settings.pomOrg,
@@ -409,6 +417,8 @@ object main extends MillModule {
            |  val millEmbeddedDeps = ${artifacts.map(artifact =>
             s""""${artifact.group}:${artifact.id}:${artifact.version}""""
           )}
+           |  /** Mill documentation url. */
+           |  val millDocUrl = "${Settings.docUrl}"
            |}
       """.stripMargin.trim
 
@@ -420,7 +430,7 @@ object main extends MillModule {
     override def ivyDeps = Agg(
       Deps.junixsocket
     )
-    def generatedBuildInfo = T {
+    def generatedBuildInfo: T[Seq[PathRef]] = T {
       val dest = T.dest
       val code =
         s"""package mill.main.client;
@@ -484,7 +494,7 @@ object scalalib extends MillModule {
       s"""package mill.scalalib
          |
          |/**
-         | * Dependency versions.
+         | * Dependency versions as they where defined at Mill compile time.
          | * Generated from mill in build.sc.
          | */
          |object Versions {
@@ -494,6 +504,8 @@ object scalalib extends MillModule {
          |  val zinc = "${Deps.zinc.dep.version}"
          |  /** SemanticDB version. */
          |  val semanticDBVersion = "${Deps.semanticDB.dep.version}"
+         |  /** Java SemanticDB plugin version. */
+         |  val semanticDbJavaVersion = "${Deps.semanticDbJava.dep.version}"
          |}
          |
          |""".stripMargin
@@ -917,6 +929,21 @@ object bsp extends MillModule {
     Deps.bsp,
     Deps.sbtTestInterface
   )
+  def generatedBuildInfo: T[Seq[PathRef]] = T {
+    val code =
+      s"""// Generated by Mill
+         |package mill.bsp
+         |
+         |/** Build-time information. */
+         |object BuildInfo {
+         |  /** BSP4j version (BSP Protocol version). */
+         |  val bsp4jVersion = "${Deps.bsp.dep.version}"
+         |}
+      """.stripMargin.trim
+    os.write(T.dest / "mill" / "bsp" / "BuildInfo.scala", code, createFolders = true)
+    Seq(PathRef(T.dest))
+  }
+  override def generatedSources: T[Seq[PathRef]] = super.generatedSources() ++ generatedBuildInfo()
 
   override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ compileModuleDeps
 }
@@ -1547,7 +1574,7 @@ def uploadToGithub(authKey: String) = T.command {
 
 def validate(ev: Evaluator): Command[Unit] = T.command {
   T.task(MainModule.evaluateTasks(
-    ev.copy(failFast = false),
+    ev.withFailFast(false),
     Seq(
       "__.compile",
       "+",
@@ -1561,4 +1588,13 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
     selectMode = SelectMode.Separated
   )(identity))()
   ()
+}
+
+object DependencyFetchDummy extends ScalaModule {
+  override def scalaVersion = Deps.scalaVersion
+  override def compileIvyDeps = Agg(
+    Deps.semanticDbJava,
+    Deps.semanticDB,
+    Deps.asciidoctorj
+  )
 }

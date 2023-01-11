@@ -9,7 +9,6 @@ import mill.modules.Jvm.createJar
 import Lib._
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.Loose.Agg
-import mill.eval.EvaluatorPathsResolver
 import mill.scalalib.api.{CompilationResult, ZincWorkerUtil}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 
@@ -20,7 +19,7 @@ import mill.scalalib.dependency.versions.{ValidVersion, Version}
 /**
  * Core configuration required to compile a single Scala compilation target
  */
-trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
+trait ScalaModule extends JavaModule { outer =>
 
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()

@@ -3,9 +3,8 @@ package mill.scalalib.worker
 import java.io.File
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
-
 import mill.api.Loose.Agg
-import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, internal}
+import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, Result, internal}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil => Util}
 import sbt.internal.inc._
 import sbt.internal.inc.classpath.ClasspathUtil
@@ -34,8 +33,13 @@ class ZincWorkerImpl(
   private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
   private val javaOnlyCompilersCache = mutable.Map.empty[Seq[String], SoftReference[Compilers]]
 
-  def javaOnlyCompilers(javacOptions: Seq[String]) = {
-    javaOnlyCompilersCache.get(javacOptions) match {
+  private val filterJavacRuntimeOptions: String => Boolean = opt => opt.startsWith("-J")
+
+  def javaOnlyCompilers(javacOptions: Seq[String]): Compilers = {
+    // Only options relevant for the compiler runtime influence the cached instance
+    val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
+
+    javaOnlyCompilersCache.get(javacRuntimeOptions) match {
       case Some(SoftReference(compilers)) => compilers
       case _ =>
         // Keep the classpath as written by the user
@@ -65,26 +69,28 @@ class ZincWorkerImpl(
           classpathOptions // this is used for javac too
         )
 
-        val javaTools = {
-          val (javaCompiler, javaDoc) =
-            // Local java compilers don't accept -J flags so when we put this together if we detect
-            // any javacOptions starting with -J we ensure we have a non-local Java compiler which
-            // can handle them.
-            if (javacOptions.exists(_.startsWith("-J"))) {
-              (javac.JavaCompiler.fork(None), javac.Javadoc.fork(None))
-
-            } else {
-              val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork(None))
-              val docs = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
-              (compiler, docs)
-            }
-          javac.JavaTools(javaCompiler, javaDoc)
-        }
+        val javaTools = getLocalOrCreateJavaTools(javacRuntimeOptions)
 
         val compilers = ic.compilers(javaTools, scalac)
-        javaOnlyCompilersCache.update(javacOptions, SoftReference(compilers))
+        javaOnlyCompilersCache.update(javacRuntimeOptions, SoftReference(compilers))
         compilers
     }
+  }
+
+  private def getLocalOrCreateJavaTools(javacRuntimeOptions: Seq[String]): JavaTools = {
+    val (javaCompiler, javaDoc) =
+      // Local java compilers don't accept -J flags so when we put this together if we detect
+      // any javacOptions starting with -J we ensure we have a non-local Java compiler which
+      // can handle them.
+      if (javacRuntimeOptions.exists(filterJavacRuntimeOptions)) {
+        (javac.JavaCompiler.fork(None), javac.Javadoc.fork(None))
+
+      } else {
+        val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork(None))
+        val docs = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
+        (compiler, docs)
+      }
+    javac.JavaTools(javaCompiler, javaDoc)
   }
 
   val compilerBridgeLocks = collection.mutable.Map.empty[String, Object]
@@ -100,7 +106,8 @@ class ZincWorkerImpl(
       scalaVersion,
       scalaOrganization,
       compilerClasspath,
-      scalacPluginClasspath
+      scalacPluginClasspath,
+      Seq()
     ) { compilers: Compilers =>
       if (Util.isDotty(scalaVersion) || Util.isScala3Milestone(scalaVersion)) {
         // dotty 0.x and scala 3 milestones use the dotty-doc tool
@@ -150,7 +157,10 @@ class ZincWorkerImpl(
     os.makeDir.all(compileDest)
 
     val sourceFolder = mill.api.IO.unpackZip(compilerBridgeSourcesJar)(workingDir)
-    val classloader = mill.api.ClassLoader.create(compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq, null)(ctx0)
+    val classloader = mill.api.ClassLoader.create(
+      compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq,
+      null
+    )(ctx0)
 
     val (sources, resources) =
       os.walk(sourceFolder.path).filter(os.isFile)
@@ -165,7 +175,9 @@ class ZincWorkerImpl(
       "-d",
       compileDest.toString,
       "-classpath",
-      (compilerClasspath.iterator ++ compilerBridgeClasspath).map(_.path).mkString(File.pathSeparator)
+      (compilerClasspath.iterator ++ compilerBridgeClasspath).map(_.path).mkString(
+        File.pathSeparator
+      )
     ) ++ sources.map(_.toString)
 
     val allScala = sources.forall(_.ext == "scala")
@@ -258,7 +270,7 @@ class ZincWorkerImpl(
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter]
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
+  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
 
     for (
       res <- compileJava0(
@@ -276,7 +288,7 @@ class ZincWorkerImpl(
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter]
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
+  )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     compileInternal(
       upstreamCompileOutput,
       sources,
@@ -299,7 +311,7 @@ class ZincWorkerImpl(
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
       reporter: Option[CompileProblemReporter]
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
+  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
 
     for (
       res <- compileMixed0(
@@ -328,12 +340,13 @@ class ZincWorkerImpl(
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
       reporter: Option[CompileProblemReporter]
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
+  )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     withCompilers(
       scalaVersion = scalaVersion,
       scalaOrganization = scalaOrganization,
       compilerClasspath = compilerClasspath,
-      scalacPluginClasspath = scalacPluginClasspath
+      scalacPluginClasspath = scalacPluginClasspath,
+      javacOptions = javacOptions
     ) { compilers: Compilers =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
@@ -377,10 +390,13 @@ class ZincWorkerImpl(
       scalaVersion: String,
       scalaOrganization: String,
       compilerClasspath: Agg[PathRef],
-      scalacPluginClasspath: Agg[PathRef]
+      scalacPluginClasspath: Agg[PathRef],
+      javacOptions: Seq[String]
   )(f: Compilers => T)(implicit ctx: ZincWorkerApi.Ctx) = {
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
-    val compilersSig = combinedCompilerClasspath.hashCode + scalaVersion.hashCode + scalaOrganization.hashCode
+    val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
+    val compilersSig =
+      combinedCompilerClasspath.hashCode() + scalaVersion.hashCode() + scalaOrganization.hashCode() + javacRuntimeOptions.hashCode()
     val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
     val compiledCompilerBridge = compileBridgeIfNeeded(
@@ -407,9 +423,7 @@ class ZincWorkerImpl(
         explicitActual = None
       )
       ic.compilers(
-        instance = scalaInstance,
-        cpOptions = ClasspathOptionsUtil.boot,
-        javaHome = None,
+        javaTools = getLocalOrCreateJavaTools(javacRuntimeOptions),
         scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
       )
     }(f)
@@ -423,7 +437,7 @@ class ZincWorkerImpl(
       scalacOptions: Seq[String],
       compilers: Compilers,
       reporter: Option[CompileProblemReporter]
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
+  )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     os.makeDir.all(ctx.dest)
 
     reporter.foreach(_.start())
@@ -561,10 +575,10 @@ class ZincWorkerImpl(
           newResult.setup()
         )
       )
-      mill.api.Result.Success((zincFile, classesDir))
+      Result.Success((zincFile, classesDir))
     } catch {
       case e: CompileFailed =>
-        mill.api.Result.Failure(e.toString)
+        Result.Failure(e.toString)
     } finally {
       reporter.foreach(_.finish())
     }

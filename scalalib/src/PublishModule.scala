@@ -2,10 +2,11 @@ package mill
 package scalalib
 
 import mill.define.{Command, ExternalModule, Target, Task}
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
 import mill.main.Tasks
 import mill.modules.Jvm
-import mill.scalalib.publish.{Artifact, VersionScheme, SonatypePublisher}
+import mill.scalalib.PublishModule.checkSonatypeCreds
+import mill.scalalib.publish.{Artifact, SonatypePublisher, VersionScheme}
 
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar
@@ -155,11 +156,19 @@ trait PublishModule extends JavaModule { outer =>
 
   /**
    * Publish all given artifacts to Sonatype.
-   * @param gpgArgs GPG arguments. Defaults to `--batch --yes -a -b`.
-   *                 Specifying this will override/remove the defaults. Add the default args to your args to keep them.
+   * Uses environment variables SONATYPE_USERNAME and SONATYPE_PASSWORD as
+   * credentials.
+   *
+   * @param sonatypeCreds Sonatype credentials in format username:password.
+   *                      If specified, environment variables will be ignored.
+   *                      <i>Note: consider using environment variables over this argument due
+   *                      to security reasons.</i>
+   * @param gpgArgs       GPG arguments. Defaults to `--batch --yes -a -b`.
+   *                      Specifying this will override/remove the defaults.
+   *                      Add the default args to your args to keep them.
    */
   def publish(
-      sonatypeCreds: String,
+      sonatypeCreds: String = "",
       signed: Boolean = true,
       // mainargs wasn't handling a default value properly,
       // so we instead use the empty Seq as default.
@@ -177,7 +186,7 @@ trait PublishModule extends JavaModule { outer =>
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
-      sonatypeCreds,
+      checkSonatypeCreds(sonatypeCreds)(),
       signed,
       if (gpgArgs.isEmpty) PublishModule.defaultGpgArgs else gpgArgs,
       readTimeout,
@@ -216,12 +225,20 @@ object PublishModule extends ExternalModule {
 
   /**
    * Publish all given artifacts to Sonatype.
-   * @param gpgArgs GPG arguments. Defaults to `--batch --yes -a -b`.
-   *                Specifying this will override/remove the defaults. Add the default args to your args to keep them.
+   * Uses environment variables SONATYPE_USERNAME and SONATYPE_PASSWORD as
+   * credentials.
+   *
+   * @param sonatypeCreds Sonatype credentials in format username:password.
+   *                      If specified, environment variables will be ignored.
+   *                      <i>Note: consider using environment variables over this argument due
+   *                      to security reasons.</i>
+   * @param gpgArgs       GPG arguments. Defaults to `--batch --yes -a -b`.
+   *                      Specifying this will override/remove the defaults.
+   *                      Add the default args to your args to keep them.
    */
   def publishAll(
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
-      sonatypeCreds: String,
+      sonatypeCreds: String = "",
       signed: Boolean = true,
       gpgArgs: String = defaultGpgArgs.mkString(","),
       release: Boolean = false,
@@ -238,7 +255,7 @@ object PublishModule extends ExternalModule {
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
-      sonatypeCreds,
+      checkSonatypeCreds(sonatypeCreds)(),
       signed,
       gpgArgs.split(','),
       readTimeout,
@@ -252,6 +269,23 @@ object PublishModule extends ExternalModule {
       release,
       x: _*
     )
+  }
+
+  private[scalalib] def checkSonatypeCreds(sonatypeCreds: String): Task[String] = T.task {
+    if (sonatypeCreds.isEmpty) {
+      (for {
+        username <- T.env.get("SONATYPE_USERNAME")
+        password <- T.env.get("SONATYPE_PASSWORD")
+      } yield {
+        Result.Success(s"$username:$password")
+      }).getOrElse(
+        Result.Failure(
+          "Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables or passing `sonatypeCreds` argument"
+        )
+      )
+    } else {
+      Result.Success(sonatypeCreds)
+    }
   }
 
   implicit def millScoptTargetReads[T]: mainargs.TokensReader[Tasks[T]] =

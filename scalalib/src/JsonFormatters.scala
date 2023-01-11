@@ -10,7 +10,8 @@ trait JsonFormatters {
 
   implicit lazy val modFormat: RW[coursier.Module] = upickle.default.macroRW
   implicit lazy val depFormat: RW[coursier.core.Dependency] = upickle.default.macroRW
-  implicit lazy val minimizedExclusionsFormat: RW[coursier.core.MinimizedExclusions] = upickle.default.macroRW
+  implicit lazy val minimizedExclusionsFormat: RW[coursier.core.MinimizedExclusions] =
+    upickle.default.macroRW
   implicit lazy val exclusionDataFormat: RW[coursier.core.MinimizedExclusions.ExclusionData] =
     RW.merge(
       upickle.default.macroRW[coursier.core.MinimizedExclusions.ExcludeNone.type],

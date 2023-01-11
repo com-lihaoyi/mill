@@ -91,7 +91,7 @@ object PathRefTests extends TestSuite {
           assert(json.startsWith(""""qref:"""))
           assert(json.endsWith(s""":${prFile}""""))
         } else {
-          val hash = if(Properties.isWin) "86df6a6a" else "4c7ef487"
+          val hash = if (Properties.isWin) "86df6a6a" else "4c7ef487"
           val expected = s""""ref:${hash}:${prFile}""""
           assert(json == expected)
         }

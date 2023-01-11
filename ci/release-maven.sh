@@ -14,7 +14,7 @@ rm gpg_key
 # Publish all artifacts
 ./mill -i \
     mill.scalalib.PublishModule/publishAll \
-    --sonatypeCreds $SONATYPE_DEPLOY_USER:$SONATYPE_DEPLOY_PASSWORD \
+    --sonatypeCreds $SONATYPE_USERNAME:$SONATYPE_PASSWORD \
     --gpgArgs --passphrase=$SONATYPE_PGP_PASSWORD,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
     --publishArtifacts __.publishArtifacts \
     --readTimeout  3600000 \

@@ -3,7 +3,6 @@ package scalalib
 
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution}
-import mil.scalalib.BoundDep
 import mill.api.{Ctx, Loose, PathRef, Result}
 import mill.scalalib.api.ZincWorkerUtil
 

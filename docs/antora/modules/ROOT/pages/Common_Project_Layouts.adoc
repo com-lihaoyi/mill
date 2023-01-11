@@ -336,6 +336,14 @@ This uploads them to `oss.sonatype.org` where you can log-in and stage/release
 them manually. You can also pass in the `--release true` flag to perform the
 staging/release automatically:
 
+[NOTE]
+--
+Sonatype credentials can be passed via environment variables (`SONATYPE_USERNAME`
+and `SONATYPE_PASSWORD`) or by passing second or `--sonatypeCreds` argument in format
+`username:password`. Consider using environment variables over the direct CLI passing
+due to security risks.
+--
+
 [source,bash]
 ----
 mill mill.scalalib.PublishModule/publishAll \

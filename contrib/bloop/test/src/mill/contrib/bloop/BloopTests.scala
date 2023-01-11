@@ -220,7 +220,7 @@ object BloopTests extends TestSuite {
       testEvaluator(testBloop.install())
       val bloopDir = workdir / ".bloop"
       val files = os.list(bloopDir)
-      val size = (if(isWin) 4 else 5)
+      val size = (if (isWin) 4 else 5)
       assert(files.size == size)
       os.remove.all(bloopDir)
       testEvaluator(testBloop.install())

@@ -29,7 +29,8 @@ class TestEvaluator(
     outStream: PrintStream = System.out,
     inStream: InputStream = DummyInputStream,
     debugEnabled: Boolean = false,
-    extraPathEnd: Seq[String] = Seq.empty
+    extraPathEnd: Seq[String] = Seq.empty,
+    env: Map[String, String] = Evaluator.defaultEnv
 )(implicit fullName: sourcecode.FullName, tp: TestPath) extends TestUtil.TestEvaluator(
       module,
       tp.value,
@@ -38,5 +39,6 @@ class TestEvaluator(
       outStream,
       inStream,
       debugEnabled,
-      extraPathEnd
+      extraPathEnd,
+      env
     )

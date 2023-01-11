@@ -9,7 +9,6 @@ import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
 import mainargs.Flag
-import mil.scalalib.BoundDep
 import mill.api.Loose.Agg
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Command, Sources, Target, Task, TaskModule}
@@ -29,7 +28,8 @@ trait JavaModule
     with GenIdeaModule
     with CoursierModule
     with OfflineSupportModule
-    with BspModule { outer =>
+    with BspModule
+    with SemanticDbJavaModule { outer =>
 
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
@@ -617,7 +617,7 @@ trait JavaModule
   /**
    * Command to print the transitive dependency tree to STDOUT.
    */
-  def ivyDepsTree(args: IvyDepsTreeArgs): Command[Unit] = {
+  def ivyDepsTree(args: IvyDepsTreeArgs = IvyDepsTreeArgs()): Command[Unit] = {
 
     val dependsOnModules = args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_))
 
@@ -642,7 +642,11 @@ trait JavaModule
           }
         case (Flag(false), Flag(true)) =>
           T.command {
-            printDepsTree(args.inverse.value, T.task { runIvyDeps().map(bindDependency()) }, validModules)
+            printDepsTree(
+              args.inverse.value,
+              T.task { runIvyDeps().map(bindDependency()) },
+              validModules
+            )
           }
         case _ =>
           T.command {

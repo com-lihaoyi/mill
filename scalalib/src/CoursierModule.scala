@@ -3,7 +3,6 @@ package mill.scalalib
 import coursier.cache.FileCache
 import coursier.{Dependency, Repository, Resolve}
 import coursier.core.Resolution
-import mil.scalalib.BoundDep
 import mill.{Agg, T}
 import mill.define.Task
 import mill.api.PathRef
@@ -23,7 +22,7 @@ trait CoursierModule extends mill.Module {
    * @return The [[BoundDep]]
    */
   def bindDependency: Task[Dep => BoundDep] = T.task { dep: Dep =>
-    BoundDep((resolveCoursierDependency() : @nowarn).apply(dep), dep.force)
+    BoundDep((resolveCoursierDependency(): @nowarn).apply(dep), dep.force)
   }
 
   @deprecated("To be replaced by bindDependency", "Mill after 0.11.0-M0")

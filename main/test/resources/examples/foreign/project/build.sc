@@ -59,7 +59,7 @@ def checkOuterInnerPaths = T {
 
 def checkOtherPaths = T {
   val thisPath: os.Path = millSourcePath
-  assertPathsEqual(other.millSourcePath, thisPath )
+  assertPathsEqual(other.millSourcePath, thisPath)
   assertPathsEqual(other.sub.selfPath(), thisPath / "sub")
   assertPathsEqual(other.sub.sub.selfPath(), thisPath / "sub" / "sub")
 }

@@ -46,12 +46,11 @@ object Cross {
  *   ...
  * }
  */
-class Cross[T <: Module : ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.define.Ctx)
+class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.define.Ctx)
     extends mill.define.Module()(ctx) {
 
-  // TODO: change to Seq[Module] in 0.11
-  override lazy val millModuleDirectChildren: IndexedSeq[Module] =
-    this.millInternal.reflectNestedObjects[Module].toIndexedSeq ++
+  override lazy val millModuleDirectChildren: Seq[Module] =
+    super.millModuleDirectChildren ++
       items.collect { case (_, v: mill.define.Module) => v }
 
   private val products: List[Product] = cases.toList.map {

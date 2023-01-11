@@ -80,9 +80,11 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       testBridgeInit: Boolean, // ignored in 0.6
       isFullLinkJS: Boolean,
       optimizer: Boolean,
+      sourceMap: Boolean, // ignored in 0.6
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
-      moduleSplitStyle: ModuleSplitStyle // ignored in 0.6
+      moduleSplitStyle: ModuleSplitStyle, // ignored in 0.6
+      outputPatterns: OutputPatterns // ignored in 0.6
   ): Either[String, Report] = {
     val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(
       isFullLinkJS = isFullLinkJS,
@@ -198,7 +200,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
           .withAutoExit(config.autoExit)
       )
     case _: JsEnvConfig.ExoegoJsDomNodeJs => throw new Exception(
-      "Not supported on Scala.js 0.6"
-    )
+        "Not supported on Scala.js 0.6"
+      )
   }
 }
