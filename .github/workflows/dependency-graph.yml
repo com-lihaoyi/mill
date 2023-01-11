@@ -21,5 +21,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-    
+
+      # We want to see the transmitted graph in the logs
+      - run:  mill --import ivy:io.chris-kipp::mill-github-dependency-graph::0.2.0 showNamed io.kipp.mill.github.dependency.graph.Graph/generate
+
+      # Actually upload the graph
       - uses: ckipp01/mill-dependency-submission@v1
