@@ -1,9 +1,11 @@
 package mill.contrib.gitlab
 
 import mill.T
+import mill.T._
 import mill.api.Result
 import mill.api.Result.Failure
 import mill.api.Result.Success
+import mill.define.Ctx.make
 import mill.define.Task
 
 trait GitlabTokenLookup {
@@ -23,7 +25,7 @@ trait GitlabTokenLookup {
   def jobTokenEnv: Task[String] = T.task("CI_JOB_TOKEN")
 
   // Default token search order. Implementation picks first found and does not look for the rest.
-  def tokenSearchOrder: Task[Seq[GitlabToken]] = T.task(
+  def tokenSearchOrder: Task[Seq[GitlabToken]] = T.task {
     Seq(
       Personal(Env(personalTokenEnv())),
       Personal(Property(personalTokenProperty())),
@@ -35,7 +37,7 @@ trait GitlabTokenLookup {
       Deploy(File(deployTokenFileWD())),
       CIJob(Env(jobTokenEnv()))
     )
-  )
+  }
 
   // Finds gitlab token from this environment. Overriding this is not generally necessary.
   def resolveGitlabToken(

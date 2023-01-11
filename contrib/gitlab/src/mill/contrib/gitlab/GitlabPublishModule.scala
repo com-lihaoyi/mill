@@ -9,6 +9,27 @@ import mill.define.{Command, ExternalModule, Task}
 import mill.scalalib.publish.Artifact
 import scalalib._
 
+trait GitlabMavenRepository extends ScalaModule {
+
+  def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {} // For token discovery
+  def gitlabRepository: GitlabPackageRepository // For package discovery
+
+  def mavenRepository: Task[MavenRepository] = T.task {
+
+    val gitlabAuth = tokenLookup.resolveGitlabToken(T.env.get, sys.props.get)()
+      .map(auth => Authentication(auth.headers))
+      .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
+
+    gitlabAuth match {
+      case Left(msg) =>
+        Failure(
+          s"Token lookup for PACKAGE repository ($gitlabRepository) failed with $msg"
+        ): Result[MavenRepository]
+      case Right(value) => Success(value)
+    }
+  }
+}
+
 trait GitlabPublishModule extends PublishModule {
 
   def publishRepository: ProjectRepository
@@ -88,25 +109,4 @@ object GitlabPublishModule extends ExternalModule {
   implicit def millScoptTargetReads[T] = new mill.main.Tasks.Scopt[T]()
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
-}
-
-trait GitlabMavenRepository {
-  def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {} // For token discovery
-  def gitlabRepository: GitlabPackageRepository // For package discovery
-
-  def mavenRepository: Task[MavenRepository] = T.task {
-
-    val gitlabAuth = tokenLookup.resolveGitlabToken(T.env.get, sys.props.get)()
-      .map(auth => Authentication(auth.headers))
-      .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
-
-    gitlabAuth match {
-      case Left(msg) =>
-        Failure(
-          s"Token lookup for PACKAGE repository ($gitlabRepository) failed with $msg"
-        ): Result[MavenRepository]
-      case Right(value) => Success(value)
-    }
-  }
-
 }
