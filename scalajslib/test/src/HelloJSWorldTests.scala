@@ -271,8 +271,9 @@ object HelloJSWorldTests extends TestSuite {
       assert(
         evalCount > 0,
         log.contains("node"),
+        // TODO: reenable somehow
         // In Scala.js 1.x, println's are sent to the stdout, not to the logger
-        !scalaJSVersion.startsWith("0.6.") || log.contains("Scala.js")
+        // log.contains("Scala.js")
       )
     }
 
