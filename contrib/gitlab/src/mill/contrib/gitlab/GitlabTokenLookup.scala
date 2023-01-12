@@ -41,41 +41,50 @@ trait GitlabTokenLookup {
 
   // Finds gitlab token from this environment. Overriding this is not generally necessary.
   def resolveGitlabToken(
-      // env: Map[String, String],
-      env: String => Option[String],
+      env: Map[String, String],
+      // env: String => Option[String],
+      // env: Task[String => Option[String]],
       prop: String => Option[String]
-  ): Task[Either[String, GitlabAuthHeaders]] = T.task {
+      // ): Task[GitlabAuthHeaders] = T.task {
+  )(implicit ctx: mill.api.Ctx): Task[GitlabAuthHeaders] = T.task {
 
     val searchFrom = tokenSearchOrder()
 
     val token = LazyList
       .from(searchFrom)
       .map(token => buildHeaders(token, env, prop))
-      .tapEach(e => e.left.foreach(msg => T.log.debug(msg)))
-      .find(_.isRight)
-      .flatMap(_.toOption)
-    token match {
-      case None => Left(s"Unable to find token from $searchFrom")
-      case Some(headers) => Right(headers)
-    }
+      // .tapEach(e => e.left.foreach(msg => T.log.debug(msg)))
+      // .find(_.isRight)
+      .head
+      .evaluate(ctx)
+    // .flatMap(_.toOption)
+
+    token
+//    token match {
+//      case None => Failure(s"Unable to find token from $searchFrom")
+//      case Some(headers) => Success(headers)
+//    }
   }
 
   // Converts GitlabToken to GitlabAuthHeaders. Overriding this is not generally necessary.
   def buildHeaders(
       token: GitlabToken,
-      env: String => Option[String],
+      // env: String => Option[String],
+      env: Map[String, String],
       prop: String => Option[String]
-  ): Either[String, GitlabAuthHeaders] = {
+      // ): Either[String, GitlabAuthHeaders] = {
+  )(implicit ctx: mill.api.Ctx): Task[GitlabAuthHeaders] = T.task {
 
-    import scala.util.Try
-
-    def readSource(source: TokenSource): Either[String, String] = source match {
-      case Env(name) => env(name).toRight(s"Could not read environment variable $name")
-      case Property(property) =>
-        prop(property).toRight(s"Could not read system property variable $prop")
-      case File(path) =>
-        Try(os.read(path)).map(_.trim).toEither.left.map(e => s"failed to read file $e")
-      case Custom(f) => f()
+    def readSource(source: TokenSource): Result[String] = Result.create {
+      source match {
+        case Env(name) => env.get(name).get
+        // .map(Success(_)).getOrElse(Failure(s"Could not read environment variable $name"))
+        case Property(property) => prop(property).get
+        // prop(property).toRight(s"Could not read system property variable $prop")
+        case File(path) => os.read(path).trim
+        // Try(os.read(path)).map(_.trim).toEither.left.map(e => s"failed to read file $e")
+        case Custom(f) => f().toOption.get
+      }
     }
 
     token match {
@@ -85,6 +94,7 @@ trait GitlabTokenLookup {
       case CustomHeader(header, source) => readSource(source).map(GitlabAuthHeaders(header, _))
     }
   }
+
 }
 
 object GitlabTokenLookup {

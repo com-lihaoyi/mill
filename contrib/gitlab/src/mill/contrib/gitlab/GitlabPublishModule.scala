@@ -1,36 +1,14 @@
 package mill.contrib.gitlab
 
-import coursier.core.Authentication
-import coursier.maven.MavenRepository
 import mill._
 import mill.api.Result.{Failure, Success}
 import mill.api.Result
-import mill.define.{Command, ExternalModule, Task}
+import mill.main.Tasks
+import mill.define.{Command, ExternalModule, Target, Task}
 import mill.scalalib.publish.Artifact
 import scalalib._
 
-trait GitlabMavenRepository extends ScalaModule {
-
-  def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {} // For token discovery
-  def gitlabRepository: GitlabPackageRepository // For package discovery
-
-  def mavenRepository: Task[MavenRepository] = T.task {
-
-    val gitlabAuth = tokenLookup.resolveGitlabToken(T.env.get, sys.props.get)()
-      .map(auth => Authentication(auth.headers))
-      .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
-
-    gitlabAuth match {
-      case Left(msg) =>
-        Failure(
-          s"Token lookup for PACKAGE repository ($gitlabRepository) failed with $msg"
-        ): Result[MavenRepository]
-      case Right(value) => Success(value)
-    }
-  }
-}
-
-trait GitlabPublishModule extends PublishModule {
+trait GitlabPublishModule extends PublishModule { outer =>
 
   def publishRepository: ProjectRepository
 
@@ -41,14 +19,16 @@ trait GitlabPublishModule extends PublishModule {
   def gitlabHeaders(
       systemProps: Map[String, String] = sys.props.toMap
   ): Task[GitlabAuthHeaders] = T.task {
-    val auth = tokenLookup.resolveGitlabToken(T.env.get, systemProps.get)()
-    auth match {
-      case Left(msg) =>
-        Failure(
-          s"Token lookup for PUBLISH repository ($publishRepository) failed with $msg"
-        ): Result[GitlabAuthHeaders]
-      case Right(value) => Success(value)
-    }
+    val env = T.env
+    val cwd = T.workspace
+    val auth = tokenLookup.resolveGitlabToken(env, systemProps.get)
+//    auth match {
+//      case Left(msg) =>
+//        Failure(
+//          s"Token lookup for PUBLISH repository ($publishRepository) failed with $msg"
+//        ): Result[GitlabAuthHeaders]
+//      case Right(value) => Success(value)
+    auth
   }
 
   def publishGitlab(
