@@ -52,15 +52,18 @@ object BloopTests extends TestSuite {
     }
 
     object scalajsModule extends scalajslib.ScalaJSModule with testBloop.Module {
-      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      override def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
+      val sv = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+      val sjsv = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
+      override def scalaVersion = sv
+      override def scalaJSVersion = sjsv
       override def linkerMode = T(Some(_root_.bloop.config.Config.LinkerMode.Release))
       override def moduleKind = T(ModuleKind.CommonJSModule)
     }
 
     object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
+      val sv = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       override def skipBloop: Boolean = isWin
-      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
+      override def scalaVersion = sv
       override def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_VERSION", ???)
       override def releaseMode = T(ReleaseMode.Debug)
     }
@@ -182,7 +185,7 @@ object BloopTests extends TestSuite {
         assert(name == "scalajsModule")
         assert(workspaceDir == Some(workdir.wrapped))
         assert(sources == List(workdir / "scalajsModule" / "src"))
-        assert(version == "2.12.8")
+        assert(version == build.scalajsModule.sv)
         assert(platform.config.emitSourceMaps)
         assert(platform.config.kind == BloopConfig.ModuleKindJS.CommonJSModule)
         assert(platform.config.mode == BloopConfig.LinkerMode.Release)
@@ -206,7 +209,7 @@ object BloopTests extends TestSuite {
             assert(name == "scalanativeModule")
             assert(workspaceDir == Some(workdir.wrapped))
             assert(sources == List(workdir / "scalanativeModule" / "src"))
-            assert(version == "2.13.4")
+            assert(version == build.scalanativeModule.sv)
             assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
             assert(platform.config.clang == clang.toNIO)
         }

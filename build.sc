@@ -303,7 +303,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
         s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
         s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
         s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
-        s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeTools}",
+        s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
         s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
       ) ++ outer.testArgs()
     }
