@@ -52,16 +52,16 @@ object BloopTests extends TestSuite {
     }
 
     object scalajsModule extends scalajslib.ScalaJSModule with testBloop.Module {
-      override def scalaVersion = "2.12.8"
-      override def scalaJSVersion = "0.6.28"
+      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+      override def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
       override def linkerMode = T(Some(_root_.bloop.config.Config.LinkerMode.Release))
       override def moduleKind = T(ModuleKind.CommonJSModule)
     }
 
     object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
       override def skipBloop: Boolean = isWin
-      override def scalaVersion = "2.13.4"
-      override def scalaNativeVersion = "0.4.2"
+      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
+      override def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_VERSION", ???)
       override def releaseMode = T(ReleaseMode.Debug)
     }
 

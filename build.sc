@@ -89,10 +89,11 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.9"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.9"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.9"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.9"
+    val scalanativeVersion = "0.4.9"
+    val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
+    val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
+    val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:${scalanativeVersion}"
   }
 
   trait Play {
@@ -302,6 +303,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
         s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
         s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
         s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
+        s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeTools}",
         s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
       ) ++ outer.testArgs()
     }
