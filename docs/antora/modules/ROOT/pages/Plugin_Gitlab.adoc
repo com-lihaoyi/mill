@@ -46,26 +46,22 @@ personal access token, then deploy token and lastly ci job token. Default search
 . Environment variable `GITLAB_PERSONAL_ACCESS_TOKEN`
 . System property `gitlab.personal-access-token`
 . File `~/.mill/gitlab/personal-access-token`
-. File `.gitlab/personal-access-token`
+. Workspace file `.gitlab/personal-access-token`
 . Environment variable `GITLAB_DEPLOY_TOKEN`
 . System property `gitlab.deploy-token`
 . File `~/.mill/gitlab/deploy-token`
-. File `.gitlab/deploy-token`
+. Workspace file `.gitlab/deploy-token`
 . Environment variable `CI_JOB_TOKEN`
 
-Items 1-4 are personal access tokens, 5-8 deploy tokens and 9 is job token.
+Items 1-4 are *personal access tokens*, 5-8 *deploy tokens* and 9 is *job token*. Workspace in items 4 and 8 refers to directory where `build.sc` is (`T.workspace` in mill terms).
 
-Because contents of `$CI_JOB_TOKEN` is checked publishing should just work when run in Gitlab
-CI/CD pipeline. If you want something else than default lookup configuration can be
-overridden. There are different ways of configuring token resolving.
+Because contents of `$CI_JOB_TOKEN` is checked publishing should just work when run in Gitlab CI/CD pipeline. If you want something else than default lookup configuration can be overridden. There are different ways of configuring token resolving.
 
 === Configuring token lookup
 
 ==== Override search places
 
-If you want to change environment variable names, property names of paths where plugin looks
-for token. It can be done by overriding their respective values in `GitlabTokenLookup`. For
-example:
+If you want to change environment variable names, property names of paths where plugin looks for token. It can be done by overriding their respective values in `GitlabTokenLookup`. For example:
 
 .`build.sc`
 [source,scala]
@@ -73,26 +69,29 @@ example:
 override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
   override def personalTokenEnv = "MY_TOKEN"
   override def deployTokenFile: os.Path = os.root/"etc"/"tokens"/"gitlab-deploy-token"
+  override def personalTokenFileWD = wd => wd/".mill"/"gitlab"/"token.file"
 }
 ----
 
-This still keeps the default search order, but allows changes to places where to look from.
+This still keeps the default search order, but allows changes to places where to look from. Note how workspace definition is bit different. Instead of value it is a function `os.Path => os.Path` where parameter is the location of workspace.
 
 
 ==== Add or change tokenSearchOrder
 
-If original search order is too wide, or you would like to add places to look you can
-override the `tokenSearchOrder`. Example below ignores default search order and adds five
-places to search from.
+If original search order is too wide, or you would like to add places to look you can override the `tokenSearchOrder`. Example below ignores default search order and adds five places to search from.
 
 .`build.sc`
 [source,scala]
 ----
-override tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
+// Personal, Env, Deploy etc types
+import mill.contrib.gitlab.GitlabTokenLookup._
+
+override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
   // Just to add to default sequence set: super.tokenSearchOrder ++ Seq(...
   override def tokenSearchOrder: Seq[GitlabToken] = Seq(
     Personal(Env("MY_PRIVATE_TOKEN")),
     Personal(Property("gitlab.private-token")),
+    Deploy(WorkspaceFile(wd => wd/"deploy-token")),
     Deploy(File(os.root/"etc"/"gitlab-deploy-token")),
     Deploy(Custom(myCustomTokenSource)),
     CustomHeader("my-header", Custom(myCustomTokenSource))
@@ -102,50 +101,50 @@ override tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
 }
 ----
 
-There are two things happening here. First Gitlab needs right kind of token for right
-header.`Personal` creates "Private-Token" header, `Deploy` produces "Deploy-Token" and
-`CIJob` creates "Job-Token". Finally, any custom header can be set with `CustomHeader`.
+There are two things happening here. First Gitlab needs right kind of token for right header.`Personal` creates "Private-Token" header, `Deploy` produces "Deploy-Token" and `CIJob` creates "Job-Token". Finally, any custom header can be set with `CustomHeader`.
 
-Secondly after token type plugin needs information where to load token from. There are
-four possibilities
+Secondly after token type plugin needs information where to load token from. There are five possibilities
 
 1. `Env`: From environment variable
 2. `Property`: From system property
 3. `File`: From file (content is trimmed, usually at least \n at the end is present)
-4. `Custom`: Any `() => Either[String, String]` function
+4. `WorkspaceFile`: From file in workspace.
+5. `Custom`: Any `() => Either[String, String]` function
 
 === Override search logic completely
 
-Modifying the lookup order with `Custom` should be powerful enough but if really
-necessary one can also override GitlabPublishModules `gitlabHeaders`.
-If for some reason you need to set multiple headers this is currently the only way.
+Modifying the lookup order with `Custom` should be powerful enough but if really necessary one can also override GitlabPublishModules `gitlabHeaders`. If for some reason you need to set multiple headers this is currently the only way.
 
 [source,scala]
 ----
-object myModule extends ScalaModule with GitlabPublishModule {
-  override def gitlabHeaders(
-      log: Logger,
-      env: Map[String, String],  // Environment variables
-      props: Map[String, String] // System properties
-    ): GitlabAuthHeaders = {
-    // This uses default lookup and ads custom headers
-    val access = tokenLookup.resolveGitlabToken(log, env, props)
-    val accessHeader = access.fold(Seq.empty[(String, String)])(_.headers)
+import mill.define.Task
+import mill.api.Result.Success
 
+// object foo ... with GitlabPublishModule {
+
+override def gitlabHeaders(
+    props: Map[String, String] // System properties
+  ): Task[GitlabAuthHeaders] = T.task {
+  // This uses default lookup and ads custom headers
+  val access = tokenLookup.resolveGitlabToken(T.env, props, T.workspace)
+  val accessHeader = access.fold(_ => Seq.empty[(String, String)], _.headers)
+  Success(
     GitlabAuthHeaders(
       accessHeader ++ Seq(
+        // Inject completely custom http headers
         "header1" -> "value1",
         "header2" -> "value2"
-      ))
-  }
+      )
+    )
+  )
 }
 ----
 
+This example uses default token resolving logic and injects 2 custom headers ("header1" and "header2") to http requests to gitlab. Note that in this particular example if token lookup fails it is silently ignored (access.fold..)
+
 === Other
 
-For convenience GitlabPublishModule has `def skipPublish: Boolean` that defaults to `false`.
-This allows running CI/CD pipeline and skip publishing (for example if you
-are not ready increase version number just yet).
+For convenience GitlabPublishModule has `def skipPublish: Boolean` that defaults to `false`. This allows running CI/CD pipeline and skip publishing (for example if you  are not ready increase version number just yet).
 
 == Gitlab package registry dependency
 
@@ -176,42 +175,35 @@ provides trait `GitlabMavenRepository` to ease that.
 object myPackageRepository extends GitlabMavenRepository {
   // Customize if needed, omit if unnecessary
   // override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {}
-  // Needed. Can also be ProjectRepository or InstanceRepository
-  def repository = GroupRepository("https://gitlab.local", "MY_GITLAB_GROUP")
+
+  // Needed. Can also be ProjectRepository or InstanceRepository, depending on your gitlab instance
+  def gitlabRepository = GroupRepository("https://gitlab.local", "MY_GITLAB_GROUP")
 }
 
-//
 object myModule extends ScalaModule {
-  //
   def repositoriesTask = T.task {
     super.repositoriesTask() ++
       Seq(
         MavenRepository("https://oss.sonatype.org/content/repositories/releases"),
-        myPackageRegistry.mavenRepo()
+        myPackageRegistry.mavenRepository()
       )
   }
 }
 ----
 
-`GitlabMavenRepository` has overridable `def tokenLookup: GitlabTokenLookup` and you can use
-the same configuration mechanisms as described <<Configuring token lookup,above>>.
+`GitlabMavenRepository` has overridable `def tokenLookup: GitlabTokenLookup` and you can use the same configuration mechanisms as described <<Configuring token lookup,above>>.
 
 _Why the intermediate `packageRepository` object?_
 
-Nothing actually prevents you from implementing `GitlabMavenRepository` trait with your module.
-Having a separate object makes configuration more sharable when you have multiple registries.
+Nothing actually prevents you from implementing `GitlabMavenRepository` trait with your module. Having a separate object makes configuration more sharable when you have multiple registries. So it is actually matter of taste.
 
-Gitlab supports instance, group and project registries. When depending on
-multiple private packages is more convenient to depend on instance or
-group level registry. However, publishing is only possible to project registry
-and that is why `GitlabPublishModule` requires a `GitlabProjectRepository` instance.
+=== About gitlab package registries
+
+Gitlab supports instance, group and project registries (https://docs.gitlab.com/ee/user/packages/maven_repository/#naming-convention[Gitlab documentation]). When depending on multiple private packages is more convenient to depend on instance or group level registry. However, publishing is only possible to project registry and that is why `GitlabPublishModule` requires a `GitlabProjectRepository` instance.
 
 == Future development / caveats
 
 * Some maven / gitlab feature I'm missing?
-* Tuning GitlabMavenRepository.
-** Support multiple registries?
-** Prefer implemented trait to repo object in documentation?
 * More configuration, timeouts etc
 * Some other common token source / type I've overlooked
 * Container registry support with docker module

@@ -1,91 +1,78 @@
 package mill.contrib.gitlab
 
-import mill.T
-import mill.T._
-import mill.api.Result
-import mill.api.Result.Failure
-import mill.api.Result.Success
-import mill.define.Ctx.make
-import mill.define.Task
+import scala.util.Try
 
 trait GitlabTokenLookup {
   import GitlabTokenLookup._
 
   // Default search places for token
-  def personalTokenEnv: Task[String] = T.task("GITLAB_PERSONAL_ACCESS_TOKEN")
-  def personalTokenProperty: Task[String] = T.task("gitlab.personal-access-token")
-  def personalTokenFile: Task[os.Path] =
-    T.task(os.home / os.RelPath(".mill/gitlab/personal-access-token"))
-  def personalTokenFileWD: Task[os.Path] =
-    T.task(T.workspace / os.RelPath(".gitlab/personal-access-token"))
-  def deployTokenEnv: Task[String] = T.task("GITLAB_DEPLOY_TOKEN")
-  def deployTokenProperty: Task[String] = T.task("gitlab.deploy-token")
-  def deployTokenFile: Task[os.Path] = T.task(os.home / os.RelPath(".mill/gitlab/deploy-token"))
-  def deployTokenFileWD: Task[os.Path] = T.task(T.workspace / os.RelPath(".gitlab/deploy-token"))
-  def jobTokenEnv: Task[String] = T.task("CI_JOB_TOKEN")
+  def personalTokenEnv: String = "GITLAB_PERSONAL_ACCESS_TOKEN"
+  def personalTokenProperty: String = "gitlab.personal-access-token"
+  def personalTokenFile: os.Path = os.home / os.RelPath(".mill/gitlab/personal-access-token")
+  def personalTokenFileWD: os.Path => os.Path =
+    wd => wd / os.RelPath(".gitlab/personal-access-token")
+  def deployTokenEnv: String = "GITLAB_DEPLOY_TOKEN"
+  def deployTokenProperty: String = "gitlab.deploy-token"
+  def deployTokenFile: os.Path = os.home / os.RelPath(".mill/gitlab/deploy-token")
+  def deployTokenFileWD: os.Path => os.Path = wd => wd / os.RelPath(".gitlab/deploy-token")
+  def jobTokenEnv: String = "CI_JOB_TOKEN"
 
   // Default token search order. Implementation picks first found and does not look for the rest.
-  def tokenSearchOrder: Task[Seq[GitlabToken]] = T.task {
-    Seq(
-      Personal(Env(personalTokenEnv())),
-      Personal(Property(personalTokenProperty())),
-      Personal(File(personalTokenFile())),
-      Personal(File(personalTokenFileWD())),
-      Deploy(Env(deployTokenEnv())),
-      Deploy(Property(deployTokenProperty())),
-      Deploy(File(deployTokenFile())),
-      Deploy(File(deployTokenFileWD())),
-      CIJob(Env(jobTokenEnv()))
-    )
-  }
+  def tokenSearchOrder: Seq[GitlabToken] = Seq(
+    Personal(Env(personalTokenEnv)),
+    Personal(Property(personalTokenProperty)),
+    Personal(File(personalTokenFile)),
+    Personal(WorkspaceFile(personalTokenFileWD)),
+    Deploy(Env(deployTokenEnv)),
+    Deploy(Property(deployTokenProperty)),
+    Deploy(File(deployTokenFile)),
+    Deploy(WorkspaceFile(deployTokenFileWD)),
+    CIJob(Env(jobTokenEnv))
+  )
 
   // Finds gitlab token from this environment. Overriding this is not generally necessary.
   def resolveGitlabToken(
       env: Map[String, String],
-      // env: String => Option[String],
-      // env: Task[String => Option[String]],
-      prop: String => Option[String]
-      // ): Task[GitlabAuthHeaders] = T.task {
-  )(implicit ctx: mill.api.Ctx): Task[GitlabAuthHeaders] = T.task {
-
-    val searchFrom = tokenSearchOrder()
+      prop: Map[String, String],
+      workspace: os.Path
+  ): Either[String, GitlabAuthHeaders] = {
 
     val token = LazyList
-      .from(searchFrom)
-      .map(token => buildHeaders(token, env, prop))
-      // .tapEach(e => e.left.foreach(msg => T.log.debug(msg)))
-      // .find(_.isRight)
-      .head
-      .evaluate(ctx)
-    // .flatMap(_.toOption)
+      .from(tokenSearchOrder)
+      .map(token => buildHeaders(token, env, prop, workspace))
+      .find(_.isRight)
+      .flatMap(_.toOption)
 
-    token
-//    token match {
-//      case None => Failure(s"Unable to find token from $searchFrom")
-//      case Some(headers) => Success(headers)
-//    }
+    token match {
+      case None =>
+        Left(s"Unable to find token from $tokenSearchOrder")
+      case Some(headers) => Right(headers)
+    }
   }
 
   // Converts GitlabToken to GitlabAuthHeaders. Overriding this is not generally necessary.
   def buildHeaders(
       token: GitlabToken,
-      // env: String => Option[String],
       env: Map[String, String],
-      prop: String => Option[String]
-      // ): Either[String, GitlabAuthHeaders] = {
-  )(implicit ctx: mill.api.Ctx): Task[GitlabAuthHeaders] = T.task {
+      prop: Map[String, String],
+      workspace: os.Path
+  ): Either[String, GitlabAuthHeaders] = {
 
-    def readSource(source: TokenSource): Result[String] = Result.create {
+    def readPath(path: os.Path): Either[String, String] =
+      Try(os.read(path)).map(_.trim).toEither.left.map(e => s"failed to read file $e")
+
+    def readSource(source: TokenSource): Either[String, String] =
       source match {
-        case Env(name) => env.get(name).get
-        // .map(Success(_)).getOrElse(Failure(s"Could not read environment variable $name"))
-        case Property(property) => prop(property).get
-        // prop(property).toRight(s"Could not read system property variable $prop")
-        case File(path) => os.read(path).trim
-        // Try(os.read(path)).map(_.trim).toEither.left.map(e => s"failed to read file $e")
-        case Custom(f) => f().toOption.get
+        case Env(name) =>
+          env.get(name).toRight(s"Could not read environment variable $name")
+        case Property(property) =>
+          prop.get(property).toRight(s"Could not read system property variable $prop")
+        case File(path) =>
+          readPath(path)
+        case WorkspaceFile(path) =>
+          readPath(path(workspace))
+        case Custom(f) => f()
       }
-    }
 
     token match {
       case Personal(source) => readSource(source).map(GitlabAuthHeaders.privateToken)
@@ -129,6 +116,7 @@ object GitlabTokenLookup {
   sealed trait TokenSource
   case class Env(name: String) extends TokenSource
   case class File(path: os.Path) extends TokenSource
+  case class WorkspaceFile(path: os.Path => os.Path) extends TokenSource
   case class Property(property: String) extends TokenSource
   case class Custom(f: () => Either[String, String]) extends TokenSource
 }
