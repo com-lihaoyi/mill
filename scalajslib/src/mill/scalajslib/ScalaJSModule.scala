@@ -119,9 +119,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  override def runLocal(args: String*) = T.command { run(args: _*) }
+  override def runLocal(args: String*): Command[Unit] = T.command { run(args: _*) }
 
-  override def run(args: String*) = T.command {
+  override def run(args: String*): Command[Unit] = T.command {
     finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
       case Right(_) =>
@@ -135,11 +135,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   }
 
-  override def runMainLocal(mainClass: String, args: String*) = T.command[Unit] {
+  override def runMainLocal(mainClass: String, args: String*): Command[Unit] = T.command[Unit] {
     mill.api.Result.Failure("runMain is not supported in Scala.js")
   }
 
-  override def runMain(mainClass: String, args: String*) = T.command[Unit] {
+  override def runMain(mainClass: String, args: String*): Command[Unit] = T.command[Unit] {
     mill.api.Result.Failure("runMain is not supported in Scala.js")
   }
 
