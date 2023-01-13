@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Using Plugins :: Mill</title>
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Using_Plugins.html" />
+    <link rel="prev" href="Extending_Mill.html" />
+    <link rel="next" href="Mill_Internals.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script>var uiRootPath = '../../_'</script>
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link" href="#">Plugins</a>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Community</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issue Tracker (GitHub)</a>
+            <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat (Gitter)</a>
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss (GitHub)</a>
+          </div>
+        </div>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="0.11.0-M2">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html">Mill Documentation</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Installation.html">Installation</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Getting_Started.html">Getting Started</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="IDE_Support.html">IDE Support</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Configuration.html">Configuring your Project</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Tasks.html">Tasks</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Modules.html">Modules</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Artifactory.html">Artifactory</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Bintray.html">Bintray</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Bloop.html">Bloop</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Docker.html">Docker</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="External_References.html">External References</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_ammonite">Ammonite</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_coursier">Coursier</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_os_lib">OS-Lib</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.11.0-M2</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Mill Documentation</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../index.html">0.11.0-M2</a>
+        </li>
+        <li class="version is-current">
+          <a href="index.html">0.11.0-M2</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M1/index.html">0.11.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.10/index.html">0.10.10</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.9/index.html">0.10.9</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.8/index.html">0.10.8</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.7/index.html">0.10.7</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.6/index.html">0.10.6</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.5/index.html">0.10.5</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.4/index.html">0.10.4</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.3/index.html">0.10.3</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.2/index.html">0.10.2</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.1/index.html">0.10.1</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.0/index.html">0.10.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.12/index.html">0.9.12</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.11/index.html">0.9.11</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.10/index.html">0.9.10</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.9/index.html">0.9.9</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.8/index.html">0.9.8</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.7/index.html">0.9.7</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.6/index.html">0.9.6</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../Intro_to_Mill.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Mill Documentation</a></li>
+    <li><a href="Using_Plugins.html">Using Plugins</a></li>
+  </ul>
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M2</button>
+  <div class="version-menu">
+    <a class="version" href="../Using_Plugins.html">0.11.0-M2</a>
+    <a class="version is-current" href="Using_Plugins.html">0.11.0-M2</a>
+    <a class="version" href="../0.11.0-M1/Using_Plugins.html">0.11.0-M1</a>
+    <a class="version" href="../0.10.10/Using_Plugins.html">0.10.10</a>
+    <a class="version is-missing" href="../0.10.9/index.html">0.10.9</a>
+    <a class="version is-missing" href="../0.10.8/index.html">0.10.8</a>
+    <a class="version is-missing" href="../0.10.7/index.html">0.10.7</a>
+    <a class="version is-missing" href="../0.10.6/index.html">0.10.6</a>
+    <a class="version is-missing" href="../0.10.5/index.html">0.10.5</a>
+    <a class="version is-missing" href="../0.10.4/index.html">0.10.4</a>
+    <a class="version is-missing" href="../0.10.3/index.html">0.10.3</a>
+    <a class="version is-missing" href="../0.10.2/index.html">0.10.2</a>
+    <a class="version is-missing" href="../0.10.1/index.html">0.10.1</a>
+    <a class="version is-missing" href="../0.10.0/index.html">0.10.0</a>
+    <a class="version is-missing" href="../0.9.12/index.html">0.9.12</a>
+    <a class="version is-missing" href="../0.9.11/index.html">0.9.11</a>
+    <a class="version is-missing" href="../0.9.10/index.html">0.9.10</a>
+    <a class="version is-missing" href="../0.9.9/index.html">0.9.9</a>
+    <a class="version is-missing" href="../0.9.8/index.html">0.9.8</a>
+    <a class="version is-missing" href="../0.9.7/index.html">0.9.7</a>
+    <a class="version is-missing" href="../0.9.6/index.html">0.9.6</a>
+  </div>
+</div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/blob/0.11.0-M2/docs/antora/modules/ROOT/pages/Using_Plugins.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Using Plugins</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill plugins are ordinary jars and are loaded as any other external dependency with the <a href="Extending_Mill.html#_import_ivy" class="xref page"><code>import $ivy</code> mechanism</a>.</p>
+</div>
+<div class="paragraph">
+<p>There exist a large number of Mill plugins, Many of them are available on GitHub and via Mavel Central. We also have a list of plugins, which is most likely not complete, but it might be a good start if you are looking for plugins: <a href="Thirdparty_Plugins.html" class="xref page">Third-Party Plugins</a>.</p>
+</div>
+<div class="paragraph">
+<p>Some plugin contributions are also hosted in Mill’s own git tree as <a href="Contrib_Plugins.html" class="xref page">Contrib Plugins</a>.</p>
+</div>
+<div class="paragraph">
+<p>Mill plugins are typically bound to a specific version range of Mill.
+This is called the binary platform.
+To ease the use of the correct versions and avoid runtime issues (caused by binary incompatible plugins, which are hard to debug) you can apply one of the following techniques:</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_use_the_specific_mill_binary_platform_notation"><a class="anchor" href="#_use_the_specific_mill_binary_platform_notation"></a>Use the specific Mill Binary Platform notation</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// for classic Scala dependencies
+import $ivy.`&lt;group&gt;::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" data-value="1"></i><b>(1)</b>
+// for dependencies specific to the exact Scala version
+import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>This is equivalent to
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`&lt;group&gt;::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;`</code></pre>
+</div>
+</div></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>This is equivalent to
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`&lt;group&gt;:::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;`</code></pre>
+</div>
+</div></td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_use_special_placeholders_in_your_import_ivy"><a class="anchor" href="#_use_special_placeholders_in_your_import_ivy"></a>Use special placeholders in your <code>import $ivy</code></h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>$MILL_VERSION</code> </dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>to substitute the currently used Mill version.
+This is typical required for Mill contrib modules, which are developed in the Mill repository and highly bound to the current Mill version.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
+<div class="content">
+<pre>import $ivy.`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There is the even more convenient option to leave the version completely empty.
+Mill will substitute it with its current version.
+But don’t forget to provide the trailing colon!</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
+<div class="content">
+<pre>import $ivy.`com.lihaoyi:mill-contrib-bloop:`</pre>
+</div>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code>$MILL_BIN_PLATFORM</code> </dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>to substitute the currently used Mill binary platform.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Using <code>mill-vcs-version</code> plugin matching the current Mill Binary Platfrom</div>
+<div class="content">
+<pre>import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`</pre>
+</div>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you want to publish re-usable libraries that <em>other</em> people can use in their builds, simply publish your code as a library to maven central.
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="Extending_Mill.html">Extending Mill</a></span>
+  <span class="next"><a href="Mill_Internals.html">Mill Internals</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>
