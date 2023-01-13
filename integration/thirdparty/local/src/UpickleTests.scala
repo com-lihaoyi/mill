@@ -26,15 +26,5 @@ class UpickleTests(fork: Boolean)
         assert(jvmMeta.contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
       }
     }
-    "js" - {
-      if (Properties.isJavaAtLeast(17)) "Scala 2.12 tests don't support Java 17+"
-      else {
-        assert(eval("upickleJs[2.12.3].test"))
-        val jsMeta = meta("upickleJs[2.12.3].test.test")
-        assert(jsMeta.contains("example.ExampleTests.simple"))
-        assert(jsMeta.contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
-      }
-    }
-
   }
 }

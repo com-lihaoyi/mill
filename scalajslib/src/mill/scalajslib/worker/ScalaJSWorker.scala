@@ -1,11 +1,10 @@
 package mill.scalajslib.worker
 
 import java.io.File
-
 import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
-import mill.api.{Ctx, internal, Result}
-import mill.define.Discover
+import mill.api.{Ctx, Result, internal}
+import mill.define.{Discover, Worker}
 import mill.{Agg, T}
 
 @internal
@@ -201,6 +200,6 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
 @internal
 private[scalajslib] object ScalaJSWorkerExternalModule extends mill.define.ExternalModule {
 
-  def scalaJSWorker = T.worker { new ScalaJSWorker() }
+  def scalaJSWorker: Worker[ScalaJSWorker] = T.worker { new ScalaJSWorker() }
   lazy val millDiscover = Discover[this.type]
 }

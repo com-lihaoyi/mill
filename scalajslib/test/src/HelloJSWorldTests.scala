@@ -25,7 +25,7 @@ object HelloJSWorldTests extends TestSuite {
 
   object HelloJSWorld extends TestUtil.BaseModule {
     val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12", "2.11.12")
-    val scalaJSVersions = Seq("1.8.0", "1.3.1", "1.0.1", "0.6.33")
+    val scalaJSVersions = Seq("1.8.0", "1.3.1", "1.0.1")
     val matrix = for {
       scala <- scalaVersions
       scalaJS <- scalaJSVersions
@@ -172,13 +172,6 @@ object HelloJSWorldTests extends TestSuite {
         ).artifactMetadata)
         assert(result.id == artifactId)
       }
-      test("artifactId_06") {
-        testArtifactId(
-          HelloJSWorld.scalaVersions.head,
-          "0.6.33",
-          "hello-js-world_sjs0.6_2.13"
-        )
-      }
       test("artifactId_10") {
         testArtifactId(
           HelloJSWorld.scalaVersions.head,
@@ -278,8 +271,9 @@ object HelloJSWorldTests extends TestSuite {
       assert(
         evalCount > 0,
         log.contains("node"),
+        // TODO: reenable somehow
         // In Scala.js 1.x, println's are sent to the stdout, not to the logger
-        !scalaJSVersion.startsWith("0.6.") || log.contains("Scala.js")
+        // log.contains("Scala.js")
       )
     }
 
