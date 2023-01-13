@@ -1,12 +1,12 @@
 package mill
 package scalanativelib
 
-import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.Loose.Agg
 import mill.api.{Result, internal}
 import mill.define.{Target, Task}
 import mill.modules.Jvm
 import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.{
   BoundDep,
   CrossVersion,
@@ -19,7 +19,7 @@ import mill.scalalib.{
 }
 import mill.testrunner.TestRunner
 import mill.scalanativelib.api._
-import mill.scalanativelib.worker.{api => workerApi, ScalaNativeWorkerExternalModule}
+import mill.scalanativelib.worker.{ScalaNativeWorkerExternalModule, api => workerApi}
 
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
@@ -269,13 +269,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((
-      BuildTargetDataKind.SCALA,
-      new ScalaBuildTarget(
-        scalaOrganization(),
-        scalaVersion(),
-        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
-        ScalaPlatform.NATIVE,
-        scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
+      ScalaBuildTarget.dataKind,
+      ScalaBuildTarget(
+        scalaOrganization = scalaOrganization(),
+        scalaVersion = scalaVersion(),
+        scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        ScalaPlatform.Native,
+        jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
+        jvmBuildTarget = None
       )
     ))
   }

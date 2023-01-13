@@ -58,7 +58,6 @@ case class BspBuildTarget(
     canTest: Boolean,
     canRun: Boolean,
     canDebug: Boolean
-//    data: (Option[String], Option[Any]) = (None, None)
 )
 
 case class BspBuildTargetId(id: BspUri)
@@ -67,6 +66,44 @@ case class BspUri(uri: String)
 
 object BspUri {
   def apply(path: os.Path): BspUri = BspUri(path.toNIO.toUri.toString)
+}
+
+case class JvmBuildTarget(
+    javaHome: Option[BspUri],
+    javaVersion: Option[String]
+)
+
+object JvmBuildTarget {
+  val dataKind: String = "jvm"
+}
+
+case class ScalaBuildTarget(
+    /** The Scala organization that is used for a target. */
+    scalaOrganization: String,
+    /** The scala version to compile this target */
+    scalaVersion: String,
+    /**
+     * The binary version of scalaVersion.
+     * For example, 2.12 if scalaVersion is 2.12.4.
+     */
+    scalaBinaryVersion: String,
+    /** The target platform for this target */
+    platform: ScalaPlatform,
+    /** A sequence of Scala jars such as scala-library, scala-compiler and scala-reflect. */
+    jars: Seq[String],
+    /** The jvm build target describing jdk to be used */
+    jvmBuildTarget: Option[JvmBuildTarget]
+)
+
+object ScalaBuildTarget {
+  val dataKind: String = "scala"
+}
+
+abstract class ScalaPlatform(val number: Int)
+object ScalaPlatform {
+  case object JVM extends ScalaPlatform(1)
+  case object JS extends ScalaPlatform(2)
+  case object Native extends ScalaPlatform(3)
 }
 
 /**

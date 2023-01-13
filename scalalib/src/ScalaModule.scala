@@ -6,14 +6,12 @@ import mill.define.{Command, Sources, Target, Task}
 import mill.api.{DummyInputStream, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import Lib._
-import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, ZincWorkerUtil}
-import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 
 import scala.jdk.CollectionConverters._
 import mainargs.Flag
+import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
 /**
@@ -172,7 +170,7 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDeps(
       T.task {
         val bind = bindDependency()
-        scalaDocIvyDeps(scalaOrganization(), scalaVersion()).map(bind)
+        Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion()).map(bind)
       }
     )()
   }
@@ -188,7 +186,7 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   def scalaLibraryIvyDeps: T[Agg[Dep]] = T {
-    scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
+    Lib.scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
@@ -203,7 +201,7 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDeps(
       T.task {
         val bind = bindDependency()
-        (scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
+        (Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
           scalaLibraryIvyDeps()).map(bind)
       }
     )()
@@ -516,13 +514,14 @@ trait ScalaModule extends JavaModule { outer =>
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
     Some((
-      BuildTargetDataKind.SCALA,
-      new ScalaBuildTarget(
-        scalaOrganization(),
-        scalaVersion(),
-        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
-        ScalaPlatform.JVM,
-        scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq.asJava
+      "scala",
+      ScalaBuildTarget(
+        scalaOrganization = scalaOrganization(),
+        scalaVersion = scalaVersion(),
+        scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        platform = ScalaPlatform.JVM,
+        jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
+        jvmBuildTarget = None
       )
     ))
   }

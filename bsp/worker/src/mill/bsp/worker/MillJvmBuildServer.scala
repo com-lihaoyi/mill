@@ -1,4 +1,4 @@
-package mill.bsp
+package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.{
   BuildTargetIdentifier,
@@ -10,6 +10,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentResult
 }
 import mill.T
+import mill.api.internal
 import mill.define.Task
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.BspModule
@@ -17,6 +18,7 @@ import mill.scalalib.bsp.BspModule
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 
+@internal
 trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
   override def jvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] =

@@ -1,6 +1,5 @@
-package mill.bsp
+package mill.bsp.worker
 
-import java.io.{PrintWriter, StringWriter}
 import ch.epfl.scala.bsp4j.{
   BuildClient,
   BuildTargetIdentifier,
@@ -23,6 +22,8 @@ import sbt.testing.{
   TestSelector,
   TestWildcardSelector
 }
+
+import java.io.{PrintWriter, StringWriter}
 
 /**
  * Context class for BSP, specialized for sending `task-start` and
