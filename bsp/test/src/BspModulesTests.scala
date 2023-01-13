@@ -1,4 +1,5 @@
-import mill.bsp.BSP
+package mill.bsp
+
 import mill.util.ScriptTestSuite
 import utest._
 
@@ -11,7 +12,7 @@ object BspModulesTests extends ScriptTestSuite(false) {
       test("can be installed") {
         val workspacePath = initWorkspace()
         eval("mill.bsp.BSP/install") ==> true
-        os.exists(workspacePath / ".bsp" / s"${BSP.serverName}.json") ==> true
+        os.exists(workspacePath / Constants.bspDir / s"${Constants.serverName}.json") ==> true
       }
       test("ModuleUtils resolves all referenced transitive modules") {
         val workspacePath = initWorkspace()

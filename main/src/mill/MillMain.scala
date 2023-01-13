@@ -8,7 +8,7 @@ import io.github.retronym.java9rtexport.Export
 import mainargs.Flag
 import mill.api.DummyInputStream
 import mill.eval.Evaluator
-import mill.main.{BspServerHandle, BspServerResult, EvaluatorState}
+import mill.main.{BspServerHandle, BspServerResult, BspServerStarter, EvaluatorState}
 
 import java.util.concurrent.{ExecutorService, Executors}
 import scala.concurrent.duration.Duration
@@ -265,31 +265,15 @@ object MillMain {
                 stderr.println("Trying to load BSP server...")
                 val bspServerFuture = Future {
                   try {
-                    val bspClass = MillMain.this.getClass.getClassLoader.loadClass("mill.bsp.BSP")
-                    val method = bspClass.getMethod(
-                      "startBspServer",
-                      Seq[Class[_]](
-                        classOf[Option[Evaluator]],
-                        classOf[PrintStream],
-                        classOf[PrintStream],
-                        classOf[InputStream],
-                        classOf[os.Path],
-                        classOf[Boolean],
-                        classOf[Option[Promise[BspServerHandle]]]
-                      ): _*
-                    )
-
-                    method.invoke(
-                      null,
-                      Seq[Object](
-                        None,
-                        MillMain.initialSystemStreams.out,
-                        System.err,
-                        MillMain.initialSystemStreams.in,
-                        os.pwd / ".bsp",
-                        java.lang.Boolean.TRUE,
-                        Some(bspServerHandle)
-                      ): _*
+                    BspServerStarter().startBspServer(
+                      initialEvaluator = None,
+                      outStream = MillMain.initialSystemStreams.out,
+                      errStream = System.err,
+                      inStream = MillMain.initialSystemStreams.in,
+                      workspaceDir = os.pwd,
+                      ammoniteHomeDir = ammConfig.core.home,
+                      canReload = true,
+                      serverHandle = Some(bspServerHandle)
                     )
                   } catch {
                     case NonFatal(e) =>
