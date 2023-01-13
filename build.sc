@@ -169,7 +169,7 @@ object Deps {
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.9"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:3.0.0-M1"
-  val utest = ivy"com.lihaoyi::utest:0.7.11"
+  val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
