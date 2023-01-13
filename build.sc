@@ -56,9 +56,10 @@ object Settings {
     "0.10.8",
     "0.10.9",
     "0.10.10",
-    "0.11.0-M1"
+    "0.11.0-M1",
+    "0.11.0-M2"
   )
-  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M1")
+  val mimaBaseVersions: Seq[String] = Seq()
 }
 
 object Deps {
@@ -172,6 +173,7 @@ object Deps {
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
+  // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
