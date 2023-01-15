@@ -191,7 +191,7 @@ object MainModuleTests extends TestSuite {
         val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator, "bar")))
         assert(r2.failing.keyCount == 0)
         checkExists(true)(
-          os.sub / "foo" / "target.log",
+          os.sub / "foo" / "target.json",
           os.sub / "foo" / "target.dest" / "dummy.txt"
         )
         checkExists(false)(
