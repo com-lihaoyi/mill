@@ -2,6 +2,5 @@ package mill.playlib
 
 import mill.define.Module
 
-trait SingleModule extends Module {
-  override def millSourcePath: os.Path = super.millSourcePath / os.up
-}
+@deprecated("This module doesn't do anything now. You can avoid extending it", since = "mill 0.11.0-M3")
+trait SingleModule extends Module

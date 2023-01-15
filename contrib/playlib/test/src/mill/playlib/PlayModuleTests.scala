@@ -12,7 +12,6 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
     object core extends Cross[CoreCrossModule](matrix: _*)
     class CoreCrossModule(val crossScalaVersion: String, crossPlayVersion: String)
         extends PlayModule {
-      override def millSourcePath = super.millSourcePath / os.up / os.up
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
       override def twirlVersion = "1.5.1"
