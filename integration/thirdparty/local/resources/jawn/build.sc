@@ -7,7 +7,7 @@ val scala212Version = "2.12.3"
 
 object jawn extends Cross[JawnModule]("2.10.6", "2.11.11", scala212Version)
 class JawnModule(crossVersion: String) extends mill.Module {
-  override def millSourcePath = super.millSourcePath / os.up / os.up
+  override def millSourcePath = super.millSourcePath / os.up
 
   trait JawnModule extends scalalib.SbtModule {
     def scalaVersion = crossVersion
