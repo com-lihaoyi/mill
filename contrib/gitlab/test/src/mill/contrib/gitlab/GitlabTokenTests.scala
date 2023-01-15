@@ -94,18 +94,18 @@ object GitlabTokenTests extends TestSuite {
 
     test("Token from workspace") {
       val fileName = "test.workspace.token"
-      val tokenFile = ws / fileName
-      os.write(tokenFile, "foo")
+      val tokenFile = os.RelPath(fileName)
+      os.write(ws / tokenFile, "foo")
 
       object fileEnv extends GitlabTokenLookup {
         override def tokenSearchOrder = Seq(
-          Deploy(WorkspaceFile(p => p / fileName))
+          Deploy(WorkspaceFile(tokenFile))
         )
       }
 
       val token = fileEnv.resolveGitlabToken(Map.empty, Map.empty, ws)
 
-      os.remove(tokenFile)
+      os.remove(ws / tokenFile)
 
       assertMatch(token) { case Right(GitlabAuthHeaders(Seq(("Deploy-Token", "foo")))) => }
     }

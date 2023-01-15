@@ -9,12 +9,11 @@ trait GitlabTokenLookup {
   def personalTokenEnv: String = "GITLAB_PERSONAL_ACCESS_TOKEN"
   def personalTokenProperty: String = "gitlab.personal-access-token"
   def personalTokenFile: os.Path = os.home / os.RelPath(".mill/gitlab/personal-access-token")
-  def personalTokenFileWD: os.Path => os.Path =
-    wd => wd / os.RelPath(".gitlab/personal-access-token")
+  def personalTokenFileWD: os.RelPath = os.RelPath(".gitlab/personal-access-token")
   def deployTokenEnv: String = "GITLAB_DEPLOY_TOKEN"
   def deployTokenProperty: String = "gitlab.deploy-token"
   def deployTokenFile: os.Path = os.home / os.RelPath(".mill/gitlab/deploy-token")
-  def deployTokenFileWD: os.Path => os.Path = wd => wd / os.RelPath(".gitlab/deploy-token")
+  def deployTokenFileWD: os.RelPath = os.RelPath(".gitlab/deploy-token")
   def jobTokenEnv: String = "CI_JOB_TOKEN"
 
   // Default token search order. Implementation picks first found and does not look for the rest.
@@ -70,7 +69,7 @@ trait GitlabTokenLookup {
         case File(path) =>
           readPath(path)
         case WorkspaceFile(path) =>
-          readPath(path(workspace))
+          readPath(path.resolveFrom(workspace))
         case Custom(f) => f()
       }
 
@@ -116,7 +115,7 @@ object GitlabTokenLookup {
   sealed trait TokenSource
   case class Env(name: String) extends TokenSource
   case class File(path: os.Path) extends TokenSource
-  case class WorkspaceFile(path: os.Path => os.Path) extends TokenSource
+  case class WorkspaceFile(path: os.RelPath) extends TokenSource
   case class Property(property: String) extends TokenSource
   case class Custom(f: () => Either[String, String]) extends TokenSource
 }

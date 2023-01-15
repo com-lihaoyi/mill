@@ -69,16 +69,16 @@ If you want to change environment variable names, property names of paths where 
 override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
   override def personalTokenEnv = "MY_TOKEN"
   override def deployTokenFile: os.Path = os.root/"etc"/"tokens"/"gitlab-deploy-token"
-  override def personalTokenFileWD = wd => wd/".mill"/"gitlab"/"token.file"
+  override def personalTokenFileWD = os.RelPath(".mill/gitlab/token.file")
 }
 ----
 
-This still keeps the default search order, but allows changes to places where to look from. Note how workspace definition is bit different. Instead of value it is a function `os.Path => os.Path` where parameter is the location of workspace.
+This still keeps the default search order, but allows changes to places where to look from.
 
 
 ==== Add or change tokenSearchOrder
 
-If original search order is too wide, or you would like to add places to look you can override the `tokenSearchOrder`. Example below ignores default search order and adds five places to search from.
+If the original search order is too wide, or you would like to add places to look, you can override the `tokenSearchOrder`. Example below ignores default search order and adds five places to search from.
 
 .`build.sc`
 [source,scala]
@@ -91,7 +91,7 @@ override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
   override def tokenSearchOrder: Seq[GitlabToken] = Seq(
     Personal(Env("MY_PRIVATE_TOKEN")),
     Personal(Property("gitlab.private-token")),
-    Deploy(WorkspaceFile(wd => wd/"deploy-token")),
+    Deploy(WorkspaceFile(os.up/"deploy-token")),
     Deploy(File(os.root/"etc"/"gitlab-deploy-token")),
     Deploy(Custom(myCustomTokenSource)),
     CustomHeader("my-header", Custom(myCustomTokenSource))
@@ -103,17 +103,19 @@ override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
 
 There are two things happening here. First Gitlab needs right kind of token for right header.`Personal` creates "Private-Token" header, `Deploy` produces "Deploy-Token" and `CIJob` creates "Job-Token". Finally, any custom header can be set with `CustomHeader`.
 
-Secondly after token type plugin needs information where to load token from. There are five possibilities
+Secondly, after token type plugin needs information where to load token from. There are five possibilities
 
 1. `Env`: From environment variable
 2. `Property`: From system property
-3. `File`: From file (content is trimmed, usually at least \n at the end is present)
-4. `WorkspaceFile`: From file in workspace.
+3. `File`: From file
+4. `WorkspaceFile`: File relative to workspace root.
 5. `Custom`: Any `() => Either[String, String]` function
+
+Content of `File` and `WorkspaceFile` is trimmed, (usually at least \n at the end is present).
 
 === Override search logic completely
 
-Modifying the lookup order with `Custom` should be powerful enough but if really necessary one can also override GitlabPublishModules `gitlabHeaders`. If for some reason you need to set multiple headers this is currently the only way.
+Modifying the lookup order with `Custom` should be powerful enough but if really necessary one can also override GitlabPublishModules `gitlabHeaders`. If for some reason you need to set multiple headers, this is currently the only way.
 
 [source,scala]
 ----
@@ -140,7 +142,7 @@ override def gitlabHeaders(
 }
 ----
 
-This example uses default token resolving logic and injects 2 custom headers ("header1" and "header2") to http requests to gitlab. Note that in this particular example if token lookup fails it is silently ignored (access.fold..)
+This example uses default token resolving logic and injects 2 custom headers ("header1" and "header2") to http requests to gitlab. Note that in this particular example, if token lookup fails, it is silently ignored (access.fold..)
 
 === Other
 
