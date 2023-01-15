@@ -1,9 +1,10 @@
 package mill.main
 
-import mill.api.Result
+import mill.api.{PathRef, Result}
 import mill.{Agg, T}
+import mill.define.{Cross, Module}
 import mill.util.{TestEvaluator, TestUtil}
-import utest.{assert, TestSuite, Tests, test}
+import utest.{TestSuite, Tests, assert, test}
 
 object MainModuleTests extends TestSuite {
 
@@ -12,7 +13,38 @@ object MainModuleTests extends TestSuite {
     def hello2 = T { Map("1" -> "hello", "2" -> "world") }
   }
 
+  object cleanModule extends TestUtil.BaseModule with MainModule {
+
+    trait Cleanable extends Module {
+      def target = T {
+        os.write(T.dest / "dummy.txt", "dummy text")
+        Seq(PathRef(T.dest))
+      }
+    }
+
+    object foo extends Cleanable {
+      object sub extends Cleanable
+    }
+    object bar extends Cleanable {
+      override def target = T {
+        os.write(T.dest / "dummy.txt", "dummy text")
+        super.target() ++ Seq(PathRef(T.dest))
+      }
+    }
+    object bazz extends Cross[Bazz]("1", "2", "3")
+    class Bazz(v: String) extends Cleanable
+
+    def all = T {
+      foo.target()
+      bar.target()
+      bazz("1").target()
+      bazz("2").target()
+      bazz("3").target()
+    }
+  }
+
   override def tests: Tests = Tests {
+
     test("inspect") {
       val eval = new TestEvaluator(mainModule)
       test("single") {
@@ -36,6 +68,7 @@ object MainModuleTests extends TestSuite {
         )
       }
     }
+
     test("show") {
       val evaluator = new TestEvaluator(mainModule)
       test("single") {
@@ -67,6 +100,7 @@ object MainModuleTests extends TestSuite {
         )))
       }
     }
+
     test("showNamed") {
       val evaluator = new TestEvaluator(mainModule)
       test("single") {
@@ -98,6 +132,72 @@ object MainModuleTests extends TestSuite {
           "hello" -> ujson.Arr.from(Seq("hello", "world")),
           "hello2" -> ujson.Obj.from(Map("1" -> "hello", "2" -> "world"))
         )))
+      }
+    }
+
+    test("clean") {
+      val ev = new TestEvaluator(cleanModule)
+      val out = ev.evaluator.outPath
+
+      def checkExists(exists: Boolean)(paths: os.SubPath*): Unit = {
+        paths.foreach { path =>
+          assert(os.exists(out / path) == exists)
+        }
+      }
+
+      test("all") {
+        val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
+        assert(r1.failing.keyCount == 0)
+        checkExists(true)(os.sub / "foo")
+
+        val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator)))
+        assert(r2.failing.keyCount == 0)
+        checkExists(false)(os.sub / "foo")
+      }
+
+      test("single-target") {
+        val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
+        assert(r1.failing.keyCount == 0)
+        checkExists(true)(
+          os.sub / "foo" / "target.json",
+          os.sub / "foo" / "target.dest" / "dummy.txt",
+          os.sub / "bar" / "target.json",
+          os.sub / "bar" / "target.dest" / "dummy.txt"
+        )
+
+        val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator, "foo.target")))
+        assert(r2.failing.keyCount == 0)
+        checkExists(false)(
+          os.sub / "foo" / "target.log",
+          os.sub / "foo" / "target.json",
+          os.sub / "foo" / "target.dest" / "dummy.txt"
+        )
+        checkExists(true)(
+          os.sub / "bar" / "target.json",
+          os.sub / "bar" / "target.dest" / "dummy.txt"
+        )
+      }
+
+      test("single-module") {
+        val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
+        assert(r1.failing.keyCount == 0)
+        checkExists(true)(
+          os.sub / "foo" / "target.json",
+          os.sub / "foo" / "target.dest" / "dummy.txt",
+          os.sub / "bar" / "target.json",
+          os.sub / "bar" / "target.dest" / "dummy.txt"
+        )
+
+        val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator, "bar")))
+        assert(r2.failing.keyCount == 0)
+        checkExists(true)(
+          os.sub / "foo" / "target.json",
+          os.sub / "foo" / "target.dest" / "dummy.txt"
+        )
+        checkExists(false)(
+          os.sub / "bar" / "target.json",
+          os.sub / "bar" / "target.dest" / "dummy.txt"
+        )
       }
     }
   }
