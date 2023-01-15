@@ -104,7 +104,7 @@ object Deps {
     def scalaVersion: String = Deps.scalaVersion
   }
   object Play_2_6 extends Play {
-    val playVersion = "2.6.25"
+    val playVersion = "2.8.19"
     override def scalaVersion: String = Deps.workerScalaVersion212
   }
   object Play_2_7 extends Play {
