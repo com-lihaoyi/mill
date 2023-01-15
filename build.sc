@@ -138,8 +138,8 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jna = ivy"net.java.dev.jna:jna:5.12.1"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.12.1"
+  val jna = ivy"net.java.dev.jna:jna:5.13.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.13.0"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
