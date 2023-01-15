@@ -341,20 +341,30 @@ trait MainModule extends mill.Module {
           evaluator,
           targets,
           SelectMode.Multi
-        ).map(
-          _.flatMap { segments =>
-            val paths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
-            Seq(paths.dest, paths.meta, paths.log)
+        ).map { ts =>
+          ts.flatMap { segments =>
+            val evPpaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
+            val paths = Seq(evPpaths.dest, evPpaths.meta, evPpaths.log)
+            val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
+            if (os.exists(potentialModulePath)) {
+              // this is either because of some pre-Mill-0.10 files lying around
+              // or most likely because the segments denote a module but not a task
+              // in which case we want to remove the module and all its sub-modules
+              // (If this logic is later found to be to harsh, we could further guard it,
+              // to when non of the other paths exists.)
+              paths :+ potentialModulePath
+            } else paths
           }
-        )
+        }
 
     pathsToRemove match {
       case Left(err) =>
         Result.Failure(err)
       case Right(paths) =>
-        T.log.debug(s"Cleaning ${paths.size} paths ...")
-        paths.foreach(os.remove.all)
-        Result.Success(paths.map(PathRef(_)))
+        val existing = paths.filter(p => os.exists(p))
+        T.log.debug(s"Cleaning ${existing.size} paths ...")
+        existing.foreach(os.remove.all)
+        Result.Success(existing.map(PathRef(_)))
     }
   }
 
