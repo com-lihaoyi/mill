@@ -830,7 +830,7 @@ object Evaluator {
               val Segment.Label(tName) = segments.value.last
               Segments(
                 segments.value.init ++
-                  Seq(Segment.Label(tName + ".overridden")) ++
+                  Seq(Segment.Label(tName + ".super")) ++
                   t.ctx.enclosing.split("[.# ]").map(Segment.Label): _*
               )
             }
