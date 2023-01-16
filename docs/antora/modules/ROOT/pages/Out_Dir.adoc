@@ -15,9 +15,9 @@ out/
 │   ├── allScalacOptions.json
 │   ├── allSourceFiles.json
 │   ├── allSources.json
-│   ├── compile.dest/
+│   ├── compile.dest/  <1>
 │   ├── compile.json
-│   ├── compile.log
+│   ├── compile.log  <2>
 │   ├── compileClasspath.json
 │   ├── compileIvyDeps.json
 │   ├── enablePluginScalacOptions.json
@@ -25,21 +25,21 @@ out/
 │   ├── ivyDeps.json
 │   ├── javacOptions.json
 │   ├── mandatoryIvyDeps.json
-│   ├── mandatoryIvyDeps.super/
+│   ├── mandatoryIvyDeps.super/  <3>
 │   ├── mandatoryScalacOptions.json
 │   ├── platformSuffix.json
 │   ├── resolvedIvyDeps.json
-│   ├── resolvedIvyDeps.log
+│   ├── resolvedIvyDeps.log  <2>
 │   ├── resources.json
 │   ├── scalaCompilerClasspath.json
 │   ├── scalaLibraryIvyDeps.json
 │   ├── scalaOrganization.json
 │   ├── scalaVersion.json
 │   ├── scalacOptions.json
-│   ├── scalacOptions.super/
+│   ├── scalacOptions.super/  <3>
 │   ├── scalacPluginClasspath.json
 │   ├── scalacPluginIvyDeps.json
-│   ├── scalacPluginIvyDeps.super/
+│   ├── scalacPluginIvyDeps.super/  <3>
 │   ├── sources.json
 │   ├── transitiveCompileIvyDeps.json
 │   ├── transitiveIvyDeps.json
@@ -50,7 +50,11 @@ out/
 └── mill-worker-VpZubuAK6LQHHN+3ojh1LsTZqWY=-1
 ----
 
-=== Target Metadata and Cached Files
+<1> The only target, that tried to access its scratch space via `T.dest`.
+<2> Two targets printed something out while they run. You can find these outputs in the `*.log`-files.
+<3> Three targets are overridden but re-use the result of their `super`-targets in some way, hence you can find these result under the `*.super/` paths, if you are interested in it.
+
+== Target Metadata and Cached Files
 
 Each named task (``Target`` or ``Command``) that is run has a representation in the `out/` directory structure.
 
@@ -93,7 +97,7 @@ Cleaning some target state by manually deleting files under `out/` may be conven
 
 Instead, you should always give the `clean` command a try, before manually deleting some file under `out/`.
 --
-=== Other files in the `out/` directory
+== Other files in the `out/` directory
 
 There are also top-level build-related files in the `out/` folder, prefixed as `mill-*`.
 
