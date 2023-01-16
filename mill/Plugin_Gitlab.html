@@ -215,14 +215,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M2-2-f6d7e2</span>
+    <span class="version">0.11.0-M2-3-463b06</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M2-2-f6d7e2</a>
+          <a href="index.html">0.11.0-M2-3-463b06</a>
         </li>
         <li class="version">
           <a href="0.11.0-M2/index.html">0.11.0-M2</a>
@@ -303,9 +303,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M2-2-f6d7e2</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M2-3-463b06</button>
   <div class="version-menu">
-    <a class="version is-current" href="Plugin_Gitlab.html">0.11.0-M2-2-f6d7e2</a>
+    <a class="version is-current" href="Plugin_Gitlab.html">0.11.0-M2-3-463b06</a>
     <a class="version" href="0.11.0-M2/Plugin_Gitlab.html">0.11.0-M2</a>
     <a class="version" href="0.11.0-M1/Plugin_Gitlab.html">0.11.0-M1</a>
     <a class="version" href="0.10.10/Plugin_Gitlab.html">0.10.10</a>
@@ -402,7 +402,7 @@ personal access token, then deploy token and lastly ci job token. Default search
 <p>File <code>~/.mill/gitlab/personal-access-token</code></p>
 </li>
 <li>
-<p>File <code>.gitlab/personal-access-token</code></p>
+<p>Workspace file <code>.gitlab/personal-access-token</code></p>
 </li>
 <li>
 <p>Environment variable <code>GITLAB_DEPLOY_TOKEN</code></p>
@@ -414,7 +414,7 @@ personal access token, then deploy token and lastly ci job token. Default search
 <p>File <code>~/.mill/gitlab/deploy-token</code></p>
 </li>
 <li>
-<p>File <code>.gitlab/deploy-token</code></p>
+<p>Workspace file <code>.gitlab/deploy-token</code></p>
 </li>
 <li>
 <p>Environment variable <code>CI_JOB_TOKEN</code></p>
@@ -422,12 +422,10 @@ personal access token, then deploy token and lastly ci job token. Default search
 </ol>
 </div>
 <div class="paragraph">
-<p>Items 1-4 are personal access tokens, 5-8 deploy tokens and 9 is job token.</p>
+<p>Items 1-4 are <strong>personal access tokens</strong>, 5-8 <strong>deploy tokens</strong> and 9 is <strong>job token</strong>. Workspace in items 4 and 8 refers to directory where <code>build.sc</code> is (<code>T.workspace</code> in mill terms).</p>
 </div>
 <div class="paragraph">
-<p>Because contents of <code>$CI_JOB_TOKEN</code> is checked publishing should just work when run in Gitlab
-CI/CD pipeline. If you want something else than default lookup configuration can be
-overridden. There are different ways of configuring token resolving.</p>
+<p>Because contents of <code>$CI_JOB_TOKEN</code> is checked publishing should just work when run in Gitlab CI/CD pipeline. If you want something else than default lookup configuration can be overridden. There are different ways of configuring token resolving.</p>
 </div>
 </div>
 <div class="sect2">
@@ -435,9 +433,7 @@ overridden. There are different ways of configuring token resolving.</p>
 <div class="sect3">
 <h4 id="_override_search_places"><a class="anchor" href="#_override_search_places"></a>Override search places</h4>
 <div class="paragraph">
-<p>If you want to change environment variable names, property names of paths where plugin looks
-for token. It can be done by overriding their respective values in <code>GitlabTokenLookup</code>. For
-example:</p>
+<p>If you want to change environment variable names, property names of paths where plugin looks for token. It can be done by overriding their respective values in <code>GitlabTokenLookup</code>. For example:</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
@@ -445,6 +441,7 @@ example:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
   override def personalTokenEnv = &quot;MY_TOKEN&quot;
   override def deployTokenFile: os.Path = os.root/&quot;etc&quot;/&quot;tokens&quot;/&quot;gitlab-deploy-token&quot;
+  override def personalTokenFileWD = os.RelPath(&quot;.mill/gitlab/token.file&quot;)
 }</code></pre>
 </div>
 </div>
@@ -455,18 +452,20 @@ example:</p>
 <div class="sect3">
 <h4 id="_add_or_change_tokensearchorder"><a class="anchor" href="#_add_or_change_tokensearchorder"></a>Add or change tokenSearchOrder</h4>
 <div class="paragraph">
-<p>If original search order is too wide, or you would like to add places to look you can
-override the <code>tokenSearchOrder</code>. Example below ignores default search order and adds five
-places to search from.</p>
+<p>If the original search order is too wide, or you would like to add places to look, you can override the <code>tokenSearchOrder</code>. Example below ignores default search order and adds five places to search from.</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">override tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// Personal, Env, Deploy etc types
+import mill.contrib.gitlab.GitlabTokenLookup._
+
+override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
   // Just to add to default sequence set: super.tokenSearchOrder ++ Seq(...
   override def tokenSearchOrder: Seq[GitlabToken] = Seq(
     Personal(Env(&quot;MY_PRIVATE_TOKEN&quot;)),
     Personal(Property(&quot;gitlab.private-token&quot;)),
+    Deploy(WorkspaceFile(os.up/&quot;deploy-token&quot;)),
     Deploy(File(os.root/&quot;etc&quot;/&quot;gitlab-deploy-token&quot;)),
     Deploy(Custom(myCustomTokenSource)),
     CustomHeader(&quot;my-header&quot;, Custom(myCustomTokenSource))
@@ -477,13 +476,10 @@ places to search from.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>There are two things happening here. First Gitlab needs right kind of token for right
-header.<code>Personal</code> creates &quot;Private-Token&quot; header, <code>Deploy</code> produces &quot;Deploy-Token&quot; and
-<code>CIJob</code> creates &quot;Job-Token&quot;. Finally, any custom header can be set with <code>CustomHeader</code>.</p>
+<p>There are two things happening here. First Gitlab needs right kind of token for right header.<code>Personal</code> creates &quot;Private-Token&quot; header, <code>Deploy</code> produces &quot;Deploy-Token&quot; and <code>CIJob</code> creates &quot;Job-Token&quot;. Finally, any custom header can be set with <code>CustomHeader</code>.</p>
 </div>
 <div class="paragraph">
-<p>Secondly after token type plugin needs information where to load token from. There are
-four possibilities</p>
+<p>Secondly, after token type plugin needs information where to load token from. There are five possibilities</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -494,50 +490,59 @@ four possibilities</p>
 <p><code>Property</code>: From system property</p>
 </li>
 <li>
-<p><code>File</code>: From file (content is trimmed, usually at least \n at the end is present)</p>
+<p><code>File</code>: From file</p>
+</li>
+<li>
+<p><code>WorkspaceFile</code>: File relative to workspace root.</p>
 </li>
 <li>
 <p><code>Custom</code>: Any <code>() ⇒ Either[String, String]</code> function</p>
 </li>
 </ol>
 </div>
+<div class="paragraph">
+<p>Content of <code>File</code> and <code>WorkspaceFile</code> is trimmed, (usually at least \n at the end is present).</p>
+</div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_override_search_logic_completely"><a class="anchor" href="#_override_search_logic_completely"></a>Override search logic completely</h3>
 <div class="paragraph">
-<p>Modifying the lookup order with <code>Custom</code> should be powerful enough but if really
-necessary one can also override GitlabPublishModules <code>gitlabHeaders</code>.
-If for some reason you need to set multiple headers this is currently the only way.</p>
+<p>Modifying the lookup order with <code>Custom</code> should be powerful enough but if really necessary one can also override GitlabPublishModules <code>gitlabHeaders</code>. If for some reason you need to set multiple headers, this is currently the only way.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myModule extends ScalaModule with GitlabPublishModule {
-  override def gitlabHeaders(
-      log: Logger,
-      env: Map[String, String],  // Environment variables
-      props: Map[String, String] // System properties
-    ): GitlabAuthHeaders = {
-    // This uses default lookup and ads custom headers
-    val access = tokenLookup.resolveGitlabToken(log, env, props)
-    val accessHeader = access.fold(Seq.empty[(String, String)])(_.headers)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.define.Task
+import mill.api.Result.Success
 
+// object foo ... with GitlabPublishModule {
+
+override def gitlabHeaders(
+    props: Map[String, String] // System properties
+  ): Task[GitlabAuthHeaders] = T.task {
+  // This uses default lookup and ads custom headers
+  val access = tokenLookup.resolveGitlabToken(T.env, props, T.workspace)
+  val accessHeader = access.fold(_ =&gt; Seq.empty[(String, String)], _.headers)
+  Success(
     GitlabAuthHeaders(
       accessHeader ++ Seq(
+        // Inject completely custom http headers
         &quot;header1&quot; -&gt; &quot;value1&quot;,
         &quot;header2&quot; -&gt; &quot;value2&quot;
-      ))
-  }
+      )
+    )
+  )
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This example uses default token resolving logic and injects 2 custom headers (&quot;header1&quot; and &quot;header2&quot;) to http requests to gitlab. Note that in this particular example, if token lookup fails, it is silently ignored (access.fold..)</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_other"><a class="anchor" href="#_other"></a>Other</h3>
 <div class="paragraph">
-<p>For convenience GitlabPublishModule has <code>def skipPublish: Boolean</code> that defaults to <code>false</code>.
-This allows running CI/CD pipeline and skip publishing (for example if you
-are not ready increase version number just yet).</p>
+<p>For convenience GitlabPublishModule has <code>def skipPublish: Boolean</code> that defaults to <code>false</code>. This allows running CI/CD pipeline and skip publishing (for example if you  are not ready increase version number just yet).</p>
 </div>
 </div>
 </div>
@@ -550,7 +555,13 @@ are not ready increase version number just yet).</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// DON'T DO THIS
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, mill.scalalib.publish._
+import coursier.MavenRepository
+import coursier.core.Authentication
+import $ivy.`com.lihaoyi::mill-contrib-gitlab:`
+import mill.contrib.gitlab._
+
+// DON'T DO THIS
 def repositoriesTask = T.task {
   super.repositoriesTask() ++ Seq(
     MavenRepository(&quot;https://gitlab.local/api/v4/projects/42/packages/maven&quot;,
@@ -568,35 +579,36 @@ provides trait <code>GitlabMavenRepository</code> to ease that.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myPackageRepository extends GitlabMavenRepository {
   // Customize if needed, omit if unnecessary
   // override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {}
-  // Needed. Can also be ProjectRepository or InstanceRepository
-  def repository = GroupRepository(&quot;https://gitlab.local&quot;, &quot;MY_GITLAB_GROUP&quot;)
+
+  // Needed. Can also be ProjectRepository or InstanceRepository, depending on your gitlab instance
+  def gitlabRepository = GroupRepository(&quot;https://gitlab.local&quot;, &quot;MY_GITLAB_GROUP&quot;)
 }
 
-//
 object myModule extends ScalaModule {
-  // ...
   def repositoriesTask = T.task {
-    super.repositoriesTask() ++ Seq(myPackageRepository.mavenRepo())
+    super.repositoriesTask() ++
+      Seq(
+        MavenRepository(&quot;https://oss.sonatype.org/content/repositories/releases&quot;),
+        myPackageRegistry.mavenRepository()
+      )
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>GitlabMavenRepository</code> has overridable <code>def tokenLookup: GitlabTokenLookup</code> and you can use
-the same configuration mechanisms as described <a href="#_configuring_token_lookup">above</a>.</p>
+<p><code>GitlabMavenRepository</code> has overridable <code>def tokenLookup: GitlabTokenLookup</code> and you can use the same configuration mechanisms as described <a href="#_configuring_token_lookup">above</a>.</p>
 </div>
 <div class="paragraph">
 <p><em>Why the intermediate <code>packageRepository</code> object?</em></p>
 </div>
 <div class="paragraph">
-<p>Nothing actually prevents you from implementing <code>GitlabMavenRepository</code> trait. Having
-a separate object makes configuration more sharable when you have multiple registries.</p>
+<p>Nothing actually prevents you from implementing <code>GitlabMavenRepository</code> trait with your module. Having a separate object makes configuration more sharable when you have multiple registries. So it is actually matter of taste.</p>
 </div>
+<div class="sect2">
+<h3 id="_about_gitlab_package_registries"><a class="anchor" href="#_about_gitlab_package_registries"></a>About gitlab package registries</h3>
 <div class="paragraph">
-<p>Gitlab supports instance, group and project registries. When depending on
-multiple private packages is more convenient to depend on instance or
-group level registry. However, publishing is only possible to project registry
-and that is why <code>GitlabPublishModule</code> requires a <code>GitlabProjectRepository</code> instance.</p>
+<p>Gitlab supports instance, group and project registries (<a href="https://docs.gitlab.com/ee/user/packages/maven_repository/#naming-convention">Gitlab documentation</a>). When depending on multiple private packages is more convenient to depend on instance or group level registry. However, publishing is only possible to project registry and that is why <code>GitlabPublishModule</code> requires a <code>GitlabProjectRepository</code> instance.</p>
+</div>
 </div>
 </div>
 </div>
@@ -607,19 +619,6 @@ and that is why <code>GitlabPublishModule</code> requires a <code>GitlabProjectR
 <ul>
 <li>
 <p>Some maven / gitlab feature I’m missing?</p>
-</li>
-<li>
-<p>Tuning GitlabMavenRepository.</p>
-<div class="ulist">
-<ul>
-<li>
-<p>Support multiple registries?</p>
-</li>
-<li>
-<p>Prefer implemented trait to repo object in documentation?</p>
-</li>
-</ul>
-</div>
 </li>
 <li>
 <p>More configuration, timeouts etc</p>
