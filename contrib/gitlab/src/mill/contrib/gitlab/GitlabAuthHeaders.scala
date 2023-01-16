@@ -1,5 +1,10 @@
 package mill.contrib.gitlab
 
+/**
+ * Actual headers to inject to http requests to gitlab.
+ *
+ * @param headers header -> value pairs
+ */
 case class GitlabAuthHeaders(headers: Seq[(String, String)])
 
 object GitlabAuthHeaders {

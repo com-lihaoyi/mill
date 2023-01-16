@@ -7,8 +7,6 @@ import requests.Response
 class GitlabPublisher(
     upload: GitlabUploader.Upload,
     repo: ProjectRepository,
-    readTimeout: Int,
-    connectTimeout: Int,
     log: Logger
 ) {
 
