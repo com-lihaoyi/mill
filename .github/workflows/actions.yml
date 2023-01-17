@@ -3,6 +3,7 @@ name: Build and Release
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
 
@@ -127,8 +128,8 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   publish-sonatype:
-    # when in master repo: all commits to main branch and all additional tags
-    if: github.repository == 'com-lihaoyi/mill' && ( github.ref == 'refs/heads/main' || (github.ref != 'refs/heads/main' && startsWith( github.ref, 'refs/tags/') ) )
+    # when in master repo, publish all tags and manual runs from 0.10.x branch
+    if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/0.10.x' && github.event_name == 'workflow_dispatch' ) )
     needs: [test, test-windows, test-bin-compat]
 
     runs-on: ubuntu-latest
