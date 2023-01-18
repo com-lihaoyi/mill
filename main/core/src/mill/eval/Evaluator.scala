@@ -812,6 +812,9 @@ object Evaluator {
     val seen = collection.mutable.Set.empty[Segments]
     val overridden = collection.mutable.Set.empty[Task[_]]
     topoSorted.values.reverse.iterator.foreach {
+      case x: NamedTask[_] if x.isPrivate == Some(true) =>
+        // we always need to store them in the super-path
+        overridden.add(x)
       case x: NamedTask[_] =>
         if (!seen.contains(x.ctx.segments)) seen.add(x.ctx.segments)
         else overridden.add(x)
