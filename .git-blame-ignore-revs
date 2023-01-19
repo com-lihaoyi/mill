@@ -39,3 +39,6 @@ a769e208cf7e276f11f859ca7e618d5c973e6d4c
 
 # Partially revert "Reformat with scalafmt 3.6.1" to fix failing tests
 11ea5481831dc6efb57812a9dbf5d777362d21cb
+
+# Scala Steward: Reformat with scalafmt 3.7.0
+539eb0a2a05745390a02be6465b7e964de228b77
