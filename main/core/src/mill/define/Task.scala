@@ -45,6 +45,7 @@ trait NamedTask[+T] extends Task[T] {
   def ctx: mill.define.Ctx
   def label: String = ctx.segment match { case Segment.Label(v) => v }
   override def toString = ctx.segments.render
+  def isPublic: Option[Boolean] = None
   def isPrivate: Option[Boolean] = None
 }
 trait Target[+T] extends NamedTask[T] {
@@ -73,19 +74,28 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   ): c.Expr[Target[T]] = {
     import c.universe._
 
-//    val _isPrivate = reify(Some(c.internal.enclosingOwner.isPrivate))
-//    val _isPublic = reify(Some(c.internal.enclosingOwner.isPublic))
-//    println(s"isPrivate: ${isPrivate}, isPublic: ${isPublic}")
-
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.Success(t.splice)).tree)
 
     mill.moduledefs.Cacher.impl0[TargetImpl[T]](c)(
       reify(
-        new TargetImpl[T](lhs.splice, ctx.splice, rw.splice, taskIsPrivate.splice)
+        new TargetImpl[T](
+          lhs.splice,
+          ctx.splice,
+          rw.splice,
+          taskIsPublic.splice,
+          taskIsPrivate.splice
+        )
       )
     )
+  }
+
+  def isPublicTargetOption(c: Context): c.Expr[Option[Boolean]] = {
+    import c.universe._
+    if (c.internal.enclosingOwner.isPublic) reify(Some(true))
+    else reify(Some(false))
   }
 
   def isPrivateTargetOption(c: Context): c.Expr[Option[Boolean]] = {
@@ -103,6 +113,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   ): c.Expr[Target[T]] = {
     import c.universe._
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
@@ -111,6 +122,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
           Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice,
           ctx.splice,
           rw.splice,
+          taskIsPublic.splice,
           taskIsPrivate.splice
         )
       )
@@ -126,11 +138,18 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   ): c.Expr[Target[T]] = {
     import c.universe._
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
-        new TargetImpl[T](t.splice, ctx.splice, rw.splice, taskIsPrivate.splice)
+        new TargetImpl[T](
+          t.splice,
+          ctx.splice,
+          rw.splice,
+          taskIsPublic.splice,
+          taskIsPrivate.splice
+        )
       )
     )
   }
@@ -146,6 +165,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
           reify(value.splice.map(PathRef(_))).tree
         ).tree
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Sources](c)(
@@ -153,6 +173,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
         new Sources(
           Target.sequence(c.Expr[List[Task[PathRef]]](q"_root_.scala.List(..$wrapped)").splice),
           ctx.splice,
+          taskIsPublic.splice,
           taskIsPrivate.splice
         )
       )
@@ -166,6 +187,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       : c.Expr[Sources] = {
     import c.universe._
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Sources](c)(
@@ -173,6 +195,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
         new Sources(
           Applicative.impl0[Task, Seq[PathRef], mill.api.Ctx](c)(values.tree).splice,
           ctx.splice,
+          taskIsPublic.splice,
           taskIsPrivate.splice
         )
       )
@@ -189,6 +212,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
         reify(value.splice.map(PathRef(_))).tree
       )
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Source](c)(
@@ -196,6 +220,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
         new Source(
           wrapped.splice,
           ctx.splice,
+          taskIsPublic.splice,
           taskIsPrivate.splice
         )
       )
@@ -208,6 +233,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       : c.Expr[Source] = {
     import c.universe._
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Source](c)(
@@ -215,6 +241,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
         new Source(
           Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(value.tree).splice,
           ctx.splice,
+          taskIsPublic.splice,
           taskIsPrivate.splice
         )
       )
@@ -232,6 +259,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   ): c.Expr[Input[T]] = {
     import c.universe._
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Input[T]](c)(
@@ -240,6 +268,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
           Applicative.impl[Task, T, mill.api.Ctx](c)(value).splice,
           ctx.splice,
           w.splice,
+          taskIsPublic.splice,
           taskIsPrivate.splice
         )
       )
@@ -263,6 +292,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   ): c.Expr[Command[T]] = {
     import c.universe._
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     reify(
@@ -271,6 +301,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
         ctx.splice,
         w.splice,
         cls.splice.value,
+        taskIsPublic.splice,
         taskIsPrivate.splice
       )
     )
@@ -289,6 +320,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   ): c.Expr[Command[T]] = {
     import c.universe._
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     reify(
@@ -297,6 +329,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
         ctx.splice,
         w.splice,
         cls.splice.value,
+        taskIsPublic.splice,
         taskIsPrivate.splice
       )
     )
@@ -308,11 +341,12 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       : c.Expr[Worker[T]] = {
     import c.universe._
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Worker[T]](c)(
       reify(
-        new Worker[T](t.splice, ctx.splice, taskIsPrivate.splice)
+        new Worker[T](t.splice, ctx.splice, taskIsPublic.splice, taskIsPrivate.splice)
       )
     )
   }
@@ -322,6 +356,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       : c.Expr[Worker[T]] = {
     import c.universe._
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Worker[T]](c)(
@@ -329,6 +364,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
         new Worker[T](
           Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
           ctx.splice,
+          taskIsPublic.splice,
           taskIsPrivate.splice
         )
       )
@@ -346,6 +382,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   ): c.Expr[Persistent[T]] = {
     import c.universe._
 
+    val taskIsPublic = isPublicTargetOption(c)
     val taskIsPrivate = isPrivateTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Persistent[T]](c)(
@@ -354,6 +391,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
           Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
           ctx.splice,
           rw.splice,
+          taskIsPublic.splice,
           taskIsPrivate.splice
         )
       )
@@ -373,6 +411,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 abstract class NamedTaskImpl[+T](
     ctx0: mill.define.Ctx,
     t: Task[T],
+    override val isPublic: Option[Boolean],
     override val isPrivate: Option[Boolean]
 ) extends NamedTask[T] {
   def evaluate(args: mill.api.Ctx) = args[T](0)
@@ -384,8 +423,9 @@ class TargetImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
     val readWrite: RW[_],
+    isPublic: Option[Boolean],
     isPrivate: Option[Boolean]
-) extends NamedTaskImpl[T](ctx0, t, isPrivate)
+) extends NamedTaskImpl[T](ctx0, t, isPublic, isPrivate)
     with Target[T] {}
 
 class Command[+T](
@@ -393,13 +433,18 @@ class Command[+T](
     ctx0: mill.define.Ctx,
     val writer: W[_],
     val cls: Class[_],
+    isPublic: Option[Boolean],
     isPrivate: Option[Boolean]
-) extends NamedTaskImpl[T](ctx0, t, isPrivate) {
+) extends NamedTaskImpl[T](ctx0, t, isPublic, isPrivate) {
   override def asCommand = Some(this)
 }
 
-class Worker[+T](t: Task[T], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends NamedTaskImpl[T](ctx0, t, isPrivate) {
+class Worker[+T](
+    t: Task[T],
+    ctx0: mill.define.Ctx,
+    isPublic: Option[Boolean],
+    isPrivate: Option[Boolean]
+) extends NamedTaskImpl[T](ctx0, t, isPublic, isPrivate) {
   override def flushDest = false
   override def asWorker = Some(this)
 }
@@ -408,8 +453,9 @@ class Persistent[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
     readWrite: RW[_],
+    isPublic: Option[Boolean],
     isPrivate: Option[Boolean]
-) extends TargetImpl[T](t, ctx0, readWrite, isPrivate) {
+) extends TargetImpl[T](t, ctx0, readWrite, isPublic, isPrivate) {
 
   override def flushDest = false
 }
@@ -418,24 +464,35 @@ class Input[T](
     t: Task[T],
     ctx0: mill.define.Ctx,
     val writer: upickle.default.Writer[_],
+    isPublic: Option[Boolean],
     isPrivate: Option[Boolean]
-) extends NamedTaskImpl[T](ctx0, t, isPrivate) {
+) extends NamedTaskImpl[T](ctx0, t, isPublic, isPrivate) {
   override def sideHash = util.Random.nextInt()
 }
 
-class Sources(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends Input[Seq[PathRef]](
+class Sources(
+    t: Task[Seq[PathRef]],
+    ctx0: mill.define.Ctx,
+    isPublic: Option[Boolean],
+    isPrivate: Option[Boolean]
+) extends Input[Seq[PathRef]](
       t,
       ctx0,
       upickle.default.SeqLikeWriter[Seq, PathRef],
+      isPublic,
       isPrivate
     )
 
-class Source(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends Input[PathRef](
+class Source(
+    t: Task[PathRef],
+    ctx0: mill.define.Ctx,
+    isPublic: Option[Boolean],
+    isPrivate: Option[Boolean]
+) extends Input[PathRef](
       t,
       ctx0,
       PathRef.jsonFormatter,
+      isPublic,
       isPrivate
     )
 
