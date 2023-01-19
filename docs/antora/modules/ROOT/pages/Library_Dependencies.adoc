@@ -145,7 +145,7 @@ If you want to declare dependencies to be used at runtime (but not at compile ti
 .Example
 [source,scala]
 ----
-def compileIvyDeps = Agg(
+def runIvyDeps = Agg(
   ivy"ch.qos.logback:logback-classic:1.2.0"
 )
 ----
