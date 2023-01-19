@@ -72,7 +72,7 @@ object MultiModuleTests extends TestSuite {
       val log = os.read(paths.log)
       assert(
         evalCount > 0,
-        log.contains("node"),
+        log.contains("node")
         // TODO: re-enable somehow
         // In Scala.js 1.x, the stdout is no longer sent to the log, so this check doesn't work
         // log.contains("Hello from Scala.js, result is: 3")
