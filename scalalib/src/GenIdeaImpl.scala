@@ -394,8 +394,17 @@ case class GenIdeaImpl(
       }
     }
 
-    // Hack so that Intellij does not complain about unresolved magic
-    // imports in build.sc when in fact they are resolved
+    /**
+     * We need to use a very specific library name format.
+     * This is required in order IntelliJ IDEA can recognize `$ivy` imports in `build.sc` files and doesn't show red code.
+     * This is how currently Ammonite integration is done in Scala Plugin for IntelliJ IDEA.
+     *
+     * @see [[https://github.com/JetBrains/intellij-scala/blob/idea223.x/scala/worksheet/src/org/jetbrains/plugins/scala/worksheet/ammonite/AmmoniteUtil.scala#L240]]
+     * @example {{{
+     *   //SBT: com.lihaoyi:ammonite-ops_2.13:2.2.0:jar
+     *   import $ivy.`com.lihaoyi::ammonite-ops:2.2.0
+     * }}}
+     */
     def sbtLibraryNameFromPom(pomPath: os.Path): String = {
       val pom = xmlParseDom(os.read(pomPath)).flatMap(Pom.project)
         .getOrElse(throw new RuntimeException(s"Could not parse pom file: ${pomPath}"))
@@ -410,7 +419,6 @@ case class GenIdeaImpl(
           // Default to the scala binary version used by mill itself
           s"${artifactId}_${BuildInfo.scalaVersion.split("[.]").take(2).mkString(".")}"
       }
-      // This needs to be "SBT: " to trigger some compatibility mode in Idea
       s"SBT: ${pom.module.organization.value}:$artifactWithScalaVersion:${pom.version}:jar"
     }
 
@@ -460,8 +468,12 @@ case class GenIdeaImpl(
       )
     )
 
-    def ideaifyLibraryName(name: String): String = {
-      name.replaceAll("""[-.]""", "_")
+    /**
+     * @note `:` in path isn't supported on Windows ~ https://github.com/com-lihaoyi/mill/issues/2243<br>
+     *       It comes from [[sbtLibraryNameFromPom]]
+     */
+    def libraryNameToFileSystemPathPart(name: String): String = {
+      name.replaceAll("""[-.:]""", "_")
     }
 
     val libraries: Seq[(SubPath, Elem)] =
@@ -490,7 +502,7 @@ case class GenIdeaImpl(
               case _ => None
             }
             Tuple2(
-              os.sub / "libraries" / s"${ideaifyLibraryName(name)}.xml",
+              os.sub / "libraries" / s"${libraryNameToFileSystemPathPart(name)}.xml",
               libraryXmlTemplate(
                 name = name,
                 path = resolved.path,
