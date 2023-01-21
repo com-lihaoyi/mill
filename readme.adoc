@@ -600,7 +600,7 @@ _Changes since {prev-version}:_
 * task and arguments of commands can now have hyphens in their name
 * Reworked and decluttered the out-folder structure
 * `prepareOffline` now has a `all` flag to control if all or only some dependency should be prefetched
-* Made chaching more effective for targets overridden in stackable-traits
+* Made caching more effective for targets overridden in stackable-traits
 * Further BSP improvements, esp. for Metals and Scala 3
 * Lots of other internal improvements and fixes
 * Various dependency updates

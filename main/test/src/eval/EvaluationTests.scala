@@ -228,7 +228,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "foo.json")
         val overridden = os.read(
-          checker.evaluator.outPath / "foo.overridden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo.json"
+          checker.evaluator.outPath / "foo.super" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo.json"
         )
         assert(
           public.contains("base"),
@@ -239,7 +239,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       }
       "overrideSuperCommand" - {
         // Make sure you can override commands, call their supers, and have the
-        // overridden command be allocated a spot within the overridden/ folder of
+        // overridden command be allocated a spot within the super/ folder of
         // the main publicly-available command
         import canOverrideSuper._
 
@@ -255,7 +255,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "cmd.json")
         val overridden = os.read(
-          checker.evaluator.outPath / "cmd.overridden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd.json"
+          checker.evaluator.outPath / "cmd.super" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd.json"
         )
         assert(
           public.contains("base1"),
@@ -357,7 +357,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
     }
     "stackableOverrides" - {
       // Make sure you can override commands, call their supers, and have the
-      // overridden command be allocated a spot within the overridden/ folder of
+      // overridden command be allocated a spot within the super/ folder of
       // the main publicly-available command
       import StackableOverrides._
 
@@ -370,7 +370,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       )
 
       def overridePath(task: String): SubPath =
-        os.sub / s"${task}.overridden" / "mill" / "util" / "TestGraphs" / "StackableOverrides"
+        os.sub / s"${task}.super" / "mill" / "util" / "TestGraphs" / "StackableOverrides"
 
       assert(
         os.read(checker.evaluator.outPath / "m" / overridePath("f") / "X" / "f.json")

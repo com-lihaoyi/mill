@@ -1,73 +1,113 @@
 = The Output Directory
 
-Mill puts all its output in the top-level `out/` folder. The above commands would end up in:
-
-[source,text]
-----
-out/
-    foo/
-        compile.dest
-        compile.log
-        compile.json
-
-        run.dest
-        run.log
-        run.json
-
-        runBackground.dest
-        runBackground.log
-        runBackground.json
-
-        launcher.dest
-        launcher.log
-        launcher.json
-
-        jar.dest
-        jar.log
-        jar.json
-
-        assembly.dest
-        assembly.log
-        assembly.json
-----
-
-For each task there's a `foo.json` file containing the metadata returned by that task, and
-two optional paths: a `foo.dest/` folder containing any files that the task generates and a `foo.log` file containing the logs of running that task. For example, `out/foo/compile.dest/` contains the
-compiled classfiles, while `out/foo/assembly.dest/` contains the self-contained assembly with the project's classfiles
-jar-ed up with all its dependencies.
-
-Given a task `foo.bar`, all its output and results are inside its respective `out/foo/bar/` folder.
-
+Mill puts all its output in the top-level `out/` folder.
 
 == Structure of the `out/` Directory
 
-The `out/` folder contains all the generated files & metadata for your build. It is structured with one folder
-per `Target`/`Command`, that is run, e.g.:
+The `out/` folder contains all the generated files & metadata for your build.
+It holds some files needed to manage Mill's longer running server instances (`out/mill-*`) as well as a directory and file structure resembling the project's module structure.
 
-* `out/core/compile/`
-* `out/main/test/compile/`
-* `out/main/test/forkTest/`
-* `out/scalalib/compile/`
+.Example of the `out/` directory after running `mill main.compile`
+[source,text]
+----
+out/
+├── main/   <1>
+│   ├── allScalacOptions.json
+│   ├── allSourceFiles.json
+│   ├── allSources.json
+│   ├── compile.dest/  <2>
+│   ├── compile.json
+│   ├── compile.log  <3>
+│   ├── compileClasspath.json
+│   ├── compileIvyDeps.json
+│   ├── enablePluginScalacOptions.json
+│   ├── generatedSources.json
+│   ├── ivyDeps.json
+│   ├── javacOptions.json
+│   ├── mandatoryIvyDeps.json
+│   ├── mandatoryIvyDeps.super/  <4>
+│   ├── mandatoryScalacOptions.json
+│   ├── platformSuffix.json
+│   ├── resolvedIvyDeps.json
+│   ├── resolvedIvyDeps.log  <3>
+│   ├── resources.json
+│   ├── scalaCompilerClasspath.json
+│   ├── scalaLibraryIvyDeps.json
+│   ├── scalaOrganization.json
+│   ├── scalaVersion.json
+│   ├── scalacOptions.json
+│   ├── scalacOptions.super/  <4>
+│   ├── scalacPluginClasspath.json
+│   ├── scalacPluginIvyDeps.json
+│   ├── scalacPluginIvyDeps.super/  <4>
+│   ├── sources.json
+│   ├── transitiveCompileIvyDeps.json
+│   ├── transitiveIvyDeps.json
+│   ├── transitiveLocalClasspath.json
+│   ├── unmanagedClasspath.json
+│   └── upstreamCompileOutput.json
+├── mill-profile.json
+└── mill-worker-VpZubuAK6LQHHN+3ojh1LsTZqWY=-1/
+----
 
-There are also top-level build-related files in the `out/` folder, prefixed as
-`mill-*`. The most useful is `mill-profile.json`, which logs the tasks run and time taken for the last Mill command you
-executed. This is very useful if you want to find out exactly what tasks are being run and Mill is being slow.
+<1> The `main` directory contains all files associated with target and submodules of the `main` module.
+<2> The `compile` target has tried to access its scratch space via `T.dest`. Here you will find the actual compile results.
+<3> Two targets printed something out while they ran. You can find these outputs in the `*.log` files.
+<4> Three targets are overridden but re-use the result of their `super`-targets in some way. You can find these result under the `*.super/` path.
 
-Each task currently creates contains the following files:
+== Target Metadata and Cached Files
 
-* `foo.dest/`: optional, a path for the `Task` to use either as a scratch space, or to place generated files that are returned
-using `PathRef` references. A `Task` should only output files within its own given `dest/` folder (available as `T.dest`) to avoid
-conflicting with another `Task`, but can name files within `dest/`  arbitrarily.
+Each named task (``Target`` or ``Command``) that is run has a representation in the `out/` directory structure.
 
-* `foo.log`: optional, the `stdout`/`stderr` of the `Task`. This is also streamed to the console during evaluation.
+The _module_ structure is reflected in the directories, so that each module of your project has a uniquely associated subdirectory under the `out/` directory.
 
-* `foo.json`: the cache-key and JSON-serialized return-value of the
-`Target`/`Command`. The return-value can also be retrieved via `mill show foo.compile`. Binary blobs are typically not
-included in `foo.json`, and instead stored as separate binary files in `dest/` which are then referenced
+Each _target_ is associated with one or multiple files and directories under its module directory.
+The following files can be found for a target `foo`:
+
+`foo.json`::
+  the cache-key and JSON-serialized return-value of the
+`Target`/`Command`.
+The return-value can also be retrieved via `mill show foo.compile`.
+Binary blobs are typically not included in `foo.json`, and instead stored as separate binary files in `foo.dest/` which are then referenced
 by `foo.json` via `PathRef` references.
 
-The `out/` folder is intentionally kept simple and user-readable. If your build is not behaving as you would expect,
+`foo.dest/`::
+  optional, a path for the `Task` to use either as a scratch space, or to place generated files that are returned
+using `PathRef` references.
+A `Task` should only output files within its own given `foo.dest/` folder (available as `T.dest`) to avoid
+conflicting with another `Task`, but can name files within `foo.dest/`  arbitrarily.
+
+`foo.log`::
+  optional, the `stdout`/`stderr` of the `Task`. This is also streamed to the console during evaluation.
+
+`foo.super/`::
+  optional, holds target metadata for overridden targets, so whenever you use a `super.foo()` in your `foo` target, you will find the metadata of the inherited task(s) under this directory.
+
+
+The `out/` folder is intentionally kept simple and user-readable.
+If your build is not behaving as you would expect,
 feel free to poke around the various
 `foo.dest/` folders to see what files are being created, or the `foo.json` files to see what is being returned by a
-particular task. You can also simply delete folders within `out/` if you want to force portions of your project to be
-rebuilt, e.g. by deleting the `out/main/` or `out/main/test/compile/` folders.
+particular task.
+You can also simply delete folders within `out/` if you want to force portions of your project to be
+rebuilt, e.g. by deleting the `+out/main/+` or `+out/main/compile.*+` folders, but we strongly encourage you to use the xref:Getting_Started.adoc#_clean[`clean` command] instead.
+
+[WARNING]
+--
+Cleaning some target state by manually deleting files under `out/` may be convenient, but you need to be careful to always delete the `foo.json` file whenever you delete a `foo.dest/` or `foo.super/`. Otherwise, you risk running into hard to diagnose issues later.
+
+Instead, you should always give the `clean` command a try before manually deleting some file under `out/`.
+--
+== Other files in the `out/` directory
+
+There are also top-level build-related files in the `out/` folder, prefixed as `mill-*`.
+
+`mill-profile.json`::
+ Probably the most useful file for you. It logs the tasks run and time taken for the last Mill command you executed.
+This is very useful if Mill is being unexpectedly slow, and you want to find out exactly what tasks are being run.
+
+`mill-par-profile.json`::
+ This file is only written if you run Mill in parallel mode, e.g. `mill --jobs 4`. This file can be opened in Google Chrome with the built-in `tracing:` protocol even while Mill is still running, so you get a nice chart of what's going on in parallel.
+
+`mill-worker-*/`::
+ Each Mill server instance needs to keep some temporary files in one of these directories. Deleting it will also terminate the associated server instance, if it is still running.
