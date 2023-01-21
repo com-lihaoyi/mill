@@ -215,14 +215,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M2-7-a2cb23</span>
+    <span class="version">0.11.0-M2-8-789fff</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M2-7-a2cb23</a>
+          <a href="index.html">0.11.0-M2-8-789fff</a>
         </li>
         <li class="version">
           <a href="0.11.0-M2/index.html">0.11.0-M2</a>
@@ -302,9 +302,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M2-7-a2cb23</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M2-8-789fff</button>
   <div class="version-menu">
-    <a class="version is-current" href="Out_Dir.html">0.11.0-M2-7-a2cb23</a>
+    <a class="version is-current" href="Out_Dir.html">0.11.0-M2-8-789fff</a>
     <a class="version" href="0.11.0-M2/Out_Dir.html">0.11.0-M2</a>
     <a class="version" href="0.11.0-M1/Out_Dir.html">0.11.0-M1</a>
     <a class="version" href="0.10.10/Out_Dir.html">0.10.10</a>
@@ -338,45 +338,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill puts all its output in the top-level <code>out/</code> folder. The above commands would end up in:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">out/
-    foo/
-        compile.dest
-        compile.log
-        compile.json
-
-        run.dest
-        run.log
-        run.json
-
-        runBackground.dest
-        runBackground.log
-        runBackground.json
-
-        launcher.dest
-        launcher.log
-        launcher.json
-
-        jar.dest
-        jar.log
-        jar.json
-
-        assembly.dest
-        assembly.log
-        assembly.json</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>For each task there’s a <code>foo.json</code> file containing the metadata returned by that task, and
-two optional paths: a <code>foo.dest/</code> folder containing any files that the task generates and a <code>foo.log</code> file containing the logs of running that task. For example, <code>out/foo/compile.dest/</code> contains the
-compiled classfiles, while <code>out/foo/assembly.dest/</code> contains the self-contained assembly with the project’s classfiles
-jar-ed up with all its dependencies.</p>
-</div>
-<div class="paragraph">
-<p>Given a task <code>foo.bar</code>, all its output and results are inside its respective <code>out/foo/bar/</code> folder.</p>
+<p>Mill puts all its output in the top-level <code>out/</code> folder.</p>
 </div>
 </div>
 </div>
@@ -384,57 +346,164 @@ jar-ed up with all its dependencies.</p>
 <h2 id="_structure_of_the_out_directory"><a class="anchor" href="#_structure_of_the_out_directory"></a>Structure of the <code>out/</code> Directory</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>out/</code> folder contains all the generated files &amp; metadata for your build. It is structured with one folder
-per <code>Target</code>/<code>Command</code>, that is run, e.g.:</p>
+<p>The <code>out/</code> folder contains all the generated files &amp; metadata for your build.
+It holds some files needed to manage Mill’s longer running server instances (<code>out/mill-*</code>) as well as a directory and file structure resembling the project’s module structure.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>out/core/compile/</code></p>
-</li>
-<li>
-<p><code>out/main/test/compile/</code></p>
-</li>
-<li>
-<p><code>out/main/test/forkTest/</code></p>
-</li>
-<li>
-<p><code>out/scalalib/compile/</code></p>
-</li>
-</ul>
+<div class="listingblock">
+<div class="title">Example of the <code>out/</code> directory after running <code>mill main.compile</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">out/
+├── main/   <i class="conum" data-value="1"></i><b>(1)</b>
+│   ├── allScalacOptions.json
+│   ├── allSourceFiles.json
+│   ├── allSources.json
+│   ├── compile.dest/  <i class="conum" data-value="2"></i><b>(2)</b>
+│   ├── compile.json
+│   ├── compile.log  <i class="conum" data-value="3"></i><b>(3)</b>
+│   ├── compileClasspath.json
+│   ├── compileIvyDeps.json
+│   ├── enablePluginScalacOptions.json
+│   ├── generatedSources.json
+│   ├── ivyDeps.json
+│   ├── javacOptions.json
+│   ├── mandatoryIvyDeps.json
+│   ├── mandatoryIvyDeps.super/  <i class="conum" data-value="4"></i><b>(4)</b>
+│   ├── mandatoryScalacOptions.json
+│   ├── platformSuffix.json
+│   ├── resolvedIvyDeps.json
+│   ├── resolvedIvyDeps.log  <i class="conum" data-value="3"></i><b>(3)</b>
+│   ├── resources.json
+│   ├── scalaCompilerClasspath.json
+│   ├── scalaLibraryIvyDeps.json
+│   ├── scalaOrganization.json
+│   ├── scalaVersion.json
+│   ├── scalacOptions.json
+│   ├── scalacOptions.super/  <i class="conum" data-value="4"></i><b>(4)</b>
+│   ├── scalacPluginClasspath.json
+│   ├── scalacPluginIvyDeps.json
+│   ├── scalacPluginIvyDeps.super/  <i class="conum" data-value="4"></i><b>(4)</b>
+│   ├── sources.json
+│   ├── transitiveCompileIvyDeps.json
+│   ├── transitiveIvyDeps.json
+│   ├── transitiveLocalClasspath.json
+│   ├── unmanagedClasspath.json
+│   └── upstreamCompileOutput.json
+├── mill-profile.json
+└── mill-worker-VpZubuAK6LQHHN+3ojh1LsTZqWY=-1/</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>main</code> directory contains all files associated with target and submodules of the <code>main</code> module.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>compile</code> target has tried to access its scratch space via <code>T.dest</code>. Here you will find the actual compile results.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Two targets printed something out while they ran. You can find these outputs in the <code>*.log</code> files.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Three targets are overridden but re-use the result of their <code>super</code>-targets in some way. You can find these result under the <code>*.super/</code> path.</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_target_metadata_and_cached_files"><a class="anchor" href="#_target_metadata_and_cached_files"></a>Target Metadata and Cached Files</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Each named task (<code>Target</code> or <code>Command</code>) that is run has a representation in the <code>out/</code> directory structure.</p>
 </div>
 <div class="paragraph">
-<p>There are also top-level build-related files in the <code>out/</code> folder, prefixed as
-<code>mill-*</code>. The most useful is <code>mill-profile.json</code>, which logs the tasks run and time taken for the last Mill command you
-executed. This is very useful if you want to find out exactly what tasks are being run and Mill is being slow.</p>
+<p>The <em>module</em> structure is reflected in the directories, so that each module of your project has a uniquely associated subdirectory under the <code>out/</code> directory.</p>
 </div>
 <div class="paragraph">
-<p>Each task currently creates contains the following files:</p>
+<p>Each <em>target</em> is associated with one or multiple files and directories under its module directory.
+The following files can be found for a target <code>foo</code>:</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>foo.dest/</code>: optional, a path for the <code>Task</code> to use either as a scratch space, or to place generated files that are returned
-using <code>PathRef</code> references. A <code>Task</code> should only output files within its own given <code>dest/</code> folder (available as <code>T.dest</code>) to avoid
-conflicting with another <code>Task</code>, but can name files within <code>dest/</code>  arbitrarily.</p>
-</li>
-<li>
-<p><code>foo.log</code>: optional, the <code>stdout</code>/<code>stderr</code> of the <code>Task</code>. This is also streamed to the console during evaluation.</p>
-</li>
-<li>
-<p><code>foo.json</code>: the cache-key and JSON-serialized return-value of the
-<code>Target</code>/<code>Command</code>. The return-value can also be retrieved via <code>mill show foo.compile</code>. Binary blobs are typically not
-included in <code>foo.json</code>, and instead stored as separate binary files in <code>dest/</code> which are then referenced
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>foo.json</code></dt>
+<dd>
+<p>  the cache-key and JSON-serialized return-value of the
+<code>Target</code>/<code>Command</code>.
+The return-value can also be retrieved via <code>mill show foo.compile</code>.
+Binary blobs are typically not included in <code>foo.json</code>, and instead stored as separate binary files in <code>foo.dest/</code> which are then referenced
 by <code>foo.json</code> via <code>PathRef</code> references.</p>
-</li>
-</ul>
+</dd>
+<dt class="hdlist1"><code>foo.dest/</code></dt>
+<dd>
+<p>  optional, a path for the <code>Task</code> to use either as a scratch space, or to place generated files that are returned
+using <code>PathRef</code> references.
+A <code>Task</code> should only output files within its own given <code>foo.dest/</code> folder (available as <code>T.dest</code>) to avoid
+conflicting with another <code>Task</code>, but can name files within <code>foo.dest/</code>  arbitrarily.</p>
+</dd>
+<dt class="hdlist1"><code>foo.log</code></dt>
+<dd>
+<p>optional, the <code>stdout</code>/<code>stderr</code> of the <code>Task</code>. This is also streamed to the console during evaluation.</p>
+</dd>
+<dt class="hdlist1"><code>foo.super/</code></dt>
+<dd>
+<p>optional, holds target metadata for overridden targets, so whenever you use a <code>super.foo()</code> in your <code>foo</code> target, you will find the metadata of the inherited task(s) under this directory.</p>
+</dd>
+</dl>
 </div>
 <div class="paragraph">
-<p>The <code>out/</code> folder is intentionally kept simple and user-readable. If your build is not behaving as you would expect,
+<p>The <code>out/</code> folder is intentionally kept simple and user-readable.
+If your build is not behaving as you would expect,
 feel free to poke around the various
 <code>foo.dest/</code> folders to see what files are being created, or the <code>foo.json</code> files to see what is being returned by a
-particular task. You can also simply delete folders within <code>out/</code> if you want to force portions of your project to be
-rebuilt, e.g. by deleting the <code>out/main/</code> or <code>out/main/test/compile/</code> folders.</p>
+particular task.
+You can also simply delete folders within <code>out/</code> if you want to force portions of your project to be
+rebuilt, e.g. by deleting the <code>out/main/</code> or <code>out/main/compile.*</code> folders, but we strongly encourage you to use the <a href="Getting_Started.html#_clean" class="xref page"><code>clean</code> command</a> instead.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Cleaning some target state by manually deleting files under <code>out/</code> may be convenient, but you need to be careful to always delete the <code>foo.json</code> file whenever you delete a <code>foo.dest/</code> or <code>foo.super/</code>. Otherwise, you risk running into hard to diagnose issues later.</p>
+</div>
+<div class="paragraph">
+<p>Instead, you should always give the <code>clean</code> command a try before manually deleting some file under <code>out/</code>.</p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_other_files_in_the_out_directory"><a class="anchor" href="#_other_files_in_the_out_directory"></a>Other files in the <code>out/</code> directory</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are also top-level build-related files in the <code>out/</code> folder, prefixed as <code>mill-*</code>.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>mill-profile.json</code></dt>
+<dd>
+<p> Probably the most useful file for you. It logs the tasks run and time taken for the last Mill command you executed.
+This is very useful if Mill is being unexpectedly slow, and you want to find out exactly what tasks are being run.</p>
+</dd>
+<dt class="hdlist1"><code>mill-par-profile.json</code></dt>
+<dd>
+<p>This file is only written if you run Mill in parallel mode, e.g. <code>mill --jobs 4</code>. This file can be opened in Google Chrome with the built-in <code>tracing:</code> protocol even while Mill is still running, so you get a nice chart of what’s going on in parallel.</p>
+</dd>
+<dt class="hdlist1"><code>mill-worker-*/</code></dt>
+<dd>
+<p>Each Mill server instance needs to keep some temporary files in one of these directories. Deleting it will also terminate the associated server instance, if it is still running.</p>
+</dd>
+</dl>
 </div>
 </div>
 </div>
