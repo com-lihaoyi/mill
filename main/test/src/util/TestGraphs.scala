@@ -297,4 +297,16 @@ object TestGraphs {
     }
     object m extends A with B {}
   }
+
+  object PrivateTasksInMixedTraits extends TestUtil.BaseModule {
+    trait M1 extends Module {
+      private def foo = T { "foo-m1" }
+      def bar = T { foo() }
+    }
+    trait M2 extends Module {
+      private def foo = T { "foo-m2" }
+      def baz = T { foo() }
+    }
+    object mod extends M1 with M2
+  }
 }
