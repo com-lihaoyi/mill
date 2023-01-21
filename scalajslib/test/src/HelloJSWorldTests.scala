@@ -72,6 +72,17 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
     }
+
+    object inherited extends ScalaJSModule {
+      val (scala, scalaJS) = matrix.head
+      def scalacOptions = Seq("-deprecation")
+      def mandatoryScalacOptions = Seq("-mandatory")
+      def scalaOrganization = "org.example"
+      def scalaVersion = scala
+      def scalaJSVersion = scalaJS
+      object test extends Tests with TestModule.Utest
+    }
+
     override lazy val millDiscover = Discover[this.type]
   }
 
@@ -279,6 +290,22 @@ object HelloJSWorldTests extends TestSuite {
 
     test("run") {
       testAllMatrix((scala, scalaJS) => checkRun(scala, scalaJS))
+    }
+
+    def checkInheritedTargets[A](target: ScalaJSModule => T[A], expected: A) = {
+      val Right((mainResult, _)) = helloWorldEvaluator(target(HelloJSWorld.inherited))
+      val Right((testResult, _)) = helloWorldEvaluator(target(HelloJSWorld.inherited.test))
+      assert(mainResult == expected)
+      assert(testResult == expected)
+    }
+    test("test-scalacOptions") {
+      checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))
+    }
+    test("test-mandatoryScalacOptions") {
+      checkInheritedTargets(_.mandatoryScalacOptions, Seq("-mandatory"))
+    }
+    test("test-scalaOrganization") {
+      checkInheritedTargets(_.scalaOrganization, "org.example")
     }
   }
 

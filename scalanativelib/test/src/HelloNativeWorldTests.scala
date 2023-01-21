@@ -61,6 +61,15 @@ object HelloNativeWorldTests extends TestSuite {
         )
       }
     }
+    object inherited extends ScalaNativeModule {
+      val (scala, scalaNative, _) = matrix.head
+      def scalacOptions = Seq("-deprecation")
+      def scalaOrganization = "org.example"
+      def scalaVersion = scala
+      def scalaNativeVersion = scalaNative
+      object test extends Tests with TestModule.Utest
+    }
+
     override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
   }
 
@@ -212,6 +221,19 @@ object HelloNativeWorldTests extends TestSuite {
 
     "run" - {
       testAllMatrix((scala, scalaNative, releaseMode) => checkRun(scala, scalaNative, releaseMode))
+    }
+
+    def checkInheritedTargets[A](target: ScalaNativeModule => T[A], expected: A) = {
+      val Right((mainResult, _)) = helloWorldEvaluator(target(HelloNativeWorld.inherited))
+      val Right((testResult, _)) = helloWorldEvaluator(target(HelloNativeWorld.inherited.test))
+      assert(mainResult == expected)
+      assert(testResult == expected)
+    }
+    test("test-scalacOptions") {
+      checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))
+    }
+    test("test-scalaOrganization") {
+      checkInheritedTargets(_.scalaOrganization, "org.example")
     }
   }
 
