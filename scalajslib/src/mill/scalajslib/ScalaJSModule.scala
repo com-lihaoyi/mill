@@ -252,7 +252,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
 }
 
-trait TestScalaJSModule extends TestModule with ScalaJSModule {
+trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
   def scalaJSTestDeps = T {
     resolveDeps(T.task {
