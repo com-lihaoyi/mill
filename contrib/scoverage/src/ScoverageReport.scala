@@ -85,7 +85,8 @@ trait ScoverageReport extends Module {
       mill.main.ResolveTasks,
       evaluator,
       Seq(sources),
-      SelectMode.Single
+      SelectMode.Single,
+      filterPublic = true
     ) match {
       case Left(err) => throw new Exception(err)
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[Seq[PathRef]]]]
@@ -94,7 +95,8 @@ trait ScoverageReport extends Module {
       mill.main.ResolveTasks,
       evaluator,
       Seq(dataTargets),
-      SelectMode.Single
+      SelectMode.Single,
+      filterPublic = true
     ) match {
       case Left(err) => throw new Exception(err)
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[PathRef]]]

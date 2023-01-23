@@ -21,7 +21,13 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, selectMode) match {
+    RunScript.resolveTasks(
+      mill.main.ResolveTasks,
+      evaluator,
+      targets,
+      selectMode,
+      filterPublic = true
+    ) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -32,7 +38,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: Seq[(Any, Option[ujson.Value])] => T): Result[Watched[Unit]] = {
-    RunScript.evaluateTasks(evaluator, targets, selectMode) match {
+    RunScript.evaluateTasks(evaluator, targets, selectMode, filterPublic = true) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) => Result.Failure(err, Some(Watched((), watched)))
       case Right((watched, Right(res))) =>
@@ -45,9 +51,10 @@ object MainModule {
   def evaluateTasksNamed[T](
       evaluator: Evaluator,
       targets: Seq[String],
-      selectMode: SelectMode
+      selectMode: SelectMode,
+      filterPublic: Boolean
   )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => T): Result[Watched[Option[T]]] = {
-    RunScript.evaluateTasksNamed(evaluator, targets, selectMode) match {
+    RunScript.evaluateTasksNamed(evaluator, targets, selectMode, filterPublic) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) => Result.Failure(err, Some(Watched(None, watched)))
       case Right((watched, Right(res))) =>
@@ -85,7 +92,8 @@ trait MainModule extends mill.Module {
       mill.main.ResolveMetadata,
       evaluator,
       targets,
-      SelectMode.Multi
+      SelectMode.Multi,
+      filterPublic = true
     )
 
     resolved match {
@@ -115,7 +123,8 @@ trait MainModule extends mill.Module {
       mill.main.ResolveTasks,
       evaluator,
       targets,
-      SelectMode.Multi
+      SelectMode.Multi,
+      filterPublic = true
     ) match {
       case Left(err) => Left(err)
       case Right(rs) =>
@@ -135,7 +144,8 @@ trait MainModule extends mill.Module {
       mill.main.ResolveTasks,
       evaluator,
       List(src, dest),
-      SelectMode.Multi
+      SelectMode.Multi,
+      filterPublic = true
     )
 
     resolved match {
@@ -214,7 +224,8 @@ trait MainModule extends mill.Module {
         }
       ),
       targets,
-      SelectMode.Separated
+      SelectMode.Separated,
+      filterPublic = true
     ) { res: Seq[(Any, Option[(String, ujson.Value)])] =>
       val jsons = res.flatMap(_._2).map(_._2)
       val output: ujson.Value =
@@ -243,7 +254,8 @@ trait MainModule extends mill.Module {
         }
       ),
       targets,
-      SelectMode.Separated
+      SelectMode.Separated,
+      filterPublic = true
     ) { res: Seq[(Any, Option[(String, ujson.Value)])] =>
       val nameAndJson = res.flatMap(_._2)
       val output: ujson.Value = ujson.Obj.from(nameAndJson)
@@ -282,7 +294,9 @@ trait MainModule extends mill.Module {
           mill.main.ResolveSegments,
           evaluator,
           targets,
-          SelectMode.Multi
+          SelectMode.Multi,
+          // we want to be able to clean metadata of inaccesible targets
+          filterPublic = false
         ).map { ts =>
           ts.flatMap { segments =>
             val evPpaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
@@ -374,7 +388,8 @@ trait MainModule extends mill.Module {
       mill.main.ResolveTasks,
       evaluator,
       targets,
-      SelectMode.Multi
+      SelectMode.Multi,
+      filterPublic = true
     ) match {
       case Left(err) => Result.Failure(err)
       case Right(rs) => planTasks match {

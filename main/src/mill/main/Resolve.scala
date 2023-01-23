@@ -167,13 +167,15 @@ abstract class Resolve[R: ClassTag] {
       obj: Module,
       last: List[String],
       discover: Discover[_],
-      rest: Seq[String]
+      rest: Seq[String],
+      filterPublic: Boolean
   ): Either[String, Seq[R]]
   def endResolveLabel(
       obj: Module,
       last: String,
       discover: Discover[_],
-      rest: Seq[String]
+      rest: Seq[String],
+      filterPublic: Boolean
   ): Either[String, Seq[R]]
 
   def resolve(
@@ -181,14 +183,15 @@ abstract class Resolve[R: ClassTag] {
       obj: mill.Module,
       discover: Discover[_],
       rest: Seq[String],
-      remainingCrossSelectors: List[List[String]]
+      remainingCrossSelectors: List[List[String]],
+      filterPublic: Boolean
   ): Either[String, Seq[R]] = {
 
     remainingSelector match {
       case Segment.Cross(last) :: Nil =>
-        endResolveCross(obj, last.map(_.toString).toList, discover, rest)
+        endResolveCross(obj, last.map(_.toString).toList, discover, rest, filterPublic)
       case Segment.Label(last) :: Nil =>
-        endResolveLabel(obj, last, discover, rest)
+        endResolveLabel(obj, last, discover, rest, filterPublic)
 
       case head :: tail =>
         def recurse(
@@ -196,7 +199,7 @@ abstract class Resolve[R: ClassTag] {
             resolveFailureMsg: => Left[String, Nothing]
         ): Either[String, Seq[R]] = {
           val matching = searchModules
-            .map(m => resolve(tail, m, discover, rest, remainingCrossSelectors))
+            .map(m => resolve(tail, m, discover, rest, remainingCrossSelectors, filterPublic))
 
           matching match {
             case Seq(Left(err)) => Left(err)
@@ -231,13 +234,13 @@ abstract class Resolve[R: ClassTag] {
                   )
                 case "__" =>
                   Resolve.errorMsgLabel(
-                    singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
+                    singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty, filterPublic),
                     remainingSelector,
                     obj.millModuleSegments.value
                   )
                 case _ =>
                   Resolve.errorMsgLabel(
-                    singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
+                    singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty, filterPublic),
                     Seq(Segment.Label(singleLabel)),
                     obj.millModuleSegments.value
                   )

@@ -5,11 +5,12 @@ import mill.main.ResolveMetadata.singleModuleMeta
 
 object ResolveTasks extends Resolve[NamedTask[Any]] {
 
-  def endResolveCross(
+  override def endResolveCross(
       obj: Module,
       last: List[String],
       discover: Discover[_],
-      rest: Seq[String]
+      rest: Seq[String],
+      filterPublic: Boolean
   ): Either[String, Seq[NamedTask[Any]]] = {
     obj match {
       case _: Cross[Module] =>
@@ -29,11 +30,12 @@ object ResolveTasks extends Resolve[NamedTask[Any]] {
     }
   }
 
-  def endResolveLabel(
+  override def endResolveLabel(
       obj: Module,
       last: String,
       discover: Discover[_],
-      rest: Seq[String]
+      rest: Seq[String],
+      filterPublic: Boolean
   ): Either[String, Seq[NamedTask[Any]]] = last match {
     case "__" =>
       Right(
@@ -69,7 +71,7 @@ object ResolveTasks extends Resolve[NamedTask[Any]] {
         } match {
         case None =>
           Resolve.errorMsgLabel(
-            singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
+            singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty, filterPublic),
             Seq(Segment.Label(last)),
             obj.millModuleSegments.value
           )

@@ -101,7 +101,7 @@ object RunScript {
 
     val evaluated = for {
       evaluator <- evalRes
-      (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, SelectMode.Separated))
+      (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, SelectMode.Separated, filterPublic = true))
     } yield {
       (evaluator, evalWatches, res.map(_.flatMap(_._2)))
     }
@@ -193,12 +193,13 @@ object RunScript {
       resolver: mill.main.Resolve[R],
       evaluator: Evaluator,
       scriptArgs: Seq[String],
-      selectMode: SelectMode
+      selectMode: SelectMode,
+      filterPublic: Boolean
   ): Either[String, List[R]] = {
     val parsedGroups: Either[String, Seq[TargetsWithParams]] = ParseArgs(scriptArgs, selectMode)
     val resolvedGroups = parsedGroups.flatMap { groups =>
       val resolved = groups.map { parsed: TargetsWithParams =>
-        resolveTasks(resolver, evaluator, Right(parsed))
+        resolveTasks(resolver, evaluator, Right(parsed), filterPublic)
       }
       EitherOps.sequence(resolved)
     }
@@ -208,7 +209,8 @@ object RunScript {
   private def resolveTasks[T, R: ClassTag](
       resolver: mill.main.Resolve[R],
       evaluator: Evaluator,
-      targetsWithParams: Either[String, TargetsWithParams]
+      targetsWithParams: Either[String, TargetsWithParams],
+      filterPublic: Boolean
   ): Either[String, List[R]] = {
     for {
       parsed <- targetsWithParams
@@ -231,7 +233,8 @@ object RunScript {
                   rootModule,
                   rootModule.millDiscover,
                   args,
-                  crossSelectors.toList
+                  crossSelectors.toList,
+                  filterPublic
                 )
               } finally {
                 mill.eval.Evaluator.currentEvaluator.set(null)
@@ -281,9 +284,10 @@ object RunScript {
   def evaluateTasks[T](
       evaluator: Evaluator,
       scriptArgs: Seq[String],
-      selectMode: SelectMode
+      selectMode: SelectMode,
+      filterPublic: Boolean
   ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]])] = {
-    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, selectMode))
+    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, selectMode, filterPublic))
       yield {
         val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
 
@@ -300,9 +304,10 @@ object RunScript {
   def evaluateTasksNamed[T](
       evaluator: Evaluator,
       scriptArgs: Seq[String],
-      selectMode: SelectMode
+      selectMode: SelectMode,
+      filterPublic: Boolean
   ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] = {
-    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, selectMode))
+    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, selectMode, filterPublic))
       yield {
         val (watched, res) = evaluateNamed(evaluator, Agg.from(targets.distinct))
 

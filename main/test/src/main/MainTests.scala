@@ -27,7 +27,8 @@ object MainTests extends TestSuite {
         module,
         module.millDiscover,
         Nil,
-        crossSelectors.toList
+        crossSelectors.toList,
+        filterPublic = false
       )
     } yield task
     // doesn't work for commands, don't know why

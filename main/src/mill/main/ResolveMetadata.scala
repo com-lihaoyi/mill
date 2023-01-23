@@ -3,12 +3,18 @@ package mill.main
 import mill.define._
 
 object ResolveMetadata extends Resolve[String] {
-  def singleModuleMeta(obj: Module, discover: Discover[_], isRootModule: Boolean): Seq[String] = {
+  def singleModuleMeta(
+      obj: Module,
+      discover: Discover[_],
+      isRootModule: Boolean,
+      filterPublic: Boolean
+  ): Seq[String] = {
     val modules = obj.millModuleDirectChildren.map(_.toString)
     val targets =
       obj
         .millInternal
         .reflectAll[NamedTask[_]]
+        .filter(t => !filterPublic || t.isPublic.getOrElse(false))
         .map(_.toString)
     val commands =
       for {
@@ -22,18 +28,21 @@ object ResolveMetadata extends Resolve[String] {
     modules ++ targets ++ commands
   }
 
-  def endResolveLabel(
+  override def endResolveLabel(
       obj: Module,
       last: String,
       discover: Discover[_],
-      rest: Seq[String]
+      rest: Seq[String],
+      filterPublic: Boolean
   ): Either[String, Seq[String]] = {
-    def direct = singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty)
+    def direct = singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty, filterPublic)
     last match {
       case "__" =>
         Right(
           // Filter out our own module in
-          obj.millInternal.modules.flatMap(m => singleModuleMeta(m, discover, m == obj))
+          obj.millInternal.modules.flatMap(m =>
+            singleModuleMeta(m, discover, m == obj, filterPublic)
+          )
         )
       case "_" => Right(direct)
       case _ =>
@@ -45,11 +54,12 @@ object ResolveMetadata extends Resolve[String] {
     }
   }
 
-  def endResolveCross(
+  override def endResolveCross(
       obj: Module,
       last: List[String],
       discover: Discover[_],
-      rest: Seq[String]
+      rest: Seq[String],
+      filterPublic: Boolean
   ): Either[String, List[String]] = {
     obj match {
       case c: Cross[_] =>

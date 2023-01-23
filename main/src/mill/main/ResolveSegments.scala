@@ -9,7 +9,8 @@ object ResolveSegments extends Resolve[Segments] {
       obj: Module,
       last: List[String],
       discover: Discover[_],
-      rest: Seq[String]
+      rest: Seq[String],
+      filterPublic: Boolean
   ): Either[String, Seq[Segments]] = {
     obj match {
       case c: Cross[_] =>
@@ -37,11 +38,12 @@ object ResolveSegments extends Resolve[Segments] {
     }
   }
 
-  def endResolveLabel(
+  override def endResolveLabel(
       obj: Module,
       last: String,
       discover: Discover[_],
-      rest: Seq[String]
+      rest: Seq[String],
+      filterPublic: Boolean
   ): Either[String, Seq[Segments]] = {
     val target =
       obj
@@ -64,7 +66,7 @@ object ResolveSegments extends Resolve[Segments] {
     command orElse target orElse module match {
       case None =>
         Resolve.errorMsgLabel(
-          singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
+          singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty, filterPublic),
           Seq(Segment.Label(last)),
           obj.millModuleSegments.value
         )

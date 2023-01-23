@@ -15,7 +15,8 @@ object Tasks {
             mill.main.ResolveTasks,
             Evaluator.currentEvaluator.get,
             s,
-            SelectMode.Single
+            SelectMode.Single,
+            filterPublic = true
           ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]])),
         alwaysRepeatable = false,
         allowEmpty = false
