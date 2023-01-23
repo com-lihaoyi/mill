@@ -248,17 +248,44 @@ corresponding version of Mill.
 == Changelog
 
 
-=== 'main' branch
-:version: main
+// === 'main' branch
+// :version: main
+// :milestone-name: 0.11.0-M4
+// :milestone: 74
+// :prev-version: 0.11.0-M3
+//
+// _Changes since {prev-version}:_
+//
+// _For details refer to
+// {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+// and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.11.0-M3 - 2023-01-23
+:version: 0.11.0-M3
 :milestone-name: 0.11.0-M3
 :milestone: 73
 :prev-version: 0.11.0-M2
 
+*This release is binary incompatible to {prev-version}.*
+
 _Changes since {prev-version}:_
+
+* Slightly changed the `out/` folder layout for overridden and private tasks. Instead of `foo.overridden` we now use a `foo.super` path to hold the metadata and scratch files.
+* Fixed the caching for private targets with same name but defined in different super traits.
+* Fixed non-functional `clean` command when used with arguments denoting modules.
+* `scalalib`: Fixed `GenIdea` issues on Windows, when the build uses plugins or additional libraries.
+* `scalajslib`: `ScalaJSModule.ScalaJSModuleTests` now extends `ScalaModule.ScalaModuleTests` which improves consistency, better default values and compatibility with other modules like `ScoverageModule`.
+* `scalanativelib`: `ScalaNativeModule.ScalaNativeModuleTests` now extends `ScalaModule.ScalaModuleTests` which improves consistency, better default values and compatibility with other modules.
+* `contrib.gitlab`: Improved error handling for token lookup and documentation.
+* Updated dependencies: coursier 2.1.0-RC5, jna 5.13.0, semanticdb-scala 4.7.3, trees 4.7.3
+* Documentation improvements
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 
 
 === 0.11.0-M2 - 2023-01-13
