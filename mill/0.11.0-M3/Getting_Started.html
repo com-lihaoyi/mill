@@ -1,0 +1,1376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Getting Started :: Mill</title>
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Getting_Started.html" />
+    <link rel="prev" href="Installation.html" />
+    <link rel="next" href="IDE_Support.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script>var uiRootPath = '../../_'</script>
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link" href="#">Plugins</a>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Community</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issue Tracker (GitHub)</a>
+            <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat (Gitter)</a>
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss (GitHub)</a>
+          </div>
+        </div>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="0.11.0-M3">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html">Mill Documentation</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Installation.html">Installation</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="Getting_Started.html">Getting Started</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="IDE_Support.html">IDE Support</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Configuration.html">Configuring your Project</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Tasks.html">Tasks</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Modules.html">Modules</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Artifactory.html">Artifactory</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Bintray.html">Bintray</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Bloop.html">Bloop</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Docker.html">Docker</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="External_References.html">External References</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_ammonite">Ammonite</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_coursier">Coursier</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_os_lib">OS-Lib</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.11.0-M3</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Mill Documentation</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../index.html">0.11.0-M3</a>
+        </li>
+        <li class="version is-current">
+          <a href="index.html">0.11.0-M3</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M2/index.html">0.11.0-M2</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M1/index.html">0.11.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.10/index.html">0.10.10</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.9/index.html">0.10.9</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.8/index.html">0.10.8</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.7/index.html">0.10.7</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.6/index.html">0.10.6</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.5/index.html">0.10.5</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.4/index.html">0.10.4</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.3/index.html">0.10.3</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.2/index.html">0.10.2</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.1/index.html">0.10.1</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.0/index.html">0.10.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.12/index.html">0.9.12</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.11/index.html">0.9.11</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.10/index.html">0.9.10</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.9/index.html">0.9.9</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.8/index.html">0.9.8</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.7/index.html">0.9.7</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.6/index.html">0.9.6</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../Intro_to_Mill.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Mill Documentation</a></li>
+    <li><a href="Getting_Started.html">Getting Started</a></li>
+  </ul>
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M3</button>
+  <div class="version-menu">
+    <a class="version" href="../Getting_Started.html">0.11.0-M3</a>
+    <a class="version is-current" href="Getting_Started.html">0.11.0-M3</a>
+    <a class="version" href="../0.11.0-M2/Getting_Started.html">0.11.0-M2</a>
+    <a class="version" href="../0.11.0-M1/Getting_Started.html">0.11.0-M1</a>
+    <a class="version" href="../0.10.10/Getting_Started.html">0.10.10</a>
+    <a class="version is-missing" href="../0.10.9/index.html">0.10.9</a>
+    <a class="version is-missing" href="../0.10.8/index.html">0.10.8</a>
+    <a class="version is-missing" href="../0.10.7/index.html">0.10.7</a>
+    <a class="version is-missing" href="../0.10.6/index.html">0.10.6</a>
+    <a class="version is-missing" href="../0.10.5/index.html">0.10.5</a>
+    <a class="version is-missing" href="../0.10.4/index.html">0.10.4</a>
+    <a class="version is-missing" href="../0.10.3/index.html">0.10.3</a>
+    <a class="version is-missing" href="../0.10.2/index.html">0.10.2</a>
+    <a class="version is-missing" href="../0.10.1/index.html">0.10.1</a>
+    <a class="version is-missing" href="../0.10.0/index.html">0.10.0</a>
+    <a class="version is-missing" href="../0.9.12/index.html">0.9.12</a>
+    <a class="version is-missing" href="../0.9.11/index.html">0.9.11</a>
+    <a class="version is-missing" href="../0.9.10/index.html">0.9.10</a>
+    <a class="version is-missing" href="../0.9.9/index.html">0.9.9</a>
+    <a class="version is-missing" href="../0.9.8/index.html">0.9.8</a>
+    <a class="version is-missing" href="../0.9.7/index.html">0.9.7</a>
+    <a class="version is-missing" href="../0.9.6/index.html">0.9.6</a>
+  </div>
+</div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/blob/0.11.0-M3/docs/antora/modules/ROOT/pages/Getting_Started.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Getting Started</h1>
+<div class="sect1">
+<h2 id="_simple_project"><a class="anchor" href="#_simple_project"></a>Simple Project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The simplest Mill build for a Java project looks as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends JavaModule {}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The simplest Mill build for a Scala project looks as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.10&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both of these would build a project laid out as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>build.sc
+foo/
+    src/
+        FileA.java
+        FileB.scala
+    resources/
+        ...
+out/
+    foo/
+        ...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can download an example project with this layout here:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/releases/download/0.11-0-M3/0.11-0-M3-example-1.zip">Example 1</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The source code for this module would live in the <code>foo/src/</code> folder, matching the name you assigned to the module.
+Output for this module (compiled files, resolved dependency lists, &hellip;) would live in <code>out/foo/</code>.</p>
+</div>
+<div class="paragraph">
+<p>This can be run from the Bash shell via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill foo.compile                 # compile sources into classfiles
+
+$ mill foo.run                     # run the main method, if any
+
+$ mill foo.runBackground           # run the main method in the background
+
+$ mill foo.launcher                # prepares a foo/launcher.dest/run you can run later
+
+$ mill foo.jar                     # bundle the classfiles into a jar
+
+$ mill foo.assembly                # bundle classfiles and all dependencies into a jar
+
+$ mill -i foo.console              # start a Scala console within your project (in interactive mode: &quot;-i&quot;)
+
+$ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: &quot;-i&quot;)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can run <code>mill resolve __</code> to see a full list of the different tasks that are available, <code>mill resolve foo._</code> to see
+the tasks within <code>foo</code>, <code>mill inspect foo.compile</code> to inspect a task’s doc-comment documentation or what it depends on,
+or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
+</div>
+<div class="paragraph">
+<p>The most common <strong>tasks</strong> that Mill can run are cached <strong>targets</strong>, such as
+<code>compile</code>, and un-cached <strong>commands</strong> such as <code>foo.run</code>. Targets do not re-evaluate unless one of their inputs changes,
+whereas commands re-run every time.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multi_module_projects"><a class="anchor" href="#_multi_module_projects"></a>Multi-module Projects</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_java_example"><a class="anchor" href="#_java_example"></a>Java Example</h3>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends JavaModule
+
+object bar extends JavaModule {
+  def moduleDeps = Seq(foo)
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scala_example"><a class="anchor" href="#_scala_example"></a>Scala Example</h3>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.10&quot;
+}
+
+object bar extends ScalaModule {
+  def moduleDeps = Seq(foo)
+
+  def scalaVersion = &quot;2.13.10&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can define multiple modules the same way you define a single module, using
+<code>def moduleDeps</code> to define the relationship between them.
+The above builds expect the following project layout:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>build.sc
+foo/
+    src/
+        Main.scala
+    resources/
+        ...
+bar/
+    src/
+        Main2.scala
+    resources/
+        ...
+out/
+    foo/
+        ...
+    bar/
+        ...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And can be built/run using:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill foo.compile
+$ mill bar.compile
+
+$ mill foo.run
+$ mill bar.run
+
+$ mill foo.jar
+$ mill bar.jar
+
+$ mill foo.assembly
+$ mill bar.assembly</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill’s evaluator will ensure that the modules are compiled in the right order, and recompiled as necessary when source
+code in each module changes.</p>
+</div>
+<div class="paragraph">
+<p>Modules can also be nested:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.10&quot;
+
+  object bar extends ScalaModule {
+    def moduleDeps = Seq(foo)
+
+    def scalaVersion = &quot;2.13.10&quot;
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which would result in a similarly nested project layout:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>build.sc
+foo/
+    src/
+        Main.scala
+    resources/
+        ...
+    bar/
+        src/
+            Main2.scala
+        resources/
+            ...
+out/
+    foo/
+        ...
+        bar/
+            ...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Where the nested modules can be run via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill foo.compile
+$ mill foo.bar.compile
+
+$ mill foo.run
+$ mill foo.bar.run
+
+$ mill foo.jar
+$ mill foo.bar.jar
+
+$ mill foo.assembly
+$ mill foo.bar.assembly</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_watch_and_re_evaluate"><a class="anchor" href="#_watch_and_re_evaluate"></a>Watch and Re-evaluate</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use the <code>--watch</code> flag to make Mill watch a task’s inputs, re-evaluating the task as necessary when the inputs
+change:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill --watch foo.compile
+$ mill --watch foo.run
+$ mill -w foo.compile
+$ mill -w foo.run</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill’s <code>--watch</code> flag watches both the files you are building using Mill, as well as Mill’s own <code>build.sc</code> file and
+anything it imports, so any changes to your <code>build.sc</code> will automatically get picked up.</p>
+</div>
+<div class="paragraph">
+<p>For long-running processes like web servers, you can use <code>runBackground</code> to make sure they recompile and restart when code changes,
+forcefully terminating the previous process even though it may be still alive:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill -w foo.compile
+$ mill -w foo.runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_parallel_task_execution"><a class="anchor" href="#_parallel_task_execution"></a>Parallel Task Execution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, mill will evaluate all tasks in sequence.
+But mill also supports processing tasks in parallel.
+This feature is currently experimental and we encourage you to report any issues you find on our bug tracker.</p>
+</div>
+<div class="paragraph">
+<p>To enable parallel task execution, use the <code>--jobs</code> (<code>-j</code>) option followed by a number of maximal parallel threads.</p>
+</div>
+<div class="paragraph">
+<p>Example: Use up to 4 parallel threads to compile all modules:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill -j 4 __.compile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To use as many threads as your machine has (logical) processor cores use <code>--jobs 0</code>.
+To disable parallel execution use <code>--jobs 1</code>.
+This is currently the default.</p>
+</div>
+<div class="paragraph">
+<p>Please note that the maximal possible parallelism depends on your project.
+Tasks that depend on each other can’t be processed in parallel.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_command_line_usage"><a class="anchor" href="#_command_line_usage"></a>Command-line usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill is a command-line tool and supports various options.</p>
+</div>
+<div class="paragraph">
+<p>Run <code>mill --help</code> for a complete list of options</p>
+</div>
+<div class="listingblock">
+<div class="title">Output of <code>mill --help</code></div>
+<div class="content">
+<pre>Mill Build Tool
+usage: mill [options] [[target [target-options]] [+ [target ...]]]
+  --no-default-predef  Disable the default predef and run Ammonite with the minimal predef possible
+  -s --silent          Make ivy logs go silent instead of printing though failures will still throw
+                       exception
+  -w --watch           Watch and re-run your scripts when they change
+  --bsp                Run a BSP server against the passed scripts
+  -c --code &lt;str&gt;      Pass in code to be run immediately in the REPL
+  -h --home &lt;path&gt;     The home directory of the REPL; where it looks for config and caches
+  -p --predef &lt;path&gt;   Lets you load your predef from a custom location, rather than the &quot;default
+                       location in your Ammonite home
+  --color &lt;bool&gt;       Enable or disable colored output; by default colors are enabled in both REPL
+                       and scripts if the console is interactive, and disabled otherwise
+  --thin               Hide parts of the core of Ammonite and some of its dependencies. By default,
+                       the core of Ammonite and all of its dependencies can be seen by users from
+                       the Ammonite session. This option mitigates that via class loader isolation.
+  --help               Print this message
+  -h --home &lt;path&gt;     The home directory of the REPL; where it looks for config and caches
+  --repl               Run Mill in interactive mode and start a build REPL. In this mode, no mill
+                       server will be used. Must be the first argument.
+  --no-server          Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. In this mode, no mill server will be used. Must be the first argument.
+  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. In this mode, no mill server will be used. Must be the first argument.
+  -v --version         Show mill version and exit.
+  -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
+  --disable-ticker     Disable ticker log (e.g. short-lived prints of stages and progress bars)
+  -d --debug           Show debug output on STDOUT
+  -k --keep-going      Continue build, even after build failures
+  -D --define &lt;k=v&gt;    Define (or overwrite) a system property
+  -j --jobs &lt;int&gt;      Allow processing N targets in parallel. Use 1 to disable parallel and 0 to
+                       use as much threads as available processors.
+  rest &lt;str&gt;...        The name of the targets you want to build, followed by any parameters you
+                       wish to pass to those targets.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All <em>options</em> must be given before the first target.</p>
+</div>
+<div class="paragraph">
+<p>A <em>target</em> is a fully qualified task or command optionally followed by target specific arguments.
+You can use wildcards and brace-expansion to select multiple targets at once or to shorten the path to deeply nested targets.
+If you provide optional target arguments and your wildcard or brace-expansion is resolved to multiple targets, the arguments will be applied to each of the targets.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Wildcards and brace-expansion</caption>
+<colgroup>
+<col style="width: 50%;" />
+<col style="width: 50%;" />
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Wildcard</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Function</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">matches a single segment of the target path</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>__</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">matches arbitrary segments of the target path</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>{a,b}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">is equal to specifying two targets <code>a</code> and <code>b</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>You can use the <code>+</code> symbol to add another target with optional arguments.
+If you need to feed a <code>+</code> as argument to your target, you can mask it by preceding it with a backslash (<code>\</code>).</p>
+</div>
+<div class="sect2">
+<h3 id="_examples"><a class="anchor" href="#_examples"></a>Examples</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>mill foo._.compile</code></dt>
+<dd>
+<p>Runs <code>compile</code> for all direct sub-modules of <code>foo</code></p>
+</dd>
+<dt class="hdlist1"><code>mill foo.__.test</code> </dt>
+<dd>
+<p>Runs <code>test</code> for all sub-modules of <code>foo</code></p>
+</dd>
+<dt class="hdlist1"><code>mill {foo,bar}.__.testCached</code> </dt>
+<dd>
+<p>Runs <code>testCached</code> for all sub-modules of <code>foo</code> and <code>bar</code></p>
+</dd>
+<dt class="hdlist1"><code>mill __.compile + foo.__.test</code> </dt>
+<dd>
+<p>Runs all <code>compile</code> targets and all tests under <code>foo</code>.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_built_in_commands"><a class="anchor" href="#_built_in_commands"></a>Built-in commands</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill comes with a number of useful commands out of the box.</p>
+</div>
+<div class="sect2">
+<h3 id="_init"><a class="anchor" href="#_init"></a>init</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill -i init com-lihaoyi/mill-scala-hello.g8
+....
+A minimal Scala project.
+
+name [Scala Seed Project]: hello
+
+Template applied in ./hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>init</code> command generates a project based on a Giter8 template.
+It prompts you to enter project name and creates a folder with that name.
+You can use it to quickly generate a starter project.
+There are lots of templates out there for many frameworks and tools!</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_resolve"><a class="anchor" href="#_resolve"></a>resolve</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill resolve _
+[1/1] resolve
+clean
+foo
+inspect
+par
+path
+plan
+resolve
+show
+shutdown
+version
+visualize
+visualizePlan
+
+$ mill resolve _.compile
+[1/1] resolve
+foo.compile
+
+$ mill resolve foo._
+[1/1] resolve
+foo.allSourceFiles
+foo.allSources
+foo.ammoniteReplClasspath
+foo.ammoniteVersion
+foo.artifactId
+foo.artifactName
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>resolve</code> lists the tasks that match a particular query, without running them.
+This is useful for &quot;dry running&quot; an <code>mill</code> command to see what would be run before you run them, or to explore what modules or tasks are available
+from the command line using <code>resolve _</code>, <code>resolve foo._</code>, etc.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill resolve foo.{compile,run}
+mill resolve &quot;foo.{compile,run}&quot;
+mill resolve foo.compile foo.run
+mill resolve _.compile          # list the compile tasks for every top-level module
+mill resolve __.compile         # list the compile tasks for every module
+mill resolve _                  # list every top level module and task
+mill resolve foo._              # list every task directly within the foo module
+mill resolve __                 # list every module and task recursively</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_inspect"><a class="anchor" href="#_inspect"></a>inspect</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill inspect foo.run
+[1/1] inspect
+foo.run(JavaModule.scala:442)
+    Runs this module's code in a subprocess and waits for it to finish
+
+Inputs:
+    foo.finalMainClass
+    foo.runClasspath
+    foo.forkArgs
+    foo.forkEnv
+    foo.forkWorkingDir</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>inspect</code> is a more verbose version of <a href="#_resolve">resolve</a>. In addition to printing out the name of one-or-more tasks,
+it also displays its source location and a list of input tasks. This is very useful for debugging and interactively
+exploring the structure of your build from the command line.</p>
+</div>
+<div class="paragraph">
+<p><code>inspect</code> also works with the same <code>_</code>/<code>__</code> wildcard/query syntaxes that
+<a href="#_resolve">resolve</a> do:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill inspect foo.compile
+mill inspect foo.{compile,run}
+mill inspect &quot;foo.{compile,run}&quot;
+mill inspect foo.compile foo.run
+mill inspect _.compile
+mill inspect __.compile
+mill inspect _
+mill inspect foo._
+mill inspect __</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_show"><a class="anchor" href="#_show"></a>show</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show foo.scalaVersion
+[1/1] show
+&quot;2.13.1&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, Mill does not print out the metadata from evaluating a task. Most people would not be interested in e.g.
+viewing the metadata related to incremental compilation: they just want to compile their code! However, if you want to
+inspect the build to debug problems, you can make Mill show you the metadata output for a task using the <code>show</code> command:</p>
+</div>
+<div class="paragraph">
+<p><code>show</code> is not just for showing configuration values.
+All tasks return values that can be shown with <code>show</code>.
+E.g. <code>compile</code> returns the paths to the <code>classes</code> folder and <code>analysisFile</code> file produced by the compilation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show foo.compile
+[1/1] show
+[10/25] foo.resources
+{
+    &quot;analysisFile&quot;: &quot;/Users/lihaoyi/Dropbox/Github/test//out/foo/compile.dest/zinc&quot;,
+    &quot;classes&quot;: &quot;ref:07960649:/Users/lihaoyi/Dropbox/Github/test//out/foo/compile.dest/classes&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>show</code> is generally useful as a debugging tool, to see what is going on in your build:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show foo.sources
+[1/1] show
+[1/1] foo.sources
+[
+    &quot;ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src&quot;
+]
+
+$ mill show foo.compileClasspath
+[1/1] show
+[2/11] foo.resources
+[
+    &quot;ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources&quot;,
+    &quot;.../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar&quot;
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>show</code> is also useful for interacting with Mill from external tools, since the JSON it outputs is structured and easily
+parsed and manipulated.</p>
+</div>
+<div class="paragraph">
+<p>When <code>show</code> is used with multiple targets, its output will slightly change to a JSON array, containing all the results of the given targets.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show &quot;foo.{sources,compileClasspath}&quot;
+[1/1] show
+[2/11] foo.resources
+[
+  [
+    &quot;ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src&quot;
+  ],
+  [
+    &quot;ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources&quot;,
+    &quot;.../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar&quot;
+  ]
+]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_shownamed"><a class="anchor" href="#_shownamed"></a>showNamed</h3>
+<div class="paragraph">
+<p>Same as <code>show</code>, but the output will always be structured in a JSON dictionary, with the task names as key and the task results as JSON values.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill showNamed &quot;foo.{sources,compileClasspath}&quot;
+[1/1] show
+[2/11] foo.resources
+{
+  &quot;foo.sources&quot;:
+  [
+    &quot;ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src&quot;
+  ],
+  &quot;foo.compileClasspath&quot;:
+  [
+    &quot;ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources&quot;,
+    &quot;.../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar&quot;
+  ]
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_path"><a class="anchor" href="#_path"></a>path</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill path foo.assembly foo.sources
+[1/1] path
+foo.sources
+foo.allSources
+foo.allSourceFiles
+foo.compile
+foo.localClasspath
+foo.assembly</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>mill path</code> prints out a dependency chain between the first task and the second.
+It is very useful for exploring the build graph and trying to figure out how data gets from one task to another.
+If there are multiple possible dependency chains, one of them is picked arbitrarily.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_plan"><a class="anchor" href="#_plan"></a>plan</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill plan foo.compileClasspath
+[1/1] plan
+foo.transitiveLocalClasspath
+foo.resources
+foo.unmanagedClasspath
+foo.scalaVersion
+foo.platformSuffix
+foo.compileIvyDeps
+foo.scalaOrganization
+foo.scalaLibraryIvyDeps
+foo.ivyDeps
+foo.transitiveIvyDeps
+foo.compileClasspath</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>mill plan foo</code> shows which tasks would be evaluated, and in what order, if you ran <code>mill foo</code>, but without actually running them.
+This is a useful tool for debugging your build: e.g. if you suspect a task <code>foo</code> is running things that it
+shouldn’t be running, a quick <code>mill plan</code> will list out all the upstream tasks that <code>foo</code> needs to run, and you can then
+follow up with <code>mill path</code> on any individual upstream task to see exactly how <code>foo</code> depends on it.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_visualize"><a class="anchor" href="#_visualize"></a>visualize</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show visualize foo._
+[1/1] show
+[3/3] visualize
+[
+    &quot;.../out/visualize.dest/out.txt&quot;,
+    &quot;.../out/visualize.dest/out.dot&quot;,
+    &quot;.../out/visualize.dest/out.json&quot;,
+    &quot;.../out/visualize.dest/out.png&quot;,
+    &quot;.../out/visualize.dest/out.svg&quot;
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>mill show visualize</code> takes a subset of the Mill build graph (e.g. <code>core._</code> is every task directly under the <code>core</code>
+module) and draws out their relationships in <code>.svg</code> and <code>.png</code> form for you to inspect. It also generates <code>.txt</code>, <code>.dot</code>
+and <code>.json</code> for easy processing by downstream tools.</p>
+</div>
+<div class="paragraph">
+<p>The above command generates the following diagram:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/VisualizeFoo.svg" alt="VisualizeFoo.svg" />
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_visualizeplan"><a class="anchor" href="#_visualizeplan"></a>visualizePlan</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show visualizePlan foo.compile
+[1/1] show
+[3/3] visualizePlan
+[
+    &quot;.../out/visualizePlan.dest/out.txt&quot;,
+    &quot;.../out/visualizePlan.dest/out.dot&quot;,
+    &quot;.../out/visualizePlan.dest/out.json&quot;,
+    &quot;.../out/visualizePlan.dest/out.png&quot;,
+    &quot;.../out/visualizePlan.dest/out.svg&quot;
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>mill show visualizePlan</code> is similar to <code>mill show visualize</code> except that it shows a graph of the entire build plan,
+including tasks not directly resolved by the query. Tasks directly resolved are shown with a solid border, and
+dependencies are shown with a dotted border.</p>
+</div>
+<div class="paragraph">
+<p>The above command generates the following diagram:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/VisualizePlan.svg" alt="VisualizePlan.svg" />
+</div>
+</div>
+<div class="paragraph">
+<p>Another use case is to view the relationships between modules. For the following two modules:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.1&quot;
+}
+
+object bar extends ScalaModule {
+  def moduleDeps = Seq(foo)
+
+  def scalaVersion = &quot;2.13.1&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>mill show visualizePlan _.compile</code> diagrams the relationships between the compile tasks of each module, which
+illustrates which module depends on which other module’s compilation output:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/VisualizeCompile.svg" alt="VisualizeCompile.svg" />
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_clean"><a class="anchor" href="#_clean"></a>clean</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill clean</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>clean</code> deletes all the cached outputs of previously executed tasks. It can apply to the entire project, entire modules,
+or specific tasks.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill clean                     # clean all outputs
+mill clean foo                 # clean all outputs for module 'foo' (including nested modules)
+mill clean foo.compile         # only clean outputs for task 'compile' in module 'foo'
+mill clean foo.{compile,run}
+mill clean &quot;foo.{compile,run}&quot;
+mill clean foo.compile foo.run
+mill clean _.compile
+mill clean __.compile</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_search_for_dependency_updates"><a class="anchor" href="#_search_for_dependency_updates"></a>Search for dependency updates</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill mill.scalalib.Dependency/showUpdates</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill can search for updated versions of your project’s dependencies, if available from your project’s configured
+repositories. Note that it uses heuristics based on common versioning schemes, so it may not work as expected for
+dependencies with particularly weird version numbers.</p>
+</div>
+<div class="paragraph">
+<p>Current limitations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Only works for <code>JavaModule</code> modules (including <code>ScalaModule</code>s,
+<code>CrossScalaModule</code>s, etc.) and Maven repositories.</p>
+</li>
+<li>
+<p>Always applies to all modules in the build.</p>
+</li>
+<li>
+<p>Doesn’t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.Dependency/showUpdates
+mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_build_repl"><a class="anchor" href="#_the_build_repl"></a>The Build REPL</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">$ mill --repl
+Loading...
+@ foo
+res0: foo.type = ammonite.predef.build#foo:4
+Commands:
+    .ideaJavaModuleFacets(ideaConfigVersion: Int)()
+    .ideaConfigFiles(ideaConfigVersion: Int)()
+    .ivyDepsTree(inverse: Boolean, withCompile: Boolean, withRuntime: Boolean)()
+    .runLocal(args: String*)()
+    .run(args: String*)()
+    .runBackground(args: String*)()
+    .runMainBackground(mainClass: String, args: String*)()
+    .runMainLocal(mainClass: String, args: String*)()
+    .runMain(mainClass: String, args: String*)()
+    .console()()
+    .repl(replOptions: String*)()
+Targets:
+...
+
+@ foo.compile
+res1: mill.package.T[mill.scalalib.api.CompilationResult] = foo.compile(ScalaModule.scala:143)
+    Compiles the current module to generate compiled classfiles/bytecode
+
+Inputs:
+    foo.upstreamCompileOutput
+    foo.allSourceFiles
+    foo.compileClasspath
+...
+
+@ foo.compile()
+[25/25] foo.compile
+res2: mill.scalalib.api.CompilationResult = CompilationResult(
+  /Users/lihaoyi/Dropbox/Github/test/out/foo/compile.dest/zinc,
+  PathRef(/Users/lihaoyi/Dropbox/Github/test/out/foo/compile.dest/classes, false, -61934706)
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can run <code>mill --repl</code> to open a build REPL; this is a Scala console with your <code>build.sc</code> loaded, which lets you run
+tasks interactively.
+The task-running syntax is slightly different from the command-line, but more in line with how you
+would depend on tasks from within your build file.</p>
+</div>
+<div class="paragraph">
+<p>You can use this REPL to interactively explore your build to see what is available.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deploying_your_code"><a class="anchor" href="#_deploying_your_code"></a>Deploying your code</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The two most common things to do once your code is complete is to make an assembly (e.g. for deployment/installation) or
+publishing (e.g. to Maven Central). Mill comes with both capabilities built in.</p>
+</div>
+<div class="paragraph">
+<p>Mill comes with the built-in with the ability to make assemblies. Given a simple Mill build:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.1&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can make a self-contained assembly via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill foo.assembly
+
+$ ls -lh out/foo/assembly.dest/out.jar
+-rw-r--r--  1 lihaoyi  staff   5.0M Feb 17 11:14 out/foo/assembly.dest/out.jar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can then move the <code>out.jar</code> file anywhere you would like, and run it standalone using <code>java</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ java -cp out/foo/assembly.dest/out.jar foo.Example
+Hello World!</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To publish to Maven Central, you need to make <code>foo</code> also extend Mill’s
+<code>PublishModule</code> trait:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
+
+object foo extends ScalaModule with PublishModule {
+  def scalaVersion = &quot;2.13.1&quot;
+
+  def publishVersion = &quot;0.0.1&quot;
+
+  def pomSettings = PomSettings(
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(
+      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
+    )
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can change the name of the published artifact (artifactId in the Maven POM)
+by overriding <code>artifactName</code> in the module you want to publish.</p>
+</div>
+<div class="paragraph">
+<p>You can download an example project with this layout here:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/releases/download/0.11-0-M3/0.11-0-M3-example-2.zip">Example 2</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Which you can then publish using the <code>mill foo.publish</code> command, which takes your sonatype credentials (
+e.g. <code>lihaoyi:foobarbaz</code>) and GPG password as inputs:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill foo.publish
+Missing arguments: (--sonatypeCreds: String, --release: Boolean)
+
+Arguments provided did not match expected signature:
+
+publish
+  --sonatypeCreds   String (format: &quot;username:password&quot;)
+  --signed          Boolean (default true)
+  --gpgArgs         Seq[String] (default Seq(&quot;--batch&quot;, &quot;--yes&quot;, &quot;-a&quot;, &quot;-b&quot;))
+  --readTimeout     Int (default 60000)
+  --release         Boolean (default true)
+  --connectTimeout  Int (default 5000)
+  --awaitTimeout    Int (default 120000)
+  --stagingRelease  Boolean (default true)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You also need to specify <code>release</code> as <code>true</code> or <code>false</code>, depending on whether you just want to stage your module
+on <code>oss.sonatype.org</code> or you want Mill to complete the release process to Maven Central.</p>
+</div>
+<div class="paragraph">
+<p>If you are publishing multiple artifacts, you can also use <code>mill mill.scalalib.PublishModule/publishAll</code> as described</p>
+</div>
+<div class="paragraph">
+<p><a href="Common_Project_Layouts.html#_publishing" class="xref page">here</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_mill_with_custom_jvm_options"><a class="anchor" href="#_running_mill_with_custom_jvm_options"></a>Running Mill with custom JVM options</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It’s possible to pass JVM options to the Mill launcher. To do this you need to create a <code>.mill-jvm-opts</code> file in your
+project’s root. This file should contain JVM options, one per line.</p>
+</div>
+<div class="paragraph">
+<p>For example, if your build requires a lot of memory and bigger stack size, your <code>.mill-jvm-opts</code> could look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>-Xss10m
+-Xmx10G</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The file name for passing JVM options to the Mill launcher is configurable. If for some reason you don’t want to
+use <code>.mill-jvm-opts</code> file name, add <code>MILL_JVM_OPTS_PATH</code> environment variable with any other file name.</p>
+</div>
+<hr />
+<div class="paragraph">
+<p>Come by our <a href="https://gitter.im/lihaoyi/mill">Gitter Channel</a> if you want to ask questions or say hi!</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="Installation.html">Installation</a></span>
+  <span class="next"><a href="IDE_Support.html">IDE Support</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

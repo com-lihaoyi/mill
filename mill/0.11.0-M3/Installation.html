@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Installation :: Mill</title>
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Installation.html" />
+    <link rel="prev" href="Intro_to_Mill.html" />
+    <link rel="next" href="Getting_Started.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script>var uiRootPath = '../../_'</script>
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link" href="#">Plugins</a>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Community</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issue Tracker (GitHub)</a>
+            <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat (Gitter)</a>
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss (GitHub)</a>
+          </div>
+        </div>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="0.11.0-M3">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html">Mill Documentation</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="Installation.html">Installation</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Getting_Started.html">Getting Started</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="IDE_Support.html">IDE Support</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Configuration.html">Configuring your Project</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Tasks.html">Tasks</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Modules.html">Modules</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Artifactory.html">Artifactory</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Bintray.html">Bintray</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Bloop.html">Bloop</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Docker.html">Docker</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="External_References.html">External References</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_ammonite">Ammonite</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_coursier">Coursier</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_os_lib">OS-Lib</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.11.0-M3</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Mill Documentation</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../index.html">0.11.0-M3</a>
+        </li>
+        <li class="version is-current">
+          <a href="index.html">0.11.0-M3</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M2/index.html">0.11.0-M2</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M1/index.html">0.11.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.10/index.html">0.10.10</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.9/index.html">0.10.9</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.8/index.html">0.10.8</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.7/index.html">0.10.7</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.6/index.html">0.10.6</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.5/index.html">0.10.5</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.4/index.html">0.10.4</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.3/index.html">0.10.3</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.2/index.html">0.10.2</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.1/index.html">0.10.1</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.0/index.html">0.10.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.12/index.html">0.9.12</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.11/index.html">0.9.11</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.10/index.html">0.9.10</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.9/index.html">0.9.9</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.8/index.html">0.9.8</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.7/index.html">0.9.7</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.6/index.html">0.9.6</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../Intro_to_Mill.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Mill Documentation</a></li>
+    <li><a href="Installation.html">Installation</a></li>
+  </ul>
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M3</button>
+  <div class="version-menu">
+    <a class="version" href="../Installation.html">0.11.0-M3</a>
+    <a class="version is-current" href="Installation.html">0.11.0-M3</a>
+    <a class="version" href="../0.11.0-M2/Installation.html">0.11.0-M2</a>
+    <a class="version" href="../0.11.0-M1/Installation.html">0.11.0-M1</a>
+    <a class="version" href="../0.10.10/Installation.html">0.10.10</a>
+    <a class="version is-missing" href="../0.10.9/index.html">0.10.9</a>
+    <a class="version is-missing" href="../0.10.8/index.html">0.10.8</a>
+    <a class="version is-missing" href="../0.10.7/index.html">0.10.7</a>
+    <a class="version is-missing" href="../0.10.6/index.html">0.10.6</a>
+    <a class="version is-missing" href="../0.10.5/index.html">0.10.5</a>
+    <a class="version is-missing" href="../0.10.4/index.html">0.10.4</a>
+    <a class="version is-missing" href="../0.10.3/index.html">0.10.3</a>
+    <a class="version is-missing" href="../0.10.2/index.html">0.10.2</a>
+    <a class="version is-missing" href="../0.10.1/index.html">0.10.1</a>
+    <a class="version is-missing" href="../0.10.0/index.html">0.10.0</a>
+    <a class="version is-missing" href="../0.9.12/index.html">0.9.12</a>
+    <a class="version is-missing" href="../0.9.11/index.html">0.9.11</a>
+    <a class="version is-missing" href="../0.9.10/index.html">0.9.10</a>
+    <a class="version is-missing" href="../0.9.9/index.html">0.9.9</a>
+    <a class="version is-missing" href="../0.9.8/index.html">0.9.8</a>
+    <a class="version is-missing" href="../0.9.7/index.html">0.9.7</a>
+    <a class="version is-missing" href="../0.9.6/index.html">0.9.6</a>
+  </div>
+</div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/blob/0.11.0-M3/docs/antora/modules/ROOT/pages/Installation.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Installation</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The best method of installing Mill is to just install a bootstrap script.
+This script can determine the best version to be used by a project (e.g. by reading a <code>.mill-version</code> file) and will use this exact Mill version.
+If that version is not installed locally, it will be downloading for you.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bootstrap_scripts"><a class="anchor" href="#_bootstrap_scripts"></a>Bootstrap Scripts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are currently two bootstrap script available, one <a href="#_mills_bootstrap_script_linuxos_x_only">in the Mill repository</a>, which only work for Linux and Unix-like machines, and one <a href="#_millw">external <code>millw</code> script</a>, with more features and also Windows support.</p>
+</div>
+<div class="paragraph">
+<p>Using <code>millw</code> is recommended.</p>
+</div>
+<div class="paragraph">
+<p>We plan to merge both script in the future.</p>
+</div>
+<div class="sect2">
+<h3 id="_mills_bootstrap_script_linuxos_x_only"><a class="anchor" href="#_mills_bootstrap_script_linuxos_x_only"></a>Mill’s Bootstrap Script (Linux/OS-X Only)</h3>
+<div class="paragraph">
+<p>If you are using Mill in a codebase, you can commit the bootstrap launcher as a
+<code>./mill</code> script in the project folder:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -L https://github.com/com-lihaoyi/mill/releases/download/0.11-0-M3/0.11.0-M3 &gt; mill &amp;&amp; chmod +x mill</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, anyone who wants to work with the project can simply use the <code>./mill</code>
+script directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill version
+./mill __.compile # double underscore</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>mill</code> command will automatically use the version specified by the bootstrap script, even if you installed it via
+other means. The <code>./mill</code> file has a version number embedded within it, which you can update simply by editing the
+script. Note this only works for versions 0.5.0 and above.</p>
+</div>
+<div class="paragraph">
+<p>Bootstrap scripts are also useful for running Mill in CI, ensuring that your Jenkins/Travis/etc. box has the correct
+version of Mill present to build/compile/test your code.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_millw"><a class="anchor" href="#_millw"></a>millw</h3>
+<div class="paragraph">
+<p>Instead of installing Mill directly, you can also use <a href="https://github.com/lefou/millw">lefou/millw</a> as drop-in
+replacement for <code>mill</code>. It provides a small shell script and also a Windows batch file, that transparently downloads <code>mill</code>
+and executes it on your behalf. It respects various ways to configure the preferred Mill version (<code>MILL_VERSION</code> env
+var, <code>.mill-version</code> file, <code>--mill-version</code> option) and can also be used as a bootstrap script in your project.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_downloading_mill"><a class="anchor" href="#_downloading_mill"></a>Downloading Mill</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_os_x"><a class="anchor" href="#_os_x"></a>OS X</h3>
+<div class="paragraph">
+<p>Installation via <a href="https://github.com/Homebrew/homebrew-core/blob/master/Formula/mill.rb">homebrew</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">brew install mill</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_arch_linux"><a class="anchor" href="#_arch_linux"></a>Arch Linux</h3>
+<div class="paragraph">
+<p>Arch Linux has a <a href="https://www.archlinux.org/packages/community/any/mill/">Community package for mill</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">pacman -S mill</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_freebsd"><a class="anchor" href="#_freebsd"></a>FreeBSD</h3>
+<div class="paragraph">
+<p>Installation via <a href="http://man.freebsd.org/pkg/8">pkg(8)</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">pkg install mill</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_gentoo_linux"><a class="anchor" href="#_gentoo_linux"></a>Gentoo Linux</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">emerge dev-java/mill-bin</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_windows"><a class="anchor" href="#_windows"></a>Windows</h3>
+<div class="paragraph">
+<p>To get started, download Mill from
+<a href="https://github.com/com-lihaoyi/mill/releases/download/0.11-0-M3/0.11-0-M3-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you’re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">scoop install mill</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_wsl_msys2_cycgin_git_bash"><a class="anchor" href="#_wsl_msys2_cycgin_git_bash"></a>WSL / MSYS2 / Cycgin / Git-Bash</h3>
+<div class="paragraph">
+<p>Mill also works on &quot;sh&quot; environments on Windows (e.g.,
+<a href="https://www.msys2.org">MSYS2</a>,
+<a href="https://www.cygwin.com">Cygwin</a>,
+<a href="https://gitforwindows.org">Git-Bash</a>,
+<a href="https://docs.microsoft.com/en-us/windows/wsl">WSL</a>); to get started, follow the instructions in the <a href="#_manual">Manual</a>
+section. Note that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In some environments (such as WSL), Mill might have to be run without a server (using <code>-i</code>, <code>--interactive</code>, <code>--no-server</code>, or <code>--repl</code>.)</p>
+</li>
+<li>
+<p>On Cygwin, run the following after downloading mill:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sed -i '0,/-cp &quot;\$0&quot;/{s/-cp &quot;\$0&quot;/-cp `cygpath -w &quot;\$0&quot;`/}; 0,/-cp &quot;\$0&quot;/{s/-cp &quot;\$0&quot;/-cp `cygpath -w &quot;\$0&quot;`/}' /usr/local/bin/mill</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_docker"><a class="anchor" href="#_docker"></a>Docker</h3>
+<div class="paragraph">
+<p>You can download and run
+a <a href="https://hub.docker.com/r/nightscape/scala-mill/">&quot;Docker image containing OpenJDK, Scala and Mill&quot;</a> using</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker pull nightscape/scala-mill
+docker run -it nightscape/scala-mill</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_manual"><a class="anchor" href="#_manual"></a>Manual</h3>
+<div class="paragraph">
+<p>To get started, download Mill and install it into your HOME &quot;.local/bin&quot; via the following
+<code>curl</code>/<code>chmod</code> command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c &quot;curl -L https://github.com/com-lihaoyi/mill/releases/download/0.11-0-M3/0.11-0-M3 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill&quot;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_coursier_unsupported"><a class="anchor" href="#_coursier_unsupported"></a>Coursier (unsupported)</h3>
+<div class="paragraph">
+<p>Installing mill via <code>coursier</code> or <code>cs</code> is currently not officially supported. There are various issues, especially with
+interactive mode.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_updating_mill"><a class="anchor" href="#_updating_mill"></a>Updating Mill</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you have installed Mill via the recommended <a href="#_bootstrap_scripts"><code>Bootstrap Script</code></a> method, you don’t need to install multiple version of Mill explicitly.</p>
+</div>
+<div class="paragraph">
+<p>Follow the next <a href="#_overriding_mill_versions">Overriding Mill Versions</a> section for details.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_overriding_mill_versions"><a class="anchor" href="#_overriding_mill_versions"></a>Overriding Mill Versions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Apart from downloading and installing new versions of Mill globally, there are a few ways of selecting/updating your Mill version. This will only work, if you have choosen one of the <a href="#_bootstrap_scripts">Boostrap script methods</a>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a <code>.mill-version</code> file to specify the version of Mill you wish to use:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>echo &quot;0.5.0&quot; &gt; .mill-version</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>.mill-version</code> takes precedence over the version of Mill specified in the
+<code>./mill</code> script.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Pass in a <code>MILL_VERSION</code> environment variable, e.g.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>MILL_VERSION=0.5.0-3-4faefb mill __.compile</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">MILL_VERSION=0.5.0-3-4faefb ./mill __.compile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to override the Mill version manually. This takes precedence over the version specified in <code>./mill</code> or <code>.mill-version</code></p>
+</div>
+<div class="sect2">
+<h3 id="_automatic_mill_updates"><a class="anchor" href="#_automatic_mill_updates"></a>Automatic Mill updates</h3>
+<div class="paragraph">
+<p>If your project is hosted on GitHub, GitLab, or Bitbucket, you can use <a href="https://github.com/scala-steward-org/scala-steward">Scala Steward</a> to automatically open a pull request to update your Mill version (in <code>.mill-version</code> file), whenever there is a newer version available.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Scala Steward can also <a href="Configuration.html#_keeping_up_to_date_with_scala_steward" class="xref page">scan your project dependencies</a> and keep them up-to-date.
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_development_releases"><a class="anchor" href="#_development_releases"></a>Development Releases</h3>
+<div class="paragraph">
+<p>In case you want to try out the latest features and improvements that are currently in the main branch, unstable versions of Mill
+are
+<a href="https://github.com/com-lihaoyi/mill/releases">available</a> as binaries named
+<code>#.#.#-n-hash</code> linked to the latest tag.</p>
+</div>
+<div class="paragraph">
+<p>The easiest way to use a development release is to use one of the <a href="#_bootstrap_scripts">Bootstrap Scripts</a>, which support
+<a href="#_overriding_mill_versions">Overriding Mill Versions</a> via an <code>MILL_VERSION</code> environment variable or a <code>.mill-version</code> file.</p>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="Intro_to_Mill.html">Introduction to Mill</a></span>
+  <span class="next"><a href="Getting_Started.html">Getting Started</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>
