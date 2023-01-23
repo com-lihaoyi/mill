@@ -29,14 +29,16 @@ object GenIdeaTests extends ScriptTestSuite(false) {
       fileBaseDir: os.Path,
       resource: os.RelPath
   ): Unit = {
-    val resourcePath = s"${workspaceSlug}/idea/${resource}"
-    val generated = fileBaseDir / ".idea" / resource
-    val resourceString = scala.io.Source.fromResource(resourcePath).getLines().mkString("\n")
-    val generatedString = normaliseLibraryPaths(os.read(generated), fileBaseDir)
-    assert(!resourcePath.isEmpty)
+    val expectedResourcePath = s"$workspaceSlug/idea/$resource"
+    val actualResourcePath = fileBaseDir / ".idea" / resource
+
+    val expectedResourceString = scala.io.Source.fromResource(expectedResourcePath).getLines.mkString("\n")
+    val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), fileBaseDir)
+
+    assert(expectedResourcePath.nonEmpty)
     assertPartialContentMatches(
-      found = generatedString,
-      expected = resourceString
+      found = actualResourceString,
+      expected = expectedResourceString
     )
   }
 

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+    <library name="SBT: junit:junit_2.13:4.13.2:jar">
+        <CLASSES>
+            <root url="jar://COURSIER_HOME/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar!/"/>
+        </CLASSES>
+        <SOURCES>
+            <root url="jar://COURSIER_HOME/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2-sources.jar!/"/>
+        </SOURCES>
+    </library>
+</component>
