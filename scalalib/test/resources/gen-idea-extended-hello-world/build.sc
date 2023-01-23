@@ -1,3 +1,5 @@
+import $ivy.`org.scalameta::munit:0.7.29`
+
 import mill.api.PathRef
 import mill.scalalib
 import mill.define.Command

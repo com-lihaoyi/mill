@@ -1,0 +1,10 @@
+<component name="libraryTable">
+    <library name="SBT: org.scalameta:munit_2.13:0.7.29:jar">
+        <CLASSES>
+            <root url="jar://COURSIER_HOME/https/repo1.maven.org/maven2/org/scalameta/munit_2.13/0.7.29/munit_2.13-0.7.29.jar!/"/>
+        </CLASSES>
+        <SOURCES>
+            <root url="jar://COURSIER_HOME/https/repo1.maven.org/maven2/org/scalameta/munit_2.13/0.7.29/munit_2.13-0.7.29-sources.jar!/"/>
+        </SOURCES>
+    </library>
+</component>
