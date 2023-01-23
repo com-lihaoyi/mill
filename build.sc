@@ -154,7 +154,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.1"
-  val scalametaTrees = ivy"org.scalameta::trees:4.7.2"
+  val scalametaTrees = ivy"org.scalameta::trees:4.7.3"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.7"
@@ -164,7 +164,7 @@ object Deps {
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.2"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.3"
   // when bumping this, also update SemanticDbJavaModule.scala to use -build-tool:mill
   // see https://github.com/sourcegraph/scip-java/pull/527
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.9"
