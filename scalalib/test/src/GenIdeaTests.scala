@@ -11,6 +11,11 @@ import utest.{Tests, _}
 
 object GenIdeaTests extends ScriptTestSuite(false) {
 
+  override def workspaceSlug: String = "gen-idea-hello-world"
+
+  override def scriptSourcePath: Path =
+    os.pwd / "scalalib" / "test" / "resources" / workspaceSlug
+
   private val scalaVersionLibPart = "2_12_5"
 
   private val ignoreString = "<!-- IGNORE -->"
@@ -123,9 +128,4 @@ object GenIdeaTests extends ScriptTestSuite(false) {
       )
     in.replace(path, "COURSIER_HOME")
   }
-
-  override def workspaceSlug: String = "gen-idea-hello-world"
-
-  override def scriptSourcePath: Path =
-    os.pwd / "scalalib" / "test" / "resources" / workspaceSlug
 }
