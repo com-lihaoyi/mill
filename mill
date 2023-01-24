@@ -7,7 +7,7 @@
 set -e
 
 if [ -z "${DEFAULT_MILL_VERSION}" ] ; then
-  DEFAULT_MILL_VERSION=0.10.9
+  DEFAULT_MILL_VERSION=0.10.10
 fi
 
 if [ -z "$MILL_VERSION" ] ; then
