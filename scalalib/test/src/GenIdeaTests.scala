@@ -11,7 +11,12 @@ import utest.{Tests, _}
 
 object GenIdeaTests extends ScriptTestSuite(false) {
 
-  val scalaVersionLibPart = "2_12_5"
+  override def workspaceSlug: String = "gen-idea-hello-world"
+
+  override def scriptSourcePath: Path =
+    os.pwd / "scalalib" / "test" / "resources" / workspaceSlug
+
+  private val scalaVersionLibPart = "2_12_5"
 
   private val ignoreString = "<!-- IGNORE -->"
 
@@ -24,14 +29,16 @@ object GenIdeaTests extends ScriptTestSuite(false) {
       fileBaseDir: os.Path,
       resource: os.RelPath
   ): Unit = {
-    val resourcePath = s"${workspaceSlug}/idea/${resource}"
-    val generated = fileBaseDir / ".idea" / resource
-    val resourceString = scala.io.Source.fromResource(resourcePath).getLines().mkString("\n")
-    val generatedString = normaliseLibraryPaths(os.read(generated), fileBaseDir)
-    assert(!resourcePath.isEmpty)
+    val expectedResourcePath = s"$workspaceSlug/idea/$resource"
+    val actualResourcePath = fileBaseDir / ".idea" / resource
+
+    val expectedResourceString = scala.io.Source.fromResource(expectedResourcePath).getLines.mkString("\n")
+    val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), fileBaseDir)
+
+    assert(expectedResourcePath.nonEmpty)
     assertPartialContentMatches(
-      found = generatedString,
-      expected = resourceString
+      found = actualResourceString,
+      expected = expectedResourceString
     )
   }
 
@@ -123,9 +130,4 @@ object GenIdeaTests extends ScriptTestSuite(false) {
       )
     in.replace(path, "COURSIER_HOME")
   }
-
-  override def workspaceSlug: String = "gen-idea-hello-world"
-
-  override def scriptSourcePath: Path =
-    os.pwd / "scalalib" / "test" / "resources" / workspaceSlug
 }
