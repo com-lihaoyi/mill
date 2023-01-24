@@ -340,6 +340,25 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 
+=== 0.10.11 - 2023-01-24
+:version: 0.10.11
+:milestone-name: 0.10.11
+:milestone: 71
+:prev-version: 0.10.10
+
+_Changes since {prev-version}:_
+
+* Fixed non-functional `clean` command when used with arguments denoting modules.
+* `scalalib`: Fixed `GenIdea` issues on Windows, when the build uses plugins or additional libraries.
+* `scalajslib`: Performance improvements in worker module
+* `scalajslib`: Pass more settings from `ScalaJSModule` to its `Tests`
+* Some internal improvements backported from `0.11.0-M3`
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 === 0.10.10 - 2022-12-06
 :version: 0.10.10
 :prev-version: 0.10.9
