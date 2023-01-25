@@ -358,9 +358,9 @@ object main extends MillModule {
       Deps.sbtTestInterface
     )
   }
-  object util extends MillApiModule {
+  object util extends MillApiModule with MillAutoTestSetup {
     override def moduleDeps = Seq(api)
-    def ivyDeps = Agg(
+    override def ivyDeps = Agg(
       Deps.ammoniteTerminal,
       Deps.fansi
     )

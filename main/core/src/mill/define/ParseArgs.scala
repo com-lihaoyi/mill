@@ -3,8 +3,7 @@ package mill.define
 import scala.annotation.tailrec
 
 import fastparse._
-import NoWhitespace._
-import mill.define.{Segment, Segments}
+import fastparse.NoWhitespace.noWhitespaceImplicit
 import mill.util.EitherOps
 
 sealed trait SelectMode
