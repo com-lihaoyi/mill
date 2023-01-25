@@ -19,7 +19,8 @@ class IvyDepsTreeArgs private (
     )
     val inverse: Flag,
     @arg(doc =
-      "Include the compile-time only dependencies (`compileIvyDeps`, provided scope) into the tree.")
+      "Include the compile-time only dependencies (`compileIvyDeps`, provided scope) into the tree."
+    )
     val withCompile: Flag,
     @arg(doc = "Include the runtime dependencies (`runIvyDeps`, runtime scope) into the tree.")
     val withRuntime: Flag,
