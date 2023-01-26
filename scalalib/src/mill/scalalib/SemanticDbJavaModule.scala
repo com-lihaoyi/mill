@@ -120,10 +120,12 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
         )
         else List.empty
 
-      val more = if (T.log.debugEnabled) " -verbose" else ""
+      val isNewEnough =
+        Version.isAtLeast(semanticDbJavaVersion(), "0.8.10")(Version.IgnoreQualifierOrdering)
+      val buildTool = s" -build-tool:${if (isNewEnough) "mill" else "sbt"}"
+      val verbose = if (T.log.debugEnabled) " -verbose" else ""
       m.javacOptions() ++ Seq(
-        // FIXME: change to -build-tool:mill once semanticdb-java after 0.8.9 comes out
-        s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"} -build-tool:sbt" + more
+        s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"}${buildTool}${verbose}"
       ) ++ extracJavacExports
 
     }
