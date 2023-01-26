@@ -169,7 +169,7 @@ object Deps {
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.3"
   // when bumping this, also update SemanticDbJavaModule.scala to use -build-tool:mill
   // see https://github.com/sourcegraph/scip-java/pull/527
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.9"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.10"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:3.0.0-M1"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
