@@ -3,6 +3,7 @@ package mill.scalalib
 import mill.api.{PathRef, Result, experimental}
 import mill.define.{Input, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
+import mill.util.Version
 import mill.{Agg, BuildInfo, T}
 
 import scala.util.Properties
@@ -11,23 +12,21 @@ import scala.util.Properties
 trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
   def semanticDbVersion: Input[String] = T.input {
-    T.env.getOrElse[String](
+    val builtin = SemanticDbJavaModule.buildTimeSemanticDbVersion
+    val requested = T.env.getOrElse[String](
       "SEMANTICDB_VERSION",
-      SemanticDbJavaModule.contextSemanticDbVersion.get()
-        .getOrElse(
-          SemanticDbJavaModule.buildTimeSemanticDbVersion
-        )
+      SemanticDbJavaModule.contextSemanticDbVersion.get().getOrElse(builtin)
     )
+    Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
   }
 
   def semanticDbJavaVersion: Input[String] = T.input {
-    T.env.getOrElse[String](
+    val builtin = SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
+    val requested = T.env.getOrElse[String](
       "JAVASEMANTICDB_VERSION",
-      SemanticDbJavaModule.contextJavaSemanticDbVersion.get()
-        .getOrElse(
-          SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
-        )
+      SemanticDbJavaModule.contextJavaSemanticDbVersion.get().getOrElse(builtin)
     )
+    Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
   }
 
   def semanticDbScalaVersion = hostModule match {
