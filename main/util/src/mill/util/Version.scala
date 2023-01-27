@@ -2,6 +2,7 @@ package mill.util
 
 import mill.api.experimental
 
+@experimental
 class Version private (
     val major: Int,
     val minor: Option[Int],
@@ -46,6 +47,7 @@ final class IgnoreQualifierVersion(val underlying: Version) extends AnyVal {
     underlying.isNewerThan(other.underlying)(Version.IgnoreQualifierOrdering)
 }
 
+@experimental
 object Version {
 
   /**
