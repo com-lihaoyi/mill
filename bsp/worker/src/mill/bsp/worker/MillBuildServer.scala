@@ -732,28 +732,29 @@ class MillBuildServer(
   )(f: State => V): CompletableFuture[V] = {
     log.debug(s"Entered ${hint}")
     val start = System.currentTimeMillis()
+    val prefix = hint.split(" ").head
     def took =
-      log.debug(s"${hint.split("[ ]").head} took ${System.currentTimeMillis() - start} msec")
+      log.debug(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
     val future = new CompletableFuture[V]()
 
     if (checkInitialized && !initialized) {
       future.completeExceptionally(
-        new Exception("Can not respond to any request before receiving the `initialize` request.")
+        new Exception(s"Can not respond to ${prefix} request before receiving the `initialize` request.")
       )
     } else {
       statePromise.future.onComplete {
         case Success(state) =>
           try {
             val v = f(state)
-            log.debug(s"${hint.split("[ ]").head} result: ${v}")
             took
+            log.debug(s"${prefix} result: ${v}")
             future.complete(v)
           } catch {
             case e: Exception =>
-              logStream.println(s"Caught exception: ${e}")
-              e.printStackTrace(logStream)
               took
+              logStream.println(s"${prefix} caught exception: ${e}")
+              e.printStackTrace(logStream)
               future.completeExceptionally(e)
           }
         case Failure(exception) =>
@@ -771,26 +772,27 @@ class MillBuildServer(
   )(f: => V): CompletableFuture[V] = {
     log.debug(s"Entered ${hint}")
     val start = System.currentTimeMillis()
+    val prefix = hint.split(" ").head
     def took =
-      log.debug(s"${hint.split("[ ]").head} took ${System.currentTimeMillis() - start} msec")
+      log.debug(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
     val future = new CompletableFuture[V]()
 
     if (checkInitialized && !initialized) {
       future.completeExceptionally(
-        new Exception("Can not respond to any request before receiving the `initialize` request.")
+        new Exception(s"Can not respond to ${prefix} request before receiving the `initialize` request.")
       )
     } else {
       try {
         val v = f
-        log.debug(s"${hint.split("[ ]").head} result: ${v}")
         took
+        log.debug(s"${prefix} result: ${v}")
         future.complete(v)
       } catch {
         case e: Exception =>
-          logStream.println(s"Caugh exception: ${e}")
-          e.printStackTrace(logStream)
           took
+          logStream.println(s"${prefix} caught exception: ${e}")
+          e.printStackTrace(logStream)
           future.completeExceptionally(e)
       }
     }
