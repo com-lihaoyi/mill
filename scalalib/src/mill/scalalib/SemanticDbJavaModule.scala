@@ -3,6 +3,7 @@ package mill.scalalib
 import mill.api.{PathRef, Result, experimental}
 import mill.define.{Input, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
+import mill.util.Version
 import mill.{Agg, BuildInfo, T}
 
 import scala.util.Properties
@@ -11,23 +12,21 @@ import scala.util.Properties
 trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
   def semanticDbVersion: Input[String] = T.input {
-    T.env.getOrElse[String](
+    val builtin = SemanticDbJavaModule.buildTimeSemanticDbVersion
+    val requested = T.env.getOrElse[String](
       "SEMANTICDB_VERSION",
-      SemanticDbJavaModule.contextSemanticDbVersion.get()
-        .getOrElse(
-          SemanticDbJavaModule.buildTimeSemanticDbVersion
-        )
+      SemanticDbJavaModule.contextSemanticDbVersion.get().getOrElse(builtin)
     )
+    Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
   }
 
   def semanticDbJavaVersion: Input[String] = T.input {
-    T.env.getOrElse[String](
+    val builtin = SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
+    val requested = T.env.getOrElse[String](
       "JAVASEMANTICDB_VERSION",
-      SemanticDbJavaModule.contextJavaSemanticDbVersion.get()
-        .getOrElse(
-          SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
-        )
+      SemanticDbJavaModule.contextJavaSemanticDbVersion.get().getOrElse(builtin)
     )
+    Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
   }
 
   def semanticDbScalaVersion = hostModule match {
@@ -120,10 +119,12 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
         )
         else List.empty
 
-      val more = if (T.log.debugEnabled) " -verbose" else ""
+      val isNewEnough =
+        Version.isAtLeast(semanticDbJavaVersion(), "0.8.10")(Version.IgnoreQualifierOrdering)
+      val buildTool = s" -build-tool:${if (isNewEnough) "mill" else "sbt"}"
+      val verbose = if (T.log.debugEnabled) " -verbose" else ""
       m.javacOptions() ++ Seq(
-        // FIXME: change to -build-tool:mill once semanticdb-java after 0.8.9 comes out
-        s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"} -build-tool:sbt" + more
+        s"-Xplugin:semanticdb -sourceroot:${T.workspace} -targetroot:${T.dest / "classes"}${buildTool}${verbose}"
       ) ++ extracJavacExports
 
     }
