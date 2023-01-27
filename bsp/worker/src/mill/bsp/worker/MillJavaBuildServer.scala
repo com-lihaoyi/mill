@@ -10,6 +10,7 @@ import scala.jdk.CollectionConverters._
 
 @internal
 trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
+
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
     completable(s"buildTargetJavacOptions ${javacOptionsParams}") { state =>

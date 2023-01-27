@@ -62,8 +62,9 @@ import mill.define.{BaseModule, Discover, ExternalModule, Module, Segments, Task
 import mill.eval.Evaluator
 import mill.main.{BspServerResult, EvaluatorScopt, MainModule}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
-import mill.scalalib.bsp.{BspModule, JvmBuildTarget, MillBuildTarget, ScalaBuildTarget}
+import mill.scalalib.bsp.{BspModule, JvmBuildTarget, MillBuildModule, ScalaBuildTarget}
 import mill.scalalib.internal.ModuleUtils
+import os.Path
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
@@ -105,7 +106,7 @@ class MillBuildServer(
             val modules: Seq[Module] =
               ModuleUtils.transitiveModules(evaluator.rootModule) ++ Seq(`mill-build`)
             val map = modules.collect {
-              case m: MillBuildTarget =>
+              case m: MillBuildModule =>
                 val uri = sanitizeUri(m.millSourcePath) +
                   m.bspBuildTarget.displayName.map(n => s"?id=${n}").getOrElse("")
                 val id = new BuildTargetIdentifier(uri)
@@ -129,9 +130,9 @@ class MillBuildServer(
 
     }
 
-    lazy val `mill-build`: MillBuildTarget = {
-      object `mill-build` extends MillBuildTarget {
-        override protected def rootModule: BaseModule = evaluator.rootModule
+    lazy val `mill-build`: MillBuildModule = {
+      object `mill-build` extends MillBuildModule {
+        override protected def projectPath: Path = evaluator.rootModule.millSourcePath
       }
       `mill-build`
     }
@@ -153,8 +154,6 @@ class MillBuildServer(
 
   private[this] var statePromise: Promise[State] = Promise[State]()
   initialEvaluator.foreach(e => statePromise.success(new State(e)))
-
-//  private[this] def stateFuture: Future[State] = statePromise.future
 
   def updateEvaluator(evaluator: Option[Evaluator]): Unit = {
     log.debug(s"Updating Evaluator: ${evaluator}")
@@ -374,7 +373,7 @@ class MillBuildServer(
         targetIds = sourcesParams.getTargets.asScala.toSeq,
         agg = (items: Seq[SourcesItem]) => new SourcesResult(items.asJava)
       ) {
-        case (id, module: MillBuildTarget) if clientIsIntelliJ =>
+        case (id, module: MillBuildModule) if clientIsIntelliJ =>
           T.task {
             val sources = new SourcesItem(
               id,
