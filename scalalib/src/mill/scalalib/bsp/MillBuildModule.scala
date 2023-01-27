@@ -1,7 +1,7 @@
 package mill.scalalib.bsp
 
 import ammonite.runtime.SpecialClassLoader
-import mill.api.{PathRef, internal}
+import mill.api.{Loose, PathRef, internal}
 import mill.define.{BaseModule, Discover, ExternalModule, Sources, Target, Task}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.BuildScAwareness.{IncludedDep, IncludedFile}
@@ -52,6 +52,12 @@ trait MillBuildModule
     Agg.from(deps)
   }
 
+  override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = T{
+    val deps = BuildInfo.millScalacPluginDeps.map(d => ivy"${d}")
+    T.log.errorStream.println(s"scalacPluginIvyDeps: ${deps}")
+    deps
+  }
+
   /**
    * We need to add all resources from Ammonites cache,
    * which typically also include resolved `ivy`-imports and compiled `$file`-imports.
@@ -82,6 +88,9 @@ trait MillBuildModule
     T.log.errorStream.println(s"allSourceFiles: ${all}")
     all
   }
+
+  override def compileResources: Sources = T.sources()
+  override def resources: Sources = T.sources()
 
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     displayName = Some("mill-build"),
