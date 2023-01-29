@@ -82,7 +82,7 @@ object Deps {
   val testScala32Version = "3.2.0"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.12.0"
+    val scalaJsVersion = "1.13.0"
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
