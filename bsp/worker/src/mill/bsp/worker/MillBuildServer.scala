@@ -62,8 +62,9 @@ import mill.define.{BaseModule, Discover, ExternalModule, Module, Segments, Task
 import mill.eval.Evaluator
 import mill.main.{BspServerResult, EvaluatorScopt, MainModule}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
-import mill.scalalib.bsp.{BspModule, JvmBuildTarget, MillBuildTarget, ScalaBuildTarget}
+import mill.scalalib.bsp.{BspModule, JvmBuildTarget, MillBuildModule, ScalaBuildTarget}
 import mill.scalalib.internal.ModuleUtils
+import os.Path
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
@@ -105,7 +106,7 @@ class MillBuildServer(
             val modules: Seq[Module] =
               ModuleUtils.transitiveModules(evaluator.rootModule) ++ Seq(`mill-build`)
             val map = modules.collect {
-              case m: MillBuildTarget =>
+              case m: MillBuildModule =>
                 val uri = sanitizeUri(m.millSourcePath) +
                   m.bspBuildTarget.displayName.map(n => s"?id=${n}").getOrElse("")
                 val id = new BuildTargetIdentifier(uri)
@@ -129,9 +130,9 @@ class MillBuildServer(
 
     }
 
-    lazy val `mill-build`: MillBuildTarget = {
-      object `mill-build` extends MillBuildTarget {
-        override protected def rootModule: BaseModule = evaluator.rootModule
+    lazy val `mill-build`: MillBuildModule = {
+      object `mill-build` extends MillBuildModule {
+        override protected def projectPath: Path = evaluator.rootModule.millSourcePath
       }
       `mill-build`
     }
@@ -153,8 +154,6 @@ class MillBuildServer(
 
   private[this] var statePromise: Promise[State] = Promise[State]()
   initialEvaluator.foreach(e => statePromise.success(new State(e)))
-
-//  private[this] def stateFuture: Future[State] = statePromise.future
 
   def updateEvaluator(evaluator: Option[Evaluator]): Unit = {
     log.debug(s"Updating Evaluator: ${evaluator}")
@@ -374,7 +373,7 @@ class MillBuildServer(
         targetIds = sourcesParams.getTargets.asScala.toSeq,
         agg = (items: Seq[SourcesItem]) => new SourcesResult(items.asJava)
       ) {
-        case (id, module: MillBuildTarget) if clientIsIntelliJ =>
+        case (id, module: MillBuildModule) if clientIsIntelliJ =>
           T.task {
             val sources = new SourcesItem(
               id,
@@ -733,28 +732,29 @@ class MillBuildServer(
   )(f: State => V): CompletableFuture[V] = {
     log.debug(s"Entered ${hint}")
     val start = System.currentTimeMillis()
+    val prefix = hint.split(" ").head
     def took =
-      log.debug(s"${hint.split("[ ]").head} took ${System.currentTimeMillis() - start} msec")
+      log.debug(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
     val future = new CompletableFuture[V]()
 
     if (checkInitialized && !initialized) {
       future.completeExceptionally(
-        new Exception("Can not respond to any request before receiving the `initialize` request.")
+        new Exception(s"Can not respond to ${prefix} request before receiving the `initialize` request.")
       )
     } else {
       statePromise.future.onComplete {
         case Success(state) =>
           try {
             val v = f(state)
-            log.debug(s"${hint.split("[ ]").head} result: ${v}")
             took
+            log.debug(s"${prefix} result: ${v}")
             future.complete(v)
           } catch {
             case e: Exception =>
-              logStream.println(s"Caught exception: ${e}")
-              e.printStackTrace(logStream)
               took
+              logStream.println(s"${prefix} caught exception: ${e}")
+              e.printStackTrace(logStream)
               future.completeExceptionally(e)
           }
         case Failure(exception) =>
@@ -772,26 +772,27 @@ class MillBuildServer(
   )(f: => V): CompletableFuture[V] = {
     log.debug(s"Entered ${hint}")
     val start = System.currentTimeMillis()
+    val prefix = hint.split(" ").head
     def took =
-      log.debug(s"${hint.split("[ ]").head} took ${System.currentTimeMillis() - start} msec")
+      log.debug(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
     val future = new CompletableFuture[V]()
 
     if (checkInitialized && !initialized) {
       future.completeExceptionally(
-        new Exception("Can not respond to any request before receiving the `initialize` request.")
+        new Exception(s"Can not respond to ${prefix} request before receiving the `initialize` request.")
       )
     } else {
       try {
         val v = f
-        log.debug(s"${hint.split("[ ]").head} result: ${v}")
         took
+        log.debug(s"${prefix} result: ${v}")
         future.complete(v)
       } catch {
         case e: Exception =>
-          logStream.println(s"Caugh exception: ${e}")
-          e.printStackTrace(logStream)
           took
+          logStream.println(s"${prefix} caught exception: ${e}")
+          e.printStackTrace(logStream)
           future.completeExceptionally(e)
       }
     }

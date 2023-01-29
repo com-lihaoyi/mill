@@ -148,7 +148,8 @@ object Deps {
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.19.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.9.0"
   val millModuledefsVersion = "0.10.9"
-  val millModuledefs = ivy"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
+  val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
+  val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   val testng = ivy"org.testng:testng:7.5"
@@ -418,6 +419,10 @@ object main extends MillModule {
            |  val millEmbeddedDeps = ${artifacts.map(artifact =>
             s""""${artifact.group}:${artifact.id}:${artifact.version}""""
           )}
+           |  /** Scalac compiler plugin dependencies to compile the build script. */
+           |  val millScalacPluginDeps = Seq(
+           |    "${Deps.millModuledefsString}"
+           |  )
            |  /** Mill documentation url. */
            |  val millDocUrl = "${Settings.docUrl}"
            |}
