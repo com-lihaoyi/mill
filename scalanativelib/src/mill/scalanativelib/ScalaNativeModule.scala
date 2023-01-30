@@ -98,11 +98,11 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def bridgeFullClassPath: T[Agg[PathRef]] = T {
-    Lib.resolveDependencies(
-      repositoriesTask(),
-      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
-      ctx = Some(T.log)
-    ).map(t => (scalaNativeWorkerClasspath() ++ t))
+    val toolsCp = resolveDeps(T.task {
+      // we need the Mill scala version, not the module scala version
+      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
+    })()
+    scalaNativeWorkerClasspath() ++ toolsCp
   }
 
   private[scalanativelib] def scalaNativeBridge = T.task {
