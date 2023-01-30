@@ -1,6 +1,7 @@
 package mill
 package scalajslib
 
+import mainargs.Flag
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.Lib.resolveDependencies
@@ -234,6 +235,17 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   /** Name patterns for output. */
   def scalaJSOutputPatterns: Target[OutputPatterns] = T { OutputPatterns.Defaults }
+
+  override def prepareOffline(all: Flag): Command[Unit] = {
+    val tasks =
+      if (all.value) Seq(scalaJSToolsClasspath)
+      else Seq()
+    T.command {
+      super.prepareOffline(all)()
+      T.sequence(tasks)()
+      ()
+    }
+  }
 
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
