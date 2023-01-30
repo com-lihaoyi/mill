@@ -534,6 +534,12 @@ object Jvm {
           ))
           Thread.sleep(CoursierRetryWait)
           retry(retryCount - 1, ctx, errorMsgExtractor)(f)
+        } else if (errors.exists(e => e.contains("download error"))) {
+          ctx.foreach(_.log.debug(
+            s"Detected a download error by coursier. Attempting a retry (${retryCount} left)"
+          ))
+          Thread.sleep(CoursierRetryWait)
+          retry(retryCount - 1, ctx, errorMsgExtractor)(f)
         } else res
       case r => r.get
     }
