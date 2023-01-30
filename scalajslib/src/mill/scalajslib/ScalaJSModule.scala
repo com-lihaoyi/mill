@@ -60,26 +60,17 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T {
-    val commonDeps = Seq(
-      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
-    )
-    val envDeps = scalaJSBinaryVersion() match {
-      case "0.6" =>
-        Seq(
-          ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
-          ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
-        )
-      case "1" =>
-        Seq(
-          ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}"
-        ) ++ scalaJSJsEnvIvyDeps()
-    }
-    // we need to use the scala-library of the currently running mill
-    resolveDependencies(
-      repositoriesTask(),
-      (commonDeps ++ envDeps).map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
-      ctx = Some(T.log)
-    )
+    resolveDeps(T.task {
+      val commonDeps = Agg(
+        ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
+      )
+      val envDeps = Agg(
+        ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}"
+      ) ++ scalaJSJsEnvIvyDeps()
+
+      // we don't bind to the project scala version but the Mill scala versions
+      (commonDeps ++ envDeps).map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
+    })()
   }
 
   def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
