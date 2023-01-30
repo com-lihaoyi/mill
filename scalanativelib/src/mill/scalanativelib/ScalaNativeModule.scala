@@ -1,9 +1,10 @@
 package mill
 package scalanativelib
 
+import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{Result, internal}
-import mill.define.{Target, Task}
+import mill.define.{Command, Target, Task}
 import mill.modules.Jvm
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
@@ -306,6 +307,21 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       dep.exclude(exclusions: _*)
     }
   }
+
+  override def prepareOffline(all: Flag): Command[Unit] = {
+    val tasks =
+      if (all.value) Seq(
+        scalaNativeWorkerClasspath,
+        bridgeFullClassPath
+      )
+      else Seq()
+    T.command {
+      super.prepareOffline(all)()
+      T.sequence(tasks)()
+      ()
+    }
+  }
+
 }
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
