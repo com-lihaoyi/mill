@@ -275,6 +275,8 @@ trait JavaModule
     Lib.findSourceFiles(allSources(), Seq("java")).map(PathRef(_))
   }
 
+  def zincReportOldProblems: T[Boolean] = T(false)
+
   /**
    * Compiles the current module to generate compiled classfiles/bytecode.
    *
@@ -285,11 +287,12 @@ trait JavaModule
     zincWorker
       .worker()
       .compileJava(
-        upstreamCompileOutput(),
-        allSourceFiles().map(_.path),
-        compileClasspath().map(_.path),
-        javacOptions(),
-        T.reporter.apply(hashCode)
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = javacOptions(),
+        reporter = T.reporter.apply(hashCode),
+        reportOldProblems = zincReportOldProblems()
       )
   }
 

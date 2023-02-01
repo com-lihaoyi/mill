@@ -269,7 +269,8 @@ class ZincWorkerImpl(
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportOldProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
 
     for (
@@ -278,7 +279,8 @@ class ZincWorkerImpl(
         sources,
         compileClasspath,
         javacOptions,
-        reporter
+        reporter,
+        reportOldProblems
       )
     ) yield CompilationResult(res._1, PathRef(res._2))
   }
@@ -287,7 +289,8 @@ class ZincWorkerImpl(
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportOldProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     compileInternal(
       upstreamCompileOutput,
@@ -296,11 +299,12 @@ class ZincWorkerImpl(
       javacOptions,
       scalacOptions = Nil,
       javaOnlyCompilers(javacOptions),
-      reporter
+      reporter,
+      reportOldProblems
     )
   }
 
-  def compileMixed(
+  override def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],
@@ -310,7 +314,8 @@ class ZincWorkerImpl(
       scalacOptions: Seq[String],
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportOldProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
 
     for (
@@ -324,7 +329,8 @@ class ZincWorkerImpl(
         scalacOptions,
         compilerClasspath,
         scalacPluginClasspath,
-        reporter
+        reporter,
+        reportOldProblems
       )
     ) yield CompilationResult(res._1, PathRef(res._2))
   }
@@ -339,7 +345,8 @@ class ZincWorkerImpl(
       scalacOptions: Seq[String],
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportOldProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     withCompilers(
       scalaVersion = scalaVersion,
@@ -355,7 +362,8 @@ class ZincWorkerImpl(
         javacOptions = javacOptions,
         scalacOptions = scalacOptions,
         compilers = compilers,
-        reporter = reporter
+        reporter = reporter,
+        reportOldProblems: Boolean
       )
     }
   }
@@ -436,7 +444,8 @@ class ZincWorkerImpl(
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportOldProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     os.makeDir.all(ctx.dest)
 
@@ -451,27 +460,29 @@ class ZincWorkerImpl(
     )
     val loggerId = Thread.currentThread().getId.toString
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
+
     val newReporter = reporter match {
-      case None => new ManagedLoggedReporter(10, logger)
-      case Some(r) => new ManagedLoggedReporter(10, logger) {
+      case None => new ManagedLoggedReporter(10, logger) with ZincWorkerImpl.RecordingReporter
+      case Some(forwarder) =>
+        new ManagedLoggedReporter(10, logger) with ZincWorkerImpl.RecordingReporter {
 
           override def logError(problem: xsbti.Problem): Unit = {
-            r.logError(new ZincProblem(problem))
+            forwarder.logError(new ZincProblem(problem))
             super.logError(problem)
           }
 
           override def logWarning(problem: xsbti.Problem): Unit = {
-            r.logWarning(new ZincProblem(problem))
+            forwarder.logWarning(new ZincProblem(problem))
             super.logWarning(problem)
           }
 
           override def logInfo(problem: xsbti.Problem): Unit = {
-            r.logInfo(new ZincProblem(problem))
+            forwarder.logInfo(new ZincProblem(problem))
             super.logInfo(problem)
           }
 
           override def printSummary(): Unit = {
-            r.printSummary()
+            forwarder.printSummary()
             super.printSummary()
           }
         }
@@ -569,6 +580,10 @@ class ZincWorkerImpl(
         logger = logger
       )
 
+      if (reportOldProblems) {
+        newReporter.logOldProblems(newResult.analysis())
+      }
+
       store.set(
         AnalysisContents.create(
           newResult.analysis(),
@@ -587,5 +602,52 @@ class ZincWorkerImpl(
   override def close(): Unit = {
     classloaderCache.clear()
     javaOnlyCompilersCache.clear()
+  }
+}
+
+object ZincWorkerImpl {
+
+  /**
+   * A zinc reporter which records reported problems
+   * and is able to log all not already reported problems later
+   * via [[logOldProblems(CompileAnalysis)]].
+   */
+  trait RecordingReporter extends xsbti.Reporter {
+    // `lazy` to allow initialization before first access
+    private lazy val seenProblems: mutable.Set[xsbti.Problem] = mutable.Set()
+
+    abstract override def log(problem: xsbti.Problem): Unit = {
+      super.log(problem)
+      seenProblems.add(problem)
+    }
+
+    abstract override def reset(): Unit = {
+      super.reset()
+      seenProblems.clear()
+    }
+
+    // we need to override this, to allow the call from [[printOldProblems]]
+    abstract override def printSummary(): Unit = super.printSummary()
+
+    /**
+     * Log problem contained in the given [[CompileAnalysis]]
+     * but not already reported.
+     */
+    def logOldProblems(compileAnalysis: CompileAnalysis): Unit = {
+      val problems = compileAnalysis match {
+        // Looks like the info we need is only contained in Analysis
+        case a: Analysis =>
+          a.infos.allInfos.values.flatMap(i =>
+            i.getReportedProblems ++ i.getUnreportedProblems
+          )
+        case _ => Nil
+      }
+      val oldProblems = problems.filterNot(seenProblems)
+      if (oldProblems.nonEmpty) {
+        oldProblems.foreach(log)
+        // show a summary again
+        super.printSummary()
+      }
+    }
   }
 }
