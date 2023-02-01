@@ -275,6 +275,10 @@ trait JavaModule
     Lib.findSourceFiles(allSources(), Seq("java")).map(PathRef(_))
   }
 
+  /**
+   * If `true`, we always show problems (errors, warnings, infos) found in all source files, even when they have not changed since the previous incremental compilation.
+   * When `false`, we report only problems for files which we re-compiled.
+   */
   def zincReportOldProblems: T[Boolean] = T(false)
 
   /**
