@@ -3,16 +3,7 @@ package scalalib
 
 import scala.annotation.nowarn
 import mill.define.{Command, Sources, Target, Task}
-import mill.api.{
-  CompileProblemReporter,
-  DummyInputStream,
-  PathRef,
-  Problem,
-  ProblemPosition,
-  Result,
-  Severity,
-  internal
-}
+import mill.api.{DummyInputStream, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
 import mill.api.Loose.Agg
@@ -22,12 +13,6 @@ import scala.jdk.CollectionConverters._
 import mainargs.Flag
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
-import os.Path
-import upickle.default.{ReadWriter, macroRW}
-
-import java.io.File
-import scala.collection.immutable.Queue
-import scala.util.Try
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -230,55 +215,7 @@ trait ScalaModule extends JavaModule { outer =>
         |You may want to select another version. Upgrading to a more recent Scala version is recommended.
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
-
-    import ScalaModule.{LastCompilation, ProblemImpl}
-
-    val previousProblemFile = T.dest / "zinc-reports.json"
-    val lastCompilation = if (os.exists(previousProblemFile)) {
-      Try {
-        upickle.default.read[LastCompilation](os.read.stream(previousProblemFile))
-      }.recover {
-        e =>
-          T.log.debug(s"Could not read last compilation problems, starting fresh. Cause: ${e}")
-          LastCompilation(0, Seq(), Seq())
-      }.get
-    } else LastCompilation(0, Seq(), Seq())
-
-    val compileIncrement = lastCompilation.increment + 1
-
-    //    case class FileProblems(file: Path, problems: Seq[(String, ProblemImpl)])
-
-    //    val problems = Map[String, FileProblems]
-    T.log.debug(s"Previous problems: ${lastCompilation}")
-
-    class RecordingReporter(underlying: Option[CompileProblemReporter])
-        extends CompileProblemReporter {
-      var visitedFiles: Queue[os.Path] = Queue()
-      var problems: Queue[ProblemImpl] = Queue()
-      override def start(): Unit = underlying.foreach(_.start())
-      override def logError(problem: Problem): Unit = {
-        problems = problems.appended(ProblemImpl(compileIncrement, problem))
-        underlying.foreach(_.logError(problem))
-      }
-      override def logWarning(problem: Problem): Unit = {
-        problems = problems.appended(ProblemImpl(compileIncrement, problem))
-        underlying.foreach(_.logWarning(problem))
-      }
-      override def logInfo(problem: Problem): Unit = {
-        problems = problems.appended(ProblemImpl(compileIncrement, problem))
-        underlying.foreach(_.logInfo(problem))
-      }
-      override def fileVisited(file: os.Path): Unit = {
-        visitedFiles = visitedFiles.appended(file)
-        underlying.foreach(_.fileVisited(file))
-      }
-      override def printSummary(): Unit = underlying.foreach(_.printSummary())
-      override def finish(): Unit = underlying.foreach(_.finish())
-    }
-
-    val reporter = new RecordingReporter(T.reporter.apply(hashCode))
-
-    val result = zincWorker
+    zincWorker
       .worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -290,46 +227,8 @@ trait ScalaModule extends JavaModule { outer =>
         scalacOptions = allScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
-        reporter = Some(reporter)
+        reporter = T.reporter.apply(hashCode)
       )
-
-    val newVisitedFiles = reporter.visitedFiles.toSeq.distinct
-
-    val lastProblemCount = lastCompilation.lastProblems.size
-    // filter all problems, which are released to files we re-visited
-    val cleanedCachedProblems = lastCompilation.lastProblems.toSeq
-      .filter(p =>
-        p.position.sourceFile.isEmpty || !newVisitedFiles.contains(
-          os.Path(p.position.sourceFile.get)
-        )
-      )
-
-    T.log.debug(
-      s"${cleanedCachedProblems.size} of ${lastProblemCount} cached problems from previous compilation: ${cleanedCachedProblems}"
-    )
-
-    T.log.debug(s"${newVisitedFiles.size} recorded visited files: ${newVisitedFiles}")
-    T.log.debug(s"${reporter.problems.size} recorded new file problems: ${reporter.problems.toSeq}")
-    // TODO: show those recorded problems
-
-    if (cleanedCachedProblems.nonEmpty) {
-      val reportStream = T.log.errorStream
-      reportStream.println("Previous compile problems:")
-      cleanedCachedProblems.foreach { p =>
-        reportStream.println(p.formatted)
-      }
-
-    }
-
-    val curCompilation = LastCompilation(
-      compileIncrement,
-      lastVisitedFiles = lastCompilation.lastVisitedFiles ++ reporter.visitedFiles,
-      lastProblems = cleanedCachedProblems ++ reporter.problems
-    )
-
-    os.write.over(previousProblemFile, upickle.default.write(curCompilation, 2))
-
-    result
   }
 
   /** the path to the compiled classes without forcing the compilation. */
@@ -625,107 +524,6 @@ trait ScalaModule extends JavaModule { outer =>
         jvmBuildTarget = None
       )
     ))
-  }
-
-}
-
-object ScalaModule {
-
-  case class LastCompilation(
-      increment: Int,
-      lastVisitedFiles: Seq[os.Path],
-      lastProblems: Seq[ProblemImpl]
-  )
-
-  object LastCompilation {
-    //    implicit val pathJsonRW: ReadWriter[os.Path] = mill.api.JsonFormatters.pathReadWrite
-//    implicit val pathJsonRW: ReadWriter[os.Path] = upickle.default.readwriter[String].bimap[os.Path](
-//      _.toString(),
-//      os.Path(_)
-//    )
-    implicit def jsonRW: ReadWriter[LastCompilation] = macroRW
-  }
-
-  case class ProblemImpl(
-      increment: Int,
-      override val category: String,
-      override val severity: Severity,
-      override val message: String,
-      override val position: ProblemPositionImpl
-  ) extends Problem {
-    def formatted: String = {
-      // TODO: colors
-      s"[${severity match {
-          case mill.api.Info => "info"
-          case mill.api.Warn => "warn"
-          case mill.api.Error => "error"
-        }}] ${position.sourceFile.getOrElse("")}:${position.line.getOrElse("")}:${position.offset.getOrElse("")}: ${message}"
-    }
-  }
-
-  object ProblemImpl {
-    def apply(increment: Int, other: Problem): ProblemImpl =
-      ProblemImpl(
-        increment = increment,
-        category = other.category,
-        severity = other.severity,
-        message = other.message,
-        position = ProblemPositionImpl(other.position)
-      )
-
-    implicit val jsonRW: ReadWriter[ProblemImpl] = macroRW
-    implicit val severityJsonRW: ReadWriter[Severity] = upickle.default.readwriter[String].bimap(
-      {
-        case mill.api.Info => "Info"
-        case mill.api.Warn => "Warn"
-        case mill.api.Error => "Error"
-      },
-      {
-        case "Info" => mill.api.Info
-        case "Warn" => mill.api.Warn
-        case "Error" => mill.api.Error
-      }
-    )
-
-  }
-
-  case class ProblemPositionImpl(
-      override val line: Option[Int],
-      override val lineContent: String,
-      override val offset: Option[Int],
-      override val pointer: Option[Int],
-      override val pointerSpace: Option[String],
-      override val sourcePath: Option[String],
-      override val sourceFile: Option[File],
-      override val startOffset: Option[Int],
-      override val endOffset: Option[Int],
-      override val startLine: Option[Int],
-      override val startColumn: Option[Int],
-      override val endLine: Option[Int],
-      override val endColumn: Option[Int]
-  ) extends ProblemPosition
-
-  object ProblemPositionImpl {
-    def apply(other: ProblemPosition): ProblemPositionImpl = ProblemPositionImpl(
-      line = other.line,
-      lineContent = other.lineContent,
-      offset = other.offset,
-      pointer = other.pointer,
-      pointerSpace = other.pointerSpace,
-      sourcePath = other.sourcePath,
-      sourceFile = other.sourceFile,
-      startOffset = other.startOffset,
-      endOffset = other.endOffset,
-      startLine = other.startLine,
-      startColumn = other.startColumn,
-      endLine = other.endLine,
-      endColumn = other.endColumn
-    )
-    implicit val jsonRW: ReadWriter[ProblemPositionImpl] = macroRW
-    implicit val fileJsonRW: ReadWriter[File] = upickle.default.readwriter[String].bimap(
-      _.toString(),
-      new File(_)
-    )
   }
 
 }
