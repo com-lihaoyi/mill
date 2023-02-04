@@ -168,7 +168,7 @@ object Deps {
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   // keep in sync with doc/antora/antory.yml
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.3"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.11"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.13"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:3.0.0-M1"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
