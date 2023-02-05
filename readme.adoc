@@ -352,6 +352,8 @@ _Changes since {prev-version}:_
 * `scalalib`: Fixed `GenIdea` issues on Windows, when the build uses plugins or additional libraries.
 * `scalajslib`: Performance improvements in worker module
 * `scalajslib`: Pass more settings from `ScalaJSModule` to its `Tests`
++
+_If you have issues after the update (like `org.scalajs.jsenv.UnsupportedInputException`, https://github.com/com-lihaoyi/mill/issues/2300), check your settings in the test modules for consistency._
 * Some internal improvements backported from `0.11.0-M3`
 
 _For details refer to
@@ -376,6 +378,8 @@ _Changes since {prev-version}:_
 * `scalalib`: JAR archives created by Mill now by default contain directory entries
 * `scalalib`: Updated zinc to 1.8.0
 * `scalajslib`: Added support for more `JsEnv` providers
++
+_If you get some issues (like `connect ECONNREFUSED`, https://github.com/com-lihaoyi/mill/issues/2204) after the update, review your settings for `JsEnv` providers._
 * `scalanativelib`: Support for incremental compilation since Scala Native 0.4.9
 * `contrib.testng`: The TestNG library is no longer provided transitively; you need to provide it explicitly
 * `contrib.bloop`: Fixed re-generation of bloop config dir; previously, it could happen, that there where no config files at all
