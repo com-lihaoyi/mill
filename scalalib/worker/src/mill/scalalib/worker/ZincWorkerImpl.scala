@@ -1,13 +1,35 @@
 package mill.scalalib.worker
 
 import mill.api.Loose.Agg
-import mill.api._
-import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil => Util}
-import sbt.internal.inc._
+import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, Result, internal}
+import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil}
+import sbt.internal.inc.{
+  Analysis,
+  CompileFailed,
+  FileAnalysisStore,
+  FreshCompilerCache,
+  ManagedLoggedReporter,
+  MappedFileConverter,
+  ScalaInstance,
+  Stamps,
+  ZincUtil,
+  javac
+}
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
-import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
+import xsbti.compile.{
+  AnalysisContents,
+  ClasspathOptions,
+  CompileAnalysis,
+  CompileOrder,
+  CompileProgress,
+  Compilers,
+  IncOptions,
+  JavaTools,
+  MiniSetup,
+  PreviousResult
+}
 import xsbti.{PathBasedFile, VirtualFile}
 
 import java.io.File
@@ -109,7 +131,7 @@ class ZincWorkerImpl(
       scalacPluginClasspath,
       Seq()
     ) { compilers: Compilers =>
-      if (Util.isDotty(scalaVersion) || Util.isScala3Milestone(scalaVersion)) {
+      if (ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)) {
         // dotty 0.x and scala 3 milestones use the dotty-doc tool
         val dottydocClass =
           compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
@@ -117,7 +139,7 @@ class ZincWorkerImpl(
         val reporter = dottydocMethod.invoke(dottydocClass.newInstance(), args.toArray)
         val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
         !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
-      } else if (Util.isScala3(scalaVersion)) {
+      } else if (ZincWorkerUtil.isScala3(scalaVersion)) {
         val scaladocClass =
           compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
         val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
@@ -196,7 +218,7 @@ class ZincWorkerImpl(
       (Seq(javacExe) ++ argsArray).!
     } else if (allScala) {
       val compilerMain = classloader.loadClass(
-        if (Util.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
+        if (ZincWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
         else "scala.tools.nsc.Main"
       )
       compilerMain
@@ -424,7 +446,7 @@ class ZincWorkerImpl(
           compilerClasspath,
           // we don't support too outdated dotty versions
           // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
-          if (Util.isDottyOrScala3(scalaVersion)) "2.13." else scalaVersion
+          if (ZincWorkerUtil.isDottyOrScala3(scalaVersion)) "2.13." else scalaVersion
         ).path.toIO),
         compilerJars = combinedCompilerJars,
         allJars = combinedCompilerJars,
