@@ -11,7 +11,7 @@ import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import mill.scalalib.api.ZincWorkerUtil
 
 object HelloJSWorldTests extends TestSuite {
