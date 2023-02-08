@@ -206,6 +206,7 @@ object HelloJSWorldTests extends TestSuite {
       val (doneMsg, testResults) = res
       testResults
         .groupBy(_.fullyQualifiedName)
+        .view
         .mapValues(_.map(e => e.selector -> e).toMap)
         .toMap
     }
@@ -281,7 +282,7 @@ object HelloJSWorldTests extends TestSuite {
       val log = os.read(paths.log)
       assert(
         evalCount > 0,
-        log.contains("node"),
+        log.contains("node")
         // TODO: reenable somehow
         // In Scala.js 1.x, println's are sent to the stdout, not to the logger
         // log.contains("Scala.js")
