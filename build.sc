@@ -118,7 +118,7 @@ object Deps {
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
-  val ammoniteVersion = "2.5.6"
+  val ammoniteVersion = "3.0.0-M0-1-beb96bfb"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   val ammoniteReducedDeps = ammonite.exclude(
@@ -170,7 +170,7 @@ object Deps {
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.3"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.13"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
-  val upickle = ivy"com.lihaoyi::upickle:3.0.0-M1"
+  val upickle = ivy"com.lihaoyi::upickle:3.0.0-M2"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
