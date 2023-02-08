@@ -279,7 +279,7 @@ trait JavaModule
    * If `true`, we always show problems (errors, warnings, infos) found in all source files, even when they have not changed since the previous incremental compilation.
    * When `false`, we report only problems for files which we re-compiled.
    */
-  def zincReportOldProblems: T[Boolean] = T(false)
+  def zincReportCachedProblems: T[Boolean] = T(false)
 
   /**
    * Compiles the current module to generate compiled classfiles/bytecode.
@@ -296,7 +296,7 @@ trait JavaModule
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions(),
         reporter = T.reporter.apply(hashCode),
-        reportOldProblems = zincReportOldProblems()
+        reportCachedProblems = zincReportCachedProblems()
       )
   }
 

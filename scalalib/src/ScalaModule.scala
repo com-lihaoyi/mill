@@ -228,7 +228,7 @@ trait ScalaModule extends JavaModule { outer =>
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         reporter = T.reporter.apply(hashCode),
-        reportOldProblems = zincReportOldProblems()
+        reportCachedProblems = zincReportCachedProblems()
       )
   }
 

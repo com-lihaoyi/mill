@@ -199,7 +199,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
               compilerClasspath = m.scalaCompilerClasspath(),
               scalacPluginClasspath = semanticDbPluginClasspath(),
               reporter = T.reporter.apply(hashCode),
-              reportOldProblems = zincReportOldProblems()
+              reportCachedProblems = zincReportCachedProblems()
             )
             .map(r => copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data"))
         }
@@ -219,7 +219,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
               compileClasspath = compileClasspathTask(m)().map(_.path),
               javacOptions = javacOpts,
               reporter = T.reporter.apply(m.hashCode()),
-              reportOldProblems = zincReportOldProblems()
+              reportCachedProblems = zincReportCachedProblems()
             ).map(r => copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data"))
         }
     }

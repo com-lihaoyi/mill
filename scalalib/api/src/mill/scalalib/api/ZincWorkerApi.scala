@@ -15,7 +15,7 @@ trait ZincWorkerApi {
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
-      reportOldProblems: Boolean
+      reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project */
@@ -30,7 +30,7 @@ trait ZincWorkerApi {
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
       reporter: Option[CompileProblemReporter],
-      reportOldProblems: Boolean
+      reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   def discoverMainClasses(compilationResult: CompilationResult)(implicit
