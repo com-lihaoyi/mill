@@ -43,7 +43,12 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with GraphNo
 
 trait NamedTask[+T] extends Task[T] {
   def ctx: mill.define.Ctx
-  def label: String = ctx.segment match { case Segment.Label(v) => v }
+  def label: String = ctx.segment match {
+    case Segment.Label(v) => v
+    case Segment.Cross(_) => throw new IllegalArgumentException(
+        "NamedTask only support a ctx with a Label segment, but found a Cross."
+      )
+  }
   override def toString = ctx.segments.render
   def isPrivate: Option[Boolean] = None
 }
