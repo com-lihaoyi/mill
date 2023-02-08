@@ -23,9 +23,10 @@ case class BasePath(value: os.Path)
  * .-separated segments are [[Segment.Label]]s, while []-delimited
  * segments are [[Segment.Cross]]s
  */
-case class Segments(value: Segment*) {
+case class Segments private (value: Segment*) {
   def ++(other: Seq[Segment]): Segments = Segments(value ++ other: _*)
   def ++(other: Segments): Segments = Segments(value ++ other.value: _*)
+
   def parts: List[String] = value.toList match {
     case Nil => Nil
     case Segment.Label(head) :: rest =>
@@ -34,6 +35,7 @@ case class Segments(value: Segment*) {
         case Segment.Cross(vs) => vs.map(_.toString)
       }
       head +: stringSegments
+    case Segment.Cross(_) :: _ => throw new IllegalArgumentException("Segments must start with a Label, but found a Cross.")
   }
   def last: Segments = Segments(value.last)
   def render: String = value.toList match {
@@ -44,10 +46,13 @@ case class Segments(value: Segment*) {
         case Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
       }
       head + stringSegments.mkString
+    case Segment.Cross(_) :: _ => throw new IllegalArgumentException("Segments must start with a Label, but found a Cross.")
   }
 }
 
 object Segments {
+  def apply(): Segments = new Segments()
+  def apply(head: Segment.Label, tail: Segment*): Segments = new Segments(head +: tail: _*)
 
   def labels(values: String*): Segments =
     Segments(values.map(Segment.Label): _*)
