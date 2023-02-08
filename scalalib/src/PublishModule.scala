@@ -257,7 +257,7 @@ object PublishModule extends ExternalModule {
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      gpgArgs.split(','),
+      gpgArgs.split(","),
       readTimeout,
       connectTimeout,
       T.log,
