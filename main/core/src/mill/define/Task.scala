@@ -77,10 +77,6 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   ): c.Expr[Target[T]] = {
     import c.universe._
 
-//    val _isPrivate = reify(Some(c.internal.enclosingOwner.isPrivate))
-//    val _isPublic = reify(Some(c.internal.enclosingOwner.isPublic))
-//    println(s"isPrivate: ${isPrivate}, isPublic: ${isPublic}")
-
     val taskIsPrivate = isPrivateTargetOption(c)
 
     val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.Success(t.splice)).tree)
@@ -255,10 +251,6 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       w: W[T],
       cls: EnclosingClass
   ): Command[T] = macro commandFromTask[T]
-//  {
-//    // TODO replace by macro to get isPrivate
-//    new Command(t, ctx, w, cls.value, isPrivate = None)
-//  }
 
   def commandFromTask[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
       ctx: c.Expr[mill.define.Ctx],
