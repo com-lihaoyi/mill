@@ -35,9 +35,16 @@ case class Segments private (value: Segment*) {
         case Segment.Cross(vs) => vs.map(_.toString)
       }
       head +: stringSegments
-    case Segment.Cross(_) :: _ => throw new IllegalArgumentException("Segments must start with a Label, but found a Cross.")
+    case Segment.Cross(_) :: _ =>
+      throw new IllegalArgumentException("Segments must start with a Label, but found a Cross.")
   }
-  def last: Segments = Segments(value.last)
+  def head: Segment.Label = value.head match {
+    case l: Segment.Label => l
+    case _ =>
+      throw new IllegalArgumentException("Segments must start with a Label, but found a Cross.")
+  }
+  // We can't guarantee that this is valid
+  //  def last: Segments = Segments(value.last)
   def render: String = value.toList match {
     case Nil => ""
     case Segment.Label(head) :: rest =>
@@ -46,7 +53,8 @@ case class Segments private (value: Segment*) {
         case Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
       }
       head + stringSegments.mkString
-    case Segment.Cross(_) :: _ => throw new IllegalArgumentException("Segments must start with a Label, but found a Cross.")
+    case Segment.Cross(_) :: _ =>
+      throw new IllegalArgumentException("Segments must start with a Label, but found a Cross.")
   }
 }
 
