@@ -294,7 +294,8 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
     if (this == main) Seq(main)
     else Seq(this, main.test)
 
-  trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
+  type MillScalaModuleTests = Tests
+  trait Tests extends ScalaModuleTests with MillCoursierModule
       with WithMillCompiler {
     override def forkArgs = T {
       Seq(
@@ -316,7 +317,6 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
     override def ivyDeps: T[Agg[Dep]] = T { super.ivyDeps() ++ outer.testIvyDeps() }
     override def testFramework = "mill.UTestFramework"
   }
-  trait Tests extends MillScalaModuleTests
 }
 
 /** A MillScalaModule with default set up test module. */
@@ -324,7 +324,7 @@ trait MillAutoTestSetup extends MillScalaModule {
   // instead of `object test` which can't be overridden, we hand-made a val+class singleton
   /** Default tests module. */
   val test = new Tests(implicitly)
-  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.MillScalaModuleTests
+  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with MillScalaModuleTests
 }
 
 /** Published module which does not contain strictly handled API. */
@@ -1015,7 +1015,8 @@ object integration extends MillScalaModule {
     T { PathRef(installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
   }
 
-  trait ITests extends super.Tests {
+  type ITests = Tests
+  trait Tests extends MillScalaModuleTests {
     def workspaceDir = T.persistent { PathRef(T.dest) }
     override def forkArgs: Target[Seq[String]] = T {
       super.forkArgs() ++
