@@ -206,8 +206,6 @@ trait PublishModule extends JavaModule { outer =>
       Name.IMPLEMENTATION_TITLE.toString() -> artifactName(),
       Name.IMPLEMENTATION_VERSION.toString() -> publishVersion(),
       Name.IMPLEMENTATION_VENDOR.toString() -> pom.organization,
-      Name.IMPLEMENTATION_VENDOR_ID.toString() -> pom.organization,
-      Name.IMPLEMENTATION_URL.toString() -> pom.url,
       "Description" -> pom.description,
       "URL" -> pom.url,
       "Licenses" -> pom.licenses.map(l => s"${l.name} (${l.id})").mkString(",")
@@ -257,7 +255,7 @@ object PublishModule extends ExternalModule {
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      gpgArgs.split(','),
+      gpgArgs.split(",").toIndexedSeq,
       readTimeout,
       connectTimeout,
       T.log,

@@ -31,7 +31,7 @@ trait JsonFormatters {
 
   implicit lazy val crFormat: RW[os.CommandResult] = upickle.default.macroRW
 
-  implicit val stackTraceRW = upickle.default.readwriter[ujson.Obj].bimap[StackTraceElement](
+  implicit val stackTraceRW: RW[StackTraceElement] = upickle.default.readwriter[ujson.Obj].bimap[StackTraceElement](
     ste =>
       ujson.Obj(
         "declaringClass" -> ujson.Str(ste.getClassName),

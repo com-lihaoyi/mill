@@ -11,7 +11,7 @@ import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import mill.scalalib.api.ZincWorkerUtil
 
 object HelloJSWorldTests extends TestSuite {
@@ -206,6 +206,7 @@ object HelloJSWorldTests extends TestSuite {
       val (doneMsg, testResults) = res
       testResults
         .groupBy(_.fullyQualifiedName)
+        .view
         .mapValues(_.map(e => e.selector -> e).toMap)
         .toMap
     }
@@ -281,7 +282,7 @@ object HelloJSWorldTests extends TestSuite {
       val log = os.read(paths.log)
       assert(
         evalCount > 0,
-        log.contains("node"),
+        log.contains("node")
         // TODO: reenable somehow
         // In Scala.js 1.x, println's are sent to the stdout, not to the logger
         // log.contains("Scala.js")

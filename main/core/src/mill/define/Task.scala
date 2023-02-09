@@ -43,13 +43,17 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with GraphNo
 
 trait NamedTask[+T] extends Task[T] {
   def ctx: mill.define.Ctx
-  def label: String = ctx.segment match { case Segment.Label(v) => v }
+  def label: String = ctx.segment match {
+    case Segment.Label(v) => v
+    case Segment.Cross(_) => throw new IllegalArgumentException(
+        "NamedTask only support a ctx with a Label segment, but found a Cross."
+      )
+  }
   override def toString = ctx.segments.render
   def isPrivate: Option[Boolean] = None
 }
 trait Target[+T] extends NamedTask[T] {
-  // TODO: change from Some[Target[T]] to Option[Target[T]] in 0.11
-  override def asTarget: Some[Target[T]] = Some(this)
+  override def asTarget: Option[Target[T]] = Some(this)
   def readWrite: RW[_]
 }
 
@@ -72,10 +76,6 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       ctx: c.Expr[mill.define.Ctx]
   ): c.Expr[Target[T]] = {
     import c.universe._
-
-//    val _isPrivate = reify(Some(c.internal.enclosingOwner.isPrivate))
-//    val _isPublic = reify(Some(c.internal.enclosingOwner.isPublic))
-//    println(s"isPrivate: ${isPrivate}, isPublic: ${isPublic}")
 
     val taskIsPrivate = isPrivateTargetOption(c)
 
@@ -251,10 +251,6 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       w: W[T],
       cls: EnclosingClass
   ): Command[T] = macro commandFromTask[T]
-//  {
-//    // TODO replace by macro to get isPrivate
-//    new Command(t, ctx, w, cls.value, isPrivate = None)
-//  }
 
   def commandFromTask[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
       ctx: c.Expr[mill.define.Ctx],
