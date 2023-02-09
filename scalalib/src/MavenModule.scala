@@ -16,6 +16,7 @@ trait MavenModule extends JavaModule { outer =>
     millSourcePath / "src" / "main" / "resources"
   }
 
+  type MavenModuleTests = Tests
   trait Tests extends JavaModuleTests {
     override def millSourcePath = outer.millSourcePath
     override def intellijModulePath = outer.millSourcePath / "src" / "test"
@@ -27,5 +28,4 @@ trait MavenModule extends JavaModule { outer =>
       millSourcePath / "src" / "test" / "resources"
     }
   }
-  type MavenModuleTests = Tests
 }

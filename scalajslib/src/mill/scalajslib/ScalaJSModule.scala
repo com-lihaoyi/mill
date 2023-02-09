@@ -19,6 +19,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
 
+  type ScalaJSModuleTests = Tests
   trait Tests extends ScalaModuleTests with TestScalaJSModule {
     override def scalaJSVersion = outer.scalaJSVersion()
     override def moduleKind = outer.moduleKind()
@@ -27,7 +28,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def jsEnvConfig = outer.jsEnvConfig()
     override def scalaJSOptimizer = outer.scalaJSOptimizer()
   }
-  type ScalaJSModuleTests = Tests
 
   def scalaJSBinaryVersion = T { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 

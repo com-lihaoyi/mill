@@ -12,11 +12,11 @@ trait SbtModule extends ScalaModule with MavenModule {
     millSourcePath / "src" / "main" / "java"
   )
 
+  type SbtModuleTests = Tests
   trait Tests extends ScalaModuleTests with MavenModuleTests {
     override def sources = T.sources(
       millSourcePath / "src" / "test" / "scala",
       millSourcePath / "src" / "test" / "java"
     )
   }
-  type SbtModuleTests = Tests
 }
