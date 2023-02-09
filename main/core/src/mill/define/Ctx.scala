@@ -2,8 +2,6 @@ package mill.define
 
 import scala.annotation.implicitNotFound
 
-case class BasePath(value: os.Path)
-
 @implicitNotFound("Modules, Targets and Commands can only be defined within a mill Module")
 case class Ctx(
     enclosing: String,
@@ -19,8 +17,22 @@ case class Ctx(
 ) {}
 
 object Ctx {
-  case class External(value: Boolean)
-  case class Foreign(value: Option[Segments])
+
+  /**
+   * Marker for a base path to be used implicitly by [[Ctx]].
+   */
+  final case class BasePath(value: os.Path)
+
+  /**
+   * Marker for the external flog to be used implicitly by [[Ctx]].
+   * @param value
+   */
+  final case class External(value: Boolean)
+
+  /**
+   * Marker for the foreign module segments of a module to be used implicitly by [[Ctx]].
+   */
+  final case class Foreign(value: Option[Segments])
   implicit def make(implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
