@@ -17,11 +17,11 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase { outer =>
       scalaVersionDirectoryNames.map(s => PathRef(millSourcePath / s"src-$s"))
   }
 
-  trait CrossScalaModuleTests extends ScalaModuleTests {
+  trait Tests extends ScalaModuleTests {
     override def sources = T.sources {
       super.sources() ++
         scalaVersionDirectoryNames.map(s => PathRef(millSourcePath / s"src-$s"))
     }
   }
-  trait Tests extends CrossScalaModuleTests
+  type CrossScalaModuleTests = Tests
 }

@@ -19,7 +19,7 @@ import mill.scalalib.dependency.versions.{ValidVersion, Version}
  */
 trait ScalaModule extends JavaModule { outer =>
 
-  trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
+  trait Tests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
@@ -27,8 +27,7 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalacOptions = outer.scalacOptions
     override def mandatoryScalacOptions = outer.mandatoryScalacOptions
   }
-
-  trait Tests extends ScalaModuleTests
+  type ScalaModuleTests = Tests
 
   /**
    * What Scala organization to use

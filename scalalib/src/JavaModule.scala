@@ -33,7 +33,7 @@ trait JavaModule
 
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
-  trait JavaModuleTests extends TestModule {
+  trait Tests extends TestModule {
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
@@ -43,7 +43,7 @@ trait JavaModule
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = super.runUseArgsFile
   }
-  trait Tests extends JavaModuleTests
+  type JavaModuleTests = Tests
 
   def defaultCommandName() = "run"
   def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task {

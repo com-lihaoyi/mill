@@ -30,13 +30,12 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 
-  trait Tests extends ScalaNativeModuleTests
-
-  trait ScalaNativeModuleTests extends ScalaModuleTests with TestScalaNativeModule {
+  trait Tests extends ScalaModuleTests with TestScalaNativeModule {
     override def scalaNativeVersion = outer.scalaNativeVersion()
     override def releaseMode = T { outer.releaseMode() }
     override def logLevel = outer.logLevel()
   }
+  type ScalaNativeModuleTests = Tests
 
   def scalaNativeBinaryVersion =
     T { ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
