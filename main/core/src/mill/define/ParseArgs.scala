@@ -185,7 +185,7 @@ object ParseArgs {
     def segment[_p: P] = P(ident).map(Segment.Label)
     def crossSegment[_p: P] = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
     def simpleQuery[_p: P] = P(segment ~ ("." ~ segment | crossSegment).rep).map {
-      case (h, rest) => Segments(h :: rest.toList: _*)
+      case (h, rest) => Segments(h, rest: _*)
     }
     def query[_p: P] = P(simpleQuery ~ ("/" ~/ simpleQuery).?).map {
       case (q, None) => (None, q)
