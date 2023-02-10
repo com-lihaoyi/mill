@@ -248,17 +248,31 @@ corresponding version of Mill.
 == Changelog
 
 
-// === 'main' branch
-// :version: main
-// :milestone-name: 0.11.0-M4
-// :milestone: 74
-// :prev-version: 0.11.0-M3
-//
-// _Changes since {prev-version}:_
-//
-// _For details refer to
-// {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
-// and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+=== 0.11.0-M4 - 2023-02-10
+:version: 0.11.0-M4
+:milestone-name: 0.11.0-M4
+:milestone: 74
+:prev-version: 0.11.0-M3
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* `scalalib`: New configuration target `zincReportCachedProblems` which, when `true`, enables reporting of all found problems, even for files which were not re-compiled
+* `scalalib`: Improved SemanticDB support for Java and Scala
+* `scalalib`: Mitigate another coursier download issue
+* `scalajslib`: Fetch more tooling dependencies in `prepareOffline`
+* `scalanativelib`: Fetch more tooling dependencies in `prepareOffline`
+* `scalanativelib`: Updated tools to version 0.4.10
+* `bsp`: Improved support for the `mill-build` module which should improve the editing experience for `build.sc` and other build files
+* Cleanups and internal improvements
+* Updated dependencies: Ammonite 3.0.0-M0-1, junixsocket 2.6.2, semanticdb-java 0.8.13, upickle 3.0.0-M2
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 
 === 0.11.0-M3 - 2023-01-23
@@ -284,8 +298,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
-
 
 
 === 0.11.0-M2 - 2023-01-13
