@@ -276,6 +276,12 @@ trait JavaModule
   }
 
   /**
+   * If `true`, we always show problems (errors, warnings, infos) found in all source files, even when they have not changed since the previous incremental compilation.
+   * When `false`, we report only problems for files which we re-compiled.
+   */
+  def zincReportCachedProblems: T[Boolean] = T(false)
+
+  /**
    * Compiles the current module to generate compiled classfiles/bytecode.
    *
    * When you override this, you probably also want to override [[bspCompileClassesPath]].
@@ -285,11 +291,12 @@ trait JavaModule
     zincWorker
       .worker()
       .compileJava(
-        upstreamCompileOutput(),
-        allSourceFiles().map(_.path),
-        compileClasspath().map(_.path),
-        javacOptions(),
-        T.reporter.apply(hashCode)
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = javacOptions(),
+        reporter = T.reporter.apply(hashCode),
+        reportCachedProblems = zincReportCachedProblems()
       )
   }
 

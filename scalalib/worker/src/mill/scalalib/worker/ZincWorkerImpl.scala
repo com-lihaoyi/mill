@@ -1,18 +1,40 @@
 package mill.scalalib.worker
 
-import java.io.File
-import java.util.Optional
-import java.util.concurrent.ConcurrentHashMap
 import mill.api.Loose.Agg
 import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, Result, internal}
-import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil => Util}
-import sbt.internal.inc._
+import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil}
+import sbt.internal.inc.{
+  Analysis,
+  CompileFailed,
+  FileAnalysisStore,
+  FreshCompilerCache,
+  ManagedLoggedReporter,
+  MappedFileConverter,
+  ScalaInstance,
+  Stamps,
+  ZincUtil,
+  javac
+}
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
-import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
+import xsbti.compile.{
+  AnalysisContents,
+  ClasspathOptions,
+  CompileAnalysis,
+  CompileOrder,
+  CompileProgress,
+  Compilers,
+  IncOptions,
+  JavaTools,
+  MiniSetup,
+  PreviousResult
+}
 import xsbti.{PathBasedFile, VirtualFile}
 
+import java.io.File
+import java.util.Optional
+import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable
 import scala.ref.SoftReference
 import scala.util.Properties.isWin
@@ -109,7 +131,7 @@ class ZincWorkerImpl(
       scalacPluginClasspath,
       Seq()
     ) { compilers: Compilers =>
-      if (Util.isDotty(scalaVersion) || Util.isScala3Milestone(scalaVersion)) {
+      if (ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)) {
         // dotty 0.x and scala 3 milestones use the dotty-doc tool
         val dottydocClass =
           compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
@@ -117,7 +139,7 @@ class ZincWorkerImpl(
         val reporter = dottydocMethod.invoke(dottydocClass.newInstance(), args.toArray)
         val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
         !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
-      } else if (Util.isScala3(scalaVersion)) {
+      } else if (ZincWorkerUtil.isScala3(scalaVersion)) {
         val scaladocClass =
           compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
         val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
@@ -196,7 +218,7 @@ class ZincWorkerImpl(
       (Seq(javacExe) ++ argsArray).!
     } else if (allScala) {
       val compilerMain = classloader.loadClass(
-        if (Util.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
+        if (ZincWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
         else "scala.tools.nsc.Main"
       )
       compilerMain
@@ -269,16 +291,18 @@ class ZincWorkerImpl(
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
 
     for (
       res <- compileJava0(
-        upstreamCompileOutput.map(c => (c.analysisFile, c.classes.path)),
-        sources,
-        compileClasspath,
-        javacOptions,
-        reporter
+        upstreamCompileOutput = upstreamCompileOutput.map(c => (c.analysisFile, c.classes.path)),
+        sources = sources,
+        compileClasspath = compileClasspath,
+        javacOptions = javacOptions,
+        reporter = reporter,
+        reportCachedProblems = reportCachedProblems
       )
     ) yield CompilationResult(res._1, PathRef(res._2))
   }
@@ -287,20 +311,22 @@ class ZincWorkerImpl(
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     compileInternal(
-      upstreamCompileOutput,
-      sources,
-      compileClasspath,
-      javacOptions,
+      upstreamCompileOutput = upstreamCompileOutput,
+      sources = sources,
+      compileClasspath = compileClasspath,
+      javacOptions = javacOptions,
       scalacOptions = Nil,
-      javaOnlyCompilers(javacOptions),
-      reporter
+      compilers = javaOnlyCompilers(javacOptions),
+      reporter = reporter,
+      reportCachedProblems = reportCachedProblems
     )
   }
 
-  def compileMixed(
+  override def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],
@@ -310,7 +336,8 @@ class ZincWorkerImpl(
       scalacOptions: Seq[String],
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
 
     for (
@@ -324,7 +351,8 @@ class ZincWorkerImpl(
         scalacOptions,
         compilerClasspath,
         scalacPluginClasspath,
-        reporter
+        reporter,
+        reportCachedProblems
       )
     ) yield CompilationResult(res._1, PathRef(res._2))
   }
@@ -339,7 +367,8 @@ class ZincWorkerImpl(
       scalacOptions: Seq[String],
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportOldProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     withCompilers(
       scalaVersion = scalaVersion,
@@ -355,7 +384,8 @@ class ZincWorkerImpl(
         javacOptions = javacOptions,
         scalacOptions = scalacOptions,
         compilers = compilers,
-        reporter = reporter
+        reporter = reporter,
+        reportOldProblems: Boolean
       )
     }
   }
@@ -416,7 +446,7 @@ class ZincWorkerImpl(
           compilerClasspath,
           // we don't support too outdated dotty versions
           // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
-          if (Util.isDottyOrScala3(scalaVersion)) "2.13." else scalaVersion
+          if (ZincWorkerUtil.isDottyOrScala3(scalaVersion)) "2.13." else scalaVersion
         ).path.toIO),
         compilerJars = combinedCompilerJars,
         allJars = combinedCompilerJars,
@@ -436,7 +466,8 @@ class ZincWorkerImpl(
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     os.makeDir.all(ctx.dest)
 
@@ -451,27 +482,29 @@ class ZincWorkerImpl(
     )
     val loggerId = Thread.currentThread().getId.toString
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
+
     val newReporter = reporter match {
-      case None => new ManagedLoggedReporter(10, logger)
-      case Some(r) => new ManagedLoggedReporter(10, logger) {
+      case None => new ManagedLoggedReporter(10, logger) with RecordingReporter
+      case Some(forwarder) =>
+        new ManagedLoggedReporter(10, logger) with RecordingReporter {
 
           override def logError(problem: xsbti.Problem): Unit = {
-            r.logError(new ZincProblem(problem))
+            forwarder.logError(new ZincProblem(problem))
             super.logError(problem)
           }
 
           override def logWarning(problem: xsbti.Problem): Unit = {
-            r.logWarning(new ZincProblem(problem))
+            forwarder.logWarning(new ZincProblem(problem))
             super.logWarning(problem)
           }
 
           override def logInfo(problem: xsbti.Problem): Unit = {
-            r.logInfo(new ZincProblem(problem))
+            forwarder.logInfo(new ZincProblem(problem))
             super.logInfo(problem)
           }
 
           override def printSummary(): Unit = {
-            r.printSummary()
+            forwarder.printSummary()
             super.printSummary()
           }
         }
@@ -568,6 +601,10 @@ class ZincWorkerImpl(
         in = inputs,
         logger = logger
       )
+
+      if (reportCachedProblems) {
+        newReporter.logOldProblems(newResult.analysis())
+      }
 
       store.set(
         AnalysisContents.create(
