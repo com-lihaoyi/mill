@@ -233,6 +233,14 @@ object TestModule {
     override def testFramework: T[String] = "munit.Framework"
   }
 
+  /**
+   * TestModule that uses MUnit to run tests.
+   * You need to provide the weaver dependencies yourself.
+   */
+  trait Weaver extends TestModule {
+    override def testFramework: T[String] = "weaver.framework.CatsEffect"
+  }
+
   @deprecated("Use other overload instead", "Mill after 0.10.2")
   def handleResults(
       doneMsg: String,
