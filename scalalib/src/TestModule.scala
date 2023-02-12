@@ -236,6 +236,7 @@ object TestModule {
   /**
    * TestModule that uses MUnit to run tests.
    * You need to provide the weaver dependencies yourself.
+   * https://github.com/disneystreaming/weaver-test
    */
   trait Weaver extends TestModule {
     override def testFramework: T[String] = "weaver.framework.CatsEffect"
