@@ -234,7 +234,7 @@ object TestModule {
   }
 
   /**
-   * TestModule that uses MUnit to run tests.
+   * TestModule that uses Weaver to run tests.
    * You need to provide the weaver dependencies yourself.
    * https://github.com/disneystreaming/weaver-test
    */
