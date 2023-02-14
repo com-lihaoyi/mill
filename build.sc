@@ -178,7 +178,7 @@ object Deps {
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.2"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
 }
 
