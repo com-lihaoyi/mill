@@ -10,9 +10,11 @@ import sbt.testing._
 import java.io.FileInputStream
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.util.{Try, Using}
 
 object TestRunner {
@@ -280,7 +282,7 @@ object TestRunner {
       cl => {
         val framework = frameworkInstances(cl)
 
-        val events = mutable.Buffer.empty[Event]
+        val events = new ConcurrentLinkedQueue[Event]()
 
         val doneMessage = {
           val runner = framework.runner(args.toArray, Array[String](), cl)
@@ -305,7 +307,7 @@ object TestRunner {
                 new EventHandler {
                   def handle(event: Event) = {
                     testReporter.logStart(event)
-                    events.append(event)
+                    events.add(event)
                     testReporter.logFinish(event)
                   }
                 },
@@ -329,7 +331,7 @@ object TestRunner {
           runner.done()
         }
 
-        val results = for (e <- events) yield {
+        val results = for (e <- events.iterator().asScala) yield {
           val ex =
             if (e.throwable().isDefined) Some(e.throwable().get) else None
           mill.testrunner.TestRunner.Result(
