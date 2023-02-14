@@ -124,7 +124,7 @@ object MillMain {
         (false, None)
 
       case Right(config) =>
-        if (!config.ammoniteCore.silent.value) {
+        if (!config.silent.value) {
           checkMillVersionFromFile(os.pwd, stderr)
         }
 
@@ -199,8 +199,8 @@ object MillMain {
 
             val ammConfig = ammonite.main.Config(
               core = ammonite.main.Config.Core(
-                noDefaultPredef = Flag(),
-                silent = Flag(),
+                noDefaultPredef = config.noDefaultPredef,
+                silent = config.silent,
                 watch = config.watch,
                 bsp = Flag(),
                 code = None,

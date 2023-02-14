@@ -81,6 +81,16 @@ case class MillConfig(
     )
     home: os.Path = mill.api.Ctx.defaultHome,
     @arg(
+      short = 's',
+      doc =
+        "Make ivy logs during script import resolution go silent instead of printing; " +
+           "though failures will still throw exception")
+    silent: Flag,
+    @arg(
+      name = "no-default-predef",
+      doc = "Disable the default predef and run Mill with the minimal predef possible")
+    noDefaultPredef: Flag,
+    @arg(
       name = "rest",
       doc =
         "The name of the targets you want to build, " +
