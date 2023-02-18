@@ -73,14 +73,14 @@ object MillMain {
       initialSystemProperties: Map[String, String]
   ): (Boolean, Option[EvaluatorState]) = {
 
-    MillConfigParser.parse(args) match {
+    MillCliConfigParser.parse(args) match {
       // Cannot parse args
       case Left(msg) =>
         stderr.println(msg)
         (false, None)
 
-      case Right(config) if config.ammoniteCore.help.value =>
-        stdout.println(MillConfigParser.usageText)
+      case Right(config) if config.help.value =>
+        stdout.println(MillCliConfigParser.usageText)
         (true, None)
 
       case Right(config) if config.showVersion.value =>
@@ -124,7 +124,7 @@ object MillMain {
         (false, None)
 
       case Right(config) =>
-        if (!config.ammoniteCore.silent.value) {
+        if (!config.silent.value) {
           checkMillVersionFromFile(os.pwd, stderr)
         }
 
@@ -171,12 +171,9 @@ object MillMain {
               else
                 s"""import $$file.build, build._
                    |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                   |  os.Path(${pprint
-                    .apply(
-                      config.ammoniteCore.home.toIO.getCanonicalPath
-                        .replace("$", "$$")
-                    )
-                    .plainText}),
+                   |  os.Path(${pprint.apply(
+                    config.home.toIO.getCanonicalPath.replace("$", "$$")
+                  ).plainText}),
                    |  ${config.disableTicker.value},
                    |  interp.colors(),
                    |  repl.pprinter(),
@@ -201,13 +198,25 @@ object MillMain {
             }.mkString("\n")
 
             val ammConfig = ammonite.main.Config(
-              core = config.ammoniteCore,
+              core = ammonite.main.Config.Core(
+                noDefaultPredef = config.noDefaultPredef,
+                silent = config.silent,
+                watch = config.watch,
+                bsp = Flag(),
+                code = None,
+                home = config.home,
+                predefFile = None,
+                color = None,
+                thin = Flag(),
+                help = config.help,
+                showVersion = Flag()
+              ),
               predef = ammonite.main.Config.Predef(
                 predefCode = Seq(predefCode, importsPredefCode).filter(_.nonEmpty).mkString("\n"),
                 noHomePredef = Flag()
               ),
               repl = ammonite.main.Config.Repl(
-                banner = MillConfigParser.customName,
+                banner = MillCliConfigParser.customName,
                 noRemoteLogging = Flag(),
                 classBased = Flag()
               )
@@ -233,7 +242,7 @@ object MillMain {
             )
 
             if (mill.main.client.Util.isJava9OrAbove) {
-              val rt = config.ammoniteCore.home / Export.rtJarName
+              val rt = config.home / Export.rtJarName
               if (!os.exists(rt)) {
                 runner.printInfo(
                   s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
