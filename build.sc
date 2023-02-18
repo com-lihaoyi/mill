@@ -148,6 +148,7 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.19.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.9.0"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.4.0"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -342,7 +343,8 @@ object main extends MillModule {
 
   override def moduleDeps = Seq(core, client)
   override def ivyDeps = Agg(
-    Deps.windowsAnsi
+    Deps.windowsAnsi,
+    Deps.mainargs
   )
   override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
