@@ -362,10 +362,10 @@ object main extends MillModule {
     def generatedBuildInfo: T[Seq[PathRef]] = T {
       val dest = T.dest
       val code =
-        s"""package mill.main.api
+        s"""package mill.api
            |
            |/** Generated at built-time by Mill. */
-           |object BuildInfo {
+           |private[api] object BuildInfo {
            |  /** Mill version. */
            |  val millVersion: String = "${millVersion()}"
            |}

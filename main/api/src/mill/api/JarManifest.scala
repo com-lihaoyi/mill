@@ -1,6 +1,5 @@
 package mill.api
 
-import mill.main.api.BuildInfo
 import upickle.default.ReadWriter
 
 import java.util.jar.{Attributes, Manifest}
