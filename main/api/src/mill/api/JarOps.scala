@@ -28,13 +28,46 @@ trait JarOps {
   def jar(
       jar: os.Path,
       inputPaths: Agg[os.Path],
-      manifest: Manifest,
+      manifest: JarManifest = JarManifest.Empty,
       fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true,
       includeDirs: Boolean = false,
       timestamp: Option[Long] = None
-  ): Unit = {
+  ): Unit = this.jar(
+    jar = jar,
+    inputPaths = inputPaths,
+    manifest = manifest.build,
+    fileFilter = fileFilter,
+    includeDirs = includeDirs,
+    timestamp = timestamp
+  )
 
+  /**
+   * Create a JAR file with default inflation level.
+   * d
+   *
+   * @param jar         The final JAR file
+   * @param inputPaths  The input paths resembling the content of the JAR file.
+   *                    Files will be directly included in the root of the archive,
+   *                    whereas for directories their content is added to the root of the archive.
+   * @param manifest    The JAR Manifest
+   * @param fileFilter  A filter to support exclusions of selected files
+   * @param includeDirs If `true` the JAR archive will contain directory entries.
+   *                    According to the ZIP specification, directory entries are not required.
+   *                    In the Java ecosystem, most JARs have directory entries, so including them may reduce compatibility issues.
+   *                    Directory entry names will result with a trailing `/`.
+   * @param timestamp   If specified, this timestamp is used as modification timestamp (mtime) for all entries in the JAR file.
+   *                    Having a stable timestamp may result in reproducible files, if all other content, including the JAR Manifest, keep stable.
+   */
+  def jar(
+      jar: os.Path,
+      inputPaths: Agg[os.Path],
+      manifest: Manifest,
+      fileFilter: (os.Path, os.RelPath) => Boolean,
+      includeDirs: Boolean,
+      timestamp: Option[Long]
+  ): Unit = {
     val curTime = timestamp.getOrElse(System.currentTimeMillis())
+
     def mTime(file: os.Path) = timestamp.getOrElse(os.mtime(file))
 
     os.makeDir.all(jar / os.up)

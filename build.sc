@@ -359,6 +359,21 @@ object main extends MillModule {
       Deps.upickle,
       Deps.sbtTestInterface
     )
+    def generatedBuildInfo: T[Seq[PathRef]] = T {
+      val dest = T.dest
+      val code =
+        s"""package mill.main.api
+           |
+           |/** Generated at built-time by Mill. */
+           |object BuildInfo {
+           |  /** Mill version. */
+           |  val millVersion: String = "${millVersion()}"
+           |}
+           |""".stripMargin
+      os.write(dest / "mill" / "main" / "api" / "BuildInfo.scala", code, createFolders = true)
+      Seq(PathRef(dest))
+    }
+    override def generatedSources: T[Seq[PathRef]] = super.generatedSources() ++ generatedBuildInfo()
   }
   object util extends MillApiModule with MillAutoTestSetup {
     override def moduleDeps = Seq(api)

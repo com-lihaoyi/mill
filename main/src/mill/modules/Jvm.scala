@@ -242,17 +242,10 @@ object Jvm extends CoursierSupport {
     )
   }
 
-  def createManifest(mainClass: Option[String]): JarManifest = {
-    val main =
-      Map[String, String](
-        java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
-        "Created-By" -> s"Mill ${BuildInfo.millVersion}",
-        "Tool" -> s"Mill-${BuildInfo.millVersion}"
-      ) ++
-        mainClass.map(mc => Map(java.util.jar.Attributes.Name.MAIN_CLASS.toString -> mc)).getOrElse(
-          Map.empty
-        )
-    JarManifest(main)
+  def createManifest(mainClass: Option[String]): mill.api.JarManifest = {
+    mainClass.foldLeft(mill.api.JarManifest.MillDefault)((m, c) =>
+      m.add((java.util.jar.Attributes.Name.MAIN_CLASS.toString, c))
+    )
   }
 
   /**
@@ -269,7 +262,7 @@ object Jvm extends CoursierSupport {
    */
   def createJar(
       inputPaths: Agg[os.Path],
-      manifest: JarManifest = JarManifest.Default,
+      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
       fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true
   )(implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
@@ -285,16 +278,16 @@ object Jvm extends CoursierSupport {
   def createJar(
       jar: os.Path,
       inputPaths: Agg[os.Path],
-      manifest: JarManifest,
+      manifest: mill.api.JarManifest,
       fileFilter: (os.Path, os.RelPath) => Boolean
   ): Unit =
-    JarOps.jar(jar, inputPaths, manifest.build, fileFilter, includeDirs = true, timestamp = None)
+    JarOps.jar(jar, inputPaths, manifest, fileFilter, includeDirs = true, timestamp = None)
 
   def createClasspathPassingJar(jar: os.Path, classpath: Agg[os.Path]): Unit = {
     createJar(
       jar = jar,
       inputPaths = Agg(),
-      manifest = JarManifest.Default.add(
+      manifest = mill.api.JarManifest.MillDefault.add(
         "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(
           " "
         )
@@ -305,7 +298,7 @@ object Jvm extends CoursierSupport {
 
   def createAssembly(
       inputPaths: Agg[os.Path],
-      manifest: JarManifest = JarManifest.Default,
+      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
       prependShellScript: String = "",
       base: Option[os.Path] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
@@ -449,38 +442,9 @@ object Jvm extends CoursierSupport {
     PathRef(outputPath)
   }
 
-
-  object JarManifest {
-    implicit val jarManifestRW: RW[JarManifest] = upickle.default.macroRW
-    final val Default = createManifest(None)
-  }
-
-  /**
-   * Represents a JAR manifest.
-   * @param main the main manifest attributes
-   * @param groups additional attributes for named entries
-   */
-  final case class JarManifest(
-      main: Map[String, String] = Map.empty,
-      groups: Map[String, Map[String, String]] = Map.empty
-  ) {
-    def add(entries: (String, String)*): JarManifest = copy(main = main ++ entries)
-    def addGroup(group: String, entries: (String, String)*): JarManifest =
-      copy(groups = groups + (group -> (groups.getOrElse(group, Map.empty) ++ entries)))
-
-    /** Constructs a [[java.util.jar.Manifest]] from this JarManifest. */
-    def build: Manifest = {
-      val manifest = new Manifest
-      val mainAttributes = manifest.getMainAttributes
-      main.foreach { case (key, value) => mainAttributes.putValue(key, value) }
-      val entries = manifest.getEntries
-      for ((group, attribs) <- groups) {
-        val attrib = new Attributes
-        attribs.foreach { case (key, value) => attrib.putValue(key, value) }
-        entries.put(group, attrib)
-      }
-      manifest
-    }
-  }
+  @deprecated("Use mill.api.JarManifest instead", "Mill after 0.11.0-M4")
+  type JarManifest = mill.api.JarManifest
+  @deprecated("Use mill.api.JarManifest instead", "Mill after 0.11.0-M4")
+  val JarManifest = mill.api.JarManifest
 
 }

@@ -10,7 +10,7 @@ import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.api.Loose.Agg
-import mill.api.{PathRef, Result, internal}
+import mill.api.{JarManifest, PathRef, Result, internal}
 import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.eval.EvaluatorPathsResolver
 import mill.modules.{Assembly, Jvm}
@@ -398,7 +398,7 @@ trait JavaModule
    * Creates a manifest representation which can be modified or replaced
    * The default implementation just adds the `Manifest-Version`, `Main-Class` and `Created-By` attributes
    */
-  def manifest: T[Jvm.JarManifest] = T {
+  def manifest: T[JarManifest] = T {
     Jvm.createManifest(finalMainClassOpt().toOption)
   }
 
