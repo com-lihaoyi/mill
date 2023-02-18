@@ -73,14 +73,14 @@ object MillMain {
       initialSystemProperties: Map[String, String]
   ): (Boolean, Option[EvaluatorState]) = {
 
-    MillConfigParser.parse(args) match {
+    MillCliConfigParser.parse(args) match {
       // Cannot parse args
       case Left(msg) =>
         stderr.println(msg)
         (false, None)
 
       case Right(config) if config.help.value =>
-        stdout.println(MillConfigParser.usageText)
+        stdout.println(MillCliConfigParser.usageText)
         (true, None)
 
       case Right(config) if config.showVersion.value =>
@@ -216,7 +216,7 @@ object MillMain {
                 noHomePredef = Flag()
               ),
               repl = ammonite.main.Config.Repl(
-                banner = MillConfigParser.customName,
+                banner = MillCliConfigParser.customName,
                 noRemoteLogging = Flag(),
                 classBased = Flag()
               )

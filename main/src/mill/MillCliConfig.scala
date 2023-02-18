@@ -2,7 +2,7 @@ package mill
 
 import mainargs.{Flag, Leftover, arg}
 
-class MillConfig private (
+class MillCliConfig private (
     @arg(
       short = 'h',
       doc =
@@ -20,8 +20,8 @@ class MillConfig private (
     @arg(
       name = "no-server",
       doc =
-        """Run Mill in single-process mode. 
-           In this mode, no mill server will be started or used. 
+        """Run Mill in single-process mode.
+           In this mode, no mill server will be started or used.
            Must be the first argument."""
     )
     val noServer: Flag,
@@ -59,7 +59,7 @@ class MillConfig private (
       name = "jobs",
       short = 'j',
       doc =
-        """Allow processing N targets in parallel. 
+        """Allow processing N targets in parallel.
            Use 1 to disable parallel and 0 to use as much threads as available processors."""
     )
     val threadCountRaw: Option[Int],
@@ -85,7 +85,7 @@ class MillConfig private (
     @arg(
       short = 's',
       doc =
-        """Make ivy logs during script import resolution go silent instead of printing; 
+        """Make ivy logs during script import resolution go silent instead of printing;
            though failures will still throw exception."""
     )
     val silent: Flag,
@@ -97,13 +97,38 @@ class MillConfig private (
     @arg(
       name = "rest",
       doc =
-        """The name of the targets you want to build, 
+        """The name of the targets you want to build,
            followed by any parameters you wish to pass to those targets."""
     )
     val leftoverArgs: Leftover[String]
-)
+) {
+  override def toString: String = Seq(
+    "home" -> home,
+    "repl" -> repl,
+    "noServer" -> noServer,
+    "bsp" -> bsp,
+    "showVersion" -> showVersion,
+    "ringBell" -> ringBell,
+    "disableTicker" -> disableTicker,
+    "debugLog" -> debugLog,
+    "keepGoing" -> keepGoing,
+    "extraSystemProperties" -> extraSystemProperties,
+    "threadCountRaw" -> threadCountRaw,
+    "imports" -> imports,
+    "interactive" -> interactive,
+    "help" -> help,
+    "watch" -> watch,
+    "silent" -> silent,
+    "noDefaultPredef" -> noDefaultPredef,
+    "leftoverArgs" -> leftoverArgs
+  ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
+}
 
-object MillConfig {
+object MillCliConfig {
+  // mainargs requires us to keep this apply method in sync with the private ctr of the class
+  // mainargs is designed to work with case classes, but case classes can't be evolved in a binary compatible fashion
+  // mainargs parses the class ctr for it's internal model, but used the companion apply to actually create the
+  // config class, hence we need both in sync
   def apply(
       home: os.Path = mill.api.Ctx.defaultHome,
       repl: Flag = Flag(),
@@ -123,7 +148,7 @@ object MillConfig {
       silent: Flag = Flag(),
       noDefaultPredef: Flag = Flag(),
       leftoverArgs: Leftover[String] = Leftover()
-  ): MillConfig = new MillConfig(
+  ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,
     noServer = noServer,
@@ -151,17 +176,18 @@ import ammonite.repl.tools.Util.PathRead
 // We want this in a separate source file, but to avoid stale --help output due
 // to undercompilation, we have it in this file
 // see https://github.com/com-lihaoyi/mill/issues/2315
-object MillConfigParser {
+object MillCliConfigParser {
 
   val customName = s"Mill Build Tool, version ${BuildInfo.millVersion}"
   val customDoc = "usage: mill [options] [[target [target-options]] [+ [target ...]]]"
 
-  private[this] lazy val parser: ParserForClass[MillConfig] = mainargs.ParserForClass[MillConfig]
+  private[this] lazy val parser: ParserForClass[MillCliConfig] =
+    mainargs.ParserForClass[MillCliConfig]
 
   lazy val usageText =
     parser.helpText(customName = customName, customDoc = customDoc)
 
-  def parse(args: Array[String]): Either[String, MillConfig] = {
+  def parse(args: Array[String]): Either[String, MillCliConfig] = {
     parser.constructEither(
       args.toIndexedSeq,
       allowRepeats = true,
