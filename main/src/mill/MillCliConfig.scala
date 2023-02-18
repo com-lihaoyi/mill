@@ -125,10 +125,14 @@ class MillCliConfig private (
 }
 
 object MillCliConfig {
-  // mainargs requires us to keep this apply method in sync with the private ctr of the class
-  // mainargs is designed to work with case classes, but case classes can't be evolved in a binary compatible fashion
-  // mainargs parses the class ctr for it's internal model, but used the companion apply to actually create the
-  // config class, hence we need both in sync
+  /*
+   * mainargs requires us to keep this apply method in sync with the private ctr of the class.
+   * mainargs is designed to work with case classes,
+   * but case classes can't be evolved in a binary compatible fashion.
+   * mainargs parses the class ctr for itss internal model,
+   * but used the companion's apply to actually create an instance of the config class,
+   * hence we need both in sync.
+   */
   def apply(
       home: os.Path = mill.api.Ctx.defaultHome,
       repl: Flag = Flag(),
