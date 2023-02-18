@@ -11,7 +11,7 @@ trait JarOps {
 
   /**
    * Create a JAR file with default inflation level.
-   * d
+   *
    * @param jar The final JAR file
    * @param inputPaths The input paths resembling the content of the JAR file.
    *     Files will be directly included in the root of the archive,
@@ -43,7 +43,6 @@ trait JarOps {
 
   /**
    * Create a JAR file with default inflation level.
-   * d
    *
    * @param jar         The final JAR file
    * @param inputPaths  The input paths resembling the content of the JAR file.
