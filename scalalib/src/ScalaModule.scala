@@ -3,7 +3,7 @@ package scalalib
 
 import scala.annotation.nowarn
 import mill.define.{Command, Sources, Target, Task}
-import mill.api.{DummyInputStream, PathRef, Result, internal}
+import mill.api.{DummyInputStream, JarManifest, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
 import mill.api.Loose.Agg
@@ -501,7 +501,7 @@ trait ScalaModule extends JavaModule { outer =>
     }
   }
 
-  override def manifest: T[Jvm.JarManifest] = T {
+  override def manifest: T[JarManifest] = T {
     super.manifest().add("Scala-Version" -> scalaVersion())
   }
 

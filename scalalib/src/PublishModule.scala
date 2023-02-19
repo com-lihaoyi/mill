@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import mill.define.{Command, ExternalModule, Target, Task}
-import mill.api.{PathRef, Result}
+import mill.api.{JarManifest, PathRef, Result}
 import mill.main.Tasks
 import mill.modules.Jvm
 import mill.scalalib.PublishModule.checkSonatypeCreds
@@ -199,7 +199,7 @@ trait PublishModule extends JavaModule { outer =>
     ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
   }
 
-  override def manifest: T[Jvm.JarManifest] = T {
+  override def manifest: T[JarManifest] = T {
     import java.util.jar.Attributes.Name
     val pom = pomSettings()
     super.manifest().add(

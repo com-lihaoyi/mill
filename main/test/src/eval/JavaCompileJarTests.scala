@@ -2,12 +2,11 @@ package mill.eval
 
 import mill.define.{Discover, Input, Target, Task}
 import mill.modules.Jvm
-import mill.modules.Jvm.JarManifest
 import mill.api.Ctx.Dest
 import mill.{Module, T}
 import mill.util.{DummyLogger, TestEvaluator, TestUtil}
 import mill.api.Strict.Agg
-import mill.api.Loose
+import mill.api.{JarManifest, Loose}
 import utest._
 import mill._
 
@@ -50,7 +49,7 @@ object JavaCompileJarTests extends TestSuite {
         def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T {
           Jvm.createJar(
             Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
-            JarManifest.Default,
+            JarManifest.MillDefault,
             fileFilter
           )
         }
