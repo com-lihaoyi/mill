@@ -2,9 +2,8 @@ package mill.define
 
 import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
 import mill.define.Applicative.Applyable
-import mill.define.EnclosingClass
-import sourcecode.Compat.Context
 import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
+
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
@@ -55,6 +54,7 @@ trait NamedTask[+T] extends Task[T] {
 trait Target[+T] extends NamedTask[T] {
   override def asTarget: Option[Target[T]] = Some(this)
   def readWrite: RW[_]
+  def validate: Boolean
 }
 
 object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
@@ -78,20 +78,33 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
+    val taskNeedsValidation = needsValidationTargetOption(c)
 
     val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.Success(t.splice)).tree)
 
     mill.moduledefs.Cacher.impl0[TargetImpl[T]](c)(
       reify(
-        new TargetImpl[T](lhs.splice, ctx.splice, rw.splice, taskIsPrivate.splice)
+        new TargetImpl[T](
+          lhs.splice,
+          ctx.splice,
+          rw.splice,
+          taskIsPrivate.splice,
+          taskNeedsValidation.splice
+        )
       )
     )
   }
 
-  def isPrivateTargetOption(c: Context): c.Expr[Option[Boolean]] = {
+  private def isPrivateTargetOption(c: Context): c.Expr[Option[Boolean]] = {
     import c.universe._
     if (c.internal.enclosingOwner.isPrivate) reify(Some(true))
     else reify(Some(false))
+  }
+
+  private def needsValidationTargetOption(c: Context): c.Expr[Boolean] = {
+    import c.universe._
+    c.internal.enclosingOwner.annotations.find(_.tree.tpe =:= typeOf[validated])
+      .fold(reify(false))(_ => reify(true))
   }
 
   implicit def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
@@ -104,6 +117,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
+    val taskNeedsValidation = needsValidationTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
@@ -111,7 +125,8 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
           Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice,
           ctx.splice,
           rw.splice,
-          taskIsPrivate.splice
+          taskIsPrivate.splice,
+          taskNeedsValidation.splice
         )
       )
     )
@@ -127,10 +142,17 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
+    val taskNeedsValidation = needsValidationTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
-        new TargetImpl[T](t.splice, ctx.splice, rw.splice, taskIsPrivate.splice)
+        new TargetImpl[T](
+          t.splice,
+          ctx.splice,
+          rw.splice,
+          taskIsPrivate.splice,
+          taskNeedsValidation.splice
+        )
       )
     )
   }
@@ -343,6 +365,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
+    val taskNeedsValidation = needsValidationTargetOption(c)
 
     mill.moduledefs.Cacher.impl0[Persistent[T]](c)(
       reify(
@@ -350,7 +373,8 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
           Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
           ctx.splice,
           rw.splice,
-          taskIsPrivate.splice
+          taskIsPrivate.splice,
+          taskNeedsValidation.splice
         )
       )
     )
@@ -379,8 +403,9 @@ abstract class NamedTaskImpl[+T](
 class TargetImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
-    val readWrite: RW[_],
-    isPrivate: Option[Boolean]
+    override val readWrite: RW[_],
+    isPrivate: Option[Boolean],
+    override val validate: Boolean
 ) extends NamedTaskImpl[T](ctx0, t, isPrivate)
     with Target[T] {}
 
@@ -404,8 +429,9 @@ class Persistent[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
     readWrite: RW[_],
-    isPrivate: Option[Boolean]
-) extends TargetImpl[T](t, ctx0, readWrite, isPrivate) {
+    isPrivate: Option[Boolean],
+    validate: Boolean
+) extends TargetImpl[T](t, ctx0, readWrite, isPrivate, validate) {
 
   override def flushDest = false
 }

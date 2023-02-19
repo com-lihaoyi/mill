@@ -7,7 +7,7 @@ import scala.util.{Properties, Using}
 import scala.xml.NodeSeq
 import mill._
 import mill.api.Result
-import mill.define.{Input, Target}
+import mill.define.{Input, NamedTask, Target, Task, validated}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.modules.Assembly
 import mill.scalalib.publish.{VersionControl, _}
@@ -305,6 +305,18 @@ object HelloWorldTests extends TestSuite {
       override def scalaVersion = T("2.13.5")
       override def ammoniteVersion = T("2.5.0")
     }
+  }
+
+  object ValidatedTarget extends HelloBase {
+    def uncheckedPathRef: T[PathRef] = T { PathRef(T.dest) }
+    def uncheckedSeqPathRef: T[Seq[PathRef]] = T { Seq(PathRef(T.dest)) }
+    def uncheckedAggPathRef: T[Agg[PathRef]] = T { Agg(PathRef(T.dest)) }
+    def uncheckedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(PathRef(T.dest)) }
+
+    @validated def checkedPathRef: T[PathRef] = T { PathRef(T.dest) }
+    @validated def checkedSeqPathRef: T[Seq[PathRef]] = T { Seq(PathRef(T.dest)) }
+    @validated def checkedAggPathRef: T[Agg[PathRef]] = T { Agg(PathRef(T.dest)) }
+    @validated def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(PathRef(T.dest)) }
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
@@ -1200,6 +1212,88 @@ object HelloWorldTests extends TestSuite {
       assert(oldResult == "ammonite.Main")
       val Right((newResult, _)) = eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass)
       assert(newResult == "ammonite.AmmoniteMain")
+    }
+
+    "@validated" - {
+      "PathRef" - {
+        def check(t: Target[PathRef], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+          // we reconstruct faulty behavior
+          val Right((result, _)) = eval.apply(t)
+          assert(
+            result.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            os.exists(result.path)
+          )
+          os.remove.all(result.path)
+          val Right((result2, _)) = eval.apply(t)
+          assert(
+            result2.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            // as the result was cached but not checked, this path is missing
+            os.exists(result2.path) == flip
+          )
+        }
+        "unchecked" - check(ValidatedTarget.uncheckedPathRef, false)
+        "checked" - check(ValidatedTarget.checkedPathRef, true)
+      }
+      "SeqPathRef" - {
+        def check(t: Target[Seq[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+          // we reconstruct faulty behavior
+          val Right((result, _)) = eval.apply(t)
+          assert(
+            result.map(_.path.last) == Seq(t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            result.forall(p => os.exists(p.path))
+          )
+          result.foreach(p => os.remove.all(p.path))
+          val Right((result2, _)) = eval.apply(t)
+          assert(
+            result2.map(_.path.last) == Seq(t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            // as the result was cached but not checked, this path is missing
+            result2.forall(p => os.exists(p.path) == flip)
+          )
+        }
+        "unchecked" - check(ValidatedTarget.uncheckedSeqPathRef, false)
+        "checked" - check(ValidatedTarget.checkedSeqPathRef, true)
+      }
+      "AggPathRef" - {
+        def check(t: Target[Agg[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+          // we reconstruct faulty behavior
+          val Right((result, _)) = eval.apply(t)
+          assert(
+            result.map(_.path.last) == Agg(t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            result.forall(p => os.exists(p.path))
+          )
+          result.foreach(p => os.remove.all(p.path))
+          val Right((result2, _)) = eval.apply(t)
+          assert(
+            result2.map(_.path.last) == Agg(t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            // as the result was cached but not checked, this path is missing
+            result2.forall(p => os.exists(p.path) == flip)
+          )
+        }
+        "unchecked" - check(ValidatedTarget.uncheckedAggPathRef, false)
+        "checked" - check(ValidatedTarget.checkedAggPathRef, true)
+      }
+      "other" - {
+        def check(t: Target[Tuple1[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+          // we reconstruct faulty behavior
+          val Right((result, _)) = eval.apply(t)
+          assert(
+            result._1.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            os.exists(result._1.path)
+          )
+          os.remove.all(result._1.path)
+          val Right((result2, _)) = eval.apply(t)
+          assert(
+            result2._1.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            // as the result was cached but not checked, this path is missing
+            os.exists(result2._1.path) == flip
+          )
+        }
+        "unchecked" - check(ValidatedTarget.uncheckedTuplePathRef, false)
+        // here, we assume we don't validate at all, because of the unsupported result type
+        // TODO: once, we detect it in the macro, we should expect the thrown error error here
+        "checked" - check(ValidatedTarget.checkedTuplePathRef, false)
+      }
+
     }
   }
 }

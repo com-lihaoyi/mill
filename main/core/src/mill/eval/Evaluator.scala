@@ -5,7 +5,15 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import ammonite.runtime.SpecialClassLoader
 
 import scala.util.DynamicVariable
-import mill.api.{CompileProblemReporter, Ctx, DummyTestReporter, Loose, Strict, TestReporter}
+import mill.api.{
+  CompileProblemReporter,
+  Ctx,
+  DummyTestReporter,
+  Loose,
+  PathRef,
+  Strict,
+  TestReporter
+}
 import mill.api.Result.{Aborted, Failing, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define._
@@ -35,7 +43,7 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
 /**
  * Evaluate tasks.
  */
-class Evaluator private[Evaluator] (
+class Evaluator private (
     _home: os.Path,
     _outPath: os.Path,
     _externalOutPath: os.Path,
@@ -425,7 +433,24 @@ class Evaluator private[Evaluator] (
             None
         }
 
-        upToDateWorker.map((_, inputsHash)) orElse cached match {
+        lazy val cachedAndValidated: Option[(Any, Int)] = cached.flatMap { res =>
+          val valid = labelledNamedTask.task.asTarget.fold(true) {
+            case t if t.validate =>
+              res match {
+                case (pr: PathRef, _) => pr.validate()
+                case (prs: IterableOnce[_], _) if prs.iterator.isEmpty || prs.iterator.next.isInstanceOf[PathRef] =>
+                  prs.iterator.collect { case x: PathRef => x }
+                    .forall(_.validate())
+                case _ => // can't validate unsupported type
+                  // TODO: we should check this in the macros (and fail with an compile error); here we should throw and exception
+                  true
+              }
+            case _ => true
+          }
+          if (valid) Some(res) else None
+        }
+
+        upToDateWorker.map((_, inputsHash)) orElse cachedAndValidated match {
           case Some((v, hashCode)) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
             newResults(labelledNamedTask.task) = mill.api.Result.Success((v, hashCode))
