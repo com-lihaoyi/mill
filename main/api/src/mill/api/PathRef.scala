@@ -11,7 +11,7 @@ import upickle.default.{ReadWriter => RW}
  * changes can bust caches which are keyed off hashcodes.
  */
 case class PathRef private (path: os.Path, quick: Boolean, sig: Int) {
-  def validate(): Boolean = os.exists(path) && PathRef.apply(path, quick).sig == sig
+  def validate(): Boolean = PathRef.apply(path, quick).sig == sig
   /* Hide case class specific copy method. */
   private def copy(path: os.Path, quick: Boolean, sig: Int): PathRef = PathRef(path, quick, sig)
   override def toString: String =

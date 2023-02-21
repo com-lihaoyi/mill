@@ -308,15 +308,19 @@ object HelloWorldTests extends TestSuite {
   }
 
   object ValidatedTarget extends HelloBase {
-    def uncheckedPathRef: T[PathRef] = T { PathRef(T.dest) }
-    def uncheckedSeqPathRef: T[Seq[PathRef]] = T { Seq(PathRef(T.dest)) }
-    def uncheckedAggPathRef: T[Agg[PathRef]] = T { Agg(PathRef(T.dest)) }
-    def uncheckedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(PathRef(T.dest)) }
+    private def mkDirWithFile = T.task {
+      os.write(T.dest / "dummy", "dummy", createFolders = true)
+      PathRef(T.dest)
+    }
+    def uncheckedPathRef: T[PathRef] = T { mkDirWithFile() }
+    def uncheckedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()) }
+    def uncheckedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()) }
+    def uncheckedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile()) }
 
-    @validated def checkedPathRef: T[PathRef] = T { PathRef(T.dest) }
-    @validated def checkedSeqPathRef: T[Seq[PathRef]] = T { Seq(PathRef(T.dest)) }
-    @validated def checkedAggPathRef: T[Agg[PathRef]] = T { Agg(PathRef(T.dest)) }
-    @validated def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(PathRef(T.dest)) }
+    @validated def checkedPathRef: T[PathRef] = T { mkDirWithFile() }
+    @validated def checkedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()) }
+    @validated def checkedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()) }
+    @validated def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile()) }
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
