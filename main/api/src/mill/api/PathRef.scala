@@ -10,9 +10,16 @@ import upickle.default.{ReadWriter => RW}
  * on the contents of the filesystem underneath it. Used to ensure filesystem
  * changes can bust caches which are keyed off hashcodes.
  */
-case class PathRef(path: os.Path, quick: Boolean, sig: Int)
+case class PathRef private (path: os.Path, quick: Boolean, sig: Int) {
+  /* Hide case class specific copy method. */
+  private def copy(path: os.Path, quick: Boolean, sig: Int): PathRef = PathRef(path, quick, sig)
+  override def toString: String =
+    getClass().getSimpleName() + "(path=" + path + ",quick=" + quick + ",sig=" + sig + ")"
+}
 
 object PathRef {
+
+  def apply(path: os.Path, quick: Boolean, sig: Int): PathRef = new PathRef(path, quick, sig)
 
   /**
    * Create a [[PathRef]] by recursively digesting the content of a given `path`.
@@ -102,4 +109,8 @@ object PathRef {
       PathRef(path, quick, sig)
     }
   )
+
+  /* Hide case class generated unapply method. */
+  private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int)] =
+    Some((pathRef.path, pathRef.quick, pathRef.sig))
 }
