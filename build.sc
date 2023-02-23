@@ -158,7 +158,7 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.1"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.2"
   val scalametaTrees = ivy"org.scalameta::trees:4.7.4"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
@@ -373,7 +373,8 @@ object main extends MillModule {
       os.write(dest / "mill" / "main" / "api" / "BuildInfo.scala", code, createFolders = true)
       Seq(PathRef(dest))
     }
-    override def generatedSources: T[Seq[PathRef]] = super.generatedSources() ++ generatedBuildInfo()
+    override def generatedSources: T[Seq[PathRef]] =
+      super.generatedSources() ++ generatedBuildInfo()
   }
   object util extends MillApiModule with MillAutoTestSetup {
     override def moduleDeps = Seq(api)
