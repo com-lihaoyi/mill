@@ -135,7 +135,7 @@ object Deps {
   // avoid version 2.1.0-RC2 for issue https://github.com/coursier/coursier/issues/2603
   val coursier = ivy"io.get-coursier::coursier:2.1.0-RC6"
 
-  val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
+  val flywayCore = ivy"org.flywaydb:flyway-core:9.15.1"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.2"
 
@@ -373,7 +373,8 @@ object main extends MillModule {
       os.write(dest / "mill" / "main" / "api" / "BuildInfo.scala", code, createFolders = true)
       Seq(PathRef(dest))
     }
-    override def generatedSources: T[Seq[PathRef]] = super.generatedSources() ++ generatedBuildInfo()
+    override def generatedSources: T[Seq[PathRef]] =
+      super.generatedSources() ++ generatedBuildInfo()
   }
   object util extends MillApiModule with MillAutoTestSetup {
     override def moduleDeps = Seq(api)
