@@ -79,6 +79,7 @@ object JsEnvConfig {
   implicit def rwJsDom: RW[JsDom] = macroRW
   implicit def rwExoegoJsDomNodeJs: RW[ExoegoJsDomNodeJs] = macroRW
   implicit def rwPhantom: RW[Phantom] = macroRW
+  implicit def rwSelenium: RW[Selenium] = macroRW
   implicit def rw: RW[JsEnvConfig] = macroRW
 
   final case class NodeJs(
@@ -106,14 +107,56 @@ object JsEnvConfig {
       env: Map[String, String],
       autoExit: Boolean
   ) extends JsEnvConfig
+
+  final class Selenium private (
+      val capabilities: Selenium.Capabilities
+  ) extends JsEnvConfig
+  object Selenium {
+    implicit def rwCapabilities: RW[Capabilities] = macroRW
+    implicit def rwChromeOptions: RW[ChromeOptions] = macroRW
+    implicit def rwFirefoxOptions: RW[FirefoxOptions] = macroRW
+
+    def apply(capabilities: Capabilities): Selenium =
+      new Selenium(capabilities = capabilities)
+
+    sealed trait Capabilities
+    class FirefoxOptions private (val headless: Boolean) extends Capabilities {
+      def withHeadless(value: Boolean): Unit = copy(headless = value)
+      private def copy(
+          headless: Boolean = this.headless
+      ): FirefoxOptions = new FirefoxOptions(
+        headless = headless
+      )
+    }
+    object FirefoxOptions {
+      def apply: FirefoxOptions =
+        new FirefoxOptions(headless = false)
+      def apply(headless: Boolean): FirefoxOptions =
+        new FirefoxOptions(headless = headless)
+    }
+    class ChromeOptions private (val headless: Boolean) extends Capabilities {
+      def withHeadless(value: Boolean): Unit = copy(headless = value)
+      private def copy(
+          headless: Boolean = this.headless
+      ): ChromeOptions = new ChromeOptions(
+        headless = headless
+      )
+    }
+    object ChromeOptions {
+      def apply: ChromeOptions =
+        new ChromeOptions(headless = false)
+      def apply(headless: Boolean): ChromeOptions =
+        new ChromeOptions(headless = headless)
+    }
+  }
 }
 
 class OutputPatterns private (
-  val jsFile: String,
-  val sourceMapFile: String,
-  val moduleName: String,
-  val jsFileURI: String,
-  val sourceMapURI: String
+    val jsFile: String,
+    val sourceMapFile: String,
+    val moduleName: String,
+    val jsFileURI: String,
+    val sourceMapURI: String
 ) {
 
   /** Pattern for the JS file name (the file containing the module's code). */

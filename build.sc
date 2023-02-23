@@ -88,6 +88,7 @@ object Deps {
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
+    val scalajsEnvSelenium = ivy"org.scala-js::scalajs-env-selenium:1.1.1"
     val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}"
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}"
   }
@@ -645,6 +646,7 @@ object scalajslib extends MillModule {
           Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs
         )}"
          |    val scalajsEnvPhantomJs = "${formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)}"
+         |    val scalajsEnvSelenium = "${formatDep(Deps.Scalajs_1.scalajsEnvSelenium)}"
          |  }
          |}
          |""".stripMargin
@@ -666,7 +668,8 @@ object scalajslib extends MillModule {
       Deps.Scalajs_1.scalajsEnvNodejs,
       Deps.Scalajs_1.scalajsEnvJsdomNodejs,
       Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
-      Deps.Scalajs_1.scalajsEnvPhantomjs
+      Deps.Scalajs_1.scalajsEnvPhantomjs,
+      Deps.Scalajs_1.scalajsEnvSelenium
     )
   }
 }
