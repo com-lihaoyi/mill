@@ -740,7 +740,9 @@ class MillBuildServer(
 
     if (checkInitialized && !initialized) {
       future.completeExceptionally(
-        new Exception(s"Can not respond to ${prefix} request before receiving the `initialize` request.")
+        new Exception(
+          s"Can not respond to ${prefix} request before receiving the `initialize` request."
+        )
       )
     } else {
       statePromise.future.onComplete {
@@ -780,7 +782,9 @@ class MillBuildServer(
 
     if (checkInitialized && !initialized) {
       future.completeExceptionally(
-        new Exception(s"Can not respond to ${prefix} request before receiving the `initialize` request.")
+        new Exception(
+          s"Can not respond to ${prefix} request before receiving the `initialize` request."
+        )
       )
     } else {
       try {

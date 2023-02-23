@@ -48,7 +48,8 @@ object Module {
     lazy val modules: Seq[Module] = traverse(Seq(_))
     lazy val segmentsToModules = modules.map(m => (m.millModuleSegments, m)).toMap
 
-    lazy val targets: Set[Target[_]] = traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
+    lazy val targets: Set[Target[_]] =
+      traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
 
     lazy val segmentsToTargets: Map[Segments, Target[_]] = targets
       .map(t => (t.ctx.segments, t))

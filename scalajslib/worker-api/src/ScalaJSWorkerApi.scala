@@ -105,9 +105,9 @@ private[scalajslib] object ModuleSplitStyle {
 }
 
 private[scalajslib] final case class OutputPatterns(
-  jsFile: String,
-  sourceMapFile: String,
-  moduleName: String,
-  jsFileURI: String,
-  sourceMapURI: String
+    jsFile: String,
+    sourceMapFile: String,
+    moduleName: String,
+    jsFileURI: String,
+    sourceMapURI: String
 )
