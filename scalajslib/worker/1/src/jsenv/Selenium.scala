@@ -14,6 +14,9 @@ object Selenium {
           val result = new org.openqa.selenium.firefox.FirefoxOptions()
           result.setHeadless(options.headless)
           result
+        case options: JsEnvConfig.Selenium.SafariOptions =>
+          val result = new org.openqa.selenium.safari.SafariOptions()
+          result
       }
     )
 }

@@ -95,6 +95,8 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
               workerApi.JsEnvConfig.Selenium.ChromeOptions(headless = options.headless)
             case options: api.JsEnvConfig.Selenium.FirefoxOptions =>
               workerApi.JsEnvConfig.Selenium.FirefoxOptions(headless = options.headless)
+            case options: api.JsEnvConfig.Selenium.SafariOptions =>
+              workerApi.JsEnvConfig.Selenium.SafariOptions()
           }
         )
     }

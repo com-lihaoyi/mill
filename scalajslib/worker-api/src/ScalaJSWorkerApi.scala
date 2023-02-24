@@ -90,6 +90,7 @@ private[scalajslib] object JsEnvConfig {
     sealed trait Capabilities
     case class ChromeOptions(headless: Boolean) extends Capabilities
     case class FirefoxOptions(headless: Boolean) extends Capabilities
+    case class SafariOptions() extends Capabilities
   }
 }
 
