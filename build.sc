@@ -244,7 +244,8 @@ trait MillCoursierModule extends CoursierModule {
     ("commons-io", "commons-io", "2.11.0"),
     ("com.google.code.gson", "gson", "2.10.1"),
     ("com.google.protobuf", "protobuf-java", "3.21.8"),
-    ("com.google.guava", "guava", "31.1-jre")
+    ("com.google.guava", "guava", "31.1-jre"),
+    ("org.yaml", "snakeyaml", "1.33")
   )
 }
 
