@@ -54,6 +54,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         ivy"${ScalaJSBuildInfo.Deps.scalajsEnvExoegoJsdomNodejs}"
       case _: JsEnvConfig.Phantom =>
         ivy"${ScalaJSBuildInfo.Deps.scalajsEnvPhantomJs}"
+      case _: JsEnvConfig.Selenium =>
+        ivy"${ScalaJSBuildInfo.Deps.scalajsEnvSelenium}"
     }
 
     Agg(dep)

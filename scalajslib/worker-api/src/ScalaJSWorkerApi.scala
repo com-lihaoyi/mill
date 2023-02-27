@@ -82,6 +82,16 @@ private[scalajslib] object JsEnvConfig {
       env: Map[String, String],
       autoExit: Boolean
   ) extends JsEnvConfig
+
+  final case class Selenium(
+      capabilities: Selenium.Capabilities
+  ) extends JsEnvConfig
+  object Selenium {
+    sealed trait Capabilities
+    case class ChromeOptions(headless: Boolean) extends Capabilities
+    case class FirefoxOptions(headless: Boolean) extends Capabilities
+    case class SafariOptions() extends Capabilities
+  }
 }
 
 private[scalajslib] final case class Report(
@@ -105,9 +115,9 @@ private[scalajslib] object ModuleSplitStyle {
 }
 
 private[scalajslib] final case class OutputPatterns(
-  jsFile: String,
-  sourceMapFile: String,
-  moduleName: String,
-  jsFileURI: String,
-  sourceMapURI: String
+    jsFile: String,
+    sourceMapFile: String,
+    moduleName: String,
+    jsFileURI: String,
+    sourceMapURI: String
 )
