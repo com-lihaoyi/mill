@@ -165,7 +165,7 @@ object JsEnvConfig {
     object FirefoxOptions {
       implicit def rw: RW[FirefoxOptions] = macroRW
 
-      def apply: FirefoxOptions =
+      def apply(): FirefoxOptions =
         new FirefoxOptions(headless = false)
       def apply(headless: Boolean): FirefoxOptions =
         new FirefoxOptions(headless = headless)
