@@ -146,7 +146,7 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.13.0"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
-  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
+  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.20.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.4.0"
