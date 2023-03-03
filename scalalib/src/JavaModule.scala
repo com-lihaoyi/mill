@@ -33,10 +33,10 @@ trait JavaModule
     override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
-    override def javacOptions: T[Seq[String]] = outer.javacOptions
+    override def javacOptions: Target[Seq[String]] = T { outer.javacOptions() }
     override def zincWorker: ZincWorkerModule = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
-    override def runUseArgsFile: T[Boolean] = super.runUseArgsFile
+    override def runUseArgsFile: Target[Boolean] = T { outer.runUseArgsFile() }
   }
   trait Tests extends JavaModuleTests
 

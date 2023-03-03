@@ -23,12 +23,12 @@ import mill.scalalib.dependency.versions.{ValidVersion, Version}
 trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
 
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
-    override def scalaOrganization: T[String] = outer.scalaOrganization()
-    override def scalaVersion: T[String] = outer.scalaVersion()
-    override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
-    override def scalacPluginClasspath = outer.scalacPluginClasspath
-    override def scalacOptions = outer.scalacOptions
-    override def mandatoryScalacOptions = outer.mandatoryScalacOptions
+    override def scalaOrganization: Target[String] = outer.scalaOrganization()
+    override def scalaVersion: Target[String] = outer.scalaVersion()
+    override def scalacPluginIvyDeps: Target[Agg[Dep]] = outer.scalacPluginIvyDeps()
+    override def scalacPluginClasspath: Target[Agg[PathRef]] = outer.scalacPluginClasspath()
+    override def scalacOptions: Target[Seq[String]] = outer.scalacOptions()
+    override def mandatoryScalacOptions: Target[Seq[String]] = outer.mandatoryScalacOptions()
   }
 
   trait Tests extends ScalaModuleTests
@@ -58,7 +58,7 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
   def scalaVersion: T[String]
 
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
-    d: coursier.Dependency =>
+    super.mapDependencies().andThen { d: coursier.Dependency =>
       val artifacts =
         if (ZincWorkerUtil.isDotty(scalaVersion()))
           Set("dotty-library", "dotty-compiler")
@@ -74,6 +74,7 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
           )
         )
           .withVersion(scalaVersion())
+    }
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
