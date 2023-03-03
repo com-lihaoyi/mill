@@ -13,7 +13,7 @@ case class Artifact(group: String, id: String, version: String) {
 }
 
 object Artifact {
-  def fromDepJava(dep: Dep) = {
+  def fromDepJava(dep: Dep): Dependency = {
     assert(dep.cross.isConstant, s"Not a Java dependency: $dep")
     fromDep(dep, "", "", "")
   }

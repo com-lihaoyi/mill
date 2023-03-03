@@ -18,7 +18,7 @@ trait MavenModule extends JavaModule { outer =>
 
   trait MavenModuleTests extends JavaModuleTests {
     override def millSourcePath = outer.millSourcePath
-    override def intellijModulePath = outer.millSourcePath / "src" / "test"
+    override def intellijModulePath: os.Path = outer.millSourcePath / "src" / "test"
 
     override def sources = T.sources(
       millSourcePath / "src" / "test" / "java"
