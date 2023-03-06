@@ -39,3 +39,7 @@ a769e208cf7e276f11f859ca7e618d5c973e6d4c
 
 # Partially revert "Reformat with scalafmt 3.6.1" to fix failing tests
 11ea5481831dc6efb57812a9dbf5d777362d21cb
+
+# Author: Tobias Roeser <le.petit.fou@web.de> Mon Mar 6 09:23:52 2023 +0100
+# Allign source file locations with packages
+a47ea5f9ab5a9eacbe2138fa22379b261820764e
