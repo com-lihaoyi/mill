@@ -130,7 +130,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
     val taskIsPrivate = isPrivateTargetOption(c)
 
-    val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.Success(t.splice)).tree)
+    val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.create(t.splice)).tree)
 
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(

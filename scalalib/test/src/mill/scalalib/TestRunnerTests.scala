@@ -68,7 +68,7 @@ object TestRunnerTests extends TestSuite {
               )
               TestArgs.parseArgs(testArgs.toArgsSeq.toArray) == Success(testArgs)
           }
-        }.check
+        }.check()
       }
     }
     "TestRunner" - {

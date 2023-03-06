@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import scala.annotation.nowarn
+import scala.annotation.{nowarn, tailrec}
 import coursier.Repository
 import coursier.core.Dependency
 import coursier.core.Resolution
@@ -18,6 +18,8 @@ import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
 import os.Path
 
+import scala.collection.immutable.ListSet
+
 /**
  * Core configuration required to compile a single Java compilation target
  */
@@ -31,6 +33,26 @@ trait JavaModule
     with SemanticDbJavaModule { outer =>
 
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
+
+  override def millModuleDirectChildren: Seq[Module] = {
+//    // hook some checks
+//    recursive[JavaModule]("moduleDeps", this, _.moduleDeps)
+    super.millModuleDirectChildren
+  }
+
+  private def recursive[T <: Module](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
+    @tailrec def rec(found: List[T], candidates: List[T]): List[T] = {
+      candidates match {
+        case Nil => found
+        case h :: _ if found.contains(h) =>
+          val rendered = (h :: (h :: found.takeWhile(_ != h)).reverse).mkString(" -> ")
+
+          throw new IllegalStateException(s"${name}: cycle detected: ${rendered}")
+        case h :: t => rec(found = h :: found, candidates = t ::: deps(h).toList.reverse)
+      }
+    }
+    rec(start :: Nil, deps(start).toList.reverse).tail.reverse
+  }
 
   trait JavaModuleTests extends TestModule {
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
@@ -120,14 +142,32 @@ trait JavaModule
   /** The direct dependencies of this module */
   def moduleDeps: Seq[JavaModule] = Seq.empty
 
+  final def moduleDepsChecked: Seq[JavaModule] = {
+    // trigger initialization to check for cycles
+    recModuleDeps
+    moduleDeps
+  }
+
+  private lazy val recModuleDeps: Seq[JavaModule] =
+    recursive[JavaModule]("moduleDeps", this, _.moduleDeps)
+
   /** The compile-only direct dependencies of this module. */
   def compileModuleDeps: Seq[JavaModule] = Seq.empty
+
+  final def compileModuleDepsChecked: Seq[JavaModule] = {
+    // trigger initialization to check for cycles
+    recCompileModuleDeps
+    compileModuleDeps
+  }
+
+  private lazy val recCompileModuleDeps: Seq[JavaModule] =
+    recursive[JavaModule]("compileModuleDeps", this, _.compileModuleDeps)
 
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = T {
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
     compileIvyDeps().map(bindDependency()) ++ T
-      .traverse(compileModuleDeps)(_.transitiveIvyDeps)()
+      .traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)()
       .flatten
   }
 
@@ -136,17 +176,17 @@ trait JavaModule
    * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.
    */
   def showModuleDeps(recursive: Boolean = false): Command[Unit] = T.command {
-    val normalDeps = if (recursive) recursiveModuleDeps else moduleDeps
+    val normalDeps = if (recursive) recursiveModuleDeps else moduleDepsChecked
     val compileDeps =
-      if (recursive) compileModuleDeps.flatMap(_.transitiveModuleDeps).distinct
-      else compileModuleDeps
+      if (recursive) compileModuleDepsChecked.flatMap(_.transitiveModuleDeps).distinct
+      else compileModuleDepsChecked
     val deps = (normalDeps ++ compileDeps).distinct
     val asString =
       s"${if (recursive) "Recursive module"
         else "Module"} dependencies of ${millModuleSegments.render}:\n\t${deps
           .map { dep =>
             dep.millModuleSegments.render ++
-              (if (compileModuleDeps.contains(dep) || !normalDeps.contains(dep)) " (compile)"
+              (if (compileModuleDepsChecked.contains(dep) || !normalDeps.contains(dep)) " (compile)"
                else "")
           }
           .mkString("\n\t")}"
@@ -154,9 +194,7 @@ trait JavaModule
   }
 
   /** The direct and indirect dependencies of this module */
-  def recursiveModuleDeps: Seq[JavaModule] = {
-    moduleDeps.flatMap(_.transitiveModuleDeps).distinct
-  }
+  def recursiveModuleDeps: Seq[JavaModule] = recModuleDeps
 
   /** Like `recursiveModuleDeps` but also include the module itself */
   def transitiveModuleDeps: Seq[JavaModule] = {
@@ -175,7 +213,7 @@ trait JavaModule
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = T {
-    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++ T.traverse(moduleDeps)(
+    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++ T.traverse(moduleDepsChecked)(
       _.transitiveIvyDeps
     )().flatten
   }
@@ -184,7 +222,7 @@ trait JavaModule
    * The upstream compilation output of all this module's upstream modules
    */
   def upstreamCompileOutput: T[Seq[CompilationResult]] = T {
-    T.traverse((recursiveModuleDeps ++ compileModuleDeps.flatMap(
+    T.traverse((recursiveModuleDeps ++ compileModuleDepsChecked.flatMap(
       _.transitiveModuleDeps
     )).distinct)(_.compile)
   }
@@ -194,7 +232,7 @@ trait JavaModule
    */
   def transitiveLocalClasspath: T[Agg[PathRef]] = T {
     T.traverse(
-      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+      (moduleDepsChecked ++ compileModuleDepsChecked).flatMap(_.transitiveModuleDeps).distinct
     )(m => m.localClasspath)()
       .flatten
   }
@@ -206,7 +244,7 @@ trait JavaModule
   @internal
   def bspTransitiveLocalClasspath: Target[Agg[UnresolvedPath]] = T {
     T.traverse(
-      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+      (moduleDepsChecked ++ compileModuleDepsChecked).flatMap(_.transitiveModuleDeps).distinct
     )(m => m.bspLocalClasspath)()
       .flatten
   }

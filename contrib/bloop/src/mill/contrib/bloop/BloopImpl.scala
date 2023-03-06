@@ -198,7 +198,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
     // //////////////////////////////////////////////////////////////////////////
 
     val classpath = T.task {
-      val depModules = (module.compileModuleDeps ++ module.recursiveModuleDeps).distinct
+      val depModules = (module.compileModuleDepsChecked ++ module.recursiveModuleDeps).distinct
       // dep modules ++ ivy deps ++ unmanaged
       depModules.map(classes) ++
         module.resolvedIvyDeps().map(_.path) ++
@@ -404,7 +404,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         sources = mSources,
         sourcesGlobs = None,
         sourceRoots = None,
-        dependencies = (module.moduleDeps ++ module.compileModuleDeps).map(name).toList,
+        dependencies = (module.moduleDepsChecked ++ module.compileModuleDepsChecked).map(name).toList,
         classpath = classpath().map(_.toNIO).toList,
         out = out(module).toNIO,
         classesDir = classes(module).toNIO,
