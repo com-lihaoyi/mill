@@ -554,8 +554,8 @@ case class GenIdeaImpl(
         val libNames = Strict.Agg.from(sanizedDeps).iterator.toSeq
 
         val depNames = Strict.Agg
-          .from(mod.moduleDeps.map((_, None)) ++
-            mod.compileModuleDeps.map((_, Some("PROVIDED"))))
+          .from(mod.moduleDepsChecked.map((_, None)) ++
+            mod.compileModuleDepsChecked.map((_, Some("PROVIDED"))))
           .filter(!_._1.skipIdea)
           .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
           .iterator
