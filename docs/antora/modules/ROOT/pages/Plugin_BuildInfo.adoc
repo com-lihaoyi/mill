@@ -17,7 +17,7 @@ object project extends BuildInfo {
   val name = "poject-name"
   def  buildInfoMembers: T[Map[String, String]] = T {
     Map(
-      "name" -> name),
+      "name" -> name,
       "scalaVersion" -> scalaVersion()
     )
   }
