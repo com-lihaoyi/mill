@@ -6,53 +6,48 @@ import mill.{Module, T}
 object BasePathTests extends TestSuite {
   val testGraphs = new TestGraphs
   val tests = Tests {
-    def check[T <: Module](m: T)(f: T => Module, segments: String*) = {
-      val remaining = f(m).millSourcePath.relativeTo(m.millSourcePath).segments
+    def checkMillSourcePath[T <: Module](m: T)(f: T => Module, segments: String*): Unit = {
+      val sub = f(m)
+      val remaining = sub.millSourcePath.relativeTo(m.millSourcePath).segments
       assert(remaining == segments)
     }
     "singleton" - {
-      check(testGraphs.singleton)(identity)
+      checkMillSourcePath(testGraphs.singleton)(identity)
     }
     "backtickIdentifiers" - {
-      check(testGraphs.bactickIdentifiers)(
+      checkMillSourcePath(testGraphs.bactickIdentifiers)(
         _.`nested-module`,
         "nested-module"
       )
     }
     "separateGroups" - {
-      check(TestGraphs.triangleTask)(identity)
+      checkMillSourcePath(TestGraphs.triangleTask)(identity)
     }
     "TraitWithModuleObject" - {
-      check(TestGraphs.TraitWithModuleObject)(
+      checkMillSourcePath(TestGraphs.TraitWithModuleObject)(
         _.TraitModule,
         "TraitModule"
       )
     }
     "nestedModuleNested" - {
-      check(TestGraphs.nestedModule)(_.nested, "nested")
+      checkMillSourcePath(TestGraphs.nestedModule)(_.nested, "nested")
     }
     "nestedModuleInstance" - {
-      check(TestGraphs.nestedModule)(_.classInstance, "classInstance")
+      checkMillSourcePath(TestGraphs.nestedModule)(_.classInstance, "classInstance")
     }
     "singleCross" - {
-      check(TestGraphs.singleCross)(_.cross, "cross")
-      check(TestGraphs.singleCross)(_.cross("210"), "cross", "210")
-      check(TestGraphs.singleCross)(_.cross("211"), "cross", "211")
+      checkMillSourcePath(TestGraphs.singleCross)(_.cross, "cross")
+      checkMillSourcePath(TestGraphs.singleCross)(_.cross("210"), "cross")
+      checkMillSourcePath(TestGraphs.singleCross)(_.cross("211"), "cross")
     }
     "doubleCross" - {
-      check(TestGraphs.doubleCross)(_.cross, "cross")
-      check(TestGraphs.doubleCross)(_.cross("210", "jvm"), "cross", "210", "jvm")
-      check(TestGraphs.doubleCross)(_.cross("212", "js"), "cross", "212", "js")
+      checkMillSourcePath(TestGraphs.doubleCross)(_.cross, "cross")
+      checkMillSourcePath(TestGraphs.doubleCross)(_.cross("210", "jvm"), "cross")
+      checkMillSourcePath(TestGraphs.doubleCross)(_.cross("212", "js"), "cross")
     }
     "nestedCrosses" - {
-      check(TestGraphs.nestedCrosses)(_.cross, "cross")
-      check(TestGraphs.nestedCrosses)(
-        _.cross("210").cross2("js"),
-        "cross",
-        "210",
-        "cross2",
-        "js"
-      )
+      checkMillSourcePath(TestGraphs.nestedCrosses)(_.cross, "cross")
+      checkMillSourcePath(TestGraphs.nestedCrosses)(_.cross("210").cross2("js"), "cross", "cross2")
     }
     "overridden" - {
       object overriddenBasePath extends TestUtil.BaseModule {

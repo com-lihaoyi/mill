@@ -24,6 +24,7 @@ object Cross {
           override def millOuterCtx = ctx0.copy(
             crossInstances = vs.map(v => new $tpe(..$argTupleValues))
           )
+          def millSourcePath: os.Path = millOuterCtx.millSourcePath
         } }"""
       )
 
@@ -65,6 +66,7 @@ class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], c
       c,
       ctx.copy(
         segments = ctx.segments ++ Seq(ctx.segment),
+        millSourcePath = ctx.millSourcePath / relPath,
         segment = Segment.Cross(crossValues)
       ),
       products
