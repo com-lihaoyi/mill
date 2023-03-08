@@ -1,6 +1,7 @@
 package mill.integration
 package forked
 
+object CrossTests extends CrossTests(fork = true, clientServer = false)
 object DocAnnotationsTests extends DocAnnotationsTests(fork = true, clientServer = false)
 object HygieneTests extends HygieneTests(fork = true, clientServer = false)
 object LargeProjectTests extends LargeProjectTests(fork = true, clientServer = false)

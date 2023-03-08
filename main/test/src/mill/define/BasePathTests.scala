@@ -39,6 +39,9 @@ object BasePathTests extends TestSuite {
       checkMillSourcePath(TestGraphs.singleCross)(_.cross, "cross")
       checkMillSourcePath(TestGraphs.singleCross)(_.cross("210"), "cross")
       checkMillSourcePath(TestGraphs.singleCross)(_.cross("211"), "cross")
+      checkMillSourcePath(TestGraphs.singleCross)(_.cross2, "cross2")
+      checkMillSourcePath(TestGraphs.singleCross)(_.cross2("210"), "cross2", "210")
+      checkMillSourcePath(TestGraphs.singleCross)(_.cross2("211"), "cross2", "211")
     }
     "doubleCross" - {
       checkMillSourcePath(TestGraphs.doubleCross)(_.cross, "cross")

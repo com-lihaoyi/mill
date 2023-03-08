@@ -223,6 +223,13 @@ object TestGraphs {
     class Cross(scalaVersion: String) extends Module {
       def suffix = T { scalaVersion }
     }
+    object cross2 extends mill.Cross[Cross2]("210", "211", "212")
+    class Cross2(scalaVersion: String) extends Module {
+      override def millSourcePath = super.millSourcePath / scalaVersion
+      def suffix = T {
+        scalaVersion
+      }
+    }
   }
   object crossResolved extends TestUtil.BaseModule {
     trait MyModule extends Module {
