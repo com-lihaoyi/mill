@@ -24,7 +24,6 @@ object Cross {
           override def millOuterCtx = ctx0.copy(
             crossInstances = vs.map(v => new $tpe(..$argTupleValues))
           )
-          def millSourcePath: os.Path = millOuterCtx.millSourcePath
         } }"""
       )
 
