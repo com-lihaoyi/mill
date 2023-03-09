@@ -8,6 +8,8 @@ You can use this as follows:
 
 [source,scala]
 ----
+import mill._
+
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
@@ -57,6 +59,8 @@ If you want to have dedicated ``millSourcePath``s, you can add the cross paramet
 
 [source,scala]
 ----
+import mill._
+
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
 class FooModule(crossVersion: String) extends Module {
   def millSourcePath = super.millSourcePath / crossVersion
@@ -195,6 +199,8 @@ cross-modules, which would let you use a shorthand `foo()` syntax when referring
 
 [source,scala]
 ----
+import mill._
+
 trait MyModule extends Module {
   def crossVersion: String
   implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
