@@ -30,15 +30,3 @@ class TopCross2U(p1: String, p2: String) extends Module {
   def param2 = T { p2 }
   def path = T { PathRef(millSourcePath) }
 }
-
-
-//
-//object foo extends Module {
-//  object levelCross extends Cross[LevelCross](("a", "1"), ("b", "2"))
-//  class LevelCross(p1: String, p2: String) extends Module {
-//    def param1 = T { p1 }
-//    def param2 = T { p2 }
-//    def path = T { PathRef(millSourcePath) }
-//  }
-//
-//}
