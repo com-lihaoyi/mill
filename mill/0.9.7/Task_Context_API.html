@@ -1,26 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Task Context API :: Mill</title>
-    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Task_Context_API.html" />
-    <link rel="prev" href="Tasks.html" />
-    <link rel="next" href="Modules.html" />
-    <meta name="generator" content="Antora 3.0.1" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Task_Context_API.html">
+    <link rel="prev" href="Tasks.html">
+    <link rel="next" href="Modules.html">
+    <meta name="generator" content="Antora 3.0.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
     <script>var uiRootPath = '../../_'</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" />&nbsp;Mill</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -141,7 +140,7 @@
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-latest">
-          <a href="../index.html">0.11.0-M4-31-a21b28</a>
+          <a href="../index.html">0.11.0-M4-43-968d3b</a>
         </li>
         <li class="version">
           <a href="../0.11.0-M4/index.html">0.11.0-M4</a>
@@ -233,7 +232,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.9.7</button>
   <div class="version-menu">
-    <a class="version" href="../Task_Context_API.html">0.11.0-M4-31-a21b28</a>
+    <a class="version" href="../Task_Context_API.html">0.11.0-M4-43-968d3b</a>
     <a class="version" href="../0.11.0-M4/Task_Context_API.html">0.11.0-M4</a>
     <a class="version" href="../0.11.0-M3/Task_Context_API.html">0.11.0-M3</a>
     <a class="version" href="../0.11.0-M2/Task_Context_API.html">0.11.0-M2</a>
@@ -270,8 +269,8 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>There are several APIs available to you within the body of a <code>T {…​}</code> or
-<code>T.command {…​}</code> block to help your write the code implementing your Target or
+<p>There are several APIs available to you within the body of a <code>T {&#8230;&#8203;}</code> or
+<code>T.command {&#8230;&#8203;}</code> block to help your write the code implementing your Target or
 Command:</p>
 </div>
 </div>
@@ -319,7 +318,7 @@ to those same paths.</p>
 <div class="paragraph">
 <p>This is the default logger provided for every task. While your task is running,
 <code>System.out</code> and <code>System.in</code> are also redirected to this logger. The logs for a
-task are streamed to standard out/error as you would expect, but each task’s
+task are streamed to standard out/error as you would expect, but each task&#8217;s
 specific output is also streamed to a log file on disk, e.g. <code>out/run/log</code> or
 <code>out/classFiles/log</code> for you to inspect later.</p>
 </div>
@@ -348,7 +347,7 @@ classloading.
 Because of this, running <code>System.getenv</code> in a task might not yield
 up to date environment variables, since it will be initialised when the server
 starts, rather than when the client executes.
-To circumvent this, mill’s client sends the environment variables to the server as it sees them, and the server makes them available as a <code>Map[String, String]</code> via the <code>Ctx</code> API.</p>
+To circumvent this, mill&#8217;s client sends the environment variables to the server as it sees them, and the server makes them available as a <code>Map[String, String]</code> via the <code>Ctx</code> API.</p>
 </div>
 <div class="paragraph">
 <p>If the intent is to always pull the latest environment values, the call should
@@ -356,7 +355,7 @@ be wrapped in an <code>Input</code> as such :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def envVar = T.input { T.ctx.env.get(&quot;ENV_VAR&quot;) }</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def envVar = T.input { T.ctx.env.get("ENV_VAR") }</code></pre>
 </div>
 </div>
 </div>
@@ -374,9 +373,9 @@ be wrapped in an <code>Input</code> as such :</p>
   <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
 </footer>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

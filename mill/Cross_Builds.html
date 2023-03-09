@@ -215,14 +215,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M4-31-a21b28</span>
+    <span class="version">0.11.0-M4-43-968d3b</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M4-31-a21b28</a>
+          <a href="index.html">0.11.0-M4-43-968d3b</a>
         </li>
         <li class="version">
           <a href="0.11.0-M4/index.html">0.11.0-M4</a>
@@ -311,9 +311,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M4-31-a21b28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M4-43-968d3b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Cross_Builds.html">0.11.0-M4-31-a21b28</a>
+    <a class="version is-current" href="Cross_Builds.html">0.11.0-M4-43-968d3b</a>
     <a class="version" href="0.11.0-M4/Cross_Builds.html">0.11.0-M4</a>
     <a class="version" href="0.11.0-M3/Cross_Builds.html">0.11.0-M3</a>
     <a class="version" href="0.11.0-M2/Cross_Builds.html">0.11.0-M2</a>
@@ -362,7 +362,9 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
   def bigSuffix = T { suffix().toUpperCase() }
@@ -370,8 +372,7 @@ class FooModule(crossVersion: String) extends Module {
 </div>
 </div>
 <div class="paragraph">
-<p>This defines three copies of <code>FooModule</code>: <code>&quot;210&quot;</code>, <code>&quot;211&quot;</code> and <code>&quot;212&quot;</code>, each of
-which has their own <code>suffix</code> target. You can then run them via</p>
+<p>This defines three copies of <code>FooModule</code>: <code>&quot;210&quot;</code>, <code>&quot;211&quot;</code> and <code>&quot;212&quot;</code>, each of which has their own <code>suffix</code> target. You can then run them via</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -405,35 +406,64 @@ mill show &quot;foo[2.10].suffix&quot;</code></pre>
 </tbody></table>
 </div>
 <div class="paragraph">
-<p>The modules each also have a <code>millSourcePath</code> of</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">foo/2.10
-foo/2.11
-foo/2.12</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>And the <code>suffix</code> targets will have the corresponding output paths for their
+<p>The <code>suffix</code> targets will have the corresponding output paths for their
 metadata and files:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">foo/2.10/suffix
-foo/2.10/bigSuffix
-foo/2.11/suffix
-foo/2.11/bigSuffix
-foo/2.12/suffix
-foo/2.12/bigSuffix</code></pre>
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">out/
+├── foo/
+│&nbsp;&nbsp; ├── 2.10/
+│&nbsp;&nbsp; │&nbsp;&nbsp; ├── bigSuffix.json
+│&nbsp;&nbsp; │&nbsp;&nbsp; └── suffix.json
+│&nbsp;&nbsp; ├── 2.11/
+│&nbsp;&nbsp; │&nbsp;&nbsp; ├── bigSuffix.json
+│&nbsp;&nbsp; │&nbsp;&nbsp; └── suffix.json
+│&nbsp;&nbsp; └── 2.12/
+│&nbsp;&nbsp;     ├── bigSuffix.json
+│&nbsp;&nbsp;     └── suffix.json</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>If you want to have dedicated <code>millSourcePath</code>s, you can add the cross parameters to it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+class FooModule(crossVersion: String) extends Module {
+  def millSourcePath = super.millSourcePath / crossVersion
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Before Mill 0.11.0-M5, <code>Cross</code> modules which were not also <code>CrossScalaModule</code>s, always added the cross parameters to the <code>millSourcePath</code>. This often led to setups like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def millSourcePath = super.millSourcePath / os.up</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>You can also have a cross-build with multiple inputs:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val crossMatrix = for {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+val crossMatrix = for {
   crossVersion &lt;- Seq(&quot;210&quot;, &quot;211&quot;, &quot;212&quot;)
   platform &lt;- Seq(&quot;jvm&quot;, &quot;js&quot;, &quot;native&quot;)
   if !(platform == &quot;native&quot; &amp;&amp; crossVersion != &quot;212&quot;)
@@ -446,20 +476,24 @@ class FooModule(crossVersion: String, platform: String) extends Module {
 </div>
 </div>
 <div class="paragraph">
-<p>Here, we define our cross-values programmatically using a <code>for</code>-loop that spits
-out tuples instead of individual values. Our <code>FooModule</code> template class then
-takes two parameters instead of one. This creates the following modules each
-with their own <code>suffix</code> target:</p>
+<p>Here, we define our cross-values programmatically using a <code>for</code>-loop that spits out tuples instead of individual values.
+Our <code>FooModule</code> template class then takes two parameters instead of one.
+This creates the following modules each with their own <code>suffix</code> target:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill show foo[210,jvm].suffix
-mill show foo[211,jvm].suffix
-mill show foo[212,jvm].suffix
-mill show foo[210,js].suffix
-mill show foo[211,js].suffix
-mill show foo[212,js].suffix
-mill show foo[212,native].suffix</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill showNamed foo[_].suffix
+[1/1] showNamed
+[1/1] showNamed &gt; [7/7] foo[212,native].suffix
+{
+  &quot;foo[210,jvm].suffix&quot;: &quot;210_jvm&quot;,
+  &quot;foo[210,js].suffix&quot;: &quot;210_js&quot;,
+  &quot;foo[211,jvm].suffix&quot;: &quot;211_jvm&quot;,
+  &quot;foo[211,js].suffix&quot;: &quot;211_js&quot;,
+  &quot;foo[212,jvm].suffix&quot;: &quot;212_jvm&quot;,
+  &quot;foo[212,js].suffix&quot;: &quot;212_js&quot;,
+  &quot;foo[212,native].suffix&quot;: &quot;212_native&quot;
+}</code></pre>
 </div>
 </div>
 </div>
@@ -472,12 +506,14 @@ mill show foo[212,native].suffix</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
 
-def bar = T { &quot;hello &quot; + foo(&quot;2.10&quot;).suffix }</code></pre>
+def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix}&quot; }</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -487,12 +523,14 @@ versions of the cross-module in the same target:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
 
-def bar = T { &quot;hello &quot; + foo(&quot;2.10&quot;).suffix + &quot; world &quot; + foo(&quot;2.12&quot;).suffix }</code></pre>
+def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix} world ${foo(&quot;2.12&quot;).suffix}&quot; }</code></pre>
 </div>
 </div>
 </div>
@@ -501,12 +539,13 @@ def bar = T { &quot;hello &quot; + foo(&quot;2.10&quot;).suffix + &quot; world &
 <h2 id="_using_cross_modules_from_other_cross_modules"><a class="anchor" href="#_using_cross_modules_from_other_cross_modules"></a>Using Cross Modules from other Cross Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Targets in cross-modules can depend on one another the same way that external
-targets:</p>
+<p>Targets in cross-modules can depend on one another the same way than external targets:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
@@ -530,6 +569,21 @@ mill show bar[2.11].bigSuffix
 mill show bar[2.12].bigSuffix</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>or the more compact version:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill showNamed foo[__].suffix
+[1/1] showNamed
+[1/1] showNamed &gt; [3/3] foo[2.12].suffix
+{
+  &quot;foo[2.10].suffix&quot;: &quot;2.10&quot;,
+  &quot;foo[2.11].suffix&quot;: &quot;2.11&quot;,
+  &quot;foo[2.12].suffix&quot;: &quot;2.12&quot;
+}</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -537,12 +591,13 @@ mill show bar[2.12].bigSuffix</code></pre>
 <div class="sectionbody">
 <div class="paragraph">
 <p>You can define an implicit <code>mill.define.Cross.Resolver</code> within your
-cross-modules, which would let you use a shorthand <code>foo()</code> syntax when referring
-to other cross-modules with an identical set of cross values:</p>
+cross-modules, which would let you use a shorthand <code>foo()</code> syntax when referring to other cross-modules with an identical set of cross values:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait MyModule extends Module {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+trait MyModule extends Module {
   def crossVersion: String
   implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
     def resolve[V &lt;: MyModule](c: Cross[V]): V = c.itemMap(List(crossVersion))
@@ -561,11 +616,8 @@ class BarModule(val crossVersion: String) extends MyModule {
 </div>
 </div>
 <div class="paragraph">
-<p>While the example <code>resolver</code> simply looks up the target <code>Cross</code> value for the
-cross-module instance with the same <code>crossVersion</code>, you can make the resolver
-arbitrarily complex. E.g. the <code>resolver</code> for <code>mill.scalalib.CrossSbtModule</code>
-looks for a cross-module instance whose <code>scalaVersion</code> is binary compatible
-(e.g. 2.10.5 is compatible with 2.10.3) with the current cross-module.</p>
+<p>While the example <code>resolver</code> simply looks up the target <code>Cross</code> value for the cross-module instance with the same <code>crossVersion</code>, you can make the resolver arbitrarily complex.
+E.g. the <code>resolver</code> for <code>mill.scalalib.CrossSbtModule</code> looks for a cross-module instance whose <code>scalaVersion</code> is binary compatible (e.g. 2.10.5 is compatible with 2.10.3) with the current cross-module.</p>
 </div>
 </div>
 </div>
