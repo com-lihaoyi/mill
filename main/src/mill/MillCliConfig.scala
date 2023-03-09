@@ -27,7 +27,7 @@ class MillCliConfig private (
     val noServer: Flag,
     @arg(doc = """Enable BSP server mode.""")
     val bsp: Flag,
-    @arg(name = "version", short = 'v', doc = "Show mill version and exit.")
+    @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
     val showVersion: Flag,
     @arg(
       name = "bell",
@@ -75,7 +75,7 @@ class MillCliConfig private (
           This implies --no-server and no mill server will be used. Must be the first argument."""
     )
     val interactive: Flag,
-    @arg(doc = "Print this help message.")
+    @arg(doc = "Print this help message and exit.")
     val help: Flag,
     @arg(
       short = 'w',
@@ -95,12 +95,27 @@ class MillCliConfig private (
     )
     val noDefaultPredef: Flag,
     @arg(
-      name = "rest",
+      name = "target",
       doc =
-        """The name of the targets you want to build,
-           followed by any parameters you wish to pass to those targets."""
+        """The name or a pattern of the target(s) you want to build,
+           followed by any parameters you wish to pass to those targets.
+           To specify multiple target names or patterns, use the `+` separator."""
     )
-    val leftoverArgs: Leftover[String]
+    val leftoverArgs: Leftover[String],
+    @arg(
+      doc =
+        """Enable or disable colored output; by default colors are enabled
+          in both REPL and scripts mode if the console is interactive, and disabled
+          otherwise."""
+    )
+    val color: Option[Boolean],
+    @arg(
+      name = "predef",
+      short = 'p',
+      doc =
+        """Lets you load your predef from a custom location, rather than the
+        "default location in your Ammonite home""")
+    val predefFile: Option[os.Path],
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -120,7 +135,9 @@ class MillCliConfig private (
     "watch" -> watch,
     "silent" -> silent,
     "noDefaultPredef" -> noDefaultPredef,
-    "leftoverArgs" -> leftoverArgs
+    "leftoverArgs" -> leftoverArgs,
+    "color" -> color,
+    "predefFile" -> predefFile
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
@@ -151,7 +168,9 @@ object MillCliConfig {
       watch: Flag = Flag(),
       silent: Flag = Flag(),
       noDefaultPredef: Flag = Flag(),
-      leftoverArgs: Leftover[String] = Leftover()
+      leftoverArgs: Leftover[String] = Leftover(),
+      color: Option[Boolean] = None,
+      predefFile: Option[os.Path] = None,
   ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,
@@ -170,7 +189,9 @@ object MillCliConfig {
     watch = watch,
     silent = silent,
     noDefaultPredef = noDefaultPredef,
-    leftoverArgs = leftoverArgs
+    leftoverArgs = leftoverArgs,
+    color = color,
+    predefFile = predefFile
   )
 }
 
