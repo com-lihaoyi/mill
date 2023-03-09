@@ -215,14 +215,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M5</span>
+    <span class="version">0.11.0-M5-1-90e2a2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M5</a>
+          <a href="index.html">0.11.0-M5-1-90e2a2</a>
         </li>
         <li class="version">
           <a href="0.11.0-M5/index.html">0.11.0-M5</a>
@@ -314,9 +314,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M5</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M5-1-90e2a2</button>
   <div class="version-menu">
-    <a class="version is-current" href="Getting_Started.html">0.11.0-M5</a>
+    <a class="version is-current" href="Getting_Started.html">0.11.0-M5-1-90e2a2</a>
     <a class="version" href="0.11.0-M5/Getting_Started.html">0.11.0-M5</a>
     <a class="version" href="0.11.0-M4/Getting_Started.html">0.11.0-M4</a>
     <a class="version" href="0.11.0-M3/Getting_Started.html">0.11.0-M3</a>
@@ -662,40 +662,39 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre>Mill Build Tool
+<pre>Mill Build Tool, version {mill-version}
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
-  --no-default-predef  Disable the default predef and run Ammonite with the minimal predef possible
-  -s --silent          Make ivy logs go silent instead of printing though failures will still throw
-                       exception
-  -w --watch           Watch and re-run your scripts when they change
-  --bsp                Run a BSP server against the passed scripts
-  -c --code &lt;str&gt;      Pass in code to be run immediately in the REPL
-  -h --home &lt;path&gt;     The home directory of the REPL; where it looks for config and caches
-  -p --predef &lt;path&gt;   Lets you load your predef from a custom location, rather than the &quot;default
-                       location in your Ammonite home
-  --color &lt;bool&gt;       Enable or disable colored output; by default colors are enabled in both REPL
-                       and scripts if the console is interactive, and disabled otherwise
-  --thin               Hide parts of the core of Ammonite and some of its dependencies. By default,
-                       the core of Ammonite and all of its dependencies can be seen by users from
-                       the Ammonite session. This option mitigates that via class loader isolation.
-  --help               Print this message
-  -h --home &lt;path&gt;     The home directory of the REPL; where it looks for config and caches
-  --repl               Run Mill in interactive mode and start a build REPL. In this mode, no mill
-                       server will be used. Must be the first argument.
-  --no-server          Run Mill in interactive mode, suitable for opening REPLs and taking user
-                       input. In this mode, no mill server will be used. Must be the first argument.
-  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
-                       input. In this mode, no mill server will be used. Must be the first argument.
-  -v --version         Show mill version and exit.
+  -D --define &lt;k=v&gt;    Define (or overwrite) a system property.
   -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
-  --disable-ticker     Disable ticker log (e.g. short-lived prints of stages and progress bars)
+  --bsp                Enable BSP server mode.
+  --color &lt;bool&gt;       Enable or disable colored output; by default colors are enabled in both REPL
+                       and scripts mode if the console is interactive, and disabled otherwise.
   -d --debug           Show debug output on STDOUT
-  -k --keep-going      Continue build, even after build failures
-  -D --define &lt;k=v&gt;    Define (or overwrite) a system property
+  --disable-ticker     Disable ticker log (e.g. short-lived prints of stages and progress bars).
+  -h --home &lt;path&gt;     (internal) The home directory of internally used Ammonite script engine;
+                       where it looks for config and caches.
+  --help               Print this help message and exit.
+  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. This implies --no-server and no mill server will be used. Must be the
+                       first argument.
+  --import &lt;str&gt;       Additional ivy dependencies to load into mill, e.g. plugins.
   -j --jobs &lt;int&gt;      Allow processing N targets in parallel. Use 1 to disable parallel and 0 to
                        use as much threads as available processors.
-  rest &lt;str&gt;...        The name of the targets you want to build, followed by any parameters you
-                       wish to pass to those targets.</pre>
+  -k --keep-going      Continue build, even after build failures.
+  --no-default-predef  Disable the default predef and run Mill with the minimal predef possible.
+  --no-server          Run Mill in single-process mode. In this mode, no mill server will be started
+                       or used. Must be the first argument.
+  -p --predef &lt;path&gt;   Lets you load your predef from a custom location, rather than the &quot;default
+                       location in your Ammonite home
+  --repl               Run Mill in interactive mode and start a build REPL. This implies --no-server
+                       and no mill server will be used. Must be the first argument.
+  -s --silent          Make ivy logs during script import resolution go silent instead of printing;
+                       though failures will still throw exception.
+  -v --version         Show mill version information and exit.
+  -w --watch           Watch and re-run your scripts when they change.
+  target &lt;str&gt;...      The name or a pattern of the target(s) you want to build, followed by any
+                       parameters you wish to pass to those targets. To specify multiple target
+                       names or patterns, use the `+` separator.</pre>
 </div>
 </div>
 <div class="paragraph">
