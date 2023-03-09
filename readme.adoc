@@ -247,6 +247,32 @@ corresponding version of Mill.
 
 == Changelog
 
+=== 0.11.0-M5
+:version: 0.11.0-M5
+:milestone-name: 0.11.0-M5
+:milestone: 76
+:prev-version: 0.11.0-M4
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* `Cross` is no longer adding the cross parameters to the `millSourcePath`.
++
+_You should review your cross modules setups to avoid build issues like incorrect source paths or missing files. ``CrossScalaModule`` is not affected by this change._
+* API refactorings: `PathRef`, moved `JarManifest` to `mill.main`
+* No longer inherit the Ammonite CLI config
+* `scalalib`: Fixed loosing customized `mapDependencies` when `ScalaModule` get mixed in after
+* `scalalib`: New `TestModule.Weaver`
+* `scalajslib`: New `JsEnvConfig.Selenium`
+* `testrunner`: Fixed concurrency issue with test event reporting
+* Updated dependencies: ammonite 3.0.0-M0-3, coursier 2.1.0-RC6, jarajar-abrams-core 1.8.2, lambdatest 0.8.0, log4j-core 2.20.0, os-lib 0.9.1, scoverage 2.0.8, semanticdb-scalac 4.7.5, trees 4.7.5
+* Documentation updates
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 
 === 0.11.0-M4 - 2023-02-10
