@@ -13,7 +13,6 @@ class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
   def bigSuffix = T { suffix().toUpperCase() }
 }
-
 ----
 
 This defines three copies of `FooModule`: `"210"`, `"211"` and `"212"`, each of
@@ -40,32 +39,46 @@ mill show 'foo[2.10].suffix'
 mill show "foo[2.10].suffix"
 ----
 --
-The modules each also have a `millSourcePath` of
 
-[source,text]
-----
-foo/2.10
-foo/2.11
-foo/2.12
-----
-
-And the `suffix` targets will have the corresponding output paths for their
+The `suffix` targets will have the corresponding output paths for their
 metadata and files:
 
 [source,text]
 ----
-foo/2.10/suffix
-foo/2.10/bigSuffix
-foo/2.11/suffix
-foo/2.11/bigSuffix
-foo/2.12/suffix
-foo/2.12/bigSuffix
+foo/2.10/suffix.dest
+foo/2.10/bigSuffix.dest
+foo/2.11/suffix.dest
+foo/2.11/bigSuffix.dest
+foo/2.12/suffix.dest
+foo/2.12/bigSuffix.dest
 ----
+
+If you want to have dedicated ``millSourcePath``s, you can add the cross parameters to it:
+
+[source,scala]
+----
+object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+class FooModule(crossVersion: String) extends Module {
+  def millSourcePath = super.millSourcePath / crossVersion
+}
+----
+
+[NOTE]
+--
+Before Mill 0.11.0-M5, `Cross` modules which were not also ``CrossScalaModule``s, always added the cross parameters to the `millSourcePath`. This often led to setups like this:
+
+[source,scala]
+----
+def millSourcePath = super.millSourcePath / os.up
+----
+--
 
 You can also have a cross-build with multiple inputs:
 
 [source,scala]
 ----
+import mill._
+
 val crossMatrix = for {
   crossVersion <- Seq("210", "211", "212")
   platform <- Seq("jvm", "js", "native")
@@ -78,20 +91,24 @@ class FooModule(crossVersion: String, platform: String) extends Module {
 }
 ----
 
-Here, we define our cross-values programmatically using a `for`-loop that spits
-out tuples instead of individual values. Our `FooModule` template class then
-takes two parameters instead of one. This creates the following modules each
-with their own `suffix` target:
+Here, we define our cross-values programmatically using a `for`-loop that spits out tuples instead of individual values.
+Our `FooModule` template class then takes two parameters instead of one.
+This creates the following modules each with their own `suffix` target:
 
 [source,bash]
 ----
-mill show foo[210,jvm].suffix
-mill show foo[211,jvm].suffix
-mill show foo[212,jvm].suffix
-mill show foo[210,js].suffix
-mill show foo[211,js].suffix
-mill show foo[212,js].suffix
-mill show foo[212,native].suffix
+$ mill showNamed foo[_].suffix
+[1/1] showNamed
+[1/1] showNamed > [7/7] foo[212,native].suffix
+{
+  "foo[210,jvm].suffix": "210_jvm",
+  "foo[210,js].suffix": "210_js",
+  "foo[211,jvm].suffix": "211_jvm",
+  "foo[211,js].suffix": "211_js",
+  "foo[212,jvm].suffix": "212_jvm",
+  "foo[212,js].suffix": "212_js",
+  "foo[212,native].suffix": "212_native"
+}
 ----
 
 == Using Cross Modules from Outside
@@ -100,12 +117,14 @@ You can refer to targets defined in cross-modules as follows:
 
 [source,scala]
 ----
+import mill._
+
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
 
-def bar = T { "hello " + foo("2.10").suffix } 
+def bar = T { s"hello ${foo("2.10").suffix}" }
 ----
 
 Here, `foo("2.10")` references the `"2.10"` instance of `FooModule`. You can
@@ -114,21 +133,24 @@ versions of the cross-module in the same target:
 
 [source,scala]
 ----
+import mill._
+
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
 
-def bar = T { "hello " + foo("2.10").suffix + " world " + foo("2.12").suffix }
+def bar = T { s"hello ${foo("2.10").suffix} world ${foo("2.12").suffix}" }
 ----
 
 == Using Cross Modules from other Cross Modules
 
-Targets in cross-modules can depend on one another the same way that external
-targets:
+Targets in cross-modules can depend on one another the same way than external targets:
 
 [source,scala]
 ----
+import mill._
+
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
@@ -152,11 +174,24 @@ mill show bar[2.11].bigSuffix
 mill show bar[2.12].bigSuffix
 ----
 
+or the more compact version:
+
+[source,bash]
+----
+$ mill showNamed foo[__].suffix
+[1/1] showNamed
+[1/1] showNamed > [3/3] foo[2.12].suffix
+{
+  "foo[2.10].suffix": "2.10",
+  "foo[2.11].suffix": "2.11",
+  "foo[2.12].suffix": "2.12"
+}
+----
+
 == Cross Resolvers
 
 You can define an implicit `mill.define.Cross.Resolver` within your
-cross-modules, which would let you use a shorthand `foo()` syntax when referring
-to other cross-modules with an identical set of cross values:
+cross-modules, which would let you use a shorthand `foo()` syntax when referring to other cross-modules with an identical set of cross values:
 
 [source,scala]
 ----
@@ -178,8 +213,5 @@ class BarModule(val crossVersion: String) extends MyModule {
 }
 ----
 
-While the example `resolver` simply looks up the target `Cross` value for the
-cross-module instance with the same `crossVersion`, you can make the resolver
-arbitrarily complex. E.g. the `resolver` for `mill.scalalib.CrossSbtModule`
-looks for a cross-module instance whose `scalaVersion` is binary compatible
-(e.g. 2.10.5 is compatible with 2.10.3) with the current cross-module.
+While the example `resolver` simply looks up the target `Cross` value for the cross-module instance with the same `crossVersion`, you can make the resolver arbitrarily complex.
+E.g. the `resolver` for `mill.scalalib.CrossSbtModule` looks for a cross-module instance whose `scalaVersion` is binary compatible (e.g. 2.10.5 is compatible with 2.10.3) with the current cross-module.
