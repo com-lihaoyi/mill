@@ -22,7 +22,6 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
     object core extends Cross[CoreCrossModule](matrix: _*)
     class CoreCrossModule(val crossScalaVersion: String, crossPlayVersion: String)
         extends HelloWorldModule {
-      def millSourcePath = super.millSourcePath / os.up
       def playVersion = crossPlayVersion
     }
 
