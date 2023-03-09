@@ -1,6 +1,7 @@
 = image:docs/logo.svg[Mill Logo] Mill
 :toc-placement: preamble
 :toc:
+:idprefix:
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
 :link-current-doc-site: http://com-lihaoyi.github.io/mill
@@ -247,7 +248,27 @@ corresponding version of Mill.
 
 == Changelog
 
-=== 0.11.0-M5
+
+[#0-11-0-M6]
+=== 0.11.0-M6 - 2023-03-09
+:version: 0.11.0-M6
+:milestone-name: 0.11.0-M6
+:milestone: 77
+:prev-version: 0.11.0-M5
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* `main`: Re-added missing `--color` and `predef` cli arguments.
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+[#0-11-0-M5]
+=== 0.11.0-M5 - 2023-03-09
 :version: 0.11.0-M5
 :milestone-name: 0.11.0-M5
 :milestone: 76
@@ -274,7 +295,7 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
-
+[#0-11-0-M4]
 === 0.11.0-M4 - 2023-02-10
 :version: 0.11.0-M4
 :milestone-name: 0.11.0-M4
@@ -300,7 +321,7 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
-
+[#0-11-0-M3]
 === 0.11.0-M3 - 2023-01-23
 :version: 0.11.0-M3
 :milestone-name: 0.11.0-M3
@@ -326,6 +347,7 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
+[#0-11-0-M2]
 === 0.11.0-M2 - 2023-01-13
 :version: 0.11.0-M2
 :milestone-name: 0.11.0-M2
@@ -350,6 +372,7 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
+[#0-11-0-M1]
 === 0.11.0-M1 - 2022-12-17
 :version: 0.11.0-M1
 :prev-version: 0.10.10
