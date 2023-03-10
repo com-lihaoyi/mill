@@ -6,7 +6,6 @@ import scala.util.chaining.scalaUtilChainingOps
 import scala.util.Using
 import upickle.default.{ReadWriter => RW}
 
-
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
  * on the contents of the filesystem underneath it. Used to ensure filesystem
@@ -33,7 +32,7 @@ case class PathRef private (
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
   override def toString: String =
-    getClass().getSimpleName() + "(path=" + path + ",quick=" + quick + ",sig=" + sig + ",revalidated=" + revalidate +")"
+    getClass().getSimpleName() + "(path=" + path + ",quick=" + quick + ",sig=" + sig + ",revalidated=" + revalidate + ")"
 }
 
 object PathRef {
@@ -152,8 +151,9 @@ object PathRef {
 
       // validate if required
       if (validOrig != Revalidate.Never) {
-        val sig = PathRef.apply(path, quick).sig
-        throw new PathRefValidationException(PathRef(path, quick, sig, validOrig))
+        val changedSig = PathRef.apply(path, quick).sig
+        if (sig != changedSig)
+          throw new PathRefValidationException(PathRef(path, quick, sig, validOrig))
       }
 
       // Update revalidation
