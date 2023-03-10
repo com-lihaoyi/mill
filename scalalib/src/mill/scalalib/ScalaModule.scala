@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import scala.annotation.nowarn
-import mill.define.{Command, Sources, Target, Task, validated}
+import mill.define.{Command, Sources, Target, Task}
 import mill.api.{DummyInputStream, JarManifest, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
@@ -407,7 +407,7 @@ trait ScalaModule extends JavaModule { outer =>
       resolvedAmmoniteReplIvyDeps()
   }
 
-  @validated def resolvedAmmoniteReplIvyDeps = T {
+  def resolvedAmmoniteReplIvyDeps = T {
     resolveDeps(T.task {
       val scaVersion = scalaVersion()
       val ammVersion = ammoniteVersion()
@@ -420,7 +420,7 @@ trait ScalaModule extends JavaModule { outer =>
       val bind = bindDependency()
       runIvyDeps().map(bind) ++ transitiveIvyDeps() ++
         Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
-    })()
+    })().map(_.withRevalidateOnce)
   }
 
   @internal

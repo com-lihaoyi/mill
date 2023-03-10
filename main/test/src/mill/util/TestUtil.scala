@@ -22,7 +22,7 @@ object TestUtil extends MillTestKit {
 
     def anon(inputs: Task[Int]*): Test = new Test(inputs)
     def apply(inputs: Task[Int]*)(implicit ctx: mill.define.Ctx): TestTarget = {
-      new TestTarget(inputs, pure = inputs.nonEmpty, validate = false)
+      new TestTarget(inputs, pure = inputs.nonEmpty)
     }
   }
 
@@ -43,7 +43,7 @@ object TestUtil extends MillTestKit {
    * controlled externally, so you can construct arbitrary dataflow graphs and
    * test how changes propagate.
    */
-  class TestTarget(inputs: Seq[Task[Int]], val pure: Boolean, override val validate: Boolean)(implicit ctx0: mill.define.Ctx)
+  class TestTarget(inputs: Seq[Task[Int]], val pure: Boolean)(implicit ctx0: mill.define.Ctx)
       extends Test(inputs)
       with Target[Int] {
     val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))

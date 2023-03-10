@@ -11,8 +11,7 @@ import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{JarManifest, PathRef, Result, internal}
-import mill.define.{Command, Sources, Target, Task, TaskModule, validated}
-import mill.eval.EvaluatorPathsResolver
+import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.modules.{Assembly, Jvm}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
@@ -363,10 +362,10 @@ trait JavaModule
   /**
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
-  @validated def resolvedIvyDeps: T[Agg[PathRef]] = T {
+  def resolvedIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
       transitiveCompileIvyDeps() ++ transitiveIvyDeps()
-    })()
+    })().map(_.withRevalidateOnce)
   }
 
   /**
@@ -379,10 +378,10 @@ trait JavaModule
       resolvedRunIvyDeps()
   }
 
-  @validated def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
+  def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
       runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
-    })()
+    })().map(_.withRevalidateOnce)
   }
 
   /**

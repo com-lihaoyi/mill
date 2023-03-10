@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.api.{PathRef, Result, experimental}
-import mill.define.{Input, Target, Task, validated}
+import mill.define.{Input, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.util.Version
 import mill.{Agg, BuildInfo, T}
@@ -97,8 +97,9 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
       }
   }
 
-  @validated private def resolvedSemanticDbJavaPluginIvyDeps: Target[Agg[PathRef]] = T {
+  private def resolvedSemanticDbJavaPluginIvyDeps: Target[Agg[PathRef]] = T {
     resolveDeps(T.task { semanticDbJavaPluginIvyDeps().map(bindDependency()) })()
+      .map(_.withRevalidateOnce)
   }
 
   def semanticDbData: T[PathRef] = {

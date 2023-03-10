@@ -7,12 +7,11 @@ import scala.util.{Properties, Using}
 import scala.xml.NodeSeq
 import mill._
 import mill.api.Result
-import mill.define.{Input, NamedTask, Target, Task, validated}
+import mill.define.{Input, NamedTask, Target}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.modules.Assembly
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
-import os.{RelPath, SubPath}
 import utest._
 import utest.framework.TestPath
 
@@ -317,10 +316,10 @@ object HelloWorldTests extends TestSuite {
     def uncheckedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()) }
     def uncheckedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile()) }
 
-    @validated def checkedPathRef: T[PathRef] = T { mkDirWithFile() }
-    @validated def checkedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()) }
-    @validated def checkedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()) }
-    @validated def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile()) }
+    def checkedPathRef: T[PathRef] = T { mkDirWithFile().withRevalidateOnce }
+    def checkedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()).map(_.withRevalidateOnce) }
+    def checkedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()).map(_.withRevalidateOnce) }
+    def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile().withRevalidateOnce) }
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
@@ -360,9 +359,10 @@ object HelloWorldTests extends TestSuite {
   def workspaceTest[T](
       m: TestUtil.BaseModule,
       resourcePath: os.Path = resourcePath,
-      env: Map[String, String] = Evaluator.defaultEnv
+      env: Map[String, String] = Evaluator.defaultEnv,
+      debug: Boolean = false
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m, env = env)
+    val eval = new TestEvaluator(m, env = env, debugEnabled = debug)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -1218,9 +1218,9 @@ object HelloWorldTests extends TestSuite {
       assert(newResult == "ammonite.AmmoniteMain")
     }
 
-    "@validated" - {
+    "validated" - {
       "PathRef" - {
-        def check(t: Target[PathRef], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+        def check(t: Target[PathRef], flip: Boolean) = workspaceTest(ValidatedTarget, debug = true) { eval =>
           // we reconstruct faulty behavior
           val Right((result, _)) = eval.apply(t)
           assert(
@@ -1293,9 +1293,7 @@ object HelloWorldTests extends TestSuite {
           )
         }
         "unchecked" - check(ValidatedTarget.uncheckedTuplePathRef, false)
-        // here, we assume we don't validate at all, because of the unsupported result type
-        // TODO: once, we detect it in the macro, we should expect the thrown error error here
-        "checked" - check(ValidatedTarget.checkedTuplePathRef, false)
+        "checked" - check(ValidatedTarget.checkedTuplePathRef, true)
       }
 
     }

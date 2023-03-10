@@ -21,7 +21,6 @@ import mill.internal.AmmoniteUtils
 import mill.util._
 import upickle.default
 
-import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -401,6 +400,9 @@ class Evaluator private (
           parsed <-
             try Some(upickle.default.read(cached.value)(reader))
             catch {
+              case e: PathRef.PathRefValidationException =>
+                logger.debug(s"${labelledNamedTask.segments.render}: ${e.getMessage}")
+                None
               case NonFatal(_) => None
             }
         } yield (parsed, cached.valueHash)
@@ -433,24 +435,7 @@ class Evaluator private (
             None
         }
 
-        lazy val cachedAndValidated: Option[(Any, Int)] = cached.flatMap { res =>
-          val valid = labelledNamedTask.task.asTarget.fold(true) {
-            case t if t.validate =>
-              res match {
-                case (pr: PathRef, _) => pr.validate()
-                case (prs: IterableOnce[_], _) if prs.iterator.isEmpty || prs.iterator.next.isInstanceOf[PathRef] =>
-                  prs.iterator.collect { case x: PathRef => x }
-                    .forall(_.validate())
-                case _ => // can't validate unsupported type
-                  // TODO: we should check this in the macros (and fail with an compile error); here we should throw and exception
-                  true
-              }
-            case _ => true
-          }
-          if (valid) Some(res) else None
-        }
-
-        upToDateWorker.map((_, inputsHash)) orElse cachedAndValidated match {
+        upToDateWorker.map((_, inputsHash)) orElse cached match {
           case Some((v, hashCode)) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
             newResults(labelledNamedTask.task) = mill.api.Result.Success((v, hashCode))
