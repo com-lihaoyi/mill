@@ -33,13 +33,13 @@ case class PathRef private (
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
   override def toString: String =
-    getClass().getSimpleName() + "(path=" + path + ",quick=" + quick + ",sig=" + sig + ")"
+    getClass().getSimpleName() + "(path=" + path + ",quick=" + quick + ",sig=" + sig + ",revalidated=" + revalidate +")"
 }
 
 object PathRef {
 
   class PathRefValidationException(val pathRef: PathRef)
-      extends RuntimeException(s"Invalid path signature detected: ${pathRef.path}")
+      extends RuntimeException(s"Invalid path signature detected: ${pathRef}")
 
   sealed trait Revalidate
   object Revalidate {

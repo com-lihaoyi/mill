@@ -171,7 +171,7 @@ trait CoursierSupport {
 
       if (errors.isEmpty) {
         mill.Agg.from(
-          successes.map(p => PathRef(os.Path(p), quick = true)).filter(_.path.ext == "jar")
+          successes.map(os.Path(_)).filter(_.ext == "jar").map(PathRef(_, quick = true))
         )
       } else {
         val errorDetails = errors.map(e => s"${System.lineSeparator()}  ${e.describe}").mkString

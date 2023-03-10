@@ -401,7 +401,7 @@ class Evaluator private (
             try Some(upickle.default.read(cached.value)(reader))
             catch {
               case e: PathRef.PathRefValidationException =>
-                logger.debug(s"${labelledNamedTask.segments.render}: ${e.getMessage}")
+                logger.debug(s"${labelledNamedTask.segments.render}: re-evaluating; ${e.getMessage}")
                 None
               case NonFatal(_) => None
             }

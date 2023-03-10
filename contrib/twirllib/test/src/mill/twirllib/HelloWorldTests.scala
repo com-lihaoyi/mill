@@ -41,9 +41,10 @@ trait HelloWorldTests extends TestSuite {
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,
-      resourcePathSuffix: String
+      resourcePathSuffix: String,
+      debug: Boolean = false
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new TestEvaluator(m, debugEnabled = debug)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -92,7 +93,7 @@ trait HelloWorldTests extends TestSuite {
         )
       }
     }
-    "compileTwirl" - workspaceTest(HelloWorld, "hello-world") { eval =>
+    "compileTwirl" - workspaceTest(HelloWorld, "hello-world", debug = true) { eval =>
       val res = eval.apply(HelloWorld.core.compileTwirl)
       assert(res.isRight)
       val Right((result, evalCount)) = res
