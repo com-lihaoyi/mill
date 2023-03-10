@@ -420,7 +420,7 @@ trait ScalaModule extends JavaModule { outer =>
       val bind = bindDependency()
       runIvyDeps().map(bind) ++ transitiveIvyDeps() ++
         Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
-    })().map(_.withRevalidateOnce)
+    })()
   }
 
   @internal

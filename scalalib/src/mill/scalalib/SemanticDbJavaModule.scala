@@ -99,7 +99,6 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
   private def resolvedSemanticDbJavaPluginIvyDeps: Target[Agg[PathRef]] = T {
     resolveDeps(T.task { semanticDbJavaPluginIvyDeps().map(bindDependency()) })()
-      .map(_.withRevalidateOnce)
   }
 
   def semanticDbData: T[PathRef] = {

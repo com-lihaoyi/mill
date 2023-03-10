@@ -365,7 +365,7 @@ trait JavaModule
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
       transitiveCompileIvyDeps() ++ transitiveIvyDeps()
-    })().map(_.withRevalidateOnce)
+    })()
   }
 
   /**
@@ -381,7 +381,7 @@ trait JavaModule
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
       runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
-    })().map(_.withRevalidateOnce)
+    })()
   }
 
   /**
