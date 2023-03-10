@@ -6,11 +6,12 @@ import mill.define.{Sources, Task}
 import mill.api.PathRef
 import mill.scalalib._
 import mill.api.Loose
+import mill.scalalib.api.ZincWorkerUtil
 
 import scala.io.Codec
 import scala.util.Properties
 
-trait TwirlModule extends mill.Module { twirlModule =>
+trait TwirlModule extends CoursierModule { twirlModule =>
 
   def twirlVersion: T[String]
 
@@ -34,31 +35,11 @@ trait TwirlModule extends mill.Module { twirlModule =>
     )
   }
 
-  /**
-   * Class instead of an object, to allow re-configuration.
-   * @since Mill after 0.10.5
-   */
-  class TwirlResolver()(implicit ctx0: mill.define.Ctx) extends mill.Module()(ctx0)
-      with CoursierModule {
-    override def resolveCoursierDependency: Task[Dep => Dependency] = T.task { d: Dep =>
-      Lib.depToDependency(d, twirlScalaVersion())
-    }
-
-    override def repositoriesTask: Task[Seq[Repository]] = twirlModule match {
-      case m: CoursierModule => m.repositoriesTask
-      case _ => super.repositoriesTask
-    }
-  }
-
-  /**
-   * @since Mill after 0.10.5
-   */
-  val twirlCoursierResolver = new TwirlResolver()
-
   def twirlClasspath: T[Loose.Agg[PathRef]] = T {
-    twirlCoursierResolver.resolveDeps(T.task {
-      val bind = twirlCoursierResolver.bindDependency()
-      twirlIvyDeps().map(bind)
+    resolveDeps(T.task {
+      val sv = twirlScalaVersion()
+      val bv = ZincWorkerUtil.scalaBinaryVersion(sv)
+      twirlIvyDeps().map(_.bindDep(bv,sv, ""))
     })
   }
 

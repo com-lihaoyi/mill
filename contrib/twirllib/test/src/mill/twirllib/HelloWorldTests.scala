@@ -1,5 +1,6 @@
 package mill.twirllib
 
+import mill.define.BaseModule
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
