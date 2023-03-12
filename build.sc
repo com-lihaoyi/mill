@@ -175,7 +175,7 @@ object Deps {
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.5"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.13"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
-  val upickle = ivy"com.lihaoyi::upickle:3.0.0-M2"
+  val upickle = ivy"com.lihaoyi::upickle:3.0.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
