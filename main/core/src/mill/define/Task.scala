@@ -2,9 +2,8 @@ package mill.define
 
 import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
 import mill.define.Applicative.Applyable
-import mill.define.EnclosingClass
-import sourcecode.Compat.Context
 import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
+
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
@@ -83,12 +82,17 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
     mill.moduledefs.Cacher.impl0[TargetImpl[T]](c)(
       reify(
-        new TargetImpl[T](lhs.splice, ctx.splice, rw.splice, taskIsPrivate.splice)
+        new TargetImpl[T](
+          lhs.splice,
+          ctx.splice,
+          rw.splice,
+          taskIsPrivate.splice
+        )
       )
     )
   }
 
-  def isPrivateTargetOption(c: Context): c.Expr[Option[Boolean]] = {
+  private def isPrivateTargetOption(c: Context): c.Expr[Option[Boolean]] = {
     import c.universe._
     if (c.internal.enclosingOwner.isPrivate) reify(Some(true))
     else reify(Some(false))
@@ -130,7 +134,12 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
-        new TargetImpl[T](t.splice, ctx.splice, rw.splice, taskIsPrivate.splice)
+        new TargetImpl[T](
+          t.splice,
+          ctx.splice,
+          rw.splice,
+          taskIsPrivate.splice
+        )
       )
     )
   }
@@ -379,7 +388,7 @@ abstract class NamedTaskImpl[+T](
 class TargetImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
-    val readWrite: RW[_],
+    override val readWrite: RW[_],
     isPrivate: Option[Boolean]
 ) extends NamedTaskImpl[T](ctx0, t, isPrivate)
     with Target[T] {}

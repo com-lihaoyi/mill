@@ -7,12 +7,11 @@ import scala.util.{Properties, Using}
 import scala.xml.NodeSeq
 import mill._
 import mill.api.Result
-import mill.define.{Input, Target}
+import mill.define.{Input, NamedTask, Target}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.modules.Assembly
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
-import os.{RelPath, SubPath}
 import utest._
 import utest.framework.TestPath
 
@@ -307,6 +306,22 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object ValidatedTarget extends HelloBase {
+    private def mkDirWithFile = T.task {
+      os.write(T.dest / "dummy", "dummy", createFolders = true)
+      PathRef(T.dest)
+    }
+    def uncheckedPathRef: T[PathRef] = T { mkDirWithFile() }
+    def uncheckedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()) }
+    def uncheckedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()) }
+    def uncheckedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile()) }
+
+    def checkedPathRef: T[PathRef] = T { mkDirWithFile().withRevalidateOnce }
+    def checkedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()).map(_.withRevalidateOnce) }
+    def checkedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()).map(_.withRevalidateOnce) }
+    def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile().withRevalidateOnce) }
+  }
+
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -344,9 +359,10 @@ object HelloWorldTests extends TestSuite {
   def workspaceTest[T](
       m: TestUtil.BaseModule,
       resourcePath: os.Path = resourcePath,
-      env: Map[String, String] = Evaluator.defaultEnv
+      env: Map[String, String] = Evaluator.defaultEnv,
+      debug: Boolean = false
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m, env = env)
+    val eval = new TestEvaluator(m, env = env, debugEnabled = debug)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -1200,6 +1216,86 @@ object HelloWorldTests extends TestSuite {
       assert(oldResult == "ammonite.Main")
       val Right((newResult, _)) = eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass)
       assert(newResult == "ammonite.AmmoniteMain")
+    }
+
+    "validated" - {
+      "PathRef" - {
+        def check(t: Target[PathRef], flip: Boolean) = workspaceTest(ValidatedTarget, debug = true) { eval =>
+          // we reconstruct faulty behavior
+          val Right((result, _)) = eval.apply(t)
+          assert(
+            result.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            os.exists(result.path)
+          )
+          os.remove.all(result.path)
+          val Right((result2, _)) = eval.apply(t)
+          assert(
+            result2.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            // as the result was cached but not checked, this path is missing
+            os.exists(result2.path) == flip
+          )
+        }
+        "unchecked" - check(ValidatedTarget.uncheckedPathRef, false)
+        "checked" - check(ValidatedTarget.checkedPathRef, true)
+      }
+      "SeqPathRef" - {
+        def check(t: Target[Seq[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+          // we reconstruct faulty behavior
+          val Right((result, _)) = eval.apply(t)
+          assert(
+            result.map(_.path.last) == Seq(t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            result.forall(p => os.exists(p.path))
+          )
+          result.foreach(p => os.remove.all(p.path))
+          val Right((result2, _)) = eval.apply(t)
+          assert(
+            result2.map(_.path.last) == Seq(t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            // as the result was cached but not checked, this path is missing
+            result2.forall(p => os.exists(p.path) == flip)
+          )
+        }
+        "unchecked" - check(ValidatedTarget.uncheckedSeqPathRef, false)
+        "checked" - check(ValidatedTarget.checkedSeqPathRef, true)
+      }
+      "AggPathRef" - {
+        def check(t: Target[Agg[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+          // we reconstruct faulty behavior
+          val Right((result, _)) = eval.apply(t)
+          assert(
+            result.map(_.path.last) == Agg(t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            result.forall(p => os.exists(p.path))
+          )
+          result.foreach(p => os.remove.all(p.path))
+          val Right((result2, _)) = eval.apply(t)
+          assert(
+            result2.map(_.path.last) == Agg(t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            // as the result was cached but not checked, this path is missing
+            result2.forall(p => os.exists(p.path) == flip)
+          )
+        }
+        "unchecked" - check(ValidatedTarget.uncheckedAggPathRef, false)
+        "checked" - check(ValidatedTarget.checkedAggPathRef, true)
+      }
+      "other" - {
+        def check(t: Target[Tuple1[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+          // we reconstruct faulty behavior
+          val Right((result, _)) = eval.apply(t)
+          assert(
+            result._1.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            os.exists(result._1.path)
+          )
+          os.remove.all(result._1.path)
+          val Right((result2, _)) = eval.apply(t)
+          assert(
+            result2._1.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+            // as the result was cached but not checked, this path is missing
+            os.exists(result2._1.path) == flip
+          )
+        }
+        "unchecked" - check(ValidatedTarget.uncheckedTuplePathRef, false)
+        "checked" - check(ValidatedTarget.checkedTuplePathRef, true)
+      }
+
     }
   }
 }

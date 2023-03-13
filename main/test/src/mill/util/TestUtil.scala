@@ -20,8 +20,8 @@ object TestUtil extends MillTestKit {
 
   object test {
 
-    def anon(inputs: Task[Int]*) = new Test(inputs)
-    def apply(inputs: Task[Int]*)(implicit ctx: mill.define.Ctx) = {
+    def anon(inputs: Task[Int]*): Test = new Test(inputs)
+    def apply(inputs: Task[Int]*)(implicit ctx: mill.define.Ctx): TestTarget = {
       new TestTarget(inputs, pure = inputs.nonEmpty)
     }
   }

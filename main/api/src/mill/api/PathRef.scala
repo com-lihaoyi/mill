@@ -2,6 +2,7 @@ package mill.api
 
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
+import scala.util.chaining.scalaUtilChainingOps
 import scala.util.Using
 import upickle.default.{ReadWriter => RW}
 
@@ -10,16 +11,44 @@ import upickle.default.{ReadWriter => RW}
  * on the contents of the filesystem underneath it. Used to ensure filesystem
  * changes can bust caches which are keyed off hashcodes.
  */
-case class PathRef private (path: os.Path, quick: Boolean, sig: Int) {
+case class PathRef private (
+    path: os.Path,
+    quick: Boolean,
+    sig: Int,
+    revalidate: PathRef.Revalidate
+) {
+
+  def validate(): Boolean = PathRef.apply(path, quick).sig == sig
+
   /* Hide case class specific copy method. */
-  private def copy(path: os.Path, quick: Boolean, sig: Int): PathRef = PathRef(path, quick, sig)
+  private def copy(
+      path: os.Path = path,
+      quick: Boolean = quick,
+      sig: Int = sig,
+      revalidate: PathRef.Revalidate = revalidate
+  ): PathRef = PathRef(path, quick, sig, revalidate)
+
+  def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
+  def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
+
   override def toString: String =
-    getClass().getSimpleName() + "(path=" + path + ",quick=" + quick + ",sig=" + sig + ")"
+    getClass().getSimpleName() + "(path=" + path + ",quick=" + quick + ",sig=" + sig + ",revalidated=" + revalidate + ")"
 }
 
 object PathRef {
 
-  def apply(path: os.Path, quick: Boolean, sig: Int): PathRef = new PathRef(path, quick, sig)
+  class PathRefValidationException(val pathRef: PathRef)
+      extends RuntimeException(s"Invalid path signature detected: ${pathRef}")
+
+  sealed trait Revalidate
+  object Revalidate {
+    case object Never extends Revalidate
+    case object Once extends Revalidate
+    case object Always extends Revalidate
+  }
+
+  def apply(path: os.Path, quick: Boolean, sig: Int, revalidate: Revalidate): PathRef =
+    new PathRef(path, quick, sig, revalidate)
 
   /**
    * Create a [[PathRef]] by recursively digesting the content of a given `path`.
@@ -29,7 +58,11 @@ object PathRef {
    *              If `false` the digest is created of the files content.
    * @return
    */
-  def apply(path: os.Path, quick: Boolean = false): PathRef = {
+  def apply(
+      path: os.Path,
+      quick: Boolean = false,
+      revalidate: Revalidate = Revalidate.Never
+  ): PathRef = {
     val basePath = path
 
     val sig = {
@@ -82,7 +115,7 @@ object PathRef {
       java.util.Arrays.hashCode(digest.digest())
     }
 
-    new PathRef(path, quick, sig)
+    new PathRef(path, quick, sig, revalidate)
   }
 
   /**
@@ -90,27 +123,50 @@ object PathRef {
    */
   implicit def jsonFormatter: RW[PathRef] = upickle.default.readwriter[String].bimap[PathRef](
     p => {
-      val prefix = if (p.quick) "qref:" else "ref:"
+      val quick = if (p.quick) "qref:" else "ref:"
+      val valid = p.revalidate match {
+        case Revalidate.Never => "v0:"
+        case Revalidate.Once => "v1:"
+        case Revalidate.Always => "vn:"
+      }
       val sig = String.format("%08x", p.sig: Integer)
-      prefix + sig + ":" + p.path.toString()
+      quick + valid + sig + ":" + p.path.toString()
     },
     s => {
-      val Array(prefix, hex, pathString) = s.split(":", 3)
+      val Array(prefix, valid0, hex, pathString) = s.split(":", 4)
 
       val path = os.Path(pathString)
       val quick = prefix match {
         case "qref" => true
         case "ref" => false
       }
+      val validOrig = valid0 match {
+        case "v0" => Revalidate.Never
+        case "v1" => Revalidate.Once
+        case "vn" => Revalidate.Always
+      }
       // Parsing to a long and casting to an int is the only way to make
       // round-trip handling of negative numbers work =(
       val sig = java.lang.Long.parseLong(hex, 16).toInt
 
-      PathRef(path, quick, sig)
+      // validate if required
+      if (validOrig != Revalidate.Never) {
+        val changedSig = PathRef.apply(path, quick).sig
+        if (sig != changedSig)
+          throw new PathRefValidationException(PathRef(path, quick, sig, validOrig))
+      }
+
+      // Update revalidation
+      val validNew = validOrig.pipe {
+        case Revalidate.Once => Revalidate.Never
+        case x => x
+      }
+
+      PathRef(path, quick, sig, validNew)
     }
   )
 
   /* Hide case class generated unapply method. */
-  private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int)] =
-    Some((pathRef.path, pathRef.quick, pathRef.sig))
+  private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] =
+    Some((pathRef.path, pathRef.quick, pathRef.sig, pathRef.revalidate))
 }

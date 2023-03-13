@@ -200,6 +200,5 @@ trait TwirlWorkerApi {
 }
 
 object TwirlWorkerApi {
-
-  def twirlWorker = new TwirlWorker()
+  val twirlWorker = new TwirlWorker()
 }

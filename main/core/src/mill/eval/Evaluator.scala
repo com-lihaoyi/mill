@@ -5,7 +5,15 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import ammonite.runtime.SpecialClassLoader
 
 import scala.util.DynamicVariable
-import mill.api.{CompileProblemReporter, Ctx, DummyTestReporter, Loose, Strict, TestReporter}
+import mill.api.{
+  CompileProblemReporter,
+  Ctx,
+  DummyTestReporter,
+  Loose,
+  PathRef,
+  Strict,
+  TestReporter
+}
 import mill.api.Result.{Aborted, Failing, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define._
@@ -13,7 +21,6 @@ import mill.internal.AmmoniteUtils
 import mill.util._
 import upickle.default
 
-import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -35,7 +42,7 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
 /**
  * Evaluate tasks.
  */
-class Evaluator private[Evaluator] (
+class Evaluator private (
     _home: os.Path,
     _outPath: os.Path,
     _externalOutPath: os.Path,
@@ -393,6 +400,9 @@ class Evaluator private[Evaluator] (
           parsed <-
             try Some(upickle.default.read(cached.value)(reader))
             catch {
+              case e: PathRef.PathRefValidationException =>
+                logger.debug(s"${labelledNamedTask.segments.render}: re-evaluating; ${e.getMessage}")
+                None
               case NonFatal(_) => None
             }
         } yield (parsed, cached.valueHash)
