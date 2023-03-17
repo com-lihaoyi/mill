@@ -1,9 +1,8 @@
 package mill.main
 import ammonite.runtime.ImportHook.BaseIvy
 import ammonite.runtime.ImportHook
-import java.io.File
 
-import mill.BuildInfo
+import java.io.File
 
 /**
  * Overrides the ivy hook to customize the `$ivy`-import with mill specifics:
@@ -25,11 +24,18 @@ object MillIvyHook extends BaseIvy(plugin = false) {
       interp: ImportHook.InterpreterInterface,
       signatures: Seq[String]
   ): Either[String, (Seq[coursierapi.Dependency], Seq[File])] = {
+    val replaced = MillIvy.processMillIvyDepSignature(signatures)
+    super.resolve(interp, replaced)
+  }
+}
 
+object MillIvy {
+  def processMillIvyDepSignature(signatures: Seq[String]): Seq[String] = {
     // replace platform notation and empty version
     val millSigs: Seq[String] = for (signature <- signatures) yield {
-//      if (signature.endsWith(":") && signature.count(_ == ":") == 4) signature + "$MILL_VERSION"
-//      else
+
+      if (signature.endsWith(":") && signature.count(_ == ":") == 4) signature + "$MILL_VERSION"
+      //      else
       signature.split("[:]") match {
         case Array(org, "", pname, "", version)
             if org.length > 0 && pname.length > 0 && version.length > 0 =>
@@ -42,13 +48,13 @@ object MillIvyHook extends BaseIvy(plugin = false) {
         case _ => signature
       }
     }
-    // replace variables
+
     val replaced = millSigs.map(_
       .replace("$MILL_VERSION", mill.BuildInfo.millVersion)
       .replace("${MILL_VERSION}", mill.BuildInfo.millVersion)
       .replace("$MILL_BIN_PLATFORM", mill.BuildInfo.millBinPlatform)
       .replace("${MILL_BIN_PLATFORM}", mill.BuildInfo.millBinPlatform))
 
-    super.resolve(interp, replaced)
+    replaced
   }
 }
