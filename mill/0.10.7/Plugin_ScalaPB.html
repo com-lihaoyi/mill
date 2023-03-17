@@ -1,25 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>ScalaPB :: Mill</title>
-    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Plugin_ScalaPB.html">
-    <link rel="prev" href="Plugin_Proguard.html">
-    <link rel="next" href="Plugin_Scoverage.html">
-    <meta name="generator" content="Antora 3.0.1">
-    <link rel="stylesheet" href="../../_/css/site.css">
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Plugin_ScalaPB.html" />
+    <link rel="prev" href="Plugin_Proguard.html" />
+    <link rel="next" href="Plugin_Scoverage.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
     <script>var uiRootPath = '../../_'</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" />&nbsp;Mill</a>
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -203,7 +204,7 @@
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-latest">
-          <a href="../index.html">0.11.0-M6-4-985b4a</a>
+          <a href="../index.html">0.11.0-M6-5-5801da</a>
         </li>
         <li class="version">
           <a href="../0.11.0-M6/index.html">0.11.0-M6</a>
@@ -301,7 +302,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.10.7</button>
   <div class="version-menu">
-    <a class="version" href="../Plugin_ScalaPB.html">0.11.0-M6-4-985b4a</a>
+    <a class="version" href="../Plugin_ScalaPB.html">0.11.0-M6-5-5801da</a>
     <a class="version" href="../0.11.0-M6/Plugin_ScalaPB.html">0.11.0-M6</a>
     <a class="version" href="../0.11.0-M5/Plugin_ScalaPB.html">0.11.0-M5</a>
     <a class="version" href="../0.11.0-M4/Plugin_ScalaPB.html">0.11.0-M4</a>
@@ -346,7 +347,7 @@
 <p>To declare a module that uses ScalaPB you can extend the <code>mill.contrib.scalapblib.ScalaPBModule</code> trait when defining your module.</p>
 </div>
 <div class="paragraph">
-<p>This creates a Scala module which compiles <code>.proto</code> files in the <code>protobuf</code> folder of the module with ScalaPB and adds the resulting <code>.scala</code> sources to your module&#8217;s <code>generatedSources</code>.</p>
+<p>This creates a Scala module which compiles <code>.proto</code> files in the <code>protobuf</code> folder of the module with ScalaPB and adds the resulting <code>.scala</code> sources to your module’s <code>generatedSources</code>.</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
@@ -355,8 +356,8 @@
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
-  def scalaVersion = "2.12.6"
-  def scalaPBVersion = "0.7.4"
+  def scalaVersion = &quot;2.12.6&quot;
+  def scalaPBVersion = &quot;0.7.4&quot;
 }</code></pre>
 </div>
 </div>
@@ -380,7 +381,7 @@ example/
 <div class="ulist">
 <ul>
 <li>
-<p>scalaPBVersion (mandatory) - The ScalaPB version <code>String</code> e.g. <code>"0.7.4"</code></p>
+<p>scalaPBVersion (mandatory) - The ScalaPB version <code>String</code> e.g. <code>&quot;0.7.4&quot;</code></p>
 </li>
 <li>
 <p>scalaPBFlatPackage - A <code>Boolean</code> option which determines whether the <code>.proto</code> file name should be appended as the final segment of the package name in the generated sources.</p>
@@ -400,7 +401,7 @@ example/
 </ul>
 </div>
 <div class="paragraph">
-<p>If you&#8217;d like to configure the <a href="https://scalapb.github.io/docs/scalapbc#passing-generator-parameters">options</a> that are passed to the ScalaPB compiler directly, you can override the <code>scalaPBOptions</code> task, for example:</p>
+<p>If you’d like to configure the <a href="https://scalapb.github.io/docs/scalapbc#passing-generator-parameters">options</a> that are passed to the ScalaPB compiler directly, you can override the <code>scalaPBOptions</code> task, for example:</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
@@ -409,14 +410,14 @@ example/
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
-  def scalaVersion = "2.12.6"
-  def scalaPBVersion = "0.7.4"
-  override def scalaPBOptions = "flat_package,java_conversions"
+  def scalaVersion = &quot;2.12.6&quot;
+  def scalaPBVersion = &quot;0.7.4&quot;
+  override def scalaPBOptions = &quot;flat_package,java_conversions&quot;
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If you&#8217;d like to pass additional arguments to the ScalaPB compiler directly, you can override the <code>scalaPBAdditionalArgs</code> task, for example:</p>
+<p>If you’d like to pass additional arguments to the ScalaPB compiler directly, you can override the <code>scalaPBAdditionalArgs</code> task, for example:</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
@@ -425,10 +426,10 @@ object example extends ScalaPBModule {
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
-  def scalaVersion = "2.12.6"
-  def scalaPBVersion = "0.7.4"
+  def scalaVersion = &quot;2.12.6&quot;
+  def scalaPBVersion = &quot;0.7.4&quot;
   override def scalaPBAdditionalArgs =
-    Seq(s"--zio_out=${T.dest.toIO.getCanonicalPath}")
+    Seq(s&quot;--zio_out=${T.dest.toIO.getCanonicalPath}&quot;)
 }</code></pre>
 </div>
 </div>
@@ -447,9 +448,9 @@ object example extends ScalaPBModule {
   <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
 </footer>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>
