@@ -9,7 +9,7 @@
 :link-pr: {link-github}/pull
 :link-issue: {link-github}/issues
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
-:example-scala-version: 3.2.1
+:example-scala-version: 3.2.2
 
 {link-github}/actions/workflows/actions.yml[image:{link-github}/actions/workflows/actions.yml/badge.svg[Build and Release]]
 {link-gitter}?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge[image:https://badges.gitter.im/Join%20Chat.svg[Gitter Chat]]

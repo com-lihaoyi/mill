@@ -32,6 +32,7 @@ object Settings {
   val githubOrg = "com-lihaoyi"
   val githubRepo = "mill"
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
+  val changelogUrl = s"${projectUrl}#changelog"
   val docUrl = "https://com-lihaoyi.github.io/mill"
   // the exact branches containing a doc root
   val docBranches = Seq()
@@ -68,7 +69,8 @@ object Settings {
       "0.10.7",
       "0.10.8",
       "0.10.9",
-      "0.10.10"
+      "0.10.10",
+      "0.10.11"
     )
 }
 
@@ -143,21 +145,20 @@ object Deps {
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
-  // avoid version 2.1.0-RC2 for issue https://github.com/coursier/coursier/issues/2603
-  val coursier = ivy"io.get-coursier::coursier:2.1.0-RC1"
+  val coursier = ivy"io.get-coursier::coursier:2.1.0"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.1"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.2"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jna = ivy"net.java.dev.jna:jna:5.12.1"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.12.1"
+  val jna = ivy"net.java.dev.jna:jna:5.13.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.13.0"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.19.0"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.20.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
   val millModuledefsVersion = "0.10.9"
   val millModuledefs = ivy"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
@@ -167,8 +168,8 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.0"
-  val scalametaTrees = ivy"org.scalameta::trees:4.6.0"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.1"
+  val scalametaTrees = ivy"org.scalameta::trees:4.7.6"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.7"
@@ -185,7 +186,7 @@ object Deps {
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.1"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.2"
   val requests = ivy"com.lihaoyi::requests:0.7.1"
 }
 
@@ -208,6 +209,9 @@ def baseDir = build.millSourcePath
 trait MillPublishModule extends PublishModule {
   override def artifactName = "mill-" + super.artifactName()
   def publishVersion = millVersion()
+  override def publishProperties: Target[Map[String, String]] = super.publishProperties() ++ Map(
+    "info.releaseNotesURL" -> Settings.changelogUrl
+  )
   def pomSettings = PomSettings(
     description = artifactName(),
     organization = Settings.pomOrg,
@@ -244,7 +248,7 @@ trait MillCoursierModule extends CoursierModule {
   val forcedVersions: Seq[(String, String, String)] = Seq(
     ("org.apache.ant", "ant", "1.10.12"),
     ("commons-io", "commons-io", "2.11.0"),
-    ("com.google.code.gson", "gson", "2.9.1"),
+    ("com.google.code.gson", "gson", "2.10.1"),
     ("com.google.protobuf", "protobuf-java", "3.21.8"),
     ("com.google.guava", "guava", "31.1-jre")
   )
