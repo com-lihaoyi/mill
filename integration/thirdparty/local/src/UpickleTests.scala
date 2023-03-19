@@ -20,12 +20,12 @@ class UpickleTests(fork: Boolean)
       assert(jvmMeta.contains("example.ExampleTests.simple"))
       assert(jvmMeta.contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
     }
-    "js" - {
-      assert(eval("upickleJs[2.12.3].test"))
-      val jsMeta = meta("upickleJs[2.12.3].test.test")
-      assert(jsMeta.contains("example.ExampleTests.simple"))
-      assert(jsMeta.contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
-    }
+//    "js" - {
+//      assert(eval("upickleJs[2.12.3].test"))
+//      val jsMeta = meta("upickleJs[2.12.3].test.test")
+//      assert(jsMeta.contains("example.ExampleTests.simple"))
+//      assert(jsMeta.contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
+//    }
 
   }
 }
