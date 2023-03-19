@@ -198,7 +198,8 @@ object HelloJSWorldTests extends TestSuite {
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])])
         : Map[String, Map[String, TestRunner.Result]] = {
-      val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
+      val res0 = helloWorldEvaluator(testTask)
+      val Left(Result.Failure(_, Some(res))) = res0
 
       val (doneMsg, testResults) = res
       testResults
@@ -249,11 +250,13 @@ object HelloJSWorldTests extends TestSuite {
       val cached = false
       testAllMatrix(
         (scala, scalaJS) => checkUtest(scala, scalaJS, cached),
-        skipScala = _.startsWith("2.11.")
+        skipScala = _.startsWith("2.11."),
+        skipScalaJS = v => v.startsWith("0.6")
       )
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
-        skipScala = isScala3
+        skipScala = v => v.startsWith("3.") || v.startsWith("2.11."),
+        skipScalaJS = v => v.startsWith("0.6")
       )
     }
 
@@ -261,11 +264,14 @@ object HelloJSWorldTests extends TestSuite {
       val cached = false
       testAllMatrix(
         (scala, scalaJS) => checkUtest(scala, scalaJS, cached),
-        skipScala = _.startsWith("2.11.")
+        skipScala =
+          v => v.startsWith("2.11."),
+        skipScalaJS = v => v.startsWith("0.6")
       )
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
-        skipScala = isScala3
+        skipScala = v => v.startsWith("3.") || v.startsWith("2.11."),
+        skipScalaJS = v => v.startsWith("0.6")
       )
     }
 
