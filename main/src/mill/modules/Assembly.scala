@@ -24,26 +24,24 @@ object Assembly {
 
   sealed trait Rule extends Product with Serializable
   object Rule {
-    case class Append(path: String, separator: String = defaultSeparator) extends Rule
-
-    object AppendPattern {
-      def apply(pattern: Pattern): AppendPattern = new AppendPattern(pattern, defaultSeparator)
-      def apply(pattern: String): AppendPattern = apply(pattern, defaultSeparator)
-      def apply(pattern: String, separator: String): AppendPattern =
-        new AppendPattern(Pattern.compile(pattern), separator)
-
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def unapply(value: AppendPattern): Option[Pattern] = Some(value.pattern)
+    case class Append private (path: String, separator: String) extends Rule {
+      private def copy(path: String = path, separator: String = separator): Append =
+        new Append(path, separator)
     }
+    object Append {
+      def apply(path: String, separator: String = defaultSeparator): Append = {
+        new Append(path, separator)
+      }
+      private def unapply(append: Append): Option[(String, String)] =
+        Option(append.path, append.separator)
+    }
+
     class AppendPattern private (val pattern: Pattern, val separator: String) extends Rule {
       @deprecated(
         message = "Binary compatibility shim. Don't use it. To be removed",
         since = "mill 0.10.1"
       )
-      def this(pattern: Pattern) = this(pattern, defaultSeparator)
+      private[modules] def this(pattern: Pattern) = this(pattern, defaultSeparator)
 
       override def productPrefix: String = "AppendPattern"
       override def productArity: Int = 2
@@ -59,22 +57,43 @@ object Assembly {
         case _ => false
       }
       override def toString: String = scala.runtime.ScalaRunTime._toString(this)
-
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def copy(pattern: Pattern = pattern): AppendPattern = new AppendPattern(pattern, separator)
+      private def copy(pattern: Pattern = pattern): AppendPattern =
+        new AppendPattern(pattern, separator)
+    }
+    object AppendPattern {
+      def apply(pattern: Pattern): AppendPattern = new AppendPattern(pattern, defaultSeparator)
+      def apply(pattern: String): AppendPattern = apply(pattern, defaultSeparator)
+      def apply(pattern: String, separator: String): AppendPattern =
+        new AppendPattern(Pattern.compile(pattern), separator)
+      private def unapply(value: AppendPattern): Option[Pattern] = Some(value.pattern)
     }
 
-    case class Exclude(path: String) extends Rule
+    case class Exclude private (path: String) extends Rule {
+      private def copy(path: String = path): Exclude = new Exclude(path)
+    }
 
-    case class Relocate(from: String, to: String) extends Rule
+    object Exclude {
+      def apply(path: String): Exclude = new Exclude(path)
+      private def unapply(exclude: Exclude): Option[String] = Option(exclude.path)
+    }
 
+    case class Relocate private (from: String, to: String) extends Rule {
+      private def copy(from: String = from, to: String = to): Relocate = new Relocate(from, to)
+    }
+
+    object Relocate {
+      def apply(from: String, to: String): Relocate = new Relocate(from, to)
+      private def unapply(relocate: Relocate): Option[(String, String)] = Some((relocate.from, relocate.to))
+    }
+
+    case class ExcludePattern private (pattern: Pattern) extends Rule {
+      private def copy(pattern: Pattern = pattern): ExcludePattern = new ExcludePattern(pattern)
+    }
     object ExcludePattern {
+      def apply(pattern: Pattern): ExcludePattern = ExcludePattern(pattern)
       def apply(pattern: String): ExcludePattern = ExcludePattern(Pattern.compile(pattern))
+      private def unapply(excludePattern: ExcludePattern): Option[Pattern] = Some(excludePattern.pattern)
     }
-    case class ExcludePattern(pattern: Pattern) extends Rule
   }
 
   def groupAssemblyEntries(
