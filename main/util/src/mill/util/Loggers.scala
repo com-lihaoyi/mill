@@ -102,25 +102,25 @@ object PrefixLogger {
     new PrefixLogger(out, context, tickerContext)
 }
 
-case class PrintLogger(
+class PrintLogger(
     override val colored: Boolean,
-    disableTicker: Boolean,
+    val disableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
-    outStream: PrintStream,
-    infoStream: PrintStream,
-    errStream: PrintStream,
+    val outStream: PrintStream,
+    val infoStream: PrintStream,
+    val errStream: PrintStream,
     override val inStream: InputStream,
     override val debugEnabled: Boolean,
-    context: String
+    val context: String
 ) extends ColorLogger {
 
   var printState: PrintState = PrintState.Newline
 
-  override val errorStream = new PrintStream(
+  override val errorStream: PrintStream = new PrintStream(
     new CallbackStream(errStream, printState = _)
   )
-  override val outputStream = new PrintStream(
+  override val outputStream: PrintStream = new PrintStream(
     new CallbackStream(outStream, printState = _)
   )
 
@@ -163,6 +163,31 @@ case class PrintLogger(
       errStream.println(context + s)
     }
   }
+
+  def copy(
+      colored: Boolean = colored,
+      disableTicker: Boolean = disableTicker,
+      infoColor: fansi.Attrs = infoColor,
+      errorColor: fansi.Attrs = errorColor,
+      outStream: PrintStream = outStream,
+      infoStream: PrintStream = infoStream,
+      errStream: PrintStream = errStream,
+      inStream: InputStream = inStream,
+      debugEnabled: Boolean = debugEnabled,
+      context: String = context
+  ): PrintLogger = new PrintLogger(
+    colored,
+    disableTicker,
+    infoColor,
+    errorColor,
+    outStream,
+    infoStream,
+    errStream,
+    inStream,
+    debugEnabled,
+    context
+  )
+
 }
 
 class FileLogger(
@@ -214,6 +239,7 @@ class FileLogger(
     if (outputStreamUsed)
       outputStream.close()
   }
+
 }
 
 class MultiStream(stream1: OutputStream, stream2: OutputStream)

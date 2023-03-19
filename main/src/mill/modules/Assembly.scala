@@ -32,7 +32,7 @@ object Assembly {
       def apply(path: String, separator: String = defaultSeparator): Append = {
         new Append(path, separator)
       }
-      private def unapply(append: Append): Option[(String, String)] =
+      private[modules] def unapply(append: Append): Option[(String, String)] =
         Option(append.path, append.separator)
     }
 
@@ -65,7 +65,7 @@ object Assembly {
       def apply(pattern: String): AppendPattern = apply(pattern, defaultSeparator)
       def apply(pattern: String, separator: String): AppendPattern =
         new AppendPattern(Pattern.compile(pattern), separator)
-      private def unapply(value: AppendPattern): Option[Pattern] = Some(value.pattern)
+      private[modules] def unapply(value: AppendPattern): Option[Pattern] = Some(value.pattern)
     }
 
     case class Exclude private (path: String) extends Rule {
@@ -74,7 +74,7 @@ object Assembly {
 
     object Exclude {
       def apply(path: String): Exclude = new Exclude(path)
-      private def unapply(exclude: Exclude): Option[String] = Option(exclude.path)
+      private[modules] def unapply(exclude: Exclude): Option[String] = Option(exclude.path)
     }
 
     case class Relocate private (from: String, to: String) extends Rule {
@@ -83,7 +83,7 @@ object Assembly {
 
     object Relocate {
       def apply(from: String, to: String): Relocate = new Relocate(from, to)
-      private def unapply(relocate: Relocate): Option[(String, String)] = Some((relocate.from, relocate.to))
+      private[modules] def unapply(relocate: Relocate): Option[(String, String)] = Some((relocate.from, relocate.to))
     }
 
     case class ExcludePattern private (pattern: Pattern) extends Rule {
@@ -92,7 +92,7 @@ object Assembly {
     object ExcludePattern {
       def apply(pattern: Pattern): ExcludePattern = ExcludePattern(pattern)
       def apply(pattern: String): ExcludePattern = ExcludePattern(Pattern.compile(pattern))
-      private def unapply(excludePattern: ExcludePattern): Option[Pattern] = Some(excludePattern.pattern)
+      private[modules] def unapply(excludePattern: ExcludePattern): Option[Pattern] = Some(excludePattern.pattern)
     }
   }
 

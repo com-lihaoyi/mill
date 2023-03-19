@@ -202,7 +202,7 @@ object TestRunner {
     try {
       val testArgs = TestArgs.parseArgs(args).get
       val ctx = new Ctx.Log with Ctx.Home {
-        val log = PrintLogger(
+        val log = new PrintLogger(
           testArgs.colored,
           true,
           if (testArgs.colored) fansi.Color.Blue
