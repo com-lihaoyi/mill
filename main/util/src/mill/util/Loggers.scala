@@ -69,7 +69,7 @@ trait ColorLogger extends Logger {
   def errorColor: fansi.Attrs
 }
 
-class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "")
+class PrefixLogger(out: ColorLogger, context: String, tickerContext: String)
     extends ColorLogger {
   override def colored = out.colored
 
@@ -95,6 +95,11 @@ class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = ""
   override def debug(s: String): Unit = out.debug(context + s)
 
   override def debugEnabled: Boolean = out.debugEnabled
+}
+
+object PrefixLogger {
+  def apply(out: ColorLogger, context: String, tickerContext: String = ""): PrefixLogger =
+    new PrefixLogger(out, context, tickerContext)
 }
 
 case class PrintLogger(
