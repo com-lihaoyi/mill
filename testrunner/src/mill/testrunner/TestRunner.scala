@@ -108,16 +108,16 @@ object TestRunner {
     }.map { f => (cls, f) }
   }
 
-  case class TestArgs(
-      framework: String,
-      classpath: Seq[String],
-      arguments: Seq[String],
-      sysProps: Map[String, String],
-      outputPath: String,
-      colored: Boolean,
-      testCp: String,
-      homeStr: String,
-      globSelectors: Seq[String]
+  class TestArgs(
+      val framework: String,
+      val classpath: Seq[String],
+      val arguments: Seq[String],
+      val sysProps: Map[String, String],
+      val outputPath: String,
+      val colored: Boolean,
+      val testCp: String,
+      val homeStr: String,
+      val globSelectors: Seq[String]
   ) {
     def toArgsSeq: Seq[String] =
       Seq(
@@ -144,6 +144,28 @@ object TestRunner {
   }
 
   object TestArgs {
+
+    def apply(
+        framework: String,
+        classpath: Seq[String],
+        arguments: Seq[String],
+        sysProps: Map[String, String],
+        outputPath: String,
+        colored: Boolean,
+        testCp: String,
+        homeStr: String,
+        globSelectors: Seq[String]
+    ): TestArgs = new TestArgs(
+      framework,
+      classpath,
+      arguments,
+      sysProps,
+      outputPath,
+      colored,
+      testCp,
+      homeStr,
+      globSelectors
+    )
 
     def parseArgs(args: Array[String]): Try[TestArgs] = {
       args match {
@@ -399,7 +421,18 @@ object TestRunner {
   )
 
   object Result {
-    implicit def resultRW: upickle.default.ReadWriter[Result] =
+    implicit def resultRW: upickle.default.ReadWriter[Result] = {
       upickle.default.macroRW[Result]
+    }
+
+    private def unapply(result: Result): Option[(String, String, Long, String, Option[String], Option[String], Option[Seq[StackTraceElement]])] = Some((
+      result.fullyQualifiedName,
+      result.selector,
+      result.duration,
+      result.status,
+      result.exceptionName,
+      result.exceptionMsg,
+      result.exceptionTrace
+    ))
   }
 }
