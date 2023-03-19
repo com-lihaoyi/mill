@@ -69,7 +69,7 @@ trait ColorLogger extends Logger {
   def errorColor: fansi.Attrs
 }
 
-case class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "")
+class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "")
     extends ColorLogger {
   override def colored = out.colored
 
