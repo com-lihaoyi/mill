@@ -4,7 +4,10 @@ import scala.reflect.ClassTag
 import scala.reflect.macros.blackbox
 
 object Cross {
-  case class Factory[T](make: (Product, mill.define.Ctx, Seq[Product]) => T)
+  case class Factory[T](make: (Product, mill.define.Ctx, Seq[Product]) => T) {
+    private def copy[T](make: (Product, mill.define.Ctx, Seq[Product]) => T = make): Factory[T] =
+      new Factory(make)
+  }
 
   object Factory {
     implicit def make[T]: Factory[T] = macro makeImpl[T]
@@ -29,6 +32,9 @@ object Cross {
 
       reify { mill.define.Cross.Factory[T](instance.splice) }
     }
+
+    private def unapply[T](factory: Factory[T]): Option[(Product, Ctx, Seq[Product]) => T] =
+      Some(factory.make)
   }
 
   trait Resolver[-T <: Module] {
