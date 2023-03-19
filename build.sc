@@ -56,6 +56,7 @@ object Settings {
     "0.10.8",
     "0.10.9",
     "0.10.10"
+    // no longer relevant in this branch
   )
   val mimaBaseVersions =
     Seq(

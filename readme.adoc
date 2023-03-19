@@ -247,6 +247,25 @@ corresponding version of Mill.
 
 == Changelog
 
+=== 0.10.12 - 2023-03-20
+:version: 0.10.12
+:milestone-name: 0.10.12
+:milestone: 75
+:prev-version: 0.10.11
+
+_Changes since {prev-version}:_
+
+* `scalalib`: Mitigate another coursier download issue (backported from 0.11.0-M4)
+* `testrunner`: Fixed a concurrency issue with test event reporting (backported from 0.11.0-M5)
+* `scalajslib`: Deprecated `fastOpt` and `fullOpt`
+* Updated dependencies: coursier 2.1.0, jarjar-abrams 1.8.2, jna 5.13.0, junixsocket 2.6.2, log4j-core 2.20.0, scalafmt-dynamic 3.6.1, trees 4.7.6
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+
 === 0.10.11 - 2023-01-24
 :version: 0.10.11
 :milestone-name: 0.10.11
