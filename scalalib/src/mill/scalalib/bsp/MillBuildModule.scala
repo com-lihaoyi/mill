@@ -3,7 +3,6 @@ package mill.scalalib.bsp
 import mill.util.SpecialClassLoader
 import mill.api.{Loose, PathRef, internal}
 import mill.define.{BaseModule, Discover, ExternalModule, Sources, Target, Task}
-import mill.main.MillIvy
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.BuildScAwareness.{IncludedDep, IncludedFile}
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
@@ -48,8 +47,8 @@ trait MillBuildModule
   override def ivyDeps: T[Agg[Dep]] = T {
     val deps = buildScImports().collect {
       case d: IncludedDep =>
-        val Seq(dep) = MillIvy.processMillIvyDepSignature(Seq(d.dep))
-//        val Seq(dep) = Seq(d.dep)
+//        val Seq(dep) = MillIvy.processMillIvyDepSignature(Seq(d.dep))
+        val Seq(dep) = Seq(d.dep)
         ivy"${dep}"
     }
     T.log.errorStream.println(s"ivyDeps: ${deps}")

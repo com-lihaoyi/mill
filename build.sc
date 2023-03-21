@@ -124,17 +124,7 @@ object Deps {
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   val ammoniteVersion = "3.0.0-M0-5-0af4d9e7"
-  val ammonite = ivy"com.lihaoyi::ammonite-util:${ammoniteVersion}"
   val fastparse = ivy"com.lihaoyi::fastparse:3.0.0"
-  val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
-  val ammoniteReducedDeps = ammonite.exclude(
-    // Exclude trees here to force the version of the dependencies we have defined ourselves.
-    // We use this here instead of a `forceVersion()` on scalametaTrees since it's not
-    // respected in the POM causing issues for Coursier Mill users.
-    "org.scalameta" -> "trees_2.13",
-    // only used when ammonite is run with --bsp, which we don't support
-    "ch.epfl.scala" -> "bsp4j"
-  )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   val coursier = ivy"io.get-coursier::coursier:2.1.0"
@@ -290,7 +280,6 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   override def scalacOptions = T {
     super.scalacOptions() ++ Seq("-deprecation")
   }
-  override def ammoniteVersion = Deps.ammonite.dep.version
 
   // Test setup
 
@@ -385,7 +374,6 @@ object main extends MillModule {
   object util extends MillApiModule with MillAutoTestSetup {
     override def moduleDeps = Seq(api)
     override def ivyDeps = Agg(
-      Deps.ammoniteTerminal,
       Deps.fansi
     )
   }
@@ -397,7 +385,6 @@ object main extends MillModule {
     override def ivyDeps = Agg(
       Deps.millModuledefs,
       Deps.millModuledefsPlugin,
-      Deps.ammoniteReducedDeps,
       Deps.scalametaTrees,
       Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
@@ -532,7 +519,7 @@ object scalalib extends MillModule {
          | */
          |object Versions {
          |  /** Version of Ammonite. */
-         |  val ammonite = "${Deps.ammonite.dep.version}"
+         |  val ammonite = "${Deps.ammoniteVersion}"
          |  /** Version of Zinc. */
          |  val zinc = "${Deps.zinc.dep.version}"
          |  /** SemanticDB version. */
@@ -1347,7 +1334,6 @@ object dev extends MillModule {
       case wd0 +: rest =>
         val wd = os.Path(wd0, T.workspace)
         os.makeDir.all(wd)
-        println(Seq(launcher().path.toString) ++ rest)
         mill.modules.Jvm.runSubprocess(
           Seq(launcher().path.toString) ++ rest,
           forkEnv(),

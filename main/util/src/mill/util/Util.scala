@@ -8,4 +8,6 @@ object Util{
     data.foreach(digest.update)
     digest.digest()
   }
+
+  def isInteractive() = System.console() != null
 }

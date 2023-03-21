@@ -5,13 +5,13 @@ import mainargs.TokensReader
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result, internal}
-import mill.define.{Command, NamedTask, Task}
+import mill.define.{Command, NamedTask, Segments, SelectMode, Target, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{PrintLogger, Watched}
-import mill.define.SelectMode
-import pprint.{Renderer, Truncated}
+import pprint.{Renderer, Tree, Truncated}
 import ujson.Value
 
+import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 
 object MainModule {
@@ -175,10 +175,59 @@ trait MainModule extends mill.Module {
    * Displays metadata about the given task without actually running it.
    */
   def inspect(evaluator: Evaluator, targets: String*): Command[String] = mill.T.command {
+
+    def resolveParents(c: Class[_]): Seq[Class[_]] = {
+      Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
+        resolveParents
+      )
+    }
+    def pprintTask(t: NamedTask[_], evaluator: Evaluator): Tree.Lazy = {
+      val seen = mutable.Set.empty[Task[_]]
+
+      def rec(t: Task[_]): Seq[Segments] = {
+        if (seen(t)) Nil // do nothing
+        else t match {
+          case t: Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
+            Seq(t.ctx.segments)
+          case _ =>
+            seen.add(t)
+            t.inputs.flatMap(rec)
+        }
+      }
+
+      val annots = for {
+        c <- resolveParents(t.ctx.enclosingCls)
+        m <- c.getMethods
+        if m.getName == t.ctx.segment.pathSegments.head
+        a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
+        if a != null
+      } yield a
+
+      val allDocs =
+        for (a <- annots.distinct)
+          yield mill.modules.Util.cleanupScaladoc(a.value).map("\n    " + _).mkString
+
+      pprint.Tree.Lazy(ctx =>
+        Iterator(
+          ctx.applyPrefixColor(t.toString).toString,
+          "(",
+          t.ctx.fileName.split('/').last,
+          ":",
+          t.ctx.lineNum.toString,
+          ")",
+          allDocs.mkString("\n"),
+          "\n",
+          "\n",
+          ctx.applyPrefixColor("Inputs").toString,
+          ":"
+        ) ++ t.inputs.distinct.iterator.flatMap(rec).map("\n    " + _.render)
+      )
+    }
+
     MainModule.resolveTasks(evaluator, targets, SelectMode.Multi) { tasks =>
       val output = (for {
         task <- tasks
-        tree = ReplApplyHandler.pprintTask(task, evaluator)
+        tree = pprintTask(task, evaluator)
         defaults = pprint.PPrinter()
         renderer = new Renderer(
           defaults.defaultWidth,

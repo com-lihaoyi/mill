@@ -1,24 +1,14 @@
 package mill.main
 
-import java.nio.file.NoSuchFileException
-import mill.util.SpecialClassLoader
-import ammonite.util.Util.CodeSource
-import ammonite.util.{Name, Res, ScriptOutput, Util}
-import mill.{MillCliConfig, define}
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.util.{EitherOps, PrintLogger, Watched}
+import mill.util.{EitherOps, Watched}
 import mill.define.SelectMode
 import mill.define.ParseArgs
-import mill.api.{Logger, PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.api.Strict.Agg
-import mill.internal.AmmoniteUtils
-
-import scala.collection.mutable
 import scala.reflect.ClassTag
 import mill.define.ParseArgs.TargetsWithParams
-
-import java.io.{InputStream, PrintStream}
 
 /**
  * Custom version of ammonite.main.Scripts, letting us run the build.sc script
@@ -28,38 +18,6 @@ import java.io.{InputStream, PrintStream}
 object RunScript {
 
   type TaskName = String
-
-
-  def watchedSigUnchanged(sig: Seq[(mill.internal.Watchable, Long)]) = {
-    sig.forall { case (p, l) => p.poll() == l }
-  }
-
-  private def importTree(alreadyLoadedFiles: collection.Map[CodeSource, ScriptOutput.Metadata])
-      : Seq[ScriptNode] = {
-    val importTreeMap = mutable.Map.empty[String, Seq[String]]
-    alreadyLoadedFiles.foreach { case (a, b) =>
-      val filePath = AmmoniteUtils.normalizeAmmoniteImportPath(a.filePathPrefix)
-      val importPaths = b.blockInfo.flatMap { b =>
-        val relativePath = b.hookInfo.trees.map { t =>
-          val prefix = t.prefix
-          val mappings = t.mappings.toSeq.flatMap(_.map(_._1))
-          prefix ++ mappings
-        }
-        relativePath.collect {
-          case "$file" :: tail =>
-            val concatenated = filePath.init ++ tail
-            AmmoniteUtils.normalizeAmmoniteImportPath(concatenated)
-        }
-      }
-      def toCls(segments: Seq[String]): String = segments.mkString(".")
-      val key = toCls(filePath)
-      val toAppend = importPaths.map(toCls)
-      importTreeMap(key) = importTreeMap.getOrElse(key, Seq.empty) ++ toAppend
-    }
-
-    GraphUtils.linksToScriptNodeGraph(importTreeMap)
-  }
-
 
   def resolveTasks[T, R: ClassTag](
       resolver: mill.main.Resolve[R],
@@ -211,8 +169,8 @@ object RunScript {
     val watched = evaluated.results
       .iterator
       .collect {
-        case (t: define.Sources, Result.Success(ps: Seq[PathRef])) => ps
-        case (t: define.Source, Result.Success(p: PathRef)) => Seq(p)
+        case (t: Sources, Result.Success(ps: Seq[PathRef])) => ps
+        case (t: Source, Result.Success(p: PathRef)) => Seq(p)
       }
       .flatten
       .toSeq

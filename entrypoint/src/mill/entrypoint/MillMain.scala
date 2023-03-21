@@ -40,7 +40,7 @@ object MillMain {
         main0(
           args,
           None,
-          ammonite.util.Util.isInteractive(),
+          mill.util.Util.isInteractive(),
           initialSystemStreams,
           System.getenv().asScala.toMap,
           b => (),

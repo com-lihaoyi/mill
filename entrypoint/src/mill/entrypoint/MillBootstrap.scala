@@ -1,5 +1,5 @@
 package mill.entrypoint
-import ammonite.util.Colors
+import mill.util.Colors
 import mill.MillCliConfig
 import mill.api.PathRef
 
@@ -70,7 +70,7 @@ object MillBootstrap{
                systemProperties: Map[String, String],
                targetsAndParams: Seq[String]): (Seq[PathRef], Option[String], Option[EvaluatorState], Boolean) = {
     val bootstrapModule = new MillBootstrapModule(
-      ammonite.util.Classpath
+      mill.util.Classpath
         .classpath(getClass.getClassLoader, None)
         .map(_.toURI).filter(_.getScheme == "file")
         .map(_.getPath)
@@ -79,7 +79,7 @@ object MillBootstrap{
     )
 
     val colored = config.color.getOrElse(mainInteractive)
-    val colors = if (colored) ammonite.util.Colors.Default else ammonite.util.Colors.BlackWhite
+    val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
     val logger = makeLogger(config, streams, colored, colors)
     val evaluator = makeEvaluator(os.pwd / "out" / "mill-build", config, env, threadCount, bootstrapModule, logger)
 
@@ -126,8 +126,8 @@ object MillBootstrap{
     mill.util.PrintLogger(
       colored = colored,
       disableTicker = config.disableTicker.value,
-      infoColor = colors.info(),
-      errorColor = colors.error(),
+      infoColor = colors.info,
+      errorColor = colors.error,
       outStream = streams.out,
       infoStream = streams.err,
       errStream = streams.err,
