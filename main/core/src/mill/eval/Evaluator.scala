@@ -2,7 +2,7 @@ package mill.eval
 
 import java.net.{URL, URLClassLoader}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-import ammonite.runtime.SpecialClassLoader
+import mill.util.SpecialClassLoader
 
 import scala.util.DynamicVariable
 import mill.api.{

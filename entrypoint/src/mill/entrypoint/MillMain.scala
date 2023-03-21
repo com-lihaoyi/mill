@@ -198,30 +198,6 @@ object MillMain {
               }
             }.mkString("\n")
 
-            val ammConfig = ammonite.main.Config(
-              core = ammonite.main.Config.Core(
-                noDefaultPredef = config.noDefaultPredef,
-                silent = config.silent,
-                watch = config.watch,
-                bsp = Flag(),
-                code = None,
-                home = config.home,
-                predefFile = config.predefFile,
-                color = config.color,
-                thin = Flag(),
-                help = config.help,
-                showVersion = Flag()
-              ),
-              predef = ammonite.main.Config.Predef(
-                predefCode = Seq(predefCode, importsPredefCode).filter(_.nonEmpty).mkString("\n"),
-                noHomePredef = Flag()
-              ),
-              repl = ammonite.main.Config.Repl(
-                banner = MillCliConfigParser.customName,
-                noRemoteLogging = Flag(),
-                classBased = Flag()
-              )
-            )
 
 
             if (mill.main.client.Util.isJava9OrAbove) {
@@ -260,7 +236,7 @@ object MillMain {
                       errStream = System.err,
                       inStream = MillMain.initialSystemStreams.in,
                       workspaceDir = os.pwd,
-                      ammoniteHomeDir = ammConfig.core.home,
+                      ammoniteHomeDir = config.home,
                       canReload = true,
                       serverHandle = Some(bspServerHandle)
                     )
@@ -337,7 +313,7 @@ object MillMain {
                       mill.api.Loose.Agg.from(enclosingClasspath.map(p => mill.api.PathRef(p)))
                     }
                 }
-                val colored = ammConfig.core.color.getOrElse(mainInteractive)
+                val colored = config.color.getOrElse(mainInteractive)
                 val colors = if (colored) ammonite.util.Colors.Default else ammonite.util.Colors.BlackWhite
                 val logger = mill.util.PrintLogger(
                   colored = colored,
@@ -352,7 +328,7 @@ object MillMain {
                   context = ""
                 )
                 val evaluator = Evaluator(
-                  ammConfig.core.home,
+                  config.home,
                   os.pwd / "out" / "mill-build",
                   os.pwd / "out" / "mill-build",
                   BootstrapModule,
@@ -392,7 +368,7 @@ object MillMain {
                   rootModule, Nil, collection.mutable.Map.empty, Nil, systemProperties.keySet, Nil
                 )
                 val evaluator2 = Evaluator(
-                  ammConfig.core.home,
+                  config.home,
                   os.pwd / "out",
                   os.pwd / "out",
                   rootModule,

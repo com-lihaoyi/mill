@@ -1,6 +1,6 @@
 package mill.scalalib.bsp
 
-import ammonite.runtime.SpecialClassLoader
+import mill.util.SpecialClassLoader
 import mill.api.{Loose, PathRef, internal}
 import mill.define.{BaseModule, Segments, Sources, Task}
 import mill.eval.EvaluatorPathsResolver

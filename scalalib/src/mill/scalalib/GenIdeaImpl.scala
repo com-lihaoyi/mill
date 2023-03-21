@@ -3,7 +3,7 @@ package mill.scalalib
 import scala.collection.immutable
 import scala.util.Try
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
-import ammonite.runtime.SpecialClassLoader
+import mill.util.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import coursier.{LocalRepositories, Repositories, Repository}

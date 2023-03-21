@@ -124,7 +124,8 @@ object Deps {
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   val ammoniteVersion = "3.0.0-M0-5-0af4d9e7"
-  val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
+  val ammonite = ivy"com.lihaoyi::ammonite-util:${ammoniteVersion}"
+  val fastparse = ivy"com.lihaoyi::fastparse:3.0.0"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   val ammoniteReducedDeps = ammonite.exclude(
     // Exclude trees here to force the version of the dependencies we have defined ourselves.
@@ -347,7 +348,9 @@ object main extends MillModule {
   override def moduleDeps = Seq(core, client)
   override def ivyDeps = Agg(
     Deps.windowsAnsi,
-    Deps.mainargs
+    Deps.mainargs,
+    ivy"io.get-coursier:interface:1.0.11",
+    ivy"com.lihaoyi::requests:0.7.0"
   )
   override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
@@ -400,7 +403,9 @@ object main extends MillModule {
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
-      Deps.jarjarabrams
+      Deps.jarjarabrams,
+      Deps.mainargs,
+      Deps.fastparse
     )
     override def generatedSources = T {
       val dest = T.ctx.dest
