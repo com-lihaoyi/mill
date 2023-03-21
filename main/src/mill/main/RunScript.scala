@@ -4,7 +4,7 @@ import java.nio.file.NoSuchFileException
 import mill.util.SpecialClassLoader
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, ScriptOutput, Util}
-import mill.define
+import mill.{MillCliConfig, define}
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{EitherOps, PrintLogger, Watched}
@@ -18,6 +18,8 @@ import scala.collection.mutable
 import scala.reflect.ClassTag
 import mill.define.ParseArgs.TargetsWithParams
 
+import java.io.{InputStream, PrintStream}
+
 /**
  * Custom version of ammonite.main.Scripts, letting us run the build.sc script
  * directly without going through Ammonite's main-method/argument-parsing
@@ -27,86 +29,6 @@ object RunScript {
 
   type TaskName = String
 
-//  def runScript(
-//      home: os.Path,
-//      wd: os.Path,
-//      path: os.Path,
-//      instantiateInterpreter: => Either[
-//        (Res.Failing, Seq[(mill.internal.Watchable, Long)]),
-//        ammonite.interp.Interpreter
-//      ],
-//      scriptArgs: Seq[String],
-//      stateCache: Option[EvaluatorState],
-//      log: PrintLogger,
-//      env: Map[String, String],
-//      keepGoing: Boolean,
-//      systemProperties: Map[String, String],
-//      threadCount: Option[Int],
-//      initialSystemProperties: Map[String, String]
-//  ): (
-//      Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])],
-//      Seq[(mill.internal.Watchable, Long)]
-//  ) = {
-//
-//    for ((k, v) <- systemProperties) System.setProperty(k, v)
-//    val systemPropertiesToUnset =
-//      stateCache.map(_.setSystemProperties).getOrElse(Set()) -- systemProperties.keySet
-//
-//    for (k <- systemPropertiesToUnset) {
-//      initialSystemProperties.get(k) match {
-//        case None => System.clearProperty(k)
-//        case Some(original) => System.setProperty(k, original)
-//      }
-//    }
-//
-//    val (evalState, interpWatched) = stateCache match {
-//      case Some(s) if watchedSigUnchanged(s.watched) => Res.Success(s) -> s.watched
-//      case _ =>
-//        instantiateInterpreter match {
-//          case Left((res, watched)) => (res, watched)
-//          case Right(interp) =>
-//            interp.watch(path)
-//            val eval =
-//              for (rootModule <- evaluateRootModule(wd, path, interp, log))
-//                yield {
-//                  EvaluatorState(
-//                    rootModule,
-//                    rootModule.getClass.getClassLoader.asInstanceOf[
-//                      SpecialClassLoader
-//                    ].classpathSignature,
-//                    mutable.Map.empty[Segments, (Int, Any)],
-//                    interp.watchedValues.toSeq,
-//                    systemProperties.keySet,
-//                    importTree(interp.alreadyLoadedFiles)
-//                  )
-//                }
-//            (eval, interp.watchedValues)
-//        }
-//    }
-//
-//    val evalRes =
-//      for (s <- evalState)
-//        yield Evaluator(
-//          home,
-//          wd / "out",
-//          wd / "out",
-//          s.rootModule,
-//          log
-//        ).withClassLoaderSig(s.classLoaderSig)
-//          .withWorkerCache(s.workerCache)
-//          .withEnv(env)
-//          .withFailFast(!keepGoing)
-//          .withThreadCount(threadCount)
-//          .withImportTree(s.importTree)
-//
-//    val evaluated = for {
-//      evaluator <- evalRes
-//      (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, SelectMode.Separated))
-//    } yield {
-//      (evaluator, evalWatches, res.map(_.flatMap(_._2)))
-//    }
-//    (evaluated, interpWatched.toSeq)
-//  }
 
   def watchedSigUnchanged(sig: Seq[(mill.internal.Watchable, Long)]) = {
     sig.forall { case (p, l) => p.poll() == l }
@@ -138,56 +60,6 @@ object RunScript {
     GraphUtils.linksToScriptNodeGraph(importTreeMap)
   }
 
-//  def evaluateRootModule(
-//      wd: os.Path,
-//      path: os.Path,
-//      interp: ammonite.interp.Interpreter,
-//      log: Logger
-//  ): Res[mill.define.BaseModule] = {
-//
-//    val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
-//
-//    for {
-//      scriptTxt <-
-//        try Res.Success(Util.normalizeNewlines(os.read(path)))
-//        catch {
-//          case _: NoSuchFileException =>
-//            log.info("No build file found, you should create build.sc to do something useful")
-//            Res.Success("")
-//        }
-//
-//      processed <- interp.processModule(
-//        scriptTxt,
-//        CodeSource(wrapper, pkg, Seq(Name("ammonite"), Name("$file")), Some(path)),
-//        autoImport = true,
-//        extraCode = "",
-//        hardcoded = true
-//      )
-//
-//      buildClsName <- processed.blockInfo.lastOption match {
-//        case Some(meta) => Res.Success(meta.id.wrapperPath)
-//        case None => Res.Skip
-//      }
-//
-//      buildCls = interp
-//        .evalClassloader
-//        .loadClass(buildClsName)
-//
-//      module <-
-//        try {
-//          Util.withContextClassloader(interp.evalClassloader) {
-//            Res.Success(
-//              buildCls.getMethod("millSelf")
-//                .invoke(null)
-//                .asInstanceOf[Some[mill.define.BaseModule]]
-//                .get
-//            )
-//          }
-//        } catch {
-//          case e: Throwable => Res.Exception(e, "")
-//        }
-//    } yield module
-//  }
 
   def resolveTasks[T, R: ClassTag](
       resolver: mill.main.Resolve[R],
@@ -364,12 +236,4 @@ object RunScript {
     }
   }
 
-//  def consistencyCheck[T](mapping: Discovered.Mapping[T]): Either[String, Unit] = {
-//    val consistencyErrors = Discovered.consistencyCheck(mapping)
-//    if (consistencyErrors.nonEmpty) {
-//      Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(_.render)}")
-//    } else {
-//      Right(())
-//    }
-//  }
 }

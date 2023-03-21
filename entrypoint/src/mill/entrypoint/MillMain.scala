@@ -264,131 +264,24 @@ object MillMain {
               while (repeatForBsp) {
                 repeatForBsp = false
 
-//                val runnerRes = r
-
-                val enclosingClasspath = ammonite.util.Classpath
-                  .classpath(getClass.getClassLoader, None)
-                  .map(_.toURI).filter(_.getScheme == "file")
-                  .map(_.getPath)
-                  .map(os.Path(_))
-                object BootstrapModule
-                  extends mill.define.BaseModule(os.pwd)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(()))
-                  with mill.scalalib.ScalaModule {
-                    implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
-                    def scalaVersion = "2.13.10"
-                    def generatedSources = mill.define.Target.input{
-                      val top =
-                        s"""
-                           |package millbuild
-                           |import _root_.mill._
-                           |object MillBuildModule
-                           |extends _root_.mill.define.BaseModule(os.Path("${os.pwd}"))(
-                           |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
-                           |)
-                           |with MillBuildModule{
-                           |  // Stub to make sure Ammonite has something to call after it evaluates a script,
-                           |  // even if it does nothing...
-                           |  def $$main() = Iterator[String]()
-                           |
-                           |  // Need to wrap the returned Module in Some(...) to make sure it
-                           |  // doesn't get picked up during reflective child-module discovery
-                           |  def millSelf = Some(this)
-                           |
-                           |  @_root_.scala.annotation.nowarn("cat=deprecation")
-                           |  implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
-                           |}
-                           |
-                           |sealed trait MillBuildModule extends _root_.mill.main.MainModule{
-                           |""".stripMargin
-                      val bottom = "\n}"
-
-
-                      os.write(
-                        mill.define.Target.dest / "Build.scala",
-                        top + os.read(os.pwd / "build.sc") + bottom
-                      )
-                      Seq(mill.api.PathRef(mill.define.Target.dest / "Build.scala"))
-                    }
-                    def unmanagedClasspath = mill.define.Target.input{
-                      mill.api.Loose.Agg.from(enclosingClasspath.map(p => mill.api.PathRef(p)))
-                    }
-                }
-                val colored = config.color.getOrElse(mainInteractive)
-                val colors = if (colored) ammonite.util.Colors.Default else ammonite.util.Colors.BlackWhite
-                val logger = mill.util.PrintLogger(
-                  colored = colored,
-                  disableTicker = config.disableTicker.value,
-                  infoColor = colors.info(),
-                  errorColor = colors.error(),
-                  outStream = stdout,
-                  infoStream = stderr,
-                  errStream = stderr,
-                  inStream = stdin,
-                  debugEnabled = config.debugLog.value,
-                  context = ""
+                val evalState = MillBootstrap.evaluate(
+                  config,
+                  mainInteractive,
+                  stdin,
+                  stdout,
+                  stderr,
+                  env,
+                  threadCount,
+                  systemProperties,
+                  targetsAndParams
                 )
-                val evaluator = Evaluator(
-                  config.home,
-                  os.pwd / "out" / "mill-build",
-                  os.pwd / "out" / "mill-build",
-                  BootstrapModule,
-                      logger
-                ).withClassLoaderSig(Nil)
-                  .withWorkerCache(collection.mutable.Map.empty)
-                  .withEnv(env)
-                  .withFailFast(!config.keepGoing.value)
-                  .withThreadCount(threadCount)
-                  .withImportTree(Nil)
-
-                val evaluated = mill.main.RunScript.evaluateTasks(
-                  evaluator,
-                  Seq("runClasspath"),
-                  mill.define.SelectMode.Separated
-                )
-
-                println("XXX")
-                val e = evaluated
-                  .toOption
-                  .get
-                  ._2
-                  .toOption
-                  .get
-                  .head
-                  ._1
-                  .asInstanceOf[Seq[mill.api.PathRef]]
-                  .map(_.path)
-                println(e)
-                val runClassLoader = new java.net.URLClassLoader(e.map(_.toNIO.toUri.toURL).toArray)
-                val cls = runClassLoader.loadClass("millbuild.MillBuildModule$")
-                val rootModule = cls.getField("MODULE$").get(cls).asInstanceOf[mill.define.BaseModule]
-//                println("millBuildModule " + millBuildModule.getClass)
-//                println("millBuildModule " + millBuildModule.asInstanceOf[mill.define.BaseModule])
-
-                val evalState = EvaluatorState(
-                  rootModule, Nil, collection.mutable.Map.empty, Nil, systemProperties.keySet, Nil
-                )
-                val evaluator2 = Evaluator(
-                  config.home,
-                  os.pwd / "out",
-                  os.pwd / "out",
-                  rootModule,
-                  logger
-                ).withClassLoaderSig(Nil)
-                  .withWorkerCache(collection.mutable.Map.empty)
-                  .withEnv(env)
-                  .withFailFast(!config.keepGoing.value)
-                  .withThreadCount(threadCount)
-                  .withImportTree(Nil)
-
-                val evaluated2 = mill.main.RunScript.evaluateTasks(evaluator2, targetsAndParams, mill.define.SelectMode.Separated)
-                println("evaluated2 " + evaluated2)
                 bspContext.foreach { ctx =>
                   repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)
                   stderr.println(
                     s"`${ctx.millArgs.mkString(" ")}` returned with ${ctx.handle.lastResult}"
                   )
                 }
-                loopRes = (true, Some(evalState))
+                loopRes = (true, evalState.toOption)
               } // while repeatForBsp
               bspContext.foreach { ctx =>
                 stderr.println(
