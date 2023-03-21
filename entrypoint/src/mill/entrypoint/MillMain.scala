@@ -281,7 +281,7 @@ object MillMain {
                     s"`${ctx.millArgs.mkString(" ")}` returned with ${ctx.handle.lastResult}"
                   )
                 }
-                loopRes = (true, evalState.toOption)
+                loopRes = (true, evalState._2.toOption)
               } // while repeatForBsp
               bspContext.foreach { ctx =>
                 stderr.println(

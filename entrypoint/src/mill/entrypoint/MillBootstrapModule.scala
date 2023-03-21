@@ -1,6 +1,6 @@
 package mill.entrypoint
 
-class MillBootstrapModule(enclosingClasspath: Seq[os.Path])
+class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.Path)
   extends mill.define.BaseModule(os.pwd)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(()))
     with mill.scalalib.ScalaModule {
   implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
@@ -44,4 +44,6 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path])
   def unmanagedClasspath = mill.define.Target.input {
     mill.api.Loose.Agg.from(enclosingClasspath.map(p => mill.api.PathRef(p)))
   }
+
+  def millSourcePath = millSourcePath0
 }

@@ -6,8 +6,9 @@ import mill.api.PathRef
 import java.io.{InputStream, PrintStream}
 import mill.eval.Evaluator
 import mill.internal.Watchable
-import mill.main.EvaluatorState
+import mill.main.{EvaluatorState, RunScript}
 import mill.util.PrintLogger
+import mill.define.SelectMode
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Seq
@@ -23,30 +24,31 @@ object MillBootstrap{
                env: Map[String, String],
                threadCount: Option[Int],
                systemProperties: Map[String, String],
-               targetsAndParams: Seq[String]) = {
+               targetsAndParams: Seq[String]): (Seq[os.Path], Either[String, EvaluatorState]) = {
     val bootstrapModule = new MillBootstrapModule(
       ammonite.util.Classpath
         .classpath(getClass.getClassLoader, None)
         .map(_.toURI).filter(_.getScheme == "file")
         .map(_.getPath)
-        .map(os.Path(_))
+        .map(os.Path(_)),
+      os.pwd / "mill-build"
     )
-
 
     val colored = config.color.getOrElse(mainInteractive)
     val colors = if (colored) ammonite.util.Colors.Default else ammonite.util.Colors.BlackWhite
     val logger = makeLogger(config, stdin, stdout, stderr, colored, colors)
     val evaluator = makeEvaluator(os.pwd / "out" / "mill-build", config, env, threadCount, bootstrapModule, logger)
 
-    mill.main.RunScript.evaluateTasks(
+    RunScript.evaluateTasks(
       evaluator,
       Seq("runClasspath"),
       mill.define.SelectMode.Separated
     ) match{
-      case Left(msg) => Left(msg)
-      case Right((paths, evaluated)) =>
+      case Left(msg) => (Nil, Left(msg))
+      case Right((bootstrapWatched, evaluated)) =>
+        val bootstrapWatchedPaths = bootstrapWatched.map(_.path)
         evaluated match{
-          case Left(msg) => Left(msg)
+          case Left(msg) => (bootstrapWatchedPaths, Left(msg))
           case Right(Seq((runClasspath: Seq[PathRef], _))) =>
             val runClassLoader = new java.net.URLClassLoader(
               runClasspath.map(_.path.toNIO.toUri.toURL).toArray
@@ -59,8 +61,20 @@ object MillBootstrap{
             )
             val evaluator2 = makeEvaluator(os.pwd / "out", config, env, threadCount, rootModule, logger)
 
-            val evaluated2 = mill.main.RunScript.evaluateTasks(evaluator2, targetsAndParams, mill.define.SelectMode.Separated)
-            Right(evalState)
+            RunScript.evaluateTasks(evaluator2, targetsAndParams, SelectMode.Separated) match{
+              case Left(msg) => (bootstrapWatchedPaths, Left(msg))
+              case Right((buildWatched, evaluated)) =>
+
+                val buildWatchedPaths = (bootstrapWatched ++ buildWatched).map(_.path)
+                evaluated match{
+                  case Left(msg) => (buildWatchedPaths, Left(msg))
+                  case Right(items) =>
+
+                    (buildWatchedPaths, Right(evalState))
+                }
+
+            }
+
         }
 
     }
