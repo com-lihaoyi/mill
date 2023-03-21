@@ -1,8 +1,11 @@
 package mill.define
 
-class ScriptNode(val cls: String, val inputs: Seq[ScriptNode]) extends GraphNode[ScriptNode]
+case class ScriptNode(cls: String, inputs: Seq[ScriptNode]) extends GraphNode[ScriptNode] {
+  private def copy(cls: String = cls, inputs: Seq[ScriptNode] = inputs): ScriptNode =
+    new ScriptNode(cls, inputs)
+}
 
 object ScriptNode {
-  def apply(cls: String, inputs: Seq[ScriptNode]): ScriptNode =
-    new ScriptNode(cls, inputs)
+  private def unapply(scriptNode: ScriptNode): Option[(String, Seq[ScriptNode])] =
+    Some(scriptNode.cls, scriptNode.inputs)
 }
