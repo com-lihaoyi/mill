@@ -1,4 +1,4 @@
-package mill.main
+package mill.entrypoint
 
 import sun.misc.{Signal, SignalHandler}
 
@@ -7,11 +7,12 @@ import java.net.Socket
 import scala.jdk.CollectionConverters._
 import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
-import mill.{BuildInfo, MillMain}
+import mill.BuildInfo
+import mill.entrypoint.MillMain
 import mill.main.client._
 import mill.api.DummyInputStream
 import mill.main.client.lock.{Lock, Locks}
-
+import mill.main.EvaluatorState
 import java.util.function.Consumer
 
 trait MillServerMain[T] {
@@ -30,7 +31,7 @@ trait MillServerMain[T] {
   ): (Boolean, Option[T])
 }
 
-object MillServerMain extends mill.main.MillServerMain[EvaluatorState] {
+object MillServerMain extends MillServerMain[EvaluatorState] {
   def main(args0: Array[String]): Unit = {
     // Disable SIGINT interrupt signal in the Mill server.
     //

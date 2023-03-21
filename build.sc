@@ -495,6 +495,9 @@ object main extends MillModule {
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
 
+  object bootstrap extends MillModule {
+    override def moduleDeps = Seq(main, scalalib)
+  }
 }
 
 object testrunner extends MillModule {
@@ -514,7 +517,6 @@ object scalalib extends MillModule {
 
   override def generatedSources = T {
     val dest = T.ctx.dest
-    val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
     os.write(
       dest / "Versions.scala",
       s"""package mill.scalalib
@@ -587,7 +589,6 @@ object scalalib extends MillModule {
 
     override def generatedSources = T {
       val dest = T.ctx.dest
-      val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
       os.write(
         dest / "Versions.scala",
         s"""package mill.scalalib.worker
@@ -1248,8 +1249,12 @@ def launcherScript(
   )
 }
 
-object dev extends MillModule {
+object entrypoint extends MillModule{
   override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp)
+}
+
+object dev extends MillModule {
+  override def moduleDeps = Seq(entrypoint)
 
   def forkArgs: T[Seq[String]] =
     (
@@ -1337,6 +1342,7 @@ object dev extends MillModule {
       case wd0 +: rest =>
         val wd = os.Path(wd0, T.workspace)
         os.makeDir.all(wd)
+        println(Seq(launcher().path.toString) ++ rest)
         mill.modules.Jvm.runSubprocess(
           Seq(launcher().path.toString) ++ rest,
           forkEnv(),

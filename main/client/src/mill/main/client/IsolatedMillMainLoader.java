@@ -67,7 +67,7 @@ class IsolatedMillMainLoader {
 
         List<String> l = new ArrayList<>();
         l.addAll(MillEnv.millLaunchJvmCommand(setJnaNoSys));
-        l.add("mill.MillMain");
+        l.add("mill.entrypoint.MillMain");
         l.addAll(Arrays.asList(args));
 
         Process running = new ProcessBuilder()
