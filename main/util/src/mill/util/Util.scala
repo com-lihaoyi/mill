@@ -10,4 +10,8 @@ object Util{
   }
 
   def isInteractive() = System.console() != null
+
+  val windowsPlatform = System.getProperty("os.name").startsWith("Windows")
+
+  val newLine = System.lineSeparator()
 }

@@ -96,7 +96,7 @@ object MillBootstrap{
             val runClassLoader = new java.net.URLClassLoader(
               runClasspath.map(_.path.toNIO.toUri.toURL).toArray
             )
-            val cls = runClassLoader.loadClass("millbuild.MillBuildModule$")
+            val cls = runClassLoader.loadClass("millbuild.build$")
             val rootModule = cls.getField("MODULE$").get(cls).asInstanceOf[mill.define.BaseModule]
 
             val evalState = EvaluatorState(

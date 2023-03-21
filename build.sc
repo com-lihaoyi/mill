@@ -124,7 +124,7 @@ object Deps {
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   val ammoniteVersion = "3.0.0-M0-5-0af4d9e7"
-  val fastparse = ivy"com.lihaoyi::fastparse:3.0.0"
+  val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.0"
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   val coursier = ivy"io.get-coursier::coursier:2.1.0"
@@ -392,7 +392,7 @@ object main extends MillModule {
       Deps.jnaPlatform,
       Deps.jarjarabrams,
       Deps.mainargs,
-      Deps.fastparse
+      Deps.scalaparse
     )
     override def generatedSources = T {
       val dest = T.ctx.dest
