@@ -18,11 +18,8 @@ import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 
 object MillMain {
-
-  private[mill] class SystemStreams(val out: PrintStream, val err: PrintStream, val in: InputStream)
-  private[mill] val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
-
   def main(args: Array[String]): Unit = {
+    val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
     // setup streams
     val openStreams =
       if (args.headOption == Option("--bsp")) {
@@ -44,9 +41,7 @@ object MillMain {
           args,
           None,
           ammonite.util.Util.isInteractive(),
-          System.in,
-          System.out,
-          System.err,
+          initialSystemStreams,
           System.getenv().asScala.toMap,
           b => (),
           systemProperties = Map(),
@@ -65,9 +60,7 @@ object MillMain {
       args: Array[String],
       stateCache: Option[EvaluatorState],
       mainInteractive: Boolean,
-      stdin: InputStream,
-      stdout: PrintStream,
-      stderr: PrintStream,
+      streams: SystemStreams,
       env: Map[String, String],
       setIdle: Boolean => Unit,
       systemProperties: Map[String, String],
@@ -77,16 +70,16 @@ object MillMain {
     MillCliConfigParser.parse(args) match {
       // Cannot parse args
       case Left(msg) =>
-        stderr.println(msg)
+        streams.err.println(msg)
         (false, None)
 
       case Right(config) if config.help.value =>
-        stdout.println(MillCliConfigParser.usageText)
+        streams.out.println(MillCliConfigParser.usageText)
         (true, None)
 
       case Right(config) if config.showVersion.value =>
         def p(k: String, d: String = "<unknown>") = System.getProperty(k, d)
-        stdout.println(
+        streams.out.println(
           s"""Mill Build Tool version ${BuildInfo.millVersion}
              |Java version: ${p("java.version", "<unknown Java version")}, vendor: ${p(
               "java.vendor",
@@ -105,9 +98,9 @@ object MillMain {
       case Right(config)
           if (
             config.interactive.value || config.repl.value || config.noServer.value || config.bsp.value
-          ) && stdin == DummyInputStream =>
+          ) && streams.in == DummyInputStream =>
         // because we have stdin as dummy, we assume we were already started in server process
-        stderr.println(
+        streams.err.println(
           "-i/--interactive/--repl/--no-server/--bsp must be passed in as the first argument"
         )
         (false, None)
@@ -119,14 +112,14 @@ object MillMain {
             config.noServer.value,
             config.bsp.value
           ).count(identity) > 1 =>
-        stderr.println(
+        streams.err.println(
           "Only one of -i/--interactive, --repl, --no-server or --bsp may be given"
         )
         (false, None)
 
       case Right(config) =>
         if (!config.silent.value) {
-          checkMillVersionFromFile(os.pwd, stderr)
+          checkMillVersionFromFile(os.pwd, streams.err)
         }
 
         val useRepl =
@@ -137,24 +130,24 @@ object MillMain {
 
         val (success, nextStateCache) =
           if (config.repl.value && config.leftoverArgs.value.nonEmpty) {
-            stderr.println("No target may be provided with the --repl flag")
+            streams.err.println("No target may be provided with the --repl flag")
             (false, stateCache)
 //          } else if(config.bsp.value && config.leftoverArgs.value.nonEmpty) {
 //            stderr.println("No target may be provided with the --bsp flag")
 //            (false, stateCache)
           } else if (config.leftoverArgs.value.isEmpty && config.noServer.value) {
-            stderr.println(
+            streams.err.println(
               "A target must be provided when not starting a build REPL"
             )
             (false, stateCache)
-          } else if (useRepl && stdin == DummyInputStream) {
-            stderr.println(
+          } else if (useRepl && streams.in == DummyInputStream) {
+            streams.err.println(
               "Build REPL needs to be run with the -i/--interactive/--repl flag"
             )
             (false, stateCache)
           } else {
             if (useRepl && config.interactive.value) {
-              stderr.println(
+              streams.err.println(
                 "WARNING: Starting a build REPL without --repl is deprecated"
               )
             }
@@ -167,39 +160,6 @@ object MillMain {
               case Some(n) => Some(n)
             }
 
-            val predefCode =
-              if (!useRepl) ""
-              else
-                s"""import $$file.build, build._
-                   |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                   |  os.Path(${pprint.apply(
-                    config.home.toIO.getCanonicalPath.replace("$", "$$")
-                  ).plainText}),
-                   |  ${config.disableTicker.value},
-                   |  interp.colors(),
-                   |  repl.pprinter(),
-                   |  build.millSelf.get,
-                   |  build.millDiscover,
-                   |  debugLog = ${config.debugLog.value},
-                   |  keepGoing = ${config.keepGoing.value},
-                   |  systemProperties = ${systemProps.toSeq
-                    .map(p => s""""${p._1}" -> "${p._2}"""")
-                    .mkString("Map[String,String](", ",", ")")},
-                   |  threadCount = ${threadCount}
-                   |)
-                   |repl.pprinter() = replApplyHandler.pprinter
-                   |""".stripMargin
-
-            val importsPredefCode: String = config.imports.map {
-              _.split("[:]", 2) match {
-                case Array("ivy", dep) =>
-                  s"""import $$ivy.`${dep}`"""
-                case x => throw new Exception(s"Unsupported plugin declaration: '$x'.")
-              }
-            }.mkString("\n")
-
-
-
             if (mill.main.client.Util.isJava9OrAbove) {
               val rt = config.home / Export.rtJarName
               if (!os.exists(rt)) {
@@ -210,89 +170,42 @@ object MillMain {
               }
             }
 
-            if (useRepl) {
-              println("Loading...")
-              ???
-            } else {
-              class BspContext {
-                // BSP mode, run with a simple evaluator command to inject the evaluator
-                // The command returns when the server exists or the workspace should be reloaded
-                // if the `lastResult` is `ReloadWorkspace` we re-run the script in a loop
+            val bspContext = if (bspMode) Some(new BspContext(streams, config.home)) else None
+            val targetsAndParams =
+              bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
 
-                //              import scala.concurrent.ExecutionContext.Implicits._
-                val serverThreadContext =
-                  ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
+            var repeatForBsp = true
+            var loopRes: (Boolean, Option[EvaluatorState]) = (false, None)
+            while (repeatForBsp) {
+              repeatForBsp = false
 
-                stderr.println("Running in BSP mode with hardcoded startSession command")
-
-                val bspServerHandle = Promise[BspServerHandle]()
-
-                stderr.println("Trying to load BSP server...")
-                val bspServerFuture = Future {
-                  try {
-                    BspServerStarter().startBspServer(
-                      initialEvaluator = None,
-                      outStream = MillMain.initialSystemStreams.out,
-                      errStream = System.err,
-                      inStream = MillMain.initialSystemStreams.in,
-                      workspaceDir = os.pwd,
-                      ammoniteHomeDir = config.home,
-                      canReload = true,
-                      serverHandle = Some(bspServerHandle)
-                    )
-                  } catch {
-                    case NonFatal(e) =>
-                      stderr.println(s"Could not start BSP server. ${e.getMessage}")
-                      e.printStackTrace(stderr)
-                      BspServerResult.Failure
-                  }
-                }(serverThreadContext)
-
-                val handle = Await.result(bspServerHandle.future, Duration.Inf).tap { _ =>
-                  stderr.println("BSP server started")
-                }
-
-                val millArgs = List("mill.bsp.BSP/startSession")
-              }
-
-              val bspContext = if (bspMode) Some(new BspContext()) else None
-              val targetsAndParams =
-                bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
-
-              var repeatForBsp = true
-              var loopRes: (Boolean, Option[EvaluatorState]) = (false, None)
-              while (repeatForBsp) {
-                repeatForBsp = false
-
-                val (isSuccess, evalStateOpt) = MillBootstrap.runScript(
-                  config,
-                  mainInteractive,
-                  stdin,
-                  stdout,
-                  stderr,
-                  env,
-                  threadCount,
-                  systemProperties,
-                  targetsAndParams,
-                  config.ringBell.value,
-                  setIdle
-                )
-                bspContext.foreach { ctx =>
-                  repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)
-                  stderr.println(
-                    s"`${ctx.millArgs.mkString(" ")}` returned with ${ctx.handle.lastResult}"
-                  )
-                }
-                loopRes = (isSuccess, evalStateOpt)
-              } // while repeatForBsp
+              val (isSuccess, evalStateOpt) = MillBootstrap.runScript(
+                config,
+                mainInteractive,
+                streams,
+                env,
+                threadCount,
+                systemProperties,
+                targetsAndParams,
+                config.ringBell.value,
+                setIdle
+              )
               bspContext.foreach { ctx =>
-                stderr.println(
-                  s"Exiting BSP runner loop. Stopping BSP server. Last result: ${ctx.handle.lastResult}"
+                repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)
+                streams.err.println(
+                  s"`${ctx.millArgs.mkString(" ")}` returned with ${ctx.handle.lastResult}"
                 )
-                ctx.handle.stop()
               }
-              loopRes
+              loopRes = (isSuccess, evalStateOpt)
+            } // while repeatForBsp
+            bspContext.foreach { ctx =>
+              streams.err.println(
+                s"Exiting BSP runner loop. Stopping BSP server. Last result: ${ctx.handle.lastResult}"
+              )
+              ctx.handle.stop()
             }
+            loopRes
+
           }
         if (config.ringBell.value) {
           if (success) println("\u0007")

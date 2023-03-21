@@ -16,9 +16,7 @@ object MillBootstrap{
 
   def runScript(config: MillCliConfig,
                 mainInteractive: Boolean,
-                stdin: InputStream,
-                stdout: PrintStream,
-                stderr: PrintStream,
+                streams: SystemStreams,
                 env: Map[String, String],
                 threadCount: Option[Int],
                 systemProperties: Map[String, String],
@@ -29,9 +27,7 @@ object MillBootstrap{
       val (watched, errorOpt, resultOpt, isSuccess) = evaluate(
         config,
         mainInteractive,
-        stdin,
-        stdout,
-        stderr,
+        streams,
         env,
         threadCount,
         systemProperties,
@@ -59,7 +55,7 @@ object MillBootstrap{
       // subsequently change
       val alreadyStale = watched.exists(p => p.sig != PathRef(p.path, p.quick).sig)
       if (!alreadyStale) {
-        Watching.watchAndWait(setIdle, stdin, watchables)
+        Watching.watchAndWait(setIdle, streams.in, watchables)
       }
     }
     ???
@@ -68,9 +64,7 @@ object MillBootstrap{
 
   def evaluate(config: MillCliConfig,
                mainInteractive: Boolean,
-               stdin: InputStream,
-               stdout: PrintStream,
-               stderr: PrintStream,
+               streams: SystemStreams,
                env: Map[String, String],
                threadCount: Option[Int],
                systemProperties: Map[String, String],
@@ -86,7 +80,7 @@ object MillBootstrap{
 
     val colored = config.color.getOrElse(mainInteractive)
     val colors = if (colored) ammonite.util.Colors.Default else ammonite.util.Colors.BlackWhite
-    val logger = makeLogger(config, stdin, stdout, stderr, colored, colors)
+    val logger = makeLogger(config, streams, colored, colors)
     val evaluator = makeEvaluator(os.pwd / "out" / "mill-build", config, env, threadCount, bootstrapModule, logger)
 
     RunScript.evaluateTasks(
@@ -128,16 +122,16 @@ object MillBootstrap{
 
   }
 
-  private def makeLogger(config: MillCliConfig, stdin: InputStream, stdout: PrintStream, stderr: PrintStream, colored: Boolean, colors: Colors) = {
+  private def makeLogger(config: MillCliConfig, streams: SystemStreams, colored: Boolean, colors: Colors) = {
     mill.util.PrintLogger(
       colored = colored,
       disableTicker = config.disableTicker.value,
       infoColor = colors.info(),
       errorColor = colors.error(),
-      outStream = stdout,
-      infoStream = stderr,
-      errStream = stderr,
-      inStream = stdin,
+      outStream = streams.out,
+      infoStream = streams.err,
+      errStream = streams.err,
+      inStream = streams.in,
       debugEnabled = config.debugLog.value,
       context = ""
     )
