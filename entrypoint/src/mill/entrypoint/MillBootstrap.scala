@@ -14,6 +14,56 @@ import scala.annotation.tailrec
 import scala.collection.immutable.Seq
 object MillBootstrap{
 
+  def runScript(config: MillCliConfig,
+                mainInteractive: Boolean,
+                stdin: InputStream,
+                stdout: PrintStream,
+                stderr: PrintStream,
+                env: Map[String, String],
+                threadCount: Option[Int],
+                systemProperties: Map[String, String],
+                targetsAndParams: Seq[String],
+                ringBell: Boolean,
+                setIdle: Boolean => Unit): (Boolean, Option[EvaluatorState]) = {
+    while (true) {
+      val (watched, errorOpt, resultOpt, isSuccess) = evaluate(
+        config,
+        mainInteractive,
+        stdin,
+        stdout,
+        stderr,
+        env,
+        threadCount,
+        systemProperties,
+        targetsAndParams
+      )
+
+      if (ringBell) {
+        if (isSuccess) println("\u0007")
+        else {
+          println("\u0007")
+          Thread.sleep(250)
+          println("\u0007")
+        }
+      }
+
+      if (!config.watch.value) {
+        return (isSuccess, resultOpt)
+      }
+      val watchables = watched.map(p => (Watchable.Path(p.path), Watchable.pathSignature(p.path)))
+      // If the file changed between the creation of the original
+      // `PathRef` and the current moment, use random junk .sig values
+      // to force an immediate re-run. Otherwise calculate the
+      // pathSignatures the same way Ammonite would and hand over the
+      // values, so Ammonite can watch them and only re-run if they
+      // subsequently change
+      val alreadyStale = watched.exists(p => p.sig != PathRef(p.path, p.quick).sig)
+      if (!alreadyStale) {
+        Watching.watchAndWait(setIdle, stdin, watchables)
+      }
+    }
+    ???
+  }
 
 
   def evaluate(config: MillCliConfig,
@@ -24,7 +74,7 @@ object MillBootstrap{
                env: Map[String, String],
                threadCount: Option[Int],
                systemProperties: Map[String, String],
-               targetsAndParams: Seq[String]): (Seq[os.Path], Either[String, EvaluatorState]) = {
+               targetsAndParams: Seq[String]): (Seq[PathRef], Option[String], Option[EvaluatorState], Boolean) = {
     val bootstrapModule = new MillBootstrapModule(
       ammonite.util.Classpath
         .classpath(getClass.getClassLoader, None)
@@ -44,11 +94,10 @@ object MillBootstrap{
       Seq("runClasspath"),
       mill.define.SelectMode.Separated
     ) match{
-      case Left(msg) => (Nil, Left(msg))
+      case Left(msg) => (Nil, Some(msg), None, false)
       case Right((bootstrapWatched, evaluated)) =>
-        val bootstrapWatchedPaths = bootstrapWatched.map(_.path)
         evaluated match{
-          case Left(msg) => (bootstrapWatchedPaths, Left(msg))
+          case Left(msg) => (bootstrapWatched, Some(msg), None, false)
           case Right(Seq((runClasspath: Seq[PathRef], _))) =>
             val runClassLoader = new java.net.URLClassLoader(
               runClasspath.map(_.path.toNIO.toUri.toURL).toArray
@@ -62,15 +111,13 @@ object MillBootstrap{
             val evaluator2 = makeEvaluator(os.pwd / "out", config, env, threadCount, rootModule, logger)
 
             RunScript.evaluateTasks(evaluator2, targetsAndParams, SelectMode.Separated) match{
-              case Left(msg) => (bootstrapWatchedPaths, Left(msg))
+              case Left(msg) => (bootstrapWatched, Some(msg), Some(evalState), false)
               case Right((buildWatched, evaluated)) =>
 
-                val buildWatchedPaths = (bootstrapWatched ++ buildWatched).map(_.path)
+                val buildWatchedPaths = bootstrapWatched ++ buildWatched
                 evaluated match{
-                  case Left(msg) => (buildWatchedPaths, Left(msg))
-                  case Right(items) =>
-
-                    (buildWatchedPaths, Right(evalState))
+                  case Left(msg) => (buildWatchedPaths, Some(msg), Some(evalState), false)
+                  case Right(items) => (buildWatchedPaths, None, Some(evalState), true)
                 }
 
             }

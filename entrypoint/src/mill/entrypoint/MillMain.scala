@@ -264,7 +264,7 @@ object MillMain {
               while (repeatForBsp) {
                 repeatForBsp = false
 
-                val evalState = MillBootstrap.evaluate(
+                val (isSuccess, evalStateOpt) = MillBootstrap.runScript(
                   config,
                   mainInteractive,
                   stdin,
@@ -273,7 +273,9 @@ object MillMain {
                   env,
                   threadCount,
                   systemProperties,
-                  targetsAndParams
+                  targetsAndParams,
+                  config.ringBell.value,
+                  setIdle
                 )
                 bspContext.foreach { ctx =>
                   repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)
@@ -281,7 +283,7 @@ object MillMain {
                     s"`${ctx.millArgs.mkString(" ")}` returned with ${ctx.handle.lastResult}"
                   )
                 }
-                loopRes = (true, evalState._2.toOption)
+                loopRes = (isSuccess, evalStateOpt)
               } // while repeatForBsp
               bspContext.foreach { ctx =>
                 stderr.println(

@@ -1,5 +1,5 @@
 package mill.entrypoint
-
+import mill._
 class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.Path)
   extends mill.define.BaseModule(os.pwd)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(()))
     with mill.scalalib.ScalaModule {
@@ -7,7 +7,8 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.
 
   def scalaVersion = "2.13.10"
 
-  def generatedSources = mill.define.Target.input {
+  def buildFile = T.source(os.pwd / "build.sc")
+  def generatedSources = T {
     val top =
       s"""
          |package millbuild
@@ -33,11 +34,11 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.
          |""".stripMargin
     val bottom = "\n}"
 
-
     os.write(
       mill.define.Target.dest / "Build.scala",
-      top + os.read(os.pwd / "build.sc") + bottom
+      top + os.read(buildFile().path) + bottom
     )
+
     Seq(mill.api.PathRef(mill.define.Target.dest / "Build.scala"))
   }
 
