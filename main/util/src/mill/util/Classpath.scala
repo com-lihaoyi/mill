@@ -27,21 +27,20 @@ object Classpath {
    * want to do something.
    */
   def classpath(classLoader: ClassLoader,
-                rtCacheDir: Option[Path]): Vector[URL] = {
-    lazy val actualRTCacheDir = rtCacheDir.filter { dir =>
-      // no need to cache if the storage is in tmpdir
-      // because it is temporary
-      !dir.startsWith(Paths.get(System.getProperty("java.io.tmpdir")))
-    }
+                rtCacheDir: os.Path): Vector[os.Path] = {
 
     var current = classLoader
-    val files = collection.mutable.Buffer.empty[java.net.URL]
+    val files = collection.mutable.Buffer.empty[os.Path]
     val seenClassLoaders = collection.mutable.Buffer.empty[ClassLoader]
     while(current != null){
       seenClassLoaders.append(current)
       current match{
         case t: java.net.URLClassLoader =>
-          files.appendAll(t.getURLs)
+          files.appendAll(
+            t.getURLs
+              .map{url => (url.getProtocol, url.getPath)}
+              .collect{case ("file", p) => os.Path(p)}
+          )
         case _ =>
       }
       current = current.getParent
@@ -52,27 +51,22 @@ object Classpath {
       files.appendAll(
         sunBoot
           .split(java.io.File.pathSeparator)
-          .map(new java.io.File(_))
-          .filter(_.exists())
-          .map(_.toURI.toURL)
+          .map(os.Path(_))
+          .filter(os.exists(_))
       )
     } else {
       if (seenClassLoaders.contains(ClassLoader.getSystemClassLoader)) {
         for (p <- System.getProperty("java.class.path")
           .split(File.pathSeparatorChar) if !p.endsWith("sbt-launch.jar")) {
-          val f = new File(p)
-          if (f.exists())
-            files.append(f.toURI.toURL)
+          val f = os.Path(p, os.pwd)
+          if (os.exists(f)) files.append(f)
         }
         try {
-          new java.net.URLClassLoader(files.map(_.toURI.toURL).toArray, null)
+          new java.net.URLClassLoader(files.map(_.toIO.toURI.toURL).toArray, null)
             .loadClass("javax.script.ScriptEngineManager")
         } catch {
           case _: ClassNotFoundException =>
-            actualRTCacheDir match {
-              case Some(path) => files.append(Export.rtAt(path.toFile).toURI.toURL)
-              case _ => files.append(Export.rt().toURI.toURL)
-            }
+            files.append(os.Path(Export.rtAt(rtCacheDir.toIO)))
         }
       }
     }

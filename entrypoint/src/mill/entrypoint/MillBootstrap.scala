@@ -57,16 +57,33 @@ class MillBootstrap(base: os.Path,
 
   def evaluate(): (Seq[PathRef], Option[String], Option[EvaluatorState], Boolean) = {
 
-    val bootstrapModule = new MillBootstrapModule(
-      mill.util.Classpath
-        .classpath(getClass.getClassLoader, None)
-        .map(_.toURI).filter(_.getScheme == "file")
-        .map(_.getPath)
-        .map(os.Path(_)),
-      base
-    )
+    val millBuildBase = base / "out" / "mill-build"
+    val enclosingClasspath: Seq[os.Path] = mill.util.Classpath
+      .classpath(getClass.getClassLoader, millBuildBase / "mill-java-rt.jar")
 
-    val evaluator = makeEvaluator(base / "out" / "mill-build", bootstrapModule, Nil)
+
+    val selfClassURL = getClass.getProtectionDomain().getCodeSource().getLocation()
+    assert(selfClassURL.getProtocol == "file")
+    val selfClassLocation = os.Path(selfClassURL.getPath)
+
+    // Copy the current location of the enclosing classes to `mill-launcher.jar`
+    // if it has the wrong file extension, because the Zinc incremental compiler
+    // doesn't recognize classpath entries without the proper file extension
+    val millLauncherOpt =
+      if (os.isFile(selfClassLocation) &&
+          !Set("zip", "jar", "class").contains(selfClassLocation.ext)){
+        os.copy.over(
+          selfClassLocation,
+          millBuildBase / "mill-launcher.jar",
+          createFolders = true
+        )
+        Some(millBuildBase / "mill-launcher.jar")
+      }else None
+
+
+    val bootstrapModule = new MillBootstrapModule(enclosingClasspath ++ millLauncherOpt, base)
+
+    val evaluator = makeEvaluator(millBuildBase, bootstrapModule, Nil)
 
     val systemPropertiesToUnset =
       stateCache.map(_.setSystemProperties).getOrElse(Set()) -- systemProperties.keySet
