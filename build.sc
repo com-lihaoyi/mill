@@ -1047,6 +1047,7 @@ object integration extends MillScalaModule {
           s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
           s"-DMILL_VERSION=${millVersion()}",
           s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
+          s"-DMILL_LINENUMBERS=${entrypoint.linenumbers.runClasspath().map(_.path).mkString(",")}",
           "-Djna.nosys=true"
         )
     }
@@ -1244,7 +1245,12 @@ def launcherScript(
 }
 
 object entrypoint extends MillModule{
-  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp)
+  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers)
+
+  object linenumbers extends MillPublishModule with MillInternalModule {
+    def scalaVersion = Deps.scalaVersion
+    override def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
+  }
 }
 
 object dev extends MillModule {

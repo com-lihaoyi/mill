@@ -1,7 +1,7 @@
 package mill.entrypoint
 import coursier.{Dependency, Module, Organization}
 import mill._
-import mill.api.{PathRef, Result}
+import mill.api.{Loose, PathRef, Result}
 import mill.scalalib.{DepSyntax, Lib, Versions}
 class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
   extends mill.define.BaseModule(base)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())) {
@@ -35,6 +35,7 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
            |}
            |
            |sealed trait $name extends _root_.mill.main.MainModule{
+           |//MILL_USER_CODE_START_MARKER
            |""".stripMargin
 
       val bottom = "\n}"
@@ -116,11 +117,22 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
     }
 
     def unmanagedClasspath = mill.define.Target.input {
-      mill.api.Loose.Agg.from(enclosingClasspath.map(p => mill.api.PathRef(p)))
+      mill.api.Loose.Agg.from(enclosingClasspath.map(p => mill.api.PathRef(p))) ++
+      lineNumberPluginClasspath()
     }
 
-    def scalacPluginIvyDeps = T{
-      Agg(ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}")
+    def scalacPluginIvyDeps = Agg(
+      ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+    )
+
+    def scalacPluginClasspath = super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
+
+    def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
+      mill.modules.Util.millProjectModule(
+        "MILL_LINENUMBERS",
+        "mill-entrypoint-linenumbers",
+        repositoriesTask()
+      )
     }
   }
 }

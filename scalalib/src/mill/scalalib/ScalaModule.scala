@@ -106,22 +106,14 @@ trait ScalaModule extends JavaModule { outer =>
    * Scalac options to activate the compiler plugins.
    */
   private def enablePluginScalacOptions: Target[Seq[String]] = T {
-    val resolvedJars = resolveDeps(T.task {
-      val bind = bindDependency()
-      scalacPluginIvyDeps().map(_.exclude("*" -> "*")).map(bind)
-    })()
-    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
+    scalacPluginClasspath().map(pr => s"-Xplugin:${pr.path}").toSeq
   }
 
   /**
    * Scalac options to activate the compiler plugins for ScalaDoc generation.
    */
   private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = T {
-    val resolvedJars = resolveDeps(T.task {
-      val bind = bindDependency()
-      scalaDocPluginIvyDeps().map(bind).map(_.exclude("*" -> "*"))
-    })()
-    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
+    scalaDocPluginClasspath().map(pr => s"-Xplugin:${pr.path}").toSeq
   }
 
   /**

@@ -18,16 +18,16 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
 
   def workspacePath: os.Path = os.pwd / "target" / "workspace" / workspaceSlug
   def wd = workspacePath / buildPath / os.up
-  val stdOutErr = System.out // new PrintStream(new ByteArrayOutputStream())
+
   val stdIn = new ByteArrayInputStream(Array())
   val disableTicker = false
   val debugLog = false
   val keepGoing = false
   val systemProperties = Map[String, String]()
   val threadCount = sys.props.get("MILL_THREAD_COUNT").map(_.toInt).orElse(Some(1))
-  private def runnerStdout(stdout: PrintStream, s: Seq[String]) = {
+  private def runnerStdout(stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
 
-    val streams = new SystemStreams(System.out, stdOutErr, stdIn)
+    val streams = new SystemStreams(stdout, stderr, stdIn)
     val config = MillCliConfig()
     new MillBootstrap(
       wd,
@@ -45,28 +45,36 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
     ).runScript()
   }
   def eval(s: String*): Boolean = {
-    if (!fork) runnerStdout(System.out, s)._1
-    else evalFork(os.Inherit, s)
+    if (!fork) runnerStdout(System.out, System.err, s)._1
+    else evalFork(os.Inherit, os.Inherit, s)
   }
-  def evalStdout(s: String*): (Boolean, Seq[String]) = {
+  def evalStdout(s: String*): (Boolean, Seq[String], Seq[String]) = {
     if (!fork) {
       val outputStream = new ByteArrayOutputStream
-      val printStream = new PrintStream(outputStream)
-      val result = runnerStdout(printStream, s.toList)
+      val errorStream = new ByteArrayOutputStream
+      val printOutStream = new PrintStream(outputStream)
+      val printErrStream = new PrintStream(errorStream)
+      val result = runnerStdout(printOutStream, printErrStream, s.toList)
       val stdoutArray = outputStream.toByteArray
       val stdout: Seq[String] =
         if (stdoutArray.isEmpty) Seq.empty
         else new String(stdoutArray).split('\n')
-      (result._1, stdout)
+      val stderrArray = errorStream.toByteArray
+      val stderr: Seq[String] =
+        if (stderrArray.isEmpty) Seq.empty
+        else new String(stderrArray).split('\n')
+      (result._1, stdout, stderr)
     } else {
       val output = Seq.newBuilder[String]
+      val error = Seq.newBuilder[String]
       val processOutput = os.ProcessOutput.Readlines(output += _)
+      val processError = os.ProcessOutput.Readlines(error += _)
 
-      val result = evalFork(processOutput, s)
-      (result, output.result())
+      val result = evalFork(processOutput, processError, s)
+      (result, output.result(), error.result())
     }
   }
-  private def evalFork(stdout: os.ProcessOutput, s: Seq[String]): Boolean = {
+  private def evalFork(stdout: os.ProcessOutput, stderr: os.ProcessOutput, s: Seq[String]): Boolean = {
     val millRelease = Option(System.getenv("MILL_TEST_RELEASE"))
       .getOrElse(throw new NoSuchElementException(
         s"System environment variable `MILL_TEST_RELEASE` not defined. It needs to point to the Mill binary to use for the test."
@@ -84,7 +92,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
         cwd = wd,
         stdin = os.Inherit,
         stdout = stdout,
-        stderr = os.Inherit,
+        stderr = stderr,
         env = env
       )
       if (clientServer) {
@@ -94,7 +102,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
             cwd = wd,
             stdin = os.Inherit,
             stdout = stdout,
-            stderr = os.Inherit,
+            stderr = stderr,
             env = env
           )
         } catch { case NonFatal(_) => }

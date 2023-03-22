@@ -11,3 +11,5 @@ object ScriptsInvalidationForeignTests
     extends ScriptsInvalidationForeignTests(fork = true, clientServer = true)
 object ZincIncrementalCompilationTests
     extends ZincIncrementalCompilationTests(fork = true, clientServer = true)
+object CompileErrorTests extends CompileErrorTests(fork = true, clientServer = true)
+object ParseErrorTests extends ParseErrorTests(fork = true, clientServer = true)

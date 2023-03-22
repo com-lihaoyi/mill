@@ -8,3 +8,4 @@ object foo extends ScalaModule {
   override def forkEnv = Map("snippet" -> h1(qux.myMsg).toString)
 }
 
+println(doesntExist)

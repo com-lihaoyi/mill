@@ -12,7 +12,7 @@ class ScriptsInvalidationForeignTests(fork: Boolean, clientServer: Boolean)
   override def buildPath = os.sub / "foreignA" / "build.sc"
 
   def runTask(task: String) = {
-    val (successful, stdout) = evalStdout(task)
+    val (successful, stdout, stderr) = evalStdout(task)
     assert(successful)
     stdout.map(_.trim)
   }
