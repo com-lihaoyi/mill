@@ -3,8 +3,8 @@ import coursier.{Dependency, Module, Organization}
 import mill._
 import mill.api.{PathRef, Result}
 import mill.scalalib.Lib
-class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.Path)
-  extends mill.define.BaseModule(os.pwd)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())) {
+class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
+  extends mill.define.BaseModule(base)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())) {
 
   implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
 
@@ -18,7 +18,7 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.
            |import _root_.{millbuild => $$file}
            |import _root_.mill._
            |object $name
-           |extends _root_.mill.define.BaseModule(os.Path("${os.pwd}"))(
+           |extends _root_.mill.define.BaseModule(os.Path("${base}"))(
            |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
            |)
            |with $name{
@@ -41,6 +41,7 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.
 
       val seenScripts = collection.mutable.Map.empty[os.Path, String]
       val seenIvy = collection.mutable.Set.empty[String]
+      val importTree = collection.mutable.Map.empty[String, Seq[String]]
 
       def traverseScripts(s: os.Path): Seq[String] = {
         if (seenScripts.contains(s)) Nil
@@ -55,7 +56,7 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.
             val (cleanedStmts, importTrees) = Parsers.parseImportHooksWithIndices(stmts)
 
             val finalCode = cleanedStmts.mkString
-            seenScripts(s) = top((s / os.up).relativeTo(os.pwd).segments, s.baseName) + finalCode + bottom
+            seenScripts(s) = top((s / os.up).relativeTo(base).segments, s.baseName) + finalCode + bottom
             val ivyDeps = importTrees.collect {
               case ImportTree(Seq("$ivy"), Some(mapping), _, _) => mapping.map(_._1)
               case ImportTree(Seq("$ivy", mapping), None, _, _) => Seq(mapping)
@@ -70,6 +71,9 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.
                 }
             }.flatten
 
+            def prepareImportTree(s: os.Path) =
+              s.relativeTo(base).segments.mkString(".").stripSuffix(".sc")
+            importTree(prepareImportTree(s)) = fileImports.map(prepareImportTree)
             fileImports.flatMap(traverseScripts)
         }
 
@@ -77,8 +81,8 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.
 
       }
 
-      val errors = traverseScripts(os.pwd / "build.sc")
-      (seenScripts.toSeq, seenIvy.toSeq, errors)
+      val errors = traverseScripts(base / "build.sc")
+      (seenScripts.toSeq, seenIvy.toSeq, importTree.toMap, errors)
     }
 
     def ivyDeps = T {
@@ -90,16 +94,20 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], millSourcePath0: os.
     }
 
     def generatedSources = T {
-      val (scripts, ivy, errors) = parseBuildFiles()
+      val (scripts, ivy, importTrees, errors) = parseBuildFiles()
       if (errors.nonEmpty) Result.Failure(errors.mkString("\n"))
       else Result.Success(
         for ((p, (_, s)) <- scriptSources().zip(parseBuildFiles()._1)) yield {
-          val dest = T.dest / p.path.relativeTo(os.pwd)
+          val dest = T.dest / p.path.relativeTo(base)
           os.write(dest, s)
           PathRef(dest)
         }
       )
+    }
 
+    def importTree = T {
+      val (scripts, ivy, importTree, errors) = parseBuildFiles()
+      importTree
     }
 
     override def allSourceFiles: T[Seq[PathRef]] = T {

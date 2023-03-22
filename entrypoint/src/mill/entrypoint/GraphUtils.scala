@@ -1,4 +1,5 @@
-package mill.main
+package mill.entrypoint
+
 
 import mill.define.ScriptNode
 

@@ -7,7 +7,7 @@ import java.io.{InputStream, PrintStream}
 import mill.eval.Evaluator
 import mill.internal.Watchable
 import mill.main.{EvaluatorState, RunScript}
-import mill.define.SelectMode
+import mill.define.{ScriptNode, SelectMode}
 
 class MillBootstrap(config: MillCliConfig,
                     streams: SystemStreams,
@@ -62,7 +62,7 @@ class MillBootstrap(config: MillCliConfig,
         .map(_.toURI).filter(_.getScheme == "file")
         .map(_.getPath)
         .map(os.Path(_)),
-      os.pwd / "mill-build"
+      os.pwd
     )
 
     val evaluator = makeEvaluator(os.pwd / "out" / "mill-build", bootstrapModule, Nil)
@@ -77,33 +77,35 @@ class MillBootstrap(config: MillCliConfig,
       }
     }
 
-    val (bootstrapClassloaderOpt, bootstrapWatched: Seq[PathRef]) = stateCache match{
-      case Some(s) if watchedSigUnchanged(s.watched) => Right(s.bootstrapClassloader) -> s.watched
+    val (bootstrapClassloaderImportTreeOpt, bootstrapWatched: Seq[PathRef]) = stateCache match{
+      case Some(s) if watchedSigUnchanged(s.watched) => Right((s.bootstrapClassloader, s.importTree)) -> s.watched
       case _ =>
         RunScript.evaluateTasks(
           evaluator,
-          Seq("millbuild.runClasspath"),
+          Seq("millbuild.{runClasspath,importTree}"),
           mill.define.SelectMode.Separated
         ) match {
           case Left(msg) => (Left(msg), Nil)
           case Right((bootstrapWatched, evaluated)) =>
+
             evaluated match {
               case Left(msg) => (Left(msg), bootstrapWatched)
-              case Right(Seq((runClasspath: Seq[PathRef], _))) =>
+              case Right(Seq((runClasspath: Seq[PathRef], _), (importTree: Map[String, Seq[String]], _))) =>
                 stateCache.map(_.bootstrapClassloader).foreach(_.close())
 
                 val runClassLoader = new java.net.URLClassLoader(
                   runClasspath.map(_.path.toNIO.toUri.toURL).toArray
                 )
 
-                (Right(runClassLoader), bootstrapWatched)
+                val processedImportTree = GraphUtils.linksToScriptNodeGraph(importTree)
+                (Right((runClassLoader, processedImportTree)), bootstrapWatched)
             }
         }
     }
 
-    bootstrapClassloaderOpt match{
+    bootstrapClassloaderImportTreeOpt match{
       case Left(msg) => (bootstrapWatched, Some(msg), None, false)
-      case Right(bootstrapClassloader) =>
+      case Right((bootstrapClassloader, importTree)) =>
         mill.util.Util.withContextClassloader(bootstrapClassloader){
 
           val cls = bootstrapClassloader.loadClass("millbuild.build$")
@@ -123,9 +125,10 @@ class MillBootstrap(config: MillCliConfig,
                 buildFileEvaluator.workerCache,
                 Nil,
                 systemProperties.keySet,
-                Nil,
+                importTree,
                 bootstrapClassloader
               )
+
               val buildWatchedPaths = bootstrapWatched ++ buildWatched
               evaluated match {
                 case Left(msg) => (buildWatchedPaths, Some(msg), Some(evalState), false)
