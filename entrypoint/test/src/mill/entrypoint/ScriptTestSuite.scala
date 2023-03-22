@@ -30,7 +30,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
     val streams = new SystemStreams(System.out, stdOutErr, stdIn)
     val config = MillCliConfig()
     new MillBootstrap(
-      workspacePath / buildPath,
+      wd,
       config,
       streams,
       Map.empty,
