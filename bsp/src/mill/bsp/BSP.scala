@@ -9,7 +9,7 @@ import mill.define.{Command, Discover, ExternalModule, Task}
 import mill.eval.Evaluator
 import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
 import mill.scalalib.{CoursierModule, Dep}
-import mill.util.PrintLogger
+import mill.util.{PrintLogger, SystemStreams}
 import os.Path
 
 object BSP extends ExternalModule with CoursierModule with BspServerStarter {
@@ -70,9 +70,7 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
 
   override def startBspServer(
       initialEvaluator: Option[Evaluator],
-      outStream: PrintStream,
-      errStream: PrintStream,
-      inStream: InputStream,
+      streams: SystemStreams,
       workspaceDir: os.Path,
       ammoniteHomeDir: os.Path,
       canReload: Boolean,
@@ -85,13 +83,13 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
       // This all goes to the BSP log file mill-bsp.stderr
       override def log: Logger = new Logger {
         override def colored: Boolean = false
-        override def errorStream: PrintStream = errStream
-        override def outputStream: PrintStream = errStream
+        override def errorStream: PrintStream = streams.err
+        override def outputStream: PrintStream = streams.err
         override def inStream: InputStream = DummyInputStream
-        override def info(s: String): Unit = errStream.println(s)
-        override def error(s: String): Unit = errStream.println(s)
-        override def ticker(s: String): Unit = errStream.println(s)
-        override def debug(s: String): Unit = errStream.println(s)
+        override def info(s: String): Unit = streams.err.println(s)
+        override def error(s: String): Unit = streams.err.println(s)
+        override def ticker(s: String): Unit = streams.err.println(s)
+        override def debug(s: String): Unit = streams.err.println(s)
         override def debugEnabled: Boolean = true
       }
     }
@@ -102,9 +100,7 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
       case Result.Success(worker) =>
         worker.startBspServer(
           initialEvaluator,
-          outStream,
-          errStream,
-          inStream,
+          streams,
           workspaceDir / Constants.bspDir,
           canReload,
           Seq(millServerHandle) ++ serverHandle.toSeq

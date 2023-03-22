@@ -1,13 +1,11 @@
-package mill.util
+package mill.entrypoint
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 import mainargs.Flag
 import mill.define.SelectMode
-
-import scala.util.Try
 import os.Path
 import utest._
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 import java.nio.file.NoSuchFileException
 import scala.util.control.NonFatal
 

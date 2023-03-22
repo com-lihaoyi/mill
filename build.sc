@@ -1024,7 +1024,7 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 }
 
 object integration extends MillScalaModule {
-  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
+  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, entrypoint.test)
 
   /** Deploy freshly build mill for use in tests */
   def testMill: Target[PathRef] = {

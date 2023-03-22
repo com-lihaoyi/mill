@@ -7,6 +7,7 @@ import mill.bsp.{BSP, BspWorker, Constants}
 import mill.define.Task
 import mill.eval.Evaluator
 import mill.main.{BspServerHandle, BspServerResult}
+import mill.util.SystemStreams
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.{InputStream, PrintStream, PrintWriter}
@@ -62,9 +63,7 @@ class BspWorkerImpl() extends BspWorker {
 
   override def startBspServer(
       initialEvaluator: Option[Evaluator],
-      outStream: PrintStream,
-      errStream: PrintStream,
-      inStream: InputStream,
+      streams: SystemStreams,
       logDir: os.Path,
       canReload: Boolean,
       serverHandles: Seq[Promise[BspServerHandle]]
@@ -77,7 +76,7 @@ class BspWorkerImpl() extends BspWorker {
         bspVersion = Constants.bspProtocolVersion,
         serverVersion = MillBuildInfo.millVersion,
         serverName = Constants.serverName,
-        logStream = errStream,
+        logStream = streams.err,
         canReload = canReload
       ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
@@ -87,8 +86,8 @@ class BspWorkerImpl() extends BspWorker {
 
     try {
       val launcher = new Launcher.Builder[BuildClient]()
-        .setOutput(outStream)
-        .setInput(inStream)
+        .setOutput(streams.out)
+        .setInput(streams.in)
         .setLocalService(millServer)
         .setRemoteInterface(classOf[BuildClient])
         .traceMessages(new PrintWriter(
@@ -112,14 +111,14 @@ class BspWorkerImpl() extends BspWorker {
           val onReload = Promise[BspServerResult]()
           millServer.onSessionEnd = Some { serverResult =>
             if (!onReload.isCompleted) {
-              errStream.println("Unsetting evaluator on session end")
+              streams.err.println("Unsetting evaluator on session end")
               millServer.updateEvaluator(None)
               _lastResult = Some(serverResult)
               onReload.success(serverResult)
             }
           }
           Await.result(onReload.future, Duration.Inf).tap { r =>
-            errStream.println(s"Reload finished, result: ${r}")
+            streams.err.println(s"Reload finished, result: ${r}")
             _lastResult = Some(r)
           }
         }
@@ -127,7 +126,7 @@ class BspWorkerImpl() extends BspWorker {
         override def lastResult: Option[BspServerResult] = _lastResult
 
         override def stop(): Unit = {
-          errStream.println("Stopping server via handle...")
+          streams.err.println("Stopping server via handle...")
           listening.cancel(true)
         }
       }
@@ -137,9 +136,9 @@ class BspWorkerImpl() extends BspWorker {
       ()
     } catch {
       case _: CancellationException =>
-        errStream.println("The mill server was shut down.")
+        streams.err.println("The mill server was shut down.")
       case e: Exception =>
-        errStream.println(
+        streams.err.println(
           s"""An exception occurred while connecting to the client.
              |Cause: ${e.getCause}
              |Message: ${e.getMessage}
@@ -147,7 +146,7 @@ class BspWorkerImpl() extends BspWorker {
              |Stack Trace: ${e.getStackTrace}""".stripMargin
         )
     } finally {
-      errStream.println("Shutting down executor")
+      streams.err.println("Shutting down executor")
       executor.shutdown()
 
     }

@@ -1,6 +1,6 @@
-package mill.bsp
+package mill.entrypoint
 
-import mill.util.ScriptTestSuite
+import mill.bsp.Constants
 import utest._
 
 object BspModulesTests extends ScriptTestSuite(false) {

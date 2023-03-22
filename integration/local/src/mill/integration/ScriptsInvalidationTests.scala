@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.util.ScriptTestSuite
+import mill.entrypoint.ScriptTestSuite
 import utest._
 
 import scala.collection.mutable

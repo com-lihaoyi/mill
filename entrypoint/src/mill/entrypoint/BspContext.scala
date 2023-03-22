@@ -1,8 +1,9 @@
 package mill.entrypoint
 
 import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
+import mill.util.SystemStreams
 
-import java.io.{PrintStream, InputStream}
+import java.io.{InputStream, PrintStream}
 import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
@@ -27,9 +28,7 @@ class BspContext(streams: SystemStreams, home: os.Path) {
     try {
       BspServerStarter().startBspServer(
         initialEvaluator = None,
-        outStream = streams.out,
-        errStream = streams.err,
-        inStream = streams.in,
+        streams = streams,
         workspaceDir = os.pwd,
         ammoniteHomeDir = home,
         canReload = true,

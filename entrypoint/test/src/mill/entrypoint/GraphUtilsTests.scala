@@ -1,4 +1,4 @@
-package mill.main
+package mill.entrypoint
 
 import mill.define.ScriptNode
 import utest._

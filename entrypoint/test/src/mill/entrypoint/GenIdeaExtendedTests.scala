@@ -1,10 +1,9 @@
-package mill.scalalib
+package mill.entrypoint
 
-import scala.util.Try
-
-import mill.util.ScriptTestSuite
 import os.Path
 import utest._
+
+import scala.util.Try
 
 object GenIdeaExtendedTests extends ScriptTestSuite(false) {
 

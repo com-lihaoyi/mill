@@ -13,6 +13,8 @@ import mill.main.client._
 import mill.api.DummyInputStream
 import mill.main.client.lock.{Lock, Locks}
 import mill.main.EvaluatorState
+import mill.util.SystemStreams
+
 import java.util.function.Consumer
 
 trait MillServerMain[T] {

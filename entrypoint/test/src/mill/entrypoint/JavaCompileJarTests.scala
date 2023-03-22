@@ -1,6 +1,5 @@
-package mill.main
+package mill.entrypoint
 
-import mill.util.ScriptTestSuite
 import utest._
 
 object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
@@ -9,7 +8,7 @@ object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
   val tests = Tests {
     initWorkspace()
     "test" - {
-      if (!ammonite.util.Util.java9OrAbove) {
+      if (!mill.util.Util.java9OrAbove) {
         // Basic target evaluation works
         assert(eval("classFiles"))
         assert(eval("jar"))

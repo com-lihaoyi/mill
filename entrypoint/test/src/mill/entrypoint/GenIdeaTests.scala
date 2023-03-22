@@ -1,13 +1,10 @@
-package mill.scalalib
+package mill.entrypoint
 
-import mill.util.ScriptTestSuite
 import os.Path
-import utest.assert
+import utest.{Tests, assert, _}
+
 import java.util.regex.Pattern
-
 import scala.util.Try
-
-import utest.{Tests, _}
 
 object GenIdeaTests extends ScriptTestSuite(false) {
 

@@ -1,5 +1,5 @@
 package mill.entrypoint
-import mill.util.{Classpath, ColorLogger, Colors, PrintLogger}
+import mill.util.{Classpath, ColorLogger, Colors, PrintLogger, SystemStreams}
 import mill.MillCliConfig
 import mill.api.{Logger, PathRef}
 

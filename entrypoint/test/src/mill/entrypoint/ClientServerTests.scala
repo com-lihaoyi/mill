@@ -1,8 +1,10 @@
-package mill.main
-import java.io._
+package mill.entrypoint
 
+import java.io._
 import mill.main.client.Util
 import mill.main.client.lock.Locks
+import mill.util.SystemStreams
+
 import scala.jdk.CollectionConverters._
 import utest._
 
@@ -18,22 +20,22 @@ class EchoServer extends MillServerMain[Int] {
       initialSystemProperties: Map[String, String]
   ) = {
 
-    val reader = new BufferedReader(new InputStreamReader(stdin))
+    val reader = new BufferedReader(new InputStreamReader(streams.in))
     val str = reader.readLine()
     if (args.nonEmpty) {
-      stdout.println(str + args(0))
+      streams.out.println(str + args(0))
     }
     env.toSeq.sortBy(_._1).foreach {
-      case (key, value) => stdout.println(s"$key=$value")
+      case (key, value) => streams.out.println(s"$key=$value")
     }
     systemProperties.toSeq.sortBy(_._1).foreach {
-      case (key, value) => stdout.println(s"$key=$value")
+      case (key, value) => streams.out.println(s"$key=$value")
     }
     if (args.nonEmpty) {
-      stderr.println(str.toUpperCase + args(0))
+      streams.err.println(str.toUpperCase + args(0))
     }
-    stdout.flush()
-    stderr.flush()
+    streams.out.flush()
+    streams.err.flush()
     (true, None)
   }
 }

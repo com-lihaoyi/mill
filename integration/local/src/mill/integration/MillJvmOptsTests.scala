@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.util.ScriptTestSuite
+import mill.entrypoint.ScriptTestSuite
 import utest._
 
 class MillJvmOptsTests(fork: Boolean, clientServer: Boolean)

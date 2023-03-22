@@ -1,6 +1,5 @@
-package mill.main
+package mill.entrypoint
 
-import mill.util.ScriptTestSuite
 import utest._
 import utest.framework.TestPath
 

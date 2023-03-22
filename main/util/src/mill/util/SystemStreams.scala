@@ -1,4 +1,4 @@
-package mill.entrypoint
+package mill.util
 
 import java.io.{InputStream, PrintStream}
 

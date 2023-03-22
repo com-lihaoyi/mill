@@ -24,4 +24,6 @@ object Util{
       Thread.currentThread().setContextClassLoader(oldClassloader)
     }
   }
+
+  val java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
 }
