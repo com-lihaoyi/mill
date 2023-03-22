@@ -526,6 +526,8 @@ object scalalib extends MillModule {
          |  val semanticDBVersion = "${Deps.semanticDB.dep.version}"
          |  /** Java SemanticDB plugin version. */
          |  val semanticDbJavaVersion = "${Deps.semanticDbJava.dep.version}"
+         |  /** Mill ModuleDefs plugins version. */
+         |  val millModuledefsVersion = "${Deps.millModuledefsVersion}"
          |}
          |
          |""".stripMargin

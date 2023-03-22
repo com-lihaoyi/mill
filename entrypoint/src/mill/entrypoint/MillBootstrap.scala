@@ -95,7 +95,8 @@ class MillBootstrap(base: os.Path,
                 stateCache.map(_.bootstrapClassloader).foreach(_.close())
 
                 val runClassLoader = new java.net.URLClassLoader(
-                  runClasspath.map(_.path.toNIO.toUri.toURL).toArray
+                  runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
+                  getClass.getClassLoader
                 )
 
                 val processedImportTree = GraphUtils.linksToScriptNodeGraph(importTree)

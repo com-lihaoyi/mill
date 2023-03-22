@@ -2,7 +2,7 @@ package mill.entrypoint
 import coursier.{Dependency, Module, Organization}
 import mill._
 import mill.api.{PathRef, Result}
-import mill.scalalib.Lib
+import mill.scalalib.{DepSyntax, Lib, Versions}
 class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
   extends mill.define.BaseModule(base)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())) {
 
@@ -86,7 +86,8 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
     }
 
     def ivyDeps = T {
-      Result.Success(Agg.from(parseBuildFiles()._2.map(mill.scalalib.Dep.parse(_))))
+      Agg.from(parseBuildFiles()._2.map(mill.scalalib.Dep.parse(_))) ++
+      Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
     }
 
     def scriptSources = T.sources {
@@ -116,6 +117,10 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
 
     def unmanagedClasspath = mill.define.Target.input {
       mill.api.Loose.Agg.from(enclosingClasspath.map(p => mill.api.PathRef(p)))
+    }
+
+    def scalacPluginIvyDeps = T{
+      Agg(ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}")
     }
   }
 }
