@@ -1,6 +1,5 @@
 package mill.entrypoint
-import mill.BuildInfo
-import mill.MillCliConfigParser
+import mill.{BuildInfo, MillCliConfig, MillCliConfigParser}
 
 import java.io.{FileOutputStream, PrintStream}
 import java.util.Locale
@@ -9,7 +8,7 @@ import scala.util.Properties
 import io.github.retronym.java9rtexport.Export
 import mill.api.DummyInputStream
 import mill.main.{BspServerResult, EvaluatorState}
-import mill.util.SystemStreams
+import mill.util.{PrintLogger, SystemStreams}
 
 
 object MillMain {
@@ -113,21 +112,8 @@ object MillMain {
         (false, None)
 
       case Right(config) =>
-        val colored = config.color.getOrElse(mainInteractive)
-        val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
-        val logger = mill.util.PrintLogger(
-          colored = colored,
-          disableTicker = config.disableTicker.value,
-          infoColor = colors.info,
-          errorColor = colors.error,
-          outStream = streams.out,
-          infoStream = streams.err,
-          errStream = streams.err,
-          inStream = streams.in,
-          debugEnabled = config.debugLog.value,
-          context = ""
-        )
+        val logger: PrintLogger = getLogger(streams, config, mainInteractive)
         if (!config.silent.value) {
           checkMillVersionFromFile(os.pwd, streams.err)
         }
@@ -189,7 +175,9 @@ object MillMain {
             while (repeatForBsp) {
               repeatForBsp = false
 
-              val (isSuccess, evalStateOpt) = new MillBootstrap(config,
+              val (isSuccess, evalStateOpt) = new MillBootstrap(
+                os.pwd,
+                config,
                 streams,
                 env,
                 threadCount,
@@ -229,6 +217,25 @@ object MillMain {
         }
         (success, nextStateCache)
     }
+  }
+
+  def getLogger(streams: SystemStreams, config: MillCliConfig, mainInteractive: Boolean) = {
+    val colored = config.color.getOrElse(mainInteractive)
+    val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
+
+    val logger = mill.util.PrintLogger(
+      colored = colored,
+      disableTicker = config.disableTicker.value,
+      infoColor = colors.info,
+      errorColor = colors.error,
+      outStream = streams.out,
+      infoStream = streams.err,
+      errStream = streams.err,
+      inStream = streams.in,
+      debugEnabled = config.debugLog.value,
+      context = ""
+    )
+    logger
   }
 
   private def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream) = {

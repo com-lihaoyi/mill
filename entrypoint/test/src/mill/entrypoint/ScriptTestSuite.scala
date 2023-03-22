@@ -1,7 +1,9 @@
 package mill.entrypoint
 
 import mainargs.Flag
+import mill.MillCliConfig
 import mill.define.SelectMode
+import mill.util.SystemStreams
 import os.Path
 import utest._
 
@@ -23,54 +25,39 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
   val keepGoing = false
   val systemProperties = Map[String, String]()
   val threadCount = sys.props.get("MILL_THREAD_COUNT").map(_.toInt).orElse(Some(1))
-  private def runnerStdout(stdout: PrintStream) = new mill.main.MainRunner(
-    config = ammonite.main.Config(
-      ammonite.main.Config.Core(
-        noDefaultPredef = Flag(),
-        silent = Flag(),
-        watch = Flag(),
-        bsp = Flag(),
-        thin = Flag(),
-        help = Flag(),
-        showVersion = Flag()
-      ),
-      ammonite.main.Config.Predef(noHomePredef = Flag()),
-      ammonite.main.Config.Repl(noRemoteLogging = Flag(), classBased = Flag())
-    ),
-    mainInteractive = false,
-    disableTicker = disableTicker,
-    outprintStream = stdout,
-    errPrintStream = stdOutErr,
-    stdIn = stdIn,
-    stateCache0 = None,
-    env = Map.empty,
-    setIdle = b => (),
-    debugLog = debugLog,
-    keepGoing = keepGoing,
-    systemProperties = systemProperties,
-    threadCount = threadCount,
-    ringBell = false,
-    wd = wd,
-    initialSystemProperties = sys.props.toMap
-  )
-  lazy val runner = runnerStdout(System.out)
+  private def runnerStdout(stdout: PrintStream, s: Seq[String]) = {
+
+    val streams = new SystemStreams(System.out, stdOutErr, stdIn)
+    val config = MillCliConfig()
+    new MillBootstrap(
+      workspacePath / buildPath,
+      config,
+      streams,
+      Map.empty,
+      threadCount,
+      systemProperties,
+      s.toList,
+      ringBell = false,
+      _ => (),
+      None,
+      sys.props.toMap,
+      mill.entrypoint.MillMain.getLogger(streams, config, mainInteractive = false)
+    ).runScript()
+  }
   def eval(s: String*): Boolean = {
-    if (!fork) {
-      runner.runScript(workspacePath / buildPath, s.toList)
-    } else {
-      evalFork(os.Inherit, s)
-    }
+    if (!fork) runnerStdout(System.out, s)._1
+    else evalFork(os.Inherit, s)
   }
   def evalStdout(s: String*): (Boolean, Seq[String]) = {
     if (!fork) {
       val outputStream = new ByteArrayOutputStream
       val printStream = new PrintStream(outputStream)
-      val result = runnerStdout(printStream).runScript(workspacePath / buildPath, s.toList)
+      val result = runnerStdout(printStream, s.toList)
       val stdoutArray = outputStream.toByteArray
       val stdout: Seq[String] =
         if (stdoutArray.isEmpty) Seq.empty
         else new String(stdoutArray).split('\n')
-      (result, stdout)
+      (result._1, stdout)
     } else {
       val output = Seq.newBuilder[String]
       val processOutput = os.ProcessOutput.Readlines(output += _)

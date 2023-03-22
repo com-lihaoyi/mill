@@ -9,7 +9,8 @@ import mill.internal.Watchable
 import mill.main.{EvaluatorState, RunScript}
 import mill.define.{ScriptNode, SelectMode}
 
-class MillBootstrap(config: MillCliConfig,
+class MillBootstrap(base: os.Path,
+                    config: MillCliConfig,
                     streams: SystemStreams,
                     env: Map[String, String],
                     threadCount: Option[Int],
@@ -62,10 +63,10 @@ class MillBootstrap(config: MillCliConfig,
         .map(_.toURI).filter(_.getScheme == "file")
         .map(_.getPath)
         .map(os.Path(_)),
-      os.pwd
+      base
     )
 
-    val evaluator = makeEvaluator(os.pwd / "out" / "mill-build", bootstrapModule, Nil)
+    val evaluator = makeEvaluator(base / "out" / "mill-build", bootstrapModule, Nil)
 
     val systemPropertiesToUnset =
       stateCache.map(_.setSystemProperties).getOrElse(Set()) -- systemProperties.keySet
@@ -111,7 +112,7 @@ class MillBootstrap(config: MillCliConfig,
           val cls = bootstrapClassloader.loadClass("millbuild.build$")
           val rootModule = cls.getField("MODULE$").get(cls).asInstanceOf[mill.define.BaseModule]
           val buildFileEvaluator = makeEvaluator(
-            os.pwd / "out",
+            base / "out",
             rootModule,
             Classpath.initialClasspathSignature(bootstrapClassloader)
           )
