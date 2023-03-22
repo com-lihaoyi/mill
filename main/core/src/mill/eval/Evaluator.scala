@@ -2,7 +2,6 @@ package mill.eval
 
 import java.net.{URL, URLClassLoader}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-import mill.util.SpecialClassLoader
 
 import scala.util.DynamicVariable
 import mill.api.{
@@ -779,9 +778,7 @@ object Evaluator {
   // check if the build itself has changed
   def classLoaderSig: Seq[(Either[String, URL], Long)] =
     Thread.currentThread().getContextClassLoader match {
-      case scl: SpecialClassLoader => scl.classpathSignature
-      case ucl: URLClassLoader =>
-        SpecialClassLoader.initialClasspathSignature(ucl)
+      case ucl: URLClassLoader => Classpath.initialClasspathSignature(ucl)
       case _ => Nil
     }
 

@@ -1,20 +1,15 @@
 package mill.entrypoint
 
-import mill.MillCliConfig
 import mill.internal.Watchable
+import mill.util.ColorLogger
 
 import java.io.InputStream
 import scala.annotation.tailrec
 
 object Watching{
 
-  def watchAndWait(setIdle: Boolean => Unit, stdin: InputStream, watched: Seq[(mill.internal.Watchable, Long)]) = {
+  def watchAndWait(logger: ColorLogger, setIdle: Boolean => Unit, stdin: InputStream, watched: Seq[(mill.internal.Watchable, Long)]) = {
     setIdle(true)
-    watchAndWait0(stdin, watched)
-    setIdle(false)
-  }
-
-  def watchAndWait0(stdin: InputStream, watched: Seq[(Watchable, Long)]) = {
     val watchedPaths = watched.count {
       case (Watchable.Path(p), _) => true
       case (_, _) => false
@@ -23,15 +18,15 @@ object Watching{
 
     val watchedValueStr = if (watchedValues == 0) "" else s" and $watchedValues other values"
 
-    println(
+    logger.info(
       s"Watching for changes to $watchedPaths paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
     )
 
     statWatchWait(watched, stdin)
+    setIdle(false)
   }
 
-  def statWatchWait(watched: Seq[(Watchable, Long)],
-                    stdin: InputStream): Unit = {
+  def statWatchWait(watched: Seq[(Watchable, Long)], stdin: InputStream): Unit = {
     val buffer = new Array[Byte](4 * 1024)
 
     def allWatchedUnchanged() =

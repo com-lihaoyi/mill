@@ -1,0 +1,1 @@
+def myMsg = "<h1>world</h1>"

@@ -1,6 +1,5 @@
 package mill.scalalib.bsp
 
-import mill.util.SpecialClassLoader
 import mill.api.{Loose, PathRef, internal}
 import mill.define.{BaseModule, Discover, ExternalModule, Sources, Target, Task}
 import mill.scalalib.api.CompilationResult

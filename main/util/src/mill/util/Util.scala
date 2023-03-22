@@ -14,4 +14,14 @@ object Util{
   val windowsPlatform = System.getProperty("os.name").startsWith("Windows")
 
   val newLine = System.lineSeparator()
+
+  def withContextClassloader[T](contextClassloader: ClassLoader)(t: => T) = {
+    val oldClassloader = Thread.currentThread().getContextClassLoader
+    try {
+      Thread.currentThread().setContextClassLoader(contextClassloader)
+      t
+    } finally {
+      Thread.currentThread().setContextClassLoader(oldClassloader)
+    }
+  }
 }

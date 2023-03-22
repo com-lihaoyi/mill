@@ -1,7 +1,6 @@
 package mill.main
 
 import scala.collection.mutable
-
 import mill.define.{ScriptNode, Segments}
 
 class EvaluatorState private (
@@ -10,7 +9,8 @@ class EvaluatorState private (
     _workerCache: mutable.Map[Segments, (Int, Any)],
     _watched: Seq[(mill.internal.Watchable, Long)],
     _setSystemProperties: Set[String],
-    _importTree: Seq[ScriptNode]
+    _importTree: Seq[ScriptNode],
+    _bootstrapClassloader: java.net.URLClassLoader,
 ) {
   def rootModule: mill.define.BaseModule = _rootModule
   def classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = _classLoaderSig
@@ -18,6 +18,7 @@ class EvaluatorState private (
   def watched: Seq[(mill.internal.Watchable, Long)] = _watched
   def setSystemProperties: Set[String] = _setSystemProperties
   def importTree: Seq[ScriptNode] = _importTree
+  def bootstrapClassloader: java.net.URLClassLoader = bootstrapClassloader
 
   override def toString(): String = {
     s"""EvaluatorState(
@@ -37,13 +38,15 @@ object EvaluatorState {
       workerCache: mutable.Map[Segments, (Int, Any)],
       watched: Seq[(mill.internal.Watchable, Long)],
       setSystemProperties: Set[String],
-      importTree: Seq[ScriptNode]
+      importTree: Seq[ScriptNode],
+      bootstrapClassloader: java.net.URLClassLoader
   ): EvaluatorState = new EvaluatorState(
     rootModule,
     classLoaderSig,
     workerCache,
     watched,
     setSystemProperties,
-    importTree
+    importTree,
+    bootstrapClassloader
   )
 }

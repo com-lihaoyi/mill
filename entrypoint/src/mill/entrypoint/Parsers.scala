@@ -7,10 +7,7 @@ import scala.collection.mutable
 case class ImportTree(prefix: Seq[String],
                       mappings: Option[ImportTree.ImportMapping],
                       start: Int,
-                      end: Int) {
-  lazy val strippedPrefix: Seq[String] =
-    prefix.takeWhile(_(0) == '$').map(_.stripPrefix("$"))
-}
+                      end: Int)
 
 object ImportTree{
   type ImportMapping = Seq[(String, Option[String])]
@@ -50,16 +47,6 @@ object Parsers  {
     P( `import` ~/ ImportExpr.rep(1, sep = ","./) )
   }
 
-  private def PatVarSplitter[$: P] = {
-    def Prefixes = P(Prelude ~ (`var` | `val`))
-    def Lhs = P( Prefixes ~/ BindPattern.rep(1, "," ~/ Pass) ~ (`:` ~/ Type).? )
-    P( Lhs.! ~ (`=` ~/ WL ~ StatCtx.Expr.!) ~ End )
-  }
-  private def patVarSplit(code: String) = {
-    val Parsed.Success((lhs, rhs), _) = parse(code, PatVarSplitter(_))
-    (lhs, rhs)
-  }
-
   private def Prelude[$: P] = P( (Annot ~ OneNLMax).rep ~ (Mod ~/ Pass).rep )
 
   private def TmplStat[$: P] = P( Import | Prelude ~ BlockDef | StatCtx.Expr )
@@ -73,7 +60,6 @@ object Parsers  {
   private def StatementBlock[$: P] =
     P( Semis.? ~ (TmplStat ~~ WS ~~ (Semis | &("}") | End)).!.repX)
 
-  private def ObjParser[$: P] = P( ObjDef )
 
   private def CompilationUnit[$: P] = P( WL.! ~ StatementBlock ~ WL )
 
@@ -111,8 +97,6 @@ object Parsers  {
           hookedStmts.append(currentStmt)
       }
     }
-    pprint.log(hookedStmts)
-    pprint.log(importTrees)
     (hookedStmts.toSeq, importTrees.toSeq)
   }
   def formatFastparseError(fileName: String, rawCode: String, f: Parsed.Failure) = {
@@ -150,20 +134,7 @@ object Parsers  {
     }
   }
 
-
-  case class ParsedImportHooks(hookStatements: Seq[String], importTrees: Seq[ImportTree])
-
   case class ScriptBlock(startIndex: Int,
                          ncomment: String,
                          codeWithStartIndices: Seq[(Int, String)])
-
-  object ScriptBlock {
-    def apply(ncomment: String,
-              codeWithStartIndices: Seq[(Int, String)]): ScriptBlock =
-      ScriptBlock(0, ncomment, codeWithStartIndices)
-  }
-
-  class ScriptSplittingError(message: String,
-                             val index: Int = -1,
-                             val expected: String = "") extends Exception(message)
 }

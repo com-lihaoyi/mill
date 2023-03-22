@@ -3,7 +3,6 @@ package mill.scalalib
 import scala.collection.immutable
 import scala.util.Try
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
-import mill.util.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import coursier.{LocalRepositories, Repositories, Repository}
@@ -16,6 +15,7 @@ import mill.define._
 import mill.eval.Evaluator
 import mill.modules.Util
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
+import mill.util.Classpath
 import mill.{BuildInfo, T, scalalib}
 import os.{Path, SubPath}
 
@@ -131,14 +131,9 @@ case class GenIdeaImpl(
             res.items.toList.map(_.path)
         }
 
-    val buildDepsPaths =
-      Try(evaluator.rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader])
-        .map {
-          _.allJars
-            .map(url => os.Path(Paths.get(url.toURI)))
-            .filter(_.toIO.exists)
-        }
-        .getOrElse(Seq())
+    val buildDepsPaths = Classpath
+      .allJars(evaluator.rootModule.getClass.getClassLoader)
+      .map(url => os.Path(url.toURI.getPath))
 
     def resolveTasks: Seq[Task[ResolvedModule]] = modules.map {
       case (path, mod) => {

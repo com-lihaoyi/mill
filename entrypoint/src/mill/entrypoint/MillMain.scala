@@ -1,21 +1,15 @@
 package mill.entrypoint
 import mill.BuildInfo
 import mill.MillCliConfigParser
-import java.io.{FileOutputStream, InputStream, PrintStream}
+
+import java.io.{FileOutputStream, PrintStream}
 import java.util.Locale
 import scala.jdk.CollectionConverters._
-import scala.util.{Failure, Properties, Success, Try}
+import scala.util.Properties
 import io.github.retronym.java9rtexport.Export
-import mainargs.Flag
 import mill.api.DummyInputStream
-import mill.eval.Evaluator
-import mill.main.{BspServerHandle, BspServerResult, BspServerStarter, EvaluatorState}
+import mill.main.{BspServerResult, EvaluatorState}
 
-import java.util.concurrent.{ExecutorService, Executors}
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future, Promise}
-import scala.util.chaining.scalaUtilChainingOps
-import scala.util.control.NonFatal
 
 object MillMain {
   def main(args: Array[String]): Unit = {
@@ -118,6 +112,21 @@ object MillMain {
         (false, None)
 
       case Right(config) =>
+        val colored = config.color.getOrElse(mainInteractive)
+        val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
+
+        val logger = mill.util.PrintLogger(
+          colored = colored,
+          disableTicker = config.disableTicker.value,
+          infoColor = colors.info,
+          errorColor = colors.error,
+          outStream = streams.out,
+          infoStream = streams.err,
+          errStream = streams.err,
+          inStream = streams.in,
+          debugEnabled = config.debugLog.value,
+          context = ""
+        )
         if (!config.silent.value) {
           checkMillVersionFromFile(os.pwd, streams.err)
         }
@@ -130,24 +139,24 @@ object MillMain {
 
         val (success, nextStateCache) =
           if (config.repl.value && config.leftoverArgs.value.nonEmpty) {
-            streams.err.println("No target may be provided with the --repl flag")
+            logger.error("No target may be provided with the --repl flag")
             (false, stateCache)
 //          } else if(config.bsp.value && config.leftoverArgs.value.nonEmpty) {
 //            stderr.println("No target may be provided with the --bsp flag")
 //            (false, stateCache)
           } else if (config.leftoverArgs.value.isEmpty && config.noServer.value) {
-            streams.err.println(
+            logger.error(
               "A target must be provided when not starting a build REPL"
             )
             (false, stateCache)
           } else if (useRepl && streams.in == DummyInputStream) {
-            streams.err.println(
+            logger.error(
               "Build REPL needs to be run with the -i/--interactive/--repl flag"
             )
             (false, stateCache)
           } else {
             if (useRepl && config.interactive.value) {
-              streams.err.println(
+              logger.error(
                 "WARNING: Starting a build REPL without --repl is deprecated"
               )
             }
@@ -179,27 +188,29 @@ object MillMain {
             while (repeatForBsp) {
               repeatForBsp = false
 
-              val (isSuccess, evalStateOpt) = MillBootstrap.runScript(
-                config,
-                mainInteractive,
+              val (isSuccess, evalStateOpt) = new MillBootstrap(config,
                 streams,
                 env,
                 threadCount,
-                systemProperties,
+                systemProps,
                 targetsAndParams,
                 config.ringBell.value,
-                setIdle
-              )
+                setIdle,
+                stateCache,
+                initialSystemProperties,
+                logger
+              ).runScript()
+
               bspContext.foreach { ctx =>
                 repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)
-                streams.err.println(
+                logger.error(
                   s"`${ctx.millArgs.mkString(" ")}` returned with ${ctx.handle.lastResult}"
                 )
               }
               loopRes = (isSuccess, evalStateOpt)
             } // while repeatForBsp
             bspContext.foreach { ctx =>
-              streams.err.println(
+              logger.error(
                 s"Exiting BSP runner loop. Stopping BSP server. Last result: ${ctx.handle.lastResult}"
               )
               ctx.handle.stop()
