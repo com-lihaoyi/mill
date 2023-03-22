@@ -502,11 +502,6 @@ object scalalib extends MillModule {
     Deps.scalafmtDynamic
   )
 
-  def genTask(m: ScalaModule) = T.task {
-    Seq(m.jar(), m.sourceJar()) ++
-      m.runClasspath()
-  }
-
   override def generatedSources = T {
     val dest = T.ctx.dest
     os.write(
@@ -537,19 +532,11 @@ object scalalib extends MillModule {
 
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T {
-    val genIdeaArgs =
-//      genTask(main.moduledefs)() ++
-      genTask(main.core)() ++
-        genTask(main)() ++
-        genTask(scalalib)() ++
-        genTask(scalajslib)() ++
-        genTask(scalanativelib)()
 
     worker.testArgs() ++
       main.graphviz.testArgs() ++
       Seq(
         "-Djna.nosys=true",
-        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
         "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(","),
         s"-DTEST_SCALAFMT_VERSION=${Deps.scalafmtDynamic.dep.version}"
       )
@@ -1036,14 +1023,20 @@ object integration extends MillScalaModule {
 
   trait ITests extends super.Tests {
     def workspaceDir = T.persistent { PathRef(T.dest) }
+
+    def genTask(m: ScalaModule) = T.task {
+      Seq(m.jar(), m.sourceJar()) ++
+        m.runClasspath()
+    }
+
     override def forkArgs: Target[Seq[String]] = T {
       val genIdeaArgs =
       //      genTask(main.moduledefs)() ++
-        scalalib.genTask(main.core)() ++
-          scalalib.genTask(main)() ++
-          scalalib.genTask(scalalib)() ++
-          scalalib.genTask(scalajslib)() ++
-          scalalib.genTask(scalanativelib)()
+        genTask(main.core)() ++
+        genTask(main)() ++
+        genTask(scalalib)() ++
+        genTask(scalajslib)() ++
+        genTask(scalanativelib)()
 
 
       super.forkArgs() ++
