@@ -1,0 +1,16 @@
+<module type="JAVA_MODULE" version="4">
+    <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../../out/HelloWorld/subScala3/ideaCompileOutput.dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../../HelloWorld/subScala3/src">
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/subScala3/src" isTestSource="false"/>
+        </content>
+        <content url="file://$MODULE_DIR$/../../HelloWorld/subScala3/resources">
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/subScala3/resources" type="java-resource"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="scala-library-2.13.6.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_3-3.0.2.jar" level="project"/>
+    </component>
+</module>
