@@ -86,11 +86,9 @@ object Parsers  {
           for(importTree <- parsedTrees){
             if (importTree.prefix(0)(0) == '$') {
               val length = importTree.end - importTree.start
-              if (importTree.prefix(0) != "$file"){
-                currentStmt = currentStmt.patch(
-                  importTree.start, "_root_._".padTo(length, ' '), length
-                )
-              }
+              currentStmt = currentStmt.patch(
+                importTree.start, "_root_._".padTo(length, ' '), length
+              )
               importTrees.append(importTree)
             }
           }

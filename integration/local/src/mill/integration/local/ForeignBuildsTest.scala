@@ -13,17 +13,15 @@ object ForeignBuildsTest extends ScriptTestSuite(fork = false) {
   val tests = Tests {
     initWorkspace()
     def checkTarget()(implicit testPath: TestPath): Unit = assert(eval(testPath.value.last))
-    "test" - {
-      "checkProjectPaths" - checkTarget()
-      "checkInnerPaths" - checkTarget()
-      "checkOuterPaths" - checkTarget()
-      "checkOuterInnerPaths" - checkTarget()
-      "checkOtherPaths" - checkTarget()
-      "checkProjectDests" - checkTarget()
-      "checkInnerDests" - checkTarget()
-      "checkOuterDests" - checkTarget()
-      "checkOuterInnerDests" - checkTarget()
-      "checkOtherDests" - checkTarget()
-    }
+    "checkProjectPaths" - checkTarget()
+    "checkInnerPaths" - checkTarget()
+    "checkOuterPaths" - checkTarget()
+    "checkOuterInnerPaths" - checkTarget()
+    "checkOtherPaths" - checkTarget()
+    "checkProjectDests" - checkTarget()
+    "checkInnerDests" - checkTarget()
+    "checkOuterDests" - checkTarget()
+    "checkOuterInnerDests" - checkTarget()
+    "checkOtherDests" - checkTarget()
   }
 }
