@@ -1037,6 +1037,15 @@ object integration extends MillScalaModule {
   trait ITests extends super.Tests {
     def workspaceDir = T.persistent { PathRef(T.dest) }
     override def forkArgs: Target[Seq[String]] = T {
+      val genIdeaArgs =
+      //      genTask(main.moduledefs)() ++
+        scalalib.genTask(main.core)() ++
+          scalalib.genTask(main)() ++
+          scalalib.genTask(scalalib)() ++
+          scalalib.genTask(scalajslib)() ++
+          scalalib.genTask(scalanativelib)()
+
+
       super.forkArgs() ++
         scalajslib.testArgs() ++
         scalalib.worker.testArgs() ++
@@ -1049,6 +1058,7 @@ object integration extends MillScalaModule {
           s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
           s"-DMILL_BSP_WORKER=${bsp.worker.runClasspath().map(_.path).mkString(",")}",
           s"-DMILL_LINENUMBERS=${entrypoint.linenumbers.runClasspath().map(_.path).mkString(",")}",
+          "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
           "-Djna.nosys=true"
         )
     }
