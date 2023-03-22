@@ -43,7 +43,7 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
           }
           os.write(
             dest,
-            MillBootstrapModule.top(p.path / os.up, segments.dropRight(1), p.path.baseName, fileImportProxy) +
+            MillBootstrapModule.top(relative, p.path / os.up, segments.dropRight(1), p.path.baseName, fileImportProxy) +
             s +
             MillBootstrapModule.bottom,
             createFolders = true
@@ -84,12 +84,28 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
 }
 
 object MillBootstrapModule{
-  def top(base: os.Path, pkg: Seq[String], name: String, fileImportProxy: String) =
+  def top(relative: os.RelPath, base: os.Path, pkg: Seq[String], name: String, fileImportProxy: String) = {
+    val foreign =
+      if (pkg.nonEmpty || name != "build") {
+        // Computing a path in "out" that uniquely reflects the location
+        // of the foreign module relatively to the current build.
+
+        // Encoding the number of `/..`
+        val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
+        val segs =
+          Seq("foreign-modules") ++
+          ups ++
+          relative.segments.init ++
+          Seq(relative.segments.last.stripSuffix(".sc"))
+
+        val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
+        s"Some(_root_.mill.define.Segments.labels($segsList))"
+      } else "None"
     s"""
        |package millbuild${pkg.map("." + _).mkString}
        |import _root_.mill._
        |object $name
-       |extends _root_.mill.define.BaseModule(os.Path("${base}"))(
+       |extends _root_.mill.define.BaseModule(os.Path("${base}"), foreign0 = $foreign)(
        |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
        |)
        |with $name{
@@ -110,6 +126,7 @@ object MillBootstrapModule{
        |$fileImportProxy
        |//MILL_USER_CODE_START_MARKER
        |""".stripMargin
+  }
 
   val bottom = "\n}"
   def parseBuildFiles(base: os.Path) = {
