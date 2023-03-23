@@ -130,10 +130,12 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
     // destination instead of the folder containing the wrapper.
 
     println("initWorkspace")
+    println("scriptSourcePath " + scriptSourcePath)
+    println("workspacePath " + workspacePath)
     os.copy(scriptSourcePath, workspacePath)
-//    println(os.proc("find", scriptSourcePath).call().out)
+    println(os.proc("find", scriptSourcePath).call().out)
     pprint.log(os.walk(scriptSourcePath))
-//    println(os.proc("find", workspacePath).call().out)
+    println(os.proc("find", workspacePath).call().out)
     pprint.log(os.walk(workspacePath))
     workspacePath
   }
