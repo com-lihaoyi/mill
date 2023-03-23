@@ -107,7 +107,7 @@ object MillBootstrapModule{
        |package millbuild${pkg.map("." + _).mkString}
        |import _root_.mill._
        |object $name
-       |extends _root_.mill.define.BaseModule(os.Path("${base}"), foreign0 = $foreign)(
+       |extends _root_.mill.define.BaseModule(os.Path("${pprint.Util.literalize(base.toString)}"), foreign0 = $foreign)(
        |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
        |)
        |with $name{
@@ -142,50 +142,55 @@ object MillBootstrapModule{
       importGraphEdges(importGraphId) = (s, Nil)
       val fileImports = mutable.Set.empty[os.Path]
 
-      if (!seenScripts.contains(s)) Parsers.splitScript(os.read(s), s.last) match {
-        case Left(err) =>
-          // Make sure we mark even scripts that failed to parse as seen, so
-          // they can be watched and the build can be re-triggered if the user
-          // fixes the parse error
-          seenScripts(s) = ""
-          errors.append(err)
-        case Right(stmts) =>
-          val parsedStmts = Parsers.parseImportHooksWithIndices(stmts)
+      if (!seenScripts.contains(s)) {
+        val txt =
+          try os.read(s)
+          catch{case e => throw new Exception(os.list(s / os.up).map("[[[" + _ + "]]]")mkString("\n"))}
+        Parsers.splitScript(txt, s.last) match {
+          case Left(err) =>
+            // Make sure we mark even scripts that failed to parse as seen, so
+            // they can be watched and the build can be re-triggered if the user
+            // fixes the parse error
+            seenScripts(s) = ""
+            errors.append(err)
+          case Right(stmts) =>
+            val parsedStmts = Parsers.parseImportHooksWithIndices(stmts)
 
-          val transformedStmts = mutable.Buffer.empty[String]
+            val transformedStmts = mutable.Buffer.empty[String]
 
-          for((stmt0, importTrees) <- parsedStmts) {
-            var stmt = stmt0
-            for(importTree <- importTrees) {
-              val (start, patchString, end) = importTree match {
-                case ImportTree(Seq(("$ivy", _), rest@_*), mapping, start, end) =>
-                  seenIvy.addAll(mapping.map(_._1))
-                  (start, "_root_._", end)
-                case ImportTree(Seq(("$file", _), rest@_*), mapping, start, end) =>
-                  val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
+            for((stmt0, importTrees) <- parsedStmts) {
+              var stmt = stmt0
+              for(importTree <- importTrees) {
+                val (start, patchString, end) = importTree match {
+                  case ImportTree(Seq(("$ivy", _), rest@_*), mapping, start, end) =>
+                    seenIvy.addAll(mapping.map(_._1))
+                    (start, "_root_._", end)
+                  case ImportTree(Seq(("$file", _), rest@_*), mapping, start, end) =>
+                    val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
 
-                  val patchPrefix = prepareImportGraphEdges(nextPaths(0) / os.up)
-                  fileImports.addAll(nextPaths)
+                    val patchPrefix = prepareImportGraphEdges(nextPaths(0) / os.up)
+                    fileImports.addAll(nextPaths)
 
-                  importGraphEdges(importGraphId) = (
-                    importGraphEdges(importGraphId)._1,
-                    importGraphEdges(importGraphId)._2 ++ nextPaths.map(prepareImportGraphEdges)
-                  )
+                    importGraphEdges(importGraphId) = (
+                      importGraphEdges(importGraphId)._1,
+                      importGraphEdges(importGraphId)._2 ++ nextPaths.map(prepareImportGraphEdges)
+                    )
 
-                  if (rest.isEmpty) (start, "_root_._", end)
-                  else {
-                    val end = rest.last._2
-                    (start, patchPrefix, end)
-                  }
+                    if (rest.isEmpty) (start, "_root_._", end)
+                    else {
+                      val end = rest.last._2
+                      (start, patchPrefix, end)
+                    }
+                }
+                val numNewLines = stmt.substring(start, end).count(_ == '\n')
+                stmt = stmt.patch(start, patchString + "\n" * numNewLines, end - start)
               }
-              val numNewLines = stmt.substring(start, end).count(_ == '\n')
-              stmt = stmt.patch(start, patchString + "\n" * numNewLines, end - start)
-            }
 
-            transformedStmts.append(stmt)
-          }
-          val finalCode = transformedStmts.mkString
-          seenScripts(s) = finalCode
+              transformedStmts.append(stmt)
+            }
+            val finalCode = transformedStmts.mkString
+            seenScripts(s) = finalCode
+        }
       }
       fileImports.foreach(traverseScripts)
     }
