@@ -4,8 +4,8 @@ import mill.util.Util.{newLine, windowsPlatform}
 
 import scala.collection.mutable
 
-case class ImportTree(prefix: Seq[String],
-                      mappings: Option[ImportTree.ImportMapping],
+case class ImportTree(prefix: Seq[(String, Int)],
+                      mappings: ImportTree.ImportMapping,
                       start: Int,
                       end: Int)
 
@@ -28,12 +28,12 @@ object Parsers  {
     def IdParser = P( (Id | `_` ).! ).map(
       s => if (s(0) == '`') s.drop(1).dropRight(1) else s
     )
-    def Selector = P( IdParser ~ (`=>` ~/ IdParser).? )
+    def Selector: P[(String, Option[String])] = P( IdParser ~ (`=>` ~/ IdParser).? )
     def Selectors = P( "{" ~/ Selector.rep(sep = ","./) ~ "}" )
     def BulkImport = P( `_`).map(
       _ => Seq("_" -> None)
     )
-    def Prefix = P( IdParser.rep(1, sep = ".") )
+    def Prefix = P( (IdParser ~ Index).rep(1, sep = ".") )
     def Suffix = P( "." ~/ (BulkImport | Selectors) )
     def ImportExpr: P[ImportTree] = {
       // Manually use `WL0` parser here, instead of relying on WhitespaceApi, as
@@ -41,7 +41,10 @@ object Parsers  {
       // to the end of the input (which is the default behavior for WhitespaceApi)
       P( Index ~~ Prefix ~~ (WL0 ~~ Suffix).? ~~ Index).map{
         case (start, idSeq, selectors, end) =>
-          ImportTree(idSeq, selectors, start, end)
+          selectors match{
+            case Some(selectors) => ImportTree(idSeq, selectors, start, end)
+            case None => ImportTree(idSeq.init, Seq(idSeq.last._1 -> None), start, end)
+          }
       }
     }
     P( `import` ~/ ImportExpr.rep(1, sep = ","./) )
@@ -72,30 +75,23 @@ object Parsers  {
       case f: Parsed.Failure => stringWrap(s)
     }
   }
-  def parseImportHooksWithIndices(stmts: Seq[String]): (Seq[String], Seq[ImportTree]) = {
-    val hookedStmts = mutable.Buffer.empty[String]
-    val importTrees = mutable.Buffer.empty[ImportTree]
+  def parseImportHooksWithIndices(stmts: Seq[String]): Seq[(String, Seq[ImportTree])] = {
+    val hookedStmts = mutable.Buffer.empty[(String, Seq[ImportTree])]
     for(stmt <- stmts) {
       // Call `fastparse.ParserInput.fromString` explicitly, to avoid generating a
       // lambda in the class body and making the we-do-not-load-fastparse-on-cached-scripts
       // test fail
       parse(fastparse.ParserInput.fromString(stmt), ImportSplitter(_)) match{
-        case f: Parsed.Failure => hookedStmts.append(stmt)
+        case f: Parsed.Failure => hookedStmts.append((stmt, Nil))
         case Parsed.Success(parsedTrees, _) =>
-          var currentStmt = stmt
+          val importTrees = mutable.Buffer.empty[ImportTree]
           for(importTree <- parsedTrees){
-            if (importTree.prefix(0)(0) == '$') {
-              val length = importTree.end - importTree.start
-              currentStmt = currentStmt.patch(
-                importTree.start, "_root_._".padTo(length, ' '), length
-              )
-              importTrees.append(importTree)
-            }
+            if (importTree.prefix(0)._1(0) == '$') importTrees.append(importTree)
           }
-          hookedStmts.append(currentStmt)
+          hookedStmts.append((stmt, importTrees.toSeq))
       }
     }
-    (hookedStmts.toSeq, importTrees.toSeq)
+    hookedStmts.toSeq
   }
   def formatFastparseError(fileName: String, rawCode: String, f: Parsed.Failure) = {
 

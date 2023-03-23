@@ -14,7 +14,7 @@ private object GraphUtils {
       cache.get(key) match {
         case Some(node) => node
         case None =>
-          val node = ScriptNode(key, links(key).map(scriptNodeOf))
+          val node = ScriptNode(key, links.getOrElse(key, Nil).map(scriptNodeOf))
           cache(key) = node
           node
       }
