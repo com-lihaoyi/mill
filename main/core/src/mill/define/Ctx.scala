@@ -17,7 +17,7 @@ case class Ctx private (
     enclosingCls: Class[_],
     crossInstances: Seq[AnyRef]
 ) {
-  def copy(
+  private[mill] def copy(
       enclosing: String = enclosing,
       lineNum: Int = lineNum,
       segment: Segment = segment,
