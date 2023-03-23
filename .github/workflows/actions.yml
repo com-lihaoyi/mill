@@ -5,16 +5,16 @@ on:
   pull_request:
   workflow_dispatch:
 
+# cancel older pull request runs
+concurrency:
+  group: cancel-old-pr-runs-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
 
   test:
     # don't build dependabot branches on push, we already build them on pull request
     if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
-
-    # cancel older pull request runs
-    concurrency:
-      group: cancel-old-pr-runs-${{ github.head_ref || github.run_id }}
-      cancel-in-progress: true
 
     strategy:
       fail-fast: false
@@ -102,11 +102,6 @@ jobs:
   test-windows:
     # don't build dependabot branches on push, we already build them on pull request
     if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
-
-    # cancel older pull request runs
-    concurrency:
-      group: cancel-old-pr-runs-${{ github.head_ref || github.run_id }}
-      cancel-in-progress: true
 
     strategy:
       fail-fast: false
