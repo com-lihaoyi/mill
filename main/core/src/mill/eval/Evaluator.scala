@@ -340,7 +340,7 @@ class Evaluator private (
 //      pprint.log(classes)
 //      pprint.log(importedScripts)
 //      pprint.log(transitiveScripts)
-      transitiveScripts.map(n => PathRef(n.path).sig).iterator.sum
+      transitiveScripts.iterator.map(n => PathRef(n.path).sig).sum
     }
 
 //    pprint.log(terminal.map(_.segments.render))
