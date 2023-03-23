@@ -12,8 +12,9 @@ jobs:
     if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
 
     # cancel older pull request runs
-    concurrency: cancel-old-pr-runs-${{ github.head_ref || github.run_id }}
-    cancel-in-progress: true
+    concurrency:
+      group: cancel-old-pr-runs-${{ github.head_ref || github.run_id }}
+      cancel-in-progress: true
 
     strategy:
       fail-fast: false
@@ -103,8 +104,9 @@ jobs:
     if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
 
     # cancel older pull request runs
-    concurrency: cancel-old-pr-runs-${{ github.head_ref || github.run_id }}
-    cancel-in-progress: true
+    concurrency:
+      group: cancel-old-pr-runs-${{ github.head_ref || github.run_id }}
+      cancel-in-progress: true
 
     strategy:
       fail-fast: false
