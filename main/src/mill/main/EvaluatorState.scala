@@ -18,7 +18,7 @@ class EvaluatorState private (
   def watched: Seq[(mill.internal.Watchable, Long)] = _watched
   def setSystemProperties: Set[String] = _setSystemProperties
   def importTree: Seq[ScriptNode] = _importTree
-  def bootstrapClassloader: java.net.URLClassLoader = bootstrapClassloader
+  def bootstrapClassloader: java.net.URLClassLoader = _bootstrapClassloader
 
   override def toString(): String = {
     s"""EvaluatorState(
