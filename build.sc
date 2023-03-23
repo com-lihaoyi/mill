@@ -1044,13 +1044,13 @@ object integration extends MillScalaModule {
         scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
         scalanativelib.testArgs() ++
+        entrypoint.linenumbers.testArgs() ++
         Seq(
           s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
           s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
           s"-DMILL_VERSION=${millVersion()}",
           s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
           s"-DMILL_BSP_WORKER=${bsp.worker.runClasspath().map(_.path).mkString(",")}",
-          s"-DMILL_LINENUMBERS=${entrypoint.linenumbers.runClasspath().map(_.path).mkString(",")}",
           "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
           "-Djna.nosys=true"
         )
@@ -1254,6 +1254,11 @@ object entrypoint extends MillModule{
   object linenumbers extends MillPublishModule with MillInternalModule {
     def scalaVersion = Deps.scalaVersion
     override def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
+    def testArgs = T{
+      Seq(
+        s"-DMILL_LINENUMBERS=${runClasspath().map(_.path).mkString(",")}",
+      )
+    }
   }
 }
 
@@ -1267,6 +1272,7 @@ object dev extends MillModule {
         scalalib.worker.testArgs() ++
         scalanativelib.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
+        entrypoint.linenumbers.testArgs() ++
         // Workaround for Zinc/JNA bug
         // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
         Seq(
