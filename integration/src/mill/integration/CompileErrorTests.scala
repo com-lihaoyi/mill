@@ -27,7 +27,7 @@ class CompileErrorTests(fork: Boolean, clientServer: Boolean)
             |[error]  found   : String("0")
             |[error]  required: Int
             |[error] def myOtherMsg = myMsg.substring("0")
-            |[error]                                  ^""".linesIterator.mkString(Util.newLine)
+            |[error]                                  ^""".stripMargin.linesIterator.mkString(Util.newLine)
         )
       )
       assert(

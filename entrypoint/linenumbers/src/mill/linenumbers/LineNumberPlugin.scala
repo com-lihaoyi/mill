@@ -34,13 +34,10 @@ object LineNumberPlugin {
 
 
       val userCodeStartMarker = "//MILL_USER_CODE_START_MARKER"
-      val topWrapperLen = new String(g.currentSource.content).indexOf(userCodeStartMarker) match{
+      val lines = new String(g.currentSource.content).linesWithSeparators.toVector
+      val topWrapperLen = lines.indexWhere(_.startsWith(userCodeStartMarker)) match{
         case -1 => 0
-        case topWrappLenNoNewline =>
-          val topWrapperLen0 =
-            g.currentSource.content.indexWhere(c => c != '\n' && c != '\r', topWrappLenNoNewline + 1)
-
-          topWrapperLen0 + userCodeStartMarker.length
+        case markerLine => lines.take(markerLine + 1).map(_.length).sum
       }
       private val trimmedSource = new BatchSourceFile(g.currentSource.file,
         g.currentSource.content.drop(topWrapperLen))
