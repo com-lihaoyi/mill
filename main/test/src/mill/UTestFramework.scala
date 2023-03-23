@@ -75,7 +75,7 @@ class UTestFramework extends utest.runner.Framework {
       if (current != null) output.append("\n", leftIndent)
     }
 
-    utest.fansi.Str(output.mkString, errorMode = fansi.ErrorMode.Sanitize)
+    utest.ufansi.Str(output.mkString, errorMode = utest.ufansi.ErrorMode.Sanitize)
   }
 
 }
