@@ -72,10 +72,11 @@ class MillBootstrap(base: os.Path,
     val millLauncherOpt =
       if (os.isFile(selfClassLocation) &&
           !Set("zip", "jar", "class").contains(selfClassLocation.ext)){
-        os.copy.over(
+        os.copy(
           selfClassLocation,
           millBuildBase / "mill-launcher.jar",
-          createFolders = true
+          createFolders = true,
+          replaceExisting = true
         )
         Some(millBuildBase / "mill-launcher.jar")
       }else None
