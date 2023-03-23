@@ -38,7 +38,7 @@ object Classpath {
         case t: java.net.URLClassLoader =>
           files.appendAll(
             t.getURLs
-              .collect{case url if url.getProtocol == "file" => os.Path(java.nio.file.Path.of(url.toURI))}
+              .collect{case url if url.getProtocol == "file" => os.Path(java.nio.file.Paths.get(url.toURI))}
           )
         case _ =>
       }
@@ -128,7 +128,7 @@ object Classpath {
 
     val mtimes = (bootClasspathRoots ++ classpathRoots).flatMap { p0 =>
       if (p0.getProtocol == "file") {
-        val p = os.Path(java.nio.file.Path.of(p0.toURI))
+        val p = os.Path(java.nio.file.Paths.get(p0.toURI))
         if (!os.exists(p)) Nil
         else if (os.isDir(p)) findMtimes(p)
         else Seq(p -> os.mtime(p))
