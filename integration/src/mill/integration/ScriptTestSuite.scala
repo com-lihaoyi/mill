@@ -131,9 +131,9 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
 
     println("initWorkspace")
     os.copy(scriptSourcePath, workspacePath)
-    println(os.proc("find", scriptSourcePath).call().out)
+//    println(os.proc("find", scriptSourcePath).call().out)
     pprint.log(os.walk(scriptSourcePath))
-    println(os.proc("find", workspacePath).call().out)
+//    println(os.proc("find", workspacePath).call().out)
     pprint.log(os.walk(workspacePath))
     workspacePath
   }
