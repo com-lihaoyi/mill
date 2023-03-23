@@ -9,11 +9,6 @@ class ScriptsInvalidationTests(fork: Boolean, clientServer: Boolean)
 
   def runTask(task: String) = {
     val (successful, stdout, stderr) = evalStdout(task)
-    println("================stdout================")
-    println(stdout.mkString("\n"))
-    println("================stderr================")
-    println(stderr.mkString("\n"))
-    println("======================================")
     assert(successful)
     stdout.map(_.trim)
   }
