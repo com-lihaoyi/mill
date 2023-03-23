@@ -1,6 +1,6 @@
 package mill.entrypoint
 import mill.util.{Classpath, ColorLogger, Colors, PrintLogger, SystemStreams}
-import mill.MillCliConfig
+import mill.{BuildInfo, MillCliConfig}
 import mill.api.{Logger, PathRef}
 
 import java.io.{InputStream, PrintStream}
@@ -72,13 +72,12 @@ class MillBootstrap(base: os.Path,
     val millLauncherOpt =
       if (os.isFile(selfClassLocation) &&
           !Set("zip", "jar", "class").contains(selfClassLocation.ext)){
-        os.copy(
-          selfClassLocation,
-          millBuildBase / "mill-launcher.jar",
-          createFolders = true,
-          replaceExisting = true
-        )
-        Some(millBuildBase / "mill-launcher.jar")
+
+        val millLauncher =
+          millBuildBase / "mill-launcher" / s"${BuildInfo.millVersion}.jar"
+
+        os.copy(selfClassLocation, millLauncher, createFolders = true, replaceExisting = true)
+        Some(millLauncher)
       }else None
 
 
