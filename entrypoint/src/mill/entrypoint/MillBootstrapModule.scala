@@ -107,7 +107,7 @@ object MillBootstrapModule{
        |package millbuild${pkg.map("." + _).mkString}
        |import _root_.mill._
        |object $name
-       |extends _root_.mill.define.BaseModule(os.Path("${pprint.Util.literalize(base.toString)}"), foreign0 = $foreign)(
+       |extends _root_.mill.define.BaseModule(os.Path(${pprint.Util.literalize(base.toString)}), foreign0 = $foreign)(
        |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
        |)
        |with $name{
