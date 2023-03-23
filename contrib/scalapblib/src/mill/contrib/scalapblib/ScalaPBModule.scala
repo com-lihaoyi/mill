@@ -36,6 +36,8 @@ trait ScalaPBModule extends ScalaModule {
   /** ScalaPB enables lenses by default, this option allows you to disable it. */
   def scalaPBLenses: T[Boolean] = T { true }
 
+  def scalaPBSearchDeps: T[Boolean] = T { false }
+
   /**
    * Additional arguments for scalaPBC.
    *
@@ -117,7 +119,8 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBCompileOptions: T[Seq[String]] = T {
     ScalaPBWorkerApi.scalaPBWorker().compileOptions(
       scalaPBProtocPath(),
-      scalaPBIncludePath().map(_.path),
+      (scalaPBIncludePath() ++ (if (scalaPBSearchDeps()) Seq(scalaPBUnpackProto())
+                                else Seq.empty[PathRef])).map(_.path),
       scalaPBAdditionalArgs()
     )
   }
