@@ -17,13 +17,10 @@ class UTestFramework extends utest.runner.Framework {
     while (current != null) {
 
       output.append(
-          lineWrapInput(
-            current.getMessage match {
-              case null => ""
-              case nonNull => ": " + nonNull
-            },
-            leftIndent
-          ).mkString(leftIndent)
+        current.getMessage match {
+          case null => ""
+          case nonNull => ": " + nonNull
+        },
       )
 
       val stack = current.getStackTrace
@@ -46,9 +43,9 @@ class UTestFramework extends utest.runner.Framework {
                 case n => fileName.drop(n + 1)
               }
 
-              exceptionLineNumberColor(shortenedFilename) +
+              shortenedFilename +
               ":" +
-              exceptionLineNumberColor(e.getLineNumber.toString)
+              e.getLineNumber.toString
 
           }
 
@@ -57,18 +54,13 @@ class UTestFramework extends utest.runner.Framework {
 
           output.append(
             "\n", frameIndent,
-
-            lineWrapInput(
-              Seq(
-                e.getClassName + ".",
-                e.getMethodName,
-                "(",
-                filenameFrag,
-                ")"
-              ).mkString,
-              frameIndent
-            ).mkString(frameIndent)
-
+            Seq(
+              e.getClassName + ".",
+              e.getMethodName,
+              "(",
+              filenameFrag,
+              ")"
+            ).mkString,
           )
         }
       current = current.getCause
