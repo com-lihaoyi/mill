@@ -64,7 +64,7 @@ class MillBootstrap(base: os.Path,
 
     val selfClassURL = getClass.getProtectionDomain().getCodeSource().getLocation()
     assert(selfClassURL.getProtocol == "file")
-    val selfClassLocation = os.Path(selfClassURL.getPath)
+    val selfClassLocation = os.Path(java.nio.file.Path.of(selfClassURL.toURI))
 
     // Copy the current location of the enclosing classes to `mill-launcher.jar`
     // if it has the wrong file extension, because the Zinc incremental compiler
