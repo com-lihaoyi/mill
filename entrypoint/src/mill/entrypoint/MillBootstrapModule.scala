@@ -46,9 +46,9 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
       )
     }
 
-    def importTree = T {
-      val (scripts, ivy, importTree, errors) = parseBuildFiles()
-      importTree
+    def scriptImportGraph = T {
+      val (scripts, ivy, scriptImportGraph, errors) = parseBuildFiles()
+      scriptImportGraph
     }
 
     override def allSourceFiles: T[Seq[PathRef]] = T {
@@ -126,9 +126,11 @@ object MillBootstrapModule{
 
     val seenScripts = mutable.Map.empty[os.Path, String]
     val seenIvy = mutable.Set.empty[String]
-    val importGraphEdges = mutable.Map.empty[String, Seq[String]]
+    val importGraphEdges = mutable.Map.empty[String, (os.Path, Seq[String])]
     val errors = mutable.Buffer.empty[String]
     def traverseScripts(s: os.Path): Unit = {
+      val importGraphId = prepareImportGraphEdges(s)
+      importGraphEdges(importGraphId) = (s, Nil)
       val fileImports = mutable.Set.empty[os.Path]
 
       if (!seenScripts.contains(s)) Parsers.splitScript(os.read(s), s.last) match {
@@ -157,15 +159,16 @@ object MillBootstrapModule{
                   val patchPrefix = prepareImportGraphEdges(nextPaths(0) / os.up)
                   fileImports.addAll(nextPaths)
 
-                  val importGraphId = prepareImportGraphEdges(s)
-                  importGraphEdges(importGraphId) =
-                    importGraphEdges.getOrElse(importGraphId, Nil) ++
-                    nextPaths.map(prepareImportGraphEdges)
+
+                  importGraphEdges(importGraphId) = ((
+                    importGraphEdges(importGraphId)._1,
+                    importGraphEdges(importGraphId)._2 ++ nextPaths.map(prepareImportGraphEdges)
+                  ))
 
                   if (rest.isEmpty) (start, "_root_._", end)
                   else {
                     val end = rest.last._2
-                    (start, "millbuild." + patchPrefix, end)
+                    (start, patchPrefix, end)
                   }
               }
               val numNewLines = stmt.substring(start, end).count(_ == '\n')
@@ -190,7 +193,7 @@ object MillBootstrapModule{
 
     def prepareImportGraphEdges(s: os.Path) = {
       val rel = s.relativeTo(base)
-      (Seq.fill(rel.ups)("^") ++ rel.segments).mkString(".").stripSuffix(".sc")
+      (Seq("millbuild") ++ Seq.fill(rel.ups)("^") ++ rel.segments).mkString(".").stripSuffix(".sc")
     }
 
     traverseScripts(base / "build.sc")

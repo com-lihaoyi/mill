@@ -103,7 +103,8 @@ trait MillTestKit {
       outPath,
       externalOutPath,
       module,
-      logger
+      logger,
+      0
     ).withFailFast(failFast).withThreadCount(threads).withEnv(env)
 
     def apply[T](t: Task[T]): Either[mill.api.Result.Failing[T], (T, Int)] = {

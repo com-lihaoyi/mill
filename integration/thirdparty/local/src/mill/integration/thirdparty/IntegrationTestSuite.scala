@@ -1,5 +1,5 @@
 package mill.integration.thirdparty
-
+import mill.integration.ScriptTestSuite
 import utest._
 
 abstract class IntegrationTestSuite(repoKey: String, val workspaceSlug: String, fork: Boolean)

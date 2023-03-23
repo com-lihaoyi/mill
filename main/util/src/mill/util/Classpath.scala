@@ -104,10 +104,10 @@ object Classpath {
    * heuristic improves perf by greatly cutting down on the amount of files we
    * need to mtime in many common cases.
    */
-  def initialClasspathSignature(classloader: ClassLoader): Seq[(Either[String, java.net.URL], Long)] = {
+  def initialClasspathSignature(classloader: ClassLoader): Seq[(os.Path, Long)] = {
 
 
-    def findMtimes(d: java.nio.file.Path): Seq[(Either[String, java.net.URL], Long)] = {
+    def findMtimes(d: os.Path): Seq[(os.Path, Long)] = {
       def skipSuspicious(path: os.Path) = {
         // Leave out sketchy files which don't look like package names or
         // class files
@@ -115,12 +115,8 @@ object Classpath {
           !path.last.endsWith(".class")
       }
 
-      os.walk(os.Path(d), skip = skipSuspicious).map(x => (Right(x), os.mtime(x))).map {
-        case (e, lm) =>
-          (e.right.map(_.toNIO.toUri.toURL), lm)
-      }
+      os.walk(d, skip = skipSuspicious).map(x => (x, os.mtime(x)))
     }
-
 
     val classpathRoots =
       allClassloaders(classloader)
@@ -131,61 +127,15 @@ object Classpath {
       .split(java.io.File.pathSeparator)
       .map(java.nio.file.Paths.get(_).toAbsolutePath.toUri.toURL)
 
-    val mtimes = (bootClasspathRoots ++ classpathRoots).flatMap { p =>
-      if (p.getProtocol == "file") {
-        val f = java.nio.file.Paths.get(p.toURI)
-        if (!java.nio.file.Files.exists(f)) Nil
-        else if (java.nio.file.Files.isDirectory(f)) findMtimes(f)
-        else Seq(Right(p) -> os.mtime(os.Path(f)))
-      } else
-        Classpath.urlLastModified(p).toSeq.map((Right(p), _))
+    val mtimes = (bootClasspathRoots ++ classpathRoots).flatMap { p0 =>
+      if (p0.getProtocol == "file") {
+        val p = os.Path(p0.getPath)
+        if (!os.exists(p)) Nil
+        else if (os.isDir(p)) findMtimes(p)
+        else Seq(p -> os.mtime(p))
+      } else Nil
     }
 
     mtimes
   }
-
-  def urlLastModified(url: URL): Option[Long] = {
-    if (url.getProtocol == "file") {
-      val path = os.Path(java.nio.file.Paths.get(url.toURI()).toFile(), os.root)
-      if (os.exists(path)) Some(os.mtime(path)) else None
-    } else {
-      var c: java.net.URLConnection = null
-      try {
-        c = url.openConnection()
-        Some(c.getLastModified)
-      } catch {
-        case e: java.io.FileNotFoundException =>
-          None
-      } finally {
-        if (c != null)
-          scala.util.Try(c.getInputStream.close())
-      }
-    }
-  }
-  def canBeOpenedAsJar(url: URL): Boolean = {
-    var zis: ZipInputStream = null
-    try {
-      if (url.getProtocol == "file") {
-        // this ignores any preamble in particular, unlike ZipInputStream
-        val zf = new ZipFile(new File(url.toURI))
-        zf.close()
-        true
-      } else {
-        zis = new ZipInputStream(url.openStream())
-        zis.getNextEntry != null
-      }
-    } catch {
-      case NonFatal(e) =>
-        traceClasspathProblem(
-          s"Classpath element '$url' "+
-            s"could not be opened as jar file because of $e"
-        )
-        false
-    } finally {
-      if (zis != null)
-        zis.close()
-    }
-  }
-  def traceClasspathProblem(msg: String): Unit =
-    if (traceClasspathIssues) println(msg)
 }

@@ -83,7 +83,8 @@ class MillBootstrap(base: os.Path,
 
     val bootstrapModule = new MillBootstrapModule(enclosingClasspath ++ millLauncherOpt, base)
 
-    val evaluator = makeEvaluator(millBuildBase, bootstrapModule, Nil)
+    val millClassloaderSigHash = Classpath.initialClasspathSignature(getClass.getClassLoader).hashCode()
+    val evaluator = makeEvaluator(millBuildBase, bootstrapModule, millClassloaderSigHash, Nil)
 
     val systemPropertiesToUnset =
       stateCache.map(_.setSystemProperties).getOrElse(Set()) -- systemProperties.keySet
@@ -100,7 +101,7 @@ class MillBootstrap(base: os.Path,
       case _ =>
         RunScript.evaluateTasks(
           evaluator,
-          Seq("millbuild.{runClasspath,importTree}"),
+          Seq("millbuild.{runClasspath,scriptImportGraph}"),
           mill.define.SelectMode.Separated
         ) match {
           case Left(msg) => (Left(msg), Nil)
@@ -108,7 +109,7 @@ class MillBootstrap(base: os.Path,
 
             evaluated match {
               case Left(msg) => (Left(msg), bootstrapWatched)
-              case Right(Seq((runClasspath: Seq[PathRef], _), (importTree: Map[String, Seq[String]], _))) =>
+              case Right(Seq((runClasspath: Seq[PathRef], _), (scriptImportGraph: Map[String, (os.Path, Seq[String])], _))) =>
                 stateCache.map(_.bootstrapClassloader).foreach(_.close())
 
                 val runClassLoader = new java.net.URLClassLoader(
@@ -116,7 +117,7 @@ class MillBootstrap(base: os.Path,
                   getClass.getClassLoader
                 )
 
-                val processedImportTree = GraphUtils.linksToScriptNodeGraph(importTree)
+                val processedImportTree = GraphUtils.linksToScriptNodeGraph(scriptImportGraph)
                 (Right((runClassLoader, processedImportTree)), bootstrapWatched)
             }
         }
@@ -124,7 +125,7 @@ class MillBootstrap(base: os.Path,
 
     bootstrapClassloaderImportTreeOpt match{
       case Left(msg) => (bootstrapWatched, Some(msg), None, false)
-      case Right((bootstrapClassloader, importTree)) =>
+      case Right((bootstrapClassloader, scriptImportGraph)) =>
         mill.util.Util.withContextClassloader(bootstrapClassloader){
 
           val cls = bootstrapClassloader.loadClass("millbuild.build$")
@@ -132,7 +133,8 @@ class MillBootstrap(base: os.Path,
           val buildFileEvaluator = makeEvaluator(
             base / "out",
             rootModule,
-            Classpath.initialClasspathSignature(bootstrapClassloader)
+            millClassloaderSigHash,
+            scriptImportGraph
           )
 
           RunScript.evaluateTasks(buildFileEvaluator, targetsAndParams, SelectMode.Separated) match {
@@ -144,7 +146,7 @@ class MillBootstrap(base: os.Path,
                 buildFileEvaluator.workerCache,
                 Nil,
                 systemProperties.keySet,
-                importTree,
+                scriptImportGraph,
                 bootstrapClassloader
               )
 
@@ -166,18 +168,19 @@ class MillBootstrap(base: os.Path,
 
   private def makeEvaluator(outPath: os.Path,
                             bootstrapModule: mill.define.BaseModule,
-                            sig: Seq[(Either[String, java.net.URL], Long)]) = {
+                            sig: Int,
+                            scriptImportGraph: Seq[ScriptNode]) = {
     Evaluator(
       config.home,
       outPath,
       outPath,
       bootstrapModule,
-      logger
-    ).withClassLoaderSig(sig)
-      .withWorkerCache(collection.mutable.Map.empty)
+      logger,
+      sig
+    ).withWorkerCache(collection.mutable.Map.empty)
       .withEnv(env)
       .withFailFast(!config.keepGoing.value)
       .withThreadCount(threadCount)
-      .withImportTree(Nil)
+      .withScriptImportGraph(scriptImportGraph)
   }
 }
