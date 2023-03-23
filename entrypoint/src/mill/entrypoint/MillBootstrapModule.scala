@@ -145,7 +145,7 @@ object MillBootstrapModule{
       if (!seenScripts.contains(s)) {
         val txt =
           try os.read(s)
-          catch{case e => throw new Exception(os.list(s / os.up).map("[[[" + _ + "]]]")mkString("\n"))}
+          catch{case e => throw new Exception(os.walk(base).map("[[[" + _ + "]]]").mkString("\n"))}
         Parsers.splitScript(txt, s.last) match {
           case Left(err) =>
             // Make sure we mark even scripts that failed to parse as seen, so
