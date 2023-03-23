@@ -20,13 +20,14 @@ class MillBootstrap(base: os.Path,
                     setIdle: Boolean => Unit,
                     stateCache: Option[EvaluatorState],
                     initialSystemProperties: Map[String, String],
-                    logger: ColorLogger){
+                    mainLogger: ColorLogger,
+                    bootstrapLogger: ColorLogger){
 
   def runScript(): (Boolean, Option[EvaluatorState]) = {
     while (true) {
       val (watched, errorOpt, resultOpt, isSuccess) = evaluate()
 
-      errorOpt.foreach(logger.error)
+      errorOpt.foreach(mainLogger.error)
       if (ringBell) {
         if (isSuccess) println("\u0007")
         else {
@@ -48,7 +49,7 @@ class MillBootstrap(base: os.Path,
       // subsequently change
       val alreadyStale = watched.exists(p => p.sig != PathRef(p.path, p.quick).sig)
       if (!alreadyStale) {
-        Watching.watchAndWait(logger, setIdle, streams.in, watchables)
+        Watching.watchAndWait(mainLogger, setIdle, streams.in, watchables)
       }
     }
     ???
@@ -59,8 +60,7 @@ class MillBootstrap(base: os.Path,
 
     val millBuildBase = base / "out" / "mill-build"
     val enclosingClasspath: Seq[os.Path] = mill.util.Classpath
-      .classpath(getClass.getClassLoader, millBuildBase / "mill-java-rt.jar")
-
+      .classpath(getClass.getClassLoader)
 
     val selfClassURL = getClass.getProtectionDomain().getCodeSource().getLocation()
     assert(selfClassURL.getProtocol == "file")
@@ -84,7 +84,13 @@ class MillBootstrap(base: os.Path,
     val bootstrapModule = new MillBootstrapModule(enclosingClasspath ++ millLauncherOpt, base)
 
     val millClassloaderSigHash = Classpath.initialClasspathSignature(getClass.getClassLoader).hashCode()
-    val evaluator = makeEvaluator(millBuildBase, bootstrapModule, millClassloaderSigHash, Nil)
+    val evaluator = makeEvaluator(
+      millBuildBase,
+      bootstrapModule,
+      millClassloaderSigHash,
+      Nil,
+      bootstrapLogger
+    )
 
     val systemPropertiesToUnset =
       stateCache.map(_.setSystemProperties).getOrElse(Set()) -- systemProperties.keySet
@@ -134,7 +140,8 @@ class MillBootstrap(base: os.Path,
             base / "out",
             rootModule,
             millClassloaderSigHash,
-            scriptImportGraph
+            scriptImportGraph,
+            mainLogger
           )
 
           RunScript.evaluateTasks(buildFileEvaluator, targetsAndParams, SelectMode.Separated) match {
@@ -169,7 +176,8 @@ class MillBootstrap(base: os.Path,
   private def makeEvaluator(outPath: os.Path,
                             bootstrapModule: mill.define.BaseModule,
                             sig: Int,
-                            scriptImportGraph: Seq[ScriptNode]) = {
+                            scriptImportGraph: Seq[ScriptNode],
+                            logger: ColorLogger) = {
     Evaluator(
       config.home,
       outPath,

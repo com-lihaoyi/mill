@@ -1,6 +1,7 @@
 
 package mill.integration
 
+import mill.util.Util
 import utest._
 
 class CompileErrorTests(fork: Boolean, clientServer: Boolean)
@@ -17,7 +18,7 @@ class CompileErrorTests(fork: Boolean, clientServer: Boolean)
         errorString.contains(
           """bar.sc:4:9: not found: value doesntExist
             |[error] println(doesntExist)
-            |[error]         ^""".stripMargin
+            |[error]         ^""".stripMargin.linesIterator.mkString(Util.newLine)
         )
       )
       assert(
@@ -26,14 +27,14 @@ class CompileErrorTests(fork: Boolean, clientServer: Boolean)
             |[error]  found   : String("0")
             |[error]  required: Int
             |[error] def myOtherMsg = myMsg.substring("0")
-            |[error]                                  ^""".stripMargin
+            |[error]                                  ^""".linesIterator.mkString(Util.newLine)
         )
       )
       assert(
         errorString.contains(
           """build.sc:8:5: value noSuchMethod is not a member of object build.this.foo
             |[error] foo.noSuchMethod
-            |[error]     ^""".stripMargin
+            |[error]     ^""".stripMargin.linesIterator.mkString(Util.newLine)
         )
       )
     }

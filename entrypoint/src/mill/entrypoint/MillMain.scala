@@ -113,7 +113,8 @@ object MillMain {
 
       case Right(config) =>
 
-        val logger: PrintLogger = getLogger(streams, config, mainInteractive)
+        val logger = getLogger(streams, config, mainInteractive, disableTicker = config.disableTicker.value)
+        val bootstrapLogger = getLogger(streams, config, mainInteractive, disableTicker = true)
         if (!config.silent.value) {
           checkMillVersionFromFile(os.pwd, streams.err)
         }
@@ -187,7 +188,8 @@ object MillMain {
                 setIdle,
                 stateCache,
                 initialSystemProperties,
-                logger
+                logger,
+                bootstrapLogger
               ).runScript()
 
               bspContext.foreach { ctx =>
@@ -219,13 +221,16 @@ object MillMain {
     }
   }
 
-  def getLogger(streams: SystemStreams, config: MillCliConfig, mainInteractive: Boolean) = {
+  def getLogger(streams: SystemStreams,
+                config: MillCliConfig,
+                mainInteractive: Boolean,
+                disableTicker: Boolean) = {
     val colored = config.color.getOrElse(mainInteractive)
     val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
     val logger = mill.util.PrintLogger(
       colored = colored,
-      disableTicker = config.disableTicker.value,
+      disableTicker = disableTicker,
       infoColor = colors.info,
       errorColor = colors.error,
       outStream = streams.out,

@@ -1,6 +1,7 @@
 
 package mill.integration
 
+import mill.util.Util
 import utest._
 
 class ParseErrorTests(fork: Boolean, clientServer: Boolean)
@@ -18,14 +19,14 @@ class ParseErrorTests(fork: Boolean, clientServer: Boolean)
         errorString.contains(
           """bar.sc:4:20 expected ")"
             |println(doesntExist})
-            |                   ^""".stripMargin
+            |                   ^""".stripMargin.linesIterator.mkString(Util.newLine)
         )
       )
       assert(
         errorString.contains(
           """qux.sc:3:31 expected ")"
             |System.out.println(doesntExist
-            |                              ^""".stripMargin
+            |                              ^""".stripMargin.linesIterator.mkString(Util.newLine)
         )
       )
 

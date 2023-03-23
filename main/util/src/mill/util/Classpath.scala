@@ -26,8 +26,7 @@ object Classpath {
    * memory but is better than reaching all over the filesystem every time we
    * want to do something.
    */
-  def classpath(classLoader: ClassLoader,
-                rtCacheDir: os.Path): Vector[os.Path] = {
+  def classpath(classLoader: ClassLoader): Vector[os.Path] = {
 
     var current = classLoader
     val files = collection.mutable.Buffer.empty[os.Path]
@@ -55,17 +54,9 @@ object Classpath {
       )
     } else {
       if (seenClassLoaders.contains(ClassLoader.getSystemClassLoader)) {
-        for (p <- System.getProperty("java.class.path")
-          .split(File.pathSeparatorChar) if !p.endsWith("sbt-launch.jar")) {
+        for (p <- System.getProperty("java.class.path").split(File.pathSeparatorChar)) {
           val f = os.Path(p, os.pwd)
           if (os.exists(f)) files.append(f)
-        }
-        try {
-          new java.net.URLClassLoader(files.map(_.toIO.toURI.toURL).toArray, null)
-            .loadClass("javax.script.ScriptEngineManager")
-        } catch {
-          case _: ClassNotFoundException =>
-            files.append(os.Path(Export.rtAt(rtCacheDir.toIO)))
         }
       }
     }

@@ -33,10 +33,14 @@ object LineNumberPlugin {
       import scala.reflect.internal.util._
 
 
-      val userCodeStartMarker = "\n//MILL_USER_CODE_START_MARKER\n"
+      val userCodeStartMarker = "//MILL_USER_CODE_START_MARKER"
       val topWrapperLen = new String(g.currentSource.content).indexOf(userCodeStartMarker) match{
         case -1 => 0
-        case topWrappLen0 => topWrappLen0 + userCodeStartMarker.length
+        case topWrappLenNoNewline =>
+          val topWrapperLen0 =
+            g.currentSource.content.indexWhere(c => c != '\n' && c != '\r', topWrappLenNoNewline + 1)
+
+          topWrapperLen0 + userCodeStartMarker.length
       }
       private val trimmedSource = new BatchSourceFile(g.currentSource.file,
         g.currentSource.content.drop(topWrapperLen))

@@ -45,7 +45,8 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
       _ => (),
       None,
       sys.props.toMap,
-      mill.entrypoint.MillMain.getLogger(streams, config, mainInteractive = false)
+      mill.entrypoint.MillMain.getLogger(streams, config, mainInteractive = false, disableTicker = true),
+      mill.entrypoint.MillMain.getLogger(streams, config, mainInteractive = false, disableTicker = true)
     ).runScript()
   }
   def eval(s: String*): Boolean = {
