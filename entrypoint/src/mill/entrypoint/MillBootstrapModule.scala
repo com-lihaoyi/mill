@@ -155,7 +155,6 @@ object MillBootstrapModule{
           val transformedStmts = mutable.Buffer.empty[String]
 
           for((stmt0, importTrees) <- parsedStmts) {
-
             var stmt = stmt0
             for(importTree <- importTrees) {
               val (start, patchString, end) = importTree match {
@@ -168,11 +167,10 @@ object MillBootstrapModule{
                   val patchPrefix = prepareImportGraphEdges(nextPaths(0) / os.up)
                   fileImports.addAll(nextPaths)
 
-
-                  importGraphEdges(importGraphId) = ((
+                  importGraphEdges(importGraphId) = (
                     importGraphEdges(importGraphId)._1,
                     importGraphEdges(importGraphId)._2 ++ nextPaths.map(prepareImportGraphEdges)
-                  ))
+                  )
 
                   if (rest.isEmpty) (start, "_root_._", end)
                   else {

@@ -14,23 +14,17 @@ object ImportTree{
 }
 
 object Parsers  {
-
   import fastparse._
-
   import ScalaWhitespace._
   import scalaparse.Scala._
 
-  // For some reason Scala doesn't import this by default
-  private def `_`[$: P] = scalaparse.Scala.Underscore
-
-
-  private def ImportSplitter[$: P]: P[Seq[ImportTree]] = {
-    def IdParser = P( (Id | `_` ).! ).map(
+  def ImportSplitter[$: P]: P[Seq[ImportTree]] = {
+    def IdParser = P( (Id | Underscore ).! ).map(
       s => if (s(0) == '`') s.drop(1).dropRight(1) else s
     )
     def Selector: P[(String, Option[String])] = P( IdParser ~ (`=>` ~/ IdParser).? )
     def Selectors = P( "{" ~/ Selector.rep(sep = ","./) ~ "}" )
-    def BulkImport = P( `_`).map(
+    def BulkImport = P( Underscore ).map(
       _ => Seq("_" -> None)
     )
     def Prefix = P( (IdParser ~ Index).rep(1, sep = ".") )
@@ -50,21 +44,20 @@ object Parsers  {
     P( `import` ~/ ImportExpr.rep(1, sep = ","./) )
   }
 
-  private def Prelude[$: P] = P( (Annot ~ OneNLMax).rep ~ (Mod ~/ Pass).rep )
+  def Prelude[$: P] = P( (Annot ~ OneNLMax).rep ~ (Mod ~/ Pass).rep )
 
-  private def TmplStat[$: P] = P( Import | Prelude ~ BlockDef | StatCtx.Expr )
+  def TmplStat[$: P] = P( Import | Prelude ~ BlockDef | StatCtx.Expr )
 
-
+  def HashBang[$: P] = P( Start ~~ "#!" ~~ CharsWhile(_ != '\n') ~~ "\n" )
   // Do this funny ~~WS thing to make sure we capture the whitespace
   // together with each statement; otherwise, by default, it gets discarded.
   //
   // After each statement, there must either be `Semis`, a "}" marking the
   // end of the block, or the `End` of the input
-  private def StatementBlock[$: P] =
+  def StatementBlock[$: P] =
     P( Semis.? ~ (TmplStat ~~ WS ~~ (Semis | &("}") | End)).!.repX)
 
-
-  private def CompilationUnit[$: P] = P( WL.! ~ StatementBlock ~ WL )
+  def CompilationUnit[$: P] = P( HashBang.!.? ~ WL.! ~ StatementBlock ~ WL )
 
   def stringWrap(s: String): String = "\"" + pprint.Util.literalize(s) + "\""
   def stringSymWrap(s: String): String = {
@@ -108,7 +101,6 @@ object Parsers  {
     s"$fileName:$lineColIndex expected $expected$newLine$locationString"
   }
 
-
   /**
    * Splits up a script file into its constituent blocks, each of which
    * is a tuple of (leading-whitespace, statements). Leading whitespace
@@ -118,17 +110,9 @@ object Parsers  {
   def splitScript(rawCode: String,
                   fileName: String): Either[String, Seq[String]] = {
     parse(rawCode, CompilationUnit(_)) match {
-      case f: Parsed.Failure =>
-        Left(formatFastparseError(fileName, rawCode, f))
-
-      case s: Parsed.Success[(String, Seq[String])] =>
-
-
-        Right(Seq(s.value._1 + s.value._2.head) ++ s.value._2.tail)
+      case f: Parsed.Failure => Left(formatFastparseError(fileName, rawCode, f))
+      case s: Parsed.Success[(Option[String], String, Seq[String])] =>
+        Right(s.value._1.toSeq.map(_ => "\n") ++ Seq(s.value._2) ++ s.value._3)
     }
   }
-
-  case class ScriptBlock(startIndex: Int,
-                         ncomment: String,
-                         codeWithStartIndices: Seq[(Int, String)])
 }
