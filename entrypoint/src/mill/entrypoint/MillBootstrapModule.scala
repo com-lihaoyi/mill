@@ -1,15 +1,24 @@
 package mill.entrypoint
 import coursier.{Dependency, Module, Organization}
+
 import collection.mutable
 import mill._
 import mill.api.{Loose, PathRef, Result}
-import mill.scalalib.{DepSyntax, Lib, Versions}
+import mill.define.Task
+import mill.scalalib.{BoundDep, DepSyntax, Lib, Versions}
 class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
   extends mill.define.BaseModule(base)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())) {
 
   implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
 
   object millbuild extends mill.scalalib.ScalaModule {
+    def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task{
+      // We need to resolve the sources to make GenIdeaExtendedTests pass for
+      // some reason, but we don't need to actually return them (???)
+      val unused = super.resolveDeps(deps, true)()
+
+      super.resolveDeps(deps, false)()
+    }
     def scalaVersion = "2.13.10"
 
     def parseBuildFiles = T.input {
