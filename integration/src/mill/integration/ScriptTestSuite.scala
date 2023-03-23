@@ -28,7 +28,11 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
   private def runnerStdout(stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
 
     val streams = new SystemStreams(stdout, stderr, stdIn)
-    val config = MillCliConfig()
+    val config = MillCliConfig(
+      debugLog = Flag(debugLog),
+      keepGoing = Flag(keepGoing),
+      disableTicker = Flag(disableTicker)
+    )
     new mill.entrypoint.MillBootstrap(
       wd,
       config,
