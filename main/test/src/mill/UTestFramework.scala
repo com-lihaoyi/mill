@@ -17,13 +17,12 @@ class UTestFramework extends utest.runner.Framework {
     while (current != null) {
 
       output.append(
-          lineWrapInput(
-            current.getMessage match {
-              case null => ""
-              case nonNull => ": " + nonNull
-            },
-            leftIndent
-          ).mkString(leftIndent)
+
+        current.getMessage match {
+          case null => ""
+          case nonNull => ": " + nonNull
+        }
+
       )
 
       val stack = current.getStackTrace
