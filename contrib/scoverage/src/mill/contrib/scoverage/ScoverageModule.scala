@@ -66,40 +66,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
   private def isScala2: Task[Boolean] = T.task { !isScala3() }
 
-  /** Binary compatibility shim. */
-  @deprecated("Use scoverageRuntimeDeps instead.", "Mill after 0.10.7")
-  def scoverageRuntimeDep: T[Dep] = T {
-    T.log.error(
-      "scoverageRuntimeDep is no longer used. To customize your module, use scoverageRuntimeDeps."
-    )
-    val result: Result[Dep] = if (isScala3()) {
-      Result.Failure("When using Scala 3 there is no external runtime dependency")
-    } else {
-      scoverageRuntimeDeps().toIndexedSeq.head
-    }
-    result
-  }
-
   def scoverageRuntimeDeps: T[Agg[Dep]] = T {
     if (isScala3()) {
       Agg.empty
     } else {
       Agg(ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
     }
-  }
-
-  /** Binary compatibility shim. */
-  @deprecated("Use scoveragePluginDeps instead.", "Mill after 0.10.7")
-  def scoveragePluginDep: T[Dep] = T {
-    T.log.error(
-      "scoveragePluginDep is no longer used. To customize your module, use scoverageRuntimeDeps."
-    )
-    val result: Result[Dep] = if (isScala3()) {
-      Result.Failure("When using Scala 3 there is no external plugin dependency")
-    } else {
-      scoveragePluginDeps().toIndexedSeq.head
-    }
-    result
   }
 
   def scoveragePluginDeps: T[Agg[Dep]] = T {
