@@ -33,8 +33,9 @@ object LineNumberPlugin {
       import scala.reflect.internal.util._
 
 
+      val str =  new String(g.currentSource.content)
       val userCodeStartMarker = "//MILL_USER_CODE_START_MARKER"
-      val lines = new String(g.currentSource.content).linesWithSeparators.toVector
+      val lines = str.linesWithSeparators.toVector
       val topWrapperLen = lines.indexWhere(_.startsWith(userCodeStartMarker)) match{
         case -1 => 0
         case markerLine => lines.take(markerLine + 1).map(_.length).sum
