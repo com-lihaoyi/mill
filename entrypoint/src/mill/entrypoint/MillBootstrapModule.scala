@@ -143,9 +143,7 @@ object MillBootstrapModule{
       val fileImports = mutable.Set.empty[os.Path]
 
       if (!seenScripts.contains(s)) {
-        val txt =
-          try os.read(s)
-          catch{case e => throw new Exception(os.walk(base).map("[[[" + _ + "]]]").mkString("\n"))}
+        val txt = os.read(s)
         Parsers.splitScript(txt, s.last) match {
           case Left(err) =>
             // Make sure we mark even scripts that failed to parse as seen, so
@@ -183,7 +181,7 @@ object MillBootstrapModule{
                     }
                 }
                 val numNewLines = stmt.substring(start, end).count(_ == '\n')
-                stmt = stmt.patch(start, patchString + "\n" * numNewLines, end - start)
+                stmt = stmt.patch(start, patchString + mill.util.Util.newLine * numNewLines, end - start)
               }
 
               transformedStmts.append(stmt)
