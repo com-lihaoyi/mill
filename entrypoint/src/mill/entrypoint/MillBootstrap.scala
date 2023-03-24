@@ -76,7 +76,9 @@ class MillBootstrap(base: os.Path,
         val millLauncher =
           millBuildBase / "mill-launcher" / s"${BuildInfo.millVersion}.jar"
 
-        os.copy(selfClassLocation, millLauncher, createFolders = true, replaceExisting = true)
+        if (!os.exists(millLauncher)) {
+          os.copy(selfClassLocation, millLauncher, createFolders = true, replaceExisting = true)
+        }
         Some(millLauncher)
       }else None
 
