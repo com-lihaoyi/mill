@@ -73,6 +73,11 @@ class MillBootstrapModule(enclosingClasspath: Seq[os.Path], base: os.Path)
       ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
     )
 
+    def scalacOptions = T{
+      super.scalacOptions() ++
+      Seq("-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","))
+    }
+
     def scalacPluginClasspath = super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
 
     def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
@@ -111,14 +116,6 @@ object MillBootstrapModule{
        |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
        |)
        |with $name{
-       |  // Stub to make sure Ammonite has something to call after it evaluates a script,
-       |  // even if it does nothing...
-       |  def $$main() = Iterator[String]()
-       |
-       |  // Need to wrap the returned Module in Some(...) to make sure it
-       |  // doesn't get picked up during reflective child-module discovery
-       |  def millSelf = Some(this)
-       |
        |  @_root_.scala.annotation.nowarn("cat=deprecation")
        |  implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
        |}
