@@ -9,7 +9,39 @@ class ParseErrorTests(fork: Boolean, clientServer: Boolean)
   val tests = Tests {
     initWorkspace()
 
+    def lineNumberLookup(data: String): Array[Int] = {
+      val lineStarts = new collection.mutable.ArrayBuffer[Int]()
+      var i = 0
+      var col = 1
+      var cr = false
+      var prev: Character = null
+      while (i < data.length) {
+        val char = data(i)
+        if (char == '\r') {
+          if (prev != '\n' && col == 1) lineStarts.append(i)
+          col = 1
+          cr = true
+        } else if (char == '\n') {
+          if (prev != '\r' && col == 1) lineStarts.append(i)
+          col = 1
+          cr = false
+        } else {
+          if (col == 1) lineStarts.append(i)
+          col += 1
+          cr = false
+        }
+        prev = char
+        i += 1
+      }
+      if (col == 1) lineStarts.append(i)
 
+      lineStarts.toArray
+    }
+
+
+    val barScString = os.read(os.pwd / "integration"/ "parse-error" / "bar.sc")
+    pprint.log(barScString.toCharArray)
+    pprint.log(lineNumberLookup(barScString))
     test {
       val (res, out, err) = evalStdout("foo.scalaVersion")
       assert(res == false)
