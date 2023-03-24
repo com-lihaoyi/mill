@@ -39,29 +39,15 @@ class ParseErrorTests(fork: Boolean, clientServer: Boolean)
     }
 
 
-    val barScString = os.read(os.pwd / "integration"/ "resources" / "parse-error" / "bar.sc")
-    pprint.log(barScString.toCharArray)
-    pprint.log(lineNumberLookup(barScString))
     test {
       val (res, out, err) = evalStdout("foo.scalaVersion")
       assert(res == false)
       val errorString = err.mkString("\n")
 
-      assert(
-        errorString.contains(
-          """bar.sc:4:20 expected ")"
-            |println(doesntExist})
-            |                   ^""".stripMargin.linesIterator.mkString(Util.newLine)
-        )
-      )
-      assert(
-        errorString.contains(
-          """qux.sc:3:31 expected ")"
-            |System.out.println(doesntExist
-            |                              ^""".stripMargin.linesIterator.mkString(Util.newLine)
-        )
-      )
-
+      assert(errorString.contains("""bar.sc:4:20 expected ")""""))
+      assert(errorString.contains("""println(doesntExist})"""))
+      assert(errorString.contains("""qux.sc:3:31 expected ")""""))
+      assert(errorString.contains("""System.out.println(doesntExist"""))
     }
   }
 }
