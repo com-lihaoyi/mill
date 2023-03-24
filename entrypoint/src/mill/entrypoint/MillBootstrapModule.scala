@@ -194,6 +194,8 @@ object MillBootstrapModule{
     }
 
     def nextPathFor(s: os.Path, rest: Seq[String]): os.Path = {
+      // Manually do the foldLeft to work around bug in os-lib
+      // https://github.com/com-lihaoyi/os-lib/pull/160
       val restSegments = rest
         .map { case "^" => os.up case s => os.rel / s }
         .foldLeft(os.rel)(_ / _)
