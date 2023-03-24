@@ -138,7 +138,7 @@ class AnsiNav(output: Writer){
 
 case class PrintLogger(
     override val colored: Boolean,
-    disableTicker: Boolean,
+    enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
     outStream: PrintStream,
@@ -169,7 +169,7 @@ case class PrintLogger(
   }
 
   def ticker(s: String) = synchronized {
-    if (!disableTicker) {
+    if (enableTicker) {
       printState match {
         case PrintState.Newline =>
           infoStream.println(infoColor(s))

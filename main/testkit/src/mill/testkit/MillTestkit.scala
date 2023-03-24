@@ -78,7 +78,7 @@ trait MillTestKit {
 //  val logger = DummyLogger
     val logger = new mill.util.PrintLogger(
       colored = true,
-      disableTicker = false,
+      enableTicker = true,
       mill.util.Colors.Default.info,
       mill.util.Colors.Default.error,
       outStream,

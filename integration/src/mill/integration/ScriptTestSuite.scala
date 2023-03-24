@@ -33,6 +33,12 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
       keepGoing = Flag(keepGoing),
       disableTicker = Flag(disableTicker)
     )
+    val logger = mill.entrypoint.MillMain.getLogger(
+      streams,
+      config,
+      mainInteractive = false,
+      enableTicker = Some(false)
+    )
     new mill.entrypoint.MillBootstrap(
       wd,
       config,
@@ -45,8 +51,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
       _ => (),
       None,
       sys.props.toMap,
-      mill.entrypoint.MillMain.getLogger(streams, config, mainInteractive = false, disableTicker = true),
-      mill.entrypoint.MillMain.getLogger(streams, config, mainInteractive = false, disableTicker = true)
+      logger
     ).runScript()
   }
   def eval(s: String*): Boolean = {

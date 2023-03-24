@@ -20,14 +20,13 @@ class MillBootstrap(base: os.Path,
                     setIdle: Boolean => Unit,
                     stateCache: Option[EvaluatorState],
                     initialSystemProperties: Map[String, String],
-                    mainLogger: ColorLogger,
-                    bootstrapLogger: ColorLogger){
+                    logger: ColorLogger){
 
   def runScript(): (Boolean, Option[EvaluatorState]) = {
     while (true) {
       val (watched, errorOpt, resultOpt, isSuccess) = evaluate()
 
-      errorOpt.foreach(mainLogger.error)
+      errorOpt.foreach(logger.error)
       if (ringBell) {
         if (isSuccess) println("\u0007")
         else {
@@ -49,7 +48,7 @@ class MillBootstrap(base: os.Path,
       // subsequently change
       val alreadyStale = watched.exists(p => p.sig != PathRef(p.path, p.quick).sig)
       if (!alreadyStale) {
-        Watching.watchAndWait(mainLogger, setIdle, streams.in, watchables)
+        Watching.watchAndWait(logger, setIdle, streams.in, watchables)
       }
     }
     ???
@@ -91,7 +90,7 @@ class MillBootstrap(base: os.Path,
       bootstrapModule,
       millClassloaderSigHash,
       Nil,
-      bootstrapLogger
+      logger
     )
 
     val systemPropertiesToUnset =
@@ -143,7 +142,7 @@ class MillBootstrap(base: os.Path,
             rootModule,
             millClassloaderSigHash,
             scriptImportGraph,
-            mainLogger
+            logger
           )
 
           RunScript.evaluateTasks(buildFileEvaluator, targetsAndParams, SelectMode.Separated) match {

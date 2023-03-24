@@ -41,6 +41,12 @@ class MillCliConfig private (
         """Disable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
     val disableTicker: Flag,
+    @arg(
+      name = "enable-ticker",
+      doc =
+        """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
+    )
+    val enableTicker: Option[Boolean],
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
     val debugLog: Flag,
     @arg(
@@ -125,6 +131,7 @@ class MillCliConfig private (
     "showVersion" -> showVersion,
     "ringBell" -> ringBell,
     "disableTicker" -> disableTicker,
+    "enableTicker" -> enableTicker,
     "debugLog" -> debugLog,
     "keepGoing" -> keepGoing,
     "extraSystemProperties" -> extraSystemProperties,
@@ -158,6 +165,7 @@ object MillCliConfig {
       showVersion: Flag = Flag(),
       ringBell: Flag = Flag(),
       disableTicker: Flag = Flag(),
+      enableTicker: Option[Boolean] = None,
       debugLog: Flag = Flag(),
       keepGoing: Flag = Flag(),
       extraSystemProperties: Map[String, String] = Map(),
@@ -179,6 +187,7 @@ object MillCliConfig {
     showVersion = showVersion,
     ringBell = ringBell,
     disableTicker = disableTicker,
+    enableTicker = enableTicker,
     debugLog = debugLog,
     keepGoing = keepGoing,
     extraSystemProperties = extraSystemProperties,
