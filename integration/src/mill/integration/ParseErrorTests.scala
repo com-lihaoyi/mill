@@ -39,7 +39,7 @@ class ParseErrorTests(fork: Boolean, clientServer: Boolean)
     }
 
 
-    val barScString = os.read(os.pwd / "integration"/ "parse-error" / "bar.sc")
+    val barScString = os.read(os.pwd / "integration"/ "resources" / "parse-error" / "bar.sc")
     pprint.log(barScString.toCharArray)
     pprint.log(lineNumberLookup(barScString))
     test {
