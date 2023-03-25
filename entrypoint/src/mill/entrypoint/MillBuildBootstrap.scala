@@ -17,7 +17,7 @@ object MillBuildBootstrap{
                config: MillCliConfig,
                env: Map[String, String],
                threadCount: Option[Int],
-               systemProperties: Map[String, String],
+               userSpecifiedProperties: Map[String, String],
                targetsAndParams: Seq[String],
                stateCache: Option[EvaluatorState],
                initialSystemProperties: Map[String, String],
@@ -57,7 +57,7 @@ object MillBuildBootstrap{
       Map.empty
     )
 
-    adjustJvmProperties(systemProperties, stateCache, initialSystemProperties)
+    adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
 
     val (bootClassloaderImportTreeOpt, bootWatched) = stateCache match {
@@ -109,7 +109,6 @@ object MillBuildBootstrap{
           val evalState = EvaluatorState(
             buildEvaluator.workerCache.toMap,
             bootWatched,
-            systemProperties.keySet,
             scriptImportGraph,
             bootClassloader
           )
@@ -118,18 +117,14 @@ object MillBuildBootstrap{
     }
   }
 
-  def adjustJvmProperties(systemProperties: Map[String, String],
-                          stateCache: Option[EvaluatorState],
+  def adjustJvmProperties(userSpecifiedProperties: Map[String, String],
                           initialSystemProperties: Map[String, String]): Unit = {
-    val systemPropertiesToUnset =
-      stateCache.map(_.setSystemProperties).getOrElse(Set()) -- systemProperties.keySet
+    val currentProps = sys.props
+    val desiredProps = initialSystemProperties ++ userSpecifiedProperties
+    val systemPropertiesToUnset = desiredProps.keySet -- currentProps.keySet
 
-    for (k <- systemPropertiesToUnset) {
-      initialSystemProperties.get(k) match {
-        case None => System.clearProperty(k)
-        case Some(original) => System.setProperty(k, original)
-      }
-    }
+    for (k <- systemPropertiesToUnset) System.clearProperty(k)
+    for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
 
   def prepareMillBootClasspath(millBuildBase: Path) = {

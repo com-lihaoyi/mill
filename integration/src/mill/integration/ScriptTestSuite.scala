@@ -24,7 +24,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
   val disableTicker = false
   val debugLog = false
   val keepGoing = false
-  val systemProperties = Map[String, String]()
+  val userSpecifiedProperties = Map[String, String]()
   val threadCount = sys.props.get("MILL_THREAD_COUNT").map(_.toInt).orElse(Some(1))
   private def runnerStdout(stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
 
@@ -52,7 +52,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
           config = config,
           env = Map.empty,
           threadCount = threadCount,
-          systemProperties = systemProperties,
+          userSpecifiedProperties = userSpecifiedProperties,
           targetsAndParams = s.toList,
           stateCache = None,
           initialSystemProperties = sys.props.toMap,

@@ -61,7 +61,7 @@ object MillServerMain extends MillServerMain[EvaluatorState] {
       streams: SystemStreams,
       env: Map[String, String],
       setIdle: Boolean => Unit,
-      systemProperties: Map[String, String],
+      userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String]
   ): (Boolean, Option[EvaluatorState]) = {
     MillMain.main0(
@@ -71,7 +71,7 @@ object MillServerMain extends MillServerMain[EvaluatorState] {
       streams,
       env,
       setIdle = setIdle,
-      systemProperties = systemProperties,
+      userSpecifiedProperties0 = userSpecifiedProperties,
       initialSystemProperties = initialSystemProperties
     )
   }
@@ -159,7 +159,7 @@ class Server[T](
     }
     val args = Util.parseArgs(argStream)
     val env = Util.parseMap(argStream)
-    val systemProperties = Util.parseMap(argStream)
+    val userSpecifiedProperties = Util.parseMap(argStream)
     argStream.close()
 
     @volatile var done = false
@@ -174,7 +174,7 @@ class Server[T](
             new SystemStreams(stdout, stderr, proxiedSocketInput),
             env.asScala.toMap,
             idle = _,
-            systemProperties.asScala.toMap,
+            userSpecifiedProperties.asScala.toMap,
             initialSystemProperties
           )
 

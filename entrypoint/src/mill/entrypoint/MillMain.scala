@@ -38,7 +38,7 @@ object MillMain {
           initialSystemStreams,
           System.getenv().asScala.toMap,
           b => (),
-          systemProperties = Map(),
+          userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap
         )
       } finally {
@@ -57,7 +57,7 @@ object MillMain {
       streams: SystemStreams,
       env: Map[String, String],
       setIdle: Boolean => Unit,
-      systemProperties: Map[String, String],
+      userSpecifiedProperties0: Map[String, String],
       initialSystemProperties: Map[String, String]
   ): (Boolean, Option[EvaluatorState]) = {
 
@@ -152,8 +152,8 @@ object MillMain {
                 "WARNING: Starting a build REPL without --repl is deprecated"
               )
             }
-            val systemProps =
-              systemProperties ++ config.extraSystemProperties
+            val userSpecifiedProperties =
+              userSpecifiedProperties0 ++ config.extraSystemProperties
 
             val threadCount = config.threadCountRaw match {
               case None => Some(1)
@@ -192,7 +192,7 @@ object MillMain {
                     config = config,
                     env = env,
                     threadCount = threadCount,
-                    systemProperties = systemProps,
+                    userSpecifiedProperties = userSpecifiedProperties,
                     targetsAndParams = targetsAndParams,
                     stateCache = prevState.orElse(stateCache),
                     initialSystemProperties = initialSystemProperties,
