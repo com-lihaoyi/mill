@@ -18,7 +18,8 @@ case class PathRef private (
     revalidate: PathRef.Revalidate
 ) {
 
-  def validate(): Boolean = PathRef.apply(path, quick).sig == sig
+  def recomputeSig() = PathRef.apply(path, quick).sig
+  def validate(): Boolean = recomputeSig() == sig
 
   /* Hide case class specific copy method. */
   private def copy(

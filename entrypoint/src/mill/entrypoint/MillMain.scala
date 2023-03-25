@@ -180,14 +180,14 @@ object MillMain {
             while (repeatForBsp) {
               repeatForBsp = false
 
-              val (isSuccess, evalStateOpt) = MillBootstrap.watchLoop(
+              val (isSuccess, evalStateOpt) = Watching.watchLoop(
                 logger = logger,
                 ringBell = config.ringBell.value,
-                config = config,
+                watch = config.watch.value,
                 streams = streams,
                 setIdle = setIdle,
                 evaluate = () => {
-                  MillBootstrap.evaluate(
+                  MillBoot.evaluate(
                     base = os.pwd,
                     config = config,
                     env = env,
