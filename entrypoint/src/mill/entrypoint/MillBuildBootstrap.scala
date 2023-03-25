@@ -39,7 +39,7 @@ object MillBuildBootstrap{
     val projectOut = base / "out"
     val bootProjectOut = projectOut / "mill-build"
     val millBootClasspath = prepareMillBootClasspath(bootProjectOut)
-    val bootModule = new MillBootModule(millBootClasspath, base)
+    val bootModule = new MillBuildModule(millBootClasspath, base)
 
     val millClassloaderSigHash = millBootClasspath
       .map(p => (p, if (os.exists(p)) os.mtime(p) else 0))

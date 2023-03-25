@@ -7,9 +7,11 @@ import mill.api.{Loose, PathRef, Result}
 import mill.define.{ScriptNode, Task}
 import mill.scalalib.{BoundDep, DepSyntax, Lib, Versions}
 import os.Path
-class MillBootModule(enclosingClasspath: Seq[os.Path], base: os.Path)
-  extends mill.define.BaseModule(base)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(()))
+class MillBuildModule(enclosingClasspath: Seq[os.Path], projectRoot: os.Path)
+  extends mill.define.BaseModule(projectRoot)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(()))
   with mill.scalalib.ScalaModule{
+
+  def millSourcePath = projectRoot / "mill-build"
 
   implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
 
@@ -23,7 +25,7 @@ class MillBootModule(enclosingClasspath: Seq[os.Path], base: os.Path)
   def scalaVersion = "2.13.10"
 
   def parseBuildFiles = T.input {
-    FileImportGraph.parseBuildFiles(base)
+    FileImportGraph.parseBuildFiles(projectRoot)
   }
 
   def ivyDeps = T {
@@ -50,7 +52,7 @@ class MillBootModule(enclosingClasspath: Seq[os.Path], base: os.Path)
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else Result.Success(
-      MillBootModule.generateWrappedSources(base, scriptSources(), parsed.seenScripts, T.dest)
+      MillBuildModule.generateWrappedSources(projectRoot, scriptSources(), parsed.seenScripts, T.dest)
     )
   }
 
@@ -87,7 +89,7 @@ class MillBootModule(enclosingClasspath: Seq[os.Path], base: os.Path)
   }
 }
 
-object MillBootModule{
+object MillBuildModule{
   def generateWrappedSources(base: os.Path,
                              scriptSources: Seq[PathRef],
                              scriptCode: Map[Path, String],
@@ -97,14 +99,14 @@ object MillBootModule{
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
       os.write(
         dest,
-        MillBootModule.top(
+        MillBuildModule.top(
           relative,
           scriptSource.path / os.up,
           FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1),
           scriptSource.path.baseName
         ) +
         scriptCode(scriptSource.path) +
-        MillBootModule.bottom,
+        MillBuildModule.bottom,
         createFolders = true
       )
       PathRef(dest)
