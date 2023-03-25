@@ -198,7 +198,8 @@ object MillMain {
                     initialSystemProperties = initialSystemProperties,
                     logger = logger,
                   )
-                }
+                },
+                watchedPathsFile = os.pwd / "out" / "mill-watched-paths.txt"
               )
 
               bspContext.foreach { ctx =>

@@ -58,7 +58,8 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
           initialSystemProperties = sys.props.toMap,
           logger = logger,
         )
-      }
+      },
+      watchedPathsFile = ws / "out" / "mill-watched-paths.txt"
     )
   }
 

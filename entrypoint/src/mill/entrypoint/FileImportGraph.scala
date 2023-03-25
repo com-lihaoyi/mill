@@ -30,8 +30,11 @@ object FileImportGraph{
       importGraphEdges(s) = Nil
 
       if (!seenScripts.contains(s)) {
-        val txt = os.read(s)
-        Parsers.splitScript(txt, s.last) match {
+        val readFileEither = scala.util.Try(Parsers.splitScript(os.read(s), s.last)) match{
+          case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
+          case scala.util.Success(value) => value
+        }
+        readFileEither match {
           case Left(err) =>
             // Make sure we mark even scripts that failed to parse as seen, so
             // they can be watched and the build can be re-triggered if the user

@@ -18,7 +18,8 @@ object Watching{
                    watch: Boolean,
                    streams: SystemStreams,
                    setIdle: Boolean => Unit,
-                   evaluate: () => Result[T]): (Boolean, Option[T]) = {
+                   evaluate: () => Result[T],
+                   watchedPathsFile: os.Path): (Boolean, Option[T]) = {
     while (true) {
       val (watchables, errorOpt, resultOpt, isSuccess) = evaluate()
 
@@ -38,21 +39,25 @@ object Watching{
 
       val alreadyStale = watchables.exists(!_.validate())
       if (!alreadyStale) {
-        Watching.watchAndWait(logger, setIdle, streams.in, watchables)
+        Watching.watchAndWait(logger, setIdle, streams.in, watchables, watchedPathsFile)
       }
     }
     ???
   }
 
-  def watchAndWait(logger: ColorLogger, setIdle: Boolean => Unit, stdin: InputStream, watched: Seq[Watchable]) = {
+  def watchAndWait(logger: ColorLogger,
+                   setIdle: Boolean => Unit,
+                   stdin: InputStream, watched: Seq[Watchable],
+                   watchedPathsFile: os.Path) = {
     setIdle(true)
-    val watchedPaths = watched.count(_.isInstanceOf[Watchable.Path])
-    val watchedValues = watched.size - watchedPaths
+    val watchedPaths = watched.collect{case p: Watchable.Path => p.p.path}
+    val watchedValues = watched.size - watchedPaths.size
 
     val watchedValueStr = if (watchedValues == 0) "" else s" and $watchedValues other values"
 
+    os.write.over(watchedPathsFile, watchedPaths.mkString("\n"))
     logger.info(
-      s"Watching for changes to $watchedPaths paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
+      s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
     )
 
     statWatchWait(watched, stdin)
