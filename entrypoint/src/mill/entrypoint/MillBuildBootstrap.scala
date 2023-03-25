@@ -6,7 +6,7 @@ import mill.api.{Logger, PathRef}
 import java.io.{InputStream, PrintStream}
 import mill.eval.Evaluator
 import mill.main.RunScript
-import mill.define.{BaseModule, ScriptNode, Segments, SelectMode}
+import mill.define.{BaseModule, Segments, SelectMode}
 import os.Path
 
 import java.net.URLClassLoader
@@ -26,7 +26,7 @@ object MillBuildBootstrap{
     def makeEvaluator(outPath: os.Path,
                       baseModule: mill.define.BaseModule,
                       sig: Int,
-                      scriptImportGraph: Seq[ScriptNode],
+                      scriptImportGraph: Map[os.Path, Seq[os.Path]],
                       logger: ColorLogger,
                       workerCache: Map[Segments, (Int, Any)]) = {
       Evaluator(config.home, outPath, outPath, baseModule, logger, sig)
@@ -52,7 +52,7 @@ object MillBuildBootstrap{
       bootProjectOut,
       bootModule,
       millClassloaderSigHash,
-      Nil,
+      Map.empty,
       PrefixLogger(logger, bootLogPrefix),
       Map.empty
     )
@@ -62,7 +62,7 @@ object MillBuildBootstrap{
 
     val (bootClassloaderImportTreeOpt, bootWatched) = stateCache match {
       case Some(s) if s.watched.forall(_.validate()) =>
-        Right((s.bootClassloader, s.importTree)) -> s.watched
+        Right((s.bootClassloader, s.scriptImportGraph)) -> s.watched
 
       case _ =>
         evaluateWithWatches(bootEvaluator, Seq("{runClasspath,scriptImportGraph}")) {
@@ -75,9 +75,7 @@ object MillBuildBootstrap{
               getClass.getClassLoader
             )
 
-            val processedImportTree = FileImportGraph.linksToScriptNodeGraph(base, scriptImportGraph)
-
-            (runClassLoader, processedImportTree)
+            (runClassLoader, scriptImportGraph)
         }
     }
 

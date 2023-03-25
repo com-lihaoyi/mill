@@ -4,7 +4,7 @@ import coursier.{Dependency, Module, Organization}
 import collection.mutable
 import mill._
 import mill.api.{Loose, PathRef, Result}
-import mill.define.{ScriptNode, Task}
+import mill.define.Task
 import mill.scalalib.{BoundDep, DepSyntax, Lib, Versions}
 import os.Path
 class MillBuildModule(enclosingClasspath: Seq[os.Path], projectRoot: os.Path)
@@ -51,13 +51,20 @@ class MillBuildModule(enclosingClasspath: Seq[os.Path], projectRoot: os.Path)
   def generatedSources = T {
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
-    else Result.Success(
+    else {
       MillBuildModule.generateWrappedSources(projectRoot, scriptSources(), parsed.seenScripts, T.dest)
-    )
+      Result.Success(Seq(PathRef(T.dest)))
+    }
   }
 
   def scriptImportGraph = T {
-    parseBuildFiles().importGraphEdges
+    parseBuildFiles().importGraphEdges.map {
+      case (k, vs) =>
+        // Convert the import graph from source-file paths to generated-file paths
+        def normalize(p: os.Path) =
+          generatedSources().head.path / FileImportGraph.fileImportToSegments(projectRoot, p, false)
+        (normalize(k), vs.map(normalize))
+    }
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {
@@ -94,7 +101,7 @@ object MillBuildModule{
                              scriptSources: Seq[PathRef],
                              scriptCode: Map[Path, String],
                              targetDest: os.Path) = {
-    for (scriptSource <- scriptSources) yield {
+    for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
       os.write(
@@ -109,9 +116,9 @@ object MillBuildModule{
         MillBuildModule.bottom,
         createFolders = true
       )
-      PathRef(dest)
     }
   }
+
   def top(relative: os.RelPath, base: os.Path, pkg: Seq[String], name: String) = {
     val foreign =
       if (pkg.size > 1 || name != "build") {

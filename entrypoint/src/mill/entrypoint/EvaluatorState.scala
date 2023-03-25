@@ -1,6 +1,6 @@
 package mill.entrypoint
 
-import mill.define.{ScriptNode, Segments}
+import mill.define.Segments
 
 import scala.collection.mutable
 
@@ -9,14 +9,14 @@ class EvaluatorState private (
     _workerCache: Map[Segments, (Int, Any)],
     _watched: Seq[Watchable],
     _setSystemProperties: Set[String],
-    _importTree: Seq[ScriptNode],
+    _scriptImportGraph: Map[os.Path, Seq[os.Path]],
     _bootClassloader: java.net.URLClassLoader,
 ) {
   def rootModule: mill.define.BaseModule = _rootModule
   def workerCache: Map[Segments, (Int, Any)] = _workerCache
   def watched: Seq[Watchable] = _watched
   def setSystemProperties: Set[String] = _setSystemProperties
-  def importTree: Seq[ScriptNode] = _importTree
+  def scriptImportGraph: Map[os.Path, Seq[os.Path]] = _scriptImportGraph
   def bootClassloader: java.net.URLClassLoader = _bootClassloader
 
   override def toString(): String = {
@@ -25,7 +25,7 @@ class EvaluatorState private (
        |  workerCache = $workerCache,
        |  watched = $watched,
        |  setSystemProperties = $setSystemProperties,
-       |  importTree = $importTree
+       |  scriptImportGraph = $scriptImportGraph
        |)""".stripMargin
   }
 }
@@ -35,14 +35,14 @@ object EvaluatorState {
       workerCache: Map[Segments, (Int, Any)],
       watched: Seq[Watchable],
       setSystemProperties: Set[String],
-      importTree: Seq[ScriptNode],
+      scriptImportGraph: Map[os.Path, Seq[os.Path]],
       bootClassloader: java.net.URLClassLoader
   ): EvaluatorState = new EvaluatorState(
     rootModule,
     workerCache,
     watched,
     setSystemProperties,
-    importTree,
+    scriptImportGraph,
     bootClassloader
   )
 }

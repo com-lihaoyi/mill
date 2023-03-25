@@ -6,7 +6,6 @@ import mill.api.{CompileProblemReporter, Ctx, DummyTestReporter, Loose, PathRef,
 import mill.api.Result.{Aborted, Failing, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define._
-import mill.internal.NormalizeImportPaths
 import mill.util._
 import upickle.default
 
@@ -41,7 +40,7 @@ class Evaluator private (_home: os.Path,
                          _env: Map[String, String],
                          _failFast: Boolean,
                          _threadCount: Option[Int],
-                         _scriptImportGraph: Seq[ScriptNode]
+                         _scriptImportGraph: Map[os.Path, Seq[os.Path]]
 ) {
 
   import Evaluator.Terminal
@@ -85,7 +84,7 @@ class Evaluator private (_home: os.Path,
   /**
    * The tree of imports of the build ammonite scripts
    */
-  def scriptImportGraph: Seq[ScriptNode] = _scriptImportGraph
+  def scriptImportGraph: Map[os.Path, Seq[os.Path]] = _scriptImportGraph
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
@@ -315,18 +314,16 @@ class Evaluator private (_home: os.Path,
     )
 
     val scriptsHash = {
-      val classes = new Loose.Agg.Mutable[String]()
+      val scripts = new Loose.Agg.Mutable[os.Path]()
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
-        case namedTask: NamedTask[_] =>
-          val cls = namedTask.ctx.enclosingCls.getName
-          val normalized = NormalizeImportPaths.normalizeImportPath(cls)
-          classes.append(normalized)
+        case namedTask: NamedTask[_] => scripts.append(os.Path(namedTask.ctx.fileName))
         case _ =>
       }
-      val importedScripts = scriptImportGraph.filter(e => classes.contains(e.cls))
 
-      val transitiveScripts = Graph.transitiveNodes(importedScripts)
-      transitiveScripts.iterator.map(n => PathRef(n.path).sig).sum
+      val transitiveScripts =
+        Graph.transitiveNodes(scripts)(scriptImportGraph.getOrElse(_, Nil))
+
+      transitiveScripts.iterator.map(p => PathRef(p).sig).sum
     }
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
@@ -682,7 +679,7 @@ class Evaluator private (_home: os.Path,
       env: Map[String, String] = this.env,
       failFast: Boolean = this.failFast,
       threadCount: Option[Int] = this.threadCount,
-      scriptImportGraph: Seq[ScriptNode] = this.scriptImportGraph
+      scriptImportGraph: Map[os.Path, Seq[os.Path]] = this.scriptImportGraph
   ): Evaluator = new Evaluator(
     home,
     outPath,
@@ -710,7 +707,7 @@ class Evaluator private (_home: os.Path,
   def withEnv(env: Map[String, String]): Evaluator = copy(env = env)
   def withFailFast(failFast: Boolean): Evaluator = copy(failFast = failFast)
   def withThreadCount(threadCount: Option[Int]): Evaluator = copy(threadCount = threadCount)
-  def withScriptImportGraph(scriptImportGraph: Seq[ScriptNode]): Evaluator = copy(scriptImportGraph = scriptImportGraph)
+  def withScriptImportGraph(scriptImportGraph: Map[os.Path, Seq[os.Path]]): Evaluator = copy(scriptImportGraph = scriptImportGraph)
 }
 
 object Evaluator {
@@ -907,6 +904,6 @@ object Evaluator {
     _env = Evaluator.defaultEnv,
     _failFast = true,
     _threadCount = Some(1),
-    _scriptImportGraph = Seq.empty
+    _scriptImportGraph = Map.empty
   )
 }

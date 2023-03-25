@@ -1,7 +1,5 @@
 package mill.entrypoint
 
-import mill.define.ScriptNode
-
 import scala.collection.mutable
 
 case class FileImportGraph(seenScripts: Map[os.Path, String],
@@ -104,22 +102,5 @@ object FileImportGraph{
   def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean) = {
     val rel = (s / os.up / (if (stripExt) s.baseName else s.last)).relativeTo(base)
     Seq("millbuild") ++ Seq.fill(rel.ups)("^") ++ rel.segments
-  }
-
-  def linksToScriptNodeGraph(base: os.Path, links: Map[os.Path, Seq[os.Path]]): Seq[ScriptNode] = {
-    val cache = mutable.Map.empty[os.Path, ScriptNode]
-
-    def scriptNodeOf(key: os.Path): ScriptNode = {
-      cache.get(key) match {
-        case Some(node) => node
-        case None =>
-          val scriptLinks = links(key)
-          val node = ScriptNode(fileImportToSegments(base, key, true).mkString("."), scriptLinks.map(scriptNodeOf), key)
-          cache(key) = node
-          node
-      }
-    }
-
-    links.keys.map(scriptNodeOf).toSeq
   }
 }
