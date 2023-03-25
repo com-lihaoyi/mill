@@ -180,20 +180,26 @@ object MillMain {
             while (repeatForBsp) {
               repeatForBsp = false
 
-              val (isSuccess, evalStateOpt) = new MillBootstrap(
-                os.pwd,
-                config,
-                streams,
-                env,
-                threadCount,
-                systemProps,
-                targetsAndParams,
-                config.ringBell.value,
-                setIdle,
-                stateCache,
-                initialSystemProperties,
-                logger
-              ).runScript()
+              val (isSuccess, evalStateOpt) = MillBootstrap.watchLoop(
+                logger = logger,
+                ringBell = config.ringBell.value,
+                config = config,
+                streams = streams,
+                setIdle = setIdle,
+                evaluate = () => {
+                  MillBootstrap.evaluate(
+                    base = os.pwd,
+                    config = config,
+                    env = env,
+                    threadCount = threadCount,
+                    systemProperties = systemProps,
+                    targetsAndParams = targetsAndParams,
+                    stateCache = stateCache,
+                    initialSystemProperties = initialSystemProperties,
+                    logger = logger,
+                  )
+                }
+              )
 
               bspContext.foreach { ctx =>
                 repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)

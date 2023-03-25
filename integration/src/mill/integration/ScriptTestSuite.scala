@@ -3,6 +3,7 @@ package mill.integration
 import mainargs.Flag
 import mill.MillCliConfig
 import mill.define.SelectMode
+import mill.entrypoint.MillBootstrap
 import mill.util.SystemStreams
 import os.Path
 import utest._
@@ -39,21 +40,28 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
       mainInteractive = false,
       enableTicker = Some(false)
     )
-    new mill.entrypoint.MillBootstrap(
-      wd,
-      config,
-      streams,
-      Map.empty,
-      threadCount,
-      systemProperties,
-      s.toList,
-      ringBell = false,
-      _ => (),
-      None,
-      sys.props.toMap,
-      logger
-    ).runScript()
+    MillBootstrap.watchLoop(
+      logger = logger,
+      ringBell = config.ringBell.value,
+      config = config,
+      streams = streams,
+      setIdle = _ => (),
+      evaluate = () => {
+        MillBootstrap.evaluate(
+          base = os.pwd,
+          config = config,
+          env = Map.empty,
+          threadCount = threadCount,
+          systemProperties = systemProperties,
+          targetsAndParams = s.toList,
+          stateCache = None,
+          initialSystemProperties = sys.props.toMap,
+          logger = logger,
+        )
+      }
+    )
   }
+
   def eval(s: String*): Boolean = {
     if (!fork) runnerStdout(System.out, System.err, s)._1
     else evalFork(os.Inherit, os.Inherit, s)
