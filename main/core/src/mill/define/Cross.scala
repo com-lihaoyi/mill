@@ -1,4 +1,5 @@
 package mill.define
+
 import language.experimental.macros
 import scala.reflect.ClassTag
 import scala.reflect.macros.blackbox
@@ -24,8 +25,8 @@ object Cross {
 
       val instance = c.Expr[(Product, mill.define.Ctx, Seq[Product]) => T](
         q"""{ (v, ctx0, vs) => new $tpe(..$argTupleValues){
-          override def millOuterCtx = ctx0.copy(
-            crossInstances = vs.map(v => new $tpe(..$argTupleValues))
+          override def millOuterCtx = ctx0.withCrossInstances(
+            vs.map(v => new $tpe(..$argTupleValues))
           )
         } }"""
       )
