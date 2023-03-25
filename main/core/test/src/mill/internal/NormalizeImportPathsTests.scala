@@ -5,70 +5,70 @@ import utest._
 object NormalizeImportPathsTests extends TestSuite {
   val tests = Tests {
     test("normalizeAmmoniteImportPath") {
-      def normalize(s: String): String = mill.eval.Evaluator.normalizeImportPath(s)
+      def normalize(s: String): String = NormalizeImportPaths.normalizeImportPath(s)
       test("should normalize classes compiled from multiple scripts") {
-        val input1 = "ammonite.$file.e.$up.a.inputA"
-        val input2 = "ammonite.$file.a.inputA"
+        val input1 = "millbuild.e.$up.a.inputA"
+        val input2 = "millbuild.a.inputA"
 
         val result1 = normalize(input1)
         val result2 = normalize(input2)
-        val expected = "ammonite.$file.a.inputA"
+        val expected = "millbuild.a.inputA"
 
         assert(result1 == expected)
         assert(result2 == expected)
       }
       test("should normalize imports") {
-        val input = "ammonite.$file.e.^.a.inputA"
+        val input = "millbuild.e.^.a.inputA"
 
         val result = normalize(input)
-        val expected = "ammonite.$file.a.inputA"
+        val expected = "millbuild.a.inputA"
 
         assert(result == expected)
       }
       test("should handle classes in higher level than top level") {
-        val input1 = "ammonite.$file.^.build"
-        val input2 = "ammonite.$file.$up.build"
+        val input1 = "millbuild.^.build"
+        val input2 = "millbuild.$up.build"
 
         val result1 = normalize(input1)
         val result2 = normalize(input2)
-        val expected = "ammonite.$file.$up.build"
+        val expected = "millbuild.$up.build"
 
         assert(result1 == expected)
         assert(result2 == expected)
       }
       test("complex") {
-        val input = "ammonite.$file.$up.^.a.^.build"
+        val input = "millbuild.$up.^.a.^.build"
         val result = normalize(input)
-        val expected = "ammonite.$file.$up.$up.build"
+        val expected = "millbuild.$up.$up.build"
 
         assert(result == expected)
       }
       test("should remove companion objects") {
-        val input = "ammonite.$file.a.inputA$"
+        val input = "millbuild.a.inputA$"
         val result = normalize(input)
-        val expected = "ammonite.$file.a.inputA"
+        val expected = "millbuild.a.inputA"
 
         assert(result == expected)
       }
       test("should remove internal classes") {
-        val input = "ammonite.$file.build$module$"
+        val input = "millbuild.build$module$"
         val result = normalize(input)
-        val expected = "ammonite.$file.build"
+        val expected = "millbuild.build"
 
         assert(result == expected)
       }
       test("should handle special symbols") {
-        val input = "ammonite.$file.-#!|\\?+*<→:&>%=~.inputSymbols"
+        val input = "millbuild.-#!|\\?+*<→:&>%=~.inputSymbols"
         val result = normalize(input)
         val expected =
-          "ammonite.$file.$minus$hash$bang$bar$bslash$qmark$plus$times$less$u2192$colon$amp$greater$percent$eq$tilde.inputSymbols"
+          "millbuild.$minus$hash$bang$bar$bslash$qmark$plus$times$less$u2192$colon$amp$greater$percent$eq$tilde.inputSymbols"
 
         assert(result == expected)
       }
       test("should handle special symbols in last file while removing inner classes") {
-        val input = "ammonite.$file.before$minusplus$something$minusafter"
+        val input = "millbuild.before$minusplus$something$minusafter"
         val result = normalize(input)
-        val expected = "ammonite.$file.before$minusplus"
+        val expected = "millbuild.before$minusplus"
 
         assert(result == expected)
       }

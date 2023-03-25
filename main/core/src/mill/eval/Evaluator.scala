@@ -1,20 +1,12 @@
 package mill.eval
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-
 import scala.util.DynamicVariable
-import mill.api.{
-  CompileProblemReporter,
-  Ctx,
-  DummyTestReporter,
-  Loose,
-  PathRef,
-  Strict,
-  TestReporter
-}
+import mill.api.{CompileProblemReporter, Ctx, DummyTestReporter, Loose, PathRef, Strict, TestReporter}
 import mill.api.Result.{Aborted, Failing, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define._
+import mill.internal.NormalizeImportPaths
 import mill.util._
 import upickle.default
 
@@ -327,7 +319,7 @@ class Evaluator private (_home: os.Path,
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
         case namedTask: NamedTask[_] =>
           val cls = namedTask.ctx.enclosingCls.getName
-          val normalized = Evaluator.normalizeImportPath(cls)
+          val normalized = NormalizeImportPaths.normalizeImportPath(cls)
           classes.append(normalized)
         case _ =>
       }
@@ -917,56 +909,4 @@ object Evaluator {
     _threadCount = Some(1),
     _scriptImportGraph = Seq.empty
   )
-
-  // Mapping replicated from the Scala compiler
-  // https://github.com/scala/scala/blob/8a2cf63ee5bad8c8c054f76464de0e10226516a0/src/library/scala/reflect/NameTransformer.scala#L45
-  private val symbolsClassesMapping = Map(
-    '=' -> "$eq",
-    '<' -> "$less",
-    '-' -> "$minus",
-    '#' -> "$hash",
-    '?' -> "$qmark",
-    '+' -> "$plus",
-    '*' -> "$times",
-    '%' -> "$percent",
-    '&' -> "$amp",
-    '!' -> "$bang",
-    '|' -> "$bar",
-    '→' -> "$u2192",
-    '\\' -> "$bslash",
-    ':' -> "$colon",
-    '~' -> "$tilde",
-    '/' -> "$div",
-    '>' -> "$greater"
-  )
-  private val removeInnerClassesRegex = {
-    val toIgnore = symbolsClassesMapping.values.map(_.stripPrefix("$")).mkString("|")
-    s"\\$$(?!$toIgnore).*"
-  }
-
-  private def normalizeImportPath(segments: Seq[String]): Seq[String] = {
-    def normalized(segment: String): String = {
-      segment.flatMap(symbolsClassesMapping.withDefault(_.toString()))
-    }
-
-    def loop(l: List[String], up: Int): List[String] = l match {
-      case ("^" | "$up") :: tail => loop(tail, up + 1)
-      case head :: tail =>
-        if (up > 0) loop(tail, up - 1)
-        else normalized(head) :: loop(tail, up)
-      case Nil => Nil
-    }
-
-    val reversed = segments.reverse.toList
-    val withoutCompanions = reversed match {
-      case head :: tail =>
-        head.replaceAll(removeInnerClassesRegex, "") :: tail
-      case Nil => Nil
-    }
-    loop(withoutCompanions, 0).reverse
-  }
-
-  private[mill] def normalizeImportPath(cls: String): String = {
-    normalizeImportPath(cls.split('.').toIndexedSeq).mkString(".")
-  }
 }

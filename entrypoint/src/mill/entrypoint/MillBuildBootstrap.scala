@@ -1,5 +1,5 @@
 package mill.entrypoint
-import mill.util.{Classpath, ColorLogger, Colors, PrintLogger, SystemStreams}
+import mill.util.{Classpath, ColorLogger, Colors, PrefixLogger, PrintLogger, SystemStreams}
 import mill.{BuildInfo, MillCliConfig}
 import mill.api.{Logger, PathRef}
 
@@ -26,7 +26,8 @@ object MillBuildBootstrap{
     def makeEvaluator(outPath: os.Path,
                       baseModule: mill.define.BaseModule,
                       sig: Int,
-                      scriptImportGraph: Seq[ScriptNode]) = {
+                      scriptImportGraph: Seq[ScriptNode],
+                      logger: ColorLogger) = {
       Evaluator(config.home, outPath, outPath, baseModule, logger, sig)
         .withWorkerCache(collection.mutable.Map.empty)
         .withEnv(env)
@@ -44,7 +45,15 @@ object MillBuildBootstrap{
       .map(p => (p, if (os.exists(p)) os.mtime(p) else 0))
       .hashCode()
 
-    val bootEvaluator = makeEvaluator(bootProjectOut, bootModule, millClassloaderSigHash, Nil)
+    val bootLogPrefix = "[mill-build] "
+
+    val bootEvaluator = makeEvaluator(
+      bootProjectOut,
+      bootModule,
+      millClassloaderSigHash,
+      Nil,
+      PrefixLogger(logger, bootLogPrefix)
+    )
 
     adjustJvmProperties(systemProperties, stateCache, initialSystemProperties)
 
@@ -54,7 +63,7 @@ object MillBuildBootstrap{
         Right((s.bootClassloader, s.importTree)) -> s.watched
 
       case _ =>
-        evaluateWithWatches(bootEvaluator, Seq("millbuild.{runClasspath,scriptImportGraph}")) {
+        evaluateWithWatches(bootEvaluator, Seq("{runClasspath,scriptImportGraph}")) {
           case Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[os.Path, Seq[os.Path]]) =>
 
             stateCache.map(_.bootClassloader).foreach(_.close())
@@ -71,7 +80,10 @@ object MillBuildBootstrap{
     }
 
     bootClassloaderImportTreeOpt match {
-      case Left(msg) => (bootWatched, Some(msg), None, false)
+      case Left(msg) =>
+        val prefixedBootMsg = msg.linesIterator.map(bootLogPrefix + _).mkString("\n")
+        (bootWatched, Some(prefixedBootMsg), None, false)
+
       case Right((bootClassloader, scriptImportGraph)) =>
         mill.util.Util.withContextClassloader(bootClassloader) {
 
@@ -81,7 +93,8 @@ object MillBuildBootstrap{
             projectOut,
             rootModule,
             millClassloaderSigHash,
-            scriptImportGraph
+            scriptImportGraph,
+            logger
           )
 
           val (evaled, buildWatched) =

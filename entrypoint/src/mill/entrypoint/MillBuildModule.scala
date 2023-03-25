@@ -8,83 +8,82 @@ import mill.define.{ScriptNode, Task}
 import mill.scalalib.{BoundDep, DepSyntax, Lib, Versions}
 import os.Path
 class MillBootModule(enclosingClasspath: Seq[os.Path], base: os.Path)
-  extends mill.define.BaseModule(base)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())) {
+  extends mill.define.BaseModule(base)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(()))
+  with mill.scalalib.ScalaModule{
 
   implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
 
-  object millbuild extends mill.scalalib.ScalaModule {
-    def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task{
-      // We need to resolve the sources to make GenIdeaExtendedTests pass for
-      // some reason, but we don't need to actually return them (???)
-      val unused = super.resolveDeps(deps, true)()
+  def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task{
+    // We need to resolve the sources to make GenIdeaExtendedTests pass for
+    // some reason, but we don't need to actually return them (???)
+    val unused = super.resolveDeps(deps, true)()
 
-      super.resolveDeps(deps, false)()
-    }
-    def scalaVersion = "2.13.10"
+    super.resolveDeps(deps, false)()
+  }
+  def scalaVersion = "2.13.10"
 
-    def parseBuildFiles = T.input {
-      FileImportGraph.parseBuildFiles(base)
-    }
+  def parseBuildFiles = T.input {
+    FileImportGraph.parseBuildFiles(base)
+  }
 
-    def ivyDeps = T {
-      Agg.from(
-        parseBuildFiles().ivyDeps
-          .map(str =>
-            mill.scalalib.Dep.parse(
-              str
-                .replace("$MILL_VERSION", mill.BuildInfo.millVersion)
-                .replace("${MILL_VERSION}", mill.BuildInfo.millVersion)
-                .replace("$MILL_BIN_PLATFORM", mill.BuildInfo.millBinPlatform)
-                .replace("${MILL_BIN_PLATFORM}", mill.BuildInfo.millBinPlatform)
-            )
+  def ivyDeps = T {
+    Agg.from(
+      parseBuildFiles().ivyDeps
+        .map(str =>
+          mill.scalalib.Dep.parse(
+            str
+              .replace("$MILL_VERSION", mill.BuildInfo.millVersion)
+              .replace("${MILL_VERSION}", mill.BuildInfo.millVersion)
+              .replace("$MILL_BIN_PLATFORM", mill.BuildInfo.millBinPlatform)
+              .replace("${MILL_BIN_PLATFORM}", mill.BuildInfo.millBinPlatform)
           )
-      ) ++
-      Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
-    }
+        )
+    ) ++
+    Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+  }
 
-    def scriptSources = T.sources {
-      for ((p, s) <- parseBuildFiles().seenScripts.toSeq) yield PathRef(p)
-    }
+  def scriptSources = T.sources {
+    for ((p, s) <- parseBuildFiles().seenScripts.toSeq) yield PathRef(p)
+  }
 
-    def generatedSources = T {
-      val parsed = parseBuildFiles()
-      if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
-      else Result.Success(
-        MillBootModule.generateWrappedSources(base, scriptSources(), parsed.seenScripts, T.dest)
-      )
-    }
-
-    def scriptImportGraph = T {
-      parseBuildFiles().importGraphEdges
-    }
-
-    override def allSourceFiles: T[Seq[PathRef]] = T {
-      Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
-    }
-
-    def unmanagedClasspath = mill.define.Target.input {
-      mill.api.Loose.Agg.from(enclosingClasspath.map(p => mill.api.PathRef(p))) ++
-      lineNumberPluginClasspath()
-    }
-
-    def scalacPluginIvyDeps = Agg(
-      ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+  def generatedSources = T {
+    val parsed = parseBuildFiles()
+    if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
+    else Result.Success(
+      MillBootModule.generateWrappedSources(base, scriptSources(), parsed.seenScripts, T.dest)
     )
+  }
 
-    def scalacOptions = T{
-      super.scalacOptions() ++
-      Seq("-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","))
-    }
+  def scriptImportGraph = T {
+    parseBuildFiles().importGraphEdges
+  }
 
-    def scalacPluginClasspath = super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
+  override def allSourceFiles: T[Seq[PathRef]] = T {
+    Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
+  }
 
-    def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
-      mill.modules.Util.millProjectModule(
-        "MILL_LINENUMBERS",
-        "mill-entrypoint-linenumbers",
-        repositoriesTask()
-      )
-    }
+  def unmanagedClasspath = mill.define.Target.input {
+    mill.api.Loose.Agg.from(enclosingClasspath.map(p => mill.api.PathRef(p))) ++
+    lineNumberPluginClasspath()
+  }
+
+  def scalacPluginIvyDeps = Agg(
+    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+  )
+
+  def scalacOptions = T{
+    super.scalacOptions() ++
+    Seq("-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","), "-nowarn")
+  }
+
+  def scalacPluginClasspath = super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
+
+  def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
+    mill.modules.Util.millProjectModule(
+      "MILL_LINENUMBERS",
+      "mill-entrypoint-linenumbers",
+      repositoriesTask()
+    )
   }
 }
 
