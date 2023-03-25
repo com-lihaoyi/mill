@@ -27,7 +27,15 @@ class MillBootModule(enclosingClasspath: Seq[os.Path], base: os.Path)
     }
 
     def ivyDeps = T {
-      Agg.from(parseBuildFiles().ivyDeps.map(mill.scalalib.Dep.parse(_))) ++
+      Agg.from(
+        parseBuildFiles().ivyDeps
+          .map(_
+            .replace("$MILL_VERSION", mill.BuildInfo.millVersion)
+            .replace("${MILL_VERSION}", mill.BuildInfo.millVersion)
+            .replace("$MILL_BIN_PLATFORM", mill.BuildInfo.millBinPlatform)
+            .replace("${MILL_BIN_PLATFORM}", mill.BuildInfo.millBinPlatform))
+          .map(mill.scalalib.Dep.parse(_))
+      ) ++
       Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
     }
 
