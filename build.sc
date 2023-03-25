@@ -1016,6 +1016,14 @@ def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String 
     PathRef(installLocalTask(T.task(binFile), ivyRepo)())
   }
 
+def installLocalCache() = T.command {
+  val path = installLocalTask(
+    T.task((os.home / ".cache" / "mill" / "download" / millVersion()).toString())
+  )()
+  T.log.outputStream.println(path.toString())
+  PathRef(path)
+}
+
 def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
   val modules = build.millInternal.modules.collect { case m: PublishModule => m }
   T.task {
