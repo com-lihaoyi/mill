@@ -49,7 +49,7 @@ object MillBuildBootstrap{
     adjustJvmProperties(systemProperties, stateCache, initialSystemProperties)
 
 
-    val (bootClassloaderImportTreeOpt, bootWatched: Seq[Watchable]) = stateCache match {
+    val (bootClassloaderImportTreeOpt, bootWatched) = stateCache match {
       case Some(s) if s.watched.forall(_.validate()) =>
         Right((s.bootClassloader, s.importTree)) -> s.watched
 

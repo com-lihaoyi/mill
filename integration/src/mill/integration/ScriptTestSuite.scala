@@ -59,7 +59,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
           logger = logger,
         )
       },
-      watchedPathsFile = ws / "out" / "mill-watched-paths.txt"
+      watchedPathsFile = wd / "out" / "mill-watched-paths.txt"
     )
   }
 

@@ -5,7 +5,7 @@ import utest._
 object NormalizeImportPathsTests extends TestSuite {
   val tests = Tests {
     test("normalizeAmmoniteImportPath") {
-      def normalize(s: String): String = Evaluator.normalizeAmmoniteImportPath(s)
+      def normalize(s: String): String = mill.eval.Evaluator.normalizeImportPath(s)
       test("should normalize classes compiled from multiple scripts") {
         val input1 = "ammonite.$file.e.$up.a.inputA"
         val input2 = "ammonite.$file.a.inputA"
