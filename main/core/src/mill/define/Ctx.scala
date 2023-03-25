@@ -41,6 +41,8 @@ case class Ctx private (
     crossInstances
   )
   def withCrossInstances(crossInstances: Seq[AnyRef]): Ctx = copy(crossInstances = crossInstances)
+  def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
+  def withSegment(segment: Segment): Ctx = copy(segment = segment)
   def withSegments(segments: Segments): Ctx = copy(segments = segments)
 }
 

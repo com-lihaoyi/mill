@@ -70,11 +70,10 @@ class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], c
     val relPath = ctx.segment.pathSegments
     val sub = ci.make(
       c,
-      ctx.copy(
-        segments = ctx.segments ++ Seq(ctx.segment),
-        millSourcePath = ctx.millSourcePath / relPath,
-        segment = Segment.Cross(crossValues)
-      ),
+      ctx
+        .withSegments(ctx.segments ++ Seq(ctx.segment))
+        .withMillSourcePath(ctx.millSourcePath / relPath)
+        .withSegment(Segment.Cross(crossValues)),
       products
     )
     (crossValues, sub)
