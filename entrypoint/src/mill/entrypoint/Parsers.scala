@@ -1,18 +1,18 @@
 package mill.entrypoint
 
-import mill.util.Util.{newLine, windowsPlatform}
+import mill.api.internal
+import mill.util.Util.newLine
 
 import scala.collection.mutable
 
+@internal
 case class ImportTree(prefix: Seq[(String, Int)],
-                      mappings: ImportTree.ImportMapping,
+                      mappings: Seq[(String, Option[String])],
                       start: Int,
                       end: Int)
 
-object ImportTree{
-  type ImportMapping = Seq[(String, Option[String])]
-}
 
+@internal
 object Parsers  {
   import fastparse._
   import ScalaWhitespace._

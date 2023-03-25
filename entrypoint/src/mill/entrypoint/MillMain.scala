@@ -6,11 +6,11 @@ import java.util.Locale
 import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import io.github.retronym.java9rtexport.Export
-import mill.api.DummyInputStream
+import mill.api.{DummyInputStream, internal}
 import mill.main.BspServerResult
-import mill.util.{PrintLogger, SystemStreams}
+import mill.util.SystemStreams
 
-
+@internal
 object MillMain {
   def main(args: Array[String]): Unit = {
     val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
@@ -33,7 +33,7 @@ object MillMain {
       try {
         main0(
           args,
-          None,
+          MultiEvaluatorState.empty,
           mill.util.Util.isInteractive(),
           initialSystemStreams,
           System.getenv().asScala.toMap,
@@ -50,26 +50,25 @@ object MillMain {
     System.exit(if (result) 0 else 1)
   }
 
-  def main0(
-      args: Array[String],
-      stateCache: Option[EvaluatorState],
-      mainInteractive: Boolean,
-      streams: SystemStreams,
-      env: Map[String, String],
-      setIdle: Boolean => Unit,
-      userSpecifiedProperties0: Map[String, String],
-      initialSystemProperties: Map[String, String]
-  ): (Boolean, Option[EvaluatorState]) = {
+  def main0(args: Array[String],
+            stateCache: MultiEvaluatorState,
+            mainInteractive: Boolean,
+            streams: SystemStreams,
+            env: Map[String, String],
+            setIdle: Boolean => Unit,
+            userSpecifiedProperties0: Map[String, String],
+            initialSystemProperties: Map[String, String]
+  ): (Boolean, MultiEvaluatorState) = {
 
     MillCliConfigParser.parse(args) match {
       // Cannot parse args
       case Left(msg) =>
         streams.err.println(msg)
-        (false, None)
+        (false, MultiEvaluatorState.empty)
 
       case Right(config) if config.help.value =>
         streams.out.println(MillCliConfigParser.usageText)
-        (true, None)
+        (true, MultiEvaluatorState.empty)
 
       case Right(config) if config.showVersion.value =>
         def p(k: String, d: String = "<unknown>") = System.getProperty(k, d)
@@ -87,7 +86,7 @@ object MillMain {
               "os.arch"
             )}""".stripMargin
         )
-        (true, None)
+        (true, MultiEvaluatorState.empty)
 
       case Right(config)
           if (
@@ -97,7 +96,7 @@ object MillMain {
         streams.err.println(
           "-i/--interactive/--repl/--no-server/--bsp must be passed in as the first argument"
         )
-        (false, None)
+        (false, MultiEvaluatorState.empty)
 
       case Right(config)
           if Seq(
@@ -109,7 +108,7 @@ object MillMain {
         streams.err.println(
           "Only one of -i/--interactive, --repl, --no-server or --bsp may be given"
         )
-        (false, None)
+        (false, MultiEvaluatorState.empty)
 
       case Right(config) =>
 
@@ -176,7 +175,7 @@ object MillMain {
               bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
 
             var repeatForBsp = true
-            var loopRes: (Boolean, Option[EvaluatorState]) = (false, None)
+            var loopRes: (Boolean, MultiEvaluatorState) = (false, MultiEvaluatorState.empty)
             while (repeatForBsp) {
               repeatForBsp = false
 
@@ -186,18 +185,18 @@ object MillMain {
                 watch = config.watch.value,
                 streams = streams,
                 setIdle = setIdle,
-                evaluate = (prevState: Option[EvaluatorState]) => {
-                  MillBuildBootstrap.evaluate(
-                    base = os.pwd,
+                evaluate = (prevState: Option[MultiEvaluatorState]) => {
+                  adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
+
+                  new MillBuildBootstrap(
+                    projectRoot = os.pwd,
                     config = config,
                     env = env,
                     threadCount = threadCount,
-                    userSpecifiedProperties = userSpecifiedProperties,
                     targetsAndParams = targetsAndParams,
-                    stateCache = prevState.orElse(stateCache),
-                    initialSystemProperties = initialSystemProperties,
+                    stateCache = prevState.getOrElse(stateCache),
                     logger = logger,
-                  )
+                  ).evaluate()
                 },
                 watchedPathsFile = os.pwd / "out" / "mill-watched-paths.txt"
               )
@@ -253,7 +252,7 @@ object MillMain {
     logger
   }
 
-  private def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream) = {
+  def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream) = {
     Seq(
       projectDir / ".config" / "mill-version",
       projectDir / ".mill-version"
@@ -272,4 +271,13 @@ object MillMain {
     }
   }
 
+  def adjustJvmProperties(userSpecifiedProperties: Map[String, String],
+                          initialSystemProperties: Map[String, String]): Unit = {
+    val currentProps = sys.props
+    val desiredProps = initialSystemProperties ++ userSpecifiedProperties
+    val systemPropertiesToUnset = desiredProps.keySet -- currentProps.keySet
+
+    for (k <- systemPropertiesToUnset) System.clearProperty(k)
+    for ((k, v) <- desiredProps) System.setProperty(k, v)
+  }
 }

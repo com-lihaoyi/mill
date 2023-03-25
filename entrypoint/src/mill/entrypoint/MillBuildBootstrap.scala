@@ -1,75 +1,109 @@
 package mill.entrypoint
-import mill.util.{Classpath, ColorLogger, Colors, PrefixLogger, PrintLogger, SystemStreams}
+import mill.util.{ColorLogger, PrefixLogger, Util}
 import mill.{BuildInfo, MillCliConfig}
-import mill.api.{Logger, PathRef}
-
-import java.io.{InputStream, PrintStream}
+import mill.api.{PathRef, internal}
 import mill.eval.Evaluator
 import mill.main.RunScript
-import mill.define.{BaseModule, Segments, SelectMode}
+import mill.define.{BaseModule, SelectMode}
 import os.Path
 
 import java.net.URLClassLoader
 
-object MillBuildBootstrap{
+@internal
+class MillBuildBootstrap(projectRoot: os.Path,
+                         config: MillCliConfig,
+                         env: Map[String, String],
+                         threadCount: Option[Int],
+                         targetsAndParams: Seq[String],
+                         stateCache: MultiEvaluatorState,
+                         logger: ColorLogger){
 
-  def evaluate(base: os.Path,
-               config: MillCliConfig,
-               env: Map[String, String],
-               threadCount: Option[Int],
-               userSpecifiedProperties: Map[String, String],
-               targetsAndParams: Seq[String],
-               stateCache: Option[EvaluatorState],
-               initialSystemProperties: Map[String, String],
-               logger: ColorLogger): Watching.Result[EvaluatorState] = {
+  val millBootClasspath = MillBuildBootstrap.prepareMillBootClasspath(projectRoot / "out")
 
-    def makeEvaluator(outPath: os.Path,
-                      baseModule: mill.define.BaseModule,
-                      sig: Int,
-                      scriptImportGraph: Map[os.Path, Seq[os.Path]],
-                      logger: ColorLogger,
-                      workerCache: Map[Segments, (Int, Any)]) = {
-      Evaluator(config.home, outPath, outPath, baseModule, logger, sig)
-        .withWorkerCache(workerCache.to(collection.mutable.Map))
-        .withEnv(env)
-        .withFailFast(!config.keepGoing.value)
-        .withThreadCount(threadCount)
-        .withScriptImportGraph(scriptImportGraph)
+  def evaluate(): Watching.Result[MultiEvaluatorState] = {
+
+    val multiState = evaluateRec(0)
+    Watching.Result(
+      watched = multiState.evalStates.flatMap(_.watched),
+      error = multiState.errorAndDepth.map(_._1),
+      result = multiState
+    )
+  }
+
+  def evaluateRec(depth: Int): MultiEvaluatorState = {
+
+    val prevStateOpt = stateCache
+      .evalStates
+      .lift(depth - stateCache.errorAndDepth.map(_._2).getOrElse(0))
+
+    val recEither =
+      if (os.exists(recRoot(depth) / "build.sc")) Right(evaluateRec(depth + 1))
+      else Left(new MillBuildModule(millBootClasspath, recRoot(depth)))
+
+    val buildModule = recEither match {
+      case Left(millBuildModule) => millBuildModule
+      case Right(metaMultiEvaluatorState) => metaMultiEvaluatorState.evalStates.last.buildModule
     }
 
-    val projectOut = base / "out"
-    val bootProjectOut = projectOut / "mill-build"
-    val millBootClasspath = prepareMillBootClasspath(bootProjectOut)
-    val bootModule = new MillBuildModule(millBootClasspath, base)
+    val evaluator = makeEvaluator(prevStateOpt, Map.empty, buildModule, 0, depth)
 
-    val millClassloaderSigHash = millBootClasspath
-      .map(p => (p, if (os.exists(p)) os.mtime(p) else 0))
-      .hashCode()
+    if (depth != 0) processRunClasspath(depth, prevStateOpt, 0, evaluator)
+    else Util.withContextClassloader(buildModule.getClass.getClassLoader) {
+      val (evaled, buildWatched) =
+        MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams) { _ => () }
 
-    val bootLogPrefix = "[mill-build] "
+      val evalState = EvaluatorState(
+        evaluator.workerCache.toMap,
+        buildWatched,
+        Map.empty,
+        null
+      )
 
-    val bootEvaluator = makeEvaluator(
-      bootProjectOut,
-      bootModule,
-      millClassloaderSigHash,
-      Map.empty,
+      val previousEvalStates = recEither.toSeq.flatMap(_.evalStates)
+      evaled match {
+        case Left(error) => MultiEvaluatorState(previousEvalStates, Some(error, depth))
+        case Right(_) => MultiEvaluatorState(previousEvalStates ++ Seq(evalState), None)
+      }
+    }
+  }
+
+  def makeEvaluator(prevStateOpt: Option[EvaluatorState],
+                    scriptImportGraph: Map[Path, Seq[Path]],
+                    baseModule: BaseModule, 
+                    millClassloaderSigHash: Int,
+                    recDepth: Int) = {
+    val bootLogPrefix = "[mill-build] " * recDepth
+    Evaluator(
+      config.home,
+      recOut(recDepth),
+      recOut(recDepth),
+      baseModule,
       PrefixLogger(logger, bootLogPrefix),
-      Map.empty
+      millClassloaderSigHash
     )
+      .withWorkerCache(prevStateOpt.map(_.workerCache).getOrElse(Map.empty).to(collection.mutable.Map))
+      .withEnv(env)
+      .withFailFast(!config.keepGoing.value)
+      .withThreadCount(threadCount)
+      .withScriptImportGraph(scriptImportGraph)
+  }
 
-    adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
+  def recRoot(recDepth: Int) = projectRoot / Seq.fill(recDepth)("mill-build")
+  def recOut(recDepth: Int) = projectRoot / "out" / Seq.fill(recDepth)("mill-build")
 
-    val (bootClassloaderImportTreeOpt, bootWatched) = stateCache match {
+  def processRunClasspath(recDepth: Int,
+                          prevStateOpt: Option[EvaluatorState],
+                          millClassloaderSigHash: Int,
+                          evaluator: Evaluator): MultiEvaluatorState = {
+    val (bootClassloaderImportGraphOpt, bootWatched) = prevStateOpt match {
       case Some(s) if s.watched.forall(_.validate()) =>
-        Right((s.bootClassloader, s.scriptImportGraph)) -> s.watched
+        Right((s.classLoader, s.scriptImportGraph)) -> s.watched
 
       case _ =>
-        evaluateWithWatches(bootEvaluator, Seq("{runClasspath,scriptImportGraph}")) {
-          case Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[os.Path, Seq[os.Path]]) =>
-
-            stateCache.map(_.bootClassloader).foreach(_.close())
-
+        MillBuildBootstrap.evaluateWithWatches(evaluator, Seq("{runClasspath,scriptImportGraph}")) {
+          case Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]]) =>
+            prevStateOpt.foreach(_.classLoader.close())
             val runClassLoader = new URLClassLoader(
               runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
               getClass.getClassLoader
@@ -79,54 +113,24 @@ object MillBuildBootstrap{
         }
     }
 
-    bootClassloaderImportTreeOpt match {
-      case Left(msg) =>
-        val prefixedBootMsg = msg.linesIterator.map(bootLogPrefix + _).mkString("\n")
-        (bootWatched, Some(prefixedBootMsg), None, false)
+    bootClassloaderImportGraphOpt match {
+      case Left(error) =>
+        MultiEvaluatorState(Nil, Some(error, recDepth))
+      case Right((classLoaderOpt, scriptImportGraph)) =>
+        val evalState = EvaluatorState(
+          evaluator.workerCache.toMap,
+          bootWatched,
+          scriptImportGraph,
+          classLoaderOpt
+        )
 
-      case Right((bootClassloader, scriptImportGraph)) =>
-        mill.util.Util.withContextClassloader(bootClassloader) {
-
-          val cls = bootClassloader.loadClass("millbuild.build$")
-          val rootModule = cls.getField("MODULE$").get(cls).asInstanceOf[mill.define.BaseModule]
-          val buildEvaluator = makeEvaluator(
-            projectOut,
-            rootModule,
-            // We do not pass the build.sc classpath has here, as any changes
-            // in build.sc and other scripts will be detected at a fine-grained
-            // script-by-script level by the Evaluator
-            millClassloaderSigHash,
-            scriptImportGraph,
-            logger,
-            stateCache.map(_.workerCache).getOrElse(Map.empty)
-          )
-
-          val (evaled, buildWatched) =
-            evaluateWithWatches(buildEvaluator, targetsAndParams) { _ => () }
-
-          val allWatchedPaths = bootWatched ++ buildWatched
-
-          val evalState = EvaluatorState(
-            buildEvaluator.workerCache.toMap,
-            bootWatched,
-            scriptImportGraph,
-            bootClassloader
-          )
-          (allWatchedPaths, evaled.left.toOption, Some(evalState), evaled.isRight)
-        }
+        MultiEvaluatorState(List(evalState), None)
     }
   }
+}
 
-  def adjustJvmProperties(userSpecifiedProperties: Map[String, String],
-                          initialSystemProperties: Map[String, String]): Unit = {
-    val currentProps = sys.props
-    val desiredProps = initialSystemProperties ++ userSpecifiedProperties
-    val systemPropertiesToUnset = desiredProps.keySet -- currentProps.keySet
-
-    for (k <- systemPropertiesToUnset) System.clearProperty(k)
-    for ((k, v) <- desiredProps) System.setProperty(k, v)
-  }
-
+@internal
+object MillBuildBootstrap{
   def prepareMillBootClasspath(millBuildBase: Path) = {
     val enclosingClasspath: Seq[Path] = mill.util.Classpath
       .classpath(getClass.getClassLoader)

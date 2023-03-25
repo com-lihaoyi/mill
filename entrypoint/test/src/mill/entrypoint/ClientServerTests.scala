@@ -8,7 +8,8 @@ import mill.util.SystemStreams
 import scala.jdk.CollectionConverters._
 import utest._
 
-class EchoServer extends MillServerMain[Int] {
+class EchoServer extends MillServerMain[Option[Int]] {
+  def stateCache0 = None
   def main0(
       args: Array[String],
       stateCache: Option[Int],

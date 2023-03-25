@@ -1,5 +1,6 @@
 package mill.entrypoint
 
+import mill.api.internal
 import mill.util.{ColorLogger, SystemStreams}
 
 import java.io.InputStream
@@ -9,8 +10,9 @@ import scala.annotation.tailrec
  * Logic around the "watch and wait" functionality in Mill: re-run on change,
  * re-run when the user presses Enter, printing status messages, etc.
  */
+@internal
 object Watching{
-  type Result[T] = (Seq[Watchable], Option[String], Option[T], Boolean)
+  case class Result[T](watched: Seq[Watchable], error: Option[String], result: T)
 
   def watchLoop[T](logger: ColorLogger,
                    ringBell: Boolean,
@@ -18,14 +20,14 @@ object Watching{
                    streams: SystemStreams,
                    setIdle: Boolean => Unit,
                    evaluate: Option[T] => Result[T],
-                   watchedPathsFile: os.Path): (Boolean, Option[T]) = {
+                   watchedPathsFile: os.Path): (Boolean, T) = {
     var prevState: Option[T] = None
     while (true) {
-      val (watchables, errorOpt, resultOpt, isSuccess) = evaluate(prevState)
-      prevState = resultOpt
+      val Result(watchables, errorOpt, result) = evaluate(prevState)
+      prevState = Some(result)
       errorOpt.foreach(logger.error)
       if (ringBell) {
-        if (isSuccess) println("\u0007")
+        if (errorOpt.isEmpty) println("\u0007")
         else {
           println("\u0007")
           Thread.sleep(250)
@@ -34,7 +36,7 @@ object Watching{
       }
 
       if (!watch) {
-        return (isSuccess, resultOpt)
+        return (errorOpt.isEmpty, result)
       }
 
       val alreadyStale = watchables.exists(!_.validate())

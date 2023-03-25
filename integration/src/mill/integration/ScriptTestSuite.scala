@@ -3,7 +3,7 @@ package mill.integration
 import mainargs.Flag
 import mill.MillCliConfig
 import mill.define.SelectMode
-import mill.entrypoint.{EvaluatorState, MillBuildBootstrap, Watching}
+import mill.entrypoint.{EvaluatorState, MillBuildBootstrap, MillMain, MultiEvaluatorState, Watching}
 import mill.util.SystemStreams
 import os.Path
 import utest._
@@ -46,18 +46,17 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
       watch = config.watch.value,
       streams = streams,
       setIdle = _ => (),
-      evaluate = (prevStateOpt: Option[EvaluatorState]) => {
-        MillBuildBootstrap.evaluate(
-          base = wd,
+      evaluate = (prevStateOpt: Option[MultiEvaluatorState]) => {
+        MillMain.adjustJvmProperties(userSpecifiedProperties, sys.props.toMap)
+        new MillBuildBootstrap(
+          projectRoot = wd,
           config = config,
           env = Map.empty,
           threadCount = threadCount,
-          userSpecifiedProperties = userSpecifiedProperties,
           targetsAndParams = s.toList,
-          stateCache = None,
-          initialSystemProperties = sys.props.toMap,
+          stateCache = MultiEvaluatorState.empty,
           logger = logger,
-        )
+        ).evaluate()
       },
       watchedPathsFile = wd / "out" / "mill-watched-paths.txt"
     )

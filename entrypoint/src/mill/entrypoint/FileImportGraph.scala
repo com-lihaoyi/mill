@@ -1,7 +1,10 @@
 package mill.entrypoint
 
+import mill.api.internal
+
 import scala.collection.mutable
 
+@internal
 case class FileImportGraph(seenScripts: Map[os.Path, String],
                            ivyDeps: Set[String],
                            importGraphEdges: Map[os.Path, Seq[os.Path]],
@@ -10,6 +13,7 @@ case class FileImportGraph(seenScripts: Map[os.Path, String],
  * Logic around traversing the `import $file` graph, extracting necessary info
  * and converting it to a convenient data structure for downstream code to use
  */
+@internal
 object FileImportGraph{
   import mill.api.JsonFormatters.pathReadWrite
   implicit val readWriter: upickle.default.ReadWriter[FileImportGraph] = upickle.default.macroRW

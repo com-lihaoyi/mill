@@ -8,29 +8,30 @@ import scala.jdk.CollectionConverters._
 import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.BuildInfo
-import mill.entrypoint.MillMain
 import mill.main.client._
-import mill.api.DummyInputStream
+import mill.api.internal
 import mill.main.client.lock.{Lock, Locks}
 import mill.util.SystemStreams
 
-import java.util.function.Consumer
-
+@internal
 trait MillServerMain[T] {
-  var stateCache = Option.empty[T]
+  def stateCache0: T
+  var stateCache = stateCache0
   def main0(
       args: Array[String],
-      stateCache: Option[T],
+      stateCache: T,
       mainInteractive: Boolean,
       streams: SystemStreams,
       env: Map[String, String],
       setIdle: Boolean => Unit,
       systemProperties: Map[String, String],
       initialSystemProperties: Map[String, String]
-  ): (Boolean, Option[T])
+  ): (Boolean, T)
 }
 
-object MillServerMain extends MillServerMain[EvaluatorState] {
+@internal
+object MillServerMain extends MillServerMain[MultiEvaluatorState] {
+  def stateCache0 = MultiEvaluatorState.empty
   def main(args0: Array[String]): Unit = {
     // Disable SIGINT interrupt signal in the Mill server.
     //
@@ -56,14 +57,14 @@ object MillServerMain extends MillServerMain[EvaluatorState] {
 
   def main0(
       args: Array[String],
-      stateCache: Option[EvaluatorState],
+      stateCache: MultiEvaluatorState,
       mainInteractive: Boolean,
       streams: SystemStreams,
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String]
-  ): (Boolean, Option[EvaluatorState]) = {
+  ): (Boolean, MultiEvaluatorState) = {
     MillMain.main0(
       args,
       stateCache,

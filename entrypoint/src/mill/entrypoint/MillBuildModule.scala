@@ -1,12 +1,11 @@
 package mill.entrypoint
-import coursier.{Dependency, Module, Organization}
 
-import collection.mutable
 import mill._
-import mill.api.{Loose, PathRef, Result}
+import mill.api.{PathRef, Result, internal}
 import mill.define.Task
 import mill.scalalib.{BoundDep, DepSyntax, Lib, Versions}
 import os.Path
+@internal
 class MillBuildModule(enclosingClasspath: Seq[os.Path], projectRoot: os.Path)
   extends mill.define.BaseModule(projectRoot)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(()))
   with mill.scalalib.ScalaModule{

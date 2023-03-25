@@ -1,15 +1,16 @@
 package mill.entrypoint
 
+import mill.api.internal
 import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
 import mill.util.SystemStreams
 
-import java.io.{InputStream, PrintStream}
 import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 
+@internal
 class BspContext(streams: SystemStreams, home: os.Path) {
   // BSP mode, run with a simple evaluator command to inject the evaluator
   // The command returns when the server exists or the workspace should be reloaded
