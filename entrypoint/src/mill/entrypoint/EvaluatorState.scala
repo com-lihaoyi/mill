@@ -15,6 +15,6 @@ case class EvaluatorState(workerCache: Map[Segments, (Int, Any)],
                           watched: Seq[Watchable],
                           scriptImportGraph: Map[os.Path, Seq[os.Path]],
                           classLoader: java.net.URLClassLoader){
-  val cls = classLoader.loadClass("millbuild.build$")
-  val buildModule = cls.getField("MODULE$").get(cls).asInstanceOf[BaseModule]
+  lazy val cls = classLoader.loadClass("millbuild.build$")
+  lazy val buildModule = cls.getField("MODULE$").get(cls).asInstanceOf[BaseModule]
 }

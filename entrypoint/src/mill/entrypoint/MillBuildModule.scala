@@ -2,29 +2,41 @@ package mill.entrypoint
 
 import mill._
 import mill.api.{PathRef, Result, internal}
-import mill.define.Task
+import mill.define.{Caller, Discover, Task}
 import mill.scalalib.{BoundDep, DepSyntax, Lib, Versions}
-import os.Path
+import pprint.Util.literalize
+
+
+class MillBuildWrapperModule(projectRoot: os.Path,
+                             enclosingClasspath: Seq[os.Path]) extends mill.define.BaseModule(projectRoot)(implicitly, implicitly, implicitly, implicitly, Caller(())) {
+  implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
+
+  object millbuild extends MillBuildModule {
+    def millBuildEnclosingClasspath = enclosingClasspath
+    def millBuildProjectRoot = projectRoot
+  }
+}
+
 @internal
-class MillBuildModule(enclosingClasspath: Seq[os.Path], projectRoot: os.Path)
-  extends mill.define.BaseModule(projectRoot)(implicitly, implicitly, implicitly, implicitly, mill.define.Caller(()))
-  with mill.scalalib.ScalaModule{
+trait MillBuildModule extends mill.scalalib.ScalaModule{
 
-  def millSourcePath = projectRoot / "mill-build"
+  def millBuildEnclosingClasspath: Seq[os.Path]
+  def millBuildProjectRoot: os.Path
 
-  implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
+  def millSourcePath = millBuildProjectRoot / "mill-build"
 
-  def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task{
+  def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task {
     // We need to resolve the sources to make GenIdeaExtendedTests pass for
     // some reason, but we don't need to actually return them (???)
     val unused = super.resolveDeps(deps, true)()
 
     super.resolveDeps(deps, false)()
   }
+
   def scalaVersion = "2.13.10"
 
   def parseBuildFiles = T.input {
-    FileImportGraph.parseBuildFiles(projectRoot)
+    FileImportGraph.parseBuildFiles(millBuildProjectRoot)
   }
 
   def ivyDeps = T {
@@ -40,7 +52,7 @@ class MillBuildModule(enclosingClasspath: Seq[os.Path], projectRoot: os.Path)
           )
         )
     ) ++
-    Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+      Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
 
   def scriptSources = T.sources {
@@ -51,7 +63,13 @@ class MillBuildModule(enclosingClasspath: Seq[os.Path], projectRoot: os.Path)
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
-      MillBuildModule.generateWrappedSources(projectRoot, scriptSources(), parsed.seenScripts, T.dest)
+      MillBuildModule.generateWrappedSources(
+        millBuildProjectRoot,
+        scriptSources(),
+        parsed.seenScripts,
+        T.dest,
+        millBuildEnclosingClasspath
+      )
       Result.Success(Seq(PathRef(T.dest)))
     }
   }
@@ -61,7 +79,8 @@ class MillBuildModule(enclosingClasspath: Seq[os.Path], projectRoot: os.Path)
       case (k, vs) =>
         // Convert the import graph from source-file paths to generated-file paths
         def normalize(p: os.Path) =
-          generatedSources().head.path / FileImportGraph.fileImportToSegments(projectRoot, p, false)
+          generatedSources().head.path / FileImportGraph.fileImportToSegments(millBuildProjectRoot, p, false)
+
         (normalize(k), vs.map(normalize))
     }
   }
@@ -71,17 +90,17 @@ class MillBuildModule(enclosingClasspath: Seq[os.Path], projectRoot: os.Path)
   }
 
   def unmanagedClasspath = mill.define.Target.input {
-    mill.api.Loose.Agg.from(enclosingClasspath.map(p => mill.api.PathRef(p))) ++
-    lineNumberPluginClasspath()
+    mill.api.Loose.Agg.from(millBuildEnclosingClasspath.map(p => mill.api.PathRef(p))) ++
+      lineNumberPluginClasspath()
   }
 
   def scalacPluginIvyDeps = Agg(
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
   )
 
-  def scalacOptions = T{
+  def scalacOptions = T {
     super.scalacOptions() ++
-    Seq("-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","), "-nowarn")
+      Seq("-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","), "-nowarn")
   }
 
   def scalacPluginClasspath = super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
@@ -98,8 +117,9 @@ class MillBuildModule(enclosingClasspath: Seq[os.Path], projectRoot: os.Path)
 object MillBuildModule{
   def generateWrappedSources(base: os.Path,
                              scriptSources: Seq[PathRef],
-                             scriptCode: Map[Path, String],
-                             targetDest: os.Path) = {
+                             scriptCode: Map[os.Path, String],
+                             targetDest: os.Path,
+                             enclosingClasspath: Seq[os.Path]) = {
     for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
@@ -109,7 +129,8 @@ object MillBuildModule{
           relative,
           scriptSource.path / os.up,
           FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1),
-          scriptSource.path.baseName
+          scriptSource.path.baseName,
+          enclosingClasspath
         ) +
         scriptCode(scriptSource.path) +
         MillBuildModule.bottom,
@@ -118,7 +139,8 @@ object MillBuildModule{
     }
   }
 
-  def top(relative: os.RelPath, base: os.Path, pkg: Seq[String], name: String) = {
+  def top(relative: os.RelPath, base: os.Path, pkg: Seq[String], name: String, enclosingClasspath: Seq[os.Path]) = {
+    pprint.log(base)
     val foreign =
       if (pkg.size > 1 || name != "build") {
         // Computing a path in "out" that uniquely reflects the location
@@ -139,7 +161,7 @@ object MillBuildModule{
        |package ${pkg.mkString(".")}
        |import _root_.mill._
        |object $name
-       |extends _root_.mill.define.BaseModule(_root_.os.Path(${pprint.Util.literalize(base.toString)}), foreign0 = $foreign)(
+       |extends _root_.mill.define.BaseModule(_root_.os.Path(${literalize(base.toString)}), foreign0 = $foreign)(
        |  implicitly, implicitly, implicitly, implicitly, _root_.mill.define.Caller(())
        |)
        |with $name{
@@ -148,7 +170,10 @@ object MillBuildModule{
        |}
        |
        |sealed trait $name extends _root_.mill.main.MainModule{
-       |
+       |trait MillBuildModule extends mill.entrypoint.MillBuildModule {
+       |  def millBuildEnclosingClasspath = ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_))
+       |  def millBuildProjectRoot = _root_.os.Path(${literalize((base / os.up).toString)})
+       |}
        |//MILL_USER_CODE_START_MARKER
        |""".stripMargin
   }

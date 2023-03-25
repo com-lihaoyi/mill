@@ -32,39 +32,48 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
   def evaluateRec(depth: Int): MultiEvaluatorState = {
 
+    println(s"+evaluateRec($depth)")
     val prevStateOpt = stateCache
       .evalStates
       .lift(depth - stateCache.errorAndDepth.map(_._2).getOrElse(0))
 
     val recEither =
       if (os.exists(recRoot(depth) / "build.sc")) Right(evaluateRec(depth + 1))
-      else Left(new MillBuildModule(millBootClasspath, recRoot(depth)))
+      else Left(new MillBuildWrapperModule(recRoot(depth - 1), millBootClasspath))
 
+//    pprint.log(recEither)
     val buildModule = recEither match {
       case Left(millBuildModule) => millBuildModule
-      case Right(metaMultiEvaluatorState) => metaMultiEvaluatorState.evalStates.last.buildModule
+      case Right(metaMultiEvaluatorState) =>
+        metaMultiEvaluatorState.evalStates.last.buildModule
     }
+
+    pprint.log(buildModule.getClass)
 
     val evaluator = makeEvaluator(prevStateOpt, Map.empty, buildModule, 0, depth)
 
-    if (depth != 0) processRunClasspath(depth, prevStateOpt, 0, evaluator)
-    else Util.withContextClassloader(buildModule.getClass.getClassLoader) {
-      val (evaled, buildWatched) =
-        MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams) { _ => () }
+    val res =
+      if (depth != 0) processRunClasspath(depth, prevStateOpt, 0, evaluator)
+      else Util.withContextClassloader(buildModule.getClass.getClassLoader) {
+        println("processFinalTargets")
+        val (evaled, buildWatched) =
+          MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams) { _ => () }
 
-      val evalState = EvaluatorState(
-        evaluator.workerCache.toMap,
-        buildWatched,
-        Map.empty,
-        null
-      )
+        val evalState = EvaluatorState(
+          evaluator.workerCache.toMap,
+          buildWatched,
+          Map.empty,
+          null
+        )
 
-      val previousEvalStates = recEither.toSeq.flatMap(_.evalStates)
-      evaled match {
-        case Left(error) => MultiEvaluatorState(previousEvalStates, Some(error, depth))
-        case Right(_) => MultiEvaluatorState(previousEvalStates ++ Seq(evalState), None)
+        val previousEvalStates = recEither.toSeq.flatMap(_.evalStates)
+        evaled match {
+          case Left(error) => MultiEvaluatorState(previousEvalStates, Some(error, depth))
+          case Right(_) => MultiEvaluatorState(previousEvalStates ++ Seq(evalState), None)
+        }
       }
-    }
+    println(s"-evaluateRec($depth)")
+    res
   }
 
   def makeEvaluator(prevStateOpt: Option[EvaluatorState],
@@ -96,13 +105,19 @@ class MillBuildBootstrap(projectRoot: os.Path,
                           prevStateOpt: Option[EvaluatorState],
                           millClassloaderSigHash: Int,
                           evaluator: Evaluator): MultiEvaluatorState = {
+    println("processRunClasspath")
     val (bootClassloaderImportGraphOpt, bootWatched) = prevStateOpt match {
       case Some(s) if s.watched.forall(_.validate()) =>
         Right((s.classLoader, s.scriptImportGraph)) -> s.watched
 
       case _ =>
-        MillBuildBootstrap.evaluateWithWatches(evaluator, Seq("{runClasspath,scriptImportGraph}")) {
-          case Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]]) =>
+        MillBuildBootstrap.evaluateWithWatches(
+          evaluator,
+          Seq("millbuild.{runClasspath,scriptImportGraph,generatedSources}")
+        ) {
+          case Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]], generatedSources: Seq[PathRef]) =>
+
+            pprint.log(generatedSources.map(_.path))
             prevStateOpt.foreach(_.classLoader.close())
             val runClassLoader = new URLClassLoader(
               runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
