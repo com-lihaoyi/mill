@@ -112,8 +112,8 @@ object MillBootstrapModule{
        |package millbuild${pkg.map("." + _).mkString}
        |import _root_.mill._
        |object $name
-       |extends _root_.mill.define.BaseModule(os.Path(${pprint.Util.literalize(base.toString)}), foreign0 = $foreign)(
-       |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
+       |extends _root_.mill.define.BaseModule(_root_.os.Path(${pprint.Util.literalize(base.toString)}), foreign0 = $foreign)(
+       |  implicitly, implicitly, implicitly, implicitly, _root_.mill.define.Caller(())
        |)
        |with $name{
        |  @_root_.scala.annotation.nowarn("cat=deprecation")
@@ -127,17 +127,20 @@ object MillBootstrapModule{
   }
 
   val bottom = "\n}"
+
+  /**
+   * We perform a depth-first traversal of the import graph of `.sc` files,
+   * starting from `build.sc`, collecting the information necessary to
+   * instantiate the [[MillBootstrapModule]]
+   */
   def parseBuildFiles(base: os.Path) = {
-
-
     val seenScripts = mutable.Map.empty[os.Path, String]
     val seenIvy = mutable.Set.empty[String]
     val importGraphEdges = mutable.Map.empty[String, (os.Path, Seq[String])]
     val errors = mutable.Buffer.empty[String]
-    def traverseScripts(s: os.Path): Unit = {
+    def walkScripts(s: os.Path): Unit = {
       val importGraphId = prepareImportGraphEdges(s)
       importGraphEdges(importGraphId) = (s, Nil)
-      val fileImports = mutable.Set.empty[os.Path]
 
       if (!seenScripts.contains(s)) {
         val txt = os.read(s)
@@ -148,56 +151,54 @@ object MillBootstrapModule{
             // fixes the parse error
             seenScripts(s) = ""
             errors.append(err)
+
           case Right(stmts) =>
-            val parsedStmts = Parsers.parseImportHooksWithIndices(stmts)
-
+            val fileImports = mutable.Set.empty[os.Path]
             val transformedStmts = mutable.Buffer.empty[String]
-
-            for((stmt0, importTrees) <- parsedStmts) {
-              var stmt = stmt0
-              for(importTree <- importTrees) {
-                val (start, patchString, end) = importTree match {
-                  case ImportTree(Seq(("$ivy", _), rest@_*), mapping, start, end) =>
-                    seenIvy.addAll(mapping.map(_._1))
-                    (start, "_root_._", end)
-                  case ImportTree(Seq(("$file", _), rest@_*), mapping, start, end) =>
-                    val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
-
-                    val patchPrefix = prepareImportGraphEdges(nextPaths(0) / os.up)
-                    fileImports.addAll(nextPaths)
-
-                    importGraphEdges(importGraphId) = (
-                      importGraphEdges(importGraphId)._1,
-                      importGraphEdges(importGraphId)._2 ++ nextPaths.map(prepareImportGraphEdges)
-                    )
-
-                    if (rest.isEmpty) (start, "_root_._", end)
-                    else {
-                      val end = rest.last._2
-                      (start, patchPrefix, end)
-                    }
-                }
-                val numNewLines = stmt.substring(start, end).count(_ == '\n')
-                stmt = stmt.patch(start, patchString + mill.util.Util.newLine * numNewLines, end - start)
-              }
-
-              transformedStmts.append(stmt)
+            for ((stmt0, importTrees) <- Parsers.parseImportHooksWithIndices(stmts)) {
+              walkStmt(s, stmt0, importTrees, importGraphId, fileImports, transformedStmts)
             }
-            val finalCode = transformedStmts.mkString
-            seenScripts(s) = finalCode
+            seenScripts(s) = transformedStmts.mkString
+            fileImports.foreach(walkScripts)
         }
       }
-      fileImports.foreach(traverseScripts)
     }
 
-    def nextPathFor(s: os.Path, rest: Seq[String]): os.Path = {
-      // Manually do the foldLeft to work around bug in os-lib
-      // https://github.com/com-lihaoyi/os-lib/pull/160
-      val restSegments = rest
-        .map { case "^" => os.up case s => os.rel / s }
-        .foldLeft(os.rel)(_ / _)
+    def walkStmt(s: os.Path,
+                 stmt0: String,
+                 importTrees: Seq[ImportTree],
+                 importGraphId: String,
+                 fileImports: mutable.Set[os.Path],
+                 transformedStmts: mutable.Buffer[String]) = {
 
-      s / os.up / restSegments / os.up / s"${rest.last}.sc"
+      var stmt = stmt0
+      for (importTree <- importTrees) {
+        val (start, patchString, end) = importTree match {
+          case ImportTree(Seq(("$ivy", _), rest@_*), mapping, start, end) =>
+            seenIvy.addAll(mapping.map(_._1))
+            (start, "_root_._", end)
+          case ImportTree(Seq(("$file", _), rest@_*), mapping, start, end) =>
+            val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
+
+            val patchPrefix = prepareImportGraphEdges(nextPaths(0) / os.up)
+            fileImports.addAll(nextPaths)
+
+            importGraphEdges(importGraphId) = (
+              importGraphEdges(importGraphId)._1,
+              importGraphEdges(importGraphId)._2 ++ nextPaths.map(prepareImportGraphEdges)
+            )
+
+            if (rest.isEmpty) (start, "_root_._", end)
+            else {
+              val end = rest.last._2
+              (start, patchPrefix, end)
+            }
+        }
+        val numNewLines = stmt.substring(start, end).count(_ == '\n')
+        stmt = stmt.patch(start, patchString + mill.util.Util.newLine * numNewLines, end - start)
+      }
+
+      transformedStmts.append(stmt)
     }
 
     def prepareImportGraphEdges(s: os.Path) = {
@@ -205,7 +206,17 @@ object MillBootstrapModule{
       (Seq("millbuild") ++ Seq.fill(rel.ups)("^") ++ rel.segments).mkString(".").stripSuffix(".sc")
     }
 
-    traverseScripts(base / "build.sc")
+    walkScripts(base / "build.sc")
     (seenScripts.toSeq, seenIvy.toSeq, importGraphEdges.toMap, errors)
+  }
+
+  def nextPathFor(s: os.Path, rest: Seq[String]): os.Path = {
+    // Manually do the foldLeft to work around bug in os-lib
+    // https://github.com/com-lihaoyi/os-lib/pull/160
+    val restSegments = rest
+      .map { case "^" => os.up case s => os.rel / s }
+      .foldLeft(os.rel)(_ / _)
+
+    s / os.up / restSegments / os.up / s"${rest.last}.sc"
   }
 }

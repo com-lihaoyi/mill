@@ -40,18 +40,17 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
 /**
  * Evaluate tasks.
  */
-class Evaluator private (
-                          _home: os.Path,
-                          _outPath: os.Path,
-                          _externalOutPath: os.Path,
-                          _rootModule: mill.define.BaseModule,
-                          _baseLogger: ColorLogger,
-                          _classLoaderSigHash: Int,
-                          _workerCache: mutable.Map[Segments, (Int, Any)],
-                          _env: Map[String, String],
-                          _failFast: Boolean,
-                          _threadCount: Option[Int],
-                          _scriptImportGraph: Seq[ScriptNode]
+class Evaluator private (_home: os.Path,
+                         _outPath: os.Path,
+                         _externalOutPath: os.Path,
+                         _rootModule: mill.define.BaseModule,
+                         _baseLogger: ColorLogger,
+                         _classLoaderSigHash: Int,
+                         _workerCache: mutable.Map[Segments, (Int, Any)],
+                         _env: Map[String, String],
+                         _failFast: Boolean,
+                         _threadCount: Option[Int],
+                         _scriptImportGraph: Seq[ScriptNode]
 ) {
 
   import Evaluator.Terminal
@@ -336,18 +335,9 @@ class Evaluator private (
       val importedScripts = scriptImportGraph.filter(e => classes.contains(e.cls))
 
       val transitiveScripts = Graph.transitiveNodes(importedScripts)
-//      pprint.log(scriptImportGraph)
-//      pprint.log(classes)
-//      pprint.log(importedScripts)
-//      pprint.log(transitiveScripts)
       transitiveScripts.iterator.map(n => PathRef(n.path).sig).sum
     }
 
-//    pprint.log(terminal.map(_.segments.render))
-//    pprint.log(externalInputsHash)
-//    pprint.log(sideHashes)
-//    pprint.log(classLoaderSigHash)
-//    pprint.log(scriptsHash)
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
     terminal match {

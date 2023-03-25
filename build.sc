@@ -126,8 +126,10 @@ object Deps {
   val ammoniteVersion = "3.0.0-M0-5-0af4d9e7"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
+  œval bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   val coursier = ivy"io.get-coursier::coursier:2.1.0"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.11"
+  val requests = ivy"com.lihaoyi::requests:0.7.0"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -338,8 +340,8 @@ object main extends MillModule {
   override def ivyDeps = Agg(
     Deps.windowsAnsi,
     Deps.mainargs,
-    ivy"io.get-coursier:interface:1.0.11",
-    ivy"com.lihaoyi::requests:0.7.0"
+    Deps.coursierInterface,
+    Deps.requests
   )
   override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
@@ -486,10 +488,6 @@ object main extends MillModule {
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
-
-  object bootstrap extends MillModule {
-    override def moduleDeps = Seq(main, scalalib)
-  }
 }
 
 object testrunner extends MillModule {
