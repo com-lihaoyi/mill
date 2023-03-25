@@ -107,7 +107,6 @@ object MillBuildBootstrap{
           val allWatchedPaths = bootWatched ++ buildWatched
 
           val evalState = EvaluatorState(
-            rootModule,
             buildEvaluator.workerCache.toMap,
             bootWatched,
             systemProperties.keySet,
