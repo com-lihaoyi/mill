@@ -41,6 +41,7 @@ case class Ctx private (
     crossInstances
   )
   def withCrossInstances(crossInstances: Seq[AnyRef]): Ctx = copy(crossInstances = crossInstances)
+  def withSegments(segments: Segments): Ctx = copy(segments = segments)
 }
 
 object Ctx {
