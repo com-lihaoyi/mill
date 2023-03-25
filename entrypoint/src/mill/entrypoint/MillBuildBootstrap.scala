@@ -5,8 +5,7 @@ import mill.api.{Logger, PathRef}
 
 import java.io.{InputStream, PrintStream}
 import mill.eval.Evaluator
-import mill.internal.Watchable
-import mill.main.{EvaluatorState, RunScript}
+import mill.main.RunScript
 import mill.define.{BaseModule, ScriptNode, SelectMode}
 import os.Path
 

@@ -7,7 +7,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import io.github.retronym.java9rtexport.Export
 import mill.api.DummyInputStream
-import mill.main.{BspServerResult, EvaluatorState}
+import mill.main.BspServerResult
 import mill.util.{PrintLogger, SystemStreams}
 
 

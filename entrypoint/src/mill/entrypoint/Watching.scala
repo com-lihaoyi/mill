@@ -1,6 +1,5 @@
 package mill.entrypoint
 
-import mill.internal.Watchable
 import mill.util.{ColorLogger, SystemStreams}
 
 import java.io.InputStream
@@ -45,7 +44,7 @@ object Watching{
     ???
   }
 
-  def watchAndWait(logger: ColorLogger, setIdle: Boolean => Unit, stdin: InputStream, watched: Seq[mill.internal.Watchable]) = {
+  def watchAndWait(logger: ColorLogger, setIdle: Boolean => Unit, stdin: InputStream, watched: Seq[Watchable]) = {
     setIdle(true)
     val watchedPaths = watched.count(_.isInstanceOf[Watchable.Path])
     val watchedValues = watched.size - watchedPaths

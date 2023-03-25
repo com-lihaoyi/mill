@@ -1,5 +1,4 @@
-package mill.internal
-
+package mill.entrypoint
 
 trait Watchable {
   def poll(): Long
