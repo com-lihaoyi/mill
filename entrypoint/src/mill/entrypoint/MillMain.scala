@@ -186,7 +186,7 @@ object MillMain {
                 watch = config.watch.value,
                 streams = streams,
                 setIdle = setIdle,
-                evaluate = () => {
+                evaluate = (prevState: Option[EvaluatorState]) => {
                   MillBuildBootstrap.evaluate(
                     base = os.pwd,
                     config = config,
@@ -194,7 +194,7 @@ object MillMain {
                     threadCount = threadCount,
                     systemProperties = systemProps,
                     targetsAndParams = targetsAndParams,
-                    stateCache = stateCache,
+                    stateCache = prevState.orElse(stateCache),
                     initialSystemProperties = initialSystemProperties,
                     logger = logger,
                   )

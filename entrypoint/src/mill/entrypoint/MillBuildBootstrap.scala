@@ -6,7 +6,7 @@ import mill.api.{Logger, PathRef}
 import java.io.{InputStream, PrintStream}
 import mill.eval.Evaluator
 import mill.main.RunScript
-import mill.define.{BaseModule, ScriptNode, SelectMode}
+import mill.define.{BaseModule, ScriptNode, Segments, SelectMode}
 import os.Path
 
 import java.net.URLClassLoader
@@ -27,9 +27,10 @@ object MillBuildBootstrap{
                       baseModule: mill.define.BaseModule,
                       sig: Int,
                       scriptImportGraph: Seq[ScriptNode],
-                      logger: ColorLogger) = {
+                      logger: ColorLogger,
+                      workerCache: Map[Segments, (Int, Any)]) = {
       Evaluator(config.home, outPath, outPath, baseModule, logger, sig)
-        .withWorkerCache(collection.mutable.Map.empty)
+        .withWorkerCache(workerCache.to(collection.mutable.Map))
         .withEnv(env)
         .withFailFast(!config.keepGoing.value)
         .withThreadCount(threadCount)
@@ -52,7 +53,8 @@ object MillBuildBootstrap{
       bootModule,
       millClassloaderSigHash,
       Nil,
-      PrefixLogger(logger, bootLogPrefix)
+      PrefixLogger(logger, bootLogPrefix),
+      Map.empty
     )
 
     adjustJvmProperties(systemProperties, stateCache, initialSystemProperties)
@@ -89,29 +91,32 @@ object MillBuildBootstrap{
 
           val cls = bootClassloader.loadClass("millbuild.build$")
           val rootModule = cls.getField("MODULE$").get(cls).asInstanceOf[mill.define.BaseModule]
-          val buildFileEvaluator = makeEvaluator(
+          val buildEvaluator = makeEvaluator(
             projectOut,
             rootModule,
+            // We do not pass the build.sc classpath has here, as any changes
+            // in build.sc and other scripts will be detected at a fine-grained
+            // script-by-script level by the Evaluator
             millClassloaderSigHash,
             scriptImportGraph,
-            logger
+            logger,
+            stateCache.map(_.workerCache).getOrElse(Map.empty)
           )
 
           val (evaled, buildWatched) =
-            evaluateWithWatches(buildFileEvaluator, targetsAndParams) { _ => () }
+            evaluateWithWatches(buildEvaluator, targetsAndParams) { _ => () }
 
-          val buildWatchedPaths = bootWatched ++ buildWatched
+          val allWatchedPaths = bootWatched ++ buildWatched
 
           val evalState = EvaluatorState(
             rootModule,
-            Nil,
-            buildFileEvaluator.workerCache,
-            Nil,
+            buildEvaluator.workerCache.toMap,
+            bootWatched,
             systemProperties.keySet,
             scriptImportGraph,
             bootClassloader
           )
-          (buildWatchedPaths, evaled.left.toOption, Some(evalState), evaled.isRight)
+          (allWatchedPaths, evaled.left.toOption, Some(evalState), evaled.isRight)
         }
     }
   }

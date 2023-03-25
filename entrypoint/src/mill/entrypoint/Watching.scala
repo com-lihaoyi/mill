@@ -12,17 +12,17 @@ import scala.annotation.tailrec
 object Watching{
   type Result[T] = (Seq[Watchable], Option[String], Option[T], Boolean)
 
-
   def watchLoop[T](logger: ColorLogger,
                    ringBell: Boolean,
                    watch: Boolean,
                    streams: SystemStreams,
                    setIdle: Boolean => Unit,
-                   evaluate: () => Result[T],
+                   evaluate: Option[T] => Result[T],
                    watchedPathsFile: os.Path): (Boolean, Option[T]) = {
+    var prevState: Option[T] = None
     while (true) {
-      val (watchables, errorOpt, resultOpt, isSuccess) = evaluate()
-
+      val (watchables, errorOpt, resultOpt, isSuccess) = evaluate(prevState)
+      prevState = resultOpt
       errorOpt.foreach(logger.error)
       if (ringBell) {
         if (isSuccess) println("\u0007")

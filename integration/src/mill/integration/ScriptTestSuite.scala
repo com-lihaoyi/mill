@@ -3,7 +3,7 @@ package mill.integration
 import mainargs.Flag
 import mill.MillCliConfig
 import mill.define.SelectMode
-import mill.entrypoint.{MillBuildBootstrap, Watching}
+import mill.entrypoint.{EvaluatorState, MillBuildBootstrap, Watching}
 import mill.util.SystemStreams
 import os.Path
 import utest._
@@ -46,7 +46,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
       watch = config.watch.value,
       streams = streams,
       setIdle = _ => (),
-      evaluate = () => {
+      evaluate = (prevStateOpt: Option[EvaluatorState]) => {
         MillBuildBootstrap.evaluate(
           base = wd,
           config = config,
