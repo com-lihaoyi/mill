@@ -187,7 +187,7 @@ object MillMain {
                 streams = streams,
                 setIdle = setIdle,
                 evaluate = () => {
-                  MillBoot.evaluate(
+                  MillBuildBootstrap.evaluate(
                     base = os.pwd,
                     config = config,
                     env = env,

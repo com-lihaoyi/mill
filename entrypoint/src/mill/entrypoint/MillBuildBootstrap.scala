@@ -12,7 +12,7 @@ import os.Path
 
 import java.net.URLClassLoader
 
-object MillBoot{
+object MillBuildBootstrap{
 
   def evaluate(base: os.Path,
                config: MillCliConfig,
@@ -36,15 +36,16 @@ object MillBoot{
         .withScriptImportGraph(scriptImportGraph)
     }
 
-    val millBuildBase = base / "out" / "mill-build"
-    val millBootClasspath = prepareMillBootClasspath(millBuildBase)
+    val projectOut = base / "out"
+    val bootProjectOut = projectOut / "mill-build"
+    val millBootClasspath = prepareMillBootClasspath(bootProjectOut)
     val bootModule = new MillBootModule(millBootClasspath, base)
 
     val millClassloaderSigHash = millBootClasspath
       .map(p => (p, if (os.exists(p)) os.mtime(p) else 0))
       .hashCode()
 
-    val bootEvaluator = makeEvaluator(millBuildBase, bootModule, millClassloaderSigHash, Nil)
+    val bootEvaluator = makeEvaluator(bootProjectOut, bootModule, millClassloaderSigHash, Nil)
 
     adjustJvmProperties(systemProperties, stateCache, initialSystemProperties)
 
@@ -78,7 +79,7 @@ object MillBoot{
           val cls = bootClassloader.loadClass("millbuild.build$")
           val rootModule = cls.getField("MODULE$").get(cls).asInstanceOf[mill.define.BaseModule]
           val buildFileEvaluator = makeEvaluator(
-            base / "out",
+            projectOut,
             rootModule,
             millClassloaderSigHash,
             scriptImportGraph
