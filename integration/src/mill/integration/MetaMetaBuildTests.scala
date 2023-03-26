@@ -23,6 +23,8 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
       }
 
       val (isSuccess1, out1, err1) = evalStdout("foo.run")
+      pprint.log(out1)
+      pprint.log(err1)
       assert(isSuccess1 == true)
       // Don't check foo.run stdout in local mode, because it the subprocess
       // println is not properly captured by the test harness
@@ -100,6 +102,10 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
       val (isSuccess2, out2, err2) = evalStdout("foo.run")
       assert(isSuccess2 == false)
       assertLinePrefix(err2, "[mill-build] 1 targets failed")
+
+      // Ensure the file path in the compile error is properly adjusted to point
+      // at the original source file and not the generated file
+      assertLinePrefix(err2, s"$workspaceRoot/build.sc")
       assertLineContains(err2, "not found: value doesnt")
 
       causeCompileError(workspaceRoot / "mill-build" / "build.sc")
@@ -107,6 +113,7 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
       val (isSuccess3, out3, err3) = evalStdout("foo.run")
       assert(isSuccess3 == false)
       assertLinePrefix(err3, "[mill-build] [mill-build] 1 targets failed")
+      assertLinePrefix(err2, s"$workspaceRoot/mill-build/build.sc")
       assertLineContains(err3, "not found: value doesnt")
 
 
@@ -116,16 +123,15 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
       val (isSuccess4, out4, err4) = evalStdout("foo.run")
       assert(isSuccess4 == false)
       assertLinePrefix(err4, "[mill-build] [mill-build] [mill-build] 1 targets failed")
+      assertLinePrefix(err2, s"$workspaceRoot/mill-build/mill-build/build.sc")
       assertLineContains(err4, "not found: value doesnt")
 
       fixCompileError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
 
       val (isSuccess5, out5, err5) = evalStdout("foo.run")
       assert(isSuccess5 == false)
-      assertLinePrefix(
-        err5,
-        "[mill-build] [mill-build] 1 targets failed"
-      )
+      assertLinePrefix(err5, "[mill-build] [mill-build] 1 targets failed")
+      assertLinePrefix(err2, s"$workspaceRoot/mill-build/build.sc")
       assertLineContains(err5, "not found: value doesnt")
 
       fixCompileError(workspaceRoot / "mill-build" / "build.sc")
@@ -133,6 +139,7 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
       val (isSuccess6, out6, err6) = evalStdout("foo.run")
       assert(isSuccess6 == false)
       assertLinePrefix(err6, "[mill-build] 1 targets failed")
+      assertLinePrefix(err2, s"$workspaceRoot/build.sc")
       assertLineContains(err6, "not found: value doesnt")
 
       fixCompileError(workspaceRoot / "build.sc")

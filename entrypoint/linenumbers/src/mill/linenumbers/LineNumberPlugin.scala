@@ -36,11 +36,16 @@ object LineNumberPlugin {
       val str =  new String(g.currentSource.content)
       val userCodeStartMarker = "//MILL_USER_CODE_START_MARKER"
       val lines = str.linesWithSeparators.toVector
+      println(lines)
+      val adjustedFile = lines
+        .collectFirst{case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim}
+        .get
       val topWrapperLen = lines.indexWhere(_.startsWith(userCodeStartMarker)) match{
         case -1 => 0
         case markerLine => lines.take(markerLine + 1).map(_.length).sum
       }
-      private val trimmedSource = new BatchSourceFile(g.currentSource.file,
+      private val trimmedSource = new BatchSourceFile(
+        new scala.reflect.io.PlainFile(adjustedFile),
         g.currentSource.content.drop(topWrapperLen))
 
       override def transform(tree: g.Tree) = {

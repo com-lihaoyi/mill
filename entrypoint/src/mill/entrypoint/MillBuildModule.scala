@@ -140,7 +140,8 @@ object MillBuildModule{
           FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1),
           scriptSource.path.baseName,
           enclosingClasspath,
-          millTopLevelProjectRoot
+          millTopLevelProjectRoot,
+          scriptSource.path
         ) +
         scriptCode(scriptSource.path) +
         MillBuildModule.bottom,
@@ -154,7 +155,8 @@ object MillBuildModule{
           pkg: Seq[String],
           name: String,
           enclosingClasspath: Seq[os.Path],
-          millTopLevelProjectRoot: os.Path) = {
+          millTopLevelProjectRoot: os.Path,
+          originalFilePath: os.Path) = {
     val foreign =
       if (pkg.size > 1 || name != "build") {
         // Computing a path in "out" that uniquely reflects the location
@@ -171,6 +173,7 @@ object MillBuildModule{
         val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
         s"Some(_root_.mill.define.Segments.labels($segsList))"
       } else "None"
+
     s"""
        |package ${pkg.mkString(".")}
        |import _root_.mill._
@@ -189,6 +192,7 @@ object MillBuildModule{
        |  def millBuildProjectRoot = _root_.os.Path(${literalize((base / os.up).toString)})
        |  def millTopLevelProjectRoot = _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)})
        |}
+       |//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
        |//MILL_USER_CODE_START_MARKER
        |""".stripMargin
   }
