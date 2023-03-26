@@ -5,7 +5,7 @@ import utest._
 import scala.util.Properties
 
 class UpickleTests(fork: Boolean)
-    extends IntegrationTestSuite("MILL_UPICKLE_REPO", "upickle", fork) {
+    extends ThirdPartyTestSuite("MILL_UPICKLE_REPO", "upickle", fork) {
   val tests = Tests {
     initWorkspace()
     "jvm21111" - {

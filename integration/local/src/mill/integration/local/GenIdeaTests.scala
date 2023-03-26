@@ -7,12 +7,7 @@ import utest.{Tests, assert, _}
 import java.util.regex.Pattern
 import scala.util.Try
 
-object GenIdeaTests extends ScriptTestSuite(false) {
-
-  override def workspaceSlug: String = "gen-idea-hello-world"
-
-  override def scriptSourcePath: Path =
-    os.pwd / "integration" / "resources" / workspaceSlug
+object GenIdeaTests extends IntegrationTestSuite("gen-idea-hello-world", false) {
 
   private val scalaVersionLibPart = "2_12_5"
 

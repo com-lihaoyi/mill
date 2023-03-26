@@ -3,10 +3,7 @@ package local
 import mill.bsp.Constants
 import utest._
 
-object BspInstallTests extends ScriptTestSuite(false) {
-  override def workspaceSlug: String = "bsp-install"
-  override def scriptSourcePath: os.Path = os.pwd / "integration" / "resources" / workspaceSlug
-
+object BspInstallTests extends IntegrationTestSuite("bsp-install", false) {
   def tests: Tests = Tests {
     test("BSP install") {
       val workspacePath = initWorkspace()

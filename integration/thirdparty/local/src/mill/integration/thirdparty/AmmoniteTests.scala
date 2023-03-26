@@ -5,7 +5,7 @@ import utest._
 import scala.util.Properties
 
 class AmmoniteTests(fork: Boolean)
-    extends IntegrationTestSuite("MILL_AMMONITE_REPO", "ammonite", fork) {
+    extends ThirdPartyTestSuite("MILL_AMMONITE_REPO", "ammonite", fork) {
   val tests = Tests {
     initWorkspace()
 

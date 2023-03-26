@@ -1578,17 +1578,17 @@ def assembly = T {
   PathRef(T.ctx.dest / filename)
 }
 
-def millBoot = T.sources(T.workspace / "mill")
+def millBootstrap = T.sources(T.workspace / "mill")
 
 def launcher = T {
   val outputPath = T.ctx.dest / "mill"
-  val millBootGrepPrefix = "\nDEFAULT_MILL_VERSION="
+  val millBootstrapGrepPrefix = "\nDEFAULT_MILL_VERSION="
   os.write(
     outputPath,
-    os.read(millBoot().head.path)
+    os.read(millBootstrap().head.path)
       .replaceAll(
-        millBootGrepPrefix + "[^\\n]+",
-        millBootGrepPrefix + millVersion()
+        millBootstrapGrepPrefix + "[^\\n]+",
+        millBootstrapGrepPrefix + millVersion()
       )
   )
   os.perms.set(outputPath, "rwxrwxrwx")

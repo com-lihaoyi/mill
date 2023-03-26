@@ -3,10 +3,7 @@ package local
 import mill.bsp.Constants
 import utest._
 
-object BspModulesTests extends ScriptTestSuite(false) {
-  override def workspaceSlug: String = "bsp-modules"
-  override def scriptSourcePath: os.Path = os.pwd / "integration" / "resources" / workspaceSlug
-
+object BspModulesTests extends IntegrationTestSuite("bsp-modules", false) {
   def tests: Tests = Tests {
     test("BSP module with foreign modules") {
       test("can be installed") {

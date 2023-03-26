@@ -6,12 +6,7 @@ import utest._
 
 import scala.util.Try
 
-object GenIdeaExtendedTests extends ScriptTestSuite(false) {
-
-  override def workspaceSlug: String = "gen-idea-extended-hello-world"
-
-  override def scriptSourcePath: Path =
-    os.pwd / "integration" / "resources" / workspaceSlug
+object GenIdeaExtendedTests extends IntegrationTestSuite("gen-idea-extended-hello-world", false) {
 
   private val scalaVersionLibPart = "2_13_6"
 

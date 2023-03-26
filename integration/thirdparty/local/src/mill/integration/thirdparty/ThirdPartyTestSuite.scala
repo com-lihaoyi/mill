@@ -1,14 +1,14 @@
 package mill.integration.thirdparty
-import mill.integration.ScriptTestSuite
+import mill.integration.IntegrationTestSuite
 import utest._
 
-abstract class IntegrationTestSuite(repoKey: String, val workspaceSlug: String, fork: Boolean)
-    extends ScriptTestSuite(fork) {
+abstract class ThirdPartyTestSuite(repoKey: String, workspaceSlug: String, fork: Boolean)
+    extends IntegrationTestSuite(workspaceSlug, fork) {
   val buildFilePath = os.pwd / "integration" / "thirdparty" / "local" / "resources" / workspaceSlug
   override def workspacePath: os.Path =
     os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / workspaceSlug
 
-  def scriptSourcePath = {
+  override def scriptSourcePath = {
     // The unzipped git repo snapshots we get from github come with a
     // wrapper-folder inside the zip file, so copy the wrapper folder to the
     // destination instead of the folder containing the wrapper.

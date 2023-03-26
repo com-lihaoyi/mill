@@ -4,10 +4,7 @@ package local
 import utest._
 import utest.framework.TestPath
 
-object ForeignBuildsTest extends ScriptTestSuite(fork = false) {
-  def workspaceSlug = "foreign-builds"
-  def scriptSourcePath =
-    os.pwd / "integration" / "resources" / "examples" / "foreign"
+object ForeignBuildsTest extends IntegrationTestSuite("foreign-builds", fork = false) {
   override def buildPath = os.sub / "project" / "build.sc"
 
   val tests = Tests {

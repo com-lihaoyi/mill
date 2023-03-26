@@ -3,7 +3,7 @@ package mill.integration.thirdparty
 import mill.util.TestUtil
 import utest._
 
-class JawnTests(fork: Boolean) extends IntegrationTestSuite("MILL_JAWN_REPO", "jawn", fork) {
+class JawnTests(fork: Boolean) extends ThirdPartyTestSuite("MILL_JAWN_REPO", "jawn", fork) {
   val tests = Tests {
     initWorkspace()
 

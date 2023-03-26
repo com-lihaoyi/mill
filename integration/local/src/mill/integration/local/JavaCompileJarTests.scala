@@ -3,9 +3,7 @@ package local
 
 import utest._
 
-object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
-  def workspaceSlug = "java-compile-jar"
-  def scriptSourcePath = os.pwd / "integration" / "resources" / "examples" / "javac"
+object JavaCompileJarTests extends IntegrationTestSuite("java-compile-jar", fork = false) {
   val tests = Tests {
     initWorkspace()
     "test" - {

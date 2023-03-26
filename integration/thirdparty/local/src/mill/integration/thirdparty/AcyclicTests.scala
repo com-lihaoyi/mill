@@ -3,7 +3,7 @@ package mill.integration.thirdparty
 import utest._
 
 class AcyclicTests(fork: Boolean)
-    extends IntegrationTestSuite("MILL_ACYCLIC_REPO", "acyclic", fork) {
+    extends ThirdPartyTestSuite("MILL_ACYCLIC_REPO", "acyclic", fork) {
   val tests = Tests {
     initWorkspace()
 

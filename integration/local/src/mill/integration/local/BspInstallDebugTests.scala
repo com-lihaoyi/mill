@@ -3,10 +3,7 @@ package local
 import mill.bsp.Constants
 import utest._
 
-object BspInstallDebugTests extends ScriptTestSuite(false) {
-  override def workspaceSlug: String = "bsp-install"
-  override def scriptSourcePath: os.Path = os.pwd / "integration" / "resources" / workspaceSlug
-
+object BspInstallDebugTests extends IntegrationTestSuite("bsp-install", false) {
   // we purposely enable debugging in this simulated test env
   override val debugLog: Boolean = true
 

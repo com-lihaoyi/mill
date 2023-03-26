@@ -3,7 +3,7 @@ package mill.integration.thirdparty
 import utest._
 
 class CaffeineTests(fork: Boolean)
-    extends IntegrationTestSuite("MILL_CAFFEINE_REPO", "caffeine", fork) {
+    extends ThirdPartyTestSuite("MILL_CAFFEINE_REPO", "caffeine", fork) {
 
   override def initWorkspace() = {
     val path = super.initWorkspace()
