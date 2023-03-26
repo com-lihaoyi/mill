@@ -9,6 +9,12 @@ import os.Path
 
 import java.net.URLClassLoader
 
+/**
+ * Logic around bootstrapping Mill, creating a [[MillBuildModule.BootstrapModule]]
+ * and compiling builds/meta-builds and classloading their [[BaseModule]]s so we
+ * can evaluate the requested tasks on the [[BaseModule]] representing the user's
+ * `build.sc` file.
+ */
 @internal
 class MillBuildBootstrap(projectRoot: os.Path,
                          config: MillCliConfig,
