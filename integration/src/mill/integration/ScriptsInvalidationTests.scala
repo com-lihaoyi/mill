@@ -8,9 +8,9 @@ class ScriptsInvalidationTests(fork: Boolean, clientServer: Boolean)
     extends IntegrationTestSuite("invalidation", fork, clientServer) {
 
   def runTask(task: String) = {
-    val (successful, stdout, stderr) = evalStdout(task)
-    assert(successful)
-    stdout.map(_.trim)
+    val res = evalStdout(task)
+    assert(res.isSuccess)
+    res.outLines.map(_.trim)
   }
 
   val tests = Tests {

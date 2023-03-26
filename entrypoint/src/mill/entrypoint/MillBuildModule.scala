@@ -132,21 +132,19 @@ object MillBuildModule{
     for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
-      os.write(
-        dest,
-        MillBuildModule.top(
-          relative,
-          scriptSource.path / os.up,
-          FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1),
-          scriptSource.path.baseName,
-          enclosingClasspath,
-          millTopLevelProjectRoot,
-          scriptSource.path
-        ) +
+      val newSource = MillBuildModule.top(
+        relative,
+        scriptSource.path / os.up,
+        FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1),
+        scriptSource.path.baseName,
+        enclosingClasspath,
+        millTopLevelProjectRoot,
+        scriptSource.path
+      ) +
         scriptCode(scriptSource.path) +
-        MillBuildModule.bottom,
-        createFolders = true
-      )
+        MillBuildModule.bottom
+
+      os.write(dest, newSource , createFolders = true)
     }
   }
 

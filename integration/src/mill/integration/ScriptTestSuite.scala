@@ -12,6 +12,9 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 import java.nio.file.NoSuchFileException
 import scala.util.control.NonFatal
 
+object ScriptTestSuite{
+  case class EvalStdout(isSuccess: Boolean, outLines: Seq[String], errLines: Seq[String])
+}
 abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) extends TestSuite {
   def workspaceSlug: String
   def scriptSourcePath: os.Path
@@ -66,7 +69,12 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
     if (!fork) runnerStdout(System.out, System.err, s)._1
     else evalFork(os.Inherit, os.Inherit, s)
   }
-  def evalStdout(s: String*): (Boolean, Seq[String], Seq[String]) = {
+
+  def evalStdoutAssert(s: String*)(check: ScriptTestSuite.EvalStdout => Unit) = {
+    check(evalStdout(s:_*))
+  }
+
+  def evalStdout(s: String*): ScriptTestSuite.EvalStdout = {
     if (!fork) {
       val outputStream = new ByteArrayOutputStream
       val errorStream = new ByteArrayOutputStream
@@ -81,7 +89,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
       val stderr: Seq[String] =
         if (stderrArray.isEmpty) Seq.empty
         else new String(stderrArray).split('\n')
-      (result._1, stdout, stderr)
+      ScriptTestSuite.EvalStdout(result._1, stdout, stderr)
     } else {
       val output = Seq.newBuilder[String]
       val error = Seq.newBuilder[String]
@@ -89,7 +97,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
       val processError = os.ProcessOutput.Readlines(error += _)
 
       val result = evalFork(processOutput, processError, s)
-      (result, output.result(), error.result())
+      ScriptTestSuite.EvalStdout(result, output.result(), error.result())
     }
   }
   private def evalFork(stdout: os.ProcessOutput, stderr: os.ProcessOutput, s: Seq[String]): Boolean = {

@@ -13,5 +13,4 @@ object millbuild extends MillBuildModule {
     )
     super.generatedSources() ++ Seq(PathRef(T.dest / "Constant.scala"))
   }
-  def scalaVersion = "2.13.2"
 }

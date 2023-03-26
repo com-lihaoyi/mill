@@ -2,6 +2,8 @@ package mill.integration
 
 import utest._
 
+import scala.util.matching.Regex
+
 class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
     extends IntegrationTestSuite("meta-meta-build", fork, clientServer) {
   val tests = Tests {
@@ -13,142 +15,206 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
     def assertLineContains(lines: Seq[String], prefix: String) = {
       assert(lines.exists(_.contains(prefix)))
     }
-    test("parseErrorReportingInEachLevel") {
-      def causeParseError(p: os.Path) = {
-        os.write.over(p, os.read(p).replace("extends", "extendx"))
-      }
 
-      def fixParseError(p: os.Path) = {
-        os.write.over(p, os.read(p).replace("extendx", "extends"))
-      }
+    def mangleFile(p: os.Path, f: String => String) = os.write.over(p, f(os.read(p)))
 
-      val (isSuccess1, out1, err1) = evalStdout("foo.run")
-      pprint.log(out1)
-      pprint.log(err1)
-      assert(isSuccess1 == true)
+    def runAssertSuccess() = {
+      val res = evalStdout("foo.run")
+      assert(res.isSuccess == true)
       // Don't check foo.run stdout in local mode, because it the subprocess
       // println is not properly captured by the test harness
-      if (fork) assert(out1.contains("<h1>hello</h1><p>world</p>"))
-
-      causeParseError(workspaceRoot / "build.sc")
-
-      val (isSuccess2, out2, err2) = evalStdout("foo.run")
-      assert(isSuccess2 == false)
-      assertLinePrefix(err2, "[mill-build] 1 targets failed")
-      assertLinePrefix(err2, "[mill-build] millbuild.generateScriptSources build.sc")
-
-      causeParseError(workspaceRoot / "mill-build" / "build.sc")
-
-      val (isSuccess3, out3, err3) = evalStdout("foo.run")
-      assert(isSuccess3 == false)
-      assertLinePrefix(err2, "[mill-build] [mill-build] 1 targets failed")
-      assertLinePrefix(
-        err2,
-        "[mill-build] [mill-build] millbuild.generateScriptSources mill-build/build.sc"
-      )
-
-      causeParseError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
-
-      val (isSuccess4, out4, err4) = evalStdout("foo.run")
-      assert(isSuccess4 == false)
-      assertLinePrefix(err2, "[mill-build] [mill-build] [mill-build] 1 targets failed")
-      assertLinePrefix(
-        err2,
-        "[mill-build] [mill-build] [mill-build] millbuild.generateScriptSources mill-build/mill-build/build.sc"
-      )
-
-      fixParseError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
-
-      val (isSuccess5, out5, err5) = evalStdout("foo.run")
-      assert(isSuccess5 == false)
-      assertLinePrefix(err2, "[mill-build] [mill-build] 1 targets failed")
-      assertLinePrefix(
-        err2,
-        "[mill-build] [mill-build] millbuild.generateScriptSources mill-build/build.sc"
-      )
-
-      fixParseError(workspaceRoot / "mill-build" / "build.sc")
-
-      val (isSuccess6, out6, err6) = evalStdout("foo.run")
-      assert(isSuccess6 == false)
-      assertLinePrefix(err2, "[mill-build] 1 targets failed")
-      assertLinePrefix(err2, "[mill-build] millbuild.generateScriptSources build.sc")
-
-      fixParseError(workspaceRoot / "build.sc")
-      val (isSuccess7, out7, err7) = evalStdout("foo.run")
-
-      assert(isSuccess7 == true)
-      // Don't check foo.run stdout in local mode, because it the subprocess
-      // println is not properly captured by the test harness
-      if (fork) assert(out7.contains("<h1>hello</h1><p>world</p>"))
+      if (fork) assert(res.outLines.contains("<h1>hello</h1><p>world</p>"))
     }
 
-    test("compileErrorReportingInEachLevel") {
-      def causeCompileError(p: os.Path) = {
-        os.write.over(p, os.read(p) + "\nimport doesnt.exist")
+    // Cause various kinds of errors in various levels of build.sc meta-builds,
+    // ensuring that the proper messages are reported in all cases.
+    test("multiLevelErrorReporting") {
+      test("parseError") {
+        def causeParseError(p: os.Path) =
+          mangleFile(p, _.replace("extends", "extendx"))
+
+        def fixParseError(p: os.Path) =
+          mangleFile(p, _.replace("extendx", "extends"))
+
+        runAssertSuccess()
+
+        causeParseError(workspaceRoot / "build.sc")
+
+        evalStdoutAssert("foo.run"){ res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
+          assertLinePrefix(res.errLines, "[mill-build] millbuild.generateScriptSources build.sc")
+        }
+
+        causeParseError(workspaceRoot / "mill-build" / "build.sc")
+
+        evalStdoutAssert("foo.run"){ res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] [mill-build] 1 targets failed")
+          assertLinePrefix(
+            res.errLines,
+            "[mill-build] [mill-build] millbuild.generateScriptSources mill-build/build.sc"
+          )
+        }
+
+        causeParseError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
+
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] [mill-build] [mill-build] 1 targets failed")
+          assertLinePrefix(
+            res.errLines,
+            "[mill-build] [mill-build] [mill-build] millbuild.generateScriptSources mill-build/mill-build/build.sc"
+          )
+        }
+
+        fixParseError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
+
+        evalStdoutAssert("foo.run"){res =>
+
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] [mill-build] 1 targets failed")
+          assertLinePrefix(
+            res.errLines,
+            "[mill-build] [mill-build] millbuild.generateScriptSources mill-build/build.sc"
+          )
+        }
+
+        fixParseError(workspaceRoot / "mill-build" / "build.sc")
+
+        evalStdoutAssert("foo.run"){ res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
+          assertLinePrefix(res.errLines, "[mill-build] millbuild.generateScriptSources build.sc")
+        }
+
+        fixParseError(workspaceRoot / "build.sc")
+
+        runAssertSuccess()
       }
 
-      def fixCompileError(p: os.Path) = {
-        os.write.over(p, os.read(p).replace("import doesnt.exist", ""))
+      test("compileError") {
+
+        def causeCompileError(p: os.Path) =
+          mangleFile(p, _ + "\nimport doesnt.exist")
+
+        def fixCompileError(p: os.Path) =
+          mangleFile(p, _.replace("import doesnt.exist", ""))
+
+        runAssertSuccess()
+
+        causeCompileError(workspaceRoot / "build.sc")
+
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
+          // Ensure the file path in the compile error is properly adjusted to point
+          // at the original source file and not the generated file
+          assertLineContains(res.errLines, s"$workspaceRoot/build.sc")
+          assertLineContains(res.errLines, "not found: value doesnt")
+        }
+
+        causeCompileError(workspaceRoot / "mill-build" / "build.sc")
+
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] [mill-build] 1 targets failed")
+          assertLineContains(res.errLines, s"$workspaceRoot/mill-build/build.sc")
+          assertLineContains(res.errLines, "not found: value doesnt")
+        }
+
+        causeCompileError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
+
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] [mill-build] [mill-build] 1 targets failed")
+          assertLineContains(res.errLines, s"$workspaceRoot/mill-build/mill-build/build.sc")
+          assertLineContains(res.errLines, "not found: value doesnt")
+        }
+
+        fixCompileError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
+
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] [mill-build] 1 targets failed")
+          assertLineContains(res.errLines, s"$workspaceRoot/mill-build/build.sc")
+          assertLineContains(res.errLines, "not found: value doesnt")
+        }
+
+        fixCompileError(workspaceRoot / "mill-build" / "build.sc")
+
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
+          assertLineContains(res.errLines, s"$workspaceRoot/build.sc")
+          assertLineContains(res.errLines, "not found: value doesnt")
+        }
+
+        fixCompileError(workspaceRoot / "build.sc")
+
+        runAssertSuccess()
       }
-      val (isSuccess1, out1, err1) = evalStdout("foo.run")
-      assert(isSuccess1 == true)
-      // Don't check foo.run stdout in local mode, because it the subprocess
-      // println is not properly captured by the test harness
-      if (fork) assert(out1.contains("<h1>hello</h1><p>world</p>"))
 
-      causeCompileError(workspaceRoot / "build.sc")
+      test("runtimeError") {
+        val runErrorSnippet = """{ override def runClasspath = T{ (throw new Exception("boom")): Seq[PathRef] }"""
 
-      val (isSuccess2, out2, err2) = evalStdout("foo.run")
-      assert(isSuccess2 == false)
-      assertLinePrefix(err2, "[mill-build] 1 targets failed")
-
-      // Ensure the file path in the compile error is properly adjusted to point
-      // at the original source file and not the generated file
-      assertLinePrefix(err2, s"$workspaceRoot/build.sc")
-      assertLineContains(err2, "not found: value doesnt")
-
-      causeCompileError(workspaceRoot / "mill-build" / "build.sc")
-
-      val (isSuccess3, out3, err3) = evalStdout("foo.run")
-      assert(isSuccess3 == false)
-      assertLinePrefix(err3, "[mill-build] [mill-build] 1 targets failed")
-      assertLinePrefix(err2, s"$workspaceRoot/mill-build/build.sc")
-      assertLineContains(err3, "not found: value doesnt")
+        def causeRuntimeError(p: os.Path) =
+          mangleFile(p, _.replaceFirst("\\{", runErrorSnippet))
 
 
+        def fixRuntimeError(p: os.Path) =
+          mangleFile(p, _.replaceFirst(Regex.quote(runErrorSnippet), "\\{"))
 
-      causeCompileError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
+        runAssertSuccess()
 
-      val (isSuccess4, out4, err4) = evalStdout("foo.run")
-      assert(isSuccess4 == false)
-      assertLinePrefix(err4, "[mill-build] [mill-build] [mill-build] 1 targets failed")
-      assertLinePrefix(err2, s"$workspaceRoot/mill-build/mill-build/build.sc")
-      assertLineContains(err4, "not found: value doesnt")
+        causeRuntimeError(workspaceRoot / "build.sc")
 
-      fixCompileError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "1 targets failed")
+          assertLineContains(res.errLines, "foo.runClasspath java.lang.Exception: boom")
+        }
 
-      val (isSuccess5, out5, err5) = evalStdout("foo.run")
-      assert(isSuccess5 == false)
-      assertLinePrefix(err5, "[mill-build] [mill-build] 1 targets failed")
-      assertLinePrefix(err2, s"$workspaceRoot/mill-build/build.sc")
-      assertLineContains(err5, "not found: value doesnt")
+        causeRuntimeError(workspaceRoot / "mill-build" / "build.sc")
 
-      fixCompileError(workspaceRoot / "mill-build" / "build.sc")
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
+          assertLineContains(res.errLines, "build.sc")
+          assertLineContains(res.errLines, "millbuild.runClasspath java.lang.Exception: boom")
+        }
 
-      val (isSuccess6, out6, err6) = evalStdout("foo.run")
-      assert(isSuccess6 == false)
-      assertLinePrefix(err6, "[mill-build] 1 targets failed")
-      assertLinePrefix(err2, s"$workspaceRoot/build.sc")
-      assertLineContains(err6, "not found: value doesnt")
+        causeRuntimeError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
 
-      fixCompileError(workspaceRoot / "build.sc")
-      val (isSuccess7, out7, err7) = evalStdout("foo.run")
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] [mill-build] 1 targets failed")
+          assertLineContains(res.errLines, "build.sc")
+          assertLineContains(res.errLines, "millbuild.runClasspath java.lang.Exception: boom")
+        }
 
-      assert(isSuccess7 == true)
-      // Don't check foo.run stdout in local mode, because it the subprocess
-      // println is not properly captured by the test harness
-      if (fork) assert(out7.contains("<h1>hello</h1><p>world</p>"))
+        fixRuntimeError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
+
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
+          assertLineContains(res.errLines, "build.sc")
+          assertLineContains(res.errLines, "millbuild.runClasspath java.lang.Exception: boom")
+        }
+
+        fixRuntimeError(workspaceRoot / "mill-build" / "build.sc")
+
+        evalStdoutAssert("foo.run") { res =>
+          assert(res.isSuccess == false)
+          assertLinePrefix(res.errLines, "1 targets failed")
+          assertLineContains(res.errLines, "build.sc")
+          assertLineContains(res.errLines, "foo.runClasspath java.lang.Exception: boom")
+        }
+
+        fixRuntimeError(workspaceRoot / "build.sc")
+
+        runAssertSuccess()
+      }
     }
   }
 }
