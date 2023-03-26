@@ -1,4 +1,4 @@
-package mill.entrypoint
+package mill.runner
 
 import java.io._
 import mill.main.client.Util

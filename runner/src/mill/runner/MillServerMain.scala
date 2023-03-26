@@ -1,4 +1,4 @@
-package mill.entrypoint
+package mill.runner
 
 import sun.misc.{Signal, SignalHandler}
 

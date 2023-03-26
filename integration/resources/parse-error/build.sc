@@ -5,4 +5,3 @@ object foo extends ScalaModule {
   def scalaVersion = bar.myScalaVersion
 }
 
-println)

@@ -1,7 +1,7 @@
 // build.sc
 import mill._, scalalib._
 
-object millbuild extends entrypoint.MillBuildModule {
+object millbuild extends runner.MillBuildModule {
   def generatedSources = T{
     os.write(
       T.dest / "Constant.scala",

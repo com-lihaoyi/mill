@@ -1,4 +1,4 @@
-package mill.entrypoint
+package mill.runner
 import mill.{BuildInfo, MillCliConfig, MillCliConfigParser}
 
 import java.io.{FileOutputStream, PrintStream}

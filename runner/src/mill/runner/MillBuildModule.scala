@@ -1,4 +1,4 @@
-package mill.entrypoint
+package mill.runner
 
 import mill._
 import mill.api.{PathRef, Result, internal}
@@ -103,7 +103,7 @@ class MillBuildModule()(implicit baseModuleInfo: BaseModule.Info,
   def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
     mill.modules.Util.millProjectModule(
       "MILL_LINENUMBERS",
-      "mill-entrypoint-linenumbers",
+      "mill-runner-linenumbers",
       repositoriesTask()
     )
   }
@@ -161,8 +161,9 @@ object MillBuildModule{
           millTopLevelProjectRoot: os.Path,
           originalFilePath: os.Path) = {
 
-    val foreign =
-      if (pkg.size > 1 || name != "build") {
+    val superClass =
+      if (pkg.size <= 1 && name == "build") "_root_.mill.runner.BaseModule"
+      else {
         // Computing a path in "out" that uniquely reflects the location
         // of the foreign module relatively to the current build.
 
@@ -175,25 +176,25 @@ object MillBuildModule{
           Seq(relative.segments.last.stripSuffix(".sc"))
 
         val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-        s"Some(_root_.mill.define.Segments.labels($segsList))"
-      } else "None"
+        s"_root_.mill.runner.BaseModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
+      }
 
     s"""
        |package ${pkg.mkString(".")}
        |import _root_.mill._
-       |object ${name}MiscInfo{
-       |  implicit val millBuildModuleInfo: _root_.mill.entrypoint.MillBuildModule.Info = _root_.mill.entrypoint.MillBuildModule.Info(
+       |object `MiscInfo_${name}`{
+       |  implicit val millBuildModuleInfo: _root_.mill.runner.MillBuildModule.Info = _root_.mill.runner.MillBuildModule.Info(
        |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
        |    _root_.os.Path(${literalize(base.toString)}),
        |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)})
        |  )
-       |  implicit val millBaseModuleInfo: _root_.mill.entrypoint.BaseModule.Info = _root_.mill.entrypoint.BaseModule.Info(
+       |  implicit val millBaseModuleInfo: _root_.mill.runner.BaseModule.Info = _root_.mill.runner.BaseModule.Info(
        |    millBuildModuleInfo.projectRoot
        |  )
        |}
-       |import ${name}MiscInfo.{millBuildModuleInfo, millBaseModuleInfo}
+       |import `MiscInfo_${name}`.{millBuildModuleInfo, millBaseModuleInfo}
        |object $name extends $name
-       |trait $name extends _root_.mill.entrypoint.BaseModule{
+       |class $name extends $superClass{
        |  @_root_.scala.annotation.nowarn("cat=deprecation")
        |  override implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
        |

@@ -3,7 +3,7 @@ package mill.integration
 import mainargs.Flag
 import mill.MillCliConfig
 import mill.define.SelectMode
-import mill.entrypoint.{EvaluatorState, MillBuildBootstrap, MillMain, MultiEvaluatorState, Watching}
+import mill.runner.{EvaluatorState, MillBuildBootstrap, MillMain, MultiEvaluatorState, Watching}
 import mill.util.SystemStreams
 import os.Path
 import utest._
@@ -37,7 +37,7 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
       keepGoing = Flag(keepGoing),
       disableTicker = Flag(disableTicker)
     )
-    val logger = mill.entrypoint.MillMain.getLogger(
+    val logger = mill.runner.MillMain.getLogger(
       streams,
       config,
       mainInteractive = false,

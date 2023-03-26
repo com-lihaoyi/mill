@@ -1,4 +1,4 @@
-package mill.entrypoint
+package mill.runner
 import mill.util.{ColorLogger, PrefixLogger, Util}
 import mill.{BuildInfo, MillCliConfig}
 import mill.api.{PathRef, internal}
@@ -41,7 +41,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
       else Left{
         val bootRoot = recRoot(depth)
         new MillBuildModule.BootstrapModule(projectRoot, bootRoot, millBootClasspath)(
-          mill.entrypoint.BaseModule.Info(bootRoot)
+          mill.runner.BaseModule.Info(bootRoot)
         )
       }
 

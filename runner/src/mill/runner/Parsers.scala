@@ -1,4 +1,4 @@
-package mill.entrypoint
+package mill.runner
 
 import mill.api.internal
 import mill.util.Util.newLine

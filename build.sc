@@ -1010,7 +1010,7 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 }
 
 object integration extends MillScalaModule {
-  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, entrypoint.test)
+  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
 
   /** Deploy freshly build mill for use in tests */
   def testMill: Target[PathRef] = {
@@ -1041,7 +1041,7 @@ object integration extends MillScalaModule {
         scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
         scalanativelib.testArgs() ++
-        entrypoint.linenumbers.testArgs() ++
+        runner.linenumbers.testArgs() ++
         Seq(
           s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
           s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
@@ -1243,7 +1243,7 @@ def launcherScript(
   )
 }
 
-object entrypoint extends MillModule{
+object runner extends MillModule{
   override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers)
 
   object linenumbers extends MillPublishModule with MillInternalModule {
@@ -1258,7 +1258,7 @@ object entrypoint extends MillModule{
 }
 
 object dev extends MillModule {
-  override def moduleDeps = Seq(entrypoint)
+  override def moduleDeps = Seq(runner)
 
   def forkArgs: T[Seq[String]] =
     (
@@ -1267,7 +1267,7 @@ object dev extends MillModule {
         scalalib.worker.testArgs() ++
         scalanativelib.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
-        entrypoint.linenumbers.testArgs() ++
+        runner.linenumbers.testArgs() ++
         // Workaround for Zinc/JNA bug
         // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
         Seq(
