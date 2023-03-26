@@ -97,7 +97,7 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeVersion = "0.4.11"
+    val scalanativeVersion = "0.4.12"
     val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
@@ -994,6 +994,14 @@ def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String 
   T.command {
     PathRef(installLocalTask(T.task(binFile), ivyRepo)())
   }
+
+def installLocalCache() = T.command {
+  val path = installLocalTask(
+    T.task((os.home / ".cache" / "mill" / "download" / millVersion()).toString())
+  )()
+  T.log.outputStream.println(path.toString())
+  PathRef(path)
+}
 
 def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
   val modules = build.millInternal.modules.collect { case m: PublishModule => m }

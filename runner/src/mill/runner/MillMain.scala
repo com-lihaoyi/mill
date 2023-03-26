@@ -237,7 +237,7 @@ object MillMain {
     val colored = config.color.getOrElse(mainInteractive)
     val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
-    val logger = mill.util.PrintLogger(
+    val logger = new mill.util.PrintLogger(
       colored = colored,
       enableTicker = enableTicker.getOrElse(mainInteractive),
       infoColor = colors.info,

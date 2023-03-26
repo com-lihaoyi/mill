@@ -36,6 +36,8 @@ trait ScalaPBModule extends ScalaModule {
   /** ScalaPB enables lenses by default, this option allows you to disable it. */
   def scalaPBLenses: T[Boolean] = T { true }
 
+  def scalaPBSearchDeps: Boolean = false
+
   /**
    * Additional arguments for scalaPBC.
    *
@@ -85,6 +87,9 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBIncludePath: T[Seq[PathRef]] = T.sources { Seq.empty[PathRef] }
 
+  private def scalaDepsPBIncludePath = if (scalaPBSearchDeps) T { Seq(scalaPBUnpackProto()) }
+  else T { Seq.empty[PathRef] }
+
   def scalaPBProtoClasspath: T[Agg[PathRef]] = T {
     resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
   }
@@ -117,7 +122,7 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBCompileOptions: T[Seq[String]] = T {
     ScalaPBWorkerApi.scalaPBWorker().compileOptions(
       scalaPBProtocPath(),
-      scalaPBIncludePath().map(_.path),
+      (scalaPBIncludePath() ++ scalaDepsPBIncludePath()).map(_.path),
       scalaPBAdditionalArgs()
     )
   }

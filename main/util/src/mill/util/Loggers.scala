@@ -69,7 +69,7 @@ trait ColorLogger extends Logger {
   def errorColor: fansi.Attrs
 }
 
-case class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "")
+class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "")
     extends ColorLogger {
   override def colored = out.colored
 
@@ -136,25 +136,31 @@ class AnsiNav(output: Writer){
   def clearLine(n: Int) = control(n, 'K')
 }
 
-case class PrintLogger(
+
+object PrefixLogger {
+  def apply(out: ColorLogger, context: String, tickerContext: String = ""): PrefixLogger =
+    new PrefixLogger(out, context, tickerContext)
+}
+
+class PrintLogger(
     override val colored: Boolean,
-    enableTicker: Boolean,
+    val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
-    outStream: PrintStream,
-    infoStream: PrintStream,
-    errStream: PrintStream,
+    val outStream: PrintStream,
+    val infoStream: PrintStream,
+    val errStream: PrintStream,
     override val inStream: InputStream,
     override val debugEnabled: Boolean,
-    context: String
+    val context: String
 ) extends ColorLogger {
 
   var printState: PrintState = PrintState.Newline
 
-  override val errorStream = new PrintStream(
+  override val errorStream: PrintStream = new PrintStream(
     new CallbackStream(errStream, printState = _)
   )
-  override val outputStream = new PrintStream(
+  override val outputStream: PrintStream = new PrintStream(
     new CallbackStream(outStream, printState = _)
   )
 
@@ -190,6 +196,32 @@ case class PrintLogger(
       printState = PrintState.Ticker
     }
   }
+
+  def withOutStream(outStream: PrintStream): PrintLogger = copy(outStream = outStream)
+
+  private def copy(
+      colored: Boolean = colored,
+      enableTicker: Boolean = enableTicker,
+      infoColor: fansi.Attrs = infoColor,
+      errorColor: fansi.Attrs = errorColor,
+      outStream: PrintStream = outStream,
+      infoStream: PrintStream = infoStream,
+      errStream: PrintStream = errStream,
+      inStream: InputStream = inStream,
+      debugEnabled: Boolean = debugEnabled,
+      context: String = context
+  ): PrintLogger = new PrintLogger(
+    colored,
+    enableTicker,
+    infoColor,
+    errorColor,
+    outStream,
+    infoStream,
+    errStream,
+    inStream,
+    debugEnabled,
+    context
+  )
 
   def debug(s: String) = synchronized {
     if (debugEnabled) {

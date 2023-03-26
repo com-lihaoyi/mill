@@ -1,10 +1,14 @@
 package mill.define
+
 import language.experimental.macros
 import scala.reflect.ClassTag
 import scala.reflect.macros.blackbox
 
 object Cross {
-  case class Factory[T](make: (Product, mill.define.Ctx, Seq[Product]) => T)
+  case class Factory[T](make: (Product, mill.define.Ctx, Seq[Product]) => T) {
+    private def copy[T](make: (Product, mill.define.Ctx, Seq[Product]) => T = make): Factory[T] =
+      new Factory[T](make)
+  }
 
   object Factory {
     implicit def make[T]: Factory[T] = macro makeImpl[T]
@@ -21,14 +25,17 @@ object Cross {
 
       val instance = c.Expr[(Product, mill.define.Ctx, Seq[Product]) => T](
         q"""{ (v, ctx0, vs) => new $tpe(..$argTupleValues){
-          override def millOuterCtx = ctx0.copy(
-            crossInstances = vs.map(v => new $tpe(..$argTupleValues))
+          override def millOuterCtx = ctx0.withCrossInstances(
+            vs.map(v => new $tpe(..$argTupleValues))
           )
         } }"""
       )
 
       reify { mill.define.Cross.Factory[T](instance.splice) }
     }
+
+    private def unapply[T](factory: Factory[T]): Option[(Product, Ctx, Seq[Product]) => T] =
+      Some(factory.make)
   }
 
   trait Resolver[-T <: Module] {
@@ -63,11 +70,10 @@ class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], c
     val relPath = ctx.segment.pathSegments
     val sub = ci.make(
       c,
-      ctx.copy(
-        segments = ctx.segments ++ Seq(ctx.segment),
-        millSourcePath = ctx.millSourcePath / relPath,
-        segment = Segment.Cross(crossValues)
-      ),
+      ctx
+        .withSegments(ctx.segments ++ Seq(ctx.segment))
+        .withMillSourcePath(ctx.millSourcePath / relPath)
+        .withSegment(Segment.Cross(crossValues)),
       products
     )
     (crossValues, sub)

@@ -51,11 +51,10 @@ object TutorialTests extends TestSuite {
         millSourcePath / "protobuf" / "tutorial" / "Tutorial.proto"
       }
 
+      override def scalaPBSearchDeps = true
       override def scalaPBIncludePath = Seq(
-        scalaPBUnpackProto(),
         PathRef(millSourcePath / "protobuf" / "tutorial")
       )
-
     }
   }
 

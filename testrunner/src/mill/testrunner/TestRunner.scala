@@ -108,7 +108,7 @@ object TestRunner {
     }.map { f => (cls, f) }
   }
 
-  case class TestArgs(
+  case class TestArgs private (
       framework: String,
       classpath: Seq[String],
       arguments: Seq[String],
@@ -141,6 +141,28 @@ object TestRunner {
       )
       s"@${argsFile.toString()}"
     }
+    private def copy(
+        framework: String = framework,
+        classpath: Seq[String] = classpath,
+        arguments: Seq[String] = arguments,
+        sysProps: Map[String, String] = sysProps,
+        outputPath: String = outputPath,
+        colored: Boolean = colored,
+        testCp: String = testCp,
+        homeStr: String = homeStr,
+        globSelectors: Seq[String] = globSelectors
+    ): TestArgs = new TestArgs(
+      framework,
+      classpath,
+      arguments,
+      sysProps,
+      outputPath,
+      colored,
+      testCp,
+      homeStr,
+      globSelectors
+    )
+
   }
 
   object TestArgs {
@@ -196,13 +218,59 @@ object TestRunner {
         globFilters.toIndexedSeq
       )
     }
+
+    def apply(
+        framework: String,
+        classpath: Seq[String],
+        arguments: Seq[String],
+        sysProps: Map[String, String],
+        outputPath: String,
+        colored: Boolean,
+        testCp: String,
+        homeStr: String,
+        globSelectors: Seq[String]
+    ): TestArgs = new TestArgs(
+      framework,
+      classpath,
+      arguments,
+      sysProps,
+      outputPath,
+      colored,
+      testCp,
+      homeStr,
+      globSelectors
+    )
+
+    private def unapply(testArgs: TestArgs): Option[(
+        String,
+        Seq[String],
+        Seq[String],
+        Map[String, String],
+        String,
+        Boolean,
+        String,
+        String,
+        Seq[String]
+    )] =
+      Some((
+        testArgs.framework,
+        testArgs.classpath,
+        testArgs.arguments,
+        testArgs.sysProps,
+        testArgs.outputPath,
+        testArgs.colored,
+        testArgs.testCp,
+        testArgs.homeStr,
+        testArgs.globSelectors
+      ))
+
   }
 
   def main(args: Array[String]): Unit = {
     try {
       val testArgs = TestArgs.parseArgs(args).get
       val ctx = new Ctx.Log with Ctx.Home {
-        val log = PrintLogger(
+        val log = new PrintLogger(
           testArgs.colored,
           true,
           if (testArgs.colored) fansi.Color.Blue

@@ -381,7 +381,7 @@ abstract class NamedTaskImpl[+T](
     override val isPrivate: Option[Boolean]
 ) extends NamedTask[T] {
   def evaluate(args: mill.api.Ctx) = args[T](0)
-  val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
+  val ctx = ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
 }
 
