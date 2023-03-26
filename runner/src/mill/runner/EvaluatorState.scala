@@ -3,6 +3,7 @@ package mill.runner
 import mill.api.internal
 import mill.define.{BaseModule, Segments}
 
+
 @internal
 case class MultiEvaluatorState(evalStates: Seq[EvaluatorState],
                                errorAndDepth: Option[(String, Int)])
