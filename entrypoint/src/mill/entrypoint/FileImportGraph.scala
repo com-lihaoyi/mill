@@ -22,7 +22,7 @@ object FileImportGraph{
    * starting from `build.sc`, collecting the information necessary to
    * instantiate the [[MillBuildModule]]
    */
-  def parseBuildFiles(base: os.Path) = {
+  def parseBuildFiles(topLevelProjectRoot: os.Path, base: os.Path) = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val seenIvy = mutable.Set.empty[String]
     val importGraphEdges = mutable.Map.empty[os.Path, Seq[os.Path]]
@@ -32,7 +32,9 @@ object FileImportGraph{
       importGraphEdges(s) = Nil
 
       if (!seenScripts.contains(s)) {
-        val readFileEither = scala.util.Try(Parsers.splitScript(os.read(s), s.last)) match{
+        val readFileEither = scala.util.Try(
+          Parsers.splitScript(os.read(s), s.relativeTo(topLevelProjectRoot).toString)
+        ) match{
           case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
           case scala.util.Success(value) => value
         }

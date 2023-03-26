@@ -7,13 +7,15 @@ import mill.scalalib.{BoundDep, DepSyntax, Lib, Versions}
 import pprint.Util.literalize
 
 
-class MillBuildWrapperModule(projectRoot: os.Path,
+class MillBuildWrapperModule(topLevelProjectRoot0: os.Path,
+                             projectRoot: os.Path,
                              enclosingClasspath: Seq[os.Path]) extends mill.define.BaseModule(projectRoot)(implicitly, implicitly, implicitly, implicitly, Caller(())) {
   implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
   object millbuild extends MillBuildModule {
     def millBuildEnclosingClasspath = enclosingClasspath
     def millBuildProjectRoot = projectRoot
+    def millTopLevelProjectRoot = topLevelProjectRoot0
   }
 }
 
@@ -22,6 +24,7 @@ trait MillBuildModule extends mill.scalalib.ScalaModule{
 
   def millBuildEnclosingClasspath: Seq[os.Path]
   def millBuildProjectRoot: os.Path
+  def millTopLevelProjectRoot: os.Path
 
   def millSourcePath = millBuildProjectRoot / "mill-build"
 
@@ -36,7 +39,7 @@ trait MillBuildModule extends mill.scalalib.ScalaModule{
   def scalaVersion = "2.13.10"
 
   def parseBuildFiles = T.input {
-    FileImportGraph.parseBuildFiles(millBuildProjectRoot)
+    FileImportGraph.parseBuildFiles(millTopLevelProjectRoot, millBuildProjectRoot)
   }
 
   def ivyDeps = T {
@@ -60,6 +63,10 @@ trait MillBuildModule extends mill.scalalib.ScalaModule{
   }
 
   def generatedSources = T {
+    generateScriptSources()
+  }
+
+  def generateScriptSources = T{
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
@@ -68,7 +75,8 @@ trait MillBuildModule extends mill.scalalib.ScalaModule{
         scriptSources(),
         parsed.seenScripts,
         T.dest,
-        millBuildEnclosingClasspath
+        millBuildEnclosingClasspath,
+        millTopLevelProjectRoot
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -119,7 +127,8 @@ object MillBuildModule{
                              scriptSources: Seq[PathRef],
                              scriptCode: Map[os.Path, String],
                              targetDest: os.Path,
-                             enclosingClasspath: Seq[os.Path]) = {
+                             enclosingClasspath: Seq[os.Path],
+                             millTopLevelProjectRoot: os.Path) = {
     for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
@@ -130,7 +139,8 @@ object MillBuildModule{
           scriptSource.path / os.up,
           FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1),
           scriptSource.path.baseName,
-          enclosingClasspath
+          enclosingClasspath,
+          millTopLevelProjectRoot
         ) +
         scriptCode(scriptSource.path) +
         MillBuildModule.bottom,
@@ -139,8 +149,12 @@ object MillBuildModule{
     }
   }
 
-  def top(relative: os.RelPath, base: os.Path, pkg: Seq[String], name: String, enclosingClasspath: Seq[os.Path]) = {
-    pprint.log(base)
+  def top(relative: os.RelPath,
+          base: os.Path,
+          pkg: Seq[String],
+          name: String,
+          enclosingClasspath: Seq[os.Path],
+          millTopLevelProjectRoot: os.Path) = {
     val foreign =
       if (pkg.size > 1 || name != "build") {
         // Computing a path in "out" that uniquely reflects the location
@@ -173,6 +187,7 @@ object MillBuildModule{
        |trait MillBuildModule extends mill.entrypoint.MillBuildModule {
        |  def millBuildEnclosingClasspath = ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_))
        |  def millBuildProjectRoot = _root_.os.Path(${literalize((base / os.up).toString)})
+       |  def millTopLevelProjectRoot = _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)})
        |}
        |//MILL_USER_CODE_START_MARKER
        |""".stripMargin

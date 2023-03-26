@@ -2,6 +2,6 @@ package foo
 
 object Example {
   def main(args: Array[String]): Unit = {
-    println(sys.env("snippet"))
+    println(sys.env("snippet") + "?")
   }
 }

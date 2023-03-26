@@ -1347,11 +1347,11 @@ object dev extends MillModule {
       case wd0 +: rest =>
         val wd = os.Path(wd0, T.workspace)
         os.makeDir.all(wd)
-        mill.modules.Jvm.runSubprocess(
+        try mill.modules.Jvm.runSubprocess(
           Seq(launcher().path.toString) ++ rest,
           forkEnv(),
           workingDir = wd
-        )
+        )catch{case e => ()/*ignore*/}
         mill.api.Result.Success(())
     }
 

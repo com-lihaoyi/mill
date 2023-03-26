@@ -12,3 +12,5 @@ object ZincIncrementalCompilationTests
     extends ZincIncrementalCompilationTests(fork = false, clientServer = false)
 object CompileErrorTests extends CompileErrorTests(fork = false, clientServer = false)
 object ParseErrorTests extends ParseErrorTests(fork = false, clientServer = false)
+
+object MetaMetaBuildTests extends MetaMetaBuildTests(fork = false, clientServer = false)
