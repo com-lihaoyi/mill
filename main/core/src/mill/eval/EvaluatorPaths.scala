@@ -3,9 +3,19 @@ package mill.eval
 import mill.api.internal
 import mill.define.{NamedTask, Segment, Segments}
 
-case class EvaluatorPaths(dest: os.Path, meta: os.Path, log: os.Path)
+case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path) {
+  private def copy(dest: os.Path = dest, meta: os.Path = meta, log: os.Path = log): EvaluatorPaths =
+    new EvaluatorPaths(dest, meta, log)
+}
 
 object EvaluatorPaths {
+
+  def apply(dest: os.Path, meta: os.Path, log: os.Path): EvaluatorPaths =
+    new EvaluatorPaths(dest, meta, log)
+
+  private def unapply(evaluatorPaths: EvaluatorPaths): Option[(os.Path, os.Path, os.Path)] =
+    Option(evaluatorPaths.dest, evaluatorPaths.meta, evaluatorPaths.log)
+
   @internal
   private[mill] def makeSegmentStrings(segments: Segments): Seq[String] = segments.value.flatMap {
     case Segment.Label(s) => Seq(s)

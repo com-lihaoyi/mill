@@ -11,6 +11,7 @@ import mill.api.{
   DummyTestReporter,
   Loose,
   PathRef,
+  Result,
   Strict,
   TestReporter
 }
@@ -401,7 +402,9 @@ class Evaluator private (
             try Some(upickle.default.read(cached.value)(reader))
             catch {
               case e: PathRef.PathRefValidationException =>
-                logger.debug(s"${labelledNamedTask.segments.render}: re-evaluating; ${e.getMessage}")
+                logger.debug(
+                  s"${labelledNamedTask.segments.render}: re-evaluating; ${e.getMessage}"
+                )
                 None
               case NonFatal(_) => None
             }
@@ -814,6 +817,36 @@ object Evaluator {
       results: collection.Map[Task[_], mill.api.Result[Any]]
   ) {
     def values: Seq[Any] = rawValues.collect { case mill.api.Result.Success(v) => v }
+    private def copy(
+        rawValues: Seq[Result[Any]] = rawValues,
+        evaluated: Agg[Task[_]] = evaluated,
+        transitive: Agg[Task[_]] = transitive,
+        failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[_]] = failing,
+        results: collection.Map[Task[_], Result[Any]] = results
+    ): Results = new Results(
+      rawValues,
+      evaluated,
+      transitive,
+      failing,
+      results
+    )
+  }
+
+  object Results {
+    private def unapply(results: Results): Option[(
+        Seq[Result[Any]],
+        Agg[Task[_]],
+        Agg[Task[_]],
+        MultiBiMap[Either[Task[_], Labelled[_]], Failing[_]],
+        collection.Map[Task[_], Result[Any]]
+    )] = Some((
+      results.rawValues,
+      results.evaluated,
+      results.transitive,
+      results.failing,
+      results.results
+    ))
+
   }
 
   def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {
@@ -856,10 +889,22 @@ object Evaluator {
   }
 
   case class Evaluated(
-      newResults: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
+      newResults: collection.Map[Task[_], Result[(Any, Int)]],
       newEvaluated: Seq[Task[_]],
       cached: Boolean
-  )
+  ) {
+    private[Evaluator] def copy(
+        newResults: collection.Map[Task[_], Result[(Any, Int)]] = newResults,
+        newEvaluated: Seq[Task[_]] = newEvaluated,
+        cached: Boolean = cached
+    ): Evaluated = new Evaluated(newResults, newEvaluated, cached)
+  }
+
+  object Evaluated {
+    private[Evaluator] def unapply(evaluated: Evaluated)
+        : Option[(collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean)] =
+      Some((evaluated.newResults, evaluated.newEvaluated, evaluated.cached))
+  }
 
   // Increment the counter message by 1 to go from 1/10 to 10/10
   class NextCounterMsg(taskCount: Int) {
@@ -913,7 +958,7 @@ object Evaluator {
           case Right(t) => t.segments.render
         }
         val fss = fs.map {
-          case mill.api.Result.Exception(t, outerStack) =>
+          case Result.Exception(t, outerStack) =>
             var current = List(t)
             while (current.head.getCause != null) {
               current = current.head.getCause :: current
@@ -924,7 +969,7 @@ object Evaluator {
                   ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
               )
               .mkString("\n")
-          case mill.api.Result.Failure(t, _) => t
+          case Result.Failure(t, _) => t
         }
         s"$ks ${fss.iterator.mkString(", ")}"
       }).mkString("\n")
