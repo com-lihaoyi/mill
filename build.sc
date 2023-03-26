@@ -1070,7 +1070,7 @@ object integration extends MillScalaModule {
     )
   }
   object forked extends Forked
-  object `forked-server` extends Forked
+  object server extends Forked
 
   // Test of various third-party repositories
   object thirdparty extends Module {

@@ -1,5 +1,5 @@
 package mill.integration
-package forked.server
+package server
 
 object CrossTests extends CrossTests(fork = true, clientServer = true)
 object DocAnnotationsTests extends DocAnnotationsTests(fork = true, clientServer = true)
