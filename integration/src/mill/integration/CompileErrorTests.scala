@@ -14,11 +14,10 @@ class CompileErrorTests(fork: Boolean, clientServer: Boolean)
       val res = evalStdout("foo.scalaVersion")
 
       assert(res.isSuccess == false)
-      val errorString = res.errLines.mkString("\n")
-      assert(errorString.contains("""bar.sc:4:9: not found: value doesntExist"""))
-      assert(errorString.contains("""println(doesntExist)"""))
-      assert(errorString.contains("""qux.sc:3:34: type mismatch;"""))
-      assert(errorString.contains("""build.sc:8:5: value noSuchMethod is not a member of object build.this.foo"""))
+      assert(res.err.contains("""bar.sc:4:9: not found: value doesntExist"""))
+      assert(res.err.contains("""println(doesntExist)"""))
+      assert(res.err.contains("""qux.sc:3:34: type mismatch;"""))
+      assert(res.err.contains("""build.sc:8:5: value noSuchMethod is not a member of object build.this.foo"""))
     }
   }
 }

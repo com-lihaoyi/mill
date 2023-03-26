@@ -16,7 +16,7 @@ class MetaBuildTests(fork: Boolean, clientServer: Boolean)
       assert(res.isSuccess == true)
       // Don't check foo.run stdout in local mode, because it the subprocess
       // println is not properly captured by the test harness
-      if (fork) assert(res.outLines.contains("<h1>hello</h1><p>world</p>"))
+      if (fork) assert(res.out.contains("<h1>hello</h1><p>world</p>"))
     }
 
     test("success"){

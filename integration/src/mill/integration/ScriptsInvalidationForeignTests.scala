@@ -13,7 +13,7 @@ class ScriptsInvalidationForeignTests(fork: Boolean, clientServer: Boolean)
   def runTask(task: String) = {
     val res = evalStdout(task)
     assert(res.isSuccess)
-    res.outLines.map(_.trim)
+    res.out.linesIterator.map(_.trim).toVector
   }
 
   val tests = Tests {

@@ -16,7 +16,7 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
       assert(res.isSuccess == true)
       // Don't check foo.run stdout in local mode, because it the subprocess
       // println is not properly captured by the test harness
-      if (fork) assert(res.outLines.contains("<h1>hello</h1><p>world</p>"))
+      if (fork) assert(res.out.contains("<h1>hello</h1><p>world</p>"))
     }
 
     // Cause various kinds of errors - parse, compile, & runtime - in various
@@ -26,7 +26,9 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
       def evalCheckErr(expected: String*) = {
         val res = evalStdout("foo.run")
         assert(res.isSuccess == false)
-        val err = res.errLines.map("\n"+_).mkString
+        // Prepend a "\n" to allow callsites to use "\n" to test for start of
+        // line, even though the first line doesn't have a "\n" at the start
+        val err = "\n" + res.err
         for(e <- expected){
           assert(err.contains(e))
         }

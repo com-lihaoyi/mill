@@ -13,7 +13,7 @@ import java.nio.file.NoSuchFileException
 import scala.util.control.NonFatal
 
 object IntegrationTestSuite{
-  case class EvalStdout(isSuccess: Boolean, outLines: Seq[String], errLines: Seq[String])
+  case class EvalResult(isSuccess: Boolean, out: String, err: String)
 }
 abstract class IntegrationTestSuite(
     val workspaceSlug: String,
@@ -79,7 +79,7 @@ abstract class IntegrationTestSuite(
     else evalFork(os.Inherit, os.Inherit, s)
   }
 
-  def evalStdout(s: String*): IntegrationTestSuite.EvalStdout = {
+  def evalStdout(s: String*): IntegrationTestSuite.EvalResult = {
     if (!fork) {
       val outputStream = new ByteArrayOutputStream
       val errorStream = new ByteArrayOutputStream
@@ -94,7 +94,7 @@ abstract class IntegrationTestSuite(
       val stderr: Seq[String] =
         if (stderrArray.isEmpty) Seq.empty
         else new String(stderrArray).split('\n')
-      IntegrationTestSuite.EvalStdout(result._1, stdout, stderr)
+      IntegrationTestSuite.EvalResult(result._1, stdout.mkString("\n"), stderr.mkString("\n"))
     } else {
       val output = Seq.newBuilder[String]
       val error = Seq.newBuilder[String]
@@ -102,7 +102,7 @@ abstract class IntegrationTestSuite(
       val processError = os.ProcessOutput.Readlines(error += _)
 
       val result = evalFork(processOutput, processError, s)
-      IntegrationTestSuite.EvalStdout(result, output.result(), error.result())
+      IntegrationTestSuite.EvalResult(result, output.result().mkString("\n"), error.result().mkString("\n"))
     }
   }
 

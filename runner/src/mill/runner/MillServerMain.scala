@@ -179,7 +179,6 @@ class Server[T](
             initialSystemProperties
           )
 
-          pprint.log(newStateCache)
           sm.stateCache = newStateCache
           java.nio.file.Files.write(
             java.nio.file.Paths.get(lockBase + "/exitCode"),
