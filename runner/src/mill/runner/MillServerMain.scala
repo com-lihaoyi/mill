@@ -30,8 +30,8 @@ trait MillServerMain[T] {
 }
 
 @internal
-object MillServerMain extends MillServerMain[MultiEvaluatorState] {
-  def stateCache0 = MultiEvaluatorState.empty
+object MillServerMain extends MillServerMain[RunnerState] {
+  def stateCache0 = RunnerState.empty
   def main(args0: Array[String]): Unit = {
     // Disable SIGINT interrupt signal in the Mill server.
     //
@@ -56,15 +56,16 @@ object MillServerMain extends MillServerMain[MultiEvaluatorState] {
   }
 
   def main0(
-      args: Array[String],
-      stateCache: MultiEvaluatorState,
-      mainInteractive: Boolean,
-      streams: SystemStreams,
-      env: Map[String, String],
-      setIdle: Boolean => Unit,
-      userSpecifiedProperties: Map[String, String],
-      initialSystemProperties: Map[String, String]
-  ): (Boolean, MultiEvaluatorState) = {
+             args: Array[String],
+             stateCache: RunnerState,
+             mainInteractive: Boolean,
+             streams: SystemStreams,
+             env: Map[String, String],
+             setIdle: Boolean => Unit,
+             userSpecifiedProperties: Map[String, String],
+             initialSystemProperties: Map[String, String]
+  ): (Boolean, RunnerState) = {
+    pprint.log(stateCache)
     MillMain.main0(
       args,
       stateCache,

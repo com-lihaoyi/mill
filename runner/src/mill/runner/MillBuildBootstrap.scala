@@ -21,12 +21,12 @@ class MillBuildBootstrap(projectRoot: os.Path,
                          env: Map[String, String],
                          threadCount: Option[Int],
                          targetsAndParams: Seq[String],
-                         stateCache: MultiEvaluatorState,
+                         stateCache: RunnerState,
                          logger: ColorLogger){
 
   val millBootClasspath = MillBuildBootstrap.prepareMillBootClasspath(projectRoot / "out")
 
-  def evaluate(): Watching.Result[MultiEvaluatorState] = {
+  def evaluate(): Watching.Result[RunnerState] = {
 
     val multiState = evaluateRec(0)
     Watching.Result(
@@ -36,7 +36,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
     )
   }
 
-  def evaluateRec(depth: Int): MultiEvaluatorState = {
+  def evaluateRec(depth: Int): RunnerState = {
     val prevStateOpt = stateCache
       .evalStates
       .lift(depth - stateCache.errorAndDepth.map(_._2).getOrElse(0))
@@ -53,11 +53,11 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
     val buildModuleOrError = recEither match {
       case Left(millBuildModule) => Right(millBuildModule -> Map.empty[os.Path, Seq[os.Path]])
-      case Right(metaMultiEvaluatorState) =>
-        if (metaMultiEvaluatorState.errorAndDepth.isDefined) Left(metaMultiEvaluatorState)
+      case Right(metaRunnerState) =>
+        if (metaRunnerState.errorAndDepth.isDefined) Left(metaRunnerState)
         else Right(
-          metaMultiEvaluatorState.evalStates.last.buildModule ->
-          metaMultiEvaluatorState.evalStates.last.scriptImportGraph
+          metaRunnerState.evalStates.last.buildModule ->
+          metaRunnerState.evalStates.last.scriptImportGraph
         )
     }
 
@@ -84,12 +84,12 @@ class MillBuildBootstrap(projectRoot: os.Path,
     res
   }
 
-  def processFinalTargets(depth: Int, nestedEvalStates: Seq[EvaluatorState], buildModule: BaseModule, evaluator: Evaluator): MultiEvaluatorState = {
+  def processFinalTargets(depth: Int, nestedEvalStates: Seq[RunnerState.Frame], buildModule: BaseModule, evaluator: Evaluator): RunnerState = {
     Util.withContextClassloader(buildModule.getClass.getClassLoader) {
       val (evaled, buildWatched) =
         MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams) { _ => () }
 
-      val evalState = EvaluatorState(
+      val evalState = RunnerState.Frame(
         evaluator.workerCache.toMap,
         buildWatched,
         Map.empty,
@@ -97,13 +97,13 @@ class MillBuildBootstrap(projectRoot: os.Path,
       )
 
       evaled match {
-        case Left(error) => MultiEvaluatorState(nestedEvalStates, Some(error, depth))
-        case Right(_) => MultiEvaluatorState(nestedEvalStates ++ Seq(evalState), None)
+        case Left(error) => RunnerState(nestedEvalStates, Some(error, depth))
+        case Right(_) => RunnerState(nestedEvalStates ++ Seq(evalState), None)
       }
     }
   }
 
-  def makeEvaluator(prevStateOpt: Option[EvaluatorState],
+  def makeEvaluator(prevStateOpt: Option[RunnerState.Frame],
                     scriptImportGraph: Map[Path, Seq[Path]],
                     baseModule: BaseModule,
                     millClassloaderSigHash: Int,
@@ -130,10 +130,10 @@ class MillBuildBootstrap(projectRoot: os.Path,
   def recOut(depth: Int) = projectRoot / "out" / Seq.fill(depth)("mill-build")
 
   def processRunClasspath(depth: Int,
-                          prevStateOpt: Option[EvaluatorState],
+                          prevStateOpt: Option[RunnerState.Frame],
                           millClassloaderSigHash: Int,
                           evaluator: Evaluator,
-                          previousEvalStates: Seq[EvaluatorState]): MultiEvaluatorState = {
+                          previousEvalStates: Seq[RunnerState.Frame]): RunnerState = {
     val (bootClassloaderImportGraphOrErr, bootWatched) = prevStateOpt match {
       case Some(s) if s.watched.forall(_.validate()) =>
         Right((s.classLoader, s.scriptImportGraph)) -> s.watched
@@ -156,16 +156,16 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
     val res = bootClassloaderImportGraphOrErr match {
       case Left(error) =>
-        MultiEvaluatorState(previousEvalStates, Some(error, depth))
+        RunnerState(previousEvalStates, Some(error, depth))
       case Right((classLoaderOpt, scriptImportGraph)) =>
-        val evalState = EvaluatorState(
+        val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           bootWatched,
           scriptImportGraph,
           classLoaderOpt
         )
 
-        MultiEvaluatorState(previousEvalStates ++ List(evalState), None)
+        RunnerState(previousEvalStates ++ List(evalState), None)
     }
 
     res

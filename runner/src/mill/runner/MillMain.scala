@@ -33,7 +33,7 @@ object MillMain {
       try {
         main0(
           args,
-          MultiEvaluatorState.empty,
+          RunnerState.empty,
           mill.util.Util.isInteractive(),
           initialSystemStreams,
           System.getenv().asScala.toMap,
@@ -51,24 +51,24 @@ object MillMain {
   }
 
   def main0(args: Array[String],
-            stateCache: MultiEvaluatorState,
+            stateCache: RunnerState,
             mainInteractive: Boolean,
             streams: SystemStreams,
             env: Map[String, String],
             setIdle: Boolean => Unit,
             userSpecifiedProperties0: Map[String, String],
             initialSystemProperties: Map[String, String]
-  ): (Boolean, MultiEvaluatorState) = {
+  ): (Boolean, RunnerState) = {
 
     MillCliConfigParser.parse(args) match {
       // Cannot parse args
       case Left(msg) =>
         streams.err.println(msg)
-        (false, MultiEvaluatorState.empty)
+        (false, RunnerState.empty)
 
       case Right(config) if config.help.value =>
         streams.out.println(MillCliConfigParser.usageText)
-        (true, MultiEvaluatorState.empty)
+        (true, RunnerState.empty)
 
       case Right(config) if config.showVersion.value =>
         def p(k: String, d: String = "<unknown>") = System.getProperty(k, d)
@@ -86,7 +86,7 @@ object MillMain {
               "os.arch"
             )}""".stripMargin
         )
-        (true, MultiEvaluatorState.empty)
+        (true, RunnerState.empty)
 
       case Right(config)
           if (
@@ -96,7 +96,7 @@ object MillMain {
         streams.err.println(
           "-i/--interactive/--repl/--no-server/--bsp must be passed in as the first argument"
         )
-        (false, MultiEvaluatorState.empty)
+        (false, RunnerState.empty)
 
       case Right(config)
           if Seq(
@@ -108,7 +108,7 @@ object MillMain {
         streams.err.println(
           "Only one of -i/--interactive, --repl, --no-server or --bsp may be given"
         )
-        (false, MultiEvaluatorState.empty)
+        (false, RunnerState.empty)
 
       case Right(config) =>
 
@@ -175,7 +175,7 @@ object MillMain {
               bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
 
             var repeatForBsp = true
-            var loopRes: (Boolean, MultiEvaluatorState) = (false, MultiEvaluatorState.empty)
+            var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
             while (repeatForBsp) {
               repeatForBsp = false
 
@@ -185,7 +185,7 @@ object MillMain {
                 watch = config.watch.value,
                 streams = streams,
                 setIdle = setIdle,
-                evaluate = (prevState: Option[MultiEvaluatorState]) => {
+                evaluate = (prevState: Option[RunnerState]) => {
                   adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
                   new MillBuildBootstrap(

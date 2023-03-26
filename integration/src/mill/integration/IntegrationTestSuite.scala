@@ -3,7 +3,7 @@ package mill.integration
 import mainargs.Flag
 import mill.MillCliConfig
 import mill.define.SelectMode
-import mill.runner.{MillBuildBootstrap, MillMain, MultiEvaluatorState, Watching}
+import mill.runner.{MillBuildBootstrap, MillMain, RunnerState, Watching}
 import mill.util.SystemStreams
 import os.Path
 import utest._
@@ -58,7 +58,7 @@ abstract class IntegrationTestSuite(
       watch = config.watch.value,
       streams = streams,
       setIdle = _ => (),
-      evaluate = (prevStateOpt: Option[MultiEvaluatorState]) => {
+      evaluate = (prevStateOpt: Option[RunnerState]) => {
         MillMain.adjustJvmProperties(userSpecifiedProperties, sys.props.toMap)
         new MillBuildBootstrap(
           projectRoot = wd,
@@ -66,7 +66,7 @@ abstract class IntegrationTestSuite(
           env = Map.empty,
           threadCount = threadCount,
           targetsAndParams = s.toList,
-          stateCache = MultiEvaluatorState.empty,
+          stateCache = RunnerState.empty,
           logger = logger,
         ).evaluate()
       },
