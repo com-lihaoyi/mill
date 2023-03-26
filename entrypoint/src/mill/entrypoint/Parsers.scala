@@ -57,7 +57,7 @@ object Parsers  {
   def StatementBlock[$: P] =
     P( Semis.? ~ (TmplStat ~~ WS ~~ (Semis | &("}") | End)).!.repX)
 
-  def CompilationUnit[$: P] = P( HashBang.!.? ~ WL.! ~ StatementBlock ~ WL )
+  def CompilationUnit[$: P] = P( HashBang.!.? ~ WL.! ~ StatementBlock ~ WL ~ End )
 
   def stringWrap(s: String): String = "\"" + pprint.Util.literalize(s) + "\""
   def stringSymWrap(s: String): String = {
