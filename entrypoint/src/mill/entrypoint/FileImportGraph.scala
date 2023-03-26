@@ -22,7 +22,7 @@ object FileImportGraph{
    * starting from `build.sc`, collecting the information necessary to
    * instantiate the [[MillBuildModule]]
    */
-  def parseBuildFiles(topLevelProjectRoot: os.Path, base: os.Path) = {
+  def parseBuildFiles(topLevelProjectRoot: os.Path, projectRoot: os.Path) = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val seenIvy = mutable.Set.empty[String]
     val importGraphEdges = mutable.Map.empty[os.Path, Seq[os.Path]]
@@ -79,7 +79,7 @@ object FileImportGraph{
             if (rest.isEmpty) (start, "_root_._", end)
             else {
               val end = rest.last._2
-              (start, fileImportToSegments(base, nextPaths(0) / os.up, false).mkString("."), end)
+              (start, fileImportToSegments(projectRoot, nextPaths(0) / os.up, false).mkString("."), end)
             }
         }
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
@@ -90,7 +90,7 @@ object FileImportGraph{
     }
 
 
-    walkScripts(base / "build.sc")
+    walkScripts(projectRoot / "build.sc")
     new FileImportGraph(seenScripts.toMap, seenIvy.toSet, importGraphEdges.toMap, errors.toSeq)
   }
 

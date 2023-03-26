@@ -6,27 +6,11 @@ import mill.define.{Caller, Discover, Task}
 import mill.scalalib.{BoundDep, DepSyntax, Lib, Versions}
 import pprint.Util.literalize
 
-
-class MillBuildWrapperModule(topLevelProjectRoot0: os.Path,
-                             projectRoot: os.Path,
-                             enclosingClasspath: Seq[os.Path]) extends mill.define.BaseModule(projectRoot)(implicitly, implicitly, implicitly, implicitly, Caller(())) {
-  implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
-
-  object millbuild extends MillBuildModule {
-    def millBuildEnclosingClasspath = enclosingClasspath
-    def millBuildProjectRoot = projectRoot
-    def millTopLevelProjectRoot = topLevelProjectRoot0
-  }
-}
-
 @internal
-trait MillBuildModule extends mill.scalalib.ScalaModule{
+class MillBuildModule()(implicit baseModuleInfo: BaseModule.Info,
+                        millBuildModuleInfo: MillBuildModule.Info) extends BaseModule() with mill.scalalib.ScalaModule{
 
-  def millBuildEnclosingClasspath: Seq[os.Path]
-  def millBuildProjectRoot: os.Path
-  def millTopLevelProjectRoot: os.Path
-
-  def millSourcePath = millBuildProjectRoot / "mill-build"
+  def millSourcePath = millBuildModuleInfo.projectRoot / os.up / "mill-build"
 
   def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task {
     // We need to resolve the sources to make GenIdeaExtendedTests pass for
@@ -39,7 +23,10 @@ trait MillBuildModule extends mill.scalalib.ScalaModule{
   def scalaVersion = "2.13.10"
 
   def parseBuildFiles = T.input {
-    FileImportGraph.parseBuildFiles(millTopLevelProjectRoot, millBuildProjectRoot)
+    FileImportGraph.parseBuildFiles(
+      millBuildModuleInfo.topLevelProjectRoot,
+      millBuildModuleInfo.projectRoot / os.up
+    )
   }
 
   def ivyDeps = T {
@@ -71,12 +58,12 @@ trait MillBuildModule extends mill.scalalib.ScalaModule{
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
       MillBuildModule.generateWrappedSources(
-        millBuildProjectRoot,
+        millBuildModuleInfo.projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
         T.dest,
-        millBuildEnclosingClasspath,
-        millTopLevelProjectRoot
+        millBuildModuleInfo.enclosingClasspath,
+        millBuildModuleInfo.topLevelProjectRoot
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -87,7 +74,7 @@ trait MillBuildModule extends mill.scalalib.ScalaModule{
       case (k, vs) =>
         // Convert the import graph from source-file paths to generated-file paths
         def normalize(p: os.Path) =
-          generatedSources().head.path / FileImportGraph.fileImportToSegments(millBuildProjectRoot, p, false)
+          generatedSources().head.path / FileImportGraph.fileImportToSegments(millBuildModuleInfo.projectRoot / os.up, p, false)
 
         (normalize(k), vs.map(normalize))
     }
@@ -98,7 +85,7 @@ trait MillBuildModule extends mill.scalalib.ScalaModule{
   }
 
   def unmanagedClasspath = mill.define.Target.input {
-    mill.api.Loose.Agg.from(millBuildEnclosingClasspath.map(p => mill.api.PathRef(p))) ++
+    mill.api.Loose.Agg.from(millBuildModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p))) ++
       lineNumberPluginClasspath()
   }
 
@@ -123,6 +110,23 @@ trait MillBuildModule extends mill.scalalib.ScalaModule{
 }
 
 object MillBuildModule{
+
+  class BootstrapModule(topLevelProjectRoot0: os.Path,
+                        projectRoot: os.Path,
+                        enclosingClasspath: Seq[os.Path])
+                       (implicit baseModuleInfo: BaseModule.Info) extends BaseModule {
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+
+    implicit private def millBuildModuleInfo = MillBuildModule.Info(
+      enclosingClasspath, projectRoot, topLevelProjectRoot0
+    )
+    object build extends MillBuildModule
+  }
+
+  case class Info(enclosingClasspath: Seq[os.Path],
+                  projectRoot: os.Path,
+                  topLevelProjectRoot: os.Path)
+
   def generateWrappedSources(base: os.Path,
                              scriptSources: Seq[PathRef],
                              scriptCode: Map[os.Path, String],
@@ -132,6 +136,7 @@ object MillBuildModule{
     for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
+
       val newSource = MillBuildModule.top(
         relative,
         scriptSource.path / os.up,
@@ -155,6 +160,7 @@ object MillBuildModule{
           enclosingClasspath: Seq[os.Path],
           millTopLevelProjectRoot: os.Path,
           originalFilePath: os.Path) = {
+
     val foreign =
       if (pkg.size > 1 || name != "build") {
         // Computing a path in "out" that uniquely reflects the location
@@ -175,21 +181,24 @@ object MillBuildModule{
     s"""
        |package ${pkg.mkString(".")}
        |import _root_.mill._
-       |object $name
-       |extends _root_.mill.define.BaseModule(_root_.os.Path(${literalize(base.toString)}), foreign0 = $foreign)(
-       |  implicitly, implicitly, implicitly, implicitly, _root_.mill.define.Caller(())
-       |)
-       |with $name{
+       |object ${name}MiscInfo{
+       |  implicit val millBuildModuleInfo: _root_.mill.entrypoint.MillBuildModule.Info = _root_.mill.entrypoint.MillBuildModule.Info(
+       |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
+       |    _root_.os.Path(${literalize(base.toString)}),
+       |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)})
+       |  )
+       |  implicit val millBaseModuleInfo: _root_.mill.entrypoint.BaseModule.Info = _root_.mill.entrypoint.BaseModule.Info(
+       |    millBuildModuleInfo.projectRoot
+       |  )
+       |}
+       |import ${name}MiscInfo.{millBuildModuleInfo, millBaseModuleInfo}
+       |object $name extends $name
+       |trait $name extends _root_.mill.entrypoint.BaseModule{
        |  @_root_.scala.annotation.nowarn("cat=deprecation")
-       |  implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
-       |}
+       |  override implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
        |
-       |sealed trait $name extends _root_.mill.main.MainModule{
-       |trait MillBuildModule extends mill.entrypoint.MillBuildModule {
-       |  def millBuildEnclosingClasspath = ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_))
-       |  def millBuildProjectRoot = _root_.os.Path(${literalize((base / os.up).toString)})
-       |  def millTopLevelProjectRoot = _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)})
-       |}
+       |
+       |
        |//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
        |//MILL_USER_CODE_START_MARKER
        |""".stripMargin

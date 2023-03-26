@@ -31,14 +31,19 @@ class MillBuildBootstrap(projectRoot: os.Path,
   }
 
   def evaluateRec(depth: Int): MultiEvaluatorState = {
-
     val prevStateOpt = stateCache
       .evalStates
       .lift(depth - stateCache.errorAndDepth.map(_._2).getOrElse(0))
 
+    val buildFileExists = os.exists(recRoot(depth) / "build.sc")
     val recEither =
-      if (os.exists(recRoot(depth) / "build.sc")) Right(evaluateRec(depth + 1))
-      else Left(new MillBuildWrapperModule(projectRoot, recRoot(depth - 1), millBootClasspath))
+      if (buildFileExists) Right(evaluateRec(depth + 1))
+      else Left{
+        val bootRoot = recRoot(depth)
+        new MillBuildModule.BootstrapModule(projectRoot, bootRoot, millBootClasspath)(
+          mill.entrypoint.BaseModule.Info(bootRoot)
+        )
+      }
 
     val buildModuleOrError = recEither match {
       case Left(millBuildModule) => Right(millBuildModule)
@@ -51,12 +56,16 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
     val res = buildModuleOrError match{
       case Left(errorState) => errorState
-      case Right(buildModule) =>
+      case Right(buildModule0) =>
+        val buildModule = buildModule0
+          .millModuleDirectChildren
+          .collectFirst{case b: BaseModule => b}
+          .getOrElse(buildModule0)
+
         val evaluator = makeEvaluator(prevStateOpt, Map.empty, buildModule, 0, depth)
         if (depth != 0) processRunClasspath(depth, prevStateOpt, 0, evaluator, nestedEvalStates)
         else processFinalTargets(depth, nestedEvalStates, buildModule, evaluator)
     }
-
     res
   }
 
@@ -117,10 +126,9 @@ class MillBuildBootstrap(projectRoot: os.Path,
       case _ =>
         MillBuildBootstrap.evaluateWithWatches(
           evaluator,
-          Seq("millbuild.{runClasspath,scriptImportGraph,generatedSources}")
+          Seq("{runClasspath,scriptImportGraph}")
         ) {
-          case Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]], generatedSources: Seq[PathRef]) =>
-
+          case Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]]) =>
             prevStateOpt.foreach(_.classLoader.close())
             val runClassLoader = new URLClassLoader(
               runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
@@ -131,7 +139,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
         }
     }
 
-    bootClassloaderImportGraphOrErr match {
+    val res = bootClassloaderImportGraphOrErr match {
       case Left(error) =>
         MultiEvaluatorState(previousEvalStates, Some(error, depth))
       case Right((classLoaderOpt, scriptImportGraph)) =>
@@ -144,6 +152,8 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
         MultiEvaluatorState(previousEvalStates ++ List(evalState), None)
     }
+
+    res
   }
 }
 

@@ -45,35 +45,35 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
 
         evalCheckErr(
           "\n1 targets failed",
-          "\nmillbuild.generateScriptSources build.sc"
+          "\ngenerateScriptSources build.sc"
         )
 
         causeParseError(workspaceRoot / "mill-build" / "build.sc")
 
         evalCheckErr(
           "\n1 targets failed",
-          "\nmillbuild.generateScriptSources mill-build/build.sc"
+          "\ngenerateScriptSources mill-build/build.sc"
         )
 
         causeParseError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
 
         evalCheckErr(
           "\n1 targets failed",
-          "\nmillbuild.generateScriptSources mill-build/mill-build/build.sc"
+          "\ngenerateScriptSources mill-build/mill-build/build.sc"
         )
 
         fixParseError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
 
         evalCheckErr(
           "\n1 targets failed",
-          "\nmillbuild.generateScriptSources mill-build/build.sc"
+          "\ngenerateScriptSources mill-build/build.sc"
         )
 
         fixParseError(workspaceRoot / "mill-build" / "build.sc")
 
         evalCheckErr(
           "\n1 targets failed",
-          "\nmillbuild.generateScriptSources build.sc"
+          "\ngenerateScriptSources build.sc"
         )
 
         fixParseError(workspaceRoot / "build.sc")
@@ -160,7 +160,7 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
         evalCheckErr(
           "\n1 targets failed",
           "build.sc",
-          "millbuild.runClasspath java.lang.Exception: boom"
+          "runClasspath java.lang.Exception: boom"
         )
 
         causeRuntimeError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
@@ -168,7 +168,7 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
         evalCheckErr(
           "\n1 targets failed",
           "build.sc",
-          "millbuild.runClasspath java.lang.Exception: boom"
+          "runClasspath java.lang.Exception: boom"
         )
 
         fixRuntimeError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
@@ -176,7 +176,7 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
         evalCheckErr(
           "\n1 targets failed",
           "build.sc",
-          "millbuild.runClasspath java.lang.Exception: boom"
+          "runClasspath java.lang.Exception: boom"
         )
 
         fixRuntimeError(workspaceRoot / "mill-build" / "build.sc")
