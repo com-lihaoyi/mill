@@ -9,13 +9,6 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
   val tests = Tests {
     val workspaceRoot = initWorkspace()
 
-    def assertLinePrefix(lines: Seq[String], prefix: String) = {
-      assert(lines.exists(_.startsWith(prefix)))
-    }
-    def assertLineContains(lines: Seq[String], prefix: String) = {
-      assert(lines.exists(_.contains(prefix)))
-    }
-
     def mangleFile(p: os.Path, f: String => String) = os.write.over(p, f(os.read(p)))
 
     def runAssertSuccess() = {
@@ -26,9 +19,19 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
       if (fork) assert(res.outLines.contains("<h1>hello</h1><p>world</p>"))
     }
 
-    // Cause various kinds of errors in various levels of build.sc meta-builds,
-    // ensuring that the proper messages are reported in all cases.
+    // Cause various kinds of errors - parse, compile, & runtime - in various
+    // levels of build.sc meta-builds, ensuring that the proper messages are
+    // reported in all cases.
     test("multiLevelErrorReporting") {
+      def evalCheckErr(expected: String*) = {
+        val res = evalStdout("foo.run")
+        assert(res.isSuccess == false)
+        val err = res.errLines.map("\n"+_).mkString
+        for(e <- expected){
+          assert(err.contains(e))
+        }
+      }
+
       test("parseError") {
         def causeParseError(p: os.Path) =
           mangleFile(p, _.replace("extends", "extendx"))
@@ -40,53 +43,38 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
 
         causeParseError(workspaceRoot / "build.sc")
 
-        evalStdoutAssert("foo.run"){ res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
-          assertLinePrefix(res.errLines, "[mill-build] millbuild.generateScriptSources build.sc")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          "\nmillbuild.generateScriptSources build.sc"
+        )
 
         causeParseError(workspaceRoot / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run"){ res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] [mill-build] 1 targets failed")
-          assertLinePrefix(
-            res.errLines,
-            "[mill-build] [mill-build] millbuild.generateScriptSources mill-build/build.sc"
-          )
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          "\nmillbuild.generateScriptSources mill-build/build.sc"
+        )
 
         causeParseError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] [mill-build] [mill-build] 1 targets failed")
-          assertLinePrefix(
-            res.errLines,
-            "[mill-build] [mill-build] [mill-build] millbuild.generateScriptSources mill-build/mill-build/build.sc"
-          )
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          "\nmillbuild.generateScriptSources mill-build/mill-build/build.sc"
+        )
 
         fixParseError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run"){res =>
-
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] [mill-build] 1 targets failed")
-          assertLinePrefix(
-            res.errLines,
-            "[mill-build] [mill-build] millbuild.generateScriptSources mill-build/build.sc"
-          )
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          "\nmillbuild.generateScriptSources mill-build/build.sc"
+        )
 
         fixParseError(workspaceRoot / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run"){ res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
-          assertLinePrefix(res.errLines, "[mill-build] millbuild.generateScriptSources build.sc")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          "\nmillbuild.generateScriptSources build.sc"
+        )
 
         fixParseError(workspaceRoot / "build.sc")
 
@@ -94,7 +82,6 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
       }
 
       test("compileError") {
-
         def causeCompileError(p: os.Path) =
           mangleFile(p, _ + "\nimport doesnt.exist")
 
@@ -105,50 +92,45 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
 
         causeCompileError(workspaceRoot / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
+        evalCheckErr(
+          "\n1 targets failed",
           // Ensure the file path in the compile error is properly adjusted to point
           // at the original source file and not the generated file
-          assertLineContains(res.errLines, s"$workspaceRoot/build.sc")
-          assertLineContains(res.errLines, "not found: value doesnt")
-        }
+          s"$workspaceRoot/build.sc",
+          "not found: value doesnt"
+        )
 
         causeCompileError(workspaceRoot / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] [mill-build] 1 targets failed")
-          assertLineContains(res.errLines, s"$workspaceRoot/mill-build/build.sc")
-          assertLineContains(res.errLines, "not found: value doesnt")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          s"$workspaceRoot/mill-build/build.sc",
+          "not found: value doesnt"
+        )
 
         causeCompileError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] [mill-build] [mill-build] 1 targets failed")
-          assertLineContains(res.errLines, s"$workspaceRoot/mill-build/mill-build/build.sc")
-          assertLineContains(res.errLines, "not found: value doesnt")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          s"$workspaceRoot/mill-build/mill-build/build.sc",
+          "not found: value doesnt"
+        )
 
         fixCompileError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] [mill-build] 1 targets failed")
-          assertLineContains(res.errLines, s"$workspaceRoot/mill-build/build.sc")
-          assertLineContains(res.errLines, "not found: value doesnt")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          s"$workspaceRoot/mill-build/build.sc",
+          "not found: value doesnt"
+        )
 
         fixCompileError(workspaceRoot / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
-          assertLineContains(res.errLines, s"$workspaceRoot/build.sc")
-          assertLineContains(res.errLines, "not found: value doesnt")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          s"$workspaceRoot/build.sc",
+          "not found: value doesnt"
+        )
 
         fixCompileError(workspaceRoot / "build.sc")
 
@@ -161,7 +143,6 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
         def causeRuntimeError(p: os.Path) =
           mangleFile(p, _.replaceFirst("\\{", runErrorSnippet))
 
-
         def fixRuntimeError(p: os.Path) =
           mangleFile(p, _.replaceFirst(Regex.quote(runErrorSnippet), "\\{"))
 
@@ -169,47 +150,42 @@ class MetaMetaBuildTests(fork: Boolean, clientServer: Boolean)
 
         causeRuntimeError(workspaceRoot / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "1 targets failed")
-          assertLineContains(res.errLines, "foo.runClasspath java.lang.Exception: boom")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          "foo.runClasspath java.lang.Exception: boom"
+        )
 
         causeRuntimeError(workspaceRoot / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
-          assertLineContains(res.errLines, "build.sc")
-          assertLineContains(res.errLines, "millbuild.runClasspath java.lang.Exception: boom")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          "build.sc",
+          "millbuild.runClasspath java.lang.Exception: boom"
+        )
 
         causeRuntimeError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] [mill-build] 1 targets failed")
-          assertLineContains(res.errLines, "build.sc")
-          assertLineContains(res.errLines, "millbuild.runClasspath java.lang.Exception: boom")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          "build.sc",
+          "millbuild.runClasspath java.lang.Exception: boom"
+        )
 
         fixRuntimeError(workspaceRoot / "mill-build" / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "[mill-build] 1 targets failed")
-          assertLineContains(res.errLines, "build.sc")
-          assertLineContains(res.errLines, "millbuild.runClasspath java.lang.Exception: boom")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          "build.sc",
+          "millbuild.runClasspath java.lang.Exception: boom"
+        )
 
         fixRuntimeError(workspaceRoot / "mill-build" / "build.sc")
 
-        evalStdoutAssert("foo.run") { res =>
-          assert(res.isSuccess == false)
-          assertLinePrefix(res.errLines, "1 targets failed")
-          assertLineContains(res.errLines, "build.sc")
-          assertLineContains(res.errLines, "foo.runClasspath java.lang.Exception: boom")
-        }
+        evalCheckErr(
+          "\n1 targets failed",
+          "build.sc",
+          "foo.runClasspath java.lang.Exception: boom"
+        )
 
         fixRuntimeError(workspaceRoot / "build.sc")
 

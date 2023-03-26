@@ -70,10 +70,6 @@ abstract class ScriptTestSuite(fork: Boolean, clientServer: Boolean = false) ext
     else evalFork(os.Inherit, os.Inherit, s)
   }
 
-  def evalStdoutAssert(s: String*)(check: ScriptTestSuite.EvalStdout => Unit) = {
-    check(evalStdout(s:_*))
-  }
-
   def evalStdout(s: String*): ScriptTestSuite.EvalStdout = {
     if (!fork) {
       val outputStream = new ByteArrayOutputStream

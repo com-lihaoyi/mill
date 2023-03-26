@@ -25,9 +25,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
     val multiState = evaluateRec(0)
     Watching.Result(
       watched = multiState.evalStates.flatMap(_.watched),
-      error = multiState.errorAndDepth.map {
-        case (msg, depth) => msg.linesWithSeparators.map("[mill-build] " * depth + _).mkString
-      },
+      error = multiState.errorAndDepth.map(_._1),
       result = multiState
     )
   }

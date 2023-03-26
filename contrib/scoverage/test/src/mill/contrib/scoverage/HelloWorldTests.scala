@@ -141,7 +141,7 @@ trait HelloWorldTests extends utest.TestSuite {
 
             val resultPath = result.path.toIO.getPath.replace("""\""", "/")
             val expectedEnd =
-              "mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data.dest"
+              "/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data.dest"
 
             assert(
               resultPath.endsWith(expectedEnd),
