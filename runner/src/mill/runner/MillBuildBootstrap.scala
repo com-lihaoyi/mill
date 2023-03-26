@@ -46,23 +46,32 @@ class MillBuildBootstrap(projectRoot: os.Path,
       }
 
     val buildModuleOrError = recEither match {
-      case Left(millBuildModule) => Right(millBuildModule)
+      case Left(millBuildModule) => Right(millBuildModule -> Map.empty[os.Path, Seq[os.Path]])
       case Right(metaMultiEvaluatorState) =>
         if (metaMultiEvaluatorState.errorAndDepth.isDefined) Left(metaMultiEvaluatorState)
-        else Right(metaMultiEvaluatorState.evalStates.last.buildModule)
+        else Right(
+          metaMultiEvaluatorState.evalStates.last.buildModule ->
+          metaMultiEvaluatorState.evalStates.last.scriptImportGraph
+        )
     }
 
     val nestedEvalStates = recEither.toSeq.flatMap(_.evalStates)
 
     val res = buildModuleOrError match{
       case Left(errorState) => errorState
-      case Right(buildModule0) =>
+      case Right((buildModule0, scriptImportGraph)) =>
         val buildModule = buildModule0
           .millModuleDirectChildren
           .collectFirst{case b: BaseModule => b}
           .getOrElse(buildModule0)
 
-        val evaluator = makeEvaluator(prevStateOpt, Map.empty, buildModule, 0, depth)
+        val evaluator = makeEvaluator(
+          prevStateOpt,
+          scriptImportGraph,
+          buildModule,
+          0,
+          depth
+        )
         if (depth != 0) processRunClasspath(depth, prevStateOpt, 0, evaluator, nestedEvalStates)
         else processFinalTargets(depth, nestedEvalStates, buildModule, evaluator)
     }
@@ -81,7 +90,6 @@ class MillBuildBootstrap(projectRoot: os.Path,
         null
       )
 
-
       evaled match {
         case Left(error) => MultiEvaluatorState(nestedEvalStates, Some(error, depth))
         case Right(_) => MultiEvaluatorState(nestedEvalStates ++ Seq(evalState), None)
@@ -93,12 +101,13 @@ class MillBuildBootstrap(projectRoot: os.Path,
                     scriptImportGraph: Map[Path, Seq[Path]],
                     baseModule: BaseModule,
                     millClassloaderSigHash: Int,
-                    depthpth: Int) = {
-    val bootLogPrefix = "[mill-build] " * depthpth
+                    depth: Int) = {
+    val bootLogPrefix = "[mill-build] " * depth
+
     Evaluator(
       config.home,
-      recOut(depthpth),
-      recOut(depthpth),
+      recOut(depth),
+      recOut(depth),
       baseModule,
       PrefixLogger(logger, bootLogPrefix),
       millClassloaderSigHash

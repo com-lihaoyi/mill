@@ -70,14 +70,7 @@ class MillBuildModule()(implicit baseModuleInfo: BaseModule.Info,
   }
 
   def scriptImportGraph = T {
-    parseBuildFiles().importGraphEdges.map {
-      case (k, vs) =>
-        // Convert the import graph from source-file paths to generated-file paths
-        def normalize(p: os.Path) =
-          generatedSources().head.path / FileImportGraph.fileImportToSegments(millBuildModuleInfo.projectRoot / os.up, p, false)
-
-        (normalize(k), vs.map(normalize))
-    }
+    parseBuildFiles().importGraphEdges
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {
