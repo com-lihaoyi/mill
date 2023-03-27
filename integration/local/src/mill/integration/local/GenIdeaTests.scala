@@ -102,7 +102,7 @@ object GenIdeaTests extends IntegrationTestSuite("gen-idea-hello-world", false) 
       ).map { resource =>
         Try {
           assertIdeaXmlResourceMatchesFile(
-            workspaceSlug,
+            scriptSlug,
             workspacePath,
             resource
           )

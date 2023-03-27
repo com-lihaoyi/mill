@@ -16,16 +16,18 @@ object IntegrationTestSuite{
   case class EvalResult(isSuccess: Boolean, out: String, err: String)
 }
 abstract class IntegrationTestSuite(
-    val workspaceSlug: String,
+    val scriptSlug: String,
     fork: Boolean,
-    clientServer: Boolean = false
+    clientServer: Boolean = false,
+    workspaceSlug: Option[String] = None,
 ) extends TestSuite{
 
+  val finalWorkspaceSlug = workspaceSlug.getOrElse(scriptSlug)
   def workspacePath: os.Path =
-    os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / workspaceSlug
+    os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / os.RelPath(finalWorkspaceSlug)
 
   def scriptSourcePath: os.Path =
-    os.pwd / "integration" / "resources" / workspaceSlug
+    os.pwd / "integration" / "resources" / os.RelPath(scriptSlug)
 
   def buildPath: os.SubPath = os.sub / "build.sc"
 

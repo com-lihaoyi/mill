@@ -31,7 +31,7 @@ object GenIdeaExtendedTests extends IntegrationTestSuite("gen-idea-extended-hell
       ).map { resource =>
         Try {
           GenIdeaTests.assertIdeaXmlResourceMatchesFile(
-            workspaceSlug,
+            scriptSlug,
             workspacePath,
             resource
           )

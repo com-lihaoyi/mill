@@ -3,7 +3,7 @@ package local
 
 import utest._
 
-object JavaCompileJarTests extends IntegrationTestSuite("java-compile-jar", fork = false) {
+object JavaCompileJarTests extends IntegrationTestSuite("examples/javac", fork = false) {
   val tests = Tests {
     initWorkspace()
     "test" - {

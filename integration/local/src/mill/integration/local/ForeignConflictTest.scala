@@ -3,7 +3,13 @@ package local
 
 import utest._
 
-object ForeignConflictTest extends IntegrationTestSuite("foreign-conflict", fork = false) {
+object ForeignConflictTest
+extends IntegrationTestSuite(
+  "examples/foreign",
+  workspaceSlug = Some("foreign-conflict"),
+  fork = false
+) {
+
   override def buildPath = os.sub / "conflict" / "build.sc"
 
   val tests = Tests {
