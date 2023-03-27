@@ -60,8 +60,6 @@ class MillBuildBootstrap(projectRoot: os.Path,
         }
     }
 
-    val nestedEvalStates = recEither.toSeq.toList.flatMap(_.evalStates)
-
     val res = buildModuleOrError match{
       case Left(errorState) => errorState
       case Right((buildModule0, scriptImportGraph)) =>
@@ -79,6 +77,8 @@ class MillBuildBootstrap(projectRoot: os.Path,
           depth
         )
 
+        val nestedEvalStates = recEither.toSeq.toList.flatMap(_.evalStates)
+
         if (depth != 0) {
           processRunClasspath(depth, prevStateOpt, 0, evaluator, nestedEvalStates)
         } else {
@@ -94,14 +94,14 @@ class MillBuildBootstrap(projectRoot: os.Path,
                           prevStateOpt: Option[RunnerState.Frame],
                           millClassloaderSigHash: Int,
                           evaluator: Evaluator,
-                          previousEvalStates: List[RunnerState.Frame]): RunnerState = {
-    val (bootClassloaderImportGraphOrErr, bootWatched) = prevStateOpt match {
-      case Some(s)
-        if s.watched.forall(_.validate())
-          && prevStateOpt.exists(_.buildModule eq evaluator.rootModule) =>
-
-        Right((s.classLoader, s.scriptImportGraph)) -> s.watched
-
+                          nestedEvalStates: List[RunnerState.Frame]): RunnerState = {
+    prevStateOpt match {
+      // Check whether the buildModule has been re-evaluated since we last
+      // saw it. If the build module hasn't re-evaluated, we can skip
+      // evaluating anything and just use the cached data since it will all
+      // evaluate to the same values anyway
+      case Some(s) if prevStateOpt.exists(_.buildModule eq evaluator.rootModule) =>
+        RunnerState(s :: nestedEvalStates, None)
       case _ =>
         MillBuildBootstrap.evaluateWithWatches(
           evaluator,
@@ -115,23 +115,19 @@ class MillBuildBootstrap(projectRoot: os.Path,
             )
 
             (runClassLoader, scriptImportGraph)
+        } match {
+          case (Left(error), watches) => RunnerState(nestedEvalStates, Some(error, depth))
+          case (Right((classloader, scriptImportGraph)), watches) =>
+            val evalState = RunnerState.Frame(
+              evaluator.workerCache.toMap,
+              watches,
+              scriptImportGraph,
+              classloader
+            )
+
+            RunnerState(evalState :: nestedEvalStates, None)
         }
     }
-
-    val res = bootClassloaderImportGraphOrErr match {
-      case Left(error) => RunnerState(previousEvalStates, Some(error, depth))
-      case Right((classloader, scriptImportGraph)) =>
-        val evalState = RunnerState.Frame(
-          evaluator.workerCache.toMap,
-          bootWatched,
-          scriptImportGraph,
-          classloader
-        )
-
-        RunnerState(evalState :: previousEvalStates, None)
-    }
-
-    res
   }
 
   def processFinalTargets(depth: Int,
