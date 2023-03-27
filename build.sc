@@ -972,6 +972,10 @@ object bsp extends MillModule {
       bsp.worker.publishLocal()()
       super.forkEnv()
     }
+
+    override def forkArgs: Target[Seq[String]] = super.forkArgs() ++ Seq(
+      s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}"
+    )
   }
 
   object worker extends MillInternalModule {
