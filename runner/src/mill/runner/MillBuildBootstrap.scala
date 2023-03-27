@@ -59,6 +59,9 @@ class MillBuildBootstrap(projectRoot: os.Path,
           Right((
             nestedEvalState.buildModule,
             nestedEvalState.scriptImportGraph,
+            // We want to use the grandparent buildHash, rather than the parent
+            // buildHash, because the parent build changes are instead detected
+            // by analyzing the scriptImportGraph in a more fine-grained manner.
             metaRunnerState.evalStates.dropRight(1).headOption.map(_.buildHash).getOrElse(0)
           ))
         }
