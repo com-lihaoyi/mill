@@ -68,7 +68,7 @@ abstract class IntegrationTestSuite(
           env = Map.empty,
           threadCount = threadCount,
           targetsAndParams = s.toList,
-          stateCache = RunnerState.empty,
+          prevState = RunnerState.empty,
           logger = logger,
         ).evaluate()
       },
@@ -156,7 +156,6 @@ abstract class IntegrationTestSuite(
     if (clientServer) {
       // try to stop the server
       try {
-        println("shutdown")
         os.proc(millReleaseFileOpt.get, "shutdown").call(
           cwd = wd,
           stdin = os.Inherit,
@@ -164,11 +163,8 @@ abstract class IntegrationTestSuite(
           stderr = os.Inherit,
           env = millTestSuiteEnv
         )
-        println("shutdown succeeded")
       } catch {
         case NonFatal(e) =>
-
-          println("shutdown failed")
       }
     }
   }

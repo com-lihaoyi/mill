@@ -5,8 +5,8 @@ import mill.define.{BaseModule, Segments}
 
 
 @internal
-case class RunnerState(evalStates: Seq[RunnerState.Frame],
-                       errorAndDepth: Option[(String, Int)])
+case class RunnerState(frames: Seq[RunnerState.Frame],
+                       errorOpt: Option[String])
 
 object RunnerState{
   def empty = RunnerState(Nil, None)
@@ -22,6 +22,9 @@ object RunnerState{
       .getURLs
       .map(u => PathRef(os.Path(java.nio.file.Paths.get(u.toURI))))
       .hashCode()
+  }
+  object Frame{
+    def empty = Frame(Map.empty, Nil, Map.empty, null)
   }
 
 }
