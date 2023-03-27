@@ -730,13 +730,6 @@ object Evaluator {
    */
   type Terminal = Either[Task[_], Labelled[Any]]
 
-  /**
-   * A terminal target with all it's inner tasks.
-   * To implement a terminal target, one can delegate to other/inner tasks (T.task), those are contained in
-   * the 2nd parameter of the tuple.
-   */
-  type TerminalGroup = (Terminal, Agg[Task[_]])
-
   case class Cached(value: ujson.Value, valueHash: Int, inputsHash: Int)
   object Cached {
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
