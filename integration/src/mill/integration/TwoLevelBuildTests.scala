@@ -4,8 +4,8 @@ import utest._
 
 import scala.util.matching.Regex
 
-class MetaBuildTests(fork: Boolean, clientServer: Boolean)
-  extends IntegrationTestSuite("meta-build", fork, clientServer) {
+class TwoLevelBuildTests(fork: Boolean, clientServer: Boolean)
+  extends IntegrationTestSuite("two-level-build", fork, clientServer) {
   val tests = Tests {
     val workspaceRoot = initWorkspace()
 

@@ -36,6 +36,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
   }
 
   def evaluateRec(depth: Int): RunnerState = {
+//    println(s"+evaluateRec($depth) " + recRoot(depth))
     val prevStateOpt = stateCache
       .evalStates
       .lift(depth + stateCache.errorAndDepth.map(_._2).getOrElse(0))
@@ -50,19 +51,24 @@ class MillBuildBootstrap(projectRoot: os.Path,
       }
 
     val buildModuleOrError = recEither match {
-      case Left(millBuildModule) => Right((millBuildModule, Map.empty[os.Path, Seq[os.Path]]))
+      case Left(millBuildModule) => Right((millBuildModule, Map.empty[os.Path, Seq[os.Path]], 0))
       case Right(metaRunnerState) =>
         if (metaRunnerState.errorAndDepth.isDefined) Left(metaRunnerState)
         else {
           val nestedEvalState = metaRunnerState.evalStates.head
-          Right((nestedEvalState.buildModule, nestedEvalState.scriptImportGraph))
+          Right((
+            nestedEvalState.buildModule,
+            nestedEvalState.scriptImportGraph,
+            metaRunnerState.evalStates.dropRight(1).headOption.map(_.buildHash).getOrElse(0)
+          ))
         }
     }
 
     val res = buildModuleOrError match{
       case Left(errorState) => errorState
-      case Right((buildModule0, scriptImportGraph)) =>
+      case Right((buildModule0, scriptImportGraph, buildSigHash)) =>
 
+//        pprint.log(buildSigHash)
         val buildModule = buildModule0
           .millModuleDirectChildren
           .collectFirst{case b: BaseModule => b}
@@ -72,28 +78,27 @@ class MillBuildBootstrap(projectRoot: os.Path,
           prevStateOpt,
           scriptImportGraph,
           buildModule,
-          0,
+          buildSigHash,
           depth
         )
 
         val nestedEvalStates = recEither.toSeq.toList.flatMap(_.evalStates)
 
         if (depth != 0) {
-          processRunClasspath(depth, prevStateOpt, 0, evaluator, nestedEvalStates)
+          processRunClasspath(depth, nestedEvalStates, evaluator, prevStateOpt)
         } else {
-          processFinalTargets(depth, nestedEvalStates, buildModule, evaluator)
+          processFinalTargets(depth, nestedEvalStates, evaluator, buildModule)
         }
     }
-
+//    println(s"-evaluateRec($depth) " + recRoot(depth))
     res
   }
 
 
   def processRunClasspath(depth: Int,
-                          prevStateOpt: Option[RunnerState.Frame],
-                          millClassloaderSigHash: Int,
+                          nestedEvalStates: List[RunnerState.Frame],
                           evaluator: Evaluator,
-                          nestedEvalStates: List[RunnerState.Frame]): RunnerState = {
+                          prevStateOpt: Option[RunnerState.Frame]): RunnerState = {
     prevStateOpt match {
       // Check whether the buildModule has been re-evaluated since we last
       // saw it. If the build module hasn't re-evaluated, we can skip
@@ -131,8 +136,8 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
   def processFinalTargets(depth: Int,
                           nestedEvalStates: List[RunnerState.Frame],
-                          buildModule: BaseModule,
-                          evaluator: Evaluator): RunnerState = {
+                          evaluator: Evaluator,
+                          buildModule: BaseModule): RunnerState = {
 
     Util.withContextClassloader(buildModule.getClass.getClassLoader) {
       val (evaled, buildWatched) =
@@ -157,7 +162,9 @@ class MillBuildBootstrap(projectRoot: os.Path,
                     baseModule: BaseModule,
                     millClassloaderSigHash: Int,
                     depth: Int) = {
-    val bootLogPrefix = "[mill-build] " * depth
+    val bootLogPrefix =
+      if (depth == 0) ""
+      else "[" + (Seq.fill(depth-1)("mill-build") ++ Seq("build.sc")).mkString("/") + "] "
 
     Evaluator(
       config.home,
