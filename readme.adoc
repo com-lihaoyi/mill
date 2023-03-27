@@ -249,6 +249,34 @@ corresponding version of Mill.
 == Changelog
 
 
+[#0-11-0-M7]
+=== 0.11.0-M7 - 2023-03-30
+:version: 0.11.0-M7
+:milestone-name: 0.11.0-M7
+:milestone: 78
+:prev-version: 0.11.0-M6
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* Introduced automatic `PathRef` validation for cached targets; default-enabled it for `CoursierModule.resolveDeps` and various `resolvedIvyDeps` targets
+* `bsp`: Update Protocol version to 2.1.0-M4
+* `bsp`: Support new `mainClasses` field in run and test environments
+* `bsp`: Fixed handling of Mill plugins and other improvements
+* `scalanativelib`: new `nativeDump` setting in `ScalaNativeModule`
+* `contrib.twirllib`: Use newer scala-parser-combinators version when used with Scala 3
+* `contrib.scalapblib`: Added new flag to search for proto files in dependencies
+* Various refactorings to improve binary compatibility
+* Updated dependencies: Ammonite 3.0.0-M0-5 coursier 2.1.0, scala native tools 0.4.12, semanticdb 4.7.6, trees 4.7.6, upickle 3.0.0
+* DX improvements
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+
 [#0-11-0-M6]
 === 0.11.0-M6 - 2023-03-09
 :version: 0.11.0-M6
