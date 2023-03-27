@@ -120,7 +120,14 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
             (runClassLoader, scriptImportGraph)
         } match {
-          case (Left(error), watches) => RunnerState(nestedEvalStates, Some(error, depth))
+          case (Left(error), watches) =>
+            val evalState = RunnerState.Frame(
+              Map.empty,
+              watches,
+              Map.empty,
+              null
+            )
+            RunnerState(evalState :: nestedEvalStates, Some(error, depth))
           case (Right((classloader, scriptImportGraph)), watches) =>
             val evalState = RunnerState.Frame(
               evaluator.workerCache.toMap,
