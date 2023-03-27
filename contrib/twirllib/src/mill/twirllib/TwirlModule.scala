@@ -24,13 +24,18 @@ trait TwirlModule extends mill.Module { twirlModule =>
     millSourcePath / "views"
   }
 
+  private def scalaParserCombinatorsVersion: T[String] = twirlScalaVersion.map {
+    case v if v.startsWith("2.") => "1.1.2"
+    case _ => "2.1.0"
+  }
+
   /**
    * @since Mill after 0.10.5
    */
   def twirlIvyDeps: T[Agg[Dep]] = T {
     Agg(
       ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}",
-      ivy"org.scala-lang.modules::scala-parser-combinators:1.1.2"
+      ivy"org.scala-lang.modules::scala-parser-combinators:${scalaParserCombinatorsVersion()}"
     )
   }
 
