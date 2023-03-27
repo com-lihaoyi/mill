@@ -27,7 +27,6 @@ class MillBuildBootstrap(projectRoot: os.Path,
   val millBootClasspath = MillBuildBootstrap.prepareMillBootClasspath(projectRoot / "out")
 
   def evaluate(): Watching.Result[RunnerState] = {
-
     val multiState = evaluateRec(0)
     Watching.Result(
       watched = multiState.evalStates.flatMap(_.watched),
@@ -55,17 +54,18 @@ class MillBuildBootstrap(projectRoot: os.Path,
       case Left(millBuildModule) => Right(millBuildModule -> Map.empty[os.Path, Seq[os.Path]])
       case Right(metaRunnerState) =>
         if (metaRunnerState.errorAndDepth.isDefined) Left(metaRunnerState)
-        else Right(
-          metaRunnerState.evalStates.last.buildModule ->
-          metaRunnerState.evalStates.last.scriptImportGraph
-        )
+        else {
+          val nestedEvalState = metaRunnerState.evalStates.head
+          Right((nestedEvalState.buildModule, nestedEvalState.scriptImportGraph))
+        }
     }
 
-    val nestedEvalStates = recEither.toSeq.flatMap(_.evalStates)
+    val nestedEvalStates = recEither.toSeq.toList.flatMap(_.evalStates)
 
     val res = buildModuleOrError match{
       case Left(errorState) => errorState
       case Right((buildModule0, scriptImportGraph)) =>
+
         val buildModule = buildModule0
           .millModuleDirectChildren
           .collectFirst{case b: BaseModule => b}
@@ -84,7 +84,11 @@ class MillBuildBootstrap(projectRoot: os.Path,
     res
   }
 
-  def processFinalTargets(depth: Int, nestedEvalStates: Seq[RunnerState.Frame], buildModule: BaseModule, evaluator: Evaluator): RunnerState = {
+  def processFinalTargets(depth: Int,
+                          nestedEvalStates: List[RunnerState.Frame],
+                          buildModule: BaseModule,
+                          evaluator: Evaluator): RunnerState = {
+
     Util.withContextClassloader(buildModule.getClass.getClassLoader) {
       val (evaled, buildWatched) =
         MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams) { _ => () }
@@ -98,7 +102,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
       evaled match {
         case Left(error) => RunnerState(nestedEvalStates, Some(error, depth))
-        case Right(_) => RunnerState(nestedEvalStates ++ Seq(evalState), None)
+        case Right(_) => RunnerState(evalState :: nestedEvalStates, None)
       }
     }
   }
@@ -133,7 +137,8 @@ class MillBuildBootstrap(projectRoot: os.Path,
                           prevStateOpt: Option[RunnerState.Frame],
                           millClassloaderSigHash: Int,
                           evaluator: Evaluator,
-                          previousEvalStates: Seq[RunnerState.Frame]): RunnerState = {
+                          previousEvalStates: List[RunnerState.Frame]): RunnerState = {
+
     val (bootClassloaderImportGraphOrErr, bootWatched) = prevStateOpt match {
       case Some(s) if s.watched.forall(_.validate()) =>
         Right((s.classLoader, s.scriptImportGraph)) -> s.watched
@@ -157,15 +162,15 @@ class MillBuildBootstrap(projectRoot: os.Path,
     val res = bootClassloaderImportGraphOrErr match {
       case Left(error) =>
         RunnerState(previousEvalStates, Some(error, depth))
-      case Right((classLoaderOpt, scriptImportGraph)) =>
+      case Right((classloader, scriptImportGraph)) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           bootWatched,
           scriptImportGraph,
-          classLoaderOpt
+          classloader
         )
 
-        RunnerState(previousEvalStates ++ List(evalState), None)
+        RunnerState(evalState :: previousEvalStates, None)
     }
 
     res

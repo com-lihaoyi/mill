@@ -65,7 +65,6 @@ object MillServerMain extends MillServerMain[RunnerState] {
              userSpecifiedProperties: Map[String, String],
              initialSystemProperties: Map[String, String]
   ): (Boolean, RunnerState) = {
-    pprint.log(stateCache)
     MillMain.main0(
       args,
       stateCache,
