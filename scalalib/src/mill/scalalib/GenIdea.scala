@@ -24,6 +24,6 @@ object GenIdea extends ExternalModule {
     }
   }
 
-  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
+  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorTokenReader[T]()
   override lazy val millDiscover = Discover[this.type]
 }

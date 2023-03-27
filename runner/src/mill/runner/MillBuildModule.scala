@@ -3,12 +3,23 @@ package mill.runner
 import mill._
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Caller, Discover, Task}
-import mill.scalalib.{BoundDep, DepSyntax, Lib, Versions}
+import mill.scalalib.{BoundDep, DepSyntax, Lib, ScalaModule, Versions}
 import pprint.Util.literalize
 
+/**
+ * Mill module for pre-processing a Mill `build.sc` and related files and then
+ * compiling them as a normal [[ScalaModule]]. Parses `build.sc`, walks any
+ * `import $file`s, wraps the script files to turn them into valid Scala code
+ * and then compiles them with the `ivyDeps` extracted from the `import $ivy`
+ * calls within the scripts.
+ *
+ * Also dumps the [[scriptImportGraph]] for the downstream Evaluator to use for
+ * fine-grained task invalidation based the import relationship between the file
+ * defining the task and any files which were changed.
+ */
 @internal
 class MillBuildModule()(implicit baseModuleInfo: BaseModule.Info,
-                        millBuildModuleInfo: MillBuildModule.Info) extends BaseModule() with mill.scalalib.ScalaModule{
+                        millBuildModuleInfo: MillBuildModule.Info) extends BaseModule() with ScalaModule{
 
   def millSourcePath = millBuildModuleInfo.projectRoot / os.up / "mill-build"
 
@@ -108,12 +119,14 @@ object MillBuildModule{
                         projectRoot: os.Path,
                         enclosingClasspath: Seq[os.Path])
                        (implicit baseModuleInfo: BaseModule.Info) extends BaseModule {
-    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
     implicit private def millBuildModuleInfo = MillBuildModule.Info(
       enclosingClasspath, projectRoot, topLevelProjectRoot0
     )
     object build extends MillBuildModule
+
+    override lazy val millDiscover: Discover[this.type] =
+      baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
   }
 
   case class Info(enclosingClasspath: Seq[os.Path],
@@ -181,17 +194,15 @@ object MillBuildModule{
        |    _root_.os.Path(${literalize(base.toString)}),
        |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)})
        |  )
+       |  import mill.main.TokenReaders._
        |  implicit val millBaseModuleInfo: _root_.mill.runner.BaseModule.Info = _root_.mill.runner.BaseModule.Info(
-       |    millBuildModuleInfo.projectRoot
+       |    millBuildModuleInfo.projectRoot,
+       |    _root_.mill.define.Discover[$name]
        |  )
        |}
        |import `MiscInfo_${name}`.{millBuildModuleInfo, millBaseModuleInfo}
        |object $name extends $name
        |class $name extends $superClass{
-       |  @_root_.scala.annotation.nowarn("cat=deprecation")
-       |  override implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
-       |
-       |
        |
        |//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
        |//MILL_USER_CODE_START_MARKER

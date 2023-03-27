@@ -108,15 +108,11 @@ abstract class IntegrationTestSuite(
     }
   }
 
-
   val millReleaseFileOpt = Option(System.getenv("MILL_TEST_RELEASE")).map(os.Path(_, os.pwd))
   val millTestSuiteEnv = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+
   private def evalFork(stdout: os.ProcessOutput, stderr: os.ProcessOutput, s: Seq[String]): Boolean = {
-
-
-
     val extraArgs = if (clientServer) Seq() else Seq("--no-server")
-
 
     try {
       os.proc(millReleaseFileOpt.get, extraArgs, s).call(

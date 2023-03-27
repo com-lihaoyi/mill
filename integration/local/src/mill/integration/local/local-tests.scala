@@ -15,3 +15,4 @@ object ParseErrorTests extends ParseErrorTests(fork = false, clientServer = fals
 
 object MetaBuildTests extends TwoLevelBuildTests(fork = false, clientServer = false)
 object MultiLevelBuildTests extends MultiLevelBuildTests(fork = false, clientServer = false)
+object TopLevelModuleTests extends TopLevelModuleTests(fork = false, clientServer = false)

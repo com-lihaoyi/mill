@@ -60,7 +60,8 @@ import mill.api.{DummyTestReporter, PathRef, Result, Strict, internal}
 import mill.define.Segment.Label
 import mill.define.{BaseModule, Discover, ExternalModule, Module, Segments, Task}
 import mill.eval.Evaluator
-import mill.main.{BspServerResult, EvaluatorScopt, MainModule}
+import mill.main.{BspServerResult, MainModule}
+import mill.main.TokenReaders._
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, MillBuildModule, ScalaBuildTarget}
 import mill.scalalib.internal.ModuleUtils
@@ -84,8 +85,6 @@ class MillBuildServer(
     canReload: Boolean
 ) extends ExternalModule
     with BuildServer {
-
-  implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] = new mill.main.EvaluatorScopt[T]()
 
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
 

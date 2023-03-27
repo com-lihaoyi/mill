@@ -4,7 +4,8 @@ import mill.{BuildInfo, MillCliConfig}
 import mill.api.{PathRef, internal}
 import mill.eval.Evaluator
 import mill.main.RunScript
-import mill.define.{BaseModule, Segments, SelectMode}
+import mill.main.TokenReaders._
+import mill.define.{BaseModule, Discover, Segments, SelectMode}
 import os.Path
 
 import java.net.URLClassLoader
@@ -57,8 +58,9 @@ class MillBuildBootstrap(projectRoot: os.Path,
       if (os.exists(recRoot(depth) / "build.sc")) Right(evaluateRec(depth + 1))
       else Left{
         val bootRoot = recRoot(depth)
+
         new MillBuildModule.BootstrapModule(projectRoot, bootRoot, millBootClasspath)(
-          mill.runner.BaseModule.Info(bootRoot)
+          mill.runner.BaseModule.Info(bootRoot, Discover[MillBuildModule.BootstrapModule])
         )
       }
 

@@ -13,7 +13,7 @@ import mill.util.{PrintLogger, SystemStreams}
 import os.Path
 
 object BSP extends ExternalModule with CoursierModule with BspServerStarter {
-  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
+  import mill.main.TokenReaders._
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 

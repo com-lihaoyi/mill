@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.T
 import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
-import mill.main.EvaluatorScopt
+import mill.main.EvaluatorTokenReader
 import mill.scalalib.dependency.DependencyUpdatesImpl
 
 object Dependency extends ExternalModule {
@@ -25,7 +25,7 @@ object Dependency extends ExternalModule {
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)())
   }
 
-  implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] =
-    new mill.main.EvaluatorScopt[T]()
+  implicit def millScoptEvaluatorReads[T]: EvaluatorTokenReader[T] =
+    new mill.main.EvaluatorTokenReader[T]()
   lazy val millDiscover: Discover[Dependency.this.type] = Discover[this.type]
 }

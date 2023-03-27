@@ -1,10 +1,12 @@
 package mill.runner
 
+import mill.api.internal
 import mill.define.{Caller, Discover, Segments}
+import mill.main.TokenReaders._
 
-
+@internal
 object BaseModule{
-  case class Info(millSourcePath0: os.Path)
+  case class Info(millSourcePath0: os.Path, discover: Discover[_])
 
   abstract class Foreign(foreign0: Option[Segments])
                         (implicit baseModuleInfo: BaseModule.Info,
@@ -20,11 +22,19 @@ object BaseModule{
       Caller(())
     ) with mill.main.MainModule {
 
-    override lazy val millDiscover = Discover[this.type]
-
+    override implicit lazy val millDiscover = Discover[this.type]
   }
-
 }
+
+/**
+ * Used to mark a module in your `build.sc` as a top-level module, so it's
+ * targets and commands can be run directly e.g. via `mill run` rather than
+ * prefixed by the module name `mill foo.run`.
+ *
+ * Only one top-level module may be defined in your `build.sc`, and it must be
+ * defined at the top level of the `build.sc` and not nested in any other
+ * modules.
+ */
 abstract class BaseModule()
                          (implicit baseModuleInfo: BaseModule.Info,
                           millModuleEnclosing0: sourcecode.Enclosing,
@@ -39,6 +49,12 @@ abstract class BaseModule()
     Caller(())
   ) with mill.main.MainModule{
 
-  override lazy val millDiscover = Discover[this.type]
+  // Make BaseModule take the `millDiscover` as an implicit param, rather than
+  // defining it itself. That is so we can define it externally in the wrapper
+  // code and it have it automatically passed to both the wrapper BaseModule as
+  // well as any user-defined BaseModule that may be present, so the
+  // user-defined BaseModule can have a complete Discover[_] instance without
+  // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
+  override lazy val millDiscover = baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
 
 }
