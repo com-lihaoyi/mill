@@ -40,9 +40,8 @@ class MillBuildBootstrap(projectRoot: os.Path,
       .evalStates
       .lift(depth + stateCache.errorAndDepth.map(_._2).getOrElse(0))
 
-    val buildFileExists = os.exists(recRoot(depth) / "build.sc")
     val recEither =
-      if (buildFileExists) Right(evaluateRec(depth + 1))
+      if (os.exists(recRoot(depth) / "build.sc")) Right(evaluateRec(depth + 1))
       else Left{
         val bootRoot = recRoot(depth)
         new MillBuildModule.BootstrapModule(projectRoot, bootRoot, millBootClasspath)(
