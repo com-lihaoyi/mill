@@ -108,41 +108,24 @@ abstract class IntegrationTestSuite(
     }
   }
 
+
+  val millReleaseFileOpt = Option(System.getenv("MILL_TEST_RELEASE")).map(os.Path(_, os.pwd))
+  val millTestSuiteEnv = Map("MILL_TEST_SUITE" -> this.getClass().toString())
   private def evalFork(stdout: os.ProcessOutput, stderr: os.ProcessOutput, s: Seq[String]): Boolean = {
-    val millRelease = Option(System.getenv("MILL_TEST_RELEASE"))
-      .getOrElse(throw new NoSuchElementException(
-        s"System environment variable `MILL_TEST_RELEASE` not defined. It needs to point to the Mill binary to use for the test."
-      ))
-    val millReleaseFile = os.Path(millRelease, os.pwd)
-    if (!os.exists(millReleaseFile)) {
-      throw new NoSuchFileException(s"Mill binary to use for test not found under: ${millRelease}")
-    }
+
+
 
     val extraArgs = if (clientServer) Seq() else Seq("--no-server")
-    val env = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+
 
     try {
-      os.proc(millReleaseFile, extraArgs, s).call(
+      os.proc(millReleaseFileOpt.get, extraArgs, s).call(
         cwd = wd,
         stdin = os.Inherit,
         stdout = stdout,
         stderr = stderr,
-        env = env
+        env = millTestSuiteEnv
       )
-      if (clientServer) {
-        // try to stop the server
-        try {
-          os.proc(millReleaseFile, "shutdown").call(
-            cwd = wd,
-            stdin = os.Inherit,
-            stdout = stdout,
-            stderr = stderr,
-            env = env
-          )
-        } catch {
-          case NonFatal(_) =>
-        }
-      }
       true
     } catch {
       case NonFatal(_) => false
@@ -166,5 +149,27 @@ abstract class IntegrationTestSuite(
 
     os.copy(scriptSourcePath, workspacePath)
     workspacePath
+  }
+
+  override def utestAfterEach(path: Seq[String]): Unit = {
+
+    if (clientServer) {
+      // try to stop the server
+      try {
+        println("shutdown")
+        os.proc(millReleaseFileOpt.get, "shutdown").call(
+          cwd = wd,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit,
+          env = millTestSuiteEnv
+        )
+        println("shutdown succeeded")
+      } catch {
+        case NonFatal(e) =>
+
+          println("shutdown failed")
+      }
+    }
   }
 }
