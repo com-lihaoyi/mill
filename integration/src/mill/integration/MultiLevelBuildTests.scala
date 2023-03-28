@@ -54,7 +54,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
           os.read(wsRoot / "out" / Seq.fill(depth)("mill-build") / "mill-runner-state.json")
         )
 
-        if (frame.classLoader != null) pprint.log((depth, frame.classLoader.identityHashCode))
+        if (frame.classLoaderId != null) pprint.log((depth, frame.classLoaderId.identityHashCode))
         pprint.log(frame.workerCache.mapValues(_.identityHashCode))
         val frameWatched = frame.watched.map(_.path).sorted
         val expectedWatched = expectedWatched0.sorted
