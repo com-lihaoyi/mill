@@ -33,8 +33,16 @@ case class PathRef private (
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
-  override def toString: String =
-    getClass().getSimpleName() + "(path=" + path + ",quick=" + quick + ",sig=" + sig + ",revalidated=" + revalidate + ")"
+  override def toString: String = {
+    val quick = if (quick) "qref:" else "ref:"
+    val valid = revalidate match {
+      case PathRef.Revalidate.Never => "v0:"
+      case PathRef.Revalidate.Once => "v1:"
+      case PathRef.Revalidate.Always => "vn:"
+    }
+    val sig = String.format("%08x", sig: Integer)
+    quick + valid + sig + ":" + path.toString()
+  }
 }
 
 object PathRef {
@@ -155,16 +163,7 @@ object PathRef {
    * Default JSON formatter for [[PathRef]].
    */
   implicit def jsonFormatter: RW[PathRef] = upickle.default.readwriter[String].bimap[PathRef](
-    p => {
-      val quick = if (p.quick) "qref:" else "ref:"
-      val valid = p.revalidate match {
-        case Revalidate.Never => "v0:"
-        case Revalidate.Once => "v1:"
-        case Revalidate.Always => "vn:"
-      }
-      val sig = String.format("%08x", p.sig: Integer)
-      quick + valid + sig + ":" + p.path.toString()
-    },
+    p => p.toString(),
     s => {
       val Array(prefix, valid0, hex, pathString) = s.split(":", 4)
 
