@@ -52,7 +52,7 @@ object PathRef {
      * @throws PathRefValidationException If a the [[PathRef]] needs revalidation which fails
      */
     def revalidateIfNeededOrThrow(pathRef: PathRef): Unit = {
-      def mapKey(pr: PathRef): Int = ScalaRunTime._hashCode((pr.path, pr.quick, pr.sig))
+      def mapKey(pr: PathRef): Int = (pr.path, pr.quick, pr.sig).hashCode()
       pathRef.revalidate match {
         case Revalidate.Never => // ok
         case Revalidate.Once if map.contains(mapKey(pathRef)) => // ok
