@@ -115,11 +115,15 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
       // which doesn't need generate a classloader which never changes
       checkChangedClassloaders(null, true, true, true)
 
+      println("=" * 150)
+
       mangleFile(wsRoot / "foo"  / "src" / "Example.scala", _.replace("!", "?"))
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       // Second run with no build changes, all classloaders are unchanged
       checkChangedClassloaders(null, false, false, false)
+
+      println("=" * 150)
 
       mangleFile(wsRoot / "build.sc", _.replace("hello", "HELLO"))
       runAssertSuccess("<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")

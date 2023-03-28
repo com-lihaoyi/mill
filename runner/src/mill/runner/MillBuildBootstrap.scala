@@ -60,7 +60,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
   }
 
   def evaluateRec(depth: Int): RunnerState = {
-    // println(s"+evaluateRec($depth) " + recRoot(depth))
+     println(s"+evaluateRec($depth) " + recRoot(depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
 
     val nestedRunnerState =
@@ -115,7 +115,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
       if (depth != 0) processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt)
       else processFinalTargets(nestedRunnerState, evaluator)
     }
-    // println(s"-evaluateRec($depth) " + recRoot(depth))
+     println(s"-evaluateRec($depth) " + recRoot(depth))
     res
   }
 
@@ -138,12 +138,21 @@ class MillBuildBootstrap(projectRoot: os.Path,
         val evalState = RunnerState.Frame(Map.empty, watches, Map.empty, None, Nil)
         nestedRunnerState.add(frame = evalState, errorOpt = Some(error))
 
-
-      case (Right(Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]])), watches) =>
+      case (Right(Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, (Int, Seq[Path])])), watches) =>
 
         val runClasspathChanged = !prevFrameOpt.exists(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )
+
+        pprint.log(runClasspathChanged)
+        val debugPath = projectRoot / "out" / "mill-build" / "compile.dest" / "classes"
+        if (runClasspathChanged && os.exists(debugPath)){
+          pprint.log(os.walk(debugPath).map(PathRef(_).toString))
+          val temp = os.temp.dir()
+          os.copy.over(debugPath, temp)
+          pprint.log(temp)
+        }
+
         val classLoader = if (runClasspathChanged){
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks
@@ -199,7 +208,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
   }
 
   def makeEvaluator(workerCache: Map[Segments, (Int, Any)],
-                    scriptImportGraph: Map[Path, Seq[Path]],
+                    scriptImportGraph: Map[Path, (Int, Seq[Path])],
                     baseModule: BaseModule,
                     millClassloaderSigHash: Int,
                     depth: Int) = {

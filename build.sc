@@ -1061,6 +1061,7 @@ object integration extends MillScalaModule {
           s"-DMILL_VERSION=${millVersion()}",
           s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
           s"-DMILL_BSP_WORKER=${bsp.worker.runClasspath().map(_.path).mkString(",")}",
+          s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}",
           "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
           "-Djna.nosys=true"
         )

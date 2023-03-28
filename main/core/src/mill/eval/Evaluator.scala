@@ -49,7 +49,7 @@ class Evaluator private (_home: os.Path,
                          _env: Map[String, String],
                          _failFast: Boolean,
                          _threadCount: Option[Int],
-                         _scriptImportGraph: Map[os.Path, Seq[os.Path]]
+                         _scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
 ) {
 
   import Evaluator.Terminal
@@ -93,7 +93,7 @@ class Evaluator private (_home: os.Path,
   /**
    * The tree of imports of the build ammonite scripts
    */
-  def scriptImportGraph: Map[os.Path, Seq[os.Path]] = _scriptImportGraph
+  def scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = _scriptImportGraph
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
@@ -329,10 +329,17 @@ class Evaluator private (_home: os.Path,
         case _ =>
       }
 
-      val transitiveScripts =
-        Graph.transitiveNodes(scripts)(scriptImportGraph.getOrElse(_, Nil))
+      val transitiveScripts = Graph.transitiveNodes(scripts)(t =>
+        scriptImportGraph.get(t).map(_._2).getOrElse(Nil)
+      )
 
-      transitiveScripts.iterator.map(p => PathRef(p).sig).sum
+      transitiveScripts
+        .iterator
+        // Sometimes tasks are defined in external/upstreadm dependencies,
+        // (e.g. a lot of tasks come from JavaModule.scala) and won't be
+        // present in the scriptImportGraph
+        .map(p => scriptImportGraph.get(p).fold(0)(_._1))
+        .sum
     }
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
@@ -690,7 +697,7 @@ class Evaluator private (_home: os.Path,
       env: Map[String, String] = this.env,
       failFast: Boolean = this.failFast,
       threadCount: Option[Int] = this.threadCount,
-      scriptImportGraph: Map[os.Path, Seq[os.Path]] = this.scriptImportGraph
+      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = this.scriptImportGraph
   ): Evaluator = new Evaluator(
     home,
     outPath,
@@ -718,7 +725,7 @@ class Evaluator private (_home: os.Path,
   def withEnv(env: Map[String, String]): Evaluator = copy(env = env)
   def withFailFast(failFast: Boolean): Evaluator = copy(failFast = failFast)
   def withThreadCount(threadCount: Option[Int]): Evaluator = copy(threadCount = threadCount)
-  def withScriptImportGraph(scriptImportGraph: Map[os.Path, Seq[os.Path]]): Evaluator = copy(scriptImportGraph = scriptImportGraph)
+  def withScriptImportGraph(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]): Evaluator = copy(scriptImportGraph = scriptImportGraph)
 }
 
 object Evaluator {

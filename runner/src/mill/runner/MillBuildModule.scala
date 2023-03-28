@@ -81,7 +81,11 @@ class MillBuildModule()(implicit baseModuleInfo: BaseModule.Info,
   }
 
   def scriptImportGraph = T {
-    parseBuildFiles().importGraphEdges
+    parseBuildFiles()
+      .importGraphEdges
+      .map{case (path, imports) =>
+        (path, (PathRef(path).hashCode(), imports))
+      }
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {
@@ -156,6 +160,9 @@ object MillBuildModule{
       ) +
         scriptCode(scriptSource.path) +
         MillBuildModule.bottom
+
+
+      os.proc("cat", os.temp(newSource)).call(stdout = os.Inherit)
 
       os.write(dest, newSource , createFolders = true)
     }

@@ -50,7 +50,7 @@ object RunnerState{
   @internal
   case class Frame(workerCache: Map[Segments, (Int, Any)],
                    watched: Seq[Watchable],
-                   scriptImportGraph: Map[os.Path, Seq[os.Path]],
+                   scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
                    classLoaderOpt: Option[RunnerState.URLClassLoader],
                    runClasspath: Seq[PathRef]){
 
@@ -77,7 +77,7 @@ object RunnerState{
 
     case class Logged(workerCache: Map[String, WorkerInfo],
                       watched: Seq[PathRef],
-                      scriptImportGraph: Map[os.Path, Seq[os.Path]],
+                      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
                       classLoaderIdentity: Option[Int],
                       runClasspath: Seq[PathRef],
                       runClasspathHash: Int)
