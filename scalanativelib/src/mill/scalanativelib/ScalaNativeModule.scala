@@ -200,6 +200,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   /** Shall we use the incremental compilation? */
   def nativeIncrementalCompilation = T { false }
 
+  /** Shall linker dump intermediate NIR after every phase? */
+  def nativeDump = T { false }
+
   // The LTO mode to use used during a release build
   protected def nativeLTOInput: Target[Option[LTO]] = T.input {
     readEnvVariable[LTO](T.env, "SCALANATIVE_LTO", LTO.values, _.value)
@@ -234,6 +237,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         nativeOptimize(),
         nativeEmbedResources(),
         nativeIncrementalCompilation(),
+        nativeDump(),
         toWorkerApi(logLevel())
       )
     )
