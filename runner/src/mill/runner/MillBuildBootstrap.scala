@@ -17,18 +17,10 @@ import java.net.URLClassLoader
  * `build.sc` file.
  *
  * When Mill is run in client-server mode, or with `--watch`, then data from
- * each evaluation is cached in-memory in [[prevState]]. This contains a list
- * of frames each representing cached data from a single level of evaluation:
- *
- * - `frame(0)` contains the output of evaluating the user-given targets
- * - `frame(1)` contains the output of `build.sc` file compilation
- * - `frame(2)` contains the output of the in-memory [[MillBuildModule.BootstrapModule]]
- * - If there are meta-builds present (e.g. `mill-build/build.sc`), then `frame(2)`
- *   would contains the output of the meta-build compilation, and the in-memory
- *   bootstrap module would be pushed to a higher frame
+ * each evaluation is cached in-memory in [[prevRunnerState]].
  *
  * When a subsequent evaluation happens, each level of [[evaluateRec]] uses
- * its corresponding frame from [[prevState]] to avoid work, re-using
+ * its corresponding frame from [[prevRunnerState]] to avoid work, re-using
  * classloaders or workers to avoid running expensive classloading or
  * re-evaluation. This should be transparent, improving performance without
  * affecting behavior.
@@ -39,15 +31,15 @@ class MillBuildBootstrap(projectRoot: os.Path,
                          env: Map[String, String],
                          threadCount: Option[Int],
                          targetsAndParams: Seq[String],
-                         prevState: RunnerState,
+                         prevRunnerState: RunnerState,
                          logger: ColorLogger){
 
-//  pprint.log(prevState.frames.map(f => if (f.classLoader == null) null else f.buildModule))
   val millBootClasspath = MillBuildBootstrap.prepareMillBootClasspath(projectRoot / "out")
 
   def evaluate(): Watching.Result[RunnerState] = {
     val runnerState = evaluateRec(0)
 
+    pprint.log(prevRunnerState.frames.map(_.inputClassloader))
     for((frame, depth) <- runnerState.frames.zipWithIndex){
       os.write.over(
         recOut(depth) / "mill-runner-state.json",
@@ -57,35 +49,51 @@ class MillBuildBootstrap(projectRoot: os.Path,
     }
 
     Watching.Result(
-      watched = runnerState.frames.flatMap(_.watched),
+      watched = runnerState.frames.flatMap(_.outputWatched),
       error = runnerState.errorOpt,
       result = runnerState
     )
   }
 
+  def getModule0(runClassLoader: URLClassLoader) = {
+    val cls = runClassLoader.loadClass("millbuild.build$")
+    cls.getField("MODULE$").get(cls).asInstanceOf[BaseModule]
+  }
+
   def evaluateRec(depth: Int): RunnerState = {
     println(s"+evaluateRec($depth) " + recRoot(depth))
-    val (baseModule0Opt, nestedRunnerState): (Option[BaseModule], RunnerState)  =
+    val prevFrameOpt = prevRunnerState.frames.lift(depth)
+
+    val (classLoaderOpt, baseModule0Opt, nestedRunnerState) =
       if (os.exists(recRoot(depth) / "build.sc")) {
         val nestedRunnerState = evaluateRec(depth + 1)
-        if (nestedRunnerState.errorOpt.isDefined) (None, nestedRunnerState)
+        if (nestedRunnerState.errorOpt.isDefined) (None, None, nestedRunnerState)
         else {
-          val nestedEvalState = nestedRunnerState.frames.head
-          val cls = nestedEvalState.outputClassLoader.get.loadClass("millbuild.build$")
-          val baseModule0 = cls.getField("MODULE$").get(cls).asInstanceOf[BaseModule]
-          (Some(baseModule0), nestedRunnerState)
+          val nestedFrame = nestedRunnerState.frames.head
+          val prevNestedFrameOpt = prevRunnerState.frames.lift(depth + 1)
+          val prevClassLoaderOpt = prevFrameOpt
+            .flatMap(_.inputClassloader)
+            .filter(_ => prevNestedFrameOpt.exists(_.outputRunClasspath == nestedFrame.outputRunClasspath))
+
+          val classLoader = prevClassLoaderOpt.getOrElse(
+            new URLClassLoader(
+              nestedFrame.outputRunClasspath.map(_.path.toNIO.toUri.toURL).toArray,
+              getClass.getClassLoader
+            )
+          )
+
+          (Some(classLoader), Some(getModule0(classLoader)), nestedRunnerState)
         }
       } else {
         val bootstrapModule =
           new MillBuildModule.BootstrapModule(projectRoot, recRoot(depth), millBootClasspath)(
             mill.runner.BaseModule.Info(recRoot(depth), Discover[MillBuildModule.BootstrapModule])
           )
-          (Some(bootstrapModule), RunnerState.empty)
+          (None, Some(bootstrapModule), RunnerState.empty)
       }
 
     val res = baseModule0Opt match{
       case None =>
-        println("errorState")
         RunnerState(
           Seq(RunnerState.Frame.empty) ++ nestedRunnerState.frames,
           nestedRunnerState.errorOpt
@@ -106,11 +114,9 @@ class MillBuildBootstrap(projectRoot: os.Path,
             )
         }
 
-        val prevFrameOpt = prevState.frames.lift(depth)
-
         val evaluator = makeEvaluator(
-          prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
-          nestedRunnerState.frames.lastOption.map(_.scriptImportGraph).getOrElse(Map.empty),
+          prevFrameOpt.map(_.outputWorkerCache).getOrElse(Map.empty),
+          nestedRunnerState.frames.lastOption.map(_.outputScriptImportGraph).getOrElse(Map.empty),
           // We want to use the grandparent buildHash, rather than the parent
           // buildHash, because the parent build changes are instead detected
           // by analyzing the scriptImportGraph in a more fine-grained manner.
@@ -121,63 +127,51 @@ class MillBuildBootstrap(projectRoot: os.Path,
         )
 
         if (depth != 0) {
-          println("processRunClasspath")
-          processRunClasspath(nestedRunnerState.frames, evaluator, prevFrameOpt)
+          println("processRunClasspath " + classLoaderOpt)
+          processRunClasspath(nestedRunnerState.frames, evaluator, classLoaderOpt, prevFrameOpt)
         } else {
           println("processFinalTargets")
-          processFinalTargets(nestedRunnerState.frames, evaluator, buildModule)
+          processFinalTargets(nestedRunnerState.frames, evaluator, classLoaderOpt, buildModule)
         }
     }
     println(s"-evaluateRec($depth) " + recRoot(depth))
     res
   }
 
-  def processRunClasspath(nestedEvalStates: Seq[RunnerState.Frame],
+  def processRunClasspath(nestedFrames: Seq[RunnerState.Frame],
                           evaluator: Evaluator,
+                          classLoaderOpt: Option[URLClassLoader],
                           prevFrameOpt: Option[RunnerState.Frame]): RunnerState = {
 
-    MillBuildBootstrap.evaluateWithWatches(
-      evaluator,
-      Seq("{runClasspath,scriptImportGraph}")
-    ) {
-      case Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]]) =>
-        pprint.log(scriptImportGraph)
-        prevFrameOpt.flatMap(_.outputClassLoader).foreach(_.close())
-        val runClassLoader = new URLClassLoader(
-          runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
-          getClass.getClassLoader
-        )
-
-        (runClassLoader, scriptImportGraph)
-    } match {
+    MillBuildBootstrap.evaluateWithWatches(evaluator, Seq("{runClasspath,scriptImportGraph}")) match {
       case (Left(error), watches) =>
-        val evalState = RunnerState.Frame(
-          Map.empty,
-          watches,
-          Map.empty,
-          null
-        )
-        RunnerState(Seq(evalState) ++  nestedEvalStates, Some(error))
+        val evalState = RunnerState.Frame(Map.empty, watches, Map.empty, None, Nil)
+        RunnerState(Seq(evalState) ++  nestedFrames, Some(error))
 
-      case (Right((classloader, scriptImportGraph)), watches) =>
+      case (Right(Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]])), watches) =>
+        pprint.log(scriptImportGraph)
+        prevFrameOpt.flatMap(_.inputClassloader).foreach(_.close())
+
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           watches,
           scriptImportGraph,
-          Some(classloader)
+          classLoaderOpt,
+          runClasspath
         )
 
-        RunnerState(Seq(evalState) ++ nestedEvalStates, None)
+        RunnerState(Seq(evalState) ++ nestedFrames, None)
     }
   }
 
   def processFinalTargets(nestedEvalStates: Seq[RunnerState.Frame],
                           evaluator: Evaluator,
+                          classLoaderOpt: Option[URLClassLoader],
                           buildModule: BaseModule): RunnerState = {
 
     Util.withContextClassloader(buildModule.getClass.getClassLoader) {
       val (evaled, buildWatched) =
-        MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams) { _ => () }
+        MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams)
 
       evaled match {
         case Left(error) =>
@@ -188,7 +182,8 @@ class MillBuildBootstrap(projectRoot: os.Path,
             evaluator.workerCache.toMap,
             buildWatched,
             Map.empty,
-            None
+            classLoaderOpt,
+            Nil
           )
 
           RunnerState(Seq(evalState) ++ nestedEvalStates, None)
@@ -254,16 +249,16 @@ object MillBuildBootstrap{
     enclosingClasspath ++ millLauncherOpt
   }
 
-  def evaluateWithWatches[T](evaluator: Evaluator,
-                             targetsAndParams: Seq[String])
-                            (handleResults: Seq[Any] => T): (Either[String, T], Seq[Watchable]) = {
+  def evaluateWithWatches(evaluator: Evaluator,
+                          targetsAndParams: Seq[String]): (Either[String, Seq[Any]], Seq[Watchable]) = {
+    println("")
     RunScript.evaluateTasks(evaluator, targetsAndParams, SelectMode.Separated) match {
       case Left(msg) => (Left(msg), Nil)
       case Right((watchedPaths, evaluated)) =>
         val watched = watchedPaths.map(Watchable.Path)
         evaluated match {
           case Left(msg) => (Left(msg), watched)
-          case Right(results) => (Right(handleResults(results.map(_._1))), watched)
+          case Right(results) => (Right(results.map(_._1)), watched)
         }
     }
   }

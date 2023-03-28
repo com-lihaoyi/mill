@@ -71,7 +71,7 @@ abstract class IntegrationTestSuite(
           env = Map.empty,
           threadCount = threadCount,
           targetsAndParams = s.toList,
-          prevState = runnerState,
+          prevRunnerState = runnerState,
           logger = logger,
         ).evaluate()
       },

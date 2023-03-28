@@ -194,7 +194,7 @@ object MillMain {
                     env = env,
                     threadCount = threadCount,
                     targetsAndParams = targetsAndParams,
-                    prevState = prevState.getOrElse(stateCache),
+                    prevRunnerState = prevState.getOrElse(stateCache),
                     logger = logger,
                   ).evaluate()
                 },
