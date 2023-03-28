@@ -246,7 +246,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "\n1 targets failed",
         // Ensure the file path in the compile error is properly adjusted to point
         // at the original source file and not the generated file
-        s"$wsRoot/build.sc",
+        (wsRoot / "build.sc").toString,
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
@@ -255,7 +255,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
       causeCompileError(wsRoot / "mill-build" / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
-        s"$wsRoot/mill-build/build.sc",
+        (wsRoot / "mill-build" / "build.sc").toString,
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
@@ -264,7 +264,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
       causeCompileError(wsRoot / "mill-build" / "mill-build" / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
-        s"$wsRoot/mill-build/mill-build/build.sc",
+        (wsRoot / "mill-build" / "mill-build" / "build.sc").toString,
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, Nil, Nil, buildPaths3)
@@ -273,7 +273,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
       fixCompileError(wsRoot / "mill-build" / "mill-build" / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
-        s"$wsRoot/mill-build/build.sc",
+        (wsRoot / "mill-build" / "build.sc").toString,
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
@@ -282,7 +282,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
       fixCompileError(wsRoot / "mill-build" / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
-        s"$wsRoot/build.sc",
+        (wsRoot / "build.sc").toString,
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
