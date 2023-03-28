@@ -4,6 +4,8 @@ import mill.bsp.Constants
 import utest._
 
 object BspInstallDebugTests extends IntegrationTestSuite("bsp-install", false) {
+
+  val bsp4jVersion = sys.props.getOrElse("BSP4J_VERSION", ???)
   // we purposely enable debugging in this simulated test env
   override val debugLog: Boolean = true
 
@@ -12,8 +14,12 @@ object BspInstallDebugTests extends IntegrationTestSuite("bsp-install", false) {
       val workspacePath = initWorkspace()
       eval("mill.bsp.BSP/install") ==> true
       val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
-      os.exists(jsonFile) ==> true
-      os.read(jsonFile).contains("--debug") ==> true
+      assert(os.exists(jsonFile))
+      val contents = os.read(jsonFile)
+      assert(
+        contents.contains("--debug"),
+        contents.contains(s""""bspVersion":"${bsp4jVersion}"""")
+      )
     }
   }
 }

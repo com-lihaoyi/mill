@@ -4,18 +4,20 @@ import mill.bsp.Constants
 import utest._
 
 object BspModulesTests extends IntegrationTestSuite("bsp-modules", false) {
+  val bsp4jVersion = sys.props.getOrElse("BSP4J_VERSION", ???)
+
   def tests: Tests = Tests {
     test("BSP module with foreign modules") {
       test("can be installed") {
         val workspacePath = initWorkspace()
-        eval("mill.bsp.BSP/install") ==> true
+        assert(eval("mill.bsp.BSP/install"))
         os.exists(workspacePath / Constants.bspDir / s"${Constants.serverName}.json") ==> true
       }
       test("ModuleUtils resolves all referenced transitive modules") {
         val workspacePath = initWorkspace()
-        eval("validate") ==> true
+        assert(eval("validate"))
         val file = workspacePath / "out" / "validate.dest" / "transitive-modules.json"
-        os.exists(file) ==> true
+        assert(os.exists(file))
         val readModules = os.read.lines(file).sorted
         val expectedModules = Seq(
           "", // the root module has no segemnts at all
@@ -25,7 +27,7 @@ object BspModulesTests extends IntegrationTestSuite("bsp-modules", false) {
           "foreign-modules.proj2.build.proj2"
           // "foreign-modules.proj3.proj3" // still not detected
         ).sorted
-        readModules ==> expectedModules
+        assert(readModules == expectedModules)
       }
     }
   }
