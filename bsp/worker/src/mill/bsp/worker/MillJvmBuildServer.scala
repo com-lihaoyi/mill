@@ -4,6 +4,7 @@ import ch.epfl.scala.bsp4j.{
   BuildTargetIdentifier,
   JvmBuildServer,
   JvmEnvironmentItem,
+  JvmMainClass,
   JvmRunEnvironmentParams,
   JvmRunEnvironmentResult,
   JvmTestEnvironmentParams,
@@ -17,6 +18,7 @@ import mill.scalalib.bsp.BspModule
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
+import scala.util.chaining.scalaUtilChainingOps
 
 @internal
 trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
@@ -51,7 +53,13 @@ trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
           m.forkArgs().asJava,
           m.forkWorkingDir().toString(),
           m.forkEnv().asJava
-        )
+        ).tap { item =>
+          val classes =
+            m.mainClass().toList ++ m.zincWorker.worker().discoverMainClasses(m.compile())
+          item.setMainClasses(
+            classes.map(new JvmMainClass(_, Nil.asJava)).asJava
+          )
+        }
       }
   }
 }
