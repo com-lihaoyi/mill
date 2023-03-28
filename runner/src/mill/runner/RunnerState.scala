@@ -20,6 +20,10 @@ import mill.api.JsonFormatters._
  * If a level `n` fails to evaluate, then [[errorOpt]] is set to the error message
  * and frames `< n` are set to [[RunnerState.Frame.empty]]
  *
+ * Note that frames may be partially populated, e.g. a build.sc that successfully
+ * compiled but then failed during evaluation would still populate the `watched`
+ * field, even though it didn't generate any `runClasspath` or `classLoaderOpt`
+ * for downstream levels to use.
  */
 @internal
 case class RunnerState(bootstrapModuleOpt: Option[BaseModule],
