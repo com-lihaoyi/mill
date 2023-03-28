@@ -7,8 +7,9 @@ import scala.util.matching.Regex
 
 // Cause various kinds of changes - valid, parse errors, compile errors,
 // runtime errors - in various levels of build.sc meta-builds, ensuring
-// that the proper messages are reported and the proper files end up
-// getting watched in all cases.
+// that the proper messages are reported, proper build classloaders are
+// re-used or invalidated, and the proper files end up getting watched
+// in all cases.
 class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
     extends IntegrationTestSuite("multi-level-build", fork, clientServer) {
   val tests = Tests {
@@ -54,6 +55,11 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         os.read(wsRoot / "out" / Seq.fill(depth)("mill-build") / "mill-runner-state.json")
       )
     }
+
+    /**
+     * Verify that each level of the multi-level build ends upcausing the
+     * appropriate files to get watched
+     */
     def checkWatchedFiles(expected0: Seq[os.Path]*) = {
       for((expectedWatched0, frame) <- expected0.zip(loadFrames(expected0.length))){
         val frameWatched = frame.watched.map(_.path).sorted
@@ -73,92 +79,94 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
       }
     }
 
-    var classLoaderIds = Seq.empty[Int]
+    var savedClassLoaderIds = Seq.empty[Option[Int]]
 
-    def checkChangedClassloaders(expectedChanged0: Boolean*) = {
+    /**
+     * Check whether the classloaders of the nested meta-builds are changing as
+     * expected. `true` means a new classloader was created, `false` means
+     * the previous classloader was re-used, `null` means there is no
+     * classloader at that level
+     */
+    def checkChangedClassloaders(expectedChanged0: java.lang.Boolean*) = {
       val currentClassLoaderIds =
         for(frame <- loadFrames(expectedChanged0.length))
         yield frame.classLoaderIdentity
 
-      pprint.log(currentClassLoaderIds)
       val changed = currentClassLoaderIds
-        .zipAll(classLoaderIds, 0, 0)
-        .map{case (cur, old) => cur != old}
+        .zipAll(savedClassLoaderIds, None, None)
+        .map{case (cur, old) =>
+          if (cur.isEmpty) null
+          else cur != old
+        }
 
-      assert(changed == expectedChanged0)
+      val expectedChanged =
+        if (!fork || clientServer) expectedChanged0
+        else expectedChanged0.map{case java.lang.Boolean.FALSE => true case n => n}
 
-      classLoaderIds = currentClassLoaderIds
+      assert(changed == expectedChanged)
+
+      savedClassLoaderIds = currentClassLoaderIds
     }
-
 
     test("validEdits"){
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       // First run all classloaders are new, except level 0 running user code
-      // which doesn't need generate a classloader
-      checkChangedClassloaders(false, true, true, true)
+      // which doesn't need generate a classloader which never changes
+      checkChangedClassloaders(null, true, true, true)
 
-      println("="*100)
-//      mangleFile(wsRoot / "foo"  / "src" / "Example.scala", _.replace("!", "?"))
-
-//      runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
-//      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      mangleFile(wsRoot / "foo"  / "src" / "Example.scala", _.replace("!", "?"))
+      runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
+      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       // Second run with no build changes, all classloaders are unchanged
-//      checkChangedClassloaders(false, false, false, false)
-//
-//      mangleFile(wsRoot / "build.sc", _.replace("hello", "HELLO"))
-//
-//      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")
-//      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
-//      checkChangedClassloaders(false, true, false, false)
-//
-//      mangleFile(
-//        wsRoot / "mill-build" / "build.sc",
-//        _.replace("def scalatagsVersion = ", "def scalatagsVersion = \"changed-\" + ")
-//      )
-//
-//      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.8.2</p>?")
-//      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
-//      checkChangedClassloaders()
-//
-//      mangleFile(
-//        wsRoot / "mill-build" / "mill-build" / "build.sc",
-//        _.replace("0.8.2", "0.12.0")
-//      )
-//
-//      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.12.0</p>?")
-//      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
-//      checkChangedClassloaders()
-//
-//      mangleFile(
-//        wsRoot / "mill-build" / "mill-build" / "build.sc",
-//        _.replace("0.12.0", "0.8.2")
-//      )
-//
-//      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.8.2</p>?")
-//      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
-//      checkChangedClassloaders()
-//
-//      mangleFile(
-//        wsRoot / "mill-build" / "build.sc",
-//        _.replace("def scalatagsVersion = \"changed-\" + ", "def scalatagsVersion = ")
-//      )
-//
-//      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")
-//      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
-//      checkChangedClassloaders()
-//
-//      mangleFile(wsRoot / "build.sc", _.replace("HELLO", "hello"))
-//
-//      runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
-//      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
-//      checkChangedClassloaders()
-//
-//      mangleFile(wsRoot / "foo"  / "src" / "Example.scala", _.replace("?", "!"))
-//
-//      runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
-//      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
-//      checkChangedClassloaders()
+      checkChangedClassloaders(null, false, false, false)
+
+      mangleFile(wsRoot / "build.sc", _.replace("hello", "HELLO"))
+      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")
+      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, false, false)
+
+      mangleFile(
+        wsRoot / "mill-build" / "build.sc",
+        _.replace("def scalatagsVersion = ", "def scalatagsVersion = \"changed-\" + ")
+      )
+      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.8.2</p>?")
+      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, true, false)
+
+      mangleFile(
+        wsRoot / "mill-build" / "mill-build" / "build.sc",
+        _.replace("0.8.2", "0.12.0")
+      )
+      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.12.0</p>?")
+      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, true, true)
+
+      mangleFile(
+        wsRoot / "mill-build" / "mill-build" / "build.sc",
+        _.replace("0.12.0", "0.8.2")
+      )
+      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.8.2</p>?")
+      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, true, true)
+
+      mangleFile(
+        wsRoot / "mill-build" / "build.sc",
+        _.replace("def scalatagsVersion = \"changed-\" + ", "def scalatagsVersion = ")
+      )
+      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")
+      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, true, false)
+
+      mangleFile(wsRoot / "build.sc", _.replace("HELLO", "hello"))
+      runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
+      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, false, false)
+
+      mangleFile(wsRoot / "foo"  / "src" / "Example.scala", _.replace("?", "!"))
+      runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
+      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, false, false, false)
     }
 
     test("parseErrorEdits") {
@@ -170,51 +178,52 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
 
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, true, true)
 
       causeParseError(wsRoot / "build.sc")
-
       evalCheckErr(
         "\n1 targets failed",
         "\ngenerateScriptSources build.sc"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, null, false, false)
 
       causeParseError(wsRoot / "mill-build" / "build.sc")
-
       evalCheckErr(
         "\n1 targets failed",
         "\ngenerateScriptSources mill-build/build.sc"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, null, null, false)
 
       causeParseError(wsRoot / "mill-build" / "mill-build" / "build.sc")
-
       evalCheckErr(
         "\n1 targets failed",
         "\ngenerateScriptSources mill-build/mill-build/build.sc"
       )
       checkWatchedFiles(Nil, Nil, Nil, buildPaths3)
+      checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "mill-build" / "mill-build" / "build.sc")
-
       evalCheckErr(
         "\n1 targets failed",
         "\ngenerateScriptSources mill-build/build.sc"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, null, null, true)
 
       fixParseError(wsRoot / "mill-build" / "build.sc")
-
       evalCheckErr(
         "\n1 targets failed",
         "\ngenerateScriptSources build.sc"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, null, true, false)
 
       fixParseError(wsRoot / "build.sc")
-
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, false, false)
     }
 
     test("compileErrorEdits") {
@@ -226,6 +235,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
 
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, true, true)
 
       causeCompileError(wsRoot / "build.sc")
       evalCheckErr(
@@ -236,6 +246,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, null, false, false)
 
       causeCompileError(wsRoot / "mill-build" / "build.sc")
       evalCheckErr(
@@ -244,6 +255,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, null, null, false)
 
       causeCompileError(wsRoot / "mill-build" / "mill-build" / "build.sc")
       evalCheckErr(
@@ -252,6 +264,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, Nil, Nil, buildPaths3)
+      checkChangedClassloaders(null, null, null, null)
 
       fixCompileError(wsRoot / "mill-build" / "mill-build" / "build.sc")
       evalCheckErr(
@@ -260,6 +273,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, null, null, true)
 
       fixCompileError(wsRoot / "mill-build" / "build.sc")
       evalCheckErr(
@@ -268,10 +282,12 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, null, true, false)
 
       fixCompileError(wsRoot / "build.sc")
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, false, false)
     }
 
     test("runtimeErrorEdits") {
@@ -285,6 +301,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
 
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, true, true)
 
       causeRuntimeError(wsRoot / "build.sc")
       evalCheckErr(
@@ -292,6 +309,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "foo.runClasspath java.lang.Exception: boom"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, false, false)
 
       causeRuntimeError(wsRoot / "mill-build" / "build.sc")
       evalCheckErr(
@@ -300,6 +318,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "runClasspath java.lang.Exception: boom"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, null, true, false)
 
       causeRuntimeError(wsRoot / "mill-build" / "mill-build" / "build.sc")
       evalCheckErr(
@@ -308,6 +327,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "runClasspath java.lang.Exception: boom"
       )
       checkWatchedFiles(Nil, Nil, Nil, buildPaths3)
+      checkChangedClassloaders(null, null, null, true)
 
       fixRuntimeError(wsRoot / "mill-build" / "mill-build" / "build.sc")
       evalCheckErr(
@@ -316,6 +336,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "runClasspath java.lang.Exception: boom"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, null, true, true)
 
       fixRuntimeError(wsRoot / "mill-build" / "build.sc")
       evalCheckErr(
@@ -324,10 +345,12 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
         "foo.runClasspath java.lang.Exception: boom"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, true, false)
 
       fixRuntimeError(wsRoot / "build.sc")
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      checkChangedClassloaders(null, true, false, false)
 
     }
   }

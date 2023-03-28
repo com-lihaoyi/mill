@@ -74,8 +74,7 @@ abstract class IntegrationTestSuite(
           prevRunnerState = runnerState,
           logger = logger,
         ).evaluate()
-      },
-      watchedPathsFile = wd / "out" / "mill-watched-paths.txt"
+      }
     )
 
     runnerState = newRunnerState

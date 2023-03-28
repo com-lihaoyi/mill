@@ -19,8 +19,7 @@ object Watching{
                    watch: Boolean,
                    streams: SystemStreams,
                    setIdle: Boolean => Unit,
-                   evaluate: Option[T] => Result[T],
-                   watchedPathsFile: os.Path): (Boolean, T) = {
+                   evaluate: Option[T] => Result[T]): (Boolean, T) = {
     var prevState: Option[T] = None
     while (true) {
       val Result(watchables, errorOpt, result) = evaluate(prevState)

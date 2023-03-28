@@ -20,29 +20,39 @@ import mill.api.JsonFormatters._
  * If a level `n` fails to evaluate, then [[errorOpt]] is set to the error message
  * and frames `< n` are set to [[RunnerState.Frame.empty]]
  *
- * Note that frames may be partially populated, e.g. a build.sc that successfully
- * compiled but then failed during evaluation would still populate the `watched`
- * field, even though it didn't generate any `runClasspath` or `classLoaderOpt`
- * for downstream levels to use.
+ * Note that frames may be partially populated, e.g. the final level of
+ * evaluation populates `watched` but not `scriptImportGraph`,
+ * `classLoaderOpt` or `runClasspath` since there are no further levels of
+ * evaluation that require them.
  */
 @internal
 case class RunnerState(bootstrapModuleOpt: Option[BaseModule],
                        frames: Seq[RunnerState.Frame],
                        errorOpt: Option[String]){
-
+  def add(frame: RunnerState.Frame = RunnerState.Frame.empty,
+          errorOpt: Option[String] = None) = {
+    this.copy(frames = Seq(frame) ++ frames, errorOpt = errorOpt)
+  }
 }
 
 object RunnerState{
+  class URLClassLoader(urls: Array[java.net.URL], parent: ClassLoader)
+    extends java.net.URLClassLoader(urls, parent) {
+
+    // Random ID of the URLClassLoader to ensure it doesn't
+    // duplicate (unlike System.identityHashCode), allowing tests to compare
+    // hashcodes to verify whether the classloader has been re-created
+    val identity = scala.util.Random.nextInt()
+  }
+
   def empty = RunnerState(None, Nil, None)
 
   @internal
   case class Frame(workerCache: Map[Segments, (Int, Any)],
                    watched: Seq[Watchable],
                    scriptImportGraph: Map[os.Path, Seq[os.Path]],
-                   classLoaderOpt: Option[java.net.URLClassLoader],
+                   classLoaderOpt: Option[RunnerState.URLClassLoader],
                    runClasspath: Seq[PathRef]){
-
-    lazy val scriptHash = scriptImportGraph.keys.toSeq.sorted.map(PathRef(_).sig).sum
 
     def loggedData = {
       Frame.Logged(
@@ -51,7 +61,7 @@ object RunnerState{
         },
         watched.collect{case Watchable.Path(p) => p},
         scriptImportGraph,
-        classLoaderOpt.map(System.identityHashCode(_)).getOrElse(0),
+        classLoaderOpt.map(_.identity),
         runClasspath,
         runClasspath.hashCode()
       )
@@ -68,7 +78,7 @@ object RunnerState{
     case class Logged(workerCache: Map[String, WorkerInfo],
                       watched: Seq[PathRef],
                       scriptImportGraph: Map[os.Path, Seq[os.Path]],
-                      classLoaderIdentity: Int,
+                      classLoaderIdentity: Option[Int],
                       runClasspath: Seq[PathRef],
                       runClasspathHash: Int)
     implicit val loggedRw: ReadWriter[Logged] = macroRW

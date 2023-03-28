@@ -60,7 +60,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
   }
 
   def evaluateRec(depth: Int): RunnerState = {
-    println(s"+evaluateRec($depth) " + recRoot(depth))
+    // println(s"+evaluateRec($depth) " + recRoot(depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
 
     val nestedRunnerState =
@@ -75,10 +75,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
       }
 
     val res = if (nestedRunnerState.errorOpt.isDefined) {
-      nestedRunnerState.copy(
-        frames = Seq(RunnerState.Frame.empty) ++ nestedRunnerState.frames,
-        errorOpt = nestedRunnerState.errorOpt
-      )
+      nestedRunnerState.add(errorOpt = nestedRunnerState.errorOpt)
     } else{
       val baseModule0 = nestedRunnerState.frames.headOption match{
         case None => nestedRunnerState.bootstrapModuleOpt.get
@@ -115,18 +112,23 @@ class MillBuildBootstrap(projectRoot: os.Path,
         depth
       )
 
-      if (depth != 0) {
-        println("processRunClasspath")
-        processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt)
-      } else {
-        println("processFinalTargets")
-        processFinalTargets(nestedRunnerState, evaluator)
-      }
+      if (depth != 0) processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt)
+      else processFinalTargets(nestedRunnerState, evaluator)
     }
-    println(s"-evaluateRec($depth) " + recRoot(depth))
+    // println(s"-evaluateRec($depth) " + recRoot(depth))
     res
   }
 
+  /**
+   * Handles the compilation of `build.sc` or one of the meta-builds. These
+   * cases all only need us to run evaluate `runClasspath` and
+   * `scriptImportGraph` to instantiate their classloader/`BaseModule` to feed
+   * into the next level's [[Evaluator]].
+   *
+   * Note that if the `runClasspath` doesn't change, we re-use the previous
+   * classloader, saving us from having to re-instantiate it and for the code
+   * inside to be re-JITed
+   */
   def processRunClasspath(nestedRunnerState: RunnerState,
                           evaluator: Evaluator,
                           prevFrameOpt: Option[RunnerState.Frame]): RunnerState = {
@@ -134,23 +136,25 @@ class MillBuildBootstrap(projectRoot: os.Path,
     MillBuildBootstrap.evaluateWithWatches(evaluator, Seq("{runClasspath,scriptImportGraph}")) match {
       case (Left(error), watches) =>
         val evalState = RunnerState.Frame(Map.empty, watches, Map.empty, None, Nil)
-        nestedRunnerState.copy(
-          frames = Seq(evalState) ++ nestedRunnerState.frames,
-          errorOpt = Some(error)
-        )
+        nestedRunnerState.add(frame = evalState, errorOpt = Some(error))
+
 
       case (Right(Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]])), watches) =>
-        pprint.log(prevFrameOpt.map(_.runClasspath.map(upickle.default.write(_))))
-        pprint.log(Option(runClasspath.map(upickle.default.write(_))))
-        val classLoader = if (!prevFrameOpt.exists(_.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum)){
-          val cl = new URLClassLoader(
+
+        val runClasspathChanged = !prevFrameOpt.exists(
+          _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
+        )
+        val classLoader = if (runClasspathChanged){
+          // Make sure we close the old classloader every time we create a new
+          // one, to avoid memory leaks
+
+          prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
+          val cl = new RunnerState.URLClassLoader(
             runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
             getClass.getClassLoader
           )
-          println("Creating new classloader " + System.identityHashCode(cl))
           cl
         }else{
-          println("Reusing old classloader " + System.identityHashCode(prevFrameOpt.get.classLoaderOpt.get))
           prevFrameOpt.get.classLoaderOpt.get
         }
         val evalState = RunnerState.Frame(
@@ -161,23 +165,24 @@ class MillBuildBootstrap(projectRoot: os.Path,
           runClasspath
         )
 
-        nestedRunnerState.copy(frames = Seq(evalState) ++ nestedRunnerState.frames)
+        nestedRunnerState.add(frame = evalState)
     }
   }
 
+  /**
+   * Handles the final evaluation of the user-provided targets. Since there are
+   * no further levels to evaluate, we do not need to save a `scriptImportGraph`,
+   * classloader, or runClasspath.
+   */
   def processFinalTargets(nestedRunnerState: RunnerState,
                           evaluator: Evaluator): RunnerState = {
 
-    Util.withContextClassloader(nestedRunnerState.frames.head.classLoaderOpt.get) {
+//    Util.withContextClassloader(nestedRunnerState.frames.head.classLoaderOpt.get) {
       val (evaled, buildWatched) =
         MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams)
 
       evaled match {
-        case Left(error) =>
-          nestedRunnerState.copy(
-            frames = Seq(RunnerState.Frame.empty) ++ nestedRunnerState.frames,
-            errorOpt = Some(error)
-          )
+        case Left(error) => nestedRunnerState.add(errorOpt = Some(error))
 
         case Right(_) =>
           val evalState = RunnerState.Frame(
@@ -188,9 +193,9 @@ class MillBuildBootstrap(projectRoot: os.Path,
             Nil
           )
 
-          nestedRunnerState.copy(frames = Seq(evalState) ++ nestedRunnerState.frames)
+          nestedRunnerState.add(frame = evalState)
       }
-    }
+//    }
   }
 
   def makeEvaluator(workerCache: Map[Segments, (Int, Any)],
@@ -253,7 +258,6 @@ object MillBuildBootstrap{
 
   def evaluateWithWatches(evaluator: Evaluator,
                           targetsAndParams: Seq[String]): (Either[String, Seq[Any]], Seq[Watchable]) = {
-    println("")
     RunScript.evaluateTasks(evaluator, targetsAndParams, SelectMode.Separated) match {
       case Left(msg) => (Left(msg), Nil)
       case Right((watchedPaths, evaluated)) =>

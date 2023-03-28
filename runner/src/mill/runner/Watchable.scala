@@ -2,6 +2,12 @@ package mill.runner
 
 import mill.api.internal
 
+/**
+ * Represents something that can be watched by the Mill build tool. Most often
+ * these are [[Watchable.Path]]s, but we use [[Watchable.Value]] to watch the
+ * value of arbitrary computations e.g. watching the result of `os.list` to
+ * react if a new folder is added.
+ */
 @internal
 trait Watchable {
   def poll(): Long
