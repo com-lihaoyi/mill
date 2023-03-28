@@ -60,7 +60,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
   }
 
   def evaluateRec(depth: Int): RunnerState = {
-     println(s"+evaluateRec($depth) " + recRoot(depth))
+    // println(s"+evaluateRec($depth) " + recRoot(depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
 
     val nestedRunnerState =
@@ -107,7 +107,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
           .frames
           .dropRight(1)
           .headOption
-          .map(_.runClasspath.hashCode())
+          .map(_.runClasspath.map(p => (p.path, p.sig)).hashCode())
           .getOrElse(0),
         depth
       )
@@ -115,7 +115,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
       if (depth != 0) processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt)
       else processFinalTargets(nestedRunnerState, evaluator)
     }
-     println(s"-evaluateRec($depth) " + recRoot(depth))
+    // println(s"-evaluateRec($depth) " + recRoot(depth))
     res
   }
 
@@ -143,15 +143,6 @@ class MillBuildBootstrap(projectRoot: os.Path,
         val runClasspathChanged = !prevFrameOpt.exists(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )
-
-        pprint.log(runClasspathChanged)
-        val debugPath = projectRoot / "out" / "mill-build" / "compile.dest" / "classes"
-        if (runClasspathChanged && os.exists(debugPath)){
-          pprint.log(os.walk(debugPath).map(PathRef(_).toString))
-          val temp = os.temp.dir()
-          os.copy.over(debugPath, temp)
-          pprint.log(temp)
-        }
 
         val classLoader = if (runClasspathChanged){
           // Make sure we close the old classloader every time we create a new
@@ -212,6 +203,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
                     baseModule: BaseModule,
                     millClassloaderSigHash: Int,
                     depth: Int) = {
+
     val bootLogPrefix =
       if (depth == 0) ""
       else "[" + (Seq.fill(depth-1)("mill-build") ++ Seq("build.sc")).mkString("/") + "] "

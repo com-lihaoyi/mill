@@ -161,9 +161,6 @@ object MillBuildModule{
         scriptCode(scriptSource.path) +
         MillBuildModule.bottom
 
-
-      os.proc("cat", os.temp(newSource)).call(stdout = os.Inherit)
-
       os.write(dest, newSource , createFolders = true)
     }
   }
