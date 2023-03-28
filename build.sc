@@ -178,7 +178,7 @@ object Deps {
   val requests = ivy"com.lihaoyi::requests:0.8.0"
 }
 
-def millVersion: T[String] = T { VcsVersion.vcsState().format() }
+def millVersion: T[String] = T { "dev" }
 def millLastTag: T[String] = T {
   VcsVersion.vcsState().lastTag.getOrElse(
     sys.error("No (last) git tag found. Your git history seems incomplete!")

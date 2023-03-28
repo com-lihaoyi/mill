@@ -35,8 +35,6 @@ object Watching{
         }
       }
 
-      val watchedPaths = watchables.collect{case p: Watchable.Path => p.p.path}
-      os.write.over(watchedPathsFile, watchedPaths.mkString("\n"))
       if (!watch) {
         return (errorOpt.isEmpty, result)
       }

@@ -40,6 +40,8 @@ abstract class IntegrationTestSuite(
   val userSpecifiedProperties = Map[String, String]()
   val threadCount = sys.props.get("MILL_THREAD_COUNT").map(_.toInt).orElse(Some(1))
 
+  var runnerState = RunnerState.empty
+
   private def runnerStdout(stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
 
     val streams = new SystemStreams(stdout, stderr, stdIn)
@@ -54,7 +56,8 @@ abstract class IntegrationTestSuite(
       mainInteractive = false,
       enableTicker = Some(false)
     )
-    Watching.watchLoop(
+
+    val (isSuccess, newRunnerState) = Watching.watchLoop(
       logger = logger,
       ringBell = config.ringBell.value,
       watch = config.watch.value,
@@ -68,12 +71,16 @@ abstract class IntegrationTestSuite(
           env = Map.empty,
           threadCount = threadCount,
           targetsAndParams = s.toList,
-          prevState = RunnerState.empty,
+          prevState = runnerState,
           logger = logger,
         ).evaluate()
       },
       watchedPathsFile = wd / "out" / "mill-watched-paths.txt"
     )
+
+    runnerState = newRunnerState
+
+    (isSuccess, newRunnerState)
   }
 
   def eval(s: String*): Boolean = {
@@ -148,7 +155,7 @@ abstract class IntegrationTestSuite(
   }
 
   override def utestAfterEach(path: Seq[String]): Unit = {
-
+    runnerState = RunnerState.empty
     if (clientServer) {
       // try to stop the server
       try {
