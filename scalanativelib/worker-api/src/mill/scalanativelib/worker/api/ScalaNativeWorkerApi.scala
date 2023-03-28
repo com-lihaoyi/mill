@@ -27,6 +27,7 @@ private[scalanativelib] trait ScalaNativeWorkerApi {
       nativeOptimize: Boolean,
       nativeEmbedResources: Boolean,
       nativeIncrementalCompilation: Boolean,
+      nativeDump: Boolean,
       logLevel: NativeLogLevel
   ): Object
 
