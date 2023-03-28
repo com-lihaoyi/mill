@@ -65,11 +65,16 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
     val nestedRunnerState =
       if (!os.exists(recRoot(depth) / "build.sc")) {
-        val bootstrapModule =
-          new MillBuildModule.BootstrapModule(projectRoot, recRoot(depth), millBootClasspath)(
-            mill.runner.BaseModule.Info(recRoot(depth), Discover[MillBuildModule.BootstrapModule])
-          )
-        RunnerState(Some(bootstrapModule), Nil, None)
+        if (depth == 0){
+          RunnerState(None, Nil, Some("build.sc file not found. Are you in a Mill project folder?"))
+        } else{
+
+          val bootstrapModule =
+            new MillBuildModule.BootstrapModule(projectRoot, recRoot(depth), millBootClasspath)(
+              mill.runner.BaseModule.Info(recRoot(depth), Discover[MillBuildModule.BootstrapModule])
+            )
+          RunnerState(Some(bootstrapModule), Nil, None)
+        }
       }else {
         evaluateRec(depth + 1)
       }
