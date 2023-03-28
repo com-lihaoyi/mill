@@ -2,10 +2,22 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.0`
+import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.13`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
 // imports
+import com.github.lolgab.mill.mima
+import com.github.lolgab.mill.mima.{
+  CheckDirection,
+  DirectMissingMethodProblem,
+  IncompatibleMethTypeProblem,
+  IncompatibleSignatureProblem,
+  ProblemFilter,
+  ReversedMissingMethodProblem
+}
 import coursier.maven.MavenRepository
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
 import mill.define.{Command, Source, Sources, Target, Task}
 import mill.eval.Evaluator
@@ -166,8 +178,12 @@ object Deps {
   val requests = ivy"com.lihaoyi::requests:0.8.0"
 }
 
-def millVersion: T[String] = T { "0.0.0.test" }
-def millLastTag: T[String] = T { "0.0.0.test" }
+def millVersion: T[String] = T { VcsVersion.vcsState().format() }
+def millLastTag: T[String] = T {
+  VcsVersion.vcsState().lastTag.getOrElse(
+    sys.error("No (last) git tag found. Your git history seems incomplete!")
+  )
+}
 def millBinPlatform: T[String] = T {
   val tag = millLastTag()
   if (tag.contains("-M")) tag
@@ -226,7 +242,20 @@ trait MillCoursierModule extends CoursierModule {
   )
 }
 
-trait MillMimaConfig extends Module {
+trait MillMimaConfig extends mima.Mima {
+  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
+  override def mimaPreviousArtifacts =
+    if (Settings.mimaBaseVersions.isEmpty) T { Agg[Dep]() }
+    else super.mimaPreviousArtifacts
+  override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
+    "mill.api.internal",
+    "mill.api.experimental"
+  )
+  override def mimaCheckDirection: Target[CheckDirection] = T { CheckDirection.Backward }
+  override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
+    issueFilterByModule.getOrElse(this, Seq())
+  }
+  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
 }
 
 /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
@@ -538,6 +567,7 @@ object scalalib extends MillModule {
 
     override def generatedSources = T {
       val dest = T.ctx.dest
+      val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
       os.write(
         dest / "Versions.scala",
         s"""package mill.scalalib.worker
@@ -613,7 +643,6 @@ object scalajslib extends MillModule {
   }
   object worker extends Cross[WorkerModule]("1")
   class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
-    override def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
     override def moduleDeps = Seq(scalajslib.`worker-api`)
     override def ivyDeps = Agg(
       Deps.Scalajs_1.scalajsLinker,
@@ -676,7 +705,6 @@ object contrib extends MillModule {
 
     object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
     class WorkerModule(playBinary: String) extends MillInternalModule {
-      override def millSourcePath: os.Path = super.millSourcePath / playBinary
       override def sources = T.sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
@@ -879,7 +907,6 @@ object scalanativelib extends MillModule {
   object worker extends Cross[WorkerModule]("0.4")
   class WorkerModule(scalaNativeWorkerVersion: String)
       extends MillInternalModule {
-    override def millSourcePath: os.Path = super.millSourcePath / scalaNativeWorkerVersion
     override def moduleDeps = Seq(scalanativelib.`worker-api`)
     override def ivyDeps = scalaNativeWorkerVersion match {
       case "0.4" =>
@@ -1337,7 +1364,7 @@ object dev extends MillModule {
           Seq(launcher().path.toString) ++ rest,
           forkEnv(),
           workingDir = wd
-        )catch{case e => ()/*ignore*/}
+        )catch{case e => ()/*ignore to avoid confusing stacktrace and error messages*/}
         mill.api.Result.Success(())
     }
 
@@ -1574,7 +1601,53 @@ def launcher = T {
 }
 
 def uploadToGithub(authKey: String) = T.command {
-  // never upload a bootstrapped version
+  val vcsState = VcsVersion.vcsState()
+  val label = vcsState.format()
+  if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
+  val releaseTag = vcsState.lastTag.getOrElse(sys.error(
+    "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
+  ))
+
+  if (releaseTag == label) {
+    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
+    scalaj.http.Http(
+      s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
+    )
+      .postData(
+        ujson.write(
+          ujson.Obj(
+            "tag_name" -> releaseTag,
+            "name" -> releaseTag
+          )
+        )
+      )
+      .header("Authorization", "token " + authKey)
+      .asString
+  }
+
+  val exampleZips = Seq("example-1", "example-2", "example-3")
+    .map { example =>
+      os.copy(T.workspace / "example" / example, T.dest / example)
+      os.copy(launcher().path, T.dest / example / "mill")
+      os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
+      (T.dest / s"$example.zip", label + "-" + example + ".zip")
+    }
+
+  val zips = exampleZips ++ Seq(
+    (assembly().path, label + "-assembly"),
+    (launcher().path, label)
+  )
+
+  for ((zip, name) <- zips) {
+    upload.apply(
+      zip,
+      releaseTag,
+      name,
+      authKey,
+      Settings.githubOrg,
+      Settings.githubRepo
+    )
+  }
 }
 
 def validate(ev: Evaluator): Command[Unit] = T.command {
