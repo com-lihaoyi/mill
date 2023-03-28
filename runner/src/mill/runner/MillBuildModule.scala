@@ -89,8 +89,10 @@ class MillBuildModule()(implicit baseModuleInfo: BaseModule.Info,
   }
 
   def unmanagedClasspath = mill.define.Target.input {
-    mill.api.Loose.Agg.from(millBuildModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p))) ++
-      lineNumberPluginClasspath()
+    mill.api.Loose.Agg.from(
+      millBuildModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
+    ) ++
+    lineNumberPluginClasspath()
   }
 
   def scalacPluginIvyDeps = Agg(
