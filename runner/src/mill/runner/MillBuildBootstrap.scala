@@ -60,7 +60,6 @@ class MillBuildBootstrap(projectRoot: os.Path,
   }
 
   def evaluateRec(depth: Int): RunnerState = {
-    println(s"+evaluateRec($depth) " + recRoot(depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
 
     val nestedRunnerState =
@@ -103,19 +102,24 @@ class MillBuildBootstrap(projectRoot: os.Path,
         prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
         nestedRunnerState.frames.lastOption.map(_.scriptImportGraph).getOrElse(Map.empty),
         buildModule,
-        0,
+        // We want to use the grandparent buildHash, rather than the parent
+        // buildHash, because the parent build changes are instead detected
+        // by analyzing the scriptImportGraph in a more fine-grained manner.
+        nestedRunnerState
+          .frames
+          .dropRight(1)
+          .headOption
+          .map(_.runClasspath.hashCode())
+          .getOrElse(0),
         depth
       )
 
       if (depth != 0) {
-        println("processRunClasspath")
         processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt)
       } else {
-        println("processFinalTargets")
         processFinalTargets(nestedRunnerState, evaluator)
       }
     }
-    println(s"-evaluateRec($depth) " + recRoot(depth))
     res
   }
 
@@ -133,13 +137,11 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
       case (Right(Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]])), watches) =>
         val classLoader = if (!prevFrameOpt.exists(_.runClasspath == runClasspath)){
-          println("Creating new classloader")
           new URLClassLoader(
             runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
             getClass.getClassLoader
           )
         }else{
-          println("Reusing old classloader")
           prevFrameOpt.get.classLoaderOpt.get
         }
         val evalState = RunnerState.Frame(
