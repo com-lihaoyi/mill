@@ -1,0 +1,12 @@
+package mill.integration
+
+import utest._
+
+object MillJvmOptsTests extends IntegrationTestSuite.Cross {
+  val tests = Tests {
+    initWorkspace()
+    "JVM options from file .mill-jvm-opts are properly read" - {
+      if (integrationTestMode != "local") assert(eval("checkJvmOpts"))
+    }
+  }
+}

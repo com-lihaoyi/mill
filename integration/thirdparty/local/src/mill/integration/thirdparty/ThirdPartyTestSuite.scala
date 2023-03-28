@@ -3,7 +3,7 @@ import mill.integration.IntegrationTestSuite
 import utest._
 
 abstract class ThirdPartyTestSuite(repoKey: String, workspaceSlug: String, fork: Boolean)
-    extends IntegrationTestSuite(workspaceSlug, fork) {
+    extends IntegrationTestSuite(workspaceSlug, if (fork) "fork" else "local") {
   val buildFilePath = os.pwd / "integration" / "thirdparty" / "local" / "resources" / workspaceSlug
   override def workspacePath: os.Path =
     os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / workspaceSlug

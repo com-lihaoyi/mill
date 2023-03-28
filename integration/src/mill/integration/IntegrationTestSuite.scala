@@ -14,11 +14,16 @@ import scala.util.control.NonFatal
 
 object IntegrationTestSuite{
   case class EvalResult(isSuccess: Boolean, out: String, err: String)
+  abstract class Cross
+    extends IntegrationTestSuite(
+      sys.env("MILL_INTEGRATION_TEST_SLUG"),
+      sys.env("MILL_INTEGRATION_TEST_MODE"),
+      None
+    )
 }
 abstract class IntegrationTestSuite(
     val scriptSlug: String,
-    fork: Boolean,
-    clientServer: Boolean = false,
+    val integrationTestMode: String,
     workspaceSlug: Option[String] = None,
 ) extends TestSuite{
 
@@ -26,8 +31,7 @@ abstract class IntegrationTestSuite(
   def workspacePath: os.Path =
     os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / os.RelPath(finalWorkspaceSlug)
 
-  def scriptSourcePath: os.Path =
-    os.pwd / "integration" / "resources" / os.RelPath(scriptSlug)
+  def scriptSourcePath: os.Path = os.Path(sys.env("MILL_INTEGRATION_REPO_ROOT"))
 
   def buildPath: os.SubPath = os.sub / "build.sc"
 
@@ -83,12 +87,12 @@ abstract class IntegrationTestSuite(
   }
 
   def eval(s: String*): Boolean = {
-    if (!fork) runnerStdout(System.out, System.err, s)._1
+    if (integrationTestMode == "local") runnerStdout(System.out, System.err, s)._1
     else evalFork(os.Inherit, os.Inherit, s)
   }
 
   def evalStdout(s: String*): IntegrationTestSuite.EvalResult = {
-    if (!fork) {
+    if (integrationTestMode == "local") {
       val outputStream = new ByteArrayOutputStream
       val errorStream = new ByteArrayOutputStream
       val printOutStream = new PrintStream(outputStream)
@@ -118,8 +122,7 @@ abstract class IntegrationTestSuite(
   val millTestSuiteEnv = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
   private def evalFork(stdout: os.ProcessOutput, stderr: os.ProcessOutput, s: Seq[String]): Boolean = {
-    val extraArgs = if (clientServer) Seq() else Seq("--no-server")
-
+    val extraArgs = if (integrationTestMode == "server") Seq() else Seq("--no-server")
     try {
       os.proc(millReleaseFileOpt.get, extraArgs, s).call(
         cwd = wd,
@@ -155,7 +158,7 @@ abstract class IntegrationTestSuite(
 
   override def utestAfterEach(path: Seq[String]): Unit = {
     runnerState = RunnerState.empty
-    if (clientServer) {
+    if (integrationTestMode == "server") {
       // try to stop the server
       try {
         os.proc(millReleaseFileOpt.get, "shutdown").call(

@@ -292,30 +292,36 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
     else Seq(this, main.test)
 
   trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
-      with WithMillCompiler {
-    override def forkArgs = T {
-      Seq(
-        s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
-        s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
-        s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
-        s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
-        s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
-        s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
-        s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
-        s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
-        s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
-        s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
-        s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
-        s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
-      ) ++ outer.testArgs()
-    }
+      with WithMillCompiler with BaseMillTestsModule {
+
+    override def forkArgs = outer.testArgs() ++ super.forkArgs()
     override def moduleDeps = outer.testModuleDeps
     override def ivyDeps: T[Agg[Dep]] = T { super.ivyDeps() ++ outer.testIvyDeps() }
-    override def testFramework = "mill.UTestFramework"
+
   }
   trait Tests extends MillScalaModuleTests
 }
 
+
+trait BaseMillTestsModule extends TestModule {
+  override def forkArgs = T {
+    Seq(
+      s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
+      s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
+      s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
+      s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
+      s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
+      s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
+      s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
+      s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
+      s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
+      s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
+      s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
+      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
+    )
+  }
+  override def testFramework = "mill.UTestFramework"
+}
 /** A MillScalaModule with default set up test module. */
 trait MillAutoTestSetup extends MillScalaModule {
   // instead of `object test` which can't be overridden, we hand-made a val+class singleton
@@ -1023,6 +1029,69 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
   }
 }
 
+val listed = interp.watchValue(os.list(os.pwd / "testrepos").map(_.last))
+object testrepos extends Cross[TestRepoModule](listed: _*)
+class TestRepoModule(repoName: String) extends Module{
+  def testRepoRoot = T.source(millSourcePath / "repo")
+  object test extends Cross[TestRepoTestModule]("local", "fork", "server")
+  class TestRepoTestModule(mode: String) extends ScalaModule with IntegrationTestModule  {
+    def scalaVersion = integration.scalaVersion()
+    def millSourcePath = super.millSourcePath / os.up
+    override def forkEnv = super.forkEnv() ++ Map(
+      "MILL_INTEGRATION_TEST_MODE" -> mode,
+      "MILL_INTEGRATION_TEST_SLUG" -> repoName,
+      "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString,
+    ) ++ testReleaseEnv()
+
+    def testReleaseEnv =
+      if (mode == "local") T{ Map.empty[String, String] }
+      else T{ Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
+
+    def moduleDeps = Seq(main.test, integration)
+  }
+}
+
+trait IntegrationTestModule extends BaseMillTestsModule {
+
+  def workspaceDir = T.persistent {
+    PathRef(T.dest)
+  }
+
+  def genTask(m: ScalaModule) = T.task {
+    Seq(m.jar(), m.sourceJar()) ++
+      m.runClasspath()
+  }
+
+
+  override def forkArgs: Target[Seq[String]] = T {
+    val genIdeaArgs =
+    //      genTask(main.moduledefs)() ++
+      genTask(main.core)() ++
+        genTask(main)() ++
+        genTask(scalalib)() ++
+        genTask(scalajslib)() ++
+        genTask(scalanativelib)()
+
+
+    super.forkArgs() ++
+      scalajslib.testArgs() ++
+      scalalib.worker.testArgs() ++
+      scalalib.backgroundwrapper.testArgs() ++
+      scalanativelib.testArgs() ++
+      runner.linenumbers.testArgs() ++
+      Seq(
+        s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
+        s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
+        s"-DMILL_VERSION=${millVersion()}",
+        s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
+        s"-DMILL_BSP_WORKER=${bsp.worker.runClasspath().map(_.path).mkString(",")}",
+        s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}",
+        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
+        "-Djna.nosys=true"
+      )
+  }
+}
+
 object integration extends MillScalaModule {
   override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
 
@@ -1032,52 +1101,7 @@ object integration extends MillScalaModule {
     T { PathRef(installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
   }
 
-  trait ITests extends super.Tests {
-    def workspaceDir = T.persistent { PathRef(T.dest) }
-
-    def genTask(m: ScalaModule) = T.task {
-      Seq(m.jar(), m.sourceJar()) ++
-        m.runClasspath()
-    }
-
-    override def forkArgs: Target[Seq[String]] = T {
-      val genIdeaArgs =
-      //      genTask(main.moduledefs)() ++
-        genTask(main.core)() ++
-        genTask(main)() ++
-        genTask(scalalib)() ++
-        genTask(scalajslib)() ++
-        genTask(scalanativelib)()
-
-
-      super.forkArgs() ++
-        scalajslib.testArgs() ++
-        scalalib.worker.testArgs() ++
-        scalalib.backgroundwrapper.testArgs() ++
-        scalanativelib.testArgs() ++
-        runner.linenumbers.testArgs() ++
-        Seq(
-          s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
-          s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
-          s"-DMILL_VERSION=${millVersion()}",
-          s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
-          s"-DMILL_BSP_WORKER=${bsp.worker.runClasspath().map(_.path).mkString(",")}",
-          s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}",
-          "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-          "-Djna.nosys=true"
-        )
-    }
-  }
-
-  // Integration test of Mill
-  object local extends ITests
-  trait Forked extends ITests {
-    override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
-      "MILL_TEST_RELEASE" -> testMill().path.toString()
-    )
-  }
-  object forked extends Forked
-  object server extends Forked
+  trait ITests extends super.Tests with IntegrationTestModule
 
   // Test of various third-party repositories
   object thirdparty extends Module {
