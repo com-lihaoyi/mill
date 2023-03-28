@@ -146,8 +146,7 @@ class Evaluator private (
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
-  ): Evaluator.Results = {
-    PathRef.validatedPaths.set(new PathRef.ValidatedPaths())
+  ): Evaluator.Results = PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
 
     val (sortedGroups, transitive) = Evaluator.plan(goals)
     val evaluated = new Agg.Mutable[Task[_]]
@@ -193,9 +192,6 @@ class Evaluator private (
       }
     }
 
-    // no need to keep this state any longer
-    PathRef.validatedPaths.get().clear()
-
     Evaluator.writeTimings(timings.toSeq, outPath)
     Evaluator.Results(
       rawValues = goals.indexed.map(results(_).map(_._1)),
@@ -226,11 +222,9 @@ class Evaluator private (
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
-  ): Evaluator.Results = {
+  ): Evaluator.Results = PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
     os.makeDir.all(outPath)
     val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
-
-    PathRef.validatedPaths.set(new PathRef.ValidatedPaths())
 
     val (sortedGroups, transitive) = Evaluator.plan(goals)
 
@@ -327,8 +321,6 @@ class Evaluator private (
       )
     } finally {
       threadPool.shutdown()
-      // no need to keep this state any longer
-      PathRef.validatedPaths.get().clear()
     }
   }
 

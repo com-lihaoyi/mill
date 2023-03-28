@@ -3,7 +3,7 @@ package mill.api
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
-import scala.util.Using
+import scala.util.{DynamicVariable, Using}
 import upickle.default.{ReadWriter => RW}
 
 import scala.runtime.ScalaRunTime
@@ -67,10 +67,8 @@ object PathRef {
     def clear(): Unit = map.clear()
   }
 
-  private[mill] val validatedPaths: InheritableThreadLocal[ValidatedPaths] =
-    new InheritableThreadLocal[ValidatedPaths]() {
-      override def initialValue(): ValidatedPaths = new ValidatedPaths()
-    }
+  private[mill] val validatedPaths: DynamicVariable[ValidatedPaths] =
+    new DynamicVariable[ValidatedPaths](new ValidatedPaths())
 
   class PathRefValidationException(val pathRef: PathRef)
       extends RuntimeException(s"Invalid path signature detected: ${pathRef}")
@@ -184,7 +182,7 @@ object PathRef {
       // round-trip handling of negative numbers work =(
       val sig = java.lang.Long.parseLong(hex, 16).toInt
       val pr = PathRef(path, quick, sig, validOrig)
-      validatedPaths.get().revalidateIfNeededOrThrow(pr)
+      validatedPaths.value.revalidateIfNeededOrThrow(pr)
       pr
     }
   )
