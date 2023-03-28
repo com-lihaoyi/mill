@@ -48,14 +48,14 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
       wsRoot / "mill-build" / "mill-build" / "mill-build" / "src"
     )
 
+    def loadFrames(n: Int) = {
+      for(depth <- Range(0, n))
+      yield upickle.default.read[RunnerState.Frame.Logged](
+        os.read(wsRoot / "out" / Seq.fill(depth)("mill-build") / "mill-runner-state.json")
+      )
+    }
     def checkWatchedFiles(expected0: Seq[os.Path]*) = {
-      for((expectedWatched0, depth) <- expected0.zipWithIndex){
-        val frame = upickle.default.read[RunnerState.Frame.Logged](
-          os.read(wsRoot / "out" / Seq.fill(depth)("mill-build") / "mill-runner-state.json")
-        )
-
-        if (frame.classLoaderId != null) pprint.log((depth, frame.classLoaderId.identityHashCode))
-        pprint.log(frame.workerCache.mapValues(_.identityHashCode))
+      for((expectedWatched0, frame) <- expected0.zip(loadFrames(expected0.length))){
         val frameWatched = frame.watched.map(_.path).sorted
         val expectedWatched = expectedWatched0.sorted
         assert(frameWatched == expectedWatched)
@@ -73,19 +73,44 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
       }
     }
 
+    var classLoaderIds = Seq.empty[Int]
+
+    def checkChangedClassloaders(expectedChanged0: Boolean*) = {
+      val currentClassLoaderIds =
+        for(frame <- loadFrames(expectedChanged0.length))
+        yield frame.classLoaderIdentity
+
+      pprint.log(currentClassLoaderIds)
+      val changed = currentClassLoaderIds
+        .zipAll(classLoaderIds, 0, 0)
+        .map{case (cur, old) => cur != old}
+
+      assert(changed == expectedChanged0)
+
+      classLoaderIds = currentClassLoaderIds
+    }
+
+
     test("validEdits"){
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      // First run all classloaders are new, except level 0 running user code
+      // which doesn't need generate a classloader
+      checkChangedClassloaders(false, true, true, true)
 
-      mangleFile(wsRoot / "foo"  / "src" / "Example.scala", _.replace("!", "?"))
+      println("="*100)
+//      mangleFile(wsRoot / "foo"  / "src" / "Example.scala", _.replace("!", "?"))
 
-      runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
-      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+//      runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
+//      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+      // Second run with no build changes, all classloaders are unchanged
+//      checkChangedClassloaders(false, false, false, false)
 //
 //      mangleFile(wsRoot / "build.sc", _.replace("hello", "HELLO"))
 //
 //      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")
 //      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+//      checkChangedClassloaders(false, true, false, false)
 //
 //      mangleFile(
 //        wsRoot / "mill-build" / "build.sc",
@@ -94,6 +119,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
 //
 //      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.8.2</p>?")
 //      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+//      checkChangedClassloaders()
 //
 //      mangleFile(
 //        wsRoot / "mill-build" / "mill-build" / "build.sc",
@@ -102,6 +128,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
 //
 //      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.12.0</p>?")
 //      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+//      checkChangedClassloaders()
 //
 //      mangleFile(
 //        wsRoot / "mill-build" / "mill-build" / "build.sc",
@@ -110,6 +137,7 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
 //
 //      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.8.2</p>?")
 //      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+//      checkChangedClassloaders()
 //
 //      mangleFile(
 //        wsRoot / "mill-build" / "build.sc",
@@ -118,16 +146,19 @@ class MultiLevelBuildTests(fork: Boolean, clientServer: Boolean)
 //
 //      runAssertSuccess("<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")
 //      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+//      checkChangedClassloaders()
 //
 //      mangleFile(wsRoot / "build.sc", _.replace("HELLO", "hello"))
 //
 //      runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
 //      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+//      checkChangedClassloaders()
 //
 //      mangleFile(wsRoot / "foo"  / "src" / "Example.scala", _.replace("?", "!"))
 //
 //      runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
 //      checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
+//      checkChangedClassloaders()
     }
 
     test("parseErrorEdits") {

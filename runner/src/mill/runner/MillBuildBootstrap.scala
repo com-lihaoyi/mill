@@ -60,6 +60,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
   }
 
   def evaluateRec(depth: Int): RunnerState = {
+    println(s"+evaluateRec($depth) " + recRoot(depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
 
     val nestedRunnerState =
@@ -115,11 +116,14 @@ class MillBuildBootstrap(projectRoot: os.Path,
       )
 
       if (depth != 0) {
+        println("processRunClasspath")
         processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt)
       } else {
+        println("processFinalTargets")
         processFinalTargets(nestedRunnerState, evaluator)
       }
     }
+    println(s"-evaluateRec($depth) " + recRoot(depth))
     res
   }
 
@@ -136,12 +140,17 @@ class MillBuildBootstrap(projectRoot: os.Path,
         )
 
       case (Right(Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, Seq[Path]])), watches) =>
-        val classLoader = if (!prevFrameOpt.exists(_.runClasspath == runClasspath)){
-          new URLClassLoader(
+        pprint.log(prevFrameOpt.map(_.runClasspath.map(upickle.default.write(_))))
+        pprint.log(Option(runClasspath.map(upickle.default.write(_))))
+        val classLoader = if (!prevFrameOpt.exists(_.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum)){
+          val cl = new URLClassLoader(
             runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
             getClass.getClassLoader
           )
+          println("Creating new classloader " + System.identityHashCode(cl))
+          cl
         }else{
+          println("Reusing old classloader " + System.identityHashCode(prevFrameOpt.get.classLoaderOpt.get))
           prevFrameOpt.get.classLoaderOpt.get
         }
         val evalState = RunnerState.Frame(
