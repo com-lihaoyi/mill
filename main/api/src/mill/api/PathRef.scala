@@ -56,7 +56,7 @@ object PathRef {
       pathRef.revalidate match {
         case Revalidate.Never => // ok
         case Revalidate.Once if map.contains(mapKey(pathRef)) => // ok
-        case _ =>
+        case Revalidate.Once | Revalidate.Always =>
           val changedSig = PathRef.apply(pathRef.path, pathRef.quick).sig
           if (pathRef.sig != changedSig) {
             throw new PathRefValidationException(pathRef)
