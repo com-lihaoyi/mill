@@ -34,13 +34,13 @@ case class PathRef private (
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
   override def toString: String = {
-    val quick = if (quick) "qref:" else "ref:"
+    val quick = if (this.quick) "qref:" else "ref:"
     val valid = revalidate match {
       case PathRef.Revalidate.Never => "v0:"
       case PathRef.Revalidate.Once => "v1:"
       case PathRef.Revalidate.Always => "vn:"
     }
-    val sig = String.format("%08x", sig: Integer)
+    val sig = String.format("%08x", this.sig: Integer)
     quick + valid + sig + ":" + path.toString()
   }
 }
