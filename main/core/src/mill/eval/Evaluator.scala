@@ -138,6 +138,7 @@ class Evaluator private (
     if (effectiveThreadCount > 1)
       parallelEvaluate(goals, effectiveThreadCount, logger, reporter, testReporter)
     else sequentialEvaluate(goals, logger, reporter, testReporter)
+
   }
 
   def sequentialEvaluate(
@@ -146,6 +147,8 @@ class Evaluator private (
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
   ): Evaluator.Results = {
+    PathRef.validatedPaths.set(new PathRef.ValidatedPaths())
+
     val (sortedGroups, transitive) = Evaluator.plan(goals)
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
@@ -190,6 +193,9 @@ class Evaluator private (
       }
     }
 
+    // no need to keep this state any longer
+    PathRef.validatedPaths.get().clear()
+
     Evaluator.writeTimings(timings.toSeq, outPath)
     Evaluator.Results(
       rawValues = goals.indexed.map(results(_).map(_._1)),
@@ -223,6 +229,8 @@ class Evaluator private (
   ): Evaluator.Results = {
     os.makeDir.all(outPath)
     val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
+
+    PathRef.validatedPaths.set(new PathRef.ValidatedPaths())
 
     val (sortedGroups, transitive) = Evaluator.plan(goals)
 
@@ -317,7 +325,11 @@ class Evaluator private (
         getFailing(sortedGroups, results),
         results.map { case (k, v) => (k, v.map(_._1)) }
       )
-    } finally threadPool.shutdown()
+    } finally {
+      threadPool.shutdown()
+      // no need to keep this state any longer
+      PathRef.validatedPaths.get().clear()
+    }
   }
 
   // those result which are inputs but not contained in this terminal group

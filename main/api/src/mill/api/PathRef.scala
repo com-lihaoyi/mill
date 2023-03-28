@@ -2,9 +2,11 @@ package mill.api
 
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
-import scala.util.chaining.scalaUtilChainingOps
+import java.util.concurrent.ConcurrentHashMap
 import scala.util.Using
 import upickle.default.{ReadWriter => RW}
+
+import scala.runtime.ScalaRunTime
 
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
@@ -36,6 +38,39 @@ case class PathRef private (
 }
 
 object PathRef {
+
+  /**
+   * This class maintains a cache of already validated paths.
+   * It is threadsafe and meant to be shared between threads, e.g. in a ThreadLocal.
+   */
+  class ValidatedPaths() {
+    private val map = new ConcurrentHashMap[Int, PathRef]()
+
+    /**
+     * Revalidates the given [[PathRef]], if required.
+     * It will only revalidate a [[PathRef]] if it's value for [[PathRef.revalidate]] says so and also considers the previously revalidated paths.
+     * @throws PathRefValidationException If a the [[PathRef]] needs revalidation which fails
+     */
+    def revalidateIfNeededOrThrow(pathRef: PathRef): Unit = {
+      def mapKey(pr: PathRef): Int = ScalaRunTime._hashCode((pr.path, pr.quick, pr.sig))
+      pathRef.revalidate match {
+        case Revalidate.Never => // ok
+        case Revalidate.Once if map.contains(mapKey(pathRef)) => // ok
+        case _ =>
+          val changedSig = PathRef.apply(pathRef.path, pathRef.quick).sig
+          if (pathRef.sig != changedSig) {
+            throw new PathRefValidationException(pathRef)
+          }
+          map.put(mapKey(pathRef), pathRef)
+      }
+    }
+    def clear(): Unit = map.clear()
+  }
+
+  private[mill] val validatedPaths: InheritableThreadLocal[ValidatedPaths] =
+    new InheritableThreadLocal[ValidatedPaths]() {
+      override def initialValue(): ValidatedPaths = new ValidatedPaths()
+    }
 
   class PathRefValidationException(val pathRef: PathRef)
       extends RuntimeException(s"Invalid path signature detected: ${pathRef}")
@@ -148,21 +183,9 @@ object PathRef {
       // Parsing to a long and casting to an int is the only way to make
       // round-trip handling of negative numbers work =(
       val sig = java.lang.Long.parseLong(hex, 16).toInt
-
-      // validate if required
-      if (validOrig != Revalidate.Never) {
-        val changedSig = PathRef.apply(path, quick).sig
-        if (sig != changedSig)
-          throw new PathRefValidationException(PathRef(path, quick, sig, validOrig))
-      }
-
-      // Update revalidation
-      val validNew = validOrig.pipe {
-        case Revalidate.Once => Revalidate.Never
-        case x => x
-      }
-
-      PathRef(path, quick, sig, validNew)
+      val pr = PathRef(path, quick, sig, validOrig)
+      validatedPaths.get().revalidateIfNeededOrThrow(pr)
+      pr
     }
   )
 
