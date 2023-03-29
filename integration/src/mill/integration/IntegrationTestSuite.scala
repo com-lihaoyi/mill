@@ -122,9 +122,10 @@ abstract class IntegrationTestSuite(
   val millTestSuiteEnv = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
   private def evalFork(stdout: os.ProcessOutput, stderr: os.ProcessOutput, s: Seq[String]): Boolean = {
-    val extraArgs = if (integrationTestMode == "server") Seq() else Seq("--no-server")
+    val serverArgs = if (integrationTestMode == "server") Seq() else Seq("--no-server")
+    val debugArgs = if (debugLog) Seq("--debug") else Seq()
     try {
-      os.proc(millReleaseFileOpt.get, extraArgs, s).call(
+      os.proc(millReleaseFileOpt.get, serverArgs, debugArgs, s).call(
         cwd = wd,
         stdin = os.Inherit,
         stdout = stdout,
