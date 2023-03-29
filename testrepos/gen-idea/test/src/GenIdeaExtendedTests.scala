@@ -32,7 +32,7 @@ object GenIdeaExtendedTests extends IntegrationTestSuite.Cross {
         os.sub / "compiler.xml"
       ).map { resource =>
         Try {
-          GenIdeaTests.assertIdeaXmlResourceMatchesFile(
+          GenIdeaUtils.assertIdeaXmlResourceMatchesFile(
             scriptSlug,
             workspacePath,
             resource

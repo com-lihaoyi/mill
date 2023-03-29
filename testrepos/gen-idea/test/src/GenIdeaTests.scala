@@ -4,50 +4,15 @@ package local
 import os.Path
 import utest.{Tests, assert, _}
 
-import java.util.regex.Pattern
+
 import scala.util.Try
+import GenIdeaUtils._
 
 object GenIdeaTests extends IntegrationTestSuite.Cross {
 
   override def scriptSourcePath = super.scriptSourcePath / "hello-world"
   private val scalaVersionLibPart = "2_12_5"
 
-  private val ignoreString = "<!-- IGNORE -->"
-
-  /**
-   * The resource content will loaded from the claspath and matched against the file.
-   * It may contain the `<!-- IGNORE -->` String, to simulate wildcard-matches.
-   */
-  def assertIdeaXmlResourceMatchesFile(
-      workspaceSlug: String,
-      fileBaseDir: os.Path,
-      resource: os.RelPath
-  ): Unit = {
-    val expectedResourcePath = s"$workspaceSlug/idea/$resource"
-    val actualResourcePath = fileBaseDir / ".idea" / resource
-
-    val expectedResourceString = scala.io.Source.fromResource(expectedResourcePath).getLines.mkString("\n")
-    val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), fileBaseDir)
-
-    assert(expectedResourcePath.nonEmpty)
-    assertPartialContentMatches(
-      found = actualResourceString,
-      expected = expectedResourceString
-    )
-  }
-
-  def assertPartialContentMatches(
-      found: String,
-      expected: String
-  ): Unit = {
-    if (!expected.contains(ignoreString)) {
-      assert(found == expected)
-    }
-
-    val pattern =
-      "(?s)^\\Q" + expected.replaceAll(Pattern.quote(ignoreString), "\\\\E.*\\\\Q") + "\\E$"
-    assert(Pattern.compile(pattern).matcher(found).matches())
-  }
 
   def tests: Tests = Tests {
     test("helper assertPartialContentMatches works") {
@@ -113,15 +78,4 @@ object GenIdeaTests extends IntegrationTestSuite.Cross {
     }
   }
 
-  private def normaliseLibraryPaths(in: String, workspacePath: os.Path): String = {
-    val coursierPath = os.Path(coursier.paths.CoursierPaths.cacheDirectory())
-    val path =
-      Try("$PROJECT_DIR$/" + coursierPath.relativeTo(workspacePath)).getOrElse(
-        coursierPath
-      ).toString().replace(
-        """\""",
-        "/"
-      )
-    in.replace(path, "COURSIER_HOME")
-  }
 }
