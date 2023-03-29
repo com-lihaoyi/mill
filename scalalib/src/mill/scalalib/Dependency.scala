@@ -25,7 +25,6 @@ object Dependency extends ExternalModule {
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)())
   }
 
-  implicit def millScoptEvaluatorReads[T]: EvaluatorTokenReader[T] =
-    new mill.main.EvaluatorTokenReader[T]()
+  import mill.main.TokenReaders._
   lazy val millDiscover: Discover[Dependency.this.type] = Discover[this.type]
 }

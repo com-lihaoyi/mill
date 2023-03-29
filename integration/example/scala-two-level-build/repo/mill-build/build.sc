@@ -1,6 +1,5 @@
 import mill._, scalalib._
 
-println("Evaluating mill-build/build.sc")
 object millbuild extends runner.MillBuildModule{
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 
