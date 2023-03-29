@@ -14,18 +14,13 @@ import scala.util.control.NonFatal
 
 object IntegrationTestSuite{
   case class EvalResult(isSuccess: Boolean, out: String, err: String)
-  abstract class Cross
-    extends IntegrationTestSuite(
-      sys.env("MILL_INTEGRATION_TEST_SLUG"),
-      sys.env("MILL_INTEGRATION_TEST_MODE"),
-      None
-    )
 }
-abstract class IntegrationTestSuite(
-    val scriptSlug: String,
-    val integrationTestMode: String,
-    workspaceSlug: Option[String] = None,
-) extends TestSuite{
+
+abstract class IntegrationTestSuite(workspaceSlug: Option[String] = None) extends TestSuite{
+  val scriptSlug: String = sys.env("MILL_INTEGRATION_TEST_SLUG")
+
+  val integrationTestMode: String = sys.env("MILL_INTEGRATION_TEST_MODE")
+  assert(Set("local", "fork", "server").contains(integrationTestMode))
 
   val finalWorkspaceSlug = workspaceSlug.getOrElse(scriptSlug)
   def workspacePath: os.Path =

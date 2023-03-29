@@ -33,9 +33,11 @@ jobs:
           # unit and module tests
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
           # additional integration tests
-          - ./mill -i -k "integration.{local,forked,server}"
+          - ./mill -i -k "integration.example.__.test"
+          - ./mill -i -k "integration.feature.__.test"
+          - ./mill -i -k "integration.failure.__.test"
           # integration tests of thirdparty repos
-          - ./mill -i -k "integration.thirdparty.{local,forked}"
+          - ./mill -i -k "integration.thirdparty.__.test"
           # contrib tests
           - ./mill -i -k "contrib._.test"
           - ./mill -i docs.antora.githubPages
@@ -108,8 +110,10 @@ jobs:
         buildcmd:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.{local,forked,server}"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.{local,forked}"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.example.__.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.failure.__.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.__.test"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
 
 
