@@ -1164,7 +1164,7 @@ object integration extends MillScalaModule{
       }
       def moduleDeps = super.moduleDeps ++ Seq(thirdparty)
       object local extends ModeModule
-      object forked extends ModeModule
+      object fork extends ModeModule
       object server extends ModeModule
     }
   }
