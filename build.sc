@@ -1029,25 +1029,32 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
   }
 }
 
-val listed = interp.watchValue(os.list(os.pwd / "testrepos").map(_.last))
+val listed = interp.watchValue(
+  os.list(os.pwd / "testrepos")
+    .flatMap(os.list(_))
+    .map { p =>
+      val Seq(left, right) = p.relativeTo(os.pwd / "testrepos").segments
+      (left, right)
+    }
+)
+
 object testrepos extends Cross[TestRepoModule](listed: _*)
-class TestRepoModule(repoName: String) extends Module{
-  def testRepoRoot = T.source(millSourcePath / "repo")
+class TestRepoModule(outerFolder: String, innerFolder: String) extends ScalaModule{
+  def millSourcePath = super.millSourcePath / "test"
+  def scalaVersion = integration.scalaVersion()
+  def moduleDeps = Seq(main.test, integration)
+  def testRepoRoot = T.source(super.millSourcePath / "repo")
   // We compile the test code once in `lib` and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`
-  object lib extends ScalaModule with IntegrationTestModule{
-    def millSourcePath = super.millSourcePath / os.up / "test"
-    def scalaVersion = integration.scalaVersion()
-    def moduleDeps = Seq(main.test, integration)
-  }
+
 
   object test extends Cross[TestRepoTestModule]("local", "fork", "server")
   class TestRepoTestModule(mode: String) extends ScalaModule with IntegrationTestModule  {
     def scalaVersion = integration.scalaVersion()
     override def forkEnv = super.forkEnv() ++ Map(
       "MILL_INTEGRATION_TEST_MODE" -> mode,
-      "MILL_INTEGRATION_TEST_SLUG" -> repoName,
+      "MILL_INTEGRATION_TEST_SLUG" -> (outerFolder + "/" + innerFolder),
       "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString,
     ) ++ testReleaseEnv()
 
@@ -1055,8 +1062,8 @@ class TestRepoModule(repoName: String) extends Module{
       if (mode == "local") T{ Map.empty[String, String] }
       else T{ Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
 
-    def compile = lib.compile()
-    def moduleDeps = Seq(lib)
+    def compile = TestRepoModule.this.compile()
+    def moduleDeps = Seq(TestRepoModule.this)
   }
 }
 

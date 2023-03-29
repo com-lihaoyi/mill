@@ -48,7 +48,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
     }
 
     Watching.Result(
-      watched = runnerState.frames.flatMap(_.watched),
+      watched = runnerState.frames.flatMap(_.evalWatched),
       error = runnerState.errorOpt,
       result = runnerState
     )
@@ -62,6 +62,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
   def evaluateRec(depth: Int): RunnerState = {
     // println(s"+evaluateRec($depth) " + recRoot(depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
+    val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
     val nestedRunnerState =
       if (!os.exists(recRoot(depth) / "build.sc")) {
@@ -117,7 +118,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
         depth
       )
 
-      if (depth != 0) processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt)
+      if (depth != 0) processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt, prevOuterFrameOpt)
       else processFinalTargets(nestedRunnerState, evaluator)
     }
     // println(s"-evaluateRec($depth) " + recRoot(depth))
@@ -136,23 +137,42 @@ class MillBuildBootstrap(projectRoot: os.Path,
    */
   def processRunClasspath(nestedRunnerState: RunnerState,
                           evaluator: Evaluator,
-                          prevFrameOpt: Option[RunnerState.Frame]): RunnerState = {
+                          prevFrameOpt: Option[RunnerState.Frame],
+                          prevOuterFrameOpt: Option[RunnerState.Frame]): RunnerState = {
 
     MillBuildBootstrap.evaluateWithWatches(evaluator, Seq("{runClasspath,scriptImportGraph}")) match {
-      case (Left(error), watches) =>
-        val evalState = RunnerState.Frame(Map.empty, watches, Map.empty, None, Nil)
+      case (Left(error), evalWatches, moduleWatches) =>
+        val evalState = RunnerState.Frame(
+          evaluator.workerCache.toMap,
+          evalWatches,
+          moduleWatches,
+          Map.empty,
+          None,
+          Nil
+        )
+
         nestedRunnerState.add(frame = evalState, errorOpt = Some(error))
 
-      case (Right(Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, (Int, Seq[Path])])), watches) =>
+      case (Right(Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, (Int, Seq[Path])])), evalWatches, moduleWatches) =>
 
         val runClasspathChanged = !prevFrameOpt.exists(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )
 
-        val classLoader = if (runClasspathChanged){
+        // handling module watching is a bit weird; we need to know whether or
+        // not to create a new classloader immediately after the `runClasspath`
+        // is compiled, but we only know what the respective `moduleWatched`
+        // contains after the evaluation on this classloader has executed, which
+        // happens one level up in the recursion. Thus to check whether
+        // `moduleWatched` needs us to re-create the classloader, we have to
+        // look at the `moduleWatched` of one frame up (`prevOuterFrameOpt`),
+        // and not the `moduleWatched` from the current frame (`prevFrameOpt`)
+        val moduleWatchChanged =
+          prevOuterFrameOpt.exists(_.moduleWatched.exists(!_.validate()))
+
+        val classLoader = if (runClasspathChanged || moduleWatchChanged){
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks
-
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
           val cl = new RunnerState.URLClassLoader(
             runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
@@ -162,9 +182,11 @@ class MillBuildBootstrap(projectRoot: os.Path,
         }else{
           prevFrameOpt.get.classLoaderOpt.get
         }
+
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
-          watches,
+          evalWatches,
+          moduleWatches,
           scriptImportGraph,
           Some(classLoader),
           runClasspath
@@ -182,25 +204,19 @@ class MillBuildBootstrap(projectRoot: os.Path,
   def processFinalTargets(nestedRunnerState: RunnerState,
                           evaluator: Evaluator): RunnerState = {
 
-//    Util.withContextClassloader(nestedRunnerState.frames.head.classLoaderOpt.get) {
-      val (evaled, buildWatched) =
-        MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams)
+    val (evaled, evalWatched, moduleWatches) =
+      MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams)
 
-      evaled match {
-        case Left(error) => nestedRunnerState.add(errorOpt = Some(error))
+    val evalState = RunnerState.Frame(
+      evaluator.workerCache.toMap,
+      evalWatched,
+      moduleWatches,
+      Map.empty,
+      None,
+      Nil
+    )
 
-        case Right(_) =>
-          val evalState = RunnerState.Frame(
-            evaluator.workerCache.toMap,
-            buildWatched,
-            Map.empty,
-            None,
-            Nil
-          )
-
-          nestedRunnerState.add(frame = evalState)
-      }
-//    }
+    nestedRunnerState.add(frame = evalState, errorOpt = evaled.left.toOption)
   }
 
   def makeEvaluator(workerCache: Map[Segments, (Int, Any)],
@@ -263,14 +279,18 @@ object MillBuildBootstrap{
   }
 
   def evaluateWithWatches(evaluator: Evaluator,
-                          targetsAndParams: Seq[String]): (Either[String, Seq[Any]], Seq[Watchable]) = {
-    RunScript.evaluateTasks(evaluator, targetsAndParams, SelectMode.Separated) match {
-      case Left(msg) => (Left(msg), Nil)
+                          targetsAndParams: Seq[String]): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
+
+    val evalTaskResult = RunScript.evaluateTasks(evaluator, targetsAndParams, SelectMode.Separated)
+    val moduleWatched = evaluator.rootModule.watchedValues.map(_.asInstanceOf[Watchable]).toVector
+
+    evalTaskResult match {
+      case Left(msg) => (Left(msg), Nil, moduleWatched)
       case Right((watchedPaths, evaluated)) =>
-        val watched = watchedPaths.map(Watchable.Path)
+        val evalWatched = watchedPaths.map(Watchable.Path)
         evaluated match {
-          case Left(msg) => (Left(msg), watched)
-          case Right(results) => (Right(results.map(_._1)), watched)
+          case Left(msg) => (Left(msg), evalWatched, moduleWatched)
+          case Right(results) => (Right(results.map(_._1)), evalWatched, moduleWatched)
         }
     }
   }

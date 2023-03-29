@@ -1,8 +1,10 @@
 package mill.runner
 
-import mill.api.internal
+import mill.api.{PathRef, internal}
 import mill.define.{Caller, Discover, Segments}
 import mill.main.TokenReaders._
+
+import scala.collection.mutable
 
 /**
  * Used to mark a module in your `build.sc` as a top-level module, so it's
@@ -34,6 +36,25 @@ abstract class BaseModule()
   // user-defined BaseModule can have a complete Discover[_] instance without
   // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
   override lazy val millDiscover = baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
+
+  override object interp extends InterpApi {
+
+    def watchValue[T](v0: => T): T = {
+      val v = v0
+      val watchable = Watchable.Value(() => v0.hashCode, v.hashCode())
+      watchedValues.append(watchable)
+      v
+    }
+
+
+    def watch(p: os.Path): os.Path = {
+      val watchable = Watchable.Path(PathRef(p))
+      watchedValues.append(watchable)
+      p
+    }
+  }
+
+  override protected[mill] val watchedValues = mutable.Buffer.empty[Watchable]
 }
 
 @internal

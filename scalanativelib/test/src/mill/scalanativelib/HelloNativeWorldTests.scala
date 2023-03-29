@@ -190,7 +190,7 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    "test" - {
+    test("test") - {
       val cached = false
 
       testAllMatrix(

@@ -57,7 +57,7 @@ class CaffeineTests(fork: Boolean)
 
   val tests = Tests {
     initWorkspace()
-    "test" - {
+    test("test") - {
       // Caffeine only can build using Java 9 or up. Java 8 results in weird
       // type inference issues during the compile
       if (!mill.main.client.Util.isJava9OrAbove) {

@@ -157,6 +157,8 @@ abstract class IntegrationTestSuite(
     workspacePath
   }
 
+  def mangleFile(p: os.Path, f: String => String) = os.write.over(p, f(os.read(p)))
+
   override def utestAfterEach(path: Seq[String]): Unit = {
     runnerState = RunnerState.empty
     if (integrationTestMode == "server") {

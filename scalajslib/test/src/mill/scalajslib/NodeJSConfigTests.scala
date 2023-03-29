@@ -73,7 +73,7 @@ object NodeJSConfigTests extends TestSuite {
       )
     }
 
-    "test" - {
+    test("test") - {
 
       def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) =
         if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
@@ -83,7 +83,7 @@ object NodeJSConfigTests extends TestSuite {
           notNodeArgs
         )
 
-      "test" - checkUtest(nodeArgsEmpty, nodeArgs2G)
+      test("test") - checkUtest(nodeArgsEmpty, nodeArgs2G)
       "test2G" - checkUtest(nodeArgs2G, nodeArgs4G)
     }
 

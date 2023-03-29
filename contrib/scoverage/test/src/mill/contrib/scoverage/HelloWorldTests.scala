@@ -186,7 +186,7 @@ trait HelloWorldTests extends utest.TestSuite {
             assert(evalCount > 0)
           }
         }
-        "test" - {
+        test("test") - {
           "upstreamAssemblyClasspath" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) =
               eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)

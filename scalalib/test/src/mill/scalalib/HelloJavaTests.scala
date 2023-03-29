@@ -86,7 +86,7 @@ object HelloJavaTests extends TestSuite {
         assert(os.proc("jar", "tf", ref2.path).call().out.lines().contains("hello/Main.html"))
       }
     }
-    "test" - {
+    test("test") - {
       val eval = init()
 
       val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
