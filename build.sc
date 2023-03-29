@@ -1122,23 +1122,23 @@ object integration extends MillScalaModule{
     def moduleDeps = Seq(integration)
 
     object acyclic extends ThirdPartyModule{
-      def repoSlug = "lihaoyi/acyclic"
+      def repoPath = "lihaoyi/acyclic"
       def repoHash = "bc41cd09a287e2c270271e27ccdb3066173a8598"
     }
     object jawn extends ThirdPartyModule{
-      def repoSlug = "non/jawn"
+      def repoPath = "non/jawn"
       def repoHash = "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb"
     }
     object ammonite extends ThirdPartyModule{
-      def repoSlug = "lihaoyi/ammonite"
+      def repoPath = "lihaoyi/ammonite"
       def repoHash = "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e"
     }
     object upickle extends ThirdPartyModule{
-      def repoSlug = "lihaoyi/upickle"
+      def repoPath = "lihaoyi/upickle"
       def repoHash = "7f33085c890db7550a226c349832eabc3cd18769"
     }
     object caffeine extends ThirdPartyModule{
-      def repoSlug = "ben-manes/caffeine"
+      def repoPath = "ben-manes/caffeine"
       def repoHash = "c02c623aedded8174030596989769c2fecb82fe4"
 
       def runClasspath: T[Seq[PathRef]] = T {
@@ -1148,12 +1148,13 @@ object integration extends MillScalaModule{
       }
     }
     trait ThirdPartyModule extends IntegrationTestModule {
-      def repoSlug: String
+      def repoPath: String
       def repoHash: String
+      def repoSlug = repoPath.split("/").last
       def testRepoRoot = T{
 
-        shared.downloadTestRepo(repoSlug, repoHash, T.dest)
-        val wrapperFolder = T.dest / s"${repoSlug.split("/").last}-$repoHash"
+        shared.downloadTestRepo(repoPath, repoHash, T.dest)
+        val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
         os.list(wrapperFolder).foreach(os.move.into(_, T.dest))
         os.remove(wrapperFolder)
 
