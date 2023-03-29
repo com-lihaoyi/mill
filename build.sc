@@ -294,7 +294,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
       with WithMillCompiler with BaseMillTestsModule {
 
-    override def forkArgs = outer.testArgs() ++ super.forkArgs()
+    override def forkArgs = super.forkArgs() ++ outer.testArgs()
     override def moduleDeps = outer.testModuleDeps
     override def ivyDeps: T[Agg[Dep]] = T { super.ivyDeps() ++ outer.testIvyDeps() }
 
