@@ -77,6 +77,10 @@ object RunnerState{
     case class ClassLoaderInfo(identityHashCode: Int, paths: Seq[String], buildHash: Int)
     implicit val classLoaderInfoRw: ReadWriter[ClassLoaderInfo] = macroRW
 
+    /**
+     * Simplified representation of [[Frame]] data, written to disk for
+     * debugging and testing purposes.
+     */
     case class Logged(workerCache: Map[String, WorkerInfo],
                       evalWatched: Seq[PathRef],
                       moduleWatched: Seq[PathRef],
