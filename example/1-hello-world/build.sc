@@ -1,3 +1,9 @@
+// This is a basic Mill build for a single `ScalaModule`, with a single
+// third-party dependency. As a single-module project, it `extends BuildModule`
+// to mark `object foo` as the top-level module in the build. This lets us
+// directly perform operations `./mill compile` or `./mill run` without needing
+// to prefix it as `foo.compile` or `foo.run`.
+
 import mill._, scalalib._
 
 object foo extends BuildModule with ScalaModule {

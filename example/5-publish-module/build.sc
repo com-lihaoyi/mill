@@ -1,3 +1,9 @@
+// This is an example `ScalaModule` with added publishing capabilities via
+// `PublishModule`. This requires that you define an additional
+// `publishVersion` and `pomSettings` with the relevant metadata, and provides
+// the `.publishLocal` and `publishSigned` tasks for publishing locally to the
+// machine or to the central maven repository
+
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {

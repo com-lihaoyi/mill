@@ -1,3 +1,13 @@
+// A simple Mill build with two modules, `foo` and `bar`. We don't mark either
+// module as top-level using `extends BuildModule`, so running tasks needs to
+// use the module name as the prefix e.g. `foo.run` or `bar.run`
+//
+// Note that we split out the configuration common to both modules into a
+// separate `trait MyModule`. This lets us avoid the need to copy-paste common
+// settings, while still letting us define any per-module configuration
+// specific to a particular module e.g. overriding `moduleDeps` to make `foo`
+// depend on `bar`
+
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule{

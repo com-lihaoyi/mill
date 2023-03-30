@@ -1,3 +1,9 @@
+// A semi-realistic build setup, combining all the individual Mill concepts:
+// two `CrossScalaModules` compiled against two Scala versions, that depend on
+// each other as well as on a `JavaModule`, with unit testing and publishing
+// set up.
+//
+//
 import mill._, scalalib._, publish._
 
 trait MyModule extends PublishModule {

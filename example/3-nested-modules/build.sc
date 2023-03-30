@@ -1,3 +1,11 @@
+// Modules can be nested arbitrarily deeply within each other. The outer module
+// can be the same kind of module as the ones within, or it can be a plain
+// `Module` if we just need a wrapper to put the modules in without any tasks
+// defined on the wrapper.
+//
+// Running tasks on the nested modules requires the full module path
+// `wrapper.foo.run`
+
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule{
@@ -28,5 +36,9 @@ qux.run
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: <p>today</p>
+
+> ./mill wrapper.foo.run
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
 
 */
