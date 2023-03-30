@@ -1130,7 +1130,7 @@ object integration extends MillScalaModule{
       def repoHash = "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb"
     }
     object ammonite extends ThirdPartyModule{
-      def repoPath = "lihaoyi/ammonite"
+      def repoPath = "lihaoyi/Ammonite"
       def repoHash = "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e"
     }
     object upickle extends ThirdPartyModule{
