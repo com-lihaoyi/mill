@@ -92,34 +92,44 @@ class MillBuildBootstrap(projectRoot: os.Path,
         .millModuleDirectChildren
         .collect { case b: BaseModule => b }
 
-      val buildModule = childBaseModules match {
-        case Seq() => baseModule0
-        case Seq(child) => child
+      val baseModuleOrErr = childBaseModules match {
+        case Seq() => Right(baseModule0)
+        case Seq(child) => Right(child)
         case multiple =>
-          throw new Exception(
+          Left(
             s"Only one BaseModule can be defined in a build, not " +
               s"${multiple.size}: ${multiple.map(_.getClass.getName).mkString(",")}"
           )
       }
 
-      val evaluator = makeEvaluator(
-        prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
-        nestedRunnerState.frames.lastOption.map(_.scriptImportGraph).getOrElse(Map.empty),
-        buildModule,
-        // We want to use the grandparent buildHash, rather than the parent
-        // buildHash, because the parent build changes are instead detected
-        // by analyzing the scriptImportGraph in a more fine-grained manner.
-        nestedRunnerState
-          .frames
-          .dropRight(1)
-          .headOption
-          .map(_.runClasspath.map(p => (p.path, p.sig)).hashCode())
-          .getOrElse(0),
-        depth
+      val validatedBuildModuleOrErr = baseModuleOrErr.filterOrElse( baseModule =>
+        depth == 0 || baseModule.isInstanceOf[MillBuildModule],
+        s"Top-level module in ${recRoot(depth).relativeTo(projectRoot)}/build.sc must be of ${classOf[mill.runner.MillBuildModule]}"
       )
 
-      if (depth != 0) processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt, prevOuterFrameOpt)
-      else processFinalTargets(nestedRunnerState, evaluator)
+      validatedBuildModuleOrErr match{
+        case Left(err) => nestedRunnerState.add(errorOpt = Some(err))
+        case Right(buildModule) =>
+
+          val evaluator = makeEvaluator(
+            prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
+            nestedRunnerState.frames.lastOption.map(_.scriptImportGraph).getOrElse(Map.empty),
+            buildModule,
+            // We want to use the grandparent buildHash, rather than the parent
+            // buildHash, because the parent build changes are instead detected
+            // by analyzing the scriptImportGraph in a more fine-grained manner.
+            nestedRunnerState
+              .frames
+              .dropRight(1)
+              .headOption
+              .map(_.runClasspath.map(p => (p.path, p.sig)).hashCode())
+              .getOrElse(0),
+            depth
+          )
+
+          if (depth != 0) processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt, prevOuterFrameOpt)
+          else processFinalTargets(nestedRunnerState, evaluator)
+      }
     }
     // println(s"-evaluateRec($depth) " + recRoot(depth))
     res
