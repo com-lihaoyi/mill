@@ -20,8 +20,8 @@ class CrossTests(fork: Boolean, clientServer: Boolean)
 
     initWorkspace()
     "topCross[a].path" - testCrossSourcePath(os.sub / "topCross")
-    "topCross2[a,1].path" - testCrossSourcePath(os.sub/ "topCross2")
-    "topCrossU[a].path" - testCrossSourcePath (os.sub / "topCrossU" / "a")
+    "topCross2[a,1].path" - testCrossSourcePath(os.sub / "topCross2")
+    "topCrossU[a].path" - testCrossSourcePath(os.sub / "topCrossU" / "a")
     "topCross2U[a,1].path" - testCrossSourcePath(os.sub / "topCross2U" / "a" / "1")
   }
 }

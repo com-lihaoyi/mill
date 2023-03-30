@@ -1,6 +1,11 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{JavaBuildServer, JavacOptionsItem, JavacOptionsParams, JavacOptionsResult}
+import ch.epfl.scala.bsp4j.{
+  JavaBuildServer,
+  JavacOptionsItem,
+  JavacOptionsParams,
+  JavacOptionsResult
+}
 import mill.T
 import mill.api.internal
 import mill.scalalib.{JavaModule, SemanticDbJavaModule}
