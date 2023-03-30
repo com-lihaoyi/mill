@@ -4,7 +4,7 @@ object Foo {
   val value = h1("hello")
 
   def main(args: Array[String]): Unit = {
-    println("Foo.value: " + Foo.value)
+    println("Foo.value: " + Bar.value)
     println("Bar.value: " + bar.Bar.value)
   }
 }

@@ -8,6 +8,16 @@ class FolderModule(name: String) extends ScalaModule{
   def scalaVersion = "2.13.2"
 }
 
+// It is sometimes necessary for the instances of a cross-module to vary based
+// on some kind of runtime information: perhaps the list of modules is stored
+// in some config file, or is inferred based on the folders present on the
+// filesystem.
+//
+// In those cases, you can write arbitrary code to populate the cross-module
+// cases, as long as you wrap the value in a `interp.watchValue`. This ensures
+// that Mill is aware that the module structure depends on that value, and will
+// re-compute the value and re-create the module structure if the value changes.
+
 /* Example Usage
 
 > ./mill resolve modules[_]

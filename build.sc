@@ -1033,7 +1033,9 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
 // and pass `lib`'s compile output back to `test`
 trait IntegrationTestCrossModule extends IntegrationTestModule {
-
+  object local extends ModeModule
+  object fork extends ModeModule
+  object server extends ModeModule
 }
 trait IntegrationTestModule extends MillScalaModule {
   def repoSlug: String
@@ -1100,24 +1102,21 @@ trait IntegrationTestModule extends MillScalaModule {
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
-object example extends Cross[ExampleCrossModule](listIn(millSourcePath / "example"): _*)
-class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
-  def testRepoRoot: T[PathRef] = T.source(millSourcePath)
-  def compile = integration.compile()
+object example extends Module{
 
-  object local extends ModeModule
-  object fork extends ModeModule
-  object server extends ModeModule
+  object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
+  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
+
+  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
+    def testRepoRoot: T[PathRef] = T.source(millSourcePath)
+    def compile = integration.compile()
+  }
 }
 
 object integration extends MillScalaModule{
   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
-  class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
-    object local extends ModeModule
-    object fork extends ModeModule
-    object server extends ModeModule
-  }
+  class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestCrossModule
 
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
 
