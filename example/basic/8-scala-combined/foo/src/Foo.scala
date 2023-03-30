@@ -3,7 +3,7 @@ import scalatags.Text.all._
 object Foo {
   val value = h1(FooVersionSpecific.value)
   def main(args: Array[String]): Unit = {
-    println("Foo.value: " + Bar.value)
+    println("Foo.value: " + Foo.value)
     println("Bar.value: " + bar.Bar.value)
     println("Qux.value: " + qux.Qux.value)
   }
