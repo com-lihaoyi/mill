@@ -21,8 +21,7 @@ object ScalaCombinedTests extends IntegrationTestSuite {
           "foo[2.13.10].test.run",
           "foo[3.2.2].run",
           "foo[3.2.2].test.run",
-          "qux.run",
-          "qux.test.run"
+          "qux.run"
         )
       )
 

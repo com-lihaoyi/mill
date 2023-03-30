@@ -1,4 +1,4 @@
-package foo
+package bar
 import utest._
 object BarTests extends TestSuite {
   def tests = Tests {

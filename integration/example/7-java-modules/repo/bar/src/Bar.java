@@ -1,4 +1,4 @@
 package bar;
 public class Bar{
-    static int value = 271828;
+    public static final int value = 271828;
 }

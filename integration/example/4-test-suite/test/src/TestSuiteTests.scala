@@ -13,7 +13,7 @@ object TestSuiteTests extends IntegrationTestSuite {
       assert(res.isSuccess)
       if (integrationTestMode != "local") {
         assert(res.out.contains("+"))
-        assert(res.out.contains("foo.ExampleTests.hello"))
+        assert(res.out.contains("foo.FooTests.hello"))
         assert(res.out.contains("Hello World"))
       }
     }

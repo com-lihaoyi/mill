@@ -15,7 +15,7 @@ trait MyModule extends PublishModule {
   )
 }
 
-trait MyScalaModule extends MyModule{
+trait MyScalaModule extends ScalaModule with MyModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.12.0")
   object test extends Tests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
@@ -36,4 +36,4 @@ class BarModule(val crossScalaVersion: String) extends MyScalaModule with CrossS
   def moduleDeps = Seq(qux)
 }
 
-object qux extends MyModule with JavaModule
+object qux extends JavaModule with MyModule

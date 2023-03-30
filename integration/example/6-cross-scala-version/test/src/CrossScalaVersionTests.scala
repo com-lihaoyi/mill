@@ -14,7 +14,10 @@ object CrossScalaVersionTests extends IntegrationTestSuite {
       assert(res.isSuccess)
       assert(
         res.out.linesIterator.toSet ==
-        Set("foo[2.12.17].run", "foo[2.13.10].run", "foo[3.2.2].run")
+        Set(
+          "foo[2.12.17].run", "foo[2.13.10].run", "foo[3.2.2].run",
+          "bar[2.12.17].run", "bar[2.13.10].run", "bar[3.2.2].run"
+        )
       )
 
       val res2 = evalStdout("foo[2.12.17].run")
