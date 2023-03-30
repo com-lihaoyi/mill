@@ -33,9 +33,9 @@ jobs:
           # unit and module tests
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
           # additional integration tests
-          - ./mill -i -k "integration.example.__.local.test"
-          - ./mill -i -k "integration.example.__.fork.test"
-          - ./mill -i -k "integration.example.__.server.test"
+          - ./mill -i -k "example.__.local.test"
+          - ./mill -i -k "example.__.fork.test"
+          - ./mill -i -k "example.__.server.test"
           - ./mill -i -k "integration.feature.__.local.test"
           - ./mill -i -k "integration.feature.__.fork.test"
           - ./mill -i -k "integration.feature.__.server.test"
@@ -118,9 +118,9 @@ jobs:
         buildcmd:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.example.__.local.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.example.__.fork.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.example.__.server.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.local.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.fork.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.server.test"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.local.test"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.fork.test"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.server.test"
