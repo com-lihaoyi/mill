@@ -1,9 +1,3 @@
-// A semi-realistic build setup, combining all the individual Mill concepts:
-// two `CrossScalaModules` compiled against two Scala versions, that depend on
-// each other as well as on a `JavaModule`, with unit testing and publishing
-// set up.
-//
-//
 import mill._, scalalib._, publish._
 
 trait MyModule extends PublishModule {
@@ -15,9 +9,7 @@ trait MyModule extends PublishModule {
     url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(
-      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
-    )
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }
 
@@ -42,6 +34,17 @@ class BarModule(val crossScalaVersion: String) extends MyScalaModule with CrossS
 }
 
 object qux extends JavaModule with MyModule
+
+// A semi-realistic build setup, combining all the individual Mill concepts:
+// two `CrossScalaModules` compiled against two Scala versions, that depend on
+// each other as well as on a `JavaModule`, with unit testing and publishing
+// set up.
+//
+// Note that for multi-module builds like this, using queries like `__.test`
+// or `__.publishLocal` to run tasks on multiple targets at once can be very
+// convenient. Also note that `ScalaModule`s can depend on `JavaModule`s, and
+// when multiple inter-dependent modules are published they automatically will
+// include the inter-module dependencies in the publish metadata.
 
 /* Example Usage
 
@@ -68,4 +71,20 @@ bar.BarTests.test
 > ./mill qux.run
 Qux.value: 31337
 
+> ./mill __.test
+bar[2.13.10].test.test
++ bar.BarTests.test
+bar[3.2.2].test.test
++ bar.BarTests.test
+foo[2.13.10].test.test
++ foo.FooTests.test
+foo[3.2.2].test.test
++ foo.FooTests.test
+
+> ./mill __.publishLocal
+Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1)
+Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1)
+Publishing Artifact(com.lihaoyi,foo_2.12,0.0.1)
+Publishing Artifact(com.lihaoyi,bar_2.12,0.0.1)
+Publishing Artifact(com.lihaoyi,qux,0.0.1)
 */
