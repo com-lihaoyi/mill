@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Task Context API :: Mill</title>
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Task_Context_API.html" />
+    <link rel="prev" href="Tasks.html" />
+    <link rel="next" href="Modules.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script>var uiRootPath = '../../_'</script>
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link" href="#">Plugins</a>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Community</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issue Tracker (GitHub)</a>
+            <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat (Gitter)</a>
+            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss (GitHub)</a>
+          </div>
+        </div>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="0.11.0-M7">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html">Mill Documentation</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Installation.html">Installation</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Getting_Started.html">Getting Started</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="IDE_Support.html">IDE Support</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Configuration.html">Configuring your Project</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Tasks.html">Tasks</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Modules.html">Modules</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Artifactory.html">Artifactory</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Bintray.html">Bintray</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Bloop.html">Bloop</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Docker.html">Docker</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Jmh.html">JMH</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="External_References.html">External References</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_ammonite">Ammonite</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_coursier">Coursier</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="External_References.html#_os_lib">OS-Lib</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.11.0-M7</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Mill Documentation</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../index.html">0.11.0-M7</a>
+        </li>
+        <li class="version is-current">
+          <a href="index.html">0.11.0-M7</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M6/index.html">0.11.0-M6</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M5/index.html">0.11.0-M5</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M4/index.html">0.11.0-M4</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M3/index.html">0.11.0-M3</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M2/index.html">0.11.0-M2</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M1/index.html">0.11.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.12/index.html">0.10.12</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.11/index.html">0.10.11</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.10/index.html">0.10.10</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.9/index.html">0.10.9</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.8/index.html">0.10.8</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.7/index.html">0.10.7</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.6/index.html">0.10.6</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.5/index.html">0.10.5</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.4/index.html">0.10.4</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.3/index.html">0.10.3</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.2/index.html">0.10.2</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.1/index.html">0.10.1</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.0/index.html">0.10.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.12/index.html">0.9.12</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.11/index.html">0.9.11</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.10/index.html">0.9.10</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.9/index.html">0.9.9</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.8/index.html">0.9.8</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.7/index.html">0.9.7</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.6/index.html">0.9.6</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../Intro_to_Mill.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Mill Documentation</a></li>
+    <li><a href="Task_Context_API.html">Task Context API</a></li>
+  </ul>
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7</button>
+  <div class="version-menu">
+    <a class="version" href="../Task_Context_API.html">0.11.0-M7</a>
+    <a class="version is-current" href="Task_Context_API.html">0.11.0-M7</a>
+    <a class="version" href="../0.11.0-M6/Task_Context_API.html">0.11.0-M6</a>
+    <a class="version" href="../0.11.0-M5/Task_Context_API.html">0.11.0-M5</a>
+    <a class="version" href="../0.11.0-M4/Task_Context_API.html">0.11.0-M4</a>
+    <a class="version" href="../0.11.0-M3/Task_Context_API.html">0.11.0-M3</a>
+    <a class="version" href="../0.11.0-M2/Task_Context_API.html">0.11.0-M2</a>
+    <a class="version" href="../0.11.0-M1/Task_Context_API.html">0.11.0-M1</a>
+    <a class="version" href="../0.10.12/Task_Context_API.html">0.10.12</a>
+    <a class="version" href="../0.10.11/Task_Context_API.html">0.10.11</a>
+    <a class="version" href="../0.10.10/Task_Context_API.html">0.10.10</a>
+    <a class="version" href="../0.10.9/Task_Context_API.html">0.10.9</a>
+    <a class="version" href="../0.10.8/Task_Context_API.html">0.10.8</a>
+    <a class="version" href="../0.10.7/Task_Context_API.html">0.10.7</a>
+    <a class="version" href="../0.10.6/Task_Context_API.html">0.10.6</a>
+    <a class="version" href="../0.10.5/Task_Context_API.html">0.10.5</a>
+    <a class="version" href="../0.10.4/Task_Context_API.html">0.10.4</a>
+    <a class="version" href="../0.10.3/Task_Context_API.html">0.10.3</a>
+    <a class="version" href="../0.10.2/Task_Context_API.html">0.10.2</a>
+    <a class="version" href="../0.10.1/Task_Context_API.html">0.10.1</a>
+    <a class="version" href="../0.10.0/Task_Context_API.html">0.10.0</a>
+    <a class="version" href="../0.9.12/Task_Context_API.html">0.9.12</a>
+    <a class="version" href="../0.9.11/Task_Context_API.html">0.9.11</a>
+    <a class="version" href="../0.9.10/Task_Context_API.html">0.9.10</a>
+    <a class="version" href="../0.9.9/Task_Context_API.html">0.9.9</a>
+    <a class="version" href="../0.9.8/Task_Context_API.html">0.9.8</a>
+    <a class="version" href="../0.9.7/Task_Context_API.html">0.9.7</a>
+    <a class="version" href="../0.9.6/Task_Context_API.html">0.9.6</a>
+  </div>
+</div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/blob/0.11.0-M7/docs/antora/modules/ROOT/pages/Task_Context_API.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Task Context API</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are several APIs available to you within the body of a <code>T {…​}</code> or
+<code>T.command {…​}</code> block to help your write the code implementing your Target or
+Command:</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_api_ctx_dest"><a class="anchor" href="#_mill_api_ctx_dest"></a><code>mill.api.Ctx.Dest</code></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>T.dest</code></p>
+</li>
+<li>
+<p><code>T.ctx.dest</code></p>
+</li>
+<li>
+<p><code>implicitly[mill.api.Ctx.Dest]</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is a unique <code>os.Path</code> (e.g. <code>out/classFiles.dest/</code> or <code>out/run.dest/</code>)  that is
+assigned to every Target or Command. It is cleared before your task runs, and
+you can use it as a scratch space for temporary files or a place to put returned
+artifacts.
+This is guaranteed to be unique for every <code>Target</code> or <code>Command</code>, so
+you can be sure that you will not collide or interfere with anyone else writing
+to those same paths.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_api_ctx_env"><a class="anchor" href="#_mill_api_ctx_env"></a><code>mill.api.Ctx.Env</code></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>T.env</code></p>
+</li>
+<li>
+<p><code>T.ctx.env</code></p>
+</li>
+<li>
+<p><code>implicitly[mill.api.Ctx.Env]</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Mill keeps a long-lived JVM server to avoid paying the cost of recurrent
+classloading.
+Because of this, running <code>System.getenv</code> in a task might not yield
+up to date environment variables, since it will be initialised when the server
+starts, rather than when the client executes.
+To circumvent this, mill’s client sends the environment variables to the server as it sees them, and the server makes them available as a <code>Map[String, String]</code> via the <code>Ctx</code> API.</p>
+</div>
+<div class="paragraph">
+<p>If the intent is to always pull the latest environment values, the call should
+be wrapped in an <code>Input</code> as such :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def envVar = T.input { T.ctx.env.get(&quot;ENV_VAR&quot;) }</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_api_ctx_log"><a class="anchor" href="#_mill_api_ctx_log"></a><code>mill.api.Ctx.Log</code></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>T.log</code></p>
+</li>
+<li>
+<p><code>T.ctx.log</code></p>
+</li>
+<li>
+<p><code>implicitly[mill.api.Ctx.Log]</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is the default logger provided for every task. While your task is running,
+<code>System.out</code> and <code>System.in</code> are also redirected to this logger. The logs for a
+task are streamed to standard out/error as you would expect, but each task’s
+specific output is also streamed to a log file on disk, e.g. <code>out/run.log</code> or
+<code>out/classFiles.log</code> for you to inspect later.</p>
+</div>
+<div class="paragraph">
+<p>Messages logged with <code>log.debug</code> appear by default only in the log files.
+You can use the <code>--debug</code> option when running mill to show them on the console too.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_api_ctx_workspace"><a class="anchor" href="#_mill_api_ctx_workspace"></a><code>mill.api.Ctx.Workspace</code></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>T.workspace</code></p>
+</li>
+<li>
+<p><code>T.ctx.workspace</code></p>
+</li>
+<li>
+<p><code>implicitly[mill.api.Ctx.Workspace]</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is the <code>os.Path</code> pointing to the project root directory.
+This is the preferred access to the project directory, and should always be prefered over <code>os.pwd</code>
+(which might also point to the project directory in classic cli scenarios, but might not in other use cases like BSP or LSP server usage).</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="Tasks.html">Tasks</a></span>
+  <span class="next"><a href="Modules.html">Modules</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>
