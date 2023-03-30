@@ -1032,7 +1032,10 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 // We compile the test code once and then offer multiple modes to
 // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
 // and pass `lib`'s compile output back to `test`
-trait IntegrationTestCrossModule extends MillScalaModule {
+trait IntegrationTestCrossModule extends IntegrationTestModule {
+
+}
+trait IntegrationTestModule extends MillScalaModule {
   def repoSlug: String
 
   def scalaVersion = integration.scalaVersion()
@@ -1157,7 +1160,7 @@ object integration extends MillScalaModule{
         super.runClasspath()
       }
     }
-    trait ThirdPartyModule extends IntegrationTestCrossModule {
+    trait ThirdPartyModule extends IntegrationTestModule {
       def repoPath: String
       def repoHash: String
       def repoSlug = repoPath.split("/").last
