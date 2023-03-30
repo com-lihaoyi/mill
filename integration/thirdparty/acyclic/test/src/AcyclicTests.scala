@@ -3,7 +3,7 @@ package thirdparty
 
 import utest._
 
-object AcyclicTests extends IntegrationTestSuite(Some("acyclic")) {
+object AcyclicTests extends IntegrationTestSuite {
   val tests = Tests {
     initWorkspace()
 

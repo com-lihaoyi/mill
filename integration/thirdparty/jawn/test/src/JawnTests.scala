@@ -4,7 +4,7 @@ package thirdparty
 import mill.util.TestUtil
 import utest._
 
-object JawnTests extends IntegrationTestSuite(Some("jawn")) {
+object JawnTests extends IntegrationTestSuite {
   val tests = Tests {
     initWorkspace()
 

@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 70b746892..6d63a2055 100644
+index 2971a8116..d64e83d42 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,22 +2,10 @@
@@ -86,15 +86,16 @@ index 70b746892..6d63a2055 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1102,6 +1076,7 @@ object integration extends MillScalaModule{
-   object failure extends Cross[IntegrationCrossModule](listIn("failure"): _*)
-   object feature extends Cross[IntegrationCrossModule](listIn("feature"): _*)
-   class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestModule {
-+    override def millSourcePath = super.millSourcePath / repoSlug
-     object local extends ModeModule
-     object fork extends ModeModule
-     object server extends ModeModule
-@@ -1629,53 +1604,7 @@ def launcher = T {
+@@ -1035,6 +1009,8 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
+ trait IntegrationTestModule extends MillScalaModule {
+   def repoSlug: String
+
++  override def millSourcePath = super.millSourcePath / repoSlug
++
+   def scalaVersion = integration.scalaVersion()
+
+   def moduleDeps = Seq(main.test, integration)
+@@ -1645,53 +1621,7 @@ def launcher = T {
  }
 
  def uploadToGithub(authKey: String) = T.command {

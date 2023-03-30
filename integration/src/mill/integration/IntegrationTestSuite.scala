@@ -17,15 +17,14 @@ object IntegrationTestSuite{
 
 }
 
-abstract class IntegrationTestSuite(workspaceSlug: Option[String] = None) extends TestSuite{
+abstract class IntegrationTestSuite extends TestSuite{
   val scriptSlug: String = sys.env("MILL_INTEGRATION_TEST_SLUG")
 
   val integrationTestMode: String = sys.env("MILL_INTEGRATION_TEST_MODE")
   assert(Set("local", "fork", "server").contains(integrationTestMode))
 
-  val finalWorkspaceSlug = workspaceSlug.getOrElse(scriptSlug)
   def workspacePath: os.Path =
-    os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???)) / os.RelPath(finalWorkspaceSlug)
+    os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???))
 
   def scriptSourcePath: os.Path = os.Path(sys.env("MILL_INTEGRATION_REPO_ROOT"))
 

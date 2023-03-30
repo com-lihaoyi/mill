@@ -3,7 +3,7 @@ package thirdparty
 
 import utest._
 
-object CaffeineTests extends IntegrationTestSuite(Some("caffeine")) {
+object CaffeineTests extends IntegrationTestSuite {
 
   override def initWorkspace() = {
     val path = super.initWorkspace()
