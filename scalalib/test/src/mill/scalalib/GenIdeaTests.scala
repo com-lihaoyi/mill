@@ -32,7 +32,8 @@ object GenIdeaTests extends ScriptTestSuite(false) {
     val expectedResourcePath = s"$workspaceSlug/idea/$resource"
     val actualResourcePath = fileBaseDir / ".idea" / resource
 
-    val expectedResourceString = scala.io.Source.fromResource(expectedResourcePath).getLines.mkString("\n")
+    val expectedResourceString =
+      scala.io.Source.fromResource(expectedResourcePath).getLines.mkString("\n")
     val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), fileBaseDir)
 
     assert(expectedResourcePath.nonEmpty)

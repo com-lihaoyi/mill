@@ -3,7 +3,8 @@ package mill.define
 import language.experimental.macros
 
 case class Discover[T] private (value: Map[Class[_], Seq[(Int, mainargs.MainData[_, _])]]) {
-  private[mill] def copy(value: Map[Class[_], Seq[(Int, mainargs.MainData[_, _])]] = value): Discover[T] =
+  private[mill] def copy(value: Map[Class[_], Seq[(Int, mainargs.MainData[_, _])]] = value)
+      : Discover[T] =
     new Discover[T](value)
 }
 object Discover {
