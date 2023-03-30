@@ -24,9 +24,10 @@ trait TwirlModule extends mill.Module { twirlModule =>
     millSourcePath / "views"
   }
 
-  /** Replicate the logic from twirl build, 
-      see: https://github.com/playframework/twirl/blob/bdac9bb9470a7533a44b40c37fb3064737418768/build.sbt#L17-L22
-  */
+  /**
+   * Replicate the logic from twirl build,
+   *      see: https://github.com/playframework/twirl/blob/bdac9bb9470a7533a44b40c37fb3064737418768/build.sbt#L17-L22
+   */
   private def scalaParserCombinatorsVersion: T[String] = twirlScalaVersion.map {
     case v if v.startsWith("2.") => "1.1.2"
     case _ => "2.1.0"

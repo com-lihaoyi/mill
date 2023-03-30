@@ -114,8 +114,9 @@ class MillCliConfig private (
       short = 'p',
       doc =
         """Lets you load your predef from a custom location, rather than the
-        "default location in your Ammonite home""")
-    val predefFile: Option[os.Path],
+        "default location in your Ammonite home"""
+    )
+    val predefFile: Option[os.Path]
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -170,7 +171,7 @@ object MillCliConfig {
       noDefaultPredef: Flag = Flag(),
       leftoverArgs: Leftover[String] = Leftover(),
       color: Option[Boolean] = None,
-      predefFile: Option[os.Path] = None,
+      predefFile: Option[os.Path] = None
   ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,

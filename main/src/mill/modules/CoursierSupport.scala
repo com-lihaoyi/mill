@@ -247,7 +247,8 @@ object CoursierSupport {
    * In practice, this ticker output gets prefixed with the current target for which
    * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
    */
-  private[CoursierSupport] class TickerResolutionLogger(ctx: Ctx.Log) extends coursier.cache.CacheLogger {
+  private[CoursierSupport] class TickerResolutionLogger(ctx: Ctx.Log)
+      extends coursier.cache.CacheLogger {
     private[CoursierSupport] case class DownloadState(var current: Long, var total: Long)
 
     private[CoursierSupport] var downloads = new mutable.TreeMap[String, DownloadState]()
