@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 3930b72ff..5cf3ee459 100644
+index 70b746892..6d63a2055 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,22 +2,10 @@
@@ -9,7 +9,7 @@ index 3930b72ff..5cf3ee459 100644
 -import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.0`
 -import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.13`
  import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
- 
+
  // imports
 -import com.github.lolgab.mill.mima
 -import com.github.lolgab.mill.mima.{
@@ -25,10 +25,10 @@ index 3930b72ff..5cf3ee459 100644
  import mill._
  import mill.define.{Command, Source, Sources, Target, Task}
  import mill.eval.Evaluator
-@@ -184,12 +172,8 @@ object Deps {
+@@ -178,12 +166,8 @@ object Deps {
    val requests = ivy"com.lihaoyi::requests:0.8.0"
  }
- 
+
 -def millVersion: T[String] = T { VcsVersion.vcsState().format() }
 -def millLastTag: T[String] = T {
 -  VcsVersion.vcsState().lastTag.getOrElse(
@@ -40,10 +40,10 @@ index 3930b72ff..5cf3ee459 100644
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
-@@ -248,20 +232,7 @@ trait MillCoursierModule extends CoursierModule {
+@@ -243,20 +227,7 @@ trait MillCoursierModule extends CoursierModule {
    )
  }
- 
+
 -trait MillMimaConfig extends mima.Mima {
 -  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 -  override def mimaPreviousArtifacts =
@@ -60,9 +60,9 @@ index 3930b72ff..5cf3ee459 100644
 -  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
 +trait MillMimaConfig extends Module {
  }
- 
+
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -661,6 +632,7 @@ object scalajslib extends MillModule {
+@@ -650,6 +621,7 @@ object scalajslib extends MillModule {
    }
    object worker extends Cross[WorkerModule]("1")
    class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
@@ -70,15 +70,15 @@ index 3930b72ff..5cf3ee459 100644
      override def moduleDeps = Seq(scalajslib.`worker-api`)
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
-@@ -723,6 +695,7 @@ object contrib extends MillModule {
- 
+@@ -712,6 +684,7 @@ object contrib extends MillModule {
+
      object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
      class WorkerModule(playBinary: String) extends MillInternalModule {
 +      override def millSourcePath: os.Path = super.millSourcePath / playBinary
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -925,6 +898,7 @@ object scalanativelib extends MillModule {
+@@ -914,6 +887,7 @@ object scalanativelib extends MillModule {
    object worker extends Cross[WorkerModule]("0.4")
    class WorkerModule(scalaNativeWorkerVersion: String)
        extends MillInternalModule {
@@ -86,9 +86,17 @@ index 3930b72ff..5cf3ee459 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1576,53 +1550,7 @@ def launcher = T {
+@@ -1102,6 +1076,7 @@ object integration extends MillScalaModule{
+   object failure extends Cross[IntegrationCrossModule](listIn("failure"): _*)
+   object feature extends Cross[IntegrationCrossModule](listIn("feature"): _*)
+   class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestModule {
++    override def millSourcePath = super.millSourcePath / repoSlug
+     object local extends ModeModule
+     object fork extends ModeModule
+     object server extends ModeModule
+@@ -1629,53 +1604,7 @@ def launcher = T {
  }
- 
+
  def uploadToGithub(authKey: String) = T.command {
 -  val vcsState = VcsVersion.vcsState()
 -  val label = vcsState.format()
@@ -139,5 +147,5 @@ index 3930b72ff..5cf3ee459 100644
 -  }
 +  // never upload a bootstrapped version
  }
- 
+
  def validate(ev: Evaluator): Command[Unit] = T.command {
