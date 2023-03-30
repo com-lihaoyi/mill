@@ -43,6 +43,10 @@ example/
 
 * scalaPBProtocPath - A `Option[Path]` option which determines the protoc compiler to use. If `None`, a java embedded protoc will be used, if set to `Some` path, the given binary is used.
 
+* scalaPBSearchDeps - A `Boolean` option which determines whether to search for `.proto` files in dependencies and add them to `scalaPBIncludePath`. Defaults to `false`.
+
+* scalaPBIncludePath - Additional paths to include `.proto` files when compiling.
+
 If you'd like to configure the https://scalapb.github.io/docs/scalapbc#passing-generator-parameters[options] that are passed to the ScalaPB compiler directly, you can override the `scalaPBOptions` task, for example:
 
 .`build.sc`

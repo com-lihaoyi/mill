@@ -5,7 +5,16 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import ammonite.runtime.SpecialClassLoader
 
 import scala.util.DynamicVariable
-import mill.api.{CompileProblemReporter, Ctx, DummyTestReporter, Loose, Strict, TestReporter}
+import mill.api.{
+  CompileProblemReporter,
+  Ctx,
+  DummyTestReporter,
+  Loose,
+  PathRef,
+  Result,
+  Strict,
+  TestReporter
+}
 import mill.api.Result.{Aborted, Failing, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define._
@@ -13,7 +22,6 @@ import mill.internal.AmmoniteUtils
 import mill.util._
 import upickle.default
 
-import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -35,7 +43,7 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
 /**
  * Evaluate tasks.
  */
-class Evaluator private[Evaluator] (
+class Evaluator private (
     _home: os.Path,
     _outPath: os.Path,
     _externalOutPath: os.Path,
@@ -130,6 +138,7 @@ class Evaluator private[Evaluator] (
     if (effectiveThreadCount > 1)
       parallelEvaluate(goals, effectiveThreadCount, logger, reporter, testReporter)
     else sequentialEvaluate(goals, logger, reporter, testReporter)
+
   }
 
   def sequentialEvaluate(
@@ -137,7 +146,8 @@ class Evaluator private[Evaluator] (
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
-  ): Evaluator.Results = {
+  ): Evaluator.Results = PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
+
     val (sortedGroups, transitive) = Evaluator.plan(goals)
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
@@ -212,7 +222,7 @@ class Evaluator private[Evaluator] (
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
-  ): Evaluator.Results = {
+  ): Evaluator.Results = PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
     os.makeDir.all(outPath)
     val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
 
@@ -309,7 +319,9 @@ class Evaluator private[Evaluator] (
         getFailing(sortedGroups, results),
         results.map { case (k, v) => (k, v.map(_._1)) }
       )
-    } finally threadPool.shutdown()
+    } finally {
+      threadPool.shutdown()
+    }
   }
 
   // those result which are inputs but not contained in this terminal group
@@ -393,6 +405,11 @@ class Evaluator private[Evaluator] (
           parsed <-
             try Some(upickle.default.read(cached.value)(reader))
             catch {
+              case e: PathRef.PathRefValidationException =>
+                logger.debug(
+                  s"${labelledNamedTask.segments.render}: re-evaluating; ${e.getMessage}"
+                )
+                None
               case NonFatal(_) => None
             }
         } yield (parsed, cached.valueHash)
@@ -804,6 +821,36 @@ object Evaluator {
       results: collection.Map[Task[_], mill.api.Result[Any]]
   ) {
     def values: Seq[Any] = rawValues.collect { case mill.api.Result.Success(v) => v }
+    private def copy(
+        rawValues: Seq[Result[Any]] = rawValues,
+        evaluated: Agg[Task[_]] = evaluated,
+        transitive: Agg[Task[_]] = transitive,
+        failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[_]] = failing,
+        results: collection.Map[Task[_], Result[Any]] = results
+    ): Results = new Results(
+      rawValues,
+      evaluated,
+      transitive,
+      failing,
+      results
+    )
+  }
+
+  object Results {
+    private def unapply(results: Results): Option[(
+        Seq[Result[Any]],
+        Agg[Task[_]],
+        Agg[Task[_]],
+        MultiBiMap[Either[Task[_], Labelled[_]], Failing[_]],
+        collection.Map[Task[_], Result[Any]]
+    )] = Some((
+      results.rawValues,
+      results.evaluated,
+      results.transitive,
+      results.failing,
+      results.results
+    ))
+
   }
 
   def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {
@@ -846,10 +893,22 @@ object Evaluator {
   }
 
   case class Evaluated(
-      newResults: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
+      newResults: collection.Map[Task[_], Result[(Any, Int)]],
       newEvaluated: Seq[Task[_]],
       cached: Boolean
-  )
+  ) {
+    private[Evaluator] def copy(
+        newResults: collection.Map[Task[_], Result[(Any, Int)]] = newResults,
+        newEvaluated: Seq[Task[_]] = newEvaluated,
+        cached: Boolean = cached
+    ): Evaluated = new Evaluated(newResults, newEvaluated, cached)
+  }
+
+  object Evaluated {
+    private[Evaluator] def unapply(evaluated: Evaluated)
+        : Option[(collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean)] =
+      Some((evaluated.newResults, evaluated.newEvaluated, evaluated.cached))
+  }
 
   // Increment the counter message by 1 to go from 1/10 to 10/10
   class NextCounterMsg(taskCount: Int) {
@@ -903,7 +962,7 @@ object Evaluator {
           case Right(t) => t.segments.render
         }
         val fss = fs.map {
-          case mill.api.Result.Exception(t, outerStack) =>
+          case Result.Exception(t, outerStack) =>
             var current = List(t)
             while (current.head.getCause != null) {
               current = current.head.getCause :: current
@@ -914,7 +973,7 @@ object Evaluator {
                   ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
               )
               .mkString("\n")
-          case mill.api.Result.Failure(t, _) => t
+          case Result.Failure(t, _) => t
         }
         s"$ks ${fss.iterator.mkString(", ")}"
       }).mkString("\n")

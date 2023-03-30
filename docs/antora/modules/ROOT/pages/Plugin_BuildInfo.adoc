@@ -14,10 +14,10 @@ import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 
 object project extends BuildInfo {
-  val name = "poject-name"
+  val name = "project-name"
   def  buildInfoMembers: T[Map[String, String]] = T {
     Map(
-      "name" -> name),
+      "name" -> name,
       "scalaVersion" -> scalaVersion()
     )
   }

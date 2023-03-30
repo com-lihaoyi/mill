@@ -171,7 +171,7 @@ trait CoursierSupport {
 
       if (errors.isEmpty) {
         mill.Agg.from(
-          successes.map(p => PathRef(os.Path(p), quick = true)).filter(_.path.ext == "jar")
+          successes.map(os.Path(_)).filter(_.ext == "jar").map(PathRef(_, quick = true))
         )
       } else {
         val errorDetails = errors.map(e => s"${System.lineSeparator()}  ${e.describe}").mkString
@@ -247,13 +247,13 @@ object CoursierSupport {
    * In practice, this ticker output gets prefixed with the current target for which
    * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
    */
-  class TickerResolutionLogger(ctx: Ctx.Log) extends coursier.cache.CacheLogger {
-    case class DownloadState(var current: Long, var total: Long)
+  private[CoursierSupport] class TickerResolutionLogger(ctx: Ctx.Log) extends coursier.cache.CacheLogger {
+    private[CoursierSupport] case class DownloadState(var current: Long, var total: Long)
 
-    var downloads = new mutable.TreeMap[String, DownloadState]()
-    var totalDownloadCount = 0
-    var finishedCount = 0
-    var finishedState = DownloadState(0, 0)
+    private[CoursierSupport] var downloads = new mutable.TreeMap[String, DownloadState]()
+    private[CoursierSupport] var totalDownloadCount = 0
+    private[CoursierSupport] var finishedCount = 0
+    private[CoursierSupport] var finishedState = DownloadState(0, 0)
 
     def updateTicker(): Unit = {
       val sums = downloads.values

@@ -1,16 +1,25 @@
 name: Build and Release
 
+# We run full CI on push builds to main and on all pull requests
+# Tags are automatically published
+# Manual builds (workflow_dispatch) to the main branch are also published
+
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
+
+# cancel older runs of a pull request;
+# this will not cancel anything for normal git pushes
+concurrency:
+  group: cancel-old-pr-runs-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
 
   test:
-    # don't build dependabot branches on push, we already build them on pull request
-    if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
-
     strategy:
       fail-fast: false
       matrix:
@@ -60,9 +69,6 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   test-bin-compat:
-    # don't build dependabot branches on push, we already build them on pull request
-    if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
-
     strategy:
       fail-fast: false
       matrix:
@@ -95,9 +101,6 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   test-windows:
-    # don't build dependabot branches on push, we already build them on pull request
-    if: github.event != 'push' || !startsWith(github.ref, 'refs/heads/dependabot')
-
     strategy:
       fail-fast: false
       matrix:
@@ -128,7 +131,7 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   publish-sonatype:
-    # when in master repo, publish all tags and manual runs
+    # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
     needs: [test, test-windows, test-bin-compat]
 
@@ -162,7 +165,7 @@ jobs:
       - run: ci/release-maven.sh
 
   release-github:
-    # when in master repo, publish all tags and manual runs
+    # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
     needs: publish-sonatype
     runs-on: ubuntu-latest

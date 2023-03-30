@@ -90,7 +90,7 @@ class MainRunner(
       isRepl = false,
       printing = true,
       mainCfg => {
-        val logger = PrintLogger(
+        val logger = new PrintLogger(
           colored = colored,
           disableTicker = disableTicker,
           infoColor = colors.info(),

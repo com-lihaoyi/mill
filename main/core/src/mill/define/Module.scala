@@ -28,7 +28,10 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
   private lazy val millModuleDirectChildrenImpl: Seq[Module] =
     millInternal.reflectNestedObjects[Module].toSeq
   def millOuterCtx: Ctx = outerCtx0
-  def millSourcePath: os.Path = millOuterCtx.millSourcePath / millOuterCtx.segment.pathSegments
+  def millSourcePath: os.Path = millOuterCtx.millSourcePath / (millOuterCtx.segment match {
+    case Segment.Label(s) => Seq(s)
+    case Segment.Cross(_) => Seq.empty[String] // drop cross segments
+  })
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
   implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
   implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
@@ -48,7 +51,8 @@ object Module {
     lazy val modules: Seq[Module] = traverse(Seq(_))
     lazy val segmentsToModules = modules.map(m => (m.millModuleSegments, m)).toMap
 
-    lazy val targets: Set[Target[_]] = traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
+    lazy val targets: Set[Target[_]] =
+      traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
 
     lazy val segmentsToTargets: Map[Segments, Target[_]] = targets
       .map(t => (t.ctx.segments, t))

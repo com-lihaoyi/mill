@@ -268,40 +268,39 @@ Run `mill --help` for a complete list of options
 
 .Output of `mill --help`
 ----
-Mill Build Tool
+Mill Build Tool, version {mill-version}
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
-  --no-default-predef  Disable the default predef and run Ammonite with the minimal predef possible
-  -s --silent          Make ivy logs go silent instead of printing though failures will still throw
-                       exception
-  -w --watch           Watch and re-run your scripts when they change
-  --bsp                Run a BSP server against the passed scripts
-  -c --code <str>      Pass in code to be run immediately in the REPL
-  -h --home <path>     The home directory of the REPL; where it looks for config and caches
-  -p --predef <path>   Lets you load your predef from a custom location, rather than the "default
-                       location in your Ammonite home
-  --color <bool>       Enable or disable colored output; by default colors are enabled in both REPL
-                       and scripts if the console is interactive, and disabled otherwise
-  --thin               Hide parts of the core of Ammonite and some of its dependencies. By default,
-                       the core of Ammonite and all of its dependencies can be seen by users from
-                       the Ammonite session. This option mitigates that via class loader isolation.
-  --help               Print this message
-  -h --home <path>     The home directory of the REPL; where it looks for config and caches
-  --repl               Run Mill in interactive mode and start a build REPL. In this mode, no mill
-                       server will be used. Must be the first argument.
-  --no-server          Run Mill in interactive mode, suitable for opening REPLs and taking user
-                       input. In this mode, no mill server will be used. Must be the first argument.
-  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
-                       input. In this mode, no mill server will be used. Must be the first argument.
-  -v --version         Show mill version and exit.
+  -D --define <k=v>    Define (or overwrite) a system property.
   -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
-  --disable-ticker     Disable ticker log (e.g. short-lived prints of stages and progress bars)
+  --bsp                Enable BSP server mode.
+  --color <bool>       Enable or disable colored output; by default colors are enabled in both REPL
+                       and scripts mode if the console is interactive, and disabled otherwise.
   -d --debug           Show debug output on STDOUT
-  -k --keep-going      Continue build, even after build failures
-  -D --define <k=v>    Define (or overwrite) a system property
+  --disable-ticker     Disable ticker log (e.g. short-lived prints of stages and progress bars).
+  -h --home <path>     (internal) The home directory of internally used Ammonite script engine;
+                       where it looks for config and caches.
+  --help               Print this help message and exit.
+  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. This implies --no-server and no mill server will be used. Must be the
+                       first argument.
+  --import <str>       Additional ivy dependencies to load into mill, e.g. plugins.
   -j --jobs <int>      Allow processing N targets in parallel. Use 1 to disable parallel and 0 to
                        use as much threads as available processors.
-  rest <str>...        The name of the targets you want to build, followed by any parameters you
-                       wish to pass to those targets.
+  -k --keep-going      Continue build, even after build failures.
+  --no-default-predef  Disable the default predef and run Mill with the minimal predef possible.
+  --no-server          Run Mill in single-process mode. In this mode, no mill server will be started
+                       or used. Must be the first argument.
+  -p --predef <path>   Lets you load your predef from a custom location, rather than the "default
+                       location in your Ammonite home
+  --repl               Run Mill in interactive mode and start a build REPL. This implies --no-server
+                       and no mill server will be used. Must be the first argument.
+  -s --silent          Make ivy logs during script import resolution go silent instead of printing;
+                       though failures will still throw exception.
+  -v --version         Show mill version information and exit.
+  -w --watch           Watch and re-run your scripts when they change.
+  target <str>...      The name or a pattern of the target(s) you want to build, followed by any
+                       parameters you wish to pass to those targets. To specify multiple target
+                       names or patterns, use the `+` separator.
 ----
 
 All _options_ must be given before the first target.

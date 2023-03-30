@@ -57,12 +57,15 @@ object Settings {
     "0.10.9",
     "0.10.10",
     "0.10.11",
+    "0.10.12",
     "0.11.0-M1",
     "0.11.0-M2",
     "0.11.0-M3",
-    "0.11.0-M4"
+    "0.11.0-M4",
+    "0.11.0-M5",
+    "0.11.0-M6"
   )
-  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M4")
+  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M6")
 }
 
 object Deps {
@@ -88,12 +91,13 @@ object Deps {
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
+    val scalajsEnvSelenium = ivy"org.scala-js::scalajs-env-selenium:1.1.1"
     val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}"
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}"
   }
 
   object Scalanative_0_4 {
-    val scalanativeVersion = "0.4.10"
+    val scalanativeVersion = "0.4.12"
     val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
@@ -119,7 +123,7 @@ object Deps {
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
-  val ammoniteVersion = "3.0.0-M0-1-beb96bfb"
+  val ammoniteVersion = "3.0.0-M0-5-0af4d9e7"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   val ammoniteReducedDeps = ammonite.exclude(
@@ -132,8 +136,7 @@ object Deps {
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
-  // avoid version 2.1.0-RC2 for issue https://github.com/coursier/coursier/issues/2603
-  val coursier = ivy"io.get-coursier::coursier:2.1.0-RC6"
+  val coursier = ivy"io.get-coursier::coursier:2.1.0"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -145,9 +148,9 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.13.0"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
-  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.19.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.9.0"
+  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.20.0"
+  val osLib = ivy"com.lihaoyi::os-lib:0.9.1"
   val mainargs = ivy"com.lihaoyi::mainargs:0.4.0"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
@@ -159,7 +162,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.1"
-  val scalametaTrees = ivy"org.scalameta::trees:4.7.4"
+  val scalametaTrees = ivy"org.scalameta::trees:4.7.6"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.8"
@@ -169,15 +172,15 @@ object Deps {
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.4"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.6"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.13"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
-  val upickle = ivy"com.lihaoyi::upickle:3.0.0-M2"
+  val upickle = ivy"com.lihaoyi::upickle:3.0.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
   // keep in sync with doc/antora/antory.yml
-  val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
+  val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M4"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.2"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
@@ -243,7 +246,8 @@ trait MillCoursierModule extends CoursierModule {
     ("commons-io", "commons-io", "2.11.0"),
     ("com.google.code.gson", "gson", "2.10.1"),
     ("com.google.protobuf", "protobuf-java", "3.21.8"),
-    ("com.google.guava", "guava", "31.1-jre")
+    ("com.google.guava", "guava", "31.1-jre"),
+    ("org.yaml", "snakeyaml", "1.33")
   )
 }
 
@@ -359,6 +363,22 @@ object main extends MillModule {
       Deps.upickle,
       Deps.sbtTestInterface
     )
+    def generatedBuildInfo: T[Seq[PathRef]] = T {
+      val dest = T.dest
+      val code =
+        s"""package mill.api
+           |
+           |/** Generated at built-time by Mill. */
+           |private[api] object BuildInfo {
+           |  /** Mill version. */
+           |  val millVersion: String = "${millVersion()}"
+           |}
+           |""".stripMargin
+      os.write(dest / "mill" / "main" / "api" / "BuildInfo.scala", code, createFolders = true)
+      Seq(PathRef(dest))
+    }
+    override def generatedSources: T[Seq[PathRef]] =
+      super.generatedSources() ++ generatedBuildInfo()
   }
   object util extends MillApiModule with MillAutoTestSetup {
     override def moduleDeps = Seq(api)
@@ -629,6 +649,7 @@ object scalajslib extends MillModule {
           Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs
         )}"
          |    val scalajsEnvPhantomJs = "${formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)}"
+         |    val scalajsEnvSelenium = "${formatDep(Deps.Scalajs_1.scalajsEnvSelenium)}"
          |  }
          |}
          |""".stripMargin
@@ -650,7 +671,8 @@ object scalajslib extends MillModule {
       Deps.Scalajs_1.scalajsEnvNodejs,
       Deps.Scalajs_1.scalajsEnvJsdomNodejs,
       Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
-      Deps.Scalajs_1.scalajsEnvPhantomjs
+      Deps.Scalajs_1.scalajsEnvPhantomjs,
+      Deps.Scalajs_1.scalajsEnvSelenium
     )
   }
 }
@@ -951,6 +973,10 @@ object bsp extends MillModule {
       bsp.worker.publishLocal()()
       super.forkEnv()
     }
+
+    override def forkArgs: Target[Seq[String]] = super.forkArgs() ++ Seq(
+      s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}"
+    )
   }
 
   object worker extends MillInternalModule {
@@ -994,6 +1020,14 @@ def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String 
   T.command {
     PathRef(installLocalTask(T.task(binFile), ivyRepo)())
   }
+
+def installLocalCache() = T.command {
+  val path = installLocalTask(
+    T.task((os.home / ".cache" / "mill" / "download" / millVersion()).toString())
+  )()
+  T.log.outputStream.println(path.toString())
+  PathRef(path)
+}
 
 def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
   val modules = build.millInternal.modules.collect { case m: PublishModule => m }

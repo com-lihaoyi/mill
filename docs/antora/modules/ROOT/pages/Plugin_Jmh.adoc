@@ -9,7 +9,7 @@ Example configuration:
 ----
 import mill._, scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-jmh:`
 import contrib.jmh.JmhModule
 
 object foo extends ScalaModule with JmhModule {

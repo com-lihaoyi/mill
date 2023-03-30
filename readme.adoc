@@ -1,6 +1,7 @@
 = image:docs/logo.svg[Mill Logo] Mill
 :toc-placement: preamble
 :toc:
+:idprefix:
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
 :link-current-doc-site: http://com-lihaoyi.github.io/mill
@@ -248,7 +249,53 @@ corresponding version of Mill.
 == Changelog
 
 
+[#0-11-0-M6]
+=== 0.11.0-M6 - 2023-03-09
+:version: 0.11.0-M6
+:milestone-name: 0.11.0-M6
+:milestone: 77
+:prev-version: 0.11.0-M5
 
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* `main`: Re-added missing `--color` and `predef` cli arguments.
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+[#0-11-0-M5]
+=== 0.11.0-M5 - 2023-03-09
+:version: 0.11.0-M5
+:milestone-name: 0.11.0-M5
+:milestone: 76
+:prev-version: 0.11.0-M4
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* `Cross` is no longer adding the cross parameters to the `millSourcePath`.
++
+_You should review your cross modules setups to avoid build issues like incorrect source paths or missing files. ``CrossScalaModule`` is not affected by this change._
+* API refactorings: `PathRef`, moved `JarManifest` to `mill.main`
+* No longer inherit the Ammonite CLI config
+* `scalalib`: Fixed loosing customized `mapDependencies` when `ScalaModule` get mixed in after
+* `scalalib`: New `TestModule.Weaver`
+* `scalajslib`: New `JsEnvConfig.Selenium`
+* `testrunner`: Fixed concurrency issue with test event reporting
+* Updated dependencies: ammonite 3.0.0-M0-3, coursier 2.1.0-RC6, jarajar-abrams-core 1.8.2, lambdatest 0.8.0, log4j-core 2.20.0, os-lib 0.9.1, scoverage 2.0.8, semanticdb-scalac 4.7.5, trees 4.7.5
+* Documentation updates
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+[#0-11-0-M4]
 === 0.11.0-M4 - 2023-02-10
 :version: 0.11.0-M4
 :milestone-name: 0.11.0-M4
@@ -274,7 +321,7 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
-
+[#0-11-0-M3]
 === 0.11.0-M3 - 2023-01-23
 :version: 0.11.0-M3
 :milestone-name: 0.11.0-M3
@@ -300,6 +347,7 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
+[#0-11-0-M2]
 === 0.11.0-M2 - 2023-01-13
 :version: 0.11.0-M2
 :milestone-name: 0.11.0-M2
@@ -324,6 +372,7 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
+[#0-11-0-M1]
 === 0.11.0-M1 - 2022-12-17
 :version: 0.11.0-M1
 :prev-version: 0.10.10
@@ -345,6 +394,23 @@ _Changes since {prev-version}:_
 * Updated dependencies: coursier 2.1.0-RC3, os-lib 0.9, scala 2.12.17, trees 4.7.0
 * Removed lots of deprecated API
 * Various internal cleanups and improvements
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+=== 0.10.12 - 2023-03-20
+:version: 0.10.12
+:milestone-name: 0.10.12
+:milestone: 75
+:prev-version: 0.10.11
+
+_Changes since {prev-version}:_
+
+* `scalalib`: Mitigate another coursier download issue (backported from 0.11.0-M4)
+* `testrunner`: Fixed a concurrency issue with test event reporting (backported from 0.11.0-M5)
+* `scalajslib`: Deprecated `fastOpt` and `fullOpt`
+* Updated dependencies: coursier 2.1.0, jarjar-abrams 1.8.2, jna 5.13.0, junixsocket 2.6.2, log4j-core 2.20.0, scalafmt-dynamic 3.6.1, trees 4.7.6
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]

@@ -205,8 +205,8 @@ object MillMain {
                 bsp = Flag(),
                 code = None,
                 home = config.home,
-                predefFile = None,
-                color = None,
+                predefFile = config.predefFile,
+                color = config.color,
                 thin = Flag(),
                 help = config.help,
                 showVersion = Flag()
