@@ -17,7 +17,7 @@ foo.run
 bar.run
 
 > ./mill foo.compile
-compiling 3 Java sources
+compiling 1 Java source
 
 > ./mill foo.run
 Foo.value: 31337

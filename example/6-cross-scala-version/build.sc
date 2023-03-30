@@ -1,14 +1,14 @@
 import mill._, scalalib._
 
-val scalaVersions = Seq("2.12.17", "2.13.10")
+val scalaVersions = Seq("2.12.17", "2.13.10", "3.2.2")
 
 object foo extends Cross[FooModule](scalaVersions:_*)
-class FooModule(val crossScalaVersion: String) extends CrossScalaModule
-
-object bar extends Cross[FooModule](scalaVersions:_*)
-class BarModule(val crossScalaVersion: String) extends CrossScalaModule{
-  def moduleDeps = Seq(foo())
+class FooModule(val crossScalaVersion: String) extends CrossScalaModule{
+  def moduleDeps = Seq(bar())
 }
+
+object bar extends Cross[BarModule](scalaVersions:_*)
+class BarModule(val crossScalaVersion: String) extends CrossScalaModule
 
 // This is an example of cross-building a module across multiple Scala
 // versions. Each module is replaced by a `Cross` module, which is given a list
@@ -34,16 +34,17 @@ bar[2.13.10].run
 
 > ./mill foo[2.12.17].run
 Foo.value: Hello World Scala library version 2.12.17
+Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.12.x
 
 > ./mill foo[2.13.10].run
 Foo.value: Hello World Scala library version 2.13.10
-Specific code for Scala 2.x
-Specific code for Scala 2.12.x
-
-> ./mill bar[2.13.10].run
 Bar.value: bar-value
-Foo.value: Hello World Scala library version 2.13.10
+Specific code for Scala 2.x
+Specific code for Scala 2.13.x
+
+> ./mill bar[3.2.2].run
+Bar.value: bar-value
 
 */

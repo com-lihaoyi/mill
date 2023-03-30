@@ -4,6 +4,5 @@ object Bar {
 
   def main(args: Array[String]): Unit = {
     println("Bar.value: " + bar.Bar.value)
-    println("Foo.value: " + foo.Foo.value)
   }
 }

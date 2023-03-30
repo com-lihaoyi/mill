@@ -36,9 +36,11 @@ class BarModule(val crossScalaVersion: String) extends MyScalaModule with CrossS
 object qux extends JavaModule with MyModule
 
 // A semi-realistic build setup, combining all the individual Mill concepts:
-// two `CrossScalaModules` compiled against two Scala versions, that depend on
-// each other as well as on a `JavaModule`, with unit testing and publishing
-// set up.
+//
+// - Two `CrossScalaModules` compiled against two Scala versions, that depend on
+//   each other as well as on a `JavaModule`
+// - With unit testing and publishing set up
+// - With version-specific sources
 //
 // Note that for multi-module builds like this, using queries like `__.test`
 // or `__.publishLocal` to run tasks on multiple targets at once can be very
@@ -60,7 +62,7 @@ foo[3.2.2].test.run
 qux.run
 
 > ./mill foo[2.13.10].run
-Foo.value: <h1>hello</h1>
+Foo.value: <h1>hello Scala 2.x</h1>
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Qux.value: 31337
 
@@ -71,20 +73,22 @@ bar.BarTests.test
 > ./mill qux.run
 Qux.value: 31337
 
+> ./mill __.compile
+
 > ./mill __.test
-bar[2.13.10].test.test
 + bar.BarTests.test
-bar[3.2.2].test.test
+<p>world Specific code for Scala 2.x</p>
 + bar.BarTests.test
-foo[2.13.10].test.test
+<p>world Specific code for Scala 3.x</p>
 + foo.FooTests.test
-foo[3.2.2].test.test
+<h1>hello Scala 2.x</h1>
 + foo.FooTests.test
+<h1>hello Scala 3.x</h1>
 
 > ./mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1)
 Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1)
-Publishing Artifact(com.lihaoyi,foo_2.12,0.0.1)
-Publishing Artifact(com.lihaoyi,bar_2.12,0.0.1)
+Publishing Artifact(com.lihaoyi,foo_3,0.0.1)
+Publishing Artifact(com.lihaoyi,bar_3,0.0.1)
 Publishing Artifact(com.lihaoyi,qux,0.0.1)
 */
