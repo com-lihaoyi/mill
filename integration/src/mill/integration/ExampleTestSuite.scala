@@ -23,7 +23,16 @@ object ExampleTestSuite extends IntegrationTestSuite{
             val expectedSnippets = commandBlockLines.tail
             val commandTokens = command.split(" ")
             val evalResult = evalStdout(commandTokens: _*)
-            for (expected <- expectedSnippets) {
+
+            if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
+            else assert(evalResult.isSuccess)
+
+            val unwrappedExpected = expectedSnippets.map{
+              case s"error: $msg" => msg
+              case msg => msg
+            }
+
+            for (expected <- unwrappedExpected) {
               if (integrationTestMode != "local") {
                 println("ExampleTestSuite expected: " + expected)
                 def plainText(s: String) =

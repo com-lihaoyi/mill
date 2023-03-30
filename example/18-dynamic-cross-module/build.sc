@@ -19,7 +19,7 @@ modules[qux]
 Hello World Bar
 
 > ./mill modules[new].run
-Cannot resolve modules[new]
+error: Cannot resolve modules[new]
 
 > cp -r modules/bar modules/new
 

@@ -1029,86 +1029,90 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
   }
 }
 
-object integration extends MillScalaModule{
-  def listIn(name: String) = interp.watchValue(
-    os.list(millSourcePath / name).map(_.last)
-  )
+// We compile the test code once and then offer multiple modes to
+// test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
+// and pass `lib`'s compile output back to `test`
+trait IntegrationTestModule extends MillScalaModule {
+  def repoSlug: String
 
-  // We compile the test code once and then offer multiple modes to
-  // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
-  // and pass `lib`'s compile output back to `test`
-  trait IntegrationTestModule extends MillScalaModule {
-    def repoSlug: String
+  def scalaVersion = integration.scalaVersion()
+
+  def moduleDeps = Seq(main.test, integration)
+
+  def sources = T.sources(millSourcePath / "test" / "src")
+
+  def testRepoRoot: T[PathRef] = T.source(millSourcePath / "repo")
+
+  trait ModeModule extends MillScalaModule with BaseMillTestsModule {
+    def mode: String = millModuleSegments.parts.last
+
     def scalaVersion = integration.scalaVersion()
-    def moduleDeps = Seq(main.test, integration)
-    def sources = T.sources(millSourcePath / "test" / "src")
-    def testRepoRoot: T[PathRef] = T.source(millSourcePath / "repo")
 
-    trait ModeModule extends MillScalaModule with BaseMillTestsModule{
-      def mode: String = millModuleSegments.parts.last
-      def scalaVersion = integration.scalaVersion()
-      override def forkEnv = super.forkEnv() ++ Map(
-        "MILL_INTEGRATION_TEST_MODE" -> mode,
-        "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
-        "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString,
-      ) ++ testReleaseEnv()
+    override def forkEnv = super.forkEnv() ++ Map(
+      "MILL_INTEGRATION_TEST_MODE" -> mode,
+      "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
+      "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString,
+    ) ++ testReleaseEnv()
 
-      def workspaceDir = T.persistent {
-        PathRef(T.dest)
-      }
-
-      def genTask(m: ScalaModule) = T.task {
-        Seq(m.jar(), m.sourceJar()) ++
-          m.runClasspath()
-      }
-
-      override def forkArgs: Target[Seq[String]] = T {
-        val genIdeaArgs =
-        //      genTask(main.moduledefs)() ++
-          genTask(main.core)() ++
-            genTask(main)() ++
-            genTask(scalalib)() ++
-            genTask(scalajslib)() ++
-            genTask(scalanativelib)()
-
-
-        super.forkArgs() ++
-          scalajslib.testArgs() ++
-          scalalib.worker.testArgs() ++
-          scalalib.backgroundwrapper.testArgs() ++
-          scalanativelib.testArgs() ++
-          runner.linenumbers.testArgs() ++
-          Seq(
-            s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
-            s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
-            s"-DMILL_VERSION=${millVersion()}",
-            s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
-            s"-DMILL_BSP_WORKER=${bsp.worker.runClasspath().map(_.path).mkString(",")}",
-            s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}",
-            "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-            "-Djna.nosys=true"
-          )
-      }
-
-      def testReleaseEnv =
-        if (mode == "local") T{ Map.empty[String, String] }
-        else T{ Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
-
-      def compile = IntegrationTestModule.this.compile()
-      def moduleDeps = Seq(IntegrationTestModule.this)
+    def workspaceDir = T.persistent {
+      PathRef(T.dest)
     }
-  }
-  object example extends Cross[ExampleCrossModule](listIn("example"): _*)
 
-  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestModule {
-    def testRepoRoot: T[PathRef] = T.source(millSourcePath)
-    def compile = integration.compile()
-    object local extends ModeModule
-    object fork extends ModeModule
-    object server extends ModeModule
+    def genTask(m: ScalaModule) = T.task {
+      Seq(m.jar(), m.sourceJar()) ++ m.runClasspath()
+    }
+
+    override def forkArgs: Target[Seq[String]] = T {
+      val genIdeaArgs =
+      //      genTask(main.moduledefs)() ++
+        genTask(main.core)() ++
+          genTask(main)() ++
+          genTask(scalalib)() ++
+          genTask(scalajslib)() ++
+          genTask(scalanativelib)()
+
+      super.forkArgs() ++
+        scalajslib.testArgs() ++
+        scalalib.worker.testArgs() ++
+        scalalib.backgroundwrapper.testArgs() ++
+        scalanativelib.testArgs() ++
+        runner.linenumbers.testArgs() ++
+        Seq(
+          s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
+          s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
+          s"-DMILL_VERSION=${millVersion()}",
+          s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
+          s"-DMILL_BSP_WORKER=${bsp.worker.runClasspath().map(_.path).mkString(",")}",
+          s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}",
+          "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
+          "-Djna.nosys=true"
+        )
+    }
+
+    def testReleaseEnv =
+      if (mode == "local") T{ Map.empty[String, String] }
+      else T{ Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
+
+    def compile = IntegrationTestModule.this.compile()
+    def moduleDeps = Seq(IntegrationTestModule.this)
   }
-  object failure extends Cross[IntegrationCrossModule](listIn("failure"): _*)
-  object feature extends Cross[IntegrationCrossModule](listIn("feature"): _*)
+}
+
+def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
+
+object example extends Cross[ExampleCrossModule](listIn(millSourcePath / "example"): _*)
+class ExampleCrossModule(val repoSlug: String) extends IntegrationTestModule {
+  def testRepoRoot: T[PathRef] = T.source(millSourcePath)
+  def compile = integration.compile()
+
+  object local extends ModeModule
+  object fork extends ModeModule
+  object server extends ModeModule
+}
+
+object integration extends MillScalaModule{
+  object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
+  object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
   class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestModule {
     object local extends ModeModule
     object fork extends ModeModule
@@ -1120,9 +1124,7 @@ object integration extends MillScalaModule{
   /** Deploy freshly build mill for use in tests */
   def testMill: Target[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-    T {
-      PathRef(installLocalTask(binFile = T.task((T.dest / name).toString()))())
-    }
+    T { PathRef(installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
   }
 
   // Test of various third-party repositories
@@ -1172,7 +1174,13 @@ object integration extends MillScalaModule{
         PathRef(T.dest)
       }
       def moduleDeps = super.moduleDeps ++ Seq(thirdparty)
-      object local extends ModeModule
+      object local extends ModeModule{
+        def runClasspath: T[Seq[PathRef]] = T {
+          // we need to trigger installation of testng-contrib for Caffeine
+          contrib.testng.publishLocal()()
+          super.runClasspath()
+        }
+      }
       object fork extends ModeModule
       object server extends ModeModule
     }

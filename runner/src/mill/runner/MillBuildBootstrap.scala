@@ -3,17 +3,17 @@ import mill.util.{ColorLogger, PrefixLogger, Util}
 import mill.{BuildInfo, MillCliConfig, T}
 import mill.api.{PathRef, internal}
 import mill.eval.Evaluator
-import mill.main.RunScript
+import mill.main.{BuildModule, RunScript}
 import mill.main.TokenReaders._
-import mill.define.{BaseModule, Discover, Segments, SelectMode}
+import mill.define.{Discover, Segments, SelectMode, Watchable}
 import os.Path
 
 import java.net.URLClassLoader
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildModule.BootstrapModule]]
- * and compiling builds/meta-builds and classloading their [[BaseModule]]s so we
- * can evaluate the requested tasks on the [[BaseModule]] representing the user's
+ * and compiling builds/meta-builds and classloading their [[BuildModule]]s so we
+ * can evaluate the requested tasks on the [[BuildModule]] representing the user's
  * `build.sc` file.
  *
  * When Mill is run in client-server mode, or with `--watch`, then data from
@@ -56,7 +56,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
   def getModule0(runClassLoader: URLClassLoader) = {
     val cls = runClassLoader.loadClass("millbuild.build$")
-    cls.getField("MODULE$").get(cls).asInstanceOf[BaseModule]
+    cls.getField("MODULE$").get(cls).asInstanceOf[BuildModule]
   }
 
   def evaluateRec(depth: Int): RunnerState = {
@@ -72,7 +72,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
           val bootstrapModule =
             new MillBuildModule.BootstrapModule(projectRoot, recRoot(depth), millBootClasspath)(
-              mill.runner.BaseModule.Info(recRoot(depth), Discover[MillBuildModule.BootstrapModule])
+              mill.main.BuildModule.Info(recRoot(depth), Discover[MillBuildModule.BootstrapModule])
             )
           RunnerState(Some(bootstrapModule), Nil, None)
         }
@@ -88,9 +88,9 @@ class MillBuildBootstrap(projectRoot: os.Path,
         case Some(nestedFrame) => getModule0(nestedFrame.classLoaderOpt.get)
       }
 
-      val childBaseModules = baseModule0
+      val childBaseModules: Seq[BuildModule] = baseModule0
         .millModuleDirectChildren
-        .collect { case b: BaseModule => b }
+        .collect { case b: BuildModule => b }
 
       val baseModuleOrErr = childBaseModules match {
         case Seq() => Right(baseModule0)
@@ -127,8 +127,8 @@ class MillBuildBootstrap(projectRoot: os.Path,
             depth
           )
 
-          if (depth != 0) processRunClasspath(nestedRunnerState, evaluator, prevFrameOpt, prevOuterFrameOpt)
-          else processFinalTargets(nestedRunnerState, evaluator)
+          if (depth != 0) processRunClasspath(nestedRunnerState, buildModule, evaluator, prevFrameOpt, prevOuterFrameOpt)
+          else processFinalTargets(nestedRunnerState, buildModule, evaluator)
       }
     }
     // println(s"-evaluateRec($depth) " + recRoot(depth))
@@ -146,11 +146,12 @@ class MillBuildBootstrap(projectRoot: os.Path,
    * inside to be re-JITed
    */
   def processRunClasspath(nestedRunnerState: RunnerState,
+                          buildModule: BuildModule,
                           evaluator: Evaluator,
                           prevFrameOpt: Option[RunnerState.Frame],
                           prevOuterFrameOpt: Option[RunnerState.Frame]): RunnerState = {
 
-    MillBuildBootstrap.evaluateWithWatches(evaluator, Seq("{runClasspath,scriptImportGraph}")) match {
+    MillBuildBootstrap.evaluateWithWatches(buildModule, evaluator, Seq("{runClasspath,scriptImportGraph}")) match {
       case (Left(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
@@ -212,10 +213,11 @@ class MillBuildBootstrap(projectRoot: os.Path,
    * classloader, or runClasspath.
    */
   def processFinalTargets(nestedRunnerState: RunnerState,
+                          buildModule: BuildModule,
                           evaluator: Evaluator): RunnerState = {
 
     val (evaled, evalWatched, moduleWatches) =
-      MillBuildBootstrap.evaluateWithWatches(evaluator, targetsAndParams)
+      MillBuildBootstrap.evaluateWithWatches(buildModule, evaluator, targetsAndParams)
 
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
@@ -231,7 +233,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
   def makeEvaluator(workerCache: Map[Segments, (Int, Any)],
                     scriptImportGraph: Map[Path, (Int, Seq[Path])],
-                    baseModule: BaseModule,
+                    baseModule: BuildModule,
                     millClassloaderSigHash: Int,
                     depth: Int) = {
 
@@ -288,11 +290,12 @@ object MillBuildBootstrap{
     enclosingClasspath ++ millLauncherOpt
   }
 
-  def evaluateWithWatches(evaluator: Evaluator,
+  def evaluateWithWatches(buildModule: BuildModule,
+                          evaluator: Evaluator,
                           targetsAndParams: Seq[String]): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
 
     val evalTaskResult = RunScript.evaluateTasks(evaluator, targetsAndParams, SelectMode.Separated)
-    val moduleWatched = evaluator.rootModule.watchedValues.map(_.asInstanceOf[Watchable]).toVector
+    val moduleWatched = buildModule.watchedValues.toVector
 
     evalTaskResult match {
       case Left(msg) => (Left(msg), Nil, moduleWatched)

@@ -1,2 +1,2 @@
-object foo extends mill.runner.BaseModule
-object bar extends mill.runner.BaseModule
+object foo extends BaseModule
+object bar extends BaseModule

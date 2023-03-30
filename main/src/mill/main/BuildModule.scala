@@ -1,8 +1,8 @@
-package mill.runner
+package mill.main
 
 import mill.api.{PathRef, internal}
-import mill.define.{Caller, Discover, Segments}
-import mill.main.TokenReaders._
+import mill.define.{Caller, Discover, Segments, Watchable}
+import TokenReaders._
 
 import scala.collection.mutable
 
@@ -15,12 +15,12 @@ import scala.collection.mutable
  * defined at the top level of the `build.sc` and not nested in any other
  * modules.
  */
-abstract class BaseModule()
-                         (implicit baseModuleInfo: BaseModule.Info,
-                          millModuleEnclosing0: sourcecode.Enclosing,
-                          millModuleLine0: sourcecode.Line,
-                          millName0: sourcecode.Name,
-                          millFile0: sourcecode.File)
+abstract class BuildModule()
+                          (implicit baseModuleInfo: BuildModule.Info,
+                           millModuleEnclosing0: sourcecode.Enclosing,
+                           millModuleLine0: sourcecode.Line,
+                           millName0: sourcecode.Name,
+                           millFile0: sourcecode.File)
   extends mill.define.BaseModule(baseModuleInfo.millSourcePath0)(
     millModuleEnclosing0,
     millModuleLine0,
@@ -37,7 +37,7 @@ abstract class BaseModule()
   // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
   override lazy val millDiscover = baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
 
-  override object interp extends InterpApi {
+  object interp {
 
     def watchValue[T](v0: => T): T = {
       val v = v0
@@ -54,15 +54,15 @@ abstract class BaseModule()
     }
   }
 
-  override protected[mill] val watchedValues = mutable.Buffer.empty[Watchable]
+  protected[mill] val watchedValues = mutable.Buffer.empty[Watchable]
 }
 
 @internal
-object BaseModule{
+object BuildModule{
   case class Info(millSourcePath0: os.Path, discover: Discover[_])
 
   abstract class Foreign(foreign0: Option[Segments])
-                        (implicit baseModuleInfo: BaseModule.Info,
+                        (implicit baseModuleInfo: BuildModule.Info,
                          millModuleEnclosing0: sourcecode.Enclosing,
                          millModuleLine0: sourcecode.Line,
                          millName0: sourcecode.Name,

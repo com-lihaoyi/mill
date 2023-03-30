@@ -1,4 +1,4 @@
-package mill.runner
+package mill.define
 
 import mill.api.internal
 

@@ -1,4 +1,5 @@
 package mill.define
+import os.Path
 
 object BaseModule {
   case class Implicit(value: BaseModule)
@@ -36,22 +37,6 @@ abstract class BaseModule(
   implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
   def millDiscover: Discover[this.type]
 
-  def interp: InterpApi = throw new Exception("interp is not supported")
-
-  trait InterpApi{
-    /**
-     * Calling during build initialization to watch additional files that may not
-     * be normally picked up by the build.
-     */
-    def watch(p: os.Path): os.Path
-    /**
-     * A generalization of [[watch]], allows watching arbitrary values and not
-     * just the contents of file paths.
-     */
-    def watchValue[T](v0: => T): T
-  }
-  protected[mill] def watchedValues: collection.Seq[Any] =
-    throw new Exception("watchedValues is not supported")
 }
 
 abstract class ExternalModule(implicit
