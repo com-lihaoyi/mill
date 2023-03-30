@@ -40,3 +40,4 @@ ci/patch-mill-bootstrap.sh
 
 # Use second build to run tests using Mill
 target/mill-2 -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
+target/mill-2 -i "integration.example[scala-hello].server.test"

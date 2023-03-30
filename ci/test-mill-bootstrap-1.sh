@@ -39,4 +39,5 @@ rm -rf ~/.mill/ammonite
 ci/patch-mill-bootstrap.sh
 
 # Use second build to run tests using Mill
+target/mill-2 -i "integration.example[scala-hello].server.test"
 target/mill-2 -i "contrib.__.test"
