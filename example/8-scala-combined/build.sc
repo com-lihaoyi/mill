@@ -91,4 +91,13 @@ Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1)
 Publishing Artifact(com.lihaoyi,foo_3,0.0.1)
 Publishing Artifact(com.lihaoyi,bar_3,0.0.1)
 Publishing Artifact(com.lihaoyi,qux,0.0.1)
+
+> ./mill show foo[2.13.10].assembly
+out/foo/2.13.10/assembly.dest/out.jar
+
+> ./out/foo/2.13.10/assembly.dest/out.jar
+Foo.value: <h1>hello Scala 2.x</h1>
+Bar.value: <p>world Specific code for Scala 2.x</p>
+Qux.value: 31337
+
 */

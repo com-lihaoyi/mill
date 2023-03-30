@@ -10,6 +10,9 @@ object foo extends BuildModule with ScalaModule {
 // to mark `object foo` as the top-level module in the build. This lets us
 // directly perform operations `./mill compile` or `./mill run` without needing
 // to prefix it as `foo.compile` or `foo.run`.
+//
+// You can run `assembly` to generate a standalone executable jar, which then
+// can be run from the command line or deployed to be run elsewhere.
 
 /* Example Usage
 
@@ -17,6 +20,12 @@ object foo extends BuildModule with ScalaModule {
 compiling 1 Scala source
 
 > ./mill run
+Foo.value: <h1>hello</h1>
+
+> ./mill show assembly
+out/assembly.dest/out.jar
+
+> ./out/assembly.dest/out.jar
 Foo.value: <h1>hello</h1>
 
 */

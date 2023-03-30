@@ -18,11 +18,15 @@ object ExampleTestSuite extends IntegrationTestSuite{
         val commandBlockLines = commandBlock.linesIterator.toVector
         println("ExampleTestSuite: " + commandBlockLines.head)
         commandBlockLines.head match{
-          case s"> ./mill ${command}" =>
+          case s"> ./$command" =>
 
             val expectedSnippets = commandBlockLines.tail
-            val commandTokens = command.split(" ")
-            val evalResult = evalStdout(commandTokens: _*)
+            val evalResult = command match{
+              case s"mill $rest" => evalStdout(rest.split(" "): _*)
+              case rest =>
+                val res = os.proc(rest.split(" ")).call(stdout=os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
+                IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+            }
 
             if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
             else assert(evalResult.isSuccess)
@@ -48,6 +52,7 @@ object ExampleTestSuite extends IntegrationTestSuite{
             os.copy(os.Path(from, workspaceRoot), os.Path(to, workspaceRoot))
           case s"> sed -i 's/$oldStr/$newStr/g' $file" =>
             mangleFile(os.Path(file, workspaceRoot), _.replace(oldStr, newStr))
+
         }
       }
     }
