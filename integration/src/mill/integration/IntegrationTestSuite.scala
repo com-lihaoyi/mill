@@ -14,6 +14,7 @@ import scala.util.control.NonFatal
 
 object IntegrationTestSuite{
   case class EvalResult(isSuccess: Boolean, out: String, err: String)
+
 }
 
 abstract class IntegrationTestSuite(workspaceSlug: Option[String] = None) extends TestSuite{

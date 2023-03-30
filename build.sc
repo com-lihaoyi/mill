@@ -1098,7 +1098,15 @@ object integration extends MillScalaModule{
       def moduleDeps = Seq(IntegrationTestModule.this)
     }
   }
-  object example extends Cross[IntegrationCrossModule](listIn("example"): _*)
+  object example extends Cross[ExampleCrossModule](listIn("example"): _*)
+
+  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestModule {
+    def testRepoRoot: T[PathRef] = T.source(millSourcePath)
+    def compile = integration.compile()
+    object local extends ModeModule
+    object fork extends ModeModule
+    object server extends ModeModule
+  }
   object failure extends Cross[IntegrationCrossModule](listIn("failure"): _*)
   object feature extends Cross[IntegrationCrossModule](listIn("feature"): _*)
   class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestModule {
