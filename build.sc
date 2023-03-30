@@ -1093,8 +1093,8 @@ trait IntegrationTestModule extends MillScalaModule {
       if (mode == "local") T{ Map.empty[String, String] }
       else T{ Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
 
-    def compile = IntegrationTestCrossModule.this.compile()
-    def moduleDeps = Seq(IntegrationTestCrossModule.this)
+    def compile = IntegrationTestModule.this.compile()
+    def moduleDeps = Seq(IntegrationTestModule.this)
   }
 }
 
