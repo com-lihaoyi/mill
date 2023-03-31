@@ -32,7 +32,7 @@ object foo extends ScalaJSModule {
 
 > ./mill foo.run
 <h1>Hello World</h1>
-stringifiedJsObject: ["hello", "world", "!"]
+stringifiedJsObject: ["hello","world","!"]
 
 > ./mill foo.test
 + foo.FooTests.hello
@@ -43,6 +43,6 @@ main.js
 
 > node out/foo/fullLinkJS.dest/main.js
 <h1>Hello World</h1>
-stringifiedJsObject: ["hello", "world", "!"]
+stringifiedJsObject: ["hello","world","!"]
 
 */

@@ -62,7 +62,7 @@ class WrapperModule(val crossScalaVersion: String) extends Module {
 
 /* Example Usage
 
-> ./mill resolve wrapper[2.13.10].foo.jvm.sources
+> ./mill show wrapper[2.13.10].foo.jvm.sources
 wrapper/foo/src
 wrapper/foo/src-jvm
 wrapper/foo/src-2.13.10
@@ -72,7 +72,7 @@ wrapper/foo/src-2.13-jvm
 wrapper/foo/src-2
 wrapper/foo/src-2-jvm
 
-> ./mill resolve wrapper[3.2.2].bar.js.sources
+> ./mill show wrapper[3.2.2].bar.js.sources
 wrapper/bar/src
 wrapper/bar/src-js
 wrapper/bar/src-3.2.2
