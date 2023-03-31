@@ -42,7 +42,7 @@ jobs:
           - ./mill -i -k "integration.thirdparty.__.fork.test"
           # contrib tests
           - ./mill -i -k "contrib._.test"
-          - ./mill -i docs.antora.githubPages
+
         include:
           # Just some reporting to enable reasoning about library upgrades
           - java-version: 8
@@ -73,6 +73,8 @@ jobs:
             buildcmd: ./mill -i -k "integration.thirdparty.__.local.test"
           - java-version: 17
             buildcmd: ./mill -i -k "integration.thirdparty.__.server.test"
+          - java-version: 17
+            buildcmd: ./mill -i docs.antora.githubPages
 
     runs-on: ubuntu-latest
 
