@@ -51,6 +51,14 @@ object ExampleTestSuite extends IntegrationTestSuite{
           IntegrationTestSuite.EvalResult(res.is2xx, res.text(), "")
         )
 
+      case s"> cat $path" =>
+        Thread.sleep(500) // Need to give backgroundWrapper time to spin up
+        val res = os.read(os.Path(path, workspaceRoot))
+        validateEval(
+          expectedSnippets,
+          IntegrationTestSuite.EvalResult(true, res, "")
+        )
+
       case s"> node $rest" =>
         val res = os
           .proc("node", rest.split(" "))

@@ -28,6 +28,9 @@ object app extends BuildModule with ScalaModule{
 > curl http://localhost:8080
 <!DOCTYPE html><html><body><h1>Hello World</h1><p>I am cow</p></body></html>
 
+> cat stdout.log
+webapp.WebApp.hello() called
+
 > ./mill clean runBackground
 
 */
