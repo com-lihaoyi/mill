@@ -138,13 +138,16 @@ jobs:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
 
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.fork.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.server.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.__.fork.test"
-
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
         include:
           # Limit some tests to Java 17 to limit CI times
+          - java-version: 17
+            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.fork.test"
+          - java-version: 17
+            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.server.test"
+          - java-version: 17
+            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.__.fork.test"
+          - java-version: 17
+            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
           - java-version: 17
             buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.fork.test"
           - java-version: 17
