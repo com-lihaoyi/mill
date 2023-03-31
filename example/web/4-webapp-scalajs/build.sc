@@ -3,7 +3,7 @@ import mill._, scalalib._, scalajslib._
 object app extends BuildModule with ScalaModule{
 
   def scalaVersion = "2.13.10"
-  def ivyDeps = Agg[Dep](
+  def ivyDeps = Agg(
     ivy"com.lihaoyi::cask:0.9.0",
     ivy"com.lihaoyi::scalatags:0.12.0"
   )
@@ -11,6 +11,8 @@ object app extends BuildModule with ScalaModule{
   def resources = T.sources{
     os.makeDir(T.dest / "webapp")
     val jsPath = client.fastLinkJS().dest.path
+    // Move the main.js[.map] files into the proper filesystem position
+    // in the resource folder for the web server code to pick up
     os.copy(jsPath / "main.js", T.dest / "webapp" / "main.js")
     os.copy(jsPath / "main.js.map", T.dest / "webapp" / "main.js.map")
     super.resources() ++ Seq(PathRef(T.dest))

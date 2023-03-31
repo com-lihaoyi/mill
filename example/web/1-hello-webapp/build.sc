@@ -3,7 +3,7 @@ import mill._, scalalib._
 object app extends BuildModule with ScalaModule{
 
   def scalaVersion = "2.13.10"
-  def ivyDeps = Agg[Dep](
+  def ivyDeps = Agg(
     ivy"com.lihaoyi::cask:0.9.0",
     ivy"com.lihaoyi::scalatags:0.12.0"
   )
