@@ -5,16 +5,20 @@ object ExampleTestSuite extends IntegrationTestSuite{
     val workspaceRoot = initWorkspace()
 
     test("exampleUsage") {
-      val usageComment =
-        os.read.lines(workspaceRoot / "build.sc")
-          .dropWhile(_ != "/* Example Usage")
-          .drop(1)
-          .takeWhile(_ != "*/")
-          .mkString("\n")
+      try {
+        val usageComment =
+          os.read.lines(workspaceRoot / "build.sc")
+            .dropWhile(_ != "/* Example Usage")
+            .drop(1)
+            .takeWhile(_ != "*/")
+            .mkString("\n")
 
-      val commandBlocks = usageComment.trim.split("\n\n")
+        val commandBlocks = usageComment.trim.split("\n\n")
 
-      for(commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
+        for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
+      }finally{
+        os.remove.all(workspaceRoot / "out")
+      }
     }
   }
 
