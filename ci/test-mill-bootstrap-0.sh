@@ -40,4 +40,4 @@ ci/patch-mill-bootstrap.sh
 
 # Use second build to run tests using Mill
 target/mill-2 -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
-target/mill-2 -i "example[1-hello-world].server.test"
+target/mill-2 -i "example.basic[1-hello-world].server.test"

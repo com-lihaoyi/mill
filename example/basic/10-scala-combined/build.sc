@@ -26,6 +26,18 @@ val scalaVersions = Seq("2.13.10", "3.2.2")
 object foo extends Cross[FooModule](scalaVersions:_*)
 class FooModule(val crossScalaVersion: String) extends MyScalaModule with CrossScalaModule{
   def moduleDeps = Seq(bar(), qux)
+
+  def generatedSources = T{
+    os.write(
+      T.dest / "Version.scala",
+      s"""package foo
+         |object Version{
+         |  def value = "${publishVersion()}"
+         |}
+         |""".stripMargin
+    )
+    Seq(PathRef(T.dest))
+  }
 }
 
 object bar extends Cross[BarModule](scalaVersions:_*)
@@ -43,6 +55,9 @@ object qux extends JavaModule with MyModule
 // - With unit testing and publishing set up
 //
 // - With version-specific sources
+//
+// - With generated sources to include the `publishVersion` as a string in the
+//   code, so it can be printed at runtime
 //
 // Note that for multi-module builds like this, using queries like `__.test`
 // or `__.publishLocal` to run tasks on multiple targets at once can be very
@@ -70,7 +85,8 @@ foo[3.2.2].test.run
 qux.run
 
 > ./mill foo[2.13.10].run
-Foo.value: <h1>hello Scala 2.x</h1>
+foo version 0.0.1
+Foo.value: <h1>hello</h1>
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Qux.value: 31337
 
@@ -89,9 +105,9 @@ Qux.value: 31337
 + bar.BarTests.test
 <p>world Specific code for Scala 3.x</p>
 + foo.FooTests.test
-<h1>hello Scala 2.x</h1>
+<h1>hello</h1>
 + foo.FooTests.test
-<h1>hello Scala 3.x</h1>
+<h1>hello</h1>
 
 > ./mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1)
@@ -104,7 +120,8 @@ Publishing Artifact(com.lihaoyi,qux,0.0.1)
 out/foo/2.13.10/assembly.dest/out.jar
 
 > ./out/foo/2.13.10/assembly.dest/out.jar
-Foo.value: <h1>hello Scala 2.x</h1>
+foo version 0.0.1
+Foo.value: <h1>hello</h1>
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Qux.value: 31337
 
