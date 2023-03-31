@@ -1107,6 +1107,7 @@ object example extends Module{
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
+  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
 
   class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)

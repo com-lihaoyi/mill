@@ -110,11 +110,11 @@ Qux.value: 31337
 <h1>hello</h1>
 
 > ./mill __.publishLocal
-Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1)
-Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1)
-Publishing Artifact(com.lihaoyi,foo_3,0.0.1)
-Publishing Artifact(com.lihaoyi,bar_3,0.0.1)
-Publishing Artifact(com.lihaoyi,qux,0.0.1)
+Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo
 
 > ./mill show foo[2.13.10].assembly
 out/foo/2.13.10/assembly.dest/out.jar

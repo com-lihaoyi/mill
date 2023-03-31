@@ -25,6 +25,6 @@ object foo extends ScalaModule with PublishModule {
 /* Example Usage
 
 > ./mill foo.publishLocal
-Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1)
+Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo
 
 */

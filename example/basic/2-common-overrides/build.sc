@@ -24,7 +24,7 @@ object foo extends BuildModule with ScalaModule {
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = T {
-    os.write(
+    for(name <- Seq("A", "B", "C")) os.write(
       T.dest / s"$name.scala",
       s"""package foo
          |object Foo${name} {
