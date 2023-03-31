@@ -122,7 +122,7 @@ abstract class IntegrationTestSuite extends TestSuite{
     try {
       os.proc(millReleaseFileOpt.get, serverArgs, debugArgs, s).call(
         cwd = wd,
-        stdin = os.Inherit,
+        stdin = "",
         stdout = stdout,
         stderr = stderr,
         env = millTestSuiteEnv
