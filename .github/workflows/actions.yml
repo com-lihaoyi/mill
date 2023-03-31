@@ -27,27 +27,19 @@ jobs:
       matrix:
         java-version: [8, 17]
         buildcmd:
-          - ci/test-mill-release.sh
-          - ci/test-mill-dev.sh
           # bootstrap tests
           - ci/test-mill-bootstrap-0.sh
-          - ci/test-mill-bootstrap-1.sh
           # unit and module tests
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
+
           # additional integration tests
-          - ./mill -i -k "example.__.local.test"
           - ./mill -i -k "example.__.fork.test"
           - ./mill -i -k "example.__.server.test"
-          - ./mill -i -k "integration.feature.__.local.test"
+
           - ./mill -i -k "integration.feature.__.fork.test"
-          - ./mill -i -k "integration.feature.__.server.test"
-          - ./mill -i -k "integration.failure.__.local.test"
-          - ./mill -i -k "integration.failure.__.fork.test"
-          - ./mill -i -k "integration.failure.__.server.test"
+
           # integration tests of thirdparty repos
-          - ./mill -i -k "integration.thirdparty.__.local.test"
           - ./mill -i -k "integration.thirdparty.__.fork.test"
-          - ./mill -i -k "integration.thirdparty.__.server.test"
           # contrib tests
           - ./mill -i -k "contrib._.test"
           - ./mill -i docs.antora.githubPages
@@ -57,6 +49,30 @@ jobs:
             buildcmd: | 
               ./mill -i -k __.ivyDepsTree
               ./mill -i -k __.ivyDepsTree --withRuntime true
+
+          # Limit some tests to Java 17 to limit CI times
+          - java-version: 17
+            buildcmd: ci/test-mill-bootstrap-1.sh
+          - java-version: 17
+            buildcmd: ci/test-mill-release.sh
+          - java-version: 17
+            buildcmd: ci/test-mill-dev.sh
+          - java-version: 17
+            buildcmd: ./mill -i -k "example.__.local.test"
+          - java-version: 17
+            buildcmd: ./mill -i -k "integration.feature.__.local.test"
+          - java-version: 17
+            buildcmd: ./mill -i -k "integration.feature.__.server.test"
+          - java-version: 17
+            buildcmd: ./mill -i -k "integration.failure.__.local.test"
+          - java-version: 17
+            buildcmd: ./mill -i -k "integration.failure.__.fork.test"
+          - java-version: 17
+            buildcmd: ./mill -i -k "integration.failure.__.server.test"
+          - java-version: 17
+            buildcmd: ./mill -i -k "integration.thirdparty.__.local.test"
+          - java-version: 17
+            buildcmd: ./mill -i -k "integration.thirdparty.__.server.test"
 
     runs-on: ubuntu-latest
 
@@ -118,22 +134,21 @@ jobs:
       matrix:
         java-version: [8, 17]
         buildcmd:
+          # Run a stripped down build matrix on Windows, to avoid taking too long
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.local.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.fork.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.server.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.local.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.fork.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.server.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.failure.__.local.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.failure.__.fork.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.failure.__.server.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.__.local.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.__.fork.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.__.server.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
 
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.fork.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.server.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.__.fork.test"
+
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
+        include:
+          # Limit some tests to Java 17 to limit CI times
+          - java-version: 17
+            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.fork.test"
+          - java-version: 17
+            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.failure.__.fork.test"
 
     runs-on: windows-latest
 

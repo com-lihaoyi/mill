@@ -1,4 +1,5 @@
 package mill.example
+import mill.integration.IntegrationTestSuite
 import utest._
 import mill.util.Util
 
@@ -9,7 +10,9 @@ import mill.util.Util
  * `Example Usage` comment in the example's `build.sc` file. Someone should be
  * able to read the `Example Usage` comment and know roughly how to execute the
  * example themselves. Each empty-line-separated block consists of one comment
- * line (prefixed with `>`) and one or more output lines.
+ * line (prefixed with `>`) and one or more output lines we expect to get from
+ * the comman (either stdout or stderr). Output lines can be prefixed by
+ * `error: ` to indicate we expect that command to fail.
  *
  * Because our CI needs to run on Windows, we cannot rely on just executing
  * commands in the `bash` shell, and instead we implement a janky little
@@ -46,7 +49,7 @@ object ExampleTestSuite extends IntegrationTestSuite{
 
   def processCommandBlock(workspaceRoot: os.Path, commandBlock: String) = {
     val commandBlockLines = commandBlock.linesIterator.toVector
-    println("ExampleTestSuite: " + commandBlockLines.head)
+
 
     val expectedSnippets = commandBlockLines.tail
     val (commandHead, comment) = commandBlockLines.head match{
@@ -54,12 +57,21 @@ object ExampleTestSuite extends IntegrationTestSuite{
       case string => (string, None)
     }
 
-    val correctPlatform = {
+    val correctPlatform =
       comment == None ||
-      comment == Some("windows") && Util.windowsPlatform
-      comment == Some("mac/linux") && !Util.windowsPlatform
+      (comment == Some("windows") && Util.windowsPlatform) ||
+      (comment == Some("mac/linux") && !Util.windowsPlatform)
+
+    if (correctPlatform) {
+      println("ExampleTestSuite: " + commandBlockLines.head)
+      processCommand(workspaceRoot, expectedSnippets, commandHead)
     }
-    if (correctPlatform) commandHead match {
+  }
+
+  def processCommand(workspaceRoot: os.Path,
+                     expectedSnippets: Vector[String],
+                     commandHead: String) = {
+    commandHead match {
       case s"> ./$command" =>
         val evalResult = command match {
           case s"mill $rest" => evalStdout(rest.split(" "): _*)
