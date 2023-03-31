@@ -1,5 +1,27 @@
-package mill.integration
+package mill.example
 import utest._
+import mill.util.Util
+
+/**
+ * Shared implementation for the tests in `example/`.
+ *
+ * Implements a bash-like test DSL for educational purposes, parsed out from a
+ * `Example Usage` comment in the example's `build.sc` file. Someone should be
+ * able to read the `Example Usage` comment and know roughly how to execute the
+ * example themselves. Each empty-line-separated block consists of one comment
+ * line (prefixed with `>`) and one or more output lines.
+ *
+ * Because our CI needs to run on Windows, we cannot rely on just executing
+ * commands in the `bash` shell, and instead we implement a janky little
+ * interpreter that reads the command lines and does things in-JVM in response
+ * to each one.
+ *
+ * For teaching purposes, the output lines do not show the entire output of
+ * every command, which can be verbose and confusing. They instead contain
+ * sub-strings of the command output, enough to convey the important points to
+ * a learner. This is not as strict as asserting the entire command output, but
+ * should be enough to catch most likely failure modes
+ */
 object ExampleTestSuite extends IntegrationTestSuite{
   val tests = Tests {
     val workspaceRoot = initWorkspace()
@@ -27,7 +49,17 @@ object ExampleTestSuite extends IntegrationTestSuite{
     println("ExampleTestSuite: " + commandBlockLines.head)
 
     val expectedSnippets = commandBlockLines.tail
-    commandBlockLines.head match {
+    val (commandHead, comment) = commandBlockLines.head match{
+      case s"$before#$after" => (before.trim, Some(after.trim))
+      case string => (string, None)
+    }
+
+    val correctPlatform = {
+      comment == None ||
+      comment == Some("windows") && Util.windowsPlatform
+      comment == Some("mac/linux") && !Util.windowsPlatform
+    }
+    if (correctPlatform) commandHead match {
       case s"> ./$command" =>
         val evalResult = command match {
           case s"mill $rest" => evalStdout(rest.split(" "): _*)

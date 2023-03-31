@@ -10,7 +10,7 @@ object ZincIncrementalCompilationTests extends IntegrationTestSuite {
       val successful = eval("app.compile")
       assert(successful)
 
-      val appSrc = wd / "app" / "src" / "main" / "scala" / "WebApp.scala"
+      val appSrc = wd / "app" / "src" / "main" / "scala" / "App.scala"
       val classes = wd / "out" / "app" / "compile.dest" / "classes"
       val app = classes / "app" / "App.class"
       val model = classes / "models" / "Foo.class"

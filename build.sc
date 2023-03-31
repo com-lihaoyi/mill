@@ -1033,11 +1033,6 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 // We compile the test code once and then offer multiple modes to
 // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
 // and pass `lib`'s compile output back to `test`
-trait IntegrationTestCrossModule extends IntegrationTestModule {
-  object local extends ModeModule
-  object fork extends ModeModule
-  object server extends ModeModule
-}
 trait IntegrationTestModule extends MillScalaModule {
   def repoSlug: String
 
@@ -1101,9 +1096,17 @@ trait IntegrationTestModule extends MillScalaModule {
   }
 }
 
+trait IntegrationTestCrossModule extends IntegrationTestModule {
+  object local extends ModeModule
+  object fork extends ModeModule
+  object server extends ModeModule
+}
+
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
-object example extends Module{
+object example extends MillScalaModule{
+
+  def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
@@ -1111,7 +1114,7 @@ object example extends Module{
 
   class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
-    def compile = integration.compile()
+    def compile = example.compile()
   }
 }
 

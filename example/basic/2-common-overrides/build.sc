@@ -87,7 +87,7 @@ MY_CUSTOM_ENV: my-env-value
 > ./mill show assembly
 out/assembly.dest/out.jar
 
-> ./out/assembly.dest/out.jar
+> ./out/assembly.dest/out.jar # mac/linux
 Foo2.value: <h1>hello2</h1>
 Foo.value: <h1>hello</h1>
 FooA.value: hello A
