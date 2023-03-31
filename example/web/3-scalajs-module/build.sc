@@ -38,7 +38,7 @@ stringifiedJsObject: ["hello","world","!"]
 + foo.FooTests.hello
 
 > ./mill show foo.fullLinkJS
-out/foo/fullLinkJS.dest/
+out/foo/fullLinkJS.dest
 main.js
 
 > node out/foo/fullLinkJS.dest/main.js

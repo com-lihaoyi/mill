@@ -44,7 +44,7 @@ object ExampleTestSuite extends IntegrationTestSuite{
         mangleFile(os.Path(file, workspaceRoot), _.replace(oldStr, newStr))
 
       case s"> curl $url" =>
-        Thread.sleep(500) // Need to give backgroundWrapper time to spin up
+        Thread.sleep(1000) // Need to give backgroundWrapper time to spin up
         val res = requests.get(url)
         validateEval(
           expectedSnippets,
@@ -52,7 +52,6 @@ object ExampleTestSuite extends IntegrationTestSuite{
         )
 
       case s"> cat $path" =>
-        Thread.sleep(500) // Need to give backgroundWrapper time to spin up
         val res = os.read(os.Path(path, workspaceRoot))
         validateEval(
           expectedSnippets,

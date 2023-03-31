@@ -76,7 +76,7 @@ wrapper/foo/src-2-jvm
 wrapper/bar/src
 wrapper/bar/src-js
 wrapper/bar/src-3.2.2
-wrapper/bar/src-3.2.2-v
+wrapper/bar/src-3.2.2-js
 wrapper/bar/src-3.2
 wrapper/bar/src-3.2-js
 wrapper/bar/src-3
