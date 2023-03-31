@@ -58,7 +58,7 @@ import com.google.gson.JsonObject
 import mill.T
 import mill.api.{DummyTestReporter, PathRef, Result, Strict, internal}
 import mill.define.Segment.Label
-import mill.define.{BaseModule, Discover, ExternalModule, Module, Segments, Task}
+import mill.define.{Discover, ExternalModule, Module, Segments, Task}
 import mill.eval.Evaluator
 import mill.main.{BspServerResult, MainModule}
 import mill.main.TokenReaders._
@@ -88,14 +88,14 @@ class MillBuildServer(
 
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
 
-  var cancellator: Boolean => Unit = shutdownBefore => ()
-  var onSessionEnd: Option[BspServerResult => Unit] = None
-  var client: BuildClient = _
-  var initialized = false
-  var clientInitialized = false
-  var shutdownRequested = false
-  var clientWantsSemanticDb = false
-  var clientIsIntelliJ = false
+  private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
+  private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
+  protected var client: BuildClient = _
+  private var initialized = false
+  private var clientInitialized = false
+  private var shutdownRequested = false
+  protected var clientWantsSemanticDb = false
+  protected var clientIsIntelliJ = false
 
   class State(val evaluator: Evaluator) {
     private[this] object internal {
@@ -106,14 +106,12 @@ class MillBuildServer(
               ModuleUtils.transitiveModules(evaluator.rootModule) ++ Seq(`mill-build`)
             val map = modules.collect {
               case m: MillBuildModule =>
-                val uri = sanitizeUri(m.millSourcePath) +
-                  m.bspBuildTarget.displayName.map(n => s"?id=${n}").getOrElse("")
+                val uri = sanitizeUri(m.millSourcePath)
                 val id = new BuildTargetIdentifier(uri)
                 log.debug(s"mill-build segments: ${`mill-build`.millModuleSegments.render}")
                 (id, m)
               case m: BspModule =>
-                val uri = sanitizeUri(`mill-build`.millSourcePath / m.millModuleSegments.parts) +
-                  m.bspBuildTarget.displayName.map(n => s"?id=${n}").getOrElse("")
+                val uri = sanitizeUri(`mill-build`.millSourcePath / m.millModuleSegments.parts)
                 val id = new BuildTargetIdentifier(uri)
                 (id, m)
             }.toMap
@@ -123,10 +121,8 @@ class MillBuildServer(
           case _ => // already init
         }
       }
-      private[MillBuildServer] var idToModule: Option[Map[BuildTargetIdentifier, BspModule]] =
-        None
+      private[MillBuildServer] var idToModule: Option[Map[BuildTargetIdentifier, BspModule]] = None
       private[MillBuildServer] var modulesToId: Option[Map[BspModule, BuildTargetIdentifier]] = None
-
     }
 
     lazy val `mill-build`: MillBuildModule = {
@@ -217,10 +213,9 @@ class MillBuildServer(
       capabilities.setRunProvider(new RunProvider(supportedLangs))
       capabilities.setTestProvider(new TestProvider(supportedLangs))
 
-      request.getDisplayName match {
-        case "IntelliJ-BSP" => clientIsIntelliJ = true
-        case _ => clientIsIntelliJ = false
-      }
+      // IJ is currently not able to handle files as source paths, only dirs
+      // TODO: Rumor has it, that newer version may handle it, so we need to better detect that
+      clientIsIntelliJ = request.getDisplayName == "IntelliJ-BSP"
 
       def readVersion(json: JsonObject, name: String): Option[String] =
         if (json.has(name)) {
@@ -739,7 +734,9 @@ class MillBuildServer(
 
     if (checkInitialized && !initialized) {
       future.completeExceptionally(
-        new Exception(s"Can not respond to ${prefix} request before receiving the `initialize` request.")
+        new Exception(
+          s"Can not respond to ${prefix} request before receiving the `initialize` request."
+        )
       )
     } else {
       statePromise.future.onComplete {
@@ -779,7 +776,9 @@ class MillBuildServer(
 
     if (checkInitialized && !initialized) {
       future.completeExceptionally(
-        new Exception(s"Can not respond to ${prefix} request before receiving the `initialize` request.")
+        new Exception(
+          s"Can not respond to ${prefix} request before receiving the `initialize` request."
+        )
       )
     } else {
       try {

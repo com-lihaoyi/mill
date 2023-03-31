@@ -64,8 +64,9 @@ object BspWorker {
           case Failure(e) =>
             millCtx.log.error(
               s"""Could not validate worker version number.
-                |Error message: ${e.getMessage}
-                |""".stripMargin)
+                 |Error message: ${e.getMessage}
+                 |""".stripMargin
+            )
         }
 
         val workerCls = cl.loadClass(Constants.bspWorkerImplClass)

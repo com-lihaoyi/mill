@@ -54,7 +54,7 @@ trait MillBuildModule
     Agg.from(deps)
   }
 
-  override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = T{
+  override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = T {
     val deps = BuildInfo.millScalacPluginDeps.map(d => ivy"${d}")
     T.log.errorStream.println(s"scalacPluginIvyDeps: ${deps}")
     deps

@@ -94,10 +94,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     linkTask(isFullLinkJS = true, forceOutJs = false)()
   }
 
+  @deprecated("Use fastLinkJS instead", "Mill 0.10.12")
   def fastOpt: Target[PathRef] = T {
     getReportMainFilePathRef(linkTask(isFullLinkJS = false, forceOutJs = true)())
   }
 
+  @deprecated("Use fullLinkJS instead", "Mill 0.10.12")
   def fullOpt: Target[PathRef] = T {
     getReportMainFilePathRef(linkTask(isFullLinkJS = true, forceOutJs = true)())
   }

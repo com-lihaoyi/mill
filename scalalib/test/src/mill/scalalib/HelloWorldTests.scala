@@ -1220,21 +1220,22 @@ object HelloWorldTests extends TestSuite {
 
     "validated" - {
       "PathRef" - {
-        def check(t: Target[PathRef], flip: Boolean) = workspaceTest(ValidatedTarget, debug = true) { eval =>
-          // we reconstruct faulty behavior
-          val Right((result, _)) = eval.apply(t)
-          assert(
-            result.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
-            os.exists(result.path)
-          )
-          os.remove.all(result.path)
-          val Right((result2, _)) = eval.apply(t)
-          assert(
-            result2.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
-            // as the result was cached but not checked, this path is missing
-            os.exists(result2.path) == flip
-          )
-        }
+        def check(t: Target[PathRef], flip: Boolean) =
+          workspaceTest(ValidatedTarget, debug = true) { eval =>
+            // we reconstruct faulty behavior
+            val Right((result, _)) = eval.apply(t)
+            assert(
+              result.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+              os.exists(result.path)
+            )
+            os.remove.all(result.path)
+            val Right((result2, _)) = eval.apply(t)
+            assert(
+              result2.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+              // as the result was cached but not checked, this path is missing
+              os.exists(result2.path) == flip
+            )
+          }
         "unchecked" - check(ValidatedTarget.uncheckedPathRef, false)
         "checked" - check(ValidatedTarget.checkedPathRef, true)
       }
@@ -1277,20 +1278,21 @@ object HelloWorldTests extends TestSuite {
         "checked" - check(ValidatedTarget.checkedAggPathRef, true)
       }
       "other" - {
-        def check(t: Target[Tuple1[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
-          // we reconstruct faulty behavior
-          val Right((result, _)) = eval.apply(t)
-          assert(
-            result._1.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
-            os.exists(result._1.path)
-          )
-          os.remove.all(result._1.path)
-          val Right((result2, _)) = eval.apply(t)
-          assert(
-            result2._1.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
-            // as the result was cached but not checked, this path is missing
-            os.exists(result2._1.path) == flip
-          )
+        def check(t: Target[Tuple1[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) {
+          eval =>
+            // we reconstruct faulty behavior
+            val Right((result, _)) = eval.apply(t)
+            assert(
+              result._1.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+              os.exists(result._1.path)
+            )
+            os.remove.all(result._1.path)
+            val Right((result2, _)) = eval.apply(t)
+            assert(
+              result2._1.path.last == (t.asInstanceOf[NamedTask[_]].label + ".dest"),
+              // as the result was cached but not checked, this path is missing
+              os.exists(result2._1.path) == flip
+            )
         }
         "unchecked" - check(ValidatedTarget.uncheckedTuplePathRef, false)
         "checked" - check(ValidatedTarget.checkedTuplePathRef, true)

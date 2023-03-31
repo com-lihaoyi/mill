@@ -38,6 +38,7 @@ trait BspModule extends Module {
 }
 
 object BspModule {
+
   /** Used to define the [[BspBuildTarget.languageIds]] field. */
   object LanguageId {
     val Java = "java"

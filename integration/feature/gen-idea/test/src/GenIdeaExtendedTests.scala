@@ -23,8 +23,8 @@ object GenIdeaExtendedTests extends IntegrationTestSuite {
         os.sub / "mill_modules" / "helloworld.subscala3.iml",
         os.sub / "mill_modules" / "mill-build.iml",
         os.sub / "libraries" / s"scala_library_${scalaVersionLibPart}_jar.xml",
-        //NOTE: on IntelliJ Scala Plugin side there is a cosmetic issue: scala suffix is added even for Java libraries (notice `_2_13` suffix)
-        //In future it might be fixed and `GenIdea` will need to be updated
+        // NOTE: on IntelliJ Scala Plugin side there is a cosmetic issue: scala suffix is added even for Java libraries (notice `_2_13` suffix)
+        // In future it might be fixed and `GenIdea` will need to be updated
         os.sub / "libraries" / "SBT_ junit_junit_2_13_4_13_2_jar.xml",
         os.sub / "libraries" / "SBT_ org_scalameta_munit_2_13_0_7_29_jar.xml",
         os.sub / "modules.xml",

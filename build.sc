@@ -63,9 +63,10 @@ object Settings {
     "0.11.0-M3",
     "0.11.0-M4",
     "0.11.0-M5",
-    "0.11.0-M6"
+    "0.11.0-M6",
+    "0.11.0-M7"
   )
-  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M6")
+  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M7")
 }
 
 object Deps {
@@ -118,7 +119,7 @@ object Deps {
     val playVersion = "2.7.9"
   }
   object Play_2_8 extends Play {
-    val playVersion = "2.8.18"
+    val playVersion = "2.8.19"
   }
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
@@ -153,7 +154,7 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.1"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.3"
   val scalametaTrees = ivy"org.scalameta::trees:4.7.6"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"

@@ -62,7 +62,8 @@ object HelloJavaTests extends TestSuite {
       val outputFiles = os.walk(result.path).filter(os.isFile)
       val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
 
-      val expectedSemFiles = Seq(dataPath / "META-INF" / "semanticdb" / "core" / "src" / "Core.java.semanticdb")
+      val expectedSemFiles =
+        Seq(dataPath / "META-INF" / "semanticdb" / "core" / "src" / "Core.java.semanticdb")
       assert(
         result.path == dataPath,
         outputFiles.nonEmpty,
