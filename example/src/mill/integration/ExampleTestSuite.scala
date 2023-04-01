@@ -78,7 +78,7 @@ object ExampleTestSuite extends IntegrationTestSuite{
           case rest =>
             val tokens = rest.split(" ")
             val executable = workspaceRoot / os.RelPath(tokens.head)
-            if (!os.exists(tokens.head)){
+            if (!os.exists(executable)){
               throw new Exception(
                 s"Executable $executable not found.\n" +
                 s"Other files present include ${os.list(executable / os.up)}"

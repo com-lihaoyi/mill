@@ -12,7 +12,7 @@ object foo extends MyModule {
 object bar extends MyModule
 
 // A simple Mill build with two modules, `foo` and `bar`. We don't mark either
-// module as top-level using `extends BuildModule`, so running tasks needs to
+// module as top-level using `extends BuildFileModule`, so running tasks needs to
 // use the module name as the prefix e.g. `foo.run` or `bar.run`
 //
 // Note that we split out the configuration common to both modules into a

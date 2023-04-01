@@ -8,7 +8,7 @@ trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
   def scalaJSVersion = "1.13.0"
 }
 
-object app extends BuildModule with AppScalaModule{
+object app extends BuildFileModule with AppScalaModule{
 
   def moduleDeps = Seq(shared.jvm)
 

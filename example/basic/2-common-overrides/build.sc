@@ -1,6 +1,6 @@
 import mill._, scalalib._
 
-object foo extends BuildModule with ScalaModule {
+object foo extends BuildFileModule with ScalaModule {
   def scalaVersion = "2.13.10"
 
   // You can have arbitrary numbers of third-party dependencies

@@ -2,7 +2,7 @@ import mill._, scalalib._
 import $ivy.`com.lihaoyi::scalatags:0.8.2`, scalatags.Text.all._
 import $file.scalaversion, scalaversion.myScalaVersion
 
-object foo extends BuildModule with ScalaModule {
+object foo extends BuildFileModule with ScalaModule {
   def scalaVersion = myScalaVersion
 
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
