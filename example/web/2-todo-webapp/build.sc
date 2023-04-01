@@ -1,6 +1,6 @@
 import mill._, scalalib._
 
-object app extends BuildFileModule with ScalaModule{
+object app extends RootModule with ScalaModule{
 
   def scalaVersion = "2.13.10"
   def ivyDeps = Agg(

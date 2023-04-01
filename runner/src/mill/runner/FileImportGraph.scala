@@ -20,7 +20,7 @@ object FileImportGraph{
   /**
    * We perform a depth-first traversal of the import graph of `.sc` files,
    * starting from `build.sc`, collecting the information necessary to
-   * instantiate the [[MillBuildModule]]
+   * instantiate the [[MillRootModule]]
    */
   def parseBuildFiles(topLevelProjectRoot: os.Path, projectRoot: os.Path) = {
     val seenScripts = mutable.Map.empty[os.Path, String]

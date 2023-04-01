@@ -12,7 +12,7 @@ import mill.main.RootModule
  *
  * - `frame(0)` contains the output of evaluating the user-given targets
  * - `frame(1)` contains the output of `build.sc` file compilation
- * - `frame(2)` contains the output of the in-memory [[MillBuildModule.BootstrapModule]]
+ * - `frame(2)` contains the output of the in-memory [[MillBuildRootModule.BootstrapModule]]
  * - If there are meta-builds present (e.g. `mill-build/build.sc`), then `frame(2)`
  *   would contains the output of the meta-build compilation, and the in-memory
  *   bootstrap module would be pushed to a higher frame

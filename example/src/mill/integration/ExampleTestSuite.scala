@@ -85,7 +85,7 @@ object ExampleTestSuite extends IntegrationTestSuite{
               )
             }
             val res = os
-              .proc()
+              .proc(tokens)
               .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
 
             IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())

@@ -1,7 +1,7 @@
 import mill._, scalalib._
 import scalatags.Text.all._
 
-object foo extends BuildFileModule with ScalaModule {
+object foo extends RootModule with ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
 

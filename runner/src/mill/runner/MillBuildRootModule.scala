@@ -18,10 +18,10 @@ import pprint.Util.literalize
  * defining the task and any files which were changed.
  */
 @internal
-class MillBuildModule()(implicit baseModuleInfo: RootModule.Info,
-                        millBuildModuleInfo: MillBuildModule.Info) extends RootModule() with ScalaModule{
+class MillBuildRootModule()(implicit baseModuleInfo: RootModule.Info,
+                            millBuildRootModule: MillBuildRootModule.Info) extends RootModule() with ScalaModule{
 
-  def millSourcePath = millBuildModuleInfo.projectRoot / os.up / "mill-build"
+  def millSourcePath = millBuildRootModule.projectRoot / os.up / "mill-build"
 
   def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task {
     // We need to resolve the sources to make GenIdeaExtendedTests pass for
@@ -35,8 +35,8 @@ class MillBuildModule()(implicit baseModuleInfo: RootModule.Info,
 
   def parseBuildFiles = T.input {
     FileImportGraph.parseBuildFiles(
-      millBuildModuleInfo.topLevelProjectRoot,
-      millBuildModuleInfo.projectRoot / os.up
+      millBuildRootModule.topLevelProjectRoot,
+      millBuildRootModule.projectRoot / os.up
     )
   }
 
@@ -68,13 +68,13 @@ class MillBuildModule()(implicit baseModuleInfo: RootModule.Info,
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
-      MillBuildModule.generateWrappedSources(
-        millBuildModuleInfo.projectRoot / os.up,
+      MillBuildRootModule.generateWrappedSources(
+        millBuildRootModule.projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
         T.dest,
-        millBuildModuleInfo.enclosingClasspath,
-        millBuildModuleInfo.topLevelProjectRoot
+        millBuildRootModule.enclosingClasspath,
+        millBuildRootModule.topLevelProjectRoot
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -94,7 +94,7 @@ class MillBuildModule()(implicit baseModuleInfo: RootModule.Info,
 
   def unmanagedClasspath = mill.define.Target.input {
     mill.api.Loose.Agg.from(
-      millBuildModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
+      millBuildRootModule.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
     ) ++
     lineNumberPluginClasspath()
   }
@@ -119,17 +119,17 @@ class MillBuildModule()(implicit baseModuleInfo: RootModule.Info,
   }
 }
 
-object MillBuildModule{
+object MillBuildRootModule{
 
   class BootstrapModule(topLevelProjectRoot0: os.Path,
                         projectRoot: os.Path,
                         enclosingClasspath: Seq[os.Path])
                        (implicit baseModuleInfo: RootModule.Info) extends RootModule {
 
-    implicit private def millBuildModuleInfo = MillBuildModule.Info(
+    implicit private def millBuildRootModuleInfo = MillBuildRootModule.Info(
       enclosingClasspath, projectRoot, topLevelProjectRoot0
     )
-    object build extends MillBuildModule
+    object build extends MillBuildRootModule
 
     override lazy val millDiscover: Discover[this.type] =
       baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
@@ -149,7 +149,7 @@ object MillBuildModule{
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
 
-      val newSource = MillBuildModule.top(
+      val newSource = MillBuildRootModule.top(
         relative,
         scriptSource.path / os.up,
         FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1),
@@ -159,7 +159,7 @@ object MillBuildModule{
         scriptSource.path
       ) +
         scriptCode(scriptSource.path) +
-        MillBuildModule.bottom
+        MillBuildRootModule.bottom
 
       os.write(dest, newSource , createFolders = true)
     }
@@ -194,19 +194,20 @@ object MillBuildModule{
     s"""
        |package ${pkg.mkString(".")}
        |import _root_.mill._
+       |import mill.runner.MillBuildRootModule
        |object `MiscInfo_${name}`{
-       |  implicit val millBuildModuleInfo: _root_.mill.runner.MillBuildModule.Info = _root_.mill.runner.MillBuildModule.Info(
+       |  implicit val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
        |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
        |    _root_.os.Path(${literalize(base.toString)}),
        |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)})
        |  )
        |  import mill.main.TokenReaders._
        |  implicit val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
-       |    millBuildModuleInfo.projectRoot,
+       |    millBuildRootModuleInfo.projectRoot,
        |    _root_.mill.define.Discover[$name]
        |  )
        |}
-       |import `MiscInfo_${name}`.{millBuildModuleInfo, millBaseModuleInfo}
+       |import `MiscInfo_${name}`.{millBuildRootModuleInfo, millBaseModuleInfo}
        |object $name extends $name
        |class $name extends $superClass{
        |
