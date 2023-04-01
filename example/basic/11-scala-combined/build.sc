@@ -116,10 +116,10 @@ Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo
 Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo
 Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo
 
-> ./mill show foo[2.13.10].assembly
+> ./mill show foo[2.13.10].assembly # mac/linux
 out/foo/2.13.10/assembly.dest/out.jar
 
-> ./out/foo/2.13.10/assembly.dest/out.jar
+> ./out/foo/2.13.10/assembly.dest/out.jar # mac/linux
 foo version 0.0.1
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world Specific code for Scala 2.x</p>

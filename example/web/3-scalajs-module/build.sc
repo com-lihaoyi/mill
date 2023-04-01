@@ -37,11 +37,11 @@ stringifiedJsObject: ["hello","world","!"]
 > ./mill foo.test
 + foo.FooTests.hello
 
-> ./mill show foo.fullLinkJS
+> ./mill show foo.fullLinkJS # mac/linux
 out/foo/fullLinkJS.dest
 main.js
 
-> node out/foo/fullLinkJS.dest/main.js
+> node out/foo/fullLinkJS.dest/main.js # mac/linux
 <h1>Hello World</h1>
 stringifiedJsObject: ["hello","world","!"]
 
