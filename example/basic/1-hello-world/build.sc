@@ -28,6 +28,9 @@ out/assembly.dest/out.jar
 > ./out/assembly.dest/out.jar # mac/linux
 Foo.value: <h1>hello</h1>
 
+> ./mill show assembly # windows
+out\assembly.dest\out.bat
+
 > ./out/assembly.dest/out.bat # windows
 Foo.value: <h1>hello</h1>
 
