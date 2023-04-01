@@ -12,7 +12,7 @@ object InvalidMetaModuleTests extends IntegrationTestSuite {
     test("success"){
       val res = evalStdout("resolve", "_")
       assert(res.isSuccess == false)
-      assert(res.err.contains("Top-level module in mill-build/build.sc must be of class mill.runner.MillBuildModule"))
+      assert(res.err.contains("Top-level module in mill-build/build.sc must be of class mill.runner.MillBuildRootModule"))
     }
   }
 }
