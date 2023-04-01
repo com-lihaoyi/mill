@@ -166,59 +166,59 @@ jobs:
       - name: Run '${{ matrix.buildcmd }}'
         run: ${{ matrix.buildcmd }}
 
-  publish-sonatype:
-    # when in master repo, publish all tags and manual runs on main
-    if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
-    needs: [test, test-windows, test-bin-compat]
-
-    runs-on: ubuntu-latest
-
-    # only run one publish job for the same sha at the same time
-    # e.g. when a main-branch push is also tagged
-    concurrency: publish-sonatype-${{ github.sha }}
-
-    env:
-      SONATYPE_PGP_SECRET: ${{ secrets.SONATYPE_PGP_SECRET }}
-      SONATYPE_USERNAME: ${{ secrets.SONATYPE_DEPLOY_USER }}
-      SONATYPE_PASSWORD: ${{ secrets.SONATYPE_DEPLOY_PASSWORD }}
-      SONATYPE_PGP_PASSWORD: ${{ secrets.SONATYPE_PGP_PASSWORD }}
-      LANG: "en_US.UTF-8"
-      LC_MESSAGES: "en_US.UTF-8"
-      LC_ALL: "en_US.UTF-8"
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: 8
-          distribution: temurin
-
-      - run: ci/release-maven.sh
-
-  release-github:
-    # when in master repo, publish all tags and manual runs on main
-    if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
-    needs: publish-sonatype
-    runs-on: ubuntu-latest
-
-    env:
-      REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: 8
-          distribution: temurin
-
-      - run: ./mill -i uploadToGithub $REPO_ACCESS_TOKEN
+#  publish-sonatype:
+#    # when in master repo, publish all tags and manual runs on main
+#    if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
+#    needs: [test, test-windows, test-bin-compat]
+#
+#    runs-on: ubuntu-latest
+#
+#    # only run one publish job for the same sha at the same time
+#    # e.g. when a main-branch push is also tagged
+#    concurrency: publish-sonatype-${{ github.sha }}
+#
+#    env:
+#      SONATYPE_PGP_SECRET: ${{ secrets.SONATYPE_PGP_SECRET }}
+#      SONATYPE_USERNAME: ${{ secrets.SONATYPE_DEPLOY_USER }}
+#      SONATYPE_PASSWORD: ${{ secrets.SONATYPE_DEPLOY_PASSWORD }}
+#      SONATYPE_PGP_PASSWORD: ${{ secrets.SONATYPE_PGP_PASSWORD }}
+#      LANG: "en_US.UTF-8"
+#      LC_MESSAGES: "en_US.UTF-8"
+#      LC_ALL: "en_US.UTF-8"
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0
+#
+#      - uses: coursier/cache-action@v6
+#
+#      - uses: actions/setup-java@v3
+#        with:
+#          java-version: 8
+#          distribution: temurin
+#
+#      - run: ci/release-maven.sh
+#
+#  release-github:
+#    # when in master repo, publish all tags and manual runs on main
+#    if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
+#    needs: publish-sonatype
+#    runs-on: ubuntu-latest
+#
+#    env:
+#      REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0
+#
+#      - uses: coursier/cache-action@v6
+#
+#      - uses: actions/setup-java@v3
+#        with:
+#          java-version: 8
+#          distribution: temurin
+#
+#      - run: ./mill -i uploadToGithub $REPO_ACCESS_TOKEN
