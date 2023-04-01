@@ -120,6 +120,12 @@ object ExampleTestSuite extends IntegrationTestSuite{
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
         IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
 
+      case s"> java -jar $rest" =>
+        val res = os
+          .proc("java", "-jar", rest.split(" "))
+          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
+        IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+
     }
   }
 
