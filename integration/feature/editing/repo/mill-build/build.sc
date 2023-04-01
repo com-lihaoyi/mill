@@ -1,6 +1,6 @@
 import mill._, scalalib._
 
-object millbuild extends runner.MillBuildModule{
+object millbuild extends MillBuildRootModule{
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:${constant.MetaConstant.scalatagsVersion}")
 
   def generatedSources = T {
