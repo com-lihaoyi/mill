@@ -3,7 +3,7 @@ import mill.util.{ColorLogger, PrefixLogger, Util}
 import mill.{BuildInfo, MillCliConfig, T}
 import mill.api.{PathRef, internal}
 import mill.eval.Evaluator
-import mill.main.{BuildModule, RunScript}
+import mill.main.{RootModule, RunScript}
 import mill.main.TokenReaders._
 import mill.define.{Discover, Segments, SelectMode, Watchable}
 import os.Path
@@ -12,8 +12,8 @@ import java.net.URLClassLoader
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildModule.BootstrapModule]]
- * and compiling builds/meta-builds and classloading their [[BuildModule]]s so we
- * can evaluate the requested tasks on the [[BuildModule]] representing the user's
+ * and compiling builds/meta-builds and classloading their [[RootModule]]s so we
+ * can evaluate the requested tasks on the [[RootModule]] representing the user's
  * `build.sc` file.
  *
  * When Mill is run in client-server mode, or with `--watch`, then data from
@@ -56,7 +56,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
   def getModule0(runClassLoader: URLClassLoader) = {
     val cls = runClassLoader.loadClass("millbuild.build$")
-    cls.getField("MODULE$").get(cls).asInstanceOf[BuildModule]
+    cls.getField("MODULE$").get(cls).asInstanceOf[RootModule]
   }
 
   def evaluateRec(depth: Int): RunnerState = {
@@ -72,7 +72,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
           val bootstrapModule =
             new MillBuildModule.BootstrapModule(projectRoot, recRoot(depth), millBootClasspath)(
-              mill.main.BuildModule.Info(recRoot(depth), Discover[MillBuildModule.BootstrapModule])
+              mill.main.RootModule.Info(recRoot(depth), Discover[MillBuildModule.BootstrapModule])
             )
           RunnerState(Some(bootstrapModule), Nil, None)
         }
@@ -88,9 +88,9 @@ class MillBuildBootstrap(projectRoot: os.Path,
         case Some(nestedFrame) => getModule0(nestedFrame.classLoaderOpt.get)
       }
 
-      val childBaseModules: Seq[BuildModule] = baseModule0
+      val childBaseModules: Seq[RootModule] = baseModule0
         .millModuleDirectChildren
-        .collect { case b: BuildModule => b }
+        .collect { case b: RootModule => b }
 
       val baseModuleOrErr = childBaseModules match {
         case Seq() => Right(baseModule0)
@@ -146,7 +146,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
    * inside to be re-JITed
    */
   def processRunClasspath(nestedRunnerState: RunnerState,
-                          buildModule: BuildModule,
+                          buildModule: RootModule,
                           evaluator: Evaluator,
                           prevFrameOpt: Option[RunnerState.Frame],
                           prevOuterFrameOpt: Option[RunnerState.Frame]): RunnerState = {
@@ -213,7 +213,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
    * classloader, or runClasspath.
    */
   def processFinalTargets(nestedRunnerState: RunnerState,
-                          buildModule: BuildModule,
+                          buildModule: RootModule,
                           evaluator: Evaluator): RunnerState = {
 
     val (evaled, evalWatched, moduleWatches) =
@@ -233,7 +233,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
   def makeEvaluator(workerCache: Map[Segments, (Int, Any)],
                     scriptImportGraph: Map[Path, (Int, Seq[Path])],
-                    baseModule: BuildModule,
+                    baseModule: RootModule,
                     millClassloaderSigHash: Int,
                     depth: Int) = {
 
@@ -290,7 +290,7 @@ object MillBuildBootstrap{
     enclosingClasspath ++ millLauncherOpt
   }
 
-  def evaluateWithWatches(buildModule: BuildModule,
+  def evaluateWithWatches(buildModule: RootModule,
                           evaluator: Evaluator,
                           targetsAndParams: Seq[String]): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
 

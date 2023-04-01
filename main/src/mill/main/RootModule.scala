@@ -15,12 +15,12 @@ import scala.collection.mutable
  * defined at the top level of the `build.sc` and not nested in any other
  * modules.
  */
-abstract class BuildModule()
-                          (implicit baseModuleInfo: BuildModule.Info,
-                           millModuleEnclosing0: sourcecode.Enclosing,
-                           millModuleLine0: sourcecode.Line,
-                           millName0: sourcecode.Name,
-                           millFile0: sourcecode.File)
+abstract class RootModule()
+                         (implicit baseModuleInfo: RootModule.Info,
+                          millModuleEnclosing0: sourcecode.Enclosing,
+                          millModuleLine0: sourcecode.Line,
+                          millName0: sourcecode.Name,
+                          millFile0: sourcecode.File)
   extends mill.define.BaseModule(baseModuleInfo.millSourcePath0)(
     millModuleEnclosing0,
     millModuleLine0,
@@ -58,11 +58,11 @@ abstract class BuildModule()
 }
 
 @internal
-object BuildModule{
+object RootModule{
   case class Info(millSourcePath0: os.Path, discover: Discover[_])
 
   abstract class Foreign(foreign0: Option[Segments])
-                        (implicit baseModuleInfo: BuildModule.Info,
+                        (implicit baseModuleInfo: RootModule.Info,
                          millModuleEnclosing0: sourcecode.Enclosing,
                          millModuleLine0: sourcecode.Line,
                          millName0: sourcecode.Name,

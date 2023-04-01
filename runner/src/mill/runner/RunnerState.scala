@@ -4,7 +4,7 @@ import mill.api.{PathRef, internal}
 import mill.define.{BaseModule, Segments, Watchable}
 import upickle.default.{ReadWriter, macroRW}
 import mill.api.JsonFormatters._
-import mill.main.BuildModule
+import mill.main.RootModule
 
 /**
  * This contains a list of frames each representing cached data from a single
@@ -27,7 +27,7 @@ import mill.main.BuildModule
  * evaluation that require them.
  */
 @internal
-case class RunnerState(bootstrapModuleOpt: Option[BuildModule],
+case class RunnerState(bootstrapModuleOpt: Option[RootModule],
                        frames: Seq[RunnerState.Frame],
                        errorOpt: Option[String]){
   def add(frame: RunnerState.Frame = RunnerState.Frame.empty,

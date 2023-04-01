@@ -1,2 +1,2 @@
-object foo extends BuildModule
-object bar extends BuildModule
+object foo extends RootModule
+object bar extends RootModule

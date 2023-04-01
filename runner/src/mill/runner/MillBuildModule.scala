@@ -18,8 +18,8 @@ import pprint.Util.literalize
  * defining the task and any files which were changed.
  */
 @internal
-class MillBuildModule()(implicit baseModuleInfo: BuildModule.Info,
-                        millBuildModuleInfo: MillBuildModule.Info) extends BuildModule() with ScalaModule{
+class MillBuildModule()(implicit baseModuleInfo: RootModule.Info,
+                        millBuildModuleInfo: MillBuildModule.Info) extends RootModule() with ScalaModule{
 
   def millSourcePath = millBuildModuleInfo.projectRoot / os.up / "mill-build"
 
@@ -124,7 +124,7 @@ object MillBuildModule{
   class BootstrapModule(topLevelProjectRoot0: os.Path,
                         projectRoot: os.Path,
                         enclosingClasspath: Seq[os.Path])
-                       (implicit baseModuleInfo: BuildModule.Info) extends BuildModule {
+                       (implicit baseModuleInfo: RootModule.Info) extends RootModule {
 
     implicit private def millBuildModuleInfo = MillBuildModule.Info(
       enclosingClasspath, projectRoot, topLevelProjectRoot0
@@ -174,7 +174,7 @@ object MillBuildModule{
           originalFilePath: os.Path) = {
 
     val superClass =
-      if (pkg.size <= 1 && name == "build") "_root_.mill.main.BuildModule"
+      if (pkg.size <= 1 && name == "build") "_root_.mill.main.RootModule"
       else {
         // Computing a path in "out" that uniquely reflects the location
         // of the foreign module relatively to the current build.
@@ -188,7 +188,7 @@ object MillBuildModule{
           Seq(relative.segments.last.stripSuffix(".sc"))
 
         val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-        s"_root_.mill.main.BuildModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
+        s"_root_.mill.main.RootModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
       }
 
     s"""
@@ -201,7 +201,7 @@ object MillBuildModule{
        |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)})
        |  )
        |  import mill.main.TokenReaders._
-       |  implicit val millBaseModuleInfo: _root_.mill.main.BuildModule.Info = _root_.mill.main.BuildModule.Info(
+       |  implicit val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
        |    millBuildModuleInfo.projectRoot,
        |    _root_.mill.define.Discover[$name]
        |  )
