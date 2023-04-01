@@ -2,7 +2,7 @@ import mill._, scalalib._
 import scalatags.Text.all._
 
 object foo extends BuildModule with ScalaModule {
-  def scalaVersion = millbuild.Versions.myScalaVersion
+  def scalaVersion = millbuild.ScalaVersion.myScalaVersion
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
 
   def htmlSnippet = T{ h1("hello").toString }
@@ -10,6 +10,8 @@ object foo extends BuildModule with ScalaModule {
     os.write(T.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(T.dest))
   }
+
+  def forkArgs = Seq(s"-Dmill.scalatags.version=${millbuild.DepVersions.scalatagsVersion}")
 }
 
 // This example illustrates usage of the `mill-build/` folder. Mill's `build.sc`
@@ -18,9 +20,16 @@ object foo extends BuildModule with ScalaModule {
 // compiled and executed to perform your build. This module lives in
 // `mill-build/`.
 //
-// In this example, our `myScalaVersion` value comes from
-// `mill-build/src/Versions.scala`, while the Scalatags library we use in
-// `build.sc` comes from the `def ivyDeps` in `mill-build/build.sc`.
+// In this example:
+//
+// 1. Our `myScalaVersion` value comes from `mill-build/src/Versions.scala`,
+//    while the Scalatags library we use in `build.sc` comes from the
+//    `def ivyDeps` in `mill-build/build.sc`.
+//
+// 2. We also use `generatedSources` in `mill-build/build.sc` to create a
+//    `DepVersions` object that the `build.sc` can use to pass the
+//    `scalatagsVersion` to the application without having to copy-paste the
+//    version and keep the two copies in sync
 //
 // You can customize the `mill-build/` module with more flexibility than is
 // provided by `import $ivy` or `import $file`, overriding any tasks that are
@@ -35,6 +44,7 @@ compiling 1 Scala source
 
 > ./mill run
 Foo.value: <h1>hello</h1>
+scalatagsVersion: 0.8.2
 
 > ./mill show assembly
 out/assembly.dest/out.jar
@@ -44,5 +54,6 @@ Foo.value: <h1>hello</h1>
 
 > ./out/assembly.dest/out.bat # windows
 Foo.value: <h1>hello</h1>
+scalatagsVersion: 0.8.2
 
 */

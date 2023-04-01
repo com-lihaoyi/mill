@@ -1,9 +1,9 @@
 import mill._, scalalib._
 import $ivy.`com.lihaoyi::scalatags:0.8.2`, scalatags.Text.all._
-import $file.versions
+import $file.scalaversion, scalaversion.myScalaVersion
 
 object foo extends BuildModule with ScalaModule {
-  def scalaVersion = versions.myScalaVersion
+  def scalaVersion = myScalaVersion
 
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
   def htmlSnippet = T{ h1("hello").toString }

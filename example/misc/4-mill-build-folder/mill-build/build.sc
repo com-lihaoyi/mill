@@ -1,14 +1,15 @@
 import mill._, scalalib._
 
 object millbuild extends runner.MillBuildModule{
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
+  val scalatagsVersion = "0.8.2"
+  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:$scalatagsVersion")
 
   def generatedSources = T {
     os.write(
-      T.dest / "Constant.scala",
-      s"""package constant
-         |object Constant{
-         |  def scalatagsVersion = "0.8.2"
+      T.dest / "DepVersions.scala",
+      s"""package millbuild
+         |object DepVersions{
+         |  def scalatagsVersion = "$scalatagsVersion"
          |}
          |""".stripMargin
     )
