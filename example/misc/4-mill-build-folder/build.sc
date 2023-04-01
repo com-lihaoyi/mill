@@ -49,7 +49,7 @@ scalatagsVersion: 0.8.2
 > ./mill show assembly
 out/assembly.dest/out.jar
 
-> ./out/assembly.dest/out.jar
+> ./out/assembly.dest/out.jar # mac/linux
 Foo.value: <h1>hello</h1>
 
 */
