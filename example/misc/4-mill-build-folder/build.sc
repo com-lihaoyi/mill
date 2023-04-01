@@ -46,10 +46,10 @@ compiling 1 Scala source
 Foo.value: <h1>hello</h1>
 scalatagsVersion: 0.8.2
 
-> ./mill show assembly # mac/linux
+> ./mill show assembly
 out/assembly.dest/out.jar
 
-> ./out/assembly.dest/out.jar # mac/linux
+> ./out/assembly.dest/out.jar
 Foo.value: <h1>hello</h1>
 
 */

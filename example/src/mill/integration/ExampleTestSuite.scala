@@ -139,10 +139,11 @@ object ExampleTestSuite extends IntegrationTestSuite{
 
         def plainText(s: String) =
           fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
+            .replace("\\", "/") // Convert windows paths to Unix
 
         assert(
           plainText(evalResult.err).contains(expected) ||
-            plainText(evalResult.out).contains(expected)
+          plainText(evalResult.out).contains(expected)
         )
       }
     }

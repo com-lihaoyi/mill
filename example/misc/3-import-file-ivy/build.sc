@@ -37,10 +37,10 @@ compiling 1 Scala source
 > ./mill run
 Foo.value: <h1>hello</h1>
 
-> ./mill show assembly # mac/linux
+> ./mill show assembly
 out/assembly.dest/out.jar
 
-> ./out/assembly.dest/out.jar # mac/linux
+> ./out/assembly.dest/out.jar
 Foo.value: <h1>hello</h1>
 
 */
