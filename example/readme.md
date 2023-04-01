@@ -17,6 +17,8 @@ The three sub-folders are:
    using the `mill-build/` folder.
 
 Within each sub-folder, examples are numbered in the order they are intended to
-be read. Each example illustrates one key concept or technique, and by going
-through all of them you should be able to learn everything that you need to be
-productive with the Mill build tool.
+be read. Each example illustrates one key concept or technique, with the code
+followed by a comment explaining it, and an `Example Usage` block showing how
+the example can be used. By going through all of the examples, you should be
+able to learn everything that you need to be productive with the Mill build
+tool.
