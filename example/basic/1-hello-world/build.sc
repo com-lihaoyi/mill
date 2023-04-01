@@ -25,7 +25,10 @@ Foo.value: <h1>hello</h1>
 > ./mill show assembly
 out/assembly.dest/out.jar
 
-> ./out/assembly.dest/out.jar
+> ./out/assembly.dest/out.jar # mac/linux
+Foo.value: <h1>hello</h1>
+
+> java -jar ./out/assembly.dest/out.jar # windows
 Foo.value: <h1>hello</h1>
 
 */
