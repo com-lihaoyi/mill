@@ -13,6 +13,6 @@ object millbuild extends runner.MillBuildModule{
          |}
          |""".stripMargin
     )
-    super.generatedSources() ++ Seq(PathRef(T.dest / "Constant.scala"))
+    super.generatedSources() ++ Seq(PathRef(T.dest))
   }
 }
