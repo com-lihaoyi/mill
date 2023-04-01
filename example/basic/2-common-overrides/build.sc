@@ -84,7 +84,7 @@ MyOtherResource: My Other Resource Contents
 my.custom.property: my-prop-value
 MY_CUSTOM_ENV: my-env-value
 
-> ./mill show assembly
+> ./mill show assembly # mac/linux
 out/assembly.dest/out.jar
 
 > ./out/assembly.dest/out.jar # mac/linux

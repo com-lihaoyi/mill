@@ -76,8 +76,16 @@ object ExampleTestSuite extends IntegrationTestSuite{
         val evalResult = command match {
           case s"mill $rest" => evalStdout(rest.split(" "): _*)
           case rest =>
+            val tokens = rest.split(" ")
+            val executable = workspaceRoot / os.RelPath(tokens.head)
+            if (!os.exists(tokens.head)){
+              throw new Exception(
+                s"Executable $executable not found.\n" +
+                s"Other files present include ${os.list(executable / os.up)}"
+              )
+            }
             val res = os
-              .proc(rest.split(" "))
+              .proc()
               .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
 
             IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
