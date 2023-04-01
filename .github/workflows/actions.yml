@@ -1,8 +1,15 @@
 name: Build and Release
 
 # We run full CI on push builds to main and on all pull requests
+#
 # Tags are automatically published
+#
 # Manual builds (workflow_dispatch) to the main branch are also published
+#
+# To maximize bug-catching changes while keeping CI times reasonable, we run:
+# - All tests on Linux/Java17
+# - Fewer tests on Linux/Java8 and Windows/Java17
+# - Fewest tests on Windows/Java8
 
 on:
   push:
@@ -141,11 +148,11 @@ jobs:
           - java-version: 17
             buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.server.test"
           - java-version: 17
+            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.failure.__.fork.test"
+          - java-version: 17
             buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.__.fork.test"
           - java-version: 17
             buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
-          - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.failure.__.fork.test"
 
     runs-on: windows-latest
 
