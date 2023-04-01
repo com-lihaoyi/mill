@@ -100,7 +100,7 @@ object ExampleTestSuite extends IntegrationTestSuite{
         mangleFile(os.Path(file, workspaceRoot), _.replace(oldStr, newStr))
 
       case s"> curl $url" =>
-        Thread.sleep(1000) // Need to give backgroundWrapper time to spin up
+        Thread.sleep(1500) // Need to give backgroundWrapper time to spin up
         val res = requests.get(url)
         validateEval(
           expectedSnippets,
@@ -139,12 +139,12 @@ object ExampleTestSuite extends IntegrationTestSuite{
 
         def plainText(s: String) =
           fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
-            .replace("\\", "/") // Convert windows paths to Unix
+            .replace("\\\\", "/") // Convert windows paths in JSON strings to Unix
 
-        assert(
-          plainText(evalResult.err).contains(expected) ||
-          plainText(evalResult.out).contains(expected)
-        )
+        val filteredErr = plainText(evalResult.err)
+        val filteredOut = plainText(evalResult.out)
+
+        assert(filteredErr.contains(expected) || filteredOut.contains(expected))
       }
     }
   }
