@@ -39,10 +39,7 @@ jobs:
           # unit and module tests
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
 
-          # additional integration tests
-          - ./mill -i -k "example.__.fork.test"
-          - ./mill -i -k "example.__.server.test"
-
+          - ./mill -i -k "integration.feature.__.server.test"
           - ./mill -i -k "integration.feature.__.fork.test"
 
           # contrib tests
@@ -63,11 +60,9 @@ jobs:
           - java-version: 17
             buildcmd: ci/test-mill-dev.sh
           - java-version: 17
-            buildcmd: ./mill -i -k "example.__.local.test"
+            buildcmd: ./mill -i -k "example.__.test"
           - java-version: 17
             buildcmd: ./mill -i -k "integration.feature.__.local.test"
-          - java-version: 17
-            buildcmd: ./mill -i -k "integration.feature.__.server.test"
           - java-version: 17
             buildcmd: ./mill -i -k "integration.failure.__.test"
           - java-version: 17
