@@ -43,7 +43,6 @@ object ResolveSegments extends Resolve[Segments] {
       discover: Discover[_],
       rest: Seq[String]
   ): Either[String, Seq[Segments]] = {
-
     val target =
       obj
         .millInternal

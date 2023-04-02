@@ -25,13 +25,13 @@ import scala.util.control.NonFatal
 
 case class Labelled[T](task: Target[T], segments: Segments) {
   def format: Option[default.ReadWriter[T]] = task match {
-    case t: TargetImpl[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
+    case t: CachedTarget[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
   def writer: Option[default.Writer[T]] = task match {
     case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
     case t: mill.define.InputImpl[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
-    case t: TargetImpl[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
+    case t: CachedTarget[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
 }
@@ -615,7 +615,7 @@ class Evaluator private (_home: os.Path,
       newResults(task) = for (v <- res) yield {
         (
           v,
-          if (task.isInstanceOf[Worker[_]]) inputsHash
+          if (task.isInstanceOf[WorkerImpl[_]]) inputsHash
           else v.##
         )
       }

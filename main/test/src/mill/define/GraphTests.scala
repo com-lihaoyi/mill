@@ -79,7 +79,7 @@ object GraphTests extends TestSuite {
 
         val important = important0.map(_(base))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
-          case t: TargetImpl[_] if important.contains(t) => t: Target[_]
+          case t: CachedTarget[_] if important.contains(t) => t: Target[_]
         }
         val flattened = Agg.from(grouped.values().flatMap(_.items))
 

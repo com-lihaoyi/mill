@@ -72,10 +72,14 @@ object JavaCompileJarTests extends TestSuite {
 
       def append(path: os.Path, txt: String) = os.write.append(path, txt)
 
+      println("=" * 150)
+
       check(
         targets = Agg(jar),
         expected = Agg(allSources, classFiles, jar)
       )
+
+      println("=" * 150)
 
       // Re-running with no changes results in nothing being evaluated
       check(targets = Agg(jar), expected = Agg())

@@ -115,9 +115,9 @@ trait MillTestKit {
           Tuple2(
             evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
             evaluated.evaluated.collect {
-              case t: TargetImpl[_]
+              case t: CachedTarget[_]
                   if module.millInternal.targets.contains(t)
-                    && !t.isInstanceOf[Input[_]]
+                    && !t.isInstanceOf[InputImpl[_]]
                     && !t.ctx.external => t
               case t: mill.define.Command[_] => t
             }.size
@@ -148,11 +148,13 @@ trait MillTestKit {
     }
 
     def check(targets: Agg[Task[_]], expected: Agg[Task[_]]): Unit = {
-      val evaluated = evaluator.evaluate(targets)
+      val targets2 = evaluator.evaluate(targets)
         .evaluated
         .flatMap(_.asTarget)
+
+      val evaluated = targets2
         .filter(module.millInternal.targets.contains)
-        .filter(!_.isInstanceOf[Input[_]])
+        .filter(!_.isInstanceOf[InputImpl[_]])
       assert(
         evaluated == expected,
         s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"
