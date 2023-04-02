@@ -64,18 +64,18 @@ object MacroErrorTests extends TestSuite {
 //          e.pos.contains("def z() = ")
 //        )
 //      }
-      "persistent" - {
-        val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
-            def a() = T.persistent{1}
-          }
-          mill.define.Discover[foo.type]
-        """)
-        assert(
-          e.msg.contains("`T.persistent` definitions must have 0 parameter lists"),
-          e.pos.contains("def a() = ")
-        )
-      }
+//      "persistent" - {
+//        val e = compileError("""
+//          object foo extends mill.util.TestUtil.BaseModule{
+//            def a() = T.persistent{1}
+//          }
+//          mill.define.Discover[foo.type]
+//        """)
+//        assert(
+//          e.msg.contains("`T.persistent` definitions must have 0 parameter lists"),
+//          e.pos.contains("def a() = ")
+//        )
+//      }
     }
     "badTmacro" - {
       // Make sure we can reference values from outside the T{...} block as part

@@ -88,7 +88,7 @@ object GraphTests extends TestSuite {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[CachedTarget[_]]).filter(important.contains) == Agg(
+            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == Agg(
               terminal
             )
           )

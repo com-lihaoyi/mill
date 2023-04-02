@@ -30,7 +30,7 @@ case class Labelled[T](task: Target[T], segments: Segments) {
   }
   def writer: Option[default.Writer[T]] = task match {
     case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
-    case t: mill.define.Input[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
+    case t: mill.define.InputImpl[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
     case t: CachedTarget[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
