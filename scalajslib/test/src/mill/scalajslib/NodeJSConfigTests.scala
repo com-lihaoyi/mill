@@ -31,8 +31,8 @@ object NodeJSConfigTests extends TestSuite {
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)
     } yield (scala, nodeArgs)
 
-    object helloJsWorld extends Cross[BuildModule](matrix: _*)
-    class BuildModule(val crossScalaVersion: String, nodeArgs: List[String])
+    object helloJsWorld extends Cross[RootModule](matrix: _*)
+    class RootModule(val crossScalaVersion: String, nodeArgs: List[String])
         extends HelloJSWorldModule {
       override def artifactName = "hello-js-world"
       def scalaJSVersion = NodeJSConfigTests.scalaJSVersion
@@ -41,7 +41,7 @@ object NodeJSConfigTests extends TestSuite {
 
     object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
     class BuildModuleUtest(crossScalaVersion: String, nodeArgs: List[String])
-        extends BuildModule(crossScalaVersion, nodeArgs) {
+        extends RootModule(crossScalaVersion, nodeArgs) {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = Agg(
@@ -73,7 +73,7 @@ object NodeJSConfigTests extends TestSuite {
       )
     }
 
-    "test" - {
+    test("test") - {
 
       def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) =
         if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
@@ -83,7 +83,7 @@ object NodeJSConfigTests extends TestSuite {
           notNodeArgs
         )
 
-      "test" - checkUtest(nodeArgsEmpty, nodeArgs2G)
+      test("test") - checkUtest(nodeArgsEmpty, nodeArgs2G)
       "test2G" - checkUtest(nodeArgs2G, nodeArgs4G)
     }
 

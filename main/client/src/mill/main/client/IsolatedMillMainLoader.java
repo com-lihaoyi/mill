@@ -30,7 +30,7 @@ class IsolatedMillMainLoader {
             long startTime = System.currentTimeMillis();
             Optional<Method> millMainMethod = Optional.empty();
             try {
-                Class<?> millMainClass = IsolatedMillMainLoader.class.getClassLoader().loadClass("mill.MillMain");
+                Class<?> millMainClass = IsolatedMillMainLoader.class.getClassLoader().loadClass("mill.runner.MillMain");
                 Method mainMethod = millMainClass.getMethod("main", String[].class);
                 millMainMethod = Optional.of(mainMethod);
             } catch (ClassNotFoundException | NoSuchMethodException e) {
@@ -58,7 +58,7 @@ class IsolatedMillMainLoader {
                 mainMethod.invoke(null, new Object[]{args});
             }
         } else {
-            throw new RuntimeException("Cannot load mill.MillMain class");
+            throw new RuntimeException("Cannot load mill.runner.MillMain class");
         }
     }
 
@@ -67,7 +67,7 @@ class IsolatedMillMainLoader {
 
         List<String> l = new ArrayList<>();
         l.addAll(MillEnv.millLaunchJvmCommand(setJnaNoSys));
-        l.add("mill.MillMain");
+        l.add("mill.runner.MillMain");
         l.addAll(Arrays.asList(args));
 
         Process running = new ProcessBuilder()

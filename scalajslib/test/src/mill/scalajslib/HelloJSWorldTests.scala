@@ -32,8 +32,8 @@ object HelloJSWorldTests extends TestSuite {
       if !(ZincWorkerUtil.isScala3(scala) && scalaJS != scalaJSVersions.head)
     } yield (scala, scalaJS)
 
-    object helloJsWorld extends Cross[BuildModule](matrix: _*)
-    class BuildModule(val crossScalaVersion: String, sjsVersion0: String)
+    object helloJsWorld extends Cross[RootModule](matrix: _*)
+    class RootModule(val crossScalaVersion: String, sjsVersion0: String)
         extends HelloJSWorldModule {
       override def artifactName = "hello-js-world"
       def scalaJSVersion = sjsVersion0
@@ -50,7 +50,7 @@ object HelloJSWorldTests extends TestSuite {
 
     object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
     class BuildModuleUtest(crossScalaVersion: String, sjsVersion0: String)
-        extends BuildModule(crossScalaVersion, sjsVersion0) {
+        extends RootModule(crossScalaVersion, sjsVersion0) {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
@@ -64,7 +64,7 @@ object HelloJSWorldTests extends TestSuite {
     class BuildModuleScalaTest(
         crossScalaVersion: String,
         sjsVersion0: String
-    ) extends BuildModule(crossScalaVersion, sjsVersion0) {
+    ) extends RootModule(crossScalaVersion, sjsVersion0) {
       object test extends super.Tests with TestModule.ScalaTest {
         override def sources = T.sources { millSourcePath / "src" / "scalatest" }
         override def ivyDeps = Agg(

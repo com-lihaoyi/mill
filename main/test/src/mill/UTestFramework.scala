@@ -1,4 +1,6 @@
 package mill
+import utest.framework.{Result, StackMarker}
+import utest.ufansi.Str
 
 class UTestFramework extends utest.runner.Framework {
   override def exceptionStackFrameHighlighter(s: StackTraceElement) = {

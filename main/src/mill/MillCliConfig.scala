@@ -41,6 +41,12 @@ class MillCliConfig private (
         """Disable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
     val disableTicker: Flag,
+    @arg(
+      name = "enable-ticker",
+      doc =
+        """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
+    )
+    val enableTicker: Option[Boolean],
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
     val debugLog: Flag,
     @arg(
@@ -126,6 +132,7 @@ class MillCliConfig private (
     "showVersion" -> showVersion,
     "ringBell" -> ringBell,
     "disableTicker" -> disableTicker,
+    "enableTicker" -> enableTicker,
     "debugLog" -> debugLog,
     "keepGoing" -> keepGoing,
     "extraSystemProperties" -> extraSystemProperties,
@@ -159,6 +166,7 @@ object MillCliConfig {
       showVersion: Flag = Flag(),
       ringBell: Flag = Flag(),
       disableTicker: Flag = Flag(),
+      enableTicker: Option[Boolean] = None,
       debugLog: Flag = Flag(),
       keepGoing: Flag = Flag(),
       extraSystemProperties: Map[String, String] = Map(),
@@ -180,6 +188,7 @@ object MillCliConfig {
     showVersion = showVersion,
     ringBell = ringBell,
     disableTicker = disableTicker,
+    enableTicker = enableTicker,
     debugLog = debugLog,
     keepGoing = keepGoing,
     extraSystemProperties = extraSystemProperties,
@@ -197,7 +206,6 @@ object MillCliConfig {
 }
 
 import mainargs.ParserForClass
-import ammonite.repl.tools.Util.PathRead
 
 // We want this in a separate source file, but to avoid stale --help output due
 // to undercompilation, we have it in this file
@@ -206,6 +214,13 @@ object MillCliConfigParser {
 
   val customName = s"Mill Build Tool, version ${BuildInfo.millVersion}"
   val customDoc = "usage: mill [options] [[target [target-options]] [+ [target ...]]]"
+
+  /**
+   * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths
+   */
+  implicit object PathRead
+    extends mainargs.TokensReader[os.Path]("path", strs => Right(os.Path(strs.last, os.pwd)))
+
 
   private[this] lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]

@@ -23,4 +23,5 @@ ci/patch-mill-bootstrap.sh
 export MILL_TEST_RELEASE="$(pwd)/target/mill-release"
 
 # Run tests
-"$MILL_TEST_RELEASE" -i integration.thirdparty.forked
+"$MILL_TEST_RELEASE" -i "example.basic[1-hello-world].server.test"
+"$MILL_TEST_RELEASE" -i integration.thirdparty.__.fork.test

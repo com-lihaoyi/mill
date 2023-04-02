@@ -87,7 +87,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
         )
     }
 
-  implicit def millScoptTargetReads[T] = new mill.main.Tasks.Scopt[T]()
+  import mill.main.TokenReaders._
 
   lazy val millDiscover = Discover[this.type]
 }
