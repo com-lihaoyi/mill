@@ -7,7 +7,25 @@ import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 
 trait TaskTests extends TestSuite {
-  trait Build extends TestUtil.BaseModule {
+  trait SuperBuild extends TestUtil.BaseModule {
+
+    var superBuildInputCount = 0
+
+    def superBuildInputOverrideWithConstant = T.input {
+      superBuildInputCount += 1
+      superBuildInputCount
+    }
+
+    def superBuildInputOverrideUsingSuper = T.input {
+      superBuildInputCount += 1
+      superBuildInputCount
+    }
+
+    def superBuildTargetOverrideWithInput = T {
+      1234
+    }
+  }
+  trait Build extends SuperBuild{
     var count = 0
     var changeOnceCount = 0
     var workerCloseCount = 0
@@ -88,6 +106,17 @@ trait TaskTests extends TestSuite {
     def changeOnceWorkerDownstream = T {
       val w = changeOnceWorker()
       w.apply(1)
+    }
+
+    override def superBuildInputOverrideWithConstant = T{ 123 }
+    override def superBuildInputOverrideUsingSuper = T{
+      123  + super.superBuildInputOverrideUsingSuper()
+    }
+
+    var superBuildTargetOverrideWithInputCount = 0
+    override def superBuildTargetOverrideWithInput = T.input {
+      superBuildTargetOverrideWithInputCount += 1
+      superBuildTargetOverrideWithInputCount
     }
   }
 
@@ -190,6 +219,27 @@ trait TaskTests extends TestSuite {
         check.apply(build.noisyClosableWorkerDownstream) ==> Right((4, 1))
         wc.size ==> 1
         assert(wc.head != secondCached)
+      }
+    }
+
+
+    "overrideDifferentKind" - {
+      "inputWithTarget" - {
+        "notUsingSuper" - withEnv { (build, check) =>
+          check.apply(build.superBuildInputOverrideWithConstant) ==> Right((123, 1))
+          check.apply(build.superBuildInputOverrideWithConstant) ==> Right((123, 0))
+          check.apply(build.superBuildInputOverrideWithConstant) ==> Right((123, 0))
+        }
+        "usingSuper" - withEnv { (build, check) =>
+          check.apply(build.superBuildInputOverrideUsingSuper) ==> Right((124, 1))
+          check.apply(build.superBuildInputOverrideUsingSuper) ==> Right((125, 1))
+          check.apply(build.superBuildInputOverrideUsingSuper) ==> Right((126, 1))
+        }
+      }
+      "targetWithInput" - withEnv { (build, check) =>
+        check.apply(build.superBuildTargetOverrideWithInput) ==> Right((1, 0))
+        check.apply(build.superBuildTargetOverrideWithInput) ==> Right((2, 0))
+        check.apply(build.superBuildTargetOverrideWithInput) ==> Right((3, 0))
       }
     }
   }

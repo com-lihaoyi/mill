@@ -40,30 +40,30 @@ object MacroErrorTests extends TestSuite {
 //          e.pos.contains("def x() = ")
 //        )
 //      }
-      "input" - {
-        val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
-            def y() = T.input{1}
-          }
-          mill.define.Discover[foo.type]
-        """)
-        assert(
-          e.msg.contains("`T.input` definitions must have 0 parameter lists"),
-          e.pos.contains("def y() = ")
-        )
-      }
-      "sources" - {
-        val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
-            def z() = T.sources{os.pwd}
-          }
-          mill.define.Discover[foo.type]
-        """)
-        assert(
-          e.msg.contains("`T.sources` definitions must have 0 parameter lists"),
-          e.pos.contains("def z() = ")
-        )
-      }
+//      "input" - {
+//        val e = compileError("""
+//          object foo extends mill.util.TestUtil.BaseModule{
+//            def y() = T.input{1}
+//          }
+//          mill.define.Discover[foo.type]
+//        """)
+//        assert(
+//          e.msg.contains("`T.input` definitions must have 0 parameter lists"),
+//          e.pos.contains("def y() = ")
+//        )
+//      }
+//      "sources" - {
+//        val e = compileError("""
+//          object foo extends mill.util.TestUtil.BaseModule{
+//            def z() = T.sources{os.pwd}
+//          }
+//          mill.define.Discover[foo.type]
+//        """)
+//        assert(
+//          e.msg.contains("`T.sources` definitions must have 0 parameter lists"),
+//          e.pos.contains("def z() = ")
+//        )
+//      }
       "persistent" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{

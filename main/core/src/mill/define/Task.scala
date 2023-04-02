@@ -144,10 +144,10 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     )
   }
 
-  def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Sources = macro sourcesImpl1
+  def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] = macro sourcesImpl1
 
   def sourcesImpl1(c: Context)(values: c.Expr[Result[os.Path]]*)(ctx: c.Expr[mill.define.Ctx])
-      : c.Expr[Sources] = {
+      : c.Expr[Target[Seq[PathRef]]] = {
     import c.universe._
     val wrapped =
       for (value <- values.toList)
@@ -168,11 +168,11 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     )
   }
 
-  def sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Sources =
+  def sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
     macro sourcesImpl2
 
   def sourcesImpl2(c: Context)(values: c.Expr[Result[Seq[PathRef]]])(ctx: c.Expr[mill.define.Ctx])
-      : c.Expr[Sources] = {
+      : c.Expr[Target[Seq[PathRef]]] = {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
@@ -187,10 +187,10 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       )
     )
   }
-  def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Source = macro sourceImpl1
+  def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] = macro sourceImpl1
 
   def sourceImpl1(c: Context)(value: c.Expr[Result[os.Path]])(ctx: c.Expr[mill.define.Ctx])
-      : c.Expr[Source] = {
+      : c.Expr[Target[PathRef]] = {
     import c.universe._
 
     val wrapped =
@@ -200,7 +200,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
     val taskIsPrivate = isPrivateTargetOption(c)
 
-    mill.moduledefs.Cacher.impl0[Source](c)(
+    mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
       reify(
         new Source(
           wrapped.splice,
@@ -211,15 +211,15 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     )
   }
 
-  def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Source = macro sourceImpl2
+  def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] = macro sourceImpl2
 
   def sourceImpl2(c: Context)(value: c.Expr[Result[PathRef]])(ctx: c.Expr[mill.define.Ctx])
-      : c.Expr[Source] = {
+      : c.Expr[Target[PathRef]] = {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
 
-    mill.moduledefs.Cacher.impl0[Source](c)(
+    mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
       reify(
         new Source(
           Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(value.tree).splice,
@@ -232,13 +232,13 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def input[T](value: Result[T])(implicit
       w: upickle.default.Writer[T],
       ctx: mill.define.Ctx
-  ): Input[T] =
+  ): Target[T] =
     macro inputImpl[T]
 
   def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
       w: c.Expr[upickle.default.Writer[T]],
       ctx: c.Expr[mill.define.Ctx]
-  ): c.Expr[Input[T]] = {
+  ): c.Expr[Target[T]] = {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
