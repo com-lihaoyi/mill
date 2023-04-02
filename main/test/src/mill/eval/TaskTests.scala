@@ -126,14 +126,14 @@ trait TaskTests extends TestSuite {
 
     "inputs" - withEnv { (build, check) =>
       // Inputs always re-evaluate, including forcing downstream cached Targets
-      // to re-evaluate, but normal Tasks behind a CachedTarget run once then are cached
+      // to re-evaluate, but normal Tasks behind a Target run once then are cached
       check.apply(build.taskInput) ==> Right((1, 1))
       check.apply(build.taskInput) ==> Right((2, 1))
       check.apply(build.taskInput) ==> Right((3, 1))
     }
     "noInputs" - withEnv { (build, check) =>
       // Inputs always re-evaluate, including forcing downstream cached Targets
-      // to re-evaluate, but normal Tasks behind a CachedTarget run once then are cached
+      // to re-evaluate, but normal Tasks behind a Target run once then are cached
       check.apply(build.taskNoInput) ==> Right((1, 1))
       check.apply(build.taskNoInput) ==> Right((1, 0))
       check.apply(build.taskNoInput) ==> Right((1, 0))

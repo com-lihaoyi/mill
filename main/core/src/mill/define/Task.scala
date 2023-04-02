@@ -12,12 +12,12 @@ import scala.reflect.macros.blackbox.Context
  * single output of type [[T]].
  *
  * Generally not instantiated manually, but instead constructed via the
- * [[CachedTarget.apply]] & similar macros.
+ * [[Target.apply]] & similar macros.
  */
 abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 
   /**
-   * What other Targets does this CachedTarget depend on?
+   * What other Targets does this Target depend on?
    */
   val inputs: Seq[Task[_]]
 
@@ -52,7 +52,7 @@ trait Target[+T] extends Task[T] {
   def isPrivate: Option[Boolean] = None
 }
 trait CachedTarget[+T] extends Target[T] {
-  override def asTarget: Option[CachedTarget[T]] = Some(this)
+  override def asTarget: Option[Target[T]] = Some(this)
   def readWrite: RW[_]
 }
 
@@ -73,16 +73,16 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
       rw: c.Expr[RW[T]],
       ctx: c.Expr[mill.define.Ctx]
-  ): c.Expr[CachedTarget[T]] = {
+  ): c.Expr[Target[T]] = {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
 
     val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.Success(t.splice)).tree)
 
-    mill.moduledefs.Cacher.impl0[CachedTarget[T]](c)(
+    mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
-        new CachedTargetImpl[T](
+        new TargetImpl[T](
           lhs.splice,
           ctx.splice,
           rw.splice,
@@ -104,14 +104,14 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def targetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]])(
       rw: c.Expr[RW[T]],
       ctx: c.Expr[mill.define.Ctx]
-  ): c.Expr[CachedTarget[T]] = {
+  ): c.Expr[Target[T]] = {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
 
-    mill.moduledefs.Cacher.impl0[CachedTarget[T]](c)(
+    mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
-        new CachedTargetImpl[T](
+        new TargetImpl[T](
           Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice,
           ctx.splice,
           rw.splice,
@@ -127,14 +127,14 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
       rw: c.Expr[RW[T]],
       ctx: c.Expr[mill.define.Ctx]
-  ): c.Expr[CachedTarget[T]] = {
+  ): c.Expr[Target[T]] = {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
 
-    mill.moduledefs.Cacher.impl0[CachedTarget[T]](c)(
+    mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
-        new CachedTargetImpl[T](
+        new TargetImpl[T](
           t.splice,
           ctx.splice,
           rw.splice,
@@ -375,7 +375,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   }
 }
 
-abstract class TargetImpl[+T](
+abstract class TargetImplBase[+T](
     ctx0: mill.define.Ctx,
     t: Task[T],
     override val isPrivate: Option[Boolean]
@@ -385,12 +385,12 @@ abstract class TargetImpl[+T](
   val inputs = Seq(t)
 }
 
-class CachedTargetImpl[+T](
+class TargetImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
     override val readWrite: RW[_],
     isPrivate: Option[Boolean]
-) extends TargetImpl[T](ctx0, t, isPrivate)
+) extends TargetImplBase[T](ctx0, t, isPrivate)
     with CachedTarget[T] {}
 
 class Command[+T](
@@ -399,12 +399,12 @@ class Command[+T](
     val writer: W[_],
     val cls: Class[_],
     isPrivate: Option[Boolean]
-) extends TargetImpl[T](ctx0, t, isPrivate) {
+) extends TargetImplBase[T](ctx0, t, isPrivate) {
   override def asCommand = Some(this)
 }
 
 class WorkerImpl[+T](t: Task[T], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends TargetImpl[T](ctx0, t, isPrivate) {
+    extends TargetImplBase[T](ctx0, t, isPrivate) {
   override def flushDest = false
   override def asWorker = Some(this)
 }
@@ -414,7 +414,7 @@ class PersistentImpl[+T](
     ctx0: mill.define.Ctx,
     readWrite: RW[_],
     isPrivate: Option[Boolean]
-) extends CachedTargetImpl[T](t, ctx0, readWrite, isPrivate) {
+) extends TargetImpl[T](t, ctx0, readWrite, isPrivate) {
 
   override def flushDest = false
 }
@@ -424,7 +424,7 @@ class InputImpl[T](
     ctx0: mill.define.Ctx,
     val writer: upickle.default.Writer[_],
     isPrivate: Option[Boolean]
-) extends TargetImpl[T](ctx0, t, isPrivate) {
+) extends TargetImplBase[T](ctx0, t, isPrivate) {
   override def sideHash = util.Random.nextInt()
 }
 

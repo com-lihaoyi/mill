@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.define.{Discover, Input, CachedTarget, Task}
+import mill.define.{Discover, Input, Target, Task}
 import mill.modules.Jvm
 import mill.api.Ctx.Dest
 import mill.{Module, T}
@@ -87,7 +87,7 @@ object JavaCompileJarTests extends TestSuite {
       // exactly the same so no re-jarring.
       append(sourceRootPath / "Foo.java", " ")
       // Note that `sourceRoot` and `resourceRoot` never turn up in the `expected`
-      // list, because they are `Source`s not `CachedTarget`s
+      // list, because they are `Source`s not `Target`s
       check(targets = Agg(jar), expected = Agg( /*sourceRoot, */ allSources, classFiles))
 
       // Appending a new class changes the classfiles, which forces us to

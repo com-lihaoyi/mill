@@ -27,7 +27,7 @@ object ApplicativeTests extends TestSuite {
       value
     }
   }
-  @compileTimeOnly("CachedTarget.ctx() can only be used with a T{...} block")
+  @compileTimeOnly("Target.ctx() can only be used with a T{...} block")
   @ImplicitStub
   implicit def taskCtx: String = ???
 

@@ -5,10 +5,10 @@ import scala.language.implicitConversions
 import os.Path
 
 /**
- * Provides access to various resources in the context of a currently execution CachedTarget.
+ * Provides access to various resources in the context of a currently execution Target.
  */
 object Ctx {
-  @compileTimeOnly("CachedTarget.ctx() / T.ctx() / T.* APIs can only be used with a T{...} block")
+  @compileTimeOnly("Target.ctx() / T.ctx() / T.* APIs can only be used with a T{...} block")
   @ImplicitStub
   implicit def taskCtx: Ctx = ???
 

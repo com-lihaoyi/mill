@@ -665,7 +665,7 @@ class MillBuildServer(
               logger = new MillBspLogger(client, cleanTask.hashCode, evaluator.baseLogger)
             )
             if (cleanResult.failing.keyCount > 0) (
-              msg + s" CachedTarget ${compileTargetName} could not be cleaned. See message from mill: \n" +
+              msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.results(cleanTask) match {
                   case fail: Result.Failure[Any] => fail.msg + "\n"
                   case _ => "could not retrieve message"
