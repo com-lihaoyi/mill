@@ -3,6 +3,15 @@ import mill._, scalalib._
 object foo extends RootModule with ScalaModule {
   def scalaVersion = "2.13.2"
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
+
+  def extraData = T.source(millSourcePath / "data")
+  def timestampMillis = T.input(System.currentTimeMillis())
+
+  def hashedData = T.persistent{
+    val paths = os.list(extraData().path)
+  }
+
+  def
 }
 
 // Most tasks in Mill builds are `Target`s, defined using the `T{...}` or
