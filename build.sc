@@ -689,44 +689,44 @@ object contrib extends MillModule {
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
-//  object playlib extends MillModule {
-//    override def moduleDeps = Seq(twirllib, playlib.api)
-//    override def compileModuleDeps = Seq(scalalib)
-//
-//    override def testArgs = T {
-//      val mapping = Map(
-//        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6" -> worker("2.6").assembly().path,
-//        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7" -> worker("2.7").assembly().path,
-//        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path,
-//        "TEST_PLAY_VERSION_2_6" -> Deps.Play_2_6.playVersion,
-//        "TEST_PLAY_VERSION_2_7" -> Deps.Play_2_7.playVersion,
-//        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion
-//      )
-//
-//      scalalib.worker.testArgs() ++
-//        scalalib.backgroundwrapper.testArgs() ++
-//        (for ((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
-//    }
-//    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
-//
-//    object api extends MillPublishModule
-//
-//    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
-//    class WorkerModule(playBinary: String) extends MillInternalModule {
-//      override def sources = T.sources {
-//        // We want to avoid duplicating code as long as the Play APIs allow.
-//        // But if newer Play versions introduce incompatibilities,
-//        // just remove the shared source dir for that worker and implement directly.
-//        Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
-//      }
-//      override def scalaVersion = Deps.play(playBinary).scalaVersion
-//      override def moduleDeps = Seq(playlib.api)
-//      override def ivyDeps = Agg(
-//        Deps.osLib,
-//        Deps.play(playBinary).routesCompiler
-//      )
-//    }
-//  }
+  object playlib extends MillModule {
+    override def moduleDeps = Seq(twirllib, playlib.api)
+    override def compileModuleDeps = Seq(scalalib)
+
+    override def testArgs = T {
+      val mapping = Map(
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6" -> worker("2.6").assembly().path,
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7" -> worker("2.7").assembly().path,
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_8" -> worker("2.8").assembly().path,
+        "TEST_PLAY_VERSION_2_6" -> Deps.Play_2_6.playVersion,
+        "TEST_PLAY_VERSION_2_7" -> Deps.Play_2_7.playVersion,
+        "TEST_PLAY_VERSION_2_8" -> Deps.Play_2_8.playVersion
+      )
+
+      scalalib.worker.testArgs() ++
+        scalalib.backgroundwrapper.testArgs() ++
+        (for ((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
+    }
+    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+
+    object api extends MillPublishModule
+
+    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
+    class WorkerModule(playBinary: String) extends MillInternalModule {
+      override def sources = T.sources {
+        // We want to avoid duplicating code as long as the Play APIs allow.
+        // But if newer Play versions introduce incompatibilities,
+        // just remove the shared source dir for that worker and implement directly.
+        Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
+      }
+      override def scalaVersion = Deps.play(playBinary).scalaVersion
+      override def moduleDeps = Seq(playlib.api)
+      override def ivyDeps = Agg(
+        Deps.osLib,
+        Deps.play(playBinary).routesCompiler
+      )
+    }
+  }
 
   object scalapblib extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
