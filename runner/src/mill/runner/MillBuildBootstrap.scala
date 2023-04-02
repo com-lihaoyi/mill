@@ -92,19 +92,29 @@ class MillBuildBootstrap(projectRoot: os.Path,
         .millModuleDirectChildren
         .collect { case b: RootModule => b }
 
-      val baseModuleOrErr = childRootModules match {
+      val rootModuleOrErr = childRootModules match {
         case Seq() => Right(rootModule0)
-        case Seq(child) => Right(child)
+        case Seq(child) =>
+          val invalidChildModules = rootModule0.millModuleDirectChildren.filter(_ ne child)
+          if (invalidChildModules.isEmpty) Right(child)
+          else Left(
+            // We can't get use `child.toString` here, because as a RootModule
+            // it's segments are empty and it's toString is ""
+            s"RootModule ${child.getClass.getSimpleName} cannot have other " +
+            s"modules defined outside of it: ${invalidChildModules.mkString(",")}"
+          )
+
+
         case multiple =>
           Left(
-            s"Only one BaseModule can be defined in a build, not " +
+            s"Only one RootModule can be defined in a build, not " +
               s"${multiple.size}: ${multiple.map(_.getClass.getName).mkString(",")}"
           )
       }
 
-      val validatedRootModuleOrErr = baseModuleOrErr.filterOrElse( baseModule =>
-        depth == 0 || baseModule.isInstanceOf[MillBuildRootModule],
-        s"Top-level module in ${recRoot(depth).relativeTo(projectRoot)}/build.sc must be of ${classOf[mill.runner.MillBuildRootModule]}"
+      val validatedRootModuleOrErr = rootModuleOrErr.filterOrElse(rootModule =>
+        depth == 0 || rootModule.isInstanceOf[MillBuildRootModule],
+        s"Root module in ${recRoot(depth).relativeTo(projectRoot)}/build.sc must be of ${classOf[mill.runner.MillBuildRootModule]}"
       )
 
       validatedRootModuleOrErr match{
@@ -138,7 +148,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
   /**
    * Handles the compilation of `build.sc` or one of the meta-builds. These
    * cases all only need us to run evaluate `runClasspath` and
-   * `scriptImportGraph` to instantiate their classloader/`BaseModule` to feed
+   * `scriptImportGraph` to instantiate their classloader/`RootModule` to feed
    * into the next level's [[Evaluator]].
    *
    * Note that if the `runClasspath` doesn't change, we re-use the previous
@@ -233,7 +243,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
 
   def makeEvaluator(workerCache: Map[Segments, (Int, Any)],
                     scriptImportGraph: Map[Path, (Int, Seq[Path])],
-                    baseModule: RootModule,
+                    rootModule: RootModule,
                     millClassloaderSigHash: Int,
                     depth: Int) = {
 
@@ -245,7 +255,7 @@ class MillBuildBootstrap(projectRoot: os.Path,
       config.home,
       recOut(depth),
       recOut(depth),
-      baseModule,
+      rootModule,
       PrefixLogger(logger, "", tickerContext = bootLogPrefix),
       millClassloaderSigHash
     )
