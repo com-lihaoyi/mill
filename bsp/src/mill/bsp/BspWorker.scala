@@ -5,6 +5,7 @@ import mill.api.{Ctx, PathRef, Result, internal}
 import mill.define.Task
 import mill.eval.Evaluator
 import mill.main.{BspServerHandle, BspServerResult}
+import mill.util.SystemStreams
 
 import java.io.{InputStream, PrintStream}
 import java.net.URL
@@ -21,9 +22,7 @@ trait BspWorker {
 
   def startBspServer(
       initialEvaluator: Option[Evaluator],
-      outStream: PrintStream,
-      errStream: PrintStream,
-      inStream: InputStream,
+      streams: SystemStreams,
       logDir: os.Path,
       canReload: Boolean,
       serverHandles: Seq[Promise[BspServerHandle]]

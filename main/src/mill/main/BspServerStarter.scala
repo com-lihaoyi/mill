@@ -1,6 +1,7 @@
 package mill.main
 
 import mill.eval.Evaluator
+import mill.util.SystemStreams
 
 import java.io.{InputStream, PrintStream}
 import scala.concurrent.Promise
@@ -8,9 +9,7 @@ import scala.concurrent.Promise
 trait BspServerStarter {
   def startBspServer(
       initialEvaluator: Option[Evaluator],
-      outStream: PrintStream,
-      errStream: PrintStream,
-      inStream: InputStream,
+      streams: SystemStreams,
       workspaceDir: os.Path,
       ammoniteHomeDir: os.Path,
       canReload: Boolean,

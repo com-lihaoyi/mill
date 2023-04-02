@@ -78,9 +78,9 @@ trait MillTestKit {
 //  val logger = DummyLogger
     val logger = new mill.util.PrintLogger(
       colored = true,
-      disableTicker = false,
-      ammonite.util.Colors.Default.info(),
-      ammonite.util.Colors.Default.error(),
+      enableTicker = true,
+      mill.util.Colors.Default.info,
+      mill.util.Colors.Default.error,
       outStream,
       outStream,
       outStream,
@@ -103,7 +103,8 @@ trait MillTestKit {
       outPath,
       externalOutPath,
       module,
-      logger
+      logger,
+      0
     ).withFailFast(failFast).withThreadCount(threads).withEnv(env)
 
     def apply[T](t: Task[T]): Either[mill.api.Result.Failing[T], (T, Int)] = {

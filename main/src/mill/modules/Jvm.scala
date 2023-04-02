@@ -113,7 +113,7 @@ object Jvm extends CoursierSupport {
 
     ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
 
-    if (background) spawnSubprocess(args, envArgs, workingDir)
+    if (background) spawnSubprocess(args, envArgs, workingDir, background = true)
     else runSubprocess(args, envArgs, workingDir)
   }
 
@@ -121,7 +121,7 @@ object Jvm extends CoursierSupport {
    * Runs a generic subprocess and waits for it to terminate.
    */
   def runSubprocess(commandArgs: Seq[String], envArgs: Map[String, String], workingDir: os.Path) = {
-    val process = spawnSubprocess(commandArgs, envArgs, workingDir)
+    val process = spawnSubprocess(commandArgs, envArgs, workingDir, background = false)
     val shutdownHook = new Thread("subprocess-shutdown") {
       override def run(): Unit = {
         System.err.println("Host JVM shutdown. Forcefully destroying subprocess ...")
@@ -153,23 +153,26 @@ object Jvm extends CoursierSupport {
   def spawnSubprocess(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
-      workingDir: os.Path
+      workingDir: os.Path,
+      background: Boolean = false
   ): SubProcess = {
     // If System.in is fake, then we pump output manually rather than relying
     // on `os.Inherit`. That is because `os.Inherit` does not follow changes
     // to System.in/System.out/System.err, so the subprocess's streams get sent
     // to the parent process's origin outputs even if we want to direct them
     // elsewhere
+
     if (System.in.isInstanceOf[PipedInputStream]) {
       val process = os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,
-        stdin = os.Pipe,
-        stdout = os.Pipe,
-        stderr = os.Pipe
+        stdin = if (!background) os.Pipe else "",
+        stdout = if (!background) os.Pipe else workingDir / "stdout.log",
+        stderr = if (!background) os.Pipe else workingDir / "stderr.log"
       )
 
       val sources = Seq(
+
         (process.stdout, System.out, "spawnSubprocess.stdout", false, () => true),
         (process.stderr, System.err, "spawnSubprocess.stderr", false, () => true),
         (System.in, process.stdin, "spawnSubprocess.stdin", true, () => process.isAlive())
@@ -189,9 +192,9 @@ object Jvm extends CoursierSupport {
       os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,
-        stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        stdin = if (!background) os.Inherit else "",
+        stdout = if (!background) os.Inherit else workingDir / "stdout.log",
+        stderr = if (!background) os.Inherit else workingDir / "stderr.log"
       )
     }
   }

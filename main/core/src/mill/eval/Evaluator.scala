@@ -1,9 +1,6 @@
 package mill.eval
 
-import java.net.{URL, URLClassLoader}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-import ammonite.runtime.SpecialClassLoader
-
 import scala.util.DynamicVariable
 import mill.api.{
   CompileProblemReporter,
@@ -18,7 +15,6 @@ import mill.api.{
 import mill.api.Result.{Aborted, Failing, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define._
-import mill.internal.AmmoniteUtils
 import mill.util._
 import upickle.default
 
@@ -43,18 +39,17 @@ case class Labelled[T](task: NamedTask[T], segments: Segments) {
 /**
  * Evaluate tasks.
  */
-class Evaluator private (
-    _home: os.Path,
-    _outPath: os.Path,
-    _externalOutPath: os.Path,
-    _rootModule: mill.define.BaseModule,
-    _baseLogger: ColorLogger,
-    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
-    _workerCache: mutable.Map[Segments, (Int, Any)],
-    _env: Map[String, String],
-    _failFast: Boolean,
-    _threadCount: Option[Int],
-    _importTree: Seq[ScriptNode]
+class Evaluator private (_home: os.Path,
+                         _outPath: os.Path,
+                         _externalOutPath: os.Path,
+                         _rootModule: mill.define.BaseModule,
+                         _baseLogger: ColorLogger,
+                         _classLoaderSigHash: Int,
+                         _workerCache: mutable.Map[Segments, (Int, Any)],
+                         _env: Map[String, String],
+                         _failFast: Boolean,
+                         _threadCount: Option[Int],
+                         _scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
 ) {
 
   import Evaluator.Terminal
@@ -76,7 +71,6 @@ class Evaluator private (
    */
   def rootModule: mill.define.BaseModule = _rootModule
   def baseLogger: ColorLogger = _baseLogger
-  def classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = _classLoaderSig
 
   /**
    * Mutable worker cache.
@@ -99,26 +93,14 @@ class Evaluator private (
   /**
    * The tree of imports of the build ammonite scripts
    */
-  def importTree: Seq[ScriptNode] = _importTree
-
-  private val (scriptsClassLoader, externalClassLoader) = classLoaderSig.partitionMap {
-    case (Right(elem), sig) => Right((elem, sig))
-    case (Left(elem), sig) => Left((elem, sig))
-  }
-
-  // We're interested of the whole file hash.
-  // So we sum the hash of all classes that normalize to the same name.
-  private val scriptsSigMap: Map[String, Long] =
-    scriptsClassLoader.groupMapReduce(e =>
-      AmmoniteUtils.normalizeAmmoniteImportPath(e._1)
-    )(_._2)(_ + _)
+  def scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = _scriptImportGraph
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   import Evaluator.Evaluated
 
-  private val externalClassLoaderSigHash = externalClassLoader.hashCode()
+  def classLoaderSigHash = _classLoaderSigHash
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
@@ -345,29 +327,26 @@ class Evaluator private (
     )
 
     val scriptsHash = {
-      val classes = new Loose.Agg.Mutable[String]()
+      val scripts = new Loose.Agg.Mutable[os.Path]()
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
-        case namedTask: NamedTask[_] =>
-          val cls = namedTask.ctx.enclosingCls.getName
-          val normalized = AmmoniteUtils.normalizeAmmoniteImportPath(cls)
-          classes.append(normalized)
+        case namedTask: NamedTask[_] => scripts.append(os.Path(namedTask.ctx.fileName))
         case _ =>
       }
-      val importClasses = importTree.filter(e => classes.contains(e.cls))
-      val dependendentScripts = Graph.transitiveNodes(importClasses).map(_.cls)
-      val dependendentScriptsSig = dependendentScripts.map(s => s -> scriptsSigMap(s))
-      dependendentScriptsSig.hashCode()
+
+      val transitiveScripts = Graph.transitiveNodes(scripts)(t =>
+        scriptImportGraph.get(t).map(_._2).getOrElse(Nil)
+      )
+
+      transitiveScripts
+        .iterator
+        // Sometimes tasks are defined in external/upstreadm dependencies,
+        // (e.g. a lot of tasks come from JavaModule.scala) and won't be
+        // present in the scriptImportGraph
+        .map(p => scriptImportGraph.get(p).fold(0)(_._1))
+        .sum
     }
 
-    val classLoaderSigHash =
-      if (importTree.nonEmpty) {
-        externalClassLoaderSigHash + scriptsHash
-      } else {
-        // We fallback to the old mechanism when the importTree was not populated
-        classLoaderSig.hashCode()
-      }
-
-    val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash
+    val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
     terminal match {
       case Left(task) =>
@@ -702,12 +681,12 @@ class Evaluator private (
        |  externalOutPath = $externalOutPath,
        |  rootModule = $rootModule,
        |  baseLogger = $baseLogger,
-       |  classLoaderSig = $classLoaderSig,
+       |  classLoaderSigHash = $classLoaderSigHash,
        |  workerCache = $workerCache,
        |  env = $env,
        |  failFast = $failFast,
        |  threadCount = $threadCount,
-       |  importTree = $importTree
+       |  scriptImportGraph = $scriptImportGraph
        |)""".stripMargin
   }
 
@@ -717,24 +696,24 @@ class Evaluator private (
       externalOutPath: os.Path = this.externalOutPath,
       rootModule: mill.define.BaseModule = this.rootModule,
       baseLogger: ColorLogger = this.baseLogger,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = this.classLoaderSig,
+      classLoaderSigHash: Int = this.classLoaderSigHash,
       workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache,
       env: Map[String, String] = this.env,
       failFast: Boolean = this.failFast,
       threadCount: Option[Int] = this.threadCount,
-      importTree: Seq[ScriptNode] = this.importTree
+      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = this.scriptImportGraph
   ): Evaluator = new Evaluator(
     home,
     outPath,
     externalOutPath,
     rootModule,
     baseLogger,
-    classLoaderSig,
+    classLoaderSigHash,
     workerCache,
     env,
     failFast,
     threadCount,
-    importTree
+    scriptImportGraph
   )
 
   def withHome(home: os.Path): Evaluator = copy(home = home)
@@ -744,14 +723,13 @@ class Evaluator private (
   def withRootModule(rootModule: mill.define.BaseModule): Evaluator =
     copy(rootModule = rootModule)
   def withBaseLogger(baseLogger: ColorLogger): Evaluator = copy(baseLogger = baseLogger)
-  def withClassLoaderSig(classLoaderSig: Seq[(Either[String, java.net.URL], Long)]): Evaluator =
-    copy(classLoaderSig = classLoaderSig)
+
   def withWorkerCache(workerCache: mutable.Map[Segments, (Int, Any)]): Evaluator =
     copy(workerCache = workerCache)
   def withEnv(env: Map[String, String]): Evaluator = copy(env = env)
   def withFailFast(failFast: Boolean): Evaluator = copy(failFast = failFast)
   def withThreadCount(threadCount: Option[Int]): Evaluator = copy(threadCount = threadCount)
-  def withImportTree(importTree: Seq[ScriptNode]): Evaluator = copy(importTree = importTree)
+  def withScriptImportGraph(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]): Evaluator = copy(scriptImportGraph = scriptImportGraph)
 }
 
 object Evaluator {
@@ -762,13 +740,6 @@ object Evaluator {
    * It's a T, T.worker, T.input, T.source, T.sources, T.persistent
    */
   type Terminal = Either[Task[_], Labelled[Any]]
-
-  /**
-   * A terminal target with all it's inner tasks.
-   * To implement a terminal target, one can delegate to other/inner tasks (T.task), those are contained in
-   * the 2nd parameter of the tuple.
-   */
-  type TerminalGroup = (Terminal, Agg[Task[_]])
 
   case class Cached(value: ujson.Value, valueHash: Int, inputsHash: Int)
   object Cached {
@@ -782,15 +753,6 @@ object Evaluator {
   val currentEvaluator = new ThreadLocal[mill.eval.Evaluator]
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
-
-  // check if the build itself has changed
-  def classLoaderSig: Seq[(Either[String, URL], Long)] =
-    Thread.currentThread().getContextClassLoader match {
-      case scl: SpecialClassLoader => scl.classpathSignature
-      case ucl: URLClassLoader =>
-        SpecialClassLoader.initialClasspathSignature(ucl)
-      case _ => Nil
-    }
 
   case class Timing(label: String, millis: Int, cached: Boolean)
 
@@ -986,18 +948,19 @@ object Evaluator {
       outPath: os.Path,
       externalOutPath: os.Path,
       rootModule: mill.define.BaseModule,
-      baseLogger: ColorLogger
+      baseLogger: ColorLogger,
+      classLoaderSigHash: Int
   ): Evaluator = new Evaluator(
     _home = home,
     _outPath = outPath,
     _externalOutPath = externalOutPath,
     _rootModule = rootModule,
     _baseLogger = baseLogger,
-    _classLoaderSig = Evaluator.classLoaderSig,
+    _classLoaderSigHash = classLoaderSigHash,
     _workerCache = mutable.Map.empty,
     _env = Evaluator.defaultEnv,
     _failFast = true,
     _threadCount = Some(1),
-    _importTree = Seq.empty
+    _scriptImportGraph = Map.empty
   )
 }

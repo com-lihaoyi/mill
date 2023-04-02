@@ -97,6 +97,46 @@ class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = ""
   override def debugEnabled: Boolean = out.debugEnabled
 }
 
+
+class AnsiNav(output: Writer){
+  def control(n: Int, c: Char) = output.write("\u001b[" + n + c)
+
+  /**
+   * Move up `n` squares
+   */
+  def up(n: Int) = if (n == 0) "" else control(n, 'A')
+  /**
+   * Move down `n` squares
+   */
+  def down(n: Int) = if (n == 0) "" else control(n, 'B')
+  /**
+   * Move right `n` squares
+   */
+  def right(n: Int) = if (n == 0) "" else control(n, 'C')
+  /**
+   * Move left `n` squares
+   */
+  def left(n: Int) = if (n == 0) "" else control(n, 'D')
+
+  /**
+   * Clear the screen
+   *
+   * n=0: clear from cursor to end of screen
+   * n=1: clear from cursor to start of screen
+   * n=2: clear entire screen
+   */
+  def clearScreen(n: Int) = control(n, 'J')
+  /**
+   * Clear the current line
+   *
+   * n=0: clear from cursor to end of line
+   * n=1: clear from cursor to start of line
+   * n=2: clear entire line
+   */
+  def clearLine(n: Int) = control(n, 'K')
+}
+
+
 object PrefixLogger {
   def apply(out: ColorLogger, context: String, tickerContext: String = ""): PrefixLogger =
     new PrefixLogger(out, context, tickerContext)
@@ -104,7 +144,7 @@ object PrefixLogger {
 
 class PrintLogger(
     override val colored: Boolean,
-    val disableTicker: Boolean,
+    val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
     val outStream: PrintStream,
@@ -135,7 +175,7 @@ class PrintLogger(
   }
 
   def ticker(s: String) = synchronized {
-    if (!disableTicker) {
+    if (enableTicker) {
       printState match {
         case PrintState.Newline =>
           infoStream.println(infoColor(s))
@@ -145,7 +185,7 @@ class PrintLogger(
         case PrintState.Ticker =>
           val p = new PrintWriter(infoStream)
           // Need to make this more "atomic"
-          val nav = new ammonite.terminal.AnsiNav(p)
+          val nav = new AnsiNav(p)
           nav.up(1)
           nav.clearLine(2)
           nav.left(9999)
@@ -161,7 +201,7 @@ class PrintLogger(
 
   private def copy(
       colored: Boolean = colored,
-      disableTicker: Boolean = disableTicker,
+      enableTicker: Boolean = enableTicker,
       infoColor: fansi.Attrs = infoColor,
       errorColor: fansi.Attrs = errorColor,
       outStream: PrintStream = outStream,
@@ -172,7 +212,7 @@ class PrintLogger(
       context: String = context
   ): PrintLogger = new PrintLogger(
     colored,
-    disableTicker,
+    enableTicker,
     infoColor,
     errorColor,
     outStream,

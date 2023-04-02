@@ -4,7 +4,7 @@ import mill.define._
 
 object ResolveMetadata extends Resolve[String] {
   def singleModuleMeta(obj: Module, discover: Discover[_], isRootModule: Boolean): Seq[String] = {
-    val modules = obj.millModuleDirectChildren.map(_.toString)
+    val modules = obj.millModuleDirectChildren.map(_.millModuleSegments.render)
     val targets =
       obj
         .millInternal

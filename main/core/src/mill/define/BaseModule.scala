@@ -1,4 +1,5 @@
 package mill.define
+import os.Path
 
 object BaseModule {
   case class Implicit(value: BaseModule)
@@ -35,6 +36,7 @@ abstract class BaseModule(
   override implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
   implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
   def millDiscover: Discover[this.type]
+
 }
 
 abstract class ExternalModule(implicit

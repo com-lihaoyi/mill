@@ -125,19 +125,11 @@ object Deps {
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   val ammoniteVersion = "3.0.0-M0-6-34034262"
-  val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
-  val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
-  val ammoniteReducedDeps = ammonite.exclude(
-    // Exclude trees here to force the version of the dependencies we have defined ourselves.
-    // We use this here instead of a `forceVersion()` on scalametaTrees since it's not
-    // respected in the POM causing issues for Coursier Mill users.
-    "org.scalameta" -> "trees_2.13",
-    // only used when ammonite is run with --bsp, which we don't support
-    "ch.epfl.scala" -> "bsp4j"
-  )
+  val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   val coursier = ivy"io.get-coursier::coursier:2.1.0"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.11"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -291,7 +283,6 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   override def scalacOptions = T {
     super.scalacOptions() ++ Seq("-deprecation")
   }
-  override def ammoniteVersion = Deps.ammonite.dep.version
 
   // Test setup
 
@@ -302,30 +293,36 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
     else Seq(this, main.test)
 
   trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
-      with WithMillCompiler {
-    override def forkArgs = T {
-      Seq(
-        s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
-        s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
-        s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
-        s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
-        s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
-        s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
-        s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
-        s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
-        s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
-        s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
-        s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
-        s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
-      ) ++ outer.testArgs()
-    }
+      with WithMillCompiler with BaseMillTestsModule {
+
+    override def forkArgs = super.forkArgs() ++ outer.testArgs()
     override def moduleDeps = outer.testModuleDeps
     override def ivyDeps: T[Agg[Dep]] = T { super.ivyDeps() ++ outer.testIvyDeps() }
-    override def testFramework = "mill.UTestFramework"
+
   }
   trait Tests extends MillScalaModuleTests
 }
 
+
+trait BaseMillTestsModule extends TestModule {
+  override def forkArgs = T {
+    Seq(
+      s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
+      s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
+      s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
+      s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
+      s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
+      s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
+      s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
+      s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
+      s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
+      s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
+      s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
+      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
+    )
+  }
+  override def testFramework = "mill.UTestFramework"
+}
 /** A MillScalaModule with default set up test module. */
 trait MillAutoTestSetup extends MillScalaModule {
   // instead of `object test` which can't be overridden, we hand-made a val+class singleton
@@ -349,7 +346,9 @@ object main extends MillModule {
   override def moduleDeps = Seq(core, client)
   override def ivyDeps = Agg(
     Deps.windowsAnsi,
-    Deps.mainargs
+    Deps.mainargs,
+    Deps.coursierInterface,
+    Deps.requests
   )
   override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
@@ -384,7 +383,6 @@ object main extends MillModule {
   object util extends MillApiModule with MillAutoTestSetup {
     override def moduleDeps = Seq(api)
     override def ivyDeps = Agg(
-      Deps.ammoniteTerminal,
       Deps.fansi
     )
   }
@@ -396,13 +394,14 @@ object main extends MillModule {
     override def ivyDeps = Agg(
       Deps.millModuledefs,
       Deps.millModuledefsPlugin,
-      Deps.ammoniteReducedDeps,
       Deps.scalametaTrees,
       Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
-      Deps.jarjarabrams
+      Deps.jarjarabrams,
+      Deps.mainargs,
+      Deps.scalaparse
     )
     override def generatedSources = T {
       val dest = T.ctx.dest
@@ -496,7 +495,6 @@ object main extends MillModule {
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
-
 }
 
 object testrunner extends MillModule {
@@ -509,14 +507,8 @@ object scalalib extends MillModule {
     Deps.scalafmtDynamic
   )
 
-  def genTask(m: ScalaModule) = T.task {
-    Seq(m.jar(), m.sourceJar()) ++
-      m.runClasspath()
-  }
-
   override def generatedSources = T {
     val dest = T.ctx.dest
-    val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
     os.write(
       dest / "Versions.scala",
       s"""package mill.scalalib
@@ -527,13 +519,15 @@ object scalalib extends MillModule {
          | */
          |object Versions {
          |  /** Version of Ammonite. */
-         |  val ammonite = "${Deps.ammonite.dep.version}"
+         |  val ammonite = "${Deps.ammoniteVersion}"
          |  /** Version of Zinc. */
          |  val zinc = "${Deps.zinc.dep.version}"
          |  /** SemanticDB version. */
          |  val semanticDBVersion = "${Deps.semanticDB.dep.version}"
          |  /** Java SemanticDB plugin version. */
          |  val semanticDbJavaVersion = "${Deps.semanticDbJava.dep.version}"
+         |  /** Mill ModuleDefs plugins version. */
+         |  val millModuledefsVersion = "${Deps.millModuledefsVersion}"
          |}
          |
          |""".stripMargin
@@ -543,19 +537,11 @@ object scalalib extends MillModule {
 
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T {
-    val genIdeaArgs =
-//      genTask(main.moduledefs)() ++
-      genTask(main.core)() ++
-        genTask(main)() ++
-        genTask(scalalib)() ++
-        genTask(scalajslib)() ++
-        genTask(scalanativelib)()
 
     worker.testArgs() ++
       main.graphviz.testArgs() ++
       Seq(
         "-Djna.nosys=true",
-        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
         "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(","),
         s"-DTEST_SCALAFMT_VERSION=${Deps.scalafmtDynamic.dep.version}"
       )
@@ -1044,8 +1030,100 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
   }
 }
 
-object integration extends MillScalaModule {
-  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
+// We compile the test code once and then offer multiple modes to
+// test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
+// and pass `lib`'s compile output back to `test`
+trait IntegrationTestModule extends MillScalaModule {
+  def repoSlug: String
+
+  def scalaVersion = integration.scalaVersion()
+  def moduleDeps = Seq(main.test, integration)
+  def sources = T.sources(millSourcePath / "test" / "src")
+  def testRepoRoot: T[PathRef] = T.source(millSourcePath / "repo")
+
+  trait ModeModule extends MillScalaModule with BaseMillTestsModule {
+    def mode: String = millModuleSegments.parts.last
+
+    def scalaVersion = integration.scalaVersion()
+
+    override def forkEnv = super.forkEnv() ++ Map(
+      "MILL_INTEGRATION_TEST_MODE" -> mode,
+      "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
+      "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString,
+    ) ++ testReleaseEnv()
+
+    def workspaceDir = T.persistent {
+      PathRef(T.dest)
+    }
+
+    def genTask(m: ScalaModule) = T.task {
+      Seq(m.jar(), m.sourceJar()) ++ m.runClasspath()
+    }
+
+    override def forkArgs: Target[Seq[String]] = T {
+      val genIdeaArgs =
+      //      genTask(main.moduledefs)() ++
+        genTask(main.core)() ++
+          genTask(main)() ++
+          genTask(scalalib)() ++
+          genTask(scalajslib)() ++
+          genTask(scalanativelib)()
+
+      super.forkArgs() ++
+        scalajslib.testArgs() ++
+        scalalib.worker.testArgs() ++
+        scalalib.backgroundwrapper.testArgs() ++
+        scalanativelib.testArgs() ++
+        runner.linenumbers.testArgs() ++
+        Seq(
+          s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
+          s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
+          s"-DMILL_VERSION=${millVersion()}",
+          s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
+          s"-DMILL_BSP_WORKER=${bsp.worker.runClasspath().map(_.path).mkString(",")}",
+          s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}",
+          "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
+          "-Djna.nosys=true"
+        )
+    }
+
+    def testReleaseEnv =
+      if (mode == "local") T{ Map.empty[String, String] }
+      else T{ Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
+
+    def compile = IntegrationTestModule.this.compile()
+    def moduleDeps = Seq(IntegrationTestModule.this)
+  }
+}
+
+trait IntegrationTestCrossModule extends IntegrationTestModule {
+  object local extends ModeModule
+  object fork extends ModeModule
+  object server extends ModeModule
+}
+
+def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
+
+object example extends MillScalaModule{
+
+  def moduleDeps = Seq(integration)
+
+  object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
+  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
+  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
+
+  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
+    def testRepoRoot: T[PathRef] = T.source(millSourcePath)
+    def compile = example.compile()
+  }
+}
+
+object integration extends MillScalaModule{
+  object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
+  object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
+  class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestCrossModule
+
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
 
   /** Deploy freshly build mill for use in tests */
   def testMill: Target[PathRef] = {
@@ -1053,102 +1131,66 @@ object integration extends MillScalaModule {
     T { PathRef(installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
   }
 
-  trait ITests extends super.Tests {
-    def workspaceDir = T.persistent { PathRef(T.dest) }
-    override def forkArgs: Target[Seq[String]] = T {
-      super.forkArgs() ++
-        scalajslib.testArgs() ++
-        scalalib.worker.testArgs() ++
-        scalalib.backgroundwrapper.testArgs() ++
-        scalanativelib.testArgs() ++
-        Seq(
-          s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
-          s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
-          s"-DMILL_VERSION=${millVersion()}",
-          s"-DMILL_SCALA_LIB=${scalalib.runClasspath().map(_.path).mkString(",")}",
-          "-Djna.nosys=true"
-        )
-    }
-  }
-
-  // Integration test of Mill
-  object local extends ITests
-  trait Forked extends ITests {
-    override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(integration.local)
-
-    override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
-      "MILL_TEST_RELEASE" -> testMill().path.toString()
-    )
-  }
-  object forked extends Forked
-  object `forked-server` extends Forked
-
   // Test of various third-party repositories
-  object thirdparty extends Module {
-    def testRepos = T {
-      Seq(
-        "MILL_ACYCLIC_REPO" ->
-          shared.downloadTestRepo(
-            "lihaoyi/acyclic",
-            "bc41cd09a287e2c270271e27ccdb3066173a8598",
-            T.dest / "acyclic"
-          ),
-        "MILL_JAWN_REPO" ->
-          shared.downloadTestRepo(
-            "non/jawn",
-            "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb",
-            T.dest / "jawn"
-          ),
-        "MILL_AMMONITE_REPO" ->
-          shared.downloadTestRepo(
-            "lihaoyi/ammonite",
-            "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e",
-            T.dest / "ammonite"
-          ),
-        "MILL_UPICKLE_REPO" ->
-          shared.downloadTestRepo(
-            "lihaoyi/upickle",
-            "7f33085c890db7550a226c349832eabc3cd18769",
-            T.dest / "upickle"
-          ),
-        "MILL_PLAY_JSON_REPO" ->
-          shared.downloadTestRepo(
-            "playframework/play-json",
-            "0a5ba16a03f3b343ac335117eb314e7713366fd4",
-            T.dest / "play-json"
-          ),
-        "MILL_CAFFEINE_REPO" ->
-          shared.downloadTestRepo(
-            "ben-manes/caffeine",
-            "c02c623aedded8174030596989769c2fecb82fe4",
-            T.dest / "caffeine"
-          )
-      )
+  object thirdparty extends MillScalaModule {
+    def moduleDeps = Seq(integration)
+
+    object acyclic extends ThirdPartyModule{
+      def repoPath = "lihaoyi/acyclic"
+      def repoHash = "bc41cd09a287e2c270271e27ccdb3066173a8598"
     }
+    object jawn extends ThirdPartyModule{
+      def repoPath = "non/jawn"
+      def repoHash = "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb"
+    }
+    object ammonite extends ThirdPartyModule{
+      def repoPath = "lihaoyi/Ammonite"
+      def repoHash = "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e"
+    }
+    object upickle extends ThirdPartyModule{
+      def repoPath = "lihaoyi/upickle"
+      def repoHash = "7f33085c890db7550a226c349832eabc3cd18769"
+    }
+    object caffeine extends ThirdPartyModule{
+      def repoPath = "ben-manes/caffeine"
+      def repoHash = "c02c623aedded8174030596989769c2fecb82fe4"
 
-    object local extends ITests {
-      override def forkArgs: Target[Seq[String]] = T {
-        super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
-      }
-
-      override def runClasspath: T[Seq[PathRef]] = T {
+      def runClasspath: T[Seq[PathRef]] = T {
         // we need to trigger installation of testng-contrib for Caffeine
         contrib.testng.publishLocal()()
         super.runClasspath()
       }
     }
-    object forked extends ITests {
-      override def moduleDeps: Seq[JavaModule] =
-        super.moduleDeps ++ Seq(integration.thirdparty.local)
-      override def forkEnv: Target[Map[String, String]] = super.forkEnv() ++ Map(
-        "MILL_TEST_RELEASE" -> testMill().path.toString()
-      )
-      override def forkArgs: Target[Seq[String]] = T {
-        super.forkArgs() ++ (for ((k, v) <- testRepos()) yield s"-D$k=$v")
+    trait ThirdPartyModule extends IntegrationTestModule {
+      def repoPath: String
+      def repoHash: String
+      def repoSlug = repoPath.split("/").last
+      def testRepoRoot = T{
+
+        shared.downloadTestRepo(repoPath, repoHash, T.dest)
+        val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
+        os.list(wrapperFolder).foreach(os.move.into(_, T.dest))
+        os.remove(wrapperFolder)
+
+        os.list(super.testRepoRoot().path)
+          .foreach(os.copy.into(_, T.dest, replaceExisting = true))
+
+        PathRef(T.dest)
       }
+      def moduleDeps = super.moduleDeps ++ Seq(thirdparty)
+      object local extends ModeModule{
+        def runClasspath: T[Seq[PathRef]] = T {
+          // we need to trigger installation of testng-contrib for Caffeine
+          contrib.testng.publishLocal()()
+          super.runClasspath()
+        }
+      }
+      object fork extends ModeModule
+      object server extends ModeModule
     }
   }
 }
+
 
 def launcherScript(
     shellJvmArgs: Seq[String],
@@ -1262,8 +1304,22 @@ def launcherScript(
   )
 }
 
+object runner extends MillModule{
+  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers)
+
+  object linenumbers extends MillPublishModule with MillInternalModule {
+    def scalaVersion = Deps.scalaVersion
+    override def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
+    def testArgs = T{
+      Seq(
+        s"-DMILL_LINENUMBERS=${runClasspath().map(_.path).mkString(",")}",
+      )
+    }
+  }
+}
+
 object dev extends MillModule {
-  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp)
+  override def moduleDeps = Seq(runner)
 
   def forkArgs: T[Seq[String]] =
     (
@@ -1272,6 +1328,7 @@ object dev extends MillModule {
         scalalib.worker.testArgs() ++
         scalanativelib.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
+        runner.linenumbers.testArgs() ++
         // Workaround for Zinc/JNA bug
         // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
         Seq(
@@ -1351,11 +1408,11 @@ object dev extends MillModule {
       case wd0 +: rest =>
         val wd = os.Path(wd0, T.workspace)
         os.makeDir.all(wd)
-        mill.modules.Jvm.runSubprocess(
+        try mill.modules.Jvm.runSubprocess(
           Seq(launcher().path.toString) ++ rest,
           forkEnv(),
           workingDir = wd
-        )
+        )catch{case e => ()/*ignore to avoid confusing stacktrace and error messages*/}
         mill.api.Result.Success(())
     }
 
