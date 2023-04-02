@@ -79,7 +79,7 @@ object GraphTests extends TestSuite {
 
         val important = important0.map(_(base))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
-          case t: Target[_] if important.contains(t) => t
+          case t: CachedTarget[_] if important.contains(t) => t: Target[_]
         }
         val flattened = Agg.from(grouped.values().flatMap(_.items))
 
@@ -88,7 +88,7 @@ object GraphTests extends TestSuite {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == Agg(
+            grouping.flatMap(_.asTarget: Option[CachedTarget[_]]).filter(important.contains) == Agg(
               terminal
             )
           )
@@ -168,7 +168,7 @@ object GraphTests extends TestSuite {
           Graph.transitiveTargets(Agg.from(goals))
         )
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
-          case t: NamedTask[Any] => t
+          case t: Target[Any] => t
           case t if goals.contains(t) => t
         }
         grouped.keyCount

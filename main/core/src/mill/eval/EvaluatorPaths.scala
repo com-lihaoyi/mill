@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.internal
-import mill.define.{NamedTask, Segment, Segments}
+import mill.define.{Target, Segment, Segments}
 
 case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path) {
   private def copy(dest: os.Path = dest, meta: os.Path = meta, log: os.Path = log): EvaluatorPaths =
@@ -37,6 +37,6 @@ object EvaluatorPaths {
   }
   def resolveDestPaths(
       workspacePath: os.Path,
-      task: NamedTask[_]
+      task: Target[_]
   ): EvaluatorPaths = resolveDestPaths(workspacePath, task.ctx.segments, task.ctx.foreign)
 }

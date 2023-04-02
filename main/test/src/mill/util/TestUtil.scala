@@ -45,7 +45,7 @@ object TestUtil extends MillTestKit {
    */
   class TestTarget(inputs: Seq[Task[Int]], val pure: Boolean)(implicit ctx0: mill.define.Ctx)
       extends Test(inputs)
-      with Target[Int] {
+      with CachedTarget[Int] {
     val ctx = ctx0.withSegments(ctx0.segments ++ Seq(ctx0.segment))
     val readWrite = upickle.default.readwriter[Int]
 

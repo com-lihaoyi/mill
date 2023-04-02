@@ -5,7 +5,7 @@ import mainargs.TokensReader
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result, internal}
-import mill.define.{Command, NamedTask, Segments, SelectMode, Target, Task}
+import mill.define.{Command, Target, Segments, SelectMode, CachedTarget, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{PrintLogger, Watched}
 import pprint.{Renderer, Tree, Truncated}
@@ -20,7 +20,7 @@ object MainModule {
       evaluator: Evaluator,
       targets: Seq[String],
       selectMode: SelectMode
-  )(f: List[NamedTask[Any]] => T): Result[T] = {
+  )(f: List[Target[Any]] => T): Result[T] = {
     RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
@@ -155,7 +155,7 @@ trait MainModule extends mill.Module {
             Result.Failure(s"No path found between $src and $dest")
           case Some(list) =>
             val labels = list
-              .collect { case n: NamedTask[_] => n.ctx.segments.render }
+              .collect { case n: Target[_] => n.ctx.segments.render }
 
             labels.foreach(mill.T.log.outputStream.println(_))
 
@@ -174,13 +174,13 @@ trait MainModule extends mill.Module {
         resolveParents
       )
     }
-    def pprintTask(t: NamedTask[_], evaluator: Evaluator): Tree.Lazy = {
+    def pprintTask(t: Target[_], evaluator: Evaluator): Tree.Lazy = {
       val seen = mutable.Set.empty[Task[_]]
 
       def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
+          case t: CachedTarget[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)
@@ -399,11 +399,11 @@ trait MainModule extends mill.Module {
       targets: Seq[String],
       ctx: Ctx,
       vizWorker: VizWorker,
-      planTasks: Option[List[NamedTask[_]]] = None
+      planTasks: Option[List[Target[_]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
-        rs: List[NamedTask[Any]],
-        allRs: List[NamedTask[Any]]
+        rs: List[Target[Any]],
+        allRs: List[Target[Any]]
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
       in.put((rs, allRs, ctx.dest))

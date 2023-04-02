@@ -23,15 +23,15 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-case class Labelled[T](task: NamedTask[T], segments: Segments) {
+case class Labelled[T](task: Target[T], segments: Segments) {
   def format: Option[default.ReadWriter[T]] = task match {
-    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
+    case t: CachedTarget[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
   def writer: Option[default.Writer[T]] = task match {
     case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
     case t: mill.define.Input[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
-    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
+    case t: CachedTarget[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
 }
@@ -329,7 +329,7 @@ class Evaluator private (_home: os.Path,
     val scriptsHash = {
       val scripts = new Loose.Agg.Mutable[os.Path]()
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
-        case namedTask: NamedTask[_] => scripts.append(os.Path(namedTask.ctx.fileName))
+        case namedTask: Target[_] => scripts.append(os.Path(namedTask.ctx.fileName))
         case _ =>
       }
 
@@ -821,10 +821,10 @@ object Evaluator {
     val seen = collection.mutable.Set.empty[Segments]
     val overridden = collection.mutable.Set.empty[Task[_]]
     topoSorted.values.reverse.iterator.foreach {
-      case x: NamedTask[_] if x.isPrivate == Some(true) =>
+      case x: Target[_] if x.isPrivate == Some(true) =>
         // we always need to store them in the super-path
         overridden.add(x)
-      case x: NamedTask[_] =>
+      case x: Target[_] =>
         if (!seen.contains(x.ctx.segments)) seen.add(x.ctx.segments)
         else overridden.add(x)
       case _ => // donothing
@@ -832,7 +832,7 @@ object Evaluator {
 
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
       // important: all named tasks and those explicitly requested
-      case t: NamedTask[Any] =>
+      case t: Target[Any] =>
         val segments = t.ctx.segments
         Right(
           Labelled(

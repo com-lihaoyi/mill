@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
 import java.io.{InputStream, PrintStream}
-import mill.define.{Input, Target, Task}
+import mill.define.{Input, CachedTarget, Task}
 import mill.eval.Evaluator
 import language.experimental.macros
 import mill.api.{DummyInputStream, Result}
@@ -115,7 +115,7 @@ trait MillTestKit {
           Tuple2(
             evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
             evaluated.evaluated.collect {
-              case t: Target[_]
+              case t: CachedTarget[_]
                   if module.millInternal.targets.contains(t)
                     && !t.isInstanceOf[Input[_]]
                     && !t.ctx.external => t
@@ -131,7 +131,7 @@ trait MillTestKit {
       }
     }
 
-    def fail(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]): Unit = {
+    def fail(target: CachedTarget[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]): Unit = {
 
       val res = evaluator.evaluate(Agg(target))
 

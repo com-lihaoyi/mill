@@ -18,7 +18,7 @@ object Applicative {
     def apply[T](t: M[T]): T
   }
   object ApplyHandler {
-    @compileTimeOnly("Target#apply() can only be used with a T{...} block")
+    @compileTimeOnly("CachedTarget#apply() can only be used with a T{...} block")
     implicit def defaultApplyHandler[M[+_]]: ApplyHandler[M] = ???
   }
   trait Applyable[M[+_], +T] {
@@ -64,7 +64,7 @@ object Applicative {
           val banned0 = banned.next()
           c.abort(
             banned0.pos,
-            "Target#apply() call cannot use `" + banned0.symbol + "` defined within the T{...} block"
+            "CachedTarget#apply() call cannot use `" + banned0.symbol + "` defined within the T{...} block"
           )
         }
         val tempName = c.freshName(TermName("tmp"))

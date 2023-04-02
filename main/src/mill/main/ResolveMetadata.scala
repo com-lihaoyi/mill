@@ -8,7 +8,7 @@ object ResolveMetadata extends Resolve[String] {
     val targets =
       obj
         .millInternal
-        .reflectAll[NamedTask[_]]
+        .reflectAll[Target[_]]
         .map(_.toString)
     val commands =
       for {

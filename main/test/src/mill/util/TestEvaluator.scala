@@ -2,7 +2,7 @@ package mill.util
 
 import mill.testkit.MillTestKit
 import java.io.{InputStream, PrintStream}
-import mill.define.{Input, Target, Task}
+import mill.define.{Input, CachedTarget, Task}
 import mill.api.Result.OuterStack
 import mill.eval.Evaluator
 import mill.api.Strict.Agg

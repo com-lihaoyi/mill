@@ -1,14 +1,14 @@
 package mill.main.graphviz
 import guru.nidi.graphviz.attribute.Style
-import mill.define.{Graph, NamedTask}
+import mill.define.{Graph, Target}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 object GraphvizTools {
-  def apply(targets: Seq[NamedTask[Any]], rs: Seq[NamedTask[Any]], dest: os.Path) = {
+  def apply(targets: Seq[Target[Any]], rs: Seq[Target[Any]], dest: os.Path) = {
     val transitive = Graph.transitiveTargets(rs.distinct)
     val topoSorted = Graph.topoSorted(transitive)
     val goalSet = rs.toSet
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
-      case x: NamedTask[Any] if goalSet.contains(x) => x
+      case x: Target[Any] if goalSet.contains(x) => x
     }
     import guru.nidi.graphviz.engine.{Format, Graphviz}
     import guru.nidi.graphviz.model.Factory._
@@ -19,7 +19,7 @@ object GraphvizTools {
           k,
           for {
             v <- vs.items
-            dest <- v.inputs.collect { case v: NamedTask[Any] => v }
+            dest <- v.inputs.collect { case v: Target[Any] => v }
             if goalSet.contains(dest)
           } yield dest
         )

@@ -62,7 +62,7 @@ class Router(val ctx: blackbox.Context) extends mainargs.Macros(ctx) {
           (weakTypeOf[mill.define.Sources], 0, "`T.sources`"),
           (weakTypeOf[mill.define.Input[_]], 0, "`T.input`"),
           (weakTypeOf[mill.define.Persistent[_]], 0, "`T.persistent`"),
-          (weakTypeOf[mill.define.Target[_]], 0, "`T{...}`"),
+          (weakTypeOf[mill.define.CachedTarget[_]], 0, "`T{...}`"),
           (weakTypeOf[mill.define.Command[_]], 1, "`T.command`")
         )
 

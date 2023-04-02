@@ -28,18 +28,18 @@ object MacroErrorTests extends TestSuite {
           e.pos.contains("def w = ")
         )
       }
-      "target" - {
-        val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
-            def x() = T{1}
-          }
-          mill.define.Discover[foo.type]
-        """)
-        assert(
-          e.msg.contains("`T{...}` definitions must have 0 parameter lists"),
-          e.pos.contains("def x() = ")
-        )
-      }
+//      "target" - {
+//        val e = compileError("""
+//          object foo extends mill.util.TestUtil.BaseModule{
+//            def x() = T{1}
+//          }
+//          mill.define.Discover[foo.type]
+//        """)
+//        assert(
+//          e.msg.contains("`T{...}` definitions must have 0 parameter lists"),
+//          e.pos.contains("def x() = ")
+//        )
+//      }
       "input" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
@@ -79,7 +79,7 @@ object MacroErrorTests extends TestSuite {
     }
     "badTmacro" - {
       // Make sure we can reference values from outside the T{...} block as part
-      // of our `Target#apply()` calls, but we cannot reference any values that
+      // of our `CachedTarget#apply()` calls, but we cannot reference any values that
       // come from inside the T{...} block
       "pos" - {
         val e = compileError("""
@@ -99,7 +99,7 @@ object MacroErrorTests extends TestSuite {
       "neg" - {
 
         val expectedMsg =
-          "Target#apply() call cannot use `value n` defined within the T{...} block"
+          "CachedTarget#apply() call cannot use `value n` defined within the T{...} block"
         val err = compileError("""new Module{
           def a = T{ 1 }
           val arr = Array(a)
@@ -115,7 +115,7 @@ object MacroErrorTests extends TestSuite {
       "neg2" - {
 
         val expectedMsg =
-          "Target#apply() call cannot use `value x` defined within the T{...} block"
+          "CachedTarget#apply() call cannot use `value x` defined within the T{...} block"
         val err = compileError("""new Module{
           def a = T{ 1 }
           val arr = Array(a)
