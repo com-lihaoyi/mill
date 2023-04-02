@@ -50,13 +50,19 @@ object ResolveSegments extends Resolve[Segments] {
         .reflectSingle[Target[_]](last)
         .map(t => Right(t.ctx.segments))
 
+    val command =
+      Resolve
+        .invokeCommand(obj, last, discover.asInstanceOf[Discover[Module]], rest)
+        .headOption
+        .map(_.map(_.ctx.segments))
+
     val module =
       obj.millInternal
         .reflectNestedObjects[Module]
         .find(_.millOuterCtx.segment == Segment.Label(last))
         .map(m => Right(m.millModuleSegments))
 
-    target orElse module match {
+    command orElse target orElse module match {
       case None =>
         Resolve.errorMsgLabel(
           singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
