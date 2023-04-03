@@ -117,7 +117,6 @@ trait MillTestKit {
             evaluated.evaluated.collect {
               case t: TargetImpl[_]
                   if module.millInternal.targets.contains(t)
-                    && !t.isInstanceOf[InputImpl[_]]
                     && !t.ctx.external => t
               case t: mill.define.Command[_] => t
             }.size
