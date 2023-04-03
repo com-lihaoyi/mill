@@ -84,11 +84,10 @@ object Task {
 /**
  * Represents a task that can be referenced by its path segments.
  */
-class Target[+T](
-    t: Task[T],
-    ctx0: mill.define.Ctx,
-    val isPrivate: Option[Boolean]
-) extends Task[T] {
+trait Target[+T] extends Task[T] {
+  def t: Task[T]
+  def ctx0: mill.define.Ctx
+  def isPrivate: Option[Boolean]
   def label: String = ctx.segment match {
     case Segment.Label(v) => v
     case Segment.Cross(_) => throw new IllegalArgumentException(
@@ -101,7 +100,12 @@ class Target[+T](
 
   val ctx = ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
+
+  def readWriterOpt: Option[upickle.default.ReadWriter[_]] = None
+
+  def writerOpt: Option[upickle.default.Writer[_]] = readWriterOpt.orElse(None)
 }
+
 
 object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   // convenience
@@ -423,60 +427,67 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 }
 
 class TargetImpl[+T](
-    t: Task[T],
-    ctx0: mill.define.Ctx,
-    val readWrite: RW[_],
-    isPrivate: Option[Boolean]
-) extends Target[T](t, ctx0, isPrivate) {
+    val t: Task[T],
+    val ctx0: mill.define.Ctx,
+    val readWriter: RW[_],
+    val isPrivate: Option[Boolean]
+) extends Target[T]{
   override def asTarget: Option[Target[T]] = Some(this)
+  override def readWriterOpt = Some(readWriter)
 }
 
 class PersistentImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
-    readWrite: RW[_],
+    readWriter: RW[_],
     isPrivate: Option[Boolean]
-) extends TargetImpl[T](t, ctx0, readWrite, isPrivate) {
+) extends TargetImpl[T](t, ctx0, readWriter, isPrivate) {
   override def flushDest = false
 }
 
 class Command[+T](
-    t: Task[T],
-    ctx0: mill.define.Ctx,
+    val t: Task[T],
+    val ctx0: mill.define.Ctx,
     val writer: W[_],
     val cls: Class[_],
-    isPrivate: Option[Boolean]
-) extends Target[T](t, ctx0, isPrivate) {
+    val isPrivate: Option[Boolean]
+) extends Target[T] {
   override def asCommand = Some(this)
+  override def writerOpt = Some(writer)
 }
 
-class WorkerImpl[+T](t: Task[T], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-  extends Target[T](t, ctx0, isPrivate) {
+class WorkerImpl[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
+  extends Target[T]{
   override def flushDest = false
   override def asWorker = Some(this)
 }
 
 class InputImpl[T](
-    t: Task[T],
-    ctx0: mill.define.Ctx,
+    val t: Task[T],
+    val ctx0: mill.define.Ctx,
     val writer: upickle.default.Writer[_],
-    isPrivate: Option[Boolean]
-) extends Target[T](t, ctx0, isPrivate) {
+    val isPrivate: Option[Boolean]
+) extends Target[T]  {
   override def sideHash = util.Random.nextInt()
+  override def writerOpt = Some(writer)
 }
 
 class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
     extends InputImpl[Seq[PathRef]](
       t,
       ctx0,
-      upickle.default.SeqLikeWriter[Seq, PathRef],
+      upickle.default.readwriter[Seq[PathRef]],
       isPrivate
-    )
+    ){
+  override def readWriterOpt = Some(upickle.default.readwriter[Seq[PathRef]])
+}
 
 class SourceImpl(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
     extends InputImpl[PathRef](
       t,
       ctx0,
-      PathRef.jsonFormatter,
+      upickle.default.readwriter[PathRef],
       isPrivate
-    )
+    ){
+  override def readWriterOpt = Some(upickle.default.readwriter[PathRef])
+}
