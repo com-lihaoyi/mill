@@ -29,8 +29,6 @@ object MacroErrorTests extends TestSuite {
         )
       }
 
-      // WIP getting this error reporting working again
-
       "target" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{

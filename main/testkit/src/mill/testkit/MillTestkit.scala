@@ -147,11 +147,11 @@ trait MillTestKit {
     }
 
     def check(targets: Agg[Task[_]], expected: Agg[Task[_]]): Unit = {
-      val targets2 = evaluator.evaluate(targets)
+
+
+      val evaluated = evaluator.evaluate(targets)
         .evaluated
         .flatMap(_.asTarget)
-
-      val evaluated = targets2
         .filter(module.millInternal.targets.contains)
         .filter(!_.isInstanceOf[InputImpl[_]])
       assert(
