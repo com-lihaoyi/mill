@@ -5,16 +5,16 @@ trait MyModule extends ScalaModule{
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 }
 
-object wrapper extends Module{
-  object foo extends MyModule {
+object foo extends Module{
+  object bar extends MyModule
+
+  object qux extends MyModule {
     def moduleDeps = Seq(bar)
   }
-
-  object bar extends MyModule
 }
 
-object qux extends MyModule {
-  def moduleDeps = Seq(wrapper.bar, wrapper.foo)
+object baz extends MyModule {
+  def moduleDeps = Seq(foo.bar, foo.qux)
 }
 
 // Modules can be nested arbitrarily deeply within each other. The outer module
@@ -28,17 +28,17 @@ object qux extends MyModule {
 /* Example Usage
 
 > ./mill resolve __.run
-wrapper.foo.run
-wrapper.bar.run
+foo.bar.run
+foo.qux.run
 qux.run
 
-> ./mill qux.run
-Foo.value: <h1>hello</h1>
+> ./mill baz.run
 Bar.value: <p>world</p>
-Qux.value: <p>today</p>
+Qux.value: <h1>hello</h1>
+Baz.value: <p>today</p>
 
-> ./mill wrapper.foo.run
-Foo.value: <h1>hello</h1>
+> ./mill foo.qux.run
 Bar.value: <p>world</p>
+Qux.value: <h1>hello</h1>
 
 */
