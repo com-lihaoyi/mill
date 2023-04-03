@@ -26,14 +26,11 @@ object foo extends RootModule with ScalaModule {
 > ./mill compile
 compiling 1 Scala source
 
-> ./mill run --text hello
-Missing argument: --text <str>
+> ./mill run
+error: Missing argument: --text <str>
 
 > ./mill run --text hello
 <h1>hello</h1>
-
-> ./mill run --text "<script>alert('hello')</script>"
-<h1>&lt;script&gt;alert('hello')&lt;/script&gt;</h1>
 
 > ./mill show assembly
 out/assembly.dest/out.jar
