@@ -97,22 +97,24 @@ class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = ""
   override def debugEnabled: Boolean = out.debugEnabled
 }
 
-
-class AnsiNav(output: Writer){
+class AnsiNav(output: Writer) {
   def control(n: Int, c: Char) = output.write("\u001b[" + n + c)
 
   /**
    * Move up `n` squares
    */
   def up(n: Int) = if (n == 0) "" else control(n, 'A')
+
   /**
    * Move down `n` squares
    */
   def down(n: Int) = if (n == 0) "" else control(n, 'B')
+
   /**
    * Move right `n` squares
    */
   def right(n: Int) = if (n == 0) "" else control(n, 'C')
+
   /**
    * Move left `n` squares
    */
@@ -126,6 +128,7 @@ class AnsiNav(output: Writer){
    * n=2: clear entire screen
    */
   def clearScreen(n: Int) = control(n, 'J')
+
   /**
    * Clear the current line
    *
@@ -135,7 +138,6 @@ class AnsiNav(output: Writer){
    */
   def clearLine(n: Int) = control(n, 'K')
 }
-
 
 object PrefixLogger {
   def apply(out: ColorLogger, context: String, tickerContext: String = ""): PrefixLogger =

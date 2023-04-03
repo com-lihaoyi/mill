@@ -15,19 +15,19 @@ import scala.collection.mutable
  * defined at the top level of the `build.sc` and not nested in any other
  * modules.
  */
-abstract class RootModule()
-                         (implicit baseModuleInfo: RootModule.Info,
-                          millModuleEnclosing0: sourcecode.Enclosing,
-                          millModuleLine0: sourcecode.Line,
-                          millName0: sourcecode.Name,
-                          millFile0: sourcecode.File)
-  extends mill.define.BaseModule(baseModuleInfo.millSourcePath0)(
-    millModuleEnclosing0,
-    millModuleLine0,
-    millName0,
-    millFile0,
-    Caller(())
-  ) with mill.main.MainModule{
+abstract class RootModule()(implicit
+    baseModuleInfo: RootModule.Info,
+    millModuleEnclosing0: sourcecode.Enclosing,
+    millModuleLine0: sourcecode.Line,
+    millName0: sourcecode.Name,
+    millFile0: sourcecode.File
+) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0)(
+      millModuleEnclosing0,
+      millModuleLine0,
+      millName0,
+      millFile0,
+      Caller(())
+    ) with mill.main.MainModule {
 
   // Make BaseModule take the `millDiscover` as an implicit param, rather than
   // defining it itself. That is so we can define it externally in the wrapper
@@ -46,7 +46,6 @@ abstract class RootModule()
       v
     }
 
-
     def watch(p: os.Path): os.Path = {
       val watchable = Watchable.Path(PathRef(p))
       watchedValues.append(watchable)
@@ -58,22 +57,22 @@ abstract class RootModule()
 }
 
 @internal
-object RootModule{
+object RootModule {
   case class Info(millSourcePath0: os.Path, discover: Discover[_])
 
-  abstract class Foreign(foreign0: Option[Segments])
-                        (implicit baseModuleInfo: RootModule.Info,
-                         millModuleEnclosing0: sourcecode.Enclosing,
-                         millModuleLine0: sourcecode.Line,
-                         millName0: sourcecode.Name,
-                         millFile0: sourcecode.File)
-    extends mill.define.BaseModule(baseModuleInfo.millSourcePath0, foreign0 = foreign0)(
-      millModuleEnclosing0,
-      millModuleLine0,
-      millName0,
-      millFile0,
-      Caller(())
-    ) with mill.main.MainModule {
+  abstract class Foreign(foreign0: Option[Segments])(implicit
+      baseModuleInfo: RootModule.Info,
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millName0: sourcecode.Name,
+      millFile0: sourcecode.File
+  ) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0, foreign0 = foreign0)(
+        millModuleEnclosing0,
+        millModuleLine0,
+        millName0,
+        millFile0,
+        Caller(())
+      ) with mill.main.MainModule {
 
     override implicit lazy val millDiscover = Discover[this.type]
   }

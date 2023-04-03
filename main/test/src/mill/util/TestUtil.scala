@@ -49,7 +49,7 @@ object TestUtil extends MillTestKit {
         ctx0,
         upickle.default.readwriter[Int],
         None
-      ){
+      ) {
     override def evaluate(args: mill.api.Ctx) = testTask.evaluate(args)
     override val inputs = taskInputs
     val testTask = new Test(taskInputs)

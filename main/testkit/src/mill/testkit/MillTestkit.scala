@@ -148,7 +148,6 @@ trait MillTestKit {
 
     def check(targets: Agg[Task[_]], expected: Agg[Task[_]]): Unit = {
 
-
       val evaluated = evaluator.evaluate(targets)
         .evaluated
         .flatMap(_.asTarget)

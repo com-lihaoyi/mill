@@ -2,12 +2,13 @@ package mill.linenumbers
 
 import scala.tools.nsc._
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
+
 /**
  * Used to capture the names in scope after every execution, reporting them
  * to the `output` function. Needs to be a compiler plugin so we can hook in
  * immediately after the `typer`
  */
-class LineNumberPlugin(val global: Global) extends Plugin{
+class LineNumberPlugin(val global: Global) extends Plugin {
   override def init(options: List[String], error: String => Unit): Boolean = true
   val name: String = "mill-linenumber-plugin"
   val description = "Adjusts line numbers in the user-provided script to compensate for wrapping"
@@ -32,13 +33,12 @@ object LineNumberPlugin {
     object LineNumberCorrector extends g.Transformer {
       import scala.reflect.internal.util._
 
-
-      val str =  new String(g.currentSource.content)
+      val str = new String(g.currentSource.content)
       val userCodeStartMarker = "//MILL_USER_CODE_START_MARKER"
       val lines = str.linesWithSeparators.toVector
 
       val adjustedFile = lines
-        .collectFirst{case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim}
+        .collectFirst { case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim }
         .get
 
       val markerLine = lines.indexWhere(_.startsWith(userCodeStartMarker))
@@ -47,7 +47,8 @@ object LineNumberPlugin {
 
       val trimmedSource = new BatchSourceFile(
         new scala.reflect.io.PlainFile(adjustedFile),
-        g.currentSource.content.drop(topWrapperLen))
+        g.currentSource.content.drop(topWrapperLen)
+      )
 
       override def transform(tree: g.Tree) = {
         val transformedTree = super.transform(tree)
@@ -60,7 +61,7 @@ object LineNumberPlugin {
         // The ticket https://github.com/scala/scala-dev/issues/390 tracks down
         // relaxing the aggressive validation.
         val newPos = tree.pos match {
-          case s : TransparentPosition if s.start > topWrapperLen =>
+          case s: TransparentPosition if s.start > topWrapperLen =>
             new TransparentPosition(
               trimmedSource,
               s.start - topWrapperLen,

@@ -2,7 +2,7 @@ package webapp
 
 import utest._
 
-object WebAppTests extends TestSuite{
+object WebAppTests extends TestSuite {
   def withServer[T](example: cask.main.Main)(f: String => T): T = {
     val server = io.undertow.Undertow.builder
       .addHttpListener(8081, "localhost")
@@ -15,8 +15,8 @@ object WebAppTests extends TestSuite{
     res
   }
 
-  val tests = Tests{
-    test("simpleRequest") - withServer(WebApp){ host =>
+  val tests = Tests {
+    test("simpleRequest") - withServer(WebApp) { host =>
       val page = requests.get(host).text()
       assert(page.contains("What needs to be done?"))
     }

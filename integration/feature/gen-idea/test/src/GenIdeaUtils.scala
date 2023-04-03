@@ -2,15 +2,17 @@ package mill.integration
 import java.util.regex.Pattern
 import scala.util.Try
 import utest.assert
-object GenIdeaUtils{
+object GenIdeaUtils {
 
   /**
    * The resource content will loaded from the claspath and matched against the file.
    * It may contain the `<!-- IGNORE -->` String, to simulate wildcard-matches.
    */
-  def assertIdeaXmlResourceMatchesFile(workspaceSlug: String,
-                                       workspacePath: os.Path,
-                                       resource: os.RelPath): Unit = {
+  def assertIdeaXmlResourceMatchesFile(
+      workspaceSlug: String,
+      workspacePath: os.Path,
+      resource: os.RelPath
+  ): Unit = {
     val expectedResourcePath = workspacePath / "idea" / resource
     val actualResourcePath = workspacePath / ".idea" / resource
 
@@ -23,8 +25,7 @@ object GenIdeaUtils{
     )
   }
 
-  def assertPartialContentMatches(found: String,
-                                  expected: String): Unit = {
+  def assertPartialContentMatches(found: String, expected: String): Unit = {
     if (!expected.contains(ignoreString)) {
       assert(found == expected)
     }

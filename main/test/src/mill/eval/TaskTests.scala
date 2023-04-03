@@ -25,7 +25,7 @@ trait TaskTests extends TestSuite {
       1234
     }
   }
-  trait Build extends SuperBuild{
+  trait Build extends SuperBuild {
     var count = 0
     var changeOnceCount = 0
     var workerCloseCount = 0
@@ -108,9 +108,9 @@ trait TaskTests extends TestSuite {
       w.apply(1)
     }
 
-    override def superBuildInputOverrideWithConstant = T{ 123 }
-    override def superBuildInputOverrideUsingSuper = T{
-      123  + super.superBuildInputOverrideUsingSuper()
+    override def superBuildInputOverrideWithConstant = T { 123 }
+    override def superBuildInputOverrideUsingSuper = T {
+      123 + super.superBuildInputOverrideUsingSuper()
     }
 
     var superBuildTargetOverrideWithInputCount = 0
@@ -221,7 +221,6 @@ trait TaskTests extends TestSuite {
         assert(wc.head != secondCached)
       }
     }
-
 
     "overrideDifferentKind" - {
       "inputWithTarget" - {
