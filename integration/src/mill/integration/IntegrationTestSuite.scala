@@ -149,6 +149,7 @@ abstract class IntegrationTestSuite extends TestSuite{
     // destination instead of the folder containing the wrapper.
 
     os.copy(scriptSourcePath, workspacePath)
+    os.remove.all(workspacePath / "out")
     workspacePath
   }
 
