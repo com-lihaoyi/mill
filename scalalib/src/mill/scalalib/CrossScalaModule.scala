@@ -25,3 +25,13 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase { outer =>
   }
   trait Tests extends CrossScalaModuleTests
 }
+
+object CrossScalaModule{
+  trait Wrapper extends mill.Module {
+    def crossScalaVersion: String
+
+    trait CrossScalaModule extends mill.scalalib.CrossScalaModule {
+      def crossScalaVersion = Wrapper.this.crossScalaVersion
+    }
+  }
+}

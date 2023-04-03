@@ -32,8 +32,7 @@ object app extends RootModule with AppScalaModule{
   }
 
   object shared extends Module{
-    trait SharedModule extends AppScalaModule{
-      def millSourcePath = super.millSourcePath / os.up
+    trait SharedModule extends AppScalaModule with PlatformScalaModule {
 
       def ivyDeps = Agg(
         ivy"com.lihaoyi::scalatags::0.12.0",

@@ -1,13 +1,8 @@
 import mill._, scalalib._, scalajslib._, publish._
 
 object wrapper extends Cross[WrapperModule]("2.13.10", "3.2.2")
-class WrapperModule(val crossScalaVersion: String) extends Module {
-
-  trait MyModule extends CrossScalaModule with PublishModule {
-    def artifactName = millModuleSegments.parts.dropRight(1).last
-
-    def crossScalaVersion = WrapperModule.this.crossScalaVersion
-    def millSourcePath = super.millSourcePath / os.up
+class WrapperModule(val crossScalaVersion: String) extends CrossScalaModule.Wrapper {
+  trait MyScalaModule extends CrossScalaModule with PlatformScalaModule with PublishModule {
     def publishVersion = "0.0.1"
 
     def pomSettings = PomSettings(
@@ -25,23 +20,14 @@ class WrapperModule(val crossScalaVersion: String) extends Module {
       def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
       def testFramework = "utest.runner.Framework"
     }
-
-    def sources = T.sources {
-      val platform = millModuleSegments.parts.last
-      super.sources().flatMap(source =>
-        Seq(
-          source,
-          PathRef(source.path / os.up / s"${source.path.last}-${platform}")
-        )
-      )
-    }
   }
-  trait MyScalaJSModule extends MyModule with ScalaJSModule {
+
+  trait MyScalaJSModule extends MyScalaModule with ScalaJSModule {
     def scalaJSVersion = "1.13.0"
   }
 
   object foo extends Module{
-    object jvm extends MyModule{
+    object jvm extends MyScalaModule{
       def moduleDeps = Seq(bar.jvm)
       def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
     }
@@ -51,7 +37,7 @@ class WrapperModule(val crossScalaVersion: String) extends Module {
   }
 
   object bar extends Module{
-    object jvm extends MyModule
+    object jvm extends MyScalaModule
     object js extends MyScalaJSModule
   }
 }
