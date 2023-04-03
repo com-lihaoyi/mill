@@ -45,7 +45,7 @@ index 4ae8bd899..c7647c7cc 100644
  }
  
 -trait MillMimaConfig extends mima.Mima {
-+trait MillMimaConfig {
++trait MillMimaConfig extends Module {
    def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 -  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 -  override def mimaPreviousArtifacts: T[Agg[Dep]] = T {
