@@ -29,7 +29,7 @@ object Discover {
   private def unapply[T](discover: Discover[T])
       : Option[Map[Class[_], Seq[(Int, mainargs.MainData[_, _])]]] = Some(discover.value)
 
-  class Router(val ctx: blackbox.Context) extends mainargs.Macros(ctx) {
+  private class Router(val ctx: blackbox.Context) extends mainargs.Macros(ctx) {
     import c.universe._
 
     def applyImpl[T: WeakTypeTag]: Expr[Discover[T]] = {
