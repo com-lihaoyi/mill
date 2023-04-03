@@ -124,7 +124,7 @@ object Deps {
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
-  val ammoniteVersion = "3.0.0-M0-5-0af4d9e7"
+  val ammoniteVersion = "3.0.0-M0-6-34034262"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
