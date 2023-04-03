@@ -172,7 +172,6 @@ object Jvm extends CoursierSupport {
       )
 
       val sources = Seq(
-
         (process.stdout, System.out, "spawnSubprocess.stdout", false, () => true),
         (process.stderr, System.err, "spawnSubprocess.stderr", false, () => true),
         (System.in, process.stdin, "spawnSubprocess.stdin", true, () => process.isAlive())

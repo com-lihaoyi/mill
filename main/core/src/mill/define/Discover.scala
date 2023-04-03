@@ -60,13 +60,13 @@ object Discover {
       rec(weakTypeOf[T])
 
       def assertParamListCounts(
-                                 methods: Iterable[MethodSymbol],
-                                 cases: (Type, Int, String)*
-                               ): Unit = {
+          methods: Iterable[MethodSymbol],
+          cases: (Type, Int, String)*
+      ): Unit = {
         for (m <- methods.toList) {
           cases
-            .find{case (tt, n, label) => m.returnType <:< tt}
-            .foreach{case (tt, n, label) =>
+            .find { case (tt, n, label) => m.returnType <:< tt }
+            .foreach { case (tt, n, label) =>
               if (m.paramLists.length != n) c.abort(
                 m.pos,
                 s"$label definitions must have $n parameter list" + (if (n == 1) "" else "s")
@@ -82,7 +82,7 @@ object Discover {
           assertParamListCounts(
             methods,
             (weakTypeOf[mill.define.Command[_]], 1, "`T.command`"),
-            (weakTypeOf[mill.define.Target[_]], 0, "Target"),
+            (weakTypeOf[mill.define.Target[_]], 0, "Target")
           )
 
           for {

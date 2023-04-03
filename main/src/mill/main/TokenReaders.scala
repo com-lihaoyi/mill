@@ -43,12 +43,14 @@ class TaskTokenReader[T](tokensReaderOfT: TokensReader[T])
       noTokens = tokensReaderOfT.noTokens
     )
 
-object TokenReaders{
+object TokenReaders {
   implicit def millEvaluatorTokenReader[T] = new mill.main.EvaluatorTokenReader[T]()
 
   implicit def millTasksTokenReader[T]: mainargs.TokensReader[Tasks[T]] =
     new mill.main.Tasks.TokenReader[T]()
 
-  implicit def millTaskTokenReader[T](implicit tokensReaderOfT: TokensReader[T]): TokensReader[Task[T]] =
+  implicit def millTaskTokenReader[T](implicit
+      tokensReaderOfT: TokensReader[T]
+  ): TokensReader[Task[T]] =
     new TaskTokenReader[T](tokensReaderOfT)
 }

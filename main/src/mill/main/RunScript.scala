@@ -108,7 +108,6 @@ object RunScript {
       }
   }
 
-
   def evaluateTasks[T](
       evaluator: Evaluator,
       scriptArgs: Seq[String],

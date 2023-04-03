@@ -1,6 +1,5 @@
 package mill.util
 
-
 import java.io.File
 import java.net.URL
 import java.nio.file.{Path, Paths}
@@ -31,13 +30,15 @@ object Classpath {
     var current = classLoader
     val files = collection.mutable.Buffer.empty[os.Path]
     val seenClassLoaders = collection.mutable.Buffer.empty[ClassLoader]
-    while(current != null){
+    while (current != null) {
       seenClassLoaders.append(current)
-      current match{
+      current match {
         case t: java.net.URLClassLoader =>
           files.appendAll(
             t.getURLs
-              .collect{case url if url.getProtocol == "file" => os.Path(java.nio.file.Paths.get(url.toURI))}
+              .collect {
+                case url if url.getProtocol == "file" => os.Path(java.nio.file.Paths.get(url.toURI))
+              }
           )
         case _ =>
       }

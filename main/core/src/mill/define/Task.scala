@@ -59,9 +59,9 @@ object Task {
     }
   }
   class TraverseCtx[+T, V](
-                            inputs0: Seq[Task[T]],
-                            f: (IndexedSeq[T], mill.api.Ctx) => Result[V]
-                          ) extends Task[V] {
+      inputs0: Seq[Task[T]],
+      f: (IndexedSeq[T], mill.api.Ctx) => Result[V]
+  ) extends Task[V] {
     val inputs = inputs0
     def evaluate(args: mill.api.Ctx) = {
       f(
@@ -196,7 +196,8 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     )
   }
 
-  def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] = macro sourcesImpl1
+  def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+    macro sourcesImpl1
 
   def sourcesImpl1(c: Context)(values: c.Expr[Result[os.Path]]*)(ctx: c.Expr[mill.define.Ctx])
       : c.Expr[Target[Seq[PathRef]]] = {
@@ -239,7 +240,8 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       )
     )
   }
-  def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] = macro sourceImpl1
+  def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] =
+    macro sourceImpl1
 
   def sourceImpl1(c: Context)(value: c.Expr[Result[os.Path]])(ctx: c.Expr[mill.define.Ctx])
       : c.Expr[Target[PathRef]] = {
@@ -263,7 +265,8 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     )
   }
 
-  def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] = macro sourceImpl2
+  def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
+    macro sourceImpl2
 
   def sourceImpl2(c: Context)(value: c.Expr[Result[PathRef]])(ctx: c.Expr[mill.define.Ctx])
       : c.Expr[Target[PathRef]] = {
@@ -432,7 +435,7 @@ class TargetImpl[+T](
     val ctx0: mill.define.Ctx,
     val readWriter: RW[_],
     val isPrivate: Option[Boolean]
-) extends Target[T]{
+) extends Target[T] {
   override def asTarget: Option[Target[T]] = Some(this)
   override def readWriterOpt = Some(readWriter)
 }
@@ -458,7 +461,7 @@ class Command[+T](
 }
 
 class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
-  extends NamedTask[T]{
+    extends NamedTask[T] {
   override def flushDest = false
   override def asWorker = Some(this)
 }
@@ -468,7 +471,7 @@ class InputImpl[T](
     val ctx0: mill.define.Ctx,
     val writer: upickle.default.Writer[_],
     val isPrivate: Option[Boolean]
-) extends Target[T]  {
+) extends Target[T] {
   override def sideHash = util.Random.nextInt()
   override def writerOpt = Some(writer)
 }
@@ -479,7 +482,7 @@ class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Optio
       ctx0,
       upickle.default.readwriter[Seq[PathRef]],
       isPrivate
-    ){
+    ) {
   override def readWriterOpt = Some(upickle.default.readwriter[Seq[PathRef]])
 }
 
@@ -489,6 +492,6 @@ class SourceImpl(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Bool
       ctx0,
       upickle.default.readwriter[PathRef],
       isPrivate
-    ){
+    ) {
   override def readWriterOpt = Some(upickle.default.readwriter[PathRef])
 }

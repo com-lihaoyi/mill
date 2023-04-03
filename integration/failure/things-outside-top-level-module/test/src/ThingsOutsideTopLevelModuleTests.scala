@@ -8,7 +8,7 @@ object ThingsOutsideTopLevelModuleTests extends IntegrationTestSuite {
   val tests = Tests {
     val workspaceRoot = initWorkspace()
 
-    test("success"){
+    test("success") {
       val res = evalStdout("resolve", "_")
       assert(!res.isSuccess)
       assert(

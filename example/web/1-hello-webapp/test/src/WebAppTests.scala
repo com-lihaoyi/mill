@@ -3,7 +3,7 @@ import io.undertow.Undertow
 
 import utest._
 
-object WebAppTests extends TestSuite{
+object WebAppTests extends TestSuite {
   def withServer[T](example: cask.main.Main)(f: String => T): T = {
     val server = Undertow.builder
       .addHttpListener(8081, "localhost")
@@ -22,7 +22,7 @@ object WebAppTests extends TestSuite{
 
       assert(
         body.contains("<h1>Hello World</h1>"),
-        body.contains("<p>I am cow</p>"),
+        body.contains("<p>I am cow</p>")
       )
     }
   }
