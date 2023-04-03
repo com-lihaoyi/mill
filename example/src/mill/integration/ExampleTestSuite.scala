@@ -25,7 +25,7 @@ import mill.util.Util
  * a learner. This is not as strict as asserting the entire command output, but
  * should be enough to catch most likely failure modes
  */
-object ExampleTestSuite extends IntegrationTestSuite{
+object ExampleTestSuite extends IntegrationTestSuite {
   val tests = Tests {
     val workspaceRoot = initWorkspace()
 
@@ -41,7 +41,7 @@ object ExampleTestSuite extends IntegrationTestSuite{
         val commandBlocks = usageComment.trim.split("\n\n")
 
         for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
-      }finally{
+      } finally {
         os.remove.all(workspaceRoot / "out")
       }
     }
@@ -50,19 +50,17 @@ object ExampleTestSuite extends IntegrationTestSuite{
   def processCommandBlock(workspaceRoot: os.Path, commandBlock: String) = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
-
     val expectedSnippets = commandBlockLines.tail
-    val (commandHead, comment) = commandBlockLines.head match{
+    val (commandHead, comment) = commandBlockLines.head match {
       case s"$before#$after" => (before.trim, Some(after.trim))
       case string => (string, None)
     }
 
     val incorrectPlatform =
       (comment.exists(_.startsWith("windows")) && !Util.windowsPlatform) ||
-      (comment.exists(_.startsWith("mac/linux")) && Util.windowsPlatform) ||
-      (comment.exists(_.startsWith("--no-server")) && integrationTestMode != "fork") ||
-      (comment.exists(_.startsWith("not --no-server")) && integrationTestMode == "fork")
-
+        (comment.exists(_.startsWith("mac/linux")) && Util.windowsPlatform) ||
+        (comment.exists(_.startsWith("--no-server")) && integrationTestMode != "fork") ||
+        (comment.exists(_.startsWith("not --no-server")) && integrationTestMode == "fork")
 
     if (!incorrectPlatform) {
       println("ExampleTestSuite: " + commandBlockLines.head)
@@ -70,9 +68,11 @@ object ExampleTestSuite extends IntegrationTestSuite{
     }
   }
 
-  def processCommand(workspaceRoot: os.Path,
-                     expectedSnippets: Vector[String],
-                     commandHead: String) = {
+  def processCommand(
+      workspaceRoot: os.Path,
+      expectedSnippets: Vector[String],
+      commandHead: String
+  ) = {
     commandHead match {
       case s"> ./$command" =>
         val evalResult = command match {
@@ -80,10 +80,10 @@ object ExampleTestSuite extends IntegrationTestSuite{
           case rest =>
             val tokens = rest.split(" ")
             val executable = workspaceRoot / os.RelPath(tokens.head)
-            if (!os.exists(executable)){
+            if (!os.exists(executable)) {
               throw new Exception(
                 s"Executable $executable not found.\n" +
-                s"Other files present include ${os.list(executable / os.up)}"
+                  s"Other files present include ${os.list(executable / os.up)}"
               )
             }
             val res = os
@@ -131,8 +131,10 @@ object ExampleTestSuite extends IntegrationTestSuite{
     }
   }
 
-  def validateEval(expectedSnippets: Vector[String],
-                   evalResult: IntegrationTestSuite.EvalResult): Unit = {
+  def validateEval(
+      expectedSnippets: Vector[String],
+      evalResult: IntegrationTestSuite.EvalResult
+  ): Unit = {
     if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
     else assert(evalResult.isSuccess)
 

@@ -28,17 +28,18 @@ case class Labelled[T](task: NamedTask[T], segments: Segments)
 /**
  * Evaluate tasks.
  */
-class Evaluator private (_home: os.Path,
-                         _outPath: os.Path,
-                         _externalOutPath: os.Path,
-                         _rootModule: mill.define.BaseModule,
-                         _baseLogger: ColorLogger,
-                         _classLoaderSigHash: Int,
-                         _workerCache: mutable.Map[Segments, (Int, Any)],
-                         _env: Map[String, String],
-                         _failFast: Boolean,
-                         _threadCount: Option[Int],
-                         _scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+class Evaluator private (
+    _home: os.Path,
+    _outPath: os.Path,
+    _externalOutPath: os.Path,
+    _rootModule: mill.define.BaseModule,
+    _baseLogger: ColorLogger,
+    _classLoaderSigHash: Int,
+    _workerCache: mutable.Map[Segments, (Int, Any)],
+    _env: Map[String, String],
+    _failFast: Boolean,
+    _threadCount: Option[Int],
+    _scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
 ) {
 
   import Evaluator.Terminal
@@ -719,7 +720,8 @@ class Evaluator private (_home: os.Path,
   def withEnv(env: Map[String, String]): Evaluator = copy(env = env)
   def withFailFast(failFast: Boolean): Evaluator = copy(failFast = failFast)
   def withThreadCount(threadCount: Option[Int]): Evaluator = copy(threadCount = threadCount)
-  def withScriptImportGraph(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]): Evaluator = copy(scriptImportGraph = scriptImportGraph)
+  def withScriptImportGraph(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]): Evaluator =
+    copy(scriptImportGraph = scriptImportGraph)
 }
 
 object Evaluator {

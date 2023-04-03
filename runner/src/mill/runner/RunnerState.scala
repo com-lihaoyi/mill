@@ -17,7 +17,6 @@ import mill.main.RootModule
  *   would contains the output of the meta-build compilation, and the in-memory
  *   bootstrap module would be pushed to a higher frame
  *
- *
  * If a level `n` fails to evaluate, then [[errorOpt]] is set to the error message
  * and frames `< n` are set to [[RunnerState.Frame.empty]]
  *
@@ -27,18 +26,19 @@ import mill.main.RootModule
  * evaluation that require them.
  */
 @internal
-case class RunnerState(bootstrapModuleOpt: Option[RootModule],
-                       frames: Seq[RunnerState.Frame],
-                       errorOpt: Option[String]){
-  def add(frame: RunnerState.Frame = RunnerState.Frame.empty,
-          errorOpt: Option[String] = None) = {
+case class RunnerState(
+    bootstrapModuleOpt: Option[RootModule],
+    frames: Seq[RunnerState.Frame],
+    errorOpt: Option[String]
+) {
+  def add(frame: RunnerState.Frame = RunnerState.Frame.empty, errorOpt: Option[String] = None) = {
     this.copy(frames = Seq(frame) ++ frames, errorOpt = errorOpt)
   }
 }
 
-object RunnerState{
+object RunnerState {
   class URLClassLoader(urls: Array[java.net.URL], parent: ClassLoader)
-    extends java.net.URLClassLoader(urls, parent) {
+      extends java.net.URLClassLoader(urls, parent) {
 
     // Random ID of the URLClassLoader to ensure it doesn't
     // duplicate (unlike System.identityHashCode), allowing tests to compare
@@ -49,20 +49,22 @@ object RunnerState{
   def empty = RunnerState(None, Nil, None)
 
   @internal
-  case class Frame(workerCache: Map[Segments, (Int, Any)],
-                   evalWatched: Seq[Watchable],
-                   moduleWatched: Seq[Watchable],
-                   scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
-                   classLoaderOpt: Option[RunnerState.URLClassLoader],
-                   runClasspath: Seq[PathRef]){
+  case class Frame(
+      workerCache: Map[Segments, (Int, Any)],
+      evalWatched: Seq[Watchable],
+      moduleWatched: Seq[Watchable],
+      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
+      classLoaderOpt: Option[RunnerState.URLClassLoader],
+      runClasspath: Seq[PathRef]
+  ) {
 
     def loggedData = {
       Frame.Logged(
-        workerCache.map{case (k, (i, v)) =>
+        workerCache.map { case (k, (i, v)) =>
           (k.render, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
-        evalWatched.collect{case Watchable.Path(p) => p},
-        moduleWatched.collect{case Watchable.Path(p) => p},
+        evalWatched.collect { case Watchable.Path(p) => p },
+        moduleWatched.collect { case Watchable.Path(p) => p },
         scriptImportGraph,
         classLoaderOpt.map(_.identity),
         runClasspath,
@@ -71,7 +73,7 @@ object RunnerState{
     }
   }
 
-  object Frame{
+  object Frame {
     case class WorkerInfo(identityHashCode: Int, inputHash: Int)
     implicit val workerInfoRw: ReadWriter[WorkerInfo] = macroRW
 
@@ -82,13 +84,15 @@ object RunnerState{
      * Simplified representation of [[Frame]] data, written to disk for
      * debugging and testing purposes.
      */
-    case class Logged(workerCache: Map[String, WorkerInfo],
-                      evalWatched: Seq[PathRef],
-                      moduleWatched: Seq[PathRef],
-                      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
-                      classLoaderIdentity: Option[Int],
-                      runClasspath: Seq[PathRef],
-                      runClasspathHash: Int)
+    case class Logged(
+        workerCache: Map[String, WorkerInfo],
+        evalWatched: Seq[PathRef],
+        moduleWatched: Seq[PathRef],
+        scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
+        classLoaderIdentity: Option[Int],
+        runClasspath: Seq[PathRef],
+        runClasspathHash: Int
+    )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
     def empty = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil)
