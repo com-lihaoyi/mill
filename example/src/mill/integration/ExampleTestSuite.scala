@@ -57,12 +57,14 @@ object ExampleTestSuite extends IntegrationTestSuite{
       case string => (string, None)
     }
 
-    val correctPlatform =
-      comment == None ||
-      (comment == Some("windows") && Util.windowsPlatform) ||
-      (comment == Some("mac/linux") && !Util.windowsPlatform)
+    val incorrectPlatform =
+      (comment.exists(_.startsWith("windows")) && !Util.windowsPlatform) ||
+      (comment.exists(_.startsWith("mac/linux")) && Util.windowsPlatform) ||
+      (comment.exists(_.startsWith("--no-server")) && integrationTestMode != "fork") ||
+      (comment.exists(_.startsWith("not --no-server")) && integrationTestMode == "fork")
 
-    if (correctPlatform) {
+
+    if (!incorrectPlatform) {
       println("ExampleTestSuite: " + commandBlockLines.head)
       processCommand(workspaceRoot, expectedSnippets, commandHead)
     }
