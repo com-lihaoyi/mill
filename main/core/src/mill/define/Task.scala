@@ -91,7 +91,7 @@ trait NamedTask[+T] extends Task[T] {
   def label: String = ctx.segment match {
     case Segment.Label(v) => v
     case Segment.Cross(_) => throw new IllegalArgumentException(
-        "Target only support a ctx with a Label segment, but found a Cross."
+        "NamedTask only support a ctx with a Label segment, but found a Cross."
       )
   }
   override def toString = ctx.segments.render
