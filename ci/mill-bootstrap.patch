@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index df820ce38..a9e35268d 100644
+index 4ae8bd899..c7647c7cc 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,22 +2,10 @@
@@ -9,7 +9,7 @@ index df820ce38..a9e35268d 100644
 -import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.0`
 -import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.13`
  import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
-
+ 
  // imports
 -import com.github.lolgab.mill.mima
 -import com.github.lolgab.mill.mima.{
@@ -28,7 +28,7 @@ index df820ce38..a9e35268d 100644
 @@ -179,12 +167,8 @@ object Deps {
    val requests = ivy"com.lihaoyi::requests:0.8.0"
  }
-
+ 
 -def millVersion: T[String] = T { VcsVersion.vcsState().format() }
 -def millLastTag: T[String] = T {
 -  VcsVersion.vcsState().lastTag.getOrElse(
@@ -40,15 +40,23 @@ index df820ce38..a9e35268d 100644
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
-@@ -244,20 +228,7 @@ trait MillCoursierModule extends CoursierModule {
+@@ -244,27 +228,8 @@ trait MillCoursierModule extends CoursierModule {
    )
  }
-
+ 
 -trait MillMimaConfig extends mima.Mima {
++trait MillMimaConfig extends Module {
+   def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 -  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
--  override def mimaPreviousArtifacts =
--    if (Settings.mimaBaseVersions.isEmpty) T { Agg[Dep]() }
--    else super.mimaPreviousArtifacts
+-  override def mimaPreviousArtifacts: T[Agg[Dep]] = T {
+-    Agg.from(
+-      Settings.mimaBaseVersions
+-        .filter(v => !skipPreviousVersions().contains(v))
+-        .map(version =>
+-          ivy"${pomSettings().organization}:${artifactId()}:${version}"
+-        )
+-    )
+-  }
 -  override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
 -    "mill.api.internal",
 -    "mill.api.experimental"
@@ -58,11 +66,10 @@ index df820ce38..a9e35268d 100644
 -    issueFilterByModule.getOrElse(this, Seq())
 -  }
 -  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
-+trait MillMimaConfig extends Module {
  }
-
+ 
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -651,6 +622,7 @@ object scalajslib extends MillModule {
+@@ -658,6 +623,7 @@ object scalajslib extends MillModule {
    }
    object worker extends Cross[WorkerModule]("1")
    class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
@@ -70,15 +77,15 @@ index df820ce38..a9e35268d 100644
      override def moduleDeps = Seq(scalajslib.`worker-api`)
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
-@@ -713,6 +685,7 @@ object contrib extends MillModule {
-
+@@ -720,6 +686,7 @@ object contrib extends MillModule {
+ 
      object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
      class WorkerModule(playBinary: String) extends MillInternalModule {
 +      override def millSourcePath: os.Path = super.millSourcePath / playBinary
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -915,6 +888,7 @@ object scalanativelib extends MillModule {
+@@ -922,6 +889,7 @@ object scalanativelib extends MillModule {
    object worker extends Cross[WorkerModule]("0.4")
    class WorkerModule(scalaNativeWorkerVersion: String)
        extends MillInternalModule {
@@ -86,18 +93,17 @@ index df820ce38..a9e35268d 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1034,6 +1008,8 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
- // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
- // and pass `lib`'s compile output back to `test`
+@@ -1104,6 +1072,7 @@ trait IntegrationTestModule extends MillScalaModule {
+ }
+ 
  trait IntegrationTestCrossModule extends IntegrationTestModule {
 +  override def millSourcePath = super.millSourcePath / repoSlug
-+
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1645,53 +1621,7 @@ def launcher = T {
+@@ -1657,53 +1626,7 @@ def launcher = T {
  }
-
+ 
  def uploadToGithub(authKey: String) = T.command {
 -  val vcsState = VcsVersion.vcsState()
 -  val label = vcsState.format()
@@ -148,5 +154,5 @@ index df820ce38..a9e35268d 100644
 -  }
 +  // never upload a bootstrapped version
  }
-
+ 
  def validate(ev: Evaluator): Command[Unit] = T.command {
