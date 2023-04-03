@@ -5,6 +5,7 @@ object foo extends RootModule with ScalaModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::scalatags:0.8.2",
+    ivy"com.lihaoyi::mainargs:0.4.0",
     ivy"com.lihaoyi::os-lib:0.9.1",
   )
 
@@ -62,8 +63,8 @@ object foo extends RootModule with ScalaModule {
 
 /* Example Usage
 
-> ./mill run
-Foo.value: <h1>hello</h1>
+> ./mill run --text hello
+value: <h1>hello</h1>
 MyDeps.value: List((com.lihaoyi,scalatags,0.8.2), (com.lihaoyi,os-lib,0.9.1))
 my.line.count: 10
 */

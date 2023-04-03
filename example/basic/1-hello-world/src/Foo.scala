@@ -1,8 +1,12 @@
 package foo
 import scalatags.Text.all._
+import mainargs.{main, ParserForMethods}
 object Foo {
-  val value = h1("hello")
-  def main(args: Array[String]): Unit = {
-    println("Foo.value: " + Foo.value)
+  @main
+  def main(text: String) = {
+    val value = h1(text)
+    println(value)
   }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
 }
