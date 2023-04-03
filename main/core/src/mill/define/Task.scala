@@ -36,7 +36,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 
   def asTarget: Option[Target[T]] = None
   def asCommand: Option[Command[T]] = None
-  def asWorker: Option[Target[T]] = None
+  def asWorker: Option[Worker[T]] = None
   def self: Task[T] = this
 }
 
@@ -84,7 +84,7 @@ object Task {
 /**
  * Represents a task that can be referenced by its path segments.
  */
-trait Target[+T] extends Task[T] {
+trait NamedTask[+T] extends Task[T] {
   def t: Task[T]
   def ctx0: mill.define.Ctx
   def isPrivate: Option[Boolean]
@@ -106,6 +106,7 @@ trait Target[+T] extends Task[T] {
   def writerOpt: Option[upickle.default.Writer[_]] = readWriterOpt.orElse(None)
 }
 
+trait Target[+T] extends NamedTask[T]
 
 object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   // convenience
@@ -358,31 +359,31 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     )
   }
 
-  def worker[T](t: Task[T])(implicit ctx: mill.define.Ctx): Target[T] = macro workerImpl1[T]
+  def worker[T](t: Task[T])(implicit ctx: mill.define.Ctx): Worker[T] = macro workerImpl1[T]
 
   def workerImpl1[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(ctx: c.Expr[mill.define.Ctx])
-      : c.Expr[Target[T]] = {
+      : c.Expr[Worker[T]] = {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
 
-    mill.moduledefs.Cacher.impl0[Target[T]](c)(
+    mill.moduledefs.Cacher.impl0[Worker[T]](c)(
       reify(
-        new WorkerImpl[T](t.splice, ctx.splice, taskIsPrivate.splice)
+        new Worker[T](t.splice, ctx.splice, taskIsPrivate.splice)
       )
     )
   }
-  def worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Target[T] = macro workerImpl2[T]
+  def worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Worker[T] = macro workerImpl2[T]
 
   def workerImpl2[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(ctx: c.Expr[mill.define.Ctx])
-      : c.Expr[Target[T]] = {
+      : c.Expr[Worker[T]] = {
     import c.universe._
 
     val taskIsPrivate = isPrivateTargetOption(c)
 
-    mill.moduledefs.Cacher.impl0[Target[T]](c)(
+    mill.moduledefs.Cacher.impl0[Worker[T]](c)(
       reify(
-        new WorkerImpl[T](
+        new Worker[T](
           Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
           ctx.splice,
           taskIsPrivate.splice
@@ -451,13 +452,13 @@ class Command[+T](
     val writer: W[_],
     val cls: Class[_],
     val isPrivate: Option[Boolean]
-) extends Target[T] {
+) extends NamedTask[T] {
   override def asCommand = Some(this)
   override def writerOpt = Some(writer)
 }
 
-class WorkerImpl[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
-  extends Target[T]{
+class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
+  extends NamedTask[T]{
   override def flushDest = false
   override def asWorker = Some(this)
 }

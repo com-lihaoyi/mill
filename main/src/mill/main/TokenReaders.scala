@@ -4,7 +4,7 @@ import mainargs.TokensReader
 import mill.eval.Evaluator
 import mill.define.{SelectMode, Target, Task}
 
-case class Tasks[T](value: Seq[mill.define.Target[T]])
+case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
 object Tasks {
   class TokenReader[T]()
@@ -16,7 +16,7 @@ object Tasks {
             Evaluator.currentEvaluator.get,
             s,
             SelectMode.Single
-          ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.Target[T]]])),
+          ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]])),
         alwaysRepeatable = false,
         allowEmpty = false
       )

@@ -1,18 +1,18 @@
 package mill.main
 
-import mill.define.{Target, Segment, SelectMode}
+import mill.define.{NamedTask, Segment, SelectMode}
 import mill.util.TestGraphs._
 import utest._
 object MainTests extends TestSuite {
 
   def check[T <: mill.define.BaseModule](module: T)(
       selectorString: String,
-      expected0: Either[String, Seq[T => Target[_]]]
+      expected0: Either[String, Seq[T => NamedTask[_]]]
   ) = checkSeq(module)(Seq(selectorString), expected0)
 
   def checkSeq[T <: mill.define.BaseModule](module: T)(
       selectorStrings: Seq[String],
-      expected0: Either[String, Seq[T => Target[_]]]
+      expected0: Either[String, Seq[T => NamedTask[_]]]
   ) = {
 
     val expected = expected0.map(_.map(_(module)))

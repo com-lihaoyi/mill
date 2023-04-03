@@ -5,7 +5,7 @@ import mainargs.TokensReader
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result, internal}
-import mill.define.{Command, Segments, SelectMode, Target, TargetImpl, Task}
+import mill.define.{Command, Segments, SelectMode, NamedTask, TargetImpl, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{PrintLogger, Watched}
 import pprint.{Renderer, Tree, Truncated}
@@ -20,7 +20,7 @@ object MainModule {
       evaluator: Evaluator,
       targets: Seq[String],
       selectMode: SelectMode
-  )(f: List[Target[Any]] => T): Result[T] = {
+  )(f: List[NamedTask[Any]] => T): Result[T] = {
     RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
@@ -155,7 +155,7 @@ trait MainModule extends mill.Module {
             Result.Failure(s"No path found between $src and $dest")
           case Some(list) =>
             val labels = list
-              .collect { case n: Target[_] => n.ctx.segments.render }
+              .collect { case n: NamedTask[_] => n.ctx.segments.render }
 
             labels.foreach(mill.T.log.outputStream.println(_))
 
@@ -174,7 +174,7 @@ trait MainModule extends mill.Module {
         resolveParents
       )
     }
-    def pprintTask(t: Target[_], evaluator: Evaluator): Tree.Lazy = {
+    def pprintTask(t: NamedTask[_], evaluator: Evaluator): Tree.Lazy = {
       val seen = mutable.Set.empty[Task[_]]
 
       def rec(t: Task[_]): Seq[Segments] = {
@@ -399,11 +399,11 @@ trait MainModule extends mill.Module {
       targets: Seq[String],
       ctx: Ctx,
       vizWorker: VizWorker,
-      planTasks: Option[List[Target[_]]] = None
+      planTasks: Option[List[NamedTask[_]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
-        rs: List[Target[Any]],
-        allRs: List[Target[Any]]
+        rs: List[NamedTask[Any]],
+        allRs: List[NamedTask[Any]]
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
       in.put((rs, allRs, ctx.dest))

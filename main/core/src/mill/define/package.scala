@@ -4,5 +4,4 @@ package object define{
   type Sources = define.Target[Seq[mill.api.PathRef]]
   type Input[T] = define.Target[T]
   type Persistent[T] = define.Target[T]
-  type Worker[T] = define.Target[T]
 }

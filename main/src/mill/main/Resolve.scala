@@ -244,7 +244,7 @@ abstract class Resolve[R: ClassTag] {
               }
             ).map(
               _.distinctBy {
-                case t: Target[_] => t.ctx.segments
+                case t: NamedTask[_] => t.ctx.segments
                 case t => t
               }
             )

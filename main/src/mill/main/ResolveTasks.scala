@@ -3,14 +3,14 @@ package mill.main
 import mill.define._
 import mill.main.ResolveMetadata.singleModuleMeta
 
-object ResolveTasks extends Resolve[Target[Any]] {
+object ResolveTasks extends Resolve[NamedTask[Any]] {
 
   def endResolveCross(
       obj: Module,
       last: List[String],
       discover: Discover[_],
       rest: Seq[String]
-  ): Either[String, Seq[Target[Any]]] = {
+  ): Either[String, Seq[NamedTask[Any]]] = {
     obj match {
       case _: Cross[Module] =>
         Resolve.runDefault(obj, Segment.Cross(last), discover, rest).flatten.headOption match {
@@ -34,20 +34,20 @@ object ResolveTasks extends Resolve[Target[Any]] {
       last: String,
       discover: Discover[_],
       rest: Seq[String]
-  ): Either[String, Seq[Target[Any]]] = last match {
+  ): Either[String, Seq[NamedTask[Any]]] = last match {
     case "__" =>
       Right(
         obj.millInternal.modules
           .filter(_ != obj)
-          .flatMap(m => m.millInternal.reflectAll[Target[_]])
+          .flatMap(m => m.millInternal.reflectAll[NamedTask[_]])
       )
-    case "_" => Right(obj.millInternal.reflectAll[Target[_]])
+    case "_" => Right(obj.millInternal.reflectAll[NamedTask[_]])
 
     case _ =>
       val target =
         obj
           .millInternal
-          .reflectSingle[Target[_]](last)
+          .reflectSingle[NamedTask[_]](last)
           .map(Right(_))
 
       val command = Resolve.invokeCommand(

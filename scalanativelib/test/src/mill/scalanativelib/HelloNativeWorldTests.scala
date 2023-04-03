@@ -154,7 +154,7 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    def runTests(testTask: define.Target[(String, Seq[TestRunner.Result])])
+    def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])])
         : Map[String, Map[String, TestRunner.Result]] = {
       val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
 

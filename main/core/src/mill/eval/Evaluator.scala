@@ -23,7 +23,7 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-case class Labelled[T](task: Target[T], segments: Segments)
+case class Labelled[T](task: NamedTask[T], segments: Segments)
 
 /**
  * Evaluate tasks.
@@ -318,7 +318,7 @@ class Evaluator private (_home: os.Path,
     val scriptsHash = {
       val scripts = new Loose.Agg.Mutable[os.Path]()
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
-        case namedTask: Target[_] => scripts.append(os.Path(namedTask.ctx.fileName))
+        case namedTask: NamedTask[_] => scripts.append(os.Path(namedTask.ctx.fileName))
         case _ =>
       }
 
@@ -605,7 +605,7 @@ class Evaluator private (_home: os.Path,
       newResults(task) = for (v <- res) yield {
         (
           v,
-          if (task.isInstanceOf[WorkerImpl[_]]) inputsHash
+          if (task.isInstanceOf[Worker[_]]) inputsHash
           else v.##
         )
       }
@@ -811,10 +811,10 @@ object Evaluator {
     val seen = collection.mutable.Set.empty[Segments]
     val overridden = collection.mutable.Set.empty[Task[_]]
     topoSorted.values.reverse.iterator.foreach {
-      case x: Target[_] if x.isPrivate == Some(true) =>
+      case x: NamedTask[_] if x.isPrivate == Some(true) =>
         // we always need to store them in the super-path
         overridden.add(x)
-      case x: Target[_] =>
+      case x: NamedTask[_] =>
         if (!seen.contains(x.ctx.segments)) seen.add(x.ctx.segments)
         else overridden.add(x)
       case _ => // donothing
@@ -822,7 +822,7 @@ object Evaluator {
 
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
       // important: all named tasks and those explicitly requested
-      case t: Target[Any] =>
+      case t: NamedTask[Any] =>
         val segments = t.ctx.segments
         Right(
           Labelled(

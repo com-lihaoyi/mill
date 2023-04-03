@@ -1,9 +1,9 @@
 package mill.eval
 
-import mill.define.{Target, Segments}
+import mill.define.{NamedTask, Segments}
 
 trait EvaluatorPathsResolver {
-  def resolveDest(task: Target[_]): EvaluatorPaths =
+  def resolveDest(task: NamedTask[_]): EvaluatorPaths =
     resolveDest(task.ctx.segments, task.ctx.foreign)
   def resolveDest(segments: Segments, foreignSegments: Option[Segments] = None): EvaluatorPaths
 }
