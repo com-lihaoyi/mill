@@ -51,10 +51,6 @@ trait Target[+T] extends Task[T] {
   override def toString = ctx.segments.render
   def isPrivate: Option[Boolean] = None
 }
-trait CachedTarget[+T] extends Target[T] {
-  override def asTarget: Option[Target[T]] = Some(this)
-  def readWrite: RW[_]
-}
 
 object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   // convenience
@@ -388,10 +384,11 @@ abstract class TargetImplBase[+T](
 class TargetImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
-    override val readWrite: RW[_],
+    val readWrite: RW[_],
     isPrivate: Option[Boolean]
-) extends TargetImplBase[T](ctx0, t, isPrivate)
-    with CachedTarget[T] {}
+) extends TargetImplBase[T](ctx0, t, isPrivate) {
+  override def asTarget: Option[Target[T]] = Some(this)
+}
 
 class Command[+T](
     t: Task[T],

@@ -43,13 +43,26 @@ object TestUtil extends MillTestKit {
    * controlled externally, so you can construct arbitrary dataflow graphs and
    * test how changes propagate.
    */
-  class TestTarget(inputs: Seq[Task[Int]], val pure: Boolean)(implicit ctx0: mill.define.Ctx)
-      extends Test(inputs)
-      with CachedTarget[Int] {
-    val ctx = ctx0.withSegments(ctx0.segments ++ Seq(ctx0.segment))
-    val readWrite = upickle.default.readwriter[Int]
+  class TestTarget(taskInputs: Seq[Task[Int]], val pure: Boolean)(implicit ctx0: mill.define.Ctx)
+      extends TargetImpl[Int](
+        null,
+        ctx0,
+        upickle.default.readwriter[Int],
+        None
+      ){
+    override def evaluate(args: mill.api.Ctx) = testTask.evaluate(args)
+    override val inputs = taskInputs
+    val testTask = new Test(taskInputs)
+    def counter_=(i: Int) = testTask.counter = i
+    def counter = testTask.counter
+    def failure_=(s: Option[String]) = testTask.failure = s
+    def failure = testTask.failure
+    def exception_=(s: Option[Throwable]) = testTask.exception = s
+    def exception = testTask.exception
 
+    override def sideHash = testTask.sideHash
   }
+
   def checkTopological(targets: Agg[Task[_]]) = {
     val seen = mutable.Set.empty[Task[_]]
     for (t <- targets.indexed.reverseIterator) {

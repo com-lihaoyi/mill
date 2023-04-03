@@ -115,7 +115,7 @@ trait MillTestKit {
           Tuple2(
             evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
             evaluated.evaluated.collect {
-              case t: CachedTarget[_]
+              case t: TargetImpl[_]
                   if module.millInternal.targets.contains(t)
                     && !t.isInstanceOf[InputImpl[_]]
                     && !t.ctx.external => t
