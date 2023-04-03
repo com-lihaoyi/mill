@@ -79,12 +79,12 @@ Parsing JSON with js.JSON.parse
 Foo.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
 > ./mill __.publishLocal
-Publishing Artifact(com.lihaoyi,bar_sjs1_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo_sjs1_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,bar_sjs1_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo_sjs1_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,wrapper-bar_sjs1_2.13,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,wrapper-bar_2.13,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,wrapper-foo_sjs1_2.13,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,wrapper-foo_2.13,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,wrapper-bar_sjs1_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,wrapper-bar_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,wrapper-foo_sjs1_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,wrapper-foo_3,0.0.1) to ivy repo
 */

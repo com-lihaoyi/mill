@@ -15,5 +15,5 @@ trait PlatformScalaModule extends ScalaModule{
     )
   }
 
-  override def artifactName = millModuleSegments.parts.dropRight(1).last
+  override def artifactNameParts = super.artifactNameParts().dropRight(1)
 }

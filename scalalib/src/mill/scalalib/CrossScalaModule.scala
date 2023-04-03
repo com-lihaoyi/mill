@@ -29,9 +29,11 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase { outer =>
 object CrossScalaModule{
   trait Wrapper extends mill.Module {
     def crossScalaVersion: String
-
+    private def wrapperSegments0 = millModuleSegments.parts
     trait CrossScalaModule extends mill.scalalib.CrossScalaModule {
+      override def wrapperSegments = wrapperSegments0
       def crossScalaVersion = Wrapper.this.crossScalaVersion
+
     }
   }
 }
