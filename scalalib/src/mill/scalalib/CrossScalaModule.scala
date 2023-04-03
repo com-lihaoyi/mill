@@ -5,8 +5,9 @@ import mill.T
 
 /**
  * A [[ScalaModule]] which is suited to be used with [[mill.define.Cross]].
- * It supports additional source directories with the scala version pattern as suffix (`src-{scalaversionprefix}`),
- * e.g.
+ * It supports additional source directories with the scala version pattern
+ * as suffix (`src-{scalaversionprefix}`), e.g.
+ *
  * - src
  * - src-2.11
  * - src-2.12.3
@@ -27,6 +28,10 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase { outer =>
 }
 
 object CrossScalaModule{
+  /**
+   * Used with a [[mill.define.Cross]] when you want [[CrossScalaModule]]'s
+   * nested within it
+   */
   trait Wrapper extends mill.Module {
     def crossScalaVersion: String
     private def wrapperSegments0 = millModuleSegments.parts
