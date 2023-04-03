@@ -129,7 +129,7 @@ object Deps {
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   val coursier = ivy"io.get-coursier::coursier:2.1.0"
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.11"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.14"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -303,7 +303,6 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   trait Tests extends MillScalaModuleTests
 }
 
-
 trait BaseMillTestsModule extends TestModule {
   override def forkArgs = T {
     Seq(
@@ -323,6 +322,7 @@ trait BaseMillTestsModule extends TestModule {
   }
   override def testFramework = "mill.UTestFramework"
 }
+
 /** A MillScalaModule with default set up test module. */
 trait MillAutoTestSetup extends MillScalaModule {
   // instead of `object test` which can't be overridden, we hand-made a val+class singleton
@@ -1049,7 +1049,7 @@ trait IntegrationTestModule extends MillScalaModule {
     override def forkEnv = super.forkEnv() ++ Map(
       "MILL_INTEGRATION_TEST_MODE" -> mode,
       "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
-      "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString,
+      "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
     ) ++ testReleaseEnv()
 
     def workspaceDir = T.persistent {
@@ -1062,7 +1062,7 @@ trait IntegrationTestModule extends MillScalaModule {
 
     override def forkArgs: Target[Seq[String]] = T {
       val genIdeaArgs =
-      //      genTask(main.moduledefs)() ++
+        //      genTask(main.moduledefs)() ++
         genTask(main.core)() ++
           genTask(main)() ++
           genTask(scalalib)() ++
@@ -1088,8 +1088,8 @@ trait IntegrationTestModule extends MillScalaModule {
     }
 
     def testReleaseEnv =
-      if (mode == "local") T{ Map.empty[String, String] }
-      else T{ Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
+      if (mode == "local") T { Map.empty[String, String] }
+      else T { Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
 
     def compile = IntegrationTestModule.this.compile()
     def moduleDeps = Seq(IntegrationTestModule.this)
@@ -1104,7 +1104,7 @@ trait IntegrationTestCrossModule extends IntegrationTestModule {
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
-object example extends MillScalaModule{
+object example extends MillScalaModule {
 
   def moduleDeps = Seq(integration)
 
@@ -1118,7 +1118,7 @@ object example extends MillScalaModule{
   }
 }
 
-object integration extends MillScalaModule{
+object integration extends MillScalaModule {
   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
   class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestCrossModule
@@ -1135,23 +1135,23 @@ object integration extends MillScalaModule{
   object thirdparty extends MillScalaModule {
     def moduleDeps = Seq(integration)
 
-    object acyclic extends ThirdPartyModule{
+    object acyclic extends ThirdPartyModule {
       def repoPath = "lihaoyi/acyclic"
       def repoHash = "bc41cd09a287e2c270271e27ccdb3066173a8598"
     }
-    object jawn extends ThirdPartyModule{
+    object jawn extends ThirdPartyModule {
       def repoPath = "non/jawn"
       def repoHash = "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb"
     }
-    object ammonite extends ThirdPartyModule{
+    object ammonite extends ThirdPartyModule {
       def repoPath = "lihaoyi/Ammonite"
       def repoHash = "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e"
     }
-    object upickle extends ThirdPartyModule{
+    object upickle extends ThirdPartyModule {
       def repoPath = "lihaoyi/upickle"
       def repoHash = "7f33085c890db7550a226c349832eabc3cd18769"
     }
-    object caffeine extends ThirdPartyModule{
+    object caffeine extends ThirdPartyModule {
       def repoPath = "ben-manes/caffeine"
       def repoHash = "c02c623aedded8174030596989769c2fecb82fe4"
 
@@ -1165,7 +1165,7 @@ object integration extends MillScalaModule{
       def repoPath: String
       def repoHash: String
       def repoSlug = repoPath.split("/").last
-      def testRepoRoot = T{
+      def testRepoRoot = T {
 
         shared.downloadTestRepo(repoPath, repoHash, T.dest)
         val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
@@ -1178,7 +1178,7 @@ object integration extends MillScalaModule{
         PathRef(T.dest)
       }
       def moduleDeps = super.moduleDeps ++ Seq(thirdparty)
-      object local extends ModeModule{
+      object local extends ModeModule {
         def runClasspath: T[Seq[PathRef]] = T {
           // we need to trigger installation of testng-contrib for Caffeine
           contrib.testng.publishLocal()()
@@ -1190,7 +1190,6 @@ object integration extends MillScalaModule{
     }
   }
 }
-
 
 def launcherScript(
     shellJvmArgs: Seq[String],
@@ -1304,15 +1303,15 @@ def launcherScript(
   )
 }
 
-object runner extends MillModule{
+object runner extends MillModule {
   override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers)
 
   object linenumbers extends MillPublishModule with MillInternalModule {
     def scalaVersion = Deps.scalaVersion
     override def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
-    def testArgs = T{
+    def testArgs = T {
       Seq(
-        s"-DMILL_LINENUMBERS=${runClasspath().map(_.path).mkString(",")}",
+        s"-DMILL_LINENUMBERS=${runClasspath().map(_.path).mkString(",")}"
       )
     }
   }
@@ -1409,10 +1408,11 @@ object dev extends MillModule {
         val wd = os.Path(wd0, T.workspace)
         os.makeDir.all(wd)
         try mill.modules.Jvm.runSubprocess(
-          Seq(launcher().path.toString) ++ rest,
-          forkEnv(),
-          workingDir = wd
-        )catch{case e => ()/*ignore to avoid confusing stacktrace and error messages*/}
+            Seq(launcher().path.toString) ++ rest,
+            forkEnv(),
+            workingDir = wd
+          )
+        catch { case e => () /*ignore to avoid confusing stacktrace and error messages*/ }
         mill.api.Result.Success(())
     }
 
