@@ -23,18 +23,7 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-case class Labelled[T](task: NamedTask[T], segments: Segments) {
-  def format: Option[default.ReadWriter[T]] = task match {
-    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
-    case _ => None
-  }
-  def writer: Option[default.Writer[T]] = task match {
-    case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
-    case t: mill.define.Input[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
-    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
-    case _ => None
-  }
-}
+case class Labelled[T](task: NamedTask[T], segments: Segments)
 
 /**
  * Evaluate tasks.
@@ -380,7 +369,7 @@ class Evaluator private (_home: os.Path,
               case NonFatal(_) => None
             }
           if cached.inputsHash == inputsHash
-          reader <- labelledNamedTask.format
+          reader <- labelledNamedTask.task.readWriterOpt
           parsed <-
             try Some(upickle.default.read(cached.value)(reader))
             catch {
@@ -493,7 +482,8 @@ class Evaluator private (_home: os.Path,
         }
       case None =>
         val terminalResult = labelledNamedTask
-          .writer
+          .task
+          .writerOpt
           .asInstanceOf[Option[upickle.default.Writer[Any]]]
           .map(w => upickle.default.writeJs(v)(w) -> v)
 

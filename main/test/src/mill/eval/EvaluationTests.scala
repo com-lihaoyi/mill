@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.util.TestUtil.{Test, test}
-import mill.define.{Discover, Graph, Target, Task}
+import mill.define.{Discover, Graph, TargetImpl, Task}
 import mill.{Module, T}
 import mill.util.{DummyLogger, TestEvaluator, TestGraphs, TestUtil}
 import mill.api.Strict.Agg
@@ -181,14 +181,14 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         import separateGroups._
         val checker = new Checker(separateGroups)
         val evaled1 = checker.evaluator.evaluate(Agg(right, left))
-        val filtered1 = evaled1.evaluated.filter(_.isInstanceOf[Target[_]])
+        val filtered1 = evaled1.evaluated.filter(_.isInstanceOf[TargetImpl[_]])
         assert(filtered1.toSeq.sortBy(_.toString) == Seq(change, left, right).sortBy(_.toString))
         val evaled2 = checker.evaluator.evaluate(Agg(right, left))
-        val filtered2 = evaled2.evaluated.filter(_.isInstanceOf[Target[_]])
+        val filtered2 = evaled2.evaluated.filter(_.isInstanceOf[TargetImpl[_]])
         assert(filtered2 == Agg())
         change.counter += 1
         val evaled3 = checker.evaluator.evaluate(Agg(right, left))
-        val filtered3 = evaled3.evaluated.filter(_.isInstanceOf[Target[_]])
+        val filtered3 = evaled3.evaluated.filter(_.isInstanceOf[TargetImpl[_]])
         assert(filtered3 == Agg(change, right))
 
       }

@@ -28,6 +28,7 @@ object MacroErrorTests extends TestSuite {
           e.pos.contains("def w = ")
         )
       }
+
       "target" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
@@ -36,7 +37,7 @@ object MacroErrorTests extends TestSuite {
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("`T{...}` definitions must have 0 parameter lists"),
+          e.msg.contains("Target definitions must have 0 parameter lists"),
           e.pos.contains("def x() = ")
         )
       }
@@ -48,7 +49,7 @@ object MacroErrorTests extends TestSuite {
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("`T.input` definitions must have 0 parameter lists"),
+          e.msg.contains("Target definitions must have 0 parameter lists"),
           e.pos.contains("def y() = ")
         )
       }
@@ -60,7 +61,7 @@ object MacroErrorTests extends TestSuite {
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("`T.sources` definitions must have 0 parameter lists"),
+          e.msg.contains("Target definitions must have 0 parameter lists"),
           e.pos.contains("def z() = ")
         )
       }
@@ -72,7 +73,7 @@ object MacroErrorTests extends TestSuite {
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("`T.persistent` definitions must have 0 parameter lists"),
+          e.msg.contains("Target definitions must have 0 parameter lists"),
           e.pos.contains("def a() = ")
         )
       }
