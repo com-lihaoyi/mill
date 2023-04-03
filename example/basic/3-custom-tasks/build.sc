@@ -65,6 +65,6 @@ object foo extends RootModule with ScalaModule {
 
 > ./mill run --text hello
 value: <h1>hello</h1>
-MyDeps.value: List((com.lihaoyi,scalatags,0.8.2), (com.lihaoyi,os-lib,0.9.1))
-my.line.count: 10
+MyDeps.value: List((com.lihaoyi,scalatags,0.8.2), (com.lihaoyi,mainargs,0.4.0), (com.lihaoyi,os-lib,0.9.1))
+my.line.count: 14
 */

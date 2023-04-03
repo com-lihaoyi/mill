@@ -6,12 +6,12 @@ object Qux {
 
   @main
   def main(@arg(name="foo-text") fooText: String,
-           @arg(name="foo-text") barText: String,
-           @arg(name="foo-text") quxText: String): Unit = {
-    foo.Foo.main(text)
-    bar.Bar.main(text)
+           @arg(name="bar-text") barText: String,
+           @arg(name="qux-text") quxText: String): Unit = {
+    foo.Foo.main(fooText)
+    bar.Bar.main(barText)
 
-    val value = p(text)
+    val value = p(quxText)
     println("Qux.value: " + value)
   }
 
