@@ -1,4 +1,4 @@
-name: Build and Release
+name: CI
 
 # We run full CI on push builds to main and on all pull requests
 #
