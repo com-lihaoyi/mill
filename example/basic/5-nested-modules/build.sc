@@ -35,12 +35,12 @@ wrapper.foo.run
 wrapper.bar.run
 qux.run
 
-> ./mill qux.run --foo-value hello --bar-value world --qux-value today
+> ./mill qux.run --foo-text hello --bar-text world --qux-text today
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: <p>today</p>
 
-> ./mill wrapper.foo.run --foo-value hello
+> ./mill wrapper.foo.run --foo-text hello
 Foo.value: <h1>hello</h1>
 
 */
