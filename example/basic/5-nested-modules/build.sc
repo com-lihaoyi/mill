@@ -40,7 +40,7 @@ Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: <p>today</p>
 
-> ./mill wrapper.foo.run --foo-text hello
+> ./mill wrapper.foo.run --text hello
 Foo.value: <h1>hello</h1>
 
 */
