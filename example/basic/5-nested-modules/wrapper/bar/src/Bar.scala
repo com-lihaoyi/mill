@@ -1,5 +1,13 @@
 package bar
 import scalatags.Text.all._
+import mainargs.{main, ParserForMethods}
 object Bar {
-  val value = p("world")
+
+  @main
+  def main(text: String): Unit = {
+    val value = p(text)
+    println("Bar.value: " + value)
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
 }
