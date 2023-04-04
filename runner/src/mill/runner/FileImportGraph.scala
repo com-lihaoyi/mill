@@ -5,18 +5,22 @@ import mill.api.internal
 import scala.collection.mutable
 
 @internal
-case class FileImportGraph(seenScripts: Map[os.Path, String],
-                           ivyDeps: Set[String],
-                           importGraphEdges: Map[os.Path, Seq[os.Path]],
-                           errors: Seq[String])
+case class FileImportGraph(
+    seenScripts: Map[os.Path, String],
+    ivyDeps: Set[String],
+    importGraphEdges: Map[os.Path, Seq[os.Path]],
+    errors: Seq[String]
+)
+
 /**
  * Logic around traversing the `import $file` graph, extracting necessary info
  * and converting it to a convenient data structure for downstream code to use
  */
 @internal
-object FileImportGraph{
+object FileImportGraph {
   import mill.api.JsonFormatters.pathReadWrite
   implicit val readWriter: upickle.default.ReadWriter[FileImportGraph] = upickle.default.macroRW
+
   /**
    * We perform a depth-first traversal of the import graph of `.sc` files,
    * starting from `build.sc`, collecting the information necessary to
@@ -34,7 +38,7 @@ object FileImportGraph{
       if (!seenScripts.contains(s)) {
         val readFileEither = scala.util.Try(
           Parsers.splitScript(os.read(s), s.relativeTo(topLevelProjectRoot).toString)
-        ) match{
+        ) match {
           case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
           case scala.util.Success(value) => value
         }
@@ -58,19 +62,21 @@ object FileImportGraph{
       }
     }
 
-    def walkStmt(s: os.Path,
-                 stmt0: String,
-                 importTrees: Seq[ImportTree],
-                 fileImports: mutable.Set[os.Path],
-                 transformedStmts: mutable.Buffer[String]) = {
+    def walkStmt(
+        s: os.Path,
+        stmt0: String,
+        importTrees: Seq[ImportTree],
+        fileImports: mutable.Set[os.Path],
+        transformedStmts: mutable.Buffer[String]
+    ) = {
 
       var stmt = stmt0
       for (importTree <- importTrees) {
         val (start, patchString, end) = importTree match {
-          case ImportTree(Seq(("$ivy", _), rest@_*), mapping, start, end) =>
+          case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
             seenIvy.addAll(mapping.map(_._1))
             (start, "_root_._", end)
-          case ImportTree(Seq(("$file", _), rest@_*), mapping, start, end) =>
+          case ImportTree(Seq(("$file", _), rest @ _*), mapping, start, end) =>
             val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
 
             fileImports.addAll(nextPaths)
@@ -79,7 +85,11 @@ object FileImportGraph{
             if (rest.isEmpty) (start, "_root_._", end)
             else {
               val end = rest.last._2
-              (start, fileImportToSegments(projectRoot, nextPaths(0) / os.up, false).mkString("."), end)
+              (
+                start,
+                fileImportToSegments(projectRoot, nextPaths(0) / os.up, false).mkString("."),
+                end
+              )
             }
         }
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
@@ -89,7 +99,6 @@ object FileImportGraph{
       transformedStmts.append(stmt)
     }
 
-
     walkScripts(projectRoot / "build.sc")
     new FileImportGraph(seenScripts.toMap, seenIvy.toSet, importGraphEdges.toMap, errors.toSeq)
   }
@@ -98,12 +107,14 @@ object FileImportGraph{
     // Manually do the foldLeft to work around bug in os-lib
     // https://github.com/com-lihaoyi/os-lib/pull/160
     val restSegments = rest
-      .map { case "^" => os.up case s => os.rel / s }
+      .map {
+        case "^" => os.up
+        case s => os.rel / s
+      }
       .foldLeft(os.rel)(_ / _)
 
     s / os.up / restSegments / os.up / s"${rest.last}.sc"
   }
-
 
   def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean) = {
     val rel = (s / os.up / (if (stripExt) s.baseName else s.last)).relativeTo(base)

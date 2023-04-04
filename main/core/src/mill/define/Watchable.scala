@@ -15,7 +15,7 @@ trait Watchable {
   def validate(): Boolean = poll() == signature
 }
 @internal
-object Watchable{
+object Watchable {
   case class Path(p: mill.api.PathRef) extends Watchable {
     def poll() = p.recomputeSig()
     def signature = p.sig

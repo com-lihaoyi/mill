@@ -50,14 +50,15 @@ object MillMain {
     System.exit(if (result) 0 else 1)
   }
 
-  def main0(args: Array[String],
-            stateCache: RunnerState,
-            mainInteractive: Boolean,
-            streams: SystemStreams,
-            env: Map[String, String],
-            setIdle: Boolean => Unit,
-            userSpecifiedProperties0: Map[String, String],
-            initialSystemProperties: Map[String, String]
+  def main0(
+      args: Array[String],
+      stateCache: RunnerState,
+      mainInteractive: Boolean,
+      streams: SystemStreams,
+      env: Map[String, String],
+      setIdle: Boolean => Unit,
+      userSpecifiedProperties0: Map[String, String],
+      initialSystemProperties: Map[String, String]
   ): (Boolean, RunnerState) = {
 
     MillCliConfigParser.parse(args) match {
@@ -111,7 +112,6 @@ object MillMain {
         (false, RunnerState.empty)
 
       case Right(config) =>
-
         val logger = getLogger(
           streams,
           config,
@@ -195,9 +195,9 @@ object MillMain {
                     threadCount = threadCount,
                     targetsAndParams = targetsAndParams,
                     prevRunnerState = prevState.getOrElse(stateCache),
-                    logger = logger,
+                    logger = logger
                   ).evaluate()
-                },
+                }
               )
 
               bspContext.foreach { ctx =>
@@ -229,10 +229,12 @@ object MillMain {
     }
   }
 
-  def getLogger(streams: SystemStreams,
-                config: MillCliConfig,
-                mainInteractive: Boolean,
-                enableTicker: Option[Boolean]) = {
+  def getLogger(
+      streams: SystemStreams,
+      config: MillCliConfig,
+      mainInteractive: Boolean,
+      enableTicker: Option[Boolean]
+  ) = {
     val colored = config.color.getOrElse(mainInteractive)
     val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
@@ -270,8 +272,10 @@ object MillMain {
     }
   }
 
-  def adjustJvmProperties(userSpecifiedProperties: Map[String, String],
-                          initialSystemProperties: Map[String, String]): Unit = {
+  def adjustJvmProperties(
+      userSpecifiedProperties: Map[String, String],
+      initialSystemProperties: Map[String, String]
+  ): Unit = {
     val currentProps = sys.props
     val desiredProps = initialSystemProperties ++ userSpecifiedProperties
     val systemPropertiesToUnset = desiredProps.keySet -- currentProps.keySet

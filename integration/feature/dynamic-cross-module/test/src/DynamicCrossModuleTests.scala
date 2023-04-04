@@ -2,7 +2,6 @@ package mill.integration
 
 import utest._
 
-
 // Make sure that values watched by `interp.watchValue` properly cause the base
 // module to be re-evaluated, so that changes in the module tree that depend on
 // those changes can properly take place. This is most commonly due to defining
@@ -14,12 +13,11 @@ object DynamicCrossModuleTests extends IntegrationTestSuite {
     val wsRoot = initWorkspace()
     test("test") - {
 
-
       val res = evalStdout("resolve", "modules._")
       assert(res.isSuccess == true)
       assert(
         res.out.linesIterator.toSet ==
-        Set("modules[bar]", "modules[foo]", "modules[qux]")
+          Set("modules[bar]", "modules[foo]", "modules[qux]")
       )
 
       val res2 = evalStdout("modules[bar].run")
@@ -63,7 +61,7 @@ object DynamicCrossModuleTests extends IntegrationTestSuite {
       assert(res7.isSuccess == true)
       assert(
         res7.out.linesIterator.toSet ==
-        Set("modules[bar]", "modules[foo]", "modules[qux]", "modules[new]", "modules[newer]")
+          Set("modules[bar]", "modules[foo]", "modules[qux]", "modules[new]", "modules[newer]")
       )
     }
   }

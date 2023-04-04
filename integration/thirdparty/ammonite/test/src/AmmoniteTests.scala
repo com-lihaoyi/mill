@@ -5,7 +5,7 @@ import utest._
 
 import scala.util.Properties
 
-object AmmoniteTests extends IntegrationTestSuite{
+object AmmoniteTests extends IntegrationTestSuite {
   val tests = Tests {
     initWorkspace()
 

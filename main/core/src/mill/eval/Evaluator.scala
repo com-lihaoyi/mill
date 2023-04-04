@@ -23,33 +23,23 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-case class Labelled[T](task: NamedTask[T], segments: Segments) {
-  def format: Option[default.ReadWriter[T]] = task match {
-    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
-    case _ => None
-  }
-  def writer: Option[default.Writer[T]] = task match {
-    case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
-    case t: mill.define.Input[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
-    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
-    case _ => None
-  }
-}
+case class Labelled[T](task: NamedTask[T], segments: Segments)
 
 /**
  * Evaluate tasks.
  */
-class Evaluator private (_home: os.Path,
-                         _outPath: os.Path,
-                         _externalOutPath: os.Path,
-                         _rootModule: mill.define.BaseModule,
-                         _baseLogger: ColorLogger,
-                         _classLoaderSigHash: Int,
-                         _workerCache: mutable.Map[Segments, (Int, Any)],
-                         _env: Map[String, String],
-                         _failFast: Boolean,
-                         _threadCount: Option[Int],
-                         _scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+class Evaluator private (
+    _home: os.Path,
+    _outPath: os.Path,
+    _externalOutPath: os.Path,
+    _rootModule: mill.define.BaseModule,
+    _baseLogger: ColorLogger,
+    _classLoaderSigHash: Int,
+    _workerCache: mutable.Map[Segments, (Int, Any)],
+    _env: Map[String, String],
+    _failFast: Boolean,
+    _threadCount: Option[Int],
+    _scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
 ) {
 
   import Evaluator.Terminal
@@ -380,7 +370,7 @@ class Evaluator private (_home: os.Path,
               case NonFatal(_) => None
             }
           if cached.inputsHash == inputsHash
-          reader <- labelledNamedTask.format
+          reader <- labelledNamedTask.task.readWriterOpt
           parsed <-
             try Some(upickle.default.read(cached.value)(reader))
             catch {
@@ -493,7 +483,8 @@ class Evaluator private (_home: os.Path,
         }
       case None =>
         val terminalResult = labelledNamedTask
-          .writer
+          .task
+          .writerOpt
           .asInstanceOf[Option[upickle.default.Writer[Any]]]
           .map(w => upickle.default.writeJs(v)(w) -> v)
 
@@ -729,7 +720,8 @@ class Evaluator private (_home: os.Path,
   def withEnv(env: Map[String, String]): Evaluator = copy(env = env)
   def withFailFast(failFast: Boolean): Evaluator = copy(failFast = failFast)
   def withThreadCount(threadCount: Option[Int]): Evaluator = copy(threadCount = threadCount)
-  def withScriptImportGraph(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]): Evaluator = copy(scriptImportGraph = scriptImportGraph)
+  def withScriptImportGraph(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]): Evaluator =
+    copy(scriptImportGraph = scriptImportGraph)
 }
 
 object Evaluator {
