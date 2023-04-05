@@ -208,9 +208,7 @@ object MillBuildRootModule {
         s"_root_.mill.main.RootModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
       }
 
-    s"""
-       |package ${pkg.mkString(".")}
-       |import _root_.mill._
+    s"""package ${pkg.mkString(".")}
        |import mill.runner.MillBuildRootModule
        |object `MiscInfo_${name}`{
        |  implicit val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
