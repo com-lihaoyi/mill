@@ -36,7 +36,7 @@ class MillBuildBootstrap(
     logger: ColorLogger
 ) {
 
-  val millBootClasspath = MillBuildBootstrap.prepareMillBootClasspath(projectRoot / "out")
+  val millBootClasspath: Seq[Path] = MillBuildBootstrap.prepareMillBootClasspath(projectRoot / "out")
 
   def evaluate(): Watching.Result[RunnerState] = {
     val runnerState = evaluateRec(0)
@@ -136,8 +136,10 @@ class MillBuildBootstrap(
               .frames
               .dropRight(1)
               .headOption
-              .map(_.runClasspath.map(p => (p.path, p.sig)).hashCode())
-              .getOrElse(0),
+              .map(_.runClasspath)
+              .getOrElse(millBootClasspath.map(PathRef(_)))
+              .map(p => (p.path, p.sig))
+              .hashCode(),
             depth
           )
 
