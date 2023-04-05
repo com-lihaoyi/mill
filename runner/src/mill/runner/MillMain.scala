@@ -30,7 +30,15 @@ object MillMain {
         System.setErr(errTee)
         errTee.println(msg)
         (
-          new SystemStreams(initialSystemStreams.out, errTee, System.in),
+          new SystemStreams(
+            // out is used for the protocol
+            initialSystemStreams.out,
+            // err is default, but also tee-ed into the bsp log file
+            errTee,
+            System.in,
+            // the bsp log file for additional bsp server logging
+            Some(errFile)
+          ),
           Seq(errFile)
         )
       } else {

@@ -76,7 +76,7 @@ class BspWorkerImpl() extends BspWorker {
         bspVersion = Constants.bspProtocolVersion,
         serverVersion = MillBuildInfo.millVersion,
         serverName = Constants.serverName,
-        logStream = streams.err,
+        logStream = streams.bspLog.getOrElse(streams.err),
         canReload = canReload
       ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 

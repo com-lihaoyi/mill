@@ -7,7 +7,6 @@ import mill.eval.Evaluator
 import mill.main.{BspServerHandle, BspServerResult}
 import mill.api.SystemStreams
 
-import java.io.{InputStream, PrintStream}
 import java.net.URL
 import scala.concurrent.Promise
 import scala.util.{Failure, Success, Try}
