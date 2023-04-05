@@ -9,49 +9,40 @@ object CodeSigTests extends TestSuite{
       val testCaseClassFilesRoot = os.Path(sys.env("TEST_CASE_CLASS_FILES"))
       val classFiles = os.walk(testCaseClassFilesRoot).filter(_.ext == "class")
       val classNodes = classFiles.map(p => Summarizer.loadClass(os.read.bytes(p)))
+
       val summary = Summarizer.summarize0(classNodes)
-      val pretty = summary.callGraph.map{case (k, vs) => (k.toString, vs._2)}
-
-      val expected = Map(
-        "hello.Hello.used()I" -> Set(),
-        "hello.Hello.unused()I" -> Set(),
-        "hello.Hello.main([Ljava/lang/String;)V" -> Set(
-          MethodCall("hello.Hello", InvokeType.Static, "used", "()I"),
-          MethodCall("java.io.PrintStream", InvokeType.Virtual, "println", "(I)V")
-        ),
-        "hello.Hello#<init>()V" -> Set(
-          MethodCall("java.lang.Object", InvokeType.Special, "<init>", "()V")
-        )
-      )
-      assert(pretty == expected)
-
+      pprint.log(summary.callGraph.map{case (k, (hash, vs)) => (k.toString, vs.map(_.toString))})
       val analyzer = new Analyzer(summary)
 
-      val prettyTransitive = analyzer
+      val foundTransitive0 = analyzer
         .transitiveCallGraphMethods
         .map{case (k, vs) => (k.toString, vs.map(_.toString))}
 
-      val expectedTransitive = Map(
-        "hello.Hello.used()I" -> Set(),
-        "hello.Hello.unused()I" -> Set(),
-        "hello.Hello.main([Ljava/lang/String;)V" -> Set("hello.Hello.used()I"),
-        "hello.Hello#<init>()V" -> Set()
-      )
-      assert(prettyTransitive == expectedTransitive)
-
-
-
-      for{
+      val expectedTransitive0 = for{
         cn <- classNodes
         mn <- cn.methods.asScala
         an <- Option(mn.visibleAnnotations).map(_.asScala).getOrElse(Nil)
         if an.desc == "Lmill/codesig/ExpectedDeps;"
-      }{
-        val expected = an.values.asScala.drop(1).flatMap(_.asInstanceOf[java.util.List[_]].asScala).toSet
+      }yield {
+        val expected = an.values match{
+          case null => Set.empty[String]
+          case values =>
+            values
+              .asScala
+              .drop(1)
+              .flatMap(_.asInstanceOf[java.util.List[_]].asScala).toSet
+        }
+
         val sig = MethodSig(cn.name.replace('/', '.'), (mn.access & Opcodes.ACC_STATIC) != 0, mn.name, mn.desc)
-        val foundTransitive = prettyTransitive(sig.toString)
-        assert(expected == foundTransitive)
+        (sig.toString -> expected)
       }
+
+      val expectedTransitive = expectedTransitive0.toMap
+      val foundTransitive = foundTransitive0.filter { case (k, v) => expectedTransitive.contains(k) }
+      pprint.log(expectedTransitive)
+      pprint.log(foundTransitive)
+      assert(expectedTransitive == foundTransitive)
+      pprint.apply(foundTransitive.filter(_._2.nonEmpty))
     }
   }
 }

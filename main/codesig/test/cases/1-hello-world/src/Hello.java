@@ -6,12 +6,12 @@ public class Hello{
         System.out.println(used());
     }
 
-    @mill.codesig.ExpectedDeps({})
+    @mill.codesig.ExpectedDeps
     public static int unused(){
         return 1;
     }
 
-    @mill.codesig.ExpectedDeps({})
+    @mill.codesig.ExpectedDeps
     public static int used(){
         return 2;
     }
