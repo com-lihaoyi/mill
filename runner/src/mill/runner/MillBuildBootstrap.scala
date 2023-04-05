@@ -192,7 +192,10 @@ class MillBuildBootstrap(
         nestedRunnerState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-            Right(Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])])),
+            Right(Seq(
+              runClasspath: Seq[PathRef],
+              scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+            )),
             evalWatches,
             moduleWatches
           ) =>

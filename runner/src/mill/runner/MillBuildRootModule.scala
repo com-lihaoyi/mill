@@ -26,7 +26,10 @@ class MillBuildRootModule()(implicit
 
   override def millSourcePath = millBuildRootModule.projectRoot / os.up / "mill-build"
 
-  override def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] =
+  override def resolveDeps(
+      deps: Task[Agg[BoundDep]],
+      sources: Boolean = false
+  ): Task[Agg[PathRef]] =
     T.task {
       // We need to resolve the sources to make GenIdeaExtendedTests pass for
       // some reason, but we don't need to actually return them (???)
@@ -112,7 +115,8 @@ class MillBuildRootModule()(implicit
       Seq("-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","), "-nowarn")
   }
 
-  override def scalacPluginClasspath: T[Agg[PathRef]] = super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
+  override def scalacPluginClasspath: T[Agg[PathRef]] =
+    super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
 
   def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
     mill.modules.Util.millProjectModule(
