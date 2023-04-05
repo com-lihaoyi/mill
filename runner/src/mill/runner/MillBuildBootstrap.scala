@@ -6,7 +6,6 @@ import mill.eval.Evaluator
 import mill.main.{RootModule, RunScript}
 import mill.main.TokenReaders._
 import mill.define.{Discover, Segments, SelectMode, Watchable}
-import os.Path
 
 import java.net.URLClassLoader
 
@@ -56,7 +55,7 @@ class MillBuildBootstrap(
     )
   }
 
-  def getRootModule0(runClassLoader: URLClassLoader) = {
+  def getRootModule0(runClassLoader: URLClassLoader): RootModule = {
     val cls = runClassLoader.loadClass("millbuild.build$")
     cls.getField("MODULE$").get(cls).asInstanceOf[RootModule]
   }
@@ -136,8 +135,10 @@ class MillBuildBootstrap(
               .frames
               .dropRight(1)
               .headOption
-              .map(_.runClasspath.map(p => (p.path, p.sig)).hashCode())
-              .getOrElse(0),
+              .map(_.runClasspath)
+              .getOrElse(millBootClasspath.map(PathRef(_)))
+              .map(p => (p.path, p.sig))
+              .hashCode(),
             depth
           )
 
@@ -191,7 +192,10 @@ class MillBuildBootstrap(
         nestedRunnerState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-            Right(Seq(runClasspath: Seq[PathRef], scriptImportGraph: Map[Path, (Int, Seq[Path])])),
+            Right(Seq(
+              runClasspath: Seq[PathRef],
+              scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+            )),
             evalWatches,
             moduleWatches
           ) =>
@@ -264,11 +268,11 @@ class MillBuildBootstrap(
 
   def makeEvaluator(
       workerCache: Map[Segments, (Int, Any)],
-      scriptImportGraph: Map[Path, (Int, Seq[Path])],
+      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
       rootModule: RootModule,
       millClassloaderSigHash: Int,
       depth: Int
-  ) = {
+  ): Evaluator = {
 
     val bootLogPrefix =
       if (depth == 0) ""
@@ -296,9 +300,8 @@ class MillBuildBootstrap(
 
 @internal
 object MillBuildBootstrap {
-  def prepareMillBootClasspath(millBuildBase: Path) = {
-    val enclosingClasspath: Seq[Path] = mill.util.Classpath
-      .classpath(getClass.getClassLoader)
+  def prepareMillBootClasspath(millBuildBase: os.Path): Seq[os.Path] = {
+    val enclosingClasspath: Seq[os.Path] = mill.util.Classpath.classpath(getClass.getClassLoader)
 
     val selfClassURL = getClass.getProtectionDomain().getCodeSource().getLocation()
     assert(selfClassURL.getProtocol == "file")
