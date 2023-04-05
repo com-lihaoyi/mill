@@ -1,7 +1,7 @@
 package hello;
 public class Hello{
 
-    @mill.codesig.ExpectedDeps({"hello.Hello.used"})
+    @mill.codesig.ExpectedDeps({"hello.Hello.used()I"})
     public static void main(String[] args){
         System.out.println(used());
     }
