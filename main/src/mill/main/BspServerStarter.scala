@@ -3,7 +3,6 @@ package mill.main
 import mill.eval.Evaluator
 import mill.api.SystemStreams
 
-import java.io.{InputStream, PrintStream}
 import scala.concurrent.Promise
 
 trait BspServerStarter {

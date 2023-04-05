@@ -34,23 +34,36 @@ object BspWorker {
 
   private[this] var worker: Option[BspWorker] = None
 
-  def apply(millCtx: Ctx.Workspace with Ctx.Home with Ctx.Log): Result[BspWorker] = {
+  def apply(
+      millCtx: Ctx.Workspace with Ctx.Home with Ctx.Log,
+      workerLibs: Option[Seq[URL]] = None
+  ): Result[BspWorker] = {
     worker match {
       case Some(x) => Result.Success(x)
       case None =>
-        // load extra classpath entries from file
-        val cpFile = millCtx.workspace / Constants.bspDir / s"${Constants.serverName}-${mill.BuildInfo.millVersion}.resources"
-        if (!os.exists(cpFile)) return Result.Failure(
-          "You need to run `mill mill.bsp.BSP/install` before you can use the BSP server"
-        )
+        val urls = workerLibs.map { urls =>
+          millCtx.log.debug("Using direct submitted worker libs")
+          urls
+        }.getOrElse {
+          // load extra classpath entries from file
+          val cpFile =
+            millCtx.workspace / Constants.bspDir / s"${Constants.serverName}-${mill.BuildInfo.millVersion}.resources"
+          if (!os.exists(cpFile)) return Result.Failure(
+            "You need to run `mill mill.bsp.BSP/install` before you can use the BSP server"
+          )
 
-        // TODO: if outdated, we could regenerate the resource file and re-load the worker
+          // TODO: if outdated, we could regenerate the resource file and re-load the worker
 
-        val urls = os.read(cpFile).linesIterator.map(u => new URL(u)).toSeq
+          // read the classpath from resource file
+          millCtx.log.debug(s"Reading worker classpath from file: ${cpFile}")
+          os.read(cpFile).linesIterator.map(u => new URL(u)).toSeq
+        }
 
         // create classloader with bsp.worker and deps
         val cl = mill.api.ClassLoader.create(urls, getClass().getClassLoader())(millCtx)
-        val workerVersion = Try {
+
+        // check the worker version
+        Try {
           val workerBuildInfo = cl.loadClass(Constants.bspWorkerBuildInfoClass)
           workerBuildInfo.getMethod("millBspWorkerVersion").invoke(null)
         } match {
