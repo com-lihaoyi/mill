@@ -39,7 +39,7 @@ object BspWorker {
       case Some(x) => Result.Success(x)
       case None =>
         // load extra classpath entries from file
-        val cpFile = millCtx.workspace / Constants.bspDir / s"${Constants.serverName}.resources"
+        val cpFile = millCtx.workspace / Constants.bspDir / s"${Constants.serverName}-${mill.BuildInfo.millVersion}.resources"
         if (!os.exists(cpFile)) return Result.Failure(
           "You need to run `mill mill.bsp.BSP/install` before you can use the BSP server"
         )

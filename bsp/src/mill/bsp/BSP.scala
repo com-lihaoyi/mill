@@ -56,7 +56,7 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
    */
   def install(jobs: Int = 1): Command[(PathRef, String)] = T.command {
     // we create a file containing the additional jars to load
-    val cpFile = T.workspace / Constants.bspDir / s"${Constants.serverName}.resources"
+    val cpFile = T.workspace / Constants.bspDir / s"${Constants.serverName}-${mill.BuildInfo.millVersion}.resources"
     os.write.over(
       cpFile,
       bspWorkerLibs().iterator.map(_.path.toNIO.toUri.toURL).mkString("\n"),
