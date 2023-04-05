@@ -1217,6 +1217,7 @@ trait IntegrationTestModule extends MillScalaModule {
         scalanativelib.testArgs() ++
         runner.linenumbers.testArgs() ++
         Seq(
+          s"-DMILL_UNDER_TEST=1",
           s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}",
           s"-DMILL_TESTNG=${contrib.testng.runClasspath().map(_.path).mkString(",")}",
           s"-DMILL_VERSION=${millVersion()}",

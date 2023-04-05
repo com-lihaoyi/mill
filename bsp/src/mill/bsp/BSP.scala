@@ -23,12 +23,21 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
     Agg(Dep.parse(BuildInfo.millBspWorkerDep))
   }
 
-  private def bspWorkerLibs: T[Agg[PathRef]] = T {
-    mill.modules.Util.millProjectModule(
-      "MILL_BSP_WORKER",
-      "mill-bsp-worker",
-      repositoriesTask()
-    )
+  private def bspWorkerLibs: T[Agg[PathRef]] = {
+    sys.props.getOrElse("MILL_UNDER_TEST", "0") match {
+      case "1" => T {
+          mill.modules.Util.millProjectModule(
+            "MILL_BSP_WORKER",
+            "mill-bsp-worker",
+            repositoriesTask()
+          )
+        }
+      case _ => T {
+          resolveDeps(T.task {
+            bspWorkerIvyDeps().map(bindDependency())
+          })()
+        }
+    }
   }
 
   /**
