@@ -397,8 +397,7 @@ object main extends MillModule {
 
 
     override def ivyDeps = Agg(ivy"org.ow2.asm:asm-tree:9.5", Deps.osLib)
-    def moduleDeps = Seq(annotation, util)
-    object annotation extends MillPublishModule
+    def moduleDeps = Seq(util)
 
     object test extends Tests{
       def moduleDeps = super.moduleDeps ++ Seq(main.test)
@@ -409,7 +408,8 @@ object main extends MillModule {
         object test extends MillScalaModule with BaseMillTestsModule {
           def moduleDeps = Seq(codesig.test.annotation, codesig.test)
           def forkEnv = Map(
-            "TEST_CASE_CLASS_FILES" -> CaseModule.this.compile().classes.path.toString
+            "TEST_CASE_CLASS_FILES" -> CaseModule.this.compile().classes.path.toString,
+            "TEST_CASE_SOURCE_FILES" -> CaseModule.this.sources().head.path.toString
           )
           def compile = codesig.test.compile()
         }

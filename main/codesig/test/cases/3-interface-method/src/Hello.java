@@ -5,37 +5,26 @@ interface Foo{
 }
 
 class Bar implements Foo{
-    @mill.codesig.ExpectedDeps
-    public int used() {
-        return 1;
-    }
-
-    @mill.codesig.ExpectedDeps
-    public int unused1() {
-        return 3;
-    }
+    public int used() { return 1; }
+    public int unused1() { return 3; }
 }
 class Qux implements Foo{
-    @mill.codesig.ExpectedDeps
-    public int used() {
-        return 2;
-    }
-
-    @mill.codesig.ExpectedDeps
-    public int unused2() {
-        return 4;
-    }
+    public int used() { return 2; }
+    public int unused2() { return 4; }
 }
 public class Hello{
+    public static int main(){
+        return new Bar().used() + new Qux().used();
+    }
+}
 
-    @mill.codesig.ExpectedDeps({
+/* EXPECTED TRANSITIVE
+{
+    "hello.Hello.main()I": [
         "hello.Bar#<init>()V",
         "hello.Bar#used()I",
         "hello.Qux#<init>()V",
         "hello.Qux#used()I"
-    })
-    public static void main(String[] args){
-        System.out.println(new Bar().used());
-        System.out.println(new Qux().used());
-    }
+    ]
 }
+*/
