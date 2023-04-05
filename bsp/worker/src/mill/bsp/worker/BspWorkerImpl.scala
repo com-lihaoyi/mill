@@ -49,7 +49,7 @@ class BspWorkerImpl() extends BspWorker {
   override def createBspConnection(
       jobs: Int,
       serverName: String
-  )(implicit ctx: Ctx): (PathRef, String) = {
+  )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
     // we create a json connection file
     val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
     if (os.exists(bspFile)) ctx.log.info(s"Overwriting BSP connection file: ${bspFile}")
@@ -60,7 +60,7 @@ class BspWorkerImpl() extends BspWorker {
     )
     val connectionContent = bspConnectionJson(jobs, withDebug)
     os.write.over(bspFile, connectionContent, createFolders = true)
-    (PathRef(bspFile), connectionContent)
+    (PathRef(bspFile), upickle.default.read[ujson.Value](connectionContent))
   }
 
   override def startBspServer(

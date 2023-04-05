@@ -17,7 +17,7 @@ trait BspWorker {
   def createBspConnection(
       jobs: Int,
       serverName: String
-  )(implicit ctx: Ctx): (PathRef, String)
+  )(implicit ctx: Ctx): (PathRef, ujson.Value)
 
   def startBspServer(
       initialEvaluator: Option[Evaluator],
