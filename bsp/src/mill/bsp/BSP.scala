@@ -94,11 +94,10 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
       // This all goes to the BSP log file mill-bsp.stderr
       override def log: Logger = new Logger {
         override def colored: Boolean = false
-
         override def systemStreams: SystemStreams = new SystemStreams(
-          streams.err,
-          streams.err,
-          DummyInputStream
+          out = streams.out,
+          err = streams.err,
+          in = DummyInputStream
         )
         override def info(s: String): Unit = streams.err.println(s)
         override def error(s: String): Unit = streams.err.println(s)
