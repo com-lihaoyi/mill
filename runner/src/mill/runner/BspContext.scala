@@ -4,7 +4,7 @@ import mill.api.internal
 import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
 import mill.api.SystemStreams
 
-import java.util.concurrent.Executors
+import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.chaining.scalaUtilChainingOps
@@ -43,7 +43,7 @@ class BspContext(streams: SystemStreams, home: os.Path) {
     }
   }(serverThreadContext)
 
-  val handle = Await.result(bspServerHandle.future, Duration.Inf).tap { _ =>
+  val handle = Await.result(bspServerHandle.future, Duration(10, TimeUnit.SECONDS)).tap { _ =>
     streams.err.println("BSP server started")
   }
 
