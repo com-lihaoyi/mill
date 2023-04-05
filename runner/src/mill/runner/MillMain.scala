@@ -19,18 +19,19 @@ object MillMain {
     val (runnerStreams, openStreams) =
       if (args.headOption == Option("--bsp")) {
         // In BSP mode, we use System.in for protocol communication
-        // and all Mill output goes to a dedicated file
+        // and all Mill output (stdout and stderr) goes to a dedicated file
         val stderrFile = os.pwd / ".bsp" / "mill-bsp.stderr"
         os.makeDir.all(stderrFile / os.up)
         val msg = s"Mill in BSP mode, version ${BuildInfo.millVersion}, ${new java.util.Date()}"
-        System.err.println(msg)
-        val err = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
-        System.setOut(err)
-        System.setErr(err)
-        err.println(msg)
+//        System.err.println(msg)
+        val errFile = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
+        val errTee = new TeePrintOutputStream(initialSystemStreams.err, errFile)
+        System.setOut(errFile)
+        System.setErr(errTee)
+        errTee.println(msg)
         (
-          new SystemStreams(initialSystemStreams.out, System.err, System.in),
-          Seq(err)
+          new SystemStreams(initialSystemStreams.out, errTee, System.in),
+          Seq(errFile)
         )
       } else {
         // Unchanged system stream
