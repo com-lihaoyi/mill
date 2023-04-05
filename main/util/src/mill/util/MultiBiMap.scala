@@ -12,6 +12,7 @@ import mill.api.Strict.Agg
 trait MultiBiMap[K, V] {
   def containsValue(v: V): Boolean
   def lookupKey(k: K): Agg[V]
+  def lookupKeyOpt(k: K): Option[Agg[V]]
   def lookupValue(v: V): K
   def lookupValueOpt(v: V): Option[K]
   def add(k: K, v: V): Unit

@@ -1,14 +1,33 @@
 package mill.codesig
+import mill.util.MultiBiMap
+import collection.JavaConverters._
 import org.objectweb.asm.{ClassReader, Opcodes}
 import org.objectweb.asm.tree.{AbstractInsnNode, ClassNode, FieldInsnNode, FrameNode, IincInsnNode, InsnNode, IntInsnNode, InvokeDynamicInsnNode, JumpInsnNode, LabelNode, LdcInsnNode, LineNumberNode, LookupSwitchInsnNode, MethodInsnNode, MultiANewArrayInsnNode, TableSwitchInsnNode, TypeInsnNode, VarInsnNode}
 
-import collection.JavaConverters._
+/**
+ * Parses over the Java bytecode and creates a [[Summary]] object, which
+ * contains the key information needed for call-graph analysis and method hash
+ * computation.
+ */
+object Summarizer{
 
-object CodeSig{
-  def process(classPathClasses: Seq[Array[Byte]]) = {
-    val callGraph = collection.mutable.Map.empty[MethodSig, (Int, Set[MethodCall])]
+  def summarize(classPathClasses: Seq[Array[Byte]]) = {
     val classNodes = classPathClasses.map(loadClass)
+    summarize0(classNodes)
+  }
+
+  def summarize0(classNodes: Seq[ClassNode]) = {
+
+    val directSubclasses = new MultiBiMap.Mutable[String, String]()
+    val callGraph = collection.mutable.Map.empty[MethodSig, (Int, Set[MethodCall])]
+    val directAncestors = collection.mutable.Map.empty[String, Set[String]]
+
     for(classNode <- classNodes){
+      Option(classNode.superName).foreach(directSubclasses.add(_, classNode.name))
+      val allThingies = (Option(classNode.superName) ++ Option(classNode.interfaces).toSeq.flatMap(_.asScala))
+      directAncestors(classNode.name) = allThingies.toSet
+
+
       for(method <- classNode.methods.asScala){
         val outboundCalls = collection.mutable.Set.empty[MethodCall]
         val methodSig = MethodSig(
@@ -35,7 +54,8 @@ object CodeSig{
         callGraph(methodSig) = (insnSigs.hashCode(), outboundCalls.toSet)
       }
     }
-    callGraph
+
+    Summary(callGraph, directSubclasses, directAncestors.toMap)
   }
 
   def processInstruction(insn: AbstractInsnNode,

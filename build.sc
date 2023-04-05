@@ -397,7 +397,7 @@ object main extends MillModule {
 
 
     override def ivyDeps = Agg(ivy"org.ow2.asm:asm-tree:9.5", Deps.osLib)
-    def moduleDeps = Seq(annotation)
+    def moduleDeps = Seq(annotation, util)
     object annotation extends MillPublishModule
 
     object test extends Tests{
