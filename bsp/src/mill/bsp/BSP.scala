@@ -54,7 +54,7 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
    */
-  def install(jobs: Int = 1): Command[Unit] = T.command {
+  def install(jobs: Int = 1): Command[(PathRef, String)] = T.command {
     // we create a file containing the additional jars to load
     val cpFile = T.workspace / Constants.bspDir / s"${Constants.serverName}.resources"
     os.write.over(

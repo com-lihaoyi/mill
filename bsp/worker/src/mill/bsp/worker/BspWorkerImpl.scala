@@ -49,7 +49,7 @@ class BspWorkerImpl() extends BspWorker {
   override def createBspConnection(
       jobs: Int,
       serverName: String
-  )(implicit ctx: Ctx): Unit = {
+  )(implicit ctx: Ctx): (PathRef, String) = {
     // we create a json connection file
     val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
     if (os.exists(bspFile)) ctx.log.info(s"Overwriting BSP connection file: ${bspFile}")
@@ -58,7 +58,9 @@ class BspWorkerImpl() extends BspWorker {
     if (withDebug) ctx.log.debug(
       "Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option."
     )
-    os.write.over(bspFile, bspConnectionJson(jobs, withDebug), createFolders = true)
+    val connectionContent = bspConnectionJson(jobs, withDebug)
+    os.write.over(bspFile, connectionContent, createFolders = true)
+    (PathRef(bspFile), connectionContent)
   }
 
   override def startBspServer(
