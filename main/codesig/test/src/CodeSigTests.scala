@@ -8,8 +8,21 @@ object CodeSigTests extends TestSuite{
       val testCaseClassFilesRoot = os.Path(sys.env("TEST_CASE_CLASS_FILES"))
       println(testCaseClassFilesRoot)
       val classFiles = os.walk(testCaseClassFilesRoot).filter(_.ext == "class")
-      CodeSig.process(classFiles.map(os.read.bytes(_)))
-      println("Hello World" + classFiles)
+      val callGraph = CodeSig.process(classFiles.map(os.read.bytes(_)))
+      val pretty = callGraph.map{case (k, vs) => (k.toString, vs._2)}
+
+      val expected = Map(
+        "hello.Hello.used()I" -> Set(),
+        "hello.Hello.unused()I" -> Set(),
+        "hello.Hello.main([Ljava/lang/String;)V" -> Set(
+          MethodCall("hello.Hello", InvokeType.Static, "used", "()I"),
+          MethodCall("java.io.PrintStream", InvokeType.Virtual, "println", "(I)V")
+        ),
+        "hello.Hello#<init>()V" -> Set(
+          MethodCall("java.lang.Object", InvokeType.Special, "<init>", "()V")
+        )
+      )
+      assert(pretty == expected)
     }
   }
 }

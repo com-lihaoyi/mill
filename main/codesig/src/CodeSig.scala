@@ -6,10 +6,11 @@ import collection.JavaConverters._
 
 object CodeSig{
   def process(classPathClasses: Seq[Array[Byte]]) = {
-    val callGraph = collection.mutable.Map.empty[MethodSig, Set[MethodCall]]
+    val callGraph = collection.mutable.Map.empty[MethodSig, (Int, Set[MethodCall])]
     val classNodes = classPathClasses.map(loadClass)
     for(classNode <- classNodes){
       for(method <- classNode.methods.asScala){
+        val outboundCalls = collection.mutable.Set.empty[MethodCall]
         val methodSig = MethodSig(
           classNode.name.replace('/', '.'),
           (method.access & Opcodes.ACC_STATIC) != 0,
@@ -26,14 +27,15 @@ object CodeSig{
             insn,
             labelIndices,
             insnSigs.append,
-            edgeTarget => {
-              callGraph(methodSig) = callGraph.getOrElse(methodSig, Set()) + edgeTarget
-            }
+            outboundCalls.add
           )
           insnSigs.append(insn.getOpcode)
         }
+
+        callGraph(methodSig) = (insnSigs.hashCode(), outboundCalls.toSet)
       }
     }
+    callGraph
   }
 
   def processInstruction(insn: AbstractInsnNode,
