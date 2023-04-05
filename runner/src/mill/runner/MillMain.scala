@@ -16,16 +16,26 @@ object MillMain {
   def main(args: Array[String]): Unit = {
     val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
     // setup streams
-    val openStreams =
+    val (runnerStreams, openStreams) =
       if (args.headOption == Option("--bsp")) {
+        // In BSP mode, we use System.in for protocol communication
+        // and all Mill output goes to a dedicated file
         val stderrFile = os.pwd / ".bsp" / "mill-bsp.stderr"
         os.makeDir.all(stderrFile / os.up)
+        val msg = s"Mill in BSP mode, version ${BuildInfo.millVersion}, ${new java.util.Date()}"
+        System.err.println(msg)
         val err = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
-        System.setErr(err)
         System.setOut(err)
-        err.println(s"Mill in BSP mode, version ${BuildInfo.millVersion}, ${new java.util.Date()}")
-        Seq(err)
-      } else Seq()
+        System.setErr(err)
+        err.println(msg)
+        (
+          new SystemStreams(initialSystemStreams.out, System.err, System.in),
+          Seq(err)
+        )
+      } else {
+        // Unchanged system stream
+        (initialSystemStreams, Seq())
+      }
 
     if (Properties.isWin && System.console() != null)
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
@@ -35,7 +45,7 @@ object MillMain {
           args,
           RunnerState.empty,
           mill.util.Util.isInteractive(),
-          initialSystemStreams,
+          runnerStreams,
           System.getenv().asScala.toMap,
           b => (),
           userSpecifiedProperties0 = Map(),
