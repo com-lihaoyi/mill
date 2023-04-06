@@ -48,7 +48,8 @@ object MillMain {
         case e: MillException =>
           System.err.println(e.getMessage())
           (false, ())
-        case e: InvocationTargetException if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
+        case e: InvocationTargetException
+            if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
           System.err.println(e.getCause.getMessage())
           (false, ())
         case NonFatal(e) =>

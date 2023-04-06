@@ -404,7 +404,8 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         sources = mSources,
         sourcesGlobs = None,
         sourceRoots = None,
-        dependencies = (module.moduleDepsChecked ++ module.compileModuleDepsChecked).map(name).toList,
+        dependencies =
+          (module.moduleDepsChecked ++ module.compileModuleDepsChecked).map(name).toList,
         classpath = classpath().map(_.toNIO).toList,
         out = out(module).toNIO,
         classesDir = classes(module).toNIO,
