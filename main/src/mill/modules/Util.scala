@@ -2,7 +2,11 @@ package mill.modules
 
 import coursier.Repository
 import mill.BuildInfo
-import mill.api.{Ctx, IO, Loose, PathRef}
+import mill.api.{Ctx, IO, Loose, PathRef, experimental}
+import mill.define.Module
+import mill.main.BuildScriptException
+
+import scala.annotation.tailrec
 
 object Util {
 
@@ -96,4 +100,20 @@ object Util {
   def millProperty(key: String): Option[String] =
     Option(sys.props(key)) // System property has priority
       .orElse(Option(LongMillProps.getProperty(key)))
+
+  @experimental
+  def recursive[T <: Module](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
+    @tailrec def rec(found: List[T], candidates: List[T]): List[T] = {
+      candidates match {
+        case Nil => found
+        case h :: _ if found.contains(h) =>
+          val rendered = (h :: (h :: found.takeWhile(_ != h)).reverse).mkString(" -> ")
+
+          throw new BuildScriptException(s"${name}: cycle detected: ${rendered}")
+        case h :: t => rec(found = h :: found, candidates = t ::: deps(h).toList.reverse)
+      }
+    }
+
+    rec(start :: Nil, deps(start).toList.reverse).tail.reverse
+  }
 }

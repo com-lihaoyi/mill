@@ -11,8 +11,10 @@ import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{JarManifest, PathRef, Result, internal}
-import mill.define.{Command, Sources, Target, Task, TaskModule}
-import mill.modules.{Assembly, Jvm}
+import mill.define.{Command, Segment, Sources, Target, Task, TaskModule}
+import mill.eval.EvaluatorPathsResolver
+import mill.main.BuildScriptException
+import mill.modules.{Assembly, Jvm, Util}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
@@ -33,26 +35,6 @@ trait JavaModule
     with SemanticDbJavaModule { outer =>
 
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
-
-  override def millModuleDirectChildren: Seq[Module] = {
-//    // hook some checks
-//    recursive[JavaModule]("moduleDeps", this, _.moduleDeps)
-    super.millModuleDirectChildren
-  }
-
-  private def recursive[T <: Module](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
-    @tailrec def rec(found: List[T], candidates: List[T]): List[T] = {
-      candidates match {
-        case Nil => found
-        case h :: _ if found.contains(h) =>
-          val rendered = (h :: (h :: found.takeWhile(_ != h)).reverse).mkString(" -> ")
-
-          throw new IllegalStateException(s"${name}: cycle detected: ${rendered}")
-        case h :: t => rec(found = h :: found, candidates = t ::: deps(h).toList.reverse)
-      }
-    }
-    rec(start :: Nil, deps(start).toList.reverse).tail.reverse
-  }
 
   trait JavaModuleTests extends TestModule {
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
@@ -149,7 +131,11 @@ trait JavaModule
   }
 
   private lazy val recModuleDeps: Seq[JavaModule] =
-    recursive[JavaModule]("moduleDeps", this, _.moduleDeps)
+    Util.recursive[JavaModule](
+      (millModuleSegments ++ Seq(Segment.Label("moduleDeps"))).render,
+      this,
+      _.moduleDeps
+    )
 
   /** The compile-only direct dependencies of this module. */
   def compileModuleDeps: Seq[JavaModule] = Seq.empty
@@ -161,7 +147,11 @@ trait JavaModule
   }
 
   private lazy val recCompileModuleDeps: Seq[JavaModule] =
-    recursive[JavaModule]("compileModuleDeps", this, _.compileModuleDeps)
+    Util.recursive[JavaModule](
+      (millModuleSegments ++ Seq(Segment.Label("compileModuleDeps"))).render,
+      this,
+      _.compileModuleDeps
+    )
 
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = T {

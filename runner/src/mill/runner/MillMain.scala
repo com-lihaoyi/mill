@@ -7,8 +7,11 @@ import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import io.github.retronym.java9rtexport.Export
 import mill.api.{DummyInputStream, internal}
-import mill.main.BspServerResult
+import mill.main.{BspServerResult, MillException}
 import mill.util.SystemStreams
+
+import java.lang.reflect.InvocationTargetException
+import scala.util.control.NonFatal
 
 @internal
 object MillMain {
@@ -41,6 +44,17 @@ object MillMain {
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap
         )
+      } catch {
+        case e: MillException =>
+          System.err.println(e.getMessage())
+          (false, ())
+        case e: InvocationTargetException if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
+          System.err.println(e.getCause.getMessage())
+          (false, ())
+        case NonFatal(e) =>
+          System.err.println("An unexpected error occurred")
+          throw e
+          (false, ())
       } finally {
         System.setOut(initialSystemStreams.out)
         System.setErr(initialSystemStreams.err)
