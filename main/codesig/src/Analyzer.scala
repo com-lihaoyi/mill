@@ -34,7 +34,10 @@ class Analyzer(summary: Summary) {
   def resolveCall(call: MethodCall): Set[MethodSig] = {
     call.invokeType match {
       case InvokeType.Static =>
-        clsAndSupers(call.cls)
+        clsAndSupers(
+          call.cls,
+          skipEarly = cls => clsToMethods.getOrElse(cls, Nil).exists(sigMatchesCall(_, call))
+        )
           .flatMap(clsToMethods.getOrElse(_, Nil))
           .find(sigMatchesCall(_, call))
           .toSet
@@ -45,12 +48,7 @@ class Analyzer(summary: Summary) {
           .flatMap(cls =>
             clsAndAncestors(
               cls,
-              skipEarly = cls =>
-                clsToMethods.getOrElse(cls, Nil).exists(sig =>
-                  sig.name == call.name &&
-                  sig.desc == call.desc &&
-                  !sig.static
-                )
+              skipEarly = cls => clsToMethods.getOrElse(cls, Nil).exists(sigMatchesCall(_, call))
             )
           )
           .flatMap(clsToMethods.getOrElse(_, Nil))
@@ -60,8 +58,10 @@ class Analyzer(summary: Summary) {
     }
   }
 
-  def clsAndSupers(cls: JType): Seq[JType] = {
-    breadthFirst(Seq(cls))(summary.directSubclasses.lookupValueOpt(_))
+  def clsAndSupers(cls: JType, skipEarly: JType => Boolean): Seq[JType] = {
+    breadthFirst(Seq(cls))(cls =>
+      if(skipEarly(cls)) Nil else summary.directSubclasses.lookupValueOpt(cls)
+    )
   }
 
   def clsAndAncestors(cls: JType, skipEarly: JType => Boolean): Set[JType] = {
