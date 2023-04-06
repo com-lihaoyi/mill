@@ -25,7 +25,13 @@ object CodeSigTests extends TestSuite{
           c => c.to(SortedMap): SortedMap[K, V]
         )
 
-      val sourceLines = os.read.lines(testCaseSourceFilesRoot / "Hello.java")
+      val possibleSources = Seq("Hello.java", "Hello.scala")
+      val sourceLines = possibleSources
+        .map(testCaseSourceFilesRoot / _)
+        .find(os.exists(_))
+        .map(os.read.lines(_))
+        .get
+
       val expectedTransitiveLines = sourceLines
         .dropWhile(_ != "/* EXPECTED TRANSITIVE")
         .drop(1)
@@ -37,7 +43,7 @@ object CodeSigTests extends TestSuite{
 
       val foundTransitive = foundTransitive0
         .map{ case (k, vs) => (k, vs.filter(!_.contains("lambda$"))) }
-        .filter { case (k, vs) => !k.contains("lambda$") && vs.nonEmpty }
+        .filter { case (k, vs) => !k.contains("lambda$") && !k.contains("$deserializeLambda$")  && !k.contains("$anonfun$") && vs.nonEmpty }
 
       val expectedTransitiveJson = write(
         expectedTransitive.map{case (k, vs) => (k, vs)},
