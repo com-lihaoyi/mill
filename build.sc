@@ -535,6 +535,10 @@ object scalalib extends MillModule {
          |  val semanticDbJavaVersion = "${Deps.semanticDbJava.dep.version}"
          |  /** Mill ModuleDefs plugins version. */
          |  val millModuledefsVersion = "${Deps.millModuledefsVersion}"
+         |
+         |  val selfPublishedCompilerBridgeVersions = Seq(
+         |    ${bridgeScalaVersions.map('"' + _ + '"').mkString(",")}
+         |  )
          |}
          |
          |""".stripMargin
@@ -599,6 +603,48 @@ object scalalib extends MillModule {
            |""".stripMargin
       )
       super.generatedSources() ++ Seq(PathRef(dest))
+    }
+  }
+
+  // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler bridges
+  val bridgeScalaVersions = Seq(
+    /*"2.12.0",*/ "2.12.1", "2.12.2", "2.12.3", /*"2.12.4",*/ "2.12.5", "2.12.6", "2.12.7", "2.12.8",
+    "2.12.9", "2.12.10", "2.12.11", "2.12.12", "2.12.13", "2.12.14", "2.12.15", "2.12.16", "2.12.17",
+    "2.13.0", "2.13.1", "2.13.2", "2.13.3", "2.13.4", "2.13.5", "2.13.6", "2.13.7", "2.13.8", "2.13.9", "2.13.10"
+  )
+  object bridge extends Cross[BridgeModule](bridgeScalaVersions:_*)
+  class BridgeModule(val crossScalaVersion: String) extends MillInternalModule {
+    def compileClasspath = T{
+      import mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath
+      val compilerInterfaceClasspathJars = compilerInterfaceClasspath(
+        crossScalaVersion,
+        "org.scala-lang",
+        coursier.Resolve.defaultRepositories
+      )
+
+      super.compileClasspath() ++
+      compilerInterfaceClasspathJars.asSuccess.get.value ++
+      scalaCompilerClasspath()
+    }
+
+    def generatedSources = T{
+      import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
+
+      val resolvedJars = resolveDeps(
+        T.task { Agg(ivy"org.scala-sbt::compiler-bridge:1.8.0") },
+        sources = true
+      )()
+
+      val bridgeJar = grepJar(
+        resolvedJars.map(_.path),
+        s"compiler-bridge_${scalaBinaryVersion(scalaVersion())}",
+        "1.8.0",
+        true
+      )
+
+      mill.api.IO.unpackZip(bridgeJar, os.rel)
+
+      Seq(PathRef(T.dest))
     }
   }
 }
