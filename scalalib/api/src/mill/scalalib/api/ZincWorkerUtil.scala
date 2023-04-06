@@ -2,8 +2,7 @@ package mill.scalalib.api
 
 import mill.api.Loose.Agg
 import mill.api.PathRef
-import mill.scalalib.Versions
-import org.graalvm.compiler.debug.Versions
+import mill.scalalib.api.Versions
 
 trait ZincWorkerUtil {
 

@@ -9,7 +9,7 @@ import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result}
 import mill.define.{Command, Discover, ExternalModule, Input, Target, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil}
+import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
 import os.Path
 
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
@@ -55,6 +55,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       classpath().map(_.path.toNIO.toUri.toURL).iterator.to(Vector),
       getClass.getClassLoader
     )
+    pprint.log(classpath().map(_.path))
     val cls = cl.loadClass("mill.scalalib.worker.ZincWorkerImpl")
     val instance = cls.getConstructor(
       classOf[
@@ -103,8 +104,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         (ivy"$org:$name:$version", name, version)
       }else if (Versions.selfPublishedCompilerBridgeVersions.contains(scalaVersion0)){
         val org = "com.lihaoyi"
-        val name = "mill-scalalib-bridge"
-        val version = scalaVersion
+        val name = s"mill-scalalib-bridge_$scalaVersion"
+        val version = Versions.millVersion
         (ivy"$org:$name:$version", name, version)
       }else {
         val org = "org.scala-sbt"
@@ -116,6 +117,10 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
           version
         )
       }
+
+    pprint.log(bridgeDep)
+    pprint.log(bridgeName)
+    pprint.log(bridgeVersion)
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
     val bridgeJar = resolveDependencies(

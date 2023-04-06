@@ -7,7 +7,7 @@ import mill.api.{DummyInputStream, JarManifest, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
 import mill.api.Loose.Agg
-import mill.scalalib.api.{CompilationResult, ZincWorkerUtil}
+import mill.scalalib.api.{CompilationResult, ZincWorkerUtil, Versions}
 
 import scala.jdk.CollectionConverters._
 import mainargs.Flag

@@ -514,38 +514,6 @@ object scalalib extends MillModule {
     Deps.scalafmtDynamic
   )
 
-  override def generatedSources = T {
-    val dest = T.ctx.dest
-    os.write(
-      dest / "Versions.scala",
-      s"""package mill.scalalib
-         |
-         |/**
-         | * Dependency versions as they where defined at Mill compile time.
-         | * Generated from mill in build.sc.
-         | */
-         |object Versions {
-         |  /** Version of Ammonite. */
-         |  val ammonite = "${Deps.ammoniteVersion}"
-         |  /** Version of Zinc. */
-         |  val zinc = "${Deps.zinc.dep.version}"
-         |  /** SemanticDB version. */
-         |  val semanticDBVersion = "${Deps.semanticDB.dep.version}"
-         |  /** Java SemanticDB plugin version. */
-         |  val semanticDbJavaVersion = "${Deps.semanticDbJava.dep.version}"
-         |  /** Mill ModuleDefs plugins version. */
-         |  val millModuledefsVersion = "${Deps.millModuledefsVersion}"
-         |
-         |  val selfPublishedCompilerBridgeVersions = Seq(
-         |    ${bridgeScalaVersions.map('"' + _ + '"').mkString(",")}
-         |  )
-         |}
-         |
-         |""".stripMargin
-    )
-    super.generatedSources() ++ Seq(PathRef(dest))
-  }
-
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T {
 
@@ -569,6 +537,40 @@ object scalalib extends MillModule {
   }
   object api extends MillApiModule {
     override def moduleDeps = Seq(main.api)
+
+    override def generatedSources = T {
+      val dest = T.ctx.dest
+      os.write(
+        dest / "Versions.scala",
+        s"""package mill.scalalib.api
+           |
+           |/**
+           | * Dependency versions as they where defined at Mill compile time.
+           | * Generated from mill in build.sc.
+           | */
+           |object Versions {
+           |  /** Version of Ammonite. */
+           |  val ammonite = "${Deps.ammoniteVersion}"
+           |  /** Version of Zinc. */
+           |  val zinc = "${Deps.zinc.dep.version}"
+           |  /** SemanticDB version. */
+           |  val semanticDBVersion = "${Deps.semanticDB.dep.version}"
+           |  /** Java SemanticDB plugin version. */
+           |  val semanticDbJavaVersion = "${Deps.semanticDbJava.dep.version}"
+           |  /** Mill ModuleDefs plugins version. */
+           |  val millModuledefsVersion = "${Deps.millModuledefsVersion}"
+           |
+           |  val millVersion = "${millVersion()}"
+           |
+           |  val selfPublishedCompilerBridgeVersions = Seq(
+           |    ${bridgeScalaVersions.map('"' + _ + '"').mkString(",")}
+           |  )
+           |}
+           |
+           |""".stripMargin
+      )
+      super.generatedSources() ++ Seq(PathRef(dest))
+    }
   }
   object worker extends MillInternalModule {
 
@@ -613,7 +615,12 @@ object scalalib extends MillModule {
     "2.13.0", "2.13.1", "2.13.2", "2.13.3", "2.13.4", "2.13.5", "2.13.6", "2.13.7", "2.13.8", "2.13.9", "2.13.10"
   )
   object bridge extends Cross[BridgeModule](bridgeScalaVersions:_*)
-  class BridgeModule(val crossScalaVersion: String) extends MillInternalModule {
+  class BridgeModule(val crossScalaVersion: String) extends MillInternalModule with CrossScalaModule {
+    def scalaVersion = T{ crossScalaVersion }
+
+    def artifactName = T{ "mill-" + millModuleSegments.parts.init.mkString("-") }
+
+    def crossFullScalaVersion = true
     def compileClasspath = T{
       import mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath
       val compilerInterfaceClasspathJars = compilerInterfaceClasspath(

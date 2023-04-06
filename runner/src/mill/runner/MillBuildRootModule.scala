@@ -3,7 +3,8 @@ package mill.runner
 import mill._
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Caller, Discover, Task}
-import mill.scalalib.{BoundDep, DepSyntax, Lib, ScalaModule, Versions}
+import mill.scalalib.{BoundDep, DepSyntax, Lib, ScalaModule}
+import mill.scalalib.api.Versions
 import pprint.Util.literalize
 
 /**
