@@ -631,14 +631,14 @@ object scalalib extends MillModule {
       import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
 
       val resolvedJars = resolveDeps(
-        T.task { Agg(ivy"org.scala-sbt::compiler-bridge:1.8.0") },
+        T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}") },
         sources = true
       )()
 
       val bridgeJar = grepJar(
         resolvedJars.map(_.path),
         s"compiler-bridge_${scalaBinaryVersion(scalaVersion())}",
-        "1.8.0",
+        Deps.zinc.dep.version,
         true
       )
 
