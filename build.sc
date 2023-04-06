@@ -617,21 +617,17 @@ object scalalib extends MillModule {
   object bridge extends Cross[BridgeModule](bridgeScalaVersions:_*)
   class BridgeModule(val crossScalaVersion: String) extends MillInternalModule with CrossScalaModule {
     def scalaVersion = T{ crossScalaVersion }
-
     def artifactName = T{ "mill-" + millModuleSegments.parts.init.mkString("-") }
-
     def crossFullScalaVersion = true
-    def compileClasspath = T{
-      import mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath
-      val compilerInterfaceClasspathJars = compilerInterfaceClasspath(
-        crossScalaVersion,
-        "org.scala-lang",
-        coursier.Resolve.defaultRepositories
-      )
 
-      super.compileClasspath() ++
-      compilerInterfaceClasspathJars.asSuccess.get.value ++
-      scalaCompilerClasspath()
+    def ivyDeps = Agg(
+      ivy"org.scala-sbt:compiler-interface:${Versions.zinc}",
+      ivy"org.scala-lang:scala-compiler:${crossScalaVersion}",
+    )
+
+    def resources = T.sources{
+      os.copy(generatedSources().head.path / "META-INF", T.dest / "META-INF")
+      Seq(PathRef(T.dest))
     }
 
     def generatedSources = T{
