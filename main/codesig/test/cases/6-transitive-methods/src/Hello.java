@@ -21,21 +21,6 @@ public class Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello.main()I": [
-        "hello.Hello#<init>()V",
-        "hello.Hello.usedStatic()I",
-        "hello.Hello.usedTransitiveStatic()I",
-        "hello.Hello#used()I",
-        "hello.Hello#usedTransitive()I",
-        "hello.Hello.usedDeepestStatic()I"
-    ],
-    "hello.Hello.unusedStatic()I": [
-        "hello.Hello.usedTransitiveStatic()I",
-        "hello.Hello.usedDeepestStatic()I"
-    ],
-    "hello.Hello.usedTransitiveStatic()I": [
-        "hello.Hello.usedDeepestStatic()I"
-    ],
     "hello.Hello#unused()I": [
         "hello.Hello#usedTransitive()I",
         "hello.Hello.usedDeepestStatic()I"
@@ -45,6 +30,25 @@ public class Hello{
         "hello.Hello.usedDeepestStatic()I"
     ],
     "hello.Hello#usedTransitive()I": [
+        "hello.Hello.usedDeepestStatic()I"
+    ],
+    "hello.Hello.main()I": [
+        "hello.Hello#<init>()V",
+        "hello.Hello#used()I",
+        "hello.Hello#usedTransitive()I",
+        "hello.Hello.usedDeepestStatic()I",
+        "hello.Hello.usedStatic()I",
+        "hello.Hello.usedTransitiveStatic()I"
+    ],
+    "hello.Hello.unusedStatic()I": [
+        "hello.Hello.usedDeepestStatic()I",
+        "hello.Hello.usedTransitiveStatic()I"
+    ],
+    "hello.Hello.usedStatic()I": [
+        "hello.Hello.usedDeepestStatic()I",
+        "hello.Hello.usedTransitiveStatic()I"
+    ],
+    "hello.Hello.usedTransitiveStatic()I": [
         "hello.Hello.usedDeepestStatic()I"
     ]
 }

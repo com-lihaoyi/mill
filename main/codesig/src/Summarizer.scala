@@ -1,7 +1,8 @@
 package mill.codesig
 import mill.util.MultiBiMap
+
 import collection.JavaConverters._
-import org.objectweb.asm.{ClassReader, Opcodes}
+import org.objectweb.asm.{ClassReader, Handle, Opcodes}
 import org.objectweb.asm.tree.{AbstractInsnNode, ClassNode, FieldInsnNode, FrameNode, IincInsnNode, InsnNode, IntInsnNode, InvokeDynamicInsnNode, JumpInsnNode, LabelNode, LdcInsnNode, LineNumberNode, LookupSwitchInsnNode, MethodInsnNode, MultiANewArrayInsnNode, TableSwitchInsnNode, TypeInsnNode, VarInsnNode}
 
 /**
@@ -73,16 +74,40 @@ object Summarizer{
         hash(insn.desc.hashCode)
         hash(insn.name.hashCode)
         hash(insn.owner.hashCode)
+
       case insn: FrameNode =>
+
       case insn: IincInsnNode =>
         hash(insn.`var`)
         hash(insn.incr)
+
       case insn: InsnNode =>
+
       case insn: IntInsnNode => hash(insn.operand)
-      case insn: InvokeDynamicInsnNode => ???
+
+      case insn: InvokeDynamicInsnNode =>
+        for(bsmArg <- insn.bsmArgs){
+          bsmArg match{
+            case handle: Handle =>
+              val refOpt = handle.getTag match {
+                case Opcodes.H_INVOKEVIRTUAL => Some((InvokeType.Virtual, handle.getName))
+                case Opcodes.H_INVOKESTATIC => Some((InvokeType.Static, handle.getName))
+                case Opcodes.H_INVOKESPECIAL => Some((InvokeType.Special, handle.getName))
+                case Opcodes.H_NEWINVOKESPECIAL => Some((InvokeType.Special, "<init>"))
+                case Opcodes.H_INVOKEINTERFACE => Some((InvokeType.Virtual, handle.getName))
+                case _ => None
+              }
+              for ((invokeType, name) <- refOpt) {
+                storeCallEdge(MethodCall(JType.fromSlashed(handle.getOwner), invokeType, name, handle.getDesc))
+              }
+            case _ =>
+          }
+        }
+
       case insn: JumpInsnNode => hashlabel(insn.label)
 
       case insn: LabelNode =>
+
       case insn: LdcInsnNode =>
         hash(
           insn.cst match {
@@ -95,7 +120,9 @@ object Summarizer{
             case v: org.objectweb.asm.ConstantDynamic => v.hashCode()
           }
         )
+
       case insn: LineNumberNode =>
+
       case insn: LookupSwitchInsnNode =>
         insn.keys.asScala.foreach(i => hash(i.toInt))
         insn.labels.asScala.foreach(hashlabel)
@@ -124,6 +151,7 @@ object Summarizer{
       case insn: MultiANewArrayInsnNode =>
         hash(insn.desc.hashCode)
         hash(insn.dims)
+
       case insn: TableSwitchInsnNode =>
         hash(insn.min)
         hash(insn.max)
@@ -131,6 +159,7 @@ object Summarizer{
         Option(insn.dflt).foreach(hashlabel)
 
       case insn: TypeInsnNode => hash(insn.desc.hashCode)
+
       case insn: VarInsnNode => hash(insn.`var`)
     }
 

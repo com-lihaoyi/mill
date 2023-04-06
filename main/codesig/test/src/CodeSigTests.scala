@@ -35,7 +35,9 @@ object CodeSigTests extends TestSuite{
         expectedTransitiveLines.mkString("\n")
       )
 
-      val foundTransitive = foundTransitive0.filter { case (k, v) => expectedTransitive.contains(k) }
+      val foundTransitive = foundTransitive0
+        .map{ case (k, vs) => (k, vs.filter(!_.contains("lambda$"))) }
+        .filter { case (k, vs) => !k.contains("lambda$") && vs.nonEmpty }
 
       val expectedTransitiveJson = write(
         expectedTransitive.map{case (k, vs) => (k, vs)},
