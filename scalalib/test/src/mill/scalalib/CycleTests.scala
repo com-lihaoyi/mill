@@ -1,9 +1,10 @@
 package mill.scalalib
 
+import mill.main.BuildScriptException
 import mill.scalalib.HelloWorldTests.HelloWorldScalaOverride
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
-import utest.{TestSuite, Tests, compileError, intercept, test}
+import utest.{TestSuite, Tests, compileError, intercept, test, assert}
 
 object CycleTests extends TestSuite {
 
@@ -41,24 +42,24 @@ object CycleTests extends TestSuite {
   override def tests: Tests = Tests {
     test("moduleDeps") {
       test("self-reference") - workspaceTest(CycleBase) { eval =>
-        val ex = intercept[IllegalStateException] {
+        val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.a.compile)
         }
-        assert(ex.getMessage == "moduleDeps: cycle detected: a -> a")
+        assert(ex.getMessage.contains("a.moduleDeps: cycle detected: a -> a"))
       }
       test("cycle-in-deps") - workspaceTest(CycleBase) { eval =>
-        val ex = intercept[IllegalStateException] {
+        val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.e.compile)
         }
-        assert(ex.getMessage == "moduleDeps: cycle detected: b -> b.c -> b.d -> b")
+        assert(ex.getMessage.contains("e.moduleDeps: cycle detected: b -> b.c -> b.d -> b"))
       }
     }
     test("compileModuleDeps") {
       test("self-reference") - workspaceTest(CycleBase) { eval =>
-        val ex = intercept[IllegalStateException] {
+        val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.f.compile)
         }
-        assert(ex.getMessage == "compileModuleDeps: cycle detected: f -> f")
+        assert(ex.getMessage.contains("f.compileModuleDeps: cycle detected: f -> f"))
       }
     }
   }

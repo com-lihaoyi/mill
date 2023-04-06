@@ -1,6 +1,6 @@
 package mill.modules
 
-import coursier.Repository
+import coursier.{Repository, moduleString}
 import mill.BuildInfo
 import mill.api.{Ctx, IO, Loose, PathRef, experimental}
 import mill.define.Module
@@ -103,17 +103,37 @@ object Util {
 
   @experimental
   def recursive[T <: Module](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
-    @tailrec def rec(found: List[T], candidates: List[T]): List[T] = {
-      candidates match {
-        case Nil => found
-        case h :: _ if found.contains(h) =>
-          val rendered = (h :: (h :: found.takeWhile(_ != h)).reverse).mkString(" -> ")
 
-          throw new BuildScriptException(s"${name}: cycle detected: ${rendered}")
-        case h :: t => rec(found = h :: found, candidates = t ::: deps(h).toList.reverse)
+    @tailrec def rec2(
+        seenModules: List[T],
+        toAnalyze: List[(List[T], List[T])]
+    ): List[T] = {
+      toAnalyze match {
+        case Nil => seenModules
+        case traces :: rest =>
+          traces match {
+            case (_, Nil) => rec2(seenModules, rest)
+            case (trace, cand :: remaining) =>
+              if (trace.contains(cand)) {
+                // cycle!
+                val rendered =
+                  (cand :: (cand :: trace.takeWhile(_ != cand)).reverse).mkString(" -> ")
+                val msg = s"${name}: cycle detected: ${rendered}"
+                println(msg)
+                throw new BuildScriptException(msg)
+              }
+              rec2(
+                seenModules ++ Seq(cand),
+                toAnalyze = ((cand :: trace, deps(cand).toList)) :: (trace, remaining) :: rest
+              )
+          }
       }
     }
 
-    rec(start :: Nil, deps(start).toList.reverse).tail.reverse
+    rec2(
+      seenModules = List(),
+      toAnalyze = List((List(start), deps(start).toList))
+    ).reverse
   }
+
 }

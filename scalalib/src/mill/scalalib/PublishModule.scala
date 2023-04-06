@@ -14,7 +14,7 @@ import mill.scalalib.publish.{Artifact, SonatypePublisher, VersionScheme}
 trait PublishModule extends JavaModule { outer =>
   import mill.scalalib.publish._
 
-  override def moduleDeps: Seq[PublishModule] = super.moduleDepsChecked.map {
+  override def moduleDeps: Seq[PublishModule] = super.moduleDeps.map {
     case m: PublishModule => m
     case other =>
       throw new Exception(
@@ -53,7 +53,9 @@ trait PublishModule extends JavaModule { outer =>
       .filter(!ivyPomDeps.contains(_))
       .map(_.copy(scope = Scope.Provided))
 
-    val modulePomDeps = T.sequence(moduleDeps.map(_.publishSelfDependency))()
+    val modulePomDeps = T.sequence(moduleDepsChecked.collect {
+      case m: PublishModule => m.publishSelfDependency
+    })()
     val compileModulePomDeps = T.sequence(compileModuleDepsChecked.collect {
       case m: PublishModule => m.publishSelfDependency
     })()
