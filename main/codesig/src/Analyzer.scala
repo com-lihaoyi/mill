@@ -41,7 +41,18 @@ class Analyzer(summary: Summary) {
 
       case InvokeType.Special => Set(MethodSig(call.cls, false, call.name, call.desc))
       case InvokeType.Virtual =>
-        val resolved = clsAndDescendents(call.cls).flatMap(clsAndAncestors)
+        val resolved = clsAndDescendents(call.cls)
+          .flatMap(cls =>
+            clsAndAncestors(
+              cls,
+              skipEarly = cls =>
+                clsToMethods.getOrElse(cls, Nil).exists(sig =>
+                  sig.name == call.name &&
+                  sig.desc == call.desc &&
+                  !sig.static
+                )
+            )
+          )
           .flatMap(clsToMethods.getOrElse(_, Nil))
           .filter(sigMatchesCall(_, call))
 
@@ -53,8 +64,10 @@ class Analyzer(summary: Summary) {
     breadthFirst(Seq(cls))(summary.directSubclasses.lookupValueOpt(_))
   }
 
-  def clsAndAncestors(cls: JType): Set[JType] = {
-    breadthFirst(Seq(cls))(summary.directAncestors.getOrElse(_, Nil)).toSet
+  def clsAndAncestors(cls: JType, skipEarly: JType => Boolean): Set[JType] = {
+    breadthFirst(Seq(cls))(cls =>
+      if(skipEarly(cls)) Nil else summary.directAncestors.getOrElse(cls, Nil)
+    ).toSet
   }
 
   def clsAndDescendents(cls: JType): Set[JType] = {
