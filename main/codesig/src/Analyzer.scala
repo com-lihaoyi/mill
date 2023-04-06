@@ -9,9 +9,9 @@ class Analyzer(summary: Summary) {
 
   val directDescendents = summary
     .directAncestors
-    .flatMap { case (k, vs) => vs.map((k, _)) }
-    .map(_.swap)
-    .groupMap(_._2)(_._1)
+    .toVector
+    .flatMap { case (k, vs) => vs.map((_, k)) }
+    .groupMap(_._1)(_._2)
 
   val resolvedCalls =
     for ((method, (hash, calls)) <- summary.callGraph)
@@ -31,32 +31,34 @@ class Analyzer(summary: Summary) {
   def sigMatchesCall(sig: MethodSig, call: MethodCall) = {
     sig.name == call.name && sig.desc == call.desc && (sig.static == (call.invokeType == InvokeType.Static))
   }
-  def resolveCall(call: MethodCall): Seq[MethodSig] = {
+  def resolveCall(call: MethodCall): Set[MethodSig] = {
     call.invokeType match {
       case InvokeType.Static =>
         clsAndSupers(call.cls)
           .flatMap(clsToMethods.getOrElse(_, Nil))
           .find(sigMatchesCall(_, call))
-          .toSeq
+          .toSet
 
-      case InvokeType.Special => Seq(MethodSig(call.cls, false, call.name, call.desc))
+      case InvokeType.Special => Set(MethodSig(call.cls, false, call.name, call.desc))
       case InvokeType.Virtual =>
-        clsAndDescendents(call.cls).flatMap(clsAndAncestors)
+        val resolved = clsAndDescendents(call.cls).flatMap(clsAndAncestors)
           .flatMap(clsToMethods.getOrElse(_, Nil))
           .filter(sigMatchesCall(_, call))
+
+        resolved
     }
   }
 
-  def clsAndSupers(cls: String): Seq[String] = {
+  def clsAndSupers(cls: JType): Seq[JType] = {
     breadthFirst(Seq(cls))(summary.directSubclasses.lookupValueOpt(_))
   }
 
-  def clsAndAncestors(cls: String): Seq[String] = {
-    breadthFirst(Seq(cls))(summary.directAncestors.getOrElse(_, Nil))
+  def clsAndAncestors(cls: JType): Set[JType] = {
+    breadthFirst(Seq(cls))(summary.directAncestors.getOrElse(_, Nil)).toSet
   }
 
-  def clsAndDescendents(cls: String): Seq[String] = {
-    breadthFirst(Seq(cls))(directDescendents.getOrElse(_, Nil))
+  def clsAndDescendents(cls: JType): Set[JType] = {
+    breadthFirst(Seq(cls))(directDescendents.getOrElse(_, Nil)).toSet
   }
 
   def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {

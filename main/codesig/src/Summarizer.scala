@@ -18,20 +18,24 @@ object Summarizer{
 
   def summarize0(classNodes: Seq[ClassNode]) = {
 
-    val directSubclasses = new MultiBiMap.Mutable[String, String]()
+    val directSubclasses = new MultiBiMap.Mutable[JType, JType]()
     val callGraph = collection.mutable.Map.empty[MethodSig, (Int, Set[MethodCall])]
-    val directAncestors = collection.mutable.Map.empty[String, Set[String]]
+    val directAncestors = collection.mutable.Map.empty[JType, Set[JType]]
 
     for(classNode <- classNodes){
-      Option(classNode.superName).foreach(directSubclasses.add(_, classNode.name))
+      val clsType = JType.fromSlashed(classNode.name)
+      Option(classNode.superName).foreach(sup =>
+        directSubclasses.add(JType.fromSlashed(sup), clsType)
+      )
+
       val allThingies = (Option(classNode.superName) ++ Option(classNode.interfaces).toSeq.flatMap(_.asScala))
-      directAncestors(classNode.name) = allThingies.toSet
+      directAncestors(clsType) = allThingies.toSet.map(JType.fromSlashed)
 
 
       for(method <- classNode.methods.asScala){
         val outboundCalls = collection.mutable.Set.empty[MethodCall]
         val methodSig = MethodSig(
-          classNode.name.replace('/', '.'),
+          clsType,
           (method.access & Opcodes.ACC_STATIC) != 0,
           method.name,
           method.desc,
@@ -105,7 +109,7 @@ object Summarizer{
 
         storeCallEdge(
           MethodCall(
-            insn.owner.replace('/', '.'),
+            JType.fromSlashed(insn.owner),
             insn.getOpcode match{
               case Opcodes.INVOKESTATIC => InvokeType.Static
               case Opcodes.INVOKESPECIAL => InvokeType.Special

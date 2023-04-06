@@ -396,7 +396,7 @@ object main extends MillModule {
   object codesig extends MillApiModule {
 
 
-    override def ivyDeps = Agg(ivy"org.ow2.asm:asm-tree:9.5", Deps.osLib)
+    override def ivyDeps = Agg(ivy"org.ow2.asm:asm-tree:9.5", Deps.osLib, ivy"com.lihaoyi::pprint:0.8.1")
     def moduleDeps = Seq(util)
 
     object test extends Tests{

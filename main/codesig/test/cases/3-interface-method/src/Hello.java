@@ -14,13 +14,16 @@ class Qux implements Foo{
 }
 public class Hello{
     public static int main(){
-        return new Bar().used() + new Qux().used();
+        Foo bar = new Bar();
+        Foo qux = new Qux();
+        return bar.used() + qux.used();
     }
 }
 
 /* EXPECTED TRANSITIVE
 {
     "hello.Hello.main()I": [
+        "hello.Foo#used()I",
         "hello.Bar#<init>()V",
         "hello.Bar#used()I",
         "hello.Qux#<init>()V",
