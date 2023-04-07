@@ -570,7 +570,7 @@ object main extends MillModule {
 
   object api extends MillApiModule with BuildInfo{
     def buildInfoPackageName = "mill.api"
-    def buildInfoMembers = Map("millVersion" -> BuildInfo.Value(millVersion(), "Mill version."))
+    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
     override def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
@@ -604,25 +604,25 @@ object main extends MillModule {
 
     def buildInfoPackageName = "mill"
     
-    def buildInfoMembers = Map(
-      "scalaVersion" -> BuildInfo.Value(scalaVersion(), "Scala version used to compile mill core."),
-      "workerScalaVersion212" -> BuildInfo.Value(Deps.workerScalaVersion212, "Scala 2.12 version used by some workers."),
-      "millVersion" -> BuildInfo.Value(millVersion(), "Mill version."),
-      "millBinPlatform" -> BuildInfo.Value(millBinPlatform(), "Mill binary platform version."),
-      "millEmbeddedDeps" -> BuildInfo.Value(
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
+      BuildInfo.Value("workerScalaVersion212", Deps.workerScalaVersion212, "Scala 2.12 version used by some workers."),
+      BuildInfo.Value("millVersion", millVersion(), "Mill version."),
+      BuildInfo.Value("millBinPlatform", millBinPlatform(), "Mill binary platform version."),
+      BuildInfo.Value("millEmbeddedDeps",
         T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
           .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
           .mkString(","),
         "Dependency artifacts embedded in mill assembly by default."
       ),
-      "millScalacPluginDeps" -> BuildInfo.Value(Deps.millModuledefsString, "Scalac compiler plugin dependencies to compile the build script."),
-      "millDocUrl" -> BuildInfo.Value(Settings.docUrl, "Mill documentation url.")
+      BuildInfo.Value("millScalacPluginDeps", Deps.millModuledefsString, "Scalac compiler plugin dependencies to compile the build script."),
+      BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
     )
   }
 
   object client extends MillPublishModule with BuildInfo{
     def buildInfoPackageName = "mill.main.client"
-    def buildInfoMembers = Map("millVersion" -> BuildInfo.Value(millVersion(), "Mill version."))
+    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
     override def ivyDeps = Agg(Deps.junixsocket)
 
     object test extends Tests with TestModule.Junit4 {
@@ -662,12 +662,12 @@ object scalalib extends MillModule with BuildInfo{
   def buildInfoPackageName = "mill.scalalib"
   def buildInfoObjectName = "Versions"
 
-  def buildInfoMembers = Map(
-    "ammonite" -> BuildInfo.Value(Deps.ammoniteVersion, "Version of Ammonite."),
-    "zinc" -> BuildInfo.Value(Deps.zinc.dep.version, "Version of Zinc"),
-    "semanticDBVersion" -> BuildInfo.Value(Deps.semanticDB.dep.version, "SemanticDB version."),
-    "semanticDbJavaVersion" -> BuildInfo.Value(Deps.semanticDbJava.dep.version, "Java SemanticDB plugin version."),
-    "millModuledefsVersion" -> BuildInfo.Value(Deps.millModuledefsVersion, "Mill ModuleDefs plugins version.")
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("ammonite", Deps.ammoniteVersion, "Version of Ammonite."),
+    BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc"),
+    BuildInfo.Value("semanticDBVersion", Deps.semanticDB.dep.version, "SemanticDB version."),
+    BuildInfo.Value("semanticDbJavaVersion", Deps.semanticDbJava.dep.version, "Java SemanticDB plugin version."),
+    BuildInfo.Value("millModuledefsVersion", Deps.millModuledefsVersion, "Mill ModuleDefs plugins version.")
   )
 
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
@@ -716,7 +716,7 @@ object scalalib extends MillModule with BuildInfo{
 
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Map("zinc" -> BuildInfo.Value(Deps.zinc.dep.version, "Version of Zinc."))
+    def buildInfoMembers = Seq(BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc."))
   }
 }
 
@@ -745,12 +745,12 @@ object scalajslib extends MillModule with BuildInfo{
       s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
     }
 
-    Map(
-      "scalajsEnvNodejs" -> BuildInfo.Value(formatDep(Deps.Scalajs_1.scalajsEnvNodejs)),
-      "scalajsEnvJsdomNodejs" -> BuildInfo.Value(formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)),
-      "scalajsEnvExoegoJsdomNodejs" -> BuildInfo.Value(formatDep(Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)),
-      "scalajsEnvPhantomJs" -> BuildInfo.Value(formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)),
-      "scalajsEnvSelenium" -> BuildInfo.Value(formatDep(Deps.Scalajs_1.scalajsEnvSelenium))
+    Seq(
+      BuildInfo.Value("scalajsEnvNodejs", formatDep(Deps.Scalajs_1.scalajsEnvNodejs)),
+      BuildInfo.Value("scalajsEnvJsdomNodejs", formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)),
+      BuildInfo.Value("scalajsEnvExoegoJsdomNodejs", formatDep(Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)),
+      BuildInfo.Value("scalajsEnvPhantomJs", formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)),
+      BuildInfo.Value("scalajsEnvSelenium", formatDep(Deps.Scalajs_1.scalajsEnvSelenium))
     )
   }
 
@@ -952,7 +952,7 @@ object contrib extends MillModule {
     
     def buildInfoPackageName = "mill.contrib.bloop" 
     def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Map("bloop" -> BuildInfo.Value(Deps.bloopConfig.dep.version))
+    def buildInfoMembers = Seq(BuildInfo.Value("bloop", Deps.bloopConfig.dep.version))
   }
 
   object artifactory extends MillModule {
@@ -1033,9 +1033,9 @@ object bsp extends MillModule with BuildInfo{
   def buildInfoPackageName = "mill.bsp"
   def buildInfoMembers = T{
     val workerDep = worker.publishSelfDependency()
-    Map(
-      "bsp4jVersion" -> BuildInfo.Value(Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version)."),
-      "millBspWorkerDep" -> BuildInfo.Value(s"${workerDep.group}:${workerDep.id}:${workerDep.version}", "BSP worker dependency.")
+    Seq(
+      BuildInfo.Value("bsp4jVersion", Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version)."),
+      BuildInfo.Value("millBspWorkerDep", s"${workerDep.group}:${workerDep.id}:${workerDep.version}", "BSP worker dependency.")
     )
   }
 
@@ -1062,9 +1062,9 @@ object bsp extends MillModule with BuildInfo{
     def buildInfoPackageName = "mill.bsp.worker"
     def buildInfoMembers = T{
       val workerDep = worker.publishSelfDependency()
-      Map(
-        "bsp4jVersion" -> BuildInfo.Value(Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version)."),
-        "millBspWorkerVersion" -> BuildInfo.Value(workerDep.version, "BSP worker dependency.")
+      Seq(
+        BuildInfo.Value("bsp4jVersion", Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version)."),
+        BuildInfo.Value("millBspWorkerVersion", workerDep.version, "BSP worker dependency.")
       )
     }
   }
