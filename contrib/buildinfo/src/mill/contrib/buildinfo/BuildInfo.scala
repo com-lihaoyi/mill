@@ -4,14 +4,43 @@ import mill.{PathRef, T}
 import mill.scalalib.{JavaModule, ScalaModule}
 
 trait BuildInfo extends JavaModule {
+  /**
+   * The package name under which the BuildInfo data object will be stored.
+   */
   def buildInfoPackageName: String
-  def buildInfoStaticCompiled: Boolean = false
-  def buildInfoMembers: T[Map[String, String]]
+
+  /**
+   * The name of the BuildInfo data object, defaults to "BuildInfo"
+   */
   def buildInfoObjectName: String = "BuildInfo"
+
+  /**
+   * Enable to compile the BuildInfo values directly into the classfiles,
+   * rather than the default behavior of storing them as a JVM resource. Needed
+   * to use BuildInfo on Scala.js which does not support JVM resources
+   */
+  def buildInfoStaticCompiled: Boolean = false
+
+  /**
+   * A mapping of key-value pairs to pass from the Build script to the
+   * application code at runtime.
+   */
+  def buildInfoMembers: T[Map[String, String]]
 
   def resources =
     if (buildInfoStaticCompiled) super.resources
     else T.sources{
+      // BuildInfo values are stored each as a separate file in resources,
+      // under the `buildInfoPackageName` folder.
+      //
+      // - Storing them under `buildInfoPackageName` scopes them to avoid
+      //   conflicts, so multiple BuildInfos for separate packages or libraries
+      //   can define the same keys without conflicting
+      //
+      // - Storing each value in a separate file allows them to be
+      //   automatically merged as the classpath is aggregated, without needing
+      //   to worry about one definition shadowing another or configuring
+      //   assembly-jar logic to merge text files
       for((k, v) <- buildInfoMembers()) os.write(
         T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / s"$k.buildinfo",
         v.getBytes("UTF-8"),
