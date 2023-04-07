@@ -395,7 +395,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
       with WithMillCompiler with BaseMillTestsModule {
 
-    override def forkArgs = super.forkArgs() ++ outer.testArgs() ++ outer.forkArgs()
+    override def forkArgs = super.forkArgs() ++ outer.testArgs()
     override def moduleDeps = outer.testModuleDeps
     override def ivyDeps: T[Agg[Dep]] = T { super.ivyDeps() ++ outer.testIvyDeps() }
 
@@ -404,20 +404,22 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
 }
 
 trait BaseMillTestsModule extends TestModule {
-  override def forkArgs = super.forkArgs() ++ Seq(
-    s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
-    s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
-    s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
-    s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
-    s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
-    s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
-    s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
-    s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
-    s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
-    s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
-    s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
-    s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
-  )
+  override def forkArgs = T{
+    Seq(
+      s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
+      s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
+      s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
+      s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
+      s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
+      s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
+      s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
+      s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
+      s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
+      s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
+      s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
+      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
+    )
+  }
 
   override def testFramework = "mill.UTestFramework"
 }
@@ -538,7 +540,7 @@ object main extends MillModule {
 object testrunner extends MillModule {
   override def moduleDeps = Seq(scalalib.api, main.util)
 }
-object scalalib extends MillModule  {
+object scalalib extends MillModule {
   override def moduleDeps = Seq(main, scalalib.api, testrunner)
 
   override def ivyDeps = Agg(
