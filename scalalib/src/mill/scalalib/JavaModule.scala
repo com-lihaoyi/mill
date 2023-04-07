@@ -212,6 +212,28 @@ trait JavaModule
   }
 
   /**
+   * The transitive version of `compileClasspath`
+   */
+  def transitiveCompileClasspath: T[Agg[PathRef]] = T {
+    T.traverse(
+      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+    )(m => m.compileClasspath)()
+      .flatten
+  }
+
+  /**
+   * The transitive version of `bspCompileClasspath`
+   */
+  // Keep in sync with [[transitiveCompileClasspath]]
+  @internal
+  def bspTransitiveCompileClasspath: Target[Agg[UnresolvedPath]] = T {
+    T.traverse(
+      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+    )(m => m.bspCompileClasspath)()
+      .flatten
+  }
+
+  /**
    * What platform suffix to use for publishing, e.g. `_sjs` for Scala.js
    * projects
    */
@@ -344,7 +366,7 @@ trait JavaModule
    */
   // Keep in sync with [[bspCompileClasspath]]
   def compileClasspath: T[Agg[PathRef]] = T {
-    transitiveLocalClasspath() ++
+    transitiveCompileClasspath() ++
       compileResources() ++
       unmanagedClasspath() ++
       resolvedIvyDeps()
@@ -354,7 +376,7 @@ trait JavaModule
   // Keep in sync with [[compileClasspath]]
   @internal
   def bspCompileClasspath: Target[Agg[UnresolvedPath]] = T {
-    bspTransitiveLocalClasspath() ++
+    bspTransitiveCompileClasspath() ++
       (compileResources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
         .map(p => UnresolvedPath.ResolvedPath(p.path))
   }
