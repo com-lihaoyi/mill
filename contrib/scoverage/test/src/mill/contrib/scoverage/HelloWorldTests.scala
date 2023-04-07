@@ -43,6 +43,7 @@ trait HelloWorldTests extends utest.TestSuite {
 
       override def moduleDeps = Seq(other)
 
+      def buildInfoPackageName = "foo"
       override def buildInfoMembers = T {
         Map("scoverageVersion" -> scoverageVersion())
       }
