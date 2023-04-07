@@ -382,10 +382,11 @@ def millBinPlatform: T[String] = T {
 }
 def baseDir = build.millSourcePath
 
+
 trait BuildInfo extends JavaModule {
-  def buildInfoPackageName: String = throw new Exception("buildInfoPackageName must be set")
+  def buildInfoPackageName: String
   def buildInfoStaticCompiled: Boolean = false
-  def buildInfoMembers: T[Map[String, String]] = Map.empty[String, String]
+  def buildInfoMembers: T[Map[String, String]]
   def buildInfoObjectName: String = "BuildInfo"
 
   def resources =
@@ -403,10 +404,10 @@ trait BuildInfo extends JavaModule {
   private def isScala = this.isInstanceOf[ScalaModule]
 
   override def generatedSources = T {
-    super.generatedSources() ++ generateBuildInfo()
+    super.generatedSources() ++ generatedBuildInfo()
   }
 
-  def generateBuildInfo = T{
+  def generatedBuildInfo = T{
     if (buildInfoMembers().isEmpty) Nil
     else {
       val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
@@ -443,23 +444,40 @@ object BuildInfo{
       .mkString("\n")
 
 
-    if (isScala)
+    if (isScala) {
+      val mapEntries = buildInfoMembers
+        .map { case (name, _) => s""""$name" -> $name"""}
+        .mkString(",\n")
+
       s"""
          |package ${buildInfoPackageName}
          |
          |object $buildInfoObjectName {
          |  $bindingsCode
+         |  val toMap = Map[String, String](
+         |    $mapEntries
+         |  )
          |}
       """.stripMargin.trim
-    else
+    } else {
+      val mapEntries = buildInfoMembers
+        .map { case (name, _) => s"""map.put("$name", $name);""" }
+        .mkString(",\n")
+
       s"""
          |package ${buildInfoPackageName};
          |
          |public class $buildInfoObjectName {
          |  $bindingsCode
+         |
+         |  public static java.util.Map<String, String> toMap(){
+         |    Map<String, String> map = new HashMap<String, String>();
+         |    $mapEntries
+         |    return map;
+         |  }
          |}
       """.stripMargin.trim
-
+    }
   }
   def codegen(buildInfoMembers: Map[String, String],
               isScala: Boolean,
@@ -474,6 +492,7 @@ object BuildInfo{
           else s"""public static java.lang.String $k = readMillBuildInfo("$k");"""
       }
       .mkString("\n")
+
 
 
     if (isScala)
@@ -531,6 +550,7 @@ object BuildInfo{
       """.stripMargin.trim
   }
 }
+
 
 trait MillPublishModule extends PublishModule with BuildInfo {
   override def artifactName = "mill-" + super.artifactName()

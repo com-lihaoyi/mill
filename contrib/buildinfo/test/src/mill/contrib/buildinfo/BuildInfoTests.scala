@@ -11,52 +11,77 @@ import utest.framework.TestPath
 object BuildInfoTests extends TestSuite {
 
   val scalaVersionString = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
-  trait BuildInfoModule extends TestUtil.BaseModule with scalalib.ScalaModule with BuildInfo {
+  trait BuildInfoModule extends TestUtil.BaseModule with BuildInfo {
     // override build root to test custom builds/modules
-    override def millSourcePath: Path = TestUtil.getSrcPathStatic()
-    override def scalaVersion = scalaVersionString
+    override def millSourcePath: Path = TestUtil.getSrcPathStatic() / "scala"
   }
 
-  object EmptyBuildInfo extends BuildInfoModule{
+  object EmptyBuildInfo extends BuildInfoModule with scalalib.ScalaModule{
+    def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
+    def buildInfoMembers = Map.empty[String, String]
   }
 
-  object BuildInfo extends BuildInfoModule {
+  object BuildInfo extends BuildInfoModule with scalalib.ScalaModule{
+    def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
-    override def buildInfoMembers = T {
-      Map(
-        "scalaVersion" -> scalaVersion()
-      )
-    }
+    def buildInfoMembers = Map(
+      "scalaVersion" -> scalaVersion()
+    )
   }
 
-  object BuildInfoSettings extends BuildInfoModule {
-    override def buildInfoPackageName = "foo"
+  object BuildInfoStatic extends BuildInfoModule with scalalib.ScalaModule{
+    def scalaVersion = scalaVersionString
+    def buildInfoPackageName = "foo"
+    override def buildInfoStaticCompiled = true
+    def buildInfoMembers = Map(
+      "scalaVersion" -> scalaVersion()
+    )
+  }
+
+  object BuildInfoSettings extends BuildInfoModule with scalalib.ScalaModule{
+    def scalaVersion = scalaVersionString
+    def buildInfoPackageName = "foo"
     override def buildInfoObjectName = "bar"
-    override def buildInfoMembers = T {
-      Map(
-        "scalaVersion" -> scalaVersion()
-      )
-    }
+    def buildInfoMembers = Map(
+      "scalaVersion" -> scalaVersion()
+    )
+  }
+
+  object BuildInfoJava extends BuildInfoModule {
+    def buildInfoPackageName = "foo"
+    override def millSourcePath: Path = TestUtil.getSrcPathStatic()
+    def buildInfoMembers = Map(
+      "scalaVersion" -> "not-provided-for-java-modules"
+    )
+  }
+
+  object BuildInfoJavaStatic extends BuildInfoModule {
+    def buildInfoPackageName = "foo"
+    override def millSourcePath: Path = TestUtil.getSrcPathStatic()
+    override def buildInfoStaticCompiled = true
+    def buildInfoMembers = Map(
+      "scalaVersion" -> "not-provided-for-java-modules"
+    )
   }
 
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "buildinfo" / "test" / "resources" / "buildinfo"
 
-  def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(
+  def workspaceTest[T](m: TestUtil.BaseModule, suffix: String)(t: TestEvaluator => T)(
       implicit tp: TestPath
   ): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(testModuleSourcesPath, m.millSourcePath)
+    os.copy(testModuleSourcesPath / suffix, m.millSourcePath)
     t(eval)
   }
 
   def tests: Tests = Tests {
 
-    "notCreateEmptySourcefile" - workspaceTest(EmptyBuildInfo) { eval =>
+    "notCreateEmptySourcefile" - workspaceTest(EmptyBuildInfo, "scala") { eval =>
       val Right((result, evalCount)) =
         eval.apply(EmptyBuildInfo.generatedBuildInfo)
       assert(
@@ -67,7 +92,7 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
-    "supportCustomSettings" - workspaceTest(BuildInfoSettings) { eval =>
+    "supportCustomSettings" - workspaceTest(BuildInfoSettings, "scala") { eval =>
       val Right((result, evalCount)) = eval.apply(BuildInfoSettings.generatedBuildInfo)
       val path = result.head.path
 
@@ -77,12 +102,12 @@ object BuildInfoTests extends TestSuite {
       assert(found.contains("object bar"))
     }
 
-    "compile" - workspaceTest(BuildInfo) { eval =>
+    "compile" - workspaceTest(BuildInfo, "scala") { eval =>
       val Right((result, evalCount)) = eval.apply(BuildInfo.compile)
       assert(true)
     }
 
-    "run" - workspaceTest(BuildInfo) { eval =>
+    "run" - workspaceTest(BuildInfo, "scala") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
         eval.apply(BuildInfo.run(runResult.toString))
@@ -92,7 +117,26 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
-    "generatedSources must be a folder" - workspaceTest(BuildInfo) { eval =>
+    "static" - workspaceTest(BuildInfoStatic, "scala") { eval =>
+      val runResult = eval.outPath / "hello-mill"
+      val Right((result, evalCount)) =
+        eval.apply(BuildInfoStatic.run(runResult.toString))
+      assert(
+        os.exists(runResult),
+        os.read(runResult) == scalaVersionString
+      )
+    }
+    "java" - workspaceTest(BuildInfoJava, "java") { eval =>
+      val runResult = eval.outPath / "hello-mill"
+      val Right((result, evalCount)) =
+        eval.apply(BuildInfoJava.run(runResult.toString))
+      assert(
+        os.exists(runResult),
+        os.read(runResult) == "not-provided-for-java-modules"
+      )
+    }
+
+    "generatedSources must be a folder" - workspaceTest(BuildInfo, "scala") { eval =>
       val buildInfoGeneratedSourcesFolder = eval.outPath / "generatedBuildInfo.dest"
       val Right((result, evalCount)) = eval.apply(BuildInfo.generatedSources)
       assert(

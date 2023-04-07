@@ -6,7 +6,7 @@ import mill.scalalib.{JavaModule, ScalaModule}
 trait BuildInfo extends JavaModule {
   def buildInfoPackageName: String
   def buildInfoStaticCompiled: Boolean = false
-  def buildInfoMembers: T[Map[String, String]] = Map.empty[String, String]
+  def buildInfoMembers: T[Map[String, String]]
   def buildInfoObjectName: String = "BuildInfo"
 
   def resources =
@@ -81,7 +81,7 @@ object BuildInfo{
       """.stripMargin.trim
     } else {
       val mapEntries = buildInfoMembers
-        .map { case (name, _) => s"""map.put("$name", $name)""" }
+        .map { case (name, _) => s"""map.put("$name", $name);""" }
         .mkString(",\n")
 
       s"""
@@ -91,7 +91,7 @@ object BuildInfo{
          |  $bindingsCode
          |
          |  public static java.util.Map<String, String> toMap(){
-         |    Map<String, String> map = new HashMap<String, String>()
+         |    Map<String, String> map = new HashMap<String, String>();
          |    $mapEntries
          |    return map;
          |  }
