@@ -138,7 +138,7 @@ object BuildInfo{
       .map {
         case (k, v) =>
           if (isScala) s"""val $k = this.readMillBuildInfo("$k")"""
-          else s"""public static java.lang.String $k = readMillBuildInfo("$k");"""
+          else s"""public static final java.lang.String $k = readMillBuildInfo("$k");"""
       }
       .mkString("\n")
 
