@@ -44,9 +44,9 @@ trait HelloWorldTests extends utest.TestSuite {
       override def moduleDeps = Seq(other)
 
       def buildInfoPackageName = "bar"
-      override def buildInfoMembers = T {
-        Map("scoverageVersion" -> scoverageVersion())
-      }
+      override def buildInfoMembers = Seq(
+        BuildInfo.Value("scoverageVersion", scoverageVersion())
+      )
 
       object test extends ScoverageTests with TestModule.ScalaTest {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
