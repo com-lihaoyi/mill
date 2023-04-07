@@ -197,12 +197,13 @@ def baseDir = build.millSourcePath
 
 trait PropBuildInfoModule extends JavaModule {
   def buildInfoPackageName: String = throw new Exception("buildInfoPackageName must be set")
+  private def buildInfoPath = buildInfoPackageName.replace('.', '/')
   def buildInfoBindings: T[Map[String, String]] = Map.empty[String, String]
   def buildInfoObjectName: String = "BuildInfo"
 
   def resources = T.sources{
     for((k, v) <- buildInfoBindings()) {
-      os.write(T.dest / "buildinfo" / k, v.getBytes("UTF-8"), createFolders = true)
+      os.write(T.dest / os.SubPath(buildInfoPath) / s"$k.buildinfo", v.getBytes("UTF-8"), createFolders = true)
     }
     super.resources() ++ Seq(PathRef(T.dest))
   }
@@ -220,13 +221,18 @@ trait PropBuildInfoModule extends JavaModule {
         }
         .mkString("\n")
 
+
       val code = if (isScala)
         s"""
            |package ${buildInfoPackageName}
            |
            |object $buildInfoObjectName {
            |  def readMillBuildInfo(key: String) = {
-           |    val inputStream = getClass.getClassLoader.getResourceAsStream("mill/buildinfo/" + key)
+           |    val inputStream = getClass
+           |      .getClassLoader
+           |      .getResourceAsStream("$buildInfoPath/" + key + ".buildinfo")
+           |
+           |    if (inputStream == null) throw new RuntimeException("Cannot find buildinfo key: " + key)
            |    val into = new java.io.ByteArrayOutputStream()
            |    val buf = new Array[Byte](4096)
            |    var n = 0
@@ -251,7 +257,11 @@ trait PropBuildInfoModule extends JavaModule {
            |public class $buildInfoObjectName {
            |  private static String readMillBuildInfo(String key) {
            |    try{
-           |      java.io.InputStream inputStream = $buildInfoObjectName.class.getClassLoader().getResourceAsStream("mill/buildinfo/" + key);
+           |      java.io.InputStream inputStream = $buildInfoObjectName
+           |        .class.getClassLoader()
+           |        .getResourceAsStream("$buildInfoPath/" + key + ".buildinfo");
+           |
+           |      if (inputStream == null) throw new RuntimeException("Cannot find buildinfo key: " + key);
            |      java.io.ByteArrayOutputStream into = new java.io.ByteArrayOutputStream();
            |      byte[] buf = new byte[4096];
            |      for (int n; 0 < (n = inputStream.read(buf));) {

@@ -19,7 +19,6 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
 
   def classpath: Target[Agg[PathRef]] = T {
-    pprint.log(sys.props.keys.toList)
     mill.modules.Util.millProjectModule(
       "MILL_SCALA_WORKER",
       "mill-scalalib-worker",

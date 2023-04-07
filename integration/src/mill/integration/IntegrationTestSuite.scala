@@ -127,17 +127,13 @@ abstract class IntegrationTestSuite extends TestSuite {
   ): Boolean = {
     val serverArgs = if (integrationTestMode == "server") Seq() else Seq("--no-server")
     val debugArgs = if (debugLog) Seq("--debug") else Seq()
-    val propArgsString = sys.props
-      .collect { case (k, v) if k.startsWith("mill.") => s"-D$k=$v" }
-      .mkString(" ")
-
     try {
       os.proc(millReleaseFileOpt.get, serverArgs, debugArgs, s).call(
         cwd = wd,
         stdin = os.Inherit,
         stdout = stdout,
         stderr = stderr,
-        env = millTestSuiteEnv + ("JAVA_OPTS" -> propArgsString)
+        env = millTestSuiteEnv
       )
       true
     } catch {

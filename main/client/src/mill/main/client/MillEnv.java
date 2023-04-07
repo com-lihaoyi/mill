@@ -90,7 +90,7 @@ public class MillEnv {
         // sys props
         final Properties sysProps = System.getProperties();
         for (final String k : sysProps.stringPropertyNames()) {
-            if ((k.startsWith("MILL_") || k.startsWith("mill.")) && !"MILL_CLASSPATH".equals(k)) {
+            if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
                 vmOptions.add("-D" + k + "=" + sysProps.getProperty(k));
             }
         }
