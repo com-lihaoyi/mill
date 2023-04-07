@@ -217,7 +217,7 @@ trait JavaModule
   def transitiveCompileClasspath: T[Agg[PathRef]] = T {
     T.traverse(
       (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m => m.compileClasspath)()
+    )(m => T.task{m.compileClasspath() ++ Agg(m.compile().classes) })()
       .flatten
   }
 
