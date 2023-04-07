@@ -552,7 +552,7 @@ object BuildInfo{
 }
 
 
-trait MillPublishModule extends PublishModule with BuildInfo {
+trait MillPublishModule extends PublishModule {
   override def artifactName = "mill-" + super.artifactName()
   def publishVersion = millVersion()
   override def publishProperties: Target[Map[String, String]] = super.publishProperties() ++ Map(
@@ -572,7 +572,7 @@ trait MillPublishModule extends PublishModule with BuildInfo {
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
 
-trait MillCoursierModule extends CoursierModule with BuildInfo {
+trait MillCoursierModule extends CoursierModule {
   override def repositoriesTask = T.task {
     super.repositoriesTask() ++ Seq(
       MavenRepository(
@@ -703,7 +703,7 @@ object main extends MillModule {
     "-DMILL_VERSION=" + publishVersion()
   )
 
-  object api extends MillApiModule {
+  object api extends MillApiModule with BuildInfo{
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Map("millVersion" -> millVersion())
     override def ivyDeps = Agg(
@@ -718,7 +718,7 @@ object main extends MillModule {
       Deps.fansi
     )
   }
-  object core extends MillModule {
+  object core extends MillModule with BuildInfo{
     
     override def moduleDeps = Seq(api, util)
     override def compileIvyDeps = Agg(
@@ -753,7 +753,7 @@ object main extends MillModule {
     )
   }
 
-  object client extends MillPublishModule {
+  object client extends MillPublishModule with BuildInfo{
     def buildInfoPackageName = "mill.main.client"
     def buildInfoMembers = Map("millVersion" -> millVersion())
     override def ivyDeps = Agg(Deps.junixsocket)
@@ -785,7 +785,7 @@ object main extends MillModule {
 object testrunner extends MillModule {
   override def moduleDeps = Seq(scalalib.api, main.util)
 }
-object scalalib extends MillModule {
+object scalalib extends MillModule with BuildInfo{
   override def moduleDeps = Seq(main, scalalib.api, testrunner)
 
   override def ivyDeps = Agg(
@@ -833,7 +833,7 @@ object scalalib extends MillModule {
   object api extends MillApiModule {
     override def moduleDeps = Seq(main.api)
   }
-  object worker extends MillInternalModule {
+  object worker extends MillInternalModule with BuildInfo{
 
     override def moduleDeps = Seq(scalalib.api)
 
@@ -853,7 +853,7 @@ object scalalib extends MillModule {
   }
 }
 
-object scalajslib extends MillModule {
+object scalajslib extends MillModule with BuildInfo{
 
   override def moduleDeps = Seq(scalalib, scalajslib.`worker-api`)
 
@@ -1073,7 +1073,7 @@ object contrib extends MillModule {
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
-  object bloop extends MillModule  {
+  object bloop extends MillModule with BuildInfo {
     override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
     override def ivyDeps = Agg(
       Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13")
@@ -1162,7 +1162,7 @@ object scalanativelib extends MillModule {
   }
 }
 
-object bsp extends MillModule {
+object bsp extends MillModule with BuildInfo{
   override def compileModuleDeps = Seq(scalalib)
   override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ compileModuleDeps
 
@@ -1188,7 +1188,7 @@ object bsp extends MillModule {
     )
   }
 
-  object worker extends MillInternalModule {
+  object worker extends MillInternalModule with BuildInfo{
     override def compileModuleDeps = Seq(bsp, scalalib, testrunner)
     override def ivyDeps = Agg(
       Deps.bsp4j,
