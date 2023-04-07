@@ -197,10 +197,15 @@ def baseDir = build.millSourcePath
 
 trait PropBuildInfoModule extends JavaModule {
   def buildInfoPackageName: String = throw new Exception("buildInfoPackageName must be set")
+  def buildInfoBindings: T[Map[String, String]] = Map.empty[String, String]
   def buildInfoObjectName: String = "BuildInfo"
 
-  def buildInfoBindings: T[Map[String, String]]
-
+  def resources = T.sources{
+    for((k, v) <- buildInfoBindings()) {
+      os.write(T.dest / "buildinfo" / k, v.getBytes("UTF-8"), createFolders = true)
+    }
+    super.resources() ++ Seq(PathRef(T.dest))
+  }
   override def generatedSources = T {
     if (buildInfoBindings().isEmpty) super.generatedSources()
     else {
@@ -210,8 +215,8 @@ trait PropBuildInfoModule extends JavaModule {
         .sortBy(_._1)
         .map {
           case (k, v) =>
-            if (isScala) s"""val $k = _root_.scala.sys.props("mill.buildinfo.$v")"""
-            else s"""public static String $k() { return java.lang.System.getProperty("mill.buildinfo.$v"); }"""
+            if (isScala) s"""val $k = this.readMillBuildInfo("$k")"""
+            else s"""public static java.lang.String $k = readMillBuildInfo("$k");"""
         }
         .mkString("\n")
 
@@ -220,6 +225,22 @@ trait PropBuildInfoModule extends JavaModule {
            |package ${buildInfoPackageName}
            |
            |object $buildInfoObjectName {
+           |  def readMillBuildInfo(key: String) = {
+           |    val inputStream = getClass.getClassLoader.getResourceAsStream("mill/buildinfo/" + key)
+           |    val into = new java.io.ByteArrayOutputStream()
+           |    val buf = new Array[Byte](4096)
+           |    var n = 0
+           |    while ({
+           |      val n = inputStream.read(buf)
+           |      if (0 < n){
+           |        into.write(buf, 0, n)
+           |        true
+           |      } else false
+           |    })()
+           |    into.close
+           |    inputStream.close()
+           |    new String(into.toByteArray, "UTF-8") // Or whatever encoding
+           |  }
            |  $bindingsCode
            |}
         """.stripMargin.trim
@@ -228,6 +249,19 @@ trait PropBuildInfoModule extends JavaModule {
            |package ${buildInfoPackageName};
            |
            |public class $buildInfoObjectName {
+           |  private static String readMillBuildInfo(String key) {
+           |    try{
+           |      java.io.InputStream inputStream = $buildInfoObjectName.class.getClassLoader().getResourceAsStream("mill/buildinfo/" + key);
+           |      java.io.ByteArrayOutputStream into = new java.io.ByteArrayOutputStream();
+           |      byte[] buf = new byte[4096];
+           |      for (int n; 0 < (n = inputStream.read(buf));) {
+           |          into.write(buf, 0, n);
+           |      }
+           |      into.close();
+           |      inputStream.close();
+           |      return new String(into.toByteArray(), "UTF-8"); // Or whatever encoding
+           |    }catch(java.io.IOException e){ throw new RuntimeException(e); }
+           |  }
            |  $bindingsCode
            |}
         """.stripMargin.trim
@@ -242,15 +276,9 @@ trait PropBuildInfoModule extends JavaModule {
       super.generatedSources() ++ Seq(PathRef(T.dest))
     }
   }
-
-  def forkArgs = super.forkArgs() ++ buildInfoBindings().map {
-    case (k, v) => s"-Dmill.buildinfo.$k=$v"
-  }
 }
 
 trait MillPublishModule extends PublishModule with PropBuildInfoModule {
-  def buildInfoPackageName: String = ""
-  def buildInfoBindings: T[Map[String, String]] = Map.empty[String, String]
   override def artifactName = "mill-" + super.artifactName()
   def publishVersion = millVersion()
   override def publishProperties: Target[Map[String, String]] = super.publishProperties() ++ Map(
@@ -270,7 +298,7 @@ trait MillPublishModule extends PublishModule with PropBuildInfoModule {
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
 
-trait MillCoursierModule extends CoursierModule {
+trait MillCoursierModule extends CoursierModule with PropBuildInfoModule {
   override def repositoriesTask = T.task {
     super.repositoriesTask() ++ Seq(
       MavenRepository(
@@ -357,7 +385,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
       with WithMillCompiler with BaseMillTestsModule {
 
-    override def forkArgs = super.forkArgs() ++ outer.testArgs()
+    override def forkArgs = super.forkArgs() ++ outer.testArgs() ++ outer.forkArgs()
     override def moduleDeps = outer.testModuleDeps
     override def ivyDeps: T[Agg[Dep]] = T { super.ivyDeps() ++ outer.testIvyDeps() }
 
@@ -366,22 +394,21 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
 }
 
 trait BaseMillTestsModule extends TestModule {
-  override def forkArgs = T {
-    Seq(
-      s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
-      s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
-      s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
-      s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
-      s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
-      s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
-      s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
-      s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
-      s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
-      s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
-      s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
-      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
-    )
-  }
+  override def forkArgs = super.forkArgs() ++ Seq(
+    s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
+    s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
+    s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
+    s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
+    s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
+    s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
+    s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
+    s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
+    s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
+    s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
+    s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
+    s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
+  )
+
   override def testFramework = "mill.UTestFramework"
 }
 
@@ -470,25 +497,10 @@ object main extends MillModule {
   }
 
   object client extends MillPublishModule {
-    override def ivyDeps = Agg(
-      Deps.junixsocket
-    )
-    def generatedBuildInfo: T[Seq[PathRef]] = T {
-      val dest = T.dest
-      val code =
-        s"""package mill.main.client;
-           |
-           |/** Generated by mill. */
-           |public class BuildInfo {
-           |  /** Mill version. */
-           |  public static String millVersion() { return System.getProperty("MILL_VERSION"); }
-           |}
-           |""".stripMargin
-      os.write(dest / "mill" / "main" / "client" / "BuildInfo.java", code, createFolders = true)
-      Seq(PathRef(dest))
-    }
-    override def generatedSources: T[Seq[PathRef]] =
-      super.generatedSources() ++ generatedBuildInfo()
+    def buildInfoPackageName = "mill.main.client"
+    def buildInfoBindings = Map("millVersion" -> millVersion())
+    override def ivyDeps = Agg(Deps.junixsocket)
+
     object test extends Tests with TestModule.Junit4 {
       override def ivyDeps = Agg(Deps.junitInterface, Deps.lambdaTest)
     }
