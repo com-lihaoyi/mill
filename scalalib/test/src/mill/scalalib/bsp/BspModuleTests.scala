@@ -87,7 +87,6 @@ object BspModuleTests extends TestSuite {
             }.toSeq.sortBy(_.toString)
 
             val expected: Seq[FilePath] = Seq(
-              MultiBase.HelloBsp.millSourcePath / "resources",
               MultiBase.HelloBsp.millSourcePath / "compile-resources",
               MultiBase.HelloBsp2.millSourcePath / "compile-resources",
               EvaluatorPaths.resolveDestPaths(eval.outPath, MultiBase.HelloBsp.compile)

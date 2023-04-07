@@ -229,7 +229,7 @@ trait JavaModule
   def bspTransitiveCompileClasspath: Target[Agg[UnresolvedPath]] = T {
     T.traverse(
       (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m => m.bspCompileClasspath)()
+    )(m => T.task{m.bspCompileClasspath() ++ Agg(UnresolvedPath.ResolvedPath(m.compile().classes.path)) })()
       .flatten
   }
 
