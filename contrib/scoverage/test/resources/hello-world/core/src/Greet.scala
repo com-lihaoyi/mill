@@ -6,5 +6,5 @@ object Greet {
 
   val foo = Foo // testing module deps
 
-  val scoverageVersionUsed = foo.BuildInfo.scoverageVersion
+  val scoverageVersionUsed = bar.BuildInfo.scoverageVersion
 }
