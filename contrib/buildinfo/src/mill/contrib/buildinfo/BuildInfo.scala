@@ -25,27 +25,21 @@ trait BuildInfo extends JavaModule {
    * A mapping of key-value pairs to pass from the Build script to the
    * application code at runtime.
    */
-  def buildInfoMembers: T[Map[String, String]]
+  def buildInfoMembers: T[Seq[BuildInfo.Value]]
 
   def resources =
     if (buildInfoStaticCompiled) super.resources
     else T.sources{
-      // BuildInfo values are stored each as a separate file in resources,
-      // under the `buildInfoPackageName` folder.
-      //
-      // - Storing them under `buildInfoPackageName` scopes them to avoid
-      //   conflicts, so multiple BuildInfos for separate packages or libraries
-      //   can define the same keys without conflicting
-      //
-      // - Storing each value in a separate file allows them to be
-      //   automatically merged as the classpath is aggregated, without needing
-      //   to worry about one definition shadowing another or configuring
-      //   assembly-jar logic to merge text files
-      for((k, v) <- buildInfoMembers()) os.write(
-        T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / s"$k.buildinfo",
-        v.getBytes("UTF-8"),
+      val p = new java.util.Properties
+      for(v <- buildInfoMembers()) p.setProperty(v.key, v.value)
+
+      val stream = os.write.outputStream(
+        T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / "mill-build-info.properties",
         createFolders = true
       )
+
+      p.store(stream, s"mill.contrib.buildinfo.BuildInfo for package ${buildInfoPackageName}")
+      stream.close()
 
       super.resources() ++ Seq(PathRef(T.dest))
     }
@@ -78,28 +72,31 @@ trait BuildInfo extends JavaModule {
 }
 
 object BuildInfo{
-  def staticCompiledCodegen(buildInfoMembers: Map[String, String],
+  case class Value(key: String, value: String, comment: String = "")
+  object Value{
+    implicit val rw: upickle.default.ReadWriter[Value] = upickle.default.macroRW
+  }
+  def staticCompiledCodegen(buildInfoMembers: Seq[Value],
                             isScala: Boolean,
                             buildInfoPackageName: String,
                             buildInfoObjectName: String): String = {
     val bindingsCode = buildInfoMembers
-      .toSeq
-      .sortBy(_._1)
+      .sortBy(_.key)
       .map {
-        case (k, v) =>
-          if (isScala) s"""val $k = ${pprint.Util.literalize(v)}"""
-          else s"""public static java.lang.String $k = ${pprint.Util.literalize(v)};"""
+        case v =>
+          if (isScala) s"""${commentStr(v)}val ${v.key} = ${pprint.Util.literalize(v.value)}"""
+          else s"""${commentStr(v)}public static java.lang.String ${v.key} = ${pprint.Util.literalize(v.value)};"""
       }
-      .mkString("\n")
+      .mkString("\n\n  ")
 
 
     if (isScala) {
       val mapEntries = buildInfoMembers
-        .map { case (name, _) => s""""$name" -> $name"""}
+        .map { case v => s""""${v.key}" -> ${v.key}"""}
         .mkString(",\n")
 
       s"""
-         |package ${buildInfoPackageName}
+         |package $buildInfoPackageName
          |
          |object $buildInfoObjectName {
          |  $bindingsCode
@@ -110,11 +107,11 @@ object BuildInfo{
       """.stripMargin.trim
     } else {
       val mapEntries = buildInfoMembers
-        .map { case (name, _) => s"""map.put("$name", $name);""" }
+        .map { case v => s"""map.put("${v.key}", ${v.key});""" }
         .mkString(",\n")
 
       s"""
-         |package ${buildInfoPackageName};
+         |package $buildInfoPackageName;
          |
          |public class $buildInfoObjectName {
          |  $bindingsCode
@@ -128,47 +125,33 @@ object BuildInfo{
       """.stripMargin.trim
     }
   }
-  def codegen(buildInfoMembers: Map[String, String],
+
+  def codegen(buildInfoMembers: Seq[Value],
               isScala: Boolean,
               buildInfoPackageName: String,
               buildInfoObjectName: String): String = {
     val bindingsCode = buildInfoMembers
-      .toSeq
-      .sortBy(_._1)
+      .sortBy(_.key)
       .map {
-        case (k, v) =>
-          if (isScala) s"""val $k = this.readMillBuildInfo("$k")"""
-          else s"""public static final java.lang.String $k = readMillBuildInfo("$k");"""
+        case v =>
+          if (isScala) s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
+          else s"""${commentStr(v)}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
       }
-      .mkString("\n")
-
-
+      .mkString("\n\n  ")
 
     if (isScala)
       s"""
          |package ${buildInfoPackageName}
          |
          |object $buildInfoObjectName {
-         |  def readMillBuildInfo(key: String) = {
-         |    val inputStream = getClass
-         |      .getClassLoader
-         |      .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/" + key + ".buildinfo")
+         |  private val buildInfoProperties = new java.util.Properties
          |
-         |    if (inputStream == null) throw new RuntimeException("Cannot find buildinfo key: " + key)
-         |    val into = new java.io.ByteArrayOutputStream()
-         |    val buf = new Array[Byte](4096)
-         |    var n = 0
-         |    while ({
-         |      val n = inputStream.read(buf)
-         |      if (0 < n){
-         |        into.write(buf, 0, n)
-         |        true
-         |      } else false
-         |    })()
-         |    into.close
-         |    inputStream.close()
-         |    new String(into.toByteArray, "UTF-8") // Or whatever encoding
-         |  }
+         |  private val buildInfoInputStream = getClass
+         |    .getClassLoader
+         |    .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/mill-build-info.properties")
+         |
+         |  buildInfoProperties.load(buildInfoInputStream)
+         |
          |  $bindingsCode
          |}
       """.stripMargin.trim
@@ -177,25 +160,41 @@ object BuildInfo{
          |package ${buildInfoPackageName};
          |
          |public class $buildInfoObjectName {
-         |  private static String readMillBuildInfo(String key) {
-         |    try{
-         |      java.io.InputStream inputStream = $buildInfoObjectName
-         |        .class.getClassLoader()
-         |        .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/" + key + ".buildinfo");
+         |  private static java.util.Properties buildInfoProperties = new java.util.Properties();
          |
-         |      if (inputStream == null) throw new RuntimeException("Cannot find buildinfo key: " + key);
-         |      java.io.ByteArrayOutputStream into = new java.io.ByteArrayOutputStream();
-         |      byte[] buf = new byte[4096];
-         |      for (int n; 0 < (n = inputStream.read(buf));) {
-         |          into.write(buf, 0, n);
+         |  static {
+         |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
+         |      .class
+         |      .getClassLoader()
+         |      .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/mill-build-info.properties");
+         |
+         |    try{
+         |      buildInfoProperties.load(buildInfoInputStream);
+         |    }catch(java.io.IOException e){
+         |      throw new RuntimeException(e);
+         |    }finally{
+         |      try{
+         |        buildInfoInputStream.close();
+         |      }catch(java.io.IOException e){
+         |        throw new RuntimeException(e);
          |      }
-         |      into.close();
-         |      inputStream.close();
-         |      return new String(into.toByteArray(), "UTF-8"); // Or whatever encoding
-         |    }catch(java.io.IOException e){ throw new RuntimeException(e); }
+         |    }
          |  }
+         |
          |  $bindingsCode
          |}
       """.stripMargin.trim
+  }
+
+  def commentStr(v: Value) = {
+    if (v.comment.isEmpty) ""
+    else {
+      val lines = v.comment.linesIterator.toVector
+      lines.length match{
+        case 1 => s"""/** ${v.comment} */\n  """
+        case _ => s"""/**\n    ${lines.map("* " + _).mkString("\n    ")}\n    */\n  """
+      }
+
+    }
   }
 }

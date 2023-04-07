@@ -1,7 +1,7 @@
 package mill.contrib.buildinfo
 
 
-import mill._
+import mill.{BuildInfo => _, _}
 import mill.util.TestEvaluator
 import mill.util.TestUtil
 import os.Path
@@ -19,14 +19,31 @@ object BuildInfoTests extends TestSuite {
   object EmptyBuildInfo extends BuildInfoModule with scalalib.ScalaModule{
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
-    def buildInfoMembers = Map.empty[String, String]
+    def buildInfoMembers = Seq.empty[BuildInfo.Value]
   }
 
-  object BuildInfo extends BuildInfoModule with scalalib.ScalaModule{
+  object BuildInfoPlain extends BuildInfoModule with scalalib.ScalaModule{
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
-    def buildInfoMembers = Map(
-      "scalaVersion" -> scalaVersion()
+    def buildInfoMembers = Seq(
+       BuildInfo.Value("scalaVersion", scalaVersion())
+    )
+  }
+
+  object BuildInfoComment extends BuildInfoModule with scalalib.ScalaModule{
+    def scalaVersion = scalaVersionString
+    def buildInfoPackageName = "foo"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value(
+        "scalaVersion1",
+        scalaVersion(),
+        comment = "a helpful comment explaining what scalaVersion is all about"
+      ),
+      BuildInfo.Value(
+        "scalaVersion2",
+        scalaVersion(),
+        comment = "a helpful comment explaining what scalaVersion\nis all about"
+      )
     )
   }
 
@@ -34,8 +51,8 @@ object BuildInfoTests extends TestSuite {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     override def buildInfoStaticCompiled = true
-    def buildInfoMembers = Map(
-      "scalaVersion" -> scalaVersion()
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("scalaVersion", scalaVersion())
     )
   }
 
@@ -43,16 +60,16 @@ object BuildInfoTests extends TestSuite {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     override def buildInfoObjectName = "bar"
-    def buildInfoMembers = Map(
-      "scalaVersion" -> scalaVersion()
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("scalaVersion", scalaVersion())
     )
   }
 
   object BuildInfoJava extends BuildInfoModule {
     def buildInfoPackageName = "foo"
     override def millSourcePath: Path = TestUtil.getSrcPathStatic()
-    def buildInfoMembers = Map(
-      "scalaVersion" -> "not-provided-for-java-modules"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
     )
   }
 
@@ -60,8 +77,8 @@ object BuildInfoTests extends TestSuite {
     def buildInfoPackageName = "foo"
     override def millSourcePath: Path = TestUtil.getSrcPathStatic()
     override def buildInfoStaticCompiled = true
-    def buildInfoMembers = Map(
-      "scalaVersion" -> "not-provided-for-java-modules"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
     )
   }
 
@@ -92,6 +109,29 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
+    "comments" - workspaceTest(BuildInfoComment, "scala") { eval =>
+      val Right((result, evalCount)) =
+        eval.apply(BuildInfoComment.generatedBuildInfo)
+
+      val buildInfoPath = eval.outPath / "generatedBuildInfo.dest" / "foo" / "BuildInfo.scala"
+      assert(os.exists(buildInfoPath))
+
+      val expected = Seq(
+        """  /** a helpful comment explaining what scalaVersion is all about */
+          |  val scalaVersion1 = buildInfoProperties.getProperty("scalaVersion1")""".stripMargin,
+        """  /**
+          |    * a helpful comment explaining what scalaVersion
+          |    * is all about
+          |    */
+          |  val scalaVersion2 = buildInfoProperties.getProperty("scalaVersion2")""".stripMargin
+      )
+
+      val buildInfoCode = os.read(buildInfoPath).linesIterator.mkString("\n")
+      for(e <- expected){
+        assert(buildInfoCode.contains(e.linesIterator.mkString("\n")))
+      }
+    }
+
     "supportCustomSettings" - workspaceTest(BuildInfoSettings, "scala") { eval =>
       val Right((result, evalCount)) = eval.apply(BuildInfoSettings.generatedBuildInfo)
       val path = result.head.path
@@ -102,15 +142,15 @@ object BuildInfoTests extends TestSuite {
       assert(found.contains("object bar"))
     }
 
-    "compile" - workspaceTest(BuildInfo, "scala") { eval =>
-      val Right((result, evalCount)) = eval.apply(BuildInfo.compile)
+    "compile" - workspaceTest(BuildInfoPlain, "scala") { eval =>
+      val Right((result, evalCount)) = eval.apply(BuildInfoPlain.compile)
       assert(true)
     }
 
-    "run" - workspaceTest(BuildInfo, "scala") { eval =>
+    "run" - workspaceTest(BuildInfoPlain, "scala") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
-        eval.apply(BuildInfo.run(runResult.toString))
+        eval.apply(BuildInfoPlain.run(runResult.toString))
       assert(
         os.exists(runResult),
         os.read(runResult) == scalaVersionString
@@ -136,9 +176,9 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
-    "generatedSources must be a folder" - workspaceTest(BuildInfo, "scala") { eval =>
+    "generatedSources must be a folder" - workspaceTest(BuildInfoPlain, "scala") { eval =>
       val buildInfoGeneratedSourcesFolder = eval.outPath / "generatedBuildInfo.dest"
-      val Right((result, evalCount)) = eval.apply(BuildInfo.generatedSources)
+      val Right((result, evalCount)) = eval.apply(BuildInfoPlain.generatedSources)
       assert(
         result.size == 1,
         os.isDir(result.head.path),

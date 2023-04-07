@@ -203,19 +203,42 @@ def baseDir = build.millSourcePath
 
 
 trait BuildInfo extends JavaModule {
+  /**
+   * The package name under which the BuildInfo data object will be stored.
+   */
   def buildInfoPackageName: String
-  def buildInfoStaticCompiled: Boolean = false
-  def buildInfoMembers: T[Map[String, String]]
+
+  /**
+   * The name of the BuildInfo data object, defaults to "BuildInfo"
+   */
   def buildInfoObjectName: String = "BuildInfo"
+
+  /**
+   * Enable to compile the BuildInfo values directly into the classfiles,
+   * rather than the default behavior of storing them as a JVM resource. Needed
+   * to use BuildInfo on Scala.js which does not support JVM resources
+   */
+  def buildInfoStaticCompiled: Boolean = false
+
+  /**
+   * A mapping of key-value pairs to pass from the Build script to the
+   * application code at runtime.
+   */
+  def buildInfoMembers: T[Seq[BuildInfo.Value]]
 
   def resources =
     if (buildInfoStaticCompiled) super.resources
     else T.sources{
-      for((k, v) <- buildInfoMembers()) os.write(
-        T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / s"$k.buildinfo",
-        v.getBytes("UTF-8"),
+      val p = new java.util.Properties
+      for(v <- buildInfoMembers()) p.setProperty(v.key, v.value)
+
+      val stream = os.write.outputStream(
+        T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / "mill-build-info.properties",
         createFolders = true
       )
+
+      p.store(stream, s"mill.contrib.buildinfo.BuildInfo for package ${buildInfoPackageName}")
+      stream.close()
 
       super.resources() ++ Seq(PathRef(T.dest))
     }
@@ -248,28 +271,31 @@ trait BuildInfo extends JavaModule {
 }
 
 object BuildInfo{
-  def staticCompiledCodegen(buildInfoMembers: Map[String, String],
+  case class Value(key: String, value: String, comment: String = "")
+  object Value{
+    implicit val rw: upickle.default.ReadWriter[Value] = upickle.default.macroRW
+  }
+  def staticCompiledCodegen(buildInfoMembers: Seq[Value],
                             isScala: Boolean,
                             buildInfoPackageName: String,
                             buildInfoObjectName: String): String = {
     val bindingsCode = buildInfoMembers
-      .toSeq
-      .sortBy(_._1)
+      .sortBy(_.key)
       .map {
-        case (k, v) =>
-          if (isScala) s"""val $k = ${pprint.Util.literalize(v)}"""
-          else s"""public static java.lang.String $k = ${pprint.Util.literalize(v)};"""
+        case v =>
+          if (isScala) s"""${commentStr(v)}val ${v.key} = ${pprint.Util.literalize(v.value)}"""
+          else s"""${commentStr(v)}public static java.lang.String ${v.key} = ${pprint.Util.literalize(v.value)};"""
       }
-      .mkString("\n")
+      .mkString("\n\n  ")
 
 
     if (isScala) {
       val mapEntries = buildInfoMembers
-        .map { case (name, _) => s""""$name" -> $name"""}
+        .map { case v => s""""${v.key}" -> ${v.key}"""}
         .mkString(",\n")
 
       s"""
-         |package ${buildInfoPackageName}
+         |package $buildInfoPackageName
          |
          |object $buildInfoObjectName {
          |  $bindingsCode
@@ -280,11 +306,11 @@ object BuildInfo{
       """.stripMargin.trim
     } else {
       val mapEntries = buildInfoMembers
-        .map { case (name, _) => s"""map.put("$name", $name);""" }
+        .map { case v => s"""map.put("${v.key}", ${v.key});""" }
         .mkString(",\n")
 
       s"""
-         |package ${buildInfoPackageName};
+         |package $buildInfoPackageName;
          |
          |public class $buildInfoObjectName {
          |  $bindingsCode
@@ -298,47 +324,33 @@ object BuildInfo{
       """.stripMargin.trim
     }
   }
-  def codegen(buildInfoMembers: Map[String, String],
+
+  def codegen(buildInfoMembers: Seq[Value],
               isScala: Boolean,
               buildInfoPackageName: String,
               buildInfoObjectName: String): String = {
     val bindingsCode = buildInfoMembers
-      .toSeq
-      .sortBy(_._1)
+      .sortBy(_.key)
       .map {
-        case (k, v) =>
-          if (isScala) s"""val $k = this.readMillBuildInfo("$k")"""
-          else s"""public static java.lang.String $k = readMillBuildInfo("$k");"""
+        case v =>
+          if (isScala) s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
+          else s"""${commentStr(v)}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
       }
-      .mkString("\n")
-
-
+      .mkString("\n\n  ")
 
     if (isScala)
       s"""
          |package ${buildInfoPackageName}
          |
          |object $buildInfoObjectName {
-         |  def readMillBuildInfo(key: String) = {
-         |    val inputStream = getClass
-         |      .getClassLoader
-         |      .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/" + key + ".buildinfo")
+         |  private val buildInfoProperties = new java.util.Properties
          |
-         |    if (inputStream == null) throw new RuntimeException("Cannot find buildinfo key: " + key)
-         |    val into = new java.io.ByteArrayOutputStream()
-         |    val buf = new Array[Byte](4096)
-         |    var n = 0
-         |    while ({
-         |      val n = inputStream.read(buf)
-         |      if (0 < n){
-         |        into.write(buf, 0, n)
-         |        true
-         |      } else false
-         |    })()
-         |    into.close
-         |    inputStream.close()
-         |    new String(into.toByteArray, "UTF-8") // Or whatever encoding
-         |  }
+         |  private val buildInfoInputStream = getClass
+         |    .getClassLoader
+         |    .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/mill-build-info.properties")
+         |
+         |  buildInfoProperties.load(buildInfoInputStream)
+         |
          |  $bindingsCode
          |}
       """.stripMargin.trim
@@ -347,26 +359,42 @@ object BuildInfo{
          |package ${buildInfoPackageName};
          |
          |public class $buildInfoObjectName {
-         |  private static String readMillBuildInfo(String key) {
-         |    try{
-         |      java.io.InputStream inputStream = $buildInfoObjectName
-         |        .class.getClassLoader()
-         |        .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/" + key + ".buildinfo");
+         |  private static java.util.Properties buildInfoProperties = new java.util.Properties();
          |
-         |      if (inputStream == null) throw new RuntimeException("Cannot find buildinfo key: " + key);
-         |      java.io.ByteArrayOutputStream into = new java.io.ByteArrayOutputStream();
-         |      byte[] buf = new byte[4096];
-         |      for (int n; 0 < (n = inputStream.read(buf));) {
-         |          into.write(buf, 0, n);
+         |  static {
+         |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
+         |      .class
+         |      .getClassLoader()
+         |      .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/mill-build-info.properties");
+         |
+         |    try{
+         |      buildInfoProperties.load(buildInfoInputStream);
+         |    }catch(java.io.IOException e){
+         |      throw new RuntimeException(e);
+         |    }finally{
+         |      try{
+         |        buildInfoInputStream.close();
+         |      }catch(java.io.IOException e){
+         |        throw new RuntimeException(e);
          |      }
-         |      into.close();
-         |      inputStream.close();
-         |      return new String(into.toByteArray(), "UTF-8"); // Or whatever encoding
-         |    }catch(java.io.IOException e){ throw new RuntimeException(e); }
+         |    }
          |  }
+         |
          |  $bindingsCode
          |}
       """.stripMargin.trim
+  }
+
+  def commentStr(v: Value) = {
+    if (v.comment.isEmpty) ""
+    else {
+      val lines = v.comment.linesIterator.toVector
+      lines.length match{
+        case 1 => s"""/** ${v.comment} */\n  """
+        case _ => s"""/**\n    ${lines.map("* " + _).mkString("\n    ")}\n    */\n  """
+      }
+
+    }
   }
 }
 
@@ -542,7 +570,7 @@ object main extends MillModule {
 
   object api extends MillApiModule with BuildInfo{
     def buildInfoPackageName = "mill.api"
-    def buildInfoMembers = Map("millVersion" -> millVersion())
+    def buildInfoMembers = Map("millVersion" -> BuildInfo.Value(millVersion(), "Mill version."))
     override def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
@@ -577,22 +605,24 @@ object main extends MillModule {
     def buildInfoPackageName = "mill"
     
     def buildInfoMembers = Map(
-      "scalaVersion" -> scalaVersion(),
-      "workerScalaVersion212" -> Deps.workerScalaVersion212,
-      "millVersion" -> millVersion(),
-      "millBinPlatform" -> millBinPlatform(),
-      "millEmbeddedDeps" ->
+      "scalaVersion" -> BuildInfo.Value(scalaVersion(), "Scala version used to compile mill core."),
+      "workerScalaVersion212" -> BuildInfo.Value(Deps.workerScalaVersion212, "Scala 2.12 version used by some workers."),
+      "millVersion" -> BuildInfo.Value(millVersion(), "Mill version."),
+      "millBinPlatform" -> BuildInfo.Value(millBinPlatform(), "Mill binary platform version."),
+      "millEmbeddedDeps" -> BuildInfo.Value(
         T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
           .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
           .mkString(","),
-      "millScalacPluginDeps" -> Deps.millModuledefsString,
-      "millDocUrl" -> Settings.docUrl
+        "Dependency artifacts embedded in mill assembly by default."
+      ),
+      "millScalacPluginDeps" -> BuildInfo.Value(Deps.millModuledefsString, "Scalac compiler plugin dependencies to compile the build script."),
+      "millDocUrl" -> BuildInfo.Value(Settings.docUrl, "Mill documentation url.")
     )
   }
 
   object client extends MillPublishModule with BuildInfo{
     def buildInfoPackageName = "mill.main.client"
-    def buildInfoMembers = Map("millVersion" -> millVersion())
+    def buildInfoMembers = Map("millVersion" -> BuildInfo.Value(millVersion(), "Mill version."))
     override def ivyDeps = Agg(Deps.junixsocket)
 
     object test extends Tests with TestModule.Junit4 {
@@ -633,11 +663,11 @@ object scalalib extends MillModule with BuildInfo{
   def buildInfoObjectName = "Versions"
 
   def buildInfoMembers = Map(
-    "ammonite" -> Deps.ammoniteVersion,
-    "zinc" -> Deps.zinc.dep.version,
-    "semanticDBVersion" -> Deps.semanticDB.dep.version,
-    "semanticDbJavaVersion" -> Deps.semanticDbJava.dep.version,
-    "millModuledefsVersion" -> Deps.millModuledefsVersion
+    "ammonite" -> BuildInfo.Value(Deps.ammoniteVersion, "Version of Ammonite."),
+    "zinc" -> BuildInfo.Value(Deps.zinc.dep.version, "Version of Zinc"),
+    "semanticDBVersion" -> BuildInfo.Value(Deps.semanticDB.dep.version, "SemanticDB version."),
+    "semanticDbJavaVersion" -> BuildInfo.Value(Deps.semanticDbJava.dep.version, "Java SemanticDB plugin version."),
+    "millModuledefsVersion" -> BuildInfo.Value(Deps.millModuledefsVersion, "Mill ModuleDefs plugins version.")
   )
 
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
@@ -686,7 +716,7 @@ object scalalib extends MillModule with BuildInfo{
 
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Map("zinc" -> Deps.zinc.dep.version)
+    def buildInfoMembers = Map("zinc" -> BuildInfo.Value(Deps.zinc.dep.version, "Version of Zinc."))
   }
 }
 
@@ -716,11 +746,11 @@ object scalajslib extends MillModule with BuildInfo{
     }
 
     Map(
-      "scalajsEnvNodejs" -> formatDep(Deps.Scalajs_1.scalajsEnvNodejs),
-      "scalajsEnvJsdomNodejs" -> formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs),
-      "scalajsEnvExoegoJsdomNodejs" -> formatDep(Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs),
-      "scalajsEnvPhantomJs" -> formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs),
-      "scalajsEnvSelenium" -> formatDep(Deps.Scalajs_1.scalajsEnvSelenium)
+      "scalajsEnvNodejs" -> BuildInfo.Value(formatDep(Deps.Scalajs_1.scalajsEnvNodejs)),
+      "scalajsEnvJsdomNodejs" -> BuildInfo.Value(formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)),
+      "scalajsEnvExoegoJsdomNodejs" -> BuildInfo.Value(formatDep(Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)),
+      "scalajsEnvPhantomJs" -> BuildInfo.Value(formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)),
+      "scalajsEnvSelenium" -> BuildInfo.Value(formatDep(Deps.Scalajs_1.scalajsEnvSelenium))
     )
   }
 
@@ -922,7 +952,7 @@ object contrib extends MillModule {
     
     def buildInfoPackageName = "mill.contrib.bloop" 
     def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Map("bloop" -> Deps.bloopConfig.dep.version)
+    def buildInfoMembers = Map("bloop" -> BuildInfo.Value(Deps.bloopConfig.dep.version))
   }
 
   object artifactory extends MillModule {
@@ -1004,8 +1034,8 @@ object bsp extends MillModule with BuildInfo{
   def buildInfoMembers = T{
     val workerDep = worker.publishSelfDependency()
     Map(
-      "bsp4jVersion" -> Deps.bsp4j.dep.version,
-      "millBspWorkerDep" -> s"${workerDep.group}:${workerDep.id}:${workerDep.version}"
+      "bsp4jVersion" -> BuildInfo.Value(Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version)."),
+      "millBspWorkerDep" -> BuildInfo.Value(s"${workerDep.group}:${workerDep.id}:${workerDep.version}", "BSP worker dependency.")
     )
   }
 
@@ -1033,8 +1063,8 @@ object bsp extends MillModule with BuildInfo{
     def buildInfoMembers = T{
       val workerDep = worker.publishSelfDependency()
       Map(
-        "bsp4jVersion" -> Deps.bsp4j.dep.version,
-        "millBspWorkerVersion" -> workerDep.version
+        "bsp4jVersion" -> BuildInfo.Value(Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version)."),
+        "millBspWorkerVersion" -> BuildInfo.Value(workerDep.version, "BSP worker dependency.")
       )
     }
   }
