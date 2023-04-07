@@ -649,7 +649,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
 }
 
 trait BaseMillTestsModule extends TestModule {
-  override def forkArgs = T{
+  override def forkArgs = T {
     Seq(
       s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
       s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
@@ -665,7 +665,6 @@ trait BaseMillTestsModule extends TestModule {
       s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
     )
   }
-
   override def testFramework = "mill.UTestFramework"
 }
 
@@ -892,7 +891,6 @@ object scalajslib extends MillModule with BuildInfo{
   }
   object worker extends Cross[WorkerModule]("1")
   class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
-    override def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
     override def moduleDeps = Seq(scalajslib.`worker-api`)
     override def ivyDeps = Agg(
       Deps.Scalajs_1.scalajsLinker,
@@ -955,7 +953,6 @@ object contrib extends MillModule {
 
     object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
     class WorkerModule(playBinary: String) extends MillInternalModule {
-      override def millSourcePath: os.Path = super.millSourcePath / playBinary
       override def sources = T.sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
@@ -1147,7 +1144,6 @@ object scalanativelib extends MillModule {
   object worker extends Cross[WorkerModule]("0.4")
   class WorkerModule(scalaNativeWorkerVersion: String)
       extends MillInternalModule {
-    override def millSourcePath: os.Path = super.millSourcePath / scalaNativeWorkerVersion
     override def moduleDeps = Seq(scalanativelib.`worker-api`)
     override def ivyDeps = scalaNativeWorkerVersion match {
       case "0.4" =>
@@ -1308,7 +1304,6 @@ trait IntegrationTestModule extends MillScalaModule {
 }
 
 trait IntegrationTestCrossModule extends IntegrationTestModule {
-  override def millSourcePath = super.millSourcePath / repoSlug
   object local extends ModeModule
   object fork extends ModeModule
   object server extends ModeModule
