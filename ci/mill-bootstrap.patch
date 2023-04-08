@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 4bbbd3d3d..351a37fbc 100644
+index cbc7b7aaa..351a37fbc 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,22 +2,12 @@
@@ -42,7 +42,7 @@ index 4bbbd3d3d..351a37fbc 100644
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
-@@ -202,203 +188,6 @@ def millBinPlatform: T[String] = T {
+@@ -202,202 +188,6 @@ def millBinPlatform: T[String] = T {
  def baseDir = build.millSourcePath
  
  
@@ -209,8 +209,7 @@ index 4bbbd3d3d..351a37fbc 100644
 -         |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
 -         |      .class
 -         |      .getResourceAsStream("$buildInfoObjectName.buildinfo.properties");
--         |    System.out.println("$buildInfoObjectName.buildinfo.properties");
--         |    System.out.println(buildInfoInputStream);
+-         |
 -         |    try{
 -         |      buildInfoProperties.load(buildInfoInputStream);
 -         |    }catch(java.io.IOException e){
@@ -246,7 +245,7 @@ index 4bbbd3d3d..351a37fbc 100644
  trait MillPublishModule extends PublishModule {
    override def artifactName = "mill-" + super.artifactName()
    def publishVersion = millVersion()
-@@ -448,27 +237,8 @@ trait MillCoursierModule extends CoursierModule {
+@@ -447,27 +237,8 @@ trait MillCoursierModule extends CoursierModule {
    )
  }
  
@@ -275,7 +274,7 @@ index 4bbbd3d3d..351a37fbc 100644
  }
  
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -759,6 +529,7 @@ object scalajslib extends MillModule with BuildInfo{
+@@ -758,6 +529,7 @@ object scalajslib extends MillModule with BuildInfo{
    }
    object worker extends Cross[WorkerModule]("1")
    class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
@@ -283,7 +282,7 @@ index 4bbbd3d3d..351a37fbc 100644
      override def moduleDeps = Seq(scalajslib.`worker-api`)
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
-@@ -821,6 +592,7 @@ object contrib extends MillModule {
+@@ -820,6 +592,7 @@ object contrib extends MillModule {
  
      object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
      class WorkerModule(playBinary: String) extends MillInternalModule {
@@ -291,7 +290,7 @@ index 4bbbd3d3d..351a37fbc 100644
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -1012,6 +784,7 @@ object scalanativelib extends MillModule {
+@@ -1011,6 +784,7 @@ object scalanativelib extends MillModule {
    object worker extends Cross[WorkerModule]("0.4")
    class WorkerModule(scalaNativeWorkerVersion: String)
        extends MillInternalModule {
@@ -299,7 +298,7 @@ index 4bbbd3d3d..351a37fbc 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1172,6 +945,7 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1171,6 +945,7 @@ trait IntegrationTestModule extends MillScalaModule {
  }
  
  trait IntegrationTestCrossModule extends IntegrationTestModule {
@@ -307,7 +306,7 @@ index 4bbbd3d3d..351a37fbc 100644
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1726,53 +1500,7 @@ def launcher = T {
+@@ -1725,53 +1500,7 @@ def launcher = T {
  
  
  def uploadToGithub(authKey: String) = T.command {
