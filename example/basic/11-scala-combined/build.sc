@@ -13,7 +13,7 @@ trait MyModule extends PublishModule {
   )
 }
 
-trait MyScalaModule extends ScalaModule with MyModule {
+trait MyScalaModule extends  MyModule with CrossScalaModule{
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.12.0")
   object test extends Tests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
@@ -24,7 +24,7 @@ trait MyScalaModule extends ScalaModule with MyModule {
 val scalaVersions = Seq("2.13.10", "3.2.2")
 
 object foo extends Cross[FooModule](scalaVersions:_*)
-trait FooModule extends MyScalaModule with CrossScalaModule{
+trait FooModule extends MyScalaModule {
   def moduleDeps = Seq(bar(), qux)
 
   def generatedSources = T{
@@ -41,7 +41,7 @@ trait FooModule extends MyScalaModule with CrossScalaModule{
 }
 
 object bar extends Cross[BarModule](scalaVersions:_*)
-trait BarModule extends MyScalaModule with CrossScalaModule{
+trait BarModule extends MyScalaModule {
   def moduleDeps = Seq(qux)
 }
 
