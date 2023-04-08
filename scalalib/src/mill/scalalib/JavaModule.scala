@@ -858,7 +858,9 @@ trait JavaModule
    * For example, by default a scala module foo.baz might be published as foo-baz_2.12 and a java module would be foo-baz.
    * Setting this to baz would result in a scala artifact baz_2.12 or a java artifact baz.
    */
-  def artifactName: T[String] = millModuleSegments.parts.mkString("-")
+  def artifactName: T[String] = artifactNameParts().mkString("-")
+
+  def artifactNameParts: T[Seq[String]] = millModuleSegments.parts
 
   /**
    * The exact id of the artifact to be published. You probably don't want to override this.

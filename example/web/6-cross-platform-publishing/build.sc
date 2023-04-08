@@ -1,13 +1,8 @@
 import mill._, scalalib._, scalajslib._, publish._
 
-object wrapper extends Cross[WrapperModule]("2.13.10", "3.2.2")
-class WrapperModule(val crossScalaVersion: String) extends Module {
-
-  trait MyModule extends CrossScalaModule with PublishModule {
-    def artifactName = millModuleSegments.parts.dropRight(1).last
-
-    def crossScalaVersion = WrapperModule.this.crossScalaVersion
-    def millSourcePath = super.millSourcePath / os.up
+object foo extends Cross[FooModule]("2.13.10", "3.2.2")
+class FooModule(val crossScalaVersion: String) extends CrossScalaModule.Base {
+  trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModule {
     def publishVersion = "0.0.1"
 
     def pomSettings = PomSettings(
@@ -25,35 +20,28 @@ class WrapperModule(val crossScalaVersion: String) extends Module {
       def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
       def testFramework = "utest.runner.Framework"
     }
-
-    def sources = T.sources {
-      val platform = millModuleSegments.parts.last
-      super.sources().flatMap(source =>
-        Seq(
-          source,
-          PathRef(source.path / os.up / s"${source.path.last}-${platform}")
-        )
-      )
-    }
   }
-  trait MyScalaJSModule extends MyModule with ScalaJSModule {
+
+  trait SharedJS extends Shared with ScalaJSModule {
     def scalaJSVersion = "1.13.0"
   }
 
-  object foo extends Module{
-    object jvm extends MyModule{
+  object bar extends Module {
+    object jvm extends Shared
+
+    object js extends SharedJS
+  }
+
+  object qux extends Module{
+    object jvm extends Shared{
       def moduleDeps = Seq(bar.jvm)
       def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
     }
-    object js extends MyScalaJSModule {
+    object js extends SharedJS {
       def moduleDeps = Seq(bar.js)
     }
   }
 
-  object bar extends Module{
-    object jvm extends MyModule
-    object js extends MyScalaJSModule
-  }
 }
 
 // This example demonstrates how to publish Scala modules which are both
@@ -62,43 +50,43 @@ class WrapperModule(val crossScalaVersion: String) extends Module {
 
 /* Example Usage
 
-> ./mill show wrapper[2.13.10].foo.jvm.sources # mac/linux
-wrapper/foo/src
-wrapper/foo/src-jvm
-wrapper/foo/src-2.13.10
-wrapper/foo/src-2.13.10-jvm
-wrapper/foo/src-2.13
-wrapper/foo/src-2.13-jvm
-wrapper/foo/src-2
-wrapper/foo/src-2-jvm
+> ./mill show foo[2.13.10].bar.jvm.sources
+foo/bar/src
+foo/bar/src-jvm
+foo/bar/src-2.13.10
+foo/bar/src-2.13.10-jvm
+foo/bar/src-2.13
+foo/bar/src-2.13-jvm
+foo/bar/src-2
+foo/bar/src-2-jvm
 
-> ./mill show wrapper[3.2.2].bar.js.sources # mac/linux
-wrapper/bar/src
-wrapper/bar/src-js
-wrapper/bar/src-3.2.2
-wrapper/bar/src-3.2.2-js
-wrapper/bar/src-3.2
-wrapper/bar/src-3.2-js
-wrapper/bar/src-3
-wrapper/bar/src-3-js
+> ./mill show foo[3.2.2].qux.js.sources
+foo/qux/src
+foo/qux/src-js
+foo/qux/src-3.2.2
+foo/qux/src-3.2.2-js
+foo/qux/src-3.2
+foo/qux/src-3.2-js
+foo/qux/src-3
+foo/qux/src-3-js
 
-> ./mill wrapper[2.13.10].foo.jvm.run
+> ./mill foo[2.13.10].qux.jvm.run
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Parsing JSON with ujson.read
-Foo.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
+Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
-> ./mill wrapper[3.2.2].foo.js.run
+> ./mill foo[3.2.2].qux.js.run
 Bar.value: <p>world Specific code for Scala 3.x</p>
 Parsing JSON with js.JSON.parse
-Foo.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
+Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
 > ./mill __.publishLocal
-Publishing Artifact(com.lihaoyi,bar_sjs1_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo_sjs1_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,bar_sjs1_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo_sjs1_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo-bar_sjs1_2.13,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo-bar_2.13,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo-qux_sjs1_2.13,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo-qux_2.13,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo-bar_sjs1_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo-bar_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo-qux_sjs1_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo-qux_3,0.0.1) to ivy repo
 */
