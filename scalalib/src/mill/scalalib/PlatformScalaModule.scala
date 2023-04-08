@@ -4,7 +4,7 @@ import mill._
 /**
  * A [[ScalaModule]] intended for defining `.jvm`/`.js`/`.native` submodules
  * It supports additional source directories per platform, e.g. `src-jvm/` or
- * `src-js/` and can be used inside a [[CrossScalaModule.Wrapper]], to get one
+ * `src-js/` and can be used inside a [[CrossScalaModule.Base]], to get one
  * source folder per platform per version e.g. `src-2.12-jvm/`.
  *
  * Adjusts the [[millSourcePath]] and [[artifactNameParts]] to ignore the last

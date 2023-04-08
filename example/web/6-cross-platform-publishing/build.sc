@@ -1,7 +1,7 @@
 import mill._, scalalib._, scalajslib._, publish._
 
 object foo extends Cross[FooModule]("2.13.10", "3.2.2")
-class FooModule(val crossScalaVersion: String) extends CrossScalaModule.Wrapper {
+class FooModule(val crossScalaVersion: String) extends CrossScalaModule.Base {
   trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModule {
     def publishVersion = "0.0.1"
 

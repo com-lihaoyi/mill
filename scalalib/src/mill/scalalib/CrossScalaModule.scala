@@ -32,12 +32,12 @@ object CrossScalaModule{
    * Used with a [[mill.define.Cross]] when you want [[CrossScalaModule]]'s
    * nested within it
    */
-  trait Wrapper extends mill.Module {
+  trait Base extends mill.Module {
     def crossScalaVersion: String
     private def wrapperSegments0 = millModuleSegments.parts
     trait CrossScalaModule extends mill.scalalib.CrossScalaModule {
       override def wrapperSegments = wrapperSegments0
-      def crossScalaVersion = Wrapper.this.crossScalaVersion
+      def crossScalaVersion = Base.this.crossScalaVersion
 
     }
   }
