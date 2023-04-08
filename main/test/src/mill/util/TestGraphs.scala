@@ -219,28 +219,28 @@ object TestGraphs {
   }
 
   object singleCross extends TestUtil.BaseModule {
-    object crossOld extends mill.Cross[CrossOld]("210", "211", "212")
-    trait CrossOld extends Cross.Module[String] {
+    object cross extends mill.Cross[Cross]("210", "211", "212")
+    trait Cross extends Cross.Module[String] {
       def suffix = T { millCrossValue }
     }
+
+    object cross2 extends mill.Cross[Cross2]("210", "211", "212")
+    trait Cross2 extends Cross.Module[String]{
+      override def millSourcePath = super.millSourcePath / millCrossValue
+      def suffix = T { millCrossValue }
+    }
+  }
+
+  object singleCrossOld extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
     class Cross(scalaVersion: String) extends Module {
       def suffix = T { scalaVersion }
     }
 
     object cross2 extends mill.Cross[Cross2]("210", "211", "212")
-    trait Cross2 extends Cross.Module[String]{
-      override def millSourcePath = super.millSourcePath / millCrossValue
-      def suffix = T {
-        millCrossValue
-      }
-    }
-    object cross2Old extends mill.Cross[Cross2Old]("210", "211", "212")
-    class Cross2Old(scalaVersion: String) extends Module {
+    class Cross2(scalaVersion: String) extends Module {
       override def millSourcePath = super.millSourcePath / scalaVersion
-      def suffix = T {
-        scalaVersion
-      }
+      def suffix = T { scalaVersion }
     }
   }
   object crossResolved extends TestUtil.BaseModule {

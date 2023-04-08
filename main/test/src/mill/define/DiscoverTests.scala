@@ -40,6 +40,16 @@ object DiscoverTests extends TestSuite {
         _.cross2("212").suffix
       )
     }
+    "singleCrossOld" - {
+      check(TestGraphs.singleCross)(
+        _.cross("210").suffix,
+        _.cross("211").suffix,
+        _.cross("212").suffix,
+        _.cross2("210").suffix,
+        _.cross2("211").suffix,
+        _.cross2("212").suffix
+      )
+    }
     "doubleCross" - {
       check(TestGraphs.doubleCross)(
         _.cross("210", "jvm").suffix,
