@@ -2,7 +2,10 @@ import mill._, scalalib._
 
 trait MyModule extends ScalaModule{
   def scalaVersion = "2.13.2"
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::scalatags:0.8.2",
+    ivy"com.lihaoyi::mainargs:0.4.0"
+  )
 }
 
 object foo extends Module{
@@ -32,13 +35,13 @@ foo.bar.run
 foo.qux.run
 qux.run
 
-> ./mill baz.run
-Bar.value: <p>world</p>
-Qux.value: <h1>hello</h1>
+> ./mill baz.run --bar-text hello --qux-text world --baz-text today
+Bar.value: <h1>hello</h1>
+Qux.value: <p>world</p>
 Baz.value: <p>today</p>
 
-> ./mill foo.qux.run
-Bar.value: <p>world</p>
-Qux.value: <h1>hello</h1>
+> ./mill foo.qux.run --bar-text hello --qux-text world
+Bar.value: <h1>hello</h1>
+Qux.value: <p>world</p>
 
 */

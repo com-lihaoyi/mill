@@ -4,11 +4,11 @@ object app extends RootModule with ScalaModule{
 
   def scalaVersion = "2.13.10"
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::cask:0.9.0",
+    ivy"com.lihaoyi::cask:0.9.1",
     ivy"com.lihaoyi::scalatags:0.12.0"
   )
 
-  def resources = T.sources{
+  def resources = T{
     os.makeDir(T.dest / "webapp")
     val jsPath = client.fastLinkJS().dest.path
     // Move the main.js[.map] files into the proper filesystem position

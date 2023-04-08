@@ -56,14 +56,14 @@ object MillServerMain extends MillServerMain[RunnerState] {
   }
 
   def main0(
-             args: Array[String],
-             stateCache: RunnerState,
-             mainInteractive: Boolean,
-             streams: SystemStreams,
-             env: Map[String, String],
-             setIdle: Boolean => Unit,
-             userSpecifiedProperties: Map[String, String],
-             initialSystemProperties: Map[String, String]
+      args: Array[String],
+      stateCache: RunnerState,
+      mainInteractive: Boolean,
+      streams: SystemStreams,
+      env: Map[String, String],
+      setIdle: Boolean => Unit,
+      userSpecifiedProperties: Map[String, String],
+      initialSystemProperties: Map[String, String]
   ): (Boolean, RunnerState) = {
     MillMain.main0(
       args,

@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
 import java.io.{InputStream, PrintStream}
-import mill.define.{Input, Target, Task}
+import mill.define.{Input, Task}
 import mill.eval.Evaluator
 import language.experimental.macros
 import mill.api.{DummyInputStream, Result}
@@ -115,9 +115,8 @@ trait MillTestKit {
           Tuple2(
             evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
             evaluated.evaluated.collect {
-              case t: Target[_]
+              case t: TargetImpl[_]
                   if module.millInternal.targets.contains(t)
-                    && !t.isInstanceOf[Input[_]]
                     && !t.ctx.external => t
               case t: mill.define.Command[_] => t
             }.size
@@ -148,11 +147,12 @@ trait MillTestKit {
     }
 
     def check(targets: Agg[Task[_]], expected: Agg[Task[_]]): Unit = {
+
       val evaluated = evaluator.evaluate(targets)
         .evaluated
         .flatMap(_.asTarget)
         .filter(module.millInternal.targets.contains)
-        .filter(!_.isInstanceOf[Input[_]])
+        .filter(!_.isInstanceOf[InputImpl[_]])
       assert(
         evaluated == expected,
         s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"

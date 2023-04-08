@@ -12,12 +12,12 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 import java.nio.file.NoSuchFileException
 import scala.util.control.NonFatal
 
-object IntegrationTestSuite{
+object IntegrationTestSuite {
   case class EvalResult(isSuccess: Boolean, out: String, err: String)
 
 }
 
-abstract class IntegrationTestSuite extends TestSuite{
+abstract class IntegrationTestSuite extends TestSuite {
   val scriptSlug: String = sys.env("MILL_INTEGRATION_TEST_SLUG")
 
   val integrationTestMode: String = sys.env("MILL_INTEGRATION_TEST_MODE")
@@ -71,7 +71,7 @@ abstract class IntegrationTestSuite extends TestSuite{
           threadCount = threadCount,
           targetsAndParams = s.toList,
           prevRunnerState = runnerState,
-          logger = logger,
+          logger = logger
         ).evaluate()
       }
     )
@@ -109,14 +109,22 @@ abstract class IntegrationTestSuite extends TestSuite{
       val processError = os.ProcessOutput.Readlines(error += _)
 
       val result = evalFork(processOutput, processError, s)
-      IntegrationTestSuite.EvalResult(result, output.result().mkString("\n"), error.result().mkString("\n"))
+      IntegrationTestSuite.EvalResult(
+        result,
+        output.result().mkString("\n"),
+        error.result().mkString("\n")
+      )
     }
   }
 
   val millReleaseFileOpt = Option(System.getenv("MILL_TEST_RELEASE")).map(os.Path(_, os.pwd))
   val millTestSuiteEnv = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
-  private def evalFork(stdout: os.ProcessOutput, stderr: os.ProcessOutput, s: Seq[String]): Boolean = {
+  private def evalFork(
+      stdout: os.ProcessOutput,
+      stderr: os.ProcessOutput,
+      s: Seq[String]
+  ): Boolean = {
     val serverArgs = if (integrationTestMode == "server") Seq() else Seq("--no-server")
     val debugArgs = if (debugLog) Seq("--debug") else Seq()
     try {

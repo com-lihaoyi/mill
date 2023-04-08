@@ -27,6 +27,12 @@ import mill.scalalib.publish._
 import mill.modules.Jvm
 import mill.define.SelectMode
 
+import scala.util.control.NonFatal
+import mill.T
+import mill.define.{Discover, ExternalModule, Input, Module, Task}
+import mill.api.{Logger, Result}
+import os.{CommandResult, SubprocessException}
+
 object Settings {
   val pomOrg = "com.lihaoyi"
   val githubOrg = "com-lihaoyi"
@@ -124,12 +130,12 @@ object Deps {
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
-  val ammoniteVersion = "3.0.0-M0-5-0af4d9e7"
+  val ammoniteVersion = "3.0.0-M0-6-34034262"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   val coursier = ivy"io.get-coursier::coursier:2.1.0"
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.11"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.14"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -168,7 +174,7 @@ object Deps {
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.6"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.13"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
-  val upickle = ivy"com.lihaoyi::upickle:3.0.0"
+  val upickle = ivy"com.lihaoyi::upickle:3.1.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
@@ -194,6 +200,203 @@ def millBinPlatform: T[String] = T {
   }
 }
 def baseDir = build.millSourcePath
+
+
+trait BuildInfo extends JavaModule {
+  /**
+   * The package name under which the BuildInfo data object will be stored.
+   */
+  def buildInfoPackageName: String
+
+  /**
+   * The name of the BuildInfo data object, defaults to "BuildInfo"
+   */
+  def buildInfoObjectName: String = "BuildInfo"
+
+  /**
+   * Enable to compile the BuildInfo values directly into the classfiles,
+   * rather than the default behavior of storing them as a JVM resource. Needed
+   * to use BuildInfo on Scala.js which does not support JVM resources
+   */
+  def buildInfoStaticCompiled: Boolean = false
+
+  /**
+   * A mapping of key-value pairs to pass from the Build script to the
+   * application code at runtime.
+   */
+  def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
+
+  def resources =
+    if (buildInfoStaticCompiled) super.resources
+    else T.sources{ super.resources() ++ Seq(buildInfoResources()) }
+
+  def buildInfoResources = T{
+    val p = new java.util.Properties
+    for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
+
+    val stream = os.write.outputStream(
+      T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / s"$buildInfoObjectName.buildinfo.properties",
+      createFolders = true
+    )
+
+    p.store(stream, s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}")
+    stream.close()
+    PathRef(T.dest)
+  }
+
+  private def isScala = this.isInstanceOf[ScalaModule]
+
+  override def generatedSources = T {
+    super.generatedSources() ++ buildInfoSources()
+  }
+
+  def buildInfoSources = T{
+    if (buildInfoMembers().isEmpty) Nil
+    else {
+      val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
+        buildInfoMembers(), isScala, buildInfoPackageName, buildInfoObjectName
+      ) else BuildInfo.codegen(
+        buildInfoMembers(), isScala, buildInfoPackageName, buildInfoObjectName
+      )
+
+      val ext = if (isScala) "scala" else "java"
+
+      os.write(
+        T.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
+        code,
+        createFolders = true
+      )
+      Seq(PathRef(T.dest))
+    }
+  }
+}
+
+object BuildInfo{
+  case class Value(key: String, value: String, comment: String = "")
+  object Value{
+    implicit val rw: upickle.default.ReadWriter[Value] = upickle.default.macroRW
+  }
+  def staticCompiledCodegen(buildInfoMembers: Seq[Value],
+                            isScala: Boolean,
+                            buildInfoPackageName: String,
+                            buildInfoObjectName: String): String = {
+    val bindingsCode = buildInfoMembers
+      .sortBy(_.key)
+      .map {
+        case v =>
+          if (isScala) s"""${commentStr(v)}val ${v.key} = ${pprint.Util.literalize(v.value)}"""
+          else s"""${commentStr(v)}public static java.lang.String ${v.key} = ${pprint.Util.literalize(v.value)};"""
+      }
+      .mkString("\n\n  ")
+
+
+    if (isScala) {
+      val mapEntries = buildInfoMembers
+        .map { case v => s""""${v.key}" -> ${v.key}"""}
+        .mkString(",\n")
+
+      s"""
+         |package $buildInfoPackageName
+         |
+         |object $buildInfoObjectName {
+         |  $bindingsCode
+         |  val toMap = Map[String, String](
+         |    $mapEntries
+         |  )
+         |}
+      """.stripMargin.trim
+    } else {
+      val mapEntries = buildInfoMembers
+        .map { case v => s"""map.put("${v.key}", ${v.key});""" }
+        .mkString(",\n")
+
+      s"""
+         |package $buildInfoPackageName;
+         |
+         |public class $buildInfoObjectName {
+         |  $bindingsCode
+         |
+         |  public static java.util.Map<String, String> toMap(){
+         |    Map<String, String> map = new HashMap<String, String>();
+         |    $mapEntries
+         |    return map;
+         |  }
+         |}
+      """.stripMargin.trim
+    }
+  }
+
+  def codegen(buildInfoMembers: Seq[Value],
+              isScala: Boolean,
+              buildInfoPackageName: String,
+              buildInfoObjectName: String): String = {
+    val bindingsCode = buildInfoMembers
+      .sortBy(_.key)
+      .map {
+        case v =>
+          if (isScala) s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
+          else s"""${commentStr(v)}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
+      }
+      .mkString("\n\n  ")
+
+    if (isScala)
+      s"""
+         |package ${buildInfoPackageName}
+         |
+         |object $buildInfoObjectName {
+         |  private val buildInfoProperties = new java.util.Properties
+         |
+         |  private val buildInfoInputStream = getClass
+         |    .getResourceAsStream("$buildInfoObjectName.buildinfo.properties")
+         |
+         |  buildInfoProperties.load(buildInfoInputStream)
+         |
+         |  $bindingsCode
+         |}
+      """.stripMargin.trim
+    else
+      s"""
+         |package ${buildInfoPackageName};
+         |
+         |public class $buildInfoObjectName {
+         |  private static java.util.Properties buildInfoProperties = new java.util.Properties();
+         |
+         |  static {
+         |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
+         |      .class
+         |      .getResourceAsStream("$buildInfoObjectName.buildinfo.properties");
+         |
+         |    try{
+         |      buildInfoProperties.load(buildInfoInputStream);
+         |    }catch(java.io.IOException e){
+         |      throw new RuntimeException(e);
+         |    }finally{
+         |      try{
+         |        buildInfoInputStream.close();
+         |      }catch(java.io.IOException e){
+         |        throw new RuntimeException(e);
+         |      }
+         |    }
+         |  }
+         |
+         |  $bindingsCode
+         |}
+      """.stripMargin.trim
+  }
+
+  def commentStr(v: Value) = {
+    if (v.comment.isEmpty) ""
+    else {
+      val lines = v.comment.linesIterator.toVector
+      lines.length match{
+        case 1 => s"""/** ${v.comment} */\n  """
+        case _ => s"""/**\n    ${lines.map("* " + _).mkString("\n    ")}\n    */\n  """
+      }
+
+    }
+  }
+}
+
 
 trait MillPublishModule extends PublishModule {
   override def artifactName = "mill-" + super.artifactName()
@@ -245,10 +448,17 @@ trait MillCoursierModule extends CoursierModule {
 }
 
 trait MillMimaConfig extends mima.Mima {
+  def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
   override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
-  override def mimaPreviousArtifacts =
-    if (Settings.mimaBaseVersions.isEmpty) T { Agg[Dep]() }
-    else super.mimaPreviousArtifacts
+  override def mimaPreviousArtifacts: T[Agg[Dep]] = T {
+    Agg.from(
+      Settings.mimaBaseVersions
+        .filter(v => !skipPreviousVersions().contains(v))
+        .map(version =>
+          ivy"${pomSettings().organization}:${artifactId()}:${version}"
+        )
+    )
+  }
   override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
     "mill.api.internal",
     "mill.api.experimental"
@@ -303,7 +513,6 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   trait Tests extends MillScalaModuleTests
 }
 
-
 trait BaseMillTestsModule extends TestModule {
   override def forkArgs = T {
     Seq(
@@ -323,6 +532,7 @@ trait BaseMillTestsModule extends TestModule {
   }
   override def testFramework = "mill.UTestFramework"
 }
+
 /** A MillScalaModule with default set up test module. */
 trait MillAutoTestSetup extends MillScalaModule {
   // instead of `object test` which can't be overridden, we hand-made a val+class singleton
@@ -357,28 +567,14 @@ object main extends MillModule {
     "-DMILL_VERSION=" + publishVersion()
   )
 
-  object api extends MillApiModule {
+  object api extends MillApiModule with BuildInfo{
+    def buildInfoPackageName = "mill.api"
+    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
     override def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
       Deps.sbtTestInterface
     )
-    def generatedBuildInfo: T[Seq[PathRef]] = T {
-      val dest = T.dest
-      val code =
-        s"""package mill.api
-           |
-           |/** Generated at built-time by Mill. */
-           |private[api] object BuildInfo {
-           |  /** Mill version. */
-           |  val millVersion: String = "${millVersion()}"
-           |}
-           |""".stripMargin
-      os.write(dest / "mill" / "main" / "api" / "BuildInfo.scala", code, createFolders = true)
-      Seq(PathRef(dest))
-    }
-    override def generatedSources: T[Seq[PathRef]] =
-      super.generatedSources() ++ generatedBuildInfo()
   }
   object util extends MillApiModule with MillAutoTestSetup {
     override def moduleDeps = Seq(api)
@@ -386,7 +582,8 @@ object main extends MillModule {
       Deps.fansi
     )
   }
-  object core extends MillModule {
+  object core extends MillModule with BuildInfo{
+    
     override def moduleDeps = Seq(api, util)
     override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
@@ -403,76 +600,30 @@ object main extends MillModule {
       Deps.mainargs,
       Deps.scalaparse
     )
-    override def generatedSources = T {
-      val dest = T.ctx.dest
-      writeBuildInfo(
-        dir = dest,
-        scalaVersion = scalaVersion(),
-        millVersion = publishVersion(),
-        millBinPlatform = millBinPlatform(),
-        artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
-      )
-      Seq(PathRef(dest))
-    }
 
-    def writeBuildInfo(
-        dir: os.Path,
-        scalaVersion: String,
-        millVersion: String,
-        millBinPlatform: String,
-        artifacts: Seq[Artifact]
-    ) = {
-      val code =
-        s"""
-           |package mill
-           |
-           |/** Generated by mill. */
-           |object BuildInfo {
-           |  /** Scala version used to compile mill core. */
-           |  val scalaVersion = "$scalaVersion"
-           |  /** Scala 2.12 version used by some workers. */
-           |  val workerScalaVersion212 = "${Deps.workerScalaVersion212}"
-           |  /** Mill version. */
-           |  val millVersion = "$millVersion"
-           |  /** Mill binary platform version. */
-           |  val millBinPlatform = "$millBinPlatform"
-           |  /** Dependency artifacts embedded in mill assembly by default. */
-           |  val millEmbeddedDeps = ${artifacts.map(artifact =>
-            s""""${artifact.group}:${artifact.id}:${artifact.version}""""
-          )}
-           |  /** Scalac compiler plugin dependencies to compile the build script. */
-           |  val millScalacPluginDeps = Seq(
-           |    "${Deps.millModuledefsString}"
-           |  )
-           |  /** Mill documentation url. */
-           |  val millDocUrl = "${Settings.docUrl}"
-           |}
-      """.stripMargin.trim
-
-      os.write(dir / "mill" / "BuildInfo.scala", code, createFolders = true)
-    }
+    def buildInfoPackageName = "mill"
+    
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
+      BuildInfo.Value("workerScalaVersion212", Deps.workerScalaVersion212, "Scala 2.12 version used by some workers."),
+      BuildInfo.Value("millVersion", millVersion(), "Mill version."),
+      BuildInfo.Value("millBinPlatform", millBinPlatform(), "Mill binary platform version."),
+      BuildInfo.Value("millEmbeddedDeps",
+        T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+          .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
+          .mkString(","),
+        "Dependency artifacts embedded in mill assembly by default."
+      ),
+      BuildInfo.Value("millScalacPluginDeps", Deps.millModuledefsString, "Scalac compiler plugin dependencies to compile the build script."),
+      BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
+    )
   }
 
-  object client extends MillPublishModule {
-    override def ivyDeps = Agg(
-      Deps.junixsocket
-    )
-    def generatedBuildInfo: T[Seq[PathRef]] = T {
-      val dest = T.dest
-      val code =
-        s"""package mill.main.client;
-           |
-           |/** Generated by mill. */
-           |public class BuildInfo {
-           |  /** Mill version. */
-           |  public static String millVersion() { return "${millVersion()}"; }
-           |}
-           |""".stripMargin
-      os.write(dest / "mill" / "main" / "client" / "BuildInfo.java", code, createFolders = true)
-      Seq(PathRef(dest))
-    }
-    override def generatedSources: T[Seq[PathRef]] =
-      super.generatedSources() ++ generatedBuildInfo()
+  object client extends MillPublishModule with BuildInfo{
+    def buildInfoPackageName = "mill.main.client"
+    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
+    override def ivyDeps = Agg(Deps.junixsocket)
+
     object test extends Tests with TestModule.Junit4 {
       override def ivyDeps = Agg(Deps.junitInterface, Deps.lambdaTest)
     }
@@ -500,50 +651,39 @@ object main extends MillModule {
 object testrunner extends MillModule {
   override def moduleDeps = Seq(scalalib.api, main.util)
 }
-object scalalib extends MillModule {
+object scalalib extends MillModule with BuildInfo{
   override def moduleDeps = Seq(main, scalalib.api, testrunner)
 
   override def ivyDeps = Agg(
     Deps.scalafmtDynamic
   )
 
-  override def generatedSources = T {
-    val dest = T.ctx.dest
-    os.write(
-      dest / "Versions.scala",
-      s"""package mill.scalalib
-         |
-         |/**
-         | * Dependency versions as they where defined at Mill compile time.
-         | * Generated from mill in build.sc.
-         | */
-         |object Versions {
-         |  /** Version of Ammonite. */
-         |  val ammonite = "${Deps.ammoniteVersion}"
-         |  /** Version of Zinc. */
-         |  val zinc = "${Deps.zinc.dep.version}"
-         |  /** SemanticDB version. */
-         |  val semanticDBVersion = "${Deps.semanticDB.dep.version}"
-         |  /** Java SemanticDB plugin version. */
-         |  val semanticDbJavaVersion = "${Deps.semanticDbJava.dep.version}"
-         |  /** Mill ModuleDefs plugins version. */
-         |  val millModuledefsVersion = "${Deps.millModuledefsVersion}"
-         |}
-         |
-         |""".stripMargin
-    )
-    super.generatedSources() ++ Seq(PathRef(dest))
-  }
+  def buildInfoPackageName = "mill.scalalib"
+  def buildInfoObjectName = "Versions"
+
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("ammonite", Deps.ammoniteVersion, "Version of Ammonite."),
+    BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc"),
+    BuildInfo.Value("semanticDBVersion", Deps.semanticDB.dep.version, "SemanticDB version."),
+    BuildInfo.Value("semanticDbJavaVersion", Deps.semanticDbJava.dep.version, "Java SemanticDB plugin version."),
+    BuildInfo.Value("millModuledefsVersion", Deps.millModuledefsVersion, "Mill ModuleDefs plugins version.")
+  )
 
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T {
+
+    val artifactsString =
+      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
+        .mkString(",")
 
     worker.testArgs() ++
       main.graphviz.testArgs() ++
       Seq(
         "-Djna.nosys=true",
         "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(","),
-        s"-DTEST_SCALAFMT_VERSION=${Deps.scalafmtDynamic.dep.version}"
+        s"-DTEST_SCALAFMT_VERSION=${Deps.scalafmtDynamic.dep.version}",
+        s"-DMILL_EMBEDDED_DEPS=\"$artifactsString\""
       )
   }
   object backgroundwrapper extends MillPublishModule {
@@ -559,7 +699,7 @@ object scalalib extends MillModule {
   object api extends MillApiModule {
     override def moduleDeps = Seq(main.api)
   }
-  object worker extends MillInternalModule {
+  object worker extends MillInternalModule with BuildInfo{
 
     override def moduleDeps = Seq(scalalib.api)
 
@@ -573,30 +713,13 @@ object scalalib extends MillModule {
       )
     }
 
-    override def generatedSources = T {
-      val dest = T.ctx.dest
-      val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
-      os.write(
-        dest / "Versions.scala",
-        s"""package mill.scalalib.worker
-           |
-           |/**
-           | * Dependency versions.
-           | * Generated from mill in build.sc.
-           | */
-           |object Versions {
-           |  /** Version of Zinc. */
-           |  val zinc = "${Deps.zinc.dep.version}"
-           |}
-           |
-           |""".stripMargin
-      )
-      super.generatedSources() ++ Seq(PathRef(dest))
-    }
+    def buildInfoPackageName = "mill.scalalib.worker"
+    def buildInfoObjectName = "Versions"
+    def buildInfoMembers = Seq(BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc."))
   }
 }
 
-object scalajslib extends MillModule {
+object scalajslib extends MillModule with BuildInfo{
 
   override def moduleDeps = Seq(scalalib, scalajslib.`worker-api`)
 
@@ -610,41 +733,25 @@ object scalajslib extends MillModule {
       (for ((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
   }
 
-  def generatedBuildInfo = T {
-    val dir = T.dest
+  def buildInfoPackageName = "mill.scalajslib"
+  def buildInfoObjectName = "ScalaJSBuildInfo"
+
+  def buildInfoMembers = T{
     val resolve = resolveCoursierDependency()
-    val packageNames = Seq("mill", "scalajslib")
-    val className = "ScalaJSBuildInfo"
+
     def formatDep(dep: Dep) = {
       val d = resolve(dep)
       s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
     }
-    val content =
-      s"""package ${packageNames.mkString(".")}
-         |/** Generated by mill at built-time. */
-         |object ${className} {
-         |  object Deps {
-         |    @deprecated("No longer a dependency. To be removed.", since = "mill 0.10.9")
-         |    val jettyWebsocket = "org.eclipse.jetty:jetty-websocket:8.2.0.v20160908"
-         |    @deprecated("No longer a dependency. To be removed.", since = "mill 0.10.9")
-         |    val jettyServer = "org.eclipse.jetty:jetty-server:8.2.0.v20160908"
-         |    @deprecated("No longer a dependency. To be removed.", since = "mill 0.10.9")
-         |    val javaxServlet = "org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
-         |    val scalajsEnvNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvNodejs)}"
-         |    val scalajsEnvJsdomNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)}"
-         |    val scalajsEnvExoegoJsdomNodejs = "${formatDep(
-          Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs
-        )}"
-         |    val scalajsEnvPhantomJs = "${formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)}"
-         |    val scalajsEnvSelenium = "${formatDep(Deps.Scalajs_1.scalajsEnvSelenium)}"
-         |  }
-         |}
-         |""".stripMargin
-    os.write(dir / packageNames / s"${className}.scala", content, createFolders = true)
-    PathRef(dir)
-  }
 
-  override def generatedSources: Target[Seq[PathRef]] = Seq(generatedBuildInfo())
+    Seq(
+      BuildInfo.Value("scalajsEnvNodejs", formatDep(Deps.Scalajs_1.scalajsEnvNodejs)),
+      BuildInfo.Value("scalajsEnvJsdomNodejs", formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)),
+      BuildInfo.Value("scalajsEnvExoegoJsdomNodejs", formatDep(Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)),
+      BuildInfo.Value("scalajsEnvPhantomJs", formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)),
+      BuildInfo.Value("scalajsEnvSelenium", formatDep(Deps.Scalajs_1.scalajsEnvSelenium))
+    )
+  }
 
   object `worker-api` extends MillInternalModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
@@ -830,7 +937,7 @@ object contrib extends MillModule {
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
-  object bloop extends MillModule {
+  object bloop extends MillModule with BuildInfo {
     override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
     override def ivyDeps = Agg(
       Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13")
@@ -841,21 +948,10 @@ object contrib extends MillModule {
       scalajslib,
       scalanativelib
     )
-    def generateBuildinfo = T {
-      os.write(
-        T.dest / "Versions.scala",
-        s"""package mill.contrib.bloop
-           |
-           |object Versions {
-           |  val bloop = "${Deps.bloopConfig.dep.version}"
-           |}
-           |""".stripMargin
-      )
-      PathRef(T.dest)
-    }
-    override def generatedSources = T {
-      super.generatedSources() ++ Seq(generateBuildinfo())
-    }
+    
+    def buildInfoPackageName = "mill.contrib.bloop" 
+    def buildInfoObjectName = "Versions"
+    def buildInfoMembers = Seq(BuildInfo.Value("bloop", Deps.bloopConfig.dep.version))
   }
 
   object artifactory extends MillModule {
@@ -929,29 +1025,18 @@ object scalanativelib extends MillModule {
   }
 }
 
-object bsp extends MillModule {
+object bsp extends MillModule with BuildInfo{
   override def compileModuleDeps = Seq(scalalib)
   override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ compileModuleDeps
 
-  def generatedBuildInfo: T[Seq[PathRef]] = T {
+  def buildInfoPackageName = "mill.bsp"
+  def buildInfoMembers = T{
     val workerDep = worker.publishSelfDependency()
-    val code =
-      s"""// Generated by Mill
-         |package mill.bsp
-         |
-         |/** Build-time information. */
-         |object BuildInfo {
-         |  /** BSP4j version (BSP Protocol version). */
-         |  val bsp4jVersion = "${Deps.bsp4j.dep.version}"
-         |  /** BSP worker dependency. */
-         |  val millBspWorkerDep = "${workerDep.group}:${workerDep.id}:${workerDep.version}"
-         |}
-         |""".stripMargin.trim
-    os.write(T.dest / "mill" / "bsp" / "BuildInfo.scala", code, createFolders = true)
-    Seq(PathRef(T.dest))
+    Seq(
+      BuildInfo.Value("bsp4jVersion", Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version)."),
+      BuildInfo.Value("millBspWorkerDep", s"${workerDep.group}:${workerDep.id}:${workerDep.version}", "BSP worker dependency.")
+    )
   }
-  override def generatedSources: T[Seq[PathRef]] =
-    super.generatedSources() ++ generatedBuildInfo()
 
   override val test = new Test(implicitly)
   class Test(ctx0: mill.define.Ctx) extends Tests(ctx0) {
@@ -966,32 +1051,21 @@ object bsp extends MillModule {
     )
   }
 
-  object worker extends MillInternalModule {
+  object worker extends MillInternalModule with BuildInfo{
     override def compileModuleDeps = Seq(bsp, scalalib, testrunner)
     override def ivyDeps = Agg(
       Deps.bsp4j,
       Deps.sbtTestInterface
     )
 
-    def generatedBuildInfo: T[Seq[PathRef]] = T {
+    def buildInfoPackageName = "mill.bsp.worker"
+    def buildInfoMembers = T{
       val workerDep = worker.publishSelfDependency()
-      val code =
-        s"""// Generated by Mill
-           |package mill.bsp.worker
-           |
-           |/** Build-time information. */
-           |object BuildInfo {
-           |  /** BSP4j version (BSP Protocol version). */
-           |  val bsp4jVersion = "${Deps.bsp4j.dep.version}"
-           |  /** BSP worker dependency. */
-           |  val millBspWorkerVersion = "${workerDep.version}"
-           |}
-           |""".stripMargin.trim
-      os.write(T.dest / "mill" / "bsp" / "worker" / "BuildInfo.scala", code, createFolders = true)
-      Seq(PathRef(T.dest))
+      Seq(
+        BuildInfo.Value("bsp4jVersion", Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version)."),
+        BuildInfo.Value("millBspWorkerVersion", workerDep.version, "BSP worker dependency.")
+      )
     }
-    override def generatedSources: T[Seq[PathRef]] =
-      super.generatedSources() ++ generatedBuildInfo()
   }
 }
 
@@ -1049,7 +1123,7 @@ trait IntegrationTestModule extends MillScalaModule {
     override def forkEnv = super.forkEnv() ++ Map(
       "MILL_INTEGRATION_TEST_MODE" -> mode,
       "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
-      "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString,
+      "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
     ) ++ testReleaseEnv()
 
     def workspaceDir = T.persistent {
@@ -1062,7 +1136,7 @@ trait IntegrationTestModule extends MillScalaModule {
 
     override def forkArgs: Target[Seq[String]] = T {
       val genIdeaArgs =
-      //      genTask(main.moduledefs)() ++
+        //      genTask(main.moduledefs)() ++
         genTask(main.core)() ++
           genTask(main)() ++
           genTask(scalalib)() ++
@@ -1088,8 +1162,8 @@ trait IntegrationTestModule extends MillScalaModule {
     }
 
     def testReleaseEnv =
-      if (mode == "local") T{ Map.empty[String, String] }
-      else T{ Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
+      if (mode == "local") T { Map.empty[String, String] }
+      else T { Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
 
     def compile = IntegrationTestModule.this.compile()
     def moduleDeps = Seq(IntegrationTestModule.this)
@@ -1104,7 +1178,7 @@ trait IntegrationTestCrossModule extends IntegrationTestModule {
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
-object example extends MillScalaModule{
+object example extends MillScalaModule {
 
   def moduleDeps = Seq(integration)
 
@@ -1118,7 +1192,7 @@ object example extends MillScalaModule{
   }
 }
 
-object integration extends MillScalaModule{
+object integration extends MillScalaModule {
   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
   class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestCrossModule
@@ -1135,23 +1209,23 @@ object integration extends MillScalaModule{
   object thirdparty extends MillScalaModule {
     def moduleDeps = Seq(integration)
 
-    object acyclic extends ThirdPartyModule{
+    object acyclic extends ThirdPartyModule {
       def repoPath = "lihaoyi/acyclic"
       def repoHash = "bc41cd09a287e2c270271e27ccdb3066173a8598"
     }
-    object jawn extends ThirdPartyModule{
+    object jawn extends ThirdPartyModule {
       def repoPath = "non/jawn"
       def repoHash = "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb"
     }
-    object ammonite extends ThirdPartyModule{
+    object ammonite extends ThirdPartyModule {
       def repoPath = "lihaoyi/Ammonite"
       def repoHash = "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e"
     }
-    object upickle extends ThirdPartyModule{
+    object upickle extends ThirdPartyModule {
       def repoPath = "lihaoyi/upickle"
       def repoHash = "7f33085c890db7550a226c349832eabc3cd18769"
     }
-    object caffeine extends ThirdPartyModule{
+    object caffeine extends ThirdPartyModule {
       def repoPath = "ben-manes/caffeine"
       def repoHash = "c02c623aedded8174030596989769c2fecb82fe4"
 
@@ -1165,7 +1239,7 @@ object integration extends MillScalaModule{
       def repoPath: String
       def repoHash: String
       def repoSlug = repoPath.split("/").last
-      def testRepoRoot = T{
+      def testRepoRoot = T {
 
         shared.downloadTestRepo(repoPath, repoHash, T.dest)
         val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
@@ -1178,7 +1252,7 @@ object integration extends MillScalaModule{
         PathRef(T.dest)
       }
       def moduleDeps = super.moduleDeps ++ Seq(thirdparty)
-      object local extends ModeModule{
+      object local extends ModeModule {
         def runClasspath: T[Seq[PathRef]] = T {
           // we need to trigger installation of testng-contrib for Caffeine
           contrib.testng.publishLocal()()
@@ -1190,7 +1264,6 @@ object integration extends MillScalaModule{
     }
   }
 }
-
 
 def launcherScript(
     shellJvmArgs: Seq[String],
@@ -1304,15 +1377,16 @@ def launcherScript(
   )
 }
 
-object runner extends MillModule{
+object runner extends MillModule {
   override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers)
+  override def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishModule with MillInternalModule {
     def scalaVersion = Deps.scalaVersion
     override def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
-    def testArgs = T{
+    def testArgs = T {
       Seq(
-        s"-DMILL_LINENUMBERS=${runClasspath().map(_.path).mkString(",")}",
+        s"-DMILL_LINENUMBERS=${runClasspath().map(_.path).mkString(",")}"
       )
     }
   }
@@ -1409,10 +1483,11 @@ object dev extends MillModule {
         val wd = os.Path(wd0, T.workspace)
         os.makeDir.all(wd)
         try mill.modules.Jvm.runSubprocess(
-          Seq(launcher().path.toString) ++ rest,
-          forkEnv(),
-          workingDir = wd
-        )catch{case e => ()/*ignore to avoid confusing stacktrace and error messages*/}
+            Seq(launcher().path.toString) ++ rest,
+            forkEnv(),
+            workingDir = wd
+          )
+        catch { case e => () /*ignore to avoid confusing stacktrace and error messages*/ }
         mill.api.Result.Success(())
     }
 
@@ -1647,6 +1722,7 @@ def launcher = T {
   os.perms.set(outputPath, "rwxrwxrwx")
   PathRef(outputPath)
 }
+
 
 def uploadToGithub(authKey: String) = T.command {
   val vcsState = VcsVersion.vcsState()

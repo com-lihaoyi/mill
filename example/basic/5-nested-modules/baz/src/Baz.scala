@@ -1,11 +1,17 @@
 package baz
 import scalatags.Text.all._
-object Baz {
-  val value = p("today")
+import mainargs.{main, ParserForMethods, arg}
 
-  def main(args: Array[String]): Unit = {
-    println("Bar.value: " + foo.bar.Bar.value)
-    println("Qux.value: " + foo.qux.Qux.value)
+object Baz {
+  @main
+  def main(@arg(name = "bar-text") barText: String,
+           @arg(name = "qux-text") quxText: String,
+           @arg(name = "baz-text") bazText: String): Unit = {
+    foo.qux.Qux.main(barText, quxText)
+
+    val value = p(bazText)
     println("Baz.value: " + value)
   }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
 }

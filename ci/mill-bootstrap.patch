@@ -1,15 +1,17 @@
 diff --git a/build.sc b/build.sc
-index df820ce38..a9e35268d 100644
+index cbc7b7aaa..351a37fbc 100644
 --- a/build.sc
 +++ b/build.sc
-@@ -2,22 +2,10 @@
+@@ -2,22 +2,12 @@
  import $file.ci.shared
  import $file.ci.upload
  import $ivy.`org.scalaj::scalaj-http:2.4.2`
 -import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.0`
 -import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.13`
  import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
-
++import $ivy.`com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION`
++import mill.contrib.buildinfo.BuildInfo
+ 
  // imports
 -import com.github.lolgab.mill.mima
 -import com.github.lolgab.mill.mima.{
@@ -25,10 +27,10 @@ index df820ce38..a9e35268d 100644
  import mill._
  import mill.define.{Command, Source, Sources, Target, Task}
  import mill.eval.Evaluator
-@@ -179,12 +167,8 @@ object Deps {
+@@ -185,12 +175,8 @@ object Deps {
    val requests = ivy"com.lihaoyi::requests:0.8.0"
  }
-
+ 
 -def millVersion: T[String] = T { VcsVersion.vcsState().format() }
 -def millLastTag: T[String] = T {
 -  VcsVersion.vcsState().lastTag.getOrElse(
@@ -40,15 +42,226 @@ index df820ce38..a9e35268d 100644
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
-@@ -244,20 +228,7 @@ trait MillCoursierModule extends CoursierModule {
+@@ -202,202 +188,6 @@ def millBinPlatform: T[String] = T {
+ def baseDir = build.millSourcePath
+ 
+ 
+-trait BuildInfo extends JavaModule {
+-  /**
+-   * The package name under which the BuildInfo data object will be stored.
+-   */
+-  def buildInfoPackageName: String
+-
+-  /**
+-   * The name of the BuildInfo data object, defaults to "BuildInfo"
+-   */
+-  def buildInfoObjectName: String = "BuildInfo"
+-
+-  /**
+-   * Enable to compile the BuildInfo values directly into the classfiles,
+-   * rather than the default behavior of storing them as a JVM resource. Needed
+-   * to use BuildInfo on Scala.js which does not support JVM resources
+-   */
+-  def buildInfoStaticCompiled: Boolean = false
+-
+-  /**
+-   * A mapping of key-value pairs to pass from the Build script to the
+-   * application code at runtime.
+-   */
+-  def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
+-
+-  def resources =
+-    if (buildInfoStaticCompiled) super.resources
+-    else T.sources{ super.resources() ++ Seq(buildInfoResources()) }
+-
+-  def buildInfoResources = T{
+-    val p = new java.util.Properties
+-    for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
+-
+-    val stream = os.write.outputStream(
+-      T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / s"$buildInfoObjectName.buildinfo.properties",
+-      createFolders = true
+-    )
+-
+-    p.store(stream, s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}")
+-    stream.close()
+-    PathRef(T.dest)
+-  }
+-
+-  private def isScala = this.isInstanceOf[ScalaModule]
+-
+-  override def generatedSources = T {
+-    super.generatedSources() ++ buildInfoSources()
+-  }
+-
+-  def buildInfoSources = T{
+-    if (buildInfoMembers().isEmpty) Nil
+-    else {
+-      val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
+-        buildInfoMembers(), isScala, buildInfoPackageName, buildInfoObjectName
+-      ) else BuildInfo.codegen(
+-        buildInfoMembers(), isScala, buildInfoPackageName, buildInfoObjectName
+-      )
+-
+-      val ext = if (isScala) "scala" else "java"
+-
+-      os.write(
+-        T.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
+-        code,
+-        createFolders = true
+-      )
+-      Seq(PathRef(T.dest))
+-    }
+-  }
+-}
+-
+-object BuildInfo{
+-  case class Value(key: String, value: String, comment: String = "")
+-  object Value{
+-    implicit val rw: upickle.default.ReadWriter[Value] = upickle.default.macroRW
+-  }
+-  def staticCompiledCodegen(buildInfoMembers: Seq[Value],
+-                            isScala: Boolean,
+-                            buildInfoPackageName: String,
+-                            buildInfoObjectName: String): String = {
+-    val bindingsCode = buildInfoMembers
+-      .sortBy(_.key)
+-      .map {
+-        case v =>
+-          if (isScala) s"""${commentStr(v)}val ${v.key} = ${pprint.Util.literalize(v.value)}"""
+-          else s"""${commentStr(v)}public static java.lang.String ${v.key} = ${pprint.Util.literalize(v.value)};"""
+-      }
+-      .mkString("\n\n  ")
+-
+-
+-    if (isScala) {
+-      val mapEntries = buildInfoMembers
+-        .map { case v => s""""${v.key}" -> ${v.key}"""}
+-        .mkString(",\n")
+-
+-      s"""
+-         |package $buildInfoPackageName
+-         |
+-         |object $buildInfoObjectName {
+-         |  $bindingsCode
+-         |  val toMap = Map[String, String](
+-         |    $mapEntries
+-         |  )
+-         |}
+-      """.stripMargin.trim
+-    } else {
+-      val mapEntries = buildInfoMembers
+-        .map { case v => s"""map.put("${v.key}", ${v.key});""" }
+-        .mkString(",\n")
+-
+-      s"""
+-         |package $buildInfoPackageName;
+-         |
+-         |public class $buildInfoObjectName {
+-         |  $bindingsCode
+-         |
+-         |  public static java.util.Map<String, String> toMap(){
+-         |    Map<String, String> map = new HashMap<String, String>();
+-         |    $mapEntries
+-         |    return map;
+-         |  }
+-         |}
+-      """.stripMargin.trim
+-    }
+-  }
+-
+-  def codegen(buildInfoMembers: Seq[Value],
+-              isScala: Boolean,
+-              buildInfoPackageName: String,
+-              buildInfoObjectName: String): String = {
+-    val bindingsCode = buildInfoMembers
+-      .sortBy(_.key)
+-      .map {
+-        case v =>
+-          if (isScala) s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
+-          else s"""${commentStr(v)}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
+-      }
+-      .mkString("\n\n  ")
+-
+-    if (isScala)
+-      s"""
+-         |package ${buildInfoPackageName}
+-         |
+-         |object $buildInfoObjectName {
+-         |  private val buildInfoProperties = new java.util.Properties
+-         |
+-         |  private val buildInfoInputStream = getClass
+-         |    .getResourceAsStream("$buildInfoObjectName.buildinfo.properties")
+-         |
+-         |  buildInfoProperties.load(buildInfoInputStream)
+-         |
+-         |  $bindingsCode
+-         |}
+-      """.stripMargin.trim
+-    else
+-      s"""
+-         |package ${buildInfoPackageName};
+-         |
+-         |public class $buildInfoObjectName {
+-         |  private static java.util.Properties buildInfoProperties = new java.util.Properties();
+-         |
+-         |  static {
+-         |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
+-         |      .class
+-         |      .getResourceAsStream("$buildInfoObjectName.buildinfo.properties");
+-         |
+-         |    try{
+-         |      buildInfoProperties.load(buildInfoInputStream);
+-         |    }catch(java.io.IOException e){
+-         |      throw new RuntimeException(e);
+-         |    }finally{
+-         |      try{
+-         |        buildInfoInputStream.close();
+-         |      }catch(java.io.IOException e){
+-         |        throw new RuntimeException(e);
+-         |      }
+-         |    }
+-         |  }
+-         |
+-         |  $bindingsCode
+-         |}
+-      """.stripMargin.trim
+-  }
+-
+-  def commentStr(v: Value) = {
+-    if (v.comment.isEmpty) ""
+-    else {
+-      val lines = v.comment.linesIterator.toVector
+-      lines.length match{
+-        case 1 => s"""/** ${v.comment} */\n  """
+-        case _ => s"""/**\n    ${lines.map("* " + _).mkString("\n    ")}\n    */\n  """
+-      }
+-
+-    }
+-  }
+-}
+-
+-
+ trait MillPublishModule extends PublishModule {
+   override def artifactName = "mill-" + super.artifactName()
+   def publishVersion = millVersion()
+@@ -447,27 +237,8 @@ trait MillCoursierModule extends CoursierModule {
    )
  }
-
+ 
 -trait MillMimaConfig extends mima.Mima {
++trait MillMimaConfig extends Module {
+   def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 -  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
--  override def mimaPreviousArtifacts =
--    if (Settings.mimaBaseVersions.isEmpty) T { Agg[Dep]() }
--    else super.mimaPreviousArtifacts
+-  override def mimaPreviousArtifacts: T[Agg[Dep]] = T {
+-    Agg.from(
+-      Settings.mimaBaseVersions
+-        .filter(v => !skipPreviousVersions().contains(v))
+-        .map(version =>
+-          ivy"${pomSettings().organization}:${artifactId()}:${version}"
+-        )
+-    )
+-  }
 -  override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
 -    "mill.api.internal",
 -    "mill.api.experimental"
@@ -58,11 +271,10 @@ index df820ce38..a9e35268d 100644
 -    issueFilterByModule.getOrElse(this, Seq())
 -  }
 -  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
-+trait MillMimaConfig extends Module {
  }
-
+ 
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -651,6 +622,7 @@ object scalajslib extends MillModule {
+@@ -758,6 +529,7 @@ object scalajslib extends MillModule with BuildInfo{
    }
    object worker extends Cross[WorkerModule]("1")
    class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
@@ -70,15 +282,15 @@ index df820ce38..a9e35268d 100644
      override def moduleDeps = Seq(scalajslib.`worker-api`)
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
-@@ -713,6 +685,7 @@ object contrib extends MillModule {
-
+@@ -820,6 +592,7 @@ object contrib extends MillModule {
+ 
      object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
      class WorkerModule(playBinary: String) extends MillInternalModule {
 +      override def millSourcePath: os.Path = super.millSourcePath / playBinary
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -915,6 +888,7 @@ object scalanativelib extends MillModule {
+@@ -1011,6 +784,7 @@ object scalanativelib extends MillModule {
    object worker extends Cross[WorkerModule]("0.4")
    class WorkerModule(scalaNativeWorkerVersion: String)
        extends MillInternalModule {
@@ -86,18 +298,17 @@ index df820ce38..a9e35268d 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1034,6 +1008,8 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
- // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
- // and pass `lib`'s compile output back to `test`
+@@ -1171,6 +945,7 @@ trait IntegrationTestModule extends MillScalaModule {
+ }
+ 
  trait IntegrationTestCrossModule extends IntegrationTestModule {
 +  override def millSourcePath = super.millSourcePath / repoSlug
-+
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1645,53 +1621,7 @@ def launcher = T {
- }
-
+@@ -1725,53 +1500,7 @@ def launcher = T {
+ 
+ 
  def uploadToGithub(authKey: String) = T.command {
 -  val vcsState = VcsVersion.vcsState()
 -  val label = vcsState.format()
@@ -148,5 +359,5 @@ index df820ce38..a9e35268d 100644
 -  }
 +  // never upload a bootstrapped version
  }
-
+ 
  def validate(ev: Evaluator): Command[Unit] = T.command {

@@ -12,15 +12,17 @@ import scala.annotation.tailrec
  * re-run when the user presses Enter, printing status messages, etc.
  */
 @internal
-object Watching{
+object Watching {
   case class Result[T](watched: Seq[Watchable], error: Option[String], result: T)
 
-  def watchLoop[T](logger: ColorLogger,
-                   ringBell: Boolean,
-                   watch: Boolean,
-                   streams: SystemStreams,
-                   setIdle: Boolean => Unit,
-                   evaluate: Option[T] => Result[T]): (Boolean, T) = {
+  def watchLoop[T](
+      logger: ColorLogger,
+      ringBell: Boolean,
+      watch: Boolean,
+      streams: SystemStreams,
+      setIdle: Boolean => Unit,
+      evaluate: Option[T] => Result[T]
+  ): (Boolean, T) = {
     var prevState: Option[T] = None
     while (true) {
       val Result(watchables, errorOpt, result) = evaluate(prevState)
@@ -47,15 +49,17 @@ object Watching{
     ???
   }
 
-  def watchAndWait(logger: ColorLogger,
-                   setIdle: Boolean => Unit,
-                   stdin: InputStream, watched: Seq[Watchable]) = {
+  def watchAndWait(
+      logger: ColorLogger,
+      setIdle: Boolean => Unit,
+      stdin: InputStream,
+      watched: Seq[Watchable]
+  ) = {
     setIdle(true)
-    val watchedPaths = watched.collect{case p: Watchable.Path => p.p.path}
+    val watchedPaths = watched.collect { case p: Watchable.Path => p.p.path }
     val watchedValues = watched.size - watchedPaths.size
 
     val watchedValueStr = if (watchedValues == 0) "" else s" and $watchedValues other values"
-
 
     logger.info(
       s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"

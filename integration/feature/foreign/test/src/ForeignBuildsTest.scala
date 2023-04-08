@@ -4,7 +4,7 @@ package local
 import utest._
 import utest.framework.TestPath
 
-object ForeignBuildsTest extends IntegrationTestSuite  {
+object ForeignBuildsTest extends IntegrationTestSuite {
   override def buildPath = os.sub / "project" / "build.sc"
 
   val tests = Tests {

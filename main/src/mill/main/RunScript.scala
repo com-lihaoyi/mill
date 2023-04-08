@@ -108,7 +108,6 @@ object RunScript {
       }
   }
 
-
   def evaluateTasks[T](
       evaluator: Evaluator,
       scriptArgs: Seq[String],
@@ -169,8 +168,8 @@ object RunScript {
     val watched = evaluated.results
       .iterator
       .collect {
-        case (t: Sources, Result.Success(ps: Seq[PathRef])) => ps
-        case (t: Source, Result.Success(p: PathRef)) => Seq(p)
+        case (t: SourcesImpl, Result.Success(ps: Seq[PathRef])) => ps
+        case (t: SourceImpl, Result.Success(p: PathRef)) => Seq(p)
       }
       .flatten
       .toSeq

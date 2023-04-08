@@ -4,7 +4,6 @@ package local
 import os.Path
 import utest.{Tests, assert, _}
 
-
 import scala.util.Try
 import GenIdeaUtils._
 
@@ -12,7 +11,6 @@ object GenIdeaTests extends IntegrationTestSuite {
 
   override def scriptSourcePath = super.scriptSourcePath / "hello-world"
   private val scalaVersionLibPart = "2_12_5"
-
 
   def tests: Tests = Tests {
     test("helper assertPartialContentMatches works") {

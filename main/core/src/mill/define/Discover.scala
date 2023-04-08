@@ -60,21 +60,18 @@ object Discover {
       rec(weakTypeOf[T])
 
       def assertParamListCounts(
-                                 methods: Iterable[MethodSymbol],
-                                 cases: (Type, Int, String)*
-                               ): Unit = {
+          methods: Iterable[MethodSymbol],
+          cases: (Type, Int, String)*
+      ): Unit = {
         for (m <- methods.toList) {
-          for ((tt, n, label) <- cases) {
-            if (
-              m.returnType <:< tt &&
-                m.paramLists.length != n
-            ) {
-              c.abort(
+          cases
+            .find { case (tt, n, label) => m.returnType <:< tt }
+            .foreach { case (tt, n, label) =>
+              if (m.paramLists.length != n) c.abort(
                 m.pos,
                 s"$label definitions must have $n parameter list" + (if (n == 1) "" else "s")
               )
             }
-          }
         }
       }
       val mapping = for {
@@ -84,11 +81,8 @@ object Discover {
         overridesRoutes = {
           assertParamListCounts(
             methods,
-            (weakTypeOf[mill.define.Sources], 0, "`T.sources`"),
-            (weakTypeOf[mill.define.Input[_]], 0, "`T.input`"),
-            (weakTypeOf[mill.define.Persistent[_]], 0, "`T.persistent`"),
-            (weakTypeOf[mill.define.Target[_]], 0, "`T{...}`"),
-            (weakTypeOf[mill.define.Command[_]], 1, "`T.command`")
+            (weakTypeOf[mill.define.Command[_]], 1, "`T.command`"),
+            (weakTypeOf[mill.define.Target[_]], 0, "Target")
           )
 
           for {

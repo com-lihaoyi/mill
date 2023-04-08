@@ -1,7 +1,6 @@
 package mill.util
 
-
-object Util{
+object Util {
 
   def isInteractive() = System.console() != null
 

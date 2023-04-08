@@ -12,9 +12,9 @@ object app extends RootModule with AppScalaModule{
 
   def moduleDeps = Seq(shared.jvm)
 
-  def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.0")
+  def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
 
-  def resources = T.sources{
+  def resources = T{
     os.makeDir(T.dest / "webapp")
     val jsPath = client.fastLinkJS().dest.path
     os.copy(jsPath / "main.js", T.dest / "webapp" / "main.js")

@@ -1,10 +1,16 @@
 package foo.qux
 import scalatags.Text.all._
-object Qux {
-  val value = h1("hello")
+import mainargs.{main, ParserForMethods, arg}
 
-  def main(args: Array[String]): Unit = {
-    println("Qux.value: " + Qux.value)
-    println("Bar.value: " + foo.bar.Bar.value)
+object Qux {
+  @main
+  def main(@arg(name = "bar-text") barText: String,
+           @arg(name = "qux-text") quxText: String): Unit = {
+    foo.bar.Bar.main(barText)
+
+    val value = p(quxText)
+    println("Qux.value: " + value)
   }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
 }
