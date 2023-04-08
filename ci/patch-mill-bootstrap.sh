@@ -3,9 +3,7 @@
 
 set -eux
 
-./mill contrib.buildinfo.publishLocal
-
 # Patch local build
-ci/patch-mill-bootstrap.sh
-
-
+if [ -f ci/mill-bootstrap.patch ] ; then
+  patch -p1 < ci/mill-bootstrap.patch
+fi
