@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index b5b57c210..4f27a7d5d 100644
+index 4bbbd3d3d..351a37fbc 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,22 +2,12 @@
@@ -42,11 +42,10 @@ index b5b57c210..4f27a7d5d 100644
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
-@@ -201,204 +187,6 @@ def millBinPlatform: T[String] = T {
- }
+@@ -202,203 +188,6 @@ def millBinPlatform: T[String] = T {
  def baseDir = build.millSourcePath
  
--
+ 
 -trait BuildInfo extends JavaModule {
 -  /**
 -   * The package name under which the BuildInfo data object will be stored.
@@ -69,32 +68,33 @@ index b5b57c210..4f27a7d5d 100644
 -   * A mapping of key-value pairs to pass from the Build script to the
 -   * application code at runtime.
 -   */
--  def buildInfoMembers: T[Seq[BuildInfo.Value]]
+-  def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
 -
 -  def resources =
 -    if (buildInfoStaticCompiled) super.resources
--    else T.sources{
--      val p = new java.util.Properties
--      for(v <- buildInfoMembers()) p.setProperty(v.key, v.value)
+-    else T.sources{ super.resources() ++ Seq(buildInfoResources()) }
 -
--      val stream = os.write.outputStream(
--        T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / "mill-build-info.properties",
--        createFolders = true
--      )
+-  def buildInfoResources = T{
+-    val p = new java.util.Properties
+-    for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
 -
--      p.store(stream, s"mill.contrib.buildinfo.BuildInfo for package ${buildInfoPackageName}")
--      stream.close()
+-    val stream = os.write.outputStream(
+-      T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / s"$buildInfoObjectName.buildinfo.properties",
+-      createFolders = true
+-    )
 -
--      super.resources() ++ Seq(PathRef(T.dest))
--    }
+-    p.store(stream, s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}")
+-    stream.close()
+-    PathRef(T.dest)
+-  }
 -
 -  private def isScala = this.isInstanceOf[ScalaModule]
 -
 -  override def generatedSources = T {
--    super.generatedSources() ++ generatedBuildInfo()
+-    super.generatedSources() ++ buildInfoSources()
 -  }
 -
--  def generatedBuildInfo = T{
+-  def buildInfoSources = T{
 -    if (buildInfoMembers().isEmpty) Nil
 -    else {
 -      val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
@@ -191,8 +191,7 @@ index b5b57c210..4f27a7d5d 100644
 -         |  private val buildInfoProperties = new java.util.Properties
 -         |
 -         |  private val buildInfoInputStream = getClass
--         |    .getClassLoader
--         |    .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/mill-build-info.properties")
+-         |    .getResourceAsStream("$buildInfoObjectName.buildinfo.properties")
 -         |
 -         |  buildInfoProperties.load(buildInfoInputStream)
 -         |
@@ -209,9 +208,9 @@ index b5b57c210..4f27a7d5d 100644
 -         |  static {
 -         |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
 -         |      .class
--         |      .getClassLoader()
--         |      .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/mill-build-info.properties");
--         |
+-         |      .getResourceAsStream("$buildInfoObjectName.buildinfo.properties");
+-         |    System.out.println("$buildInfoObjectName.buildinfo.properties");
+-         |    System.out.println(buildInfoInputStream);
 -         |    try{
 -         |      buildInfoProperties.load(buildInfoInputStream);
 -         |    }catch(java.io.IOException e){
@@ -247,7 +246,7 @@ index b5b57c210..4f27a7d5d 100644
  trait MillPublishModule extends PublishModule {
    override def artifactName = "mill-" + super.artifactName()
    def publishVersion = millVersion()
-@@ -448,27 +236,8 @@ trait MillCoursierModule extends CoursierModule {
+@@ -448,27 +237,8 @@ trait MillCoursierModule extends CoursierModule {
    )
  }
  
@@ -276,7 +275,7 @@ index b5b57c210..4f27a7d5d 100644
  }
  
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -759,6 +528,7 @@ object scalajslib extends MillModule with BuildInfo{
+@@ -759,6 +529,7 @@ object scalajslib extends MillModule with BuildInfo{
    }
    object worker extends Cross[WorkerModule]("1")
    class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
@@ -284,7 +283,7 @@ index b5b57c210..4f27a7d5d 100644
      override def moduleDeps = Seq(scalajslib.`worker-api`)
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
-@@ -821,6 +591,7 @@ object contrib extends MillModule {
+@@ -821,6 +592,7 @@ object contrib extends MillModule {
  
      object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
      class WorkerModule(playBinary: String) extends MillInternalModule {
@@ -292,7 +291,7 @@ index b5b57c210..4f27a7d5d 100644
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -1012,6 +783,7 @@ object scalanativelib extends MillModule {
+@@ -1012,6 +784,7 @@ object scalanativelib extends MillModule {
    object worker extends Cross[WorkerModule]("0.4")
    class WorkerModule(scalaNativeWorkerVersion: String)
        extends MillInternalModule {
@@ -300,7 +299,7 @@ index b5b57c210..4f27a7d5d 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1172,6 +944,7 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1172,6 +945,7 @@ trait IntegrationTestModule extends MillScalaModule {
  }
  
  trait IntegrationTestCrossModule extends IntegrationTestModule {
@@ -308,7 +307,7 @@ index b5b57c210..4f27a7d5d 100644
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1726,53 +1499,7 @@ def launcher = T {
+@@ -1726,53 +1500,7 @@ def launcher = T {
  
  
  def uploadToGithub(authKey: String) = T.command {
