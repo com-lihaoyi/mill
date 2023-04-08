@@ -35,7 +35,7 @@ object BuildInfoTests extends TestSuite {
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
       BuildInfo.Value(
-        "scalaVersion1",
+        "scalaVersion",
         scalaVersion(),
         comment = "a helpful comment explaining what scalaVersion is all about"
       ),
@@ -96,29 +96,30 @@ object BuildInfoTests extends TestSuite {
     t(eval)
   }
 
+  def buildInfoSourcePath(eval: TestEvaluator) =
+    eval.outPath / "buildInfoSources.dest" / "foo" / "BuildInfo.scala"
+
+  def buildInfoResourcePath(eval: TestEvaluator) =
+    eval.outPath / "buildInfoResources.dest" / "foo" / "BuildInfo.buildinfo.properties"
   def tests: Tests = Tests {
 
     "notCreateEmptySourcefile" - workspaceTest(EmptyBuildInfo, "scala") { eval =>
-      val Right((result, evalCount)) =
-        eval.apply(EmptyBuildInfo.generatedBuildInfo)
-      assert(
-        result.isEmpty &&
-          !os.exists(
-            eval.outPath / "generatedBuildInfo.dest" / "BuildInfo.scala"
-          )
-      )
+      val Right((result, evalCount)) = eval.apply(EmptyBuildInfo.buildInfoSources)
+      assert(!os.exists(buildInfoSourcePath(eval)))
     }
 
-    "comments" - workspaceTest(BuildInfoComment, "scala") { eval =>
+    "fileGeneration" - workspaceTest(BuildInfoComment, "scala") { eval =>
       val Right((result, evalCount)) =
-        eval.apply(BuildInfoComment.generatedBuildInfo)
+        eval.apply(BuildInfoComment.compile)
 
-      val buildInfoPath = eval.outPath / "generatedBuildInfo.dest" / "foo" / "BuildInfo.scala"
-      assert(os.exists(buildInfoPath))
+      // Make sure that the buildinfo Scala file buildinfo is created and buildinfo
+      // resource file is *not* created when we compile the Scala code
+      assert(os.exists(buildInfoSourcePath(eval)))
+      assert(!os.exists(buildInfoResourcePath(eval)))
 
-      val expected = Seq(
+      val expectedSource = Seq(
         """  /** a helpful comment explaining what scalaVersion is all about */
-          |  val scalaVersion1 = buildInfoProperties.getProperty("scalaVersion1")""".stripMargin,
+          |  val scalaVersion = buildInfoProperties.getProperty("scalaVersion")""".stripMargin,
         """  /**
           |    * a helpful comment explaining what scalaVersion
           |    * is all about
@@ -126,14 +127,23 @@ object BuildInfoTests extends TestSuite {
           |  val scalaVersion2 = buildInfoProperties.getProperty("scalaVersion2")""".stripMargin
       )
 
-      val buildInfoCode = os.read(buildInfoPath).linesIterator.mkString("\n")
-      for(e <- expected){
+      val buildInfoCode = os.read(buildInfoSourcePath(eval)).linesIterator.mkString("\n")
+      for(e <- expectedSource){
         assert(buildInfoCode.contains(e.linesIterator.mkString("\n")))
       }
+
+      // But becomes created once we package the jar for running
+      val Right((result2, evalCount2)) = eval.apply(BuildInfoComment.jar)
+
+      val expectedResource = "mill.contrib.buildinfo.BuildInfo for foo."
+
+      assert(os.exists(buildInfoResourcePath(eval)))
+      val buildInfoResource = os.read(buildInfoResourcePath(eval))
+      assert(buildInfoResource.contains(expectedResource))
     }
 
     "supportCustomSettings" - workspaceTest(BuildInfoSettings, "scala") { eval =>
-      val Right((result, evalCount)) = eval.apply(BuildInfoSettings.generatedBuildInfo)
+      val Right((result, evalCount)) = eval.apply(BuildInfoSettings.buildInfoSources)
       val path = result.head.path
 
       assert(os.exists(path / "foo" / "bar.scala"))
@@ -151,6 +161,7 @@ object BuildInfoTests extends TestSuite {
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
         eval.apply(BuildInfoPlain.run(runResult.toString))
+
       assert(
         os.exists(runResult),
         os.read(runResult) == scalaVersionString
@@ -158,18 +169,24 @@ object BuildInfoTests extends TestSuite {
     }
 
     "static" - workspaceTest(BuildInfoStatic, "scala") { eval =>
+      // When `buildInfoStaticCompiled = true`, make sure we always create the
+      // buildinfo Scala file and never create the resource file
       val runResult = eval.outPath / "hello-mill"
-      val Right((result, evalCount)) =
+
+      val Right((result2, evalCount2)) =
         eval.apply(BuildInfoStatic.run(runResult.toString))
-      assert(
-        os.exists(runResult),
-        os.read(runResult) == scalaVersionString
-      )
+
+      assert(os.exists(buildInfoSourcePath(eval)))
+      assert(!os.exists(buildInfoResourcePath(eval)))
+      assert(os.exists(runResult))
+      assert(os.read(runResult) == scalaVersionString)
     }
+
     "java" - workspaceTest(BuildInfoJava, "java") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
         eval.apply(BuildInfoJava.run(runResult.toString))
+
       assert(
         os.exists(runResult),
         os.read(runResult) == "not-provided-for-java-modules"
@@ -177,7 +194,7 @@ object BuildInfoTests extends TestSuite {
     }
 
     "generatedSources must be a folder" - workspaceTest(BuildInfoPlain, "scala") { eval =>
-      val buildInfoGeneratedSourcesFolder = eval.outPath / "generatedBuildInfo.dest"
+      val buildInfoGeneratedSourcesFolder = eval.outPath / "buildInfoSources.dest"
       val Right((result, evalCount)) = eval.apply(BuildInfoPlain.generatedSources)
       assert(
         result.size == 1,

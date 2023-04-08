@@ -25,32 +25,33 @@ trait BuildInfo extends JavaModule {
    * A mapping of key-value pairs to pass from the Build script to the
    * application code at runtime.
    */
-  def buildInfoMembers: T[Seq[BuildInfo.Value]]
+  def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
 
   def resources =
     if (buildInfoStaticCompiled) super.resources
-    else T.sources{
-      val p = new java.util.Properties
-      for(v <- buildInfoMembers()) p.setProperty(v.key, v.value)
+    else T.sources{ super.resources() ++ Seq(buildInfoResources()) }
 
-      val stream = os.write.outputStream(
-        T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / "mill-build-info.properties",
-        createFolders = true
-      )
+  def buildInfoResources = T{
+    val p = new java.util.Properties
+    for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
 
-      p.store(stream, s"mill.contrib.buildinfo.BuildInfo for package ${buildInfoPackageName}")
-      stream.close()
+    val stream = os.write.outputStream(
+      T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / s"$buildInfoObjectName.buildinfo.properties",
+      createFolders = true
+    )
 
-      super.resources() ++ Seq(PathRef(T.dest))
-    }
+    p.store(stream, s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}")
+    stream.close()
+    PathRef(T.dest)
+  }
 
   private def isScala = this.isInstanceOf[ScalaModule]
 
   override def generatedSources = T {
-    super.generatedSources() ++ generatedBuildInfo()
+    super.generatedSources() ++ buildInfoSources()
   }
 
-  def generatedBuildInfo = T{
+  def buildInfoSources = T{
     if (buildInfoMembers().isEmpty) Nil
     else {
       val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
@@ -148,7 +149,7 @@ object BuildInfo{
          |
          |  private val buildInfoInputStream = getClass
          |    .getClassLoader
-         |    .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/mill-build-info.properties")
+         |    .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/$buildInfoObjectName.buildinfo.properties")
          |
          |  buildInfoProperties.load(buildInfoInputStream)
          |
@@ -166,7 +167,7 @@ object BuildInfo{
          |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
          |      .class
          |      .getClassLoader()
-         |      .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/mill-build-info.properties");
+         |      .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/$buildInfoObjectName.buildinfo.properties");
          |
          |    try{
          |      buildInfoProperties.load(buildInfoInputStream);
