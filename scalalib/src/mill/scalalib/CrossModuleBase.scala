@@ -5,9 +5,14 @@ import mill.define.Cross
 import mill.define.Cross.Resolver
 import mill.scalalib.api.ZincWorkerUtil
 
-trait CrossModuleBase extends ScalaModule {
-  def millCrossValue: String = crossScalaVersion
-  def crossScalaVersion: String = millCrossValue
+trait CrossModuleBase extends ScalaModule with Cross.Module[String]{
+  def millCrossValue: String = null
+  def crossScalaVersion: String =
+    if (millCrossValue != null) millCrossValue
+    else throw new Exception(
+      s"${this.getClass} requires either millCrossValue or crossScalaVersion to be defined"
+    )
+
   def scalaVersion = T { crossScalaVersion }
 
   protected def scalaVersionDirectoryNames: Seq[String] =

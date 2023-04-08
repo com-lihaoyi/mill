@@ -10,7 +10,7 @@ object foo extends SbtModule {
 
 
 object bar extends Cross[BarModule]("2.12.17", "2.13.10")
-class BarModule(val crossScalaVersion: String) extends CrossSbtModule{
+trait BarModule extends CrossSbtModule{
   object test extends Tests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
 

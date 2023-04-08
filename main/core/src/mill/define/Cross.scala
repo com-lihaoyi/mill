@@ -5,62 +5,61 @@ import scala.reflect.ClassTag
 import scala.reflect.macros.blackbox
 
 object Cross {
-  case class Factory[T](make: (Product, mill.define.Ctx, Seq[Product]) => T) {
-    private def copy[T](make: (Product, mill.define.Ctx, Seq[Product]) => T = make): Factory[T] =
-      new Factory[T](make)
+  trait Module[V] extends mill.define.Module {
+    def millCrossValue: V
   }
+  case class Factory[T, -V](make: (V, mill.define.Ctx, Seq[V]) => T)
 
   object Factory {
-    implicit def make[T]: Factory[T] = macro makeImpl[T]
-    def makeImpl[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[Factory[T]] = {
+    implicit def make[T]: Factory[T, Any] = macro makeImpl[T]
+    def makeImpl[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[Factory[T, Any]] = {
       import c.universe._
       val tpe = weakTypeOf[T]
 
-      val instance = c.Expr[(Product, mill.define.Ctx, Seq[Product]) => T](
-        if (tpe.typeSymbol.isClass) {
-          if (tpe.typeSymbol.asClass.isTrait) {
-            val v1 = c.freshName(TermName("v1"))
-            val v2 = c.freshName(TermName("v2"))
-            val vs = c.freshName(TermName("vs"))
-            val ctx0 = c.freshName(TermName("ctx0"))
-            q"""{ ($v1: ${tq""}, $ctx0: ${tq""}, $vs: ${tq""}) =>
-              new $tpe{
-                override def millCrossValue = $v1
-                override def millOuterCtx = $ctx0.withCrossInstances(
-                  $vs.map(($v2: ${tq""}) => new $tpe{ override def millCrossValue = $v2 })
+      if (tpe.typeSymbol.isClass) {
+        if (tpe.typeSymbol.asClass.isTrait) {
+          val crossType = tpe.baseType(typeOf[Module[_]].typeSymbol).typeArgs.head
+          val v1 = c.freshName(TermName("v1"))
+          val v2 = c.freshName(TermName("v2"))
+          val vs = c.freshName(TermName("vs"))
+          val ctx0 = c.freshName(TermName("ctx0"))
+          val implicitCtx = c.freshName(TermName("implicitCtx"))
+          val tree =q"""mill.define.Cross.Factory[$tpe, $crossType]{ ($v1: $crossType, $ctx0: ${tq""}, $vs: Seq[$crossType]) =>
+            implicit val $implicitCtx = $ctx0
+            new $tpe{
+              override def millCrossValue = $v1
+              override def millOuterCtx = $ctx0.withCrossInstances(
+                $vs.map(($v2: $crossType) => new $tpe{ override def millCrossValue = $v2 })
+              )
+            }
+          }.asInstanceOf[${weakTypeOf[Factory[T, Any]]}]"""
+
+          c.Expr[Factory[T, Any]](tree)
+        } else {
+          val primaryConstructorArgs =
+            tpe.typeSymbol.asClass.primaryConstructor.typeSignature.paramLists.head
+
+          val argTupleValues =
+            for ((a, n) <- primaryConstructorArgs.zipWithIndex)
+            yield q"(v match { case p: Product => p case v => Tuple1(v)}).productElement($n).asInstanceOf[${a.info}]"
+
+
+          val instance = c.Expr[(Any, mill.define.Ctx, Seq[Any]) => T](q"""{ (v, ctx0, vs) =>
+              new $tpe(..$argTupleValues){
+                override def millOuterCtx = ctx0.withCrossInstances(
+                  vs.map(v => new $tpe(..$argTupleValues))
                 )
               }
-            }"""
-          } else {
-            val primaryConstructorArgs =
-              tpe.typeSymbol.asClass.primaryConstructor.typeSignature.paramLists.head
-
-            val argTupleValues =
-              for ((a, n) <- primaryConstructorArgs.zipWithIndex)
-                yield q"v.productElement($n).asInstanceOf[${a.info}]"
-
-
-            q"""{ (v, ctx0, vs) =>
-                new $tpe(..$argTupleValues){
-                  override def millOuterCtx = ctx0.withCrossInstances(
-                    vs.map(v => new $tpe(..$argTupleValues))
-                  )
-                }
-            }"""
-          }
-        }else{
-          c.abort(c.enclosingPosition, "Cross[T] type must be class or trait")
+          }""")
+          reify { mill.define.Cross.Factory[T, Any](instance.splice) }
         }
-      )
-      reify { mill.define.Cross.Factory[T](instance.splice) }
-
+      }else{
+        c.abort(c.enclosingPosition, "Cross[T] type must be class or trait")
+      }
     }
-
-    private def unapply[T](factory: Factory[T]): Option[(Product, Ctx, Seq[Product]) => T] =
-      Some(factory.make)
   }
 
-  trait Resolver[-T <: Module] {
+  trait Resolver[-T <: mill.define.Module] {
     def resolve[V <: T](c: Cross[V]): V
   }
 }
@@ -75,20 +74,17 @@ object Cross {
  *   ...
  * }
  */
-class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.define.Ctx)
+class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T, Any], ctx: mill.define.Ctx)
     extends mill.define.Module()(ctx) {
 
   override lazy val millModuleDirectChildren: Seq[Module] =
     super.millModuleDirectChildren ++
       items.collect { case (_, v: mill.define.Module) => v }
 
-  private val products: List[Product] = cases.toList.map {
-    case p: Product => p
-    case v => Tuple1(v)
-  }
+//  private val products: List[Product] =
 
-  val items: List[(List[Any], T)] = for (c <- products) yield {
-    val crossValues = c.productIterator.toList
+  val items: Seq[(Seq[Any], T)] = for (c <- cases) yield {
+    val crossValues = (c match {case p: Product => p case v => Tuple1(v)}).productIterator.toSeq
     val relPath = ctx.segment.pathSegments
     val sub = ci.make(
       c,
@@ -96,11 +92,11 @@ class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T], c
         .withSegments(ctx.segments ++ Seq(ctx.segment))
         .withMillSourcePath(ctx.millSourcePath / relPath)
         .withSegment(Segment.Cross(crossValues)),
-      products
+      cases
     )
     (crossValues, sub)
   }
-  val itemMap: Map[List[Any], T] = items.toMap
+  val itemMap: Map[Seq[Any], T] = items.toMap
 
   /**
    * Fetch the cross module corresponding to the given cross values

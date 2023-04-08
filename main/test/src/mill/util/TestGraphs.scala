@@ -219,12 +219,24 @@ object TestGraphs {
   }
 
   object singleCross extends TestUtil.BaseModule {
+    object crossOld extends mill.Cross[CrossOld]("210", "211", "212")
+    trait CrossOld extends Cross.Module[String] {
+      def suffix = T { millCrossValue }
+    }
     object cross extends mill.Cross[Cross]("210", "211", "212")
     class Cross(scalaVersion: String) extends Module {
       def suffix = T { scalaVersion }
     }
+
     object cross2 extends mill.Cross[Cross2]("210", "211", "212")
-    class Cross2(scalaVersion: String) extends Module {
+    trait Cross2 extends Cross.Module[String]{
+      override def millSourcePath = super.millSourcePath / millCrossValue
+      def suffix = T {
+        millCrossValue
+      }
+    }
+    object cross2Old extends mill.Cross[Cross2Old]("210", "211", "212")
+    class Cross2Old(scalaVersion: String) extends Module {
       override def millSourcePath = super.millSourcePath / scalaVersion
       def suffix = T {
         scalaVersion
@@ -232,20 +244,19 @@ object TestGraphs {
     }
   }
   object crossResolved extends TestUtil.BaseModule {
-    trait MyModule extends Module {
-      def crossVersion: String
+    trait MyModule extends Cross.Module[String] {
       implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
-        def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(crossVersion))
+        def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(millCrossValue))
       }
     }
 
     object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-    class FooModule(val crossVersion: String) extends MyModule {
-      def suffix = T { crossVersion }
+    trait FooModule extends MyModule {
+      def suffix = T { millCrossValue }
     }
 
     object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
-    class BarModule(val crossVersion: String) extends MyModule {
+    trait BarModule extends MyModule {
       def longSuffix = T { "_" + foo().suffix() }
     }
   }
@@ -256,16 +267,19 @@ object TestGraphs {
       if !(platform == "native" && scalaVersion != "212")
     } yield (scalaVersion, platform)
     object cross extends mill.Cross[Cross](crossMatrix: _*)
-    class Cross(scalaVersion: String, platform: String) extends Module {
+    trait Cross extends Cross.Module[(String, String)] {
+      val (scalaVersion, platform) = millCrossValue
       def suffix = T { scalaVersion + "_" + platform }
     }
   }
 
   object nestedCrosses extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
-    class Cross(scalaVersion: String) extends mill.Module {
+    trait Cross extends Cross.Module[String] {
+      val scalaVersion = millCrossValue
       object cross2 extends mill.Cross[Cross]("jvm", "js", "native")
-      class Cross(platform: String) extends mill.Module {
+      trait Cross extends Cross.Module[String] {
+        val platform = millCrossValue
         def suffix = T { scalaVersion + "_" + platform }
       }
     }

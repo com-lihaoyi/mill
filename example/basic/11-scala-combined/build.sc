@@ -24,7 +24,7 @@ trait MyScalaModule extends ScalaModule with MyModule {
 val scalaVersions = Seq("2.13.10", "3.2.2")
 
 object foo extends Cross[FooModule](scalaVersions:_*)
-class FooModule(val crossScalaVersion: String) extends MyScalaModule with CrossScalaModule{
+trait FooModule extends MyScalaModule with CrossScalaModule{
   def moduleDeps = Seq(bar(), qux)
 
   def generatedSources = T{
@@ -41,7 +41,7 @@ class FooModule(val crossScalaVersion: String) extends MyScalaModule with CrossS
 }
 
 object bar extends Cross[BarModule](scalaVersions:_*)
-class BarModule(val crossScalaVersion: String) extends MyScalaModule with CrossScalaModule{
+trait BarModule extends MyScalaModule with CrossScalaModule{
   def moduleDeps = Seq(qux)
 }
 

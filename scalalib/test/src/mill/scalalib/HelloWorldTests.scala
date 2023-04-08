@@ -51,7 +51,7 @@ object HelloWorldTests extends TestSuite {
           scala212Version,
           scala213Version
         )
-    class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
+    trait HelloWorldCross extends CrossScalaModule
   }
 
   object HelloWorldDefaultMain extends HelloBase {

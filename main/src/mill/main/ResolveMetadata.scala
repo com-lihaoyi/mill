@@ -54,7 +54,7 @@ object ResolveMetadata extends Resolve[String] {
     obj match {
       case c: Cross[_] =>
         last match {
-          case List("__") => Right(c.items.map(_._2.toString))
+          case List("__") => Right(c.items.map(_._2.toString).toList)
           case items =>
             c.items
               .filter(_._1.length == items.length)
@@ -66,7 +66,7 @@ object ResolveMetadata extends Resolve[String] {
                   last,
                   obj.millModuleSegments.value
                 )
-              case res => Right(res)
+              case res => Right(res.toList)
             }
 
         }

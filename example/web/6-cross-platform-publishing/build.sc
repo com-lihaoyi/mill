@@ -1,12 +1,12 @@
 import mill._, scalalib._, scalajslib._, publish._
 
 object wrapper extends Cross[WrapperModule]("2.13.10", "3.2.2")
-class WrapperModule(val crossScalaVersion: String) extends Module {
+trait WrapperModule extends Module {
 
   trait MyModule extends CrossScalaModule with PublishModule {
     def artifactName = millModuleSegments.parts.dropRight(1).last
 
-    def crossScalaVersion = WrapperModule.this.crossScalaVersion
+    def crossScalaVersion = millCrossValue
     def millSourcePath = super.millSourcePath / os.up
     def publishVersion = "0.0.1"
 
