@@ -166,8 +166,7 @@ object BuildInfo{
          |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
          |      .class
          |      .getResourceAsStream("$buildInfoObjectName.buildinfo.properties");
-         |    System.out.println("$buildInfoObjectName.buildinfo.properties");
-         |    System.out.println(buildInfoInputStream);
+         |
          |    try{
          |      buildInfoProperties.load(buildInfoInputStream);
          |    }catch(java.io.IOException e){
