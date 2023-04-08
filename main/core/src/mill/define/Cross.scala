@@ -44,13 +44,15 @@ object Cross {
             yield q"(v match { case p: Product => p case v => Tuple1(v)}).productElement($n).asInstanceOf[${a.info}]"
 
 
-          val instance = c.Expr[(Any, mill.define.Ctx, Seq[Any]) => T](q"""{ (v, ctx0, vs) =>
+          val instance = c.Expr[(Any, mill.define.Ctx, Seq[Any]) => T](
+            q"""{ (v, ctx0, vs) =>
               new $tpe(..$argTupleValues){
                 override def millOuterCtx = ctx0.withCrossInstances(
                   vs.map(v => new $tpe(..$argTupleValues))
                 )
               }
-          }""")
+            }"""
+          )
           reify { mill.define.Cross.Factory[T, Any](instance.splice) }
         }
       }else{
