@@ -6,7 +6,8 @@ import mill.define.Cross.Resolver
 import mill.scalalib.api.ZincWorkerUtil
 
 trait CrossModuleBase extends ScalaModule {
-  def crossScalaVersion: String
+  def millCrossValue: String = crossScalaVersion
+  def crossScalaVersion: String = millCrossValue
   def scalaVersion = T { crossScalaVersion }
 
   protected def scalaVersionDirectoryNames: Seq[String] =

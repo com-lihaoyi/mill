@@ -16,22 +16,44 @@ object Cross {
       import c.universe._
       val tpe = weakTypeOf[T]
 
-      val primaryConstructorArgs =
-        tpe.typeSymbol.asClass.primaryConstructor.typeSignature.paramLists.head
-
-      val argTupleValues =
-        for ((a, n) <- primaryConstructorArgs.zipWithIndex)
-          yield q"v.productElement($n).asInstanceOf[${a.info}]"
-
       val instance = c.Expr[(Product, mill.define.Ctx, Seq[Product]) => T](
-        q"""{ (v, ctx0, vs) => new $tpe(..$argTupleValues){
-          override def millOuterCtx = ctx0.withCrossInstances(
-            vs.map(v => new $tpe(..$argTupleValues))
-          )
-        } }"""
-      )
+        if (tpe.typeSymbol.isClass) {
+          if (tpe.typeSymbol.asClass.isTrait) {
+            val v1 = c.freshName(TermName("v1"))
+            val v2 = c.freshName(TermName("v2"))
+            val vs = c.freshName(TermName("vs"))
+            val ctx0 = c.freshName(TermName("ctx0"))
+            q"""{ ($v1: ${tq""}, $ctx0: ${tq""}, $vs: ${tq""}) =>
+              new $tpe{
+                override def millCrossValue = $v1
+                override def millOuterCtx = $ctx0.withCrossInstances(
+                  $vs.map(($v2: ${tq""}) => new $tpe{ override def millCrossValue = $v2 })
+                )
+              }
+            }"""
+          } else {
+            val primaryConstructorArgs =
+              tpe.typeSymbol.asClass.primaryConstructor.typeSignature.paramLists.head
 
+            val argTupleValues =
+              for ((a, n) <- primaryConstructorArgs.zipWithIndex)
+                yield q"v.productElement($n).asInstanceOf[${a.info}]"
+
+
+            q"""{ (v, ctx0, vs) =>
+                new $tpe(..$argTupleValues){
+                  override def millOuterCtx = ctx0.withCrossInstances(
+                    vs.map(v => new $tpe(..$argTupleValues))
+                  )
+                }
+            }"""
+          }
+        }else{
+          c.abort(c.enclosingPosition, "Cross[T] type must be class or trait")
+        }
+      )
       reify { mill.define.Cross.Factory[T](instance.splice) }
+
     }
 
     private def unapply[T](factory: Factory[T]): Option[(Product, Ctx, Seq[Product]) => T] =
