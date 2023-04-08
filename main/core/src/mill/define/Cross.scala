@@ -45,13 +45,11 @@ object Cross {
 
 
           val instance = c.Expr[(Any, mill.define.Ctx, Seq[Any]) => T](
-            q"""{ (v, ctx0, vs) =>
-              new $tpe(..$argTupleValues){
-                override def millOuterCtx = ctx0.withCrossInstances(
-                  vs.map(v => new $tpe(..$argTupleValues))
-                )
-              }
-            }"""
+            q"""{ (v, ctx0, vs) => new $tpe(..$argTupleValues){
+              override def millOuterCtx = ctx0.withCrossInstances(
+                vs.map(v => new $tpe(..$argTupleValues))
+              )
+            } }"""
           )
           reify { mill.define.Cross.Factory[T, Any](instance.splice) }
         }
