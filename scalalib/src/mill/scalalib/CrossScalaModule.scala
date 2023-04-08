@@ -27,7 +27,8 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase { outer =>
   trait Tests extends CrossScalaModuleTests
 }
 
-object CrossScalaModule{
+object CrossScalaModule {
+
   /**
    * Used with a [[mill.define.Cross]] when you want [[CrossScalaModule]]'s
    * nested within it

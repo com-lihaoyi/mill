@@ -12,7 +12,7 @@ import mill._
  * built against and not something that should affect the filesystem path or
  * artifact name
  */
-trait PlatformScalaModule extends ScalaModule{
+trait PlatformScalaModule extends ScalaModule {
   override def millSourcePath = super.millSourcePath / os.up
 
   override def sources = T.sources {
