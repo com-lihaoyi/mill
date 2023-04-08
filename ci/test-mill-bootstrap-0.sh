@@ -21,8 +21,8 @@ rm -rf ~/.mill/ammonite
 git config user.name "Your Name"
 echo "Build 2" > info.txt && git add info.txt && git commit -m "Add info.txt"
 
-# Patch local build
-ci/patch-mill-bootstrap.sh
+# Prepare local build
+ci/prepare-mill-bootstrap.sh
 
 # Second build
 target/mill-1 -i -j 0 installLocal --binFile target/mill-2
@@ -35,8 +35,8 @@ git stash pop "$(git stash list | grep "preserve mill-2" | head -n1 | sed -E 's/
 
 rm -rf ~/.mill/ammonite
 
-# Patch local build
-ci/patch-mill-bootstrap.sh
+# Prepare local build
+ci/prepare-mill-bootstrap.sh
 
 # Use second build to run tests using Mill
 target/mill-2 -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"

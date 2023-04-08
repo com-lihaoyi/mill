@@ -212,6 +212,32 @@ trait JavaModule
   }
 
   /**
+   * The transitive version of `compileClasspath`
+   */
+  def transitiveCompileClasspath: T[Agg[PathRef]] = T {
+    T.traverse(
+      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+    )(m => T.task { m.compileClasspath() ++ Agg(m.compile().classes) })()
+      .flatten
+  }
+
+  /**
+   * The transitive version of `bspCompileClasspath`
+   */
+  // Keep in sync with [[transitiveCompileClasspath]]
+  @internal
+  def bspTransitiveCompileClasspath: Target[Agg[UnresolvedPath]] = T {
+    T.traverse(
+      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+    )(m =>
+      T.task {
+        m.bspCompileClasspath() ++ Agg(UnresolvedPath.ResolvedPath(m.compile().classes.path))
+      }
+    )()
+      .flatten
+  }
+
+  /**
    * What platform suffix to use for publishing, e.g. `_sjs` for Scala.js
    * projects
    */
@@ -344,7 +370,7 @@ trait JavaModule
    */
   // Keep in sync with [[bspCompileClasspath]]
   def compileClasspath: T[Agg[PathRef]] = T {
-    transitiveLocalClasspath() ++
+    transitiveCompileClasspath() ++
       compileResources() ++
       unmanagedClasspath() ++
       resolvedIvyDeps()
@@ -354,7 +380,7 @@ trait JavaModule
   // Keep in sync with [[compileClasspath]]
   @internal
   def bspCompileClasspath: Target[Agg[UnresolvedPath]] = T {
-    bspTransitiveLocalClasspath() ++
+    bspTransitiveCompileClasspath() ++
       (compileResources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
         .map(p => UnresolvedPath.ResolvedPath(p.path))
   }
@@ -832,7 +858,9 @@ trait JavaModule
    * For example, by default a scala module foo.baz might be published as foo-baz_2.12 and a java module would be foo-baz.
    * Setting this to baz would result in a scala artifact baz_2.12 or a java artifact baz.
    */
-  def artifactName: T[String] = millModuleSegments.parts.mkString("-")
+  def artifactName: T[String] = artifactNameParts().mkString("-")
+
+  def artifactNameParts: T[Seq[String]] = millModuleSegments.parts
 
   /**
    * The exact id of the artifact to be published. You probably don't want to override this.

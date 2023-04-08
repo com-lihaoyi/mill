@@ -1,11 +1,11 @@
-package bar
+package foo.bar
 import scalatags.Text.all._
 import mainargs.{main, ParserForMethods}
-object Bar {
 
+object Bar {
   @main
   def main(text: String): Unit = {
-    val value = p(text)
+    val value = h1(text)
     println("Bar.value: " + value)
   }
 

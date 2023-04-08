@@ -17,8 +17,8 @@ git stash pop "$(git stash list | grep "preserve mill-release" | head -n1 | sed 
 
 rm -rf ~/.mill/ammonite
 
-# Patch local build
-ci/patch-mill-bootstrap.sh
+# Prepare local build
+ci/prepare-mill-bootstrap.sh
 
 export MILL_TEST_RELEASE="$(pwd)/target/mill-release"
 

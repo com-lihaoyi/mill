@@ -1,9 +1,9 @@
-package foo
+package qux
 import scalatags.Text.all._
-object Foo {
+object Qux {
   def main(args: Array[String]): Unit = {
     println("Bar.value: " + bar.Bar.value)
     val string = """{"i": "am", "cow": "hear", "me": "moo"}"""
-    println("Foo.main: " + FooPlatformSpecific.parseJsonGetKeys(string).map(p(_)))
+    println("Qux.main: " + QuxPlatformSpecific.parseJsonGetKeys(string).map(p(_)))
   }
 }

@@ -8,16 +8,16 @@ trait MyModule extends ScalaModule{
   )
 }
 
-object wrapper extends Module{
-  object foo extends MyModule {
+object foo extends Module{
+  object bar extends MyModule
+
+  object qux extends MyModule {
     def moduleDeps = Seq(bar)
   }
-
-  object bar extends MyModule
 }
 
-object qux extends MyModule {
-  def moduleDeps = Seq(wrapper.bar, wrapper.foo)
+object baz extends MyModule {
+  def moduleDeps = Seq(foo.bar, foo.qux)
 }
 
 // Modules can be nested arbitrarily deeply within each other. The outer module
@@ -31,16 +31,17 @@ object qux extends MyModule {
 /* Example Usage
 
 > ./mill resolve __.run
-wrapper.foo.run
-wrapper.bar.run
+foo.bar.run
+foo.qux.run
 qux.run
 
-> ./mill qux.run --foo-text hello --bar-text world --qux-text today
-Foo.value: <h1>hello</h1>
-Bar.value: <p>world</p>
-Qux.value: <p>today</p>
+> ./mill baz.run --bar-text hello --qux-text world --baz-text today
+Bar.value: <h1>hello</h1>
+Qux.value: <p>world</p>
+Baz.value: <p>today</p>
 
-> ./mill wrapper.foo.run --text hello
-Foo.value: <h1>hello</h1>
+> ./mill foo.qux.run --bar-text hello --qux-text world
+Bar.value: <h1>hello</h1>
+Qux.value: <p>world</p>
 
 */

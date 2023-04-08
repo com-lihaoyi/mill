@@ -18,7 +18,8 @@ trait CrossModuleBase extends ScalaModule with Cross.Module[String]{
   protected def scalaVersionDirectoryNames: Seq[String] =
     ZincWorkerUtil.matchingVersions(crossScalaVersion)
 
-  override def artifactName: T[String] = millModuleSegments.parts.init.mkString("-")
+  protected def wrapperSegments = millModuleSegments.parts
+  override def artifactNameParts = super.artifactNameParts().patch(wrapperSegments.size - 1, Nil, 1)
   implicit def crossSbtModuleResolver: Resolver[CrossModuleBase] =
     new Resolver[CrossModuleBase] {
       def resolve[V <: CrossModuleBase](c: Cross[V]): V = {
