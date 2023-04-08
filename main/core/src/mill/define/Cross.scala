@@ -81,10 +81,8 @@ class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T, An
     super.millModuleDirectChildren ++
       items.collect { case (_, v: mill.define.Module) => v }
 
-//  private val products: List[Product] =
-
-  val items: Seq[(Seq[Any], T)] = for (c <- cases) yield {
-    val crossValues = (c match {case p: Product => p case v => Tuple1(v)}).productIterator.toSeq
+  val items: List[(List[Any], T)] = for (c <- cases.toList) yield {
+    val crossValues = (c match {case p: Product => p case v => Tuple1(v)}).productIterator.toList
     val relPath = ctx.segment.pathSegments
     val sub = ci.make(
       c,
@@ -96,7 +94,7 @@ class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T, An
     )
     (crossValues, sub)
   }
-  val itemMap: Map[Seq[Any], T] = items.toMap
+  val itemMap: Map[List[Any], T] = items.toMap
 
   /**
    * Fetch the cross module corresponding to the given cross values
