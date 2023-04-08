@@ -148,8 +148,7 @@ object BuildInfo{
          |  private val buildInfoProperties = new java.util.Properties
          |
          |  private val buildInfoInputStream = getClass
-         |    .getClassLoader
-         |    .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/$buildInfoObjectName.buildinfo.properties")
+         |    .getResourceAsStream("$buildInfoObjectName.buildinfo.properties")
          |
          |  buildInfoProperties.load(buildInfoInputStream)
          |
@@ -166,9 +165,9 @@ object BuildInfo{
          |  static {
          |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
          |      .class
-         |      .getClassLoader()
-         |      .getResourceAsStream("${buildInfoPackageName.replace('.', '/')}/$buildInfoObjectName.buildinfo.properties");
-         |
+         |      .getResourceAsStream("$buildInfoObjectName.buildinfo.properties");
+         |    System.out.println("$buildInfoObjectName.buildinfo.properties");
+         |    System.out.println(buildInfoInputStream);
          |    try{
          |      buildInfoProperties.load(buildInfoInputStream);
          |    }catch(java.io.IOException e){
