@@ -164,7 +164,7 @@ public class MillClientMain {
 
         try (FileOutputStream f = new FileOutputStream(lockBase + "/run")) {
             f.write(System.console() != null ? 1 : 0);
-            Util.writeString(f, BuildInfo.millVersion());
+            Util.writeString(f, BuildInfo.millVersion);
             Util.writeArgs(args, f);
             Util.writeMap(env, f);
         }
