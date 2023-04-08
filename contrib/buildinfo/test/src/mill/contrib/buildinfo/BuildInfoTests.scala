@@ -1,6 +1,5 @@
 package mill.contrib.buildinfo
 
-
 import mill.{BuildInfo => _, _}
 import mill.util.TestEvaluator
 import mill.util.TestUtil
@@ -16,21 +15,21 @@ object BuildInfoTests extends TestSuite {
     override def millSourcePath: Path = TestUtil.getSrcPathStatic() / "scala"
   }
 
-  object EmptyBuildInfo extends BuildInfoModule with scalalib.ScalaModule{
+  object EmptyBuildInfo extends BuildInfoModule with scalalib.ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq.empty[BuildInfo.Value]
   }
 
-  object BuildInfoPlain extends BuildInfoModule with scalalib.ScalaModule{
+  object BuildInfoPlain extends BuildInfoModule with scalalib.ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
-       BuildInfo.Value("scalaVersion", scalaVersion())
+      BuildInfo.Value("scalaVersion", scalaVersion())
     )
   }
 
-  object BuildInfoComment extends BuildInfoModule with scalalib.ScalaModule{
+  object BuildInfoComment extends BuildInfoModule with scalalib.ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
@@ -47,7 +46,7 @@ object BuildInfoTests extends TestSuite {
     )
   }
 
-  object BuildInfoStatic extends BuildInfoModule with scalalib.ScalaModule{
+  object BuildInfoStatic extends BuildInfoModule with scalalib.ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     override def buildInfoStaticCompiled = true
@@ -56,7 +55,7 @@ object BuildInfoTests extends TestSuite {
     )
   }
 
-  object BuildInfoSettings extends BuildInfoModule with scalalib.ScalaModule{
+  object BuildInfoSettings extends BuildInfoModule with scalalib.ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     override def buildInfoObjectName = "bar"
@@ -128,7 +127,7 @@ object BuildInfoTests extends TestSuite {
       )
 
       val buildInfoCode = os.read(buildInfoSourcePath(eval)).linesIterator.mkString("\n")
-      for(e <- expectedSource){
+      for (e <- expectedSource) {
         assert(buildInfoCode.contains(e.linesIterator.mkString("\n")))
       }
 

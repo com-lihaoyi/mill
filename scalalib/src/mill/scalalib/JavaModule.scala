@@ -217,7 +217,7 @@ trait JavaModule
   def transitiveCompileClasspath: T[Agg[PathRef]] = T {
     T.traverse(
       (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m => T.task{m.compileClasspath() ++ Agg(m.compile().classes) })()
+    )(m => T.task { m.compileClasspath() ++ Agg(m.compile().classes) })()
       .flatten
   }
 
@@ -229,7 +229,11 @@ trait JavaModule
   def bspTransitiveCompileClasspath: Target[Agg[UnresolvedPath]] = T {
     T.traverse(
       (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m => T.task{m.bspCompileClasspath() ++ Agg(UnresolvedPath.ResolvedPath(m.compile().classes.path)) })()
+    )(m =>
+      T.task {
+        m.bspCompileClasspath() ++ Agg(UnresolvedPath.ResolvedPath(m.compile().classes.path))
+      }
+    )()
       .flatten
   }
 

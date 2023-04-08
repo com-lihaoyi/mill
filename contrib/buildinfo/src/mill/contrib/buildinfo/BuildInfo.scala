@@ -4,6 +4,7 @@ import mill.{PathRef, T}
 import mill.scalalib.{JavaModule, ScalaModule}
 
 trait BuildInfo extends JavaModule {
+
   /**
    * The package name under which the BuildInfo data object will be stored.
    */
@@ -29,18 +30,22 @@ trait BuildInfo extends JavaModule {
 
   def resources =
     if (buildInfoStaticCompiled) super.resources
-    else T.sources{ super.resources() ++ Seq(buildInfoResources()) }
+    else T.sources { super.resources() ++ Seq(buildInfoResources()) }
 
-  def buildInfoResources = T{
+  def buildInfoResources = T {
     val p = new java.util.Properties
     for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
 
+    val subPath = os.SubPath(buildInfoPackageName.replace('.', '/'))
     val stream = os.write.outputStream(
-      T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / s"$buildInfoObjectName.buildinfo.properties",
+      T.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
       createFolders = true
     )
 
-    p.store(stream, s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}")
+    p.store(
+      stream,
+      s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}"
+    )
     stream.close()
     PathRef(T.dest)
   }
@@ -51,13 +56,20 @@ trait BuildInfo extends JavaModule {
     super.generatedSources() ++ buildInfoSources()
   }
 
-  def buildInfoSources = T{
+  def buildInfoSources = T {
     if (buildInfoMembers().isEmpty) Nil
     else {
       val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
-        buildInfoMembers(), isScala, buildInfoPackageName, buildInfoObjectName
-      ) else BuildInfo.codegen(
-        buildInfoMembers(), isScala, buildInfoPackageName, buildInfoObjectName
+        buildInfoMembers(),
+        isScala,
+        buildInfoPackageName,
+        buildInfoObjectName
+      )
+      else BuildInfo.codegen(
+        buildInfoMembers(),
+        isScala,
+        buildInfoPackageName,
+        buildInfoObjectName
       )
 
       val ext = if (isScala) "scala" else "java"
@@ -72,28 +84,31 @@ trait BuildInfo extends JavaModule {
   }
 }
 
-object BuildInfo{
+object BuildInfo {
   case class Value(key: String, value: String, comment: String = "")
-  object Value{
+  object Value {
     implicit val rw: upickle.default.ReadWriter[Value] = upickle.default.macroRW
   }
-  def staticCompiledCodegen(buildInfoMembers: Seq[Value],
-                            isScala: Boolean,
-                            buildInfoPackageName: String,
-                            buildInfoObjectName: String): String = {
+  def staticCompiledCodegen(
+      buildInfoMembers: Seq[Value],
+      isScala: Boolean,
+      buildInfoPackageName: String,
+      buildInfoObjectName: String
+  ): String = {
     val bindingsCode = buildInfoMembers
       .sortBy(_.key)
       .map {
         case v =>
           if (isScala) s"""${commentStr(v)}val ${v.key} = ${pprint.Util.literalize(v.value)}"""
-          else s"""${commentStr(v)}public static java.lang.String ${v.key} = ${pprint.Util.literalize(v.value)};"""
+          else s"""${commentStr(
+              v
+            )}public static java.lang.String ${v.key} = ${pprint.Util.literalize(v.value)};"""
       }
       .mkString("\n\n  ")
 
-
     if (isScala) {
       val mapEntries = buildInfoMembers
-        .map { case v => s""""${v.key}" -> ${v.key}"""}
+        .map { case v => s""""${v.key}" -> ${v.key}""" }
         .mkString(",\n")
 
       s"""
@@ -127,16 +142,21 @@ object BuildInfo{
     }
   }
 
-  def codegen(buildInfoMembers: Seq[Value],
-              isScala: Boolean,
-              buildInfoPackageName: String,
-              buildInfoObjectName: String): String = {
+  def codegen(
+      buildInfoMembers: Seq[Value],
+      isScala: Boolean,
+      buildInfoPackageName: String,
+      buildInfoObjectName: String
+  ): String = {
     val bindingsCode = buildInfoMembers
       .sortBy(_.key)
       .map {
         case v =>
-          if (isScala) s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
-          else s"""${commentStr(v)}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
+          if (isScala)
+            s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
+          else s"""${commentStr(
+              v
+            )}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
       }
       .mkString("\n\n  ")
 
@@ -189,7 +209,7 @@ object BuildInfo{
     if (v.comment.isEmpty) ""
     else {
       val lines = v.comment.linesIterator.toVector
-      lines.length match{
+      lines.length match {
         case 1 => s"""/** ${v.comment} */\n  """
         case _ => s"""/**\n    ${lines.map("* " + _).mkString("\n    ")}\n    */\n  """
       }
