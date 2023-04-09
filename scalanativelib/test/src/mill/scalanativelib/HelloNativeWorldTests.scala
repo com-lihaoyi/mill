@@ -19,10 +19,10 @@ object HelloNativeWorldTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-native-world"
 
   trait HelloNativeWorldModule
-    extends ScalaModule
+      extends ScalaModule
       with ScalaNativeModule
       with PublishModule
-      with Cross.Module[(String, String, ReleaseMode)]{
+      with Cross.Module[(String, String, ReleaseMode)] {
     val (crossScalaVersion, sNativeVersion, mode) = crossValue
     def scalaVersion = crossScalaVersion
     override def millSourcePath = workspacePath

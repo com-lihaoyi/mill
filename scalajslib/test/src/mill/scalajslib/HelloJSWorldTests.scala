@@ -18,7 +18,8 @@ object HelloJSWorldTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
 
   trait HelloJSWorldModule
-    extends ScalaModule with ScalaJSModule with PublishModule with Cross.Module[(String, String)]{
+      extends ScalaModule with ScalaJSModule with PublishModule
+      with Cross.Module[(String, String)] {
     val (crossScalaVersion, sjsVersion0) = crossValue
     def scalaVersion = crossScalaVersion
     override def millSourcePath = workspacePath

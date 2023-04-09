@@ -20,7 +20,7 @@ object NodeJSConfigTests extends TestSuite {
   val nodeArgs4G = List("--max-old-space-size=4096")
 
   trait HelloJSWorldModule
-    extends ScalaModule
+      extends ScalaModule
       with ScalaJSModule
       with Cross.Module[(String, List[String])] {
     val (crossScalaVersion, nodeArgs) = crossValue

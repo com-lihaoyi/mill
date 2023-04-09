@@ -34,7 +34,7 @@ object BspModuleTests extends TestSuite {
     val maxCrossCount = 25
     val configs = 1.to(maxCrossCount)
     object Mod extends Cross.Of[ModCross](configs)
-    trait ModCross extends ScalaModule with Cross.Module[Int]{
+    trait ModCross extends ScalaModule with Cross.Module[Int] {
       override def scalaVersion: T[String] = testScalaVersion
       // each depends on all others with lower index
       override def moduleDeps: Seq[JavaModule] =

@@ -150,7 +150,8 @@ object MacroErrorTests extends TestSuite {
           object cross extends Cross.Of[MyCrossModule](1, 2, 3)
           trait MyCrossModule extends Cross.Module[String]
         }
-      """)
+      """
+      )
       assert(error.msg.contains("type mismatch;"))
       assert(error.msg.contains("found   : Int(1)"))
     }
