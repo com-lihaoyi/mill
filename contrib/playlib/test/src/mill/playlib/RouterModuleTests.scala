@@ -3,7 +3,7 @@ package mill.playlib
 import mill.T
 import mill.api.Result.Failure
 import mill.define.Cross
-import mill.scalalib.CrossScalaModule
+import mill.scalalib.ScalaModule
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
@@ -15,13 +15,14 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
-  trait HelloWorldModule extends mill.playlib.RouterModule with CrossScalaModule
+  trait HelloWorldModule extends mill.playlib.RouterModule with ScalaModule
 
   object HelloWorld extends HelloBase {
 
-    object core extends Cross[CoreCrossModule](matrix: _*)
-    class CoreCrossModule(val crossScalaVersion: String, crossPlayVersion: String)
-        extends HelloWorldModule {
+    object core extends Cross.Of[CoreCrossModule](matrix)
+    trait CoreCrossModule extends HelloWorldModule with Cross.Module[(String, String)]{
+      val (crossScalaVersion, crossPlayVersion) = millCrossValue
+      def scalaVersion = crossScalaVersion
       def playVersion = crossPlayVersion
     }
 

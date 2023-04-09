@@ -55,6 +55,16 @@ object Cross {
     }
   }
 
+  class Of[M <: Cross.Module[_]: ClassTag](cases: CrossSeq[T forSome { type T ; type X >: M <: Cross.Module[T]  }]*)
+                                          (implicit ci: Cross.Factory[M, Any], ctx: mill.define.Ctx)
+  extends Cross[M](cases.flatMap(_.value))
+
+  case class CrossSeq[T](value: Seq[T])
+  object CrossSeq{
+    implicit def ofSingle[T](t: T) = CrossSeq(Seq(t))
+    implicit def ofMultuple[T](ts: Seq[T]) = CrossSeq(ts)
+  }
+
   trait Resolver[-T <: mill.define.Module] {
     def resolve[V <: T](c: Cross[V]): V
   }
@@ -65,9 +75,9 @@ object Cross {
  * value of one or more "case" variables whose values are determined at runtime.
  * Used via:
  *
- * object foo extends Cross[FooModule]("bar", "baz", "qux")
- * class FooModule(v: String) extends Module{
- *   ...
+ * object foo extends Cross.Of[FooModule]("bar", "baz", "qux")
+ * class FooModule extends Module{
+ *   ... millCrossValue ...
  * }
  */
 class Cross[T <: Module: ClassTag](cases: Any*)(implicit

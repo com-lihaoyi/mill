@@ -3,7 +3,7 @@ package mill.scalajslib
 import mill._
 import mill.define.Discover
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.scalalib.{CrossScalaModule, DepSyntax, TestModule}
+import mill.scalalib.{CrossScalaModule, DepSyntax, ScalaModule, TestModule}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import mill.scalajslib.api._
@@ -19,7 +19,12 @@ object NodeJSConfigTests extends TestSuite {
   val nodeArgs2G = List("--max-old-space-size=2048")
   val nodeArgs4G = List("--max-old-space-size=4096")
 
-  trait HelloJSWorldModule extends CrossScalaModule with ScalaJSModule {
+  trait HelloJSWorldModule
+    extends ScalaModule
+      with ScalaJSModule
+      with Cross.Module[(String, List[String])] {
+    val (crossScalaVersion, nodeArgs) = millCrossValue
+    def scalaVersion = crossScalaVersion
     override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("Main")
@@ -31,17 +36,16 @@ object NodeJSConfigTests extends TestSuite {
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)
     } yield (scala, nodeArgs)
 
-    object helloJsWorld extends Cross[RootModule](matrix: _*)
-    class RootModule(val crossScalaVersion: String, nodeArgs: List[String])
-        extends HelloJSWorldModule {
+    object helloJsWorld extends Cross.Of[RootModule](matrix)
+    trait RootModule extends HelloJSWorldModule {
+
       override def artifactName = "hello-js-world"
       def scalaJSVersion = NodeJSConfigTests.scalaJSVersion
       override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
     }
 
-    object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
-    class BuildModuleUtest(crossScalaVersion: String, nodeArgs: List[String])
-        extends RootModule(crossScalaVersion, nodeArgs) {
+    object buildUTest extends Cross.Of[BuildModuleUtest](matrix)
+    trait BuildModuleUtest extends RootModule {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = Agg(

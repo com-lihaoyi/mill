@@ -6,7 +6,7 @@ import mill.api.Result
 import mill.define.Discover
 import mill.eval.EvaluatorPaths
 import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
+import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, ScalaModule, TestModule}
 import mill.testrunner.TestRunner
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
@@ -18,7 +18,13 @@ import scala.jdk.CollectionConverters._
 object HelloNativeWorldTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-native-world"
 
-  trait HelloNativeWorldModule extends CrossScalaModule with ScalaNativeModule with PublishModule {
+  trait HelloNativeWorldModule
+    extends ScalaModule
+      with ScalaNativeModule
+      with PublishModule
+      with Cross.Module[(String, String, ReleaseMode)]{
+    val (crossScalaVersion, sNativeVersion, mode) = millCrossValue
+    def scalaVersion = crossScalaVersion
     override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("hello.Main")
@@ -33,11 +39,10 @@ object HelloNativeWorldTests extends TestSuite {
       scalaNative <- Seq(scalaNative04, "0.4.9")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
       if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04)
-    } yield (scala, scalaNative, mode)
+    } yield (scala, scalaNative, mode: ReleaseMode)
 
-    object helloNativeWorld extends Cross[RootModule](matrix: _*)
-    class RootModule(val crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
-        extends HelloNativeWorldModule {
+    object helloNativeWorld extends Cross.Of[RootModule](matrix)
+    trait RootModule extends HelloNativeWorldModule {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
       def releaseMode = T { mode }
@@ -51,9 +56,8 @@ object HelloNativeWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
-    object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
-    class BuildModuleUtest(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
-        extends RootModule(crossScalaVersion, sNativeVersion, mode) {
+    object buildUTest extends Cross.Of[BuildModuleUtest](matrix)
+    trait BuildModuleUtest extends RootModule {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
