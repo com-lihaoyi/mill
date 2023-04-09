@@ -328,6 +328,35 @@ object MainTests extends TestSuite {
         }
       }
 
+      "nestedCrossTaskModuleOld" - {
+        val check = MainTests.checkSeq(nestedTaskCrossesOld) _
+        "pos1" - check(
+          Seq("cross1[210].cross2[js].suffixCmd"),
+          Right(Seq(_.cross1("210").cross2("js").suffixCmd()))
+        )
+        "pos1Default" - check(
+          Seq("cross1[210].cross2[js]"),
+          Right(Seq(_.cross1("210").cross2("js").suffixCmd()))
+        )
+        // does not work because we're reflecting the Module for `def` without args,
+        // which misses command with args :-(
+//        "pos1WithWildcard" - check(
+//          Seq("cross1[210].cross2[js]._"),
+//          Right(Seq(_.cross1("210").cross2("js").suffixCmd()))
+//        )
+        "pos1WithArgs" - check(
+          Seq("cross1[210].cross2[js].suffixCmd", "suffix-arg"),
+          Right(Seq(_.cross1("210").cross2("js").suffixCmd("suffix-arg")))
+        )
+        "pos2" - check(
+          Seq("cross1[211].cross2[jvm].suffixCmd"),
+          Right(Seq(_.cross1("211").cross2("jvm").suffixCmd()))
+        )
+        "pos2Default" - check(
+          Seq("cross1[211].cross2[jvm]"),
+          Right(Seq(_.cross1("211").cross2("jvm").suffixCmd()))
+        )
+      }
       "nestedCrossTaskModule" - {
         val check = MainTests.checkSeq(nestedTaskCrosses) _
         "pos1" - check(

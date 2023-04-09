@@ -285,7 +285,7 @@ object TestGraphs {
     }
   }
 
-  object nestedTaskCrosses extends TestUtil.BaseModule {
+  object nestedTaskCrossesOld extends TestUtil.BaseModule {
     // this is somehow necessary to let Discover see our inner (default) commands
     // I expected, that the identical inherited `millDiscover` is enough, but it isn't
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
@@ -296,6 +296,25 @@ object TestGraphs {
       object cross2 extends mill.Cross[Cross2]("jvm", "js", "native")
 
       class Cross2(platform: String) extends mill.Module with TaskModule {
+        override def defaultCommandName(): String = "suffixCmd"
+        def suffixCmd(suffix: String = "default"): Command[String] = T.command {
+          scalaVersion + "_" + platform + "_" + suffix
+        }
+      }
+
+    }
+  }
+  object nestedTaskCrosses extends TestUtil.BaseModule {
+    // this is somehow necessary to let Discover see our inner (default) commands
+    // I expected, that the identical inherited `millDiscover` is enough, but it isn't
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    object cross1 extends mill.Cross[Cross1]("210", "211", "212")
+    trait Cross1 extends mill.Cross.Module[String] {
+      def scalaVersion = millCrossValue
+
+      object cross2 extends mill.Cross[Cross2]("jvm", "js", "native")
+      trait Cross2 extends mill.Cross.Module[String] with TaskModule {
+        def platform = millCrossValue
         override def defaultCommandName(): String = "suffixCmd"
         def suffixCmd(suffix: String = "default"): Command[String] = T.command {
           scalaVersion + "_" + platform + "_" + suffix

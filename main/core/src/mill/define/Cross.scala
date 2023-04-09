@@ -24,10 +24,7 @@ object Cross {
           val implicitCtx = c.freshName(TermName("implicitCtx"))
           val tree =q"""mill.define.Cross.Factory[$tpe, $crossType]{ ($v1: $crossType, $ctx0: ${tq""}) =>
             implicit val $implicitCtx = $ctx0
-            new $tpe{
-              override def millCrossValue = $v1
-              override def millOuterCtx = $ctx0
-            }
+            new $tpe{ override def millCrossValue = $v1 }
           }.asInstanceOf[${weakTypeOf[Factory[T, Any]]}]"""
 
           c.Expr[Factory[T, Any]](tree)
