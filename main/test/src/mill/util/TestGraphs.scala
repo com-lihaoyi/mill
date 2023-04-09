@@ -225,7 +225,7 @@ object TestGraphs {
     }
 
     object cross2 extends mill.Cross[Cross2]("210", "211", "212")
-    trait Cross2 extends Cross.Module[String]{
+    trait Cross2 extends Cross.Module[String] {
       override def millSourcePath = super.millSourcePath / millCrossValue
       def suffix = T { millCrossValue }
     }

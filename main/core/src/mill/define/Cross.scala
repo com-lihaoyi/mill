@@ -22,7 +22,8 @@ object Cross {
           val v1 = c.freshName(TermName("v1"))
           val ctx0 = c.freshName(TermName("ctx0"))
           val implicitCtx = c.freshName(TermName("implicitCtx"))
-          val tree =q"""mill.define.Cross.Factory[$tpe, $crossType]{ ($v1: $crossType, $ctx0: ${tq""}) =>
+          val tree =
+            q"""mill.define.Cross.Factory[$tpe, $crossType]{ ($v1: $crossType, $ctx0: ${tq""}) =>
             implicit val $implicitCtx = $ctx0
             new $tpe{ override def millCrossValue = $v1 }
           }.asInstanceOf[${weakTypeOf[Factory[T, Any]]}]"""
@@ -34,7 +35,7 @@ object Cross {
 
           val argTupleValues =
             for ((a, n) <- primaryConstructorArgs.zipWithIndex)
-            yield q"(v match { case p: Product => p case v => Tuple1(v)}).productElement($n).asInstanceOf[${a.info}]"
+              yield q"(v match { case p: Product => p case v => Tuple1(v)}).productElement($n).asInstanceOf[${a.info}]"
 
           // We need to do this weird `override def millOuterCtx` here because
           // typically the class-based cross modules do not have the proper
@@ -48,7 +49,7 @@ object Cross {
           )
           reify { mill.define.Cross.Factory[T, Any](instance.splice) }
         }
-      }else{
+      } else {
         c.abort(c.enclosingPosition, "Cross[T] type must be class or trait")
       }
     }
@@ -69,15 +70,20 @@ object Cross {
  *   ...
  * }
  */
-class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T, Any], ctx: mill.define.Ctx)
-    extends mill.define.Module()(ctx) {
+class Cross[T <: Module: ClassTag](cases: Any*)(implicit
+    ci: Cross.Factory[T, Any],
+    ctx: mill.define.Ctx
+) extends mill.define.Module()(ctx) {
 
   override lazy val millModuleDirectChildren: Seq[Module] =
     super.millModuleDirectChildren ++
       items.collect { case (_, v: mill.define.Module) => v }
 
   val items: List[(List[Any], T)] = for (c <- cases.toList) yield {
-    val crossValues = (c match {case p: Product => p case v => Tuple1(v)}).productIterator.toList
+    val crossValues = (c match {
+      case p: Product => p
+      case v => Tuple1(v)
+    }).productIterator.toList
     val relPath = ctx.segment.pathSegments
     val sub = ci.make(
       c,
@@ -85,7 +91,7 @@ class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T, An
         .withSegments(ctx.segments ++ Seq(ctx.segment))
         .withMillSourcePath(ctx.millSourcePath / relPath)
         .withSegment(Segment.Cross(crossValues))
-        .withCrossValues(cases),
+        .withCrossValues(cases)
     )
     (crossValues, sub)
   }
