@@ -57,9 +57,9 @@ object Cross {
 
   class Of[M <: Cross.Module[_]: ClassTag](cases: CrossSeq[T forSome { type T ; type X >: M <: Cross.Module[T]  }]*)
                                           (implicit ci: Cross.Factory[M, Any], ctx: mill.define.Ctx)
-  extends Cross[M](cases.flatMap(_.value))
+  extends Cross[M](cases.flatMap(_.value):_*)
 
-  case class CrossSeq[T](value: Seq[T])
+  case class CrossSeq[+T](value: Seq[T])
   object CrossSeq{
     implicit def ofSingle[T](t: T) = CrossSeq(Seq(t))
     implicit def ofMultuple[T](ts: Seq[T]) = CrossSeq(ts)
