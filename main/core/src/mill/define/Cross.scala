@@ -55,8 +55,8 @@ object Cross {
     }
   }
 
-  class Of[M <: Cross.Module[_]: ClassTag](cases: CrossSeq[T forSome { type T ; type X >: M <: Cross.Module[T]  }]*)
-                                          (implicit ci: Cross.Factory[M, Any], ctx: mill.define.Ctx)
+  class Of[M <: Cross.Module[_]](cases: CrossSeq[T forSome { type T ; type X >: M <: Cross.Module[T]  }]*)
+                                (implicit ci: Cross.Factory[M, Any], ctx: mill.define.Ctx)
   extends Cross[M](cases.flatMap(_.value):_*)
 
   case class CrossSeq[+T](value: Seq[T])
@@ -80,7 +80,7 @@ object Cross {
  *   ... crossValue ...
  * }
  */
-class Cross[T <: Module: ClassTag](cases: Any*)(implicit
+class Cross[T <: Module](cases: Any*)(implicit
     ci: Cross.Factory[T, Any],
     ctx: mill.define.Ctx
 ) extends mill.define.Module()(ctx) {
