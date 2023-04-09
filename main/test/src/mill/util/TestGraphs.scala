@@ -219,12 +219,12 @@ object TestGraphs {
   }
 
   object singleCross extends TestUtil.BaseModule {
-    object cross extends mill.Cross[Cross]("210", "211", "212")
+    object cross extends mill.Cross.Of[Cross]("210", "211", "212")
     trait Cross extends Cross.Module[String] {
       def suffix = T { crossValue }
     }
 
-    object cross2 extends mill.Cross[Cross2]("210", "211", "212")
+    object cross2 extends mill.Cross.Of[Cross2]("210", "211", "212")
     trait Cross2 extends Cross.Module[String] {
       override def millSourcePath = super.millSourcePath / crossValue
       def suffix = T { crossValue }
@@ -250,12 +250,12 @@ object TestGraphs {
       }
     }
 
-    object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+    object foo extends mill.Cross.Of[FooModule]("2.10", "2.11", "2.12")
     trait FooModule extends MyModule {
       def suffix = T { crossValue }
     }
 
-    object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
+    object bar extends mill.Cross.Of[BarModule]("2.10", "2.11", "2.12")
     trait BarModule extends MyModule {
       def longSuffix = T { "_" + foo().suffix() }
     }
@@ -266,7 +266,7 @@ object TestGraphs {
       platform <- Seq("jvm", "js", "native")
       if !(platform == "native" && scalaVersion != "212")
     } yield (scalaVersion, platform)
-    object cross extends mill.Cross[Cross](crossMatrix: _*)
+    object cross extends mill.Cross.Of[Cross](crossMatrix)
     trait Cross extends Cross.Module[(String, String)] {
       val (scalaVersion, platform) = crossValue
       def suffix = T { scalaVersion + "_" + platform }
@@ -274,10 +274,10 @@ object TestGraphs {
   }
 
   object nestedCrosses extends TestUtil.BaseModule {
-    object cross extends mill.Cross[Cross]("210", "211", "212")
+    object cross extends mill.Cross.Of[Cross]("210", "211", "212")
     trait Cross extends Cross.Module[String] {
       val scalaVersion = crossValue
-      object cross2 extends mill.Cross[Cross]("jvm", "js", "native")
+      object cross2 extends mill.Cross.Of[Cross]("jvm", "js", "native")
       trait Cross extends Cross.Module[String] {
         val platform = crossValue
         def suffix = T { scalaVersion + "_" + platform }
@@ -308,11 +308,11 @@ object TestGraphs {
     // this is somehow necessary to let Discover see our inner (default) commands
     // I expected, that the identical inherited `millDiscover` is enough, but it isn't
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
-    object cross1 extends mill.Cross[Cross1]("210", "211", "212")
+    object cross1 extends mill.Cross.Of[Cross1]("210", "211", "212")
     trait Cross1 extends mill.Cross.Module[String] {
       def scalaVersion = crossValue
 
-      object cross2 extends mill.Cross[Cross2]("jvm", "js", "native")
+      object cross2 extends mill.Cross.Of[Cross2]("jvm", "js", "native")
       trait Cross2 extends mill.Cross.Module[String] with TaskModule {
         def platform = crossValue
         override def defaultCommandName(): String = "suffixCmd"
