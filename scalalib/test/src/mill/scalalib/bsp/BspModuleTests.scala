@@ -39,7 +39,7 @@ object BspModuleTests extends TestSuite {
       // each depends on all others with lower index
       override def moduleDeps: Seq[JavaModule] =
         configs
-          .filter(c => c < millCrossValue)
+          .filter(c => c < crossValue)
           .map(i => Mod(i))
     }
   }

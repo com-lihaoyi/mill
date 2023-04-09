@@ -221,13 +221,13 @@ object TestGraphs {
   object singleCross extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
     trait Cross extends Cross.Module[String] {
-      def suffix = T { millCrossValue }
+      def suffix = T { crossValue }
     }
 
     object cross2 extends mill.Cross[Cross2]("210", "211", "212")
     trait Cross2 extends Cross.Module[String] {
-      override def millSourcePath = super.millSourcePath / millCrossValue
-      def suffix = T { millCrossValue }
+      override def millSourcePath = super.millSourcePath / crossValue
+      def suffix = T { crossValue }
     }
   }
 
@@ -246,13 +246,13 @@ object TestGraphs {
   object crossResolved extends TestUtil.BaseModule {
     trait MyModule extends Cross.Module[String] {
       implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
-        def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(millCrossValue))
+        def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(crossValue))
       }
     }
 
     object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
     trait FooModule extends MyModule {
-      def suffix = T { millCrossValue }
+      def suffix = T { crossValue }
     }
 
     object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
@@ -268,7 +268,7 @@ object TestGraphs {
     } yield (scalaVersion, platform)
     object cross extends mill.Cross[Cross](crossMatrix: _*)
     trait Cross extends Cross.Module[(String, String)] {
-      val (scalaVersion, platform) = millCrossValue
+      val (scalaVersion, platform) = crossValue
       def suffix = T { scalaVersion + "_" + platform }
     }
   }
@@ -276,10 +276,10 @@ object TestGraphs {
   object nestedCrosses extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
     trait Cross extends Cross.Module[String] {
-      val scalaVersion = millCrossValue
+      val scalaVersion = crossValue
       object cross2 extends mill.Cross[Cross]("jvm", "js", "native")
       trait Cross extends Cross.Module[String] {
-        val platform = millCrossValue
+        val platform = crossValue
         def suffix = T { scalaVersion + "_" + platform }
       }
     }
@@ -310,11 +310,11 @@ object TestGraphs {
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
     object cross1 extends mill.Cross[Cross1]("210", "211", "212")
     trait Cross1 extends mill.Cross.Module[String] {
-      def scalaVersion = millCrossValue
+      def scalaVersion = crossValue
 
       object cross2 extends mill.Cross[Cross2]("jvm", "js", "native")
       trait Cross2 extends mill.Cross.Module[String] with TaskModule {
-        def platform = millCrossValue
+        def platform = crossValue
         override def defaultCommandName(): String = "suffixCmd"
         def suffixCmd(suffix: String = "default"): Command[String] = T.command {
           scalaVersion + "_" + platform + "_" + suffix

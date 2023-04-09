@@ -6,7 +6,7 @@ import scala.reflect.macros.blackbox
 
 object Cross {
   trait Module[V] extends mill.define.Module {
-    def millCrossValue: V
+    def crossValue: V
   }
   case class Factory[T, -V](make: (V, mill.define.Ctx) => T)
 
@@ -25,7 +25,7 @@ object Cross {
           val tree =
             q"""mill.define.Cross.Factory[$tpe, $crossType]{ ($v1: $crossType, $ctx0: ${tq""}) =>
             implicit val $implicitCtx = $ctx0
-            new $tpe{ override def millCrossValue = $v1 }
+            new $tpe{ override def crossValue = $v1 }
           }.asInstanceOf[${weakTypeOf[Factory[T, Any]]}]"""
 
           c.Expr[Factory[T, Any]](tree)
@@ -61,8 +61,8 @@ object Cross {
 
   case class CrossSeq[+T](value: Seq[T])
   object CrossSeq{
-    implicit def ofSingle[T](t: T) = CrossSeq(Seq(t))
-    implicit def ofMultuple[T](ts: Seq[T]) = CrossSeq(ts)
+    implicit def ofSingle[T](t: T): CrossSeq[T] = CrossSeq(Seq(t))
+    implicit def ofMultiple[T](ts: Seq[T]): CrossSeq[T] = CrossSeq(ts)
   }
 
   trait Resolver[-T <: mill.define.Module] {
@@ -77,7 +77,7 @@ object Cross {
  *
  * object foo extends Cross.Of[FooModule]("bar", "baz", "qux")
  * class FooModule extends Module{
- *   ... millCrossValue ...
+ *   ... crossValue ...
  * }
  */
 class Cross[T <: Module: ClassTag](cases: Any*)(implicit

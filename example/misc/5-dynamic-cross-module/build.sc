@@ -4,7 +4,7 @@ val moduleNames = interp.watchValue(os.list(millSourcePath / "modules").map(_.la
 
 object modules extends Cross[FolderModule](moduleNames:_*)
 trait FolderModule extends ScalaModule{
-  def millSourcePath = super.millSourcePath / millCrossValue
+  def millSourcePath = super.millSourcePath / crossValue
   def scalaVersion = "2.13.2"
 }
 

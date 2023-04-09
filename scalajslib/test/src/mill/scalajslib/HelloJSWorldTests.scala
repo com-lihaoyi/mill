@@ -19,7 +19,7 @@ object HelloJSWorldTests extends TestSuite {
 
   trait HelloJSWorldModule
     extends ScalaModule with ScalaJSModule with PublishModule with Cross.Module[(String, String)]{
-    val (crossScalaVersion, sjsVersion0) = millCrossValue
+    val (crossScalaVersion, sjsVersion0) = crossValue
     def scalaVersion = crossScalaVersion
     override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"

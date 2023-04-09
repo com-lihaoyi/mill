@@ -34,7 +34,7 @@ object CrossScalaModule {
    * nested within it
    */
   trait Base extends mill.Cross.Module[String] {
-    def crossScalaVersion: String = millCrossValue
+    def crossScalaVersion: String = crossValue
     private def wrapperSegments0 = millModuleSegments.parts
     trait CrossScalaModule extends mill.scalalib.CrossScalaModule {
       override def wrapperSegments = wrapperSegments0
