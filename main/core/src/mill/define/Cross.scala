@@ -8,7 +8,7 @@ object Cross {
   trait Module[V] extends mill.define.Module {
     def millCrossValue: V
   }
-  case class Factory[T, -V](make: (V, mill.define.Ctx, Seq[V]) => T)
+  case class Factory[T, -V](make: (V, mill.define.Ctx) => T)
 
   object Factory {
     implicit def make[T]: Factory[T, Any] = macro makeImpl[T]
@@ -20,17 +20,13 @@ object Cross {
         if (tpe.typeSymbol.asClass.isTrait) {
           val crossType = tpe.baseType(typeOf[Module[_]].typeSymbol).typeArgs.head
           val v1 = c.freshName(TermName("v1"))
-          val v2 = c.freshName(TermName("v2"))
-          val vs = c.freshName(TermName("vs"))
           val ctx0 = c.freshName(TermName("ctx0"))
           val implicitCtx = c.freshName(TermName("implicitCtx"))
-          val tree =q"""mill.define.Cross.Factory[$tpe, $crossType]{ ($v1: $crossType, $ctx0: ${tq""}, $vs: Seq[$crossType]) =>
+          val tree =q"""mill.define.Cross.Factory[$tpe, $crossType]{ ($v1: $crossType, $ctx0: ${tq""}) =>
             implicit val $implicitCtx = $ctx0
             new $tpe{
               override def millCrossValue = $v1
-              override def millOuterCtx = $ctx0.withCrossInstances(
-                $vs.map(($v2: $crossType) => new $tpe{ override def millCrossValue = $v2 })
-              )
+              override def millOuterCtx = $ctx0
             }
           }.asInstanceOf[${weakTypeOf[Factory[T, Any]]}]"""
 
@@ -44,12 +40,10 @@ object Cross {
             yield q"(v match { case p: Product => p case v => Tuple1(v)}).productElement($n).asInstanceOf[${a.info}]"
 
 
-          val instance = c.Expr[(Any, mill.define.Ctx, Seq[Any]) => T](
-            q"""{ (v, ctx0, vs) => new $tpe(..$argTupleValues){
-              override def millOuterCtx = ctx0.withCrossInstances(
-                vs.map(v => new $tpe(..$argTupleValues))
-              )
-            } }"""
+          val instance = c.Expr[(Any, mill.define.Ctx) => T](
+            q"""{ (v, ctx0) =>
+              new $tpe(..$argTupleValues){ override def millOuterCtx = ctx0 }
+            }"""
           )
           reify { mill.define.Cross.Factory[T, Any](instance.splice) }
         }
@@ -89,8 +83,8 @@ class Cross[T <: Module: ClassTag](cases: Any*)(implicit ci: Cross.Factory[T, An
       ctx
         .withSegments(ctx.segments ++ Seq(ctx.segment))
         .withMillSourcePath(ctx.millSourcePath / relPath)
-        .withSegment(Segment.Cross(crossValues)),
-      cases
+        .withSegment(Segment.Cross(crossValues))
+        .withCrossValues(cases),
     )
     (crossValues, sub)
   }
