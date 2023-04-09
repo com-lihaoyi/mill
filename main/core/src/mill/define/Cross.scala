@@ -36,7 +36,11 @@ object Cross {
             for ((a, n) <- primaryConstructorArgs.zipWithIndex)
             yield q"(v match { case p: Product => p case v => Tuple1(v)}).productElement($n).asInstanceOf[${a.info}]"
 
-
+          // We need to do this weird `override def millOuterCtx` here because
+          // typically the class-based cross modules do not have the proper
+          // implicit parameters defined, so the implicit `outerCtx0` gets
+          // picked up from the class-definition site rather than the class
+          // instantiation site.
           val instance = c.Expr[(Any, mill.define.Ctx) => T](
             q"""{ (v, ctx0) =>
               new $tpe(..$argTupleValues){ override def millOuterCtx = ctx0 }
