@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index cbc7b7aaa..987a49cbc 100644
+index cbc7b7aaa..3d8826ab5 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,22 +2,12 @@
@@ -284,11 +284,13 @@ index cbc7b7aaa..987a49cbc 100644
      override def moduleDeps = Seq(scalajslib.`worker-api`)
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
-@@ -819,14 +591,15 @@ object contrib extends MillModule {
+@@ -818,19 +590,20 @@ object contrib extends MillModule {
+ 
      object api extends MillPublishModule
  
-     object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
+-    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
 -    class WorkerModule(playBinary: String) extends MillInternalModule {
++    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq)
 +    trait WorkerModule extends MillInternalModule with Cross.Module[String]{
 +      override def millSourcePath: os.Path = super.millSourcePath / crossValue
        override def sources = T.sources {
@@ -302,6 +304,11 @@ index cbc7b7aaa..987a49cbc 100644
        override def moduleDeps = Seq(playlib.api)
        override def ivyDeps = Agg(
          Deps.osLib,
+-        Deps.play(playBinary).routesCompiler
++        Deps.play(crossValue).routesCompiler
+       )
+     }
+   }
 @@ -1009,10 +782,10 @@ object scalanativelib extends MillModule {
      override def ivyDeps = Agg(Deps.sbtTestInterface)
    }
@@ -309,42 +316,53 @@ index cbc7b7aaa..987a49cbc 100644
 -  class WorkerModule(scalaNativeWorkerVersion: String)
 -      extends MillInternalModule {
 +  trait WorkerModule extends MillInternalModule with Cross.Module[String]{
-+    override def millSourcePath: os.Path = super.millSourcePath / cross.Value
++    override def millSourcePath: os.Path = super.millSourcePath / crossValue
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
 -    override def ivyDeps = scalaNativeWorkerVersion match {
-+    override def ivyDeps = cross.Value match {
++    override def ivyDeps = crossValue match {
        case "0.4" =>
          Agg(
            Deps.osLib,
-@@ -1170,7 +943,8 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1170,7 +943,9 @@ trait IntegrationTestModule extends MillScalaModule {
    }
  }
  
 -trait IntegrationTestCrossModule extends IntegrationTestModule {
 +trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module[String]{
++  def repoSlug = crossValue
 +  override def millSourcePath = super.millSourcePath / crossValue
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1186,7 +960,7 @@ object example extends MillScalaModule {
-   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
-   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
+@@ -1182,20 +957,20 @@ object example extends MillScalaModule {
+ 
+   def moduleDeps = Seq(integration)
+ 
+-  object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
+-  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
+-  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
++  object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
++  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))
++  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
  
 -  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
 +  trait ExampleCrossModule extends IntegrationTestCrossModule {
      def testRepoRoot: T[PathRef] = T.source(millSourcePath)
      def compile = example.compile()
    }
-@@ -1195,7 +969,7 @@ object example extends MillScalaModule {
+ }
+ 
  object integration extends MillScalaModule {
-   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
-   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
+-  object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
+-  object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
 -  class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestCrossModule
++  object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"))
++  object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"))
 +  trait IntegrationCrossModule extends IntegrationTestCrossModule
  
    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
  
-@@ -1725,53 +1499,7 @@ def launcher = T {
+@@ -1725,53 +1500,7 @@ def launcher = T {
  
  
  def uploadToGithub(authKey: String) = T.command {
