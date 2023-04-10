@@ -43,8 +43,9 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   private def runnerStdout(stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
 
+    println("+runnerStdout")
     val streams = new SystemStreams(stdout, stderr, stdIn)
-    mill.util.Util.withStreams(streams) {
+    val res = mill.util.Util.withStreams(streams) {
       val config = MillCliConfig(
         debugLog = Flag(debugLog),
         keepGoing = Flag(keepGoing),
@@ -78,9 +79,10 @@ abstract class IntegrationTestSuite extends TestSuite {
       )
 
       runnerState = newRunnerState
-
       (isSuccess, newRunnerState)
     }
+    println("-runnerStdout")
+    res
   }
 
   def eval(s: String*): Boolean = {

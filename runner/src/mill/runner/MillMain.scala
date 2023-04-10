@@ -9,6 +9,7 @@ import io.github.retronym.java9rtexport.Export
 import mill.api.{DummyInputStream, internal}
 import mill.main.BspServerResult
 import mill.api.SystemStreams
+import mill.util.PrintLogger
 
 @internal
 object MillMain {
@@ -244,9 +245,9 @@ object MillMain {
       infoColor = colors.info,
       errorColor = colors.error,
       systemStreams0 = streams,
-      infoStream0 = streams.err,
       debugEnabled = config.debugLog.value,
-      context = ""
+      context = "",
+      new PrintLogger.State()
     )
     logger
   }

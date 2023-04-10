@@ -8,6 +8,7 @@ import mill.api.Strict.Agg
 import java.io.{InputStream, PrintStream}
 import mill.define.{Input, Task}
 import mill.eval.Evaluator
+import mill.util.PrintLogger
 
 import language.experimental.macros
 import scala.collection.mutable
@@ -82,9 +83,9 @@ trait MillTestKit {
       mill.util.Colors.Default.info,
       mill.util.Colors.Default.error,
       new SystemStreams(outStream, outStream, inStream),
-      outStream,
       debugEnabled = debugEnabled,
-      context = ""
+      context = "",
+      new PrintLogger.State()
     ) {
       val prefix = {
         val idx = fullName.value.lastIndexOf(".")

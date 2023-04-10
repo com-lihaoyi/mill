@@ -2,8 +2,7 @@ package mill.testrunner
 
 import mill.api.Loose.Agg
 import mill.api.{Ctx, DummyTestReporter, Loose, SystemStreams, TestReporter}
-import mill.util.Jvm
-import mill.util.PrintLogger
+import mill.util.{Jvm, PrintLogger}
 import mill.api.JsonFormatters._
 import sbt.testing._
 
@@ -278,9 +277,9 @@ object TestRunner {
           if (testArgs.colored) fansi.Color.Red
           else fansi.Attrs.Empty,
           new SystemStreams(System.out, System.err, System.in),
-          System.err,
           debugEnabled = false,
-          context = ""
+          context = "",
+          new PrintLogger.State()
         )
         val home = os.Path(testArgs.homeStr)
       }
