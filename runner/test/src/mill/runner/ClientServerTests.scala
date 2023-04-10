@@ -3,7 +3,7 @@ package mill.runner
 import java.io._
 import mill.main.client.Util
 import mill.main.client.lock.Locks
-import mill.util.SystemStreams
+import mill.api.SystemStreams
 
 import scala.jdk.CollectionConverters._
 import utest._

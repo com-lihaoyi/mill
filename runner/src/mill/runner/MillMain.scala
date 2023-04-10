@@ -8,7 +8,7 @@ import scala.util.Properties
 import io.github.retronym.java9rtexport.Export
 import mill.api.{DummyInputStream, internal}
 import mill.main.BspServerResult
-import mill.util.SystemStreams
+import mill.api.SystemStreams
 
 @internal
 object MillMain {
@@ -243,10 +243,8 @@ object MillMain {
       enableTicker = enableTicker.getOrElse(mainInteractive),
       infoColor = colors.info,
       errorColor = colors.error,
-      outStream = streams.out,
-      infoStream = streams.err,
-      errStream = streams.err,
-      inStream = streams.in,
+      systemStreams0 = streams,
+      infoStream0 = streams.err,
       debugEnabled = config.debugLog.value,
       context = ""
     )

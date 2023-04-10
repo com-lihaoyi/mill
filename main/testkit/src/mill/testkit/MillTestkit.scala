@@ -1,15 +1,15 @@
 package mill.testkit
 
 import mill.define._
-import mill.api.Result
+import mill.api.{DummyInputStream, Result, SystemStreams}
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
+
 import java.io.{InputStream, PrintStream}
 import mill.define.{Input, Task}
 import mill.eval.Evaluator
-import language.experimental.macros
-import mill.api.{DummyInputStream, Result}
 
+import language.experimental.macros
 import scala.collection.mutable
 
 trait MillTestKit {
@@ -81,10 +81,8 @@ trait MillTestKit {
       enableTicker = true,
       mill.util.Colors.Default.info,
       mill.util.Colors.Default.error,
+      new SystemStreams(outStream, outStream, inStream),
       outStream,
-      outStream,
-      outStream,
-      inStream,
       debugEnabled = debugEnabled,
       context = ""
     ) {

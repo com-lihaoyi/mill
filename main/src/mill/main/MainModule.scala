@@ -250,7 +250,7 @@ trait MainModule extends mill.Module {
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
         evaluator.baseLogger match {
-          case p: PrintLogger => p.withOutStream(p.errStream)
+          case p: PrintLogger => p.withOutStream(p.errorStream)
           case l => l
         }
       ),
@@ -278,7 +278,7 @@ trait MainModule extends mill.Module {
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
         evaluator.baseLogger match {
-          case p: PrintLogger => p.withOutStream(outStream = p.errStream)
+          case p: PrintLogger => p.withOutStream(outStream = p.errorStream)
           case l => l
         }
       ),

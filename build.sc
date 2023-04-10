@@ -573,6 +573,7 @@ object main extends MillModule {
     override def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
+      Deps.fansi,
       Deps.sbtTestInterface
     )
   }
@@ -698,6 +699,7 @@ object scalalib extends MillModule with BuildInfo{
   }
   object api extends MillApiModule {
     override def moduleDeps = Seq(main.api)
+
   }
   object worker extends MillInternalModule with BuildInfo{
 

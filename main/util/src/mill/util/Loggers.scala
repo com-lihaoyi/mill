@@ -2,17 +2,17 @@ package mill.util
 
 import java.io._
 import java.nio.file.{Files, StandardOpenOption}
-
 import scala.util.DynamicVariable
-
-import mill.api.Logger
+import mill.api.{Logger, SystemStreams}
 
 object DummyLogger extends Logger {
   def colored = false
 
-  object errorStream extends PrintStream(_ => ())
-  object outputStream extends PrintStream(_ => ())
-  val inStream = new ByteArrayInputStream(Array())
+  val systemStreams = new SystemStreams(
+    new PrintStream(_ => ()),
+    new PrintStream(_ => ()),
+    new ByteArrayInputStream(Array())
+  )
 
   def info(s: String) = ()
   def error(s: String) = ()
@@ -75,16 +75,18 @@ class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = ""
 
   def infoColor = out.infoColor
   def errorColor = out.errorColor
-  override val errorStream = new PrintStream(new LinePrefixOutputStream(
-    infoColor(context).render,
-    out.errorStream
-  ))
-  override val outputStream = new PrintStream(new LinePrefixOutputStream(
-    infoColor(context).render,
-    out.outputStream
-  ))
 
-  override def inStream = out.inStream
+  val systemStreams = new SystemStreams(
+    new PrintStream(new LinePrefixOutputStream(
+      infoColor(context).render,
+      out.systemStreams.err
+    )),
+    new PrintStream(new LinePrefixOutputStream(
+      infoColor(context).render,
+      out.systemStreams.out
+    )),
+    out.systemStreams.in
+  )
 
   override def info(s: String): Unit = out.info(context + s)
 
@@ -149,22 +151,20 @@ class PrintLogger(
     val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
-    val outStream: PrintStream,
-    val infoStream: PrintStream,
-    val errStream: PrintStream,
-    override val inStream: InputStream,
+    val systemStreams0: SystemStreams,
+    val infoStream0: PrintStream,
     override val debugEnabled: Boolean,
     val context: String
 ) extends ColorLogger {
 
   var printState: PrintState = PrintState.Newline
 
-  override val errorStream: PrintStream = new PrintStream(
-    new CallbackStream(errStream, printState = _)
+  override val systemStreams = new SystemStreams(
+    new PrintStream(new CallbackStream(systemStreams0.out, printState = _)),
+    new PrintStream(new CallbackStream(systemStreams0.err, printState = _)),
+    systemStreams0.in
   )
-  override val outputStream: PrintStream = new PrintStream(
-    new CallbackStream(outStream, printState = _)
-  )
+  val infoStream = new PrintStream(new CallbackStream(infoStream0, printState = _))
 
   def info(s: String) = synchronized {
     printState = PrintState.Newline
@@ -173,7 +173,7 @@ class PrintLogger(
 
   def error(s: String) = synchronized {
     printState = PrintState.Newline
-    errStream.println((infoColor(context) ++ errorColor(s)).render)
+    systemStreams.err.println((infoColor(context) ++ errorColor(s)).render)
   }
 
   def ticker(s: String) = synchronized {
@@ -199,17 +199,16 @@ class PrintLogger(
     }
   }
 
-  def withOutStream(outStream: PrintStream): PrintLogger = copy(outStream = outStream)
+  def withOutStream(outStream: PrintStream): PrintLogger =
+    copy(systemStreams0 = new SystemStreams(outStream, systemStreams0.err, systemStreams0.in))
 
   private def copy(
       colored: Boolean = colored,
       enableTicker: Boolean = enableTicker,
       infoColor: fansi.Attrs = infoColor,
       errorColor: fansi.Attrs = errorColor,
-      outStream: PrintStream = outStream,
+      systemStreams0: SystemStreams = systemStreams0,
       infoStream: PrintStream = infoStream,
-      errStream: PrintStream = errStream,
-      inStream: InputStream = inStream,
       debugEnabled: Boolean = debugEnabled,
       context: String = context
   ): PrintLogger = new PrintLogger(
@@ -217,10 +216,8 @@ class PrintLogger(
     enableTicker,
     infoColor,
     errorColor,
-    outStream,
+    systemStreams0,
     infoStream,
-    errStream,
-    inStream,
     debugEnabled,
     context
   )
@@ -228,7 +225,7 @@ class PrintLogger(
   def debug(s: String) = synchronized {
     if (debugEnabled) {
       printState = PrintState.Newline
-      errStream.println(context + s)
+      systemStreams.err.println(context + s)
     }
   }
 }
@@ -241,7 +238,7 @@ class FileLogger(
 ) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
 
-  lazy val outputStream = {
+  lazy val fileStream = {
 
     val options = Seq(
       Seq(StandardOpenOption.CREATE, StandardOpenOption.WRITE),
@@ -271,13 +268,11 @@ class FileLogger(
     })
   }
 
-  lazy val errorStream = outputStream
-
+  val systemStreams = new SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
   def info(s: String) = outputStream.println(s)
   def error(s: String) = outputStream.println(s)
   def ticker(s: String) = outputStream.println(s)
   def debug(s: String) = if (debugEnabled) outputStream.println(s)
-  val inStream: InputStream = mill.api.DummyInputStream
   override def close() = {
     if (outputStreamUsed)
       outputStream.close()
@@ -312,13 +307,15 @@ class MultiLogger(
     val colored: Boolean,
     val logger1: Logger,
     val logger2: Logger,
-    val inStream: InputStream,
+    val inStream0: InputStream,
     override val debugEnabled: Boolean
 ) extends Logger {
 
-  lazy val outputStream: PrintStream = new MultiStream(logger1.outputStream, logger2.outputStream)
-
-  lazy val errorStream: PrintStream = new MultiStream(logger1.errorStream, logger2.errorStream)
+  lazy val systemStreams = new SystemStreams(
+    new MultiStream(logger1.systemStreams.out, logger2.systemStreams.out),
+    new MultiStream(logger1.systemStreams.err, logger2.systemStreams.err),
+    inStream0
+  )
 
   def info(s: String) = {
     logger1.info(s)
@@ -352,9 +349,7 @@ class MultiLogger(
 class ProxyLogger(logger: Logger) extends Logger {
   def colored = logger.colored
 
-  lazy val outputStream = logger.outputStream
-  lazy val errorStream = logger.errorStream
-  lazy val inStream = logger.inStream
+  lazy val systemStreams = logger.systemStreams
 
   def info(s: String) = logger.info(s)
   def error(s: String) = logger.error(s)

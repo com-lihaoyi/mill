@@ -4,7 +4,7 @@ import mainargs.Flag
 import mill.MillCliConfig
 import mill.define.SelectMode
 import mill.runner.{MillBuildBootstrap, MillMain, RunnerState, Watching}
-import mill.util.SystemStreams
+import mill.api.SystemStreams
 import os.Path
 import utest._
 
@@ -44,41 +44,43 @@ abstract class IntegrationTestSuite extends TestSuite {
   private def runnerStdout(stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
 
     val streams = new SystemStreams(stdout, stderr, stdIn)
-    val config = MillCliConfig(
-      debugLog = Flag(debugLog),
-      keepGoing = Flag(keepGoing),
-      disableTicker = Flag(disableTicker)
-    )
-    val logger = mill.runner.MillMain.getLogger(
-      streams,
-      config,
-      mainInteractive = false,
-      enableTicker = Some(false)
-    )
+    mill.util.Util.withStreams(streams) {
+      val config = MillCliConfig(
+        debugLog = Flag(debugLog),
+        keepGoing = Flag(keepGoing),
+        disableTicker = Flag(disableTicker)
+      )
+      val logger = mill.runner.MillMain.getLogger(
+        streams,
+        config,
+        mainInteractive = false,
+        enableTicker = Some(false)
+      )
 
-    val (isSuccess, newRunnerState) = Watching.watchLoop(
-      logger = logger,
-      ringBell = config.ringBell.value,
-      watch = config.watch.value,
-      streams = streams,
-      setIdle = _ => (),
-      evaluate = (prevStateOpt: Option[RunnerState]) => {
-        MillMain.adjustJvmProperties(userSpecifiedProperties, sys.props.toMap)
-        new MillBuildBootstrap(
-          projectRoot = wd,
-          config = config,
-          env = Map.empty,
-          threadCount = threadCount,
-          targetsAndParams = s.toList,
-          prevRunnerState = runnerState,
-          logger = logger
-        ).evaluate()
-      }
-    )
+      val (isSuccess, newRunnerState) = Watching.watchLoop(
+        logger = logger,
+        ringBell = config.ringBell.value,
+        watch = config.watch.value,
+        streams = streams,
+        setIdle = _ => (),
+        evaluate = (prevStateOpt: Option[RunnerState]) => {
+          MillMain.adjustJvmProperties(userSpecifiedProperties, sys.props.toMap)
+          new MillBuildBootstrap(
+            projectRoot = wd,
+            config = config,
+            env = Map.empty,
+            threadCount = threadCount,
+            targetsAndParams = s.toList,
+            prevRunnerState = runnerState,
+            logger = logger
+          ).evaluate()
+        }
+      )
 
-    runnerState = newRunnerState
+      runnerState = newRunnerState
 
-    (isSuccess, newRunnerState)
+      (isSuccess, newRunnerState)
+    }
   }
 
   def eval(s: String*): Boolean = {
@@ -86,22 +88,19 @@ abstract class IntegrationTestSuite extends TestSuite {
     else evalFork(os.Inherit, os.Inherit, s)
   }
 
+  class ByteArrayOutputPrintStreams() {
+    val byteArrayOutputStream = new ByteArrayOutputStream
+    val printStream = new PrintStream(byteArrayOutputStream)
+    def text() = byteArrayOutputStream.toString("UTF-8").linesIterator.mkString("\n")
+  }
+
   def evalStdout(s: String*): IntegrationTestSuite.EvalResult = {
     if (integrationTestMode == "local") {
-      val outputStream = new ByteArrayOutputStream
-      val errorStream = new ByteArrayOutputStream
-      val printOutStream = new PrintStream(outputStream)
-      val printErrStream = new PrintStream(errorStream)
-      val result = runnerStdout(printOutStream, printErrStream, s.toList)
-      val stdoutArray = outputStream.toByteArray
-      val stdout: Seq[String] =
-        if (stdoutArray.isEmpty) Seq.empty
-        else new String(stdoutArray).split('\n')
-      val stderrArray = errorStream.toByteArray
-      val stderr: Seq[String] =
-        if (stderrArray.isEmpty) Seq.empty
-        else new String(stderrArray).split('\n')
-      IntegrationTestSuite.EvalResult(result._1, stdout.mkString("\n"), stderr.mkString("\n"))
+      val outputStream = new ByteArrayOutputPrintStreams()
+      val errorStream = new ByteArrayOutputPrintStreams()
+      val result = runnerStdout(outputStream.printStream, errorStream.printStream, s.toList)
+
+      IntegrationTestSuite.EvalResult(result._1, outputStream.text(), errorStream.text())
     } else {
       val output = Seq.newBuilder[String]
       val error = Seq.newBuilder[String]

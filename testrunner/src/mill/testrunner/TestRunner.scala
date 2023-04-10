@@ -1,7 +1,7 @@
 package mill.testrunner
 
 import mill.api.Loose.Agg
-import mill.api.{Ctx, DummyTestReporter, Loose, TestReporter}
+import mill.api.{Ctx, DummyTestReporter, Loose, SystemStreams, TestReporter}
 import mill.util.Jvm
 import mill.util.PrintLogger
 import mill.api.JsonFormatters._
@@ -277,10 +277,8 @@ object TestRunner {
           else fansi.Attrs.Empty,
           if (testArgs.colored) fansi.Color.Red
           else fansi.Attrs.Empty,
-          System.out,
+          new SystemStreams(System.out, System.err, System.in),
           System.err,
-          System.err,
-          System.in,
           debugEnabled = false,
           context = ""
         )
