@@ -699,7 +699,6 @@ object scalalib extends MillModule with BuildInfo{
   }
   object api extends MillApiModule {
     override def moduleDeps = Seq(main.api)
-
   }
   object worker extends MillInternalModule with BuildInfo{
 

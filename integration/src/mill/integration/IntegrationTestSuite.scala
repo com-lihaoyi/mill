@@ -5,6 +5,7 @@ import mill.MillCliConfig
 import mill.define.SelectMode
 import mill.runner.{MillBuildBootstrap, MillMain, RunnerState, Watching}
 import mill.api.SystemStreams
+import mill.util.PrintLogger
 import os.Path
 import utest._
 
@@ -55,7 +56,8 @@ abstract class IntegrationTestSuite extends TestSuite {
         streams,
         config,
         mainInteractive = false,
-        enableTicker = Some(false)
+        enableTicker = Some(false),
+        new PrintLogger.State()
       )
 
       val (isSuccess, newRunnerState) = Watching.watchLoop(
