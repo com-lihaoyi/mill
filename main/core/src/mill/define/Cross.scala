@@ -37,6 +37,7 @@ object Cross {
           val primaryConstructorArgs =
             tpe.typeSymbol.asClass.primaryConstructor.typeSignature.paramLists.head
 
+          println(tpe.typeSymbol.asClass.primaryConstructor.typeSignature.paramLists)
           val oldArgStr = primaryConstructorArgs
             .map{ s => s"${s.name}: ${s.typeSignature}" }
             .mkString(", ")
@@ -50,22 +51,30 @@ object Cross {
 
           c.abort(
             c.enclosingPosition,
-            s"""Cross type $tpe must be trait, not a class. Please change:
+            s"""
+               |Cross type $tpe must be trait, not a class. Please change:
                |
-               |class Foo($oldArgStr)
+               |  class Foo($oldArgStr)
                |
-               |to:
+               |To:
                |
-               |trait Foo extends Cross.Module[${parenWrap(newTypeStr)}]{
-               |  val ${parenWrap(newForwarderStr)} = crossVersion
-               |}
+               |  trait Foo extends Cross.Module[${parenWrap(newTypeStr)}]{
+               |    val ${parenWrap(newForwarderStr)} = crossValue
+               |  }
+               |
+               |You also no longer use `: _*` when instantiating a cross-module:
+               |
+               |  Cross[Cross](crossMatrix:_*)
+               |
+               |Instead, you can pass the sequence directly:
+               |
+               |  Cross[Cross](crossMatrix)
                |
                |Note that the `millSourcePath` of cross modules has changed in
                |Mill 0.11.0, an no longer includes the cross values by default.
                |If you have `def millSourcePath = super.millSourcePath / os.up`,
                |you may remove it. If you do not have this definition, you can
                |preserve the old behavior via `def millSourcePath = super.millSourcePath / crossValue`
-               |
                |
                |""".stripMargin
           )
