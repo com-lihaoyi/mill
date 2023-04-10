@@ -13,28 +13,24 @@ class PrintLogger(
     val systemStreams0: SystemStreams,
     override val debugEnabled: Boolean,
     val context: String,
-    printState: PrintLogger.State
+    printLoggerState: PrintLogger.State
 ) extends ColorLogger {
 
-  override val systemStreams = new SystemStreams(
-    new PrintStream(new PrintLogger.StateStream(systemStreams0.out, printState.value = _)),
-    new PrintStream(new PrintLogger.StateStream(systemStreams0.err, printState.value = _)),
-    systemStreams0.in
-  )
+  override val systemStreams = PrintLogger.wrapSystemStreams(systemStreams0, printLoggerState) 
 
   def info(s: String) = synchronized {
-    printState.value = PrintLogger.State.Newline
+    printLoggerState.value = PrintLogger.State.Newline
     systemStreams.err.println(infoColor(context + s))
   }
 
   def error(s: String) = synchronized {
-    printState.value = PrintLogger.State.Newline
+    printLoggerState.value = PrintLogger.State.Newline
     systemStreams.err.println((infoColor(context) ++ errorColor(s)).render)
   }
 
   def ticker(s: String) = synchronized {
     if (enableTicker) {
-      printState.value match {
+      printLoggerState.value match {
         case PrintLogger.State.Newline =>
           systemStreams.err.println(infoColor(s))
         case PrintLogger.State.Middle =>
@@ -51,7 +47,7 @@ class PrintLogger(
 
           systemStreams.err.println(infoColor(s))
       }
-      printState.value = PrintLogger.State.Ticker
+      printLoggerState.value = PrintLogger.State.Ticker
     }
   }
 
@@ -66,7 +62,7 @@ class PrintLogger(
                     systemStreams0: SystemStreams = systemStreams0,
                     debugEnabled: Boolean = debugEnabled,
                     context: String = context,
-                    printState: PrintLogger.State = printState,
+                    printLoggerState: PrintLogger.State = printLoggerState,
   ): PrintLogger = new PrintLogger(
     colored,
     enableTicker,
@@ -75,12 +71,12 @@ class PrintLogger(
     systemStreams0,
     debugEnabled,
     context,
-    printState
+    printLoggerState
   )
 
   def debug(s: String) = synchronized {
     if (debugEnabled) {
-      printState.value = PrintLogger.State.Newline
+      printLoggerState.value = PrintLogger.State.Newline
       systemStreams.err.println(context + s)
     }
   }
@@ -88,11 +84,18 @@ class PrintLogger(
 
 object PrintLogger{
 
+  def wrapSystemStreams(systemStreams0: SystemStreams, printLoggerState: State) = {
+    new SystemStreams(
+      new PrintStream(new PrintLogger.StateStream(systemStreams0.out, printLoggerState.value = _)),
+      new PrintStream(new PrintLogger.StateStream(systemStreams0.err, printLoggerState.value = _)),
+      systemStreams0.in
+    )
+  }
   class StateStream(wrapped: OutputStream,
-                    setPrintState0: State.Value => Unit) extends OutputStream {
+                    setprintLoggerState0: State.Value => Unit) extends OutputStream {
 
 
-    private[this] def setPrintState(c: Char) = setPrintState0(
+    private[this] def setprintLoggerState(c: Char) = setprintLoggerState0(
       c match {
         case '\n' => State.Newline
         case '\r' => State.Newline
@@ -101,17 +104,17 @@ object PrintLogger{
     )
 
     override def write(b: Array[Byte]): Unit = synchronized {
-      if (b.nonEmpty) setPrintState(b(b.length - 1).toChar)
+      if (b.nonEmpty) setprintLoggerState(b(b.length - 1).toChar)
       wrapped.write(b)
     }
 
     override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
-      if (len != 0) setPrintState(b(off + len - 1).toChar)
+      if (len != 0) setprintLoggerState(b(off + len - 1).toChar)
       wrapped.write(b, off, len)
     }
 
     override def write(b: Int): Unit = synchronized {
-      setPrintState(b.toChar)
+      setprintLoggerState(b.toChar)
       wrapped.write(b)
     }
 
