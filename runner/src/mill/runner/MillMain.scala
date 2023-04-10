@@ -113,7 +113,8 @@ object MillMain {
             streams,
             config,
             mainInteractive,
-            enableTicker = if (config.disableTicker.value) Some(false) else config.enableTicker
+            enableTicker = if (config.disableTicker.value) Some(false) else config.enableTicker,
+            printLoggerState
           )
           if (!config.silent.value) {
             checkMillVersionFromFile(os.pwd, streams.err)
