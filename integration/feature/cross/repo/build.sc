@@ -4,7 +4,7 @@ import mill.define.{Cross, Module}
 import mill.scalalib._
 
 object topCross extends Cross[TopCross]("a", "b")
-trait TopCross extends Module {
+trait TopCross extends Cross.Module[String] {
   def param1 = T { crossValue }
   def path = T { PathRef(millSourcePath) }
 }
