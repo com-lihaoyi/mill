@@ -97,16 +97,17 @@ object Cross {
  *   ... crossValue ...
  * }
  */
-class Cross[M <: Cross.Module[_]](cases: Cross.CrossSeq[T forSome { type T; type X >: M <: Cross.Module[T] }]*)(implicit
+class Cross[M <: Cross.Module[_]](cases0: Cross.CrossSeq[T forSome { type T; type X >: M <: Cross.Module[T] }]*)(implicit
     ci: Cross.Factory[M, Any],
     ctx: mill.define.Ctx
 ) extends mill.define.Module()(ctx) {
 
+  val cases = cases0.flatMap(_.value).toList
   override lazy val millModuleDirectChildren: Seq[Module] =
     super.millModuleDirectChildren ++
       items.collect { case (_, v: mill.define.Module) => v }
 
-  val items: List[(List[Any], M)] = for (c <- cases.toList) yield {
+  val items: List[(List[Any], M)] = for (c <- cases) yield {
     val crossValues = (c match {
       case p: Product => p
       case v => Tuple1(v)
