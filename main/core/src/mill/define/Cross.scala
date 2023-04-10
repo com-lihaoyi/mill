@@ -18,6 +18,10 @@ object Cross {
 
       if (tpe.typeSymbol.isClass) {
         if (tpe.typeSymbol.asClass.isTrait) {
+          if (!(tpe <:< typeOf[Module[_]])) c.abort(
+            c.enclosingPosition,
+            s"Cross type $tpe must implement Cross.Module[T]"
+          )
           val crossType = tpe.baseType(typeOf[Module[_]].typeSymbol).typeArgs.head
           val v1 = c.freshName(TermName("v1"))
           val ctx0 = c.freshName(TermName("ctx0"))
@@ -33,33 +37,44 @@ object Cross {
           val primaryConstructorArgs =
             tpe.typeSymbol.asClass.primaryConstructor.typeSignature.paramLists.head
 
-          val argTupleValues =
-            for ((a, n) <- primaryConstructorArgs.zipWithIndex)
-              yield q"(v match { case p: Product => p case v => Tuple1(v)}).productElement($n).asInstanceOf[${a.info}]"
+          val oldArgStr = primaryConstructorArgs
+            .map{ s => s"${s.name}: ${s.typeSignature}" }
+            .mkString(", ")
 
-          // We need to do this weird `override def millOuterCtx` here because
-          // typically the class-based cross modules do not have the proper
-          // implicit parameters defined, so the implicit `outerCtx0` gets
-          // picked up from the class-definition site rather than the class
-          // instantiation site.
-          val instance = c.Expr[(Any, mill.define.Ctx) => T](
-            q"""{ (v, ctx0) =>
-              new $tpe(..$argTupleValues){ override def millOuterCtx = ctx0 }
-            }"""
+          def parenWrap(s: String) =
+            if (primaryConstructorArgs.size == 1) s
+            else s"($s)"
+
+          val newTypeStr = primaryConstructorArgs.map(_.typeSignature.toString).mkString(", ")
+          val newForwarderStr = primaryConstructorArgs.map(_.name.toString).mkString(", ")
+
+          c.abort(
+            c.enclosingPosition,
+            s"""Cross type $tpe must be trait, not a class. Please change:
+               |
+               |class Foo($oldArgStr)
+               |
+               |to:
+               |
+               |trait Foo extends Cross.Module[${parenWrap(newTypeStr)}]{
+               |  val ${parenWrap(newForwarderStr)} = crossVersion
+               |}
+               |
+               |Note that the `millSourcePath` of cross modules has changed in
+               |Mill 0.11.0, an no longer includes the cross values by default.
+               |If you have `def millSourcePath = super.millSourcePath / os.up`,
+               |you may remove it. If you do not have this definition, you can
+               |preserve the old behavior via `def millSourcePath = super.millSourcePath / crossValue`
+               |
+               |
+               |""".stripMargin
           )
-          reify { mill.define.Cross.Factory[T, Any](instance.splice) }
         }
       } else {
-        c.abort(c.enclosingPosition, "Cross[T] type must be class or trait")
+        c.abort(c.enclosingPosition, s"Cross type $tpe must be trait")
       }
     }
   }
-
-  class Of[M <: Module[_]](cases: CrossSeq[T forSome { type T; type X >: M <: Module[T] }]*)(
-      implicit
-      ci: Cross.Factory[M, Any],
-      ctx: mill.define.Ctx
-  ) extends Cross[M](cases.flatMap(_.value.map(x => x: Any)): _*)
 
   case class CrossSeq[+T](value: Seq[T])
   object CrossSeq {
@@ -67,7 +82,7 @@ object Cross {
     implicit def ofMultiple[T](ts: Seq[T]): CrossSeq[T] = CrossSeq(ts)
   }
 
-  trait Resolver[-T <: mill.define.Module] {
+  trait Resolver[-T <: Cross.Module[_]] {
     def resolve[V <: T](c: Cross[V]): V
   }
 }
@@ -77,13 +92,13 @@ object Cross {
  * value of one or more "case" variables whose values are determined at runtime.
  * Used via:
  *
- * object foo extends Cross.Of[FooModule]("bar", "baz", "qux")
+ * object foo extends Cross[FooModule]("bar", "baz", "qux")
  * class FooModule extends Module{
  *   ... crossValue ...
  * }
  */
-class Cross[T <: Module](cases: Any*)(implicit
-    ci: Cross.Factory[T, Any],
+class Cross[M <: Cross.Module[_]](cases: Cross.CrossSeq[T forSome { type T; type X >: M <: Cross.Module[T] }]*)(implicit
+    ci: Cross.Factory[M, Any],
     ctx: mill.define.Ctx
 ) extends mill.define.Module()(ctx) {
 
@@ -91,7 +106,7 @@ class Cross[T <: Module](cases: Any*)(implicit
     super.millModuleDirectChildren ++
       items.collect { case (_, v: mill.define.Module) => v }
 
-  val items: List[(List[Any], T)] = for (c <- cases.toList) yield {
+  val items: List[(List[Any], M)] = for (c <- cases.toList) yield {
     val crossValues = (c match {
       case p: Product => p
       case v => Tuple1(v)
@@ -107,24 +122,24 @@ class Cross[T <: Module](cases: Any*)(implicit
     )
     (crossValues, sub)
   }
-  val itemMap: Map[List[Any], T] = items.toMap
+  val itemMap: Map[List[Any], M] = items.toMap
 
   /**
    * Fetch the cross module corresponding to the given cross values
    */
-  def get(args: Seq[Any]): T = itemMap(args.toList)
+  def get(args: Seq[Any]): M = itemMap(args.toList)
 
   /**
    * Fetch the cross module corresponding to the given cross values
    */
-  def apply(arg0: Any, args: Any*): T = itemMap(arg0 :: args.toList)
+  def apply(arg0: Any, args: Any*): M = itemMap(arg0 :: args.toList)
 
   /**
    * Fetch the relevant cross module given the implicit resolver you have in
    * scope. This is often the first cross module whose cross-version is
    * compatible with the current module.
    */
-  def apply[V >: T <: Module]()(implicit resolver: Cross.Resolver[V]): T = {
-    resolver.resolve(this.asInstanceOf[Cross[V]]).asInstanceOf[T]
+  def apply[V >: M <: Cross.Module[_]]()(implicit resolver: Cross.Resolver[V]): M = {
+    resolver.resolve(this.asInstanceOf[Cross[V]]).asInstanceOf[M]
   }
 }

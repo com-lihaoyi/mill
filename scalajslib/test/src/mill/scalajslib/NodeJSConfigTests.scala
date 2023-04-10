@@ -36,7 +36,7 @@ object NodeJSConfigTests extends TestSuite {
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)
     } yield (scala, nodeArgs)
 
-    object helloJsWorld extends Cross.Of[RootModule](matrix)
+    object helloJsWorld extends Cross[RootModule](matrix)
     trait RootModule extends HelloJSWorldModule {
 
       override def artifactName = "hello-js-world"
@@ -44,7 +44,7 @@ object NodeJSConfigTests extends TestSuite {
       override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
     }
 
-    object buildUTest extends Cross.Of[BuildModuleUtest](matrix)
+    object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }

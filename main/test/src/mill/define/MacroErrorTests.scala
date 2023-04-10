@@ -147,7 +147,7 @@ object MacroErrorTests extends TestSuite {
       val error = utest.compileError(
         """
         object foo extends mill.util.TestUtil.BaseModule{
-          object cross extends Cross.Of[MyCrossModule](1, 2, 3)
+          object cross extends Cross[MyCrossModule](1, 2, 3)
           trait MyCrossModule extends Cross.Module[String]
         }
       """

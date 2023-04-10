@@ -44,7 +44,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule
   }
   object CrossHelloWorld extends HelloBase {
-    object core extends Cross.Of[HelloWorldCross](
+    object core extends Cross[HelloWorldCross](
           scala210Version,
           scala211Version,
           scala2123Version,

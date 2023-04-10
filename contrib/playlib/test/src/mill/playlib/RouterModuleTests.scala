@@ -19,7 +19,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
 
   object HelloWorld extends HelloBase {
 
-    object core extends Cross.Of[CoreCrossModule](matrix)
+    object core extends Cross[CoreCrossModule](matrix)
     trait CoreCrossModule extends HelloWorldModule with Cross.Module[(String, String)] {
       val (crossScalaVersion, crossPlayVersion) = crossValue
       def scalaVersion = crossScalaVersion

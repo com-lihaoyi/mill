@@ -8,7 +8,7 @@ import utest.{TestSuite, Tests, assert, _}
 object PlayModuleTests extends TestSuite with PlayTestSuite {
 
   object playmulti extends TestUtil.BaseModule {
-    object core extends Cross.Of[CoreCrossModule](matrix)
+    object core extends Cross[CoreCrossModule](matrix)
     trait CoreCrossModule extends PlayModule with Cross.Module[(String, String)] {
       val (crossScalaVersion, crossPlayVersion) = crossValue
       override def playVersion = crossPlayVersion

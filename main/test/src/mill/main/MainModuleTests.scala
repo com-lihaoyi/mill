@@ -31,7 +31,7 @@ object MainModuleTests extends TestSuite {
         super.target() ++ Seq(PathRef(T.dest))
       }
     }
-    object bazz extends Cross.Of[Bazz]("1", "2", "3")
+    object bazz extends Cross[Bazz]("1", "2", "3")
     trait Bazz extends Cleanable with Cross.Module[String]
 
     def all = T {

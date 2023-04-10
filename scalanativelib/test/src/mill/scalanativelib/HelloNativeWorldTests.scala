@@ -41,7 +41,7 @@ object HelloNativeWorldTests extends TestSuite {
       if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04)
     } yield (scala, scalaNative, mode: ReleaseMode)
 
-    object helloNativeWorld extends Cross.Of[RootModule](matrix)
+    object helloNativeWorld extends Cross[RootModule](matrix)
     trait RootModule extends HelloNativeWorldModule {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
@@ -56,7 +56,7 @@ object HelloNativeWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
-    object buildUTest extends Cross.Of[BuildModuleUtest](matrix)
+    object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
