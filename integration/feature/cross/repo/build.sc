@@ -10,7 +10,7 @@ trait TopCross extends Module {
 }
 
 object topCross2 extends Cross[TopCross2](("a", "1"), ("b", "2"))
-trait TopCross extends Cross.Module[String] {
+trait TopCross2 extends Cross.Module[String] {
   val (p1, p2) = crossValue
   def param1 = T { p1 }
   def param2 = T { p2 }
