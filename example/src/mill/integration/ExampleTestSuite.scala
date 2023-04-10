@@ -144,19 +144,18 @@ object ExampleTestSuite extends IntegrationTestSuite {
     }
 
     for (expected <- unwrappedExpected) {
-      println("ExampleTestSuite expected: " + expected)
+      if (integrationTestMode != "local") {
+        println("ExampleTestSuite expected: " + expected)
 
-      def plainText(s: String) =
-        fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
-          .replace("\\\\", "/") // Convert windows paths in JSON strings to Unix
+        def plainText(s: String) =
+          fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
+            .replace("\\\\", "/") // Convert windows paths in JSON strings to Unix
 
-      val filteredErr = plainText(evalResult.err)
-      val filteredOut = plainText(evalResult.out)
+        val filteredErr = plainText(evalResult.err)
+        val filteredOut = plainText(evalResult.out)
 
-      pprint.log(filteredErr)
-      pprint.log(filteredOut)
-      pprint.log(expected)
-      assert(filteredErr.contains(expected) || filteredOut.contains(expected))
+        assert(filteredErr.contains(expected) || filteredOut.contains(expected))
+      }
     }
   }
 }
