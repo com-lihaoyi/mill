@@ -10,13 +10,12 @@ class PrintLogger(
     val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
-    val systemStreams0: SystemStreams,
+    val systemStreams: SystemStreams,
     override val debugEnabled: Boolean,
     val context: String,
     printLoggerState: PrintLogger.State
 ) extends ColorLogger {
 
-  override val systemStreams = PrintLogger.wrapSystemStreams(systemStreams0, printLoggerState) 
 
   def info(s: String) = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
@@ -52,14 +51,14 @@ class PrintLogger(
   }
 
   def withOutStream(outStream: PrintStream): PrintLogger =
-    copy(systemStreams0 = new SystemStreams(outStream, systemStreams0.err, systemStreams0.in))
+    copy(systemStreams = new SystemStreams(outStream, systemStreams.err, systemStreams.in))
 
   private def copy(
                     colored: Boolean = colored,
                     enableTicker: Boolean = enableTicker,
                     infoColor: fansi.Attrs = infoColor,
                     errorColor: fansi.Attrs = errorColor,
-                    systemStreams0: SystemStreams = systemStreams0,
+                    systemStreams: SystemStreams = systemStreams,
                     debugEnabled: Boolean = debugEnabled,
                     context: String = context,
                     printLoggerState: PrintLogger.State = printLoggerState,
@@ -68,7 +67,7 @@ class PrintLogger(
     enableTicker,
     infoColor,
     errorColor,
-    systemStreams0,
+    systemStreams,
     debugEnabled,
     context,
     printLoggerState

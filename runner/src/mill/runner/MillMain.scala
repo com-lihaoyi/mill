@@ -50,14 +50,15 @@ object MillMain {
       args: Array[String],
       stateCache: RunnerState,
       mainInteractive: Boolean,
-      streams: SystemStreams,
+      streams0: SystemStreams,
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties0: Map[String, String],
       initialSystemProperties: Map[String, String]
   ): (Boolean, RunnerState) = {
     val printLoggerState = new PrintLogger.State()
-    Util.withStreams(PrintLogger.wrapSystemStreams(streams, printLoggerState)){
+    val streams = PrintLogger.wrapSystemStreams(streams0, printLoggerState)
+    Util.withStreams(streams){
       MillCliConfigParser.parse(args) match {
         // Cannot parse args
         case Left(msg) =>
@@ -243,7 +244,7 @@ object MillMain {
       enableTicker = enableTicker.getOrElse(mainInteractive),
       infoColor = colors.info,
       errorColor = colors.error,
-      systemStreams0 = streams,
+      systemStreams = streams,
       debugEnabled = config.debugLog.value,
       context = "",
       printLoggerState
