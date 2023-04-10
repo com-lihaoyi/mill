@@ -12,7 +12,7 @@ object app extends RootModule with AppScalaModule{
 
   def moduleDeps = Seq(shared.jvm)
 
-  def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.0")
+  def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
 
   def resources = T{
     os.makeDir(T.dest / "webapp")
@@ -32,8 +32,7 @@ object app extends RootModule with AppScalaModule{
   }
 
   object shared extends Module{
-    trait SharedModule extends AppScalaModule{
-      def millSourcePath = super.millSourcePath / os.up
+    trait SharedModule extends AppScalaModule with PlatformScalaModule {
 
       def ivyDeps = Agg(
         ivy"com.lihaoyi::scalatags::0.12.0",

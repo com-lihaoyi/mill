@@ -47,15 +47,15 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSJsEnvIvyDeps: Target[Agg[Dep]] = T {
     val dep = jsEnvConfig() match {
       case _: JsEnvConfig.NodeJs =>
-        ivy"${ScalaJSBuildInfo.Deps.scalajsEnvNodejs}"
+        ivy"${ScalaJSBuildInfo.scalajsEnvNodejs}"
       case _: JsEnvConfig.JsDom =>
-        ivy"${ScalaJSBuildInfo.Deps.scalajsEnvJsdomNodejs}"
+        ivy"${ScalaJSBuildInfo.scalajsEnvJsdomNodejs}"
       case _: JsEnvConfig.ExoegoJsDomNodeJs =>
-        ivy"${ScalaJSBuildInfo.Deps.scalajsEnvExoegoJsdomNodejs}"
+        ivy"${ScalaJSBuildInfo.scalajsEnvExoegoJsdomNodejs}"
       case _: JsEnvConfig.Phantom =>
-        ivy"${ScalaJSBuildInfo.Deps.scalajsEnvPhantomJs}"
+        ivy"${ScalaJSBuildInfo.scalajsEnvPhantomJs}"
       case _: JsEnvConfig.Selenium =>
-        ivy"${ScalaJSBuildInfo.Deps.scalajsEnvSelenium}"
+        ivy"${ScalaJSBuildInfo.scalajsEnvSelenium}"
     }
 
     Agg(dep)
