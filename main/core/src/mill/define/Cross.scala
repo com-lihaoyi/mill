@@ -52,23 +52,23 @@ object Cross {
           c.abort(
             c.enclosingPosition,
             s"""
-               |Cross type $tpe must be trait, not a class. Please change:
+               |Cross type ${tpe.typeSymbol.name} must be trait, not a class. Please change:
                |
-               |  class Foo($oldArgStr)
+               |  class ${tpe.typeSymbol.name}($oldArgStr)
                |
                |To:
                |
-               |  trait Foo extends Cross.Module[${parenWrap(newTypeStr)}]{
+               |  trait ${tpe.typeSymbol.name} extends Cross.Module[${parenWrap(newTypeStr)}]{
                |    val ${parenWrap(newForwarderStr)} = crossValue
                |  }
                |
                |You also no longer use `: _*` when instantiating a cross-module:
                |
-               |  Cross[Cross](crossMatrix:_*)
+               |  Cross[${tpe.typeSymbol.name}](values:_*)
                |
                |Instead, you can pass the sequence directly:
                |
-               |  Cross[Cross](crossMatrix)
+               |  Cross[${tpe.typeSymbol.name}](values)
                |
                |Note that the `millSourcePath` of cross modules has changed in
                |Mill 0.11.0, an no longer includes the cross values by default.
