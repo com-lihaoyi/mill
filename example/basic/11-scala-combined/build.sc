@@ -23,7 +23,7 @@ trait MyScalaModule extends  MyModule with CrossScalaModule{
 
 val scalaVersions = Seq("2.13.10", "3.2.2")
 
-object foo extends Cross[FooModule](scalaVersions:_*)
+object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends MyScalaModule {
   def moduleDeps = Seq(bar(), qux)
 
@@ -40,7 +40,7 @@ trait FooModule extends MyScalaModule {
   }
 }
 
-object bar extends Cross[BarModule](scalaVersions:_*)
+object bar extends Cross[BarModule](scalaVersions)
 trait BarModule extends MyScalaModule {
   def moduleDeps = Seq(qux)
 }

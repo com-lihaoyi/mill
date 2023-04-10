@@ -2,12 +2,12 @@ import mill._, scalalib._
 
 val scalaVersions = Seq("2.12.17", "2.13.10", "3.2.2")
 
-object foo extends Cross[FooModule](scalaVersions:_*)
+object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends CrossScalaModule{
   def moduleDeps = Seq(bar())
 }
 
-object bar extends Cross[BarModule](scalaVersions:_*)
+object bar extends Cross[BarModule](scalaVersions)
 trait BarModule extends CrossScalaModule
 
 // This is an example of cross-building a module across multiple Scala
