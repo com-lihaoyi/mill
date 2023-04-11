@@ -109,7 +109,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         (ivy"$org:$name:$version", name, version)
       } else if (ZincWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
         val org = "com.lihaoyi"
-        val name = s"mill-compiler-bridge_$scalaVersion"
+        val name = s"mill-scala-compiler-bridge_$scalaVersion"
         val version = Versions.millCompilerBridgeVersion
         (ivy"$org:$name:$version", name, version)
       } else {

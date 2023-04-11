@@ -224,7 +224,7 @@ object bridge extends Cross[BridgeModule](buildBridgeScalaVersions: _*)
 class BridgeModule(val crossScalaVersion: String) extends PublishModule with CrossScalaModule {
   def scalaVersion = crossScalaVersion
   def publishVersion = bridgeVersion
-  def artifactName = T{ "mill-compiler-bridge" }
+  def artifactName = T{ "mill-scala-compiler-bridge" }
   def pomSettings = commonPomSettings(artifactName())
   def crossFullScalaVersion = true
   def ivyDeps = Agg(
