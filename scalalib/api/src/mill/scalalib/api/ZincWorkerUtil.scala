@@ -110,7 +110,8 @@ trait ZincWorkerUtil {
     if (millLocalCompilerBridgePaths.nonEmpty) millLocalCompilerBridgePaths.keys.toSet
     else Versions.millCompilerBridgeVersions.split(",").toSet
 
-  lazy val millLocalCompilerBridgePaths: Map[String, os.Path] =
+  lazy val millLocalCompilerBridgePaths: Map[String, os.Path] = {
+    println(sys.props.get("MILL_LOCAL_COMPILER_BRIDGES"))
     sys.props.get("MILL_LOCAL_COMPILER_BRIDGES") match{
       case None => Map()
       case Some(local) =>
@@ -124,6 +125,7 @@ trait ZincWorkerUtil {
         res
 
     }
+  }
 
   /** @return true if the compiler bridge can be downloaded as an already compiled jar */
   def isBinaryBridgeAvailable(scalaVersion: String) =
