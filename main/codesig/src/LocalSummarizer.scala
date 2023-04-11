@@ -10,36 +10,35 @@ import org.objectweb.asm.tree.{AbstractInsnNode, ClassNode, FieldInsnNode, Frame
  * contains the key information needed for call-graph analysis and method hash
  * computation.
  */
-object Summarizer{
+object LocalSummarizer{
 
-  def summarize(classPathClasses: Seq[Array[Byte]]) = {
-    val classNodes = classPathClasses.map(loadClass)
-    summarize0(classNodes)
-  }
+  case class Result(callGraph: collection.mutable.Map[MethodSig, (Int, Set[MethodCall])],
+                    directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
+                    directAncestors: Map[JType.Cls, Set[JType.Cls]])
 
-  def summarize0(classNodes: Seq[ClassNode]) = {
+  def summarize(classNodes: Seq[ClassNode]) = {
 
-    val directSubclasses = new MultiBiMap.Mutable[JType, JType]()
+    val directSubclasses = new MultiBiMap.Mutable[JType.Cls, JType.Cls]()
     val callGraph = collection.mutable.Map.empty[MethodSig, (Int, Set[MethodCall])]
-    val directAncestors = collection.mutable.Map.empty[JType, Set[JType]]
+    val directAncestors = collection.mutable.Map.empty[JType.Cls, Set[JType.Cls]]
 
-    for(classNode <- classNodes){
-      val clsType = JType.fromSlashed(classNode.name)
-      Option(classNode.superName).foreach(sup =>
-        directSubclasses.add(JType.fromSlashed(sup), clsType)
+    for(cn <- classNodes){
+      val clsType = JType.Cls.fromSlashed(cn.name)
+      Option(cn.superName).foreach(sup =>
+        directSubclasses.add(JType.Cls.fromSlashed(sup), clsType)
       )
 
-      val allThingies = (Option(classNode.superName) ++ Option(classNode.interfaces).toSeq.flatMap(_.asScala))
-      directAncestors(clsType) = allThingies.toSet.map(JType.fromSlashed)
+      val clsDirectAncestors = Option(cn.superName) ++ Option(cn.interfaces).toSeq.flatMap(_.asScala)
+      directAncestors(clsType) = clsDirectAncestors.toSet.map(JType.Cls.fromSlashed)
 
 
-      for(method <- classNode.methods.asScala){
+      for(method <- cn.methods.asScala){
         val outboundCalls = collection.mutable.Set.empty[MethodCall]
         val methodSig = MethodSig(
           clsType,
           (method.access & Opcodes.ACC_STATIC) != 0,
           method.name,
-          method.desc,
+          Desc.read(method.desc),
         )
 
         val insnSigs = collection.mutable.ArrayBuffer.empty[Int]
@@ -60,7 +59,7 @@ object Summarizer{
       }
     }
 
-    Summary(callGraph, directSubclasses, directAncestors.toMap)
+    Result(callGraph, directSubclasses, directAncestors.toMap)
   }
 
   def processInstruction(insn: AbstractInsnNode,
@@ -97,9 +96,14 @@ object Summarizer{
                 case Opcodes.H_INVOKEINTERFACE => Some((InvokeType.Virtual, handle.getName))
                 case _ => None
               }
-              for ((invokeType, name) <- refOpt) {
-                storeCallEdge(MethodCall(JType.fromSlashed(handle.getOwner), invokeType, name, handle.getDesc))
-              }
+              for ((invokeType, name) <- refOpt) storeCallEdge(
+                MethodCall(
+                  JType.Cls.fromSlashed(handle.getOwner),
+                  invokeType,
+                  name,
+                  Desc.read(handle.getDesc)
+                )
+              )
             case _ =>
           }
         }
@@ -136,7 +140,7 @@ object Summarizer{
 
         storeCallEdge(
           MethodCall(
-            JType.fromSlashed(insn.owner),
+            JType.Cls.fromSlashed(insn.owner),
             insn.getOpcode match{
               case Opcodes.INVOKESTATIC => InvokeType.Static
               case Opcodes.INVOKESPECIAL => InvokeType.Special
@@ -144,7 +148,7 @@ object Summarizer{
               case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
             },
             insn.name,
-            insn.desc
+            Desc.read(insn.desc)
           )
         )
 
@@ -179,10 +183,4 @@ object Summarizer{
       .toMap
   }
 
-  def loadClass(bytes: Array[Byte]) = {
-    val classReader = new ClassReader(bytes)
-    val classNode = new ClassNode()
-    classReader.accept(classNode, 0)
-    classNode
-  }
 }

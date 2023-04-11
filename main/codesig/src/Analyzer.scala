@@ -2,7 +2,7 @@ package mill.codesig
 
 import mill.util.Tarjans
 
-class Analyzer(summary: Summary) {
+class Analyzer(summary: LocalSummarizer.Result, external: ExternalSummarizer.Result) {
   val clsToMethods = summary.callGraph.keys.groupBy(_.cls)
   val methodToIndex = summary.callGraph.keys.toVector.zipWithIndex.toMap
   val indexToMethod = methodToIndex.map(_.swap)
@@ -32,6 +32,11 @@ class Analyzer(summary: Summary) {
     sig.name == call.name && sig.desc == call.desc && (sig.static == (call.invokeType == InvokeType.Static))
   }
   def resolveCall(call: MethodCall): Set[MethodSig] = {
+    if (clsToMethods.contains(call.cls)) resolveLocalCall(call)
+    else resolveExternalCall(call)
+  }
+
+  def resolveLocalCall(call: MethodCall): Set[MethodSig] = {
     call.invokeType match {
       case InvokeType.Static =>
         clsAndSupers(
@@ -58,19 +63,30 @@ class Analyzer(summary: Summary) {
     }
   }
 
-  def clsAndSupers(cls: JType, skipEarly: JType => Boolean): Seq[JType] = {
+  def resolveExternalCall(call: MethodCall): Set[MethodSig] = {
+    pprint.log(call.desc)
+    val methods = call
+      .desc
+      .args
+      .collect{case c: JType.Cls => external.transitiveMethods(c)}
+      .flatten
+    pprint.log(methods)
+    Set()
+  }
+
+  def clsAndSupers(cls: JType.Cls, skipEarly: JType.Cls => Boolean): Seq[JType.Cls] = {
     breadthFirst(Seq(cls))(cls =>
       if(skipEarly(cls)) Nil else summary.directSubclasses.lookupValueOpt(cls)
     )
   }
 
-  def clsAndAncestors(cls: JType, skipEarly: JType => Boolean): Set[JType] = {
+  def clsAndAncestors(cls: JType.Cls, skipEarly: JType.Cls => Boolean): Set[JType.Cls] = {
     breadthFirst(Seq(cls))(cls =>
       if(skipEarly(cls)) Nil else summary.directAncestors.getOrElse(cls, Nil)
     ).toSet
   }
 
-  def clsAndDescendents(cls: JType): Set[JType] = {
+  def clsAndDescendents(cls: JType.Cls): Set[JType.Cls] = {
     breadthFirst(Seq(cls))(directDescendents.getOrElse(_, Nil)).toSet
   }
 

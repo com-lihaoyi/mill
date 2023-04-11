@@ -1,19 +1,44 @@
 package mill.codesig
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.tree.ClassNode
 import utest._
-import upickle.default.{ReadWriter, readwriter, read, write}
+import upickle.default.{ReadWriter, read, readwriter, write}
+
 import scala.collection.immutable.{SortedMap, SortedSet}
 object CodeSigTests extends TestSuite{
+
+  def loadClass(bytes: Array[Byte]) = {
+    val classReader = new ClassReader(bytes)
+    val classNode = new ClassNode()
+    classReader.accept(classNode, 0)
+    classNode
+  }
+
   val tests = Tests{
     test("hello"){
       val testCaseClassFilesRoot = os.Path(sys.env("TEST_CASE_CLASS_FILES"))
       val testCaseSourceFilesRoot = os.Path(sys.env("TEST_CASE_SOURCE_FILES"))
 
       val classFiles = os.walk(testCaseClassFilesRoot).filter(_.ext == "class")
-      val classNodes = classFiles.map(p => Summarizer.loadClass(os.read.bytes(p)))
+      val classNodes = classFiles.map(p => loadClass(os.read.bytes(p)))
 
-      val summary = Summarizer.summarize0(classNodes)
+      val summary = LocalSummarizer.summarize(classNodes)
 
-      val analyzer = new Analyzer(summary)
+      val allDirectAncestors = summary.directAncestors.flatMap(_._2)
+      val allMethodCallParamClasses = summary
+        .callGraph
+        .flatMap(_._2._2)
+        .flatMap(_.desc.args)
+        .collect{case c: JType.Cls => c}
+      val external = ExternalSummarizer.loadAll(
+        (allDirectAncestors ++ allMethodCallParamClasses)
+          .filter(!summary.directAncestors.contains(_))
+          .toSet,
+        externalType =>
+          loadClass(os.read.bytes(os.resource / os.SubPath(externalType.name.replace('.', '/') + ".class")))
+      )
+
+      val analyzer = new Analyzer(summary, external)
 
       val foundTransitive0 = analyzer
         .transitiveCallGraphMethods

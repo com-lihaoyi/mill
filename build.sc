@@ -589,7 +589,6 @@ object main extends MillModule {
     def moduleDeps = Seq(util)
 
     object test extends Tests{
-      def moduleDeps = super.moduleDeps ++ Seq(main.test)
       object annotation extends MillPublishModule
       object cases extends Cross[CaseModule](listIn(millSourcePath / "cases"):_*)
       class CaseModule(caseName: String) extends MillScalaModule{
