@@ -5,15 +5,6 @@ import mill.BuildInfo
 import mill.api.{Ctx, IO, Loose, PathRef}
 
 object Util {
-
-  private val LongMillProps = new java.util.Properties()
-
-  {
-    val millOptionsPath = sys.props("MILL_OPTIONS_PATH")
-    if (millOptionsPath != null)
-      LongMillProps.load(new java.io.FileInputStream(millOptionsPath))
-  }
-
   def cleanupScaladoc(v: String) = {
     v.linesIterator.map(
       _.dropWhile(_.isWhitespace)
@@ -71,7 +62,7 @@ object Util {
       // this should correspond to the mill runtime Scala version
       artifactSuffix: String = "_2.13"
   ) = {
-    millProperty(key) match {
+    mill.api.MillProperties.millProperty(key) match {
       case Some(localPath) =>
         mill.api.Result.Success(
           mill.api.Loose.Agg.from(localPath.split(',').map(p => PathRef(os.Path(p), quick = true)))
@@ -92,8 +83,4 @@ object Util {
         ).map(_.filter(x => resolveFilter(x.path)))
     }
   }
-
-  def millProperty(key: String): Option[String] =
-    Option(sys.props(key)) // System property has priority
-      .orElse(Option(LongMillProps.getProperty(key)))
 }

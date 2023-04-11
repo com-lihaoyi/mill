@@ -111,8 +111,8 @@ trait ZincWorkerUtil {
     else Versions.millCompilerBridgeVersions.split(",").toSet
 
   lazy val millLocalCompilerBridgePaths: Map[String, os.Path] = {
-    println(sys.props.get("MILL_LOCAL_COMPILER_BRIDGES"))
-    sys.props.get("MILL_LOCAL_COMPILER_BRIDGES") match{
+    println(mill.api.MillProperties.millProperty("MILL_LOCAL_COMPILER_BRIDGES"))
+    mill.api.MillProperties.millProperty("MILL_LOCAL_COMPILER_BRIDGES") match{
       case None => Map()
       case Some(local) =>
         val res =

@@ -87,7 +87,7 @@ case class GenIdeaImpl(
     val buildLibraryPaths: immutable.Seq[Path] =
       if (!fetchMillModules) Nil
       else
-        Util.millProperty("MILL_BUILD_LIBRARIES") match {
+        mill.api.MillProperties.millProperty("MILL_BUILD_LIBRARIES") match {
           case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
           case None =>
             val moduleRepos = Evaluator.evalOrThrow(
