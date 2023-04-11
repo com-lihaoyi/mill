@@ -4,7 +4,7 @@ import mill.scalalib
 import mill.scalalib.{Dep, DepSyntax, TestModule}
 
 trait HelloWorldModule extends scalalib.ScalaModule {
-  def scalaVersion = "2.12.17"
+  def scalaVersion = "2.12.5"
   object test extends super.Tests with TestModule.Utest {
     override def compileIvyDeps: Target[Agg[Dep]] = Agg(
       ivy"org.slf4j:jcl-over-slf4j:1.7.25"
