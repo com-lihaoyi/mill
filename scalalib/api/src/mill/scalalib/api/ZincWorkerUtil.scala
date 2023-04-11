@@ -106,24 +106,18 @@ trait ZincWorkerUtil {
     case _ => true
   }
 
-  def millCompilerBridgeVersions: Set[String] =
+  lazy val millCompilerBridgeVersions: Set[String] =
     if (millLocalCompilerBridgePaths.nonEmpty) millLocalCompilerBridgePaths.keys.toSet
     else Versions.millCompilerBridgeVersions.split(",").toSet
 
   lazy val millLocalCompilerBridgePaths: Map[String, os.Path] = {
-    println(mill.api.MillProperties.millProperty("MILL_LOCAL_COMPILER_BRIDGES"))
     mill.api.MillProperties.millProperty("MILL_LOCAL_COMPILER_BRIDGES") match{
       case None => Map()
       case Some(local) =>
-        val res =
         local.split(",")
           .map(_.split(':'))
           .map{case Array(version, path) => (version, os.Path(path))}
-        .toMap
-
-          println(res)
-        res
-
+          .toMap
     }
   }
 
