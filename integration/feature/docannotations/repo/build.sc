@@ -1,4 +1,4 @@
-import mill.Agg
+import mill._
 import mill.scalalib._
 
 trait JUnitTests extends TestModule.Junit4 {

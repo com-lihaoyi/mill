@@ -1,5 +1,4 @@
-import mill.scalalib
-import mill.Cross
+import mill._
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 
