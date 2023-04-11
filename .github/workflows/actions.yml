@@ -71,8 +71,7 @@ jobs:
             buildcmd: ./mill -i docs.antora.githubPages
 
     runs-on: ubuntu-latest
-    env:
-      MILL_BUILD_COMPILER_BRIDGES: "true"
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -89,9 +88,6 @@ jobs:
         run: |
           git config --add user.name "Mill GithHub Actions"
           git config --add user.email "mill-ci@localhost"
-
-      - name: Publish Local Compiler Bridges (for PR only)
-        run: ./mill -i -j 6 bridge.__.publishLocal
 
       - name: Run '${{ matrix.buildcmd }}'
         run: ${{ matrix.buildcmd }}
@@ -155,9 +151,6 @@ jobs:
 
     runs-on: windows-latest
 
-    env:
-      MILL_BUILD_COMPILER_BRIDGES: "true"
-
     steps:
       - uses: actions/checkout@v3
         with:
@@ -169,9 +162,6 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           distribution: temurin
-
-      - name: Publish Local Compiler Bridges (for PR only)
-        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -j 6 bridge.__.publishLocal
 
       - name: Run '${{ matrix.buildcmd }}'
         run: ${{ matrix.buildcmd }}
