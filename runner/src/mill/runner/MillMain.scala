@@ -32,15 +32,16 @@ object MillMain {
 
     val (result, _) =
       try main0(
-        args,
-        RunnerState.empty,
-        mill.util.Util.isInteractive(),
-        initialSystemStreams,
-        System.getenv().asScala.toMap,
-        b => (),
-        userSpecifiedProperties0 = Map(),
-        initialSystemProperties = sys.props.toMap
-      ) finally {
+          args,
+          RunnerState.empty,
+          mill.util.Util.isInteractive(),
+          initialSystemStreams,
+          System.getenv().asScala.toMap,
+          b => (),
+          userSpecifiedProperties0 = Map(),
+          initialSystemProperties = sys.props.toMap
+        )
+      finally {
         openStreams.foreach(_.close())
       }
     System.exit(if (result) 0 else 1)
@@ -58,7 +59,7 @@ object MillMain {
   ): (Boolean, RunnerState) = {
     val printLoggerState = new PrintLogger.State()
     val streams = PrintLogger.wrapSystemStreams(streams0, printLoggerState)
-    Util.withStreams(streams){
+    Util.withStreams(streams) {
       MillCliConfigParser.parse(args) match {
         // Cannot parse args
         case Left(msg) =>
@@ -74,22 +75,22 @@ object MillMain {
           streams.out.println(
             s"""Mill Build Tool version ${BuildInfo.millVersion}
                |Java version: ${p("java.version", "<unknown Java version")}, vendor: ${p(
-              "java.vendor",
-              "<unknown Java vendor"
-            )}, runtime: ${p("java.home", "<unknown runtime")}
+                "java.vendor",
+                "<unknown Java vendor"
+              )}, runtime: ${p("java.home", "<unknown runtime")}
                |Default locale: ${Locale.getDefault()}, platform encoding: ${p(
-              "file.encoding",
-              "<unknown encoding>"
-            )}
+                "file.encoding",
+                "<unknown encoding>"
+              )}
                |OS name: "${p("os.name")}", version: ${p("os.version")}, arch: ${p(
-              "os.arch"
-            )}""".stripMargin
+                "os.arch"
+              )}""".stripMargin
           )
           (true, RunnerState.empty)
 
         case Right(config)
-          if (
-            config.interactive.value || config.repl.value || config.noServer.value || config.bsp.value
+            if (
+              config.interactive.value || config.repl.value || config.noServer.value || config.bsp.value
             ) && streams.in == DummyInputStream =>
           // because we have stdin as dummy, we assume we were already started in server process
           streams.err.println(
@@ -98,12 +99,12 @@ object MillMain {
           (false, RunnerState.empty)
 
         case Right(config)
-          if Seq(
-            config.interactive.value,
-            config.repl.value,
-            config.noServer.value,
-            config.bsp.value
-          ).count(identity) > 1 =>
+            if Seq(
+              config.interactive.value,
+              config.repl.value,
+              config.noServer.value,
+              config.bsp.value
+            ).count(identity) > 1 =>
           streams.err.println(
             "Only one of -i/--interactive, --repl, --no-server or --bsp may be given"
           )

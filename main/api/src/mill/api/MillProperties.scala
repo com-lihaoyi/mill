@@ -1,6 +1,6 @@
 package mill.api
 
-object MillProperties{
+object MillProperties {
   def millProperty(key: String): Option[String] =
     Option(sys.props(key)) // System property has priority
       .orElse(Option(LongMillProps.getProperty(key)))

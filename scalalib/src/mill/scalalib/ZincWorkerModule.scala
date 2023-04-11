@@ -74,12 +74,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         Left((
           T.ctx(),
           (x: String, y: String) =>
-          scalaCompilerBridgeJar(x, y, repositoriesTask())
-            .asSuccess
-            .getOrElse(
-              throw new Exception(s"Failed to load compiler bridge for $x $y")
-            )
-            .value
+            scalaCompilerBridgeJar(x, y, repositoriesTask())
+              .asSuccess
+              .getOrElse(
+                throw new Exception(s"Failed to load compiler bridge for $x $y")
+              )
+              .value
         )),
         ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false),
         ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),
@@ -107,12 +107,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
           else "scala3-sbt-bridge"
         val version = scalaVersion
         (ivy"$org:$name:$version", name, version)
-      } else if (ZincWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)){
+      } else if (ZincWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
         val org = "com.lihaoyi"
         val name = s"mill-compiler-bridge_$scalaVersion"
         val version = Versions.millCompilerBridgeVersion
         (ivy"$org:$name:$version", name, version)
-      }else {
+      } else {
         val org = "org.scala-sbt"
         val name = "compiler-bridge"
         val version = Versions.zinc

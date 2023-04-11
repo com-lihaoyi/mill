@@ -45,7 +45,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule
   }
   object HelloWorldNonPrecompiledBridge extends HelloBase {
-    object core extends HelloWorldModule{
+    object core extends HelloWorldModule {
       override def scalaVersion = "2.12.1"
     }
   }
@@ -513,12 +513,13 @@ object HelloWorldTests extends TestSuite {
 
         // Make sure we *do not* end up compiling the compiler bridge, since
         // it's using a pre-compiled bridge value
-        assert(!os.exists(eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / "zinc-1.8.0"))
+        assert(!os.exists(
+          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / "zinc-1.8.0"
+        ))
       }
 
       "nonPreCompiledBridge" - workspaceTest(HelloWorldNonPrecompiledBridge) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
-
 
         val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
 
@@ -540,7 +541,9 @@ object HelloWorldTests extends TestSuite {
 
         // Make sure we *do* end up compiling the compiler bridge, since it's
         // *not* using a pre-compiled bridge value
-        assert(os.exists(eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / "zinc-1.8.0"))
+        assert(os.exists(
+          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / "zinc-1.8.0"
+        ))
       }
 
       "recompileOnChange" - workspaceTest(HelloWorld) { eval =>

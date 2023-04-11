@@ -1,4 +1,4 @@
-name: CI
+name: Publish Bridges
 
 # We run full CI on push builds to main and on all pull requests
 #
