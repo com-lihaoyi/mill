@@ -27,9 +27,11 @@ import java.io.{InputStream, PrintStream}
 trait Logger {
   def colored: Boolean
 
-  def errorStream: PrintStream
-  def outputStream: PrintStream
-  def inStream: InputStream
+  def systemStreams: SystemStreams
+
+  def errorStream: PrintStream = systemStreams.err
+  def outputStream: PrintStream = systemStreams.out
+  def inStream: InputStream = systemStreams.in
 
   def info(s: String): Unit
   def error(s: String): Unit

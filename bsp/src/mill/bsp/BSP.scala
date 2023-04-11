@@ -3,13 +3,13 @@ package mill.bsp
 import java.io.{InputStream, PrintStream}
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration.Duration
-import mill.api.{Ctx, DummyInputStream, Logger, PathRef, Result}
+import mill.api.{Ctx, DummyInputStream, Logger, PathRef, Result, SystemStreams}
 import mill.{Agg, T, BuildInfo => MillBuildInfo}
 import mill.define.{Command, Discover, ExternalModule, Task}
 import mill.eval.Evaluator
 import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
 import mill.scalalib.{CoursierModule, Dep}
-import mill.util.{PrintLogger, SystemStreams}
+import mill.util.PrintLogger
 import os.Path
 
 object BSP extends ExternalModule with CoursierModule with BspServerStarter {
@@ -85,9 +85,12 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
       // This all goes to the BSP log file mill-bsp.stderr
       override def log: Logger = new Logger {
         override def colored: Boolean = false
-        override def errorStream: PrintStream = streams.err
-        override def outputStream: PrintStream = streams.err
-        override def inStream: InputStream = DummyInputStream
+
+        override def systemStreams: SystemStreams = new SystemStreams(
+          streams.err,
+          streams.err,
+          DummyInputStream
+        )
         override def info(s: String): Unit = streams.err.println(s)
         override def error(s: String): Unit = streams.err.println(s)
         override def ticker(s: String): Unit = streams.err.println(s)
