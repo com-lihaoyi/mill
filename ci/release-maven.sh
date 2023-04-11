@@ -8,6 +8,8 @@ gpg --import  --no-tty --batch --yes gpg_key
 
 rm gpg_key
 
+export MILL_BUILD_ALL_COMPILER_BRIDGES=true
+
 # Build all artifacts
 ./mill -i __.publishArtifacts
 

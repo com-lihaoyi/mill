@@ -74,7 +74,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         Left((
           T.ctx(),
           (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, repositoriesTask()).asSuccess.get.value
+          scalaCompilerBridgeJar(x, y, repositoriesTask())
+            .asSuccess
+            .getOrElse(
+              throw new Exception(s"Failed to load compiler bridge for $x $y")
+            )
+            .value
         )),
         ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false),
         ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),

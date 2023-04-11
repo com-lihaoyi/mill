@@ -201,6 +201,25 @@ def millBinPlatform: T[String] = T {
 }
 def baseDir = build.millSourcePath
 
+// We limit the number of compiler bridges to compile and publish for local
+// development and testing, because otherwise it takes forever to compile all
+// of them. Compiler bridges not in this set will get downloaded and compiled
+// on the fly anyway. For publishing, we publish everything.
+val buildAllCompilerBridges = interp.watchValue(sys.env.contains("MILL_BUILD_ALL_COMPILER_BRIDGES"))
+val bridgeScalaVersions =
+  if (!buildAllCompilerBridges) Seq(
+    Deps.testScala212Version,
+    Deps.testScala213Version,
+    Deps.scalaVersion
+  ) else Seq(
+    // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler bridges
+    /*"2.12.0",*/ "2.12.1", "2.12.2", "2.12.3", /*"2.12.4",*/ "2.12.5", "2.12.6", "2.12.7", "2.12.8",
+    "2.12.9", "2.12.10", "2.12.11", "2.12.12", "2.12.13", "2.12.14", "2.12.15", "2.12.16", "2.12.17",
+    "2.13.0", "2.13.1", "2.13.2", "2.13.3", "2.13.4", "2.13.5", "2.13.6", "2.13.7", "2.13.8", "2.13.9", "2.13.10"
+  )
+
+val bridgeScalaVersionsAndModules = bridgeScalaVersions.map(v => (v, scalalib.bridge(v))).toMap
+
 
 trait BuildInfo extends JavaModule {
   /**
@@ -653,13 +672,6 @@ object testrunner extends MillModule {
   override def moduleDeps = Seq(scalalib.api, main.util)
 }
 
-// We limit the number of compiler bridges to compile and publish for local
-// development and testing, because otherwise it takes forever to compile all
-// of them. Compiler bridges not in this set will get downloaded and compiled
-// on the fly anyway. For publishing, we publish everything.
-val devTestBridgeVersions = Set(Deps.testScala213Version, Deps.testScala212Version)
-  .map(v => (v, scalalib.bridge(v)))
-  .toMap
 
 object scalalib extends MillModule {
   override def moduleDeps = Seq(main, scalalib.api, testrunner)
@@ -670,7 +682,9 @@ object scalalib extends MillModule {
 
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
 
-  def testModuleDeps = super.testModuleDeps ++ devTestBridgeVersions.values
+  def testModuleDeps =
+    super.testModuleDeps ++
+    bridgeScalaVersions.map(bridgeScalaVersionsAndModules)
 
   def testArgs = T {
 
@@ -711,7 +725,7 @@ object scalalib extends MillModule {
       BuildInfo.Value("semanticDBVersion", Deps.semanticDB.dep.version, "SemanticDB version."),
       BuildInfo.Value("semanticDbJavaVersion", Deps.semanticDbJava.dep.version, "Java SemanticDB plugin version."),
       BuildInfo.Value("millModuledefsVersion", Deps.millModuledefsVersion, "Mill ModuleDefs plugins version."),
-      BuildInfo.Value("millCompilerBridgeVersions", bridgeScalaVersions.map('"' + _ + '"').mkString(",")),
+      BuildInfo.Value("millCompilerBridgeVersions", bridgeScalaVersions.mkString(",")),
       BuildInfo.Value("millVersion", millVersion(), "Mill version.")
     )
   }
@@ -728,7 +742,7 @@ object scalalib extends MillModule {
       Seq(
         "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(","),
         s"-DMILL_LOCAL_COMPILER_BRIDGES=" +
-          T.traverse(devTestBridgeVersions.toSeq){case (v, m) => m.jar.map((v, _))}()
+          T.traverse(bridgeScalaVersionsAndModules.toSeq){case (v, m) => m.jar.map((v, _))}()
             .map({case (k, v) => s"$k=${v.path}"})
             .mkString(",")
       )
@@ -739,12 +753,6 @@ object scalalib extends MillModule {
     def buildInfoMembers = Seq(BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc."))
   }
 
-  // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler bridges
-  val bridgeScalaVersions = Seq(
-    /*"2.12.0",*/ "2.12.1", "2.12.2", "2.12.3", /*"2.12.4",*/ "2.12.5", "2.12.6", "2.12.7", "2.12.8",
-    "2.12.9", "2.12.10", "2.12.11", "2.12.12", "2.12.13", "2.12.14", "2.12.15", "2.12.16", "2.12.17",
-    "2.13.0", "2.13.1", "2.13.2", "2.13.3", "2.13.4", "2.13.5", "2.13.6", "2.13.7", "2.13.8", "2.13.9", "2.13.10"
-  )
   object bridge extends Cross[BridgeModule](bridgeScalaVersions:_*)
   class BridgeModule(val crossScalaVersion: String) extends MillInternalModule with CrossScalaModule {
     def scalaVersion = T{ crossScalaVersion }
@@ -1155,13 +1163,8 @@ def installLocalCache() = T.command {
 }
 
 def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
-  val modules = build.millInternal.modules.flatMap{
-    case m: scalalib.BridgeModule =>
-      Option.when(devTestBridgeVersions.contains(m.crossScalaVersion)){
-        m
-      }
-    case m: PublishModule => Some(m)
-    case _ => None
+  val modules = build.millInternal.modules.collect{
+    case m: PublishModule => m
   }
 
   T.task {
