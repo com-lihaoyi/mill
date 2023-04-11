@@ -699,7 +699,7 @@ object scalalib extends MillModule {
         "-Djna.nosys=true",
         "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(","),
         s"-DTEST_SCALAFMT_VERSION=${Deps.scalafmtDynamic.dep.version}",
-        s"-DMILL_EMBEDDED_DEPS=\"$artifactsString\""
+        s"-DMILL_EMBEDDED_DEPS=$artifactsString"
       )
   }
   object backgroundwrapper extends MillPublishModule {
