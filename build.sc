@@ -84,8 +84,8 @@ object Deps {
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.17"
 
-  val testScala213Version = "2.13.8"
-  val testScala212Version = "2.12.6"
+  val testScala213Version = "2.13.10"
+  val testScala212Version = "2.12.17"
   val testScala211Version = "2.11.12"
   val testScala210Version = "2.10.6"
   val testScala30Version = "3.0.2"
@@ -660,6 +660,10 @@ object scalalib extends MillModule {
   )
 
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
+  def testModuleDeps =
+    super.testModuleDeps ++
+    Seq(bridge(Deps.testScala212Version), bridge(Deps.testScala213Version))
+
   def testArgs = T {
 
     val artifactsString =
@@ -699,7 +703,7 @@ object scalalib extends MillModule {
       BuildInfo.Value("semanticDBVersion", Deps.semanticDB.dep.version, "SemanticDB version."),
       BuildInfo.Value("semanticDbJavaVersion", Deps.semanticDbJava.dep.version, "Java SemanticDB plugin version."),
       BuildInfo.Value("millModuledefsVersion", Deps.millModuledefsVersion, "Mill ModuleDefs plugins version."),
-      BuildInfo.Value("selfPublishedCompilerBridgeVersions", bridgeScalaVersions.map('"' + _ + '"').mkString(",")),
+      BuildInfo.Value("millCompilerBridgeVersions", bridgeScalaVersions.map('"' + _ + '"').mkString(",")),
       BuildInfo.Value("millVersion", millVersion(), "Mill version.")
     )
   }
@@ -714,7 +718,8 @@ object scalalib extends MillModule {
     )
     def testArgs = T {
       Seq(
-        "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
+        "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(","),
+        s"-DMILL_LOCAL_COMPILER_BRIDGES=${Deps.testScala212Version}=${bridge(Deps.testScala212Version).jar().path},${Deps.testScala213Version}=${bridge(Deps.testScala213Version).jar().path}"
       )
     }
 

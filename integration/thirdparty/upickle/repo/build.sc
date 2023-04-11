@@ -1,7 +1,7 @@
 import mill._, mill.scalalib._, mill.scalalib.publish._, mill.scalajslib._
 
 val scala21111Version = "2.11.11"
-val scala212Version = "2.12.3"
+val scala212Version = "2.12.17"
 
 trait UpickleModule extends CrossSbtModule with PublishModule {
 

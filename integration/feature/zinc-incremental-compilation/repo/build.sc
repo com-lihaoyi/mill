@@ -4,7 +4,7 @@ import mill.scalalib._
 
 object app extends SbtModule {
 
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.10"
 
   def scalacOptions = Seq("-Vclasspath")
 

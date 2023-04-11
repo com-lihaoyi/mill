@@ -102,7 +102,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
           else "scala3-sbt-bridge"
         val version = scalaVersion
         (ivy"$org:$name:$version", name, version)
-      } else if (Versions.selfPublishedCompilerBridgeVersions.contains(scalaVersion0)){
+      } else if (ZincWorkerUtil.millCompilerBridgeVersions.contains(scalaVersion0)){
         val org = "com.lihaoyi"
         val name = s"mill-scalalib-bridge_$scalaVersion"
         val version = Versions.millVersion
@@ -120,14 +120,18 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
 
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
-    val bridgeJar = resolveDependencies(
-      repositories,
-      Seq(bridgeDep.bindDep("", "", "")),
-      useSources,
-      Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
-    ).map(deps =>
-      ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
-    )
+    val bridgeJar = ZincWorkerUtil.millLocalCompilerBridgePaths.get(scalaVersion) match{
+      case Some(v) => Result.Success(PathRef(v))
+      case None =>
+        resolveDependencies(
+          repositories,
+          Seq(bridgeDep.bindDep("", "", "")),
+          useSources,
+          Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+        ).map(deps =>
+          ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
+        )
+    }
 
     if (useSources) {
       for {

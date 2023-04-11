@@ -106,9 +106,23 @@ trait ZincWorkerUtil {
     case _ => true
   }
 
+  def millCompilerBridgeVersions: Set[String] =
+    if (millLocalCompilerBridgePaths.nonEmpty) millLocalCompilerBridgePaths.keys.toSet
+    else Versions.millCompilerBridgeVersions.split(",").toSet
+
+  def millLocalCompilerBridgePaths: Map[String, os.Path] =
+    sys.props.get("MILL_LOCAL_COMPILER_BRIDGES") match{
+      case None => Map()
+      case Some(local) =>
+        local.split(",")
+          .map(_.split('='))
+          .map{case Array(version, path) => (version, os.Path(path))}
+        .toMap
+    }
+
   /** @return true if the compiler bridge can be downloaded as an already compiled jar */
   def isBinaryBridgeAvailable(scalaVersion: String) =
-    if (Versions.selfPublishedCompilerBridgeVersions.contains(scalaVersion)) true
+    if (millCompilerBridgeVersions.contains(scalaVersion)) true
     else scalaVersion match {
       case DottyNightlyVersion(major, minor, _, _) =>
         major.toInt > 0 || minor.toInt >= 14 // 0.14.0-bin or more (not 0.13.0-bin)

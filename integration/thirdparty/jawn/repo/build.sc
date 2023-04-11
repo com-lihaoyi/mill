@@ -3,7 +3,7 @@ import mill.Cross
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 
-val scala212Version = "2.12.3"
+val scala212Version = "2.12.17"
 
 object jawn extends Cross[JawnModule]("2.10.6", "2.11.11", scala212Version)
 class JawnModule(crossVersion: String) extends mill.Module {
