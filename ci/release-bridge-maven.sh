@@ -18,7 +18,7 @@ export MILL_BUILD_COMPILER_BRIDGES=true
     mill.scalalib.PublishModule/publishAll \
     --sonatypeCreds $SONATYPE_USERNAME:$SONATYPE_PASSWORD \
     --gpgArgs --passphrase=$SONATYPE_PGP_PASSWORD,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
-    --publishArtifacts bridges.__.publishArtifacts \
+    --publishArtifacts bridge.__.publishArtifacts \
     --readTimeout  3600000 \
     --awaitTimeout 3600000 \
     --release true \
