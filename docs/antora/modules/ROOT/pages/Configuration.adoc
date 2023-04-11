@@ -190,6 +190,7 @@ For convenience, you can also use one of the predefined test frameworks:
 * `TestModule.ScalaTest`
 * `TestModule.Specs2`
 * `TestModule.Utest`
+* `TestModule.ZIOTest`
 
 
 .`build.sc`: `ScalaModule` with UTest tests using the predefined `TestModule.Utest`

@@ -932,7 +932,7 @@ _Changes since {prev-version}:_
 * `ScalaModule`: Support for Scala 3
 * `CoursierModule`: Support customized dependency resolution (needed to work with ScalaFX)
 * `TestModule`: Added new `testFramework` target and only support one test framework. Deprecated `testFrameworks` targets.
-* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit4`, `TestModule.ScalaTest`, `TestModule.Utest`, and many more
+* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit4`, `TestModule.ScalaTest`, `TestModule.Utest`, `TestModule.ZIOTest` and many more
 * `Bloop`: Added support for foreign modules
 * Better support for Windows environments
 * Various internal improvements, cleanups, and deprecations

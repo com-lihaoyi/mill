@@ -242,6 +242,14 @@ object TestModule {
     override def testFramework: T[String] = "weaver.framework.CatsEffect"
   }
 
+  /**
+   * TestModule that uses ZIO Test Framework to run tests.
+   * You need to provide the zio-test dependencies yourself.
+   */
+  trait ZIOTest extends TestModule
+    override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
+  }
+
   @deprecated("Use other overload instead", "Mill after 0.10.2")
   def handleResults(
       doneMsg: String,
