@@ -573,6 +573,7 @@ object main extends MillModule {
     override def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
+      Deps.fansi,
       Deps.sbtTestInterface
     )
   }

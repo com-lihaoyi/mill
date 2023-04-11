@@ -7,7 +7,7 @@ import mill.bsp.{BSP, BspWorker, Constants}
 import mill.define.Task
 import mill.eval.Evaluator
 import mill.main.{BspServerHandle, BspServerResult}
-import mill.util.SystemStreams
+import mill.api.SystemStreams
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.{InputStream, PrintStream, PrintWriter}

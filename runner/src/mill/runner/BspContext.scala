@@ -2,7 +2,7 @@ package mill.runner
 
 import mill.api.internal
 import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
-import mill.util.SystemStreams
+import mill.api.SystemStreams
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration

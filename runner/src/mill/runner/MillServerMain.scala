@@ -11,7 +11,7 @@ import mill.BuildInfo
 import mill.main.client._
 import mill.api.internal
 import mill.main.client.lock.{Lock, Locks}
-import mill.util.SystemStreams
+import mill.api.SystemStreams
 
 @internal
 trait MillServerMain[T] {

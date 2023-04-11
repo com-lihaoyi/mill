@@ -1,4 +1,4 @@
-package mill.util
+package mill.api
 
 import java.io.{InputStream, PrintStream}
 
