@@ -653,6 +653,10 @@ object testrunner extends MillModule {
   override def moduleDeps = Seq(scalalib.api, main.util)
 }
 
+// We limit the number of compiler bridges to compile and publish for local
+// development and testing, because otherwise it takes forever to compile all
+// of them. Compiler bridges not in this set will get downloaded and compiled
+// on the fly anyway. For publishing, we publish everything.
 val devTestBridgeVersions = Set(Deps.testScala213Version, Deps.testScala212Version)
   .map(v => (v, scalalib.bridge(v)))
   .toMap
@@ -1151,10 +1155,15 @@ def installLocalCache() = T.command {
 }
 
 def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
-  val modules = build.millInternal.modules.collect {
-    case m: PublishModule => m
-    case m: scalalib.BridgeModule if devTestBridgeVersions.contains(m.crossScalaVersion) => m
+  val modules = build.millInternal.modules.flatMap{
+    case m: scalalib.BridgeModule =>
+      Option.when(devTestBridgeVersions.contains(m.crossScalaVersion)){
+        m
+      }
+    case m: PublishModule => Some(m)
+    case _ => None
   }
+
   T.task {
     T.traverse(modules)(m => m.publishLocal(ivyRepo))()
     val millBin = assembly()
