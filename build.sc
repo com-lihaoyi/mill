@@ -206,20 +206,25 @@ def baseDir = build.millSourcePath
 // of them. Compiler bridges not in this set will get downloaded and compiled
 // on the fly anyway. For publishing, we publish everything.
 val buildAllCompilerBridges = interp.watchValue(sys.env.contains("MILL_BUILD_COMPILER_BRIDGES"))
-val bridgeScalaVersions =
+val bridgeVersion = "0.0.1"
+val bridgeScalaVersions = Seq(
+  // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
+  // bridges. We skip 2.12.1 because it's so old not to matter, and we need a
+  // non-supported scala versionm for testing purposes
+  /*"2.12.0",*/ /*2.12.1",*/ "2.12.2", "2.12.3", /*"2.12.4",*/ "2.12.5", "2.12.6", "2.12.7", "2.12.8",
+  "2.12.9", "2.12.10", "2.12.11", "2.12.12", "2.12.13", "2.12.14", "2.12.15", "2.12.16", "2.12.17",
+  "2.13.0", "2.13.1", "2.13.2", "2.13.3", "2.13.4", "2.13.5", "2.13.6", "2.13.7", "2.13.8", "2.13.9", "2.13.10"
+)
+val buildBridgeScalaVersions =
   if (!buildAllCompilerBridges) Seq()
-  else Seq(
-    // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler bridges
-    /*"2.12.0",*/ "2.12.1", "2.12.2", "2.12.3", /*"2.12.4",*/ "2.12.5", "2.12.6", "2.12.7", "2.12.8",
-    "2.12.9", "2.12.10", "2.12.11", "2.12.12", "2.12.13", "2.12.14", "2.12.15", "2.12.16", "2.12.17",
-    "2.13.0", "2.13.1", "2.13.2", "2.13.3", "2.13.4", "2.13.5", "2.13.6", "2.13.7", "2.13.8", "2.13.9", "2.13.10"
-  )
+  else bridgeScalaVersions
 
-object bridge extends Cross[BridgeModule](bridgeScalaVersions: _*)
+object bridge extends Cross[BridgeModule](buildBridgeScalaVersions: _*)
 class BridgeModule(val crossScalaVersion: String) extends PublishModule with CrossScalaModule {
   def scalaVersion = crossScalaVersion
-  def publishVersion = "0.0.1"
-  def pomSettings = commonPomSettings("mill-compiler-bridge")
+  def publishVersion = bridgeVersion
+  def artifactName = T{ "mill-compiler-bridge" }
+  def pomSettings = commonPomSettings(artifactName())
   def crossFullScalaVersion = true
   def ivyDeps = Agg(
     ivy"org.scala-sbt:compiler-interface:${Versions.zinc}",
@@ -755,7 +760,8 @@ object scalalib extends MillModule {
       BuildInfo.Value("semanticDBVersion", Deps.semanticDB.dep.version, "SemanticDB version."),
       BuildInfo.Value("semanticDbJavaVersion", Deps.semanticDbJava.dep.version, "Java SemanticDB plugin version."),
       BuildInfo.Value("millModuledefsVersion", Deps.millModuledefsVersion, "Mill ModuleDefs plugins version."),
-      BuildInfo.Value("millCompilerBridgeVersions", bridgeScalaVersions.mkString(",")),
+      BuildInfo.Value("millCompilerBridgeScalaVersions", bridgeScalaVersions.mkString(",")),
+      BuildInfo.Value("millCompilerBridgeVersion", bridgeVersion),
       BuildInfo.Value("millVersion", millVersion(), "Mill version.")
     )
   }

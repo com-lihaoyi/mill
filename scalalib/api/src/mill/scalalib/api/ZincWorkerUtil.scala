@@ -106,12 +106,12 @@ trait ZincWorkerUtil {
     case _ => true
   }
 
-  lazy val millCompilerBridgeVersions: Set[String] =
-    Versions.millCompilerBridgeVersions.split(",").toSet
+  lazy val millCompilerBridgeScalaVersions: Set[String] =
+    Versions.millCompilerBridgeScalaVersions.split(",").toSet
 
   /** @return true if the compiler bridge can be downloaded as an already compiled jar */
   def isBinaryBridgeAvailable(scalaVersion: String) =
-    if (millCompilerBridgeVersions.contains(scalaVersion)) true
+    if (millCompilerBridgeScalaVersions.contains(scalaVersion)) true
     else scalaVersion match {
       case DottyNightlyVersion(major, minor, _, _) =>
         major.toInt > 0 || minor.toInt >= 14 // 0.14.0-bin or more (not 0.13.0-bin)

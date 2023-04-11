@@ -46,7 +46,7 @@ object HelloWorldTests extends TestSuite {
   }
   object HelloWorldNonPrecompiledBridge extends HelloBase {
     object core extends HelloWorldModule{
-      override def scalaVersion = "2.13.7"
+      override def scalaVersion = "2.12.1"
     }
   }
   object CrossHelloWorld extends HelloBase {
