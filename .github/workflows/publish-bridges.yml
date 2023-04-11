@@ -1,25 +1,14 @@
 name: Publish Bridges
 
-# We run full CI on push builds to main and on all pull requests
-#
-# Tags are automatically published
-#
-# Manual builds (workflow_dispatch) to the main branch are also published
-#
-# To maximize bug-catching changes while keeping CI times reasonable, we run:
-# - All tests on Linux/Java17
-# - Fewer tests on Linux/Java8 and Windows/Java17
-# - Fewest tests on Windows/Java8
-
+# Manually-triggered github action to publish mill-scala-compiler-bridges jars,
+# since those do not change frequently enough to be worth including in the main
+# publishing workflow that runs every Mill version
 on:
   workflow_dispatch:
 jobs:
   publish-bridges:
-    # when in master repo, publish all tags and manual runs on main
     runs-on: ubuntu-latest
 
-    # only run one publish job for the same sha at the same time
-    # e.g. when a main-branch push is also tagged
     concurrency: publish-sonatype-${{ github.sha }}
 
     env:
