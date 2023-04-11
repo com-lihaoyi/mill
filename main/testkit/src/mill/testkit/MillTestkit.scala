@@ -20,8 +20,6 @@ trait MillTestKit {
 
   def targetDir: os.Path = defaultTargetDir
 
-  def externalOutPath: os.Path = targetDir / "external"
-
   def staticTestEvaluator(module: => mill.define.BaseModule)(implicit
       fullName: sourcecode.FullName
   ) = {

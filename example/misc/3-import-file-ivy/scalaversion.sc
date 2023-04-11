@@ -1,1 +1,1 @@
-def myScalaVersion = "2.13.10"
+def myScalaVersion = "2.13.8"

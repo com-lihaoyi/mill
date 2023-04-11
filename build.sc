@@ -84,8 +84,8 @@ object Deps {
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.17"
 
-  val testScala213Version = "2.13.10"
-  val testScala212Version = "2.12.17"
+  val testScala213Version = "2.13.8"
+  val testScala212Version = "2.12.6"
   val testScala211Version = "2.11.12"
   val testScala210Version = "2.10.6"
   val testScala30Version = "3.0.2"
