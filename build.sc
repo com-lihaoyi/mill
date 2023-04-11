@@ -205,20 +205,51 @@ def baseDir = build.millSourcePath
 // development and testing, because otherwise it takes forever to compile all
 // of them. Compiler bridges not in this set will get downloaded and compiled
 // on the fly anyway. For publishing, we publish everything.
-val buildAllCompilerBridges = interp.watchValue(sys.env.contains("MILL_BUILD_ALL_COMPILER_BRIDGES"))
+val buildAllCompilerBridges = interp.watchValue(sys.env.contains("MILL_BUILD_COMPILER_BRIDGES"))
 val bridgeScalaVersions =
-  if (!buildAllCompilerBridges) Seq(
-    Deps.testScala212Version,
-    Deps.testScala213Version,
-    Deps.scalaVersion
-  ) else Seq(
+  if (!buildAllCompilerBridges) Seq()
+  else Seq(
     // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler bridges
     /*"2.12.0",*/ "2.12.1", "2.12.2", "2.12.3", /*"2.12.4",*/ "2.12.5", "2.12.6", "2.12.7", "2.12.8",
     "2.12.9", "2.12.10", "2.12.11", "2.12.12", "2.12.13", "2.12.14", "2.12.15", "2.12.16", "2.12.17",
     "2.13.0", "2.13.1", "2.13.2", "2.13.3", "2.13.4", "2.13.5", "2.13.6", "2.13.7", "2.13.8", "2.13.9", "2.13.10"
   )
 
-val bridgeScalaVersionsAndModules = bridgeScalaVersions.map(v => (v, scalalib.bridge(v))).toMap
+object bridge extends Cross[BridgeModule](bridgeScalaVersions: _*)
+class BridgeModule(val crossScalaVersion: String) extends PublishModule with CrossScalaModule {
+  def scalaVersion = crossScalaVersion
+  def publishVersion = "0.0.1"
+  def pomSettings = commonPomSettings("mill-compiler-bridge")
+  def crossFullScalaVersion = true
+  def ivyDeps = Agg(
+    ivy"org.scala-sbt:compiler-interface:${Versions.zinc}",
+    ivy"org.scala-lang:scala-compiler:${crossScalaVersion}",
+  )
+
+  def resources = T.sources {
+    os.copy(generatedSources().head.path / "META-INF", T.dest / "META-INF")
+    Seq(PathRef(T.dest))
+  }
+
+  def generatedSources = T {
+    import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
+    val resolvedJars = resolveDeps(
+      T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}") },
+      sources = true
+    )()
+
+    val bridgeJar = grepJar(
+      resolvedJars.map(_.path),
+      s"compiler-bridge_${scalaBinaryVersion(scalaVersion())}",
+      Deps.zinc.dep.version,
+      true
+    )
+
+    mill.api.IO.unpackZip(bridgeJar, os.rel)
+
+    Seq(PathRef(T.dest))
+  }
+}
 
 
 trait BuildInfo extends JavaModule {
@@ -416,15 +447,9 @@ object BuildInfo{
   }
 }
 
-
-trait MillPublishModule extends PublishModule {
-  override def artifactName = "mill-" + super.artifactName()
-  def publishVersion = millVersion()
-  override def publishProperties: Target[Map[String, String]] = super.publishProperties() ++ Map(
-    "info.releaseNotesURL" -> Settings.changelogUrl
-  )
-  def pomSettings = PomSettings(
-    description = artifactName(),
+def commonPomSettings(artifactName: String) = {
+  PomSettings(
+    description = artifactName,
     organization = Settings.pomOrg,
     url = Settings.projectUrl,
     licenses = Seq(License.MIT),
@@ -434,6 +459,15 @@ trait MillPublishModule extends PublishModule {
       Developer("lefou", "Tobias Roeser", "https://github.com/lefou")
     )
   )
+}
+
+trait MillPublishModule extends PublishModule {
+  override def artifactName = "mill-" + super.artifactName()
+  def publishVersion = millVersion()
+  override def publishProperties: Target[Map[String, String]] = super.publishProperties() ++ Map(
+    "info.releaseNotesURL" -> Settings.changelogUrl
+  )
+  def pomSettings = commonPomSettings(artifactName())
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
 
@@ -682,10 +716,6 @@ object scalalib extends MillModule {
 
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
 
-  def testModuleDeps =
-    super.testModuleDeps ++
-    bridgeScalaVersions.map(bridgeScalaVersionsAndModules)
-
   def testArgs = T {
 
     val artifactsString =
@@ -738,56 +768,11 @@ object scalalib extends MillModule {
       Deps.zinc,
       Deps.log4j2Core
     )
-    def testArgs = T {
-      Seq(
-        "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(","),
-        s"-DMILL_LOCAL_COMPILER_BRIDGES=" +
-          T.traverse(bridgeScalaVersionsAndModules.toSeq){case (v, m) => m.jar.map((v, _))}()
-            .map({case (k, v) => s"$k=${v.path}"})
-            .mkString(",")
-      )
-    }
+    def testArgs = Seq("-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(","))
 
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc."))
-  }
-
-  object bridge extends Cross[BridgeModule](bridgeScalaVersions:_*)
-  class BridgeModule(val crossScalaVersion: String) extends MillInternalModule with CrossScalaModule {
-    def scalaVersion = T{ crossScalaVersion }
-    def artifactName = T{ "mill-" + millModuleSegments.parts.init.mkString("-") }
-    def crossFullScalaVersion = true
-
-    def ivyDeps = Agg(
-      ivy"org.scala-sbt:compiler-interface:${Versions.zinc}",
-      ivy"org.scala-lang:scala-compiler:${crossScalaVersion}",
-    )
-
-    def resources = T.sources{
-      os.copy(generatedSources().head.path / "META-INF", T.dest / "META-INF")
-      Seq(PathRef(T.dest))
-    }
-
-    def generatedSources = T{
-      import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
-
-      val resolvedJars = resolveDeps(
-        T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}") },
-        sources = true
-      )()
-
-      val bridgeJar = grepJar(
-        resolvedJars.map(_.path),
-        s"compiler-bridge_${scalaBinaryVersion(scalaVersion())}",
-        Deps.zinc.dep.version,
-        true
-      )
-
-      mill.api.IO.unpackZip(bridgeJar, os.rel)
-
-      Seq(PathRef(T.dest))
-    }
   }
 }
 

@@ -125,18 +125,14 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
 
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
-    val bridgeJar = ZincWorkerUtil.millLocalCompilerBridgePaths.get(scalaVersion) match{
-      case Some(v) => Result.Success(PathRef(v))
-      case None =>
-        resolveDependencies(
-          repositories,
-          Seq(bridgeDep.bindDep("", "", "")),
-          useSources,
-          Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
-        ).map(deps =>
-          ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
-        )
-    }
+    val bridgeJar = resolveDependencies(
+      repositories,
+      Seq(bridgeDep.bindDep("", "", "")),
+      useSources,
+      Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+    ).map(deps =>
+      ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
+    )
 
     if (useSources) {
       for {

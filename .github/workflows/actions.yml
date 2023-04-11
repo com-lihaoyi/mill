@@ -121,6 +121,9 @@ jobs:
           git config --add user.name "Mill GithHub Actions"
           git config --add user.email "mill-ci@localhost"
 
+      - name: Publish Local Compiler Bridges (for PR only)
+        run: MILL_BUILD_COMPILER_BRIDGES=true ./mill -i -j 6 bridge.__.publishLocal
+
       - name: Run '${{ matrix.buildcmd }}'
         run: ${{ matrix.buildcmd }}
 
