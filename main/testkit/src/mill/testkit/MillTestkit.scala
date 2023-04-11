@@ -100,7 +100,7 @@ trait MillTestKit {
     val evaluator = Evaluator(
       mill.api.Ctx.defaultHome,
       outPath,
-      externalOutPath,
+      outPath,
       module,
       logger,
       0

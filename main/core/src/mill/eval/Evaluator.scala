@@ -904,17 +904,7 @@ object Evaluator {
           case Right(t) => t.segments.render
         }
         val fss = fs.map {
-          case Result.Exception(t, outerStack) =>
-            var current = List(t)
-            while (current.head.getCause != null) {
-              current = current.head.getCause :: current
-            }
-            current.reverse
-              .flatMap(ex =>
-                Seq(ex.toString) ++
-                  ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
-              )
-              .mkString("\n")
+          case ex: Result.Exception => ex.toString
           case Result.Failure(t, _) => t
         }
         s"$ks ${fss.iterator.mkString(", ")}"
