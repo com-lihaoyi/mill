@@ -743,7 +743,7 @@ object scalalib extends MillModule {
         "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(","),
         s"-DMILL_LOCAL_COMPILER_BRIDGES=" +
           T.traverse(bridgeScalaVersionsAndModules.toSeq){case (v, m) => m.jar.map((v, _))}()
-            .map({case (k, v) => s"$k:${v.path}"})
+            .map({case (k, v) => s"$k=${v.path}"})
             .mkString(",")
       )
     }

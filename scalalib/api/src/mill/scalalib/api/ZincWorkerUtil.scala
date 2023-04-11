@@ -115,8 +115,8 @@ trait ZincWorkerUtil {
       case None => Map()
       case Some(local) =>
         local.split(",")
-          .map(_.split(':'))
-          .map{case Array(version, path) => (version, os.Path(path))}
+          .map(_.split('=').toSeq)
+          .map{case Seq(version, path) => (version, os.Path(path))}
           .toMap
     }
   }
