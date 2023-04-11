@@ -120,7 +120,7 @@ trait ZincWorkerUtil {
           .map{case Array(version, path) => (version, os.Path(path))}
         .toMap
 
-          pprint.log(res)
+          println(res)
         res
         }
     }
