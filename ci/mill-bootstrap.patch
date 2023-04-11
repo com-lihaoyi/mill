@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 0bf7fe23d..26acc8e9c 100644
+index 0bf7fe23d..2d59340c3 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,27 +2,18 @@
@@ -280,15 +280,14 @@ index 0bf7fe23d..26acc8e9c 100644
  }
  
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -752,20 +524,20 @@ object scalalib extends MillModule {
+@@ -752,20 +524,19 @@ object scalalib extends MillModule {
  
      def generatedSources = T{
        import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
 -
-+      val bind = bindDependency()
        val resolvedJars = resolveDeps(
 -        T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}") },
-+        T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}").map(bind) },
++        T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}").map(bindDependency()) },
          sources = true
        )()
  
@@ -305,7 +304,7 @@ index 0bf7fe23d..26acc8e9c 100644
  
        Seq(PathRef(T.dest))
      }
-@@ -811,6 +583,7 @@ object scalajslib extends MillModule with BuildInfo{
+@@ -811,6 +582,7 @@ object scalajslib extends MillModule with BuildInfo{
    }
    object worker extends Cross[WorkerModule]("1")
    class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
@@ -313,7 +312,7 @@ index 0bf7fe23d..26acc8e9c 100644
      override def moduleDeps = Seq(scalajslib.`worker-api`)
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
-@@ -873,6 +646,7 @@ object contrib extends MillModule {
+@@ -873,6 +645,7 @@ object contrib extends MillModule {
  
      object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
      class WorkerModule(playBinary: String) extends MillInternalModule {
@@ -321,7 +320,7 @@ index 0bf7fe23d..26acc8e9c 100644
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -1064,6 +838,7 @@ object scalanativelib extends MillModule {
+@@ -1064,6 +837,7 @@ object scalanativelib extends MillModule {
    object worker extends Cross[WorkerModule]("0.4")
    class WorkerModule(scalaNativeWorkerVersion: String)
        extends MillInternalModule {
@@ -329,7 +328,7 @@ index 0bf7fe23d..26acc8e9c 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1224,6 +999,7 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1224,6 +998,7 @@ trait IntegrationTestModule extends MillScalaModule {
  }
  
  trait IntegrationTestCrossModule extends IntegrationTestModule {
@@ -337,7 +336,7 @@ index 0bf7fe23d..26acc8e9c 100644
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1778,53 +1554,7 @@ def launcher = T {
+@@ -1778,53 +1553,7 @@ def launcher = T {
  
  
  def uploadToGithub(authKey: String) = T.command {
