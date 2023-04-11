@@ -24,13 +24,12 @@ object HelloNativeWorldTests extends TestSuite {
     override def mainClass = Some("hello.Main")
   }
 
-  val scala213 = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-  val scala212 = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
+  val scala213 = "2.13.6"
   val scalaNative04 = "0.4.2"
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scala <- Seq("3.2.1", "3.1.3", scala213, scala212, "2.11.12")
+      scala <- Seq("3.2.1", "3.1.3", scala213, "2.12.13", "2.11.12")
       scalaNative <- Seq(scalaNative04, "0.4.9")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
       if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04)
