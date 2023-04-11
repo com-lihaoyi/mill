@@ -652,6 +652,11 @@ object main extends MillModule {
 object testrunner extends MillModule {
   override def moduleDeps = Seq(scalalib.api, main.util)
 }
+
+val devTestBridgeVersions = Set(Deps.testScala213Version, Deps.testScala212Version)
+  .map(v => (v, scalalib.bridge(v)))
+  .toMap
+
 object scalalib extends MillModule {
   override def moduleDeps = Seq(main, scalalib.api, testrunner)
 
@@ -660,9 +665,8 @@ object scalalib extends MillModule {
   )
 
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
-  def testModuleDeps =
-    super.testModuleDeps ++
-    Seq(bridge(Deps.testScala212Version), bridge(Deps.testScala213Version))
+
+  def testModuleDeps = super.testModuleDeps ++ devTestBridgeVersions.values
 
   def testArgs = T {
 
@@ -719,7 +723,10 @@ object scalalib extends MillModule {
     def testArgs = T {
       Seq(
         "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(","),
-        s"-DMILL_LOCAL_COMPILER_BRIDGES=${Deps.testScala212Version}=${bridge(Deps.testScala212Version).jar().path},${Deps.testScala213Version}=${bridge(Deps.testScala213Version).jar().path}"
+        s"-DMILL_LOCAL_COMPILER_BRIDGES=" +
+          T.traverse(devTestBridgeVersions.toSeq){case (v, m) => m.jar.map((v, _))}()
+            .map({case (k, v) => s"$k=${v.path}"})
+            .mkString(",")
       )
     }
 
@@ -1144,7 +1151,10 @@ def installLocalCache() = T.command {
 }
 
 def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
-  val modules = build.millInternal.modules.collect { case m: PublishModule => m }
+  val modules = build.millInternal.modules.collect {
+    case m: PublishModule => m
+    case m: scalalib.BridgeModule if devTestBridgeVersions.contains(m.crossScalaVersion) => m
+  }
   T.task {
     T.traverse(modules)(m => m.publishLocal(ivyRepo))()
     val millBin = assembly()
