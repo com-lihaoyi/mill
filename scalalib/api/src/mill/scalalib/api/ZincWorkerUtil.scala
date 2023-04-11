@@ -114,7 +114,7 @@ trait ZincWorkerUtil {
     sys.props.get("MILL_LOCAL_COMPILER_BRIDGES") match{
       case None => Map()
       case Some(local) =>
-        val res = {
+        val res =
         local.split(",")
           .map(_.split(':'))
           .map{case Array(version, path) => (version, os.Path(path))}
@@ -122,7 +122,7 @@ trait ZincWorkerUtil {
 
           println(res)
         res
-        }
+
     }
 
   /** @return true if the compiler bridge can be downloaded as an already compiled jar */
