@@ -20,8 +20,6 @@ trait MillTestKit {
 
   def targetDir: os.Path = defaultTargetDir
 
-  def externalOutPath: os.Path = targetDir / "external"
-
   def staticTestEvaluator(module: => mill.define.BaseModule)(implicit
       fullName: sourcecode.FullName
   ) = {
@@ -100,7 +98,7 @@ trait MillTestKit {
     val evaluator = Evaluator(
       mill.api.Ctx.defaultHome,
       outPath,
-      externalOutPath,
+      outPath,
       module,
       logger,
       0

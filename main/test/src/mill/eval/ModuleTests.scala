@@ -18,18 +18,18 @@ object ModuleTests extends TestSuite {
     def z = T { ExternalModule.x() + ExternalModule.inner.y() }
   }
   val tests = Tests {
-    os.remove.all(TestUtil.externalOutPath)
     "externalModuleTargetsAreNamespacedByModulePackagePath" - {
       val check = new TestEvaluator(Build)
+      os.remove.all(check.outPath)
       val zresult = check.apply(Build.z)
       assert(
         zresult == Right((30, 1)),
         os.read(check.evaluator.outPath / "z.json").contains("30"),
         os.read(
-          TestUtil.externalOutPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "x.json"
+          check.outPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "x.json"
         ).contains("13"),
         os.read(
-          TestUtil.externalOutPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "inner" / "y.json"
+          check.outPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "inner" / "y.json"
         ).contains("17")
       )
     }

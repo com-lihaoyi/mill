@@ -1,7 +1,7 @@
 import mill._, scalalib._, scalajslib._
 
 trait AppScalaModule extends ScalaModule{
-  def scalaVersion = "2.13.10"
+  def scalaVersion = "2.13.8"
 }
 
 trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
