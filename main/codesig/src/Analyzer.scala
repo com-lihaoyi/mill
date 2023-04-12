@@ -117,6 +117,7 @@ object Analyzer{
         .collect { case c: JType.Cls => externalClsToLocalClsMethods.getOrElse(c, Nil) }
         .flatten
         .flatMap { case (k, vs) => vs.map(m => MethodDef(k, m.static, m.name, m.desc)) }
+        .filter(_.name != "<init>")
         .toSet
     }
 

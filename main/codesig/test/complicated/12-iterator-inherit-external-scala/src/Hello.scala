@@ -36,25 +36,19 @@ object Hello{
 /* EXPECTED TRANSITIVE
 {
     "hello.Hello$#manualIterator(I)I": [
-        "hello.Hello$#<init>()V",
         "hello.Hello$#getInt()I",
         "hello.Hello$Elements#<init>(java.lang.Object)V",
         "hello.Hello$Elements#next()java.lang.Object"
     ],
     "hello.Hello$#manualIterator2(I)I": [
-        "hello.Hello$#<init>()V",
         "hello.Hello$#getInt()I",
         "hello.Hello$Elements#<init>(java.lang.Object)V"
-    ],
-    "hello.Hello$Elements#<init>(java.lang.Object)V": [
-        "hello.Hello$#<init>()V"
     ],
     "hello.Hello$Elements#hasNext()Z": [
         "hello.Hello$Elements#end()I",
         "hello.Hello$Elements#index()I"
     ],
     "hello.Hello$Elements#next()java.lang.Object": [
-        "hello.Hello$#<init>()V",
         "hello.Hello$Elements#index()I",
         "hello.Hello$Elements#index_$eq(I)V"
     ],

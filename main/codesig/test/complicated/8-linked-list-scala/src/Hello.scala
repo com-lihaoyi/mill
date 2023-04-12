@@ -40,5 +40,41 @@ object Hello{
 }
 
 /* EXPECTED TRANSITIVE
-{}
+{
+    "hello.Hello$#simpleLinkedListForeach()[I": [
+        "hello.Hello$TestCons#<init>(java.lang.Objecthello.Hello$TestList)V",
+        "hello.Hello$TestList#foreach(scala.Function1)V",
+        "hello.Hello$TestNil$#<init>()V"
+    ],
+    "hello.Hello$TestCons#<init>(java.lang.Objecthello.Hello$TestList)V": [
+        "hello.Hello$TestList#<init>()V"
+    ],
+    "hello.Hello$TestCons#tail()hello.Hello$TestList": [
+        "hello.Hello$TestCons#tl()hello.Hello$TestList"
+    ],
+    "hello.Hello$TestList#foreach(scala.Function1)V": [
+        "hello.Hello$TestCons#head()java.lang.Object",
+        "hello.Hello$TestCons#isEmpty()Z",
+        "hello.Hello$TestCons#tail()hello.Hello$TestList",
+        "hello.Hello$TestList#head()java.lang.Object",
+        "hello.Hello$TestList#isEmpty()Z",
+        "hello.Hello$TestList#tail()hello.Hello$TestList",
+        "hello.Hello$TestNil$#head()java.lang.Object",
+        "hello.Hello$TestNil$#isEmpty()Z",
+        "hello.Hello$TestNil$#tail()hello.Hello$TestList"
+    ],
+    "hello.Hello$TestNil$#<init>()V": [
+        "hello.Hello$TestList#<init>()V"
+    ],
+    "hello.Hello$TestNil$#head()java.lang.Object": [
+        "hello.Hello$TestNil$#head()scala.runtime.Nothing$"
+    ],
+    "hello.Hello$TestNil$#tail()hello.Hello$TestList": [
+        "hello.Hello$TestNil$#tail()scala.runtime.Nothing$"
+    ],
+    "hello.Hello.simpleLinkedListForeach()[I": [
+        "hello.Hello$#<init>()V",
+        "hello.Hello$#simpleLinkedListForeach()[I"
+    ]
+}
 */

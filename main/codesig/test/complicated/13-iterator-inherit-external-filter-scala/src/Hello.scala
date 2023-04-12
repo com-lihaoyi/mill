@@ -48,7 +48,6 @@ object Hello{
 /* EXPECTED TRANSITIVE
 {
     "hello.Hello$#manualIterator3(I)I": [
-        "hello.Hello$#<init>()V",
         "hello.Hello$BigTestIterator#hasNext()Z",
         "hello.Hello$BigTestIterator#next()java.lang.Object",
         "hello.Hello$FilterBigTestIterator#hasNext()Z",
@@ -68,7 +67,6 @@ object Hello{
         "hello.Hello$BigTestIterator.filter$(hello.Hello$BigTestIteratorscala.Function1)hello.Hello$BigTestIterator"
     ],
     "hello.Hello$FilterBigTestIterator#hasNext()Z": [
-        "hello.Hello$#<init>()V",
         "hello.Hello$BigTestIterator#hasNext()Z",
         "hello.Hello$BigTestIterator#next()java.lang.Object",
         "hello.Hello$FilterBigTestIterator#hasNext()Z",

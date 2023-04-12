@@ -31,22 +31,14 @@ object Hello{
         "hello.Hello$TestCallback#<init>()V"
     ],
     "hello.Hello$TestCallbackImpl#apply(java.lang.Object)java.lang.Object": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$TestCallback#<init>()V",
-        "hello.Hello$TestCallbackImpl#<init>()V",
-        "hello.Hello$TestCallbackImpl#apply(I)I",
-        "hello.Hello$TestElements#<init>()V"
+        "hello.Hello$TestCallbackImpl#apply(I)I"
     ],
     "hello.Hello$TestElements#run(hello.Hello$TestCallback)I": [
         "hello.Hello$TestIterator.run$(hello.Hello$TestIteratorhello.Hello$TestCallback)I"
     ],
     "hello.Hello$TestIterator#run(hello.Hello$TestCallback)I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$TestCallback#<init>()V",
         "hello.Hello$TestCallback#apply(java.lang.Object)java.lang.Object",
-        "hello.Hello$TestCallbackImpl#<init>()V",
-        "hello.Hello$TestCallbackImpl#apply(java.lang.Object)java.lang.Object",
-        "hello.Hello$TestElements#<init>()V"
+        "hello.Hello$TestCallbackImpl#apply(java.lang.Object)java.lang.Object"
     ],
     "hello.Hello$TestIterator.run$(hello.Hello$TestIteratorhello.Hello$TestCallback)I": [
         "hello.Hello$TestIterator#run(hello.Hello$TestCallback)I"

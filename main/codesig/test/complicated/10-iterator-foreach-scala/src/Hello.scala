@@ -39,8 +39,6 @@ object Hello{
         "hello.SubTestIter#next()scala.runtime.Nothing$"
     ],
     "hello.TestIter#foreach(scala.Function1)V": [
-        "hello.Hello$#<init>()V",
-        "hello.SubTestIter#<init>()V",
         "hello.SubTestIter#hasNext()Z",
         "hello.SubTestIter#next()java.lang.Object",
         "hello.TestIter#hasNext()Z",

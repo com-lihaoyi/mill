@@ -26,18 +26,12 @@ object Hello{
 /* EXPECTED TRANSITIVE
 {
     "hello.Hello$#simpleArraySeqForeach()[I": [
-        "hello.Hello$#<init>()V",
         "hello.Hello$TestArraySeq#<init>(java.lang.Object)V",
         "hello.Hello$TestArraySeq#foreach(scala.Function1)V"
-    ],
-    "hello.Hello$TestArraySeq#foreach(scala.Function1)V": [
-        "hello.Hello$#<init>()V"
     ],
     "hello.Hello.simpleArraySeqForeach()[I": [
         "hello.Hello$#<init>()V",
-        "hello.Hello$#simpleArraySeqForeach()[I",
-        "hello.Hello$TestArraySeq#<init>(java.lang.Object)V",
-        "hello.Hello$TestArraySeq#foreach(scala.Function1)V"
+        "hello.Hello$#simpleArraySeqForeach()[I"
     ]
 }
 */
