@@ -34,34 +34,34 @@ object Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello$#manualIterator(I)I": [
-        "hello.Hello$#getInt()I",
-        "hello.Hello$Elements#<init>(java.lang.Object)V",
+    "hello.Hello$#manualIterator(int)int": [
+        "hello.Hello$#getInt()int",
+        "hello.Hello$Elements#<init>(java.lang.Object)void",
         "hello.Hello$Elements#next()java.lang.Object"
     ],
-    "hello.Hello$#manualIterator2(I)I": [
-        "hello.Hello$#getInt()I",
-        "hello.Hello$Elements#<init>(java.lang.Object)V"
+    "hello.Hello$#manualIterator2(int)int": [
+        "hello.Hello$#getInt()int",
+        "hello.Hello$Elements#<init>(java.lang.Object)void"
     ],
-    "hello.Hello$Elements#hasNext()Z": [
-        "hello.Hello$Elements#end()I",
-        "hello.Hello$Elements#index()I"
+    "hello.Hello$Elements#hasNext()boolean": [
+        "hello.Hello$Elements#end()int",
+        "hello.Hello$Elements#index()int"
     ],
     "hello.Hello$Elements#next()java.lang.Object": [
-        "hello.Hello$Elements#index()I",
-        "hello.Hello$Elements#index_$eq(I)V"
+        "hello.Hello$Elements#index()int",
+        "hello.Hello$Elements#index_$eq(int)void"
     ],
-    "hello.Hello.getInt()I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$#getInt()I"
+    "hello.Hello.getInt()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#getInt()int"
     ],
-    "hello.Hello.manualIterator(I)I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$#manualIterator(I)I"
+    "hello.Hello.manualIterator(int)int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#manualIterator(int)int"
     ],
-    "hello.Hello.manualIterator2(I)I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$#manualIterator2(I)I"
+    "hello.Hello.manualIterator2(int)int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#manualIterator2(int)int"
     ]
 }
 */

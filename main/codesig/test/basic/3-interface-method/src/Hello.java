@@ -22,12 +22,12 @@ public class Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello.main()I": [
-        "hello.Foo#used()I",
-        "hello.Bar#<init>()V",
-        "hello.Bar#used()I",
-        "hello.Qux#<init>()V",
-        "hello.Qux#used()I"
+    "hello.Hello.main()int": [
+        "hello.Foo#used()int",
+        "hello.Bar#<init>()void",
+        "hello.Bar#used()int",
+        "hello.Qux#<init>()void",
+        "hello.Qux#used()int"
     ]
 }
 */

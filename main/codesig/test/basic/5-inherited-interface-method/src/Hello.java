@@ -10,9 +10,9 @@ public class Hello implements Parent{
 }
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello.main()I": [
-        "hello.Hello#<init>()V",
-        "hello.Parent#used()I"
+    "hello.Hello.main()int": [
+        "hello.Hello#<init>()void",
+        "hello.Parent#used()int"
     ]
 }
 */

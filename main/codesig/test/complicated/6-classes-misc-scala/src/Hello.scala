@@ -55,30 +55,30 @@ class LinkedList {
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Bull#<init>()V": [
-        "hello.Cow#<init>()V"
+    "hello.Bull#<init>()void": [
+        "hello.Cow#<init>()void"
     ],
     "hello.Bull#mooTwice()java.lang.String": [
         "hello.Cow#moo()java.lang.String"
     ],
-    "hello.DoubleDetMatrix#<init>(F,F,F,F)V": [
-        "hello.Matrix#<init>(F,F,F,F)V"
+    "hello.DoubleDetMatrix#<init>(float,float,float,float)void": [
+        "hello.Matrix#<init>(float,float,float,float)void"
     ],
-    "hello.DoubleDetMatrix#determinant()F": [
-        "hello.Matrix#determinant()F"
+    "hello.DoubleDetMatrix#determinant()float": [
+        "hello.Matrix#determinant()float"
     ],
-    "hello.DoubleMatrix#<init>(F,F,F,F)V": [
-        "hello.Matrix#<init>(F,F,F,F)V"
+    "hello.DoubleMatrix#<init>(float,float,float,float)void": [
+        "hello.Matrix#<init>(float,float,float,float)void"
     ],
-    "hello.LinkedList#push(I)V": [
+    "hello.LinkedList#push(int)void": [
         "hello.LinkedList#head()hello.LinkedList$Inner",
-        "hello.LinkedList#head_$eq(hello.LinkedList$Inner)V",
-        "hello.LinkedList$Inner#<init>(hello.LinkedList,I,hello.LinkedList$Inner)V"
+        "hello.LinkedList#head_$eq(hello.LinkedList$Inner)void",
+        "hello.LinkedList$Inner#<init>(hello.LinkedList,int,hello.LinkedList$Inner)void"
     ],
-    "hello.LinkedList#sum()I": [
+    "hello.LinkedList#sum()int": [
         "hello.LinkedList#head()hello.LinkedList$Inner",
         "hello.LinkedList$Inner#next()hello.LinkedList$Inner",
-        "hello.LinkedList$Inner#value()I"
+        "hello.LinkedList$Inner#value()int"
     ]
 }
 */

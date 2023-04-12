@@ -8,6 +8,6 @@ public class Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello.main()I": ["hello.Hello#<init>()V", "hello.Hello#used()I"]
+    "hello.Hello.main()int": ["hello.Hello#<init>()void", "hello.Hello#used()int"]
 }
 */

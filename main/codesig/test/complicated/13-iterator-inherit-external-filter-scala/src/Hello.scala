@@ -46,18 +46,18 @@ object Hello{
 }
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello$#manualIterator3(I)I": [
-        "hello.Hello$BigTestIterator#hasNext()Z",
+    "hello.Hello$#manualIterator3(int)int": [
+        "hello.Hello$BigTestIterator#hasNext()boolean",
         "hello.Hello$BigTestIterator#next()java.lang.Object",
-        "hello.Hello$FilterBigTestIterator#hasNext()Z",
+        "hello.Hello$FilterBigTestIterator#hasNext()boolean",
         "hello.Hello$FilterBigTestIterator#next()java.lang.Object",
-        "hello.Hello$SingletonBigTestIterator#<init>(java.lang.Object)V",
+        "hello.Hello$SingletonBigTestIterator#<init>(java.lang.Object)void",
         "hello.Hello$SingletonBigTestIterator#filter(scala.Function1)hello.Hello$BigTestIterator",
-        "hello.Hello$SingletonBigTestIterator#hasNext()Z",
+        "hello.Hello$SingletonBigTestIterator#hasNext()boolean",
         "hello.Hello$SingletonBigTestIterator#next()java.lang.Object"
     ],
     "hello.Hello$BigTestIterator#filter(scala.Function1)hello.Hello$BigTestIterator": [
-        "hello.Hello$FilterBigTestIterator#<init>(hello.Hello$BigTestIterator,scala.Function1)V"
+        "hello.Hello$FilterBigTestIterator#<init>(hello.Hello$BigTestIterator,scala.Function1)void"
     ],
     "hello.Hello$BigTestIterator.filter$(hello.Hello$BigTestIterator,scala.Function1)hello.Hello$BigTestIterator": [
         "hello.Hello$BigTestIterator#filter(scala.Function1)hello.Hello$BigTestIterator"
@@ -65,26 +65,26 @@ object Hello{
     "hello.Hello$FilterBigTestIterator#filter(scala.Function1)hello.Hello$BigTestIterator": [
         "hello.Hello$BigTestIterator.filter$(hello.Hello$BigTestIterator,scala.Function1)hello.Hello$BigTestIterator"
     ],
-    "hello.Hello$FilterBigTestIterator#hasNext()Z": [
-        "hello.Hello$BigTestIterator#hasNext()Z",
+    "hello.Hello$FilterBigTestIterator#hasNext()boolean": [
+        "hello.Hello$BigTestIterator#hasNext()boolean",
         "hello.Hello$BigTestIterator#next()java.lang.Object",
-        "hello.Hello$FilterBigTestIterator#hasNext()Z",
+        "hello.Hello$FilterBigTestIterator#hasNext()boolean",
         "hello.Hello$FilterBigTestIterator#next()java.lang.Object",
-        "hello.Hello$SingletonBigTestIterator#hasNext()Z",
+        "hello.Hello$SingletonBigTestIterator#hasNext()boolean",
         "hello.Hello$SingletonBigTestIterator#next()java.lang.Object"
     ],
     "hello.Hello$SingletonBigTestIterator#filter(scala.Function1)hello.Hello$BigTestIterator": [
         "hello.Hello$BigTestIterator.filter$(hello.Hello$BigTestIterator,scala.Function1)hello.Hello$BigTestIterator"
     ],
-    "hello.Hello$SingletonBigTestIterator#hasNext()Z": [
-        "hello.Hello$SingletonBigTestIterator#ready()Z"
+    "hello.Hello$SingletonBigTestIterator#hasNext()boolean": [
+        "hello.Hello$SingletonBigTestIterator#ready()boolean"
     ],
     "hello.Hello$SingletonBigTestIterator#next()java.lang.Object": [
-        "hello.Hello$SingletonBigTestIterator#ready_$eq(Z)V"
+        "hello.Hello$SingletonBigTestIterator#ready_$eq(boolean)void"
     ],
-    "hello.Hello.manualIterator3(I)I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$#manualIterator3(I)I"
+    "hello.Hello.manualIterator3(int)int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#manualIterator3(int)int"
     ]
 }
 */

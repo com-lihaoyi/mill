@@ -40,30 +40,30 @@ object Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello$#simpleLinkedListForeach()[I": [
-        "hello.Hello$TestCons#<init>(java.lang.Object,hello.Hello$TestList)V",
-        "hello.Hello$TestList#foreach(scala.Function1)V",
-        "hello.Hello$TestNil$#<init>()V"
+    "hello.Hello$#simpleLinkedListForeach()int[]": [
+        "hello.Hello$TestCons#<init>(java.lang.Object,hello.Hello$TestList)void",
+        "hello.Hello$TestList#foreach(scala.Function1)void",
+        "hello.Hello$TestNil$#<init>()void"
     ],
-    "hello.Hello$TestCons#<init>(java.lang.Object,hello.Hello$TestList)V": [
-        "hello.Hello$TestList#<init>()V"
+    "hello.Hello$TestCons#<init>(java.lang.Object,hello.Hello$TestList)void": [
+        "hello.Hello$TestList#<init>()void"
     ],
     "hello.Hello$TestCons#tail()hello.Hello$TestList": [
         "hello.Hello$TestCons#tl()hello.Hello$TestList"
     ],
-    "hello.Hello$TestList#foreach(scala.Function1)V": [
+    "hello.Hello$TestList#foreach(scala.Function1)void": [
         "hello.Hello$TestCons#head()java.lang.Object",
-        "hello.Hello$TestCons#isEmpty()Z",
+        "hello.Hello$TestCons#isEmpty()boolean",
         "hello.Hello$TestCons#tail()hello.Hello$TestList",
         "hello.Hello$TestList#head()java.lang.Object",
-        "hello.Hello$TestList#isEmpty()Z",
+        "hello.Hello$TestList#isEmpty()boolean",
         "hello.Hello$TestList#tail()hello.Hello$TestList",
         "hello.Hello$TestNil$#head()java.lang.Object",
-        "hello.Hello$TestNil$#isEmpty()Z",
+        "hello.Hello$TestNil$#isEmpty()boolean",
         "hello.Hello$TestNil$#tail()hello.Hello$TestList"
     ],
-    "hello.Hello$TestNil$#<init>()V": [
-        "hello.Hello$TestList#<init>()V"
+    "hello.Hello$TestNil$#<init>()void": [
+        "hello.Hello$TestList#<init>()void"
     ],
     "hello.Hello$TestNil$#head()java.lang.Object": [
         "hello.Hello$TestNil$#head()scala.runtime.Nothing$"
@@ -71,9 +71,9 @@ object Hello{
     "hello.Hello$TestNil$#tail()hello.Hello$TestList": [
         "hello.Hello$TestNil$#tail()scala.runtime.Nothing$"
     ],
-    "hello.Hello.simpleLinkedListForeach()[I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$#simpleLinkedListForeach()[I"
+    "hello.Hello.simpleLinkedListForeach()int[]": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#simpleLinkedListForeach()int[]"
     ]
 }
 */

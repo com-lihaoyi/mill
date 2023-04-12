@@ -22,28 +22,28 @@ object Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello$#minimizedIterator()[I": [
-        "hello.SubTestIter#<init>()V",
-        "hello.SubTestIter#foreach(scala.Function1)V"
+    "hello.Hello$#minimizedIterator()int[]": [
+        "hello.SubTestIter#<init>()void",
+        "hello.SubTestIter#foreach(scala.Function1)void"
     ],
-    "hello.Hello.minimizedIterator()[I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$#minimizedIterator()[I"
+    "hello.Hello.minimizedIterator()int[]": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#minimizedIterator()int[]"
     ],
-    "hello.SubTestIter#foreach(scala.Function1)V": [
-        "hello.TestIter.foreach$(hello.TestIter,scala.Function1)V"
+    "hello.SubTestIter#foreach(scala.Function1)void": [
+        "hello.TestIter.foreach$(hello.TestIter,scala.Function1)void"
     ],
     "hello.SubTestIter#next()java.lang.Object": [
         "hello.SubTestIter#next()scala.runtime.Nothing$"
     ],
-    "hello.TestIter#foreach(scala.Function1)V": [
-        "hello.SubTestIter#hasNext()Z",
+    "hello.TestIter#foreach(scala.Function1)void": [
+        "hello.SubTestIter#hasNext()boolean",
         "hello.SubTestIter#next()java.lang.Object",
-        "hello.TestIter#hasNext()Z",
+        "hello.TestIter#hasNext()boolean",
         "hello.TestIter#next()java.lang.Object"
     ],
-    "hello.TestIter.foreach$(hello.TestIter,scala.Function1)V": [
-        "hello.TestIter#foreach(scala.Function1)V"
+    "hello.TestIter.foreach$(hello.TestIter,scala.Function1)void": [
+        "hello.TestIter#foreach(scala.Function1)void"
     ]
 }
 */

@@ -26,10 +26,10 @@ interface Baas{
 }
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello.implement(I)java.lang.String": [
-        "hello.Baas#baa(I)java.lang.String",
-        "hello.Sheep#<init>()V",
-        "hello.Sheep#baa(I)java.lang.String"
+    "hello.Hello.implement(int)java.lang.String": [
+        "hello.Baas#baa(int)java.lang.String",
+        "hello.Sheep#<init>()void",
+        "hello.Sheep#baa(int)java.lang.String"
     ]
 }
 */

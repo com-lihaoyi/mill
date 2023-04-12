@@ -8,7 +8,7 @@ import upickle.default.{ReadWriter, readwriter}
 // us by ASM library
 
 case class MethodDef(cls: JType.Cls, static: Boolean, name: String, desc: Desc){
-  override def toString = cls.name + (if(static) "." else "#") + name + desc
+  override def toString = cls.pretty + (if(static) "." else "#") + name + desc.pretty
 }
 
 object MethodDef{
@@ -16,7 +16,7 @@ object MethodDef{
 }
 
 case class LocalMethodDef(static: Boolean, name: String, desc: Desc){
-  override def toString = (if(static) "." else "#") + name + desc
+  override def toString = (if(static) "." else "#") + name + desc.pretty
 }
 
 object LocalMethodDef{
@@ -41,9 +41,11 @@ object InvokeType{
   case object Special extends InvokeType
 }
 
-sealed trait JType
+sealed trait JType{
+  def pretty: String
+}
 object JType {
-  class Prim(val shortJavaName: String, val longJavaName: String) extends JType
+  class Prim(val shortJavaName: String, val pretty: String) extends JType
 
   object Prim extends {
     def read(s: String) = all(s(0))
@@ -82,7 +84,9 @@ object JType {
     case object D extends Prim("D", "double")
   }
 
-  case class Arr(innerType: JType) extends JType
+  case class Arr(innerType: JType) extends JType{
+    def pretty = innerType.pretty + "[]"
+  }
   object Arr{
     def read(s: String) = Arr(JType.read(s.drop(1)))
 
@@ -94,6 +98,7 @@ object JType {
   }
   case class Cls(name: String) extends JType {
     assert(!name.contains('/'), s"JType $name contains invalid '/' characters")
+    def pretty = name
   }
 
   object Cls {
@@ -145,23 +150,16 @@ object Desc{
     }
     Desc(args.map(JType.read).toSeq, JType.read(ret))
   }
-  def unparse(t: JType): String = {
-    t match{
-      case t: JType.Cls => t.name
-      case t: JType.Arr => "[" + unparse(t.innerType)
-      case x: JType.Prim => x.shortJavaName
-    }
-  }
 
-  implicit val ordering: Ordering[Desc] = Ordering.by(_.unparse)
+  implicit val ordering: Ordering[Desc] = Ordering.by(_.pretty)
 }
 
 /**
  * Represents the signature of a method.
  */
 case class Desc(args: Seq[JType], ret: JType){
-  def unparse = "(" + args.map(Desc.unparse).mkString(",") + ")" + Desc.unparse(ret)
-  override def toString = unparse
+  def pretty = "(" + args.map(_.pretty).mkString(",") + ")" + ret.pretty
+  override def toString = pretty
 
   def shorten(name: String) = {
     val some :+ last = name.split("/").toSeq

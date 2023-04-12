@@ -15,19 +15,19 @@ public class Hello extends Parent{
 }
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello#<init>()V": [
-        "hello.Parent#<init>()V"
+    "hello.Hello#<init>()void": [
+        "hello.Parent#<init>()void"
     ],
-    "hello.Hello#bar()I": [
-        "hello.Parent#bar()I"
+    "hello.Hello#bar()int": [
+        "hello.Parent#bar()int"
     ],
-    "hello.Hello.main()I": [
-        "hello.Hello#<init>()V",
-        "hello.Hello#bar()I",
-        "hello.Hello#foo()I"
+    "hello.Hello.main()int": [
+        "hello.Hello#<init>()void",
+        "hello.Hello#bar()int",
+        "hello.Hello#foo()int"
     ],
-    "hello.Parent#<init>()V": [
-        "hello.GrandParent#<init>()V"
+    "hello.Parent#<init>()void": [
+        "hello.GrandParent#<init>()void"
     ]
 }
 */

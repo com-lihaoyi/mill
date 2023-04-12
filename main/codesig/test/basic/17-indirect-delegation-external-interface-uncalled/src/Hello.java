@@ -29,9 +29,9 @@ public class Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello.main()I": [
-        "hello.Bar#<init>()V",
-        "hello.Bar#write([B,I,I)V"
+    "hello.Hello.main()int": [
+        "hello.Bar#<init>()void",
+        "hello.Bar#write(byte[],int,int)void"
     ]
 }
 */

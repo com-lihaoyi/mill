@@ -8,20 +8,20 @@ object Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello$#main()I": [
-        "hello.Hello$#used()I"
+    "hello.Hello$#main()int": [
+        "hello.Hello$#used()int"
     ],
-    "hello.Hello.main()I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$#main()I"
+    "hello.Hello.main()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#main()int"
     ],
-    "hello.Hello.unused()I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$#unused()I"
+    "hello.Hello.unused()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#unused()int"
     ],
-    "hello.Hello.used()I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$#used()I"
+    "hello.Hello.used()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#used()int"
     ]
 }
 */

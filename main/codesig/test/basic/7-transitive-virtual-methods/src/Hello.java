@@ -16,18 +16,18 @@ public class Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello#unused()I": [
-        "hello.Hello#usedTransitive()I"
+    "hello.Hello#unused()int": [
+        "hello.Hello#usedTransitive()int"
     ],
-    "hello.Hello#used()I": [
-        "hello.Hello#usedTransitive()I"
+    "hello.Hello#used()int": [
+        "hello.Hello#usedTransitive()int"
     ],
-    "hello.Hello#usedTransitive()I": [
-        "hello.Hello.usedDeepestStatic()I"
+    "hello.Hello#usedTransitive()int": [
+        "hello.Hello.usedDeepestStatic()int"
     ],
-    "hello.Hello.main()I": [
-        "hello.Hello#<init>()V",
-        "hello.Hello#used()I"
+    "hello.Hello.main()int": [
+        "hello.Hello#<init>()void",
+        "hello.Hello#used()int"
     ]
 }
 */

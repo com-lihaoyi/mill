@@ -34,11 +34,11 @@ class Child2 extends Cowc implements ParentInterface{
 }
 /* EXPECTED TRANSITIVE
 {
-    "hello.Child1#<init>()V": [
-        "hello.Parent#<init>()V"
+    "hello.Child1#<init>()void": [
+        "hello.Parent#<init>()void"
     ],
-    "hello.Child2#<init>()V": [
-        "hello.Cowc#<init>()V"
+    "hello.Child2#<init>()void": [
+        "hello.Cowc#<init>()void"
     ]
 }
 */

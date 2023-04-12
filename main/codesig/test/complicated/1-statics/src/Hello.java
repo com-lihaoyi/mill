@@ -56,26 +56,26 @@ public class Hello {
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello.callAtPhiBoundary(I)I": [
-        "hello.Hello.call(I)I"
+    "hello.Hello.callAtPhiBoundary(int)int": [
+        "hello.Hello.call(int)int"
     ],
-    "hello.Hello.fibonacci(I)I": [
-        "hello.Hello.fibonacci(I)I"
+    "hello.Hello.fibonacci(int)int": [
+        "hello.Hello.fibonacci(int)int"
     ],
-    "hello.Hello.helloWorld(I)I": [
-        "hello.Hello.timesTwo(I)I"
+    "hello.Hello.helloWorld(int)int": [
+        "hello.Hello.timesTwo(int)int"
     ],
-    "hello.Hello.helloWorld2(I,I)I": [
-        "hello.Hello.timesTwo2(I,I)I"
+    "hello.Hello.helloWorld2(int,int)int": [
+        "hello.Hello.timesTwo2(int,int)int"
     ],
-    "hello.Hello.indirectFibonacciA(I)I": [
-        "hello.Hello.indirectFibonacciB(I)I"
+    "hello.Hello.indirectFibonacciA(int)int": [
+        "hello.Hello.indirectFibonacciB(int)int"
     ],
-    "hello.Hello.indirectFibonacciB(I)I": [
-        "hello.Hello.indirectFibonacciA(I)I"
+    "hello.Hello.indirectFibonacciB(int)int": [
+        "hello.Hello.indirectFibonacciA(int)int"
     ],
-    "hello.Hello.tailFactorial(I)I": [
-        "hello.Hello.tailFactorial(I)I"
+    "hello.Hello.tailFactorial(int)int": [
+        "hello.Hello.tailFactorial(int)int"
     ]
 }
 */

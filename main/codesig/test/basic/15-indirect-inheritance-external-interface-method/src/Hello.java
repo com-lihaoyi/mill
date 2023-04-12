@@ -26,12 +26,12 @@ public class Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Foo#read()I": [
-        "hello.Foo#readSpecial()I"
+    "hello.Foo#read()int": [
+        "hello.Foo#readSpecial()int"
     ],
-    "hello.Hello.main()I": [
-        "hello.Foo#<init>()V",
-        "hello.Foo#read()I"
+    "hello.Hello.main()int": [
+        "hello.Foo#<init>()void",
+        "hello.Foo#read()int"
     ]
 }
 */

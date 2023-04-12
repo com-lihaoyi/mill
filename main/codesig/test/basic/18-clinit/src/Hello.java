@@ -32,12 +32,12 @@ public class Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello.main()I": [
-        "hello.Bar#<init>()V",
-        "hello.Bar.initBar()V",
-        "hello.Foo.foo()I",
-        "hello.Foo.initFoo()V",
-        "hello.Qux.initQux()V"
+    "hello.Hello.main()int": [
+        "hello.Bar#<init>()void",
+        "hello.Bar.initBar()void",
+        "hello.Foo.foo()int",
+        "hello.Foo.initFoo()void",
+        "hello.Qux.initQux()void"
     ]
 }
 */

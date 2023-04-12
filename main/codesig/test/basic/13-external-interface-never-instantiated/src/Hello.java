@@ -29,10 +29,10 @@ public class Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello.main()I": [
-        "hello.Foo#<init>()V",
-        "hello.Foo#getAsInt()I",
-        "hello.Bar#getAsInt()I"
+    "hello.Hello.main()int": [
+        "hello.Foo#<init>()void",
+        "hello.Foo#getAsInt()int",
+        "hello.Bar#getAsInt()int"
     ]
 }
 */

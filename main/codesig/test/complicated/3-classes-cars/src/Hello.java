@@ -76,26 +76,26 @@ class Car{
     ],
     "hello.Hello.abstractClass()java.lang.String": [
         "hello.Car#vroom()java.lang.String",
-        "hello.Toyota#<init>()V"
+        "hello.Toyota#<init>()void"
     ],
     "hello.Hello.shadowedInheritedGet()java.lang.String": [
         "hello.Car#vroom()java.lang.String",
-        "hello.Honda#<init>()V"
+        "hello.Honda#<init>()void"
     ],
     "hello.Hello.shadowedInheritedSet()java.lang.String": [
-        "hello.Car#rev()V",
+        "hello.Car#rev()void",
         "hello.Car#vroom()java.lang.String",
-        "hello.Honda#<init>()V"
+        "hello.Honda#<init>()void"
     ],
     "hello.Hello.superMethod()java.lang.String": [
-        "hello.Toyota#<init>()V",
+        "hello.Toyota#<init>()void",
         "hello.Toyota#superVStart()java.lang.String"
     ],
-    "hello.Honda#<init>()V": [
-        "hello.Car#<init>()V"
+    "hello.Honda#<init>()void": [
+        "hello.Car#<init>()void"
     ],
-    "hello.Toyota#<init>()V": [
-        "hello.Car#<init>()V"
+    "hello.Toyota#<init>()void": [
+        "hello.Car#<init>()void"
     ],
     "hello.Toyota#superVStart()java.lang.String": [
         "hello.Car#vStart()java.lang.String"

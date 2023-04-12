@@ -6,8 +6,8 @@ object Hello{
   trait TestIterator {
     def run(f: TestCallback[Int, Int]): Int = f(123)
   }
-  abstract class TestCallback[T, V]{
-    def apply(x: T): V
+  abstract class TestCallback[T, void]{
+    def apply(x: T): void
   }
   class TestCallbackImpl extends TestCallback[Int, Int]{
     def apply(x: Int): Int = x + 1
@@ -20,30 +20,30 @@ object Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Hello$#staticSpecialInterfaceMethods()I": [
-        "hello.Hello$TestCallbackImpl#<init>()V",
-        "hello.Hello$TestElements#<init>()V",
-        "hello.Hello$TestElements#run(hello.Hello$TestCallback)I"
+    "hello.Hello$#staticSpecialInterfaceMethods()int": [
+        "hello.Hello$TestCallbackImpl#<init>()void",
+        "hello.Hello$TestElements#<init>()void",
+        "hello.Hello$TestElements#run(hello.Hello$TestCallback)int"
     ],
-    "hello.Hello$TestCallbackImpl#<init>()V": [
-        "hello.Hello$TestCallback#<init>()V"
+    "hello.Hello$TestCallbackImpl#<init>()void": [
+        "hello.Hello$TestCallback#<init>()void"
     ],
     "hello.Hello$TestCallbackImpl#apply(java.lang.Object)java.lang.Object": [
-        "hello.Hello$TestCallbackImpl#apply(I)I"
+        "hello.Hello$TestCallbackImpl#apply(int)int"
     ],
-    "hello.Hello$TestElements#run(hello.Hello$TestCallback)I": [
-        "hello.Hello$TestIterator.run$(hello.Hello$TestIterator,hello.Hello$TestCallback)I"
+    "hello.Hello$TestElements#run(hello.Hello$TestCallback)int": [
+        "hello.Hello$TestIterator.run$(hello.Hello$TestIterator,hello.Hello$TestCallback)int"
     ],
-    "hello.Hello$TestIterator#run(hello.Hello$TestCallback)I": [
+    "hello.Hello$TestIterator#run(hello.Hello$TestCallback)int": [
         "hello.Hello$TestCallback#apply(java.lang.Object)java.lang.Object",
         "hello.Hello$TestCallbackImpl#apply(java.lang.Object)java.lang.Object"
     ],
-    "hello.Hello$TestIterator.run$(hello.Hello$TestIterator,hello.Hello$TestCallback)I": [
-        "hello.Hello$TestIterator#run(hello.Hello$TestCallback)I"
+    "hello.Hello$TestIterator.run$(hello.Hello$TestIterator,hello.Hello$TestCallback)int": [
+        "hello.Hello$TestIterator#run(hello.Hello$TestCallback)int"
     ],
-    "hello.Hello.staticSpecialInterfaceMethods()I": [
-        "hello.Hello$#<init>()V",
-        "hello.Hello$#staticSpecialInterfaceMethods()I"
+    "hello.Hello.staticSpecialInterfaceMethods()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#staticSpecialInterfaceMethods()int"
     ]
 }
 */
