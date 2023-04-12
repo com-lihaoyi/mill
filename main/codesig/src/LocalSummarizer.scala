@@ -12,14 +12,16 @@ import org.objectweb.asm.tree.{AbstractInsnNode, ClassNode, FieldInsnNode, Frame
  */
 object LocalSummarizer{
 
-  case class Result(callGraph: Map[MethodSig, (Int, Set[MethodCall])],
+  case class Result(callGraph: Map[MethodSig, Set[MethodCall]],
+                    methodHashes: Map[MethodSig, Int],
                     directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
                     directAncestors: Map[JType.Cls, Set[JType.Cls]])
 
   def summarize(classNodes: Seq[ClassNode]) = {
 
     val directSubclasses = new MultiBiMap.Mutable[JType.Cls, JType.Cls]()
-    val callGraph = collection.mutable.Map.empty[MethodSig, (Int, Set[MethodCall])]
+    val callGraph = collection.mutable.Map.empty[MethodSig, Set[MethodCall]]
+    val methodHashes = collection.mutable.Map.empty[MethodSig, Int]
     val directAncestors = collection.mutable.Map.empty[JType.Cls, Set[JType.Cls]]
 
     for(cn <- classNodes){
@@ -55,11 +57,12 @@ object LocalSummarizer{
           insnSigs.append(insn.getOpcode)
         }
 
-        callGraph(methodSig) = (insnSigs.hashCode(), outboundCalls.toSet)
+        callGraph(methodSig) = outboundCalls.toSet
+        methodHashes(methodSig) = insnSigs.hashCode()
       }
     }
 
-    Result(callGraph.toMap, directSubclasses, directAncestors.toMap)
+    Result(callGraph.toMap, methodHashes.toMap, directSubclasses, directAncestors.toMap)
   }
 
   def processInstruction(insn: AbstractInsnNode,

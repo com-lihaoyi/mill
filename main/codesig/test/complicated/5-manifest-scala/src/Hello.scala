@@ -6,9 +6,9 @@ import scala.collection.AbstractIterator
 object Hello{
 
   object TestManifestFactory {
-    val Nothing = new PhantomManifest()
-    class PhantomManifest() extends ClassTypeManifest(None)
-    class ClassTypeManifest(prefix: Option[Int])
+//    val Nothing = new PhantomManifest()
+//    class PhantomManifest() extends ClassTypeManifest(None)
+//    class ClassTypeManifest(prefix: Option[Int])
   }
 
   def testManifestFactory(): String = {

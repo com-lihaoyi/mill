@@ -4,6 +4,7 @@ import mill.util.{MultiBiMap, Tarjans}
 
 object Analyzer{
   def analyze(summary: LocalSummarizer.Result, external: ExternalSummarizer.Result)  = {
+    pprint.log(summary.callGraph.map{case (k, vs) => (k.toString, vs.map(_.toString))})
     val clsToMethods = summary.callGraph.keys.groupBy(_.cls)
     val methodToIndex = summary.callGraph.keys.toVector.zipWithIndex.toMap
     val indexToMethod = methodToIndex.map(_.swap)
@@ -36,6 +37,8 @@ object Analyzer{
       directDescendents
     )
 
+    pprint.log(resolvedCalls.map{case (k, vs) => (k.toString, vs.map(_.toString))})
+
     val topoSortedMethodGroups = Tarjans
       .apply(
         Range(0, methodToIndex.size).map(i => resolvedCalls(indexToMethod(i)).map(methodToIndex))
@@ -45,7 +48,7 @@ object Analyzer{
     val transitiveCallGraphHashes = computeTransitive[Int](
       topoSortedMethodGroups,
       resolvedCalls,
-      summary.callGraph(_)._1,
+      summary.methodHashes(_),
       _.hashCode()
     )
 
@@ -59,13 +62,13 @@ object Analyzer{
     transitiveCallGraphMethods
   }
 
-  def resolveAllCalls(callGraph: Map[MethodSig, (Int, Set[MethodCall])],
+  def resolveAllCalls(callGraph: Map[MethodSig, Set[MethodCall]],
                       methodToIndex: Map[MethodSig, Int],
                       clsToMethods: Map[JType.Cls, Iterable[MethodSig]],
                       externalClsToLocalClsMethods: Map[JType.Cls, Map[JType.Cls, Set[LocalMethodSig]]],
                       allDirectAncestors: Map[JType.Cls, Set[JType.Cls]],
                       directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
-                      directDescendents: Map[JType.Cls, Vector[JType.Cls]]) = {
+                      directDescendents: Map[JType.Cls, Vector[JType.Cls]]): Map[MethodSig, Set[MethodSig]] = {
 
 
     def resolveLocalCall(call: MethodCall): Set[MethodSig] = {
@@ -108,7 +111,7 @@ object Analyzer{
         .toSet
     }
 
-    for ((method, (hash, calls)) <- callGraph)
+    for ((method, calls) <- callGraph)
     yield (
       method,
       calls
