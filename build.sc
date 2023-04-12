@@ -643,33 +643,29 @@ object main extends MillModule {
     )
   }
   object codesig extends MillApiModule {
-
-
     override def ivyDeps = Agg(ivy"org.ow2.asm:asm-tree:9.5", Deps.osLib, ivy"com.lihaoyi::pprint:0.8.1")
     def moduleDeps = Seq(util)
 
     object test extends Tests{
-      val basicItems = listIn(millSourcePath / "basic")
-      val complicatedItems = listIn(millSourcePath / "complicated")
-      val gamesItems = listIn(millSourcePath / "games")
-      def forkEnv = T{
-        val kvs1 = T.traverse(basicItems) { i =>
-          basic(i).compile.map((s"basic-$i", _))
-        }()
-        val kvs2 = T.traverse(complicatedItems) { i =>
-          complicated(i).compile.map((s"complicated-$i", _))
-        }()
-        val kvs3 = T.traverse(gamesItems) { i =>
-          games(i).compile.map((s"games-$i", _))
-        }()
+      val caseKeys = interp.watchValue(
+        os.walk(millSourcePath / "cases", maxDepth = 2)
+          .map(_.subRelativeTo(millSourcePath / "cases").segments)
+          .collect{case Seq(a, b) => s"$a-$b"}
+      )
 
-        (kvs1 ++ kvs2 ++ kvs3).map{case (k, v) => (s"MILL_TEST_$k", v.classes.path.toString)}.toMap
+      def forkEnv = T{
+        T.traverse(caseKeys) { i => cases(i).compile.map((i, _))}()
+          .map{case (k, v) => (s"MILL_TEST_CLASSES_$k", v.classes.path.toString)}
+          .toMap ++
+        T.traverse(caseKeys) { i => cases(i).sources.map((i, _))}()
+          .map{case (k, v) => (s"MILL_TEST_SOURCES_$k", v.head.path.toString)}
+          .toMap
       }
 
-      object basic extends Cross[CaseModule](basicItems: _*)
-      object complicated extends Cross[CaseModule](complicatedItems: _*)
-      object games extends Cross[CaseModule](gamesItems: _*)
+      object cases extends Cross[CaseModule](caseKeys: _*)
       class CaseModule(caseName: String) extends ScalaModule {
+        val Array(prefix, suffix) = caseName.split("-", 2)
+        def millSourcePath = super.millSourcePath / os.up / prefix / suffix
         def scalaVersion = "2.13.10"
       }
     }

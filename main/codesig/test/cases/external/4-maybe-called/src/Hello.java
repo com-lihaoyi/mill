@@ -24,7 +24,9 @@ class Bar extends java.io.InputStream{
 public class Hello{
     public static int main() throws java.io.IOException{
         java.io.InputStream is = new Bar();
-
+        return bar(is);
+    }
+    public static int bar(java.io.InputStream is) throws java.io.IOException{
         is.read(new byte[10], 0, 10);
         return 1234;
     }
@@ -38,9 +40,13 @@ public class Hello{
     "hello.Bar#read()int": [
         "hello.Bar#called()int"
     ],
+    "hello.Hello.bar(java.io.InputStream)int": [
+        "hello.Bar#read()int"
+    ],
     "hello.Hello.main()int": [
         "hello.Bar#<init>()void",
-        "hello.Bar#read()int"
+        "hello.Bar#read()int",
+        "hello.Hello.bar(java.io.InputStream)int"
     ]
 }
 */

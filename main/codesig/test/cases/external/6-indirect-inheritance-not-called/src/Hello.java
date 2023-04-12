@@ -1,10 +1,14 @@
 package hello;
 
 // We implement an external interface, but end up calling a method on another
-// external interface that is the parent of the first.
+// external interface that is the parent of the first, and does not include the
+// method we implemented.
 //
-// Make sure we can resolve that and still record in the call graph that the
-// method is called
+// In this case, we are calling `Object#toString`, which has no way
+// of referencing `InputStream#read` since `read` is in a child-class and not
+// defined on `Object`. That means we can be confident that `toString` does not
+// call our own implementation `Foo#read`
+//
 class Foo extends java.io.ByteArrayInputStream{
     public Foo() throws java.io.IOException{
         super(new byte[]{});
@@ -20,20 +24,17 @@ class Foo extends java.io.ByteArrayInputStream{
 public class Hello{
     public static int main() throws java.io.IOException{
         java.io.InputStream is = new Foo();
-        return is.read();
+        return bar(is);
+    }
+    public static int bar(java.io.InputStream is){
+        return is.toString().length();
     }
 }
 
 
-// Although `Foo#<init>` does not call `Foo#read`, it does call
-// `ByteArrayInputStream#<init>`, which has the potential to call
-// `ByteArrayInputStream#read` and thus `Foo#read`. As we do not analyze the
-// call graphs of external libraries, we have to be conservative, which means
-// assuming that `Foo#<init>` may end up indirectly calling `Foo#read`
-
 /* EXPECTED CALL GRAPH
 {
-   "hello.Foo#<init>()void": [
+    "hello.Foo#<init>()void": [
         "hello.Foo#read()int"
     ],
     "hello.Foo#read()int": [
@@ -41,7 +42,8 @@ public class Hello{
     ],
     "hello.Hello.main()int": [
         "hello.Foo#<init>()void",
-        "hello.Foo#read()int"
+        "hello.Foo#read()int",
+        "hello.Hello.bar(java.io.InputStream)int"
     ]
 }
 */

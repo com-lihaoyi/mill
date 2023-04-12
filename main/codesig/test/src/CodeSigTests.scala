@@ -19,16 +19,19 @@ object CodeSigTests extends TestSuite{
       test("9-overriden-static-method") - testCase()
       test("10-peer-inherited-method") - testCase()
       test("11-java-lambda") - testCase()
-      test("12-external-interface-method") - testCase()
-      test("13-external-interface-never-instantiated") - testCase()
-      test("14-external-interface-never-called") - testCase()
-      test("15-external-interface-maybe-called") - testCase()
-      test("16-indirect-inheritance-external-interface-method") - testCase()
-      test("17-indirect-delegation-external-interface-called") - testCase()
-      test("18-indirect-delegation-external-interface-uncalled") - testCase()
-      test("19-clinit") - testCase()
-      test("20-scala-static-method") - testCase()
-      test("21-scala-lambda") - testCase()
+      test("12-clinit") - testCase()
+      test("13-scala-static-method") - testCase()
+      test("14-scala-lambda") - testCase()
+    }
+    test("external"){
+      test("1-interface-method") - testCase()
+      test("2-never-instantiated") - testCase()
+      test("3-never-called") - testCase()
+      test("4-maybe-called") - testCase()
+      test("5-indirect-inheritance-called") - testCase()
+      test("6-indirect-inheritance-not-called") - testCase()
+      test("7-indirect-delegation-called") - testCase()
+      test("8-indirect-delegation-uncalled") - testCase()
     }
     test("complicated"){
       test("1-statics") - testCase()
@@ -54,12 +57,12 @@ object CodeSigTests extends TestSuite{
   def testCase()(implicit tp: utest.framework.TestPath) = {
 
     val callGraph0 = CodeSig.compute(
-      os.walk(os.Path(sys.env("MILL_TEST_" + tp.value.mkString("-"))))
+      os.walk(os.Path(sys.env("MILL_TEST_CLASSES_" + tp.value.mkString("-"))))
         .filter(_.ext == "class")
     )
 
     val expectedCallGraph = parseExpectedJson(
-      os.pwd / "main" / "codesig" / "test" / tp.value / "src"
+      os.Path(sys.env("MILL_TEST_SOURCES_" + tp.value.mkString("-")))
     )
 
     val foundCallGraph = simplifyCallGraph(
@@ -91,7 +94,7 @@ object CodeSigTests extends TestSuite{
           .map(testCaseSourceFilesRoot / _)
           .find(os.exists(_))
           .map(os.read.lines(_))
-          .get
+          .getOrElse(sys.error(s"Cannot find json in path $testCaseSourceFilesRoot"))
 
         val expectedLines = sourceLines
           .dropWhile(_ != "/* EXPECTED CALL GRAPH")
