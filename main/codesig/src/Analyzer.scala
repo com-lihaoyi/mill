@@ -7,8 +7,8 @@ class Analyzer(summary: LocalSummarizer.Result, external: ExternalSummarizer.Res
   val methodToIndex = summary.callGraph.keys.toVector.zipWithIndex.toMap
   val indexToMethod = methodToIndex.map(_.swap)
 
-  val directDescendents = summary
-    .directAncestors
+  val allDirectAncestors = summary.directAncestors ++ external.directAncestors
+  val directDescendents = allDirectAncestors
     .toVector
     .flatMap { case (k, vs) => vs.map((_, k)) }
     .groupMap(_._1)(_._2)
@@ -19,15 +19,11 @@ class Analyzer(summary: LocalSummarizer.Result, external: ExternalSummarizer.Res
     .keySet
     .map(_.cls)
     .flatMap { cls =>
-      pprint.log(cls)
-      pprint.log(transitiveExternalMethods(cls))
       transitiveExternalMethods(cls).map {
         case (upstreamCls, localMethods) => (upstreamCls, Map(cls -> localMethods))
       }
     }
     .groupMapReduce(_._1)(_._2)(_ ++ _)
-
-  pprint.log(externalClsToLocalClsMethods)
 
   val resolvedCalls =
     for ((method, (hash, calls)) <- summary.callGraph)
@@ -48,8 +44,7 @@ class Analyzer(summary: LocalSummarizer.Result, external: ExternalSummarizer.Res
     sig.name == call.name && sig.desc == call.desc && (sig.static == (call.invokeType == InvokeType.Static))
   }
   def resolveCall(call: MethodCall): Set[MethodSig] = {
-    if (clsToMethods.contains(call.cls)) resolveLocalCall(call)
-    else resolveExternalCall(call)
+    resolveLocalCall(call) ++ resolveExternalCall(call)
   }
 
   def resolveLocalCall(call: MethodCall): Set[MethodSig] = {
@@ -81,14 +76,13 @@ class Analyzer(summary: LocalSummarizer.Result, external: ExternalSummarizer.Res
 
   def transitiveExternalAncestors(cls: JType.Cls): Set[JType.Cls] = {
     Set(cls) ++
-    external
-      .directAncestors
+    allDirectAncestors
       .getOrElse(cls, Set.empty[JType.Cls])
       .flatMap(transitiveExternalAncestors)
   }
 
   def transitiveExternalMethods(cls: JType.Cls): Map[JType.Cls, Set[LocalMethodSig]] = {
-    summary.directAncestors(cls)
+    allDirectAncestors(cls)
       .flatMap(transitiveExternalAncestors(_))
       .map(cls => (cls, external.directMethods.getOrElse(cls, Set())))
       .toMap
@@ -115,7 +109,7 @@ class Analyzer(summary: LocalSummarizer.Result, external: ExternalSummarizer.Res
 
   def clsAndAncestors(cls: JType.Cls, skipEarly: JType.Cls => Boolean): Set[JType.Cls] = {
     breadthFirst(Seq(cls))(cls =>
-      if(skipEarly(cls)) Nil else summary.directAncestors.getOrElse(cls, Nil)
+      if(skipEarly(cls)) Nil else allDirectAncestors.getOrElse(cls, Nil)
     ).toSet
   }
 

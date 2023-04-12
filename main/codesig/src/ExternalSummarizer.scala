@@ -33,7 +33,6 @@ class ExternalSummarizer private(loadClassNode: JType.Cls => ClassNode){
   def load(cls: JType.Cls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
 
   def load0(cls: JType.Cls): Unit = {
-    pprint.log(cls)
     val cn = loadClassNode(cls)
 
     methodsPerCls(cls) = cn
