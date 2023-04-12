@@ -1,9 +1,10 @@
 package hello
+
 object Hello{
   def main(): Int = {
 
     val foo = () => used()
-    return foo()
+    foo()
   }
   def used(): Int = 2
 }

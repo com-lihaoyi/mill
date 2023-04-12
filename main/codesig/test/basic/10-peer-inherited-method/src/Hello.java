@@ -1,6 +1,5 @@
 package hello;
 
-
 interface Foo{
     public int used();
 }

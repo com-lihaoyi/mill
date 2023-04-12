@@ -1,4 +1,5 @@
-package hello;
+package hello
+
 // Taken from https://github.com/lihaoyi/Metascala/blob/76dfbfa18484b9ee39bd09453328ea1081fcab6b/src/test/java/metascala/features/classes/Inheritance.java
 
 

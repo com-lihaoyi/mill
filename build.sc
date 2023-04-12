@@ -589,21 +589,26 @@ object main extends MillModule {
     def moduleDeps = Seq(util)
 
     object test extends Tests{
-      object annotation extends MillPublishModule
-      object basic extends Cross[CaseModule](listIn(millSourcePath / "basic"):_*)
-      object complicated extends Cross[CaseModule](listIn(millSourcePath / "complicated"):_*)
-      class CaseModule(caseName: String) extends MillScalaModule{
-        def moduleDeps = Seq(codesig.test.annotation)
-        object test extends MillScalaModule with BaseMillTestsModule {
-          def moduleDeps = Seq(codesig.test.annotation, codesig.test)
-          def forkEnv = Map(
-            "TEST_CASE_CLASS_FILES" -> CaseModule.this.compile().classes.path.toString,
-            "TEST_CASE_SOURCE_FILES" -> CaseModule.this.sources().head.path.toString
-          )
-          def compile = codesig.test.compile()
-        }
+      val basicItems = listIn(millSourcePath / "basic")
+      val complicatedItems = listIn(millSourcePath / "complicated")
+      def forkEnv = T{
+        val kvs1 = T.traverse(basicItems) { i =>
+          basic(i).compile.map((s"basic-$i", _))
+        }()
+        val kvs2 = T.traverse(complicatedItems) { i =>
+          complicated(i).compile.map((s"complicated-$i", _))
+        }()
+
+        (kvs1 ++ kvs2).map{case (k, v) => (s"MILL_TEST_$k", v.classes.path.toString)}.toMap
+      }
+
+      object basic extends Cross[CaseModule](basicItems: _*)
+      object complicated extends Cross[CaseModule](complicatedItems: _*)
+      class CaseModule(caseName: String) extends ScalaModule {
+        def scalaVersion = "2.13.10"
       }
     }
+
   }
   object core extends MillModule with BuildInfo{
     override def moduleDeps = Seq(api, util)

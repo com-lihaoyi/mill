@@ -1,6 +1,4 @@
-package hello;
-
-import scala.collection.AbstractIterator
+package hello
 
 object Hello{
   class TestElements() extends TestIterator

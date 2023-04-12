@@ -1,4 +1,5 @@
 package hello;
+
 import java.util.function.IntSupplier;
 import java.util.function.DoubleSupplier;
 

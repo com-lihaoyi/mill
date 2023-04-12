@@ -1,6 +1,4 @@
-package hello;
-
-import scala.collection.AbstractIterator
+package hello
 
 trait TestIter[+A]{
   def hasNext: Boolean

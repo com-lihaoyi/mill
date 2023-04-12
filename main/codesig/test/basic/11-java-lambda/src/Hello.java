@@ -1,4 +1,5 @@
 package hello;
+
 public class Hello{
     public static int main(){
         java.util.function.IntSupplier foo = () -> used();

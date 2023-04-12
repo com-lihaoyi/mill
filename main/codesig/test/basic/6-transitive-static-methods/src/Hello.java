@@ -1,4 +1,5 @@
 package hello;
+
 public class Hello{
     public static int main(){
         return usedStatic();
