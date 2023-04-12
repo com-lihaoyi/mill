@@ -94,7 +94,8 @@ object CodeSigTests extends TestSuite{
 
   /**
    * Removes noisy methods from the given call-graph, simplifying it for ease
-   * of understanding and testing.
+   * of understanding and testing. For every node removed, we redirect any
+   * edges to that node with that node's own outgoing edges
    *
    * Uses an `O(n^2)` algorithm for processing the graph. Can probably be
    * optimized further if necessary, but for testing purposes all the graphs
