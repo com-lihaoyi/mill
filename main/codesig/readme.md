@@ -16,7 +16,7 @@ CodeSig works as follows:
    inheritance hierarchy and methods defined by each upstream class without
    performing any analysis of method bytecode
 
-3. `Analyzer` uses the two summaries above to resolve local method calls
+3. `Resolver` uses the two summaries above to resolve local method calls
    collected by `LocalSummarizer` into possible local method definitions
 
     1. For all method calls, it is straightforward to use the class hierarchy to
@@ -35,7 +35,9 @@ CodeSig works as follows:
 
 As implemented, this gives us a conservative approximation of "who calls who"
 at a method-level granularity, without needing to perform expensive analysis of
-upstream libraries.
+upstream libraries. From there it is straightforward to figure out what the 
+transitive dependencies of a method are, or generate a hash-signature of a 
+method together with all its dependencies to use as a cache key.
 
 Note that we do not perform any sort of data-flow analysis, whether for local
 variables or for class fields, and rely on the static types reported in the

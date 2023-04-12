@@ -24,7 +24,7 @@ object CodeSig{
         loadClass(os.read.bytes(os.resource / os.SubPath(externalType.name.replace('.', '/') + ".class")))
     )
 
-    val foundTransitive0 = Analyzer.analyze(summary, external)
+    val foundTransitive0 = Resolver.resolveAllMethodCalls(summary, external)
 
     foundTransitive0
   }
@@ -34,5 +34,56 @@ object CodeSig{
     val classNode = new ClassNode()
     classReader.accept(classNode, 0)
     classNode
+  }
+}
+class CodeSig{
+  //    val methodToIndex = summary.callGraph.keys.toVector.zipWithIndex.toMap
+  //    val indexToMethod = methodToIndex.map(_.swap)
+  //    val topoSortedMethodGroups = Tarjans
+  //      .apply(
+  //        Range(0, methodToIndex.size).map(i => resolvedCalls(indexToMethod(i)).map(methodToIndex))
+  //      )
+  //      .map(_.map(indexToMethod))
+  //
+  //    val transitiveCallGraphHashes = computeTransitive[Int](
+  //      topoSortedMethodGroups,
+  //      resolvedCalls,
+  //      summary.methodHashes(_),
+  //      _.hashCode()
+  //    )
+  //
+  //    val transitiveCallGraphMethods = computeTransitive[Set[MethodSig]](
+  //      topoSortedMethodGroups,
+  //      resolvedCalls,
+  //      Set(_),
+  //      _.flatten.toSet
+  //    ).map { case (k, vs) => (k, vs.filter(_ != k)) }
+
+  /**
+   * Summarizes the transitive closure of the method call graph, using the given
+   * [[methodValue]] and [[reduce]] functions to return a single value of [[T]].
+   *
+   * This is done in topological order, in order to allow us to memo-ize the
+   * values computed for upstream methods when processing downstream methods,
+   * avoiding the need to repeatedly re-compute them. Each Strongly Connected
+   * Component is processed together and assigned the same final value, since
+   * they all have the exact same transitive closure
+   */
+  def computeTransitive[T](topoSortedMethodGroups: Seq[Seq[MethodDef]],
+                           resolvedCalls: Map[MethodDef, Set[MethodDef]],
+                           methodValue: MethodDef => T, reduce: Seq[T] => T) = {
+    val seen = collection.mutable.Map.empty[MethodDef, T]
+    for (methodGroup <- topoSortedMethodGroups) {
+      val groupUpstreamCalls = methodGroup
+        .flatMap(resolvedCalls)
+        .filter(!methodGroup.contains(_))
+
+      val upstreamValues: Seq[T] = groupUpstreamCalls.sorted.map(seen)
+      val groupValues: Seq[T] = methodGroup.sorted.map(methodValue)
+      for (method <- methodGroup) {
+        seen(method) = reduce(upstreamValues ++ groupValues)
+      }
+    }
+    seen
   }
 }

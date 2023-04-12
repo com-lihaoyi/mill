@@ -8,78 +8,48 @@ import mill.util.{MultiBiMap, Tarjans}
  * their potential destinations and compute transitive properties of the
  * call graph
  */
-object Analyzer{
-  def analyze(summary: LocalSummarizer.Result,
-              external: ExternalSummarizer.Result): Map[MethodDef, Set[MethodDef]]  = {
-    val callGraph = summary.callGraph.map{case (k, vs) => (k.toString, vs.map(_.toString))}.toMap
-    pprint.log(callGraph)
-    val clsToMethods = summary.callGraph.keys.groupBy(_.cls)
-    val methodToIndex = summary.callGraph.keys.toVector.zipWithIndex.toMap
+object Resolver{
+  def resolveAllMethodCalls(localSummary: LocalSummarizer.Result,
+                            externalSummary: ExternalSummarizer.Result): Map[MethodDef, Set[MethodDef]]  = {
 
+    val clsToMethods = localSummary.callGraph.keys.groupBy(_.cls)
 
-    val allDirectAncestors = summary.directAncestors ++ external.directAncestors
+    val allDirectAncestors = localSummary.directAncestors ++ externalSummary.directAncestors
     val directDescendents = allDirectAncestors
       .toVector
       .flatMap { case (k, vs) => vs.map((_, k)) }
       .groupMap(_._1)(_._2)
 
 
-    val externalClsToLocalClsMethods = summary
+    val externalClsToLocalClsMethods = localSummary
       .callGraph
       .keySet
       .map(_.cls)
       .flatMap { cls =>
-        transitiveExternalMethods(cls, allDirectAncestors, external.directMethods).map {
+        transitiveExternalMethods(cls, allDirectAncestors, externalSummary.directMethods).map {
           case (upstreamCls, localMethods) => (upstreamCls, Map(cls -> localMethods))
         }
       }
       .groupMapReduce(_._1)(_._2)(_ ++ _)
 
-    val resolvedCalls = resolveAllCalls(
-      summary.callGraph,
-      methodToIndex,
+    val resolvedCalls = resolveAllMethodCalls0(
+      localSummary.callGraph,
       clsToMethods,
       externalClsToLocalClsMethods,
       allDirectAncestors,
-      summary.directSubclasses,
+      localSummary.directSubclasses,
       directDescendents
     )
 
-    val resolveDebug = resolvedCalls.map{case (k, vs) => (k.toString, vs.map(_.toString))}.toMap
-    pprint.log(resolveDebug)
-
-//    val indexToMethod = methodToIndex.map(_.swap)
-//    val topoSortedMethodGroups = Tarjans
-//      .apply(
-//        Range(0, methodToIndex.size).map(i => resolvedCalls(indexToMethod(i)).map(methodToIndex))
-//      )
-//      .map(_.map(indexToMethod))
-//
-//    val transitiveCallGraphHashes = computeTransitive[Int](
-//      topoSortedMethodGroups,
-//      resolvedCalls,
-//      summary.methodHashes(_),
-//      _.hashCode()
-//    )
-//
-//    val transitiveCallGraphMethods = computeTransitive[Set[MethodSig]](
-//      topoSortedMethodGroups,
-//      resolvedCalls,
-//      Set(_),
-//      _.flatten.toSet
-//    ).map { case (k, vs) => (k, vs.filter(_ != k)) }
-
     resolvedCalls
-//    transitiveCallGraphMethods
   }
 
-  def resolveAllCalls(callGraph: Map[MethodDef, Set[MethodCall]],
-                      methodToIndex: Map[MethodDef, Int],
-                      clsToMethods: Map[JType.Cls, Iterable[MethodDef]],
-                      externalClsToLocalClsMethods: Map[JType.Cls, Map[JType.Cls, Set[LocalMethodDef]]],
-                      allDirectAncestors: Map[JType.Cls, Set[JType.Cls]],
-                      directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
-                      directDescendents: Map[JType.Cls, Vector[JType.Cls]]): Map[MethodDef, Set[MethodDef]] = {
+  def resolveAllMethodCalls0(callGraph: Map[MethodDef, Set[MethodCall]],
+                             clsToMethods: Map[JType.Cls, Iterable[MethodDef]],
+                             externalClsToLocalClsMethods: Map[JType.Cls, Map[JType.Cls, Set[LocalMethodDef]]],
+                             allDirectAncestors: Map[JType.Cls, Set[JType.Cls]],
+                             directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
+                             directDescendents: Map[JType.Cls, Vector[JType.Cls]]): Map[MethodDef, Set[MethodDef]] = {
 
 
     def resolveLocalCall(call: MethodCall): Set[MethodDef] = call.invokeType match {
@@ -110,7 +80,6 @@ object Analyzer{
     }
 
     def resolveExternalCall(call: MethodCall): Set[MethodDef] = {
-
       call
         .desc
         .args
@@ -122,23 +91,21 @@ object Analyzer{
     }
 
     val allCalls = callGraph.flatMap(_._2).toSet
+
     val resolvedMap = allCalls
       .map(call => (call, resolveLocalCall(call) ++ resolveExternalCall(call)))
       .toMap
 
-    val resolvedMapDebug = resolvedMap.map{case (k, vs) => (k.toString, vs.map(_.toString))}.toMap
-    pprint.log(resolvedMapDebug)
-
     for ((method, calls) <- callGraph)
-    yield (method, calls.flatMap(resolvedMap).filter(methodToIndex.contains))
+    yield (method, calls.flatMap(resolvedMap).filter(callGraph.contains))
   }
 
   def transitiveExternalAncestors(cls: JType.Cls,
                                   allDirectAncestors: Map[JType.Cls, Set[JType.Cls]]): Set[JType.Cls] = {
     Set(cls) ++
-      allDirectAncestors
-        .getOrElse(cls, Set.empty[JType.Cls])
-        .flatMap(transitiveExternalAncestors(_, allDirectAncestors))
+    allDirectAncestors
+      .getOrElse(cls, Set.empty[JType.Cls])
+      .flatMap(transitiveExternalAncestors(_, allDirectAncestors))
   }
 
   def transitiveExternalMethods(cls: JType.Cls,
@@ -193,31 +160,4 @@ object Analyzer{
     seenList.toSeq
   }
 
-  /**
-   * Summarizes the transitive closure of the method call graph, using the given
-   * [[methodValue]] and [[reduce]] functions to return a single value of [[T]].
-   *
-   * This is done in topological order, in order to allow us to memo-ize the
-   * values computed for upstream methods when processing downstream methods,
-   * avoiding the need to repeatedly re-compute them. Each Strongly Connected
-   * Component is processed together and assigned the same final value, since
-   * they all have the exact same transitive closure
-   */
-  def computeTransitive[T](topoSortedMethodGroups: Seq[Seq[MethodDef]],
-                           resolvedCalls: Map[MethodDef, Set[MethodDef]],
-                           methodValue: MethodDef => T, reduce: Seq[T] => T) = {
-    val seen = collection.mutable.Map.empty[MethodDef, T]
-    for (methodGroup <- topoSortedMethodGroups) {
-      val groupUpstreamCalls = methodGroup
-        .flatMap(resolvedCalls)
-        .filter(!methodGroup.contains(_))
-
-      val upstreamValues: Seq[T] = groupUpstreamCalls.sorted.map(seen)
-      val groupValues: Seq[T] = methodGroup.sorted.map(methodValue)
-      for (method <- methodGroup) {
-        seen(method) = reduce(upstreamValues ++ groupValues)
-      }
-    }
-    seen
-  }
 }
