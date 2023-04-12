@@ -2,6 +2,12 @@ package mill.codesig
 
 import mill.util.{MultiBiMap, Tarjans}
 
+/**
+ * Traverses the call graph and inheritance hierarchy summaries produced by
+ * [[LocalSummarizer]] and [[ExternalSummarizer]] to resolve method calls to
+ * their potential destinations and compute transitive properties of the
+ * call graph
+ */
 object Analyzer{
   def analyze(summary: LocalSummarizer.Result, external: ExternalSummarizer.Result)  = {
     pprint.log(summary.callGraph.map{case (k, vs) => (k.toString, vs.map(_.toString))})
