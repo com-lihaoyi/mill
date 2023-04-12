@@ -12,9 +12,6 @@ object Resolver{
   def resolveAllMethodCalls(localSummary: LocalSummarizer.Result,
                             externalSummary: ExternalSummarizer.Result): Map[ResolvedMethodDef, Set[ResolvedMethodDef]]  = {
 
-    val prettyCallGraph = localSummary.callGraph.map { case (k, vs) => (k.pretty, vs.map { case (k2, vs2) => (k2.toString, vs2.map(_.toString)) }) }
-    pprint.log(prettyCallGraph)
-
     val allDirectAncestors = localSummary.directAncestors ++ externalSummary.directAncestors
     val directDescendents = allDirectAncestors
       .toVector
@@ -39,9 +36,6 @@ object Resolver{
       localSummary.directSubclasses,
       directDescendents
     )
-
-    val prettyResolvedCalls = resolvedCalls.map { case (k, vs) => (k.toString, vs.map(_.toString)) }.toMap
-    pprint.log(prettyResolvedCalls)
 
     resolvedCalls
   }
@@ -105,18 +99,18 @@ object Resolver{
 
     val allCalls = callGraph.toIterator.flatMap(_._2).flatMap(_._2).toSet
 
-    pprint.log(allCalls.map(_.toString))
     val resolvedMap = allCalls
       .map(call => (call, resolveLocalCall(call) ++ resolveExternalCall(call)))
       .toMap
 
-    pprint.log(resolvedMap.map{case (k, vs) => (k.toString, vs.map(_.toString))})
     for {
       (cls, methods) <- callGraph
       (m0, calls) <- methods
     } yield (
       ResolvedMethodDef(cls, m0),
-      calls.flatMap(resolvedMap.getOrElse(_, Nil)).filter(m => callGraph.contains(m.cls))
+      calls
+        .flatMap(resolvedMap.getOrElse(_, Nil))
+        .filter{m => callGraph.getOrElse(m.cls, Map()).contains(m.method)}
     )
   }
 
