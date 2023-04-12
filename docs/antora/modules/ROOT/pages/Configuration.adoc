@@ -321,6 +321,25 @@ object foo extends ScalaModule {
 }
 ----
 
+ZIO-test example:
+
+.`build.sc`
+[source,scala,subs="attributes,verbatim"]
+----
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "{example-scala-3-version}"
+
+  object test extends Tests with TestModule.ZIOTest {
+    def ivyDeps = Agg(
+      ivy"dev.zio::zio-test:2.0.12",
+      ivy"dev.zio::zio-test-sbt:2.0.12",
+    )
+  }
+}
+----
+
 After that, you can follow the instructions in <<_adding_a_test_suite>>, and use `mill foo.test` as usual, or pass args to the test suite via `mill foo.test arg1 arg2 arg3`.
 
 == Scala Compiler Plugins
