@@ -23,9 +23,10 @@ object Resolver{
       .callGraph
       .keySet
       .flatMap { cls =>
-        transitiveExternalMethods(cls, allDirectAncestors, externalSummary.directMethods).map {
-          case (upstreamCls, localMethods) => (upstreamCls, Map(cls -> localMethods))
-        }
+        transitiveExternalMethods(cls, allDirectAncestors, externalSummary.directMethods)
+          .map { case (upstreamCls, localMethods) =>
+            (upstreamCls, Map(cls -> localMethods.filter(m => !m.static && m.name != "<init>")))
+          }
       }
       .groupMapReduce(_._1)(_._2)(_ ++ _)
 
@@ -87,11 +88,15 @@ object Resolver{
     }
 
     def resolveExternalCall(call: MethodCall): Set[ResolvedMethodDef] = {
-      call
+      val externalArgTypes = call
         .desc
         .args
         .collect { case c: JType.Cls => externalClsToLocalClsMethods.getOrElse(c, Nil) }
         .flatten
+
+      val externalThisType = externalClsToLocalClsMethods.getOrElse(call.cls, Map.empty)
+
+      (externalArgTypes ++ externalThisType)
         .flatMap { case (k, vs) => vs.map(m => ResolvedMethodDef(k, MethodDef(m.static, m.name, m.desc))) }
         .filter(_.method.name != "<init>")
         .toSet

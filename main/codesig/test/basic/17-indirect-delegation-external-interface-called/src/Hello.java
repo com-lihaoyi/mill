@@ -34,6 +34,9 @@ public class Hello{
 
 /* EXPECTED CALL GRAPH
 {
+    "hello.Foo#<init>()void": [
+        "hello.Foo#read()int"
+    ],
     "hello.Foo#read()int": [
         "hello.Foo#readSpecial()int"
     ],

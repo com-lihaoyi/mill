@@ -29,6 +29,9 @@ public class Hello{
 
 /* EXPECTED CALL GRAPH
 {
+    "hello.Bar#<init>()void": [
+        "hello.Bar#write(byte[],int,int)void"
+    ],
     "hello.Hello.main()int": [
         "hello.Bar#<init>()void",
         "hello.Bar#write(byte[],int,int)void"

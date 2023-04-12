@@ -26,12 +26,12 @@ CodeSig works as follows:
        inherited for super-classes or overriden by sub-classes.
 
     2. For method calls that occur to external classes, we additionally take
-       the parameter types of those method calls and assume that the external
-       class ends up calling every one of those methods, and thus any potential
-       local implementations. This is a conservative approximation, as we do
-       not perform call-graph analysis of external code in upstream libraries
-       and cannot know precisely what methods that external method ends up
-       calling on the arguments we pass to it.
+       the receiver type and parameter types of those method calls and assume 
+       that the external class ends up calling every one of those methods, and 
+       thus any potential local implementations. This is a conservative 
+       approximation, as we do not perform call-graph analysis of external code 
+       in upstream libraries and cannot know precisely what methods that 
+       external method ends up calling on the arguments we pass to it.
 
 As implemented, this gives us a conservative approximation of "who calls who"
 at a method-level granularity, without needing to perform expensive analysis of

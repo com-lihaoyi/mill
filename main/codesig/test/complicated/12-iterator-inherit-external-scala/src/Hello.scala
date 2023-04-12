@@ -32,16 +32,25 @@ object Hello{
   }
 }
 
+// `.map` is an external method call, and thus we have to assume it can call
+// any method on the type it is defined on. That is why `manualIterator` and
+// `manualIterator2` have the potential to call `#hasNext`, and
+// `manualIterator2` can call `#next`, even though we never perform those calls
+// in our code
+
 /* EXPECTED CALL GRAPH
 {
     "hello.Hello$#manualIterator(int)int": [
         "hello.Hello$#getInt()int",
         "hello.Hello$Elements#<init>(java.lang.Object)void",
+        "hello.Hello$Elements#hasNext()boolean",
         "hello.Hello$Elements#next()java.lang.Object"
     ],
     "hello.Hello$#manualIterator2(int)int": [
         "hello.Hello$#getInt()int",
-        "hello.Hello$Elements#<init>(java.lang.Object)void"
+        "hello.Hello$Elements#<init>(java.lang.Object)void",
+        "hello.Hello$Elements#hasNext()boolean",
+        "hello.Hello$Elements#next()java.lang.Object"
     ],
     "hello.Hello$Elements#hasNext()boolean": [
         "hello.Hello$Elements#end()int",

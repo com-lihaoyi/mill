@@ -24,8 +24,18 @@ public class Hello{
     }
 }
 
+
+// Although `Foo#<init>` does not call `Foo#read`, it does call
+// `ByteArrayInputStream#<init>`, which has the potential to call
+// `ByteArrayInputStream#read` and thus `Foo#read`. As we do not analyze the
+// call graphs of external libraries, we have to be conservative, which means
+// assuming that `Foo#<init>` may end up indirectly calling `Foo#read`
+
 /* EXPECTED CALL GRAPH
 {
+   "hello.Foo#<init>()void": [
+        "hello.Foo#read()int"
+    ],
     "hello.Foo#read()int": [
         "hello.Foo#readSpecial()int"
     ],
