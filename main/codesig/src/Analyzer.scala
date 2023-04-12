@@ -13,6 +13,22 @@ class Analyzer(summary: LocalSummarizer.Result, external: ExternalSummarizer.Res
     .flatMap { case (k, vs) => vs.map((_, k)) }
     .groupMap(_._1)(_._2)
 
+
+  val externalClsToLocalClsMethods = summary
+    .callGraph
+    .keySet
+    .map(_.cls)
+    .flatMap { cls =>
+      pprint.log(cls)
+      pprint.log(transitiveExternalMethods(cls))
+      transitiveExternalMethods(cls).map {
+        case (upstreamCls, localMethods) => (upstreamCls, Map(cls -> localMethods))
+      }
+    }
+    .groupMapReduce(_._1)(_._2)(_ ++ _)
+
+  pprint.log(externalClsToLocalClsMethods)
+
   val resolvedCalls =
     for ((method, (hash, calls)) <- summary.callGraph)
     yield (method, calls.flatMap(resolveCall).filter(methodToIndex.contains))
@@ -63,15 +79,32 @@ class Analyzer(summary: LocalSummarizer.Result, external: ExternalSummarizer.Res
     }
   }
 
+  def transitiveExternalAncestors(cls: JType.Cls): Set[JType.Cls] = {
+    Set(cls) ++
+    external
+      .directAncestors
+      .getOrElse(cls, Set.empty[JType.Cls])
+      .flatMap(transitiveExternalAncestors)
+  }
+
+  def transitiveExternalMethods(cls: JType.Cls): Map[JType.Cls, Set[LocalMethodSig]] = {
+    summary.directAncestors(cls)
+      .flatMap(transitiveExternalAncestors(_))
+      .map(cls => (cls, external.directMethods.getOrElse(cls, Set())))
+      .toMap
+  }
+
   def resolveExternalCall(call: MethodCall): Set[MethodSig] = {
-    pprint.log(call.desc)
+
     val methods = call
       .desc
       .args
-      .collect{case c: JType.Cls => external.transitiveMethods(c)}
+      .collect{case c: JType.Cls => externalClsToLocalClsMethods.getOrElse(c, Nil)}
       .flatten
-    pprint.log(methods)
-    Set()
+
+    methods
+      .flatMap{case (k, vs) => vs.map(m => MethodSig(k, m.static, m.name, m.desc))}
+      .toSet
   }
 
   def clsAndSupers(cls: JType.Cls, skipEarly: JType.Cls => Boolean): Seq[JType.Cls] = {

@@ -19,39 +19,34 @@ object ExternalSummarizer{
   }
 
   case class Result(directMethods: Map[JType.Cls, Set[LocalMethodSig]],
-                    directAncestors: Map[JType.Cls, Set[JType.Cls]]){
-    def transitiveMethods(tpe: JType.Cls): Set[LocalMethodSig] = {
-      pprint.log(tpe)
-      pprint.log(directMethods.getOrElse(tpe, Set.empty[LocalMethodSig]))
-      pprint.log(directMethods)
-      directMethods.getOrElse(tpe, Set.empty[LocalMethodSig]) ++
-      directAncestors.getOrElse(tpe, Set.empty[JType.Cls]).flatMap(transitiveMethods)
-    }
-  }
+                    directAncestors: Map[JType.Cls, Set[JType.Cls]])
 }
 
 class ExternalSummarizer private(loadClassNode: JType.Cls => ClassNode){
   val methodsPerCls = collection.mutable.Map.empty[JType.Cls, Set[LocalMethodSig]]
   val ancestorsPerCls = collection.mutable.Map.empty[JType.Cls, Set[JType.Cls]]
 
-  def loadAll(externalTypes: Set[JType.Cls]) = {
+  def loadAll(externalTypes: Set[JType.Cls]): Unit = {
     externalTypes.foreach(load)
   }
 
-  def load(tpe: JType.Cls) = methodsPerCls.getOrElse(tpe, load0(tpe))
+  def load(cls: JType.Cls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
 
-  def load0(tpe: JType.Cls) = {
-    val cn = loadClassNode(tpe)
+  def load0(cls: JType.Cls): Unit = {
+    pprint.log(cls)
+    val cn = loadClassNode(cls)
 
-    methodsPerCls(tpe) = cn
+    methodsPerCls(cls) = cn
       .methods
       .asScala
-      .map{m => LocalMethodSig((m.access & Opcodes.ACC_STATIC) != 0, m.name, m.desc)}
+      .map{m => LocalMethodSig((m.access & Opcodes.ACC_STATIC) != 0, m.name, Desc.read(m.desc))}
       .toSet
 
-    ancestorsPerCls(tpe) =
+    ancestorsPerCls(cls) =
       (Option(cn.superName) ++ Option(cn.interfaces).toSeq.flatMap(_.asScala))
         .map(JType.Cls.fromSlashed)
         .toSet
+
+    ancestorsPerCls(cls).foreach(load)
   }
 }

@@ -15,7 +15,7 @@ object MethodSig{
   implicit val ordering: Ordering[MethodSig] = Ordering.by(m => (m.cls, m.static, m.name, m.desc))
 }
 
-case class LocalMethodSig(static: Boolean, name: String, desc: String){
+case class LocalMethodSig(static: Boolean, name: String, desc: Desc){
   override def toString = (if(static) "." else "#") + name + desc
 }
 
