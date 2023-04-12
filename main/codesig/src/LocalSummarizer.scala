@@ -12,32 +12,31 @@ import org.objectweb.asm.tree.{AbstractInsnNode, ClassNode, FieldInsnNode, Frame
  */
 object LocalSummarizer{
 
-  case class Result(callGraph: Map[MethodDef, Set[MethodCall]],
-                    methodHashes: Map[MethodDef, Int],
+  case class Result(callGraph: Map[JType.Cls, Map[MethodDef, Set[MethodCall]]],
+                    methodHashes: Map[JType.Cls, Map[MethodDef, Int]],
                     directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
                     directAncestors: Map[JType.Cls, Set[JType.Cls]])
 
   def summarize(classNodes: Seq[ClassNode]) = {
 
     val directSubclasses = new MultiBiMap.Mutable[JType.Cls, JType.Cls]()
-    val callGraph = collection.mutable.Map.empty[MethodDef, Set[MethodCall]]
-    val methodHashes = collection.mutable.Map.empty[MethodDef, Int]
-    val directAncestors = collection.mutable.Map.empty[JType.Cls, Set[JType.Cls]]
+    val callGraph = Map.newBuilder[JType.Cls, Map[MethodDef, Set[MethodCall]]]
+    val methodHashes = Map.newBuilder[JType.Cls, Map[MethodDef, Int]]
+    val directAncestors = Map.newBuilder[JType.Cls, Set[JType.Cls]]
 
     for(cn <- classNodes){
+      val classCallGraph = Map.newBuilder[MethodDef, Set[MethodCall]]
+      val classMethodHashes = Map.newBuilder[MethodDef, Int]
       val clsType = JType.Cls.fromSlashed(cn.name)
       Option(cn.superName).foreach(sup =>
         directSubclasses.add(JType.Cls.fromSlashed(sup), clsType)
       )
 
       val clsDirectAncestors = Option(cn.superName) ++ Option(cn.interfaces).toSeq.flatMap(_.asScala)
-      directAncestors(clsType) = clsDirectAncestors.toSet.map(JType.Cls.fromSlashed)
-
 
       for(method <- cn.methods.asScala){
         val outboundCalls = collection.mutable.Set.empty[MethodCall]
         val methodSig = MethodDef(
-          clsType,
           (method.access & Opcodes.ACC_STATIC) != 0,
           method.name,
           Desc.read(method.desc),
@@ -58,12 +57,16 @@ object LocalSummarizer{
           insnSigs.append(insn.getOpcode)
         }
 
-        callGraph(methodSig) = outboundCalls.toSet
-        methodHashes(methodSig) = insnSigs.hashCode()
+        classCallGraph.addOne((methodSig, outboundCalls.toSet))
+        classMethodHashes.addOne((methodSig, insnSigs.hashCode()))
       }
+
+      callGraph.addOne((clsType, classCallGraph.result()))
+      methodHashes.addOne((clsType, classMethodHashes.result()))
+      directAncestors.addOne((clsType, clsDirectAncestors.toSet.map(JType.Cls.fromSlashed)))
     }
 
-    Result(callGraph.toMap, methodHashes.toMap, directSubclasses, directAncestors.toMap)
+    Result(callGraph.result(), methodHashes.result(), directSubclasses, directAncestors.result())
   }
 
   def processInstruction(insn: AbstractInsnNode,

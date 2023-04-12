@@ -104,7 +104,7 @@ object CodeSigTests extends TestSuite{
    * optimized further if necessary, but for testing purposes all the graphs
    * are small so it's probably fine.
    */
-  def simplifyCallGraph(callGraph0: Map[MethodDef, Set[MethodDef]],
+  def simplifyCallGraph(callGraph0: Map[ResolvedMethodDef, Set[ResolvedMethodDef]],
                         skipped: Seq[String]) = {
     val stringCallGraph0 = callGraph0
       .map { case (k, vs) => (k.toString, vs.map(_.toString)) }

@@ -12,7 +12,7 @@ object CodeSig{
 
     val allMethodCallParamClasses = summary
       .callGraph
-      .flatMap(_._2)
+      .flatMap(_._2.flatMap(_._2))
       .flatMap(_.desc.args)
       .collect { case c: JType.Cls => c }
 
@@ -69,21 +69,21 @@ class CodeSig{
    * Component is processed together and assigned the same final value, since
    * they all have the exact same transitive closure
    */
-  def computeTransitive[T](topoSortedMethodGroups: Seq[Seq[MethodDef]],
-                           resolvedCalls: Map[MethodDef, Set[MethodDef]],
-                           methodValue: MethodDef => T, reduce: Seq[T] => T) = {
-    val seen = collection.mutable.Map.empty[MethodDef, T]
-    for (methodGroup <- topoSortedMethodGroups) {
-      val groupUpstreamCalls = methodGroup
-        .flatMap(resolvedCalls)
-        .filter(!methodGroup.contains(_))
-
-      val upstreamValues: Seq[T] = groupUpstreamCalls.sorted.map(seen)
-      val groupValues: Seq[T] = methodGroup.sorted.map(methodValue)
-      for (method <- methodGroup) {
-        seen(method) = reduce(upstreamValues ++ groupValues)
-      }
-    }
-    seen
-  }
+//  def computeTransitive[T](topoSortedMethodGroups: Seq[Seq[MethodDef]],
+//                           resolvedCalls: Map[MethodDef, Set[MethodDef]],
+//                           methodValue: MethodDef => T, reduce: Seq[T] => T) = {
+//    val seen = collection.mutable.Map.empty[MethodDef, T]
+//    for (methodGroup <- topoSortedMethodGroups) {
+//      val groupUpstreamCalls = methodGroup
+//        .flatMap(resolvedCalls)
+//        .filter(!methodGroup.contains(_))
+//
+//      val upstreamValues: Seq[T] = groupUpstreamCalls.sorted.map(seen)
+//      val groupValues: Seq[T] = methodGroup.sorted.map(methodValue)
+//      for (method <- methodGroup) {
+//        seen(method) = reduce(upstreamValues ++ groupValues)
+//      }
+//    }
+//    seen
+//  }
 }

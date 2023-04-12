@@ -7,20 +7,20 @@ import upickle.default.{ReadWriter, readwriter}
 // calls, etc. These are generally parsed from stringly-typed fields given to
 // us by ASM library
 
-case class MethodDef(cls: JType.Cls, static: Boolean, name: String, desc: Desc){
-  override def toString = cls.pretty + (if(static) "." else "#") + name + desc.pretty
+case class ResolvedMethodDef(cls: JType.Cls, method: MethodDef){
+  override def toString = cls.pretty + method.toString
 }
 
-object MethodDef{
-  implicit val ordering: Ordering[MethodDef] = Ordering.by(m => (m.cls, m.static, m.name, m.desc))
+object ResolvedMethodDef{
+  implicit val ordering: Ordering[ResolvedMethodDef] = Ordering.by(m => (m.cls, m.method))
 }
 
-case class LocalMethodDef(static: Boolean, name: String, desc: Desc){
+case class MethodDef(static: Boolean, name: String, desc: Desc){
   override def toString = (if(static) "." else "#") + name + desc.pretty
 }
 
-object LocalMethodDef{
-  implicit val ordering: Ordering[LocalMethodDef] = Ordering.by(m => (m.static, m.name, m.desc))
+object MethodDef{
+  implicit val ordering: Ordering[MethodDef] = Ordering.by(m => (m.static, m.name, m.desc))
 }
 
 case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc){
@@ -42,6 +42,7 @@ object InvokeType{
 }
 
 sealed trait JType{
+  override def toString = pretty
   def pretty: String
 }
 object JType {
