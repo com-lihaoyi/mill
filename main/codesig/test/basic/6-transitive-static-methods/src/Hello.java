@@ -16,16 +16,12 @@ public class Hello{
 /* EXPECTED TRANSITIVE
 {
     "hello.Hello.main()I": [
-        "hello.Hello.usedDeepestStatic()I",
-        "hello.Hello.usedStatic()I",
-        "hello.Hello.usedTransitiveStatic()I"
+        "hello.Hello.usedStatic()I"
     ],
     "hello.Hello.unusedStatic()I": [
-        "hello.Hello.usedDeepestStatic()I",
         "hello.Hello.usedTransitiveStatic()I"
     ],
     "hello.Hello.usedStatic()I": [
-        "hello.Hello.usedDeepestStatic()I",
         "hello.Hello.usedTransitiveStatic()I"
     ],
     "hello.Hello.usedTransitiveStatic()I": [

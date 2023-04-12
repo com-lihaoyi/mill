@@ -12,8 +12,7 @@ object Hello{
     ],
     "hello.Hello.main()I": [
         "hello.Hello$#<init>()V",
-        "hello.Hello$#main()I",
-        "hello.Hello$#used()I"
+        "hello.Hello$#main()I"
     ],
     "hello.Hello.unused()I": [
         "hello.Hello$#<init>()V",

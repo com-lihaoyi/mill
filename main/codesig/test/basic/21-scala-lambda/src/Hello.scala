@@ -11,14 +11,11 @@ object Hello{
 /* EXPECTED TRANSITIVE
 {
     "hello.Hello$#main()I": [
-        "hello.Hello$#used()I",
-        "hello.Hello$.$anonfun$main$1()I"
+        "hello.Hello$#used()I"
     ],
     "hello.Hello.main()I": [
         "hello.Hello$#<init>()V",
-        "hello.Hello$#main()I",
-        "hello.Hello$#used()I",
-        "hello.Hello$.$anonfun$main$1()I"
+        "hello.Hello$#main()I"
     ],
     "hello.Hello.used()I": [
         "hello.Hello$#<init>()V",

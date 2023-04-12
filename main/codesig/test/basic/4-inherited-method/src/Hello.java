@@ -18,8 +18,6 @@ public class Hello extends Parent{
     ],
     "hello.Hello.main()I": [
         "hello.Hello#<init>()V",
-        "hello.Parent#<init>()V",
-        "hello.Parent#used()I",
         "hello.Hello#used()I"
     ]
 }

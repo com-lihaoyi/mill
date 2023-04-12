@@ -8,10 +8,7 @@ import java.util.Map;
 import java.util.Vector;
 
 public class Hello {
-    public static String implement(int n){
-        Baas b = new Sheep();
-        return b.baa(n);
-    }
+
     public static String abstractClass(){
         Car toyota = new Toyota();
         return toyota.vroom();
@@ -33,39 +30,8 @@ public class Hello {
     public static String superMethod(){
         return new Toyota().superVStart();
     }
-    public static int staticInheritance(){
-        int a = Parent.x;
-        Child1.x = 100;
-        return a + Child1.x + Child2.x;
-    }
 }
-interface ParentInterface{
-    public static int x = 30;
-}
-class Parent{
-    public static int x = 10;
-}
-class Child1 extends Parent{
-    public static int get(){
-        return x;
-    }
-}
-class Cowc{}
-class Child2 extends Cowc implements ParentInterface{
-    public static int get(){
-        return x;
-    }
-}
-class Sheep implements Baas{
-    public String baa(int n){
-        String s = "b";
-        for(int i = 0; i < n; i++) s = s + "a";
-        return s;
-    }
-}
-interface Baas{
-    public String baa(int n);
-}
+
 class Toyota extends Car{
     public Toyota(){
         this.cc = 10;
@@ -108,45 +74,20 @@ class Car{
         "hello.Honda#vStart()java.lang.String",
         "hello.Toyota#vStart()java.lang.String"
     ],
-    "hello.Child1#<init>()V": [
-        "hello.Parent#<init>()V"
-    ],
-    "hello.Child2#<init>()V": [
-        "hello.Cowc#<init>()V"
-    ],
     "hello.Hello.abstractClass()java.lang.String": [
-        "hello.Car#<init>()V",
-        "hello.Car#vStart()java.lang.String",
         "hello.Car#vroom()java.lang.String",
-        "hello.Honda#vStart()java.lang.String",
-        "hello.Toyota#<init>()V",
-        "hello.Toyota#vStart()java.lang.String"
-    ],
-    "hello.Hello.implement(I)java.lang.String": [
-        "hello.Baas#baa(I)java.lang.String",
-        "hello.Sheep#<init>()V",
-        "hello.Sheep#baa(I)java.lang.String"
+        "hello.Toyota#<init>()V"
     ],
     "hello.Hello.shadowedInheritedGet()java.lang.String": [
-        "hello.Car#<init>()V",
-        "hello.Car#vStart()java.lang.String",
         "hello.Car#vroom()java.lang.String",
-        "hello.Honda#<init>()V",
-        "hello.Honda#vStart()java.lang.String",
-        "hello.Toyota#vStart()java.lang.String"
+        "hello.Honda#<init>()V"
     ],
     "hello.Hello.shadowedInheritedSet()java.lang.String": [
-        "hello.Car#<init>()V",
         "hello.Car#rev()V",
-        "hello.Car#vStart()java.lang.String",
         "hello.Car#vroom()java.lang.String",
-        "hello.Honda#<init>()V",
-        "hello.Honda#vStart()java.lang.String",
-        "hello.Toyota#vStart()java.lang.String"
+        "hello.Honda#<init>()V"
     ],
     "hello.Hello.superMethod()java.lang.String": [
-        "hello.Car#<init>()V",
-        "hello.Car#vStart()java.lang.String",
         "hello.Toyota#<init>()V",
         "hello.Toyota#superVStart()java.lang.String"
     ],

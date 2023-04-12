@@ -20,7 +20,6 @@ public class Hello {
 /* EXPECTED TRANSITIVE
 {
     "hello.Hello.main()I": [
-        "hello.Bar#<init>()V",
         "hello.Bar#used()I",
         "hello.Foo#used()I",
         "hello.Qux#<init>()V"

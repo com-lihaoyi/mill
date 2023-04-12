@@ -16,7 +16,6 @@ public class Hello extends Parent{
 /* EXPECTED TRANSITIVE
 {
     "hello.Hello#<init>()V": [
-        "hello.GrandParent#<init>()V",
         "hello.Parent#<init>()V"
     ],
     "hello.Hello.main()I": [

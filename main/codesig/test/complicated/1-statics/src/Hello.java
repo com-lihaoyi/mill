@@ -59,6 +59,9 @@ public class Hello {
     "hello.Hello.callAtPhiBoundary(I)I": [
         "hello.Hello.call(I)I"
     ],
+    "hello.Hello.fibonacci(I)I": [
+        "hello.Hello.fibonacci(I)I"
+    ],
     "hello.Hello.helloWorld(I)I": [
         "hello.Hello.timesTwo(I)I"
     ],
@@ -70,6 +73,9 @@ public class Hello {
     ],
     "hello.Hello.indirectFibonacciB(I)I": [
         "hello.Hello.indirectFibonacciA(I)I"
+    ],
+    "hello.Hello.tailFactorial(I)I": [
+        "hello.Hello.tailFactorial(I)I"
     ]
 }
 */

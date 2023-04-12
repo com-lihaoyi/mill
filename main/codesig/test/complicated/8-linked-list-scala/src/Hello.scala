@@ -19,13 +19,13 @@ object Hello{
     }
   }
 
-  case object TestNil extends TestList[Nothing] {
+  object TestNil extends TestList[Nothing] {
     def isEmpty = true
     def head = throw new Exception()
     def tail = throw new Exception()
   }
 
-  case class TestCons[B](head: B, tl: TestList[B]) extends TestList[B] {
+  class TestCons[B](val head: B, val tl: TestList[B]) extends TestList[B] {
     def tail = tl
     def isEmpty = false
   }
@@ -33,8 +33,8 @@ object Hello{
   def simpleLinkedListForeach(): Array[Int] = {
     val holder = Array(1)
 
-    TestCons(1, TestCons(2, TestCons(3, TestNil))).foreach(x => holder(0) += x)
-    TestCons(1L, TestCons(2L, TestCons(3L, TestNil))).foreach(x => holder(0) += x.toInt)
+    new TestCons(1, new TestCons(2, new TestCons(3, TestNil))).foreach(x => holder(0) += x)
+    new TestCons(1L, new TestCons(2L, new TestCons(3L, TestNil))).foreach(x => holder(0) += x.toInt)
     holder
   }
 }

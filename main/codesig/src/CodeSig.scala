@@ -25,7 +25,6 @@ object CodeSig{
     )
 
     val foundTransitive0 = Analyzer.analyze(summary, external)
-      .map { case (k, vs) => (k.toString, vs.map(_.toString)) }
 
     foundTransitive0
   }

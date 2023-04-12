@@ -151,7 +151,7 @@ object Desc{
  * Represents the signature of a method.
  */
 case class Desc(args: Seq[JType], ret: JType){
-  def unparse = "(" + args.map(Desc.unparse).foldLeft("")(_+_) + ")" + Desc.unparse(ret)
+  def unparse = "(" + args.map(Desc.unparse).mkString + ")" + Desc.unparse(ret)
   override def toString = unparse
 
   def shorten(name: String) = {

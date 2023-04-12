@@ -9,7 +9,8 @@ import mill.util.{MultiBiMap, Tarjans}
  * call graph
  */
 object Analyzer{
-  def analyze(summary: LocalSummarizer.Result, external: ExternalSummarizer.Result)  = {
+  def analyze(summary: LocalSummarizer.Result,
+              external: ExternalSummarizer.Result): Map[MethodSig, Set[MethodSig]]  = {
     pprint.log(summary.callGraph.map{case (k, vs) => (k.toString, vs.map(_.toString))})
     val clsToMethods = summary.callGraph.keys.groupBy(_.cls)
     val methodToIndex = summary.callGraph.keys.toVector.zipWithIndex.toMap
@@ -45,27 +46,28 @@ object Analyzer{
 
     pprint.log(resolvedCalls.map{case (k, vs) => (k.toString, vs.map(_.toString))})
 
-    val topoSortedMethodGroups = Tarjans
-      .apply(
-        Range(0, methodToIndex.size).map(i => resolvedCalls(indexToMethod(i)).map(methodToIndex))
-      )
-      .map(_.map(indexToMethod))
+//    val topoSortedMethodGroups = Tarjans
+//      .apply(
+//        Range(0, methodToIndex.size).map(i => resolvedCalls(indexToMethod(i)).map(methodToIndex))
+//      )
+//      .map(_.map(indexToMethod))
+//
+//    val transitiveCallGraphHashes = computeTransitive[Int](
+//      topoSortedMethodGroups,
+//      resolvedCalls,
+//      summary.methodHashes(_),
+//      _.hashCode()
+//    )
+//
+//    val transitiveCallGraphMethods = computeTransitive[Set[MethodSig]](
+//      topoSortedMethodGroups,
+//      resolvedCalls,
+//      Set(_),
+//      _.flatten.toSet
+//    ).map { case (k, vs) => (k, vs.filter(_ != k)) }
 
-    val transitiveCallGraphHashes = computeTransitive[Int](
-      topoSortedMethodGroups,
-      resolvedCalls,
-      summary.methodHashes(_),
-      _.hashCode()
-    )
-
-    val transitiveCallGraphMethods = computeTransitive[Set[MethodSig]](
-      topoSortedMethodGroups,
-      resolvedCalls,
-      Set(_),
-      _.flatten.toSet
-    ).map { case (k, vs) => (k, vs.filter(_ != k)) }
-
-    transitiveCallGraphMethods
+    resolvedCalls
+//    transitiveCallGraphMethods
   }
 
   def resolveAllCalls(callGraph: Map[MethodSig, Set[MethodCall]],

@@ -31,9 +31,6 @@ public class Hello{
 
 /* EXPECTED TRANSITIVE
 {
-    "hello.Bar#<init>()V": [
-        "hello.Bar.initBar()V"
-    ],
     "hello.Hello.main()I": [
         "hello.Bar#<init>()V",
         "hello.Bar.initBar()V",

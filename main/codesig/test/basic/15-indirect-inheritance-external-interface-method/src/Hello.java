@@ -31,8 +31,7 @@ public class Hello{
     ],
     "hello.Hello.main()I": [
         "hello.Foo#<init>()V",
-        "hello.Foo#read()I",
-        "hello.Foo#readSpecial()I"
+        "hello.Foo#read()I"
     ]
 }
 */

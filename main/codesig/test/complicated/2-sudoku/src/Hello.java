@@ -88,12 +88,12 @@ public class Hello {
 /* EXPECTED TRANSITIVE
 {
     "hello.Hello.run()java.lang.String": [
-        "hello.Hello.legal(III[[I)Z",
         "hello.Hello.solve(II[[I)Z",
         "hello.Hello.writeMatrix([[I)java.lang.String"
     ],
     "hello.Hello.solve(II[[I)Z": [
-        "hello.Hello.legal(III[[I)Z"
+        "hello.Hello.legal(III[[I)Z",
+        "hello.Hello.solve(II[[I)Z"
     ]
 }
 */

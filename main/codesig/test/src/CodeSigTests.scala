@@ -8,26 +8,24 @@ import scala.collection.immutable.{SortedMap, SortedSet}
 object CodeSigTests extends TestSuite{
   val tests = Tests{
     test("hello"){
-      val foundTransitive0 = CodeSig.compute(
+      val callGraph0 = CodeSig.compute(
         os.walk(os.Path(sys.env("TEST_CASE_CLASS_FILES"))).filter(_.ext == "class")
       )
 
       val expectedTransitive = parseExpectedJson(os.Path(sys.env("TEST_CASE_SOURCE_FILES")))
 
-      val skipped = Seq(
-        "lambda$",
-        "$deserializeLambda$",
-        "$anonfun$",
-        "<clinit>",
-        "$adapted",
+
+      val foundTransitive = simplifyCallGraph(
+        callGraph0,
+        skipped = Seq(
+          "lambda$",
+          "$deserializeLambda$",
+          "$anonfun$",
+          "<clinit>",
+          "$adapted",
+          "$init$",
+        )
       )
-      val foundTransitive = foundTransitive0
-        .collect{
-          case (k, vs) if !skipped.exists(k.contains(_)) && vs.nonEmpty =>
-            (k, vs.filter(v => !skipped.exists(v.contains(_))))
-        }
-        .to(SortedMap)
-        .map{case (k, vs) => (k, vs.to(SortedSet))}
 
       val expectedTransitiveJson = write(expectedTransitive, indent = 4)
       val foundTransitiveJson = write(foundTransitive, indent = 4)
@@ -54,5 +52,34 @@ object CodeSigTests extends TestSuite{
       expectedTransitiveLines.mkString("\n")
     )
     expectedTransitive
+  }
+
+  /**
+   * Removes noisy methods from the given call-graph, simplifying it for ease
+   * of understanding and testing.
+   *
+   * Uses an `O(n^2)` algorithm for processing the graph. Can probably be
+   * optimized further if necessary, but for testing purposes all the graphs
+   * are small so it's probably fine.
+   */
+  def simplifyCallGraph(callGraph0: Map[MethodSig, Set[MethodSig]],
+                        skipped: Seq[String]) = {
+    val stringCallGraph0 = callGraph0
+      .map { case (k, vs) => (k.toString, vs.map(_.toString)) }
+      .to(collection.mutable.Map)
+
+    for(k <- stringCallGraph0.keySet){
+      if (skipped.exists(k.contains(_))){
+        val removed = stringCallGraph0.remove(k).get
+        for(k2 <- stringCallGraph0.keySet){
+          stringCallGraph0.updateWith(k2){ case Some(vs) =>
+            Some(vs.flatMap(v => if (v == k) removed else Set(v)))
+          }
+        }
+      }
+    }
+
+    stringCallGraph0.to(SortedMap)
+      .collect { case (k, vs) if vs.nonEmpty => (k, vs.to(SortedSet)) }
   }
 }
