@@ -1,4 +1,11 @@
 package hello;
+
+// We implement an external interface, and never even call that method but
+// instead pass it to some other third-party code (the `InputStreamReader`
+// constructor) that calls that method.
+//
+// Make sure we treat this conservatively and mark all methods that are present
+// on the type of the third-party code parameter as called
 class Foo extends java.io.ByteArrayInputStream{
     public Foo() throws java.io.IOException{
         super(new byte[]{});
@@ -10,7 +17,12 @@ class Foo extends java.io.ByteArrayInputStream{
     public int readSpecial(){
         return 1337;
     }
+
+    public int uncalled(){
+        return 1337;
+    }
 }
+
 public class Hello{
     public static int main() throws java.io.IOException{
         java.io.BufferedReader is =

@@ -590,7 +590,8 @@ object main extends MillModule {
 
     object test extends Tests{
       object annotation extends MillPublishModule
-      object cases extends Cross[CaseModule](listIn(millSourcePath / "cases"):_*)
+      object basic extends Cross[CaseModule](listIn(millSourcePath / "basic"):_*)
+      object complicated extends Cross[CaseModule](listIn(millSourcePath / "complicated"):_*)
       class CaseModule(caseName: String) extends MillScalaModule{
         def moduleDeps = Seq(codesig.test.annotation)
         object test extends MillScalaModule with BaseMillTestsModule {

@@ -115,6 +115,7 @@ object LocalSummarizer{
       case insn: LdcInsnNode =>
         hash(
           insn.cst match {
+            case v: java.lang.String => v.hashCode()
             case v: java.lang.Integer => v.hashCode()
             case v: java.lang.Float => v.hashCode()
             case v: java.lang.Long => v.hashCode()
