@@ -201,6 +201,62 @@ def millBinPlatform: T[String] = T {
 }
 def baseDir = build.millSourcePath
 
+// We limit the number of compiler bridges to compile and publish for local
+// development and testing, because otherwise it takes forever to compile all
+// of them. Compiler bridges not in this set will get downloaded and compiled
+// on the fly anyway. For publishing, we publish everything.
+val buildAllCompilerBridges = interp.watchValue(sys.env.contains("MILL_BUILD_COMPILER_BRIDGES"))
+val bridgeVersion = "0.0.1"
+val bridgeScalaVersions = Seq(
+  // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
+  // bridges. We skip 2.12.1 because it's so old not to matter, and we need a
+  // non-supported scala versionm for testing purposes. We skip 2.13.0-2 because
+  // scaladoc fails on windows
+  /*"2.12.0",*/ /*2.12.1",*/ "2.12.2", "2.12.3", /*"2.12.4",*/ "2.12.5", "2.12.6", "2.12.7", "2.12.8",
+  "2.12.9", "2.12.10", "2.12.11", "2.12.12", "2.12.13", "2.12.14", "2.12.15", "2.12.16", "2.12.17",
+  /*"2.13.0", "2.13.1", "2.13.2",*/ "2.13.3", "2.13.4", "2.13.5", "2.13.6", "2.13.7", "2.13.8", "2.13.9", "2.13.10"
+)
+val buildBridgeScalaVersions =
+  if (!buildAllCompilerBridges) Seq()
+  else bridgeScalaVersions
+
+object bridge extends Cross[BridgeModule](buildBridgeScalaVersions: _*)
+class BridgeModule(val crossScalaVersion: String) extends PublishModule with CrossScalaModule {
+  def scalaVersion = crossScalaVersion
+  def publishVersion = bridgeVersion
+  def artifactName = T{ "mill-scala-compiler-bridge" }
+  def pomSettings = commonPomSettings(artifactName())
+  def crossFullScalaVersion = true
+  def ivyDeps = Agg(
+    ivy"org.scala-sbt:compiler-interface:${Versions.zinc}",
+    ivy"org.scala-lang:scala-compiler:${crossScalaVersion}",
+  )
+
+  def resources = T.sources {
+    os.copy(generatedSources().head.path / "META-INF", T.dest / "META-INF")
+    Seq(PathRef(T.dest))
+  }
+
+  def generatedSources = T {
+    import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
+    val resolvedJars = resolveDeps(
+      T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}") },
+      sources = true
+    )()
+
+    val bridgeJar = grepJar(
+      resolvedJars.map(_.path),
+      s"compiler-bridge_${scalaBinaryVersion(scalaVersion())}",
+      Deps.zinc.dep.version,
+      true
+    )
+
+    mill.api.IO.unpackZip(bridgeJar, os.rel)
+
+    Seq(PathRef(T.dest))
+  }
+}
+
 
 trait BuildInfo extends JavaModule {
   /**
@@ -397,15 +453,9 @@ object BuildInfo{
   }
 }
 
-
-trait MillPublishModule extends PublishModule {
-  override def artifactName = "mill-" + super.artifactName()
-  def publishVersion = millVersion()
-  override def publishProperties: Target[Map[String, String]] = super.publishProperties() ++ Map(
-    "info.releaseNotesURL" -> Settings.changelogUrl
-  )
-  def pomSettings = PomSettings(
-    description = artifactName(),
+def commonPomSettings(artifactName: String) = {
+  PomSettings(
+    description = artifactName,
     organization = Settings.pomOrg,
     url = Settings.projectUrl,
     licenses = Seq(License.MIT),
@@ -415,6 +465,15 @@ trait MillPublishModule extends PublishModule {
       Developer("lefou", "Tobias Roeser", "https://github.com/lefou")
     )
   )
+}
+
+trait MillPublishModule extends PublishModule {
+  override def artifactName = "mill-" + super.artifactName()
+  def publishVersion = millVersion()
+  override def publishProperties: Target[Map[String, String]] = super.publishProperties() ++ Map(
+    "info.releaseNotesURL" -> Settings.changelogUrl
+  )
+  def pomSettings = commonPomSettings(artifactName())
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
 
@@ -573,6 +632,7 @@ object main extends MillModule {
     override def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
+      Deps.fansi,
       Deps.sbtTestInterface
     )
   }
@@ -678,25 +738,17 @@ object main extends MillModule {
 object testrunner extends MillModule {
   override def moduleDeps = Seq(scalalib.api, main.util)
 }
-object scalalib extends MillModule with BuildInfo{
+
+
+object scalalib extends MillModule {
   override def moduleDeps = Seq(main, scalalib.api, testrunner)
 
   override def ivyDeps = Agg(
     Deps.scalafmtDynamic
   )
 
-  def buildInfoPackageName = "mill.scalalib"
-  def buildInfoObjectName = "Versions"
-
-  def buildInfoMembers = Seq(
-    BuildInfo.Value("ammonite", Deps.ammoniteVersion, "Version of Ammonite."),
-    BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc"),
-    BuildInfo.Value("semanticDBVersion", Deps.semanticDB.dep.version, "SemanticDB version."),
-    BuildInfo.Value("semanticDbJavaVersion", Deps.semanticDbJava.dep.version, "Java SemanticDB plugin version."),
-    BuildInfo.Value("millModuledefsVersion", Deps.millModuledefsVersion, "Mill ModuleDefs plugins version.")
-  )
-
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
+
   def testArgs = T {
 
     val artifactsString =
@@ -710,7 +762,7 @@ object scalalib extends MillModule with BuildInfo{
         "-Djna.nosys=true",
         "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(","),
         s"-DTEST_SCALAFMT_VERSION=${Deps.scalafmtDynamic.dep.version}",
-        s"-DMILL_EMBEDDED_DEPS=\"$artifactsString\""
+        s"-DMILL_EMBEDDED_DEPS=$artifactsString"
       )
   }
   object backgroundwrapper extends MillPublishModule {
@@ -723,9 +775,25 @@ object scalalib extends MillModule with BuildInfo{
       )
     }
   }
-  object api extends MillApiModule {
+  object api extends MillApiModule with BuildInfo {
     override def moduleDeps = Seq(main.api)
+
+    def buildInfoPackageName = "mill.scalalib.api"
+
+    def buildInfoObjectName = "Versions"
+
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("ammonite", Deps.ammoniteVersion, "Version of Ammonite."),
+      BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc"),
+      BuildInfo.Value("semanticDBVersion", Deps.semanticDB.dep.version, "SemanticDB version."),
+      BuildInfo.Value("semanticDbJavaVersion", Deps.semanticDbJava.dep.version, "Java SemanticDB plugin version."),
+      BuildInfo.Value("millModuledefsVersion", Deps.millModuledefsVersion, "Mill ModuleDefs plugins version."),
+      BuildInfo.Value("millCompilerBridgeScalaVersions", bridgeScalaVersions.mkString(",")),
+      BuildInfo.Value("millCompilerBridgeVersion", bridgeVersion),
+      BuildInfo.Value("millVersion", millVersion(), "Mill version.")
+    )
   }
+
   object worker extends MillInternalModule with BuildInfo{
 
     override def moduleDeps = Seq(scalalib.api)
@@ -734,11 +802,7 @@ object scalalib extends MillModule with BuildInfo{
       Deps.zinc,
       Deps.log4j2Core
     )
-    def testArgs = T {
-      Seq(
-        "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
-      )
-    }
+    def testArgs = Seq("-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(","))
 
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
@@ -1118,7 +1182,10 @@ def installLocalCache() = T.command {
 }
 
 def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
-  val modules = build.millInternal.modules.collect { case m: PublishModule => m }
+  val modules = build.millInternal.modules.collect{
+    case m: PublishModule => m
+  }
+
   T.task {
     T.traverse(modules)(m => m.publishLocal(ivyRepo))()
     val millBin = assembly()
