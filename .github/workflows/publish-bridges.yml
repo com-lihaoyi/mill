@@ -4,7 +4,6 @@ name: Publish Bridges
 # since those do not change frequently enough to be worth including in the main
 # publishing workflow that runs every Mill version
 on:
-  pull_request:
   workflow_dispatch:
 jobs:
   publish-bridges:
