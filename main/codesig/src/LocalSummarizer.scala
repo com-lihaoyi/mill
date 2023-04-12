@@ -12,7 +12,7 @@ import org.objectweb.asm.tree.{AbstractInsnNode, ClassNode, FieldInsnNode, Frame
  */
 object LocalSummarizer{
 
-  case class Result(callGraph: collection.mutable.Map[MethodSig, (Int, Set[MethodCall])],
+  case class Result(callGraph: Map[MethodSig, (Int, Set[MethodCall])],
                     directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
                     directAncestors: Map[JType.Cls, Set[JType.Cls]])
 
@@ -59,7 +59,7 @@ object LocalSummarizer{
       }
     }
 
-    Result(callGraph, directSubclasses, directAncestors.toMap)
+    Result(callGraph.toMap, directSubclasses, directAncestors.toMap)
   }
 
   def processInstruction(insn: AbstractInsnNode,

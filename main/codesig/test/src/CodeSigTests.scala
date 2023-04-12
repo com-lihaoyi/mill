@@ -38,10 +38,7 @@ object CodeSigTests extends TestSuite{
           loadClass(os.read.bytes(os.resource / os.SubPath(externalType.name.replace('.', '/') + ".class")))
       )
 
-      val analyzer = new Analyzer(summary, external)
-
-      val foundTransitive0 = analyzer
-        .transitiveCallGraphMethods
+      val foundTransitive0 = Analyzer.analyze(summary, external)
         .map{case (k, vs) => (k.toString, vs.map(_.toString))}
 
       implicit def sortedMapRw[K: ReadWriter: Ordering, V: ReadWriter] =
