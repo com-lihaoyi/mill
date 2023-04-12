@@ -31,7 +31,7 @@ public class Hello{
 {
     "hello.Hello.main()I": [
         "hello.Bar#<init>()V",
-        "hello.Bar#write([BII)V"
+        "hello.Bar#write([B,I,I)V"
     ]
 }
 */

@@ -57,13 +57,13 @@ object Hello{
         "hello.Hello$SingletonBigTestIterator#next()java.lang.Object"
     ],
     "hello.Hello$BigTestIterator#filter(scala.Function1)hello.Hello$BigTestIterator": [
-        "hello.Hello$FilterBigTestIterator#<init>(hello.Hello$BigTestIteratorscala.Function1)V"
+        "hello.Hello$FilterBigTestIterator#<init>(hello.Hello$BigTestIterator,scala.Function1)V"
     ],
-    "hello.Hello$BigTestIterator.filter$(hello.Hello$BigTestIteratorscala.Function1)hello.Hello$BigTestIterator": [
+    "hello.Hello$BigTestIterator.filter$(hello.Hello$BigTestIterator,scala.Function1)hello.Hello$BigTestIterator": [
         "hello.Hello$BigTestIterator#filter(scala.Function1)hello.Hello$BigTestIterator"
     ],
     "hello.Hello$FilterBigTestIterator#filter(scala.Function1)hello.Hello$BigTestIterator": [
-        "hello.Hello$BigTestIterator.filter$(hello.Hello$BigTestIteratorscala.Function1)hello.Hello$BigTestIterator"
+        "hello.Hello$BigTestIterator.filter$(hello.Hello$BigTestIterator,scala.Function1)hello.Hello$BigTestIterator"
     ],
     "hello.Hello$FilterBigTestIterator#hasNext()Z": [
         "hello.Hello$BigTestIterator#hasNext()Z",
@@ -74,7 +74,7 @@ object Hello{
         "hello.Hello$SingletonBigTestIterator#next()java.lang.Object"
     ],
     "hello.Hello$SingletonBigTestIterator#filter(scala.Function1)hello.Hello$BigTestIterator": [
-        "hello.Hello$BigTestIterator.filter$(hello.Hello$BigTestIteratorscala.Function1)hello.Hello$BigTestIterator"
+        "hello.Hello$BigTestIterator.filter$(hello.Hello$BigTestIterator,scala.Function1)hello.Hello$BigTestIterator"
     ],
     "hello.Hello$SingletonBigTestIterator#hasNext()Z": [
         "hello.Hello$SingletonBigTestIterator#ready()Z"

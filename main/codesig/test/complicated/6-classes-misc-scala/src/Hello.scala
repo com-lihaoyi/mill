@@ -61,19 +61,19 @@ class LinkedList {
     "hello.Bull#mooTwice()java.lang.String": [
         "hello.Cow#moo()java.lang.String"
     ],
-    "hello.DoubleDetMatrix#<init>(FFFF)V": [
-        "hello.Matrix#<init>(FFFF)V"
+    "hello.DoubleDetMatrix#<init>(F,F,F,F)V": [
+        "hello.Matrix#<init>(F,F,F,F)V"
     ],
     "hello.DoubleDetMatrix#determinant()F": [
         "hello.Matrix#determinant()F"
     ],
-    "hello.DoubleMatrix#<init>(FFFF)V": [
-        "hello.Matrix#<init>(FFFF)V"
+    "hello.DoubleMatrix#<init>(F,F,F,F)V": [
+        "hello.Matrix#<init>(F,F,F,F)V"
     ],
     "hello.LinkedList#push(I)V": [
         "hello.LinkedList#head()hello.LinkedList$Inner",
         "hello.LinkedList#head_$eq(hello.LinkedList$Inner)V",
-        "hello.LinkedList$Inner#<init>(hello.LinkedListIhello.LinkedList$Inner)V"
+        "hello.LinkedList$Inner#<init>(hello.LinkedList,I,hello.LinkedList$Inner)V"
     ],
     "hello.LinkedList#sum()I": [
         "hello.LinkedList#head()hello.LinkedList$Inner",

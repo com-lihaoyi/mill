@@ -31,7 +31,7 @@ object Hello{
         "hello.Hello$#minimizedIterator()[I"
     ],
     "hello.SubTestIter#foreach(scala.Function1)V": [
-        "hello.TestIter.foreach$(hello.TestIterscala.Function1)V"
+        "hello.TestIter.foreach$(hello.TestIter,scala.Function1)V"
     ],
     "hello.SubTestIter#next()java.lang.Object": [
         "hello.SubTestIter#next()scala.runtime.Nothing$"
@@ -42,7 +42,7 @@ object Hello{
         "hello.TestIter#hasNext()Z",
         "hello.TestIter#next()java.lang.Object"
     ],
-    "hello.TestIter.foreach$(hello.TestIterscala.Function1)V": [
+    "hello.TestIter.foreach$(hello.TestIter,scala.Function1)V": [
         "hello.TestIter#foreach(scala.Function1)V"
     ]
 }

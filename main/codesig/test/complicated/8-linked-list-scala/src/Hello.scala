@@ -41,11 +41,11 @@ object Hello{
 /* EXPECTED TRANSITIVE
 {
     "hello.Hello$#simpleLinkedListForeach()[I": [
-        "hello.Hello$TestCons#<init>(java.lang.Objecthello.Hello$TestList)V",
+        "hello.Hello$TestCons#<init>(java.lang.Object,hello.Hello$TestList)V",
         "hello.Hello$TestList#foreach(scala.Function1)V",
         "hello.Hello$TestNil$#<init>()V"
     ],
-    "hello.Hello$TestCons#<init>(java.lang.Objecthello.Hello$TestList)V": [
+    "hello.Hello$TestCons#<init>(java.lang.Object,hello.Hello$TestList)V": [
         "hello.Hello$TestList#<init>()V"
     ],
     "hello.Hello$TestCons#tail()hello.Hello$TestList": [

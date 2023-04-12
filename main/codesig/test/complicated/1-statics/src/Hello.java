@@ -65,8 +65,8 @@ public class Hello {
     "hello.Hello.helloWorld(I)I": [
         "hello.Hello.timesTwo(I)I"
     ],
-    "hello.Hello.helloWorld2(II)I": [
-        "hello.Hello.timesTwo2(II)I"
+    "hello.Hello.helloWorld2(I,I)I": [
+        "hello.Hello.timesTwo2(I,I)I"
     ],
     "hello.Hello.indirectFibonacciA(I)I": [
         "hello.Hello.indirectFibonacciB(I)I"

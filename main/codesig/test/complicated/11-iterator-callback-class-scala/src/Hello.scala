@@ -32,13 +32,13 @@ object Hello{
         "hello.Hello$TestCallbackImpl#apply(I)I"
     ],
     "hello.Hello$TestElements#run(hello.Hello$TestCallback)I": [
-        "hello.Hello$TestIterator.run$(hello.Hello$TestIteratorhello.Hello$TestCallback)I"
+        "hello.Hello$TestIterator.run$(hello.Hello$TestIterator,hello.Hello$TestCallback)I"
     ],
     "hello.Hello$TestIterator#run(hello.Hello$TestCallback)I": [
         "hello.Hello$TestCallback#apply(java.lang.Object)java.lang.Object",
         "hello.Hello$TestCallbackImpl#apply(java.lang.Object)java.lang.Object"
     ],
-    "hello.Hello$TestIterator.run$(hello.Hello$TestIteratorhello.Hello$TestCallback)I": [
+    "hello.Hello$TestIterator.run$(hello.Hello$TestIterator,hello.Hello$TestCallback)I": [
         "hello.Hello$TestIterator#run(hello.Hello$TestCallback)I"
     ],
     "hello.Hello.staticSpecialInterfaceMethods()I": [
