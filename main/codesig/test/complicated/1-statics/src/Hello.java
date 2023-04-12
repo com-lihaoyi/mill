@@ -54,7 +54,7 @@ public class Hello {
     }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello.callAtPhiBoundary(int)int": [
         "hello.Hello.call(int)int"

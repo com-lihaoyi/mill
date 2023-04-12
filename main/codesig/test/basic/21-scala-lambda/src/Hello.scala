@@ -9,7 +9,7 @@ object Hello{
   def used(): Int = 2
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello$#main()int": [
         "hello.Hello$#used()int"

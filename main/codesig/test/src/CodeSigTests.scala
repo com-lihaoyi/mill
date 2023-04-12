@@ -44,6 +44,9 @@ object CodeSigTests extends TestSuite{
       test("12-iterator-inherit-external-scala") - testCase()
       test("13-iterator-inherit-external-filter-scala") - testCase()
     }
+    test("javagames"){
+      test("1-ribbon") - testCase()
+    }
   }
 
   def testCase()(implicit tp: utest.framework.TestPath) = {
@@ -77,19 +80,25 @@ object CodeSigTests extends TestSuite{
   }
 
   def parseExpectedJson(testCaseSourceFilesRoot: Path) = {
-    val possibleSources = Seq("Hello.java", "Hello.scala")
-    val sourceLines = possibleSources
-      .map(testCaseSourceFilesRoot / _)
-      .find(os.exists(_))
-      .map(os.read.lines(_))
-      .get
+    val jsonText =
+      if (os.exists(testCaseSourceFilesRoot / "expected-call-graph.json")){
+        os.read(testCaseSourceFilesRoot / "expected-call-graph.json")
+      }else {
+        val possibleSources = Seq("Hello.java", "Hello.scala")
+        val sourceLines = possibleSources
+          .map(testCaseSourceFilesRoot / _)
+          .find(os.exists(_))
+          .map(os.read.lines(_))
+          .get
 
-    val expectedLines = sourceLines
-      .dropWhile(_ != "/* EXPECTED DEPENDENCIES")
-      .drop(1)
-      .takeWhile(_ != "*/")
+        val expectedLines = sourceLines
+          .dropWhile(_ != "/* EXPECTED CALL GRAPH")
+          .drop(1)
+          .takeWhile(_ != "*/")
 
-    read[SortedMap[String, SortedSet[String]]](expectedLines.mkString("\n"))
+        expectedLines.mkString("\n")
+      }
+    read[SortedMap[String, SortedSet[String]]](jsonText)
   }
 
   /**

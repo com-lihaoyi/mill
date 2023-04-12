@@ -16,7 +16,7 @@ object Hello{
   }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello$#testManifestFactory()java.lang.String": [
         "hello.Hello$TestManifestFactory$#<init>()void",

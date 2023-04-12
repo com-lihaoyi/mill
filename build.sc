@@ -651,6 +651,7 @@ object main extends MillModule {
     object test extends Tests{
       val basicItems = listIn(millSourcePath / "basic")
       val complicatedItems = listIn(millSourcePath / "complicated")
+      val javaGamesItems = listIn(millSourcePath / "javagames")
       def forkEnv = T{
         val kvs1 = T.traverse(basicItems) { i =>
           basic(i).compile.map((s"basic-$i", _))
@@ -658,12 +659,16 @@ object main extends MillModule {
         val kvs2 = T.traverse(complicatedItems) { i =>
           complicated(i).compile.map((s"complicated-$i", _))
         }()
+        val kvs3 = T.traverse(javaGamesItems) { i =>
+          javagames(i).compile.map((s"javagames-$i", _))
+        }()
 
-        (kvs1 ++ kvs2).map{case (k, v) => (s"MILL_TEST_$k", v.classes.path.toString)}.toMap
+        (kvs1 ++ kvs2 ++ kvs3).map{case (k, v) => (s"MILL_TEST_$k", v.classes.path.toString)}.toMap
       }
 
       object basic extends Cross[CaseModule](basicItems: _*)
       object complicated extends Cross[CaseModule](complicatedItems: _*)
+      object javagames extends Cross[CaseModule](javaGamesItems: _*)
       class CaseModule(caseName: String) extends ScalaModule {
         def scalaVersion = "2.13.10"
       }

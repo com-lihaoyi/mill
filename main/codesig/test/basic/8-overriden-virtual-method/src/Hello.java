@@ -13,7 +13,7 @@ public class Hello extends Parent{
 
     public int foo(){ return 5; }
 }
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello#<init>()void": [
         "hello.Parent#<init>()void"

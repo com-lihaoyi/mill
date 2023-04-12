@@ -18,7 +18,7 @@ object Hello{
   }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello$#staticSpecialInterfaceMethods()int": [
         "hello.Hello$TestCallbackImpl#<init>()void",

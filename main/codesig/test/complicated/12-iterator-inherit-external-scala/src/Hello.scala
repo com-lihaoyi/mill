@@ -32,7 +32,7 @@ object Hello{
   }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello$#manualIterator(int)int": [
         "hello.Hello$#getInt()int",

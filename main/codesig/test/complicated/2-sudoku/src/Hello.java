@@ -85,7 +85,7 @@ public class Hello {
     }
 
 }
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello.run()java.lang.String": [
         "hello.Hello.solve(int,int,int[][])boolean",

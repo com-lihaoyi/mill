@@ -14,7 +14,7 @@ public class Hello{
     public static int usedDeepestStatic(){ return 3; }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello.main()int": [
         "hello.Hello.usedStatic()int"

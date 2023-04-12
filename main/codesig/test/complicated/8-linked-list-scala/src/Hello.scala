@@ -38,7 +38,7 @@ object Hello{
   }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello$#simpleLinkedListForeach()int[]": [
         "hello.Hello$TestCons#<init>(java.lang.Object,hello.Hello$TestList)void",

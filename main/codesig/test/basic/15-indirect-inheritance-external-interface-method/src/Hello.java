@@ -24,7 +24,7 @@ public class Hello{
     }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Foo#read()int": [
         "hello.Foo#readSpecial()int"

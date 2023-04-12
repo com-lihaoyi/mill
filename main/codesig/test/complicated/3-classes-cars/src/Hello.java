@@ -67,7 +67,7 @@ class Car{
         return s + "m";
     }
 }
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Car#vroom()java.lang.String": [
         "hello.Car#vStart()java.lang.String",

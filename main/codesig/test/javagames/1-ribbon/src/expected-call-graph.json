@@ -1,0 +1,69 @@
+{
+  "Apple#<init>(SnakeVector,int,java.awt.Rectangle)void": [
+    "Ribbon.randomInt(int,int)int"
+  ],
+  "Apple#tryCollision(Snake)void": [
+    "Ribbon.cap(double,double,double)double",
+    "SnakeVector#point(int)java.awt.geom.Point2D$Float"
+  ],
+  "Ribbon.length(java.awt.geom.Line2D)double": [
+    "Ribbon.square(double)double"
+  ],
+  "Ribbon.main(java.lang.String[])void": [
+    "RibbonGame#<init>()void"
+  ],
+  "RibbonGame#<init>()void": [
+    "JCanvas#<init>()void",
+    "RibbonGame#actionPerformed(java.awt.event.ActionEvent)void",
+    "RibbonGame#init()void",
+    "RibbonGame#keyPressed(java.awt.event.KeyEvent)void",
+    "RibbonGame#keyReleased(java.awt.event.KeyEvent)void",
+    "RibbonGame#keyTyped(java.awt.event.KeyEvent)void",
+    "SnakeVector#<init>()void"
+  ],
+  "RibbonGame#actionPerformed(java.awt.event.ActionEvent)void": [
+    "Apple#move(double)void",
+    "Apple#print(java.awt.Graphics2D)void",
+    "Apple#tryBoundaries(java.awt.Rectangle)void",
+    "Apple#tryCollision(Snake)void",
+    "Apple#tryEat(Snake)void",
+    "JCanvas#paintComponent(java.awt.Graphics)void",
+    "Snake#checkCollision(Snake)boolean",
+    "Snake#checkCollision(java.awt.Rectangle)boolean",
+    "Snake#move(double)void",
+    "Snake#print(java.awt.Graphics2D)void",
+    "Snake#thicken()void",
+    "SnakeVector#apple(int)Apple",
+    "SnakeVector#snake(int)Snake"
+  ],
+  "RibbonGame#init()void": [
+    "Snake#<init>(SnakeVector,float,java.awt.geom.Point2D$Float,java.awt.Color)void"
+  ],
+  "RibbonGame#keyPressed(java.awt.event.KeyEvent)void": [
+    "Apple#<init>(SnakeVector,int,java.awt.Rectangle)void",
+    "Ribbon.randomInt(int,int)int"
+  ],
+  "Snake#<init>(SnakeVector,float,java.awt.geom.Point2D$Float,java.awt.Color)void": [
+    "SnakeVector#<init>()void"
+  ],
+  "Snake#calcLength()void": [
+    "SnakeVector#point(int)java.awt.geom.Point2D$Float"
+  ],
+  "Snake#checkCollision(Snake)boolean": [
+    "Ribbon.length(java.awt.geom.Line2D)double"
+  ],
+  "Snake#move(double)void": [
+    "Ribbon.cap(double,double,double)double",
+    "Snake#calcLength()void",
+    "Snake#shorten()void",
+    "SnakeVector#point(int)java.awt.geom.Point2D$Float"
+  ],
+  "Snake#shorten()void": [
+    "Snake#calcLength()void",
+    "Snake#shorten()void",
+    "SnakeVector#point(int)java.awt.geom.Point2D$Float"
+  ],
+  "Snake#thicken()void": [
+    "SnakeVector#point(int)java.awt.geom.Point2D$Float"
+  ]
+}

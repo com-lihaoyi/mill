@@ -9,7 +9,7 @@ public class Hello{
     public static int unused(){ return 1; }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello.main()int": ["hello.Hello.used()int"]
 }

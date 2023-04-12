@@ -22,7 +22,7 @@ object Hello{
   }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello$#simpleArraySeqForeach()int[]": [
         "hello.Hello$TestArraySeq#<init>(java.lang.Object)void",

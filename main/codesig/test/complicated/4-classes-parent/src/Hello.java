@@ -32,7 +32,7 @@ class Child2 extends Cowc implements ParentInterface{
         return x;
     }
 }
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Child1#<init>()void": [
         "hello.Parent#<init>()void"

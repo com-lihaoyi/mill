@@ -6,7 +6,7 @@ public class Hello{
     public int unused(){ return 1; }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello.main()int": ["hello.Hello#<init>()void", "hello.Hello#used()int"]
 }

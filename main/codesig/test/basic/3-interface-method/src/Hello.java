@@ -20,7 +20,7 @@ public class Hello{
     }
 }
 
-/* EXPECTED DEPENDENCIES
+/* EXPECTED CALL GRAPH
 {
     "hello.Hello.main()int": [
         "hello.Foo#used()int",
