@@ -43,6 +43,11 @@ object InvokeType{
 
 sealed trait JType{
   override def toString = pretty
+
+  /**
+   * A pretty Java-esque dot-delimited syntax for serializing JTypes. Much more
+   * readable and familiar than the slash-based JVM bytecode syntax
+   */
   def pretty: String
 }
 object JType {

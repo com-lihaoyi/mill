@@ -44,8 +44,9 @@ object CodeSigTests extends TestSuite{
       test("12-iterator-inherit-external-scala") - testCase()
       test("13-iterator-inherit-external-filter-scala") - testCase()
     }
-    test("javagames"){
-      test("1-ribbon") - testCase()
+    test("games"){
+      test("1-tetris") - testCase()
+      test("2-ribbon") - testCase()
     }
   }
 

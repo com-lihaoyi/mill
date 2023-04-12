@@ -1,0 +1,70 @@
+{
+  "Tetris#<init>()void": [
+    "Tetris#actionPerformed(java.awt.event.ActionEvent)void",
+    "Tetris#drawBorders()void",
+    "Tetris#initMap()void",
+    "Tetris#initSounds()void",
+    "Tetris#keyPressed(java.awt.event.KeyEvent)void",
+    "Tetris#keyReleased(java.awt.event.KeyEvent)void",
+    "Tetris#keyTyped(java.awt.event.KeyEvent)void",
+    "Tetris$1#<init>(Tetris)void",
+    "Tetris$1#actionPerformed(java.awt.event.ActionEvent)void",
+    "Tetris$Background#<init>(Tetris)void"
+  ],
+  "Tetris#actionPerformed(java.awt.event.ActionEvent)void": [
+    "GUI.randomInt(int,int)int",
+    "Tetris$Background#paintComponent(java.awt.Graphics)void",
+    "Tetris$Block#<init>(Tetris,int)void",
+    "Tetris$Block#checkCollision()boolean",
+    "Tetris$Block#imprint()void",
+    "Tetris$Block#move(int,int,boolean)void",
+    "Tetris$Block#print(java.awt.Color)void"
+  ],
+  "Tetris#checkLines()void": [
+    "Tetris#checkLine(int)boolean",
+    "Tetris#clearLine(int)void",
+    "Tetris#moveDown(int)void"
+  ],
+  "Tetris#clearLine(int)void": [
+    "Tetris$Position#<init>(Tetris)void"
+  ],
+  "Tetris#initMap()void": [
+    "Tetris$Position#<init>(Tetris)void"
+  ],
+  "Tetris#keyPressed(java.awt.event.KeyEvent)void": [
+    "Tetris$Block#rotate(int,boolean)void"
+  ],
+  "Tetris#moveDown(int)void": [
+    "Tetris#moveLine(int)void"
+  ],
+  "Tetris#moveLine(int)void": [
+    "Tetris#printLine(int)void",
+    "Tetris$Position#<init>(Tetris)void",
+    "Tetris$Position#setPosition(java.awt.Color,boolean,boolean)void"
+  ],
+  "Tetris#printLine(int)void": [
+    "Tetris#printSquare(int,int,java.awt.Color)void"
+  ],
+  "Tetris$1#actionPerformed(java.awt.event.ActionEvent)void": [
+    "Tetris$Block#move(int,int,boolean)void"
+  ],
+  "Tetris$Block#imprint()void": [
+    "GUI.close(java.lang.String,java.lang.String)void",
+    "Tetris#checkLines()void",
+    "Tetris$Position#setPosition(java.awt.Color,boolean,boolean)void"
+  ],
+  "Tetris$Block#move(int,int,boolean)void": [
+    "Tetris#moveSound()void",
+    "Tetris$Block#checkOverlap()boolean",
+    "Tetris$Block#print(java.awt.Color)void"
+  ],
+  "Tetris$Block#print(java.awt.Color)void": [
+    "Tetris#printSquare(int,int,java.awt.Color)void"
+  ],
+  "Tetris$Block#rotate(int,boolean)void": [
+    "Tetris#moveSound()void",
+    "Tetris$Block#checkOverlap()boolean",
+    "Tetris$Block#print(java.awt.Color)void",
+    "Tetris$Block#rotate(int,boolean)void"
+  ]
+}
