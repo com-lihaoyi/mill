@@ -654,12 +654,12 @@ object main extends MillModule {
       )
 
       def forkEnv = T{
-        T.traverse(caseKeys) { i => cases(i).compile.map((i, _))}()
-          .map{case (k, v) => (s"MILL_TEST_CLASSES_$k", v.classes.path.toString)}
-          .toMap ++
-        T.traverse(caseKeys) { i => cases(i).sources.map((i, _))}()
-          .map{case (k, v) => (s"MILL_TEST_SOURCES_$k", v.head.path.toString)}
-          .toMap
+        T.traverse(caseKeys) { i =>
+          cases(i).compile.map(v => (s"MILL_TEST_CLASSES_$i", v.classes.path.toString))
+        }().toMap ++
+        T.traverse(caseKeys) { i =>
+          cases(i).sources.map(v => (s"MILL_TEST_SOURCES_$i", v.head.path.toString))
+        }()
       }
 
       object cases extends Cross[CaseModule](caseKeys: _*)
