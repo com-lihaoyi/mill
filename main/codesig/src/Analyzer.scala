@@ -78,6 +78,7 @@ object Analyzer{
 
 
     def resolveLocalCall(call: MethodCall): Set[MethodSig] = {
+      pprint.log(call)
       call.invokeType match {
         case InvokeType.Static =>
           clsAndSupers(

@@ -30,3 +30,7 @@ object Hello{
     box(0)
   }
 }
+
+/* EXPECTED TRANSITIVE
+{}
+*/

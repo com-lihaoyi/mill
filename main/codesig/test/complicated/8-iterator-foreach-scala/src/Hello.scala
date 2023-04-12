@@ -22,3 +22,7 @@ object Hello{
   }
 
 }
+
+/* EXPECTED TRANSITIVE
+{}
+*/

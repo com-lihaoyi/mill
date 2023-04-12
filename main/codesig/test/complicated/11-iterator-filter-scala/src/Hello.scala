@@ -45,3 +45,6 @@ object Hello{
     else n
   }
 }
+/* EXPECTED TRANSITIVE
+{}
+*/

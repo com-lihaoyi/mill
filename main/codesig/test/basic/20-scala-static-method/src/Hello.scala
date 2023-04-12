@@ -10,17 +10,17 @@ object Hello{
     "hello.Hello$#main()I": [
         "hello.Hello$#used()I"
     ],
-    "hello.Hello$.<clinit>()V": [
-        "hello.Hello$#<init>()V"
-    ],
     "hello.Hello.main()I": [
+        "hello.Hello$#<init>()V",
         "hello.Hello$#main()I",
         "hello.Hello$#used()I"
     ],
     "hello.Hello.unused()I": [
+        "hello.Hello$#<init>()V",
         "hello.Hello$#unused()I"
     ],
     "hello.Hello.used()I": [
+        "hello.Hello$#<init>()V",
         "hello.Hello$#used()I"
     ]
 }

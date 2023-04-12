@@ -14,9 +14,18 @@ object CodeSigTests extends TestSuite{
 
       val expectedTransitive = parseExpectedJson(os.Path(sys.env("TEST_CASE_SOURCE_FILES")))
 
+      val skipped = Seq(
+        "lambda$",
+        "$deserializeLambda$",
+        "$anonfun$",
+        "<clinit>",
+        "$adapted",
+      )
       val foundTransitive = foundTransitive0
-        .map{ case (k, vs) => (k, vs.filter(!_.contains("lambda$"))) }
-        .filter { case (k, vs) => !k.contains("lambda$") && !k.contains("$deserializeLambda$")  && !k.contains("$anonfun$") && vs.nonEmpty }
+        .collect{
+          case (k, vs) if !skipped.exists(k.contains(_)) && vs.nonEmpty =>
+            (k, vs.filter(v => !skipped.exists(v.contains(_))))
+        }
         .to(SortedMap)
         .map{case (k, vs) => (k, vs.to(SortedSet))}
 

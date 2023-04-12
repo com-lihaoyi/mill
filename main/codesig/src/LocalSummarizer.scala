@@ -52,7 +52,8 @@ object LocalSummarizer{
             insn,
             labelIndices,
             insnSigs.append,
-            outboundCalls.add
+            outboundCalls.add,
+            clsType
           )
           insnSigs.append(insn.getOpcode)
         }
@@ -68,14 +69,23 @@ object LocalSummarizer{
   def processInstruction(insn: AbstractInsnNode,
                          labelIndices: Map[LabelNode, Int],
                          hash: Int => Unit,
-                         storeCallEdge: MethodCall => Unit) = {
+                         storeCallEdge: MethodCall => Unit,
+                         currentCls: JType.Cls) = {
     def hashlabel(label: LabelNode) = hash(labelIndices(label))
+
+    def clinitCall(desc: String) = {
+      val descCls = JType.Cls.fromSlashed(desc)
+      if (descCls != currentCls) storeCallEdge(
+        MethodCall(descCls, InvokeType.Static, "<clinit>", Desc.read("()V"))
+      )
+    }
 
     insn match {
       case insn: FieldInsnNode =>
         hash(insn.desc.hashCode)
         hash(insn.name.hashCode)
         hash(insn.owner.hashCode)
+        clinitCall(insn.owner)
 
       case insn: FrameNode =>
 
@@ -155,6 +165,8 @@ object LocalSummarizer{
             Desc.read(insn.desc)
           )
         )
+        clinitCall(insn.owner)
+
 
       case insn: MultiANewArrayInsnNode =>
         hash(insn.desc.hashCode)
@@ -166,7 +178,10 @@ object LocalSummarizer{
         insn.labels.asScala.foreach(hashlabel)
         Option(insn.dflt).foreach(hashlabel)
 
-      case insn: TypeInsnNode => hash(insn.desc.hashCode)
+      case insn: TypeInsnNode =>
+        clinitCall(insn.desc)
+
+        hash(insn.desc.hashCode)
 
       case insn: VarInsnNode => hash(insn.`var`)
     }

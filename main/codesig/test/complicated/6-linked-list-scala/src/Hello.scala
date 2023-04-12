@@ -38,3 +38,7 @@ object Hello{
     holder
   }
 }
+
+/* EXPECTED TRANSITIVE
+{}
+*/

@@ -19,3 +19,7 @@ object Hello{
     new TestElements().run(new TestCallbackImpl())
   }
 }
+
+/* EXPECTED TRANSITIVE
+{}
+*/
