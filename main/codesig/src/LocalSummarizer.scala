@@ -12,16 +12,16 @@ import org.objectweb.asm.tree.{AbstractInsnNode, ClassNode, FieldInsnNode, Frame
  */
 object LocalSummarizer{
 
-  case class Result(callGraph: Map[MethodSig, Set[MethodCall]],
-                    methodHashes: Map[MethodSig, Int],
+  case class Result(callGraph: Map[MethodDef, Set[MethodCall]],
+                    methodHashes: Map[MethodDef, Int],
                     directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
                     directAncestors: Map[JType.Cls, Set[JType.Cls]])
 
   def summarize(classNodes: Seq[ClassNode]) = {
 
     val directSubclasses = new MultiBiMap.Mutable[JType.Cls, JType.Cls]()
-    val callGraph = collection.mutable.Map.empty[MethodSig, Set[MethodCall]]
-    val methodHashes = collection.mutable.Map.empty[MethodSig, Int]
+    val callGraph = collection.mutable.Map.empty[MethodDef, Set[MethodCall]]
+    val methodHashes = collection.mutable.Map.empty[MethodDef, Int]
     val directAncestors = collection.mutable.Map.empty[JType.Cls, Set[JType.Cls]]
 
     for(cn <- classNodes){
@@ -36,7 +36,7 @@ object LocalSummarizer{
 
       for(method <- cn.methods.asScala){
         val outboundCalls = collection.mutable.Set.empty[MethodCall]
-        val methodSig = MethodSig(
+        val methodSig = MethodDef(
           clsType,
           (method.access & Opcodes.ACC_STATIC) != 0,
           method.name,

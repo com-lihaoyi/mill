@@ -18,12 +18,12 @@ object ExternalSummarizer{
     Result(ext.methodsPerCls.toMap, ext.ancestorsPerCls.toMap)
   }
 
-  case class Result(directMethods: Map[JType.Cls, Set[LocalMethodSig]],
+  case class Result(directMethods: Map[JType.Cls, Set[LocalMethodDef]],
                     directAncestors: Map[JType.Cls, Set[JType.Cls]])
 }
 
 class ExternalSummarizer private(loadClassNode: JType.Cls => ClassNode){
-  val methodsPerCls = collection.mutable.Map.empty[JType.Cls, Set[LocalMethodSig]]
+  val methodsPerCls = collection.mutable.Map.empty[JType.Cls, Set[LocalMethodDef]]
   val ancestorsPerCls = collection.mutable.Map.empty[JType.Cls, Set[JType.Cls]]
 
   def loadAll(externalTypes: Set[JType.Cls]): Unit = {
@@ -38,7 +38,7 @@ class ExternalSummarizer private(loadClassNode: JType.Cls => ClassNode){
     methodsPerCls(cls) = cn
       .methods
       .asScala
-      .map{m => LocalMethodSig((m.access & Opcodes.ACC_STATIC) != 0, m.name, Desc.read(m.desc))}
+      .map{m => LocalMethodDef((m.access & Opcodes.ACC_STATIC) != 0, m.name, Desc.read(m.desc))}
       .toSet
 
     ancestorsPerCls(cls) =

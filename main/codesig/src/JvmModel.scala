@@ -7,23 +7,32 @@ import upickle.default.{ReadWriter, readwriter}
 // calls, etc. These are generally parsed from stringly-typed fields given to
 // us by ASM library
 
-case class MethodSig(cls: JType.Cls, static: Boolean, name: String, desc: Desc){
+case class MethodDef(cls: JType.Cls, static: Boolean, name: String, desc: Desc){
   override def toString = cls.name + (if(static) "." else "#") + name + desc
 }
 
-object MethodSig{
-  implicit val ordering: Ordering[MethodSig] = Ordering.by(m => (m.cls, m.static, m.name, m.desc))
+object MethodDef{
+  implicit val ordering: Ordering[MethodDef] = Ordering.by(m => (m.cls, m.static, m.name, m.desc))
 }
 
-case class LocalMethodSig(static: Boolean, name: String, desc: Desc){
+case class LocalMethodDef(static: Boolean, name: String, desc: Desc){
   override def toString = (if(static) "." else "#") + name + desc
 }
 
-object LocalMethodSig{
-  implicit val ordering: Ordering[LocalMethodSig] = Ordering.by(m => (m.static, m.name, m.desc))
+object LocalMethodDef{
+  implicit val ordering: Ordering[LocalMethodDef] = Ordering.by(m => (m.static, m.name, m.desc))
 }
 
-case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc)
+case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc){
+  override def toString = {
+    val sep = invokeType match{
+      case InvokeType.Static => '.'
+      case InvokeType.Virtual => '#'
+      case InvokeType.Special => '!'
+    }
+    cls.name + sep + name + desc
+  }
+}
 
 sealed trait InvokeType
 object InvokeType{

@@ -10,11 +10,12 @@ import mill.util.{MultiBiMap, Tarjans}
  */
 object Analyzer{
   def analyze(summary: LocalSummarizer.Result,
-              external: ExternalSummarizer.Result): Map[MethodSig, Set[MethodSig]]  = {
-    pprint.log(summary.callGraph.map{case (k, vs) => (k.toString, vs.map(_.toString))})
+              external: ExternalSummarizer.Result): Map[MethodDef, Set[MethodDef]]  = {
+    val callGraph = summary.callGraph.map{case (k, vs) => (k.toString, vs.map(_.toString))}.toMap
+    pprint.log(callGraph)
     val clsToMethods = summary.callGraph.keys.groupBy(_.cls)
     val methodToIndex = summary.callGraph.keys.toVector.zipWithIndex.toMap
-    val indexToMethod = methodToIndex.map(_.swap)
+
 
     val allDirectAncestors = summary.directAncestors ++ external.directAncestors
     val directDescendents = allDirectAncestors
@@ -44,8 +45,10 @@ object Analyzer{
       directDescendents
     )
 
-    pprint.log(resolvedCalls.map{case (k, vs) => (k.toString, vs.map(_.toString))})
+    val resolveDebug = resolvedCalls.map{case (k, vs) => (k.toString, vs.map(_.toString))}.toMap
+    pprint.log(resolveDebug)
 
+//    val indexToMethod = methodToIndex.map(_.swap)
 //    val topoSortedMethodGroups = Tarjans
 //      .apply(
 //        Range(0, methodToIndex.size).map(i => resolvedCalls(indexToMethod(i)).map(methodToIndex))
@@ -70,65 +73,64 @@ object Analyzer{
 //    transitiveCallGraphMethods
   }
 
-  def resolveAllCalls(callGraph: Map[MethodSig, Set[MethodCall]],
-                      methodToIndex: Map[MethodSig, Int],
-                      clsToMethods: Map[JType.Cls, Iterable[MethodSig]],
-                      externalClsToLocalClsMethods: Map[JType.Cls, Map[JType.Cls, Set[LocalMethodSig]]],
+  def resolveAllCalls(callGraph: Map[MethodDef, Set[MethodCall]],
+                      methodToIndex: Map[MethodDef, Int],
+                      clsToMethods: Map[JType.Cls, Iterable[MethodDef]],
+                      externalClsToLocalClsMethods: Map[JType.Cls, Map[JType.Cls, Set[LocalMethodDef]]],
                       allDirectAncestors: Map[JType.Cls, Set[JType.Cls]],
                       directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
-                      directDescendents: Map[JType.Cls, Vector[JType.Cls]]): Map[MethodSig, Set[MethodSig]] = {
+                      directDescendents: Map[JType.Cls, Vector[JType.Cls]]): Map[MethodDef, Set[MethodDef]] = {
 
 
-    def resolveLocalCall(call: MethodCall): Set[MethodSig] = {
-      pprint.log(call)
-      call.invokeType match {
-        case InvokeType.Static =>
-          clsAndSupers(
-            call.cls,
-            skipEarly = cls => clsToMethods.getOrElse(cls, Nil).exists(sigMatchesCall(_, call)),
-            directSubclasses
-          )
-            .flatMap(clsToMethods.getOrElse(_, Nil))
-            .find(sigMatchesCall(_, call))
-            .toSet
+    def resolveLocalCall(call: MethodCall): Set[MethodDef] = call.invokeType match {
+      case InvokeType.Static =>
+        clsAndSupers(
+          call.cls,
+          skipEarly = cls => clsToMethods.getOrElse(cls, Nil).exists(sigMatchesCall(_, call)),
+          directSubclasses
+        )
+          .flatMap(clsToMethods.getOrElse(_, Nil))
+          .find(sigMatchesCall(_, call))
+          .toSet
 
-        case InvokeType.Special => Set(MethodSig(call.cls, false, call.name, call.desc))
-        case InvokeType.Virtual =>
-          val resolved = clsAndDescendents(call.cls, directDescendents)
-            .flatMap(cls =>
-              clsAndAncestors(
-                cls,
-                skipEarly = cls => clsToMethods.getOrElse(cls, Nil).exists(sigMatchesCall(_, call)),
-                allDirectAncestors
-              )
+      case InvokeType.Special => Set(MethodDef(call.cls, false, call.name, call.desc))
+      case InvokeType.Virtual =>
+        val resolved = clsAndDescendents(call.cls, directDescendents)
+          .flatMap(cls =>
+            clsAndAncestors(
+              cls,
+              skipEarly = cls => clsToMethods.getOrElse(cls, Nil).exists(sigMatchesCall(_, call)),
+              allDirectAncestors
             )
-            .flatMap(clsToMethods.getOrElse(_, Nil))
-            .filter(sigMatchesCall(_, call))
+          )
+          .flatMap(clsToMethods.getOrElse(_, Nil))
+          .filter(sigMatchesCall(_, call))
 
-          resolved
-      }
+        resolved
     }
 
-    def resolveExternalCall(call: MethodCall): Set[MethodSig] = {
+    def resolveExternalCall(call: MethodCall): Set[MethodDef] = {
 
       call
         .desc
         .args
         .collect { case c: JType.Cls => externalClsToLocalClsMethods.getOrElse(c, Nil) }
         .flatten
-        .flatMap { case (k, vs) => vs.map(m => MethodSig(k, m.static, m.name, m.desc)) }
+        .flatMap { case (k, vs) => vs.map(m => MethodDef(k, m.static, m.name, m.desc)) }
         .toSet
     }
 
-    for ((method, calls) <- callGraph)
-    yield (
-      method,
-      calls
-        .flatMap(call => resolveLocalCall(call) ++ resolveExternalCall(call))
-        .filter(methodToIndex.contains)
-    )
-  }
+    val allCalls = callGraph.flatMap(_._2).toSet
+    val resolvedMap = allCalls
+      .map(call => (call, resolveLocalCall(call) ++ resolveExternalCall(call)))
+      .toMap
 
+    val resolvedMapDebug = resolvedMap.map{case (k, vs) => (k.toString, vs.map(_.toString))}.toMap
+    pprint.log(resolvedMapDebug)
+
+    for ((method, calls) <- callGraph)
+    yield (method, calls.flatMap(resolvedMap).filter(methodToIndex.contains))
+  }
 
   def transitiveExternalAncestors(cls: JType.Cls,
                                   allDirectAncestors: Map[JType.Cls, Set[JType.Cls]]): Set[JType.Cls] = {
@@ -140,14 +142,14 @@ object Analyzer{
 
   def transitiveExternalMethods(cls: JType.Cls,
                                 allDirectAncestors: Map[JType.Cls, Set[JType.Cls]],
-                                externalDirectMethods: Map[JType.Cls, Set[LocalMethodSig]]): Map[JType.Cls, Set[LocalMethodSig]] = {
+                                externalDirectMethods: Map[JType.Cls, Set[LocalMethodDef]]): Map[JType.Cls, Set[LocalMethodDef]] = {
     allDirectAncestors(cls)
       .flatMap(transitiveExternalAncestors(_, allDirectAncestors))
       .map(cls => (cls, externalDirectMethods.getOrElse(cls, Set())))
       .toMap
   }
 
-  def sigMatchesCall(sig: MethodSig, call: MethodCall) = {
+  def sigMatchesCall(sig: MethodDef, call: MethodCall) = {
     sig.name == call.name && sig.desc == call.desc && (sig.static == (call.invokeType == InvokeType.Static))
   }
 
@@ -200,10 +202,10 @@ object Analyzer{
    * Component is processed together and assigned the same final value, since
    * they all have the exact same transitive closure
    */
-  def computeTransitive[T](topoSortedMethodGroups: Seq[Seq[MethodSig]],
-                           resolvedCalls: Map[MethodSig, Set[MethodSig]],
-                           methodValue: MethodSig => T, reduce: Seq[T] => T) = {
-    val seen = collection.mutable.Map.empty[MethodSig, T]
+  def computeTransitive[T](topoSortedMethodGroups: Seq[Seq[MethodDef]],
+                           resolvedCalls: Map[MethodDef, Set[MethodDef]],
+                           methodValue: MethodDef => T, reduce: Seq[T] => T) = {
+    val seen = collection.mutable.Map.empty[MethodDef, T]
     for (methodGroup <- topoSortedMethodGroups) {
       val groupUpstreamCalls = methodGroup
         .flatMap(resolvedCalls)
