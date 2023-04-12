@@ -45,7 +45,7 @@ sealed trait JType{
   def pretty: String
 }
 object JType {
-  class Prim(val shortJavaName: String, val pretty: String) extends JType
+  class Prim(val pretty: String) extends JType
 
   object Prim extends {
     def read(s: String) = all(s(0))
@@ -62,26 +62,15 @@ object JType {
       'D' -> (D: Prim)
     )
 
-    val allJava: Map[String, Prim] = Map(
-      "void" -> (V: Prim),
-      "boolean" -> (Z: Prim),
-      "byte" -> (B: Prim),
-      "char" -> (C: Prim),
-      "short" -> (S: Prim),
-      "int" -> (I: Prim),
-      "float" -> (F: Prim),
-      "long" -> (J: Prim),
-      "double" -> (D: Prim)
-    )
-    case object V extends Prim("V", "void")
-    case object Z extends Prim("Z", "boolean")
-    case object B extends Prim("B", "byte")
-    case object C extends Prim("C", "char")
-    case object S extends Prim("S", "short")
-    case object I extends Prim("I", "int")
-    case object F extends Prim("F", "float")
-    case object J extends Prim("J", "long")
-    case object D extends Prim("D", "double")
+    case object V extends Prim("void")
+    case object Z extends Prim("boolean")
+    case object B extends Prim("byte")
+    case object C extends Prim("char")
+    case object S extends Prim("short")
+    case object I extends Prim("int")
+    case object F extends Prim("float")
+    case object J extends Prim("long")
+    case object D extends Prim("double")
   }
 
   case class Arr(innerType: JType) extends JType{
@@ -89,12 +78,6 @@ object JType {
   }
   object Arr{
     def read(s: String) = Arr(JType.read(s.drop(1)))
-
-    def readJava(s: String) = Arr(s.drop(1) match {
-      case x if Prim.all.contains(x(0)) => Prim.all(x(0))
-      case x if x.startsWith("L") => Cls.read(x.drop(1).dropRight(1).replace('.', '/'))
-      case x => JType.readJava(x)
-    })
   }
   case class Cls(name: String) extends JType {
     assert(!name.contains('/'), s"JType $name contains invalid '/' characters")
@@ -108,7 +91,6 @@ object JType {
     implicit val ordering: Ordering[Cls] = Ordering.by(_.name)
 
     def read(s: String) = fromSlashed(s)
-    def readJava(s: String) = Cls(s.replace('.', '/'))
   }
 
   def read(s: String): JType = s match {
@@ -118,19 +100,7 @@ object JType {
     case s => Cls.read(s)
   }
 
-  def readJava(s: String): JType = s match {
-    case x if Prim.allJava.contains(x) => Prim.allJava(x)
-    case s if s.startsWith("[") => Arr.readJava(s)
-    case s => Cls.readJava(s)
-  }
-
-  implicit val ordering: Ordering[JType] = Ordering.by(orderingString)
-
-  def orderingString(t: JType): String = t match{
-    case t: JType.Cls => t.name
-    case t: JType.Arr => "[" + orderingString(t.innerType)
-    case t: JType.Prim => t.shortJavaName
-  }
+  implicit val ordering: Ordering[JType] = Ordering.by(_.pretty)
 }
 
 object Desc{
@@ -160,11 +130,4 @@ object Desc{
 case class Desc(args: Seq[JType], ret: JType){
   def pretty = "(" + args.map(_.pretty).mkString(",") + ")" + ret.pretty
   override def toString = pretty
-
-  def shorten(name: String) = {
-    val some :+ last = name.split("/").toSeq
-    (some.map(_(0)) :+ last).mkString("/")
-  }
-
-
 }
