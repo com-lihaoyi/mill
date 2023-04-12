@@ -8,7 +8,7 @@ public class Hello extends Parent{
 
     public int unused(){return 1;}
 }
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello#<init>()void": [
         "hello.Parent#<init>()void"

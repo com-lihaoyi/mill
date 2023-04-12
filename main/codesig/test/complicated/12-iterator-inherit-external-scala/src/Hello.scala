@@ -32,7 +32,7 @@ object Hello{
   }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello$#manualIterator(int)int": [
         "hello.Hello$#getInt()int",

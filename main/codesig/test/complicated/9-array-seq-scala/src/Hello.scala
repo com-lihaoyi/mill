@@ -22,7 +22,7 @@ object Hello{
   }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello$#simpleArraySeqForeach()int[]": [
         "hello.Hello$TestArraySeq#<init>(java.lang.Object)void",

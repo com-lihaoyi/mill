@@ -24,7 +24,7 @@ class Sheep implements Baas{
 interface Baas{
     public String baa(int n);
 }
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello.implement(int)java.lang.String": [
         "hello.Baas#baa(int)java.lang.String",

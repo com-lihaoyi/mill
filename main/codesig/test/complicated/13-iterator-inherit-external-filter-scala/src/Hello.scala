@@ -44,7 +44,7 @@ object Hello{
     else n
   }
 }
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello$#manualIterator3(int)int": [
         "hello.Hello$BigTestIterator#hasNext()boolean",

@@ -6,7 +6,7 @@ object Hello{
   def unused(): Int = 1
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello$#main()int": [
         "hello.Hello$#used()int"

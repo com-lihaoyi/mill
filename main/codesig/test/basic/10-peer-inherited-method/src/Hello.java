@@ -16,7 +16,7 @@ public class Hello {
         return foo.used();
     }
 }
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello.main()int": [
         "hello.Bar#used()int",

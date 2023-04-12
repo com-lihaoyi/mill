@@ -85,7 +85,7 @@ public class Hello {
     }
 
 }
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello.run()java.lang.String": [
         "hello.Hello.solve(int,int,int[][])boolean",

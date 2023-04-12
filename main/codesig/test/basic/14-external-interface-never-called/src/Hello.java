@@ -16,7 +16,7 @@ public class Hello{
     }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
 }
 */

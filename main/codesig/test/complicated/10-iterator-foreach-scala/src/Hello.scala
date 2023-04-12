@@ -20,7 +20,7 @@ object Hello{
   }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello$#minimizedIterator()int[]": [
         "hello.SubTestIter#<init>()void",

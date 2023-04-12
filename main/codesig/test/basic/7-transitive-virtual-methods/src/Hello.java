@@ -14,7 +14,7 @@ public class Hello{
     public static int usedDeepestStatic(){ return 3; }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello#unused()int": [
         "hello.Hello#usedTransitive()int"

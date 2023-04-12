@@ -38,7 +38,7 @@ object Hello{
   }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello$#simpleLinkedListForeach()int[]": [
         "hello.Hello$TestCons#<init>(java.lang.Object,hello.Hello$TestList)void",

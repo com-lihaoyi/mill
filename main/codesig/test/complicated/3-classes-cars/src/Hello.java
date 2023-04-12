@@ -67,7 +67,7 @@ class Car{
         return s + "m";
     }
 }
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Car#vroom()java.lang.String": [
         "hello.Car#vStart()java.lang.String",

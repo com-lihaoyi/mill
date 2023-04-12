@@ -27,7 +27,7 @@ public class Hello{
     }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello.main()int": [
         "hello.Bar#<init>()void",

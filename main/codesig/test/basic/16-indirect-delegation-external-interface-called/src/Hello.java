@@ -32,7 +32,7 @@ public class Hello{
     }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Foo#read()int": [
         "hello.Foo#readSpecial()int"

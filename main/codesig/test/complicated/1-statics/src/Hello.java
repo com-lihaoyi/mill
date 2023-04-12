@@ -54,7 +54,7 @@ public class Hello {
     }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello.callAtPhiBoundary(int)int": [
         "hello.Hello.call(int)int"

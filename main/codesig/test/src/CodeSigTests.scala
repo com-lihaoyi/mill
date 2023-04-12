@@ -53,12 +53,11 @@ object CodeSigTests extends TestSuite{
         .filter(_.ext == "class")
     )
 
-    val expectedTransitive = parseExpectedJson(
+    val expectedCallGraph = parseExpectedJson(
       os.pwd / "main" / "codesig" / "test" / tp.value / "src"
     )
 
-
-    val foundTransitive = simplifyCallGraph(
+    val foundCallGraph = simplifyCallGraph(
       callGraph0,
       skipped = Seq(
         "lambda$",
@@ -70,11 +69,11 @@ object CodeSigTests extends TestSuite{
       )
     )
 
-    val expectedTransitiveJson = write(expectedTransitive, indent = 4)
-    val foundTransitiveJson = write(foundTransitive, indent = 4)
+    val expectedCallGraphJson = write(expectedCallGraph, indent = 4)
+    val foundCallGraphJson = write(foundCallGraph, indent = 4)
 
-    assert(expectedTransitiveJson == foundTransitiveJson)
-    foundTransitiveJson
+    assert(expectedCallGraphJson == foundCallGraphJson)
+    foundCallGraphJson
   }
 
   def parseExpectedJson(testCaseSourceFilesRoot: Path) = {
@@ -85,15 +84,12 @@ object CodeSigTests extends TestSuite{
       .map(os.read.lines(_))
       .get
 
-    val expectedTransitiveLines = sourceLines
-      .dropWhile(_ != "/* EXPECTED TRANSITIVE")
+    val expectedLines = sourceLines
+      .dropWhile(_ != "/* EXPECTED DEPENDENCIES")
       .drop(1)
       .takeWhile(_ != "*/")
 
-    val expectedTransitive = read[SortedMap[String, SortedSet[String]]](
-      expectedTransitiveLines.mkString("\n")
-    )
-    expectedTransitive
+    read[SortedMap[String, SortedSet[String]]](expectedLines.mkString("\n"))
   }
 
   /**

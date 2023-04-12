@@ -8,7 +8,7 @@ public class Hello implements Parent{
 
     public int unused(){return 1;}
 }
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello.main()int": [
         "hello.Hello#<init>()void",

@@ -16,7 +16,7 @@ object Hello{
   }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello$#testManifestFactory()java.lang.String": [
         "hello.Hello$TestManifestFactory$#<init>()void",

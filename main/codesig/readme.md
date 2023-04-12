@@ -40,8 +40,8 @@ transitive dependencies of a method are, or generate a hash-signature of a
 method together with all its dependencies to use as a cache key.
 
 Note that we do not perform any sort of data-flow analysis, whether for local
-variables or for class fields, and rely on the static types reported in the
-JVM Bytecode. Such analysis could improve the accuracy of our call graphs,
+variables or for class fields, and instead rely on the static types reported in
+the JVM Bytecode. Such analysis could improve the accuracy of our call graphs,
 which would allow fewer cache invalidations and more aggressive caching when
 code changes. Such improvements are left for future work.
 

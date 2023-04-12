@@ -18,7 +18,7 @@ object Hello{
   }
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello$#staticSpecialInterfaceMethods()int": [
         "hello.Hello$TestCallbackImpl#<init>()void",

@@ -9,7 +9,7 @@ object Hello{
   def used(): Int = 2
 }
 
-/* EXPECTED TRANSITIVE
+/* EXPECTED DEPENDENCIES
 {
     "hello.Hello$#main()int": [
         "hello.Hello$#used()int"
