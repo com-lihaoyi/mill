@@ -1097,8 +1097,7 @@ object bsp extends MillModule with BuildInfo{
   def buildInfoMembers = T{
     val workerDep = worker.publishSelfDependency()
     Seq(
-      BuildInfo.Value("bsp4jVersion", Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version)."),
-      BuildInfo.Value("millBspWorkerDep", s"${workerDep.group}:${workerDep.id}:${workerDep.version}", "BSP worker dependency.")
+      BuildInfo.Value("bsp4jVersion", Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version).")
     )
   }
 
