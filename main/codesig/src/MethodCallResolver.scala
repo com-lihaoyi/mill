@@ -89,23 +89,17 @@ object MethodCallResolver{
 
     def resolveLocalReceivers(call: MethodCall): Set[JCls] = call.invokeType match {
       case InvokeType.Static =>
-        val candidates = clsAndSupers(call.cls, methodExists(_, call), directSuperclasses)
-
-        // <clinit> on one class triggers <clinit> on all of its superclasses as well
-        // UN-TESTED
-        if (call.name == "<clinit>") candidates.filter(methodExists(_, call)).toSet
-        else candidates.find(methodExists(_, call)).toSet
+        clsAndSupers(call.cls, methodExists(_, call), directSuperclasses)
+          .find(methodExists(_, call))
+          .toSet
 
       case InvokeType.Special => Set(call.cls)
 
       case InvokeType.Virtual =>
-        val candidates = clsAndAncestors(
-          clsAndDescendents(call.cls, directDescendents),
-          skipEarly = methodExists(_, call),
-          allDirectAncestors
-        )
+        val descendents = clsAndDescendents(call.cls, directDescendents)
 
-        candidates.filter(methodExists(_, call))
+        clsAndAncestors(descendents, methodExists(_, call), allDirectAncestors)
+          .filter(methodExists(_, call))
     }
 
     def resolveExternalLocalReceivers(invokeType: InvokeType,
@@ -114,8 +108,7 @@ object MethodCallResolver{
       val argTypes = callDesc.args.collect { case c: JCls => c }
       val thisTypes = if (invokeType == InvokeType.Static) Set.empty[JCls] else called
 
-      logger.log(argTypes)
-      logger.log(thisTypes)
+
       (argTypes ++ thisTypes)
         .flatMap(externalClsToLocalClsMethods.getOrElse(_, Nil))
         .flatMap { case (k, vs) => vs.map(m => ResolvedMethodDef(k, m)) }
@@ -223,5 +216,4 @@ object MethodCallResolver{
     }
     seenList.toSeq
   }
-
 }
