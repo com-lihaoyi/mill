@@ -16,27 +16,23 @@ object MillMain {
   def main(args: Array[String]): Unit = {
     val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
     // setup streams
-    val (runnerStreams, openStreams, bspLog) =
+    val (runnerStreams, cleanupStreams, bspLog) =
       if (args.headOption == Option("--bsp")) {
-        // In BSP mode, we use System.in for protocol communication
+        // In BSP mode, we use System.in/out for protocol communication
         // and all Mill output (stdout and stderr) goes to a dedicated file
         val stderrFile = os.pwd / ".bsp" / "mill-bsp.stderr"
         os.makeDir.all(stderrFile / os.up)
         val errFile = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
         val errTee = new TeePrintStream(initialSystemStreams.err, errFile)
-        System.setOut(errFile)
-        System.setErr(errTee)
-
         val msg = s"Mill in BSP mode, version ${BuildInfo.millVersion}, ${new java.util.Date()}"
         errTee.println(msg)
-
         (
           new SystemStreams(
             // out is used for the protocol
-            initialSystemStreams.out,
+            out = initialSystemStreams.out,
             // err is default, but also tee-ed into the bsp log file
-            errTee,
-            System.in
+            err = errTee,
+            in = System.in
           ),
           Seq(errFile),
           Some(errFile)
@@ -62,10 +58,7 @@ object MillMain {
           initialSystemProperties = sys.props.toMap
         )
       finally {
-        System.setOut(initialSystemStreams.out)
-        System.setErr(initialSystemStreams.err)
-        System.setIn(initialSystemStreams.in)
-        openStreams.foreach(_.close())
+        cleanupStreams.foreach(_.close())
       }
     System.exit(if (result) 0 else 1)
   }
