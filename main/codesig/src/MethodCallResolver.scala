@@ -79,15 +79,13 @@ object MethodCallResolver{
         candidates.filter(methodExists(_, call))
     }
 
-    def resolveExternalLocalReceivers(callName: String, callDesc: Desc, called: Set[JCls]): Set[ResolvedMethodDef] = {
+    def resolveExternalLocalReceivers(callDesc: Desc, called: Set[JCls]): Set[ResolvedMethodDef] = {
       val argTypes = callDesc.args.collect { case c: JCls => c }
       val thisTypes = called
 
-      val allExternalTypes = (argTypes ++ thisTypes)
+      (argTypes ++ thisTypes)
         .flatMap(externalClsToLocalClsMethods.getOrElse(_, Nil))
-
-      allExternalTypes
-        .flatMap { case (k, vs) => vs.map(m => ResolvedMethodDef(k, MethodDef(m.static, m.name, m.desc))) }
+        .flatMap { case (k, vs) => vs.map(m => ResolvedMethodDef(k, m)) }
         .filter(_.method.name != "<init>")
         .toSet
     }
@@ -96,15 +94,15 @@ object MethodCallResolver{
 
     val resolvedMap = allCalls
       .map{ call =>
-        val (localCandidates, externalCandidates0) =
+        val (localCandidates, externalCandidates) =
           resolveLocalReceivers(call).partition(callGraph.contains)
 
-        val externalCandidates =
-          if (call.invokeType == InvokeType.Static) Nil
-          else externalCandidates0
-
         val externalLocalResolvedMethods =
-          resolveExternalLocalReceivers(call.name, call.desc, externalCandidates.toSet)
+          if (externalCandidates.isEmpty || call.invokeType == InvokeType.Static) {
+            Set.empty[ResolvedMethodDef]
+          } else {
+            resolveExternalLocalReceivers(call.desc, externalCandidates)
+          }
 
         val localResolvedMethods = localCandidates
           .map(ResolvedMethodDef(_, MethodDef(call.invokeType == InvokeType.Static, call.name, call.desc)))
