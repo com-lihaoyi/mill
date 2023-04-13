@@ -670,6 +670,11 @@ object main extends MillModule {
       object cases extends Cross[CaseModule](caseKeys: _*)
       class CaseModule(caseName: String) extends ScalaModule {
 
+        object external extends ScalaModule{
+          def scalaVersion = "2.13.10"
+        }
+
+        def moduleDeps = Seq(external)
 
         val Array(prefix, suffix) = caseName.split("-", 2)
         def millSourcePath = super.millSourcePath / os.up / prefix / suffix

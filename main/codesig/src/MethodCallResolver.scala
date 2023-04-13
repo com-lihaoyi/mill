@@ -41,10 +41,9 @@ object MethodCallResolver{
         .groupMapReduce(_._1)(_._2)(_ ++ _)
     }
 
-    // Make sure that when doing an external method call, we look up all methods
-    // both defined on and inherited by the type in question
-    //
-    // UN-TESTED
+    // Make sure that when doing an external method call, we look up all
+    // methods both defined on and inherited by the type in question, since
+    // any of those could potentially get called by the external method
     val externalClsToLocalClsMethods = logger{
       externalClsToLocalClsMethods0.map{ case (cls, _) =>
 

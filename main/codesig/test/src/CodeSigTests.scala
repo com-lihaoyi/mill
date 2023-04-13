@@ -37,7 +37,7 @@ object CodeSigTests extends TestSuite{
       test("11-iterator-callback-class-scala") - testCase()
       test("12-iterator-inherit-external-scala") - testCase()
       test("13-iterator-inherit-external-filter-scala") - testCase()
-      test("14-jcanvas") - testCase()
+
     }
 
     test("external"){
@@ -52,6 +52,8 @@ object CodeSigTests extends TestSuite{
       test("9-interface-two-implementations-interface-call") - testCase()
       test("10-interface-two-implementations-direct-call") - testCase()
       test("11-static-method") - testCase()
+      test("12-external-method-edge-to-inherited-method-override") - testCase()
+      test("13-jcanvas") - testCase()
     }
     test("games"){
       test("1-tetris") - testCase()
@@ -72,7 +74,8 @@ object CodeSigTests extends TestSuite{
     println("testLogFolder: " + testLogFolder)
     val testClassFolder = os.Path(sys.env("MILL_TEST_CLASSES_" + tp.value.mkString("-")))
     println("testClassFolder: " + testClassFolder)
-    val callGraph0 = CodeSig.compute(os.walk(testClassFolder).filter(_.ext == "class"),
+    val callGraph0 = CodeSig.compute(
+      os.walk(testClassFolder).filter(_.ext == "class"),
       sys.env("MILL_TEST_CLASSPATH_" + tp.value.mkString("-"))
         .split(",")
         .map(os.Path(_)),
