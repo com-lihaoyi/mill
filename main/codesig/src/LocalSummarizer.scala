@@ -1,9 +1,9 @@
 package mill.codesig
-import mill.util.MultiBiMap
 
 import collection.JavaConverters._
-import org.objectweb.asm.{ClassReader, Handle, Opcodes}
+import org.objectweb.asm.{Handle, Opcodes}
 import org.objectweb.asm.tree.{AbstractInsnNode, ClassNode, FieldInsnNode, FrameNode, IincInsnNode, InsnNode, IntInsnNode, InvokeDynamicInsnNode, JumpInsnNode, LabelNode, LdcInsnNode, LineNumberNode, LookupSwitchInsnNode, MethodInsnNode, MultiANewArrayInsnNode, TableSwitchInsnNode, TypeInsnNode, VarInsnNode}
+import JType.{Cls => JCls}
 
 /**
  * Parses over the Java bytecode and creates a [[Summary]] object, which
@@ -12,24 +12,24 @@ import org.objectweb.asm.tree.{AbstractInsnNode, ClassNode, FieldInsnNode, Frame
  */
 object LocalSummarizer{
 
-  case class Result(callGraph: Map[JType.Cls, Map[MethodDef, Set[MethodCall]]],
-                    methodHashes: Map[JType.Cls, Map[MethodDef, Int]],
-                    directSuperclasses: Map[JType.Cls, JType.Cls],
-                    directAncestors: Map[JType.Cls, Set[JType.Cls]])
+  case class Result(callGraph: Map[JCls, Map[MethodDef, Set[MethodCall]]],
+                    methodHashes: Map[JCls, Map[MethodDef, Int]],
+                    directSuperclasses: Map[JCls, JCls],
+                    directAncestors: Map[JCls, Set[JCls]])
 
   def summarize(classNodes: Seq[ClassNode]) = {
 
-    val directSuperclasses = Map.newBuilder[JType.Cls, JType.Cls]
-    val callGraph = Map.newBuilder[JType.Cls, Map[MethodDef, Set[MethodCall]]]
-    val methodHashes = Map.newBuilder[JType.Cls, Map[MethodDef, Int]]
-    val directAncestors = Map.newBuilder[JType.Cls, Set[JType.Cls]]
+    val directSuperclasses = Map.newBuilder[JCls, JCls]
+    val callGraph = Map.newBuilder[JCls, Map[MethodDef, Set[MethodCall]]]
+    val methodHashes = Map.newBuilder[JCls, Map[MethodDef, Int]]
+    val directAncestors = Map.newBuilder[JCls, Set[JCls]]
 
     for(cn <- classNodes){
       val classCallGraph = Map.newBuilder[MethodDef, Set[MethodCall]]
       val classMethodHashes = Map.newBuilder[MethodDef, Int]
-      val clsType = JType.Cls.fromSlashed(cn.name)
+      val clsType = JCls.fromSlashed(cn.name)
       Option(cn.superName).foreach(sup =>
-        directSuperclasses.addOne((clsType, JType.Cls.fromSlashed(sup)))
+        directSuperclasses.addOne((clsType, JCls.fromSlashed(sup)))
       )
 
       val clsDirectAncestors = Option(cn.superName) ++ Option(cn.interfaces).toSeq.flatMap(_.asScala)
@@ -63,7 +63,7 @@ object LocalSummarizer{
 
       callGraph.addOne((clsType, classCallGraph.result()))
       methodHashes.addOne((clsType, classMethodHashes.result()))
-      directAncestors.addOne((clsType, clsDirectAncestors.toSet.map(JType.Cls.fromSlashed)))
+      directAncestors.addOne((clsType, clsDirectAncestors.toSet.map(JCls.fromSlashed)))
     }
 
     Result(callGraph.result(), methodHashes.result(), directSuperclasses.result(), directAncestors.result())
@@ -73,11 +73,11 @@ object LocalSummarizer{
                          labelIndices: Map[LabelNode, Int],
                          hash: Int => Unit,
                          storeCallEdge: MethodCall => Unit,
-                         currentCls: JType.Cls) = {
+                         currentCls: JCls) = {
     def hashlabel(label: LabelNode) = hash(labelIndices(label))
 
     def clinitCall(desc: String) = {
-      val descCls = JType.Cls.fromSlashed(desc)
+      val descCls = JCls.fromSlashed(desc)
       if (descCls != currentCls) storeCallEdge(
         MethodCall(descCls, InvokeType.Static, "<clinit>", Desc.read("()V"))
       )
@@ -114,7 +114,7 @@ object LocalSummarizer{
               }
               for ((invokeType, name) <- refOpt) storeCallEdge(
                 MethodCall(
-                  JType.Cls.fromSlashed(handle.getOwner),
+                  JCls.fromSlashed(handle.getOwner),
                   invokeType,
                   name,
                   Desc.read(handle.getDesc)
@@ -157,7 +157,7 @@ object LocalSummarizer{
 
         storeCallEdge(
           MethodCall(
-            JType.Cls.fromSlashed(insn.owner),
+            JCls.fromSlashed(insn.owner),
             insn.getOpcode match{
               case Opcodes.INVOKESTATIC => InvokeType.Static
               case Opcodes.INVOKESPECIAL => InvokeType.Special

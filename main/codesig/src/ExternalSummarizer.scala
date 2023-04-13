@@ -1,9 +1,8 @@
 package mill.codesig
 
-import mill.util.MultiBiMap
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
-
+import JType.{Cls => JCls}
 import collection.JavaConverters._
 
 /**
@@ -14,11 +13,11 @@ import collection.JavaConverters._
  */
 object ExternalSummarizer{
 
-  case class Result(directMethods: Map[JType.Cls, Set[MethodDef]],
-                    directAncestors: Map[JType.Cls, Set[JType.Cls]],
-                    directSuperclasses: Map[JType.Cls, JType.Cls])
+  case class Result(directMethods: Map[JCls, Set[MethodDef]],
+                    directAncestors: Map[JCls, Set[JCls]],
+                    directSuperclasses: Map[JCls, JCls])
 
-  def loadAll(externalTypes: Set[JType.Cls], loadClassNode: JType.Cls => ClassNode): Result = {
+  def loadAll(externalTypes: Set[JCls], loadClassNode: JCls => ClassNode): Result = {
     val ext = new ExternalSummarizer(loadClassNode)
     ext.loadAll(externalTypes)
     Result(ext.methodsPerCls.toMap, ext.ancestorsPerCls.toMap, ext.directSuperclasses.toMap)
@@ -26,21 +25,21 @@ object ExternalSummarizer{
 
 }
 
-class ExternalSummarizer private(loadClassNode: JType.Cls => ClassNode){
-  val methodsPerCls = collection.mutable.Map.empty[JType.Cls, Set[MethodDef]]
-  val ancestorsPerCls = collection.mutable.Map.empty[JType.Cls, Set[JType.Cls]]
-  val directSuperclasses = collection.mutable.Map.empty[JType.Cls, JType.Cls]
+class ExternalSummarizer private(loadClassNode: JCls => ClassNode){
+  val methodsPerCls = collection.mutable.Map.empty[JCls, Set[MethodDef]]
+  val ancestorsPerCls = collection.mutable.Map.empty[JCls, Set[JCls]]
+  val directSuperclasses = collection.mutable.Map.empty[JCls, JCls]
 
-  def loadAll(externalTypes: Set[JType.Cls]): Unit = {
+  def loadAll(externalTypes: Set[JCls]): Unit = {
     externalTypes.foreach(load)
   }
 
-  def load(cls: JType.Cls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
+  def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
 
-  def load0(cls: JType.Cls): Unit = {
+  def load0(cls: JCls): Unit = {
     val cn = loadClassNode(cls)
     Option(cn.superName).foreach(sup =>
-      directSuperclasses(cls) = JType.Cls.fromSlashed(sup)
+      directSuperclasses(cls) = JCls.fromSlashed(sup)
     )
 
     methodsPerCls(cls) = cn
@@ -51,7 +50,7 @@ class ExternalSummarizer private(loadClassNode: JType.Cls => ClassNode){
 
     ancestorsPerCls(cls) =
       (Option(cn.superName) ++ Option(cn.interfaces).toSeq.flatMap(_.asScala))
-        .map(JType.Cls.fromSlashed)
+        .map(JCls.fromSlashed)
         .toSet
 
     ancestorsPerCls(cls).foreach(load)

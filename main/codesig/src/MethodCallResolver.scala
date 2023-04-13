@@ -1,6 +1,7 @@
 package mill.codesig
 
 import mill.util.{MultiBiMap, Tarjans}
+import JType.{Cls => JCls}
 
 /**
  * Traverses the call graph and inheritance hierarchy summaries produced by
@@ -43,15 +44,15 @@ object MethodCallResolver{
     resolvedCalls
   }
 
-  def resolveAllMethodCalls0(callGraph: Map[JType.Cls, Map[MethodDef, Set[MethodCall]]],
-                             externalClsToLocalClsMethods: Map[JType.Cls, Map[JType.Cls, Set[MethodDef]]],
-                             allDirectAncestors: Map[JType.Cls, Set[JType.Cls]],
-                             directSuperclasses: Map[JType.Cls, JType.Cls],
-                             directDescendents: Map[JType.Cls, Vector[JType.Cls]],
-                             externalDirectMethods: Map[JType.Cls, Set[MethodDef]]): Map[ResolvedMethodDef, Set[ResolvedMethodDef]] = {
+  def resolveAllMethodCalls0(callGraph: Map[JCls, Map[MethodDef, Set[MethodCall]]],
+                             externalClsToLocalClsMethods: Map[JCls, Map[JCls, Set[MethodDef]]],
+                             allDirectAncestors: Map[JCls, Set[JCls]],
+                             directSuperclasses: Map[JCls, JCls],
+                             directDescendents: Map[JCls, Vector[JCls]],
+                             externalDirectMethods: Map[JCls, Set[MethodDef]]): Map[ResolvedMethodDef, Set[ResolvedMethodDef]] = {
 
 
-    def methodExists(cls: JType.Cls, call: MethodCall): Boolean = {
+    def methodExists(cls: JCls, call: MethodCall): Boolean = {
       callGraph.get(cls).exists(x => x.keys.exists(sigMatchesCall(_, call))) ||
       externalDirectMethods.get(cls).exists(_.exists(sigMatchesCall(_, call)))
     }
@@ -89,7 +90,7 @@ object MethodCallResolver{
     }
 
     def resolveExternalCall(called: Set[ResolvedMethodDef]): Set[ResolvedMethodDef] = {
-      val argTypes = called.flatMap(_.method.desc.args).collect{case c: JType.Cls => c}
+      val argTypes = called.flatMap(_.method.desc.args).collect{case c: JCls => c}
       val thisTypes = called.map(_.cls)
 
       val allExternalTypes = (argTypes ++ thisTypes)
@@ -126,17 +127,17 @@ object MethodCallResolver{
     }
   }
 
-  def transitiveExternalAncestors(cls: JType.Cls,
-                                  allDirectAncestors: Map[JType.Cls, Set[JType.Cls]]): Set[JType.Cls] = {
+  def transitiveExternalAncestors(cls: JCls,
+                                  allDirectAncestors: Map[JCls, Set[JCls]]): Set[JCls] = {
     Set(cls) ++
     allDirectAncestors
-      .getOrElse(cls, Set.empty[JType.Cls])
+      .getOrElse(cls, Set.empty[JCls])
       .flatMap(transitiveExternalAncestors(_, allDirectAncestors))
   }
 
-  def transitiveExternalMethods(cls: JType.Cls,
-                                allDirectAncestors: Map[JType.Cls, Set[JType.Cls]],
-                                externalDirectMethods: Map[JType.Cls, Set[MethodDef]]): Map[JType.Cls, Set[MethodDef]] = {
+  def transitiveExternalMethods(cls: JCls,
+                                allDirectAncestors: Map[JCls, Set[JCls]],
+                                externalDirectMethods: Map[JCls, Set[MethodDef]]): Map[JCls, Set[MethodDef]] = {
     allDirectAncestors(cls)
       .flatMap(transitiveExternalAncestors(_, allDirectAncestors))
       .map(cls => (cls, externalDirectMethods.getOrElse(cls, Set())))
@@ -148,24 +149,24 @@ object MethodCallResolver{
   }
 
 
-  def clsAndSupers(cls: JType.Cls,
-                   skipEarly: JType.Cls => Boolean,
-                   directSuperclasses: Map[JType.Cls, JType.Cls]): Seq[JType.Cls] = {
+  def clsAndSupers(cls: JCls,
+                   skipEarly: JCls => Boolean,
+                   directSuperclasses: Map[JCls, JCls]): Seq[JCls] = {
     breadthFirst(Seq(cls))(cls =>
       if(skipEarly(cls)) Nil else directSuperclasses.get(cls)
     )
   }
 
-  def clsAndAncestors(classes: Seq[JType.Cls],
-                      skipEarly: JType.Cls => Boolean,
-                      allDirectAncestors: Map[JType.Cls, Set[JType.Cls]]): Set[JType.Cls] = {
+  def clsAndAncestors(classes: Seq[JCls],
+                      skipEarly: JCls => Boolean,
+                      allDirectAncestors: Map[JCls, Set[JCls]]): Set[JCls] = {
     breadthFirst(classes)(cls =>
       if(skipEarly(cls)) Nil else allDirectAncestors.getOrElse(cls, Nil)
     ).toSet
   }
 
-  def clsAndDescendents(cls: JType.Cls,
-                        directDescendents: Map[JType.Cls, Vector[JType.Cls]]): Set[JType.Cls] = {
+  def clsAndDescendents(cls: JCls,
+                        directDescendents: Map[JCls, Vector[JCls]]): Set[JCls] = {
     breadthFirst(Seq(cls))(directDescendents.getOrElse(_, Nil)).toSet
   }
 
