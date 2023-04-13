@@ -32,7 +32,8 @@ object CodeSigTests extends TestSuite{
       test("6-indirect-inheritance-not-called") - testCase()
       test("7-indirect-delegation-called") - testCase()
       test("8-indirect-delegation-uncalled") - testCase()
-      test("9-two-implementations") - testCase()
+      test("9-two-implementations-interface-call") - testCase()
+      test("10-two-implementations-direct-call") - testCase()
     }
     test("complicated"){
       test("1-statics") - testCase()

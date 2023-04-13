@@ -88,30 +88,28 @@ object MethodCallResolver{
         resolved
     }
 
-    def resolveExternalCall(call: MethodCall): Set[ResolvedMethodDef] = {
-      val externalArgTypes = call
-        .desc
-        .args
-        .collect { case c: JType.Cls => externalClsToLocalClsMethods.getOrElse(c, Nil) }
-        .flatten
+    def resolveExternalCall(called: Set[ResolvedMethodDef]): Set[ResolvedMethodDef] = {
+      val argTypes = called.flatMap(_.method.desc.args).collect{case c: JType.Cls => c}
+      val thisTypes = called.map(_.cls)
 
-      val externalThisType = externalClsToLocalClsMethods.getOrElse(call.cls, Map.empty)
+      val allExternalTypes = (argTypes ++ thisTypes)
+        .flatMap(externalClsToLocalClsMethods.getOrElse(_, Nil))
 
-      (externalArgTypes ++ externalThisType)
+      allExternalTypes
         .flatMap { case (k, vs) => vs.map(m => ResolvedMethodDef(k, MethodDef(m.static, m.name, m.desc))) }
         .filter(_.method.name != "<init>")
-        .toSet
     }
 
     val allCalls = callGraph.toIterator.flatMap(_._2).flatMap(_._2).toSet
 
     val resolvedMap = allCalls
       .map{ call =>
-        println()
-        pprint.log(call.toString)
-        pprint.log(resolveLocalCall(call).map(_.toString))
-        pprint.log(resolveExternalCall(call).map(_.toString))
-        (call, resolveLocalCall(call) ++ resolveExternalCall(call))
+        val (localCandidates, externalCandidates0) =
+          resolveLocalCall(call).partition(call => callGraph.contains(call.cls))
+
+        val externalCandidates = externalCandidates0.filter(!_.method.static)
+
+        (call, localCandidates ++ resolveExternalCall(externalCandidates))
       }
       .toMap
 
@@ -120,13 +118,10 @@ object MethodCallResolver{
       (m0, calls) <- methods
     } yield {
       val resolvedMethod = ResolvedMethodDef(cls, m0)
-      println()
-      pprint.log(resolvedMethod.toString)
-      pprint.log(calls.map(_.toString))
       val resolved = calls
         .flatMap(resolvedMap.getOrElse(_, Nil))
         .filter { m => callGraph.getOrElse(m.cls, Map()).contains(m.method) }
-      pprint.log(resolved.map(_.toString))
+
       (resolvedMethod, resolved)
     }
   }

@@ -18,10 +18,10 @@ class Bar implements IntSupplier{
 
 public class Hello{
     public static int main(){
-        IntSupplier is = new Foo();
+        Foo is = new Foo();
         return bar(is);
     }
-    public static int bar(IntSupplier is) {
+    public static int bar(Foo is) {
         return is.getAsInt();
     }
 }

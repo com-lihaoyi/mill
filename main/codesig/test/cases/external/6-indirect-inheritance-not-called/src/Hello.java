@@ -42,7 +42,6 @@ public class Hello{
     ],
     "hello.Hello.main()int": [
         "hello.Foo#<init>()void",
-        "hello.Foo#read()int",
         "hello.Hello.bar(java.io.InputStream)int"
     ]
 }

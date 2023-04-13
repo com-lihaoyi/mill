@@ -3,11 +3,17 @@ package hello;
 import java.util.function.IntSupplier;
 import java.util.function.DoubleSupplier;
 
-// We instantiate this and call its method, so we record that in
-// the call graph.
+// When an external interface is implemented multiple times, only instantiated
+// once, but we only make the virtual call through the interfacae. We cannot be
+// sure we are only calling that specific implementation and not any of the
+// other implementations, since we do not do dataflow analysis
+
 class Foo implements IntSupplier{
     public int getAsInt(){ return 1; }
-    public int uncalled(){ return 2; }
+}
+
+class Bar implements IntSupplier{
+    public int getAsInt(){ return 1; }
 }
 
 public class Hello{
@@ -20,17 +26,10 @@ public class Hello{
     }
 }
 
-// `Foo#<init>` does not end up calling `IntSupplier#<init>` to
-// `IntSupplier#read` and `Foo#read`, because `IntSupplier` is a Java
-// `interface` and does not have a constructor
-//
-// `Foo#uncalled` we do not need to assume gets called by `IntSupplier#<init>`,
-// as `uncalled` is a method on `Foo` and not `IntSupplier`, so `IntSupplier`
-// would have no way to call it
-
 /* EXPECTED CALL GRAPH
 {
     "hello.Hello.bar(java.util.function.IntSupplier)int": [
+        "hello.Bar#getAsInt()int",
         "hello.Foo#getAsInt()int"
     ],
     "hello.Hello.main()int": [

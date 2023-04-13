@@ -48,9 +48,7 @@ object Hello{
     ],
     "hello.Hello$#manualIterator2(int)int": [
         "hello.Hello$#getInt()int",
-        "hello.Hello$Elements#<init>(java.lang.Object)void",
-        "hello.Hello$Elements#hasNext()boolean",
-        "hello.Hello$Elements#next()java.lang.Object"
+        "hello.Hello$Elements#<init>(java.lang.Object)void"
     ],
     "hello.Hello$Elements#hasNext()boolean": [
         "hello.Hello$Elements#end()int",

@@ -6,6 +6,9 @@
     "Ribbon.cap(double,double,double)double",
     "SnakeVector#point(int)java.awt.geom.Point2D$Float"
   ],
+  "JCanvas#paintComponent(java.awt.Graphics)void": [
+    "JCanvas#paintComponent(java.awt.Graphics)void"
+  ],
   "Ribbon.length(java.awt.geom.Line2D)double": [
     "Ribbon.square(double)double"
   ],
