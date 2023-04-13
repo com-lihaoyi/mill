@@ -29,7 +29,7 @@ object MillMain {
 
         val msg = s"Mill in BSP mode, version ${BuildInfo.millVersion}, ${new java.util.Date()}"
         errTee.println(msg)
-        
+
         (
           new SystemStreams(
             // out is used for the protocol
