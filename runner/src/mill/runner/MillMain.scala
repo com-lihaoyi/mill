@@ -194,7 +194,7 @@ object MillMain {
                 }
               }
 
-              val bspContext = if (bspMode) Some(new BspContext(streams, config.home)) else None
+              val bspContext = if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
               val targetsAndParams =
                 bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
 
