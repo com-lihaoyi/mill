@@ -165,12 +165,17 @@ object BuildInfo {
          |package ${buildInfoPackageName}
          |
          |object $buildInfoObjectName {
-         |  private val buildInfoProperties = new java.util.Properties
-         |
-         |  private val buildInfoInputStream = getClass
-         |    .getResourceAsStream("$buildInfoObjectName.buildinfo.properties")
-         |
-         |  buildInfoProperties.load(buildInfoInputStream)
+         |  private[this] val buildInfoProperties: java.util.Properties = {
+         |    val props = new java.util.Properties
+         |    val buildInfoInputStream = getClass
+         |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
+         |    try {
+         |      buildInfoProperties.load(buildInfoInputStream)
+         |    } finally {
+         |      buildInfoInputStream.close()
+         |    }
+         |    props
+         |  }
          |
          |  $bindingsCode
          |}
@@ -180,21 +185,21 @@ object BuildInfo {
          |package ${buildInfoPackageName};
          |
          |public class $buildInfoObjectName {
-         |  private static java.util.Properties buildInfoProperties = new java.util.Properties();
+         |  private static final java.util.Properties buildInfoProperties = new java.util.Properties();
          |
          |  static {
-         |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
+         |    java.io.InputStream buildInfoInputStream = ${buildInfoObjectName}
          |      .class
-         |      .getResourceAsStream("$buildInfoObjectName.buildinfo.properties");
+         |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties");
          |
-         |    try{
+         |    try {
          |      buildInfoProperties.load(buildInfoInputStream);
-         |    }catch(java.io.IOException e){
+         |    } catch (java.io.IOException e) {
          |      throw new RuntimeException(e);
-         |    }finally{
-         |      try{
+         |    } finally {
+         |      try {
          |        buildInfoInputStream.close();
-         |      }catch(java.io.IOException e){
+         |      } catch (java.io.IOException e) {
          |        throw new RuntimeException(e);
          |      }
          |    }
