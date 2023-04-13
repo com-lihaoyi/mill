@@ -2,7 +2,7 @@ package mill.runner
 
 import java.io.PrintStream
 
-class TeePrintOutputStream(out1: PrintStream, out2: PrintStream) extends PrintStream(out1) {
+class TeePrintStream(out1: PrintStream, out2: PrintStream) extends PrintStream(out1) {
   override def write(b: Int): Unit = synchronized {
     out1.write(b)
     out2.write(b)

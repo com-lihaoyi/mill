@@ -23,7 +23,7 @@ object MillMain {
         val stderrFile = os.pwd / ".bsp" / "mill-bsp.stderr"
         os.makeDir.all(stderrFile / os.up)
         val errFile = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
-        val errTee = new TeePrintOutputStream(initialSystemStreams.err, errFile)
+        val errTee = new TeePrintStream(initialSystemStreams.err, errFile)
         System.setOut(errFile)
         System.setErr(errTee)
 
