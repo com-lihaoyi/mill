@@ -77,7 +77,6 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
       canReload: Boolean,
       serverHandle: Option[Promise[BspServerHandle]] = None
   ): BspServerResult = {
-
     val ctx = new Ctx.Workspace with Ctx.Home with Ctx.Log {
       override def workspace: Path = workspaceDir
       override def home: Path = ammoniteHomeDir
@@ -109,7 +108,15 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
           canReload,
           Seq(millServerHandle) ++ serverHandle.toSeq
         )
-      case _ => BspServerResult.Failure
+      case f: Result.Failure[_] =>
+        streams.err.println("Failed to start the BSP worker. " + f.msg)
+        BspServerResult.Failure
+      case f : Result.Exception =>
+        streams.err.println("Failed to start the BSP worker. " + f.throwable)
+        BspServerResult.Failure
+      case f =>
+        streams.err.println("Failed to start the BSP worker. " + f)
+        BspServerResult.Failure
     }
   }
 
