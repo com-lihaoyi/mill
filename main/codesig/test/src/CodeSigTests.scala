@@ -25,15 +25,15 @@ object CodeSigTests extends TestSuite{
     }
     test("external"){
       test("1-interface-method") - testCase()
-      test("2-never-instantiated") - testCase()
-      test("3-never-called") - testCase()
-      test("4-maybe-called") - testCase()
-      test("5-indirect-inheritance-called") - testCase()
-      test("6-indirect-inheritance-not-called") - testCase()
-      test("7-indirect-delegation-called") - testCase()
-      test("8-indirect-delegation-uncalled") - testCase()
-      test("9-two-implementations-interface-call") - testCase()
-      test("10-two-implementations-direct-call") - testCase()
+      test("2-interface-never-instantiated") - testCase()
+      test("3-interface-never-called") - testCase()
+      test("4-abstract-class-maybe-called") - testCase()
+      test("5-abstract-class-indirect-inheritance-called") - testCase()
+      test("6-abstract-class-indirect-inheritance-not-called") - testCase()
+      test("7-abstract-class-indirect-delegation-called") - testCase()
+      test("8-abstract-class-indirect-delegation-uncalled") - testCase()
+      test("9-interface-two-implementations-interface-call") - testCase()
+      test("10-interface-two-implementations-direct-call") - testCase()
     }
     test("complicated"){
       test("1-statics") - testCase()

@@ -32,6 +32,12 @@ public class Hello{
     }
 }
 
+// Note that we mark `Bar#read` as called from `Bar#<init>`. This is because
+// `Bar#<init>` calls `InputStream#<init>`, which is external and could
+// potentially call `InputStream#read` and thus `Bar#read`. Because we do not
+// analyze the callgraph of external classes, we do a conservative estimate and
+// assume it does make such a call.
+
 /* EXPECTED CALL GRAPH
 {
     "hello.Bar#<init>()void": [
