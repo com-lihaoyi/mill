@@ -71,6 +71,7 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
   override def startBspServer(
       initialEvaluator: Option[Evaluator],
       streams: SystemStreams,
+      logStream: Option[PrintStream],
       workspaceDir: os.Path,
       ammoniteHomeDir: os.Path,
       canReload: Boolean,
@@ -103,6 +104,7 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
         worker.startBspServer(
           initialEvaluator,
           streams,
+          logStream.getOrElse(streams.err),
           workspaceDir / Constants.bspDir,
           canReload,
           Seq(millServerHandle) ++ serverHandle.toSeq

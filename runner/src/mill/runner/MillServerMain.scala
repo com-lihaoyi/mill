@@ -66,11 +66,12 @@ object MillServerMain extends MillServerMain[RunnerState] {
       initialSystemProperties: Map[String, String]
   ): (Boolean, RunnerState) = {
     MillMain.main0(
-      args,
-      stateCache,
+      args = args,
+      stateCache = stateCache,
       mainInteractive = mainInteractive,
-      streams,
-      env,
+      streams = streams,
+      bspLog = None,
+      env = env,
       setIdle = setIdle,
       userSpecifiedProperties0 = userSpecifiedProperties,
       initialSystemProperties = initialSystemProperties

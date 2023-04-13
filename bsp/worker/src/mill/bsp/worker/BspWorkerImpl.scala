@@ -66,6 +66,7 @@ class BspWorkerImpl() extends BspWorker {
   override def startBspServer(
       initialEvaluator: Option[Evaluator],
       streams: SystemStreams,
+      logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean,
       serverHandles: Seq[Promise[BspServerHandle]]
@@ -78,7 +79,7 @@ class BspWorkerImpl() extends BspWorker {
         bspVersion = Constants.bspProtocolVersion,
         serverVersion = MillBuildInfo.millVersion,
         serverName = Constants.serverName,
-        logStream = streams.bspLog.getOrElse(streams.err),
+        logStream = logStream,
         canReload = canReload
       ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 

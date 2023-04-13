@@ -7,6 +7,7 @@ import mill.eval.Evaluator
 import mill.main.{BspServerHandle, BspServerResult}
 import mill.api.SystemStreams
 
+import java.io.PrintStream
 import java.net.URL
 import scala.concurrent.Promise
 import scala.util.{Failure, Success, Try}
@@ -22,6 +23,7 @@ trait BspWorker {
   def startBspServer(
       initialEvaluator: Option[Evaluator],
       streams: SystemStreams,
+      logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean,
       serverHandles: Seq[Promise[BspServerHandle]]

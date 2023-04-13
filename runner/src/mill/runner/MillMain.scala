@@ -16,7 +16,7 @@ object MillMain {
   def main(args: Array[String]): Unit = {
     val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
     // setup streams
-    val (runnerStreams, openStreams) =
+    val (runnerStreams, openStreams, bspLog) =
       if (args.headOption == Option("--bsp")) {
         // In BSP mode, we use System.in for protocol communication
         // and all Mill output (stdout and stderr) goes to a dedicated file
@@ -35,15 +35,14 @@ object MillMain {
             initialSystemStreams.out,
             // err is default, but also tee-ed into the bsp log file
             errTee,
-            System.in,
-            // the bsp log file for additional bsp server logging
-            Some(errFile)
+            System.in
           ),
-          Seq(errFile)
+          Seq(errFile),
+          Some(errFile)
         )
       } else {
         // Unchanged system stream
-        (initialSystemStreams, Seq())
+        (initialSystemStreams, Seq(), None)
       }
 
     if (Properties.isWin && System.console() != null)
@@ -55,12 +54,12 @@ object MillMain {
           RunnerState.empty,
           mill.util.Util.isInteractive(),
           runnerStreams,
+          bspLog,
           System.getenv().asScala.toMap,
           b => (),
-          userSpecifiedProperties0 = Map(),
-          initialSystemProperties = sys.props.toMap
-        )
-      finally {
+          Map(),
+          sys.props.toMap
+      ) finally {
         openStreams.foreach(_.close())
       }
     System.exit(if (result) 0 else 1)
@@ -71,6 +70,7 @@ object MillMain {
       stateCache: RunnerState,
       mainInteractive: Boolean,
       streams0: SystemStreams,
+      bspLog: Option[PrintStream],
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties0: Map[String, String],
