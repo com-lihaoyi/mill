@@ -165,16 +165,15 @@ object BuildInfo {
          |package ${buildInfoPackageName}
          |
          |object $buildInfoObjectName {
-         |  private[this] val buildInfoProperties: java.util.Properties = {
-         |    val props = new java.util.Properties
-         |    val buildInfoInputStream = getClass
+         |  private[this] val buildInfoProperties: java.util.Properties = new java.util.Properties()
+         |
+         |  private[this] val buildInfoInputStream = getClass
          |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
-         |    try {
-         |      buildInfoProperties.load(buildInfoInputStream)
-         |    } finally {
-         |      buildInfoInputStream.close()
-         |    }
-         |    props
+         |
+         |  try {
+         |    buildInfoProperties.load(buildInfoInputStream)
+         |  } finally {
+         |    buildInfoInputStream.close()
          |  }
          |
          |  $bindingsCode
