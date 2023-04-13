@@ -658,15 +658,32 @@ object main extends MillModule {
           cases(i).compile.map(v => (s"MILL_TEST_CLASSES_$i", v.classes.path.toString))
         }().toMap ++
         T.traverse(caseKeys) { i =>
+          cases(i).compileClasspath.map(v => (s"MILL_TEST_CLASSPATH_$i", v.map(_.path).mkString(",")))
+        }().toMap ++
+        T.traverse(caseKeys) { i =>
           cases(i).sources.map(v => (s"MILL_TEST_SOURCES_$i", v.head.path.toString))
         }()
       }
 
       object cases extends Cross[CaseModule](caseKeys: _*)
       class CaseModule(caseName: String) extends ScalaModule {
+
         val Array(prefix, suffix) = caseName.split("-", 2)
         def millSourcePath = super.millSourcePath / os.up / prefix / suffix
         def scalaVersion = "2.13.10"
+        def ivyDeps = T{
+          if (!caseName.contains("scala")) super.ivyDeps()
+          else Agg(
+            ivy"com.lihaoyi::fastparse:3.0.1",
+            ivy"com.lihaoyi::scalatags:0.12.0",
+            ivy"com.lihaoyi::cask:0.9.1",
+            ivy"com.lihaoyi::castor:0.1.7",
+            Deps.mainargs,
+            Deps.requests,
+            Deps.osLib,
+            Deps.upickle,
+          )
+        }
       }
     }
 

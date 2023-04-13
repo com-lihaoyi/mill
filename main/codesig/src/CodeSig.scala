@@ -2,8 +2,15 @@ package mill.codesig
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.tree.ClassNode
 
+import java.net.URLClassLoader
+
 object CodeSig{
-  def compute(classFiles: Seq[os.Path]) = {
+  def compute(classFiles: Seq[os.Path],
+              upstreamClasspath: Seq[os.Path]) = {
+    val upstreamClasspathClassloader = new URLClassLoader(
+      upstreamClasspath.map(_.toNIO.toUri.toURL).toArray,
+      getClass.getClassLoader
+    )
     val summary = LocalSummarizer.summarize(
       classFiles.map(p => loadClass(os.read.bytes(p)))
     )
@@ -21,10 +28,12 @@ object CodeSig{
         .filter(!summary.directAncestors.contains(_))
         .toSet,
       externalType =>
-        loadClass(os.read.bytes(os.resource / os.SubPath(externalType.name.replace('.', '/') + ".class")))
+        loadClass(
+          os.read.bytes(os.resource(upstreamClasspathClassloader) / os.SubPath(externalType.name.replace('.', '/') + ".class"))
+        )
     )
 
-    val foundTransitive0 = Resolver.resolveAllMethodCalls(summary, external)
+    val foundTransitive0 = MethodCallResolver.resolveAllMethodCalls(summary, external)
 
     foundTransitive0
   }

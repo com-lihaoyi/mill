@@ -32,6 +32,7 @@ object CodeSigTests extends TestSuite{
       test("6-indirect-inheritance-not-called") - testCase()
       test("7-indirect-delegation-called") - testCase()
       test("8-indirect-delegation-uncalled") - testCase()
+      test("9-two-implementations") - testCase()
     }
     test("complicated"){
       test("1-statics") - testCase()
@@ -52,13 +53,21 @@ object CodeSigTests extends TestSuite{
       test("1-tetris") - testCase()
       test("2-ribbon") - testCase()
     }
+    test("handsonscala"){
+      test("1-par-merge-sort") - testCase()
+      test("2-parser") - testCase()
+      test("3-actors") - testCase()
+    }
   }
 
   def testCase()(implicit tp: utest.framework.TestPath) = {
 
     val callGraph0 = CodeSig.compute(
       os.walk(os.Path(sys.env("MILL_TEST_CLASSES_" + tp.value.mkString("-"))))
-        .filter(_.ext == "class")
+        .filter(_.ext == "class"),
+      sys.env("MILL_TEST_CLASSPATH_" + tp.value.mkString("-"))
+        .split(",")
+        .map(os.Path(_))
     )
 
     val expectedCallGraph = parseExpectedJson(
@@ -74,6 +83,7 @@ object CodeSigTests extends TestSuite{
         "<clinit>",
         "$adapted",
         "$init$",
+        "$macro",
       )
     )
 

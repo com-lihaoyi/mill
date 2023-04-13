@@ -8,7 +8,7 @@ import mill.util.{MultiBiMap, Tarjans}
  * their potential destinations and compute transitive properties of the
  * call graph
  */
-object Resolver{
+object MethodCallResolver{
   def resolveAllMethodCalls(localSummary: LocalSummarizer.Result,
                             externalSummary: ExternalSummarizer.Result): Map[ResolvedMethodDef, Set[ResolvedMethodDef]]  = {
 
@@ -72,14 +72,11 @@ object Resolver{
         Set(ResolvedMethodDef(call.cls, MethodDef(false, call.name, call.desc)))
 
       case InvokeType.Virtual =>
-        val resolved = clsAndDescendents(call.cls, directDescendents)
-          .flatMap(cls =>
-            clsAndAncestors(
-              cls,
-              skipEarly = methodExists(_, call),
-              allDirectAncestors
-            )
-          )
+        val resolved = clsAndAncestors(
+          clsAndDescendents(call.cls, directDescendents).toSeq,
+          skipEarly = methodExists(_, call),
+          allDirectAncestors
+        )
           .collect { case cls if methodExists(cls, call) =>
             ResolvedMethodDef(cls, MethodDef(false, call.name, call.desc))
           }
@@ -105,18 +102,29 @@ object Resolver{
     val allCalls = callGraph.toIterator.flatMap(_._2).flatMap(_._2).toSet
 
     val resolvedMap = allCalls
-      .map(call => (call, resolveLocalCall(call) ++ resolveExternalCall(call)))
+      .map{ call =>
+        println()
+        pprint.log(call.toString)
+        pprint.log(resolveLocalCall(call).map(_.toString))
+        pprint.log(resolveExternalCall(call).map(_.toString))
+        (call, resolveLocalCall(call) ++ resolveExternalCall(call))
+      }
       .toMap
 
     for {
       (cls, methods) <- callGraph
       (m0, calls) <- methods
-    } yield (
-      ResolvedMethodDef(cls, m0),
-      calls
+    } yield {
+      val resolvedMethod = ResolvedMethodDef(cls, m0)
+      println()
+      pprint.log(resolvedMethod.toString)
+      pprint.log(calls.map(_.toString))
+      val resolved = calls
         .flatMap(resolvedMap.getOrElse(_, Nil))
-        .filter{m => callGraph.getOrElse(m.cls, Map()).contains(m.method)}
-    )
+        .filter { m => callGraph.getOrElse(m.cls, Map()).contains(m.method) }
+      pprint.log(resolved.map(_.toString))
+      (resolvedMethod, resolved)
+    }
   }
 
   def transitiveExternalAncestors(cls: JType.Cls,
@@ -149,10 +157,10 @@ object Resolver{
     )
   }
 
-  def clsAndAncestors(cls: JType.Cls,
+  def clsAndAncestors(classes: Seq[JType.Cls],
                       skipEarly: JType.Cls => Boolean,
                       allDirectAncestors: Map[JType.Cls, Set[JType.Cls]]): Set[JType.Cls] = {
-    breadthFirst(Seq(cls))(cls =>
+    breadthFirst(classes)(cls =>
       if(skipEarly(cls)) Nil else allDirectAncestors.getOrElse(cls, Nil)
     ).toSet
   }
