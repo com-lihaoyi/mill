@@ -96,7 +96,7 @@ object MethodCallResolver{
       case InvokeType.Special => Set(call.cls)
 
       case InvokeType.Virtual =>
-        val directDef = MethodDef(false, call.name, call.desc)
+        val directDef = call.toDirectMethodDef
         if (methodPrivate.get(call.cls).exists(_.getOrElse(directDef, false))) Set(call.cls)
         else {
           val descendents = clsAndDescendents(call.cls, directDescendents)
@@ -133,7 +133,7 @@ object MethodCallResolver{
             else resolveExternalLocalReceivers(call.invokeType, call.desc, externalCandidates)
 
           val localResolvedMethods = localCandidates
-            .map(ResolvedMethodDef(_, MethodDef(call.invokeType == InvokeType.Static, call.name, call.desc)))
+            .map(ResolvedMethodDef(_, call.toDirectMethodDef))
 
 
           (call, localResolvedMethods ++ externalLocalResolvedMethods)

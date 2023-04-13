@@ -35,6 +35,8 @@ case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc
     }
     cls.name + sep + name + desc
   }
+
+  def toDirectMethodDef = MethodDef(invokeType == InvokeType.Static, name, desc)
 }
 
 object MethodCall{

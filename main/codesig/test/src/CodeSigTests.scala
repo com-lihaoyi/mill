@@ -56,14 +56,12 @@ object CodeSigTests extends TestSuite{
       test("12-external-method-edge-to-inherited-method-override") - testCase()
       test("13-jcanvas") - testCase()
     }
-    test("games"){
+    test("realistic"){
       test("1-tetris") - testCase()
       test("2-ribbon") - testCase()
-    }
-    test("handsonscala"){
-      test("1-par-merge-sort") - testCase()
-      test("2-parser") - testCase()
-      test("3-actors") - testCase()
+      test("3-par-merge-sort") - testCase()
+      test("4-actors") - testCase()
+      test("5-parser") - testCase()
     }
   }
 
