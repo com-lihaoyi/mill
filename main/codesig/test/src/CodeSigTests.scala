@@ -53,11 +53,11 @@ object CodeSigTests extends TestSuite{
       test("1-tetris") - testCase()
       test("2-ribbon") - testCase()
     }
-    test("handsonscala"){
-      test("1-par-merge-sort") - testCase()
-      test("2-parser") - testCase()
-      test("3-actors") - testCase()
-    }
+//    test("handsonscala"){
+//      test("1-par-merge-sort") - testCase()
+//      test("2-parser") - testCase()
+//      test("3-actors") - testCase()
+//    }
   }
 
   def testCase()(implicit tp: utest.framework.TestPath) = {

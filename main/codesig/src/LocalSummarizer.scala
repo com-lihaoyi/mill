@@ -14,12 +14,12 @@ object LocalSummarizer{
 
   case class Result(callGraph: Map[JType.Cls, Map[MethodDef, Set[MethodCall]]],
                     methodHashes: Map[JType.Cls, Map[MethodDef, Int]],
-                    directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
+                    directSuperclasses: Map[JType.Cls, JType.Cls],
                     directAncestors: Map[JType.Cls, Set[JType.Cls]])
 
   def summarize(classNodes: Seq[ClassNode]) = {
 
-    val directSubclasses = new MultiBiMap.Mutable[JType.Cls, JType.Cls]()
+    val directSuperclasses = Map.newBuilder[JType.Cls, JType.Cls]
     val callGraph = Map.newBuilder[JType.Cls, Map[MethodDef, Set[MethodCall]]]
     val methodHashes = Map.newBuilder[JType.Cls, Map[MethodDef, Int]]
     val directAncestors = Map.newBuilder[JType.Cls, Set[JType.Cls]]
@@ -29,7 +29,7 @@ object LocalSummarizer{
       val classMethodHashes = Map.newBuilder[MethodDef, Int]
       val clsType = JType.Cls.fromSlashed(cn.name)
       Option(cn.superName).foreach(sup =>
-        directSubclasses.add(JType.Cls.fromSlashed(sup), clsType)
+        directSuperclasses.addOne((clsType, JType.Cls.fromSlashed(sup)))
       )
 
       val clsDirectAncestors = Option(cn.superName) ++ Option(cn.interfaces).toSeq.flatMap(_.asScala)
@@ -66,7 +66,7 @@ object LocalSummarizer{
       directAncestors.addOne((clsType, clsDirectAncestors.toSet.map(JType.Cls.fromSlashed)))
     }
 
-    Result(callGraph.result(), methodHashes.result(), directSubclasses, directAncestors.result())
+    Result(callGraph.result(), methodHashes.result(), directSuperclasses.result(), directAncestors.result())
   }
 
   def processInstruction(insn: AbstractInsnNode,

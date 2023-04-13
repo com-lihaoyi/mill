@@ -1,5 +1,6 @@
 package mill.codesig
 
+import mill.util.MultiBiMap
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 
@@ -12,19 +13,23 @@ import collection.JavaConverters._
  * user-defined classes
  */
 object ExternalSummarizer{
+
+  case class Result(directMethods: Map[JType.Cls, Set[MethodDef]],
+                    directAncestors: Map[JType.Cls, Set[JType.Cls]],
+                    directSuperclasses: Map[JType.Cls, JType.Cls])
+
   def loadAll(externalTypes: Set[JType.Cls], loadClassNode: JType.Cls => ClassNode): Result = {
     val ext = new ExternalSummarizer(loadClassNode)
     ext.loadAll(externalTypes)
-    Result(ext.methodsPerCls.toMap, ext.ancestorsPerCls.toMap)
+    Result(ext.methodsPerCls.toMap, ext.ancestorsPerCls.toMap, ext.directSuperclasses.toMap)
   }
 
-  case class Result(directMethods: Map[JType.Cls, Set[MethodDef]],
-                    directAncestors: Map[JType.Cls, Set[JType.Cls]])
 }
 
 class ExternalSummarizer private(loadClassNode: JType.Cls => ClassNode){
   val methodsPerCls = collection.mutable.Map.empty[JType.Cls, Set[MethodDef]]
   val ancestorsPerCls = collection.mutable.Map.empty[JType.Cls, Set[JType.Cls]]
+  val directSuperclasses = collection.mutable.Map.empty[JType.Cls, JType.Cls]
 
   def loadAll(externalTypes: Set[JType.Cls]): Unit = {
     externalTypes.foreach(load)
@@ -34,6 +39,9 @@ class ExternalSummarizer private(loadClassNode: JType.Cls => ClassNode){
 
   def load0(cls: JType.Cls): Unit = {
     val cn = loadClassNode(cls)
+    Option(cn.superName).foreach(sup =>
+      directSuperclasses(cls) = JType.Cls.fromSlashed(sup)
+    )
 
     methodsPerCls(cls) = cn
       .methods

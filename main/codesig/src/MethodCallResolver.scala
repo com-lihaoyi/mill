@@ -30,11 +30,12 @@ object MethodCallResolver{
       }
       .groupMapReduce(_._1)(_._2)(_ ++ _)
 
+    new MultiBiMap.Mutable()
     val resolvedCalls = resolveAllMethodCalls0(
       localSummary.callGraph,
       externalClsToLocalClsMethods,
       allDirectAncestors,
-      localSummary.directSubclasses,
+      localSummary.directSuperclasses ++ externalSummary.directSuperclasses,
       directDescendents
     )
 
@@ -44,7 +45,7 @@ object MethodCallResolver{
   def resolveAllMethodCalls0(callGraph: Map[JType.Cls, Map[MethodDef, Set[MethodCall]]],
                              externalClsToLocalClsMethods: Map[JType.Cls, Map[JType.Cls, Set[MethodDef]]],
                              allDirectAncestors: Map[JType.Cls, Set[JType.Cls]],
-                             directSubclasses: MultiBiMap[JType.Cls, JType.Cls],
+                             directSuperclasses: Map[JType.Cls, JType.Cls],
                              directDescendents: Map[JType.Cls, Vector[JType.Cls]]): Map[ResolvedMethodDef, Set[ResolvedMethodDef]] = {
 
 
@@ -57,7 +58,7 @@ object MethodCallResolver{
         val clsAndSupers0 = clsAndSupers(
           call.cls,
           skipEarly = methodExists(_, call),
-          directSubclasses
+          directSuperclasses
         )
 
         val resolvedStatic = clsAndSupers0
@@ -151,9 +152,9 @@ object MethodCallResolver{
 
   def clsAndSupers(cls: JType.Cls,
                    skipEarly: JType.Cls => Boolean,
-                   directSubclasses: MultiBiMap[JType.Cls, JType.Cls]): Seq[JType.Cls] = {
+                   directSuperclasses: Map[JType.Cls, JType.Cls]): Seq[JType.Cls] = {
     breadthFirst(Seq(cls))(cls =>
-      if(skipEarly(cls)) Nil else directSubclasses.lookupValueOpt(cls)
+      if(skipEarly(cls)) Nil else directSuperclasses.get(cls)
     )
   }
 
