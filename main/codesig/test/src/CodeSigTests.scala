@@ -86,7 +86,7 @@ object CodeSigTests extends TestSuite{
     )
 
     val foundCallGraph = simplifyCallGraph(
-      callGraph0,
+      callGraph0.directCallGraph,
       skipped = Seq(
         "lambda$",
         "$deserializeLambda$",

@@ -1,4 +1,5 @@
 package mill.codesig
+import mill.util.Tarjans
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.tree.ClassNode
 
@@ -36,9 +37,9 @@ object CodeSig{
       )
     }
 
-    val foundTransitive0 = MethodCallResolver.resolveAllMethodCalls(localSummary, externalSummary, logger)
+    val directCallGraph = MethodCallResolver.resolveAllMethodCalls(localSummary, externalSummary, logger)
 
-    foundTransitive0
+    new CodeSig(directCallGraph, localSummary.methodHashes)
   }
 
   def loadClass(bytes: Array[Byte]) = {
@@ -48,54 +49,30 @@ object CodeSig{
     classNode
   }
 }
-class CodeSig{
-  //    val methodToIndex = summary.callGraph.keys.toVector.zipWithIndex.toMap
-  //    val indexToMethod = methodToIndex.map(_.swap)
-  //    val topoSortedMethodGroups = Tarjans
-  //      .apply(
-  //        Range(0, methodToIndex.size).map(i => resolvedCalls(indexToMethod(i)).map(methodToIndex))
-  //      )
-  //      .map(_.map(indexToMethod))
-  //
-  //    val transitiveCallGraphHashes = computeTransitive[Int](
-  //      topoSortedMethodGroups,
-  //      resolvedCalls,
-  //      summary.methodHashes(_),
-  //      _.hashCode()
-  //    )
-  //
-  //    val transitiveCallGraphMethods = computeTransitive[Set[MethodSig]](
-  //      topoSortedMethodGroups,
-  //      resolvedCalls,
-  //      Set(_),
-  //      _.flatten.toSet
-  //    ).map { case (k, vs) => (k, vs.filter(_ != k)) }
 
-  /**
-   * Summarizes the transitive closure of the method call graph, using the given
-   * [[methodValue]] and [[reduce]] functions to return a single value of [[T]].
-   *
-   * This is done in topological order, in order to allow us to memo-ize the
-   * values computed for upstream methods when processing downstream methods,
-   * avoiding the need to repeatedly re-compute them. Each Strongly Connected
-   * Component is processed together and assigned the same final value, since
-   * they all have the exact same transitive closure
-   */
-//  def computeTransitive[T](topoSortedMethodGroups: Seq[Seq[MethodDef]],
-//                           resolvedCalls: Map[MethodDef, Set[MethodDef]],
-//                           methodValue: MethodDef => T, reduce: Seq[T] => T) = {
-//    val seen = collection.mutable.Map.empty[MethodDef, T]
-//    for (methodGroup <- topoSortedMethodGroups) {
-//      val groupUpstreamCalls = methodGroup
-//        .flatMap(resolvedCalls)
-//        .filter(!methodGroup.contains(_))
-//
-//      val upstreamValues: Seq[T] = groupUpstreamCalls.sorted.map(seen)
-//      val groupValues: Seq[T] = methodGroup.sorted.map(methodValue)
-//      for (method <- methodGroup) {
-//        seen(method) = reduce(upstreamValues ++ groupValues)
-//      }
-//    }
-//    seen
-//  }
+class CodeSig(val directCallGraph: Map[ResolvedMethodDef, Set[ResolvedMethodDef]],
+              methodHashes:  Map[JType.Cls, Map[MethodDef, Int]]){
+  val methodToIndex = directCallGraph.flatMap{case (k, vs) => Seq(k) ++ vs}.toVector.zipWithIndex.toMap
+  val indexToMethod = methodToIndex.map(_.swap)
+  val topoSortedMethodGroups = Tarjans
+    .apply(
+      Range(0, methodToIndex.size).map(i => directCallGraph(indexToMethod(i)).map(methodToIndex))
+    )
+    .map(_.map(indexToMethod))
+
+  val transitiveCallGraphHashes = Util.computeTransitive[ResolvedMethodDef, Int](
+    topoSortedMethodGroups,
+    directCallGraph,
+    r => methodHashes(r.cls)(r.method),
+    _.hashCode()
+      )
+
+//  val transitiveCallGraphMethods = Util.computeTransitive[Set[ResolvedMethodDef]](
+//    topoSortedMethodGroups,
+//    directCallGraph,
+//        Set(_),
+//        _.flatten.toSet
+//      ).map { case (k, vs) => (k, vs.filter(_ != k)) }
+
+
 }

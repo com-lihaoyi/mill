@@ -1,6 +1,5 @@
 package mill.codesig
 
-import mill.util.{MultiBiMap, Tarjans}
 import JType.{Cls => JCls}
 
 /**
@@ -182,7 +181,7 @@ object MethodCallResolver{
   def clsAndSupers(cls: JCls,
                    skipEarly: JCls => Boolean,
                    directSuperclasses: Map[JCls, JCls]): Seq[JCls] = {
-    breadthFirst(Seq(cls))(cls =>
+    Util.breadthFirst(Seq(cls))(cls =>
       if(skipEarly(cls)) Nil else directSuperclasses.get(cls)
     )
   }
@@ -190,30 +189,14 @@ object MethodCallResolver{
   def clsAndAncestors(classes: IterableOnce[JCls],
                       skipEarly: JCls => Boolean,
                       allDirectAncestors: Map[JCls, Set[JCls]]): Set[JCls] = {
-    breadthFirst(classes)(cls =>
+    Util.breadthFirst(classes)(cls =>
       if(skipEarly(cls)) Nil else allDirectAncestors.getOrElse(cls, Nil)
     ).toSet
   }
 
   def clsAndDescendents(cls: JCls,
                         directDescendents: Map[JCls, Vector[JCls]]): Set[JCls] = {
-    breadthFirst(Seq(cls))(directDescendents.getOrElse(_, Nil)).toSet
+    Util.breadthFirst(Seq(cls))(directDescendents.getOrElse(_, Nil)).toSet
   }
 
-  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
-    val seen = collection.mutable.Set.empty[T]
-    val seenList = collection.mutable.Buffer.empty[T]
-    val queued = collection.mutable.Queue.from(start)
-
-    while(queued.nonEmpty){
-      val current = queued.dequeue()
-      seen.add(current)
-      seenList.append(current)
-
-      for(next <- edges(current)){
-        if (!seen.contains(next)) queued.enqueue(next)
-      }
-    }
-    seenList.toSeq
-  }
 }
