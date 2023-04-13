@@ -1,4 +1,5 @@
 package hello
+// Taken from https://github.com/handsonscala/handsonscala/blob/ebc0367144513fc181281a024f8071a6153be424/examples/16.8%20-%20LoggingRearrangedPipeline2/LoggingPipeline.sc
 import scalatags.Text.all._
 import scala.concurrent._, duration.Duration.Inf
 class DiskActor(logPath: os.Path, rotateSize: Int = 50)
@@ -39,19 +40,76 @@ class SanitizeActor(dest: castor.Actor[String])
 
 object Hello{
   def main() = {
-//    implicit val cc = new castor.Context.Test()
-//
-//    val diskActor = new DiskActor(os.pwd / "log.txt")
-//    val uploadActor = new UploadActor("https://httpbin.org/post")
-//
-//    val base64Actor = new Base64Actor(diskActor)
-//    val sanitizeActor = new SanitizeActor(uploadActor)
-//
-//    val logger = new castor.SplitActor(base64Actor, sanitizeActor)
+    implicit val cc = new castor.Context.Test()
+
+    val diskActor = new DiskActor(os.pwd / "log.txt")
+    val uploadActor = new UploadActor("https://httpbin.org/post")
+
+    val base64Actor = new Base64Actor(diskActor)
+    val sanitizeActor = new SanitizeActor(uploadActor)
+
+    val logger = new castor.SplitActor(base64Actor, sanitizeActor)
   }
 }
 
 /* EXPECTED CALL GRAPH
 {
+    "hello.Base64Actor#<init>(castor.Actor,castor.Context)void": [
+        "hello.Base64Actor#run(java.lang.Object)void",
+        "hello.DiskActor#run(java.lang.Object)void",
+        "hello.SanitizeActor#run(java.lang.Object)void",
+        "hello.UploadActor#run(java.lang.Object)void"
+    ],
+    "hello.Base64Actor#run(java.lang.Object)void": [
+        "hello.Base64Actor#run(java.lang.String)void"
+    ],
+    "hello.DiskActor#<init>(os.Path,int,castor.Context)void": [
+        "hello.Base64Actor#run(java.lang.Object)void",
+        "hello.DiskActor#run(java.lang.Object)void",
+        "hello.SanitizeActor#run(java.lang.Object)void",
+        "hello.UploadActor#run(java.lang.Object)void"
+    ],
+    "hello.DiskActor#run(java.lang.Object)void": [
+        "hello.DiskActor#run(java.lang.String)void"
+    ],
+    "hello.DiskActor#run(java.lang.String)void": [
+        "hello.DiskActor#logSize()int",
+        "hello.DiskActor#logSize_$eq(int)void",
+        "hello.DiskActor#oldPath()os.Path"
+    ],
+    "hello.DiskActor.$lessinit$greater$default$2()int": [
+        "hello.DiskActor$#$lessinit$greater$default$2()int",
+        "hello.DiskActor$#<init>()void"
+    ],
+    "hello.Hello$#main()void": [
+        "hello.Base64Actor#<init>(castor.Actor,castor.Context)void",
+        "hello.DiskActor#<init>(os.Path,int,castor.Context)void",
+        "hello.DiskActor$#$lessinit$greater$default$2()int",
+        "hello.DiskActor$#<init>()void",
+        "hello.SanitizeActor#<init>(castor.Actor,castor.Context)void",
+        "hello.UploadActor#<init>(java.lang.String,castor.Context)void"
+    ],
+    "hello.Hello.main()void": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#main()void"
+    ],
+    "hello.SanitizeActor#<init>(castor.Actor,castor.Context)void": [
+        "hello.Base64Actor#run(java.lang.Object)void",
+        "hello.DiskActor#run(java.lang.Object)void",
+        "hello.SanitizeActor#run(java.lang.Object)void",
+        "hello.UploadActor#run(java.lang.Object)void"
+    ],
+    "hello.SanitizeActor#run(java.lang.Object)void": [
+        "hello.SanitizeActor#run(java.lang.String)void"
+    ],
+    "hello.UploadActor#<init>(java.lang.String,castor.Context)void": [
+        "hello.Base64Actor#run(java.lang.Object)void",
+        "hello.DiskActor#run(java.lang.Object)void",
+        "hello.SanitizeActor#run(java.lang.Object)void",
+        "hello.UploadActor#run(java.lang.Object)void"
+    ],
+    "hello.UploadActor#run(java.lang.Object)void": [
+        "hello.UploadActor#run(java.lang.String)void"
+    ]
 }
 */

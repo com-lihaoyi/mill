@@ -128,13 +128,9 @@ object MethodCallResolver{
           val (localCandidates, externalCandidates) =
             resolveLocalReceivers(call).partition(callGraph.contains)
 
-          logger.log(localCandidates, prefix = s"resolvedMap-$call-")
-          logger.log(externalCandidates, prefix = s"resolvedMap-$call-")
           val externalLocalResolvedMethods =
             if (externalCandidates.isEmpty) Set.empty[ResolvedMethodDef]
             else resolveExternalLocalReceivers(call.invokeType, call.desc, externalCandidates)
-
-          logger.log(externalLocalResolvedMethods, prefix = s"resolvedMap-$call-")
 
           val localResolvedMethods = localCandidates
             .map(ResolvedMethodDef(_, MethodDef(call.invokeType == InvokeType.Static, call.name, call.desc)))

@@ -1,4 +1,5 @@
 package hello
+// Taken from https://github.com/handsonscala/handsonscala/blob/ebc0367144513fc181281a024f8071a6153be424/examples/19.1%20-%20Phrases/Phrases.sc
 import fastparse._, NoWhitespace._
 sealed trait Phrase
 class Word(s: String) extends Phrase

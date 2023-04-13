@@ -1,4 +1,6 @@
 package hello
+
+// Taken from https://github.com/handsonscala/handsonscala/blob/ebc0367144513fc181281a024f8071a6153be424/examples/13.7%20-%20ParallelMergeSort/MergeSort.sc
 import mainargs.main
 
 object Main{
