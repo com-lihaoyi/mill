@@ -20,8 +20,9 @@ object CodeSigTests extends TestSuite{
       test("10-peer-inherited-method") - testCase()
       test("11-java-lambda") - testCase()
       test("12-clinit") - testCase()
-      test("13-scala-static-method") - testCase()
-      test("14-scala-lambda") - testCase()
+      test("13-private-method-not-inherited") - testCase()
+      test("14-scala-static-method") - testCase()
+      test("15-scala-lambda") - testCase()
     }
     test("complicated") {
       test("1-statics") - testCase()

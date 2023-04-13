@@ -14,6 +14,7 @@ object LocalSummarizer{
 
   case class Result(callGraph: Map[JCls, Map[MethodDef, Set[MethodCall]]],
                     methodHashes: Map[JCls, Map[MethodDef, Int]],
+                    methodPrivate: Map[JCls, Map[MethodDef, Boolean]],
                     directSuperclasses: Map[JCls, JCls],
                     directAncestors: Map[JCls, Set[JCls]])
   object Result{
@@ -25,11 +26,13 @@ object LocalSummarizer{
     val directSuperclasses = Map.newBuilder[JCls, JCls]
     val callGraph = Map.newBuilder[JCls, Map[MethodDef, Set[MethodCall]]]
     val methodHashes = Map.newBuilder[JCls, Map[MethodDef, Int]]
+    val methodPrivate = Map.newBuilder[JCls, Map[MethodDef, Boolean]]
     val directAncestors = Map.newBuilder[JCls, Set[JCls]]
 
     for(cn <- classNodes){
       val classCallGraph = Map.newBuilder[MethodDef, Set[MethodCall]]
       val classMethodHashes = Map.newBuilder[MethodDef, Int]
+      val classMethodPrivate = Map.newBuilder[MethodDef, Boolean]
       val clsType = JCls.fromSlashed(cn.name)
       Option(cn.superName).foreach(sup =>
         directSuperclasses.addOne((clsType, JCls.fromSlashed(sup)))
@@ -62,14 +65,22 @@ object LocalSummarizer{
 
         classCallGraph.addOne((methodSig, outboundCalls.toSet))
         classMethodHashes.addOne((methodSig, insnSigs.hashCode()))
+        classMethodPrivate.addOne((methodSig, (method.access & Opcodes.ACC_PRIVATE) != 0))
       }
 
       callGraph.addOne((clsType, classCallGraph.result()))
       methodHashes.addOne((clsType, classMethodHashes.result()))
+      methodPrivate.addOne((clsType, classMethodPrivate.result()))
       directAncestors.addOne((clsType, clsDirectAncestors.toSet.map(JCls.fromSlashed)))
     }
 
-    Result(callGraph.result(), methodHashes.result(), directSuperclasses.result(), directAncestors.result())
+    Result(
+      callGraph.result(),
+      methodHashes.result(),
+      methodPrivate.result(),
+      directSuperclasses.result(),
+      directAncestors.result()
+    )
   }
 
   def processInstruction(insn: AbstractInsnNode,

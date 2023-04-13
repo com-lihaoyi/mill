@@ -18,14 +18,12 @@ object MethodCallResolver{
       localSummary.directAncestors ++ externalSummary.directAncestors
     }
 
-
     val directDescendents = logger{
       allDirectAncestors
         .toVector
         .flatMap { case (k, vs) => vs.map((_, k)) }
         .groupMap(_._1)(_._2)
     }
-
 
     val externalClsToLocalClsMethods0 = logger{
       localSummary
@@ -63,6 +61,7 @@ object MethodCallResolver{
 
     val resolvedCalls = resolveAllMethodCalls0(
       localSummary.callGraph,
+      localSummary.methodPrivate,
       externalClsToLocalClsMethods,
       allDirectAncestors,
       localSummary.directSuperclasses ++ externalSummary.directSuperclasses,
@@ -75,6 +74,7 @@ object MethodCallResolver{
   }
 
   def resolveAllMethodCalls0(callGraph: Map[JCls, Map[MethodDef, Set[MethodCall]]],
+                             methodPrivate: Map[JCls, Map[MethodDef, Boolean]],
                              externalClsToLocalClsMethods: Map[JCls, Map[JCls, Set[MethodDef]]],
                              allDirectAncestors: Map[JCls, Set[JCls]],
                              directSuperclasses: Map[JCls, JCls],
@@ -96,10 +96,14 @@ object MethodCallResolver{
       case InvokeType.Special => Set(call.cls)
 
       case InvokeType.Virtual =>
-        val descendents = clsAndDescendents(call.cls, directDescendents)
+        val directDef = MethodDef(false, call.name, call.desc)
+        if (methodPrivate.get(call.cls).exists(_.getOrElse(directDef, false))) Set(call.cls)
+        else {
+          val descendents = clsAndDescendents(call.cls, directDescendents)
 
-        clsAndAncestors(descendents, methodExists(_, call), allDirectAncestors)
-          .filter(methodExists(_, call))
+          clsAndAncestors(descendents, methodExists(_, call), allDirectAncestors)
+            .filter(methodExists(_, call))
+        }
     }
 
     def resolveExternalLocalReceivers(invokeType: InvokeType,
