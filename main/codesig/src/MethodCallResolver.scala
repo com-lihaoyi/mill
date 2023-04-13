@@ -36,7 +36,8 @@ object MethodCallResolver{
       externalClsToLocalClsMethods,
       allDirectAncestors,
       localSummary.directSuperclasses ++ externalSummary.directSuperclasses,
-      directDescendents
+      directDescendents,
+      externalSummary.directMethods
     )
 
     resolvedCalls
@@ -46,11 +47,13 @@ object MethodCallResolver{
                              externalClsToLocalClsMethods: Map[JType.Cls, Map[JType.Cls, Set[MethodDef]]],
                              allDirectAncestors: Map[JType.Cls, Set[JType.Cls]],
                              directSuperclasses: Map[JType.Cls, JType.Cls],
-                             directDescendents: Map[JType.Cls, Vector[JType.Cls]]): Map[ResolvedMethodDef, Set[ResolvedMethodDef]] = {
+                             directDescendents: Map[JType.Cls, Vector[JType.Cls]],
+                             externalDirectMethods: Map[JType.Cls, Set[MethodDef]]): Map[ResolvedMethodDef, Set[ResolvedMethodDef]] = {
 
 
     def methodExists(cls: JType.Cls, call: MethodCall): Boolean = {
-      callGraph.get(cls).exists(x => x.keys.exists(sigMatchesCall(_, call)))
+      callGraph.get(cls).exists(x => x.keys.exists(sigMatchesCall(_, call))) ||
+      externalDirectMethods.get(cls).exists(_.exists(sigMatchesCall(_, call)))
     }
 
     def resolveLocalCall(call: MethodCall): Set[ResolvedMethodDef] = call.invokeType match {
