@@ -127,6 +127,7 @@ class MillBuildBootstrap(
           val evaluator = makeEvaluator(
             prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
             nestedRunnerState.frames.lastOption.map(_.scriptImportGraph).getOrElse(Map.empty),
+            nestedRunnerState.frames.lastOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
             rootModule,
             // We want to use the grandparent buildHash, rather than the parent
             // buildHash, because the parent build changes are instead detected
@@ -185,6 +186,7 @@ class MillBuildBootstrap(
           evalWatches,
           moduleWatches,
           Map.empty,
+          Map.empty,
           None,
           Nil
         )
@@ -201,6 +203,7 @@ class MillBuildBootstrap(
             moduleWatches
           ) =>
 
+//        pprint.err.log(methodCodeHashSignatures)
         val runClasspathChanged = !prevFrameOpt.exists(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )
@@ -234,6 +237,7 @@ class MillBuildBootstrap(
           evalWatches,
           moduleWatches,
           scriptImportGraph,
+          methodCodeHashSignatures,
           Some(classLoader),
           runClasspath
         )
@@ -261,6 +265,7 @@ class MillBuildBootstrap(
       evalWatched,
       moduleWatches,
       Map.empty,
+      Map.empty,
       None,
       Nil
     )
@@ -271,6 +276,7 @@ class MillBuildBootstrap(
   def makeEvaluator(
       workerCache: Map[Segments, (Int, Any)],
       scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
+      methodCodeHashSignatures: Map[String, Int],
       rootModule: RootModule,
       millClassloaderSigHash: Int,
       depth: Int
@@ -293,6 +299,7 @@ class MillBuildBootstrap(
       .withFailFast(!config.keepGoing.value)
       .withThreadCount(threadCount)
       .withScriptImportGraph(scriptImportGraph)
+      .withMethodCodeHashSignatures(methodCodeHashSignatures)
   }
 
   def recRoot(depth: Int) = projectRoot / Seq.fill(depth)("mill-build")

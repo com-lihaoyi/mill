@@ -39,7 +39,8 @@ class Evaluator private (
     _env: Map[String, String],
     _failFast: Boolean,
     _threadCount: Option[Int],
-    _scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+    _scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
+    _methodCodeHashSignatures: Map[String, Int],
 ) {
 
   import Evaluator.Terminal
@@ -316,25 +317,18 @@ class Evaluator private (
       group.iterator.map(_.sideHash)
     )
 
-    val scriptsHash = {
-      val scripts = new Loose.Agg.Mutable[os.Path]()
-      group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
-        case namedTask: NamedTask[_] => scripts.append(os.Path(namedTask.ctx.fileName))
-        case _ =>
+    val scriptsHash = group
+      .iterator
+      .flatMap(t => Iterator(t) ++ t.inputs)
+      .collect {
+        case namedTask: NamedTask[_] =>
+          val cls = namedTask.ctx.enclosingCls.getName
+          val name = namedTask.ctx.segment.pathSegments.last
+          val expectedPrefix = cls.stripSuffix("$") + "#" + name + "()"
+          _methodCodeHashSignatures.collectFirst { case (k, v) if k.startsWith(expectedPrefix) => v }
       }
-
-      val transitiveScripts = Graph.transitiveNodes(scripts)(t =>
-        scriptImportGraph.get(t).map(_._2).getOrElse(Nil)
-      )
-
-      transitiveScripts
-        .iterator
-        // Sometimes tasks are defined in external/upstreadm dependencies,
-        // (e.g. a lot of tasks come from JavaModule.scala) and won't be
-        // present in the scriptImportGraph
-        .map(p => scriptImportGraph.get(p).fold(0)(_._1))
-        .sum
-    }
+      .flatten
+      .sum
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
@@ -680,7 +674,8 @@ class Evaluator private (
       env: Map[String, String] = this.env,
       failFast: Boolean = this.failFast,
       threadCount: Option[Int] = this.threadCount,
-      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = this.scriptImportGraph
+      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = this.scriptImportGraph,
+      methodCodeHashSignatures: Map[String, Int] = this._methodCodeHashSignatures
   ): Evaluator = new Evaluator(
     home,
     outPath,
@@ -692,7 +687,8 @@ class Evaluator private (
     env,
     failFast,
     threadCount,
-    scriptImportGraph
+    scriptImportGraph,
+    methodCodeHashSignatures
   )
 
   def withHome(home: os.Path): Evaluator = copy(home = home)
@@ -710,6 +706,8 @@ class Evaluator private (
   def withThreadCount(threadCount: Option[Int]): Evaluator = copy(threadCount = threadCount)
   def withScriptImportGraph(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]): Evaluator =
     copy(scriptImportGraph = scriptImportGraph)
+  def withMethodCodeHashSignatures(methodCodeHashSignatures: Map[String, Int]): Evaluator =
+    copy(methodCodeHashSignatures = methodCodeHashSignatures)
 }
 
 object Evaluator {
@@ -931,6 +929,7 @@ object Evaluator {
     _env = Evaluator.defaultEnv,
     _failFast = true,
     _threadCount = Some(1),
-    _scriptImportGraph = Map.empty
+    _scriptImportGraph = Map.empty,
+    _methodCodeHashSignatures = Map.empty
   )
 }

@@ -1,24 +1,13 @@
 import mill._
 
+def helperFoo = { println("running helperFoo"); 1 }
 
-def constant = T{ println("running constant"); 1 }
+def foo = T{ println("running foo"); helperFoo }
 
-def transitiveHelperFoo() = { println("running transitiveHelperFoo"); 20 }
+def helperBar = { println("running helperBar"); 20 }
 
-def helperFoo = { println("running helperFoo"); 300 + transitiveHelperFoo() }
+def bar = T{ println("running bar"); helperBar }
 
-def foo = T{ println("running foo"); helperFoo + constant() }
+def helperQux = { println("running helperQux"); 300 }
 
-val helperBar = { println("running helperBar"); 4000 }
-
-def bar = T{ println("running bar"); helperBar + foo() }
-
-lazy val helperQux = { println("running helperQux"); 50000}
-
-def qux = T{ println("running qux"); helperQux  + bar() }
-
-class HelperBaz{
-  def help() = { println("running HelperBaz.help"); 600000 }
-}
-
-def baz = T{ println("running baz");  qux() + new HelperBaz().help() }
+def qux = T{ println("running qux"); foo() + bar() + helperQux }
