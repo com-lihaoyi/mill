@@ -2,9 +2,12 @@ package hello;
 
 // Private methods cannot be inherited or overriden, and so when we calll
 // `Hello#bar` -> `Parent#foo`, we can be confident we are calling `Parent#foo`
-// specifically and not calling `Hello#foo`
+// specifically and not calling `Hello#foo` or `Grandparent#foo`
 
-class Parent{
+class Grandparent{
+    private int foo(){ return 2; }
+}
+class Parent extends Grandparent{
     private int foo(){ return 2; }
     int bar(){ return foo(); }
 }
@@ -21,6 +24,9 @@ public class Hello extends Parent{
     "hello.Hello.main()int": [
         "hello.Hello#<init>()void",
         "hello.Parent#bar()int"
+    ],
+    "hello.Parent#<init>()void": [
+        "hello.Grandparent#<init>()void"
     ],
     "hello.Parent#bar()int": [
         "hello.Parent#foo()int"
