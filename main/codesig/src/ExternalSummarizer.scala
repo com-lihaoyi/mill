@@ -22,7 +22,6 @@ object ExternalSummarizer{
     ext.loadAll(externalTypes)
     Result(ext.methodsPerCls.toMap, ext.ancestorsPerCls.toMap, ext.directSuperclasses.toMap)
   }
-
 }
 
 class ExternalSummarizer private(loadClassNode: JCls => ClassNode){

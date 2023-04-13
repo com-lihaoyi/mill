@@ -51,7 +51,6 @@ object MethodCallResolver{
                              directDescendents: Map[JCls, Vector[JCls]],
                              externalDirectMethods: Map[JCls, Set[MethodDef]]): Map[ResolvedMethodDef, Set[ResolvedMethodDef]] = {
 
-
     def methodExists(cls: JCls, call: MethodCall): Boolean = {
       callGraph.get(cls).exists(x => x.keys.exists(sigMatchesCall(_, call))) ||
       externalDirectMethods.get(cls).exists(_.exists(sigMatchesCall(_, call)))
@@ -98,7 +97,7 @@ object MethodCallResolver{
           resolveLocalReceivers(call).partition(callGraph.contains)
 
         val externalLocalResolvedMethods =
-          if (externalCandidates.isEmpty || call.invokeType == InvokeType.Static) {
+          if (externalCandidates.isEmpty) {
             Set.empty[ResolvedMethodDef]
           } else {
             resolveExternalLocalReceivers(call.desc, externalCandidates)

@@ -1,7 +1,7 @@
 package hello;
 
-// We instantiate this and call its method, so we record that in
-// the call graph.
+// Make sure that we create external call graph edges when calling external
+// static methods too.
 class Foo {
     public String toString() { return "Foo"; }
 }
@@ -12,26 +12,29 @@ public class Hello{
         bar(foo);
     }
     public static void bar(Foo foo) {
-        System.out.println(foo);
+        System.identityHashCode(foo);
     }
 }
 
-// `Foo#<init>` does not end up calling `IntSupplier#<init>` to
-// `IntSupplier#read` and `Foo#read`, because `IntSupplier` is a Java
-// `interface` and does not have a constructor
-//
-// `Foo#uncalled` we do not need to assume gets called by `IntSupplier#<init>`,
-// as `uncalled` is a method on `Foo` and not `IntSupplier`, so `IntSupplier`
-// would have no way to call it
+// In this case, `bar` calling `System.identityHashCode(Object)` should be
+// treated as calling all methods of `Object` on all sub-classes of `Object`,
+// which includes `Foo#toString`. This is in addition to everyone's `<init>`
+// methods also calling `Foo#toString` via `Object#<init>`.
 
 /* EXPECTED CALL GRAPH
 {
-    "hello.Hello.bar(java.util.function.IntSupplier)int": [
-        "hello.Foo#getAsInt()int"
+    "hello.Foo#<init>()void": [
+        "hello.Foo#toString()java.lang.String"
     ],
-    "hello.Hello.main()int": [
+    "hello.Hello#<init>()void": [
+        "hello.Foo#toString()java.lang.String"
+    ],
+    "hello.Hello.bar(hello.Foo)void": [
+        "hello.Foo#toString()java.lang.String"
+    ],
+    "hello.Hello.main()void": [
         "hello.Foo#<init>()void",
-        "hello.Hello.bar(java.util.function.IntSupplier)int"
+        "hello.Hello.bar(hello.Foo)void"
     ]
 }
 */

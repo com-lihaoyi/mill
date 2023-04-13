@@ -20,7 +20,7 @@ object CodeSig{
     val allMethodCallParamClasses = summary
       .callGraph
       .flatMap(_._2.flatMap(_._2))
-      .flatMap(_.desc.args)
+      .flatMap(call => Seq(call.cls) ++ call.desc.args)
       .collect { case c: JType.Cls => c }
 
     val external = ExternalSummarizer.loadAll(

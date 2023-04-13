@@ -76,11 +76,12 @@ object LocalSummarizer{
                          currentCls: JCls) = {
     def hashlabel(label: LabelNode) = hash(labelIndices(label))
 
-    def clinitCall(desc: String) = {
-      val descCls = JCls.fromSlashed(desc)
-      if (descCls != currentCls) storeCallEdge(
-        MethodCall(descCls, InvokeType.Static, "<clinit>", Desc.read("()V"))
-      )
+    def clinitCall(desc: String) = JType.read(desc) match{
+      case descCls: JType.Cls if descCls != currentCls =>
+        storeCallEdge(
+          MethodCall(descCls, InvokeType.Static, "<clinit>", Desc.read("()V"))
+        )
+      case _ => //donothing
     }
 
     insn match {

@@ -87,6 +87,7 @@ object JType {
   }
   case class Cls(name: String) extends JType {
     assert(!name.contains('/'), s"JType $name contains invalid '/' characters")
+    assert(!name.contains('['), s"JType $name contains invalid '[' characters")
     def pretty = name
   }
 
