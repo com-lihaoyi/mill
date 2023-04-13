@@ -2,7 +2,7 @@ import mill._, scalalib._
 
 object app extends RootModule with ScalaModule{
 
-  def scalaVersion = "2.13.10"
+  def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::cask:0.9.1",
     ivy"com.lihaoyi::scalatags:0.12.0"

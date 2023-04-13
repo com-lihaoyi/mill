@@ -78,6 +78,19 @@ object Result {
   case class Exception(throwable: Throwable, outerStack: OuterStack) extends Failing[Nothing] {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => Result[V]): Exception = this
+
+    override def toString: String = {
+      var current = List(throwable)
+      while (current.head.getCause != null) {
+        current = current.head.getCause :: current
+      }
+      current.reverse
+        .flatMap(ex =>
+          Seq(ex.toString) ++
+            ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
+        )
+        .mkString("\n")
+    }
   }
 
   class OuterStack(val value: Seq[StackTraceElement]) {

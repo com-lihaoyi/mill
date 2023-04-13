@@ -2,7 +2,7 @@ package mill.scalalib.worker
 
 import mill.api.Loose.Agg
 import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, Result, internal}
-import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil}
+import mill.scalalib.api.{CompilationResult, ZincWorkerApi, ZincWorkerUtil, Versions}
 import sbt.internal.inc.{
   Analysis,
   CompileFailed,

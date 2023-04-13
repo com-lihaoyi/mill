@@ -2,7 +2,6 @@ package mill.util
 
 import mill.api.Logger
 
-
 /**
  * A Logger that forwards all logging to another Logger.  Intended to be
  * used as a base class for wrappers that modify logging behavior.

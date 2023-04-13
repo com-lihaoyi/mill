@@ -1,8 +1,8 @@
 diff --git a/build.sc b/build.sc
-index cbc7b7aaa..351a37fbc 100644
+index 8fcdeb538..c8155558d 100644
 --- a/build.sc
 +++ b/build.sc
-@@ -2,22 +2,12 @@
+@@ -2,27 +2,18 @@
  import $file.ci.shared
  import $file.ci.upload
  import $ivy.`org.scalaj::scalaj-http:2.4.2`
@@ -27,7 +27,13 @@ index cbc7b7aaa..351a37fbc 100644
  import mill._
  import mill.define.{Command, Source, Sources, Target, Task}
  import mill.eval.Evaluator
-@@ -185,12 +175,8 @@ object Deps {
+ import mill.main.MainModule
+ import mill.scalalib._
++import mill.scalalib.api.Versions
+ import mill.scalalib.publish._
+ import mill.modules.Jvm
+ import mill.define.SelectMode
+@@ -185,12 +176,8 @@ object Deps {
    val requests = ivy"com.lihaoyi::requests:0.8.0"
  }
  
@@ -42,10 +48,31 @@ index cbc7b7aaa..351a37fbc 100644
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
-@@ -202,202 +188,6 @@ def millBinPlatform: T[String] = T {
- def baseDir = build.millSourcePath
+@@ -239,219 +226,23 @@ class BridgeModule(val crossScalaVersion: String) extends PublishModule with Cro
+   def generatedSources = T {
+     import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
+     val resolvedJars = resolveDeps(
+-      T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}") },
++      T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}").map(bindDependency()) },
+       sources = true
+     )()
  
+     val bridgeJar = grepJar(
+-      resolvedJars.map(_.path),
++      resolvedJars,
+       s"compiler-bridge_${scalaBinaryVersion(scalaVersion())}",
+       Deps.zinc.dep.version,
+       true
+     )
  
+-    mill.api.IO.unpackZip(bridgeJar, os.rel)
++    mill.api.IO.unpackZip(bridgeJar.path, os.rel)
+ 
+     Seq(PathRef(T.dest))
+   }
+ }
+ 
+-
 -trait BuildInfo extends JavaModule {
 -  /**
 -   * The package name under which the BuildInfo data object will be stored.
@@ -241,11 +268,10 @@ index cbc7b7aaa..351a37fbc 100644
 -  }
 -}
 -
--
- trait MillPublishModule extends PublishModule {
-   override def artifactName = "mill-" + super.artifactName()
-   def publishVersion = millVersion()
-@@ -447,27 +237,8 @@ trait MillCoursierModule extends CoursierModule {
+ def commonPomSettings(artifactName: String) = {
+   PomSettings(
+     description = artifactName,
+@@ -505,27 +296,8 @@ trait MillCoursierModule extends CoursierModule {
    )
  }
  
@@ -274,7 +300,7 @@ index cbc7b7aaa..351a37fbc 100644
  }
  
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -758,6 +529,7 @@ object scalajslib extends MillModule with BuildInfo{
+@@ -821,6 +593,7 @@ object scalajslib extends MillModule with BuildInfo{
    }
    object worker extends Cross[WorkerModule]("1")
    class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
@@ -282,7 +308,7 @@ index cbc7b7aaa..351a37fbc 100644
      override def moduleDeps = Seq(scalajslib.`worker-api`)
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
-@@ -820,6 +592,7 @@ object contrib extends MillModule {
+@@ -883,6 +656,7 @@ object contrib extends MillModule {
  
      object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
      class WorkerModule(playBinary: String) extends MillInternalModule {
@@ -290,7 +316,7 @@ index cbc7b7aaa..351a37fbc 100644
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -1011,6 +784,7 @@ object scalanativelib extends MillModule {
+@@ -1074,6 +848,7 @@ object scalanativelib extends MillModule {
    object worker extends Cross[WorkerModule]("0.4")
    class WorkerModule(scalaNativeWorkerVersion: String)
        extends MillInternalModule {
@@ -298,7 +324,7 @@ index cbc7b7aaa..351a37fbc 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1171,6 +945,7 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1237,6 +1012,7 @@ trait IntegrationTestModule extends MillScalaModule {
  }
  
  trait IntegrationTestCrossModule extends IntegrationTestModule {
@@ -306,7 +332,7 @@ index cbc7b7aaa..351a37fbc 100644
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1725,53 +1500,7 @@ def launcher = T {
+@@ -1791,53 +1567,7 @@ def launcher = T {
  
  
  def uploadToGithub(authKey: String) = T.command {

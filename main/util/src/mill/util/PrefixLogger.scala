@@ -4,9 +4,8 @@ import mill.api.SystemStreams
 
 import java.io.PrintStream
 
-
 class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "")
-  extends ColorLogger {
+    extends ColorLogger {
   override def colored = out.colored
 
   def infoColor = out.infoColor
@@ -34,8 +33,6 @@ class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = ""
 
   override def debugEnabled: Boolean = out.debugEnabled
 }
-
-
 
 object PrefixLogger {
   def apply(out: ColorLogger, context: String, tickerContext: String = ""): PrefixLogger =
