@@ -48,6 +48,9 @@
   "Tetris$1#actionPerformed(java.awt.event.ActionEvent)void": [
     "Tetris$Block#move(int,int,boolean)void"
   ],
+  "Tetris$Background#<init>(Tetris)void": [
+    "Tetris$Background#paintComponent(java.awt.Graphics)void"
+  ],
   "Tetris$Block#imprint()void": [
     "GUI.close(java.lang.String,java.lang.String)void",
     "Tetris#checkLines()void",

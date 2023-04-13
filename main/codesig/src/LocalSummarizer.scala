@@ -16,6 +16,9 @@ object LocalSummarizer{
                     methodHashes: Map[JCls, Map[MethodDef, Int]],
                     directSuperclasses: Map[JCls, JCls],
                     directAncestors: Map[JCls, Set[JCls]])
+  object Result{
+    implicit def rw: upickle.default.ReadWriter[Result] = upickle.default.macroRW
+  }
 
   def summarize(classNodes: Seq[ClassNode]) = {
 

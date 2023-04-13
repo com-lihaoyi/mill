@@ -17,6 +17,10 @@ object ExternalSummarizer{
                     directAncestors: Map[JCls, Set[JCls]],
                     directSuperclasses: Map[JCls, JCls])
 
+  object Result {
+    implicit def rw: upickle.default.ReadWriter[Result] = upickle.default.macroRW
+  }
+
   def loadAll(externalTypes: Set[JCls], loadClassNode: JCls => ClassNode): Result = {
     val ext = new ExternalSummarizer(loadClassNode)
     ext.loadAll(externalTypes)

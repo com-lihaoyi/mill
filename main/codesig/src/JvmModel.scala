@@ -1,6 +1,6 @@
 package mill.codesig
 
-import upickle.default.{ReadWriter, readwriter}
+import upickle.default.{ReadWriter, readwriter, stringKeyRW}
 
 // This file contains typed data structures representing the types and values
 // found in the JVM bytecode: various kinds of types, method signatures, method
@@ -11,8 +11,10 @@ case class ResolvedMethodDef(cls: JType.Cls, method: MethodDef){
   override def toString = cls.pretty + method.toString
 }
 
+
 object ResolvedMethodDef{
   implicit val ordering: Ordering[ResolvedMethodDef] = Ordering.by(m => (m.cls, m.method))
+  implicit val rw: ReadWriter[ResolvedMethodDef] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
 }
 
 case class MethodDef(static: Boolean, name: String, desc: Desc){
@@ -21,6 +23,7 @@ case class MethodDef(static: Boolean, name: String, desc: Desc){
 
 object MethodDef{
   implicit val ordering: Ordering[MethodDef] = Ordering.by(m => (m.static, m.name, m.desc))
+  implicit val rw: ReadWriter[MethodDef] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
 }
 
 case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc){
@@ -32,6 +35,10 @@ case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc
     }
     cls.name + sep + name + desc
   }
+}
+
+object MethodCall{
+  implicit val rw: ReadWriter[MethodCall] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
 }
 
 sealed trait InvokeType
@@ -51,7 +58,8 @@ sealed trait JType{
   def pretty: String
 }
 object JType {
-  class Prim(val pretty: String) extends JType
+  implicit val rw: ReadWriter[MethodDef] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
+  sealed class Prim(val pretty: String) extends JType
 
   object Prim extends {
     def read(s: String) = all(s(0))
@@ -94,7 +102,7 @@ object JType {
   object Cls {
     def fromSlashed(s: String) = Cls(s.replace('/', '.'))
 
-    implicit val rw: ReadWriter[Cls] = readwriter[String].bimap(_.name, JType.Cls(_))
+    implicit val rw: ReadWriter[Cls] = stringKeyRW(readwriter[String].bimap(_.name, JType.Cls(_)))
     implicit val ordering: Ordering[Cls] = Ordering.by(_.name)
 
     def read(s: String) = fromSlashed(s)

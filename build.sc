@@ -652,7 +652,7 @@ object main extends MillModule {
           .map(_.subRelativeTo(millSourcePath / "cases").segments)
           .collect{case Seq(a, b) => s"$a-$b"}
       )
-
+      def testLogFolder = T{ T.dest }
       def forkEnv = T{
         T.traverse(caseKeys) { i =>
           cases(i).compile.map(v => (s"MILL_TEST_CLASSES_$i", v.classes.path.toString))
@@ -662,11 +662,14 @@ object main extends MillModule {
         }().toMap ++
         T.traverse(caseKeys) { i =>
           cases(i).sources.map(v => (s"MILL_TEST_SOURCES_$i", v.head.path.toString))
-        }()
+        }()++ Map(
+          "MILL_TEST_LOGS" -> testLogFolder().toString
+        )
       }
 
       object cases extends Cross[CaseModule](caseKeys: _*)
       class CaseModule(caseName: String) extends ScalaModule {
+
 
         val Array(prefix, suffix) = caseName.split("-", 2)
         def millSourcePath = super.millSourcePath / os.up / prefix / suffix

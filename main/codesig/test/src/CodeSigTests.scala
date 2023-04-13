@@ -23,20 +23,7 @@ object CodeSigTests extends TestSuite{
       test("13-scala-static-method") - testCase()
       test("14-scala-lambda") - testCase()
     }
-    test("external"){
-      test("1-interface-method") - testCase()
-      test("2-interface-never-instantiated") - testCase()
-      test("3-interface-never-called") - testCase()
-      test("4-abstract-class-maybe-called") - testCase()
-      test("5-abstract-class-indirect-inheritance-called") - testCase()
-      test("6-abstract-class-indirect-inheritance-not-called") - testCase()
-      test("7-abstract-class-indirect-delegation-called") - testCase()
-      test("8-abstract-class-indirect-delegation-uncalled") - testCase()
-      test("9-interface-two-implementations-interface-call") - testCase()
-      test("10-interface-two-implementations-direct-call") - testCase()
-      test("11-static-method") - testCase()
-    }
-    test("complicated"){
+    test("complicated") {
       test("1-statics") - testCase()
       test("2-sudoku") - testCase()
       test("3-classes-cars") - testCase()
@@ -50,6 +37,21 @@ object CodeSigTests extends TestSuite{
       test("11-iterator-callback-class-scala") - testCase()
       test("12-iterator-inherit-external-scala") - testCase()
       test("13-iterator-inherit-external-filter-scala") - testCase()
+      test("14-jcanvas") - testCase()
+    }
+
+    test("external"){
+      test("1-interface-method") - testCase()
+      test("2-interface-never-instantiated") - testCase()
+      test("3-interface-never-called") - testCase()
+      test("4-abstract-class-maybe-called") - testCase()
+      test("5-abstract-class-indirect-inheritance-called") - testCase()
+      test("6-abstract-class-indirect-inheritance-not-called") - testCase()
+      test("7-abstract-class-indirect-delegation-called") - testCase()
+      test("8-abstract-class-indirect-delegation-uncalled") - testCase()
+      test("9-interface-two-implementations-interface-call") - testCase()
+      test("10-interface-two-implementations-direct-call") - testCase()
+      test("11-static-method") - testCase()
     }
     test("games"){
       test("1-tetris") - testCase()
@@ -64,12 +66,17 @@ object CodeSigTests extends TestSuite{
 
   def testCase()(implicit tp: utest.framework.TestPath) = {
 
-    val callGraph0 = CodeSig.compute(
-      os.walk(os.Path(sys.env("MILL_TEST_CLASSES_" + tp.value.mkString("-"))))
-        .filter(_.ext == "class"),
+    val testLogFolder = os.Path(sys.env("MILL_TEST_LOGS")) / tp.value
+    os.remove.all(testLogFolder)
+    os.makeDir.all(testLogFolder)
+    println("testLogFolder: " + testLogFolder)
+    val testClassFolder = os.Path(sys.env("MILL_TEST_CLASSES_" + tp.value.mkString("-")))
+    println("testClassFolder: " + testClassFolder)
+    val callGraph0 = CodeSig.compute(os.walk(testClassFolder).filter(_.ext == "class"),
       sys.env("MILL_TEST_CLASSPATH_" + tp.value.mkString("-"))
         .split(",")
-        .map(os.Path(_))
+        .map(os.Path(_)),
+      new Logger(Some(testLogFolder))
     )
 
     val expectedCallGraph = parseExpectedJson(

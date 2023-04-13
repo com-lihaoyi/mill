@@ -6,34 +6,37 @@ import java.net.URLClassLoader
 
 object CodeSig{
   def compute(classFiles: Seq[os.Path],
-              upstreamClasspath: Seq[os.Path]) = {
+              upstreamClasspath: Seq[os.Path],
+              logger: Logger) = {
     val upstreamClasspathClassloader = new URLClassLoader(
       upstreamClasspath.map(_.toNIO.toUri.toURL).toArray,
       getClass.getClassLoader
     )
-    val summary = LocalSummarizer.summarize(
-      classFiles.map(p => loadClass(os.read.bytes(p)))
-    )
+    val localSummary = logger{
+      LocalSummarizer.summarize(classFiles.map(p => loadClass(os.read.bytes(p))))
+    }
 
-    val allDirectAncestors = summary.directAncestors.flatMap(_._2)
+    val allDirectAncestors = localSummary.directAncestors.flatMap(_._2)
 
-    val allMethodCallParamClasses = summary
+    val allMethodCallParamClasses = localSummary
       .callGraph
       .flatMap(_._2.flatMap(_._2))
       .flatMap(call => Seq(call.cls) ++ call.desc.args)
       .collect { case c: JType.Cls => c }
 
-    val external = ExternalSummarizer.loadAll(
-      (allDirectAncestors ++ allMethodCallParamClasses)
-        .filter(!summary.directAncestors.contains(_))
-        .toSet,
-      externalType =>
-        loadClass(
-          os.read.bytes(os.resource(upstreamClasspathClassloader) / os.SubPath(externalType.name.replace('.', '/') + ".class"))
-        )
-    )
+    val externalSummary = logger{
+      ExternalSummarizer.loadAll(
+        (allDirectAncestors ++ allMethodCallParamClasses)
+          .filter(!localSummary.directAncestors.contains(_))
+          .toSet,
+        externalType =>
+          loadClass(
+            os.read.bytes(os.resource(upstreamClasspathClassloader) / os.SubPath(externalType.name.replace('.', '/') + ".class"))
+          )
+      )
+    }
 
-    val foundTransitive0 = MethodCallResolver.resolveAllMethodCalls(summary, external)
+    val foundTransitive0 = MethodCallResolver.resolveAllMethodCalls(localSummary, externalSummary, logger)
 
     foundTransitive0
   }

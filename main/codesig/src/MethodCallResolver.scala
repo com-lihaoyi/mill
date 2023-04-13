@@ -11,34 +11,65 @@ import JType.{Cls => JCls}
  */
 object MethodCallResolver{
   def resolveAllMethodCalls(localSummary: LocalSummarizer.Result,
-                            externalSummary: ExternalSummarizer.Result): Map[ResolvedMethodDef, Set[ResolvedMethodDef]]  = {
+                            externalSummary: ExternalSummarizer.Result,
+                            logger: Logger): Map[ResolvedMethodDef, Set[ResolvedMethodDef]]  = {
 
-    val allDirectAncestors = localSummary.directAncestors ++ externalSummary.directAncestors
-    val directDescendents = allDirectAncestors
-      .toVector
-      .flatMap { case (k, vs) => vs.map((_, k)) }
-      .groupMap(_._1)(_._2)
+    val allDirectAncestors = logger{
+      localSummary.directAncestors ++ externalSummary.directAncestors
+    }
 
 
-    val externalClsToLocalClsMethods = localSummary
-      .callGraph
-      .keySet
-      .flatMap { cls =>
-        transitiveExternalMethods(cls, allDirectAncestors, externalSummary.directMethods)
-          .map { case (upstreamCls, localMethods) =>
-            (upstreamCls, Map(cls -> localMethods.filter(m => !m.static && m.name != "<init>")))
-          }
+    val directDescendents = logger{
+      allDirectAncestors
+        .toVector
+        .flatMap { case (k, vs) => vs.map((_, k)) }
+        .groupMap(_._1)(_._2)
+    }
+
+
+    val externalClsToLocalClsMethods0 = logger{
+      localSummary
+        .callGraph
+        .keySet
+        .flatMap { cls =>
+          transitiveExternalMethods(cls, allDirectAncestors, externalSummary.directMethods)
+            .map { case (upstreamCls, localMethods) =>
+              // <init> methods are final and cannot be overriden
+              (upstreamCls, Map(cls -> localMethods.filter(m => !m.static && m.name != "<init>")))
+            }
+        }
+        .groupMapReduce(_._1)(_._2)(_ ++ _)
+    }
+
+    // Make sure that when doing an external method call, we look up all methods
+    // both defined on and inherited by the type in question
+    //
+    // UN-TESTED
+    val externalClsToLocalClsMethods = logger{
+      externalClsToLocalClsMethods0.map{ case (cls, _) =>
+
+        val all = clsAndAncestors(Seq(cls), _ => false, allDirectAncestors)
+          .toVector
+          .map(externalClsToLocalClsMethods0(_))
+
+        val allKeys = all
+          .flatMap(_.keys)
+          .map((key: JCls) => (key, all.flatMap(_.get(key)).flatten.toSet))
+          .toMap
+
+
+        cls -> allKeys
       }
-      .groupMapReduce(_._1)(_._2)(_ ++ _)
+    }
 
-    new MultiBiMap.Mutable()
     val resolvedCalls = resolveAllMethodCalls0(
       localSummary.callGraph,
       externalClsToLocalClsMethods,
       allDirectAncestors,
       localSummary.directSuperclasses ++ externalSummary.directSuperclasses,
       directDescendents,
-      externalSummary.directMethods
+      externalSummary.directMethods,
+      logger
     )
 
     resolvedCalls
@@ -49,7 +80,8 @@ object MethodCallResolver{
                              allDirectAncestors: Map[JCls, Set[JCls]],
                              directSuperclasses: Map[JCls, JCls],
                              directDescendents: Map[JCls, Vector[JCls]],
-                             externalDirectMethods: Map[JCls, Set[MethodDef]]): Map[ResolvedMethodDef, Set[ResolvedMethodDef]] = {
+                             externalDirectMethods: Map[JCls, Set[MethodDef]],
+                             logger: Logger): Map[ResolvedMethodDef, Set[ResolvedMethodDef]] = {
 
     def methodExists(cls: JCls, call: MethodCall): Boolean = {
       callGraph.get(cls).exists(x => x.keys.exists(sigMatchesCall(_, call))) ||
@@ -58,13 +90,12 @@ object MethodCallResolver{
 
     def resolveLocalReceivers(call: MethodCall): Set[JCls] = call.invokeType match {
       case InvokeType.Static =>
-        val candidates = clsAndSupers(
-          call.cls,
-          skipEarly = methodExists(_, call),
-          directSuperclasses
-        )
+        val candidates = clsAndSupers(call.cls, methodExists(_, call), directSuperclasses)
 
-        candidates.find(methodExists(_, call)).toSet
+        // <clinit> on one class triggers <clinit> on all of its superclasses as well
+        // UN-TESTED
+        if (call.name == "<clinit>") candidates.filter(methodExists(_, call)).toSet
+        else candidates.find(methodExists(_, call)).toSet
 
       case InvokeType.Special => Set(call.cls)
 
@@ -78,49 +109,60 @@ object MethodCallResolver{
         candidates.filter(methodExists(_, call))
     }
 
-    def resolveExternalLocalReceivers(callDesc: Desc, called: Set[JCls]): Set[ResolvedMethodDef] = {
+    def resolveExternalLocalReceivers(invokeType: InvokeType,
+                                      callDesc: Desc,
+                                      called: Set[JCls]): Set[ResolvedMethodDef] = {
       val argTypes = callDesc.args.collect { case c: JCls => c }
-      val thisTypes = called
+      val thisTypes = if (invokeType == InvokeType.Static) Set.empty[JCls] else called
 
+      logger.log(argTypes)
+      logger.log(thisTypes)
       (argTypes ++ thisTypes)
         .flatMap(externalClsToLocalClsMethods.getOrElse(_, Nil))
         .flatMap { case (k, vs) => vs.map(m => ResolvedMethodDef(k, m)) }
-        .filter(_.method.name != "<init>")
         .toSet
     }
 
-    val allCalls = callGraph.toIterator.flatMap(_._2).flatMap(_._2).toSet
+    val allCalls = logger{ callGraph.toIterator.flatMap(_._2).flatMap(_._2).toSet }
 
-    val resolvedMap = allCalls
-      .map{ call =>
-        val (localCandidates, externalCandidates) =
-          resolveLocalReceivers(call).partition(callGraph.contains)
+    val resolvedMap = logger {
+      allCalls
+        .map { call =>
 
-        val externalLocalResolvedMethods =
-          if (externalCandidates.isEmpty) {
-            Set.empty[ResolvedMethodDef]
-          } else {
-            resolveExternalLocalReceivers(call.desc, externalCandidates)
-          }
+          val (localCandidates, externalCandidates) =
+            resolveLocalReceivers(call).partition(callGraph.contains)
 
-        val localResolvedMethods = localCandidates
-          .map(ResolvedMethodDef(_, MethodDef(call.invokeType == InvokeType.Static, call.name, call.desc)))
+          logger.log(localCandidates, prefix = s"resolvedMap-$call-")
+          logger.log(externalCandidates, prefix = s"resolvedMap-$call-")
+          val externalLocalResolvedMethods =
+            if (externalCandidates.isEmpty) Set.empty[ResolvedMethodDef]
+            else resolveExternalLocalReceivers(call.invokeType, call.desc, externalCandidates)
 
-        (call, localResolvedMethods ++ externalLocalResolvedMethods)
-      }
-      .toMap
+          logger.log(externalLocalResolvedMethods, prefix = s"resolvedMap-$call-")
 
-    for {
-      (cls, methods) <- callGraph
-      (m0, calls) <- methods
-    } yield {
-      val resolvedMethod = ResolvedMethodDef(cls, m0)
-      val resolved = calls
-        .flatMap(resolvedMap.getOrElse(_, Nil))
-        .filter { m => callGraph.getOrElse(m.cls, Map()).contains(m.method) }
+          val localResolvedMethods = localCandidates
+            .map(ResolvedMethodDef(_, MethodDef(call.invokeType == InvokeType.Static, call.name, call.desc)))
 
-      (resolvedMethod, resolved)
+
+          (call, localResolvedMethods ++ externalLocalResolvedMethods)
+        }
+        .toMap
     }
+
+    val result = logger {
+      for {
+        (cls, methods) <- callGraph
+        (m0, calls) <- methods
+      } yield {
+        val resolvedMethod = ResolvedMethodDef(cls, m0)
+        val resolved = calls
+          .flatMap(resolvedMap.getOrElse(_, Nil))
+          .filter { m => callGraph.getOrElse(m.cls, Map()).contains(m.method) }
+
+        (resolvedMethod, resolved)
+      }
+    }
+    result
   }
 
   def transitiveExternalAncestors(cls: JCls,
