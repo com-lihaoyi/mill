@@ -52,20 +52,23 @@ object CodeSig{
 
 class CodeSig(val directCallGraph: Map[ResolvedMethodDef, Set[ResolvedMethodDef]],
               methodHashes:  Map[JType.Cls, Map[MethodDef, Int]]){
-  val methodToIndex = directCallGraph.flatMap{case (k, vs) => Seq(k) ++ vs}.toVector.zipWithIndex.toMap
-  val indexToMethod = methodToIndex.map(_.swap)
-  val topoSortedMethodGroups = Tarjans
-    .apply(
-      Range(0, methodToIndex.size).map(i => directCallGraph(indexToMethod(i)).map(methodToIndex))
-    )
-    .map(_.map(indexToMethod))
+  val methodToIndex0 = directCallGraph.flatMap{case (k, vs) => Seq(k) ++ vs}.toVector.distinct.sorted.zipWithIndex
+  val methodToIndex = methodToIndex0.toMap
+  val indexToMethod = methodToIndex0.map(_.swap).toMap
+
+  val indexGraphEdges = methodToIndex0
+    .map { case (m, i) =>
+      directCallGraph(m).map(methodToIndex)
+    }
+
+  val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges).map(_.map(indexToMethod))
 
   val transitiveCallGraphHashes = Util.computeTransitive[ResolvedMethodDef, Int](
     topoSortedMethodGroups,
     directCallGraph,
     r => methodHashes(r.cls)(r.method),
     _.hashCode()
-      )
+  ).toMap
 
 //  val transitiveCallGraphMethods = Util.computeTransitive[Set[ResolvedMethodDef]](
 //    topoSortedMethodGroups,

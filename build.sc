@@ -1498,7 +1498,14 @@ def launcherScript(
 }
 
 object runner extends MillModule {
-  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers)
+  override def moduleDeps = Seq(
+    scalalib,
+    scalajslib,
+    scalanativelib,
+    bsp,
+    linenumbers,
+    main.codesig
+  )
   override def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishModule with MillInternalModule {

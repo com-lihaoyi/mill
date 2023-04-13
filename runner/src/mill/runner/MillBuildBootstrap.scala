@@ -177,7 +177,7 @@ class MillBuildBootstrap(
     MillBuildBootstrap.evaluateWithWatches(
       rootModule,
       evaluator,
-      Seq("{runClasspath,scriptImportGraph}")
+      Seq("{runClasspath,scriptImportGraph,methodCodeHashSignatures}")
     ) match {
       case (Left(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
@@ -194,11 +194,13 @@ class MillBuildBootstrap(
       case (
             Right(Seq(
               runClasspath: Seq[PathRef],
-              scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+              scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
+              methodCodeHashSignatures: Map[String, Int]
             )),
             evalWatches,
             moduleWatches
           ) =>
+
         val runClasspathChanged = !prevFrameOpt.exists(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )

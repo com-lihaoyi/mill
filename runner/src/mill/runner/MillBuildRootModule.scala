@@ -96,6 +96,17 @@ class MillBuildRootModule()(implicit
       }
   }
 
+  def methodCodeHashSignatures: T[Map[String, Int]] = T {
+    mill.codesig.CodeSig
+      .compute(
+        classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
+        upstreamClasspath = compileClasspath().toSeq.map(_.path),
+        logger = new mill.codesig.Logger(None)
+      )
+      .transitiveCallGraphHashes
+      .map{case (k, v) => (k.toString, v)}
+  }
+
   override def allSourceFiles: T[Seq[PathRef]] = T {
     Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
   }
