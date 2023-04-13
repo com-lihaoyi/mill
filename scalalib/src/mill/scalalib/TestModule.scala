@@ -246,7 +246,7 @@ object TestModule {
    * TestModule that uses ZIO Test Framework to run tests.
    * You need to provide the zio-test dependencies yourself.
    */
-  trait ZIOTest extends TestModule
+  trait ZioTest extends TestModule
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
   }
 
