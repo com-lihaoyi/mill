@@ -111,7 +111,7 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
       case f: Result.Failure[_] =>
         streams.err.println("Failed to start the BSP worker. " + f.msg)
         BspServerResult.Failure
-      case f : Result.Exception =>
+      case f: Result.Exception =>
         streams.err.println("Failed to start the BSP worker. " + f.throwable)
         BspServerResult.Failure
       case f =>
