@@ -34,6 +34,7 @@ object CodeSigTests extends TestSuite{
       test("8-abstract-class-indirect-delegation-uncalled") - testCase()
       test("9-interface-two-implementations-interface-call") - testCase()
       test("10-interface-two-implementations-direct-call") - testCase()
+      test("11-static-method") - testCase()
     }
     test("complicated"){
       test("1-statics") - testCase()
