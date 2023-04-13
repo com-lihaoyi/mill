@@ -69,7 +69,7 @@ object MillServerMain extends MillServerMain[RunnerState] {
       args = args,
       stateCache = stateCache,
       mainInteractive = mainInteractive,
-      streams = streams,
+      streams0 = streams,
       bspLog = None,
       env = env,
       setIdle = setIdle,

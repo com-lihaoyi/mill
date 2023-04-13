@@ -50,16 +50,20 @@ object MillMain {
 
     val (result, _) =
       try main0(
-          args,
-          RunnerState.empty,
-          mill.util.Util.isInteractive(),
-          runnerStreams,
-          bspLog,
-          System.getenv().asScala.toMap,
-          b => (),
-          Map(),
-          sys.props.toMap
-      ) finally {
+          args = args,
+          stateCache = RunnerState.empty,
+          mainInteractive = mill.util.Util.isInteractive(),
+          streams0 = runnerStreams,
+          bspLog = bspLog,
+          env = System.getenv().asScala.toMap,
+          setIdle = b => (),
+          userSpecifiedProperties0 = Map(),
+          initialSystemProperties = sys.props.toMap
+        )
+      finally {
+        System.setOut(initialSystemStreams.out)
+        System.setErr(initialSystemStreams.err)
+        System.setIn(initialSystemStreams.in)
         openStreams.foreach(_.close())
       }
     System.exit(if (result) 0 else 1)
