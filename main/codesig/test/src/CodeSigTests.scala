@@ -8,78 +8,99 @@ import scala.collection.immutable.{SortedMap, SortedSet}
 object CodeSigTests extends TestSuite{
   val tests = Tests{
     test("basic"){
-      test("1-static-method") - testCase()
-      test("2-instance-method") - testCase()
-      test("3-interface-method") - testCase()
-      test("4-inherited-method") - testCase()
-      test("5-inherited-interface-method") - testCase()
-      test("6-transitive-static-methods") - testCase()
-      test("7-transitive-virtual-methods") - testCase()
-      test("8-overriden-virtual-method") - testCase()
-      test("9-overriden-static-method") - testCase()
-      test("10-peer-inherited-method") - testCase()
-      test("11-java-lambda") - testCase()
-      test("12-clinit") - testCase()
-      test("13-private-method-not-inherited") - testCase()
-      test("14-scala-static-method") - testCase()
-      test("15-scala-lambda") - testCase()
+      test("1-static-method") - testExpectedCallGraph()
+      test("2-instance-method") - testExpectedCallGraph()
+      test("3-interface-method") - testExpectedCallGraph()
+      test("4-inherited-method") - testExpectedCallGraph()
+      test("5-inherited-interface-method") - testExpectedCallGraph()
+      test("6-transitive-static-methods") - testExpectedCallGraph()
+      test("7-transitive-virtual-methods") - testExpectedCallGraph()
+      test("8-overriden-virtual-method") - testExpectedCallGraph()
+      test("9-overriden-static-method") - testExpectedCallGraph()
+      test("10-peer-inherited-method") - testExpectedCallGraph()
+      test("11-java-lambda") - testExpectedCallGraph()
+      test("12-clinit") - testExpectedCallGraph()
+      test("13-private-method-not-inherited") - testExpectedCallGraph()
+      test("14-scala-static-method") - testExpectedCallGraph()
+      test("15-scala-lambda") - testExpectedCallGraph()
     }
     test("complicated") {
-      test("1-statics") - testCase()
-      test("2-sudoku") - testCase()
-      test("3-classes-cars") - testCase()
-      test("4-classes-parent") - testCase()
-      test("5-classes-sheep") - testCase()
-      test("6-classes-misc-scala") - testCase()
-      test("7-manifest-scala") - testCase()
-      test("8-linked-list-scala") - testCase()
-      test("9-array-seq-scala") - testCase()
-      test("10-iterator-foreach-scala") - testCase()
-      test("11-iterator-callback-class-scala") - testCase()
-      test("12-iterator-inherit-external-scala") - testCase()
-      test("13-iterator-inherit-external-filter-scala") - testCase()
+      test("1-statics") - testExpectedCallGraph()
+      test("2-sudoku") - testExpectedCallGraph()
+      test("3-classes-cars") - testExpectedCallGraph()
+      test("4-classes-parent") - testExpectedCallGraph()
+      test("5-classes-sheep") - testExpectedCallGraph()
+      test("6-classes-misc-scala") - testExpectedCallGraph()
+      test("7-manifest-scala") - testExpectedCallGraph()
+      test("8-linked-list-scala") - testExpectedCallGraph()
+      test("9-array-seq-scala") - testExpectedCallGraph()
+      test("10-iterator-foreach-scala") - testExpectedCallGraph()
+      test("11-iterator-callback-class-scala") - testExpectedCallGraph()
+      test("12-iterator-inherit-external-scala") - testExpectedCallGraph()
+      test("13-iterator-inherit-external-filter-scala") - testExpectedCallGraph()
 
     }
 
     test("external"){
-      test("1-interface-method") - testCase()
-      test("2-interface-never-instantiated") - testCase()
-      test("3-interface-never-called") - testCase()
-      test("4-abstract-class-maybe-called") - testCase()
-      test("5-abstract-class-indirect-inheritance-called") - testCase()
-      test("6-abstract-class-indirect-inheritance-not-called") - testCase()
-      test("7-abstract-class-indirect-delegation-called") - testCase()
-      test("8-abstract-class-indirect-delegation-uncalled") - testCase()
-      test("9-interface-two-implementations-interface-call") - testCase()
-      test("10-interface-two-implementations-direct-call") - testCase()
-      test("11-static-method") - testCase()
-      test("12-external-method-edge-to-inherited-method-override") - testCase()
-      test("13-jcanvas") - testCase()
+      test("1-interface-method") - testExpectedCallGraph()
+      test("2-interface-never-instantiated") - testExpectedCallGraph()
+      test("3-interface-never-called") - testExpectedCallGraph()
+      test("4-abstract-class-maybe-called") - testExpectedCallGraph()
+      test("5-abstract-class-indirect-inheritance-called") - testExpectedCallGraph()
+      test("6-abstract-class-indirect-inheritance-not-called") - testExpectedCallGraph()
+      test("7-abstract-class-indirect-delegation-called") - testExpectedCallGraph()
+      test("8-abstract-class-indirect-delegation-uncalled") - testExpectedCallGraph()
+      test("9-interface-two-implementations-interface-call") - testExpectedCallGraph()
+      test("10-interface-two-implementations-direct-call") - testExpectedCallGraph()
+      test("11-static-method") - testExpectedCallGraph()
+      test("12-external-method-edge-to-inherited-method-override") - testExpectedCallGraph()
+      test("13-jcanvas") - testExpectedCallGraph()
     }
     test("realistic"){
-      test("1-tetris") - testCase()
-      test("2-ribbon") - testCase()
-      test("3-par-merge-sort") - testCase()
-      test("4-actors") - testCase()
-      test("5-parser") - testCase()
+      test("1-tetris") - testExpectedCallGraph()
+      test("2-ribbon") - testExpectedCallGraph()
+      test("3-par-merge-sort") - testExpectedCallGraph()
+      test("4-actors") - testExpectedCallGraph()
+      test("5-parser") - testExpectedCallGraph()
+    }
+    test("unit"){
+      test("invariant-java") - testInvariant()
+      test("invariant-scala") - testInvariant()
+      test("invariant-sourcecode-line") - testInvariant()
     }
   }
 
-  def testCase()(implicit tp: utest.framework.TestPath) = {
+  def testInvariant()(implicit tp: utest.framework.TestPath) = {
+    def computeCodeSig2(suffix: String) = computeCodeSig(
+      Seq(tp.value.head, tp.value.tail.mkString("-") + suffix)
+    )
 
-    val testLogFolder = os.Path(sys.env("MILL_TEST_LOGS")) / tp.value
+    val codeSig = computeCodeSig2("")
+    val reformattedCodeSig = computeCodeSig2("-reformatted")
+
+    val pretty1 = codeSig.prettyHashes
+    val pretty2 = reformattedCodeSig.prettyHashes
+    assert(pretty1 == pretty2)
+  }
+
+  def computeCodeSig(segments: Seq[String]) = {
+    val testLogFolder = os.Path(sys.env("MILL_TEST_LOGS")) / segments
     os.remove.all(testLogFolder)
     os.makeDir.all(testLogFolder)
     println("testLogFolder: " + testLogFolder)
-    val testClassFolder = os.Path(sys.env("MILL_TEST_CLASSES_" + tp.value.mkString("-")))
+    val testClassFolder = os.Path(sys.env("MILL_TEST_CLASSES_" + segments.mkString("-")))
     println("testClassFolder: " + testClassFolder)
-    val callGraph0 = CodeSig.compute(
+    CodeSig.compute(
       os.walk(testClassFolder).filter(_.ext == "class"),
-      sys.env("MILL_TEST_CLASSPATH_" + tp.value.mkString("-"))
+      sys.env("MILL_TEST_CLASSPATH_" + segments.mkString("-"))
         .split(",")
         .map(os.Path(_)),
       new Logger(Some(testLogFolder))
     )
+  }
+
+  def testExpectedCallGraph()(implicit tp: utest.framework.TestPath) = {
+    val callGraph0 = computeCodeSig(tp.value)
 
     val expectedCallGraph = parseExpectedJson(
       os.Path(sys.env("MILL_TEST_SOURCES_" + tp.value.mkString("-")))

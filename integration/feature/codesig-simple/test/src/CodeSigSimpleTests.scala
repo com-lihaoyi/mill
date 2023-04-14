@@ -6,71 +6,92 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
   val tests = Tests {
     val wsRoot = initWorkspace()
     "test" - {
-      println("=" * 150 + " INITIAL")
+      // Check normal behavior for initial run and subsequent fully-cached run
+      // with no changes
       val initial = evalStdout("qux")
 
       assert(
         initial.out ==
-          """running foo
-            |running helperFoo
-            |running bar
-            |running helperBar
-            |running qux
-            |running helperQux""".stripMargin
+        """running foo
+          |running helperFoo
+          |running bar
+          |running helperBar
+          |running qux
+          |running helperQux""".stripMargin
       )
-      pprint.log(initial.out)
-      println("=" * 150 + " CACHED")
+
       val cached = evalStdout("qux")
-      pprint.log(cached.out)
       assert(cached.out == "")
 
-      mangleFile(wsRoot / "build.sc", _.replace("running helperFoo", "running helperFoo2"))
+      // Changing the body of a T{...} block directly invalidates that target
+      // and any downstream targets
+      mangleFile(wsRoot / "build.sc", _.replace("running foo", "running foo2"))
       val mangledFoo = evalStdout("qux")
 
       assert(
         mangledFoo.out ==
-          """running foo
-            |running helperFoo2
-            |running qux
-            |running helperQux""".stripMargin
+        """running foo2
+          |running helperFoo
+          |running qux
+          |running helperQux""".stripMargin
+      )
+      // Changing the body of a T{...} block directly invalidates that target
+      // and any downstream targets
+      mangleFile(wsRoot / "build.sc", _.replace("running qux", "running qux2"))
+      val mangledQux = evalStdout("qux")
+      assert(
+        mangledQux.out ==
+        """running qux2
+          |running helperQux""".stripMargin
       )
 
+      // Changing the body of some helper method that gets called by a T{...}
+      // block also invalidates the respective targets
       mangleFile(wsRoot / "build.sc", _.replace("running helperBar", "running helperBar2"))
+      val mangledHelperBar = evalStdout("qux")
+      assert(
+        mangledHelperBar.out ==
+        """running bar
+          |running helperBar2
+          |running qux2
+          |running helperQux""".stripMargin
+      )
+
+      mangleFile(wsRoot / "build.sc", _.replace("running helperQux", "running helperQux2"))
       val mangledBar = evalStdout("qux")
 
       assert(
         mangledBar.out ==
-          """running bar
-            |running helperBar2
-            |running qux
-            |running helperQux""".stripMargin
+        """running qux2
+          |running helperQux2""".stripMargin
       )
 
+      // Adding a newline before one of the target definitions does not invalidate it
       mangleFile(wsRoot / "build.sc", _.replace("def qux", "\ndef qux"))
       val addedSingleNewline = evalStdout("qux")
-      pprint.log(addedSingleNewline.out)
       assert(addedSingleNewline.out == "")
 
 
       mangleFile(wsRoot / "build.sc", _.replace("def", "\ndef"))
       val addedManyNewlines = evalStdout("qux")
-      pprint.log(addedManyNewlines.out)
       assert(addedManyNewlines.out == "")
 
-      os.copy.over(
-        os.pwd/os.SubPath("out/integration/feature/codesig-simple/local/workspaceDir.dest/out/mill-build/compile.dest/classes/millbuild/build.class"),
-        os.pwd / "build-old.class"
-      )
 
-      mangleFile(wsRoot / "build.sc", _.replace("{", "{\n").replace("}", "\n}"))
-      val addedNewlinesInsideCurlies = evalStdout("qux")
-      pprint.log(addedNewlinesInsideCurlies.out)
-      os.copy.over(
-        os.pwd/os.SubPath("out/integration/feature/codesig-simple/local/workspaceDir.dest/out/mill-build/compile.dest/classes/millbuild/build.class"),
-        os.pwd / "build-new.class"
+      // Reformatting the entire file, replacing `;`s with `\n`s and spacing out
+      // the target bodies over multiple lines does not cause anything to invalidate
+      mangleFile(
+        wsRoot / "build.sc",
+        _.replace("{", "{\n").replace("}", "\n}").replace(";", "\n")
       )
+      val addedNewlinesInsideCurlies = evalStdout("qux")
       assert(addedNewlinesInsideCurlies.out == "")
 
+      mangleFile(
+        wsRoot / "build.sc",
+        _.replace("import mill._", "import mill.T; import java.util.Properties")
+      )
+      val mangledImports = evalStdout("qux")
+      assert(mangledImports.out == "")
     }
   }
 }

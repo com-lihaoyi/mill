@@ -680,7 +680,7 @@ object main extends MillModule {
         def millSourcePath = super.millSourcePath / os.up / prefix / suffix
         def scalaVersion = "2.13.10"
         def ivyDeps = T{
-          if (!caseName.contains("realistic")) super.ivyDeps()
+          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
           else Agg(
             ivy"com.lihaoyi::fastparse:3.0.1",
             ivy"com.lihaoyi::scalatags:0.12.0",

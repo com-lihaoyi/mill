@@ -18,7 +18,7 @@ abstract class BaseModule(
 ) extends Module()(
       mill.define.Ctx.make(
         implicitly,
-//        implicitly,
+        implicitly,
         implicitly,
         Ctx.BasePath(millSourcePath0),
         Segments(),

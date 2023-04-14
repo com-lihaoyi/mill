@@ -66,7 +66,7 @@ object Ctx {
 
   implicit def make(implicit
       millModuleEnclosing0: sourcecode.Enclosing,
-//      millModuleLine0: sourcecode.Line,
+      millModuleLine0: sourcecode.Line,
       millName0: sourcecode.Name,
       millModuleBasePath0: BasePath,
       segments0: Segments,
@@ -77,7 +77,7 @@ object Ctx {
   ): Ctx = {
     Ctx(
       millModuleEnclosing0.value,
-      123,
+      millModuleLine0.value,
       Segment.Label(millName0.value),
       millModuleBasePath0.value,
       segments0,

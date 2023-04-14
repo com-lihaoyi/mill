@@ -53,15 +53,18 @@ object LocalSummarizer{
         val labelIndices = getLabelRealIndices(method.instructions.toArray)
 
         for (insn <- method.instructions.asScala){
+          var insnHash = 0
+
           processInstruction(
             insn,
             labelIndices,
-            insnSigs.append,
+            x => {insnHash = insnHash * 13 + x},
             outboundCalls.add,
             clsType,
             () => insnSigs.remove(insnSigs.size-1)
           )
 
+          if (insnHash != 0) insnSigs.append(insnHash)
         }
 
         classCallGraph.addOne((methodSig, outboundCalls.toSet))
@@ -89,7 +92,9 @@ object LocalSummarizer{
                          hash: Int => Unit,
                          storeCallEdge: MethodCall => Unit,
                          currentCls: JCls,
-                         discardPrevious: () => Unit) = {
+                         discardPreviousInsn: () => Unit) = {
+
+
     def hashlabel(label: LabelNode) = hash(labelIndices(label))
 
     def clinitCall(desc: String) = JType.read(desc) match{
@@ -116,6 +121,7 @@ object LocalSummarizer{
         hash(insn.getOpcode)
 
       case insn: InsnNode =>
+        hash(insn.getOpcode)
 
       case insn: IntInsnNode =>
         hash(insn.operand)
@@ -188,9 +194,16 @@ object LocalSummarizer{
           Desc.read(insn.desc)
         )
 
-//        if (call == MethodCall(JCls.fromSlashed("sourcecode/Line"), InvokeType.Special, "<init>", Desc.read("(I)V"))) {
-//          discardPrevious()
-//        }
+        // HACK: we skip any constants that get passed to `sourcecode.Line()`,
+        // because we use that extensively in definig Mill targets but it is
+        // generally not something we want to affect the output of a build
+        val sourcecodeLineCall = MethodCall(
+          JCls.fromSlashed("sourcecode/Line"),
+          InvokeType.Special,
+          "<init>",
+          Desc.read("(I)V")
+        )
+        if (call == sourcecodeLineCall) discardPreviousInsn()
 
         hash(insn.name.hashCode)
         hash(insn.owner.hashCode)
@@ -223,7 +236,6 @@ object LocalSummarizer{
         hash(insn.`var`)
         hash(insn.getOpcode)
     }
-
   }
 
   def getLabelRealIndices(insns: Seq[AbstractInsnNode]) = {
