@@ -58,7 +58,8 @@ object LocalSummarizer{
             labelIndices,
             insnSigs.append,
             outboundCalls.add,
-            clsType
+            clsType,
+            () => insnSigs.remove(insnSigs.size-1)
           )
           insnSigs.append(insn.getOpcode)
         }
@@ -87,7 +88,8 @@ object LocalSummarizer{
                          labelIndices: Map[LabelNode, Int],
                          hash: Int => Unit,
                          storeCallEdge: MethodCall => Unit,
-                         currentCls: JCls) = {
+                         currentCls: JCls,
+                         discardPrevious: () => Unit) = {
     def hashlabel(label: LabelNode) = hash(labelIndices(label))
 
     def clinitCall(desc: String) = JType.read(desc) match{
@@ -165,24 +167,28 @@ object LocalSummarizer{
         Option(insn.dflt).foreach(hashlabel)
 
       case insn: MethodInsnNode =>
+        val call = MethodCall(
+          JCls.fromSlashed(insn.owner),
+          insn.getOpcode match {
+            case Opcodes.INVOKESTATIC => InvokeType.Static
+            case Opcodes.INVOKESPECIAL => InvokeType.Special
+            case Opcodes.INVOKEVIRTUAL => InvokeType.Virtual
+            case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
+          },
+          insn.name,
+          Desc.read(insn.desc)
+        )
+
+//        if (call == MethodCall(JCls.fromSlashed("sourcecode/Line"), InvokeType.Special, "<init>", Desc.read("(I)V"))) {
+//          discardPrevious()
+//        }
+
         hash(insn.name.hashCode)
         hash(insn.owner.hashCode)
         hash(insn.desc.hashCode)
         hash(insn.itf.hashCode)
 
-        storeCallEdge(
-          MethodCall(
-            JCls.fromSlashed(insn.owner),
-            insn.getOpcode match{
-              case Opcodes.INVOKESTATIC => InvokeType.Static
-              case Opcodes.INVOKESPECIAL => InvokeType.Special
-              case Opcodes.INVOKEVIRTUAL => InvokeType.Virtual
-              case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
-            },
-            insn.name,
-            Desc.read(insn.desc)
-          )
-        )
+        storeCallEdge(call)
         clinitCall(insn.owner)
 
 
