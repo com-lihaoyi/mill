@@ -2,10 +2,9 @@ package mill.codesig
 
 import os.Path
 import utest._
-import upickle.default.{ReadWriter, read, readwriter, write}
-
+import upickle.default.{read, write}
 import scala.collection.immutable.{SortedMap, SortedSet}
-object CodeSigTests extends TestSuite{
+object CallGraphTests extends TestSuite{
   val tests = Tests{
     test("basic"){
       test("1-static-method") - testExpectedCallGraph()
@@ -63,47 +62,13 @@ object CodeSigTests extends TestSuite{
       test("4-actors") - testExpectedCallGraph()
       test("5-parser") - testExpectedCallGraph()
     }
-    test("unit"){
-      test("invariant-java") - testInvariant()
-      test("invariant-scala") - testInvariant()
-      test("invariant-sourcecode-line") - testInvariant()
-    }
-  }
-
-  def testInvariant()(implicit tp: utest.framework.TestPath) = {
-    def computeCodeSig2(suffix: String) = computeCodeSig(
-      Seq(tp.value.head, tp.value.tail.mkString("-") + suffix)
-    )
-
-    val codeSig = computeCodeSig2("")
-    val reformattedCodeSig = computeCodeSig2("-reformatted")
-
-    val pretty1 = codeSig.prettyHashes
-    val pretty2 = reformattedCodeSig.prettyHashes
-    assert(pretty1 == pretty2)
-  }
-
-  def computeCodeSig(segments: Seq[String]) = {
-    val testLogFolder = os.Path(sys.env("MILL_TEST_LOGS")) / segments
-    os.remove.all(testLogFolder)
-    os.makeDir.all(testLogFolder)
-    println("testLogFolder: " + testLogFolder)
-    val testClassFolder = os.Path(sys.env("MILL_TEST_CLASSES_" + segments.mkString("-")))
-    println("testClassFolder: " + testClassFolder)
-    CodeSig.compute(
-      os.walk(testClassFolder).filter(_.ext == "class"),
-      sys.env("MILL_TEST_CLASSPATH_" + segments.mkString("-"))
-        .split(",")
-        .map(os.Path(_)),
-      new Logger(Some(testLogFolder))
-    )
   }
 
   def testExpectedCallGraph()(implicit tp: utest.framework.TestPath) = {
-    val callGraph0 = computeCodeSig(tp.value)
+    val callGraph0 = TestUtil.computeCodeSig(Seq("callgraph") ++ tp.value)
 
     val expectedCallGraph = parseExpectedJson(
-      os.Path(sys.env("MILL_TEST_SOURCES_" + tp.value.mkString("-")))
+      os.Path(sys.env("MILL_TEST_SOURCES_callgraph-" + tp.value.mkString("-")))
     )
 
     val foundCallGraph = simplifyCallGraph(

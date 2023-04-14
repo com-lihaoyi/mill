@@ -648,9 +648,9 @@ object main extends MillModule {
 
     object test extends Tests{
       val caseKeys = interp.watchValue(
-        os.walk(millSourcePath / "cases", maxDepth = 2)
+        os.walk(millSourcePath / "cases", maxDepth = 3)
           .map(_.subRelativeTo(millSourcePath / "cases").segments)
-          .collect{case Seq(a, b) => s"$a-$b"}
+          .collect{case Seq(a, b, c) => s"$a-$b-$c"}
       )
       def testLogFolder = T{ T.dest }
       def forkEnv = T{
@@ -676,8 +676,8 @@ object main extends MillModule {
 
         def moduleDeps = Seq(external)
 
-        val Array(prefix, suffix) = caseName.split("-", 2)
-        def millSourcePath = super.millSourcePath / os.up / prefix / suffix
+        val Array(prefix, suffix, rest) = caseName.split("-", 3)
+        def millSourcePath = super.millSourcePath / os.up / prefix / suffix / rest
         def scalaVersion = "2.13.10"
         def ivyDeps = T{
           if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
