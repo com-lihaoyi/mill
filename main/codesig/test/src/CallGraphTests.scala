@@ -37,6 +37,7 @@ object CallGraphTests extends TestSuite{
       test("11-iterator-callback-class-scala") - testExpectedCallGraph()
       test("12-iterator-inherit-external-scala") - testExpectedCallGraph()
       test("13-iterator-inherit-external-filter-scala") - testExpectedCallGraph()
+      test("14-singleton-objects-scala") - testExpectedCallGraph()
 
     }
 
