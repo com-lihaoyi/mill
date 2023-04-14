@@ -10,6 +10,7 @@ import JType.{Cls => JCls}
  */
 object LocalSummarizer{
 
+
   case class Result(callGraph: Map[JCls, Map[MethodDef, Set[MethodCall]]],
                     methodHashes: Map[JCls, Map[MethodDef, Int]],
                     methodPrivate: Map[JCls, Map[MethodDef, Boolean]],
@@ -21,30 +22,24 @@ object LocalSummarizer{
 
   def summarize(classStreams: Iterator[java.io.InputStream]) = {
 
-    val directSuperclasses = Map.newBuilder[JCls, JCls]
-    val callGraph = Map.newBuilder[JCls, Map[MethodDef, Set[MethodCall]]]
-    val methodHashes = Map.newBuilder[JCls, Map[MethodDef, Int]]
-    val methodPrivate = Map.newBuilder[JCls, Map[MethodDef, Boolean]]
-    val directAncestors = Map.newBuilder[JCls, Set[JCls]]
 
-    for (cs <- classStreams) {
+    val crs = classStreams
+      .map { cs =>
+        val visitor = new MyClassVisitor()
+        new ClassReader(cs).accept(visitor, 0)
+        visitor
+      }
+      .toVector
 
-      val visitor = new MyClassVisitor()
-      new ClassReader(cs).accept(visitor, 0)
-      callGraph.addOne((visitor.clsType, visitor.classCallGraph.result()))
-      methodHashes.addOne((visitor.clsType, visitor.classMethodHashes.result()))
-      methodPrivate.addOne((visitor.clsType, visitor.classMethodPrivate.result()))
-      directAncestors.addOne((visitor.clsType, visitor.directAncestors))
-      directSuperclasses.addOne((visitor.clsType, visitor.directSuperClass.get))
-    }
-
-    Result(
-      callGraph.result(),
-      methodHashes.result(),
-      methodPrivate.result(),
-      directSuperclasses.result(),
-      directAncestors.result()
+    val res = Result(
+      crs.map { v => (v.clsType, v.classCallGraph.result()) }.toMap,
+      crs.map { v => (v.clsType, v.classMethodHashes.result()) }.toMap,
+      crs.map { v => (v.clsType, v.classMethodPrivate.result()) }.toMap,
+      crs.map { v => (v.clsType, v.directSuperClass.get) }.toMap,
+      crs.map { v => (v.clsType, v.directAncestors) }.toMap
     )
+
+    res
   }
 
   class MyClassVisitor extends ClassVisitor(Opcodes.ASM9) {
@@ -97,9 +92,10 @@ object LocalSummarizer{
 
     var insnHash = 0
 
-    def hash(x: Int): Unit = insnHash = insnHash * 13 + x
+    def hash(x: Int): Unit = insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
+
     def completeHash() = {
-      insnSigs.append(insnHash)
+      insnSigs.append(scala.util.hashing.MurmurHash3.finalizeHash(0, insnHash))
       insnHash = 0
     }
 
