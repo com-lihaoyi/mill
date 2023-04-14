@@ -31,47 +31,45 @@ class ExternalSummarizer private(loadClassStream: JCls => java.io.InputStream){
   val ancestorsPerCls = collection.mutable.Map.empty[JCls, Set[JCls]]
   val directSuperclasses = collection.mutable.Map.empty[JCls, JCls]
 
-  def loadAll(externalTypes: Set[JCls]): Unit = {
-    externalTypes.foreach(load)
-  }
-
+  def loadAll(externalTypes: Set[JCls]): Unit = externalTypes.foreach(load)
   def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
 
   def load0(cls: JCls): Unit = {
-    new ClassReader(loadClassStream(cls)).accept(
-      new ClassVisitor(Opcodes.ASM9) {
-        override def visit(version: Int,
-                           access: Int,
-                           name: String,
-                           signature: String,
-                           superName: String,
-                           interfaces: Array[String]): Unit = {
-
-          Option(superName).foreach(sup =>
-            directSuperclasses(cls) = JCls.fromSlashed(sup)
-          )
-          ancestorsPerCls(cls) =
-            (Option(superName) ++ Option(interfaces).toSeq.flatten)
-              .map(JCls.fromSlashed)
-              .toSet
-        }
-
-        override def visitMethod(access: Int,
-                                 name: String,
-                                 descriptor: String,
-                                 signature: String,
-                                 exceptions: Array[String]): MethodVisitor = {
-
-          methodsPerCls(cls) =
-            methodsPerCls.getOrElse(cls, Set()) +
-            MethodDef((access & Opcodes.ACC_STATIC) != 0, name, Desc.read(descriptor))
-
-          new MethodVisitor(Opcodes.ASM9){}
-        }
-      },
-      0)
-
+    val visitor = new MyClassVisitor()
+    new ClassReader(loadClassStream(cls)).accept(visitor, 0)
+    directSuperclasses(cls) = visitor.superclass
+    methodsPerCls(cls) = visitor.methods
+    ancestorsPerCls(cls) = visitor.ancestors
     ancestorsPerCls(cls).foreach(load)
+  }
 
+  class MyClassVisitor extends ClassVisitor(Opcodes.ASM9) {
+    var methods: Set[MethodDef] = Set()
+    var ancestors: Set[JCls] = null
+    var superclass: JCls = null
+    override def visit(version: Int,
+                       access: Int,
+                       name: String,
+                       signature: String,
+                       superName: String,
+                       interfaces: Array[String]): Unit = {
+
+      Option(superName).foreach(sup => superclass = JCls.fromSlashed(sup))
+      ancestors =
+        (Option(superName) ++ Option(interfaces).toSeq.flatten)
+          .map(JCls.fromSlashed)
+          .toSet
+    }
+
+    override def visitMethod(access: Int,
+                             name: String,
+                             descriptor: String,
+                             signature: String,
+                             exceptions: Array[String]): MethodVisitor = {
+
+      methods += MethodDef((access & Opcodes.ACC_STATIC) != 0, name, Desc.read(descriptor))
+
+      new MethodVisitor(Opcodes.ASM9) {}
+    }
   }
 }

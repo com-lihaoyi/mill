@@ -265,7 +265,6 @@ object LocalSummarizer{
       hash(varIndex)
       hash(opcode)
       completeHash()
-
     }
 
     override def visitEnd(): Unit = {
