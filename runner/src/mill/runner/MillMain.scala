@@ -76,7 +76,7 @@ object MillMain {
   ): (Boolean, RunnerState) = {
     val printLoggerState = new PrintLogger.State()
     val streams = PrintLogger.wrapSystemStreams(streams0, printLoggerState)
-    Util.withStreams(streams) {
+    SystemStreams.withStreams(streams) {
       MillCliConfigParser.parse(args) match {
         // Cannot parse args
         case Left(msg) =>
