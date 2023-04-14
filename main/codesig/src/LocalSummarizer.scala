@@ -2,6 +2,7 @@ package mill.codesig
 
 import org.objectweb.asm.{ClassReader, ClassVisitor, Handle, Label, MethodVisitor, Opcodes}
 import JType.{Cls => JCls}
+import upickle.default.{ReadWriter, macroRW}
 
 /**
  * Parses over the Java bytecode and creates a [[Summary]] object, which
@@ -11,19 +12,30 @@ import JType.{Cls => JCls}
 object LocalSummarizer{
 
 
-  case class Result(callGraph: Map[JCls, Map[MethodDef, Set[MethodCall]]],
-                    methodHashes: Map[JCls, Map[MethodDef, Int]],
-                    methodPrivate: Map[JCls, Map[MethodDef, Boolean]],
-                    directSuperclasses: Map[JCls, JCls],
-                    directAncestors: Map[JCls, Set[JCls]])
+  case class ClassInfo(superClass: JCls,
+                       directAncestors: Set[JCls],
+                       methods: Map[MethodDef, MethodInfo])
+  object ClassInfo{
+    implicit def rw: ReadWriter[ClassInfo] = macroRW
+  }
+  case class MethodInfo(calls: Set[MethodCall],
+                        isPrivate: Boolean,
+                        codeHash: Int)
+  object MethodInfo{
+    implicit def rw: ReadWriter[MethodInfo] = macroRW
+  }
+  case class Result(items: Map[JCls, ClassInfo]){
+    def get(cls: JCls, m: MethodDef): Option[MethodInfo] = items.get(cls).flatMap(_.methods.get(m))
+    def mapValues[T](f: ClassInfo => T): Map[JCls, T] = items.map{case (k, v) => (k, f(v))}
+    def mapValuesOnly[T](f: ClassInfo => T): Seq[T] = items.map{case (k, v) => f(v)}.toSeq
+    def contains(cls: JCls) = items.contains(cls)
+  }
   object Result{
-    implicit def rw: upickle.default.ReadWriter[Result] = upickle.default.macroRW
+    implicit def rw: ReadWriter[Result] = macroRW
   }
 
   def summarize(classStreams: Iterator[java.io.InputStream]) = {
-
-
-    val crs = classStreams
+    val visitors = classStreams
       .map { cs =>
         val visitor = new MyClassVisitor()
         new ClassReader(cs).accept(visitor, 0)
@@ -31,15 +43,24 @@ object LocalSummarizer{
       }
       .toVector
 
-    val res = Result(
-      crs.map { v => (v.clsType, v.classCallGraph.result()) }.toMap,
-      crs.map { v => (v.clsType, v.classMethodHashes.result()) }.toMap,
-      crs.map { v => (v.clsType, v.classMethodPrivate.result()) }.toMap,
-      crs.map { v => (v.clsType, v.directSuperClass.get) }.toMap,
-      crs.map { v => (v.clsType, v.directAncestors) }.toMap
+    Result(
+      visitors
+        .map{ v =>
+          val cls = v.clsType
+          val methodCallGraphs = v.classCallGraph.result()
+          val methodHashes = v.classMethodHashes.result()
+          val methodPrivate = v.classMethodPrivate.result()
+          cls -> ClassInfo(
+            superClass = v.directSuperClass.get,
+            directAncestors = v.directAncestors,
+            methods = methodCallGraphs
+              .keys
+              .map{ m => m -> MethodInfo(methodCallGraphs(m), methodPrivate(m), methodHashes(m)) }
+              .toMap
+          )
+      }
+      .toMap
     )
-
-    res
   }
 
   class MyClassVisitor extends ClassVisitor(Opcodes.ASM9) {

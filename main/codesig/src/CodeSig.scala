@@ -1,7 +1,5 @@
 package mill.codesig
 import mill.util.Tarjans
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.tree.ClassNode
 
 import java.net.URLClassLoader
 
@@ -9,6 +7,7 @@ object CodeSig{
   def compute(classFiles: Seq[os.Path],
               upstreamClasspath: Seq[os.Path],
               logger: Logger) = {
+
     val upstreamClasspathClassloader = new URLClassLoader(
       upstreamClasspath.map(_.toNIO.toUri.toURL).toArray,
       getClass.getClassLoader
@@ -17,18 +16,19 @@ object CodeSig{
       LocalSummarizer.summarize(classFiles.iterator.map(os.read.inputStream(_)))
     }
 
-    val allDirectAncestors = localSummary.directAncestors.flatMap(_._2)
+    val allDirectAncestors = localSummary.mapValuesOnly(_.directAncestors).flatten
 
     val allMethodCallParamClasses = localSummary
-      .callGraph
-      .flatMap(_._2.flatMap(_._2))
+      .mapValuesOnly(_.methods.values)
+      .flatten
+      .flatMap(_.calls)
       .flatMap(call => Seq(call.cls) ++ call.desc.args)
       .collect { case c: JType.Cls => c }
 
     val externalSummary = logger{
       ExternalSummarizer.loadAll(
         (allDirectAncestors ++ allMethodCallParamClasses)
-          .filter(!localSummary.directAncestors.contains(_))
+          .filter(!localSummary.contains(_))
           .toSet,
         externalType =>
           os.read.inputStream(os.resource(upstreamClasspathClassloader) / os.SubPath(externalType.name.replace('.', '/') + ".class"))
@@ -37,7 +37,10 @@ object CodeSig{
 
     val directCallGraph = MethodCallResolver.resolveAllMethodCalls(localSummary, externalSummary, logger)
 
-    new CodeSig(directCallGraph, localSummary.methodHashes)
+    new CodeSig(
+      directCallGraph,
+      localSummary.mapValues(_.methods.map{case (k, v) => (k, v.codeHash)})
+    )
   }
 }
 

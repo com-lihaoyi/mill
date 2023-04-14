@@ -14,7 +14,8 @@ object MethodCallResolver{
                             logger: Logger): Map[ResolvedMethodDef, Set[ResolvedMethodDef]]  = {
 
     val allDirectAncestors = logger{
-      localSummary.directAncestors ++ externalSummary.directAncestors
+      localSummary.mapValues(_.directAncestors) ++
+      externalSummary.directAncestors
     }
 
     val directDescendents = logger{
@@ -26,7 +27,7 @@ object MethodCallResolver{
 
     val externalClsToLocalClsMethods0 = logger{
       localSummary
-        .callGraph
+        .items
         .keySet
         .flatMap { cls =>
           transitiveExternalMethods(cls, allDirectAncestors, externalSummary.directMethods)
@@ -59,11 +60,10 @@ object MethodCallResolver{
     }
 
     val resolvedCalls = resolveAllMethodCalls0(
-      localSummary.callGraph,
-      localSummary.methodPrivate,
+      localSummary,
       externalClsToLocalClsMethods,
       allDirectAncestors,
-      localSummary.directSuperclasses ++ externalSummary.directSuperclasses,
+      localSummary.mapValues(_.superClass) ++ externalSummary.directSuperclasses,
       directDescendents,
       externalSummary.directMethods,
       logger
@@ -72,8 +72,7 @@ object MethodCallResolver{
     resolvedCalls
   }
 
-  def resolveAllMethodCalls0(callGraph: Map[JCls, Map[MethodDef, Set[MethodCall]]],
-                             methodPrivate: Map[JCls, Map[MethodDef, Boolean]],
+  def resolveAllMethodCalls0(localSummary: LocalSummarizer.Result,
                              externalClsToLocalClsMethods: Map[JCls, Map[JCls, Set[MethodDef]]],
                              allDirectAncestors: Map[JCls, Set[JCls]],
                              directSuperclasses: Map[JCls, JCls],
@@ -82,7 +81,7 @@ object MethodCallResolver{
                              logger: Logger): Map[ResolvedMethodDef, Set[ResolvedMethodDef]] = {
 
     def methodExists(cls: JCls, call: MethodCall): Boolean = {
-      callGraph.get(cls).exists(x => x.keys.exists(sigMatchesCall(_, call))) ||
+      localSummary.items.get(cls).exists(_.methods.keysIterator.exists(sigMatchesCall(_, call))) ||
       externalDirectMethods.get(cls).exists(_.exists(sigMatchesCall(_, call)))
     }
 
@@ -96,7 +95,7 @@ object MethodCallResolver{
 
       case InvokeType.Virtual =>
         val directDef = call.toDirectMethodDef
-        if (methodPrivate.get(call.cls).exists(_.getOrElse(directDef, false))) Set(call.cls)
+        if (localSummary.get(call.cls, directDef).exists(_.isPrivate)) Set(call.cls)
         else {
           val descendents = clsAndDescendents(call.cls, directDescendents)
 
@@ -118,14 +117,16 @@ object MethodCallResolver{
         .toSet
     }
 
-    val allCalls = logger{ callGraph.toIterator.flatMap(_._2).flatMap(_._2).toSet }
+    val allCalls = logger{
+      localSummary.mapValuesOnly(_.methods).flatMap(_.values).flatMap(_.calls).toSet
+    }
 
     val resolvedMap = logger {
       allCalls
         .map { call =>
 
           val (localCandidates, externalCandidates) =
-            resolveLocalReceivers(call).partition(callGraph.contains)
+            resolveLocalReceivers(call).partition(localSummary.contains)
 
           val externalLocalResolvedMethods =
             if (externalCandidates.isEmpty) Set.empty[ResolvedMethodDef]
@@ -142,13 +143,13 @@ object MethodCallResolver{
 
     val result = logger {
       for {
-        (cls, methods) <- callGraph
-        (m0, calls) <- methods
+        (cls, clsInfo) <- localSummary.items
+        (m0, methodInfo) <- clsInfo.methods
       } yield {
         val resolvedMethod = ResolvedMethodDef(cls, m0)
-        val resolved = calls
+        val resolved = methodInfo.calls
           .flatMap(resolvedMap.getOrElse(_, Nil))
-          .filter { m => callGraph.getOrElse(m.cls, Map()).contains(m.method) }
+          .filter { m => localSummary.get(m.cls, m.method).nonEmpty }
 
         (resolvedMethod, resolved)
       }
