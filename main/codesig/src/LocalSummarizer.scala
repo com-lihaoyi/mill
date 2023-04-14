@@ -61,7 +61,7 @@ object LocalSummarizer{
             clsType,
             () => insnSigs.remove(insnSigs.size-1)
           )
-          insnSigs.append(insn.getOpcode)
+
         }
 
         classCallGraph.addOne((methodSig, outboundCalls.toSet))
@@ -105,6 +105,7 @@ object LocalSummarizer{
         hash(insn.desc.hashCode)
         hash(insn.name.hashCode)
         hash(insn.owner.hashCode)
+        hash(insn.getOpcode)
         clinitCall(insn.owner)
 
       case insn: FrameNode =>
@@ -112,10 +113,13 @@ object LocalSummarizer{
       case insn: IincInsnNode =>
         hash(insn.`var`)
         hash(insn.incr)
+        hash(insn.getOpcode)
 
       case insn: InsnNode =>
 
-      case insn: IntInsnNode => hash(insn.operand)
+      case insn: IntInsnNode =>
+        hash(insn.operand)
+        hash(insn.getOpcode)
 
       case insn: InvokeDynamicInsnNode =>
         for(bsmArg <- insn.bsmArgs){
@@ -140,8 +144,11 @@ object LocalSummarizer{
             case _ =>
           }
         }
+        hash(insn.getOpcode)
 
-      case insn: JumpInsnNode => hashlabel(insn.label)
+      case insn: JumpInsnNode =>
+        hashlabel(insn.label)
+        hash(insn.getOpcode)
 
       case insn: LabelNode =>
 
@@ -158,6 +165,7 @@ object LocalSummarizer{
             case v: org.objectweb.asm.ConstantDynamic => v.hashCode()
           }
         )
+        hash(insn.getOpcode)
 
       case insn: LineNumberNode =>
 
@@ -165,6 +173,7 @@ object LocalSummarizer{
         insn.keys.asScala.foreach(i => hash(i.toInt))
         insn.labels.asScala.foreach(hashlabel)
         Option(insn.dflt).foreach(hashlabel)
+        hash(insn.getOpcode)
 
       case insn: MethodInsnNode =>
         val call = MethodCall(
@@ -190,24 +199,29 @@ object LocalSummarizer{
 
         storeCallEdge(call)
         clinitCall(insn.owner)
-
+        hash(insn.getOpcode)
 
       case insn: MultiANewArrayInsnNode =>
         hash(insn.desc.hashCode)
         hash(insn.dims)
+        hash(insn.getOpcode)
 
       case insn: TableSwitchInsnNode =>
         hash(insn.min)
         hash(insn.max)
         insn.labels.asScala.foreach(hashlabel)
         Option(insn.dflt).foreach(hashlabel)
+        hash(insn.getOpcode)
 
       case insn: TypeInsnNode =>
         clinitCall(insn.desc)
 
         hash(insn.desc.hashCode)
+        hash(insn.getOpcode)
 
-      case insn: VarInsnNode => hash(insn.`var`)
+      case insn: VarInsnNode =>
+        hash(insn.`var`)
+        hash(insn.getOpcode)
     }
 
   }

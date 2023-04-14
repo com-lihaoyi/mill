@@ -57,10 +57,18 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       pprint.log(addedManyNewlines.out)
       assert(addedManyNewlines.out == "")
 
+      os.copy.over(
+        os.pwd/os.SubPath("out/integration/feature/codesig-simple/local/workspaceDir.dest/out/mill-build/compile.dest/classes/millbuild/build.class"),
+        os.pwd / "build-old.class"
+      )
 
       mangleFile(wsRoot / "build.sc", _.replace("{", "{\n").replace("}", "\n}"))
       val addedNewlinesInsideCurlies = evalStdout("qux")
       pprint.log(addedNewlinesInsideCurlies.out)
+      os.copy.over(
+        os.pwd/os.SubPath("out/integration/feature/codesig-simple/local/workspaceDir.dest/out/mill-build/compile.dest/classes/millbuild/build.class"),
+        os.pwd / "build-new.class"
+      )
       assert(addedNewlinesInsideCurlies.out == "")
 
     }
