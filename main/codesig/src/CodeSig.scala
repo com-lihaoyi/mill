@@ -14,7 +14,7 @@ object CodeSig{
       getClass.getClassLoader
     )
     val localSummary = logger{
-      LocalSummarizer.summarize(classFiles.map(p => loadClass(os.read.bytes(p))))
+      LocalSummarizer.summarize(classFiles.iterator.map(os.read.inputStream(_)))
     }
 
     val allDirectAncestors = localSummary.directAncestors.flatMap(_._2)
