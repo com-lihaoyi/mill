@@ -1,9 +1,7 @@
 package mill.codesig
 
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.{ClassReader, ClassVisitor, MethodVisitor, Opcodes}
 import JType.{Cls => JCls}
-import collection.JavaConverters._
 
 /**
  * Walks the inheritance hierarchy of all classes that we extend in user code
@@ -21,14 +19,14 @@ object ExternalSummarizer{
     implicit def rw: upickle.default.ReadWriter[Result] = upickle.default.macroRW
   }
 
-  def loadAll(externalTypes: Set[JCls], loadClassNode: JCls => ClassNode): Result = {
-    val ext = new ExternalSummarizer(loadClassNode)
+  def loadAll(externalTypes: Set[JCls], loadClassStream: JCls => java.io.InputStream): Result = {
+    val ext = new ExternalSummarizer(loadClassStream)
     ext.loadAll(externalTypes)
     Result(ext.methodsPerCls.toMap, ext.ancestorsPerCls.toMap, ext.directSuperclasses.toMap)
   }
 }
 
-class ExternalSummarizer private(loadClassNode: JCls => ClassNode){
+class ExternalSummarizer private(loadClassStream: JCls => java.io.InputStream){
   val methodsPerCls = collection.mutable.Map.empty[JCls, Set[MethodDef]]
   val ancestorsPerCls = collection.mutable.Map.empty[JCls, Set[JCls]]
   val directSuperclasses = collection.mutable.Map.empty[JCls, JCls]
@@ -40,22 +38,40 @@ class ExternalSummarizer private(loadClassNode: JCls => ClassNode){
   def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
 
   def load0(cls: JCls): Unit = {
-    val cn = loadClassNode(cls)
-    Option(cn.superName).foreach(sup =>
-      directSuperclasses(cls) = JCls.fromSlashed(sup)
-    )
+    new ClassReader(loadClassStream(cls)).accept(
+      new ClassVisitor(Opcodes.ASM9) {
+        override def visit(version: Int,
+                           access: Int,
+                           name: String,
+                           signature: String,
+                           superName: String,
+                           interfaces: Array[String]): Unit = {
 
-    methodsPerCls(cls) = cn
-      .methods
-      .asScala
-      .map{m => MethodDef((m.access & Opcodes.ACC_STATIC) != 0, m.name, Desc.read(m.desc))}
-      .toSet
+          Option(superName).foreach(sup =>
+            directSuperclasses(cls) = JCls.fromSlashed(sup)
+          )
+          ancestorsPerCls(cls) =
+            (Option(superName) ++ Option(interfaces).toSeq.flatten)
+              .map(JCls.fromSlashed)
+              .toSet
+        }
 
-    ancestorsPerCls(cls) =
-      (Option(cn.superName) ++ Option(cn.interfaces).toSeq.flatMap(_.asScala))
-        .map(JCls.fromSlashed)
-        .toSet
+        override def visitMethod(access: Int,
+                                 name: String,
+                                 descriptor: String,
+                                 signature: String,
+                                 exceptions: Array[String]): MethodVisitor = {
+
+          methodsPerCls(cls) =
+            methodsPerCls.getOrElse(cls, Set()) +
+            MethodDef((access & Opcodes.ACC_STATIC) != 0, name, Desc.read(descriptor))
+
+          new MethodVisitor(Opcodes.ASM9){}
+        }
+      },
+      0)
 
     ancestorsPerCls(cls).foreach(load)
+
   }
 }

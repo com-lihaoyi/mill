@@ -31,22 +31,13 @@ object CodeSig{
           .filter(!localSummary.directAncestors.contains(_))
           .toSet,
         externalType =>
-          loadClass(
-            os.read.bytes(os.resource(upstreamClasspathClassloader) / os.SubPath(externalType.name.replace('.', '/') + ".class"))
-          )
+          os.read.inputStream(os.resource(upstreamClasspathClassloader) / os.SubPath(externalType.name.replace('.', '/') + ".class"))
       )
     }
 
     val directCallGraph = MethodCallResolver.resolveAllMethodCalls(localSummary, externalSummary, logger)
 
     new CodeSig(directCallGraph, localSummary.methodHashes)
-  }
-
-  def loadClass(bytes: Array[Byte]) = {
-    val classReader = new ClassReader(bytes)
-    val classNode = new ClassNode()
-    classReader.accept(classNode, 0)
-    classNode
   }
 }
 
