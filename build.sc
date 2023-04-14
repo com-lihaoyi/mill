@@ -653,18 +653,15 @@ object main extends MillModule {
           .collect{case Seq(a, b, c) => s"$a-$b-$c"}
       )
       def testLogFolder = T{ T.dest }
+
+      def caseEnvs[V](f1: CaseModule => Task[V])(s: String, f2: V => String) = {
+        T.traverse(caseKeys) { i => f1(cases(i)).map(v => s"MILL_TEST_${s}_$i" -> f2(v)) }
+      }
       def forkEnv = T{
-        T.traverse(caseKeys) { i =>
-          cases(i).compile.map(v => (s"MILL_TEST_CLASSES_$i", v.classes.path.toString))
-        }().toMap ++
-        T.traverse(caseKeys) { i =>
-          cases(i).compileClasspath.map(v => (s"MILL_TEST_CLASSPATH_$i", v.map(_.path).mkString(",")))
-        }().toMap ++
-        T.traverse(caseKeys) { i =>
-          cases(i).sources.map(v => (s"MILL_TEST_SOURCES_$i", v.head.path.toString))
-        }()++ Map(
-          "MILL_TEST_LOGS" -> testLogFolder().toString
-        )
+        Map("MILL_TEST_LOGS" -> testLogFolder().toString) ++
+        caseEnvs(_.compile)("CLASSES", _.classes.path.toString)() ++
+        caseEnvs(_.compileClasspath)("CLASSPATH", _.map(_.path).mkString(","))() ++
+        caseEnvs(_.sources)("SOURCES", _.head.path.toString)()
       }
 
       object cases extends Cross[CaseModule](caseKeys: _*)
