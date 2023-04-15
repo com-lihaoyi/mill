@@ -22,9 +22,7 @@ object DynamicCrossModuleTests extends IntegrationTestSuite {
 
       val res2 = evalStdout("modules[bar].run")
       assert(res2.isSuccess == true)
-      if (integrationTestMode != "local") {
-        assert(res2.out.contains("Hello World Bar"))
-      }
+      assert(res2.out.contains("Hello World Bar"))
 
       val res3 = evalStdout("modules[new].run")
       assert(res3.isSuccess == false)
@@ -47,15 +45,11 @@ object DynamicCrossModuleTests extends IntegrationTestSuite {
 
       val res5 = evalStdout("modules[new].run")
       assert(res5.isSuccess == true)
-      if (integrationTestMode != "local") {
-        assert(res5.out.contains("Hello World New"))
-      }
+      assert(res5.out.contains("Hello World New"))
 
       val res6 = evalStdout("modules[newer].run")
       assert(res6.isSuccess == true)
-      if (integrationTestMode != "local") {
-        assert(res6.out.contains("Hello World Newer"))
-      }
+      assert(res6.out.contains("Hello World Newer"))
 
       val res7 = evalStdout("resolve", "modules._")
       assert(res7.isSuccess == true)
