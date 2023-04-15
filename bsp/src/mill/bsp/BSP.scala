@@ -19,10 +19,6 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
 
   private[this] val millServerHandle = Promise[BspServerHandle]()
 
-  private def bspWorkerIvyDeps: T[Agg[Dep]] = T {
-    Agg(Dep.parse(BuildInfo.millBspWorkerDep))
-  }
-
   private def bspWorkerLibs: T[Agg[PathRef]] = T {
     mill.modules.Util.millProjectModule(
       "MILL_BSP_WORKER",
@@ -45,15 +41,17 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
    */
-  def install(jobs: Int = 1): Command[Unit] = T.command {
+  def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = T.command {
     // we create a file containing the additional jars to load
-    val cpFile = T.workspace / Constants.bspDir / s"${Constants.serverName}.resources"
+    val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
+    val cpFile =
+      T.workspace / Constants.bspDir / s"${Constants.serverName}-${mill.BuildInfo.millVersion}.resources"
     os.write.over(
       cpFile,
-      bspWorkerLibs().iterator.map(_.path.toNIO.toUri.toURL).mkString("\n"),
+      libUrls.mkString("\n"),
       createFolders = true
     )
-    BspWorker(T.ctx()).map(_.createBspConnection(jobs, Constants.serverName))
+    BspWorker(T.ctx(), Some(libUrls)).map(_.createBspConnection(jobs, Constants.serverName))
   }
 
   /**
@@ -73,23 +71,22 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
   override def startBspServer(
       initialEvaluator: Option[Evaluator],
       streams: SystemStreams,
+      logStream: Option[PrintStream],
       workspaceDir: os.Path,
       ammoniteHomeDir: os.Path,
       canReload: Boolean,
       serverHandle: Option[Promise[BspServerHandle]] = None
   ): BspServerResult = {
-
     val ctx = new Ctx.Workspace with Ctx.Home with Ctx.Log {
       override def workspace: Path = workspaceDir
       override def home: Path = ammoniteHomeDir
       // This all goes to the BSP log file mill-bsp.stderr
       override def log: Logger = new Logger {
         override def colored: Boolean = false
-
         override def systemStreams: SystemStreams = new SystemStreams(
-          streams.err,
-          streams.err,
-          DummyInputStream
+          out = streams.out,
+          err = streams.err,
+          in = DummyInputStream
         )
         override def info(s: String): Unit = streams.err.println(s)
         override def error(s: String): Unit = streams.err.println(s)
@@ -106,11 +103,20 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
         worker.startBspServer(
           initialEvaluator,
           streams,
+          logStream.getOrElse(streams.err),
           workspaceDir / Constants.bspDir,
           canReload,
           Seq(millServerHandle) ++ serverHandle.toSeq
         )
-      case _ => BspServerResult.Failure
+      case f: Result.Failure[_] =>
+        streams.err.println("Failed to start the BSP worker. " + f.msg)
+        BspServerResult.Failure
+      case f: Result.Exception =>
+        streams.err.println("Failed to start the BSP worker. " + f.throwable)
+        BspServerResult.Failure
+      case f =>
+        streams.err.println("Failed to start the BSP worker. " + f)
+        BspServerResult.Failure
     }
   }
 

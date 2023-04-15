@@ -17,9 +17,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
     def runAssertSuccess(expected: String) = {
       val res = evalStdout("foo.run")
       assert(res.isSuccess == true)
-      // Don't check foo.run stdout in local mode, because it the subprocess
-      // println is not properly captured by the test harness
-      if (integrationTestMode != "local") assert(res.out.contains(expected))
+      assert(res.out.contains(expected))
     }
 
     val fooPaths = Seq(

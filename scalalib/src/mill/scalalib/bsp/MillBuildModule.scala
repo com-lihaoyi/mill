@@ -38,7 +38,7 @@ trait MillBuildModule
   }
 
   override def compileIvyDeps: T[Agg[Dep]] = T {
-    val deps = Agg.from(BuildInfo.millEmbeddedDeps.map(d => ivy"${d}".forceVersion()))
+    val deps = Agg.from(BuildInfo.millEmbeddedDeps.split(",").map(d => ivy"${d}".forceVersion()))
     T.log.errorStream.println(s"compileIvyDeps: ${deps}")
     deps
   }
