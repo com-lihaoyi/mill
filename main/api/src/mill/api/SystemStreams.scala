@@ -34,7 +34,7 @@ object SystemStreams{
    * want to print stuff while the system streams override are messed up
    */
 
-  def originalErr = original.err
+  def originalErr: PrintStream = original.err
 
   def withStreams[T](systemStreams: SystemStreams)(t: => T): T = {
     val out = System.out
