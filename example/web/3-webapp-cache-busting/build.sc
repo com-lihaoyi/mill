@@ -14,7 +14,7 @@ object app extends RootModule with ScalaModule{
       path <- os.walk(resourceRoot.path)
       if os.isFile(path)
     } yield {
-      val fileHash = String.format("%08x", PathRef(path).sig)
+      val fileHash = String.format("%08x", java.util.Arrays.hashCode(os.read.bytes(path)))
       val relPath = path.relativeTo(resourceRoot.path)
       val extStr = if (relPath.ext == "") "" else s".${relPath.ext}"
       val hashedPath = relPath / os.up / s"${relPath.baseName}-$fileHash$extStr"
@@ -49,7 +49,7 @@ object app extends RootModule with ScalaModule{
 // in the cache).
 //
 // We do this in an overrride of the `resources` target, that loads
-// `super.resources()`, hashes the files within it using `PathRef().sig`, and
+// `super.resources()`, hashes the files within it using `Arrays.hashCode`, and
 // copies the files to a new hashed path saving the overall mapping to a
 // `hashed-resource-mapping.json`. The webapp then loads the mapping at runtime
 // and uses it to serve HTML referencing the hashed paths, but without paying
@@ -65,7 +65,7 @@ object app extends RootModule with ScalaModule{
 > curl http://localhost:8080
 What needs to be done
 
-> curl http://localhost:8080/static/main-dc6cb1df.js
+> curl http://localhost:8080/static/main-6da98e99.js
 initListeners()
 
 > ./mill clean runBackground
