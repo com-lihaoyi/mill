@@ -20,7 +20,7 @@ object SystemStreams{
    * Assumes that the application only uses [[withStreams]] to override
    * stdout/stderr/stdin.
    */
-  def isOriginal() = {
+  def isOriginal(): Boolean = {
     (System.out eq original.out) &&
     (System.err eq original.err) &&
     (System.in eq original.in) &&
