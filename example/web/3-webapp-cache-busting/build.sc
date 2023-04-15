@@ -65,7 +65,7 @@ object app extends RootModule with ScalaModule{
 > curl http://localhost:8080
 What needs to be done
 
-> curl http://localhost:8080/static/main-6da98e99.js
+> curl http://localhost:8080/static/main-6da98e99.js # mac/linux
 initListeners()
 
 > ./mill clean runBackground
