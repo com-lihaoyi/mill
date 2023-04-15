@@ -218,14 +218,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M7-30-70c6e4</span>
+    <span class="version">0.11.0-M7-31-18711b</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M7-30-70c6e4</a>
+          <a href="index.html">0.11.0-M7-31-18711b</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -326,9 +326,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-30-70c6e4</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-31-18711b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Configuration.html">0.11.0-M7-30-70c6e4</a>
+    <a class="version is-current" href="Configuration.html">0.11.0-M7-31-18711b</a>
     <a class="version" href="0.11.0-M7/Configuration.html">0.11.0-M7</a>
     <a class="version" href="0.11.0-M6/Configuration.html">0.11.0-M6</a>
     <a class="version" href="0.11.0-M5/Configuration.html">0.11.0-M5</a>
@@ -627,6 +627,9 @@ object foo extends ScalaModule {
 <li>
 <p><code>TestModule.Utest</code></p>
 </li>
+<li>
+<p><code>TestModule.ZioTest</code></p>
+</li>
 </ul>
 </div>
 <div class="listingblock">
@@ -771,6 +774,26 @@ object foo extends ScalaModule {
 
   object test extends Tests with TestModule.Specs2 {
     def ivyDeps = Agg(ivy&quot;org.specs2::specs2-core:4.6.0&quot;)
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ZIO-test example:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;{example-scala-3-version}&quot;
+
+  object test extends Tests with TestModule.ZioTest {
+    def ivyDeps = Agg(
+      ivy&quot;dev.zio::zio-test:2.0.12&quot;,
+      ivy&quot;dev.zio::zio-test-sbt:2.0.12&quot;,
+    )
   }
 }</code></pre>
 </div>
