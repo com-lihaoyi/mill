@@ -9,6 +9,15 @@ object WebApp extends cask.MainRoutes{
     implicit def todoRW: upickle.default.ReadWriter[Todo] = upickle.default.macroRW[Todo]
   }
 
+  val hashedResourceMapping = upickle.default.read[Map[String, String]](
+    os.read(os.resource / "hashed-resource-mapping.json")
+  )
+  def hashedResource(s: String) = s match{
+    case s"/static/$rest" =>
+      val s"webapp/$hashed" = hashedResourceMapping(s"webapp/$rest")
+      s"/static/$hashed"
+  }
+
   var todos = Seq(
     Todo(true, "Get started with Cask"),
     Todo(false, "Profit!")
@@ -113,7 +122,7 @@ object WebApp extends cask.MainRoutes{
           meta(charset := "utf-8"),
           meta(name := "viewport", content := "width=device-width, initial-scale=1"),
           tags2.title("Template • TodoMVC"),
-          link(rel := "stylesheet", href := "/static/index.css")
+          link(rel := "stylesheet", href := hashedResource("/static/index.css"))
         ),
         body(
           tags2.section(cls := "todoapp", renderBody("all")),
@@ -126,7 +135,7 @@ object WebApp extends cask.MainRoutes{
               a(href := "http://todomvc.com","TodoMVC")
             )
           ),
-          script(src := "/static/main.js")
+          script(src := hashedResource("/static/main.js"))
         )
       )
     )
