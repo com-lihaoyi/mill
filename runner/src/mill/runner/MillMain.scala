@@ -16,33 +16,49 @@ object MillMain {
   def main(args: Array[String]): Unit = {
     val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
     // setup streams
-    val openStreams =
+    val (runnerStreams, cleanupStreams, bspLog) =
       if (args.headOption == Option("--bsp")) {
+        // In BSP mode, we use System.in/out for protocol communication
+        // and all Mill output (stdout and stderr) goes to a dedicated file
         val stderrFile = os.pwd / ".bsp" / "mill-bsp.stderr"
         os.makeDir.all(stderrFile / os.up)
-        val err = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
-        System.setErr(err)
-        System.setOut(err)
-        err.println(s"Mill in BSP mode, version ${BuildInfo.millVersion}, ${new java.util.Date()}")
-        Seq(err)
-      } else Seq()
+        val errFile = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
+        val errTee = new TeePrintStream(initialSystemStreams.err, errFile)
+        val msg = s"Mill in BSP mode, version ${BuildInfo.millVersion}, ${new java.util.Date()}"
+        errTee.println(msg)
+        (
+          new SystemStreams(
+            // out is used for the protocol
+            out = initialSystemStreams.out,
+            // err is default, but also tee-ed into the bsp log file
+            err = errTee,
+            in = System.in
+          ),
+          Seq(errFile),
+          Some(errFile)
+        )
+      } else {
+        // Unchanged system stream
+        (initialSystemStreams, Seq(), None)
+      }
 
     if (Properties.isWin && System.console() != null)
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
     val (result, _) =
       try main0(
-          args,
-          RunnerState.empty,
-          mill.util.Util.isInteractive(),
-          initialSystemStreams,
-          System.getenv().asScala.toMap,
-          b => (),
+          args = args,
+          stateCache = RunnerState.empty,
+          mainInteractive = mill.util.Util.isInteractive(),
+          streams0 = runnerStreams,
+          bspLog = bspLog,
+          env = System.getenv().asScala.toMap,
+          setIdle = b => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap
         )
       finally {
-        openStreams.foreach(_.close())
+        cleanupStreams.foreach(_.close())
       }
     System.exit(if (result) 0 else 1)
   }
@@ -52,6 +68,7 @@ object MillMain {
       stateCache: RunnerState,
       mainInteractive: Boolean,
       streams0: SystemStreams,
+      bspLog: Option[PrintStream],
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties0: Map[String, String],
@@ -59,7 +76,7 @@ object MillMain {
   ): (Boolean, RunnerState) = {
     val printLoggerState = new PrintLogger.State()
     val streams = PrintLogger.wrapSystemStreams(streams0, printLoggerState)
-    Util.withStreams(streams) {
+    SystemStreams.withStreams(streams) {
       MillCliConfigParser.parse(args) match {
         // Cannot parse args
         case Left(msg) =>
@@ -170,7 +187,8 @@ object MillMain {
                 }
               }
 
-              val bspContext = if (bspMode) Some(new BspContext(streams, config.home)) else None
+              val bspContext =
+                if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
               val targetsAndParams =
                 bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
 

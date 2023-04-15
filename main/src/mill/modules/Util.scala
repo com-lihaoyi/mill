@@ -1,8 +1,8 @@
 package mill.modules
 
 import coursier.Repository
-import mill.BuildInfo
-import mill.api.{Ctx, IO, Loose, PathRef}
+import mill.{Agg, BuildInfo}
+import mill.api.{Ctx, IO, Loose, PathRef, Result}
 
 object Util {
 
@@ -70,7 +70,7 @@ object Util {
       resolveFilter: os.Path => Boolean = _ => true,
       // this should correspond to the mill runtime Scala version
       artifactSuffix: String = "_2.13"
-  ) = {
+  ): Result[Agg[PathRef]] = {
     millProperty(key) match {
       case Some(localPath) =>
         mill.api.Result.Success(

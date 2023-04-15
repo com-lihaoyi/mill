@@ -190,6 +190,7 @@ For convenience, you can also use one of the predefined test frameworks:
 * `TestModule.ScalaTest`
 * `TestModule.Specs2`
 * `TestModule.Utest`
+* `TestModule.ZioTest`
 
 
 .`build.sc`: `ScalaModule` with UTest tests using the predefined `TestModule.Utest`
@@ -316,6 +317,25 @@ object foo extends ScalaModule {
 
   object test extends Tests with TestModule.Specs2 {
     def ivyDeps = Agg(ivy"org.specs2::specs2-core:4.6.0")
+  }
+}
+----
+
+ZIO-test example:
+
+.`build.sc`
+[source,scala,subs="attributes,verbatim"]
+----
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "{example-scala-3-version}"
+
+  object test extends Tests with TestModule.ZioTest {
+    def ivyDeps = Agg(
+      ivy"dev.zio::zio-test:2.0.12",
+      ivy"dev.zio::zio-test-sbt:2.0.12",
+    )
   }
 }
 ----

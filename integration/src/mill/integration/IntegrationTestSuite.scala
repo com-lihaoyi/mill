@@ -44,7 +44,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   private def runnerStdout(stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
     val streams = new SystemStreams(stdout, stderr, stdIn)
-    mill.util.Util.withStreams(streams) {
+    SystemStreams.withStreams(streams) {
       val config = MillCliConfig(
         debugLog = Flag(debugLog),
         keepGoing = Flag(keepGoing),
