@@ -260,7 +260,27 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   def run(config: JsEnvConfig, report: Report): Unit = {
     val env = jsEnv(config)
     val input = jsEnvInput(report)
-    val runConfig = RunConfig().withLogger(new ScalaConsoleLogger)
+    val runConfig0 = RunConfig().withLogger(new ScalaConsoleLogger)
+    val runConfig =
+      if (mill.api.SystemStreams.isOriginal()) runConfig0
+      else runConfig0
+        .withInheritErr(false)
+        .withInheritOut(false)
+        .withOnOutputStream{case (Some(processOut), Some(processErr)) =>
+          val sources = Seq(
+            (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
+            (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
+          )
+
+          for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
+            val t = new Thread(
+              new mill.main.client.InputPumper(std, dest, checkAvailable, () => runningCheck()),
+              name
+            )
+            t.setDaemon(true)
+            t.start()
+          }
+        }
     Run.runInterruptible(env, input, runConfig)
   }
 

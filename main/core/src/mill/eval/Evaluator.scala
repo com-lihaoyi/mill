@@ -578,7 +578,7 @@ class Evaluator private (
           val out = System.out
           val in = System.in
           val err = System.err
-          mill.util.Util.withStreams(multiLogger.systemStreams) {
+          mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
             try task.evaluate(args)
             catch {
               case NonFatal(e) =>

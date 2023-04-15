@@ -822,7 +822,7 @@ object scalajslib extends MillModule with BuildInfo{
   }
   object worker extends Cross[WorkerModule]("1")
   class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
-    override def moduleDeps = Seq(scalajslib.`worker-api`)
+    override def moduleDeps = Seq(scalajslib.`worker-api`, main.client, main.api)
     override def ivyDeps = Agg(
       Deps.Scalajs_1.scalajsLinker,
       Deps.Scalajs_1.scalajsSbtTestAdapter,
@@ -1097,8 +1097,7 @@ object bsp extends MillModule with BuildInfo{
   def buildInfoMembers = T{
     val workerDep = worker.publishSelfDependency()
     Seq(
-      BuildInfo.Value("bsp4jVersion", Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version)."),
-      BuildInfo.Value("millBspWorkerDep", s"${workerDep.group}:${workerDep.id}:${workerDep.version}", "BSP worker dependency.")
+      BuildInfo.Value("bsp4jVersion", Deps.bsp4j.dep.version, "BSP4j version (BSP Protocol version).")
     )
   }
 
