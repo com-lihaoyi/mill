@@ -14,10 +14,10 @@ class FooModule(val crossScalaVersion: String) extends CrossScalaModule.Base {
       developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
     )
 
-    def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.12.0")
+    def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.12.0")
 
     object test extends Tests {
-      def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
+      def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
       def testFramework = "utest.runner.Framework"
     }
   }
@@ -35,7 +35,7 @@ class FooModule(val crossScalaVersion: String) extends CrossScalaModule.Base {
   object qux extends Module{
     object jvm extends Shared{
       def moduleDeps = Seq(bar.jvm)
-      def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
+      def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle:3.0.0")
     }
     object js extends SharedJS {
       def moduleDeps = Seq(bar.js)

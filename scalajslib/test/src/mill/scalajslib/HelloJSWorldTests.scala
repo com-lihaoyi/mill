@@ -59,6 +59,19 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
     }
+    // Make sure the old cross-platform ivyDep which uses `::` both on the
+    // left and on the right continues to work for backwards compatibility
+    object buildUTestOldIvyDep extends Cross[BuildModuleUtestOldIvyDep](matrix: _*)
+    class BuildModuleUtestOldIvyDep(crossScalaVersion: String, sjsVersion0: String)
+        extends RootModule(crossScalaVersion, sjsVersion0) {
+      object test extends super.Tests with TestModule.Utest {
+        override def sources = T.sources { millSourcePath / "src" / "utest" }
+        val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
+        override def ivyDeps = Agg(
+          ivy"com.lihaoyi::utest::$utestVersion"
+        )
+      }
+    }
 
     object buildScalaTest extends Cross[BuildModuleScalaTest](matrix: _*)
     class BuildModuleScalaTest(
@@ -211,9 +224,10 @@ object HelloJSWorldTests extends TestSuite {
         .toMap
     }
 
-    def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
+    def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean, oldIvyDepSyntax: Boolean = false) = {
       val resultMap = runTests(
-        if (!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test()
+        if (oldIvyDepSyntax) HelloJSWorld.buildUTestOldIvyDep(scalaVersion, scalaJSVersion).test.test()
+        else if (!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test()
         else HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.testCached
       )
 
@@ -256,6 +270,10 @@ object HelloJSWorldTests extends TestSuite {
         skipScala = _.startsWith("2.11.")
       )
       testAllMatrix(
+        (scala, scalaJS) => checkUtest(scala, scalaJS, cached, oldIvyDepSyntax = true),
+        skipScala = _.startsWith("2.11.")
+      )
+      testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
         skipScala = ZincWorkerUtil.isScala3
       )
@@ -265,6 +283,10 @@ object HelloJSWorldTests extends TestSuite {
       val cached = false
       testAllMatrix(
         (scala, scalaJS) => checkUtest(scala, scalaJS, cached),
+        skipScala = _.startsWith("2.11.")
+      )
+      testAllMatrix(
+        (scala, scalaJS) => checkUtest(scala, scalaJS, cached, oldIvyDepSyntax = true),
         skipScala = _.startsWith("2.11.")
       )
       testAllMatrix(
