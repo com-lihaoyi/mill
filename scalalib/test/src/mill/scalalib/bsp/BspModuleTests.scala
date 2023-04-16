@@ -60,13 +60,16 @@ object BspModuleTests extends TestSuite {
             MultiBase.HelloBsp.bspCompileClasspath
           )
 
+          val relResult =
+            result.iterator.map(_.resolve(eval.evaluator.pathsResolver).last).toSeq.sorted
+          val expected = Seq(
+            "compile-resources",
+            "slf4j-api-1.7.34.jar",
+            s"scala-library-${testScalaVersion}.jar"
+          ).sorted
+
           assert(
-            result.size == 3,
-            result.map(_.resolve(eval.evaluator.pathsResolver).last).toSet == Set(
-              "resources",
-              "slf4j-api-1.7.34.jar",
-              s"scala-library-${testScalaVersion}.jar"
-            ),
+            relResult == expected,
             evalCount > 0
           )
         }
@@ -84,8 +87,8 @@ object BspModuleTests extends TestSuite {
             }.toSeq.sortBy(_.toString)
 
             val expected: Seq[FilePath] = Seq(
-              MultiBase.HelloBsp.millSourcePath / "resources",
-              MultiBase.HelloBsp2.millSourcePath / "resources",
+              MultiBase.HelloBsp.millSourcePath / "compile-resources",
+              MultiBase.HelloBsp2.millSourcePath / "compile-resources",
               EvaluatorPaths.resolveDestPaths(eval.outPath, MultiBase.HelloBsp.compile)
                 .dest / "classes",
               os.rel / "slf4j-api-1.7.34.jar",
@@ -95,7 +98,6 @@ object BspModuleTests extends TestSuite {
             ).sortBy(_.toString)
 
             assert(
-              result.size == 7,
               relResults == expected,
               evalCount > 0
             )
@@ -129,7 +131,7 @@ object BspModuleTests extends TestSuite {
           test("index 1 (no deps)") { run(1, 500) }
           test("index 10") { run(10, 5000) }
           test("index 20") { run(20, 5000) }
-          test("index 25") { run(25, 30000) }
+          test("index 25") { run(25, 50000) }
         }
       }
     }

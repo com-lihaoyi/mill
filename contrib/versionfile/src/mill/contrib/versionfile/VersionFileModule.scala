@@ -32,7 +32,7 @@ trait VersionFileModule extends Module {
   }
 
   protected def setVersionTask(version: T[Version]) = T.task {
-    T.ctx.log.info(generateCommitMessage(version()))
+    T.log.info(generateCommitMessage(version()))
     writeVersionToFile(versionFile(), version())
   }
 
@@ -90,7 +90,7 @@ object VersionFileModule extends define.ExternalModule {
     } yield proc.call()
   }
 
-  implicit val millScoptTargetReads = new mill.main.Tasks.Scopt[Seq[os.proc]]()
+  import mill.main.TokenReaders._
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

@@ -1,0 +1,31 @@
+= JMH
+
+You can use `JmhModule` to integrate JMH testing with Mill.
+
+Example configuration:
+
+.`build.sc`
+[source,scala]
+----
+import mill._, scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-jmh:`
+import contrib.jmh.JmhModule
+
+object foo extends ScalaModule with JmhModule {
+  def scalaVersion = "2.13.8"
+  def jmhCoreVersion = "1.35"
+}
+----
+
+Here are some sample commands:
+
+[source,bash]
+----
+mill foo.runJmh             # Runs all detected jmh benchmarks
+mill foo.listJmhBenchmarks  # List detected jmh benchmarks
+mill foo.runJmh -h          # List available arguments to runJmh
+mill foo.runJmh regexp      # Run all benchmarks matching `regexp`
+----
+
+For Scala JMH samples see https://github.com/sbt/sbt-jmh/tree/main/plugin/src/sbt-test/sbt-jmh/run/src/main/scala/org/openjdk/jmh/samples[sbt-jmh].

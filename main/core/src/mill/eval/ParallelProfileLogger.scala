@@ -3,7 +3,7 @@ package mill.eval
 import java.io.PrintStream
 import java.nio.file.{Files, StandardOpenOption}
 
-class ParallelProfileLogger(outPath: os.Path, startTime: Long) {
+private[eval] class ParallelProfileLogger(outPath: os.Path, startTime: Long) {
   private var used = false
   private val threadIds = collection.mutable.Map.empty[String, Int]
   lazy val traceStream = {
@@ -56,7 +56,7 @@ class ParallelProfileLogger(outPath: os.Path, startTime: Long) {
  * Trace Event Format, that can be loaded with Google Chrome via chrome://tracing
  * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
  */
-case class TraceEvent(
+private[eval] case class TraceEvent(
     name: String,
     cat: String,
     ph: String,
@@ -66,6 +66,6 @@ case class TraceEvent(
     tid: Int,
     args: Seq[String]
 )
-object TraceEvent {
+private[eval] object TraceEvent {
   implicit val readWrite: upickle.default.ReadWriter[TraceEvent] = upickle.default.macroRW
 }

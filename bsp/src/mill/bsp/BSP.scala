@@ -1,32 +1,31 @@
 package mill.bsp
 
-import ch.epfl.scala.bsp4j.BuildClient
-
-import java.io.{InputStream, PrintStream, PrintWriter}
-import java.nio.file.FileAlreadyExistsException
-import java.util.concurrent.Executors
-import mill.{BuildInfo, MillMain, T}
-import mill.define.{Command, Discover, ExternalModule}
-import mill.eval.Evaluator
-import mill.main.{BspServerHandle, BspServerResult}
-import org.eclipse.lsp4j.jsonrpc.Launcher
-
-import scala.concurrent.{Await, CancellationException, Promise}
-import upickle.default.write
-
+import java.io.{InputStream, PrintStream}
+import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration.Duration
-import scala.util.Using
-import scala.util.chaining.scalaUtilChainingOps
+import mill.api.{Ctx, DummyInputStream, Logger, PathRef, Result, SystemStreams}
+import mill.{Agg, T, BuildInfo => MillBuildInfo}
+import mill.define.{Command, Discover, ExternalModule, Task}
+import mill.eval.Evaluator
+import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
+import mill.scalalib.{CoursierModule, Dep}
+import mill.util.PrintLogger
+import os.Path
 
-object BSP extends ExternalModule {
-  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
+object BSP extends ExternalModule with CoursierModule with BspServerStarter {
+  import mill.main.TokenReaders._
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
-  val bspProtocolVersion = "2.0.0"
-  val languages = Seq("scala", "java")
-  val serverName = "mill-bsp"
 
-  private[this] var millServerHandle = Promise[BspServerHandle]
+  private[this] val millServerHandle = Promise[BspServerHandle]()
+
+  private def bspWorkerLibs: T[Agg[PathRef]] = T {
+    mill.modules.Util.millProjectModule(
+      "MILL_BSP_WORKER",
+      "mill-bsp-worker",
+      repositoriesTask()
+    )
+  }
 
   /**
    * Installs the mill-bsp server. It creates a json file
@@ -42,61 +41,17 @@ object BSP extends ExternalModule {
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
    */
-  def install(evaluator: Evaluator, jobs: Int = 1): Command[Unit] =
-    T.command {
-      val bspDirectory = evaluator.rootModule.millSourcePath / ".bsp"
-      val bspFile = bspDirectory / s"${serverName}.json"
-      if (os.exists(bspFile)) T.log.info(s"Overwriting BSP connection file: ${bspFile}")
-      else T.log.info(s"Creating BSP connection file: ${bspFile}")
-      os.write.over(bspFile, createBspConnectionJson(jobs), createFolders = true)
-    }
-
-  // creates a Json with the BSP connection details
-  def createBspConnectionJson(jobs: Int): String = {
-    // we assume, the classpath is an executable jar here, FIXME
-    val millPath = sys.props
-      .get("java.class.path")
-      .getOrElse(throw new IllegalStateException("System property 'java.class.path' not set"))
-
-    write(
-      BspConfigJson(
-        name = "mill-bsp",
-        argv = Seq(
-          millPath,
-          "--bsp",
-          "--disable-ticker",
-          "--color",
-          "false",
-          "--jobs",
-          s"${jobs}"
-//          s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
-        ),
-        millVersion = BuildInfo.millVersion,
-        bspVersion = bspProtocolVersion,
-        languages = languages
-      )
+  def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = T.command {
+    // we create a file containing the additional jars to load
+    val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
+    val cpFile =
+      T.workspace / Constants.bspDir / s"${Constants.serverName}-${mill.BuildInfo.millVersion}.resources"
+    os.write.over(
+      cpFile,
+      libUrls.mkString("\n"),
+      createFolders = true
     )
-  }
-
-  /**
-   * Computes a mill command which starts the mill-bsp
-   * server and establishes connection to client. Waits
-   * until a client connects and ends the connection
-   * after the client sent an "exit" notification
-   *
-   * @param ev Environment, used by mill to evaluate commands
-   * @return: mill.Command which executes the starting of the
-   *          server
-   */
-  def start(ev: Evaluator): Command[BspServerResult] = T.command {
-    startBspServer(
-      initialEvaluator = Some(ev),
-      outStream = MillMain.initialSystemStreams.out,
-      errStream = T.log.errorStream,
-      inStream = MillMain.initialSystemStreams.in,
-      logDir = ev.rootModule.millSourcePath / ".bsp",
-      canReload = false
-    )
+    BspWorker(T.ctx(), Some(libUrls)).map(_.createBspConnection(jobs, Constants.serverName))
   }
 
   /**
@@ -113,103 +68,56 @@ object BSP extends ExternalModule {
     res
   }
 
-  def startBspServer(
+  override def startBspServer(
       initialEvaluator: Option[Evaluator],
-      outStream: PrintStream,
-      errStream: PrintStream,
-      inStream: InputStream,
-      logDir: os.Path,
+      streams: SystemStreams,
+      logStream: Option[PrintStream],
+      workspaceDir: os.Path,
+      ammoniteHomeDir: os.Path,
       canReload: Boolean,
       serverHandle: Option[Promise[BspServerHandle]] = None
-  ) = {
-    val evaluator = initialEvaluator.map(_.withFailFast(false))
-
-    val millServer =
-      new MillBuildServer(
-        initialEvaluator = evaluator,
-        bspVersion = bspProtocolVersion,
-        serverVersion = BuildInfo.millVersion,
-        serverName = serverName,
-        logStream = errStream,
-        canReload = canReload
-      ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
-
-    val executor = Executors.newCachedThreadPool()
-
-    var shutdownRequestedBeforeExit = false
-
-    try {
-      val launcher = new Launcher.Builder[BuildClient]()
-        .setOutput(outStream)
-        .setInput(inStream)
-        .setLocalService(millServer)
-        .setRemoteInterface(classOf[BuildClient])
-        .traceMessages(new PrintWriter(
-          (logDir / s"${serverName}.trace").toIO
-        ))
-        .setExecutorService(executor)
-        .create()
-      millServer.onConnectWithClient(launcher.getRemoteProxy)
-      val listening = launcher.startListening()
-      millServer.cancellator = shutdownBefore => {
-        shutdownRequestedBeforeExit = shutdownBefore
-        listening.cancel(true)
-      }
-
-      val bspServerHandle = new BspServerHandle {
-        private[this] var _lastResult: Option[BspServerResult] = None
-
-        override def runSession(evaluator: Evaluator): BspServerResult = {
-          _lastResult = None
-          millServer.updateEvaluator(Option(evaluator))
-          val onReload = Promise[BspServerResult]
-          millServer.onSessionEnd = Some { serverResult =>
-            if (!onReload.isCompleted) {
-              errStream.println("Unsetting evaluator on session end")
-              millServer.updateEvaluator(None)
-              _lastResult = Some(serverResult)
-              onReload.success(serverResult)
-            }
-          }
-          Await.result(onReload.future, Duration.Inf).tap { r =>
-            errStream.println(s"Reload finished, result: ${r}")
-            _lastResult = Some(r)
-          }
-        }
-
-        override def lastResult: Option[BspServerResult] = _lastResult
-
-        override def stop(): Unit = {
-          errStream.println("Stopping server via handle...")
-          listening.cancel(true)
-        }
-      }
-      millServerHandle.success(bspServerHandle)
-      serverHandle.foreach(_.success(bspServerHandle))
-
-      listening.get()
-      ()
-    } catch {
-      case _: CancellationException =>
-        errStream.println("The mill server was shut down.")
-      case e: Exception =>
-        errStream.println(
-          s"""An exception occurred while connecting to the client.
-             |Cause: ${e.getCause}
-             |Message: ${e.getMessage}
-             |Exception class: ${e.getClass}
-             |Stack Trace: ${e.getStackTrace}""".stripMargin
+  ): BspServerResult = {
+    val ctx = new Ctx.Workspace with Ctx.Home with Ctx.Log {
+      override def workspace: Path = workspaceDir
+      override def home: Path = ammoniteHomeDir
+      // This all goes to the BSP log file mill-bsp.stderr
+      override def log: Logger = new Logger {
+        override def colored: Boolean = false
+        override def systemStreams: SystemStreams = new SystemStreams(
+          out = streams.out,
+          err = streams.err,
+          in = DummyInputStream
         )
-    } finally {
-      errStream.println("Shutting down executor")
-      executor.shutdown()
-
+        override def info(s: String): Unit = streams.err.println(s)
+        override def error(s: String): Unit = streams.err.println(s)
+        override def ticker(s: String): Unit = streams.err.println(s)
+        override def debug(s: String): Unit = streams.err.println(s)
+        override def debugEnabled: Boolean = true
+      }
     }
 
-    val finalReuslt =
-      if (shutdownRequestedBeforeExit) BspServerResult.Shutdown
-      else BspServerResult.Failure
+    val worker = BspWorker(ctx)
 
-    finalReuslt
+    worker match {
+      case Result.Success(worker) =>
+        worker.startBspServer(
+          initialEvaluator,
+          streams,
+          logStream.getOrElse(streams.err),
+          workspaceDir / Constants.bspDir,
+          canReload,
+          Seq(millServerHandle) ++ serverHandle.toSeq
+        )
+      case f: Result.Failure[_] =>
+        streams.err.println("Failed to start the BSP worker. " + f.msg)
+        BspServerResult.Failure
+      case f: Result.Exception =>
+        streams.err.println("Failed to start the BSP worker. " + f.throwable)
+        BspServerResult.Failure
+      case f =>
+        streams.err.println("Failed to start the BSP worker. " + f)
+        BspServerResult.Failure
+    }
   }
+
 }

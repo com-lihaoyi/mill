@@ -14,7 +14,8 @@ object BloopFormats {
   implicit val checksumRW: ReadWriter[BloopConfig.Checksum] = macroRW
   implicit val linkerModeDebugRW: ReadWriter[BloopConfig.LinkerMode.Debug.type] = macroRW
   implicit val linkerModeReleaseRW: ReadWriter[BloopConfig.LinkerMode.Release.type] = macroRW
-  implicit val moduleKindJSCommonJSModuleRW: ReadWriter[BloopConfig.ModuleKindJS.CommonJSModule.type] = macroRW
+  implicit val moduleKindJSCommonJSModuleRW
+      : ReadWriter[BloopConfig.ModuleKindJS.CommonJSModule.type] = macroRW
   implicit val moduleKindJSNoModuleRW: ReadWriter[BloopConfig.ModuleKindJS.NoModule.type] = macroRW
   implicit val moduleKindJSESModuleRW: ReadWriter[BloopConfig.ModuleKindJS.ESModule.type] = macroRW
   implicit val javaThenScalaRW: ReadWriter[BloopConfig.JavaThenScala.type] = macroRW
@@ -35,14 +36,15 @@ object BloopFormats {
   implicit val platformJvmRW: ReadWriter[BloopConfig.Platform.Jvm] = macroRW
   implicit val platformNativeRW: ReadWriter[BloopConfig.Platform.Native] = macroRW
   implicit val platformRW: ReadWriter[BloopConfig.Platform] = macroRW
-  implicit val projectRW: ReadWriter[BloopConfig.Project] = macroRW
   implicit val resolutionRW: ReadWriter[BloopConfig.Resolution] = macroRW
   implicit val sbtRW: ReadWriter[BloopConfig.Sbt] = macroRW
   implicit val scalaRw: ReadWriter[BloopConfig.Scala] = macroRW
   implicit val sourcesGlobsRW: ReadWriter[BloopConfig.SourcesGlobs] = macroRW
+  implicit val sourceGeneratorRW: ReadWriter[BloopConfig.SourceGenerator] = macroRW
   implicit val testArgumentRW: ReadWriter[BloopConfig.TestArgument] = macroRW
   implicit val testFrameworkRW: ReadWriter[BloopConfig.TestFramework] = macroRW
   implicit val testOptionsRW: ReadWriter[BloopConfig.TestOptions] = macroRW
   implicit val testRW: ReadWriter[BloopConfig.Test] = macroRW
+  implicit val projectRW: ReadWriter[BloopConfig.Project] = macroRW
 
 }

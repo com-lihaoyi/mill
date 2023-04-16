@@ -27,3 +27,25 @@ c8bf027df68d40d83698aebbd6dfe7f3ac83acbf
 #Author: Tobias Roeser <le.petit.fou@web.de>  Wed Mar 2 11:56:45 2022 +0100
 # Reformatted source code
 ba4e52433e07bd408fd3e52ab9b06659b687f594
+
+# Scala Steward: Reformat with scalafmt 3.5.8
+31a8c01406b77246150a8418a310132357b83e08
+
+# Reformatted sources
+a769e208cf7e276f11f859ca7e618d5c973e6d4c
+
+# Scala Steward: Reformat with scalafmt 3.6.1
+928a2acd724e006f0c729f7c335ff0d36160cd4c
+
+# Partially revert "Reformat with scalafmt 3.6.1" to fix failing tests
+11ea5481831dc6efb57812a9dbf5d777362d21cb
+
+# Author: Tobias Roeser <le.petit.fou@web.de> Mon Mar 6 09:23:52 2023 +0100
+# Allign source file locations with packages
+a47ea5f9ab5a9eacbe2138fa22379b261820764e
+
+# Reformatted some files with scalafmt 3.7.3
+ceef92f5d6f3d4066564d41b5165351df7cb5fbb
+
+# Reformatted source code
+9768c664a9d635d5755260f637e253d9f4c288ad

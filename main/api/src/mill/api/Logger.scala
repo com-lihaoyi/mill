@@ -1,6 +1,6 @@
 package mill.api
 
-import java.io._
+import java.io.{InputStream, PrintStream}
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -27,14 +27,22 @@ import java.io._
 trait Logger {
   def colored: Boolean
 
-  def errorStream: PrintStream
-  def outputStream: PrintStream
-  def inStream: InputStream
+  def systemStreams: SystemStreams
+
+  def errorStream: PrintStream = systemStreams.err
+  def outputStream: PrintStream = systemStreams.out
+  def inStream: InputStream = systemStreams.in
 
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
   def debug(s: String): Unit
+
+  /**
+   * @since Mill 0.10.5
+   */
+  // We only default-implement it to keep binary compatibility in 0.10.x
+  def debugEnabled: Boolean = false
 
   def close(): Unit = ()
 }

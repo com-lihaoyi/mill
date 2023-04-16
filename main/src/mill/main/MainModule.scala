@@ -5,26 +5,16 @@ import mainargs.TokensReader
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result, internal}
-import mill.define.{Command, NamedTask, Task}
+import mill.define.{Command, Segments, SelectMode, NamedTask, TargetImpl, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{PrintLogger, Watched}
-import mill.define.SelectMode
-import pprint.{Renderer, Truncated}
+import pprint.{Renderer, Tree, Truncated}
 import ujson.Value
 
+import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 
 object MainModule {
-  @deprecated(
-    "use resolveTasks(Evaluator, Seq[String], SelectMode) instead",
-    "mill after 0.10.0-M3"
-  )
-  def resolveTasks[T](
-      evaluator: Evaluator,
-      targets: Seq[String],
-      multiSelect: Boolean
-  )(f: List[NamedTask[Any]] => T): Result[T] =
-    resolveTasks(evaluator, targets, if (multiSelect) SelectMode.Multi else SelectMode.Single)(f)
 
   def resolveTasks[T](
       evaluator: Evaluator,
@@ -36,17 +26,6 @@ object MainModule {
       case Right(tasks) => Result.Success(f(tasks))
     }
   }
-
-  @deprecated(
-    "use evaluateTasks(Evaluator, Seq[String], SelectMode) instead",
-    "mill after 0.10.0-M3"
-  )
-  def evaluateTasks[T](
-      evaluator: Evaluator,
-      targets: Seq[String],
-      multiSelect: Boolean
-  )(f: Seq[(Any, Option[ujson.Value])] => T): Result[Watched[Unit]] =
-    evaluateTasks(evaluator, targets, if (multiSelect) SelectMode.Multi else SelectMode.Single)(f)
 
   def evaluateTasks[T](
       evaluator: Evaluator,
@@ -81,13 +60,6 @@ object MainModule {
 trait MainModule extends mill.Module {
 
   implicit def millDiscover: mill.define.Discover[_]
-  // TODO: change return type to mainargs.TokensReader[Tasks[T]] when in 0.11 milestone
-  implicit def millScoptTasksReads[T]: Tasks.Scopt[T] = new mill.main.Tasks.Scopt[T]()
-  // TODO: change return type to mainargs.TokensReader[Evaluator] when in 0.11 milestone
-  implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] = new mill.main.EvaluatorScopt[T]()
-  implicit def taskTokensReader[T](implicit
-      tokensReaderOfT: TokensReader[T]
-  ): TokensReader[Task[T]] = new TaskScopt[T](tokensReaderOfT)
 
   /**
    * Show the mill version.
@@ -196,10 +168,59 @@ trait MainModule extends mill.Module {
    * Displays metadata about the given task without actually running it.
    */
   def inspect(evaluator: Evaluator, targets: String*): Command[String] = mill.T.command {
+
+    def resolveParents(c: Class[_]): Seq[Class[_]] = {
+      Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
+        resolveParents
+      )
+    }
+    def pprintTask(t: NamedTask[_], evaluator: Evaluator): Tree.Lazy = {
+      val seen = mutable.Set.empty[Task[_]]
+
+      def rec(t: Task[_]): Seq[Segments] = {
+        if (seen(t)) Nil // do nothing
+        else t match {
+          case t: TargetImpl[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
+            Seq(t.ctx.segments)
+          case _ =>
+            seen.add(t)
+            t.inputs.flatMap(rec)
+        }
+      }
+
+      val annots = for {
+        c <- resolveParents(t.ctx.enclosingCls)
+        m <- c.getMethods
+        if m.getName == t.ctx.segment.pathSegments.head
+        a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
+        if a != null
+      } yield a
+
+      val allDocs =
+        for (a <- annots.distinct)
+          yield mill.modules.Util.cleanupScaladoc(a.value).map("\n    " + _).mkString
+
+      pprint.Tree.Lazy(ctx =>
+        Iterator(
+          ctx.applyPrefixColor(t.toString).toString,
+          "(",
+          t.ctx.fileName.split('/').last,
+          ":",
+          t.ctx.lineNum.toString,
+          ")",
+          allDocs.mkString("\n"),
+          "\n",
+          "\n",
+          ctx.applyPrefixColor("Inputs").toString,
+          ":"
+        ) ++ t.inputs.distinct.iterator.flatMap(rec).map("\n    " + _.render)
+      )
+    }
+
     MainModule.resolveTasks(evaluator, targets, SelectMode.Multi) { tasks =>
       val output = (for {
         task <- tasks
-        tree = ReplApplyHandler.pprintTask(task, evaluator)
+        tree = pprintTask(task, evaluator)
         defaults = pprint.PPrinter()
         renderer = new Renderer(
           defaults.defaultWidth,
@@ -220,54 +241,16 @@ trait MainModule extends mill.Module {
   }
 
   /**
-   * Runs multiple tasks in a single call.
-   * For compatibility reasons, the tasks are executed single-threaded.
-   */
-  @deprecated(
-    "Use the + separator, wildcards, or brace-expansion to specify multiple targets.",
-    "mill after 0.10.0-M3"
-  )
-  def all(evaluator: Evaluator, targets: String*) = mill.T.command {
-    MainModule.evaluateTasks(
-      evaluator =
-        if (evaluator.effectiveThreadCount > 1) evaluator.withThreadCount(Some(1))
-        else evaluator,
-      targets = targets,
-      SelectMode.Multi
-    ) { res =>
-      res.flatMap(_._2)
-    }
-  }
-
-  /**
-   * Runs multiple tasks in a single call in parallel.
-   */
-  @deprecated(
-    "Use the + separator, wildcards, or brace-expansion to specify multiple targets.",
-    "mill after 0.10.0-M3"
-  )
-  def par(evaluator: Evaluator, targets: String*) = T.command {
-    MainModule.evaluateTasks(
-      evaluator = evaluator,
-      targets = targets,
-      SelectMode.Multi
-    ) { res =>
-      res.flatMap(_._2)
-    }
-  }
-
-  /**
    * Runs a given task and prints the JSON result to stdout. This is useful
    * to integrate Mill into external scripts and tooling.
    */
-  def show(evaluator: Evaluator, targets: String*): Command[Value] = T.command {
+  def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] = T.command {
     MainModule.evaluateTasksNamed(
       evaluator.withBaseLogger(
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
         evaluator.baseLogger match {
-          case PrintLogger(c1, d, c2, c3, _, i, e, in, de, uc) =>
-            PrintLogger(c1, d, c2, c3, e, i, e, in, de, uc)
+          case p: PrintLogger => p.withOutStream(p.errorStream)
           case l => l
         }
       ),
@@ -289,14 +272,13 @@ trait MainModule extends mill.Module {
    * Runs a given task and prints the results as JSON dictionary to stdout. This is useful
    * to integrate Mill into external scripts and tooling.
    */
-  def showNamed(evaluator: Evaluator, targets: String*): Command[Value] = T.command {
+  def showNamed(evaluator: Evaluator, targets: String*): Command[ujson.Value] = T.command {
     MainModule.evaluateTasksNamed(
       evaluator.withBaseLogger(
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
         evaluator.baseLogger match {
-          case PrintLogger(c1, d, c2, c3, _, i, e, in, de, uc) =>
-            PrintLogger(c1, d, c2, c3, e, i, e, in, de, uc)
+          case p: PrintLogger => p.withOutStream(outStream = p.errorStream)
           case l => l
         }
       ),
@@ -341,20 +323,30 @@ trait MainModule extends mill.Module {
           evaluator,
           targets,
           SelectMode.Multi
-        ).map(
-          _.flatMap { segments =>
-            val paths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
-            Seq(paths.dest, paths.meta, paths.log)
+        ).map { ts =>
+          ts.flatMap { segments =>
+            val evPpaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
+            val paths = Seq(evPpaths.dest, evPpaths.meta, evPpaths.log)
+            val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
+            if (os.exists(potentialModulePath)) {
+              // this is either because of some pre-Mill-0.10 files lying around
+              // or most likely because the segments denote a module but not a task
+              // in which case we want to remove the module and all its sub-modules
+              // (If this logic is later found to be to harsh, we could further guard it,
+              // to when non of the other paths exists.)
+              paths :+ potentialModulePath
+            } else paths
           }
-        )
+        }
 
     pathsToRemove match {
       case Left(err) =>
         Result.Failure(err)
       case Right(paths) =>
-        T.log.debug(s"Cleaning ${paths.size} paths ...")
-        paths.foreach(os.remove.all)
-        Result.Success(paths.map(PathRef(_)))
+        val existing = paths.filter(p => os.exists(p))
+        T.log.debug(s"Cleaning ${existing.size} paths ...")
+        existing.foreach(os.remove.all)
+        Result.Success(existing.map(PathRef(_)))
     }
   }
 

@@ -1,6 +1,6 @@
 package mill.scalalib.api
 
-import mill.api.CompileProblemReporter
+import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Loose.Agg
 
 object ZincWorkerApi {
@@ -14,7 +14,8 @@ trait ZincWorkerApi {
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
-      reporter: Option[CompileProblemReporter]
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project */
@@ -26,9 +27,10 @@ trait ZincWorkerApi {
       scalaVersion: String,
       scalaOrganization: String,
       scalacOptions: Seq[String],
-      compilerClasspath: Agg[os.Path],
-      scalacPluginClasspath: Agg[os.Path],
-      reporter: Option[CompileProblemReporter]
+      compilerClasspath: Agg[PathRef],
+      scalacPluginClasspath: Agg[PathRef],
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   def discoverMainClasses(compilationResult: CompilationResult)(implicit
@@ -38,8 +40,8 @@ trait ZincWorkerApi {
   def docJar(
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Agg[os.Path],
-      scalacPluginClasspath: Agg[os.Path],
+      compilerClasspath: Agg[PathRef],
+      scalacPluginClasspath: Agg[PathRef],
       args: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): Boolean
 }

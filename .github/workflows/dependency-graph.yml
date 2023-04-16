@@ -1,0 +1,29 @@
+name: dependency-graph
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  submit-dependency-graph:
+    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+    
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+    
+      - uses: coursier/cache-action@v6
+    
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # We want to see the transmitted graph in the logs
+      - run:  ./mill --import ivy:io.chris-kipp::mill-github-dependency-graph::0.2.0 showNamed io.kipp.mill.github.dependency.graph.Graph/generate
+
+      # Actually upload the graph
+      - uses: ckipp01/mill-dependency-submission@v1

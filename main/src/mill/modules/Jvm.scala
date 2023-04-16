@@ -1,43 +1,25 @@
 package mill.modules
 
-import coursier.cache.ArtifactError
-
-import java.io.{
-  ByteArrayInputStream,
-  File,
-  FileOutputStream,
-  InputStream,
-  PipedInputStream,
-  SequenceInputStream
-}
-import java.lang.reflect.Modifier
-import java.net.URI
-import java.nio.file.{FileSystems, Files, StandardOpenOption}
-import java.nio.file.attribute.PosixFilePermission
-import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
-import coursier.{Dependency, Repository, Resolution}
-import coursier.util.{Gather, Task}
-
-import java.util.Collections
-import mill.main.client.InputPumper
-import mill.api.{Ctx, IO, PathRef, Result}
-import mill.api.Loose.Agg
-import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
-
-import scala.collection.mutable
-import scala.util.Properties.isWin
-import scala.jdk.CollectionConverters._
-import scala.util.Using
 import mill.BuildInfo
+import mill.api.Loose.Agg
+import mill.api._
+import mill.main.client.InputPumper
+import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import os.SubProcess
 import upickle.default.{ReadWriter => RW}
 
-import scala.annotation.tailrec
+import java.io._
+import java.lang.reflect.Modifier
+import java.net.URI
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.{FileSystems, Files, StandardOpenOption}
+import java.util.Collections
+import java.util.jar.{Attributes, JarFile, Manifest}
+import scala.jdk.CollectionConverters._
+import scala.util.Properties.isWin
+import scala.util.Using
 
-object Jvm {
-
-  private val ConcurrentRetryCount = 5
-  private val ConcurrentRetryWait = 100
+object Jvm extends CoursierSupport {
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -131,49 +113,15 @@ object Jvm {
 
     ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
 
-    if (background) spawnSubprocess(args, envArgs, workingDir)
+    if (background) spawnSubprocess(args, envArgs, workingDir, background = true)
     else runSubprocess(args, envArgs, workingDir)
-  }
-
-  @deprecated("Use runSubprocess instead")
-  def baseInteractiveSubprocess(
-      commandArgs: Seq[String],
-      envArgs: Map[String, String],
-      workingDir: os.Path
-  ) = {
-    runSubprocess(commandArgs, envArgs, workingDir)
-  }
-
-  @deprecated(
-    "Only provided for binary compatibility. Use one of the other overloads.",
-    "mill after 0.9.6"
-  )
-  def runSubprocess(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String],
-      envArgs: Map[String, String],
-      mainArgs: Seq[String],
-      workingDir: os.Path,
-      background: Boolean
-  )(implicit ctx: Ctx): Unit = {
-    runSubprocess(
-      mainClass = mainClass,
-      classPath = classPath,
-      jvmArgs = jvmArgs,
-      envArgs = envArgs,
-      mainArgs = mainArgs,
-      workingDir = workingDir,
-      background = background,
-      useCpPassingJar = false
-    )(ctx)
   }
 
   /**
    * Runs a generic subprocess and waits for it to terminate.
    */
   def runSubprocess(commandArgs: Seq[String], envArgs: Map[String, String], workingDir: os.Path) = {
-    val process = spawnSubprocess(commandArgs, envArgs, workingDir)
+    val process = spawnSubprocess(commandArgs, envArgs, workingDir, background = false)
     val shutdownHook = new Thread("subprocess-shutdown") {
       override def run(): Unit = {
         System.err.println("Host JVM shutdown. Forcefully destroying subprocess ...")
@@ -196,6 +144,7 @@ object Jvm {
     else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
   }
 
+
   /**
    * Spawns a generic subprocess, streaming the stdout and stderr to the
    * console. If the System.out/System.err have been substituted, makes sure
@@ -205,20 +154,22 @@ object Jvm {
   def spawnSubprocess(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
-      workingDir: os.Path
+      workingDir: os.Path,
+      background: Boolean = false
   ): SubProcess = {
     // If System.in is fake, then we pump output manually rather than relying
     // on `os.Inherit`. That is because `os.Inherit` does not follow changes
     // to System.in/System.out/System.err, so the subprocess's streams get sent
     // to the parent process's origin outputs even if we want to direct them
     // elsewhere
-    if (System.in.isInstanceOf[PipedInputStream]) {
+
+    if (!SystemStreams.isOriginal()) {
       val process = os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,
-        stdin = os.Pipe,
-        stdout = os.Pipe,
-        stderr = os.Pipe
+        stdin = if (!background) os.Pipe else "",
+        stdout = if (!background) os.Pipe else workingDir / "stdout.log",
+        stderr = if (!background) os.Pipe else workingDir / "stderr.log"
       )
 
       val sources = Seq(
@@ -241,9 +192,9 @@ object Jvm {
       os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,
-        stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        stdin = if (!background) os.Inherit else "",
+        stdout = if (!background) os.Inherit else workingDir / "stdout.log",
+        stderr = if (!background) os.Inherit else workingDir / "stderr.log"
       )
     }
   }
@@ -294,17 +245,10 @@ object Jvm {
     )
   }
 
-  def createManifest(mainClass: Option[String]): JarManifest = {
-    val main =
-      Map[String, String](
-        java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
-        "Created-By" -> s"Mill ${BuildInfo.millVersion}",
-        "Tool" -> s"Mill-${BuildInfo.millVersion}"
-      ) ++
-        mainClass.map(mc => Map(java.util.jar.Attributes.Name.MAIN_CLASS.toString -> mc)).getOrElse(
-          Map.empty
-        )
-    JarManifest(main)
+  def createManifest(mainClass: Option[String]): mill.api.JarManifest = {
+    mainClass.foldLeft(mill.api.JarManifest.MillDefault)((m, c) =>
+      m.add((java.util.jar.Attributes.Name.MAIN_CLASS.toString, c))
+    )
   }
 
   /**
@@ -321,7 +265,7 @@ object Jvm {
    */
   def createJar(
       inputPaths: Agg[os.Path],
-      manifest: JarManifest = JarManifest.Default,
+      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
       fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true
   )(implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
@@ -337,46 +281,16 @@ object Jvm {
   def createJar(
       jar: os.Path,
       inputPaths: Agg[os.Path],
-      manifest: JarManifest,
+      manifest: mill.api.JarManifest,
       fileFilter: (os.Path, os.RelPath) => Boolean
-  ): Unit = {
-    os.makeDir.all(jar / os.up)
-    os.remove.all(jar)
-
-    val seen = mutable.Set.empty[os.RelPath]
-    seen.add(os.rel / "META-INF" / "MANIFEST.MF")
-
-    val jarStream = new JarOutputStream(
-      new FileOutputStream(jar.toIO),
-      manifest.build
-    )
-
-    try {
-      assert(inputPaths.iterator.forall(os.exists(_)))
-      for {
-        p <- inputPaths
-        (file, mapping) <-
-          if (os.isFile(p)) Iterator(p -> os.rel / p.last)
-          else os.walk(p).filter(os.isFile).map(sub => sub -> sub.relativeTo(p)).sorted
-        if !seen(mapping) && fileFilter(p, mapping)
-      } {
-        seen.add(mapping)
-        val entry = new JarEntry(mapping.toString)
-        entry.setTime(os.mtime(file))
-        jarStream.putNextEntry(entry)
-        jarStream.write(os.read.bytes(file))
-        jarStream.closeEntry()
-      }
-    } finally {
-      jarStream.close()
-    }
-  }
+  ): Unit =
+    JarOps.jar(jar, inputPaths, manifest, fileFilter, includeDirs = true, timestamp = None)
 
   def createClasspathPassingJar(jar: os.Path, classpath: Agg[os.Path]): Unit = {
     createJar(
       jar = jar,
       inputPaths = Agg(),
-      manifest = JarManifest.Default.add(
+      manifest = mill.api.JarManifest.MillDefault.add(
         "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(
           " "
         )
@@ -387,7 +301,7 @@ object Jvm {
 
   def createAssembly(
       inputPaths: Agg[os.Path],
-      manifest: JarManifest = JarManifest.Default,
+      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
       prependShellScript: String = "",
       base: Option[os.Path] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
@@ -531,362 +445,9 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  /**
-   * Resolve dependencies using Coursier.
-   *
-   * We do not bother breaking this out into the separate ZincWorkerApi classpath,
-   * because Coursier is already bundled with mill/Ammonite to support the
-   * `import $ivy` syntax.
-   */
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
-      sources: Boolean = false,
-      mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
-  ): Result[Agg[PathRef]] = {
-
-    val (_, resolution) = resolveDependenciesMetadata(
-      repositories,
-      deps,
-      force,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer
-    )
-    val errs = resolution.errors
-
-    if (errs.nonEmpty) {
-      val header =
-        s"""|
-            |Resolution failed for ${errs.length} modules:
-            |--------------------------------------------
-            |""".stripMargin
-
-      val errLines = errs.map {
-        case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
-      }.mkString("\n")
-      val msg = header + errLines + "\n"
-      Result.Failure(msg)
-    } else {
-
-      val coursierCache0 = coursier.cache.FileCache[Task].noCredentials
-      val coursierCache = coursierCacheCustomizer.getOrElse(
-        identity[coursier.cache.FileCache[Task]](_)
-      ).apply(coursierCache0)
-
-      @tailrec def load(
-          artifacts: Seq[coursier.util.Artifact],
-          retry: Int = ConcurrentRetryCount
-      ): (Seq[ArtifactError], Seq[File]) = {
-        import scala.concurrent.ExecutionContext.Implicits.global
-        val loadedArtifacts = Gather[Task].gather(
-          for (a <- artifacts)
-            yield coursierCache.file(a).run.map(a.optional -> _)
-        ).unsafeRun
-
-        val errors = loadedArtifacts.collect {
-          case (false, Left(x)) => x
-          case (true, Left(x)) if !x.notFound => x
-        }
-        val successes = loadedArtifacts.collect { case (_, Right(x)) => x }
-
-        if (retry > 0 && errors.exists(_.describe.contains("concurrent download"))) {
-          ctx.foreach(_.log.debug(
-            s"Detected a concurrent download issue in coursier. Attempting a retry (${retry} left)"
-          ))
-          Thread.sleep(ConcurrentRetryWait)
-          load(artifacts, retry - 1)
-        } else (errors, successes)
-      }
-
-      val sourceOrJar =
-        if (sources) {
-          resolution.artifacts(
-            types = Set(coursier.Type.source, coursier.Type.javaSource),
-            classifiers = Some(Seq(coursier.Classifier("sources")))
-          )
-        } else resolution.artifacts(
-          types = Set(
-            coursier.Type.jar,
-            coursier.Type.testJar,
-            coursier.Type.bundle,
-            coursier.Type("orbit"),
-            coursier.Type("eclipse-plugin"),
-            coursier.Type("maven-plugin")
-          )
-        )
-      val (errors, successes) = load(sourceOrJar)
-      if (errors.isEmpty) {
-        mill.Agg.from(
-          successes.map(p => PathRef(os.Path(p), quick = true)).filter(_.path.ext == "jar")
-        )
-      } else {
-        val errorDetails = errors.map(e => s"${System.lineSeparator()}  ${e.describe}").mkString
-        Result.Failure(
-          s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
-        )
-      }
-    }
-  }
-
-  def resolveDependenciesMetadata(
-      repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
-      mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
-  ): (Seq[Dependency], Resolution) = {
-
-    val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
-
-    val forceVersions = force.iterator
-      .map(mapDependencies.getOrElse(identity[Dependency](_)))
-      .map { d => d.module -> d.version }
-      .toMap
-
-    val start0 = Resolution()
-      .withRootDependencies(
-        deps.iterator.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq
-      )
-      .withForceVersions(forceVersions)
-      .withMapDependencies(mapDependencies)
-
-    val start = customizer.getOrElse(identity[Resolution](_)).apply(start0)
-
-    val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
-    val coursierCache0 = resolutionLogger match {
-      case None => coursier.cache.FileCache[Task].withCachePolicies(cachePolicies)
-      case Some(l) =>
-        coursier.cache.FileCache[Task]
-          .withCachePolicies(cachePolicies)
-          .withLogger(l)
-    }
-    val coursierCache = coursierCacheCustomizer.getOrElse(
-      identity[coursier.cache.FileCache[Task]](_)
-    ).apply(coursierCache0)
-
-    val fetches = coursierCache.fetchs
-
-    val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail)
-
-    import scala.concurrent.ExecutionContext.Implicits.global
-
-    // Workaround for https://github.com/com-lihaoyi/mill/issues/1028
-    @tailrec def retriedResolution(count: Int = ConcurrentRetryCount): Resolution = {
-      val resolution = start.process.run(fetch).unsafeRun()
-      if (
-        count > 0 &&
-        resolution.errors.nonEmpty &&
-        resolution.errors.exists(_._2.exists(_.contains("concurrent download")))
-      ) {
-        ctx.foreach(_.log.debug(
-          s"Detected a concurrent download issue in coursier. Attempting a retry (${count} left)"
-        ))
-        Thread.sleep(ConcurrentRetryWait)
-        retriedResolution(count - 1)
-      } else resolution
-    }
-
-    val resolution = retriedResolution()
-    (deps.iterator.to(Seq), resolution)
-  }
-
-  /**
-   * A Coursier Cache.Logger implementation that updates the ticker with the count and
-   * overall byte size of artifacts being downloaded.
-   *
-   * In practice, this ticker output gets prefixed with the current target for which
-   * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
-   */
-  class TickerResolutionLogger(ctx: Ctx.Log) extends coursier.cache.CacheLogger {
-    case class DownloadState(var current: Long, var total: Long)
-    var downloads = new mutable.TreeMap[String, DownloadState]()
-    var totalDownloadCount = 0
-    var finishedCount = 0
-    var finishedState = DownloadState(0, 0)
-
-    def updateTicker(): Unit = {
-      val sums = downloads.values
-        .fold(DownloadState(0, 0)) {
-          (s1, s2) =>
-            DownloadState(
-              s1.current + s2.current,
-              Math.max(s1.current, s1.total) + Math.max(s2.current, s2.total)
-            )
-        }
-      sums.current += finishedState.current
-      sums.total += finishedState.total
-      ctx.log.ticker(
-        s"Downloading [${downloads.size + finishedCount}/$totalDownloadCount] artifacts (~${sums.current}/${sums.total} bytes)"
-      )
-    }
-
-    override def downloadingArtifact(url: String): Unit = synchronized {
-      totalDownloadCount += 1
-      downloads += url -> DownloadState(0, 0)
-      updateTicker()
-    }
-
-    override def downloadLength(
-        url: String,
-        totalLength: Long,
-        alreadyDownloaded: Long,
-        watching: Boolean
-    ): Unit = synchronized {
-      val state = downloads(url)
-      state.current = alreadyDownloaded
-      state.total = totalLength
-      updateTicker()
-    }
-
-    override def downloadProgress(url: String, downloaded: Long): Unit = synchronized {
-      val state = downloads(url)
-      state.current = downloaded
-      updateTicker()
-    }
-
-    override def downloadedArtifact(url: String, success: Boolean): Unit = synchronized {
-      val state = downloads(url)
-      finishedState.current += state.current
-      finishedState.total += Math.max(state.current, state.total)
-      finishedCount += 1
-      downloads -= url
-      updateTicker()
-    }
-  }
-
-  object JarManifest {
-    implicit val jarManifestRW: RW[JarManifest] = upickle.default.macroRW
-    final val Default = createManifest(None)
-  }
-
-  /**
-   * Represents a JAR manifest.
-   * @param main the main manifest attributes
-   * @param groups additional attributes for named entries
-   */
-  final case class JarManifest(
-      main: Map[String, String] = Map.empty,
-      groups: Map[String, Map[String, String]] = Map.empty
-  ) {
-    def add(entries: (String, String)*): JarManifest = copy(main = main ++ entries)
-    def addGroup(group: String, entries: (String, String)*): JarManifest =
-      copy(groups = groups + (group -> (groups.getOrElse(group, Map.empty) ++ entries)))
-
-    /** Constructs a [[java.util.jar.Manifest]] from this JarManifest. */
-    def build: Manifest = {
-      val manifest = new Manifest
-      val mainAttributes = manifest.getMainAttributes
-      main.foreach { case (key, value) => mainAttributes.putValue(key, value) }
-      val entries = manifest.getEntries
-      for ((group, attribs) <- groups) {
-        val attrib = new Attributes
-        attribs.foreach { case (key, value) => attrib.putValue(key, value) }
-        entries.put(group, attrib)
-      }
-      manifest
-    }
-  }
-
-  @deprecated(
-    "Use alternative overload. This one is only for binary backwards compatibility.",
-    "mill after 0.10.0"
-  )
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[mill.api.Ctx.Log]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories = repositories,
-      deps = deps,
-      force = force,
-      sources = sources,
-      mapDependencies = mapDependencies,
-      customizer = customizer,
-      ctx = ctx,
-      coursierCacheCustomizer = None
-    )
-
-  @deprecated(
-    "Use alternative overload. This one is only for binary backwards compatibility.",
-    "mill after 0.10.0"
-  )
-  def resolveDependenciesMetadata(
-      repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[mill.api.Ctx.Log]
-  ): (Seq[Dependency], Resolution) =
-    resolveDependenciesMetadata(
-      repositories = repositories,
-      deps = deps,
-      force = force,
-      mapDependencies = mapDependencies,
-      customizer = customizer,
-      ctx = ctx,
-      coursierCacheCustomizer = None
-    )
-
-  @deprecated(
-    "Use alternative overload. This one is only for binary backwards compatibility.",
-    "mill after 0.9.6"
-  )
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      ctx: Option[mill.api.Ctx.Log]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories = repositories,
-      deps = deps,
-      force = force,
-      sources = sources,
-      mapDependencies = mapDependencies,
-      customizer = None,
-      ctx = ctx,
-      coursierCacheCustomizer = None
-    )
-
-  @deprecated(
-    "Use alternative overload. This one is only for binary backwards compatibility.",
-    "mill after 0.9.6"
-  )
-  def resolveDependenciesMetadata(
-      repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
-      mapDependencies: Option[Dependency => Dependency],
-      ctx: Option[mill.api.Ctx.Log]
-  ): (Seq[Dependency], Resolution) =
-    resolveDependenciesMetadata(
-      repositories = repositories,
-      deps = deps,
-      force = force,
-      mapDependencies = mapDependencies,
-      customizer = None,
-      ctx = ctx,
-      coursierCacheCustomizer = None
-    )
+  @deprecated("Use mill.api.JarManifest instead", "Mill after 0.11.0-M4")
+  type JarManifest = mill.api.JarManifest
+  @deprecated("Use mill.api.JarManifest instead", "Mill after 0.11.0-M4")
+  val JarManifest = mill.api.JarManifest
 
 }

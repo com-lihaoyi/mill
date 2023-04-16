@@ -3,8 +3,7 @@ package mill.define
 import scala.annotation.tailrec
 
 import fastparse._
-import NoWhitespace._
-import mill.define.{Segment, Segments}
+import fastparse.NoWhitespace.noWhitespaceImplicit
 import mill.util.EitherOps
 
 sealed trait SelectMode
@@ -30,12 +29,6 @@ object ParseArgs {
   /** Separator used in [[SelectMode.Separated]] mode to separate a target-args-tuple from the next target. */
   val TargetSeparator = "+"
 
-  @deprecated("Use apply(Seq[String], SelectMode) instead", "mill after 0.10.0-M3")
-  def apply(
-      scriptArgs: Seq[String],
-      multiSelect: Boolean
-  ): Either[String, TargetsWithParams] = extractAndValidate(scriptArgs, multiSelect)
-
   def apply(
       scriptArgs: Seq[String],
       selectMode: SelectMode
@@ -49,7 +42,7 @@ object ParseArgs {
      */
     @tailrec
     def separated(result: Seq[Seq[String]], rest: Seq[String]): Seq[Seq[String]] = rest match {
-      case Seq() => result
+      case Seq() => if (result.nonEmpty) result else Seq(Seq())
       case r =>
         val (next, r2) = r.span(_ != TargetSeparator)
         separated(
@@ -137,17 +130,17 @@ object ParseArgs {
   }
 
   private object BraceExpansionParser {
-    def plainChars[_: P]: P[Fragment.Keep] =
+    def plainChars[_p: P]: P[Fragment.Keep] =
       P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep)
 
-    def toExpand[_: P]: P[Fragment] =
+    def toExpand[_p: P]: P[Fragment] =
       P("{" ~ braceParser.rep(1).rep(sep = ",") ~ "}").map(x =>
         Fragment.Expand(x.toList.map(_.toList))
       )
 
-    def braceParser[_: P]: P[Fragment] = P(toExpand | plainChars)
+    def braceParser[_p: P]: P[Fragment] = P(toExpand | plainChars)
 
-    def parser[_: P]: P[Seq[String]] = P(braceParser.rep(1).rep(sep = ",") ~ End).map { vss =>
+    def parser[_p: P]: P[Seq[String]] = P(braceParser.rep(1).rep(sep = ",") ~ End).map { vss =>
       def unfold(vss: List[Seq[String]]): Seq[String] = {
         vss match {
           case Nil => Seq("")
@@ -181,20 +174,20 @@ object ParseArgs {
       case Parsed.Success(selector, _) => Right(selector)
     }
 
-  private def ident[_: P]: P[String] = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
+  private def ident[_p: P]: P[String] = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
 
-  def standaloneIdent[_: P]: P[String] = P(Start ~ ident ~ End)
+  def standaloneIdent[_p: P]: P[String] = P(Start ~ ident ~ End)
   def isLegalIdentifier(identifier: String): Boolean =
     parse(identifier, standaloneIdent(_)).isInstanceOf[Parsed.Success[_]]
 
   private def parseSelector(input: String): Parsed[(Option[Segments], Segments)] = {
-    def ident2[_: P] = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def segment[_: P] = P(ident).map(Segment.Label)
-    def crossSegment[_: P] = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
-    def simpleQuery[_: P] = P(segment ~ ("." ~ segment | crossSegment).rep).map {
-      case (h, rest) => Segments(h :: rest.toList: _*)
+    def ident2[_p: P] = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
+    def segment[_p: P] = P(ident).map(Segment.Label)
+    def crossSegment[_p: P] = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
+    def simpleQuery[_p: P] = P(segment ~ ("." ~ segment | crossSegment).rep).map {
+      case (h, rest) => Segments(h, rest: _*)
     }
-    def query[_: P] = P(simpleQuery ~ ("/" ~/ simpleQuery).?).map {
+    def query[_p: P] = P(simpleQuery ~ ("/" ~/ simpleQuery).?).map {
       case (q, None) => (None, q)
       case (q, Some(q2)) => (Some(q), q2)
     }

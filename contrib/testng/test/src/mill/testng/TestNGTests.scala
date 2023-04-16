@@ -16,7 +16,11 @@ object TestNGTests extends TestSuite {
 
     object test extends super.Tests {
       def testngClasspath = T {
-        mill.modules.Util.millProjectModule("MILL_TESTNG_LIB", "mill-contrib-testng", repositories)
+        mill.modules.Util.millProjectModule(
+          "MILL_TESTNG_LIB",
+          "mill-contrib-testng",
+          repositoriesTask()
+        )
       }
 
       override def runClasspath: Target[Seq[PathRef]] =
@@ -25,7 +29,7 @@ object TestNGTests extends TestSuite {
         super.ivyDeps() ++
           Agg(
             ivy"org.testng:testng:6.11",
-            ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
+            ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
           )
       }
       override def testFramework = T {

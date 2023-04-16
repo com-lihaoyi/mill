@@ -86,12 +86,17 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
     object bloop extends MillModule {
       def config = T { outer.bloopConfig(jm) }
 
-      def writeConfig: Target[(String, PathRef)] = T {
+      def writeConfigFile(): Command[(String, PathRef)] = T.command {
         os.makeDir.all(bloopDir)
         val path = bloopConfigPath(jm)
         _root_.bloop.config.write(config(), path.toNIO)
         T.log.info(s"Wrote $path")
         name(jm) -> PathRef(path)
+      }
+
+      @deprecated("Use writeConfigFile instead.", "Mill after 0.10.9")
+      def writeConfig: Target[(String, PathRef)] = T {
+        writeConfigFile()()
       }
     }
 
@@ -133,7 +138,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   def moduleSourceMap = T.input {
     val sources = T.traverse(computeModules) { m =>
       m.allSources.map { paths =>
-        m.millModuleSegments.render -> paths.map(_.path)
+        name(m) -> paths.map(_.path)
       }
     }()
     Result.Success(sources.toMap)
@@ -373,8 +378,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
       val repos = module.repositoriesTask()
       // same as input of resolvedIvyDeps
       val allIvyDeps = module.transitiveIvyDeps() ++ module.transitiveCompileIvyDeps()
-      val coursierDeps =
-        allIvyDeps.map(module.resolveCoursierDependency()).toList
+      val coursierDeps = allIvyDeps.map(_.dep).toList
       BloopConfig.Resolution(artifacts(repos, coursierDeps))
     }
 
@@ -411,7 +415,8 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         test = testConfig(),
         platform = Some(platform()),
         resolution = Some(bloopResolution()),
-        tags = Some(tags)
+        tags = Some(tags),
+        sourceGenerators = None // TODO: are we supposed to hook generated sources here?
       )
     }
 

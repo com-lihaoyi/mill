@@ -1,6 +1,8 @@
 package mill.scalalib.api
 
 import mill.api.Loose.Agg
+import mill.api.PathRef
+import mill.scalalib.api.Versions
 
 trait ZincWorkerUtil {
 
@@ -14,11 +16,11 @@ trait ZincWorkerUtil {
   // **/scala-library-2.13.*.jar or
   // **/2.13.*/jars/scala-library.jar
   def grepJar(
-      classPath: Agg[os.Path],
+      classPath: Agg[PathRef],
       name: String,
       versionPrefix: String,
       sources: Boolean = false
-  ) = {
+  ): PathRef = {
     val suffix = if (sources) "-sources.jar" else ".jar"
     lazy val dir = if (sources) "srcs" else "jars"
 
@@ -34,7 +36,7 @@ trait ZincWorkerUtil {
     }
 
     classPath.iterator
-      .find(p => mavenStyleMatch(p.last) || ivyStyleMatch(p))
+      .find(pathRef => mavenStyleMatch(pathRef.path.last) || ivyStyleMatch(pathRef.path))
       .getOrElse(throw new Exception(
         s"Cannot find **/$name-$versionPrefix*$suffix or **/$versionPrefix*/$dir/$name$suffix in ${classPath.iterator.mkString("[", ", ", "]")}"
       ))
@@ -65,7 +67,7 @@ trait ZincWorkerUtil {
 
   def scalaJSBinaryVersion(scalaJSVersion: String) = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
-      "0.6"
+      throw new Exception("Scala.js 0.6 is not supported")
     case ScalaJSFullVersion(major, minor, patch, suffix) =>
       if (suffix != null && minor == "0" && patch == "0")
         s"$major.$minor$suffix"
@@ -75,7 +77,7 @@ trait ZincWorkerUtil {
 
   def scalaJSWorkerVersion(scalaJSVersion: String) = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
-      "0.6"
+      throw new Exception("Scala.js 0.6 is not supported")
     case ScalaJSFullVersion(major, _, _, _) =>
       major
   }
@@ -98,14 +100,19 @@ trait ZincWorkerUtil {
   /* Starting from Scala.js 0.6.29 and in 1.x, test artifacts must depend on
    * scalajs-test-bridge instead of scalajs-test-interface.
    */
+  @deprecated("No longer used", "Mill after 0.11.0-M0")
   def scalaJSUsesTestBridge(scalaJSVersion: String): Boolean = scalaJSVersion match {
     case ScalaJSFullVersion("0", "6", patch, _) => patch.toInt >= 29
     case _ => true
   }
 
+  lazy val millCompilerBridgeScalaVersions: Set[String] =
+    Versions.millCompilerBridgeScalaVersions.split(",").toSet
+
   /** @return true if the compiler bridge can be downloaded as an already compiled jar */
   def isBinaryBridgeAvailable(scalaVersion: String) =
-    scalaVersion match {
+    if (millCompilerBridgeScalaVersions.contains(scalaVersion)) true
+    else scalaVersion match {
       case DottyNightlyVersion(major, minor, _, _) =>
         major.toInt > 0 || minor.toInt >= 14 // 0.14.0-bin or more (not 0.13.0-bin)
       case DottyVersion(minor, _) => minor.toInt >= 13 // 0.13.0-RC1 or more
@@ -151,6 +158,3 @@ trait ZincWorkerUtil {
 }
 
 object ZincWorkerUtil extends ZincWorkerUtil
-
-@deprecated("use ZincWorkerUtil instead", "mill after 0.10.0-M3")
-object Util extends ZincWorkerUtil

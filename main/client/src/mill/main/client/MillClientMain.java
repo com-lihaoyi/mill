@@ -6,7 +6,6 @@ import org.newsclub.net.unix.AFUNIXSocket;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,8 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Scanner;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
@@ -46,7 +43,7 @@ public class MillClientMain {
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException, URISyntaxException {
         List<String> l = new ArrayList<>();
         l.addAll(MillEnv.millLaunchJvmCommand(setJnaNoSys));
-        l.add("mill.main.MillServerMain");
+        l.add("mill.runner.MillServerMain");
         l.add(lockBase);
 
         File stdout = new java.io.File(lockBase + "/stdout");
@@ -62,7 +59,7 @@ public class MillClientMain {
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
             String firstArg = args[0];
-            if (Arrays.asList("-i", "--interactive", "--no-server", "--repl", "--bsp").contains(firstArg)) {
+            if (Arrays.asList("-i", "--interactive", "--no-server", "--repl", "--bsp", "--help").contains(firstArg)) {
                 // start in no-server mode
                 IsolatedMillMainLoader.runMain(args);
                 return;
@@ -167,7 +164,7 @@ public class MillClientMain {
 
         try (FileOutputStream f = new FileOutputStream(lockBase + "/run")) {
             f.write(System.console() != null ? 1 : 0);
-            Util.writeString(f, BuildInfo.millVersion());
+            Util.writeString(f, BuildInfo.millVersion);
             Util.writeArgs(args, f);
             Util.writeMap(env, f);
         }
@@ -193,7 +190,7 @@ public class MillClientMain {
                 Thread.sleep(1);
             }
         }
-        
+
         if (ioSocket == null) {
             throw new Exception("Failed to connect to server", socketThrowable);
         }

@@ -1,0 +1,197 @@
+= Installation
+
+The best method of installing Mill is to just install a bootstrap script.
+This script can determine the best version to be used by a project (e.g. by reading a `.mill-version` file) and will use this exact Mill version.
+If that version is not installed locally, it will be downloading for you.
+
+== Bootstrap Scripts
+
+There are currently two bootstrap script available, one <<_mills_bootstrap_script_linuxos_x_only,in the Mill repository>>, which only work for Linux and Unix-like machines, and one <<_millw,external `millw` script>>, with more features and also Windows support.
+
+Using `millw` is recommended.
+
+We plan to merge both script in the future.
+
+=== Mill's Bootstrap Script (Linux/OS-X Only)
+
+If you are using Mill in a codebase, you can commit the bootstrap launcher as a
+`./mill` script in the project folder:
+
+[source,bash,subs="verbatim,attributes"]
+----
+curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-version} > mill && chmod +x mill
+----
+
+Now, anyone who wants to work with the project can simply use the `./mill`
+script directly:
+
+[source,bash]
+----
+./mill version
+./mill __.compile # double underscore
+----
+
+The `mill` command will automatically use the version specified by the bootstrap script, even if you installed it via
+other means. The `./mill` file has a version number embedded within it, which you can update simply by editing the
+script. Note this only works for versions 0.5.0 and above.
+
+Bootstrap scripts are also useful for running Mill in CI, ensuring that your Jenkins/Travis/etc. box has the correct
+version of Mill present to build/compile/test your code.
+
+=== millw
+
+Instead of installing Mill directly, you can also use https://github.com/lefou/millw[lefou/millw] as drop-in
+replacement for `mill`. It provides a small shell script and also a Windows batch file, that transparently downloads `mill`
+and executes it on your behalf. It respects various ways to configure the preferred Mill version (`MILL_VERSION` env
+var, `.mill-version` file, `--mill-version` option) and can also be used as a bootstrap script in your project.
+
+
+== Downloading Mill
+
+
+=== OS X
+
+Installation via https://github.com/Homebrew/homebrew-core/blob/master/Formula/mill.rb[homebrew]:
+
+[source,sh]
+----
+brew install mill
+
+----
+
+=== Arch Linux
+
+Arch Linux has a https://www.archlinux.org/packages/community/any/mill/[Community package for mill]:
+
+[source,bash]
+----
+pacman -S mill
+
+----
+
+=== FreeBSD
+
+Installation via http://man.freebsd.org/pkg/8[pkg(8)]:
+
+[source,sh]
+----
+pkg install mill
+
+----
+
+=== Gentoo Linux
+
+[source,sh]
+----
+emerge dev-java/mill-bin
+
+----
+
+=== Windows
+
+To get started, download Mill from
+{mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-assembly[Github releases], and save it as `mill.bat`.
+
+If you're using https://scoop.sh[Scoop] you can install Mill via
+
+[source,bash]
+----
+scoop install mill
+----
+
+=== WSL / MSYS2 / Cycgin / Git-Bash
+
+Mill also works on "sh" environments on Windows (e.g.,
+https://www.msys2.org[MSYS2],
+https://www.cygwin.com[Cygwin],
+https://gitforwindows.org[Git-Bash],
+https://docs.microsoft.com/en-us/windows/wsl[WSL]); to get started, follow the instructions in the <<_manual>>
+section. Note that:
+
+* In some environments (such as WSL), Mill might have to be run without a server (using `-i`, `--interactive`, `--no-server`, or `--repl`.)
+
+* On Cygwin, run the following after downloading mill:
+
+[source,bash]
+----
+sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
+----
+
+=== Docker
+
+You can download and run
+a https://hub.docker.com/r/nightscape/scala-mill/["Docker image containing OpenJDK, Scala and Mill"] using
+
+[source,bash]
+----
+docker pull nightscape/scala-mill
+docker run -it nightscape/scala-mill
+----
+
+=== Manual
+
+To get started, download Mill and install it into your HOME ".local/bin" via the following
+`curl`/`chmod` command:
+
+[source,bash,subs="verbatim,attributes"]
+----
+sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > ~/.local/bin/mill && chmod +x ~/.local/bin/mill"
+----
+
+=== Coursier (unsupported)
+
+Installing mill via `coursier` or `cs` is currently not officially supported. There are various issues, especially with
+interactive mode.
+
+
+== Updating Mill
+
+If you have installed Mill via the recommended <<_bootstrap_scripts,`Bootstrap Script`>> method, you don't need to install multiple version of Mill explicitly.
+
+Follow the next <<_overriding_mill_versions>> section for details.
+
+== Overriding Mill Versions
+
+
+Apart from downloading and installing new versions of Mill globally, there are a few ways of selecting/updating your Mill version. This will only work, if you have choosen one of the <<_bootstrap_scripts,Boostrap script methods>>:
+
+* Create a `.mill-version` file to specify the version of Mill you wish to use:
+[source,bash]
+----
+echo "0.5.0" > .mill-version
+----
+
+`.mill-version` takes precedence over the version of Mill specified in the
+`./mill` script.
+
+* Pass in a `MILL_VERSION` environment variable, e.g.
+[source,bash]
+----
+MILL_VERSION=0.5.0-3-4faefb mill __.compile
+----
+
+or
+
+[source,bash]
+----
+MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
+----
+
+to override the Mill version manually. This takes precedence over the version specified in `./mill` or `.mill-version`
+
+=== Automatic Mill updates
+
+If your project is hosted on GitHub, GitLab, or Bitbucket, you can use https://github.com/scala-steward-org/scala-steward[Scala Steward] to automatically open a pull request to update your Mill version (in `.mill-version` file), whenever there is a newer version available.
+
+TIP: Scala Steward can also xref:Configuration.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies] and keep them up-to-date.
+
+=== Development Releases
+
+In case you want to try out the latest features and improvements that are currently in the main branch, unstable versions of Mill
+are
+https://github.com/com-lihaoyi/mill/releases[available] as binaries named
+`+#.#.#-n-hash+` linked to the latest tag.
+
+The easiest way to use a development release is to use one of the <<_bootstrap_scripts>>, which support
+<<_overriding_mill_versions>> via an `MILL_VERSION` environment variable or a `.mill-version` file.
+

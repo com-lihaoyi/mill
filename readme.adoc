@@ -1,6 +1,7 @@
 = image:docs/logo.svg[Mill Logo] Mill
 :toc-placement: preamble
 :toc:
+:idprefix:
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
 :link-current-doc-site: http://com-lihaoyi.github.io/mill
@@ -8,7 +9,8 @@
 :link-compare: https://github.com/com-lihaoyi/mill/compare
 :link-pr: {link-github}/pull
 :link-issue: {link-github}/issues
-:example-scala-version: 3.0.2
+:link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
+:example-scala-version: 3.2.1
 
 {link-github}/actions/workflows/actions.yml[image:{link-github}/actions/workflows/actions.yml/badge.svg[Build and Release]]
 {link-gitter}?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge[image:https://badges.gitter.im/Join%20Chat.svg[Gitter Chat]]
@@ -227,22 +229,357 @@ These are maintained as part of the primary Mill Github repo for easy testing/up
 APIs evolve, ensuring that they are always tested and passing against the
 corresponding version of Mill.
 
+== Project Maintenance
+
+=== Pull Requests
+
+* Changes to the main branch need a pull request. Exceptions are preparation commits for releases, which are meant to be pushed with tags in one go
+* Merged pull request (and closed issues) need to be assigned to a Milestone
+* Pull requests are typically merged via "Squash and merge", so we get a linear and useful history
+* Larger pull request, where it makes sense to keep single commits, or with multiple authors may be committed via merge commits.
+
+=== Commit Messages
+
+* The title should be meaningful and may contain the pull request number in parentheses (typically automatically generated on GitHub)
+* The description should contain additional required details, which typically reflect the content of the first PR comment
+* A full link to the pull request should be added via a line: `Pull request: <link>`
+* If the PR has multiple authors but is merged as merge commit, those authors should be included via a line for each co-author: `Co-authored-by: <author>`
+* If the message contains links to other issues or pull requests, you should use full URLs to reference them
+
 == Changelog
 
 
-=== 'main' branch
-:version: main
-:prev-version: 0.10.5
-:milestone: 64
-:milestone-name: after 0.10.5
+[#0-11-0-M7]
+=== 0.11.0-M7 - 2023-03-30
+:version: 0.11.0-M7
+:milestone-name: 0.11.0-M7
+:milestone: 78
+:prev-version: 0.11.0-M6
+
+*This release is binary incompatible to {prev-version}.*
 
 _Changes since {prev-version}:_
+
+* Introduced automatic `PathRef` validation for cached targets; default-enabled it for `CoursierModule.resolveDeps` and various `resolvedIvyDeps` targets
+* `bsp`: Update Protocol version to 2.1.0-M4
+* `bsp`: Support new `mainClasses` field in run and test environments
+* `bsp`: Fixed handling of Mill plugins and other improvements
+* `scalanativelib`: new `nativeDump` setting in `ScalaNativeModule`
+* `contrib.twirllib`: Use newer scala-parser-combinators version when used with Scala 3
+* `contrib.scalapblib`: Added new flag to search for proto files in dependencies
+* Various refactorings to improve binary compatibility
+* Updated dependencies: Ammonite 3.0.0-M0-5 coursier 2.1.0, scala native tools 0.4.12, semanticdb 4.7.6, trees 4.7.6, upickle 3.0.0
+* DX improvements
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
+
+[#0-11-0-M6]
+=== 0.11.0-M6 - 2023-03-09
+:version: 0.11.0-M6
+:milestone-name: 0.11.0-M6
+:milestone: 77
+:prev-version: 0.11.0-M5
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* `main`: Re-added missing `--color` and `predef` cli arguments.
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+[#0-11-0-M5]
+=== 0.11.0-M5 - 2023-03-09
+:version: 0.11.0-M5
+:milestone-name: 0.11.0-M5
+:milestone: 76
+:prev-version: 0.11.0-M4
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* `Cross` is no longer adding the cross parameters to the `millSourcePath`.
++
+_You should review your cross modules setups to avoid build issues like incorrect source paths or missing files. ``CrossScalaModule`` is not affected by this change._
+* API refactorings: `PathRef`, moved `JarManifest` to `mill.main`
+* No longer inherit the Ammonite CLI config
+* `scalalib`: Fixed loosing customized `mapDependencies` when `ScalaModule` get mixed in after
+* `scalalib`: New `TestModule.Weaver`
+* `scalajslib`: New `JsEnvConfig.Selenium`
+* `testrunner`: Fixed concurrency issue with test event reporting
+* Updated dependencies: ammonite 3.0.0-M0-3, coursier 2.1.0-RC6, jarajar-abrams-core 1.8.2, lambdatest 0.8.0, log4j-core 2.20.0, os-lib 0.9.1, scoverage 2.0.8, semanticdb-scalac 4.7.5, trees 4.7.5
+* Documentation updates
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+[#0-11-0-M4]
+=== 0.11.0-M4 - 2023-02-10
+:version: 0.11.0-M4
+:milestone-name: 0.11.0-M4
+:milestone: 74
+:prev-version: 0.11.0-M3
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* `scalalib`: New configuration target `zincReportCachedProblems` which, when `true`, enables reporting of all found problems, even for files which were not re-compiled
+* `scalalib`: Improved SemanticDB support for Java and Scala
+* `scalalib`: Mitigate another coursier download issue
+* `scalajslib`: Fetch more tooling dependencies in `prepareOffline`
+* `scalanativelib`: Fetch more tooling dependencies in `prepareOffline`
+* `scalanativelib`: Updated tools to version 0.4.10
+* `bsp`: Improved support for the `mill-build` module which should improve the editing experience for `build.sc` and other build files
+* Cleanups and internal improvements
+* Updated dependencies: Ammonite 3.0.0-M0-1, junixsocket 2.6.2, semanticdb-java 0.8.13, upickle 3.0.0-M2
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+[#0-11-0-M3]
+=== 0.11.0-M3 - 2023-01-23
+:version: 0.11.0-M3
+:milestone-name: 0.11.0-M3
+:milestone: 73
+:prev-version: 0.11.0-M2
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* Slightly changed the `out/` folder layout for overridden and private tasks. Instead of `foo.overridden` we now use a `foo.super` path to hold the metadata and scratch files.
+* Fixed the caching for private targets with same name but defined in different super traits.
+* Fixed non-functional `clean` command when used with arguments denoting modules.
+* `scalalib`: Fixed `GenIdea` issues on Windows, when the build uses plugins or additional libraries.
+* `scalajslib`: `ScalaJSModule.ScalaJSModuleTests` now extends `ScalaModule.ScalaModuleTests` which improves consistency, better default values and compatibility with other modules like `ScoverageModule`.
+* `scalanativelib`: `ScalaNativeModule.ScalaNativeModuleTests` now extends `ScalaModule.ScalaModuleTests` which improves consistency, better default values and compatibility with other modules.
+* `contrib.gitlab`: Improved error handling for token lookup and documentation.
+* Updated dependencies: coursier 2.1.0-RC5, jna 5.13.0, semanticdb-scala 4.7.3, trees 4.7.3
+* Documentation improvements
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+[#0-11-0-M2]
+=== 0.11.0-M2 - 2023-01-13
+:version: 0.11.0-M2
+:milestone-name: 0.11.0-M2
+:milestone: 72
+:prev-version: 0.11.0-M1
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* Splitted BSP module into `mill.bsp` and `mill.bsp.worker` and removed various dependencies (guava, bsp4j, xtends, lsp4j, ...) from Mill API
+* `scalalib`: Added support to generate semanticdb data for Java source files
+* `scalajslib`: Added support for `scalaJSOutputPattern`
+* `scalajslib`: Added suport for `scalaJSSourceMap`
+* `scalajslib`: Dropped support for Scala.js 0.6
+* Updated dependencies: ammonite 2.5.6, coursier 2.1.0-RC4, semanticdb 4.7.1, requests 0.8.0, scalafmt 3.6.1, trees 4.7.1, upickle 3.0.0-M1, utest 0.8.1
+* Various internal cleanups and improvements
+* Documentation improvements
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+[#0-11-0-M1]
+=== 0.11.0-M1 - 2022-12-17
+:version: 0.11.0-M1
+:prev-version: 0.10.10
+:milestone: 70
+:milestone-name: 0.11.0-M1
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* Greatly improved dependency resolution between modules, making it possible to mix Java and Scala modules
+* `main`: Restrict `Cross` parameter to be of type `Module`
+* `scalalib`: Performance improvements in Zinc worker module
+* `scalalib`: Resources are no longer added to `compileClasspath`.
+* `scalalib`: Added new `compileResources` which will end up in `compileClasspath`
+* `scalalib`: Consolidated artifact and platform suffix handling
+* `scalajslib` : Performance improvements in worker module
+* `scalanativelib` : Performance improvements in worker module
+* Updated dependencies: coursier 2.1.0-RC3, os-lib 0.9, scala 2.12.17, trees 4.7.0
+* Removed lots of deprecated API
+* Various internal cleanups and improvements
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+=== 0.10.12 - 2023-03-20
+:version: 0.10.12
+:milestone-name: 0.10.12
+:milestone: 75
+:prev-version: 0.10.11
+
+_Changes since {prev-version}:_
+
+* `scalalib`: Mitigate another coursier download issue (backported from 0.11.0-M4)
+* `testrunner`: Fixed a concurrency issue with test event reporting (backported from 0.11.0-M5)
+* `scalajslib`: Deprecated `fastOpt` and `fullOpt`
+* Updated dependencies: coursier 2.1.0, jarjar-abrams 1.8.2, jna 5.13.0, junixsocket 2.6.2, log4j-core 2.20.0, scalafmt-dynamic 3.6.1, trees 4.7.6
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+
+=== 0.10.11 - 2023-01-24
+:version: 0.10.11
+:milestone-name: 0.10.11
+:milestone: 71
+:prev-version: 0.10.10
+
+_Changes since {prev-version}:_
+
+* Fixed non-functional `clean` command when used with arguments denoting modules.
+* `scalalib`: Fixed `GenIdea` issues on Windows, when the build uses plugins or additional libraries.
+* `scalajslib`: Performance improvements in worker module
+* `scalajslib`: Pass more settings from `ScalaJSModule` to its `Tests`
++
+_If you have issues after the update (like `org.scalajs.jsenv.UnsupportedInputException`, https://github.com/com-lihaoyi/mill/issues/2300), check your settings in the test modules for consistency._
+* Some internal improvements backported from `0.11.0-M3`
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.10 - 2022-12-06
+:version: 0.10.10
+:prev-version: 0.10.9
+:milestone: 69
+:milestone-name: 0.10.10
+
+After this release, the `main` branch is open for development of the next major version of Mill, which is probably `0.11`.
+Further maintenance work will happen in the `0.10.x` branch.
+
+_Changes since {prev-version}:_
+
+* Lots of documentation improvements, additions and restructurings
+* `core`: Fixed some rare issues with reading the `.mill-jvm-opts` file
+* `core`: We made slight adaptions to the `T.dest` location of target defined in included files, to fix potential colliding cache locations
+* `scalalib`: JAR archives created by Mill now by default contain directory entries
+* `scalalib`: Updated zinc to 1.8.0
+* `scalajslib`: Added support for more `JsEnv` providers
++
+_If you get some issues (like `connect ECONNREFUSED`, https://github.com/com-lihaoyi/mill/issues/2204) after the update, review your settings for `JsEnv` providers._
+* `scalanativelib`: Support for incremental compilation since Scala Native 0.4.9
+* `contrib.testng`: The TestNG library is no longer provided transitively; you need to provide it explicitly
+* `contrib.bloop`: Fixed re-generation of bloop config dir; previously, it could happen, that there where no config files at all
+* `BSP`: implement `buildTarget/OutputPaths` request
+* Various version bumps and internal improvements
+
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+
+=== 0.10.9 - 2022-11-10
+:version: 0.10.9
+:prev-version: 0.10.8
+:milestone: 68
+:milestone-name: 0.10.9
+
+_Changes since {prev-version}:_
+
+* **Hardened Maven and Ivy artifact handling to prevent path-traversal attacks** (see https://github.com/advisories/GHSA-wv7w-rj2x-556x[CVE-2022-37866]), also updated coursier dependency to a non-vulnerable version
+* Decoupled `mill-moduledefs` module into a {link-mill-moduledefs}[separate project], to better suite compiler plugin packaging and improve support for various Scala versions
+* Applied more workarounds to coursier concurrency issues to make parallel builds more robust
+* Added support for newer Scala versions in `GenIdea` (2.2 and 2.3)
+* Fixed an issue where `PublishModule` dropped module dependencies when mixed-in after other trait which overrode `moduleDeps`
+* new `JMH` contrib plugin
+* Lots of internal improvements and dependency updates
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.8 - 2022-10-10
+:version: 0.10.8
+:prev-version: 0.10.7
+:milestone: 67
+:milestone-name: 0.10.8
+
+_Changes since {prev-version}:_
+
+* Improvements for better Scala 3.2 support
+* Fixed non-working default commands in cross modules
+* `CoursierModule`: mitigate more download failure situations (e.g. checksum failures)
+* `PublishModule`: properly show `gpg` output in server mode
+* `BSP`: Better compiler message handling (`logMessage` instead of `showMessage`) and support for diagnostic code
+* `ScoverageModule`: Support for Scoverage 2.x
+* New contrib module `GitlabPublishModule`
+* Various internal improvements and version bumps
+* Documentation improvements
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+
+=== 0.10.7 - 2022-08-24
+:version: 0.10.7
+:prev-version: 0.10.6
+:milestone: 66
+:milestone-name: 0.10.7
+
+_Changes since {prev-version}:_
+
+* Don't print unwanted debug messages from zinc
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.6 - 2022-08-24
+:version: 0.10.6
+:prev-version: 0.10.5
+:milestone: 64
+:milestone-name: 0.10.6
+
+_Changes since {prev-version}:_
+
+* ``PathRef``s sigs are now more reproducible and independent of the used filesystem
+* `JavaModule` can now use a non-local Java Compiler to support all options
+* `Logger`: new `debugEnabled` to detect whether debug logging is enabled
+* New `testkit` module, to use `TestEvaluator` in external projects
+* Fixed reading of `.mill-jvm-opts` in server mode
+* BSP: Automatic SemanticDB enablement to improve Metals support
+* `mill.twirllib.TwirlModule` - new mandatory target `twirlScalaVersion` to configure the Scala version used by Twirl compiler, and support for newer versions
+* Lots of documentation updates and additions
+* Upgraded to Zinc 1.7.1 and various other dependency updates
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 === 0.10.5 - 2022-07-01
@@ -419,7 +756,7 @@ _Changes since {prev-version}:_
 * task and arguments of commands can now have hyphens in their name
 * Reworked and decluttered the out-folder structure
 * `prepareOffline` now has a `all` flag to control if all or only some dependency should be prefetched
-* Made chaching more effective for targets overridden in stackable-traits
+* Made caching more effective for targets overridden in stackable-traits
 * Further BSP improvements, esp. for Metals and Scala 3
 * Lots of other internal improvements and fixes
 * Various dependency updates
@@ -595,7 +932,7 @@ _Changes since {prev-version}:_
 * `ScalaModule`: Support for Scala 3
 * `CoursierModule`: Support customized dependency resolution (needed to work with ScalaFX)
 * `TestModule`: Added new `testFramework` target and only support one test framework. Deprecated `testFrameworks` targets.
-* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit4`, `TestModule.ScalaTest`, `TestModule.Utest`, and many more
+* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit4`, `TestModule.ScalaTest`, `TestModule.Utest` and many more
 * `Bloop`: Added support for foreign modules
 * Better support for Windows environments
 * Various internal improvements, cleanups, and deprecations

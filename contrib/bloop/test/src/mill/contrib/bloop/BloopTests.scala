@@ -11,6 +11,7 @@ import os.Path
 import upickle.default._
 import utest._
 import bloop.config.Config.Platform.Jvm
+import scala.util.Properties.isWin
 
 object BloopTests extends TestSuite {
   import BloopFormats._
@@ -51,16 +52,19 @@ object BloopTests extends TestSuite {
     }
 
     object scalajsModule extends scalajslib.ScalaJSModule with testBloop.Module {
-      override def scalaVersion = "2.12.8"
-      override def scalaJSVersion = "0.6.28"
+      val sv = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+      val sjsv = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
+      override def scalaVersion = sv
+      override def scalaJSVersion = sjsv
       override def linkerMode = T(Some(_root_.bloop.config.Config.LinkerMode.Release))
       override def moduleKind = T(ModuleKind.CommonJSModule)
     }
 
     object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
-      override def skipBloop: Boolean = scala.util.Properties.isWin
-      override def scalaVersion = "2.13.4"
-      override def scalaNativeVersion = "0.4.2"
+      val sv = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+      override def skipBloop: Boolean = isWin
+      override def scalaVersion = sv
+      override def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_VERSION", ???)
       override def releaseMode = T(ReleaseMode.Debug)
     }
 
@@ -181,7 +185,7 @@ object BloopTests extends TestSuite {
         assert(name == "scalajsModule")
         assert(workspaceDir == Some(workdir.wrapped))
         assert(sources == List(workdir / "scalajsModule" / "src"))
-        assert(version == "2.12.8")
+        assert(version == build.scalajsModule.sv)
         assert(platform.config.emitSourceMaps)
         assert(platform.config.kind == BloopConfig.ModuleKindJS.CommonJSModule)
         assert(platform.config.mode == BloopConfig.LinkerMode.Release)
@@ -205,7 +209,7 @@ object BloopTests extends TestSuite {
             assert(name == "scalanativeModule")
             assert(workspaceDir == Some(workdir.wrapped))
             assert(sources == List(workdir / "scalanativeModule" / "src"))
-            assert(version == "2.13.4")
+            assert(version == build.scalanativeModule.sv)
             assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
             assert(platform.config.clang == clang.toNIO)
         }
@@ -214,6 +218,18 @@ object BloopTests extends TestSuite {
         val exists = os.exists(workdir / ".bloop" / "skippedModule.json")
         assert(exists == false)
       }
+    }
+    "regenerateAfterBloopDirRemoval" - {
+      testEvaluator(testBloop.install())
+      val bloopDir = workdir / ".bloop"
+      val files = os.list(bloopDir)
+      val size = (if (isWin) 4 else 5)
+      assert(files.size == size)
+      os.remove.all(bloopDir)
+      testEvaluator(testBloop.install())
+      val files2 = os.list(bloopDir)
+      assert(files2.size == size)
+      assert(files2 == files)
     }
   }
 

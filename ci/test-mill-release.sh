@@ -17,10 +17,11 @@ git stash pop "$(git stash list | grep "preserve mill-release" | head -n1 | sed 
 
 rm -rf ~/.mill/ammonite
 
-# Patch local build
-ci/patch-mill-bootstrap.sh
+# Prepare local build
+ci/prepare-mill-bootstrap.sh
 
 export MILL_TEST_RELEASE="$(pwd)/target/mill-release"
 
 # Run tests
-"$MILL_TEST_RELEASE" -i integration.thirdparty.forked
+"$MILL_TEST_RELEASE" -i "example.basic[1-hello-world].server.test"
+"$MILL_TEST_RELEASE" -i integration.thirdparty.__.fork.test

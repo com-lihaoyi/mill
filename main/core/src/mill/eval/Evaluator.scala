@@ -1,81 +1,48 @@
 package mill.eval
 
-import java.net.{URL, URLClassLoader}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-import ammonite.runtime.SpecialClassLoader
-
 import scala.util.DynamicVariable
-import mill.api.{CompileProblemReporter, Ctx, DummyTestReporter, Loose, Strict, TestReporter}
+import mill.api.{
+  CompileProblemReporter,
+  Ctx,
+  DummyTestReporter,
+  Loose,
+  PathRef,
+  Result,
+  Strict,
+  TestReporter
+}
 import mill.api.Result.{Aborted, Failing, OuterStack, Success}
 import mill.api.Strict.Agg
-import mill.define.{Ctx => _, _}
-import mill.internal.AmmoniteUtils
-import mill.util.{Ctx => _, _}
+import mill.define._
+import mill.util._
 import upickle.default
 
-import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-case class Labelled[T](task: NamedTask[T], segments: Segments) {
-  def format: Option[default.ReadWriter[T]] = task match {
-    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
-    case _ => None
-  }
-  def writer: Option[default.Writer[T]] = task match {
-    case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
-    case t: mill.define.Input[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
-    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
-    case _ => None
-  }
-}
+case class Labelled[T](task: NamedTask[T], segments: Segments)
 
 /**
  * Evaluate tasks.
  */
-class Evaluator private[Evaluator] (
+class Evaluator private (
     _home: os.Path,
     _outPath: os.Path,
     _externalOutPath: os.Path,
     _rootModule: mill.define.BaseModule,
     _baseLogger: ColorLogger,
-    _classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
+    _classLoaderSigHash: Int,
     _workerCache: mutable.Map[Segments, (Int, Any)],
     _env: Map[String, String],
     _failFast: Boolean,
     _threadCount: Option[Int],
-    _importTree: Seq[ScriptNode]
-) extends Product with Serializable { // TODO: Remove extends Product with Serializable before 0.11.0
+    _scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+) {
 
   import Evaluator.Terminal
-
-  @deprecated(message = "Use apply instead", since = "mill 0.10.1")
-  def this(
-      _home: os.Path,
-      _outPath: os.Path,
-      _externalOutPath: os.Path,
-      _rootModule: mill.define.BaseModule,
-      _baseLogger: ColorLogger,
-      _classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-      _workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-      _env: Map[String, String] = Evaluator.defaultEnv,
-      _failFast: Boolean = true,
-      _threadCount: Option[Int] = Some(1)
-  ) = this(
-    _home,
-    _outPath,
-    _externalOutPath,
-    _rootModule,
-    _baseLogger,
-    _classLoaderSig,
-    _workerCache,
-    _env,
-    _failFast,
-    _threadCount,
-    Seq.empty
-  )
 
   def home: os.Path = _home
 
@@ -94,7 +61,6 @@ class Evaluator private[Evaluator] (
    */
   def rootModule: mill.define.BaseModule = _rootModule
   def baseLogger: ColorLogger = _baseLogger
-  def classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = _classLoaderSig
 
   /**
    * Mutable worker cache.
@@ -117,30 +83,14 @@ class Evaluator private[Evaluator] (
   /**
    * The tree of imports of the build ammonite scripts
    */
-  def importTree: Seq[ScriptNode] = _importTree
-
-  private val (scriptsClassLoader, externalClassLoader) = classLoaderSig.partitionMap {
-    case (Right(elem), sig) => Right((elem, sig))
-    case (Left(elem), sig) => Left((elem, sig))
-  }
-
-  // We're interested of the whole file hash.
-  // So we sum the hash of all classes that normalize to the same name.
-  private val scriptsSigMap: Map[String, Long] =
-    scriptsClassLoader.groupMapReduce(e =>
-      AmmoniteUtils.normalizeAmmoniteImportPath(e._1)
-    )(_._2)(_ + _)
+  def scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = _scriptImportGraph
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   import Evaluator.Evaluated
 
-  private val externalClassLoaderSigHash = externalClassLoader.hashCode()
-
-  // Binary compatibility shim
-  @deprecated("To be removed", since = "mill 0.10.1")
-  def classLoaderSignHash: Int = classLoaderSig.hashCode()
+  def classLoaderSigHash = _classLoaderSigHash
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
@@ -160,6 +110,7 @@ class Evaluator private[Evaluator] (
     if (effectiveThreadCount > 1)
       parallelEvaluate(goals, effectiveThreadCount, logger, reporter, testReporter)
     else sequentialEvaluate(goals, logger, reporter, testReporter)
+
   }
 
   def sequentialEvaluate(
@@ -167,7 +118,8 @@ class Evaluator private[Evaluator] (
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
-  ): Evaluator.Results = {
+  ): Evaluator.Results = PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
+
     val (sortedGroups, transitive) = Evaluator.plan(goals)
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
@@ -242,7 +194,7 @@ class Evaluator private[Evaluator] (
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter
-  ): Evaluator.Results = {
+  ): Evaluator.Results = PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
     os.makeDir.all(outPath)
     val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
 
@@ -339,7 +291,9 @@ class Evaluator private[Evaluator] (
         getFailing(sortedGroups, results),
         results.map { case (k, v) => (k, v.map(_._1)) }
       )
-    } finally threadPool.shutdown()
+    } finally {
+      threadPool.shutdown()
+    }
   }
 
   // those result which are inputs but not contained in this terminal group
@@ -363,29 +317,26 @@ class Evaluator private[Evaluator] (
     )
 
     val scriptsHash = {
-      val classes = new Loose.Agg.Mutable[String]()
+      val scripts = new Loose.Agg.Mutable[os.Path]()
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
-        case namedTask: NamedTask[_] =>
-          val cls = namedTask.ctx.enclosingCls.getName
-          val normalized = AmmoniteUtils.normalizeAmmoniteImportPath(cls)
-          classes.append(normalized)
+        case namedTask: NamedTask[_] => scripts.append(os.Path(namedTask.ctx.fileName))
         case _ =>
       }
-      val importClasses = importTree.filter(e => classes.contains(e.cls))
-      val dependendentScripts = Graph.transitiveNodes(importClasses).map(_.cls)
-      val dependendentScriptsSig = dependendentScripts.map(s => s -> scriptsSigMap(s))
-      dependendentScriptsSig.hashCode()
+
+      val transitiveScripts = Graph.transitiveNodes(scripts)(t =>
+        scriptImportGraph.get(t).map(_._2).getOrElse(Nil)
+      )
+
+      transitiveScripts
+        .iterator
+        // Sometimes tasks are defined in external/upstreadm dependencies,
+        // (e.g. a lot of tasks come from JavaModule.scala) and won't be
+        // present in the scriptImportGraph
+        .map(p => scriptImportGraph.get(p).fold(0)(_._1))
+        .sum
     }
 
-    val classLoaderSigHash =
-      if (importTree.nonEmpty) {
-        externalClassLoaderSigHash + scriptsHash
-      } else {
-        // We fallback to the old mechanism when the importTree was not populated
-        classLoaderSig.hashCode()
-      }
-
-    val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash
+    val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
     terminal match {
       case Left(task) =>
@@ -412,15 +363,24 @@ class Evaluator private[Evaluator] (
           destSegments(labelledNamedTask)
         )
 
-        val cached = for {
+        val cached: Option[(Any, Int)] = for {
           cached <-
             try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
-            catch { case NonFatal(_) => None }
+            catch {
+              case NonFatal(_) => None
+            }
           if cached.inputsHash == inputsHash
-          reader <- labelledNamedTask.format
+          reader <- labelledNamedTask.task.readWriterOpt
           parsed <-
             try Some(upickle.default.read(cached.value)(reader))
-            catch { case NonFatal(_) => None }
+            catch {
+              case e: PathRef.PathRefValidationException =>
+                logger.debug(
+                  s"${labelledNamedTask.segments.render}: re-evaluating; ${e.getMessage}"
+                )
+                None
+              case NonFatal(_) => None
+            }
         } yield (parsed, cached.valueHash)
 
         val previousWorker = labelledNamedTask.task.asWorker.flatMap { w =>
@@ -523,7 +483,8 @@ class Evaluator private[Evaluator] (
         }
       case None =>
         val terminalResult = labelledNamedTask
-          .writer
+          .task
+          .writerOpt
           .asInstanceOf[Option[upickle.default.Writer[Any]]]
           .map(w => upickle.default.writeJs(v)(w) -> v)
 
@@ -617,29 +578,17 @@ class Evaluator private[Evaluator] (
           val out = System.out
           val in = System.in
           val err = System.err
-          try {
-            System.setIn(multiLogger.inStream)
-            System.setErr(multiLogger.errorStream)
-            System.setOut(multiLogger.outputStream)
-            Console.withIn(multiLogger.inStream) {
-              Console.withOut(multiLogger.outputStream) {
-                Console.withErr(multiLogger.errorStream) {
-                  try task.evaluate(args)
-                  catch {
-                    case NonFatal(e) =>
-                      mill.api.Result.Exception(
-                        e,
-                        new OuterStack(new Exception().getStackTrace.toIndexedSeq)
-                      )
-                  }
-                }
-              }
+          mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
+            try task.evaluate(args)
+            catch {
+              case NonFatal(e) =>
+                mill.api.Result.Exception(
+                  e,
+                  new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                )
             }
-          } finally {
-            System.setErr(err)
-            System.setOut(out)
-            System.setIn(in)
           }
+
         }
 
       newResults(task) = for (v <- res) yield {
@@ -666,11 +615,13 @@ class Evaluator private[Evaluator] (
   def resolveLogger(logPath: Option[os.Path], logger: mill.api.Logger): mill.api.Logger =
     logPath match {
       case None => logger
-      case Some(path) => MultiLogger(
+      case Some(path) => new MultiLogger(
           logger.colored,
           logger,
+          // we always enable debug here, to get some more context in log files
           new FileLogger(logger.colored, path, debugEnabled = true),
-          logger.inStream
+          logger.systemStreams.in,
+          debugEnabled = logger.debugEnabled
         )
     }
 
@@ -702,32 +653,6 @@ class Evaluator private[Evaluator] (
       msgParts.mkString
   }
 
-  @deprecated("Use withX methods instead", since = "mill 0.10.1")
-  def copy(
-      home: os.Path = this.home,
-      outPath: os.Path = this.outPath,
-      externalOutPath: os.Path = this.externalOutPath,
-      rootModule: mill.define.BaseModule = this.rootModule,
-      baseLogger: ColorLogger = this.baseLogger,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = this.classLoaderSig,
-      workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache,
-      env: Map[String, String] = this.env,
-      failFast: Boolean = this.failFast,
-      threadCount: Option[Int] = this.threadCount
-  ): Evaluator = new Evaluator(
-    home,
-    outPath,
-    externalOutPath,
-    rootModule,
-    baseLogger,
-    classLoaderSig,
-    workerCache,
-    env,
-    failFast,
-    threadCount,
-    this.importTree
-  )
-
   override def toString(): String = {
     s"""Evaluator(
        |  home = $home,
@@ -735,78 +660,56 @@ class Evaluator private[Evaluator] (
        |  externalOutPath = $externalOutPath,
        |  rootModule = $rootModule,
        |  baseLogger = $baseLogger,
-       |  classLoaderSig = $classLoaderSig,
+       |  classLoaderSigHash = $classLoaderSigHash,
        |  workerCache = $workerCache,
        |  env = $env,
        |  failFast = $failFast,
        |  threadCount = $threadCount,
-       |  importTree = $importTree
+       |  scriptImportGraph = $scriptImportGraph
        |)""".stripMargin
   }
 
-  // Rename to copy once the other copy is gone (before 0.11.0)
-  private def myCopy(
+  private def copy(
       home: os.Path = this.home,
       outPath: os.Path = this.outPath,
       externalOutPath: os.Path = this.externalOutPath,
       rootModule: mill.define.BaseModule = this.rootModule,
       baseLogger: ColorLogger = this.baseLogger,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = this.classLoaderSig,
+      classLoaderSigHash: Int = this.classLoaderSigHash,
       workerCache: mutable.Map[Segments, (Int, Any)] = this.workerCache,
       env: Map[String, String] = this.env,
       failFast: Boolean = this.failFast,
       threadCount: Option[Int] = this.threadCount,
-      importTree: Seq[ScriptNode] = this.importTree
+      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = this.scriptImportGraph
   ): Evaluator = new Evaluator(
     home,
     outPath,
     externalOutPath,
     rootModule,
     baseLogger,
-    classLoaderSig,
+    classLoaderSigHash,
     workerCache,
     env,
     failFast,
     threadCount,
-    importTree
+    scriptImportGraph
   )
 
-  def withHome(home: os.Path): Evaluator = myCopy(home = home)
-  def withOutPath(outPath: os.Path): Evaluator = myCopy(outPath = outPath)
+  def withHome(home: os.Path): Evaluator = copy(home = home)
+  def withOutPath(outPath: os.Path): Evaluator = copy(outPath = outPath)
   def withExternalOutPath(externalOutPath: os.Path): Evaluator =
-    myCopy(externalOutPath = externalOutPath)
+    copy(externalOutPath = externalOutPath)
   def withRootModule(rootModule: mill.define.BaseModule): Evaluator =
-    myCopy(rootModule = rootModule)
-  def withBaseLogger(baseLogger: ColorLogger): Evaluator = myCopy(baseLogger = baseLogger)
-  def withClassLoaderSig(classLoaderSig: Seq[(Either[String, java.net.URL], Long)]): Evaluator =
-    myCopy(classLoaderSig = classLoaderSig)
+    copy(rootModule = rootModule)
+  def withBaseLogger(baseLogger: ColorLogger): Evaluator = copy(baseLogger = baseLogger)
+
   def withWorkerCache(workerCache: mutable.Map[Segments, (Int, Any)]): Evaluator =
-    myCopy(workerCache = workerCache)
-  def withEnv(env: Map[String, String]): Evaluator = myCopy(env = env)
-  def withFailFast(failFast: Boolean): Evaluator = myCopy(failFast = failFast)
-  def withThreadCount(threadCount: Option[Int]): Evaluator = myCopy(threadCount = threadCount)
-  def withImportTree(importTree: Seq[ScriptNode]): Evaluator = myCopy(importTree = importTree)
-
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Evaluator]
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
-  def productArity: Int = 10
-  @deprecated(message = "Binary compatibility shim. To be removed", since = "mill 0.10.1")
-  def productElement(n: Int): Any = n match {
-    case 0 => home
-    case 1 => outPath
-    case 2 => externalOutPath
-    case 3 => rootModule
-    case 4 => baseLogger
-    case 5 => classLoaderSig
-    case 6 => workerCache
-    case 7 => env
-    case 8 => failFast
-    case 9 => threadCount
-    case 10 => importTree
-    case _ => throw new IndexOutOfBoundsException(n.toString)
-  }
-
+    copy(workerCache = workerCache)
+  def withEnv(env: Map[String, String]): Evaluator = copy(env = env)
+  def withFailFast(failFast: Boolean): Evaluator = copy(failFast = failFast)
+  def withThreadCount(threadCount: Option[Int]): Evaluator = copy(threadCount = threadCount)
+  def withScriptImportGraph(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]): Evaluator =
+    copy(scriptImportGraph = scriptImportGraph)
 }
 
 object Evaluator {
@@ -817,13 +720,6 @@ object Evaluator {
    * It's a T, T.worker, T.input, T.source, T.sources, T.persistent
    */
   type Terminal = Either[Task[_], Labelled[Any]]
-
-  /**
-   * A terminal target with all it's inner tasks.
-   * To implement a terminal target, one can delegate to other/inner tasks (T.task), those are contained in
-   * the 2nd parameter of the tuple.
-   */
-  type TerminalGroup = (Terminal, Agg[Task[_]])
 
   case class Cached(value: ujson.Value, valueHash: Int, inputsHash: Int)
   object Cached {
@@ -837,27 +733,6 @@ object Evaluator {
   val currentEvaluator = new ThreadLocal[mill.eval.Evaluator]
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
-
-  @deprecated("Use EvaluatorPaths instead", "mill-0.10.0-M3")
-  type Paths = EvaluatorPaths
-  @deprecated("Use EvaluatorPaths.makeSegmentStrings instead", "mill-0.10.0-M3")
-  def makeSegmentStrings(segments: Segments): Seq[String] =
-    EvaluatorPaths.makeSegmentStrings(segments)
-  @deprecated("Use EvaluatorPaths.resolveDestPaths instead", "mill-0.10.0-M3")
-  def resolveDestPaths(
-      workspacePath: os.Path,
-      segments: Segments,
-      foreignSegments: Option[Segments] = None
-  ): EvaluatorPaths = EvaluatorPaths.resolveDestPaths(workspacePath, segments, foreignSegments)
-
-  // check if the build itself has changed
-  def classLoaderSig: Seq[(Either[String, URL], Long)] =
-    Thread.currentThread().getContextClassLoader match {
-      case scl: SpecialClassLoader => scl.classpathSignature
-      case ucl: URLClassLoader =>
-        SpecialClassLoader.initialClasspathSignature(ucl)
-      case _ => Nil
-    }
 
   case class Timing(label: String, millis: Int, cached: Boolean)
 
@@ -888,6 +763,36 @@ object Evaluator {
       results: collection.Map[Task[_], mill.api.Result[Any]]
   ) {
     def values: Seq[Any] = rawValues.collect { case mill.api.Result.Success(v) => v }
+    private def copy(
+        rawValues: Seq[Result[Any]] = rawValues,
+        evaluated: Agg[Task[_]] = evaluated,
+        transitive: Agg[Task[_]] = transitive,
+        failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[_]] = failing,
+        results: collection.Map[Task[_], Result[Any]] = results
+    ): Results = new Results(
+      rawValues,
+      evaluated,
+      transitive,
+      failing,
+      results
+    )
+  }
+
+  object Results {
+    private def unapply(results: Results): Option[(
+        Seq[Result[Any]],
+        Agg[Task[_]],
+        Agg[Task[_]],
+        MultiBiMap[Either[Task[_], Labelled[_]], Failing[_]],
+        collection.Map[Task[_], Result[Any]]
+    )] = Some((
+      results.rawValues,
+      results.evaluated,
+      results.transitive,
+      results.failing,
+      results.results
+    ))
+
   }
 
   def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {
@@ -896,6 +801,9 @@ object Evaluator {
     val seen = collection.mutable.Set.empty[Segments]
     val overridden = collection.mutable.Set.empty[Task[_]]
     topoSorted.values.reverse.iterator.foreach {
+      case x: NamedTask[_] if x.isPrivate == Some(true) =>
+        // we always need to store them in the super-path
+        overridden.add(x)
       case x: NamedTask[_] =>
         if (!seen.contains(x.ctx.segments)) seen.add(x.ctx.segments)
         else overridden.add(x)
@@ -914,7 +822,7 @@ object Evaluator {
               val Segment.Label(tName) = segments.value.last
               Segments(
                 segments.value.init ++
-                  Seq(Segment.Label(tName + ".overridden")) ++
+                  Seq(Segment.Label(tName + ".super")) ++
                   t.ctx.enclosing.split("[.# ]").map(Segment.Label): _*
               )
             }
@@ -927,10 +835,22 @@ object Evaluator {
   }
 
   case class Evaluated(
-      newResults: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
+      newResults: collection.Map[Task[_], Result[(Any, Int)]],
       newEvaluated: Seq[Task[_]],
       cached: Boolean
-  )
+  ) {
+    private[Evaluator] def copy(
+        newResults: collection.Map[Task[_], Result[(Any, Int)]] = newResults,
+        newEvaluated: Seq[Task[_]] = newEvaluated,
+        cached: Boolean = cached
+    ): Evaluated = new Evaluated(newResults, newEvaluated, cached)
+  }
+
+  object Evaluated {
+    private[Evaluator] def unapply(evaluated: Evaluated)
+        : Option[(collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean)] =
+      Some((evaluated.newResults, evaluated.newEvaluated, evaluated.cached))
+  }
 
   // Increment the counter message by 1 to go from 1/10 to 10/10
   class NextCounterMsg(taskCount: Int) {
@@ -947,31 +867,6 @@ object Evaluator {
       outPath / "mill-par-profile.json",
       upickle.default.stream(tracings, indent = 2)
     )
-  }
-
-  /**
-   * Evaluate the given task `e`. In case, the task has no successful result(s), return the `default` value instead.
-   *
-   * Note: This method has no sensible error management! Errors are just ignored!
-   * The following pattern will probably suite your use case better:
-   *
-   * {{{
-   * evaluator.evaluate(Agg(task)) match {
-   *   case r if r.failing.items().nonEmpty =>
-   *     throw Exception(s"Failure during task evaluation: ${Evaluator.formatFailing(r)}")
-   *   case r => r.values.asInstanceOf[Seq[YourResultType]]
-   * }
-   * }}}
-   */
-  @deprecated(
-    "This method has no sensible error management and should be avoided. See it's scaladoc for an alternative pattern or use evalOrThrow instead.",
-    "mill after 0.10.0-M3"
-  )
-  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
-    evaluator.evaluate(Agg(e)).values match {
-      case Seq() => default
-      case Seq(e: T) => e
-    }
   }
 
   class EvalOrThrow(evaluator: Evaluator, exceptionFactory: Results => Throwable) {
@@ -1009,18 +904,8 @@ object Evaluator {
           case Right(t) => t.segments.render
         }
         val fss = fs.map {
-          case mill.api.Result.Exception(t, outerStack) =>
-            var current = List(t)
-            while (current.head.getCause != null) {
-              current = current.head.getCause :: current
-            }
-            current.reverse
-              .flatMap(ex =>
-                Seq(ex.toString) ++
-                  ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
-              )
-              .mkString("\n")
-          case mill.api.Result.Failure(t, _) => t
+          case ex: Result.Exception => ex.toString
+          case Result.Failure(t, _) => t
         }
         s"$ks ${fss.iterator.mkString(", ")}"
       }).mkString("\n")
@@ -1033,63 +918,19 @@ object Evaluator {
       outPath: os.Path,
       externalOutPath: os.Path,
       rootModule: mill.define.BaseModule,
-      baseLogger: ColorLogger
-  ): Evaluator = new Evaluator(
-    home,
-    outPath,
-    externalOutPath,
-    rootModule,
-    baseLogger
-  ): @nowarn
-
-  @deprecated(message = "Use other apply and withX methods instead", since = "mill 0.10.1")
-  def apply(
-      home: os.Path,
-      outPath: os.Path,
-      externalOutPath: os.Path,
-      rootModule: mill.define.BaseModule,
       baseLogger: ColorLogger,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-      workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-      env: Map[String, String] = Evaluator.defaultEnv,
-      failFast: Boolean = true,
-      threadCount: Option[Int] = Some(1)
+      classLoaderSigHash: Int
   ): Evaluator = new Evaluator(
-    home,
-    outPath,
-    externalOutPath,
-    rootModule,
-    baseLogger,
-    classLoaderSig,
-    workerCache,
-    env,
-    failFast,
-    threadCount,
-    Seq.empty
+    _home = home,
+    _outPath = outPath,
+    _externalOutPath = externalOutPath,
+    _rootModule = rootModule,
+    _baseLogger = baseLogger,
+    _classLoaderSigHash = classLoaderSigHash,
+    _workerCache = mutable.Map.empty,
+    _env = Evaluator.defaultEnv,
+    _failFast = true,
+    _threadCount = Some(1),
+    _scriptImportGraph = Map.empty
   )
-
-  @deprecated(message = "Pattern matching not supported with Evaluator", since = "mill 0.10.1")
-  def unapply(evaluator: Evaluator): Option[(
-      os.Path,
-      os.Path,
-      os.Path,
-      mill.define.BaseModule,
-      ColorLogger,
-      Seq[(Either[String, java.net.URL], Long)],
-      mutable.Map[Segments, (Int, Any)],
-      Map[String, String],
-      Boolean,
-      Option[Int]
-  )] = Some((
-    evaluator.home,
-    evaluator.outPath,
-    evaluator.externalOutPath,
-    evaluator.rootModule,
-    evaluator.baseLogger,
-    evaluator.classLoaderSig,
-    evaluator.workerCache,
-    evaluator.env,
-    evaluator.failFast,
-    evaluator.threadCount
-  ))
 }

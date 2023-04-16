@@ -3,13 +3,18 @@
 # This is a wrapper script, that automatically download mill from GitHub release pages
 # You can give the required mill version with MILL_VERSION env variable
 # If no version is given, it falls back to the value of DEFAULT_MILL_VERSION
-DEFAULT_MILL_VERSION=0.10.0
 
 set -e
+
+if [ -z "${DEFAULT_MILL_VERSION}" ] ; then
+  DEFAULT_MILL_VERSION=0.10.11
+fi
 
 if [ -z "$MILL_VERSION" ] ; then
   if [ -f ".mill-version" ] ; then
     MILL_VERSION="$(head -n 1 .mill-version 2> /dev/null)"
+  elif [ -f ".config/mill-version" ] ; then
+    MILL_VERSION="$(head -n 1 .config/mill-version 2> /dev/null)"
   elif [ -f "mill" ] && [ "$0" != "mill" ] ; then
     MILL_VERSION=$(grep -F "DEFAULT_MILL_VERSION=" "mill" | head -n 1 | cut -d= -f2)
   else
@@ -43,7 +48,18 @@ if [ ! -s "$MILL_EXEC_PATH" ] ; then
   unset MILL_DOWNLOAD_URL
 fi
 
+if [ -z "$MILL_MAIN_CLI" ] ; then
+  MILL_MAIN_CLI="${0}"
+fi
+
+MILL_FIRST_ARG=""
+if [ "$1" = "--bsp" ] || [ "$1" = "-i" ] || [ "$1" = "--interactive" ] || [ "$1" = "--no-server" ] || [ "$1" = "--repl" ] || [ "$1" = "--help" ] ; then
+  # Need to preserve the first position of those listed options
+  MILL_FIRST_ARG=$1
+  shift
+fi
+
 unset MILL_DOWNLOAD_PATH
 unset MILL_VERSION
 
-exec $MILL_EXEC_PATH "$@"
+exec $MILL_EXEC_PATH $MILL_FIRST_ARG -D "mill.main.cli=${MILL_MAIN_CLI}" "$@"

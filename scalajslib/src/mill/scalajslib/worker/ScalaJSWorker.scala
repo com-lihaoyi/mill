@@ -1,25 +1,23 @@
 package mill.scalajslib.worker
 
 import java.io.File
-
 import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
-import mill.api.{Ctx, internal, Result}
-import mill.define.Discover
+import mill.api.{Ctx, Result, internal}
+import mill.define.{Discover, Worker}
 import mill.{Agg, T}
 
 @internal
 private[scalajslib] class ScalaJSWorker extends AutoCloseable {
   private var scalaJSWorkerInstanceCache = Option.empty[(Long, workerApi.ScalaJSWorkerApi)]
 
-  private def bridge(toolsClasspath: Agg[os.Path])(implicit ctx: Ctx.Home) = {
-    val classloaderSig =
-      toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
+  private def bridge(toolsClasspath: Agg[mill.PathRef])(implicit ctx: Ctx.Home) = {
+    val classloaderSig = toolsClasspath.hashCode
     scalaJSWorkerInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
         val cl = mill.api.ClassLoader.create(
-          toolsClasspath.map(_.toIO.toURI.toURL).toVector,
+          toolsClasspath.map(_.path.toIO.toURI.toURL).toVector,
           getClass.getClassLoader
         )
         val bridge = cl
@@ -77,12 +75,29 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
           args = config.args,
           env = config.env
         )
+      case config: api.JsEnvConfig.ExoegoJsDomNodeJs =>
+        workerApi.JsEnvConfig.ExoegoJsDomNodeJs(
+          executable = config.executable,
+          args = config.args,
+          env = config.env
+        )
       case config: api.JsEnvConfig.Phantom =>
         workerApi.JsEnvConfig.Phantom(
           executable = config.executable,
           args = config.args,
           env = config.env,
           autoExit = config.autoExit
+        )
+      case config: api.JsEnvConfig.Selenium =>
+        workerApi.JsEnvConfig.Selenium(
+          capabilities = config.capabilities match {
+            case options: api.JsEnvConfig.Selenium.ChromeOptions =>
+              workerApi.JsEnvConfig.Selenium.ChromeOptions(headless = options.headless)
+            case options: api.JsEnvConfig.Selenium.FirefoxOptions =>
+              workerApi.JsEnvConfig.Selenium.FirefoxOptions(headless = options.headless)
+            case options: api.JsEnvConfig.Selenium.SafariOptions =>
+              workerApi.JsEnvConfig.Selenium.SafariOptions()
+          }
         )
     }
   }
@@ -122,8 +137,18 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
     )
   }
 
+  private def toWorkerApi(outputPatterns: api.OutputPatterns): workerApi.OutputPatterns = {
+    workerApi.OutputPatterns(
+      jsFile = outputPatterns.jsFile,
+      sourceMapFile = outputPatterns.sourceMapFile,
+      moduleName = outputPatterns.moduleName,
+      jsFileURI = outputPatterns.jsFileURI,
+      sourceMapURI = outputPatterns.sourceMapURI
+    )
+  }
+
   def link(
-      toolsClasspath: Agg[os.Path],
+      toolsClasspath: Agg[mill.PathRef],
       sources: Agg[os.Path],
       libraries: Agg[os.Path],
       dest: File,
@@ -132,9 +157,11 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
       optimizer: Boolean,
+      sourceMap: Boolean,
       moduleKind: api.ModuleKind,
       esFeatures: api.ESFeatures,
-      moduleSplitStyle: api.ModuleSplitStyle
+      moduleSplitStyle: api.ModuleSplitStyle,
+      outputPatterns: api.OutputPatterns
   )(implicit ctx: Ctx.Home): Result[api.Report] = {
     bridge(toolsClasspath).link(
       sources = sources.items.map(_.toIO).toArray,
@@ -145,16 +172,18 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       testBridgeInit = testBridgeInit,
       isFullLinkJS = isFullLinkJS,
       optimizer = optimizer,
+      sourceMap = sourceMap,
       moduleKind = toWorkerApi(moduleKind),
       esFeatures = toWorkerApi(esFeatures),
-      moduleSplitStyle = toWorkerApi(moduleSplitStyle)
+      moduleSplitStyle = toWorkerApi(moduleSplitStyle),
+      outputPatterns = toWorkerApi(outputPatterns)
     ) match {
       case Right(report) => Result.Success(fromWorkerApi(report))
       case Left(message) => Result.Failure(message)
     }
   }
 
-  def run(toolsClasspath: Agg[os.Path], config: api.JsEnvConfig, report: api.Report)(
+  def run(toolsClasspath: Agg[mill.PathRef], config: api.JsEnvConfig, report: api.Report)(
       implicit ctx: Ctx.Home
   ): Unit = {
     val dest =
@@ -162,7 +191,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
   }
 
   def getFramework(
-      toolsClasspath: Agg[os.Path],
+      toolsClasspath: Agg[mill.PathRef],
       config: api.JsEnvConfig,
       frameworkName: String,
       report: api.Report
@@ -182,6 +211,6 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
 @internal
 private[scalajslib] object ScalaJSWorkerExternalModule extends mill.define.ExternalModule {
 
-  def scalaJSWorker = T.worker { new ScalaJSWorker() }
+  def scalaJSWorker: Worker[ScalaJSWorker] = T.worker { new ScalaJSWorker() }
   lazy val millDiscover = Discover[this.type]
 }

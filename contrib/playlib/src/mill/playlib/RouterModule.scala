@@ -1,9 +1,7 @@
 package mill.playlib
 
-import coursier.MavenRepository
 import mill.api.PathRef
 import mill.playlib.api.RouteCompilerType
-import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.scalalib.api._
 import mill.{Agg, T}
@@ -47,7 +45,10 @@ trait RouterModule extends ScalaModule with Version {
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
   def routerClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}") })()
+    resolveDeps(T.task {
+      val bind = bindDependency()
+      Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}").map(bind)
+    })()
   }
 
   protected val routeCompilerWorker: RouteCompilerWorkerModule = RouteCompilerWorkerModule
@@ -55,7 +56,7 @@ trait RouterModule extends ScalaModule with Version {
   def compileRouter: T[CompilationResult] = T.persistent {
     T.log.debug(s"compiling play routes with ${playVersion()} worker")
     routeCompilerWorker.routeCompilerWorker().compile(
-      routerClasspath = playRouterToolsClasspath().map(_.path),
+      routerClasspath = playRouterToolsClasspath(),
       files = routeFiles().map(_.path),
       additionalImports = routesAdditionalImport,
       forwardsRouter = generateForwardsRouter,
@@ -79,11 +80,6 @@ trait RouterModule extends ScalaModule with Version {
         case _ => "_2.13"
       }
     )
-  }
-
-  @deprecated("Use playRouterToolsClasspath instead", "mill after 0.10.0-M1")
-  def toolsClasspath = T {
-    playRouterToolsClasspath()
   }
 
   def playRouterToolsClasspath = T {

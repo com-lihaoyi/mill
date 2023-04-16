@@ -3,19 +3,24 @@ package mill.scalalib.bsp
 import mill.api.experimental
 import mill.{Agg, T}
 import mill.define.Target
-import mill.scalalib.api.ZincWorkerUtil.isScala3
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
 import mill.api.Result
+import mill.scalalib.api.ZincWorkerUtil
 
 /*+ Enable some common settings required to properly support Metals Language Server (via BSP). */
 @experimental
+@deprecated(
+  "No longer needed. Mill BSP now automatically supports SemanticDB. " +
+    "If you rely on SemanticDB data, have a look at mill.scalalib.SemanticDbJavaModule.",
+  "Mill 0.10.6"
+)
 trait ScalaMetalsSupport extends ScalaModule {
 
-  /** The semanticDB version to use. It needs to support your configured Scala 2 version. */
-  def semanticDbVersion: T[String] = T { "" }
-
   override def scalacPluginIvyDeps: Target[Agg[Dep]] = T {
-    if (!isScala3(scalaVersion()) && semanticDbVersion().isEmpty) {
+    val sv = scalaVersion()
+    val semDbVersion = semanticDbVersion()
+    val superRes = super.scalacPluginIvyDeps()
+    if (!ZincWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
       val msg =
         """|
            |When using ScalaMetalsSupport with Scala 2 you must provide a semanticDbVersion
@@ -23,12 +28,12 @@ trait ScalaMetalsSupport extends ScalaModule {
            |def semanticDbVersion = ???
            |""".stripMargin
       Result.Failure(msg)
-    } else if (isScala3(scalaVersion())) {
-      Result.Success(super.scalacPluginIvyDeps())
+    } else if (ZincWorkerUtil.isScala3(sv)) {
+      Result.Success(superRes)
     } else {
       Result.Success(
-        super.scalacPluginIvyDeps() ++ Agg(
-          ivy"org.scalameta:::semanticdb-scalac:${semanticDbVersion()}"
+        superRes ++ Agg(
+          ivy"org.scalameta:::semanticdb-scalac:${semDbVersion}"
         )
       )
     }
@@ -37,7 +42,7 @@ trait ScalaMetalsSupport extends ScalaModule {
   /** Adds some options and configures the semanticDB plugin. */
   override def mandatoryScalacOptions: Target[Seq[String]] = T {
     super.mandatoryScalacOptions() ++ {
-      if (isScala3(scalaVersion())) {
+      if (ZincWorkerUtil.isScala3(scalaVersion())) {
         Seq("-Xsemanticdb")
       } else {
         Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${T.workspace}")

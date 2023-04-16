@@ -1,0 +1,274 @@
+= Library Dependencies in Mill
+:link-coursier: https://github.com/coursier/coursier
+:link-coursier-doc: https://get-coursier.io/docs/overview
+
+Beside the dependencies between Mill modules, most non-trivial source projects have dependencies to other libraries.
+
+Mill uses {link-coursier}[coursier] to resolve and download dependencies.
+Once downloaded, they are located in the coursier specific cache locations.
+For more details about coursier, refer to the {link-coursier-doc}[coursier documentation].
+
+== Dependencies in General
+
+Mill dependencies have the form:
+
+----
+ivy"{organization}:{name}:{version}"
+----
+
+When working in other Java and Scala projects, you will find some synonyms, which typically all mean the same.
+
+For example in the Maven ecosystem, the `organization` is called the `group` and the `name` is called the `artifact`.
+The whole tripplet is ofthe called `GAV`.
+
+In Mill we use the additional term `artifactId` which is identical to the `name` when used in the normal form shown above.
+When a different form is used, e.g. some double-colons are used between the parts, the `artifactId` typically contains suffixes, but the name doesn't.
+
+.Example for a simple Java Dependency
+[source,scala]
+----
+def ivyDeps = Agg(
+  ivy"org.slf4j:slf4j-api:1.7.25"
+)
+----
+
+== Scala dependencies
+
+Scala major releases up until version `2.13` are binary incompatible.
+That means, mixing dependencies of different binary platforms will result in non-working runtimes and obscure and hard to debug issues.
+
+To easily pick only a compatible version, a convention was established to append the scala major version as a suffix to the package name.footnote:[
+Scala 2 versions have the unusual version format: `{epoch}.{major}.{minor}`.]
+E.g. to select the Scala 2.13 version of a library `foo`, the final `artifactId` will contain the additional suffix `_2.13`, such that the final `artifactId` is `foo_2.13`.
+
+To always pick the right version and support cross compiling,
+you can omit the scala version and instead use a double colon (`::`) between the `organization` and the `name`, e.g. `ivy"com.typesafe.akka:akka-actor_2.12:2.5.25"`.
+Your module needs to `extends ScalaModule` though.
+
+If you want to use dependencies that are cross-published against the full Scala version, e.g. `2.12.12`,
+you can use three colons (`:::`) between `organization` and `name`, e.g.: `ivy"org.scalamacros:::paradise:2.1.1"`.
+
+.Example
+[source,scala]
+----
+def ivyDeps = Agg(
+  // explicit scala version suffix, NOT RECOMMENDED!
+  ivy"com.typesafe.akka:akka-actor_2.12:2.5.25",
+  ivy"com.typesafe.akka::akka-actor:2.5.25",
+  ivy"org.scalamacros:::paradise:2.1.1"
+)
+----
+
+== Scala 3 interoperability
+
+Since the release of Scala 3, the binary compatibility story for Scala has changed.
+That means, Scala 3 dependencies can be mixed with Scala 2.13 dependencies.
+In fact, the Scala 3 standard library is the same as for Scala 2.13.
+
+
+[CAUTION]
+--
+As Scala 3 and Scala 2.13 have different binary platforms, but their artifacts are in general compatible, this introduces new challenges.
+
+There is currently no mechanism, that impedes to bring the same dependency twice into the classpath (one for Scala 2.13 and one for Scala 3).
+--
+
+
+=== Using Scala 2.13 from Scala 3
+
+If your Scala version is a Scala 3.x, but you want to use the Scala 2.13 version of a specific library, you can use the `.withDottyCompat` method on that dependency.
+
+.Example:
+[source,scala]
+----
+def scalaVersion = "3.2.1"
+def ivyDeps = Agg(
+  ivy"com.lihaoyi::upickle:2.0.0".withDottyCompat(scalaVersion()) //1
+)
+----
+<1> This will result in a Scala 2.13 dependency `com.lihaoyi::upicke_2.13:2.0.0`
+
+
+[NOTE]
+--
+Do you wonder where the name "dotty" comes from?
+
+In the early development of Scala 3, the Scala 3 compiler was called "Dotty". Later, the name was changed to Scala 3, but the compiler project itself is still named "dotty".
+
+The dotty compiler itself is an implementation of the http://lampwww.epfl.ch/~amin/dot/fool.pdf[Dependent Object Types (DOT) calculus], which is the new basis of Scala 3. It also enhances the type system to a next level and allows features like union-types and intersection-types.
+--
+
+== Test dependencies (there is no `test` scope)
+
+One difference between Mill and other build tools like sbt or Maven is the fact, that tests are ordinary submodules on their own.
+For convenience, most modules already come with a pre-configured trait for a test submodule,
+which already inherits all dependencies of their parent module.
+If you need additional test dependencies, you simply add them by overriding `def ivyDeps`, as you would do with normal library dependencies.
+
+When migrating a sbt project and seeing a dependency like this: `"ch.qos.logback" % "logback-classic" % "1.2.3" % "test"`,
+simply add it to the test module's `ivyDeps` as ordinary dependency.
+There is no special test scope in Mill.
+
+.Example
+[source,scala]
+----
+object main extends JavaModule {
+  object test extends Tests {
+    def ivyDeps = Agg(
+      ivy"org.qos.logback:logback-classic:1.2.3"
+    )
+  }
+}
+----
+
+== Compile-only dependencies (`provided` scope)
+
+If you want to use a dependency only at compile time, you can declare it with the `compileIvyDeps` target.
+
+.Example
+[source,scala]
+----
+def compileIvyDeps = Agg(
+  ivy"org.slf4j:slf4j-api:1.7.25"
+)
+----
+
+When Mill generated file to interact with package manager like `pom.xml` for Maven repositories, such compile-only dependencies are mapped to the `provided` scope.
+
+Please note, that dependencies with `provided` scope will never be resolved transitively. Hence, the name "provided", as the target runtime needs to "provide" them, if they are needed.
+
+
+== Runtime dependencies
+
+If you want to declare dependencies to be used at runtime (but not at compile time), you can use the `runIvyDeps` targets.
+
+.Example
+[source,scala]
+----
+def runIvyDeps = Agg(
+  ivy"ch.qos.logback:logback-classic:1.2.0"
+)
+----
+
+It is also possible to use a higher version of the same library dependencies already defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
+
+== Detecting transitive dependencies
+
+To render a tree of dependencies (transitive included) you can run `mill myModule.ivyDepsTree`. Here is how the start of `./mill __.ivyDepsTree` looks like in the `mill` project itself:
+
+[source,text]
+----
+├─ ch.epfl.scala:bsp4j:2.1.0-M3
+│  ├─ org.eclipse.lsp4j:org.eclipse.lsp4j.generator:0.12.0
+│  │  ├─ org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.12.0
+│  │  │  └─ com.google.code.gson:gson:2.9.1
+│  │  └─ org.eclipse.xtend:org.eclipse.xtend.lib:2.24.0
+│  │     ├─ org.eclipse.xtend:org.eclipse.xtend.lib.macro:2.24.0
+│  │     │  └─ org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.24.0
+...
+│  │  ├─ com.lihaoyi:fastparse_2.13:2.3.0
+│  │  │  ├─ com.lihaoyi:geny_2.13:0.6.0 -> 0.7.1 (possible incompatibility)
+│  │  │  │  └─ org.scala-lang:scala-library:2.13.10
+│  │  │  └─ com.lihaoyi:sourcecode_2.13:0.2.1 -> 0.3.0 (possible incompatibility)
+----
+
+After compiling your module(s) you can find and examine files such as `ivyDeps.json` and `transitiveIvyDeps.json` in your `out` build's folder for a given module.
+After running the `ivyDepsTree` command you'll also find the `ivyDepsTree.json` and `ivyDepsTree.log` file that contain the output of the above `ivyDepsTree` command.
+
+You can observe the actual version being used by running `mill show myModule.resolvedIvyDeps`. If you run `mill myModule.resolvedIvyDeps`, the same information is available in `out/myModule/resolvedIvyDeps.json`.
+
+=== Figuring out where a dependency comes from
+
+There will be times when you want to figure out where a dependency is coming
+from. The output of `ivyDepsTree` can be quite large in larger projects so the
+command provides a nice utility to be able to target the part of the tree that
+brings in a specific dependency.
+
+For example, let's again  use the Mill codebase as an example. We'll search the
+tree in the  `main` module and try to find where the `jsoniter-scala-core_2.13`
+artifact is coming from using the `--whatDependsOn` argument:
+
+[source,txt]
+----
+❯ ./mill -i dev.run ~/Documents/scala-workspace/com-lihaoyi/mill  main.ivyDepsTree --whatDependsOn com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13
+[33/33] main.ivyDepsTree
+└─ com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13:2.13.5
+   ├─ io.get-coursier:coursier_2.13:2.1.0-RC1
+   └─ org.virtuslab.scala-cli:config_2.13:0.1.16
+      └─ io.get-coursier:coursier-cache_2.13:2.1.0-RC1
+         └─ io.get-coursier:coursier_2.13:2.1.0-RC1
+----
+
+By looking at the output we can see that it's our dependency on `coursier_2.13`
+that is bringining in the `jsoniter-scala-core_2.13` artifact.
+
+The `--whatDependsOn` argument can also be repeated to target multiple
+artifacts at once. Just repeat the `--whatDependsOn <artifact>` pattern. Note
+that the artifact pattern follows the `org:artifact` convention. You can't
+include a version as the utility will show you all usages of the `artifact`.
+Also note that when using `--whatDependsOn` on usage of `--inverse` is forced
+in order to make the tree appear in an inverted manner to more easily show you
+where the dependency is coming from.
+
+== Excluding transitive dependencies
+
+You can use the `.exclude` method on a dependency. It accepts  `organization` and `name` tuples, to be excluded.
+Use the special name `*` to match all ``organization``s or ``name``s.
+
+.Example: Exclude `fansi_2.12` library from transitive dependency set of `pprint`.
+[source,scala]
+----
+def deps = Agg(
+  ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12")
+)
+----
+
+You can also use `.excludeOrg` or `excludeName`:
+
+
+.Example: Exclude all `com.lihaoyi` libraries from transitive dependency set of `pprint`.
+[source,scala]
+----
+val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
+----
+
+Note: You can chain multiple exclusions with `exclude`, `excludeOrg`, and `excludeName`.
+
+.Example: Excluding a library (fansi) by name from transitive dependency set of `pprint`.
+[source,scala]
+----
+val deps = Agg(
+  ivy"com.lihaoyi::pprint:0.5.3"
+    .excludeName("fansi_2.12")
+    .excludeName("sourcecode")
+)
+----
+
+== Forcing versions
+
+CAUTION: Please treat forceVersion as experimental; it has some bugs and isn't production-ready (forced versions https://github.com/com-lihaoyi/mill/issues/1975[aren't propagated to published artifacts]).
+
+You can use the `forceVersion` method to ensure the used version of a dependency is what you have declared.
+
+* You declare a dependency `val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14")`
+* There is another dependency, `val deps = Agg(ivy"com.lihaoyi::PPrint:0.8.1")`
+* PPrint 0.8.1 uses fansi 0.4.0, so it is a transitive dependency
+* `mill show myModule.resolvedIvyDeps | grep "fansi"` should show fansi 0.4.0
+* If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use `val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14".forceVersion())`
+* `mill show myModule.resolvedIvyDeps | grep "fansi"` should show fansi 0.2.14
+
+== ScalaJS dependencies
+
+Scala.js introduces an additional binary platform axis.
+To the already required Scala version, there comes the Scala.js version.
+
+You can use two colons (`::`) between `name` and `version` to define a Scala.js dependency.
+Your module needs to `extends ScalaJSModule` to accept Scala.js dependencies.
+
+== Scala Native dependencies
+
+Scala Native introduces an additional binary platform axis.
+To the already required Scala version, there comes the Scala Native version.
+
+You can use two colons (`::`) between `name` and `version` to define a Scala Native dependency.
+Your module needs to `extends ScalaNativeModule` to accept Scala Native dependencies.

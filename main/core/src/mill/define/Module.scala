@@ -22,12 +22,19 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
    */
   object millInternal extends Module.Internal(this)
 
-  lazy val millModuleDirectChildren: Seq[Module] = millInternal.reflectNestedObjects[Module].toSeq
-  def millOuterCtx = outerCtx0
-  def millSourcePath: os.Path = millOuterCtx.millSourcePath / millOuterCtx.segment.pathSegments
+  def millModuleDirectChildren: Seq[Module] = millModuleDirectChildrenImpl
+  // We keep a private `lazy val` and a public `def` so
+  // subclasses can call `super.millModuleDirectChildren`
+  private lazy val millModuleDirectChildrenImpl: Seq[Module] =
+    millInternal.reflectNestedObjects[Module].toSeq
+  def millOuterCtx: Ctx = outerCtx0
+  def millSourcePath: os.Path = millOuterCtx.millSourcePath / (millOuterCtx.segment match {
+    case Segment.Label(s) => Seq(s)
+    case Segment.Cross(_) => Seq.empty[String] // drop cross segments
+  })
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
   implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
-  implicit def millModuleBasePath: BasePath = BasePath(millSourcePath)
+  implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
   }
@@ -44,17 +51,18 @@ object Module {
     lazy val modules: Seq[Module] = traverse(Seq(_))
     lazy val segmentsToModules = modules.map(m => (m.millModuleSegments, m)).toMap
 
-    lazy val targets = traverse { _.millInternal.reflectAll[Target[_]] }.toSet
+    lazy val targets: Set[Target[_]] =
+      traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
 
-    lazy val segmentsToTargets = targets
+    lazy val segmentsToTargets: Map[Segments, Target[_]] = targets
       .map(t => (t.ctx.segments, t))
       .toMap
 
     // Ensure we do not propagate the implicit parameters as implicits within
     // the body of any inheriting class/trait/objects, as it would screw up any
     // one else trying to use sourcecode.{Enclosing,Line} to capture debug info
-    lazy val millModuleEnclosing = outer.millOuterCtx.enclosing
-    lazy val millModuleLine = outer.millOuterCtx.lineNum
+    lazy val millModuleEnclosing: String = outer.millOuterCtx.enclosing
+    lazy val millModuleLine: Int = outer.millOuterCtx.lineNum
 
     private def reflect[T: ClassTag](filter: (String) => Boolean): Array[T] = {
       val runtimeCls = implicitly[ClassTag[T]].runtimeClass
