@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 4f70fbc1a4..d4d35c5d89 100644
+index 4f70fbc1a4..23b10519ff 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,27 +2,18 @@
@@ -359,7 +359,7 @@ index 4f70fbc1a4..d4d35c5d89 100644
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1248,11 +1027,11 @@ object example extends MillScalaModule {
+@@ -1248,20 +1027,20 @@ object example extends MillScalaModule {
  
    def moduleDeps = Seq(integration)
  
@@ -375,11 +375,14 @@ index 4f70fbc1a4..d4d35c5d89 100644
      def testRepoRoot: T[PathRef] = T.source(millSourcePath)
      def compile = example.compile()
    }
-@@ -1261,7 +1040,7 @@ object example extends MillScalaModule {
+ }
+ 
  object integration extends MillScalaModule {
-   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
-   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
+-  object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
+-  object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
 -  class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestCrossModule
++  object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"))
++  object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"))
 +  trait IntegrationCrossModule extends IntegrationTestCrossModule
  
    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
