@@ -17,7 +17,7 @@ trait TopCross2 extends Cross.Module2[String, String] {
 }
 
 object topCrossU extends Cross[TopCrossU]("a", "b")
-trait TopCrossU  extends Cross.Module[String] {
+trait TopCrossU extends Cross.Module[String] {
   override def millSourcePath = super.millSourcePath / crossValue
   def param1 = T { crossValue }
   def path = T { PathRef(millSourcePath) }

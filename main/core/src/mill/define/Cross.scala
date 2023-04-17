@@ -148,7 +148,7 @@ object Cross {
            |  Cross[${tpe.typeSymbol.name}](values)
            |
            |Note that the `millSourcePath` of cross modules has changed in
-           |Mill 0.11.0, an no longer includes the cross values by default.
+           |Mill 0.11.0, and no longer includes the cross values by default.
            |If you have `def millSourcePath = super.millSourcePath / os.up`,
            |you may remove it. If you do not have this definition, you can
            |preserve the old behavior via `def millSourcePath = super.millSourcePath / crossValue`
