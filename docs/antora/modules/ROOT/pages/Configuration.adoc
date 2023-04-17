@@ -501,35 +501,6 @@ consistent configuration: every module often has the same scala-version, uses
 the same testing framework, etc. and all that can be extracted out into the
 `trait`.
 
-== Global configuration
-
-Mill builds on ammonite which allows you to
-http://ammonite.io/#ScriptPredef[define global configuration]. Depending on
-how you start mill, one of two files will be loaded. For the build REPL
-(`--repl` or `-i` without specifying a target), `~/.mill/ammonite/predef.sc`
-will be loaded, and for builds from the command line the file
-`~/.mill/ammonite/predefScript.sc` will be included. You might want to create
-a symlink from one to the other to avoid duplication.
-
-Example `~/.mill/ammonite/predef.sc`
-
-.`~/.mill/ammonite/predef.sc`
-[source,scala]
-----
-val nexusUser = "myuser"
-val nexusPassword = "mysecret"
-----
-
-Everything declared in the above file will be available to any build you run.
-
-[source,scala]
-----
-  def repositories = super.repositories ++ Seq(
-    // login and pass are globally configured
-    MavenRepository("https://nexus.mycompany.com/repository/maven-releases", authentication = Some(coursier.core.Authentication(nexusUser, nexusPassword)))
-  )
-----
-
 == Custom Tasks
 
 .`build.sc`
