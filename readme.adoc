@@ -261,7 +261,7 @@ corresponding version of Mill.
 
 * Add some helpers to simplify cross-version/cross-platform modules {#2406}[https://github.com/com-lihaoyi/mill/pull/2406]
 
-* You can now override `T{...}` `Target`s with `T.source` or `T.sources`, and
+* You can now override `T{...}` ``Target``s with `T.source` or `T.sources`, and
   vice versa https://github.com/com-lihaoyi/mill/pull/2402[#2402]
 
 * Removed the Ammonite script runner dependency used to evaluate `build.sc`

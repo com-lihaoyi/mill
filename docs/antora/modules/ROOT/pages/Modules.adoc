@@ -151,7 +151,7 @@ object foo extends RootModule with ScalaModule {
 }
 ----
 
-`RootModule`s allow you to define a module whose targets are available directly
+``RootModule``s allow you to define a module whose targets are available directly
 via `./mill <target>`, e.g. `./mill compile` or `./mill run`, without needing
 to prefix them by the module name `./mill foo.compile`. These are useful if a
 project has a "primary" module that most people would use, as it makes
