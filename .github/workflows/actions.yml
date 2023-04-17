@@ -84,13 +84,12 @@ jobs:
       buildcmd: ./mill -i -k mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
 
   bincompat-check:
-    # when doing milestone builds, this may be true
-    continue-on-error: true
     uses: ./.github/workflows/run-mill-action.yml
     with:
       os: ubuntu-latest
       java-version: '8'
       buildcmd: ./mill -i -k __.mimaReportBinaryIssues
+      continue-on-error: true
 
   test-windows:
     strategy:
