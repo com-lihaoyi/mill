@@ -14,9 +14,8 @@ on:
         type: string
 
 jobs:
-  runs-on: ${{ inputs.os }}
-
   build:
+    runs-on: ${{ inputs.os }}
     steps:
       - uses: actions/checkout@v3
         with:
