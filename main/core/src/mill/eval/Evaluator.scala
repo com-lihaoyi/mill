@@ -578,29 +578,17 @@ class Evaluator private (
           val out = System.out
           val in = System.in
           val err = System.err
-          try {
-            System.setIn(multiLogger.inStream)
-            System.setErr(multiLogger.errorStream)
-            System.setOut(multiLogger.outputStream)
-            Console.withIn(multiLogger.inStream) {
-              Console.withOut(multiLogger.outputStream) {
-                Console.withErr(multiLogger.errorStream) {
-                  try task.evaluate(args)
-                  catch {
-                    case NonFatal(e) =>
-                      mill.api.Result.Exception(
-                        e,
-                        new OuterStack(new Exception().getStackTrace.toIndexedSeq)
-                      )
-                  }
-                }
-              }
+          mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
+            try task.evaluate(args)
+            catch {
+              case NonFatal(e) =>
+                mill.api.Result.Exception(
+                  e,
+                  new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                )
             }
-          } finally {
-            System.setErr(err)
-            System.setOut(out)
-            System.setIn(in)
           }
+
         }
 
       newResults(task) = for (v <- res) yield {
@@ -632,7 +620,7 @@ class Evaluator private (
           logger,
           // we always enable debug here, to get some more context in log files
           new FileLogger(logger.colored, path, debugEnabled = true),
-          logger.inStream,
+          logger.systemStreams.in,
           debugEnabled = logger.debugEnabled
         )
     }
@@ -916,17 +904,7 @@ object Evaluator {
           case Right(t) => t.segments.render
         }
         val fss = fs.map {
-          case Result.Exception(t, outerStack) =>
-            var current = List(t)
-            while (current.head.getCause != null) {
-              current = current.head.getCause :: current
-            }
-            current.reverse
-              .flatMap(ex =>
-                Seq(ex.toString) ++
-                  ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
-              )
-              .mkString("\n")
+          case ex: Result.Exception => ex.toString
           case Result.Failure(t, _) => t
         }
         s"$ks ${fss.iterator.mkString(", ")}"

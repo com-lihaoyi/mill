@@ -2,7 +2,7 @@ import mill._, scalalib._, scalajslib._
 
 object app extends RootModule with ScalaModule{
 
-  def scalaVersion = "2.13.10"
+  def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::cask:0.9.1",
     ivy"com.lihaoyi::scalatags:0.12.0"
@@ -28,7 +28,7 @@ object app extends RootModule with ScalaModule{
   }
 
   object client extends ScalaJSModule {
-    def scalaVersion = "2.13.10"
+    def scalaVersion = "2.13.8"
     def scalaJSVersion = "1.13.0"
     def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
   }

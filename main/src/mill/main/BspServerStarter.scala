@@ -1,15 +1,16 @@
 package mill.main
 
 import mill.eval.Evaluator
-import mill.util.SystemStreams
+import mill.api.SystemStreams
 
-import java.io.{InputStream, PrintStream}
+import java.io.PrintStream
 import scala.concurrent.Promise
 
 trait BspServerStarter {
   def startBspServer(
       initialEvaluator: Option[Evaluator],
       streams: SystemStreams,
+      logStream: Option[PrintStream],
       workspaceDir: os.Path,
       ammoniteHomeDir: os.Path,
       canReload: Boolean,

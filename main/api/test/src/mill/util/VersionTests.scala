@@ -1,4 +1,4 @@
-package mill.util
+package mill.api
 
 import utest.{assert, TestSuite, Tests, test}
 

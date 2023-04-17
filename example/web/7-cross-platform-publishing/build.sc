@@ -1,6 +1,6 @@
 import mill._, scalalib._, scalajslib._, publish._
 
-object foo extends Cross[FooModule]("2.13.10", "3.2.2")
+object foo extends Cross[FooModule]("2.13.8", "3.2.2")
 trait FooModule extends CrossScalaModule.Base {
   trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModule {
     def publishVersion = "0.0.1"
@@ -45,16 +45,16 @@ trait FooModule extends CrossScalaModule.Base {
 }
 
 // This example demonstrates how to publish Scala modules which are both
-// cross-version and cross-platform: running on both Scala 2.13.10/3.2.2 as
+// cross-version and cross-platform: running on both Scala 2.13.8/3.2.2 as
 // well as Scala-JVM/JS.
 
 /* Example Usage
 
-> ./mill show foo[2.13.10].bar.jvm.sources
+> ./mill show foo[2.13.8].bar.jvm.sources
 foo/bar/src
 foo/bar/src-jvm
-foo/bar/src-2.13.10
-foo/bar/src-2.13.10-jvm
+foo/bar/src-2.13.8
+foo/bar/src-2.13.8-jvm
 foo/bar/src-2.13
 foo/bar/src-2.13-jvm
 foo/bar/src-2
@@ -70,7 +70,7 @@ foo/qux/src-3.2-js
 foo/qux/src-3
 foo/qux/src-3-js
 
-> ./mill foo[2.13.10].qux.jvm.run
+> ./mill foo[2.13.8].qux.jvm.run
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Parsing JSON with ujson.read
 Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)

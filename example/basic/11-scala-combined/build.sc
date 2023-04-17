@@ -21,7 +21,7 @@ trait MyScalaModule extends  MyModule with CrossScalaModule{
   }
 }
 
-val scalaVersions = Seq("2.13.10", "3.2.2")
+val scalaVersions = Seq("2.13.8", "3.2.2")
 
 object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends MyScalaModule {
@@ -74,17 +74,17 @@ object qux extends JavaModule with MyModule
 /* Example Usage
 
 > ./mill resolve __.run
-bar[2.13.10].run
-bar[2.13.10].test.run
+bar[2.13.8].run
+bar[2.13.8].test.run
 bar[3.2.2].run
 bar[3.2.2].test.run
-foo[2.13.10].run
-foo[2.13.10].test.run
+foo[2.13.8].run
+foo[2.13.8].test.run
 foo[3.2.2].run
 foo[3.2.2].test.run
 qux.run
 
-> ./mill foo[2.13.10].run
+> ./mill foo[2.13.8].run
 foo version 0.0.1
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world Specific code for Scala 2.x</p>
@@ -116,10 +116,10 @@ Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo
 Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo
 Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo
 
-> ./mill show foo[2.13.10].assembly # mac/linux
-out/foo/2.13.10/assembly.dest/out.jar
+> ./mill show foo[2.13.8].assembly # mac/linux
+out/foo/2.13.8/assembly.dest/out.jar
 
-> ./out/foo/2.13.10/assembly.dest/out.jar # mac/linux
+> ./out/foo/2.13.8/assembly.dest/out.jar # mac/linux
 foo version 0.0.1
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world Specific code for Scala 2.x</p>

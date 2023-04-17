@@ -10,6 +10,7 @@ import mill.api.Result
 import mill.define.{Input, NamedTask, Target}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.modules.Assembly
+import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -42,6 +43,11 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorld extends HelloBase {
     object core extends HelloWorldModule
+  }
+  object HelloWorldNonPrecompiledBridge extends HelloBase {
+    object core extends HelloWorldModule {
+      override def scalaVersion = "2.12.1"
+    }
   }
   object CrossHelloWorld extends HelloBase {
     object core extends Cross[HelloWorldCross](
@@ -504,7 +510,42 @@ object HelloWorldTests extends TestSuite {
         val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.compile)
 
         assert(unchangedEvalCount == 0)
+
+        // Make sure we *do not* end up compiling the compiler bridge, since
+        // it's using a pre-compiled bridge value
+        assert(!os.exists(
+          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / "zinc-1.8.0"
+        ))
       }
+
+      "nonPreCompiledBridge" - workspaceTest(HelloWorldNonPrecompiledBridge) { eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
+
+        val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
+
+        val analysisFile = result.analysisFile
+        val outputFiles = os.walk(result.classes.path)
+        val expectedClassfiles = compileClassfiles.map(classesPath / _)
+        assert(
+          result.classes.path == classesPath,
+          os.exists(analysisFile),
+          outputFiles.nonEmpty,
+          outputFiles.forall(expectedClassfiles.contains),
+          evalCount > 0
+        )
+
+        // don't recompile if nothing changed
+        val Right((_, unchangedEvalCount)) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
+
+        assert(unchangedEvalCount == 0)
+
+        // Make sure we *do* end up compiling the compiler bridge, since it's
+        // *not* using a pre-compiled bridge value
+        assert(os.exists(
+          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / "zinc-1.8.0"
+        ))
+      }
+
       "recompileOnChange" - workspaceTest(HelloWorld) { eval =>
         val Right((_, freshCount)) = eval.apply(HelloWorld.core.compile)
         assert(freshCount > 0)

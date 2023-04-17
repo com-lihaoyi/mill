@@ -7,7 +7,7 @@ import mill.bsp.{BSP, BspWorker, Constants}
 import mill.define.Task
 import mill.eval.Evaluator
 import mill.main.{BspServerHandle, BspServerResult}
-import mill.util.SystemStreams
+import mill.api.SystemStreams
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.{InputStream, PrintStream, PrintWriter}
@@ -49,7 +49,7 @@ class BspWorkerImpl() extends BspWorker {
   override def createBspConnection(
       jobs: Int,
       serverName: String
-  )(implicit ctx: Ctx): Unit = {
+  )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
     // we create a json connection file
     val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
     if (os.exists(bspFile)) ctx.log.info(s"Overwriting BSP connection file: ${bspFile}")
@@ -58,12 +58,15 @@ class BspWorkerImpl() extends BspWorker {
     if (withDebug) ctx.log.debug(
       "Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option."
     )
-    os.write.over(bspFile, bspConnectionJson(jobs, withDebug), createFolders = true)
+    val connectionContent = bspConnectionJson(jobs, withDebug)
+    os.write.over(bspFile, connectionContent, createFolders = true)
+    (PathRef(bspFile), upickle.default.read[ujson.Value](connectionContent))
   }
 
   override def startBspServer(
       initialEvaluator: Option[Evaluator],
       streams: SystemStreams,
+      logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean,
       serverHandles: Seq[Promise[BspServerHandle]]
@@ -76,7 +79,7 @@ class BspWorkerImpl() extends BspWorker {
         bspVersion = Constants.bspProtocolVersion,
         serverVersion = MillBuildInfo.millVersion,
         serverName = Constants.serverName,
-        logStream = streams.err,
+        logStream = logStream,
         canReload = canReload
       ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
