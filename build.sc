@@ -1815,12 +1815,21 @@ def uploadToGithub(authKey: String) = T.command {
       .asString
   }
 
-  val exampleZips = Seq("example-1", "example-2", "example-3")
-    .map { example =>
-      os.copy(T.workspace / "example" / example, T.dest / example)
-      os.copy(launcher().path, T.dest / example / "mill")
-      os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
-      (T.dest / s"$example.zip", label + "-" + example + ".zip")
+  val exampleRoot = T.workspace / "example"
+  val exampleZips = for{
+    exampleBase <- Seq("basic", "web", "misc")
+    examplePath <- os.list(exampleRoot / exampleBase)
+  } yield {
+    val example = examplePath.subRelativeTo(T.workspace)
+    os.copy(examplePath, T.dest / example)
+    os.copy(launcher().path, T.dest / example / "mill")
+    val exampleStr = example.segments.mkString("-")
+    os.proc("zip", "-r", T.dest / s"$exampleStr.zip", T.dest / example).call(cwd = T.dest)
+    (T.dest / s"$exampleStr.zip", label + "-" + exampleStr + ".zip")
+  }
+
+    .map { exampleBase =>
+
     }
 
   val zips = exampleZips ++ Seq(
