@@ -22,8 +22,8 @@ object NodeJSConfigTests extends TestSuite {
   trait HelloJSWorldModule
       extends ScalaModule
       with ScalaJSModule
-      with Cross.Module[(String, List[String])] {
-    val (crossScalaVersion, nodeArgs) = crossValue
+      with Cross.Module2[String, List[String]] {
+    val (crossScalaVersion, nodeArgs) = (crossValue, crossValue2)
     def scalaVersion = crossScalaVersion
     override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"

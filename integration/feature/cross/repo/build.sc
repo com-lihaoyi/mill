@@ -10,10 +10,9 @@ trait TopCross extends Cross.Module[String] {
 }
 
 object topCross2 extends Cross[TopCross2](("a", "1"), ("b", "2"))
-trait TopCross2 extends Cross.Module[(String, String)] {
-  val (p1, p2) = crossValue
-  def param1 = T { p1 }
-  def param2 = T { p2 }
+trait TopCross2 extends Cross.Module2[String, String] {
+  def param1 = T { crossValue }
+  def param2 = T { crossValue2 }
   def path = T { PathRef(millSourcePath) }
 }
 

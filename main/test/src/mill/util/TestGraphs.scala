@@ -267,8 +267,8 @@ object TestGraphs {
       if !(platform == "native" && scalaVersion != "212")
     } yield (scalaVersion, platform)
     object cross extends mill.Cross[Cross](crossMatrix)
-    trait Cross extends Cross.Module[(String, String)] {
-      val (scalaVersion, platform) = crossValue
+    trait Cross extends Cross.Module2[String, String] {
+      val (scalaVersion, platform) = (crossValue, crossValue2)
       def suffix = T { scalaVersion + "_" + platform }
     }
   }

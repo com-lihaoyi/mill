@@ -147,13 +147,14 @@ object MacroErrorTests extends TestSuite {
       val error = utest.compileError(
         """
         object foo extends mill.util.TestUtil.BaseModule{
-          object cross extends Cross[MyCrossModule](1, 2, 3)
+          object cross extends Cross[MyCrossModule](Seq(1, 2, 3))
           trait MyCrossModule extends Cross.Module[String]
         }
       """
       )
       assert(error.msg.contains("type mismatch;"))
-      assert(error.msg.contains("found   : Int(1)"))
+      assert(error.msg.contains("found   : Int"))
+      assert(error.msg.contains("required: String"))
     }
   }
 }

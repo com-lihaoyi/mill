@@ -22,8 +22,8 @@ object HelloNativeWorldTests extends TestSuite {
       extends ScalaModule
       with ScalaNativeModule
       with PublishModule
-      with Cross.Module[(String, String, ReleaseMode)] {
-    val (crossScalaVersion, sNativeVersion, mode) = crossValue
+      with Cross.Module3[String, String, ReleaseMode] {
+    val (crossScalaVersion, sNativeVersion, mode) = (crossValue, crossValue2, crossValue3)
     def scalaVersion = crossScalaVersion
     override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
