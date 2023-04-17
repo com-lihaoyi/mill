@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 4f70fbc1a4..6506f15622 100644
+index 4f70fbc1a4..d4d35c5d89 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,27 +2,18 @@
@@ -48,6 +48,17 @@ index 4f70fbc1a4..6506f15622 100644
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
+@@ -220,8 +207,8 @@ val buildBridgeScalaVersions =
+   if (!buildAllCompilerBridges) Seq()
+   else bridgeScalaVersions
+ 
+-object bridge extends Cross[BridgeModule](buildBridgeScalaVersions: _*)
+-class BridgeModule(val crossScalaVersion: String) extends PublishModule with CrossScalaModule {
++object bridge extends Cross[BridgeModule](buildBridgeScalaVersions)
++trait BridgeModule extends PublishModule with CrossScalaModule {
+   def scalaVersion = crossScalaVersion
+   def publishVersion = bridgeVersion
+   def artifactName = T{ "mill-scala-compiler-bridge" }
 @@ -240,219 +227,23 @@ class BridgeModule(val crossScalaVersion: String) extends PublishModule with Cro
    def generatedSources = T {
      import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
@@ -300,39 +311,80 @@ index 4f70fbc1a4..6506f15622 100644
  }
  
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -823,6 +595,7 @@ object scalajslib extends MillModule with BuildInfo{
+@@ -821,8 +593,10 @@ object scalajslib extends MillModule with BuildInfo{
+     override def ivyDeps = Agg(Deps.sbtTestInterface)
+   }
    object worker extends Cross[WorkerModule]("1")
-   class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
+-  class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
++  trait WorkerModule extends MillInternalModule with Cross.Module[String]{
      override def moduleDeps = Seq(scalajslib.`worker-api`, main.client, main.api)
++    def scalajsWorkerVersion = crossValue
 +    override def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
        Deps.Scalajs_1.scalajsSbtTestAdapter,
-@@ -884,6 +657,7 @@ object contrib extends MillModule {
+@@ -882,8 +656,10 @@ object contrib extends MillModule {
  
-     object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
-     class WorkerModule(playBinary: String) extends MillInternalModule {
+     object api extends MillPublishModule
+ 
+-    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
+-    class WorkerModule(playBinary: String) extends MillInternalModule {
++    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq)
++    trait WorkerModule extends MillInternalModule with Cross.Module[String]{
++      def playBinary = crossValue
 +      override def millSourcePath: os.Path = super.millSourcePath / playBinary
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -1075,6 +849,7 @@ object scalanativelib extends MillModule {
+@@ -1073,8 +849,9 @@ object scalanativelib extends MillModule {
+     override def ivyDeps = Agg(Deps.sbtTestInterface)
+   }
    object worker extends Cross[WorkerModule]("0.4")
-   class WorkerModule(scalaNativeWorkerVersion: String)
-       extends MillInternalModule {
+-  class WorkerModule(scalaNativeWorkerVersion: String)
+-      extends MillInternalModule {
++  trait WorkerModule extends MillInternalModule with Cross.Module[String]{
++    def scalaNativeWorkerVersion = crossValue
 +    override def millSourcePath: os.Path = super.millSourcePath / scalaNativeWorkerVersion
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1237,6 +1012,7 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1236,7 +1013,9 @@ trait IntegrationTestModule extends MillScalaModule {
+   }
  }
  
- trait IntegrationTestCrossModule extends IntegrationTestModule {
+-trait IntegrationTestCrossModule extends IntegrationTestModule {
++trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module[String]{
++  def repoSlug = crossValue
 +  override def millSourcePath = super.millSourcePath / repoSlug
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1791,53 +1567,7 @@ def launcher = T {
+@@ -1248,11 +1027,11 @@ object example extends MillScalaModule {
+ 
+   def moduleDeps = Seq(integration)
+ 
+-  object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
+-  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
+-  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
++  object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
++  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))
++  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
+ 
+-  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
++  trait ExampleCrossModule extends IntegrationTestCrossModule {
+     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
+     def compile = example.compile()
+   }
+@@ -1261,7 +1040,7 @@ object example extends MillScalaModule {
+ object integration extends MillScalaModule {
+   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
+   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
+-  class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestCrossModule
++  trait IntegrationCrossModule extends IntegrationTestCrossModule
+ 
+   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
+ 
+@@ -1791,53 +1570,7 @@ def launcher = T {
  
  
  def uploadToGithub(authKey: String) = T.command {
