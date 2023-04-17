@@ -70,55 +70,25 @@ jobs:
           - java-version: 17
             buildcmd: ./mill -i docs.antora.githubPages
 
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: temurin
-
-      - name: Prepare git config
-        run: |
-          git config --add user.name "Mill GithHub Actions"
-          git config --add user.email "mill-ci@localhost"
-
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ${{ matrix.buildcmd }}
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      os: ubuntu-latest
+      java-version: ${{ matrix.java-version }}
+      buildcmd: ${{ matrix.buildcmd }}
 
   format-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: coursier/cache-action@v6
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '8'
-          distribution: temurin
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ./mill -i -k mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      os: ubuntu-latest
+      java-version: '8'
+      buildcmd: ./mill -i -k mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
 
   bincompat-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: coursier/cache-action@v6
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '8'
-          distribution: temurin
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ./mill -i -k __.mimaReportBinaryIssues
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      os: ubuntu-latest
+      java-version: '8'
+      buildcmd: ./mill -i -k __.mimaReportBinaryIssues
 
   test-windows:
     strategy:
@@ -145,22 +115,11 @@ jobs:
           - java-version: 17
             buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
 
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: temurin
-
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ${{ matrix.buildcmd }}
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      os: windows-latest
+      java-version: ${{ matrix.java-version }}
+      buildcmd: ${{ matrix.buildcmd }}
 
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
