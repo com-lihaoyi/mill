@@ -9,7 +9,7 @@ The simplest Mill build for a Scala project looks as follows:
 ----
 import mill._, scalalib._
 
-object foo extends ScalaModule with RootModule{
+object foo extends ScalaModule with RootModule {
   def scalaVersion = "{example-scala-2-13-version}"
 }
 ----
@@ -84,7 +84,7 @@ the Mill repository.
 .`build.sc`
 [source,scala,subs="attributes,verbatim"]
 ----
-trait MyModule extends ScalaModule{
+trait MyModule extends ScalaModule {
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::scalatags:0.8.2",
