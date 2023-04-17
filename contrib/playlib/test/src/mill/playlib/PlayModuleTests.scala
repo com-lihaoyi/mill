@@ -9,8 +9,8 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
 
   object playmulti extends TestUtil.BaseModule {
     object core extends Cross[CoreCrossModule](matrix)
-    trait CoreCrossModule extends PlayModule with Cross.Module[(String, String)] {
-      val (crossScalaVersion, crossPlayVersion) = crossValue
+    trait CoreCrossModule extends PlayModule with Cross.Module2[String, String] {
+      val (crossScalaVersion, crossPlayVersion) = (crossValue, crossValue2)
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
       override def twirlVersion = "1.5.1"
