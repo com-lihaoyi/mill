@@ -14,7 +14,8 @@ trait CrossModuleBase extends ScalaModule with Cross.Module[String] {
     ZincWorkerUtil.matchingVersions(crossScalaVersion)
 
   def crossWrapperSegments = millModuleSegments.parts
-  override def artifactNameParts = super.artifactNameParts().patch(crossWrapperSegments.size - 1, Nil, 1)
+  override def artifactNameParts =
+    super.artifactNameParts().patch(crossWrapperSegments.size - 1, Nil, 1)
   implicit def crossSbtModuleResolver: Resolver[CrossModuleBase] =
     new Resolver[CrossModuleBase] {
       def resolve[V <: CrossModuleBase](c: Cross[V]): V = {

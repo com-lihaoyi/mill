@@ -2,7 +2,7 @@ import mill._, scalalib._, scalajslib._, publish._
 
 object foo extends Cross[FooModule]("2.13.8", "3.2.2")
 trait FooModule extends Cross.Module[String] {
-  trait Shared extends CrossScalaModule with NestedCross with PlatformScalaModule with PublishModule {
+  trait Shared extends CrossScalaModule with InnerCrossModule with PlatformScalaModule with PublishModule {
     def publishVersion = "0.0.1"
 
     def pomSettings = PomSettings(

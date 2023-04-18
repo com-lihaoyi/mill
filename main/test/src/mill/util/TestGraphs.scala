@@ -281,14 +281,53 @@ object TestGraphs {
     }
 
     object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1), ("b", 2))
-    trait MyCrossModuleExtended extends MyCrossModule with Cross.Arg2[Int] {
+    trait MyCrossModuleExtended extends MyCrossModule with Cross.Module2[String, Int] {
       def param2 = T { "Param Value: " + crossValue2 }
     }
 
     object myCrossExtendedAgain
         extends Cross[MyCrossModuleExtendedAgain](("a", 1, true), ("b", 2, false))
-    trait MyCrossModuleExtendedAgain extends MyCrossModuleExtended with Cross.Arg3[Boolean] {
+    trait MyCrossModuleExtendedAgain extends MyCrossModuleExtended with Cross.Module3[String, Int, Boolean] {
       def param3 = T { "Param Value: " + crossValue3 }
+    }
+  }
+
+  object innerCrossModule extends TestUtil.BaseModule {
+    object myCross extends Cross[MyCrossModule]("a", "b")
+    trait MyCrossModule extends Cross.Module[String] {
+      object foo extends InnerCrossModule {
+        def bar = T { "foo " + crossValue }
+      }
+
+      object baz extends InnerCrossModule {
+        def bar = T { "baz " + crossValue }
+      }
+    }
+
+    object myCross2 extends Cross[MyCrossModule2](("a", 1), ("b", 2))
+    trait MyCrossModule2 extends Cross.Module2[String, Int] {
+      object foo extends InnerCrossModule2 {
+        def bar = T { "foo " + crossValue }
+        def qux = T { "foo " + crossValue2 }
+      }
+      object baz extends InnerCrossModule2 {
+        def bar = T { "baz " + crossValue }
+        def qux = T { "baz " + crossValue2 }
+      }
+    }
+
+    object myCross3 extends Cross[MyCrossModule3](("a", 1, true), ("b", 2, false))
+    trait MyCrossModule3 extends Cross.Module3[String, Int, Boolean] {
+      object foo extends InnerCrossModule3 {
+        def bar = T { "foo " + crossValue }
+        def qux = T { "foo " + crossValue2 }
+        def lol = T { "foo " + crossValue3 }
+      }
+      object baz extends InnerCrossModule3 {
+        def bar = T { "baz " + crossValue }
+        def qux = T { "baz " + crossValue2 }
+        def lol = T { "baz " + crossValue3 }
+      }
     }
   }
 

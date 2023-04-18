@@ -17,26 +17,9 @@ object Cross {
      * trait that can be mixed into any sub-modules within the body of a
      * [[Cross.Module]], to automatically inherit the [[crossValue]]
      */
-    trait NestedCross extends Module[T1]{
+    trait InnerCrossModule extends Module[T1] {
       def crossValue: T1 = Module.this.crossValue
       override def crossWrapperSegments: List[String] = Module.this.millModuleSegments.parts
-    }
-  }
-
-  /**
-   * Convenience trait that can be mixed in to a [[Cross.Module]] to add an
-   * additional cross type [[T2]], available in the module body as
-   * [[crossValue2]]
-   */
-  trait Arg2[T2] { this: Module[_] =>
-    def crossValue2: T2
-
-    /**
-     * trait that can be mixed into any sub-modules within the body of a
-     * [[Cross.Arg2]], to automatically inherit the [[crossValue2]]
-     */
-    trait NestedCross2 extends Arg2[T2]{ this: Module[_] =>
-      def crossValue: T2 = Arg2.this.crossValue2
     }
   }
 
@@ -44,22 +27,15 @@ object Cross {
    * A cross-module with 2 cross-types [[T1]] and [[T2]], which are available
    * in the module body as [[crossValue]] and [[crossValue2]].
    */
-  trait Module2[T1, T2] extends Module[T1] with Arg2[T2]
-
-  /**
-   * Convenience trait that can be mixed in to a [[Module2]] to add an
-   * additional cross type [[T3]], available in the module body as
-   * [[crossValue3]]
-   */
-  trait Arg3[T3] { this: Module[_] with Arg2[_] =>
-    def crossValue3: T3
+  trait Module2[T1, T2] extends Module[T1] {
+    def crossValue2: T2
 
     /**
      * trait that can be mixed into any sub-modules within the body of a
-     * [[Cross.Arg3]], to automatically inherit the [[crossValue3]]
+     * [[Cross.Arg2]], to automatically inherit the [[crossValue2]]
      */
-    trait NestedCross3 extends Arg3[T3]{ this: Module[_] with Arg2[_] =>
-      def crossValue: T3 = Arg3.this.crossValue3
+    trait InnerCrossModule2 extends InnerCrossModule with Module2[T1, T2] {
+      def crossValue2: T2 = Module2.this.crossValue2
     }
   }
 
@@ -68,22 +44,15 @@ object Cross {
    * available in the module body as [[crossValue]] [[crossValue2]] and
    * [[crossValue3]].
    */
-  trait Module3[T1, T2, T3] extends Module2[T1, T2] with Arg3[T3]
-
-  /**
-   * Convenience trait that can be mixed in to a [[Module3]] to add an
-   * additional cross type [[T4]], available in the module body as
-   * [[crossValue4]]
-   */
-  trait Arg4[T4] { this: Module[_] with Arg2[_] with Arg3[_] =>
-    def crossValue4: T4
+  trait Module3[T1, T2, T3] extends Module2[T1, T2] {
+    def crossValue3: T3
 
     /**
      * trait that can be mixed into any sub-modules within the body of a
-     * [[Cross.Arg4]], to automatically inherit the [[crossValue4]]
+     * [[Cross.Arg3]], to automatically inherit the [[crossValue3]]
      */
-    trait NestedCross4 extends Arg4[T4] { this: Module[_] with Arg2[_] with Arg3[_] =>
-      def crossValue: T4 = Arg4.this.crossValue4
+    trait InnerCrossModule3 extends InnerCrossModule2 with Module3[T1, T2, T3] {
+      def crossValue3: T3 = Module3.this.crossValue3
     }
   }
 
@@ -92,22 +61,15 @@ object Cross {
    * are available in the module body as [[crossValue]] [[crossValue2]]
    * [[crossValue3]] and [[crossValue4]].
    */
-  trait Module4[T1, T2, T3, T4] extends Module3[T1, T2, T3] with Arg4[T4]
-
-  /**
-   * Convenience trait that can be mixed in to a [[Module5]] to add an
-   * additional cross type [[T5]], available in the module body as
-   * [[crossValue5]]
-   */
-  trait Arg5[T5] { this: Module[_] with Arg2[_] with Arg3[_] with Arg4[_] =>
-    def crossValue5: T5
+  trait Module4[T1, T2, T3, T4] extends Module3[T1, T2, T3] {
+    def crossValue4: T4
 
     /**
      * trait that can be mixed into any sub-modules within the body of a
-     * [[Cross.Arg5]], to automatically inherit the [[crossValue5]]
+     * [[Cross.Arg4]], to automatically inherit the [[crossValue4]]
      */
-    trait NestedCross5 extends Arg5[T5]{ this: Module[_] with Arg2[_] with Arg3[_] with Arg4[_] =>
-      def crossValue: T5 = Arg5.this.crossValue5
+    trait InnerCrossModule4 extends InnerCrossModule3 with Module4[T1, T2, T3, T4] {
+      def crossValue4: T4 = Module4.this.crossValue4
     }
   }
 
@@ -116,7 +78,17 @@ object Cross {
    * which are available in the module body as [[crossValue]] [[crossValue2]]
    * [[crossValue3]] [[crossValue4]] and [[crossValue5]].
    */
-  trait Module5[T1, T2, T3, T4, T5] extends Module4[T1, T2, T3, T4] with Arg5[T4]
+  trait Module5[T1, T2, T3, T4, T5] extends Module4[T1, T2, T3, T4] {
+    def crossValue5: T5
+
+    /**
+     * trait that can be mixed into any sub-modules within the body of a
+     * [[Cross.Arg5]], to automatically inherit the [[crossValue5]]
+     */
+    trait InnerCrossModule5 extends InnerCrossModule4 with Module5[T1, T2, T3, T4, T5] {
+      def crossValue5: T5 = Module5.this.crossValue5
+    }
+  }
 
   /**
    * Convert the given value [[t]] to its cross segments
@@ -188,7 +160,7 @@ object Cross {
         s"Cross type $tpe must implement Cross.Module[T]"
       )
 
-      if (tpe <:< typeOf[Arg2[_]]) {
+      if (tpe <:< typeOf[Module2[_, _]]) {
         // For `Module2` and above, `crossValue` is no longer the entire value,
         // but instead is just the first element of a tuple
         newTrees.clear()
@@ -198,18 +170,18 @@ object Cross {
         valuesTree = q"$wrappedT.map(_.productIterator.toList)"
       }
 
-      if (tpe <:< typeOf[Arg3[_]]) {
+      if (tpe <:< typeOf[Module3[_, _, _]]) {
         newTrees.append(q"override def crossValue3 = $v1._3")
         pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3)"
       }
 
-      if (tpe <:< typeOf[Arg4[_]]) {
+      if (tpe <:< typeOf[Module4[_, _, _, _]]) {
         newTrees.append(q"override def crossValue4 = $v1._4")
         pathSegmentsTree =
           q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4)"
       }
 
-      if (tpe <:< typeOf[Arg5[_]]) {
+      if (tpe <:< typeOf[Module5[_, _, _, _, _]]) {
         newTrees.append(q"override def crossValue5 = $v1._5")
         pathSegmentsTree =
           q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4) ++ $segments($v1._5)"
