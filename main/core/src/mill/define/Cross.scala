@@ -14,7 +14,11 @@ object Cross {
     def crossValuesList: List[Any] = List(crossValue)
     def crossWrapperSegments: List[String] = Nil
 
-    trait CrossValue extends Module[T1]{
+    /**
+     * trait that can be mixed into any sub-modules within the body of a
+     * [[Cross.Module]], to automatically inherit the [[crossValue]]
+     */
+    trait NestedCross extends Module[T1]{
       def crossValue: T1 = Module.this.crossValue
       override def crossWrapperSegments: List[String] = Module.this.millModuleSegments.parts
     }
@@ -29,7 +33,11 @@ object Cross {
     def crossValue2: T2
     override def crossValuesList: List[Any] = List((crossValue, crossValue2))
 
-    trait CrossValue2 extends Arg2[T2]{  this: Module[_] =>
+    /**
+     * trait that can be mixed into any sub-modules within the body of a
+     * [[Cross.Arg2]], to automatically inherit the [[crossValue2]]
+     */
+    trait NestedCross2 extends Arg2[T2]{ this: Module[_] =>
       def crossValue: T2 = Arg2.this.crossValue2
     }
   }
@@ -49,7 +57,11 @@ object Cross {
     def crossValue3: T3
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3))
 
-    trait CrossValue3 extends Arg3[T3]{ this: Module[_] with Arg2[_] =>
+    /**
+     * trait that can be mixed into any sub-modules within the body of a
+     * [[Cross.Arg3]], to automatically inherit the [[crossValue3]]
+     */
+    trait NestedCross3 extends Arg3[T3]{ this: Module[_] with Arg2[_] =>
       def crossValue: T3 = Arg3.this.crossValue3
     }
   }
@@ -71,7 +83,11 @@ object Cross {
     override def crossValuesList: List[Any] =
       List((crossValue, crossValue2, crossValue3, crossValue4))
 
-    trait CrossValue4 extends Arg4[T4] { this: Module[_] with Arg2[_] with Arg3[_] =>
+    /**
+     * trait that can be mixed into any sub-modules within the body of a
+     * [[Cross.Arg4]], to automatically inherit the [[crossValue4]]
+     */
+    trait NestedCross4 extends Arg4[T4] { this: Module[_] with Arg2[_] with Arg3[_] =>
       def crossValue: T4 = Arg4.this.crossValue4
     }
   }
@@ -93,7 +109,11 @@ object Cross {
     override def crossValuesList: List[Any] =
       List((crossValue, crossValue2, crossValue3, crossValue4, crossValue5))
 
-    trait CrossValue5 extends Arg5[T5]{ this: Module[_] with Arg2[_] with Arg3[_] with Arg4[_] =>
+    /**
+     * trait that can be mixed into any sub-modules within the body of a
+     * [[Cross.Arg5]], to automatically inherit the [[crossValue5]]
+     */
+    trait NestedCross5 extends Arg5[T5]{ this: Module[_] with Arg2[_] with Arg3[_] with Arg4[_] =>
       def crossValue: T5 = Arg5.this.crossValue5
     }
   }

@@ -51,12 +51,12 @@ trait MyCrossModuleExtended extends MyCrossModule2 with Cross.Arg3[Boolean] {
 > ./mill show myCrossExtended[b,2,false].param3
 "Param Value: false"
 
-> sed -i 's/, "true"//g' build.sc
+> sed -i 's/, true//g' build.sc
 
-> sed -i 's/, "false"//g' build.sc
+> sed -i 's/, false//g' build.sc
 
 > ./mill show myCrossExtended[b,2,false].param3
-error: object myCrossExtended extends Cross[MyCrossModuleExtended](("a", "1"), ("b", "2"))
+error: object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1), ("b", 2))
 error:                                                              ^
-error: value _3 is not a member of (String, String)
+error: value _3 is not a member of (String, Int)
 */
