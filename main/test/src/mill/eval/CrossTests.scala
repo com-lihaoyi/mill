@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.define.Discover
 import mill.util.{TestEvaluator, TestGraphs}
-import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, singleCross}
+import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, singleCross, nonStringCross}
 import utest._
 object CrossTests extends TestSuite {
   val tests = Tests {
@@ -12,6 +12,14 @@ object CrossTests extends TestSuite {
       val Right(("210", 1)) = check.apply(singleCross.cross("210").suffix)
       val Right(("211", 1)) = check.apply(singleCross.cross("211").suffix)
       val Right(("212", 1)) = check.apply(singleCross.cross("212").suffix)
+    }
+
+    "nonStringCrossCross" - {
+      val check = new TestEvaluator(nonStringCross)
+
+      val Right((210, 1)) = check.apply(nonStringCross.cross(210).suffix)
+      val Right((211, 1)) = check.apply(nonStringCross.cross(211).suffix)
+      val Right((212, 1)) = check.apply(nonStringCross.cross(212).suffix)
     }
 
     "crossResolved" - {

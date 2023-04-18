@@ -14,19 +14,19 @@ object ResolveSegments extends Resolve[Segments] {
     obj match {
       case c: Cross[_] =>
         last match {
-          case List("__") => Right(c.items.map(_._2.millModuleSegments))
+          case List("__") => Right(c.crossModules.map(_.millModuleSegments))
           case items =>
-            c.items
+            c.segmentsToModules
               .filter(_._1.length == items.length)
-              .filter(_._1.zip(last).forall { case (a, b) => b == "_" || a.toString == b })
+              .filter(_._1.zip(last).forall { case (a, b) => b == "_" || a == b })
               .map(_._2.millModuleSegments) match {
               case Nil =>
                 Resolve.errorMsgCross(
-                  c.items.map(_._1.map(_.toString)),
+                  c.segmentsToModules.map(_._1).toList,
                   last,
                   obj.millModuleSegments.value
                 )
-              case res => Right(res)
+              case res => Right(res.toSeq)
             }
         }
       case _ =>

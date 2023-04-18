@@ -231,6 +231,19 @@ object TestGraphs {
     }
   }
 
+  object nonStringCross extends TestUtil.BaseModule {
+    object cross extends mill.Cross[Cross](210, 211, 212)
+    trait Cross extends Cross.Module[Int] {
+      def suffix = T { crossValue }
+    }
+
+    object cross2 extends mill.Cross[Cross2](210L, 211L, 212L)
+    trait Cross2 extends Cross.Module[Long] {
+      override def millSourcePath = super.millSourcePath / crossValue.toString
+      def suffix = T { crossValue }
+    }
+  }
+
   object singleCrossOld extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
     trait Cross extends Cross.Module[String] {
@@ -246,7 +259,7 @@ object TestGraphs {
   object crossResolved extends TestUtil.BaseModule {
     trait MyModule extends Cross.Module[String] {
       implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
-        def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(crossValue))
+        def resolve[V <: MyModule](c: Cross[V]): V = c.valuesToModules(List(crossValue))
       }
     }
 

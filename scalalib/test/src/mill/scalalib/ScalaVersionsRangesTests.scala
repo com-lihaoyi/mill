@@ -36,14 +36,14 @@ object ScalaVersionsRangesTests extends TestSuite {
   val tests = Tests {
     test("main with Scala 2.12- and 2.13+ specific code") {
       workspaceTest(ScalaVersionsRanges) { eval =>
-        ScalaVersionsRanges.core.items.foreach { case (_, c) =>
+        ScalaVersionsRanges.core.crossModules.map{c =>
           val Right(_) = eval(c.run())
         }
       }
     }
     test("test with Scala 2.12- and 2.13+ specific code") {
       workspaceTest(ScalaVersionsRanges) { eval =>
-        ScalaVersionsRanges.core.items.foreach { case (_, c) =>
+        ScalaVersionsRanges.core.crossModules.map{c =>
           val Right(_) = eval(c.test.test())
         }
       }

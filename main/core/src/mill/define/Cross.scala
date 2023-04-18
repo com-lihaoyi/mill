@@ -7,6 +7,7 @@ object Cross {
   trait Module[T1] extends mill.define.Module {
     def crossValue: T1
     def crossValuesList: List[Any] = List(crossValue)
+    def crossPathSegments: List[String]
   }
 
   trait Arg2[T2] {this: Module[_] =>
@@ -34,8 +35,29 @@ object Cross {
 
   trait Module5[T1, T2, T3, T4, T5] extends Module4[T1, T2, T3, T4] with Arg5[T4]
 
+  def ToSegments[T: ToSegments](t: T) =
+    implicitly[ToSegments[T]].crossPathSegments(t)
+
+  class ToSegments[T](val crossPathSegments: T => List[String])
+  object ToSegments{
+    implicit object StringToPathSegment extends ToSegments[String](List(_))
+    implicit object CharToPathSegment extends ToSegments[Char](v => List(v.toString))
+    implicit object LongToPathSegment extends ToSegments[Long](v => List(v.toString))
+    implicit object IntToPathSegment extends ToSegments[Int](v => List(v.toString))
+    implicit object ShortToPathSegment extends ToSegments[Short](v => List(v.toString))
+    implicit object ByteToPathSegment extends ToSegments[Byte](v => List(v.toString))
+    implicit object BooleanToPathSegment extends ToSegments[Boolean](v => List(v.toString))
+    implicit def SeqToPathSegment[T: ToSegments] = new ToSegments[Seq[T]](
+      _.flatMap(implicitly[ToSegments[T]].crossPathSegments).toList
+    )
+    implicit def ListToPathSegment[T: ToSegments] = new ToSegments[List[T]](
+      _.flatMap(implicitly[ToSegments[T]].crossPathSegments).toList
+    )
+  }
+
   case class Factory[T](makeList: Seq[mill.define.Ctx => T],
                         crossValuesListLists: Seq[Seq[Any]],
+                        crossSegmentsList: Seq[Seq[String]],
                         crossValuesRaw: Seq[Any])
 
   object Factory {
@@ -59,12 +81,16 @@ object Cross {
       val v1 = c.freshName(TermName("v1"))
       val ctx0 = c.freshName(TermName("ctx0"))
       val implicitCtx = c.freshName(TermName("implicitCtx"))
+      val pathSegments = c.freshName(TermName("pathSegments"))
 
       val newTrees = collection.mutable.Buffer.empty[Tree]
       var valuesTree: Tree = null
+      var pathSegmentsTree: Tree = null
 
+      val segments = q"_root_.mill.define.Cross.ToSegments"
       if (tpe <:< typeOf[Module[_]]) {
         newTrees.append(q"override def crossValue = $v1")
+        pathSegmentsTree = q"$segments($v1)"
         valuesTree = q"$wrappedT.map(List(_))"
       } else c.abort(
         c.enclosingPosition,
@@ -77,19 +103,23 @@ object Cross {
         newTrees.clear()
         newTrees.append(q"override def crossValue = $v1._1")
         newTrees.append(q"override def crossValue2 = $v1._2")
+        pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2)"
         valuesTree = q"$wrappedT.map(_.productIterator.toList)"
       }
 
       if (tpe <:< typeOf[Arg3[_]]) {
         newTrees.append(q"override def crossValue3 = $v1._3")
+        pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3)"
       }
 
       if (tpe <:< typeOf[Arg4[_]]) {
         newTrees.append(q"override def crossValue4 = $v1._4")
+        pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4)"
       }
 
       if (tpe <:< typeOf[Arg5[_]]) {
         newTrees.append(q"override def crossValue5 = $v1._5")
+        pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4) ++ $segments($v1._5)"
       }
 
       val tree = q"""
@@ -97,9 +127,10 @@ object Cross {
           makeList = $wrappedT.map(($v1: ${tq""}) =>
             ($ctx0: ${tq""}) => {
               implicit val $implicitCtx = $ctx0
-              new $tpe{..$newTrees}
+              new $tpe{override def crossPathSegments = $pathSegmentsTree; ..$newTrees}
             }
           ),
+          crossSegmentsList = $wrappedT.map(($v1: ${tq""}) => $pathSegmentsTree ),
           crossValuesListLists = $valuesTree,
           crossValuesRaw = $wrappedT
        ).asInstanceOf[${weakTypeOf[Factory[T]]}]
@@ -174,37 +205,45 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)
                                  (implicit ctx: mill.define.Ctx)
   extends mill.define.Module()(ctx) {
 
-  override lazy val millModuleDirectChildren: Seq[Module] =
-    super.millModuleDirectChildren ++
-    items.collect { case (_, v: mill.define.Module) => v }
-
-  val items: List[(List[Any], M)] = for {
+  private val items: List[(List[Any], List[String], M)] = for {
     factory <- factories.toList
-    (crossValues, make) <- factory.crossValuesListLists.zip(factory.makeList)
+    (crossSegments, (crossValues, make)) <-
+      factory.crossSegmentsList.zip(factory.crossValuesListLists.zip(factory.makeList))
   } yield {
     val relPath = ctx.segment.pathSegments
     val sub = make(
       ctx
         .withSegments(ctx.segments ++ Seq(ctx.segment))
         .withMillSourcePath(ctx.millSourcePath / relPath)
-        .withSegment(Segment.Cross(crossValues))
+        .withSegment(Segment.Cross(crossSegments))
         .withCrossValues(factories.flatMap(_.crossValuesRaw))
     )
 
-    (crossValues.toList, sub)
+    (crossValues.toList, sub.crossPathSegments, sub)
   }
 
-  val itemMap: Map[List[Any], M] = items.toMap
+  override lazy val millModuleDirectChildren: Seq[Module] =
+    super.millModuleDirectChildren ++ crossModules
+
+  def crossModules: List[M] = items.collect { case (_, _, v) => v }
+
+  val valuesToModules: collection.Map[List[Any], M] =
+    items.map{case (values, segments, subs) => (values, subs)}.to(collection.mutable.LinkedHashMap)
+
+  val segmentsToModules: collection.Map[List[String], M] =
+    items.map{case (values, segments, subs) => (segments, subs)}.to(collection.mutable.LinkedHashMap)
 
   /**
    * Fetch the cross module corresponding to the given cross values
    */
-  def get(args: Seq[Any]): M = itemMap(args.toList)
+  def get(args: Seq[Any]): M = valuesToModules(args.toList)
 
   /**
    * Fetch the cross module corresponding to the given cross values
    */
-  def apply(arg0: Any, args: Any*): M = itemMap(arg0 :: args.toList)
+  def apply(arg0: Any, args: Any*): M = {
+    valuesToModules(arg0 :: args.toList)
+  }
 
   /**
    * Fetch the relevant cross module given the implicit resolver you have in

@@ -8,14 +8,14 @@ trait MyCrossModule extends Cross.Module[String] {
   def param1 = T { "Param Value: " + crossValue }
 }
 
-object myCross2 extends Cross[MyCrossModule2](("a", "1"), ("b", "2"))
-trait MyCrossModule2 extends Cross.Module2[String, String] {
+object myCross2 extends Cross[MyCrossModule2](("a", 1), ("b", 2))
+trait MyCrossModule2 extends Cross.Module2[String, Int] {
   def param1 = T { "Param Value: " + crossValue }
   def param2 = T { "Param Value: " + crossValue2 }
 }
 
-object myCrossExtended extends Cross[MyCrossModuleExtended](("a", "1", "true"), ("b", "2", "false"))
-trait MyCrossModuleExtended extends MyCrossModule2 with Cross.Arg3[String] {
+object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1, true), ("b", 2, false))
+trait MyCrossModuleExtended extends MyCrossModule2 with Cross.Arg3[Boolean] {
   val param3 = T{ "Param Value: " + crossValue3 }
 }
 
@@ -27,6 +27,12 @@ trait MyCrossModuleExtended extends MyCrossModule2 with Cross.Arg3[String] {
 // tuple beyond the first is bound to the `crossValueN` property defined by the
 // corresponding `Cross.ArgN` trait. Providing tuples of the wrong arity to the
 // `Cross[]` constructor is a compilation error
+//
+// The Cross module's axes can take any type `T` with `Cross.ToSegments[T]`
+// defined. There are default implementations for strings, chars, numbers,
+// booleans, and lists; the example above demonstrates cross axes of type
+// `String`, `Int`, and `Boolean`. You can define additional `ToPathSegments`
+// for your own user-defined types that you wish to use in a Cross module
 
 /* Example Usage
 

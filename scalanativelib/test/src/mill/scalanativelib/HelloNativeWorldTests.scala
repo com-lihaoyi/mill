@@ -34,6 +34,9 @@ object HelloNativeWorldTests extends TestSuite {
   val scalaNative04 = "0.4.2"
 
   object HelloNativeWorld extends TestUtil.BaseModule {
+    implicit object ReleaseModeToSegments
+    extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
+
     val matrix = for {
       scala <- Seq("3.2.1", "3.1.3", scala213, "2.12.13", "2.11.12")
       scalaNative <- Seq(scalaNative04, "0.4.9")
