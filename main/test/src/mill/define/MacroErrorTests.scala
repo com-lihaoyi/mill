@@ -156,5 +156,19 @@ object MacroErrorTests extends TestSuite {
       assert(error.msg.contains("found   : Int"))
       assert(error.msg.contains("required: String"))
     }
+
+    "invalidCrossType" - {
+      val error = utest.compileError(
+        """
+        object foo extends mill.util.TestUtil.BaseModule{
+          object cross extends Cross[MyCrossModule](null.asInstanceOf[sun.misc.Unsafe])
+          trait MyCrossModule extends Cross.Module[sun.misc.Unsafe]
+        }
+      """
+      )
+      assert(error.msg.contains(
+        "could not find implicit value for evidence parameter of type mill.define.Cross.ToSegments[sun.misc.Unsafe]"
+      ))
+    }
   }
 }
