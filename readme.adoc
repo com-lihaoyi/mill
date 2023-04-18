@@ -277,6 +277,7 @@ corresponding version of Mill.
   with the generated `BuildInfo` constants https://github.com/com-lihaoyi/mill/pull/2425[#2425]
 
 * Global Configuration via `~/.mill/ammonite/predefScript.sc` is no longer supported in this version. If that breaks your workflow, please report and tell us your use case so we can provide sufficient replacement or support for your use case before Mill 0.11.
+
 [#0-11-0-M7]
 === 0.11.0-M7 - 2023-03-30
 :version: 0.11.0-M7
