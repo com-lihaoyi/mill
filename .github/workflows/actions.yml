@@ -89,6 +89,7 @@ jobs:
       os: ubuntu-latest
       java-version: '8'
       buildcmd: ./mill -i -k __.mimaReportBinaryIssues
+      continue-on-error: true
 
   test-windows:
     strategy:

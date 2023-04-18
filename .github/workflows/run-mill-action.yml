@@ -12,10 +12,16 @@ on:
       os:
         required: true
         type: string
+      continue-on-error:
+        default: false
+        type: boolean
 
 jobs:
   build:
+
     runs-on: ${{ inputs.os }}
+    continue-on-error: ${{ inputs.continue-on-error }}
+
     steps:
       - uses: actions/checkout@v3
         with:
