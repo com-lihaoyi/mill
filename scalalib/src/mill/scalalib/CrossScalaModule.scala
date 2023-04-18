@@ -35,12 +35,13 @@ object CrossScalaModule {
    */
   trait Base extends mill.Cross.Module[String] {
     def crossScalaVersion: String = crossValue
-    def crossPathSegments = List(crossScalaVersion)
+
     private def wrapperSegments0 = millModuleSegments.parts
+
     trait CrossScalaModule extends mill.scalalib.CrossScalaModule {
       override def wrapperSegments = wrapperSegments0
+      def crossPathSegments = List(crossScalaVersion)
       def crossValue = Base.this.crossScalaVersion
-
     }
   }
 }
