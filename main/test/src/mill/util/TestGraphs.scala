@@ -287,7 +287,8 @@ object TestGraphs {
 
     object myCrossExtendedAgain
         extends Cross[MyCrossModuleExtendedAgain](("a", 1, true), ("b", 2, false))
-    trait MyCrossModuleExtendedAgain extends MyCrossModuleExtended with Cross.Module3[String, Int, Boolean] {
+    trait MyCrossModuleExtendedAgain extends MyCrossModuleExtended
+        with Cross.Module3[String, Int, Boolean] {
       def param3 = T { "Param Value: " + crossValue3 }
     }
   }
