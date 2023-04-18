@@ -9,25 +9,30 @@ object Cross {
     def crossValuesList: List[Any] = List(crossValue)
   }
 
-  trait Module2[T1, T2] extends Module[T1] {
+  trait Arg2[T2] {this: Module[_] =>
     def crossValue2: T2
     override def crossValuesList: List[Any] = List((crossValue, crossValue2))
   }
+  trait Module2[T1, T2] extends Module[T1] with Arg2[T2]
 
-  trait Module3[T1, T2, T3] extends Module2[T1, T2] {
+  trait Arg3[T3]{ this: Module2[_, _] =>
     def crossValue3: T3
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3))
   }
+  trait Module3[T1, T2, T3] extends Module2[T1, T2] with Arg3[T3]
 
-  trait Module4[T1, T2, T3, T4] extends Module3[T1, T2, T3]{
+  trait Arg4[T4] { this: Module3[_, _, _] =>
     def crossValue4: T4
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3, crossValue4))
   }
+  trait Module4[T1, T2, T3, T4] extends Module3[T1, T2, T3] with Arg4[T4]
 
-  trait Module5[T1, T2, T3, T4, T5] extends Module4[T1, T2, T3, T4] {
+  trait Arg5[T5] {this: Module4[_, _, _, _] =>
     def crossValue5: T5
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3, crossValue4, crossValue5))
   }
+
+  trait Module5[T1, T2, T3, T4, T5] extends Module4[T1, T2, T3, T4] with Arg5[T4]
 
   case class Factory[T](makeList: Seq[mill.define.Ctx => T],
                         crossValuesListLists: Seq[Seq[Any]],
@@ -55,52 +60,44 @@ object Cross {
       val ctx0 = c.freshName(TermName("ctx0"))
       val implicitCtx = c.freshName(TermName("implicitCtx"))
 
-      val (newTree, valuesTree) =
-        if (tpe <:< typeOf[Module5[_, _, _, _, _]])(
-          q"""new $tpe{
-            override def crossValue = $v1._1
-            override def crossValue2 = $v1._2
-            override def crossValue3 = $v1._3
-            override def crossValue4 = $v1._4
-            override def crossValue5 = $v1._5
-          }""",
-          q"$wrappedT.map(_.productIterator.toList)",
-        )else if (tpe <:< typeOf[Module4[_, _, _, _]])(
-          q"""new $tpe{
-            override def crossValue = $v1._1
-            override def crossValue2 = $v1._2
-            override def crossValue3 = $v1._3
-            override def crossValue4 = $v1._4
-          }""",
-          q"$wrappedT.map(_.productIterator.toList)"
-        )else if (tpe <:< typeOf[Module3[_, _, _]])(
-          q"""new $tpe{
-            override def crossValue = $v1._1
-            override def crossValue2 = $v1._2
-            override def crossValue3 = $v1._3
-          }""",
-          q"$wrappedT.map(_.productIterator.toList)"
-        )else if (tpe <:< typeOf[Module2[_, _]])(
-          q"""new $tpe{
-            override def crossValue = $v1._1
-            override def crossValue2 = $v1._2
-          }""", q"$wrappedT.map(_.productIterator.toList)"
-        )else if (tpe <:< typeOf[Module[_]])(
-          q"""new $tpe{
-            override def crossValue = $v1
-          }""",
-          q"$wrappedT.map(List(_))"
-        )else c.abort(
-          c.enclosingPosition,
-          s"Cross type $tpe must implement Cross.Module[T]"
-        )
+      val newTrees = collection.mutable.Buffer.empty[Tree]
+      var valuesTree: Tree = null
+
+      if (tpe <:< typeOf[Module[_]]) {
+        newTrees.append(q"override def crossValue = $v1")
+        valuesTree = q"$wrappedT.map(List(_))"
+      } else c.abort(
+        c.enclosingPosition,
+        s"Cross type $tpe must implement Cross.Module[T]"
+      )
+
+      if (tpe <:< typeOf[Arg2[_]]) {
+        // For `Module2` and above, `crossValue` is no longer the entire value,
+        // but instead is just the first element of a tuple
+        newTrees.clear()
+        newTrees.append(q"override def crossValue = $v1._1")
+        newTrees.append(q"override def crossValue2 = $v1._2")
+        valuesTree = q"$wrappedT.map(_.productIterator.toList)"
+      }
+
+      if (tpe <:< typeOf[Arg3[_]]) {
+        newTrees.append(q"override def crossValue3 = $v1._3")
+      }
+
+      if (tpe <:< typeOf[Arg4[_]]) {
+        newTrees.append(q"override def crossValue4 = $v1._4")
+      }
+
+      if (tpe <:< typeOf[Arg5[_]]) {
+        newTrees.append(q"override def crossValue5 = $v1._5")
+      }
 
       val tree = q"""
         mill.define.Cross.Factory[$tpe](
           makeList = $wrappedT.map(($v1: ${tq""}) =>
             ($ctx0: ${tq""}) => {
               implicit val $implicitCtx = $ctx0
-              $newTree
+              new $tpe{..$newTrees}
             }
           ),
           crossValuesListLists = $valuesTree,

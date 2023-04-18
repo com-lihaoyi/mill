@@ -10,11 +10,10 @@ object CrossTests extends IntegrationTestSuite {
       val target = tp.value.last
       val res = eval(target)
       assert(res == true)
+
       val value = ujson.read(meta(target))("value")
       val topCrossAPath = upickle.default.read[PathRef](value)
-      assert(
-        topCrossAPath.path == wd / expectedPath
-      )
+      assert(topCrossAPath.path == wd / expectedPath)
     }
 
     initWorkspace()
@@ -22,5 +21,7 @@ object CrossTests extends IntegrationTestSuite {
     "topCross2[a,1].path" - testCrossSourcePath(os.sub / "topCross2")
     "topCrossU[a].path" - testCrossSourcePath(os.sub / "topCrossU" / "a")
     "topCross2U[a,1].path" - testCrossSourcePath(os.sub / "topCross2U" / "a" / "1")
+    "topCross3Extended[a,1,true].path" - testCrossSourcePath(os.sub / "topCross3Extended" / "a" / "1" / "true")
+    "topCross3Extended[b,2,false].path" - testCrossSourcePath(os.sub / "topCross3Extended" / "b" / "2" / "false")
   }
 }

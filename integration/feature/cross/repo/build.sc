@@ -31,3 +31,9 @@ trait TopCross2U extends Cross.Module2[String, String] {
   def param2 = T { p2 }
   def path = T { PathRef(millSourcePath) }
 }
+
+object topCross3Extended extends Cross[TopCross3Extended](("a", "1", "true"), ("b", "2", "false"))
+trait TopCross3Extended extends TopCross2U with Cross.Arg3[String] {
+  override def millSourcePath = super.millSourcePath / crossValue3.toString
+  val param3 = T{ crossValue3 }
+}
