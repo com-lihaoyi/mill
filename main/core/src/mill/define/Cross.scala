@@ -12,11 +12,11 @@ object Cross {
   trait Module[T1] extends mill.define.Module {
     def crossValue: T1
     def crossValuesList: List[Any] = List(crossValue)
-    def wrapperSegments: List[String] = Nil
+    def crossWrapperSegments: List[String] = Nil
 
     trait CrossValue extends Module[T1]{
       def crossValue: T1 = Module.this.crossValue
-      override def wrapperSegments: List[String] = Module.this.millModuleSegments.parts
+      override def crossWrapperSegments: List[String] = Module.this.millModuleSegments.parts
     }
   }
 
