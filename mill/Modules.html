@@ -218,14 +218,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M7-37-dd2ba1</span>
+    <span class="version">0.11.0-M7-38-09129f</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M7-37-dd2ba1</a>
+          <a href="index.html">0.11.0-M7-38-09129f</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -326,9 +326,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-37-dd2ba1</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-38-09129f</button>
   <div class="version-menu">
-    <a class="version is-current" href="Modules.html">0.11.0-M7-37-dd2ba1</a>
+    <a class="version is-current" href="Modules.html">0.11.0-M7-38-09129f</a>
     <a class="version" href="0.11.0-M7/Modules.html">0.11.0-M7</a>
     <a class="version" href="0.11.0-M6/Modules.html">0.11.0-M6</a>
     <a class="version" href="0.11.0-M5/Modules.html">0.11.0-M5</a>
@@ -542,6 +542,29 @@ would have its <code>millSourcePath</code> be <code>./foo/lols/baz</code>.</p>
 Output is always in the <code>out/</code> folder and cannot be changed, e.g. even with the
 overridden <code>millSourcePath</code> the output paths are still the default <code>./out/foo/bar</code> and
 <code>./out/foo/baz/qux</code> folders.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_root_modules"><a class="anchor" href="#_root_modules"></a>Root Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends RootModule with ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def ivyDeps = Agg(
+    ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;,
+    ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>RootModule</code>s allow you to define a module whose targets are available directly
+via <code>./mill &lt;target&gt;</code>, e.g. <code>./mill compile</code> or <code>./mill run</code>, without needing
+to prefix them by the module name <code>./mill foo.compile</code>. These are useful if a
+project has a &quot;primary&quot; module that most people would use, as it makes
+operations on the <code>RootModule</code> more convenient to perform.</p>
 </div>
 </div>
 </div>

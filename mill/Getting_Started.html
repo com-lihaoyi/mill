@@ -218,14 +218,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M7-37-dd2ba1</span>
+    <span class="version">0.11.0-M7-38-09129f</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M7-37-dd2ba1</a>
+          <a href="index.html">0.11.0-M7-38-09129f</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -326,9 +326,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-37-dd2ba1</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-38-09129f</button>
   <div class="version-menu">
-    <a class="version is-current" href="Getting_Started.html">0.11.0-M7-37-dd2ba1</a>
+    <a class="version is-current" href="Getting_Started.html">0.11.0-M7-38-09129f</a>
     <a class="version" href="0.11.0-M7/Getting_Started.html">0.11.0-M7</a>
     <a class="version" href="0.11.0-M6/Getting_Started.html">0.11.0-M6</a>
     <a class="version" href="0.11.0-M5/Getting_Started.html">0.11.0-M5</a>
@@ -370,17 +370,6 @@
 <h2 id="_simple_project"><a class="anchor" href="#_simple_project"></a>Simple Project</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The simplest Mill build for a Java project looks as follows:</p>
-</div>
-<div class="listingblock">
-<div class="title"><code>build.sc</code></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-
-object foo extends JavaModule {}</code></pre>
-</div>
-</div>
-<div class="paragraph">
 <p>The simplest Mill build for a Scala project looks as follows:</p>
 </div>
 <div class="listingblock">
@@ -388,9 +377,27 @@ object foo extends JavaModule {}</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
-object foo extends ScalaModule {
+object foo extends ScalaModule with RootModule {
   def scalaVersion = &quot;2.13.10&quot;
 }</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/releases/download/0.11.0-M7/0.11.0-M7-example-basic-1-hello-world.zip">Hello World Example</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The simplest Mill build for a Java project looks as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends JavaModule with RootModule {}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -411,43 +418,33 @@ out/
 </div>
 </div>
 <div class="paragraph">
-<p>You can download an example project with this layout here:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://github.com/com-lihaoyi/mill/releases/download/0.11.0-M7/0.11.0-M7-example-1.zip">Example 1</a></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>The source code for this module would live in the <code>foo/src/</code> folder, matching the name you assigned to the module.
-Output for this module (compiled files, resolved dependency lists, &hellip;) would live in <code>out/foo/</code>.</p>
+<p>The source code for this module would live in the <code>src/</code> folder, matching the name you assigned to the module.
+Output for this module (compiled files, resolved dependency lists, &hellip;) would live in <code>out/</code>.</p>
 </div>
 <div class="paragraph">
 <p>This can be run from the Bash shell via:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill foo.compile                 # compile sources into classfiles
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill compile                 # compile sources into classfiles
 
-$ mill foo.run                     # run the main method, if any
+$ mill run                     # run the main method, if any
 
-$ mill foo.runBackground           # run the main method in the background
+$ mill runBackground           # run the main method in the background
 
-$ mill foo.launcher                # prepares a foo/launcher.dest/run you can run later
+$ mill launcher                # prepares a foo/launcher.dest/run you can run later
 
-$ mill foo.jar                     # bundle the classfiles into a jar
+$ mill jar                     # bundle the classfiles into a jar
 
-$ mill foo.assembly                # bundle classfiles and all dependencies into a jar
+$ mill assembly                # bundle classfiles and all dependencies into a jar
 
-$ mill -i foo.console              # start a Scala console within your project (in interactive mode: &quot;-i&quot;)
+$ mill -i console              # start a Scala console within your project (in interactive mode: &quot;-i&quot;)
 
-$ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: &quot;-i&quot;)</code></pre>
+$ mill -i repl                 # start an Ammonite REPL within your project (in interactive mode: &quot;-i&quot;)</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can run <code>mill resolve __</code> to see a full list of the different tasks that are available, <code>mill resolve foo._</code> to see
+<p>You can run <code>mill resolve __</code> to see a full list of the different tasks that are available, <code>mill resolve _</code> to see
 the tasks within <code>foo</code>, <code>mill inspect foo.compile</code> to inspect a task’s doc-comment documentation or what it depends on,
 or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
 </div>
@@ -456,43 +453,42 @@ or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
 <code>compile</code>, and un-cached <strong>commands</strong> such as <code>foo.run</code>. Targets do not re-evaluate unless one of their inputs changes,
 whereas commands re-run every time.</p>
 </div>
+<div class="paragraph">
+<p>You can find other example projects to learn from within the
+<a href="https://github.com/com-lihaoyi/mill/tree/main/example/basic">Examples Folder</a> of
+the Mill repository.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_multi_module_projects"><a class="anchor" href="#_multi_module_projects"></a>Multi-module Projects</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_java_example"><a class="anchor" href="#_java_example"></a>Java Example</h3>
-<div class="listingblock">
-<div class="title"><code>build.sc</code></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-
-object foo extends JavaModule
-
-object bar extends JavaModule {
-  def moduleDeps = Seq(foo)
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
 <h3 id="_scala_example"><a class="anchor" href="#_scala_example"></a>Scala Example</h3>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-
-object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.10&quot;
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait MyModule extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def ivyDeps = Agg(
+    ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;,
+    ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;
+  )
 }
 
-object bar extends ScalaModule {
-  def moduleDeps = Seq(foo)
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+}
 
-  def scalaVersion = &quot;2.13.10&quot;
-}</code></pre>
+object bar extends MyModule</code></pre>
 </div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/releases/download/0.11.0-M7/0.11.0-M7-example-basic-4-multi-module.zip">Multi Module Example</a></p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>You can define multiple modules the same way you define a single module, using
@@ -1317,7 +1313,7 @@ by overriding <code>artifactName</code> in the module you want to publish.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://github.com/com-lihaoyi/mill/releases/download/0.11.0-M7/0.11.0-M7-example-2.zip">Example 2</a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/releases/download/0.11.0-M7/0.11.0-M7-example-basic-7-publish-module.zip">Publish Module Example</a></p>
 </li>
 </ul>
 </div>

@@ -218,14 +218,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M7-37-dd2ba1</span>
+    <span class="version">0.11.0-M7-38-09129f</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M7-37-dd2ba1</a>
+          <a href="index.html">0.11.0-M7-38-09129f</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -326,9 +326,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-37-dd2ba1</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-38-09129f</button>
   <div class="version-menu">
-    <a class="version is-current" href="Configuration.html">0.11.0-M7-37-dd2ba1</a>
+    <a class="version is-current" href="Configuration.html">0.11.0-M7-38-09129f</a>
     <a class="version" href="0.11.0-M7/Configuration.html">0.11.0-M7</a>
     <a class="version" href="0.11.0-M6/Configuration.html">0.11.0-M6</a>
     <a class="version" href="0.11.0-M5/Configuration.html">0.11.0-M5</a>
@@ -997,41 +997,6 @@ those modules extend. This is useful for providing convenience &amp; ensuring
 consistent configuration: every module often has the same scala-version, uses
 the same testing framework, etc. and all that can be extracted out into the
 <code>trait</code>.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_global_configuration"><a class="anchor" href="#_global_configuration"></a>Global configuration</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill builds on ammonite which allows you to
-<a href="http://ammonite.io/#ScriptPredef">define global configuration</a>. Depending on
-how you start mill, one of two files will be loaded. For the build REPL
-(<code>--repl</code> or <code>-i</code> without specifying a target), <code>~/.mill/ammonite/predef.sc</code>
-will be loaded, and for builds from the command line the file
-<code>~/.mill/ammonite/predefScript.sc</code> will be included. You might want to create
-a symlink from one to the other to avoid duplication.</p>
-</div>
-<div class="paragraph">
-<p>Example <code>~/.mill/ammonite/predef.sc</code></p>
-</div>
-<div class="listingblock">
-<div class="title"><code>~/.mill/ammonite/predef.sc</code></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val nexusUser = &quot;myuser&quot;
-val nexusPassword = &quot;mysecret&quot;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Everything declared in the above file will be available to any build you run.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">  def repositories = super.repositories ++ Seq(
-    // login and pass are globally configured
-    MavenRepository(&quot;https://nexus.mycompany.com/repository/maven-releases&quot;, authentication = Some(coursier.core.Authentication(nexusUser, nexusPassword)))
-  )</code></pre>
-</div>
 </div>
 </div>
 </div>
