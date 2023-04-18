@@ -1,0 +1,43 @@
+name: Build with Mill
+
+on:
+  workflow_call:
+    inputs:
+      buildcmd:
+        required: true
+        type: string
+      java-version:
+        required: true
+        type: string
+      os:
+        required: true
+        type: string
+      continue-on-error:
+        default: false
+        type: boolean
+
+jobs:
+  build:
+
+    runs-on: ${{ inputs.os }}
+    continue-on-error: ${{ inputs.continue-on-error }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: coursier/cache-action@v6
+
+      - uses: actions/setup-java@v3
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: temurin
+
+      - name: Prepare git config
+        run: |
+          git config --add user.name "Mill GithHub Actions"
+          git config --add user.email "mill-ci@localhost"
+
+      - name: Run '${{ inputs.buildcmd }}'
+        run: ${{ inputs.buildcmd }}

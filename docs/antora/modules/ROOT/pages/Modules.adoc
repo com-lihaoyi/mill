@@ -138,6 +138,25 @@ Output is always in the `out/` folder and cannot be changed, e.g. even with the
 overridden `millSourcePath` the output paths are still the default `./out/foo/bar` and
 `./out/foo/baz/qux` folders.
 
+== Root Modules
+
+[source,scala]
+----
+object foo extends RootModule with ScalaModule {
+  def scalaVersion = "2.13.8"
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::scalatags:0.8.2",
+    ivy"com.lihaoyi::mainargs:0.4.0"
+  )
+}
+----
+
+``RootModule``s allow you to define a module whose targets are available directly
+via `./mill <target>`, e.g. `./mill compile` or `./mill run`, without needing
+to prefix them by the module name `./mill foo.compile`. These are useful if a
+project has a "primary" module that most people would use, as it makes
+operations on the `RootModule` more convenient to perform.
+
 == External Modules
 
 Libraries for use in Mill can define ``ExternalModule``s: ``Module``s which are

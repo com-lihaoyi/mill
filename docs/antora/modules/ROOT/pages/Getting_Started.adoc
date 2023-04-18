@@ -2,16 +2,6 @@
 
 == Simple Project
 
-The simplest Mill build for a Java project looks as follows:
-
-.`build.sc`
-[source,scala]
-----
-import mill._, scalalib._
-
-object foo extends JavaModule {}
-----
-
 The simplest Mill build for a Scala project looks as follows:
 
 .`build.sc`
@@ -19,9 +9,21 @@ The simplest Mill build for a Scala project looks as follows:
 ----
 import mill._, scalalib._
 
-object foo extends ScalaModule {
+object foo extends ScalaModule with RootModule {
   def scalaVersion = "{example-scala-2-13-version}"
 }
+----
+
+* {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-basic-1-hello-world.zip[Hello World Example]
+
+The simplest Mill build for a Java project looks as follows:
+
+.`build.sc`
+[source,scala]
+----
+import mill._, scalalib._
+
+object foo extends JavaModule with RootModule {}
 ----
 
 Both of these would build a project laid out as follows:
@@ -39,35 +41,31 @@ out/
         ...
 ----
 
-You can download an example project with this layout here:
-
-* {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-1.zip[Example 1]
-
-The source code for this module would live in the `foo/src/` folder, matching the name you assigned to the module.
-Output for this module (compiled files, resolved dependency lists, …) would live in `out/foo/`.
+The source code for this module would live in the `src/` folder, matching the name you assigned to the module.
+Output for this module (compiled files, resolved dependency lists, …) would live in `out/`.
 
 This can be run from the Bash shell via:
 
 [source,bash]
 ----
-$ mill foo.compile                 # compile sources into classfiles
+$ mill compile                 # compile sources into classfiles
 
-$ mill foo.run                     # run the main method, if any
+$ mill run                     # run the main method, if any
 
-$ mill foo.runBackground           # run the main method in the background
+$ mill runBackground           # run the main method in the background
 
-$ mill foo.launcher                # prepares a foo/launcher.dest/run you can run later
+$ mill launcher                # prepares a foo/launcher.dest/run you can run later
 
-$ mill foo.jar                     # bundle the classfiles into a jar
+$ mill jar                     # bundle the classfiles into a jar
 
-$ mill foo.assembly                # bundle classfiles and all dependencies into a jar
+$ mill assembly                # bundle classfiles and all dependencies into a jar
 
-$ mill -i foo.console              # start a Scala console within your project (in interactive mode: "-i")
+$ mill -i console              # start a Scala console within your project (in interactive mode: "-i")
 
-$ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: "-i")
+$ mill -i repl                 # start an Ammonite REPL within your project (in interactive mode: "-i")
 ----
 
-You can run `+mill resolve __+` to see a full list of the different tasks that are available, `+mill resolve foo._+` to see
+You can run `+mill resolve __+` to see a full list of the different tasks that are available, `+mill resolve _+` to see
 the tasks within `foo`, `mill inspect foo.compile` to inspect a task's doc-comment documentation or what it depends on,
 or `mill show foo.scalaVersion` to show the output of any task.
 
@@ -75,41 +73,33 @@ The most common *tasks* that Mill can run are cached *targets*, such as
 `compile`, and un-cached *commands* such as `foo.run`. Targets do not re-evaluate unless one of their inputs changes,
 whereas commands re-run every time.
 
-
+You can find other example projects to learn from within the
+https://github.com/com-lihaoyi/mill/tree/main/example/basic[Examples Folder] of
+the Mill repository.
 
 == Multi-module Projects
-
-=== Java Example
-
-.`build.sc`
-[source,scala]
-----
-import mill._, scalalib._
-
-object foo extends JavaModule
-
-object bar extends JavaModule {
-  def moduleDeps = Seq(foo)
-}
-----
 
 === Scala Example
 
 .`build.sc`
 [source,scala,subs="attributes,verbatim"]
 ----
-import mill._, scalalib._
-
-object foo extends ScalaModule {
-  def scalaVersion = "{example-scala-2-13-version}"
+trait MyModule extends ScalaModule {
+  def scalaVersion = "2.13.8"
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::scalatags:0.8.2",
+    ivy"com.lihaoyi::mainargs:0.4.0"
+  )
 }
 
-object bar extends ScalaModule {
-  def moduleDeps = Seq(foo)
-
-  def scalaVersion = "{example-scala-2-13-version}"
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
 }
+
+object bar extends MyModule
 ----
+
+* {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-basic-4-multi-module.zip[Multi Module Example]
 
 You can define multiple modules the same way you define a single module, using
 `def moduleDeps` to define the relationship between them.
@@ -804,7 +794,7 @@ by overriding `artifactName` in the module you want to publish.
 
 You can download an example project with this layout here:
 
-* {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-2.zip[Example 2]
+* {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-basic-7-publish-module.zip[Publish Module Example]
 
 Which you can then publish using the `mill foo.publish` command, which takes your sonatype credentials (
 e.g. `lihaoyi:foobarbaz`) and GPG password as inputs:

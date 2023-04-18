@@ -176,7 +176,7 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:3.1.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
-  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
+  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
   val zinc = ivy"org.scala-sbt::zinc:1.8.0"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M4"
@@ -1815,13 +1815,17 @@ def uploadToGithub(authKey: String) = T.command {
       .asString
   }
 
-  val exampleZips = Seq("example-1", "example-2", "example-3")
-    .map { example =>
-      os.copy(T.workspace / "example" / example, T.dest / example)
-      os.copy(launcher().path, T.dest / example / "mill")
-      os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
-      (T.dest / s"$example.zip", label + "-" + example + ".zip")
-    }
+  val exampleZips = for{
+    exampleBase <- Seq("basic", "web", "misc")
+    examplePath <- os.list(T.workspace / "example" / exampleBase)
+  } yield {
+    val example = examplePath.subRelativeTo(T.workspace)
+    os.copy(examplePath, T.dest / example)
+    os.copy(launcher().path, T.dest / example / "mill")
+    val exampleStr = example.segments.mkString("-")
+    os.proc("zip", "-r", T.dest / s"$exampleStr.zip", T.dest / example).call(cwd = T.dest)
+    (T.dest / s"$exampleStr.zip", label + "-" + exampleStr + ".zip")
+  }
 
   val zips = exampleZips ++ Seq(
     (assembly().path, label + "-assembly"),
