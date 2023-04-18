@@ -11,7 +11,7 @@ object Cross {
   trait Module[T1] extends mill.define.Module {
     def crossValue: T1
     def crossValuesList: List[Any] = List(crossValue)
-    def crossPathSegments: List[String]
+    def crossPathSegments: List[String] = Nil
   }
 
   /**
