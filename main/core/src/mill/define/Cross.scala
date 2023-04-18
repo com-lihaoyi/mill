@@ -11,7 +11,6 @@ object Cross {
    */
   trait Module[T1] extends mill.define.Module {
     def crossValue: T1
-    def crossValuesList: List[Any] = List(crossValue)
     def crossWrapperSegments: List[String] = Nil
 
     /**
@@ -31,7 +30,6 @@ object Cross {
    */
   trait Arg2[T2] { this: Module[_] =>
     def crossValue2: T2
-    override def crossValuesList: List[Any] = List((crossValue, crossValue2))
 
     /**
      * trait that can be mixed into any sub-modules within the body of a
@@ -55,7 +53,6 @@ object Cross {
    */
   trait Arg3[T3] { this: Module[_] with Arg2[_] =>
     def crossValue3: T3
-    override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3))
 
     /**
      * trait that can be mixed into any sub-modules within the body of a
@@ -80,8 +77,6 @@ object Cross {
    */
   trait Arg4[T4] { this: Module[_] with Arg2[_] with Arg3[_] =>
     def crossValue4: T4
-    override def crossValuesList: List[Any] =
-      List((crossValue, crossValue2, crossValue3, crossValue4))
 
     /**
      * trait that can be mixed into any sub-modules within the body of a
@@ -106,8 +101,6 @@ object Cross {
    */
   trait Arg5[T5] { this: Module[_] with Arg2[_] with Arg3[_] with Arg4[_] =>
     def crossValue5: T5
-    override def crossValuesList: List[Any] =
-      List((crossValue, crossValue2, crossValue3, crossValue4, crossValue5))
 
     /**
      * trait that can be mixed into any sub-modules within the body of a
