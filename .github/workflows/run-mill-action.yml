@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       os:
-        required: true
+        default: 'ubuntu-latest'
         type: string
       continue-on-error:
         default: false
