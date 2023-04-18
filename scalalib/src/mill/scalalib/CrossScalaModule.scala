@@ -40,7 +40,6 @@ object CrossScalaModule {
 
     trait CrossScalaModule extends mill.scalalib.CrossScalaModule {
       override def wrapperSegments = wrapperSegments0
-      def crossPathSegments = List(crossScalaVersion)
       def crossValue = Base.this.crossScalaVersion
     }
   }

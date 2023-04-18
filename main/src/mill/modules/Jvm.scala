@@ -144,7 +144,6 @@ object Jvm extends CoursierSupport {
     else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
   }
 
-
   /**
    * Spawns a generic subprocess, streaming the stdout and stderr to the
    * console. If the System.out/System.err have been substituted, makes sure

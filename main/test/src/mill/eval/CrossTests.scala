@@ -2,7 +2,14 @@ package mill.eval
 
 import mill.define.Discover
 import mill.util.{TestEvaluator, TestGraphs}
-import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, singleCross, nonStringCross, crossExtension}
+import mill.util.TestGraphs.{
+  crossResolved,
+  doubleCross,
+  nestedCrosses,
+  singleCross,
+  nonStringCross,
+  crossExtension
+}
 import utest._
 object CrossTests extends TestSuite {
   val tests = Tests {
@@ -30,10 +37,14 @@ object CrossTests extends TestSuite {
       val Right(("Param Value: a", _)) = check.apply(crossExtension.myCrossExtended("a", 1).param1)
       val Right(("Param Value: 2", _)) = check.apply(crossExtension.myCrossExtended("b", 2).param2)
 
-      val Right(("Param Value: a", _)) = check.apply(crossExtension.myCrossExtendedAgain("a", 1, true).param1)
-      val Right(("Param Value: 2", _)) = check.apply(crossExtension.myCrossExtendedAgain("b", 2, false).param2)
-      val Right(("Param Value: true", _)) = check.apply(crossExtension.myCrossExtendedAgain("a", 1, true).param3)
-      val Right(("Param Value: false", _)) = check.apply(crossExtension.myCrossExtendedAgain("b", 2, false).param3)
+      val Right(("Param Value: a", _)) =
+        check.apply(crossExtension.myCrossExtendedAgain("a", 1, true).param1)
+      val Right(("Param Value: 2", _)) =
+        check.apply(crossExtension.myCrossExtendedAgain("b", 2, false).param2)
+      val Right(("Param Value: true", _)) =
+        check.apply(crossExtension.myCrossExtendedAgain("a", 1, true).param3)
+      val Right(("Param Value: false", _)) =
+        check.apply(crossExtension.myCrossExtendedAgain("b", 2, false).param3)
     }
 
     "crossResolved" - {

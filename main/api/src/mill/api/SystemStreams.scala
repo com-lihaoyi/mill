@@ -8,7 +8,7 @@ class SystemStreams(
     val in: InputStream
 )
 
-object SystemStreams{
+object SystemStreams {
 
   private val original = new SystemStreams(System.out, System.err, System.in)
 

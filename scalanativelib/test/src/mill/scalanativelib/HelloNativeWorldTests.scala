@@ -35,7 +35,7 @@ object HelloNativeWorldTests extends TestSuite {
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     implicit object ReleaseModeToSegments
-    extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
+        extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
 
     val matrix = for {
       scala <- Seq("3.2.1", "3.1.3", scala213, "2.12.13", "2.11.12")

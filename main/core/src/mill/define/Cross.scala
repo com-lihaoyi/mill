@@ -4,6 +4,7 @@ import language.experimental.macros
 import scala.reflect.macros.blackbox
 
 object Cross {
+
   /**
    * A simple cross-module with 1 cross-type [[T1]], which is available in the
    * module body as [[crossValue]]
@@ -11,7 +12,6 @@ object Cross {
   trait Module[T1] extends mill.define.Module {
     def crossValue: T1
     def crossValuesList: List[Any] = List(crossValue)
-    def crossPathSegments: List[String]
   }
 
   /**
@@ -19,7 +19,7 @@ object Cross {
    * additional cross type [[T2]], available in the module body as
    * [[crossValue2]]
    */
-  trait Arg2[T2] {this: Module[_] =>
+  trait Arg2[T2] { this: Module[_] =>
     def crossValue2: T2
     override def crossValuesList: List[Any] = List((crossValue, crossValue2))
   }
@@ -35,7 +35,7 @@ object Cross {
    * additional cross type [[T3]], available in the module body as
    * [[crossValue3]]
    */
-  trait Arg3[T3]{ this: Module[_] with Arg2[_] =>
+  trait Arg3[T3] { this: Module[_] with Arg2[_] =>
     def crossValue3: T3
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3))
   }
@@ -54,7 +54,8 @@ object Cross {
    */
   trait Arg4[T4] { this: Module[_] with Arg2[_] with Arg3[_] =>
     def crossValue4: T4
-    override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3, crossValue4))
+    override def crossValuesList: List[Any] =
+      List((crossValue, crossValue2, crossValue3, crossValue4))
   }
 
   /**
@@ -69,9 +70,10 @@ object Cross {
    * additional cross type [[T5]], available in the module body as
    * [[crossValue5]]
    */
-  trait Arg5[T5] {this: Module[_] with Arg2[_] with Arg3[_] with Arg4[_] =>
+  trait Arg5[T5] { this: Module[_] with Arg2[_] with Arg3[_] with Arg4[_] =>
     def crossValue5: T5
-    override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3, crossValue4, crossValue5))
+    override def crossValuesList: List[Any] =
+      List((crossValue, crossValue2, crossValue3, crossValue4, crossValue5))
   }
 
   /**
@@ -91,7 +93,7 @@ object Cross {
    * cross-module definition
    */
   class ToSegments[-T](val convert: T => List[String])
-  object ToSegments{
+  object ToSegments {
     implicit object StringToPathSegment extends ToSegments[String](List(_))
     implicit object CharToPathSegment extends ToSegments[Char](v => List(v.toString))
     implicit object LongToPathSegment extends ToSegments[Long](v => List(v.toString))
@@ -107,12 +109,15 @@ object Cross {
     )
   }
 
-  case class Factory[T](makeList: Seq[mill.define.Ctx => T],
-                        crossValuesListLists: Seq[Seq[Any]],
-                        crossSegmentsList: Seq[Seq[String]],
-                        crossValuesRaw: Seq[Any])
+  case class Factory[T](
+      makeList: Seq[mill.define.Ctx => T],
+      crossValuesListLists: Seq[Seq[Any]],
+      crossSegmentsList: Seq[Seq[String]],
+      crossValuesRaw: Seq[Any]
+  )
 
   object Factory {
+
     /**
      * Implicitly constructs a Factory[M] for a target-typed `M`. Takes in an
      * expression of type `Any`, but type-checking on the macro- expanded code
@@ -165,12 +170,14 @@ object Cross {
 
       if (tpe <:< typeOf[Arg4[_]]) {
         newTrees.append(q"override def crossValue4 = $v1._4")
-        pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4)"
+        pathSegmentsTree =
+          q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4)"
       }
 
       if (tpe <:< typeOf[Arg5[_]]) {
         newTrees.append(q"override def crossValue5 = $v1._5")
-        pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4) ++ $segments($v1._5)"
+        pathSegmentsTree =
+          q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4) ++ $segments($v1._5)"
       }
 
       val tree = q"""
@@ -178,7 +185,7 @@ object Cross {
           makeList = $wrappedT.map(($v1: ${tq""}) =>
             ($ctx0: ${tq""}) => {
               implicit val $implicitCtx = $ctx0
-              new $tpe{override def crossPathSegments = $pathSegmentsTree; ..$newTrees}
+              new $tpe{..$newTrees}
             }
           ),
           crossSegmentsList = $wrappedT.map(($v1: ${tq""}) => $pathSegmentsTree ),
@@ -252,10 +259,8 @@ object Cross {
  *   ... crossValue ...
  * }
  */
-class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)
-                                 (implicit ctx: mill.define.Ctx)
-  extends mill.define.Module()(ctx) {
-
+class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mill.define.Ctx)
+    extends mill.define.Module()(ctx) {
 
   private val items: List[(List[Any], List[String], M)] = for {
     factory <- factories.toList
@@ -271,7 +276,7 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)
         .withCrossValues(factories.flatMap(_.crossValuesRaw))
     )
 
-    (crossValues.toList, sub.crossPathSegments, sub)
+    (crossValues.toList, crossSegments.toList, sub)
   }
 
   override lazy val millModuleDirectChildren: Seq[Module] =
@@ -288,14 +293,18 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)
    * the order the original cross values were given in
    */
   val valuesToModules: collection.Map[List[Any], M] =
-    items.map{case (values, segments, subs) => (values, subs)}.to(collection.mutable.LinkedHashMap)
+    items.map { case (values, segments, subs) => (values, subs) }.to(
+      collection.mutable.LinkedHashMap
+    )
 
   /**
    * A mapping of the string-ified string segments to the cross modules, in
    * the order the original cross values were given in
    */
   val segmentsToModules: collection.Map[List[String], M] =
-    items.map{case (values, segments, subs) => (segments, subs)}.to(collection.mutable.LinkedHashMap)
+    items.map { case (values, segments, subs) => (segments, subs) }.to(
+      collection.mutable.LinkedHashMap
+    )
 
   /**
    * Fetch the cross module corresponding to the given cross values
