@@ -26,21 +26,3 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase { outer =>
   }
   trait Tests extends CrossScalaModuleTests
 }
-
-object CrossScalaModule {
-
-  /**
-   * Used with a [[mill.define.Cross]] when you want [[CrossScalaModule]]'s
-   * nested within it
-   */
-  trait Base extends mill.Cross.Module[String] {
-    def crossScalaVersion: String = crossValue
-
-    private def wrapperSegments0 = millModuleSegments.parts
-
-    trait CrossScalaModule extends mill.scalalib.CrossScalaModule {
-      override def wrapperSegments = wrapperSegments0
-      def crossValue = Base.this.crossScalaVersion
-    }
-  }
-}

@@ -12,6 +12,12 @@ object Cross {
   trait Module[T1] extends mill.define.Module {
     def crossValue: T1
     def crossValuesList: List[Any] = List(crossValue)
+    def wrapperSegments: List[String] = millModuleSegments.parts
+
+    trait CrossValue extends Module[T1]{
+      def crossValue: T1 = Module.this.crossValue
+      override def wrapperSegments: List[String] = Module.this.millModuleSegments.parts
+    }
   }
 
   /**
@@ -22,6 +28,10 @@ object Cross {
   trait Arg2[T2] { this: Module[_] =>
     def crossValue2: T2
     override def crossValuesList: List[Any] = List((crossValue, crossValue2))
+
+    trait CrossValue2 extends Arg2[T2]{  this: Module[_] =>
+      def crossValue: T2 = Arg2.this.crossValue2
+    }
   }
 
   /**
@@ -38,6 +48,10 @@ object Cross {
   trait Arg3[T3] { this: Module[_] with Arg2[_] =>
     def crossValue3: T3
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3))
+
+    trait CrossValue3 extends Arg3[T3]{ this: Module[_] with Arg2[_] =>
+      def crossValue: T3 = Arg3.this.crossValue3
+    }
   }
 
   /**
@@ -56,6 +70,10 @@ object Cross {
     def crossValue4: T4
     override def crossValuesList: List[Any] =
       List((crossValue, crossValue2, crossValue3, crossValue4))
+
+    trait CrossValue4 extends Arg4[T4] { this: Module[_] with Arg2[_] with Arg3[_] =>
+      def crossValue: T4 = Arg4.this.crossValue4
+    }
   }
 
   /**
@@ -74,6 +92,10 @@ object Cross {
     def crossValue5: T5
     override def crossValuesList: List[Any] =
       List((crossValue, crossValue2, crossValue3, crossValue4, crossValue5))
+
+    trait CrossValue5 extends Arg5[T5]{ this: Module[_] with Arg2[_] with Arg3[_] with Arg4[_] =>
+      def crossValue: T5 = Arg5.this.crossValue5
+    }
   }
 
   /**
