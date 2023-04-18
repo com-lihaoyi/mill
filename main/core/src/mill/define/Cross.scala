@@ -4,41 +4,93 @@ import language.experimental.macros
 import scala.reflect.macros.blackbox
 
 object Cross {
+  /**
+   * A simple cross-module with 1 cross-type [[T1]], which is available in the
+   * module body as [[crossValue]]
+   */
   trait Module[T1] extends mill.define.Module {
     def crossValue: T1
     def crossValuesList: List[Any] = List(crossValue)
     def crossPathSegments: List[String]
   }
 
+  /**
+   * Convenience trait that can be mixed in to a [[Cross.Module]] to add an
+   * additional cross type [[T2]], available in the module body as
+   * [[crossValue2]]
+   */
   trait Arg2[T2] {this: Module[_] =>
     def crossValue2: T2
     override def crossValuesList: List[Any] = List((crossValue, crossValue2))
   }
+
+  /**
+   * A cross-module with 2 cross-types [[T1]] and [[T2]], which are available
+   * in the module body as [[crossValue]] and [[crossValue2]].
+   */
   trait Module2[T1, T2] extends Module[T1] with Arg2[T2]
 
+  /**
+   * Convenience trait that can be mixed in to a [[Module2]] to add an
+   * additional cross type [[T3]], available in the module body as
+   * [[crossValue3]]
+   */
   trait Arg3[T3]{ this: Module2[_, _] =>
     def crossValue3: T3
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3))
   }
+
+  /**
+   * A cross-module with 3 cross-types [[T1]] [[T2]] and [[T3]], which are
+   * available in the module body as [[crossValue]] [[crossValue2]] and
+   * [[crossValue3]].
+   */
   trait Module3[T1, T2, T3] extends Module2[T1, T2] with Arg3[T3]
 
+  /**
+   * Convenience trait that can be mixed in to a [[Module3]] to add an
+   * additional cross type [[T4]], available in the module body as
+   * [[crossValue4]]
+   */
   trait Arg4[T4] { this: Module3[_, _, _] =>
     def crossValue4: T4
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3, crossValue4))
   }
+
+  /**
+   * A cross-module with 4 cross-types [[T1]] [[T2]] [[T3]] and [[T4]], which
+   * are available in the module body as [[crossValue]] [[crossValue2]]
+   * [[crossValue3]] and [[crossValue4]].
+   */
   trait Module4[T1, T2, T3, T4] extends Module3[T1, T2, T3] with Arg4[T4]
 
+  /**
+   * Convenience trait that can be mixed in to a [[Module5]] to add an
+   * additional cross type [[T5]], available in the module body as
+   * [[crossValue5]]
+   */
   trait Arg5[T5] {this: Module4[_, _, _, _] =>
     def crossValue5: T5
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3, crossValue4, crossValue5))
   }
 
+  /**
+   * A cross-module with 5 cross-types [[T1]] [[T2]] [[T3]] [[T4]] and [[T5]],
+   * which are available in the module body as [[crossValue]] [[crossValue2]]
+   * [[crossValue3]] [[crossValue4]] and [[crossValue5]].
+   */
   trait Module5[T1, T2, T3, T4, T5] extends Module4[T1, T2, T3, T4] with Arg5[T4]
 
-  def ToSegments[T: ToSegments](t: T) =
-    implicitly[ToSegments[T]].crossPathSegments(t)
+  /**
+   * Convert the given value [[t]] to its cross segments
+   */
+  def ToSegments[T: ToSegments](t: T): List[String] = implicitly[ToSegments[T]].convert(t)
 
-  class ToSegments[T](val crossPathSegments: T => List[String])
+  /**
+   * A type-class defining what types [[T]] are allowed to be used in a
+   * cross-module definition
+   */
+  class ToSegments[T](val convert: T => List[String])
   object ToSegments{
     implicit object StringToPathSegment extends ToSegments[String](List(_))
     implicit object CharToPathSegment extends ToSegments[Char](v => List(v.toString))
@@ -48,10 +100,10 @@ object Cross {
     implicit object ByteToPathSegment extends ToSegments[Byte](v => List(v.toString))
     implicit object BooleanToPathSegment extends ToSegments[Boolean](v => List(v.toString))
     implicit def SeqToPathSegment[T: ToSegments] = new ToSegments[Seq[T]](
-      _.flatMap(implicitly[ToSegments[T]].crossPathSegments).toList
+      _.flatMap(implicitly[ToSegments[T]].convert).toList
     )
     implicit def ListToPathSegment[T: ToSegments] = new ToSegments[List[T]](
-      _.flatMap(implicitly[ToSegments[T]].crossPathSegments).toList
+      _.flatMap(implicitly[ToSegments[T]].convert).toList
     )
   }
 
@@ -81,7 +133,6 @@ object Cross {
       val v1 = c.freshName(TermName("v1"))
       val ctx0 = c.freshName(TermName("ctx0"))
       val implicitCtx = c.freshName(TermName("implicitCtx"))
-      val pathSegments = c.freshName(TermName("pathSegments"))
 
       val newTrees = collection.mutable.Buffer.empty[Tree]
       var valuesTree: Tree = null
@@ -225,11 +276,23 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)
   override lazy val millModuleDirectChildren: Seq[Module] =
     super.millModuleDirectChildren ++ crossModules
 
+  /**
+   * A list of the cross modules, in
+   * the order the original cross values were given in
+   */
   def crossModules: List[M] = items.collect { case (_, _, v) => v }
 
+  /**
+   * A mapping of the raw cross values to the cross modules, in
+   * the order the original cross values were given in
+   */
   val valuesToModules: collection.Map[List[Any], M] =
     items.map{case (values, segments, subs) => (values, subs)}.to(collection.mutable.LinkedHashMap)
 
+  /**
+   * A mapping of the string-ified string segments to the cross modules, in
+   * the order the original cross values were given in
+   */
   val segmentsToModules: collection.Map[List[String], M] =
     items.map{case (values, segments, subs) => (segments, subs)}.to(collection.mutable.LinkedHashMap)
 
