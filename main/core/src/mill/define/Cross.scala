@@ -90,7 +90,7 @@ object Cross {
    * A type-class defining what types [[T]] are allowed to be used in a
    * cross-module definition
    */
-  class ToSegments[T](val convert: T => List[String])
+  class ToSegments[-T](val convert: T => List[String])
   object ToSegments{
     implicit object StringToPathSegment extends ToSegments[String](List(_))
     implicit object CharToPathSegment extends ToSegments[Char](v => List(v.toString))

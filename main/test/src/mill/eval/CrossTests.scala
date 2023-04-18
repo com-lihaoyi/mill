@@ -14,7 +14,7 @@ object CrossTests extends TestSuite {
       val Right(("212", 1)) = check.apply(singleCross.cross("212").suffix)
     }
 
-    "nonStringCrossCross" - {
+    "nonStringCross" - {
       val check = new TestEvaluator(nonStringCross)
 
       val Right((210, 1)) = check.apply(nonStringCross.cross(210).suffix)

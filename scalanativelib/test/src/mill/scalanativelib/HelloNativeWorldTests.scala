@@ -42,7 +42,7 @@ object HelloNativeWorldTests extends TestSuite {
       scalaNative <- Seq(scalaNative04, "0.4.9")
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
       if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04)
-    } yield (scala, scalaNative, mode: ReleaseMode)
+    } yield (scala, scalaNative, mode)
 
     object helloNativeWorld extends Cross[RootModule](matrix)
     trait RootModule extends HelloNativeWorldModule {
