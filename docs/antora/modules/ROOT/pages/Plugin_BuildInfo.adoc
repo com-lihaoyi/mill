@@ -30,5 +30,5 @@ The map containing all member names and values for the generated info object.
 * `def buildInfoObjectName: String`, default: `BuildInfo`
 The name of the object which contains all the members from `buildInfoMembers`.
 
-* `def buildInfoPackageName: String`, default: `None`
+* `def buildInfoPackageName: String`
 The package name of the object.
