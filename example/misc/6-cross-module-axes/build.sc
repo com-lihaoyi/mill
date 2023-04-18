@@ -15,7 +15,7 @@ trait MyCrossModule2 extends Cross.Module2[String, Int] {
 }
 
 object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1, true), ("b", 2, false))
-trait MyCrossModuleExtended extends MyCrossModule2 with Cross.Arg3[Boolean] {
+trait MyCrossModuleExtended extends MyCrossModule2 with Cross.Module3[String, Int, Boolean] {
   def param3 = T{ "Param Value: " + crossValue3 }
 }
 
