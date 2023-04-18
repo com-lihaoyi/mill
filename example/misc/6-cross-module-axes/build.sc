@@ -16,7 +16,7 @@ trait MyCrossModule2 extends Cross.Module2[String, Int] {
 
 object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1, true), ("b", 2, false))
 trait MyCrossModuleExtended extends MyCrossModule2 with Cross.Arg3[Boolean] {
-  val param3 = T{ "Param Value: " + crossValue3 }
+  def param3 = T{ "Param Value: " + crossValue3 }
 }
 
 // Cross modules can have multiple axes. You can define a cross module with N

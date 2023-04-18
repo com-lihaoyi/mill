@@ -244,18 +244,6 @@ object TestGraphs {
     }
   }
 
-  object singleCrossOld extends TestUtil.BaseModule {
-    object cross extends mill.Cross[Cross]("210", "211", "212")
-    trait Cross extends Cross.Module[String] {
-      def suffix = T { crossValue }
-    }
-
-    object cross2 extends mill.Cross[Cross2]("210", "211", "212")
-    trait Cross2 extends Cross.Module[String] {
-      override def millSourcePath = super.millSourcePath / crossValue
-      def suffix = T { crossValue }
-    }
-  }
   object crossResolved extends TestUtil.BaseModule {
     trait MyModule extends Cross.Module[String] {
       implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
@@ -283,6 +271,23 @@ object TestGraphs {
     trait Cross extends Cross.Module2[String, String] {
       val (scalaVersion, platform) = (crossValue, crossValue2)
       def suffix = T { scalaVersion + "_" + platform }
+    }
+  }
+
+  object crossExtension extends TestUtil.BaseModule {
+    object myCross extends Cross[MyCrossModule]("a", "b")
+    trait MyCrossModule extends Cross.Module[String] {
+      def param1 = T { "Param Value: " + crossValue }
+    }
+
+    object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1), ("b", 2))
+    trait MyCrossModuleExtended extends MyCrossModule with Cross.Arg2[Int] {
+      def param2 = T{ "Param Value: " + crossValue2 }
+    }
+
+    object myCrossExtendedAgain extends Cross[MyCrossModuleExtendedAgain](("a", 1, true), ("b", 2, false))
+    trait MyCrossModuleExtendedAgain extends MyCrossModuleExtended with Cross.Arg3[Boolean] {
+      def param3 = T{ "Param Value: " + crossValue3 }
     }
   }
 

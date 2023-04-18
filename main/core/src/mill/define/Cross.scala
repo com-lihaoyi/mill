@@ -35,7 +35,7 @@ object Cross {
    * additional cross type [[T3]], available in the module body as
    * [[crossValue3]]
    */
-  trait Arg3[T3]{ this: Module2[_, _] =>
+  trait Arg3[T3]{ this: Module[_] with Arg2[_] =>
     def crossValue3: T3
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3))
   }
@@ -52,7 +52,7 @@ object Cross {
    * additional cross type [[T4]], available in the module body as
    * [[crossValue4]]
    */
-  trait Arg4[T4] { this: Module3[_, _, _] =>
+  trait Arg4[T4] { this: Module[_] with Arg2[_] with Arg3[_] =>
     def crossValue4: T4
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3, crossValue4))
   }
@@ -69,7 +69,7 @@ object Cross {
    * additional cross type [[T5]], available in the module body as
    * [[crossValue5]]
    */
-  trait Arg5[T5] {this: Module4[_, _, _, _] =>
+  trait Arg5[T5] {this: Module[_] with Arg2[_] with Arg3[_] with Arg4[_] =>
     def crossValue5: T5
     override def crossValuesList: List[Any] = List((crossValue, crossValue2, crossValue3, crossValue4, crossValue5))
   }
@@ -255,6 +255,7 @@ object Cross {
 class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)
                                  (implicit ctx: mill.define.Ctx)
   extends mill.define.Module()(ctx) {
+
 
   private val items: List[(List[Any], List[String], M)] = for {
     factory <- factories.toList
