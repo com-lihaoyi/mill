@@ -132,7 +132,6 @@ object Deps {
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   val ammoniteVersion = "3.0.0-M0-6-34034262"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
-  val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   val coursier = ivy"io.get-coursier::coursier:2.1.2"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.15"
@@ -1866,7 +1865,6 @@ object DependencyFetchDummy extends ScalaModule {
   override def scalaVersion = Deps.scalaVersion
   override def compileIvyDeps = Agg(
     Deps.semanticDbJava,
-    Deps.semanticDB,
-    Deps.asciidoctorj
+    Deps.semanticDB
   )
 }
