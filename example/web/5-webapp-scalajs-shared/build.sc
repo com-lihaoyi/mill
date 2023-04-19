@@ -1,3 +1,4 @@
+// == Scala.js/Scala-JVM Code Sharing
 import mill._, scalalib._, scalajslib._
 
 trait AppScalaModule extends ScalaModule{
@@ -9,9 +10,7 @@ trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
 }
 
 object app extends RootModule with AppScalaModule{
-
-  def moduleDeps = Seq(shared.jvm)
-
+  def moduleDeps = Seq(shared.jvm)\
   def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
 
   def resources = T{
@@ -33,7 +32,6 @@ object app extends RootModule with AppScalaModule{
 
   object shared extends Module{
     trait SharedModule extends AppScalaModule with PlatformScalaModule {
-
       def ivyDeps = Agg(
         ivy"com.lihaoyi::scalatags::0.12.0",
         ivy"com.lihaoyi::upickle::3.0.0",

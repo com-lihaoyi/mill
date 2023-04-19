@@ -1,3 +1,5 @@
+// == Publishing Cross-Platform Scala Modules
+
 import mill._, scalalib._, scalajslib._, publish._
 
 object foo extends Cross[FooModule]("2.13.8", "3.2.2")
@@ -28,7 +30,6 @@ trait FooModule extends Cross.Module[String] {
 
   object bar extends Module {
     object jvm extends Shared
-
     object js extends SharedJS
   }
 
@@ -37,11 +38,11 @@ trait FooModule extends Cross.Module[String] {
       def moduleDeps = Seq(bar.jvm)
       def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
     }
+
     object js extends SharedJS {
       def moduleDeps = Seq(bar.js)
     }
-  }
-
+  }\
 }
 
 // This example demonstrates how to publish Scala modules which are both

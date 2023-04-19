@@ -1,3 +1,5 @@
+// == Scala.js Modules
+
 import mill._, scalalib._, scalajslib._
 
 object foo extends ScalaJSModule {

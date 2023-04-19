@@ -1,3 +1,5 @@
+// == Scala.js Webserver Integration
+
 import mill._, scalalib._, scalajslib._
 
 object app extends RootModule with ScalaModule{

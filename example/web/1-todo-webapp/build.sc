@@ -1,7 +1,8 @@
+// == TodoMVC Web App
+
 import mill._, scalalib._
 
 object app extends RootModule with ScalaModule{
-
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::cask:0.9.1",
@@ -17,6 +18,10 @@ object app extends RootModule with ScalaModule{
     )
   }
 }
+
+// This example demonstrates how to set up a simple Scala webserver
+// implementing the popular Todo-MVC demo application. It includes a test suite
+// that spins up the web server locally and makes HTTP requests against it.
 
 /* Example Usage
 

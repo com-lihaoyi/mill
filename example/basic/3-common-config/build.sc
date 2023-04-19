@@ -1,4 +1,4 @@
-// == Common ScalaModule Configurations
+// == Common Configuration Overrides
 
 import mill._, scalalib._
 
@@ -50,7 +50,7 @@ object foo extends RootModule with ScalaModule {
   def scalacOptions: T[Seq[String]] = Seq("-deprecation", "-Xfatal-warnings")
 }
 
-// This module shows a listing of common tasks you may want to override on a
+// This module shows some of the common tasks you may want to override on a
 // `ScalaModule`: specifying the `mainClass`, adding additional
 // sources/resources, generating resources, and setting compilation/run
 // options.

@@ -1,45 +1,6 @@
 = Getting Started
 
-== Simple Project
-
-The simplest Mill build for a Scala project looks as follows:
-
-.`build.sc`
-[source,scala,subs="attributes,verbatim"]
-----
-import mill._, scalalib._
-
-object foo extends ScalaModule with RootModule {
-  def scalaVersion = "{example-scala-2-13-version}"
-}
-----
-
-* {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-basic-1-hello-world.zip[Hello World Example]
-
-The simplest Mill build for a Java project looks as follows:
-
-.`build.sc`
-[source,scala]
-----
-import mill._, scalalib._
-
-object foo extends JavaModule with RootModule {}
-----
-
-Both of these would build a project laid out as follows:
-
-----
-build.sc
-foo/
-    src/
-        FileA.java
-        FileB.scala
-    resources/
-        ...
-out/
-    foo/
-        ...
-----
+include::example/basic/1-simple-scala.adoc[]
 
 The source code for this module would live in the `src/` folder, matching the name you assigned to the module.
 Output for this module (compiled files, resolved dependency lists, …) would live in `out/`.
@@ -77,29 +38,7 @@ You can find other example projects to learn from within the
 https://github.com/com-lihaoyi/mill/tree/main/example/basic[Examples Folder] of
 the Mill repository.
 
-== Multi-module Projects
-
-=== Scala Example
-
-.`build.sc`
-[source,scala,subs="attributes,verbatim"]
-----
-trait MyModule extends ScalaModule {
-  def scalaVersion = "2.13.8"
-  def ivyDeps = Agg(
-    ivy"com.lihaoyi::scalatags:0.8.2",
-    ivy"com.lihaoyi::mainargs:0.4.0"
-  )
-}
-
-object foo extends MyModule {
-  def moduleDeps = Seq(bar)
-}
-
-object bar extends MyModule
-----
-
-* {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-basic-4-multi-module.zip[Multi Module Example]
+include::example/basic/2-multi-module.adoc[]
 
 You can define multiple modules the same way you define a single module, using
 `def moduleDeps` to define the relationship between them.
@@ -143,63 +82,6 @@ $ mill bar.assembly
 
 Mill's evaluator will ensure that the modules are compiled in the right order, and recompiled as necessary when source
 code in each module changes.
-
-Modules can also be nested:
-
-.`build.sc`
-[source,scala,subs="attributes,verbatim"]
-----
-import mill._, scalalib._
-
-object foo extends ScalaModule {
-  def scalaVersion = "{example-scala-2-13-version}"
-
-  object bar extends ScalaModule {
-    def moduleDeps = Seq(foo)
-
-    def scalaVersion = "{example-scala-2-13-version}"
-  }
-}
-----
-
-Which would result in a similarly nested project layout:
-
-----
-build.sc
-foo/
-    src/
-        Main.scala
-    resources/
-        ...
-    bar/
-        src/
-            Main2.scala
-        resources/
-            ...
-out/
-    foo/
-        ...
-        bar/
-            ...
-----
-
-Where the nested modules can be run via:
-
-[source,bash]
-----
-$ mill foo.compile
-$ mill foo.bar.compile
-
-$ mill foo.run
-$ mill foo.bar.run
-
-$ mill foo.jar
-$ mill foo.bar.jar
-
-$ mill foo.assembly
-$ mill foo.bar.assembly
-----
-
 
 == Watch and Re-evaluate
 
@@ -282,8 +164,6 @@ usage: mill [options] [[target [target-options]] [+ [target ...]]]
                        or used. Must be the first argument.
   -p --predef <path>   Lets you load your predef from a custom location, rather than the "default
                        location in your Ammonite home
-  --repl               Run Mill in interactive mode and start a build REPL. This implies --no-server
-                       and no mill server will be used. Must be the first argument.
   -s --silent          Make ivy logs during script import resolution go silent instead of printing;
                        though failures will still throw exception.
   -v --version         Show mill version information and exit.
@@ -677,55 +557,6 @@ Current limitations:
 mill mill.scalalib.Dependency/showUpdates
 mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
 ----
-
-
-== The Build REPL
-
-[source,scala]
-----
-$ mill --repl
-Loading...
-@ foo
-res0: foo.type = ammonite.predef.build#foo:4
-Commands:
-    .ideaJavaModuleFacets(ideaConfigVersion: Int)()
-    .ideaConfigFiles(ideaConfigVersion: Int)()
-    .ivyDepsTree(inverse: Boolean, withCompile: Boolean, withRuntime: Boolean)()
-    .runLocal(args: String*)()
-    .run(args: String*)()
-    .runBackground(args: String*)()
-    .runMainBackground(mainClass: String, args: String*)()
-    .runMainLocal(mainClass: String, args: String*)()
-    .runMain(mainClass: String, args: String*)()
-    .console()()
-    .repl(replOptions: String*)()
-Targets:
-...
-
-@ foo.compile
-res1: mill.package.T[mill.scalalib.api.CompilationResult] = foo.compile(ScalaModule.scala:143)
-    Compiles the current module to generate compiled classfiles/bytecode
-
-Inputs:
-    foo.upstreamCompileOutput
-    foo.allSourceFiles
-    foo.compileClasspath
-...
-
-@ foo.compile()
-[25/25] foo.compile
-res2: mill.scalalib.api.CompilationResult = CompilationResult(
-  /Users/lihaoyi/Dropbox/Github/test/out/foo/compile.dest/zinc,
-  PathRef(/Users/lihaoyi/Dropbox/Github/test/out/foo/compile.dest/classes, false, -61934706)
-)
-----
-
-You can run `mill --repl` to open a build REPL; this is a Scala console with your `build.sc` loaded, which lets you run
-tasks interactively.
-The task-running syntax is slightly different from the command-line, but more in line with how you
-would depend on tasks from within your build file.
-
-You can use this REPL to interactively explore your build to see what is available.
 
 
 == Deploying your code

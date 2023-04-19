@@ -1,19 +1,19 @@
 = Cross Builds
 
-include::example-cross-1-simple.adoc[]
+include::example/cross/1-simple.adoc[]
 
-include::example-cross-2-cross-source-path.adoc[]
+include::example/cross/2-cross-source-path.adoc[]
 
-include::example-cross-3-outside-dependency.adoc[]
+include::example/cross/3-outside-dependency.adoc[]
 
-include::example-cross-4-cross-dependencies.adoc[]
+include::example/cross/4-cross-dependencies.adoc[]
 
-include::example-cross-5-multiple-cross-axes.adoc[]
+include::example/cross/5-multiple-cross-axes.adoc[]
 
-include::example-cross-6-module-axes-extension.adoc[]
+include::example/cross/6-module-axes-extension.adoc[]
 
-include::example-cross-7-inner-cross-module.adoc[]
+include::example/cross/7-inner-cross-module.adoc[]
 
-include::example-cross-8-resolvers.adoc[]
+include::example/cross/8-resolvers.adoc[]
 
-include::example-cross-9-dynamic-cross-modules.adoc[]
+include::example/cross/9-dynamic-cross-modules.adoc[]

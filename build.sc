@@ -1658,13 +1658,13 @@ object docs extends Module {
       os.list(source0().path).foreach(p => os.copy(p, T.dest / p.relativeTo(source0().path)))
 
       val renderedExamples: Seq[(String, PathRef)] =
-        T.traverse(example.basic.items)(t => t._2.rendered.map("example-basic-" + t._1.mkString -> _))() ++
-          T.traverse(example.cross.items)(t => t._2.rendered.map("example-cross-" + t._1.mkString -> _))() ++
-          T.traverse(example.misc.items)(t => t._2.rendered.map("example-misc-" + t._1.mkString -> _))() ++
-          T.traverse(example.web.items)(t => t._2.rendered.map("example-web-" + t._1.mkString -> _))()
+        T.traverse(example.basic.items)(t => t._2.rendered.map("basic/" + t._1.mkString -> _))() ++
+        T.traverse(example.cross.items)(t => t._2.rendered.map("cross/" + t._1.mkString -> _))() ++
+        T.traverse(example.misc.items)(t => t._2.rendered.map("misc/" + t._1.mkString -> _))() ++
+        T.traverse(example.web.items)(t => t._2.rendered.map("web/" + t._1.mkString -> _))()
 
       for ((name, pref) <- renderedExamples) {
-        os.copy(pref.path, T.dest / "modules" / "ROOT" / "pages" / s"$name.adoc", createFolders = true)
+        os.copy(pref.path, T.dest / "modules" / "ROOT" / "pages" / os.SubPath(s"example/$name.adoc"), createFolders = true)
       }
 
       PathRef(T.dest)

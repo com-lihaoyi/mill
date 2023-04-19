@@ -1,4 +1,4 @@
-// == Combine Scala Example
+// == Realistic Scala Example Project
 import mill._, scalalib._, publish._
 
 trait MyModule extends PublishModule {
