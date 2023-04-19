@@ -20,7 +20,7 @@ include::example/basic/8-publish-module.adoc[]
 
 include::example/basic/9-cross-scala-version.adoc[]
 
-include::example/basic/10-sbt-compatible-modules.adoc[]
+include::example/basic/10-sbt-compat-modules.adoc[]
 
 include::example/basic/11-java-modules.adoc[]
 
