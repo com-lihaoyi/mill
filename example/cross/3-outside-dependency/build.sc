@@ -1,4 +1,4 @@
-// == Using Cross Modules from Outside
+// == Using Cross Modules from Outside Targets
 //
 // You can refer to targets defined in cross-modules as follows:
 

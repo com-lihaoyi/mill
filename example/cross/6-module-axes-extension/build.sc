@@ -1,3 +1,5 @@
+// == Extending Cross Modules
+//
 // You can also take an existing cross module and extend it with additional cross
 // axes as shown:
 import mill._

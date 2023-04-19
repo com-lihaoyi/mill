@@ -1,4 +1,4 @@
-// == Multiple Inputs
+// == Multiple Cross Axes
 //
 // You can have a cross-module with multiple inputs:
 import mill._

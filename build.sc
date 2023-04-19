@@ -1284,16 +1284,24 @@ object example extends MillScalaModule {
     }
 
     def rendered = T{
+      var seenCode = false
       os.write(
         T.dest / "example.adoc",
         parsed()
           .filter(_._2.nonEmpty)
           .map {
             case ("scala", txt) =>
+              val links = {
+                val browse = "🔗Browse Online"
+                val download = "⇩Download Example"
+                if (seenCode) ""
+                else s"https://dummy.com[$download] https://dummy.com[$browse]\n\n"
+              }
               s"""[source,scala]
                  |----
                  |$txt
-                 |----""".stripMargin
+                 |----
+                 |$links""".stripMargin
             case ("comment", txt) => txt
             case ("example", txt) =>
               s"""[source,bash]
