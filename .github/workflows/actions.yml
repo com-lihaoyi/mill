@@ -68,7 +68,7 @@ jobs:
           - java-version: 17
             buildcmd: ./mill -i -k "integration.thirdparty.__.test"
           - java-version: 17
-            buildcmd: ./mill -i docs.antora.githubPages
+            buildcmd: ./mill -i docs.githubPages
 
     uses: ./.github/workflows/run-mill-action.yml
     with:

@@ -1962,7 +1962,7 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
       "mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll",
       "__.sources",
       "+",
-      "docs.antora.localPages"
+      "docs.localPages"
     ),
     selectMode = SelectMode.Separated
   )(identity))()
