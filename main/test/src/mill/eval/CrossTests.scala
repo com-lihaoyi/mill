@@ -2,7 +2,15 @@ package mill.eval
 
 import mill.define.Discover
 import mill.util.{TestEvaluator, TestGraphs}
-import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, singleCross}
+import mill.util.TestGraphs.{
+  crossResolved,
+  doubleCross,
+  nestedCrosses,
+  innerCrossModule,
+  singleCross,
+  nonStringCross,
+  crossExtension
+}
 import utest._
 object CrossTests extends TestSuite {
   val tests = Tests {
@@ -12,6 +20,32 @@ object CrossTests extends TestSuite {
       val Right(("210", 1)) = check.apply(singleCross.cross("210").suffix)
       val Right(("211", 1)) = check.apply(singleCross.cross("211").suffix)
       val Right(("212", 1)) = check.apply(singleCross.cross("212").suffix)
+    }
+
+    "nonStringCross" - {
+      val check = new TestEvaluator(nonStringCross)
+
+      val Right((210, 1)) = check.apply(nonStringCross.cross(210).suffix)
+      val Right((211, 1)) = check.apply(nonStringCross.cross(211).suffix)
+      val Right((212, 1)) = check.apply(nonStringCross.cross(212).suffix)
+    }
+
+    "crossExtension" - {
+      val check = new TestEvaluator(crossExtension)
+
+      val Right(("Param Value: a", _)) = check.apply(crossExtension.myCross("a").param1)
+
+      val Right(("Param Value: a", _)) = check.apply(crossExtension.myCrossExtended("a", 1).param1)
+      val Right(("Param Value: 2", _)) = check.apply(crossExtension.myCrossExtended("b", 2).param2)
+
+      val Right(("Param Value: a", _)) =
+        check.apply(crossExtension.myCrossExtendedAgain("a", 1, true).param1)
+      val Right(("Param Value: 2", _)) =
+        check.apply(crossExtension.myCrossExtendedAgain("b", 2, false).param2)
+      val Right(("Param Value: true", _)) =
+        check.apply(crossExtension.myCrossExtendedAgain("a", 1, true).param3)
+      val Right(("Param Value: false", _)) =
+        check.apply(crossExtension.myCrossExtendedAgain("b", 2, false).param3)
     }
 
     "crossResolved" - {
@@ -36,6 +70,25 @@ object CrossTests extends TestSuite {
       val Right(("212_jvm", 1)) = check.apply(doubleCross.cross("212", "jvm").suffix)
       val Right(("212_js", 1)) = check.apply(doubleCross.cross("212", "js").suffix)
       val Right(("212_native", 1)) = check.apply(doubleCross.cross("212", "native").suffix)
+    }
+
+    "innerCrossModule" - {
+      val check = new TestEvaluator(innerCrossModule)
+
+      val Right(("foo a", 1)) = check.apply(innerCrossModule.myCross("a").foo.bar)
+      val Right(("baz b", 1)) = check.apply(innerCrossModule.myCross("b").baz.bar)
+
+      val Right(("foo a", 1)) = check.apply(innerCrossModule.myCross2("a", 1).foo.bar)
+      val Right(("foo 1", 1)) = check.apply(innerCrossModule.myCross2("a", 1).foo.qux)
+      val Right(("baz b", 1)) = check.apply(innerCrossModule.myCross2("b", 2).baz.bar)
+      val Right(("baz 2", 1)) = check.apply(innerCrossModule.myCross2("b", 2).baz.qux)
+
+      val Right(("foo a", 1)) = check.apply(innerCrossModule.myCross3("a", 1, true).foo.bar)
+      val Right(("foo 1", 1)) = check.apply(innerCrossModule.myCross3("a", 1, true).foo.qux)
+      val Right(("foo true", 1)) = check.apply(innerCrossModule.myCross3("a", 1, true).foo.lol)
+      val Right(("baz b", 1)) = check.apply(innerCrossModule.myCross3("b", 2, false).baz.bar)
+      val Right(("baz 2", 1)) = check.apply(innerCrossModule.myCross3("b", 2, false).baz.qux)
+      val Right(("baz false", 1)) = check.apply(innerCrossModule.myCross3("b", 2, false).baz.lol)
     }
 
     "nestedCrosses" - {

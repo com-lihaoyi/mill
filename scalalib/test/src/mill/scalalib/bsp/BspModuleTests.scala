@@ -33,13 +33,13 @@ object BspModuleTests extends TestSuite {
   object InterDeps extends BspBase {
     val maxCrossCount = 25
     val configs = 1.to(maxCrossCount)
-    object Mod extends Cross[ModCross](configs: _*)
-    class ModCross(index: Int) extends ScalaModule {
+    object Mod extends Cross[ModCross](configs)
+    trait ModCross extends ScalaModule with Cross.Module[Int] {
       override def scalaVersion: T[String] = testScalaVersion
       // each depends on all others with lower index
       override def moduleDeps: Seq[JavaModule] =
         configs
-          .filter(c => c < index)
+          .filter(c => c < crossValue)
           .map(i => Mod(i))
     }
   }

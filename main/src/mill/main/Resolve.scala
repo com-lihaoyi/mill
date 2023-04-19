@@ -251,21 +251,21 @@ abstract class Resolve[R: ClassTag] {
           case Segment.Cross(cross) =>
             obj match {
               case c: Cross[_] =>
-                val searchModules =
-                  if (cross == Seq("__")) for ((_, v) <- c.items) yield v
+                val searchModules: Seq[Module] =
+                  if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
                   else if (cross.contains("_")) {
                     for {
-                      (k, v) <- c.items
-                      if k.length == cross.length
-                      if k.zip(cross).forall { case (l, r) => l == r || r == "_" }
+                      (segments, v) <- c.segmentsToModules.toList
+                      if segments.length == cross.length
+                      if segments.zip(cross).forall { case (l, r) => l == r || r == "_" }
                     } yield v
-                  } else c.itemMap.get(cross.toList).toSeq
+                  } else c.segmentsToModules.get(cross.toList).toSeq
 
                 recurse(
                   searchModules = searchModules,
                   resolveFailureMsg =
                     Resolve.errorMsgCross(
-                      c.items.map(_._1.map(_.toString)),
+                      c.segmentsToModules.map(_._1.map(_.toString)).toList,
                       cross.map(_.toString),
                       obj.millModuleSegments.value
                     )
