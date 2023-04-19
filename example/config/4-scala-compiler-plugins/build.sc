@@ -23,11 +23,11 @@ object foo extends RootModule with ScalaModule {
 
 > ./mill compile
 error: Unwanted cyclic dependency
-error: src/Foo.scala:3:15:
+error: src/Foo.scala
 error:   def y = Bar.z
 error:               ^
 error: symbol: method z
-error: src/Bar.scala:3:11:
+error: src/Bar.scala
 error:   def x = Foo.y
 error:           ^
 error: symbol: object Foo
