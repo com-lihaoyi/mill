@@ -2,90 +2,41 @@
 
 include::example/basic/1-simple-scala.adoc[]
 
-The source code for this module would live in the `src/` folder, matching the name you assigned to the module.
-Output for this module (compiled files, resolved dependency lists, …) would live in `out/`.
-
-This can be run from the Bash shell via:
+Additional Mill commands you would likely need include:
 
 [source,bash]
 ----
-$ mill compile                 # compile sources into classfiles
+$ mill test          # run the test suite, if any
 
-$ mill run                     # run the main method, if any
+$ mill runBackground # run the main method in the background
 
-$ mill runBackground           # run the main method in the background
+$ mill clean <task>  # delete the cached output of a task, terminate any runBackground
 
-$ mill launcher                # prepares a foo/launcher.dest/run you can run later
+$ mill launcher      # prepares a foo/launcher.dest/run you can run later
 
-$ mill jar                     # bundle the classfiles into a jar
+$ mill jar           # bundle the classfiles into a jar suitable for publishing
 
-$ mill assembly                # bundle classfiles and all dependencies into a jar
+$ mill -i console    # start a Scala console within your project
 
-$ mill -i console              # start a Scala console within your project (in interactive mode: "-i")
-
-$ mill -i repl                 # start an Ammonite REPL within your project (in interactive mode: "-i")
+$ mill -i repl       # start an Ammonite REPL within your project
 ----
 
-You can run `+mill resolve __+` to see a full list of the different tasks that are available, `+mill resolve _+` to see
-the tasks within `foo`, `mill inspect foo.compile` to inspect a task's doc-comment documentation or what it depends on,
-or `mill show foo.scalaVersion` to show the output of any task.
+You can run `+mill resolve __+` to see a full list of the different tasks that
+are available, `+mill resolve _+` to see the tasks within `foo`,
+`mill inspect compile` to inspect a task's doc-comment documentation or what
+it depends on, or `mill show foo.scalaVersion` to show the output of any task.
 
 The most common *tasks* that Mill can run are cached *targets*, such as
-`compile`, and un-cached *commands* such as `foo.run`. Targets do not re-evaluate unless one of their inputs changes,
-whereas commands re-run every time.
-
-You can find other example projects to learn from within the
-https://github.com/com-lihaoyi/mill/tree/main/example/basic[Examples Folder] of
-the Mill repository.
+`compile`, and un-cached *commands* such as `foo.run`. Targets do not
+re-evaluate unless one of their inputs changes, whereas commands re-run every
+time.
 
 include::example/basic/2-multi-module.adoc[]
 
-You can define multiple modules the same way you define a single module, using
-`def moduleDeps` to define the relationship between them.
-The above builds expect the following project layout:
-
-----
-build.sc
-foo/
-    src/
-        Main.scala
-    resources/
-        ...
-bar/
-    src/
-        Main2.scala
-    resources/
-        ...
-out/
-    foo/
-        ...
-    bar/
-        ...
-----
-
-And can be built/run using:
-
-[source,bash]
-----
-$ mill foo.compile
-$ mill bar.compile
-
-$ mill foo.run
-$ mill bar.run
-
-$ mill foo.jar
-$ mill bar.jar
-
-$ mill foo.assembly
-$ mill bar.assembly
-----
-
-Mill's evaluator will ensure that the modules are compiled in the right order, and recompiled as necessary when source
-code in each module changes.
-
 == Watch and Re-evaluate
 
-You can use the `--watch` flag to make Mill watch a task's inputs, re-evaluating the task as necessary when the inputs
+You can use the `--watch` flag to make Mill watch a task's inputs,
+re-evaluating the task as necessary when the inputs
 change:
 
 [source,bash]
@@ -96,8 +47,9 @@ $ mill -w foo.compile
 $ mill -w foo.run
 ----
 
-Mill's `--watch` flag watches both the files you are building using Mill, as well as Mill's own `build.sc` file and
-anything it imports, so any changes to your `build.sc` will automatically get picked up.
+Mill's `--watch` flag watches both the files you are building using Mill, as
+well as Mill's own `build.sc` file and anything it imports, so any changes to
+your `build.sc` will automatically get picked up.
 
 For long-running processes like web servers, you can use `runBackground` to make sure they recompile and restart when code changes,
 forcefully terminating the previous process even though it may be still alive:
@@ -113,9 +65,11 @@ $ mill -w foo.runBackground
 
 By default, mill will evaluate all tasks in sequence.
 But mill also supports processing tasks in parallel.
-This feature is currently experimental and we encourage you to report any issues you find on our bug tracker.
+This feature is currently experimental and we encourage you to report any issues
+you find on our bug tracker.
 
-To enable parallel task execution, use the `--jobs` (`-j`) option followed by a number of maximal parallel threads.
+To enable parallel task execution, use the `--jobs` (`-j`) option followed by a
+number of maximal parallel threads.
 
 Example: Use up to 4 parallel threads to compile all modules:
 
@@ -175,9 +129,12 @@ usage: mill [options] [[target [target-options]] [+ [target ...]]]
 
 All _options_ must be given before the first target.
 
-A _target_ is a fully qualified task or command optionally followed by target specific arguments.
-You can use wildcards and brace-expansion to select multiple targets at once or to shorten the path to deeply nested targets.
-If you provide optional target arguments and your wildcard or brace-expansion is resolved to multiple targets, the arguments will be applied to each of the targets.
+A _target_ is a fully qualified task or command optionally followed by target
+specific arguments. You can use wildcards and brace-expansion to select
+multiple targets at once or to shorten the path to deeply nested targets. If
+you provide optional target arguments and your wildcard or brace-expansion is
+resolved to multiple targets, the arguments will be applied to each of the
+targets.
 
 .Wildcards and brace-expansion
 |===
@@ -188,7 +145,8 @@ If you provide optional target arguments and your wildcard or brace-expansion is
 |===
 
 You can use the `+` symbol to add another target with optional arguments.
-If you need to feed a `+` as argument to your target, you can mask it by preceding it with a backslash (`\`).
+If you need to feed a `+` as argument to your target, you can mask it by
+preceding it with a backslash (`\`).
 
 === Examples
 
@@ -256,7 +214,8 @@ foo.artifactName
 ----
 
 `resolve` lists the tasks that match a particular query, without running them.
-This is useful for "dry running" an `mill` command to see what would be run before you run them, or to explore what modules or tasks are available
+This is useful for "dry running" an `mill` command to see what would be run
+before you run them, or to explore what modules or tasks are available
 from the command line using `+resolve _+`, `+resolve foo._+`, etc.
 
 [source,bash]
@@ -288,8 +247,9 @@ Inputs:
     foo.forkWorkingDir
 ----
 
-`inspect` is a more verbose version of <<_resolve>>. In addition to printing out the name of one-or-more tasks,
-it also displays its source location and a list of input tasks. This is very useful for debugging and interactively
+`inspect` is a more verbose version of <<_resolve>>. In addition to printing
+out the name of one-or-more tasks, it also displays its source location and a
+list of input tasks. This is very useful for debugging and interactively
 exploring the structure of your build from the command line.
 
 `inspect` also works with the same `+_+`/`+__+` wildcard/query syntaxes that
@@ -317,13 +277,15 @@ $ mill show foo.scalaVersion
 "2.13.1"
 ----
 
-By default, Mill does not print out the metadata from evaluating a task. Most people would not be interested in e.g.
-viewing the metadata related to incremental compilation: they just want to compile their code! However, if you want to
-inspect the build to debug problems, you can make Mill show you the metadata output for a task using the `show` command:
+By default, Mill does not print out the metadata from evaluating a task. Most
+people would not be interested in e.g. viewing the metadata related to
+incremental compilation: they just want to compile their code! However, if you
+want to inspect the build to debug problems, you can make Mill show you the
+metadata output for a task using the `show` command:
 
-`show` is not just for showing configuration values.
-All tasks return values that can be shown with `show`.
-E.g. `compile` returns the paths to the `classes` folder and `analysisFile` file produced by the compilation:
+`show` is not just for showing configuration values. All tasks return values
+that can be shown with `show`. E.g. `compile` returns the paths to the
+`classes` folder and `analysisFile` file produced by the compilation:
 
 [source,bash]
 ----
@@ -356,10 +318,11 @@ $ mill show foo.compileClasspath
 ]
 ----
 
-`show` is also useful for interacting with Mill from external tools, since the JSON it outputs is structured and easily
-parsed and manipulated.
+`show` is also useful for interacting with Mill from external tools, since the
+JSON it outputs is structured and easily parsed and manipulated.
 
-When `show` is used with multiple targets, its output will slightly change to a JSON array, containing all the results of the given targets.
+When `show` is used with multiple targets, its output will slightly change to a
+JSON array, containing all the results of the given targets.
 
 [source,bash]
 ----
@@ -379,7 +342,8 @@ $ mill show "foo.{sources,compileClasspath}"
 
 === showNamed
 
-Same as `show`, but the output will always be structured in a JSON dictionary, with the task names as key and the task results as JSON values.
+Same as `show`, but the output will always be structured in a JSON dictionary,
+with the task names as key and the task results as JSON values.
 
 [source,bash]
 ----
@@ -413,9 +377,10 @@ foo.localClasspath
 foo.assembly
 ----
 
-`mill path` prints out a dependency chain between the first task and the second.
-It is very useful for exploring the build graph and trying to figure out how data gets from one task to another.
-If there are multiple possible dependency chains, one of them is picked arbitrarily.
+`mill path` prints out a dependency chain between the first task and the
+second. It is very useful for exploring the build graph and trying to figure
+out how data gets from one task to another. If there are multiple possible
+dependency chains, one of them is picked arbitrarily.
 
 === plan
 
@@ -436,10 +401,12 @@ foo.transitiveIvyDeps
 foo.compileClasspath
 ----
 
-`mill plan foo` shows which tasks would be evaluated, and in what order, if you ran `mill foo`, but without actually running them.
-This is a useful tool for debugging your build: e.g. if you suspect a task `foo` is running things that it
-shouldn't be running, a quick `mill plan` will list out all the upstream tasks that `foo` needs to run, and you can then
-follow up with `mill path` on any individual upstream task to see exactly how `foo` depends on it.
+`mill plan foo` shows which tasks would be evaluated, and in what order, if you
+ran `mill foo`, but without actually running them. This is a useful tool for
+debugging your build: e.g. if you suspect a task `foo` is running things that
+it shouldn't be running, a quick `mill plan` will list out all the upstream
+tasks that `foo` needs to run, and you can then follow up with `mill path` on
+any individual upstream task to see exactly how `foo` depends on it.
 
 === visualize
 
@@ -457,9 +424,10 @@ $ mill show visualize foo._
 ]
 ----
 
-`mill show visualize` takes a subset of the Mill build graph (e.g. `+core._+` is every task directly under the `core`
-module) and draws out their relationships in `.svg` and `.png` form for you to inspect. It also generates `.txt`, `.dot`
-and `.json` for easy processing by downstream tools.
+`mill show visualize` takes a subset of the Mill build graph (e.g. `+core._+`
+is every task directly under the `core` module) and draws out their
+relationships in `.svg` and `.png` form for you to inspect. It also generates
+`.txt`, `.dot` and `.json` for easy processing by downstream tools.
 
 The above command generates the following diagram:
 
@@ -481,8 +449,9 @@ $ mill show visualizePlan foo.compile
 ]
 ----
 
-`mill show visualizePlan` is similar to `mill show visualize` except that it shows a graph of the entire build plan,
-including tasks not directly resolved by the query. Tasks directly resolved are shown with a solid border, and
+`mill show visualizePlan` is similar to `mill show visualize` except that it
+shows a graph of the entire build plan, including tasks not directly resolved
+by the query. Tasks directly resolved are shown with a solid border, and
 dependencies are shown with a dotted border.
 
 The above command generates the following diagram:
@@ -507,8 +476,9 @@ object bar extends ScalaModule {
 }
 ----
 
-`+mill show visualizePlan _.compile+` diagrams the relationships between the compile tasks of each module, which
-illustrates which module depends on which other module's compilation output:
+`+mill show visualizePlan _.compile+` diagrams the relationships between the
+compile tasks of each module, which illustrates which module depends on which
+other module's compilation output:
 
 image::VisualizeCompile.svg[VisualizeCompile.svg]
 
@@ -519,8 +489,8 @@ image::VisualizeCompile.svg[VisualizeCompile.svg]
 $ mill clean
 ----
 
-`clean` deletes all the cached outputs of previously executed tasks. It can apply to the entire project, entire modules,
-or specific tasks.
+`clean` deletes all the cached outputs of previously executed tasks. It can
+apply to the entire project, entire modules, or specific tasks.
 
 [source,bash]
 ----
@@ -541,8 +511,9 @@ mill clean __.compile
 $ mill mill.scalalib.Dependency/showUpdates
 ----
 
-Mill can search for updated versions of your project's dependencies, if available from your project's configured
-repositories. Note that it uses heuristics based on common versioning schemes, so it may not work as expected for
+Mill can search for updated versions of your project's dependencies, if
+available from your project's configured repositories. Note that it uses
+heuristics based on common versioning schemes, so it may not work as expected for
 dependencies with particularly weird version numbers.
 
 Current limitations:
@@ -559,120 +530,26 @@ mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre
 ----
 
 
-== Deploying your code
-
-The two most common things to do once your code is complete is to make an assembly (e.g. for deployment/installation) or
-publishing (e.g. to Maven Central). Mill comes with both capabilities built in.
-
-Mill comes with the built-in with the ability to make assemblies. Given a simple Mill build:
-
-.`build.sc`
-[source,scala]
-----
-import mill._, scalalib._
-
-object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
-}
-----
-
-You can make a self-contained assembly via:
-
-[source,bash]
-----
-$ mill foo.assembly
-
-$ ls -lh out/foo/assembly.dest/out.jar
--rw-r--r--  1 lihaoyi  staff   5.0M Feb 17 11:14 out/foo/assembly.dest/out.jar
-----
-
-You can then move the `out.jar` file anywhere you would like, and run it standalone using `java`:
-
-[source,bash]
-----
-$ java -cp out/foo/assembly.dest/out.jar foo.Example
-Hello World!
-----
-
-To publish to Maven Central, you need to make `foo` also extend Mill's
-`PublishModule` trait:
-
-.`build.sc`
-[source,scala]
-----
-import mill._, scalalib._, publish._
-
-object foo extends ScalaModule with PublishModule {
-  def scalaVersion = "2.13.1"
-
-  def publishVersion = "0.0.1"
-
-  def pomSettings = PomSettings(
-    description = "Hello",
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/example",
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(
-      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
-    )
-  )
-}
-----
-
-You can change the name of the published artifact (artifactId in the Maven POM)
-by overriding `artifactName` in the module you want to publish.
-
-You can download an example project with this layout here:
-
-* {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-basic-7-publish-module.zip[Publish Module Example]
-
-Which you can then publish using the `mill foo.publish` command, which takes your sonatype credentials (
-e.g. `lihaoyi:foobarbaz`) and GPG password as inputs:
-
-[source,bash]
-----
-$ mill foo.publish
-Missing arguments: (--sonatypeCreds: String, --release: Boolean)
-
-Arguments provided did not match expected signature:
-
-publish
-  --sonatypeCreds   String (format: "username:password")
-  --signed          Boolean (default true)
-  --gpgArgs         Seq[String] (default Seq("--batch", "--yes", "-a", "-b"))
-  --readTimeout     Int (default 60000)
-  --release         Boolean (default true)
-  --connectTimeout  Int (default 5000)
-  --awaitTimeout    Int (default 120000)
-  --stagingRelease  Boolean (default true)
-----
-
-You also need to specify `release` as `true` or `false`, depending on whether you just want to stage your module
-on `oss.sonatype.org` or you want Mill to complete the release process to Maven Central.
-
-If you are publishing multiple artifacts, you can also use `mill mill.scalalib.PublishModule/publishAll` as described
-
-xref:Common_Project_Layouts.adoc#_publishing[here]
-
-
-
 == Running Mill with custom JVM options
 
-It's possible to pass JVM options to the Mill launcher. To do this you need to create a `.mill-jvm-opts` file in your
-project's root. This file should contain JVM options, one per line.
+It's possible to pass JVM options to the Mill launcher. To do this you need to
+create a `.mill-jvm-opts` file in your project's root. This file should contain
+JVM options, one per line.
 
-For example, if your build requires a lot of memory and bigger stack size, your `.mill-jvm-opts` could look like this:
+For example, if your build requires a lot of memory and bigger stack size, your
+`.mill-jvm-opts` could look like this:
 
 ----
 -Xss10m
 -Xmx10G
 ----
 
-The file name for passing JVM options to the Mill launcher is configurable. If for some reason you don't want to
-use `.mill-jvm-opts` file name, add `MILL_JVM_OPTS_PATH` environment variable with any other file name.
+The file name for passing JVM options to the Mill launcher is configurable. If
+for some reason you don't want to use `.mill-jvm-opts` file name, add
+`MILL_JVM_OPTS_PATH` environment variable with any other file name.
 
 
 ---
 
-Come by our https://gitter.im/lihaoyi/mill[Gitter Channel] if you want to ask questions or say hi!
+Come by our https://discord.com/channels/632150470000902164/940067748103487558[Discord Channel]
+if you want to ask questions or say hi!

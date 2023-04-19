@@ -18,7 +18,30 @@ object bar extends MyModule
 
 // A simple Mill build with two modules, `foo` and `bar`. We don't mark either
 // module as top-level using `extends BuildFileModule`, so running tasks needs to
-// use the module name as the prefix e.g. `foo.run` or `bar.run`
+// use the module name as the prefix e.g. `foo.run` or `bar.run`. You can define
+// multiple modules the same way you define a single module, using
+//`def moduleDeps` to define the relationship between them.
+//
+// The above builds expect the following project layout:
+//
+// ----
+// build.sc
+// foo/
+//     src/
+//         Main.scala
+//     resources/
+//         ...
+// bar/
+//     src/
+//         Main2.scala
+//     resources/
+//         ...
+// out/
+//     foo/
+//         ...
+//     bar/
+//         ...
+// ----
 //
 // Note that we split out the configuration common to both modules into a
 // separate `trait MyModule`. This lets us avoid the need to copy-paste common
@@ -40,3 +63,6 @@ Bar.value: <p>world</p>
 Bar.value: <p>world</p>
 
 */
+
+// Mill's evaluator will ensure that the modules are compiled in the right
+// order, and recompiled as necessary when source code in each module changes.
