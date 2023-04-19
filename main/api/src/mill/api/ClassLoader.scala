@@ -7,6 +7,10 @@ import java.nio.file.FileAlreadyExistsException
 import mill.java9rtexport.Export
 import scala.util.Try
 
+/**
+ * Utilities for creating classloaders for running compiled Java/Scala code in
+ * isolated classpaths.
+ */
 object ClassLoader {
 
   def java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")

@@ -9,6 +9,9 @@ import scala.reflect.ClassTag
 import scala.reflect.NameTransformer.decode
 
 /**
+ * Represents a namespace within the Mill build hierarchy, containing nested
+ * modules or tasks.
+ *
  * `Module` is a class meant to be extended by `trait`s *only*, in order to
  * propagate the implicit parameters forward to the final concrete
  * instantiation site so they can capture the enclosing/line information of
