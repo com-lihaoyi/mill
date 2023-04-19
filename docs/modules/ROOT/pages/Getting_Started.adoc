@@ -158,7 +158,10 @@ preceding it with a backslash (`\`).
 
 == Built-in commands
 
-Mill comes with a number of useful commands out of the box.
+Mill comes with a number of useful commands out of the box. These are listed
+in the Scaladoc:
+
+* {mill-doc-url}/api/latest/mill/main/MainModule.html[mill.main.MainModule]
 
 === init
 

@@ -22,7 +22,14 @@ trait PublishModule extends JavaModule { outer =>
       )
   }
 
+  /**
+   * Configuration for the `pom.xml` metadata file published with this module
+   */
   def pomSettings: T[PomSettings]
+
+  /**
+   * The artifact version that this module would be published as
+   */
   def publishVersion: T[String]
 
   /**

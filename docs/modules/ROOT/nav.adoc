@@ -41,3 +41,6 @@
 ** xref:External_References.adoc#_ammonite[Ammonite]
 ** xref:External_References.adoc#_coursier[Coursier]
 ** xref:External_References.adoc#_os_lib[OS-Lib]
+
+* {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
+

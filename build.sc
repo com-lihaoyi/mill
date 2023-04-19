@@ -1843,7 +1843,7 @@ object docs extends Module {
   def githubPagesPlaybookText(authorMode: Boolean): Task[String] = T.task {
     s"""site:
        |  title: Mill
-       |  url: ${Settings.docUrl}
+       |  url: ${if (authorMode) s"${T.dest}/site/index.html" else Settings.docUrl}
        |  start_page: mill::Intro_to_Mill.adoc
        |
        |content:
@@ -1867,7 +1867,7 @@ object docs extends Module {
        |asciidoc:
        |  attributes:
        |    mill-github-url: ${Settings.projectUrl}
-       |    mill-doc-url: ${Settings.docUrl}
+       |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else Settings.docUrl}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |

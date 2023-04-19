@@ -4,7 +4,11 @@
 While Mill supports a range of languages and external tools, it has thorough
 support for building Scala applications bundled with the build tool. This page
 walks through some of the common things you often need to do when working with
-Scala projects
+Scala projects.
+
+Many of the APIs covered here are listed in the Scaladoc:
+
+* {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
 
 include::example/configscala/1-compilation-execution-flags.adoc[]
 

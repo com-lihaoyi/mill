@@ -1,4 +1,4 @@
-// == Scala Compiler PLugins
+// == Scala Compiler Plugins
 
 import mill._, scalalib._
 
