@@ -16,9 +16,8 @@ trait MyCrossModuleExtended extends MyCrossModule2 with Cross.Module3[String, In
   def param3 = T{ "Param Value: " + crossValue3 }
 }
 
-// Cross modules can have multiple axes. You can define a cross module with N
-// axes via the `Cross.ModuleN` trait, or you can take an existing cross module
-// with `Cross.Module[N-1]` and extend `Cross.ModuleN` to add a new axis to it.
+// You can take an existing cross module
+// with `Cross.Module{N-1}` and extend `Cross.ModuleN` to add a new axis to it.
 //
 // Multi-axis cross modules take their input as tuples, and each element of the
 // tuple beyond the first is bound to the `crossValueN` property defined by the
