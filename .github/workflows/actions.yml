@@ -60,7 +60,7 @@ jobs:
           - java-version: 17
             buildcmd: ci/test-mill-dev.sh
           - java-version: 17
-            buildcmd: ./mill -i -k "example.__.test"
+            buildcmd: ./mill -i -k "example.__.local.test"
           - java-version: 17
             buildcmd: ./mill -i -k "integration.feature.__.local.test"
           - java-version: 17
@@ -104,7 +104,7 @@ jobs:
         include:
           # Limit some tests to Java 17 to limit CI times
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.fork.test"
+            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.local.test"
           - java-version: 17
             buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.fork.test"
           - java-version: 17

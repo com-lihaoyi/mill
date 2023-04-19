@@ -91,7 +91,7 @@ my.line.count: 14
 */
 
 // Custom targets and commands can contain arbitrary code. Whether you want to
-// download files (e.g. using `mill.modules.Util.download`), shell-out to Webpack
+// download files (e.g. using `requests.get`), shell-out to Webpack
 // to compile some Javascript, generate sources to feed into a compiler, or create
 // some custom jar/zip assembly with the files you want (e.g. using
 // `mill.modules.Jvm.createJar`), all of these can simply be custom targets with

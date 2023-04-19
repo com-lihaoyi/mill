@@ -1,4 +1,4 @@
-package foo
+package bar
 object Bar {
   def main(args: Array[String]): Unit = {
     println(hello())

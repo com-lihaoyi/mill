@@ -25,11 +25,7 @@ object foo extends RootModule with ScalaModule {
 error: Unwanted cyclic dependency
 error: src/Foo.scala
 error:   def y = Bar.z
-error:               ^
-error: symbol: method z
 error: src/Bar.scala
 error:   def x = Foo.y
-error:           ^
-error: symbol: object Foo
 
 */

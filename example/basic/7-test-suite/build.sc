@@ -26,11 +26,11 @@ compiling 1 Scala source
 
 > ./mill foo.test.test
 + foo.FooTests.hello
-+ bar.FooTests.world
++ foo.FooTests.world
 
 > ./mill foo.test
 + foo.FooTests.hello
-+ bar.BarTests.world
++ foo.FooTests.world
 
 */
 
