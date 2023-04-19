@@ -1,5 +1,5 @@
 package mill.example
-import mill.integration.IntegrationTestSuite
+import mill.integration.{BashTokenizer, IntegrationTestSuite}
 import utest._
 import mill.util.Util
 
@@ -59,21 +59,22 @@ object ExampleTestSuite extends IntegrationTestSuite {
 
     if (!incorrectPlatform) {
       println("ExampleTestSuite: " + commandBlockLines.head)
-      processCommand(workspaceRoot, expectedSnippets, commandHead)
+      val s">$commandStr" = commandHead
+      processCommand(workspaceRoot, expectedSnippets, commandStr)
     }
   }
 
   def processCommand(
       workspaceRoot: os.Path,
       expectedSnippets: Vector[String],
-      commandHead: String
+      commandStr: String
   ) = {
-    commandHead match {
-      case s"> ./$command" =>
+    BashTokenizer.tokenize(commandStr) match {
+      case Seq(s"./$command", rest@_*) =>
         val evalResult = command match {
-          case s"mill $rest" => evalStdout(rest.split(" "): _*)
-          case rest =>
-            val tokens = rest.split(" ")
+          case "mill" => evalStdout(rest: _*)
+          case cmd =>
+            val tokens = cmd +: rest
             val executable = workspaceRoot / os.RelPath(tokens.head)
             if (!os.exists(executable)) {
               throw new Exception(
@@ -90,13 +91,13 @@ object ExampleTestSuite extends IntegrationTestSuite {
 
         validateEval(expectedSnippets, evalResult)
 
-      case s"> cp -r $from $to" =>
+      case Seq("cp", "-r", from, to) =>
         os.copy(os.Path(from, workspaceRoot), os.Path(to, workspaceRoot))
 
-      case s"> sed -i 's/$oldStr/$newStr/g' $file" =>
+      case Seq("sed", "-i", s"s/$oldStr/$newStr/g", file) =>
         mangleFile(os.Path(file, workspaceRoot), _.replace(oldStr, newStr))
 
-      case s"> curl $url" =>
+      case Seq("curl", url) =>
         Thread.sleep(1500) // Need to give backgroundWrapper time to spin up
         val res = requests.get(url)
         validateEval(
@@ -104,24 +105,35 @@ object ExampleTestSuite extends IntegrationTestSuite {
           IntegrationTestSuite.EvalResult(res.is2xx, res.text(), "")
         )
 
-      case s"> cat $path" =>
+      case Seq("cat", path) =>
         val res = os.read(os.Path(path, workspaceRoot))
         validateEval(
           expectedSnippets,
           IntegrationTestSuite.EvalResult(true, res, "")
         )
 
-      case s"> node $rest" =>
+      case Seq("node", rest@_*) =>
         val res = os
-          .proc("node", rest.split(" "))
+          .proc("node", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
         IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
 
-      case s"> java -jar $rest" =>
+      case Seq("java", "-jar", rest@_*) =>
         val res = os
-          .proc("java", "-jar", rest.split(" "))
+          .proc("java", "-jar", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
         IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+
+      case Seq("unzip", "-p", zip, path) =>
+        val zipFile = new java.util.zip.ZipFile((workspaceRoot / os.SubPath(zip)).toIO)
+        try {
+          val boas = new java.io.ByteArrayOutputStream
+          os.Internals.transfer(zipFile.getInputStream(zipFile.getEntry(path)), boas)
+          validateEval(
+            expectedSnippets,
+            IntegrationTestSuite.EvalResult(true, boas.toString("UTF-8"), "")
+          )
+        }finally{zipFile.close()}
 
     }
   }

@@ -42,7 +42,7 @@ trait FooModule extends Cross.Module[String] {
     object js extends SharedJS {
       def moduleDeps = Seq(bar.js)
     }
-  }\
+  }
 }
 
 // This example demonstrates how to publish Scala modules which are both

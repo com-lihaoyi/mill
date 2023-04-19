@@ -10,7 +10,7 @@ trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
 }
 
 object app extends RootModule with AppScalaModule{
-  def moduleDeps = Seq(shared.jvm)\
+  def moduleDeps = Seq(shared.jvm)
   def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
 
   def resources = T{

@@ -30,6 +30,6 @@ Foo.value: 31337
 Bar.value: 271828
 
 > ./mill foo.test
-Test run finished: 0 failed, 0 ignored, 2 total, 0.003s
+Test run finished: 0 failed, 0 ignored, 2 total
 
 */

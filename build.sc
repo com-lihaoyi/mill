@@ -642,7 +642,7 @@ object main extends MillModule {
     )
   }
   object core extends MillModule with BuildInfo{
-    
+
     override def moduleDeps = Seq(api, util)
     override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
@@ -661,7 +661,7 @@ object main extends MillModule {
     )
 
     def buildInfoPackageName = "mill"
-    
+
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
       BuildInfo.Value("workerScalaVersion212", Deps.workerScalaVersion212, "Scala 2.12 version used by some workers."),
@@ -1011,8 +1011,8 @@ object contrib extends MillModule {
       scalajslib,
       scalanativelib
     )
-    
-    def buildInfoPackageName = "mill.contrib.bloop" 
+
+    def buildInfoPackageName = "mill.contrib.bloop"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(BuildInfo.Value("bloop", Deps.bloopConfig.dep.version))
   }
@@ -1253,6 +1253,7 @@ object example extends MillScalaModule {
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
   object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"): _*)
+  object config extends Cross[ExampleCrossModule](listIn(millSourcePath / "config"): _*)
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
 
@@ -1660,6 +1661,7 @@ object docs extends Module {
       val renderedExamples: Seq[(String, PathRef)] =
         T.traverse(example.basic.items)(t => t._2.rendered.map("basic/" + t._1.mkString -> _))() ++
         T.traverse(example.cross.items)(t => t._2.rendered.map("cross/" + t._1.mkString -> _))() ++
+        T.traverse(example.config.items)(t => t._2.rendered.map("config/" + t._1.mkString -> _))() ++
         T.traverse(example.misc.items)(t => t._2.rendered.map("misc/" + t._1.mkString -> _))() ++
         T.traverse(example.web.items)(t => t._2.rendered.map("web/" + t._1.mkString -> _))()
 
