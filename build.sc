@@ -1819,8 +1819,8 @@ def uploadToGithub(authKey: String) = T.command {
     examplePath <- os.list(T.workspace / "example" / exampleBase)
   } yield {
     val example = examplePath.subRelativeTo(T.workspace)
-    os.copy(examplePath, T.dest / example)
-    os.copy(launcher().path, T.dest / example / "mill")
+    os.copy(examplePath, T.dest / example, createFolders = true)
+    os.copy(launcher().path, T.dest / example / "mill", createFolders = true)
     val exampleStr = example.segments.mkString("-")
     os.proc("zip", "-r", T.dest / s"$exampleStr.zip", T.dest / example).call(cwd = T.dest)
     (T.dest / s"$exampleStr.zip", label + "-" + exampleStr + ".zip")
