@@ -35,7 +35,7 @@ def baz = T { s"hello ${foo("a").bar.param()}" }
 > ./mill show foo[a].bar.param
 "Bar Param Value: a"
 
-> ./mill show myCross[b].qux.param
+> ./mill show foo[b].qux.param
 "Qux Param Value: b"
 
 > ./mill show baz

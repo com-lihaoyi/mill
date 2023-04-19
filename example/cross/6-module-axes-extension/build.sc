@@ -55,6 +55,6 @@ trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
 
 > ./mill show foo3[b,2,false].param3
 error: object foo3 extends Cross[FooModule3](("a", 1), ("b", 2))
-error:                                                              ^
+error:                                       ^
 error: value _3 is not a member of (String, Int)
 */
