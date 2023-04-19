@@ -1,10 +1,13 @@
 = Tasks
 
-== Task Graphs
-
 One of Mill's core abstractions is its _Task Graph_: this is how Mill defines,
 orders and caches work it needs to do, and exists independently of any support
 for building Scala.
+
+Mill target graphs are primarily built using methods and macros defined on
+`mill.define.Target`, aliased as `T` for conciseness:
+
+- {mill-doc-url}/api/latest/mill/define/Target$.html[mill.define.Target]
 
 The following is a simple self-contained example using Mill to compile Java:
 
