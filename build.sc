@@ -835,6 +835,7 @@ object scalajslib extends MillModule with BuildInfo{
 }
 
 object contrib extends MillModule {
+  def contribModules = millInternal.modules.collect { case m: ContribModule => m }
   trait ContribModule extends MillModule{
     def readme = T.source(millSourcePath / "readme.adoc")
   }
@@ -1303,14 +1304,17 @@ object example extends MillScalaModule {
                 if (seenCode) ""
                 else s"https://dummy.com[$download] https://dummy.com[$browse]\n\n"
               }
-              s"""[source,scala,subs="attributes,verbatim"]
+              s"""
+                 |[source,scala,subs="attributes,verbatim"]
                  |----
                  |$txt
                  |----
+                 |
                  |$links""".stripMargin
             case ("comment", txt) => txt
             case ("example", txt) =>
-              s"""[source,bash,subs="attributes,verbatim"]
+              s"""
+                 |[source,bash,subs="attributes,verbatim"]
                  |----
                  |$txt
                  |----""".stripMargin
@@ -1676,24 +1680,11 @@ object docs extends Module {
       createFolders = true
     )
 
-    val contribReadmes = Seq(
-      "testng" -> contrib.testng.readme(),
-      "twirllib" -> contrib.twirllib.readme(),
-      "playlib" -> contrib.playlib.readme(),
-      "scalapblib" -> contrib.scalapblib.readme(),
-      "scoverage" -> contrib.scoverage.readme(),
-      "buildinfo" -> contrib.buildinfo.readme(),
-      "proguard" -> contrib.proguard.readme(),
-      "flyway" -> contrib.flyway.readme(),
-      "docker" -> contrib.docker.readme(),
-      "bloop" -> contrib.bloop.readme(),
-      "artifactory" -> contrib.artifactory.readme(),
-      "codeartifact" -> contrib.codeartifact.readme(),
-      "versionfile" -> contrib.versionfile.readme(),
-      "bintray" -> contrib.bintray.readme(),
-      "gitlab" -> contrib.gitlab.readme(),
-      "jmh" -> contrib.jmh.readme(),
-    )
+    val contribReadmes = T.traverse(contrib.contribModules)(m =>
+      T.task {
+        m.millModuleSegments.last.render -> m.readme()
+      }
+    )()
 
     for ((name, pref) <- contribReadmes) os.copy(
       pref.path,

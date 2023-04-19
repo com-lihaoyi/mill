@@ -11,7 +11,7 @@ object foo extends MyJavaModule{
 
 object bar extends JavaModule
 
-// Mill also supports `JavaModule`s, which can only contain pure Java code
+// Mill also supports ``JavaModule``s, which can only contain pure Java code
 // without any Scala. These have the same set of tasks as `ScalaModules`:
 // `compile`, `run`, etc., and can similarly depend on each other and have
 // their own test suites.
