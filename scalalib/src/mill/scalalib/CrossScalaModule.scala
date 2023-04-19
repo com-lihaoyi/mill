@@ -12,7 +12,7 @@ import mill.T
  * - src-2.11
  * - src-2.12.3
  */
-trait CrossScalaModule extends ScalaModule with CrossModuleBase { outer =>
+trait CrossScalaModule extends ScalaModule with CrossModuleBase {
   override def sources = T.sources {
     super.sources() ++
       scalaVersionDirectoryNames.map(s => PathRef(millSourcePath / s"src-$s"))
