@@ -1722,7 +1722,7 @@ object docs extends Module {
        |      branches: ${if (Settings.docBranches.isEmpty) "~"
       else Settings.docBranches.map("'" + _ + "'").mkString("[", ",", "]")}
        |      tags: ${Settings.docTags.map("'" + _ + "'").mkString("[", ",", "]")}
-       |      start_path: docs
+       |      start_path: docs/antora
        |    # the master documentation (always in author mode)
        |    - url: ${baseDir}
        |      # edit_url: ${Settings.projectUrl}/edit/{refname}/{path}
