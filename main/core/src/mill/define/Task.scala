@@ -17,21 +17,24 @@ import scala.reflect.macros.blackbox.Context
 abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 
   /**
-   * What other Targets does this Target depend on?
+   * What other tasks does this task depend on?
    */
   val inputs: Seq[Task[_]]
 
   /**
-   * Evaluate this target
+   * Evaluate this task
    */
   def evaluate(args: mill.api.Ctx): Result[T]
 
   /**
-   * Even if this target's inputs did not change, does it need to re-evaluate
+   * Even if this tasks's inputs did not change, does it need to re-evaluate
    * anyway?
    */
   def sideHash: Int = 0
 
+  /**
+   * Whether or not this [[Task]] deletes the `T.dest` folder between runs
+   */
   def flushDest: Boolean = true
 
   def asTarget: Option[Target[T]] = None
@@ -82,9 +85,14 @@ object Task {
 }
 
 /**
- * Represents a task that can be referenced by its path segments.
+ * Represents a task that can be referenced by its path segments. `T{...}`
+ * targets, `T.input`, `T.worker`, etc. but not including anonymous
+ * `T.task` or `T.traverse` etc. instances
  */
 trait NamedTask[+T] extends Task[T] {
+  /**
+   * The implementation task wrapped by this named task
+   */
   def t: Task[T]
   def ctx0: mill.define.Ctx
   def isPrivate: Option[Boolean]
@@ -106,15 +114,38 @@ trait NamedTask[+T] extends Task[T] {
   def writerOpt: Option[upickle.default.Writer[_]] = readWriterOpt.orElse(None)
 }
 
+/**
+ * A Target is a [[NamedTask]] that is cached on disk; either a
+ * [[TargetImpl]] or an [[InputImpl]]
+ */
 trait Target[+T] extends NamedTask[T]
 
 object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
-  // convenience
+  /**
+   * Returns the implicit [[mill.api.Ctx.Dest]] in scope.
+   */
   def dest(implicit ctx: mill.api.Ctx.Dest): os.Path = ctx.dest
+
+  /**
+   * Returns the implicit [[mill.api.Ctx.Log]] in scope.
+   */
   def log(implicit ctx: mill.api.Ctx.Log): Logger = ctx.log
+
+  /**
+   * Returns the implicit [[mill.api.Ctx.Home]] in scope.
+   */
   def home(implicit ctx: mill.api.Ctx.Home): os.Path = ctx.home
+
+  /**
+   * Returns the implicit [[mill.api.Ctx.Env]] in scope.
+   */
   def env(implicit ctx: mill.api.Ctx.Env): Map[String, String] = ctx.env
+
+  /**
+   * Returns the implicit [[mill.api.Ctx.Args]] in scope.
+   */
   def args(implicit ctx: mill.api.Ctx.Args): IndexedSeq[_] = ctx.args
+
   def testReporter(implicit ctx: mill.api.Ctx): TestReporter = ctx.testReporter
   def reporter(implicit ctx: mill.api.Ctx): Int => Option[CompileProblemReporter] = ctx.reporter
   def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
@@ -430,6 +461,15 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   }
 }
 
+/**
+ * A [[TargetImpl]] is the most common [[Task]] a user would encounter, commonly
+ * defined using the `def foo = T{...}` syntax. [[TargetImpl]]s require that their
+ * return type is JSON serializable. In return they automatically caches their
+ * return value to disk, only re-computing if upstream [[Task]]s change
+ *
+ * @param readWriter the JSON serializer used for this [[TargetImpl]]'s return
+ *                   type
+ */
 class TargetImpl[+T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
@@ -440,6 +480,19 @@ class TargetImpl[+T](
   override def readWriterOpt = Some(readWriter)
 }
 
+/**
+ * [[PersistentImpl]] are a flavor of [[TargetImpl]], normally defined using
+ * the `T.persistent{...}` syntax. The main difference is that while
+ * [[TargetImpl]] deletes the `T.dest` folder in between runs,
+ * [[PersistentImpl]] preserves it. This lets the user make use of files on
+ * disk that persistent between runs of the task, e.g. to implement their own
+ * fine-grained caching beyond what Mill provides by default.
+ *
+ * Note that the user defining a `T.persistent` task is taking on the
+ * responsibility of ensuring that their implementation is idempotent, i.e.
+ * that it computes the same result whether or not there is data in `T.dest`.
+ * Violating that invariant can result in confusing mis-behaviors
+ */
 class PersistentImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
@@ -449,6 +502,13 @@ class PersistentImpl[+T](
   override def flushDest = false
 }
 
+/**
+ * [[Command]]s are only [[NamedTask]]s defined using
+ * `def foo() = T.command{...}` and are typically called from the
+ * command-line. Unlike other [[NamedTask]]s, [[Command]]s can be defined to
+ * take arguments that are automatically converted to command-line
+ * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
+ */
 class Command[+T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
@@ -460,12 +520,42 @@ class Command[+T](
   override def writerOpt = Some(writer)
 }
 
+/**
+ * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
+ * `T.worker{...}`. The value returned by `T.worker{...}` is long-lived,
+ * persisting as long as the Mill process is kept alive (e.g. via `--watch`,
+ * or via its default `MillServerMain` server process). This allows the user to
+ * perform in-memory caching that is even more aggressive than the disk-based
+ * caching enabled by [[PersistentImpl]]: your [[Worker]] can cache running
+ * sub-processes, JVM Classloaders with JITed code, and all sorts of things
+ * that do not easily serialize to JSON on disk.
+ *
+ * Like [[PersistentImpl]], The user defining a [[Worker]] assumes the
+ * responsibility of ensuring the implementation is idempotent regardless of
+ * what in-memory state the worker may have.
+ */
 class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
     extends NamedTask[T] {
   override def flushDest = false
   override def asWorker = Some(this)
 }
 
+/**
+ * [[InputImpl]]s, normally defined using `T.input`, are [[NamedTask]]s that
+ * re-evaluate every time Mill is run. This is in contrast to [[TargetImpl]]s
+ * which only re-evaluate when upstream tasks change.
+ *
+ * [[InputImpl]]s are useful when you want to capture some input to the Mill
+ * build graph that comes from outside: maybe from an environment variable, a
+ * JVM system property, the hash returned by `git rev-parse HEAD`. Reading
+ * these external mutable variables inside a `T{...}` [[TargetImpl]] will
+ * incorrectly cache them forever. Reading them inside a `T.input{...}`
+ * will re-compute them every time, and only if the value changes would it
+ * continue to invalidate downstream [[TargetImpl]]s
+ *
+ * The most common case of [[InputImpl]] is [[SourceImpl]] and [[SourcesImpl]],
+ * used for detecting changes to source files.
+ */
 class InputImpl[T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
@@ -476,6 +566,16 @@ class InputImpl[T](
   override def writerOpt = Some(writer)
 }
 
+/**
+ * A specialization of [[InputImpl]] defined via `T.sources`, [[SourcesImpl]]
+ * uses [[PathRef]]s to compute a signature for a set of source files and
+ * folders.
+ *
+ * This is most used when detecting changes in source code: when you edit a
+ * file and run `mill compile`, it is the `T.sources` that re-computes the
+ * signature for you source files/folders and decides whether or not downstream
+ * [[TargetImpl]]s need to be invalidated and re-computed.
+ */
 class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
     extends InputImpl[Seq[PathRef]](
       t,
@@ -486,6 +586,10 @@ class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Optio
   override def readWriterOpt = Some(upickle.default.readwriter[Seq[PathRef]])
 }
 
+/**
+ * Similar to [[Source]], but only for a single source file or folder. Defined
+ * using `T.source`.
+ */
 class SourceImpl(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
     extends InputImpl[PathRef](
       t,

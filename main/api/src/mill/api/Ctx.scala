@@ -12,7 +12,11 @@ object Ctx {
   @ImplicitStub
   implicit def taskCtx: Ctx = ???
 
-  /** Access to the targets destination path. */
+  /**
+   * Access to the targets destination path. This is a folder on disk that is
+   * unique to each task, and allows them to create temporary or output files
+   * without worrying about file collisions
+   */
   trait Dest {
     def dest: os.Path
   }
@@ -65,6 +69,10 @@ object Ctx {
   class ImplicitStub extends StaticAnnotation
 }
 
+/**
+ * Represents the data and utilities that are contextually available inside the
+ * implementation of a `Task`.
+ */
 class Ctx(
     val args: IndexedSeq[_],
     dest0: () => os.Path,

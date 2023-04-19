@@ -1,5 +1,4 @@
 package mill.define
-import os.Path
 
 object BaseModule {
   case class Implicit(value: BaseModule)

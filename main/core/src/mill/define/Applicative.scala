@@ -15,6 +15,9 @@ import scala.reflect.macros.blackbox.Context
  */
 object Applicative {
   trait ApplyHandler[M[+_]] {
+    /**
+     * Extracts the current value [[T]] out of the wrapping [[M[T]]
+     */
     def apply[T](t: M[T]): T
   }
   object ApplyHandler {
