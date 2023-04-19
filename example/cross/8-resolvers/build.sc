@@ -1,4 +1,4 @@
-import mill._
+// == Cross Resolvers
 
 import mill._
 
@@ -33,4 +33,36 @@ trait BarModule extends MyModule {
 
 > ./mill show bar[2.10].bigSuffix
 [[[_2.10]]]
+
 */
+
+// [NOTE]
+// --
+// Please be aware that some shells like `zsh` interpret square brackets differently, so quoting or masking might be needed.
+//
+// [source,zsh]
+// ----
+// mill show foo\[2.10\].suffix
+// mill show 'foo[2.10].suffix'
+// mill show "foo[2.10].suffix"
+// ----
+// --
+//
+// The `suffix` targets will have the corresponding output paths for their
+// metadata and files:
+//
+// [source,text]
+// ----
+// out/
+// ├── foo/
+// │     ├── 2.10/
+// │     │     ├── bigSuffix.json
+// │     │     └── suffix.json
+// │     ├── 2.11/
+// │     │     ├── bigSuffix.json
+// │     │     └── suffix.json
+// │     └── 2.12/
+// │         ├── bigSuffix.json
+// │         └── suffix.json
+// ----
+// 

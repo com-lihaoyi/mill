@@ -1,3 +1,7 @@
+// == Using Cross Modules from other Cross Modules
+//
+// Targets in cross-modules can depend on one another the same way than
+// external targets:
 import mill._
 
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")

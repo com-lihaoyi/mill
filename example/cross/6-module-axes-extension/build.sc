@@ -1,23 +1,25 @@
+// You can also take an existing cross module and extend it with additional cross
+// axes as shown:
 import mill._
 
-object myCross extends Cross[MyCrossModule]("a", "b")
-trait MyCrossModule extends Cross.Module[String] {
+object foo extends Cross[FooModule]("a", "b")
+trait FooModule extends Cross.Module[String] {
   def param1 = T { "Param Value: " + crossValue }
 }
 
-object myCross2 extends Cross[MyCrossModule2](("a", 1), ("b", 2))
-trait MyCrossModule2 extends Cross.Module2[String, Int] {
+object foo2 extends Cross[FooModule2](("a", 1), ("b", 2))
+trait FooModule2 extends Cross.Module2[String, Int] {
   def param1 = T { "Param Value: " + crossValue }
   def param2 = T { "Param Value: " + crossValue2 }
 }
 
-object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1, true), ("b", 2, false))
-trait MyCrossModuleExtended extends MyCrossModule2 with Cross.Module3[String, Int, Boolean] {
+object foo3 extends Cross[FooModule3](("a", 1, true), ("b", 2, false))
+trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
   def param3 = T{ "Param Value: " + crossValue3 }
 }
 
-// You can take an existing cross module
-// with `Cross.Module{N-1}` and extend `Cross.ModuleN` to add a new axis to it.
+// Starting from an existing cross module with `Cross.Module{N-1}` and extend,
+// you can extend`Cross.ModuleN` to add a new axis to it.
 //
 // Multi-axis cross modules take their input as tuples, and each element of the
 // tuple beyond the first is bound to the `crossValueN` property defined by the
@@ -32,27 +34,27 @@ trait MyCrossModuleExtended extends MyCrossModule2 with Cross.Module3[String, In
 
 /* Example Usage
 
-> ./mill show myCross[a].param1
+> ./mill show foo[a].param1
 "Param Value: a"
 
-> ./mill show myCross[b].param1
+> ./mill show foo[b].param1
 "Param Value: b"
 
-> ./mill show myCross2[a,1].param1
+> ./mill show foo2[a,1].param1
 "Param Value: a"
 
-> ./mill show myCross2[b,2].param2
+> ./mill show foo2[b,2].param2
 "Param Value: 2"
 
-> ./mill show myCrossExtended[b,2,false].param3
+> ./mill show foo3[b,2,false].param3
 "Param Value: false"
 
 > sed -i 's/, true//g' build.sc
 
 > sed -i 's/, false//g' build.sc
 
-> ./mill show myCrossExtended[b,2,false].param3
-error: object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1), ("b", 2))
+> ./mill show foo3[b,2,false].param3
+error: object foo3 extends Cross[FooModule3](("a", 1), ("b", 2))
 error:                                                              ^
 error: value _3 is not a member of (String, Int)
 */

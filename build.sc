@@ -1185,11 +1185,15 @@ trait IntegrationTestModule extends MillScalaModule {
 
     def scalaVersion = integration.scalaVersion()
 
-    override def forkEnv = super.forkEnv() ++ Map(
-      "MILL_INTEGRATION_TEST_MODE" -> mode,
-      "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
-      "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
-    ) ++ testReleaseEnv()
+    override def forkEnv =
+      super.forkEnv() ++
+      IntegrationTestModule.this.forkEnv() ++
+      Map(
+        "MILL_INTEGRATION_TEST_MODE" -> mode,
+        "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
+        "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
+      ) ++
+      testReleaseEnv()
 
     def workspaceDir = T.persistent {
       PathRef(T.dest)
@@ -1255,6 +1259,52 @@ object example extends MillScalaModule {
   class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
+    def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
+    def parsed = T{
+      val states = collection.mutable.Buffer("scala")
+      val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
+
+      for(line <- os.read.lines(testRepoRoot().path / "build.sc")){
+        val (newState, restOpt) = line match{
+          case s"/* Example Usage" =>  ("example", None)
+          case s"*/" => ("scala", None)
+          case s"//$rest" => ("comment", Some(rest.stripPrefix(" ")))
+          case l => (if (states.last == "comment") "scala" else states.last, Some(l))
+        }
+
+        if (newState != states.last) {
+          states.append(newState)
+          chunks.append(collection.mutable.Buffer.empty[String])
+        }
+
+        restOpt.foreach(r => chunks.last.append(r))
+      }
+
+      states.zip(chunks.map(_.mkString("\n").trim)).filter(_._2.nonEmpty)
+    }
+
+    def rendered = T{
+      os.write(
+        T.dest / "example.adoc",
+        parsed()
+          .filter(_._2.nonEmpty)
+          .map {
+            case ("scala", txt) =>
+              s"""[source,scala]
+                 |----
+                 |$txt
+                 |----""".stripMargin
+            case ("comment", txt) => txt
+            case ("example", txt) =>
+              s"""[source,bash]
+                 |----
+                 |$txt
+                 |----""".stripMargin
+          }
+          .mkString("\n")
+      )
+      PathRef(T.dest / "example.adoc")
+    }
   }
 }
 
@@ -1595,7 +1645,22 @@ object docs extends Module {
       )
       PathRef(workDir / "build" / "site")
     }
-    def source: Source = T.source(millSourcePath)
+    def source0: Source = T.source(millSourcePath)
+    def source = T{
+      os.list(source0().path).foreach(p => os.copy(p, T.dest / p.relativeTo(source0().path)))
+
+      val renderedExamples: Seq[(String, PathRef)] =
+        T.traverse(example.basic.items)(t => t._2.rendered.map("example-basic-" + t._1.mkString -> _))() ++
+          T.traverse(example.cross.items)(t => t._2.rendered.map("example-cross-" + t._1.mkString -> _))() ++
+          T.traverse(example.misc.items)(t => t._2.rendered.map("example-misc-" + t._1.mkString -> _))() ++
+          T.traverse(example.web.items)(t => t._2.rendered.map("example-web-" + t._1.mkString -> _))()
+
+      for ((name, pref) <- renderedExamples) {
+        os.copy(pref.path, T.dest / "modules" / "ROOT" / "pages" / s"$name.adoc", createFolders = true)
+      }
+
+      PathRef(T.dest)
+    }
     def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
     def devAntoraSources: Target[PathRef] = T {
       val dest = T.dest

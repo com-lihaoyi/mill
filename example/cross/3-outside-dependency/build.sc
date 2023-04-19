@@ -1,3 +1,7 @@
+// == Using Cross Modules from Outside
+//
+// You can refer to targets defined in cross-modules as follows:
+
 import mill._
 
 object foo extends Cross[FooModule]("2.10", "2.11", "2.12")

@@ -1,106 +1,19 @@
 = Cross Builds
 
-Mill handles cross-building of all sorts via the `Cross[T]` module.
+include::example-cross-1-simple.adoc[]
 
-== Defining Cross Modules
+include::example-cross-2-cross-source-path.adoc[]
 
-%includeExample[example/cross/1-simple/build.sc]
+include::example-cross-3-outside-dependency.adoc[]
 
-[NOTE]
---
-Please be aware that some shells like `zsh` interpret square brackets differently, so quoting or masking might be needed.
+include::example-cross-4-cross-dependencies.adoc[]
 
-[source,zsh]
-----
-mill show foo\[2.10\].suffix
-mill show 'foo[2.10].suffix'
-mill show "foo[2.10].suffix"
-----
---
+include::example-cross-5-multiple-cross-axes.adoc[]
 
-The `suffix` targets will have the corresponding output paths for their
-metadata and files:
+include::example-cross-6-module-axes-extension.adoc[]
 
-[source,text]
-----
-out/
-├── foo/
-│   ├── 2.10/
-│   │   ├── bigSuffix.json
-│   │   └── suffix.json
-│   ├── 2.11/
-│   │   ├── bigSuffix.json
-│   │   └── suffix.json
-│   └── 2.12/
-│       ├── bigSuffix.json
-│       └── suffix.json
-----
+include::example-cross-7-inner-cross-module.adoc[]
 
-If you want to have dedicated ``millSourcePath``s, you can add the cross parameters to it:
+include::example-cross-8-resolvers.adoc[]
 
-%includeExample[example/cross/2-cross-source-path/build.sc]
-
-[NOTE]
---
-Before Mill 0.11.0-M5, `Cross` modules which were not also ``CrossScalaModule``s, always added the cross parameters to the `millSourcePath`. This often led to setups like this:
-
-[source,scala]
-----
-def millSourcePath = super.millSourcePath / os.up
-----
---
-
-== Using Cross Modules from Outside
-
-You can refer to targets defined in cross-modules as follows:
-
-%includeExample[example/cross/3-outside-dependency/build.sc]
-
-== Using Cross Modules from other Cross Modules
-
-Targets in cross-modules can depend on one another the same way than external targets:
-
-%includeExample[example/cross/4-cross-dependencies/build.sc]
-
-== Multiple Inputs
-
-You can also have a cross-module with multiple inputs:
-
-%includeExample[example/cross/5-multiple-cross-axes/build.sc]
-
-You can also take an existing cross module and extend it with additional cross
-axes as shown:
-
-%includeExample[example/cross/6-module-axes-extension/build.sc]
-
-== Inner Cross Modules
-
-%includeExample[example/cross/7-inner-cross-module/build.sc]
-
-== Cross Resolvers
-
-%includeExample[example/cross/8-resolvers/build.sc]
-
-[source,scala]
-----
-import mill._
-
-trait MyModule extends Cross.Module[String] {
-  def crossVersion: String
-  implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
-    def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(crossVersion))
-  }
-}
-
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-trait FooModule extends MyModule {
-  def suffix = T { crossValue }
-}
-
-object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
-trait BarModule extends MyModule {
-  def longSuffix = T { "_" + foo().suffix() }
-}
-----
-
-
+include::example-cross-9-dynamic-cross-modules.adoc[]

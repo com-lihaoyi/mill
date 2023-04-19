@@ -1,3 +1,4 @@
+// == Inner Cross Modules
 import mill._
 
 trait MyModule extends Module{
@@ -6,17 +7,17 @@ trait MyModule extends Module{
   def param = T { name() + " Param Value: " + crossValue }
 }
 
-object myCross extends Cross[MyCrossModule]("a", "b")
-trait MyCrossModule extends Cross.Module[String] {
-  object foo extends MyModule with InnerCrossModule{
-    def name = "Foo"
-  }
+object foo extends Cross[FooModule]("a", "b")
+trait FooModule extends Cross.Module[String] {
   object bar extends MyModule with InnerCrossModule{
     def name = "Bar"
   }
+  object qux extends MyModule with InnerCrossModule{
+    def name = "Qux"
+  }
 }
 
-def qux = T { s"hello ${myCross("a").foo.param()}" }
+def baz = T { s"hello ${foo("a").bar.param()}" }
 
 // You can use the `InnerCrossModule` trait within any `Cross.Module` to
 // propagate the `crossValue` defined by an enclosing `Cross.Module` to some
@@ -31,13 +32,13 @@ def qux = T { s"hello ${myCross("a").foo.param()}" }
 
 /* Example Usage
 
-> ./mill show myCross[a].foo.param
-"Foo Param Value: a"
+> ./mill show foo[a].bar.param
+"Bar Param Value: a"
 
-> ./mill show myCross[b].bar.param
-"Bar Param Value: b"
+> ./mill show myCross[b].qux.param
+"Qux Param Value: b"
 
-> ./mill show qux
-"hello Foo Param Value: a"
+> ./mill show baz
+"hello Bar Param Value: a"
 
 */

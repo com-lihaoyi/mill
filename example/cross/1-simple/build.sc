@@ -1,3 +1,7 @@
+// == Defining Cross Modules
+//
+// Mill handles cross-building of all sorts via the `Cross[T]` module.
+
 import mill._
 
 object foo extends Cross[FooModule]("2.10", "2.11", "2.12")

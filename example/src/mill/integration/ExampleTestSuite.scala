@@ -31,13 +31,8 @@ object ExampleTestSuite extends IntegrationTestSuite {
 
     test("exampleUsage") {
       try {
-        val usageComment =
-          os.read.lines(workspaceRoot / "build.sc")
-            .dropWhile(_ != "/* Example Usage")
-            .drop(1)
-            .takeWhile(_ != "*/")
-            .mkString("\n")
-
+        val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
+        val usageComment = parsed.collect{case ("example", txt) => txt}.mkString("\n\n")
         val commandBlocks = usageComment.trim.split("\n\n")
 
         for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)

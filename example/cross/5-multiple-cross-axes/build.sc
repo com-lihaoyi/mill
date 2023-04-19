@@ -1,3 +1,6 @@
+// == Multiple Inputs
+//
+// You can have a cross-module with multiple inputs:
 import mill._
 
 val crossMatrix = for {
