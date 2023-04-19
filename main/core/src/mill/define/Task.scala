@@ -46,22 +46,22 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 object Task {
 
   abstract class Ops[+T] { this: Task[T] =>
-    def map[V](f: T => V) = new Task.Mapped(this, f)
+    def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
 
     def filter(f: T => Boolean) = this
     def withFilter(f: T => Boolean) = this
-    def zip[V](other: Task[V]) = new Task.Zipped(this, other)
+    def zip[V](other: Task[V]): Task[(T, V)] = new Task.Zipped(this, other)
 
   }
 
-  class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
+  private[define] class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
     val inputs = inputs0
     def evaluate(ctx: mill.api.Ctx) = {
       for (i <- 0 until ctx.args.length)
         yield ctx.args(i).asInstanceOf[T]
     }
   }
-  class TraverseCtx[+T, V](
+  private[define] class TraverseCtx[+T, V](
       inputs0: Seq[Task[T]],
       f: (IndexedSeq[T], mill.api.Ctx) => Result[V]
   ) extends Task[V] {
@@ -74,11 +74,11 @@ object Task {
       )
     }
   }
-  class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
+  private[define] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
     def evaluate(ctx: mill.api.Ctx) = f(ctx.arg(0))
     val inputs = List(source)
   }
-  class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
+  private[define] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
     def evaluate(ctx: mill.api.Ctx) = (ctx.arg(0), ctx.arg(1))
     val inputs = List(source1, source2)
   }
@@ -120,14 +120,34 @@ trait NamedTask[+T] extends Task[T] {
  */
 trait Target[+T] extends NamedTask[T]
 
+/**
+ * The [[mill.define.Target]] companion object, usually aliased as [[T]],
+ * provides most of the helper methods and macros used to build task graphs.
+ * methods like `T.`[[apply]], `T.`[[sources]], `T.`[[command]] allow you to
+ * define the tasks, while methods like `T.`[[dest]], `T.`[[log]] or
+ * `T.`[[env]] provide the core APIs that are provided to a task implementation
+ */
 object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   /**
-   * Returns the implicit [[mill.api.Ctx.Dest.dest]] in scope.
+   * `T.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
+   * that is assigned to every Target or Command. It is cleared before your
+   * task runs, and you can use it as a scratch space for temporary files or
+   * a place to put returned artifacts. This is guaranteed to be unique for
+   * every Target or Command, so you can be sure that you will not collide or
+   * interfere with anyone else writing to those same paths.
    */
   def dest(implicit ctx: mill.api.Ctx.Dest): os.Path = ctx.dest
 
   /**
-   * Returns the implicit [[mill.api.Ctx.Log.log]] in scope.
+   * `T.log` is the default logger provided for every task. While your task is running,
+   * `System.out` and `System.in` are also redirected to this logger. The logs for a
+   * task are streamed to standard out/error as you would expect, but each task's
+   * specific output is also streamed to a log file on disk, e.g. `out/run.log` or
+   * `out/classFiles.log` for you to inspect later.
+   *
+   * Messages logged with `log.debug` appear by default only in the log files.
+   * You can use the `--debug` option when running mill to show them on the console too.
+   *
    */
   def log(implicit ctx: mill.api.Ctx.Log): Logger = ctx.log
 
@@ -137,7 +157,12 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def home(implicit ctx: mill.api.Ctx.Home): os.Path = ctx.home
 
   /**
-   * Returns the implicit [[mill.api.Ctx.Env.env]] in scope.
+   * `T.env` is the environment variable map passed to the Mill command when
+   * it is run; typically used inside a `T.input` to ensure any changes in
+   * the env vars are properly detected.
+   *
+   * Note that you should not use `sys.env`, as Mill's long-lived server
+   * process means that `sys.env` variables may not be up to date.
    */
   def env(implicit ctx: mill.api.Ctx.Env): Map[String, String] = ctx.env
 
@@ -146,11 +171,23 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
    */
   def args(implicit ctx: mill.api.Ctx.Args): IndexedSeq[_] = ctx.args
 
+  /**
+   * Report test results to BSP for IDE integration
+   */
   def testReporter(implicit ctx: mill.api.Ctx): TestReporter = ctx.testReporter
+
+  /**
+   * Report build results to BSP for IDE integration
+   */
   def reporter(implicit ctx: mill.api.Ctx): Int => Option[CompileProblemReporter] = ctx.reporter
 
   /**
-   * Returns the implicit [[mill.api.Ctx.workspace]] in scope.
+   * This is the `os.Path` pointing to the project root directory.
+   *
+   * This is the preferred access to the project directory, and should
+   * always be prefered over `os.pwd`* (which might also point to the
+   * project directory in classic cli scenarios, but might not in other
+   * use cases like BSP or LSP server usage).
    */
   def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
 
@@ -561,9 +598,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
         )
       )
     }
-
   }
-
 }
 
 class TargetImpl[+T](
