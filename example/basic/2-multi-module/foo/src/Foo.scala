@@ -7,7 +7,7 @@ object Foo {
   @main
   def main(@arg(name = "foo-text") fooText: String,
            @arg(name = "bar-text") barText: String): Unit = {
-    println("Foo.value: " + Foo.value)
+    println("Foo.value: " + Bar.value)
     bar.Bar.main(barText)
   }
 

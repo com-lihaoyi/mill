@@ -1,0 +1,89 @@
+= Scala Module Configuration
+:page-aliases: Configuring_Mill.adoc
+
+While Mill supports a range of languages and external tools, it has thorough
+support for building Scala applications bundled with the build tool. This page
+walks through some of the common things you often need to do when working with
+Scala projects
+
+include::example/configscala/1-compilation-execution-flags.adoc[]
+
+include::example/configscala/2-ivy-deps.adoc[]
+
+include::example/configscala/3-run-compile-time-dependencies.adoc[]
+
+include::example/configscala/4-scala-compiler-plugins.adoc[]
+
+include::example/configscala/5-scaladoc.adoc[]
+
+include::example/configscala/6-unmanaged-jars.adoc[]
+
+include::example/configscala/7-main-class.adoc[]
+
+include::example/configscala/8-downloading-non-maven-jars.adoc[]
+
+include::example/configscala/9-assembly-config.adoc[]
+
+include::example/configscala/10-repository-config.adoc[]
+
+include::example/configscala/11-backticked-names.adoc[]
+
+== Reformatting your code
+
+Mill supports code formatting via https://scalameta.org/scalafmt/[scalafmt] out of the box.
+
+To have a formatting per-module you need to make your module extend `mill.scalalib.scalafmt.ScalafmtModule`:
+
+.`build.sc`
+[source,scala,subs="attributes,verbatim"]
+----
+import mill._, scalalib._, scalafmt._
+
+object foo extends ScalaModule with ScalafmtModule {
+  def scalaVersion = "{example-scala-2-13-version}"
+}
+----
+
+Now you can reformat code with `mill foo.reformat` command, or only check for misformatted files with `mill foo.checkFormat`.
+
+You can also reformat your project's code globally with `+mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources+` command,
+or only check the code's format with `+mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources+`.
+It will reformat all sources that matches `+__.sources+` query.
+
+If you add a `.scalafmt.conf` file at the root of you project, it will be used
+to configure formatting. It can contain a `version` key to specify the scalafmt
+version used to format your code. See the
+https://scalameta.org/scalafmt/docs/configuration.html[scalafmt configuration documentation]
+for details.
+
+
+== Using the Ammonite Repl / Scala console
+
+All ``ScalaModule``s have a `console` and a `repl` target, to start a Scala console or an Ammonite Repl.
+
+To use the latter, you can (and sometimes need to) customize the Ammonite version to work with your selected Scala version.
+The default Ammonite version is the one, which is used by Mill internally (Mill's `build.sc` is an Ammonite script, after all).
+But depending on the Scala version you are using, there is probably no matching Ammonite release available.
+In order to start the repl, you have to specify a different available Ammonite version.
+
+.Example: Overriding `ammoniteVersion` to select a release compatible to the `scalaVersion`
+[source,scala,subs="attributes,verbatim"]
+----
+import mill._. scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.6"
+  def ammoniteVersion = "2.4.0"
+}
+----
+
+[TIP]
+--
+_Why is Ammonite tied to the exact Scala version?_
+
+This is because Ammonite depends on the Scala compiler.
+In contrast to the Scala library, compiler releases do not guarantee any binary compatibility between releases.
+As a consequence, Ammonite needs full Scala version specific releases.
+
+The older your used Mill version or the newer the Scala version you want to use, the higher is the risk that the default Ammonite version will not match.
+--

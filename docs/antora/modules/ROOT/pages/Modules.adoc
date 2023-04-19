@@ -175,7 +175,7 @@ object Bar extends mill.define.ExternalModule {
 }
 ----
 
-In the above example, `foo.Bar` is an `ExternalModule` living within the `foo`
+In the above example, `Qux` is an `ExternalModule` living within the `foo`
 Java package, containing the `baz` target and `qux` command. Those can be run
 from the command line via:
 

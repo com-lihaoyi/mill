@@ -1,20 +1,27 @@
 = Introduction to Mill
 :page-aliases: index.adoc
 
-{mill-github-url}[Mill] is your shiny new Java/Scala build tool!
-http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Scared of SBT]? Melancholy over Maven? Grumbling about Gradle?
-Baffled by Bazel? Give Mill a try!
+{mill-github-url}[Mill] is your shiny new Scala build tool!
+Scared of SBT? Melancholy over Maven? Grumbling about Gradle? Baffled by Bazel?
+Give Mill a try!
 
-Mill aims for simplicity by reusing concepts you are already
-http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[familiar with], borrowing ideas from modern tools
-like https://bazel.build/[Bazel].   
+Mill aims for simplicity by reusing concepts you are already familiar with,
+borrowing ideas from modern tools like https://bazel.build/[Bazel].
 It lets you build your projects in a way that's simple, fast, and predictable.
 
 Mill has built-in support for the https://www.scala-lang.org/[Scala]
 programming language, and can serve as a replacement for
-http://www.scala-sbt.org/[SBT].  
+http://www.scala-sbt.org/[SBT].
 It can be xref:Extending_Mill.adoc[extended] to support any other language or platform via modules (written in Java or Scala) or through external subprocesses.
 
-If you are using Mill, you will find the following book by the Author useful in using Mill to the fullest:
+The following external resources give more of a flavor of the philosophy behind
+Mill:
+
+* http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[So, what's wrong with SBT?]
+* http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Blog Post: Build Tools as Pure Functional Programs]
+* https://www.youtube.com/watch?v=j6uThGxx-18[Video: Mill a Build Tool based on Pure Functional Programming]
+
+If you are using Mill, you will find the following book by the Author useful in
+using Mill and its supporting libraries to the fullest:
 
 * https://handsonscala.com/

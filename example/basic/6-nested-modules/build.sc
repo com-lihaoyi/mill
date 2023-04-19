@@ -10,16 +10,17 @@ trait MyModule extends ScalaModule{
   )
 }
 
-object foo extends Module{
-  object bar extends MyModule
+object foo extends MyModule{
+  def moduleDeps = Seq(bar, qux)
 
+  object bar extends MyModule
   object qux extends MyModule {
     def moduleDeps = Seq(bar)
   }
 }
 
 object baz extends MyModule {
-  def moduleDeps = Seq(foo.bar, foo.qux)
+  def moduleDeps = Seq(foo.bar, foo.qux, foo)
 }
 
 // Modules can be nested arbitrarily deeply within each other. The outer module
@@ -37,10 +38,16 @@ foo.bar.run
 foo.qux.run
 qux.run
 
-> ./mill baz.run --bar-text hello --qux-text world --baz-text today
+> ./mill foo.run --bar-text hello --qux-text world --foo-text today
 Bar.value: <h1>hello</h1>
 Qux.value: <p>world</p>
-Baz.value: <p>today</p>
+Foo.value: <p>today</p>
+
+> ./mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
+Bar.value: <h1>hello</h1>
+Qux.value: <p>world</p>
+Foo.value: <p>today</p>
+Baz.value: <p>yay</p>
 
 > ./mill foo.qux.run --bar-text hello --qux-text world
 Bar.value: <h1>hello</h1>

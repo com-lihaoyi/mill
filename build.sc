@@ -1253,7 +1253,7 @@ object example extends MillScalaModule {
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
   object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"): _*)
-  object config extends Cross[ExampleCrossModule](listIn(millSourcePath / "config"): _*)
+  object configscala extends Cross[ExampleCrossModule](listIn(millSourcePath / "configscala"): _*)
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
 
@@ -1661,7 +1661,7 @@ object docs extends Module {
       val renderedExamples: Seq[(String, PathRef)] =
         T.traverse(example.basic.items)(t => t._2.rendered.map("basic/" + t._1.mkString -> _))() ++
         T.traverse(example.cross.items)(t => t._2.rendered.map("cross/" + t._1.mkString -> _))() ++
-        T.traverse(example.config.items)(t => t._2.rendered.map("config/" + t._1.mkString -> _))() ++
+        T.traverse(example.configscala.items)(t => t._2.rendered.map("configscala/" + t._1.mkString -> _))() ++
         T.traverse(example.misc.items)(t => t._2.rendered.map("misc/" + t._1.mkString -> _))() ++
         T.traverse(example.web.items)(t => t._2.rendered.map("web/" + t._1.mkString -> _))()
 
