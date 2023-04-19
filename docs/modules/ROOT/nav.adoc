@@ -6,7 +6,6 @@
 * xref:Library_Dependencies.adoc[]
 * xref:Out_Dir.adoc[]
 * xref:Tasks.adoc[]
-* xref:Task_Context_API.adoc[]
 * xref:Modules.adoc[]
 * xref:Cross_Builds.adoc[]
 * xref:Web_Development_Examples.adoc[]

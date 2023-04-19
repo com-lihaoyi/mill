@@ -107,7 +107,7 @@ object MyCaseClass {
 
 If you want to return a file or a set of files as the result of a `Target`,
 write them to disk within your `T.dest` available through the
-xref:Task_Context_API.adoc#_mill_api_ctx_dest[] and return a `PathRef(T.dest)`
+{mill-doc-url}/api/latest/mill/api/Ctx.html#dest:os.Path[Ctx] and return a `PathRef(T.dest)`
 that hashes the files you wrote.
 
 If a target's inputs change but its output does not, e.g. someone changes a
