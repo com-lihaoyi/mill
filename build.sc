@@ -1248,6 +1248,7 @@ object example extends MillScalaModule {
   def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
+  object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"): _*)
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
 
@@ -1815,7 +1816,7 @@ def uploadToGithub(authKey: String) = T.command {
   }
 
   val exampleZips = for{
-    exampleBase <- Seq("basic", "web", "misc")
+    exampleBase <- Seq("basic", "cross", "web", "misc")
     examplePath <- os.list(T.workspace / "example" / exampleBase)
   } yield {
     val example = examplePath.subRelativeTo(T.workspace)

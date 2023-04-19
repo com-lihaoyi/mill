@@ -1,7 +1,4 @@
-import mill.api.PathRef
-import mill.{Agg, T}
-import mill.define.{Cross, Module}
-import mill.scalalib._
+import mill._
 
 object myCross extends Cross[MyCrossModule]("a", "b")
 trait MyCrossModule extends Cross.Module[String] {

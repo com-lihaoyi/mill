@@ -10,10 +10,10 @@ You can use this as follows:
 ----
 import mill._
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(crossVersion: String) extends Module {
-  def suffix = T { crossVersion }
-  def bigSuffix = T { suffix().toUpperCase() }
+object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
+trait FooModule extends Cross.Module[String] {
+  def suffix = T { crossValue }
+  def bigSuffix = T { "[[[" + suffix() + "]]]" }
 }
 ----
 
@@ -65,9 +65,9 @@ If you want to have dedicated ``millSourcePath``s, you can add the cross paramet
 ----
 import mill._
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(crossVersion: String) extends Module {
-  def millSourcePath = super.millSourcePath / crossVersion
+object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
+trait FooModule extends Cross.Module[String] {
+  def millSourcePath = super.millSourcePath / crossValue
 }
 ----
 
@@ -93,8 +93,9 @@ val crossMatrix = for {
   if !(platform == "native" && crossVersion != "212")
 } yield (crossVersion, platform)
 
-object foo extends mill.Cross[FooModule](crossMatrix:_*)
-class FooModule(crossVersion: String, platform: String) extends Module {
+object foo extends mill.Cross[FooModule](crossMatrix)
+trait FooModule extends Cross.Module2[String, String] {
+  val (crossVersion, platform) = (crossValue, crossValue2)
   def suffix = T { crossVersion + "_" + platform }
 }
 ----
@@ -127,29 +128,20 @@ You can refer to targets defined in cross-modules as follows:
 ----
 import mill._
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(crossVersion: String) extends Module {
-  def suffix = T { crossVersion }
+object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
+trait FooModule extends Cross.Module[String] {
+  def suffix = T { crossValue }
 }
 
 def bar = T { s"hello ${foo("2.10").suffix}" }
+
+def qux = T { s"hello ${foo("2.10").suffix} world ${foo("2.12").suffix}" }
 ----
 
-Here, `foo("2.10")` references the `"2.10"` instance of `FooModule`. You can
-refer to whatever versions of the cross-module you want, even using multiple
-versions of the cross-module in the same target:
-
-[source,scala]
-----
-import mill._
-
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(crossVersion: String) extends Module {
-  def suffix = T { crossVersion }
-}
-
-def bar = T { s"hello ${foo("2.10").suffix} world ${foo("2.12").suffix}" }
-----
+Here, `def bar` uses `foo("2.10")` to reference the `"2.10"` instance of
+`FooModule`. You can refer to whatever versions of the cross-module you want,
+even using multiple versions of the cross-module in the same target as we do
+in `def qux`.
 
 == Using Cross Modules from other Cross Modules
 
@@ -160,13 +152,13 @@ Targets in cross-modules can depend on one another the same way than external ta
 import mill._
 
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(crossVersion: String) extends Module {
+trait FooModule extends Cross.Module[String] {
   def suffix = T { crossVersion }
 }
 
 object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
-class BarModule(crossVersion: String) extends Module {
-  def bigSuffix = T { foo(crossVersion).suffix().toUpperCase() }
+trait BarModule extends Cross.Module[String] {
+  def bigSuffix = T { "[[[" + foo(crossValue).suffix() + "]]]" }
 }
 ----
 
@@ -205,7 +197,7 @@ cross-modules, which would let you use a shorthand `foo()` syntax when referring
 ----
 import mill._
 
-trait MyModule extends Module {
+trait MyModule extends Cross.Module[String] {
   def crossVersion: String
   implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
     def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(crossVersion))
@@ -213,12 +205,12 @@ trait MyModule extends Module {
 }
 
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(val crossVersion: String) extends MyModule {
-  def suffix = T { crossVersion }
+trait FooModule extends MyModule {
+  def suffix = T { crossValue }
 }
 
 object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
-class BarModule(val crossVersion: String) extends MyModule {
+trait BarModule extends MyModule {
   def longSuffix = T { "_" + foo().suffix() }
 }
 ----
