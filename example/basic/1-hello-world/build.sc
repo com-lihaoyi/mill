@@ -1,3 +1,5 @@
+// == Simple Scala Module
+
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {

@@ -1,3 +1,5 @@
+// == Common ScalaModule Configurations
+
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {

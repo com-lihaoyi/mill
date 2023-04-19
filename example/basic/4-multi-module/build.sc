@@ -1,3 +1,5 @@
+// == Multi-Module Project
+
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule{

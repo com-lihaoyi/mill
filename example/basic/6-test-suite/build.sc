@@ -1,3 +1,4 @@
+// == Scala Module With Test Suite
 import mill._, scalalib._
 
 object foo extends ScalaModule {

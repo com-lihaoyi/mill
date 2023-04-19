@@ -1,3 +1,4 @@
+// == SBT-Compatible Modules
 import mill._, scalalib._
 
 object foo extends SbtModule {

@@ -1,3 +1,4 @@
+// == Combine Scala Example
 import mill._, scalalib._, publish._
 
 trait MyModule extends PublishModule {

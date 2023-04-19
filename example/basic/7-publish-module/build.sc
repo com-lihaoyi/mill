@@ -1,3 +1,4 @@
+// == Publish Module
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {
