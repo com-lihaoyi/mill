@@ -1303,14 +1303,17 @@ object example extends MillScalaModule {
                 if (seenCode) ""
                 else s"https://dummy.com[$download] https://dummy.com[$browse]\n\n"
               }
-              s"""[source,scala,subs="attributes,verbatim"]
+              s"""
+                 |[source,scala,subs="attributes,verbatim"]
                  |----
                  |$txt
                  |----
+                 |
                  |$links""".stripMargin
             case ("comment", txt) => txt
             case ("example", txt) =>
-              s"""[source,bash,subs="attributes,verbatim"]
+              s"""
+                 |[source,bash,subs="attributes,verbatim"]
                  |----
                  |$txt
                  |----""".stripMargin
