@@ -1688,6 +1688,7 @@ object docs extends Module {
         "-doc-version", millVersion(),
         "-d", scaladocPath.toString,
         "-classpath", compileClasspath().map(_.path).mkString(":"),
+        "-doc-source-url", "file://€{FILE_PATH}.scala"
       )
 
       val docReturn = zincWorker.worker().docJar(
@@ -1702,6 +1703,20 @@ object docs extends Module {
       }
 
       docReturn
+    }
+    def mangled = T {
+      os.copy(stage().path, T.dest, mergeFolders = true)
+      val sha = VcsVersion.vcsState().currentRevision
+      for(p <- os.walk(T.dest) if p.ext == "scala"){
+        os.write(
+          p,
+          os.read(p).replace(
+            s"file://${T.workspace}",
+            s"https://github.com/com-lihaoyi/mill/blob/$sha"
+          )
+        )
+      }
+      PathRef(T.dest)
     }
 
     def push() = T.command {
@@ -1929,7 +1944,8 @@ object docs extends Module {
     os.write(siteDir / ".nojekyll", "")
     // sanitize devAntora source URLs
     sanitizeDevUrls(siteDir, devAntoraSources().path, source().path, baseDir)
-    os.copy(site.stage().path, siteDir, mergeFolders = true)
+    if (authorMode) os.copy(site.stage().path, siteDir, mergeFolders = true)
+    else os.copy(site.mangled().path, siteDir, mergeFolders = true)
     PathRef(siteDir)
   }
 //    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}
