@@ -5,7 +5,7 @@ import java.io.{FileOutputStream, PrintStream}
 import java.util.Locale
 import scala.jdk.CollectionConverters._
 import scala.util.Properties
-import io.github.retronym.java9rtexport.Export
+import mill.java9rtexport.Export
 import mill.api.{DummyInputStream, internal}
 import mill.main.BspServerResult
 import mill.api.SystemStreams

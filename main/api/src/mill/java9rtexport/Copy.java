@@ -24,18 +24,17 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package io.github.retronym.java9rtexport;
+package mill.java9rtexport;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.file.*;
-import java.nio.file.attribute.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-public class Copy {
+class Copy {
     public static void copyDirectory(final Path source, final Path target)
             throws IOException {
         Files.walkFileTree(source, EnumSet.of(FileVisitOption.FOLLOW_LINKS),

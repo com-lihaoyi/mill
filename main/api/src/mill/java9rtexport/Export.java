@@ -24,17 +24,20 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package io.github.retronym.java9rtexport;
+package mill.java9rtexport;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class Export {
+class Export0 {
     private final static Object lock = new Object();
     private static File tempFile = null;
 
@@ -81,7 +84,7 @@ public class Export {
                     System.out.flush();
                 }
                 dest.getParentFile().mkdirs();
-                java.nio.file.Files.copy(rt().toPath(), dest.toPath());
+                Files.copy(rt().toPath(), dest.toPath());
                 return true;
             }
         } catch (IOException e) {

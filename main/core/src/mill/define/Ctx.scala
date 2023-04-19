@@ -4,6 +4,23 @@ import os.Path
 
 import scala.annotation.implicitNotFound
 
+/**
+ * Represents the `T.ctx` that is available for you to use within tasks, whether
+ * `T{...}` targets, `T.command`s, `T.persistent`, etc.
+ *
+ * @param enclosing
+ * @param lineNum the line number that this task is defined at. Useful for
+ *                error reporting purposes
+ * @param segment
+ * @param millSourcePath
+ * @param segments
+ * @param external
+ * @param foreign
+ * @param fileName the file name that this task is defined in. Useful for
+ *                 error reporting purposes
+ * @param enclosingCls
+ * @param crossValues
+ */
 @implicitNotFound("Modules, Targets and Commands can only be defined within a mill Module")
 case class Ctx private (
     enclosing: String,

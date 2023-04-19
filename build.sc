@@ -1264,6 +1264,8 @@ object example extends MillScalaModule {
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
 
   class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
+
+    def sources = T.sources()
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
@@ -1631,6 +1633,134 @@ object dev extends MillModule {
 
 /** Generates the mill documentation with Antora. */
 object docs extends Module {
+  // This module isn't really a ScalaModule, but we use it to generate
+  // consolidated documentation using the Scaladoc tool.
+  object site extends ScaladocSiteModule {
+    def scalaVersion = Deps.scalaVersion
+
+    // specify subdirectory for scaladoc
+    def scaladocSubPath: os.SubPath = os.sub / "api" / "latest"
+
+    def moduleDeps = build.millInternal.modules.collect { case m: MillApiModule => m}
+
+    def scaladocPushGitURI = "git@github.com:com-lihaoyi/mill.git"
+  }
+
+  // This module isn't really a ScalaModule, but we use it to generate
+  // consolidated documentation using the Scaladoc tool.
+  trait ScaladocSiteModule extends ScalaModule {
+    def moduleDeps: Seq[JavaModule]
+
+    override def compileClasspath = T{
+      super.compileClasspath() ++
+      T.traverse(moduleDeps)(_.compileClasspath)().flatten
+    }
+    // stage the static website and/or doc into the 'stage' task destination
+    // directory adapted from: https://github.com/com-lihaoyi/mill/discussions/1194
+    def stage = T {
+      import mill.eval.Result
+
+      if (!os.isDir(millSourcePath)) {
+        T.log.info(s"""Source path "${millSourcePath}" not found, ignoring""")
+        T.log.info(s"Staging index.html from method defaultSiteIndex")
+        os.write.over(T.dest / "index.html", defaultSiteIndex)
+      } else {
+        val sitefiles = os.walk(millSourcePath, skip = (p: os.Path) => !os.isFile(p))
+        T.log.info(s"Staging ${sitefiles.length} site files from site source path ${millSourcePath}")
+        for (f <- sitefiles ){
+          os.copy.over(f, T.dest / f.subRelativeTo(millSourcePath), createFolders = true)
+        }
+      }
+
+      val scaladocFiles: Seq[os.Path] =
+        T.traverse(moduleDeps)(_.allSourceFiles)().flatten.map(_.path)
+
+      T.log.info(s"Staging scaladoc for ${scaladocFiles.length} files")
+
+      val scaladocPath: os.Path = T.dest / scaladocSubPath
+      os.makeDir.all(scaladocPath)
+
+      // the details of the options and zincWorker call are significantly
+      // different between scala-2 scaladoc and scala-3 scaladoc
+      // below is for scala-2 variant
+      val options: Seq[String] = Seq(
+        "-doc-title", "Mill",
+        "-doc-version", millVersion(),
+        "-d", scaladocPath.toString,
+        "-classpath", compileClasspath().map(_.path).mkString(":"),
+      )
+
+      val docReturn = zincWorker.worker().docJar(
+        scalaVersion(),
+        scalaOrganization(),
+        scalaDocClasspath().map(_.path),
+        scalacPluginClasspath().map(_.path),
+        options ++ scaladocFiles.map(_.toString)
+      ) match {
+        case true => Result.Success(PathRef(T.dest))
+        case false => Result.Failure("doc generation failed")
+      }
+
+      docReturn
+    }
+
+    def push() = T.command {
+      val stageDir = stage().path
+
+      val workBranch = scaladocPushWorkingBranch
+      val remoteBranch = scaladocPushRemoteBranch
+      val gitURI = scaladocPushGitURI
+      val username = scaladocPushUserName
+      val useremail = scaladocPushUserEmail
+
+      T.log.info(s"pushing site to branch $remoteBranch of $gitURI")
+
+      os.proc("git", "-C", stageDir, "init", "--quiet", s"--initial-branch=${workBranch}").call()
+      os.proc("git", "-C", stageDir, "config", "user.name", username).call()
+      os.proc("git", "-C", stageDir, "config", "user.email", useremail).call()
+      os.proc("git", "-C", stageDir, "add", ".").call()
+      os.proc("git", "-C", stageDir, "commit", "-m", "push from mill").call()
+      os.proc("git", "-C", stageDir, "push", "-f", gitURI, s"${workBranch}:${remoteBranch}").call()
+
+      T.log.info("cleaning up git working directory")
+      os.proc("rm", "-rf", s"${stageDir}/.git").call()
+    }
+
+    def scaladocPushGitURI: String
+
+    def scaladocPushWorkingBranch: String = "main"
+
+    def scaladocPushRemoteBranch: String = "gh-pages"
+
+    def scaladocPushUserName: String = os.proc("git", "config", "user.name").call().out.string
+
+    def scaladocPushUserEmail: String = os.proc("git", "config", "user.email").call().out.string
+
+    def scaladocSubPath: os.SubPath
+
+    def defaultSiteIndex: String =
+      s"""|<!DOCTYPE html>
+          |<html lang="en">
+          |<head>
+          |    <meta charset="UTF-8">
+          |    <title>Project Documentation</title>
+          |    <script language="JavaScript">
+          |    <!--
+          |    function doRedirect()
+          |    {
+          |        window.location.replace("${scaladocSubPath}");
+          |    }
+          |    doRedirect();
+          |    //-->
+          |    </script>
+          |</head>
+          |<body>
+          |<a href="${scaladocSubPath}">Go to the project documentation
+          |</a>
+          |</body>
+          |</html>
+          |""".stripMargin
+  }
   private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
   private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
   def npmBase: T[os.Path] = T.persistent { T.dest }
@@ -1753,6 +1883,7 @@ object docs extends Module {
   }
   def localPages = T {
     val pages = generatePages(authorMode = true)()
+
     T.log.outputStream.println(
       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
@@ -1798,6 +1929,7 @@ object docs extends Module {
     os.write(siteDir / ".nojekyll", "")
     // sanitize devAntora source URLs
     sanitizeDevUrls(siteDir, devAntoraSources().path, source().path, baseDir)
+    os.copy(site.stage().path, siteDir, mergeFolders = true)
     PathRef(siteDir)
   }
 //    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}

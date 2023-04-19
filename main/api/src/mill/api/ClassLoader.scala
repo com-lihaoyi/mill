@@ -4,7 +4,7 @@ import java.net.{URL, URLClassLoader}
 
 import java.nio.file.FileAlreadyExistsException
 
-import io.github.retronym.java9rtexport.Export
+import mill.java9rtexport.Export
 import scala.util.Try
 
 object ClassLoader {
