@@ -5,7 +5,7 @@
 import mill._
 
 trait DiyJavaModule extends Module{
-  def moduleDeps: Seq[MyJavaModule] = Nil
+  def moduleDeps: Seq[DiyJavaModule] = Nil
   def mainClass: T[Option[String]] = None
 
   def upstreamClasses: T[Seq[PathRef]] = T{
