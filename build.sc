@@ -1662,8 +1662,6 @@ object docs extends Module {
     // stage the static website and/or doc into the 'stage' task destination
     // directory adapted from: https://github.com/com-lihaoyi/mill/discussions/1194
     def stage = T {
-      import mill.eval.Result
-
       if (!os.isDir(millSourcePath)) {
         T.log.info(s"""Source path "${millSourcePath}" not found, ignoring""")
         T.log.info(s"Staging index.html from method defaultSiteIndex")
