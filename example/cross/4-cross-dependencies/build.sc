@@ -14,7 +14,7 @@ trait BarModule extends Cross.Module[String] {
   def bigSuffix = T { "[[[" + foo(crossValue).suffix() + "]]]" }
 }
 
-/** Example Usage
+/** Usage
 
 > ./mill showNamed foo[__].suffix
 {

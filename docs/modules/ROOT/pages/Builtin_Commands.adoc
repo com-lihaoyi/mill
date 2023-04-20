@@ -25,6 +25,52 @@ There are lots of templates out there for many frameworks and tools!
 
 include::example/commands/1-commands.adoc[]
 
+=== visualize
+
+[source,bash]
+----
+$ mill show visualize foo._
+[
+    ".../out/visualize.dest/out.txt",
+    ".../out/visualize.dest/out.dot",
+    ".../out/visualize.dest/out.json",
+    ".../out/visualize.dest/out.png",
+    ".../out/visualize.dest/out.svg"
+]
+----
+
+`mill show visualize` takes a subset of the Mill build graph (e.g. `+core._+`
+is every task directly under the `core` module) and draws out their
+relationships in `.svg` and `.png` form for you to inspect. It also generates
+`.txt`, `.dot` and `.json` for easy processing by downstream tools.
+
+The above command generates the following diagram:
+
+image::VisualizeFoo.svg[VisualizeFoo.svg]
+
+=== visualizePlan
+
+[source,bash]
+----
+$ mill show visualizePlan foo.compile
+[
+    ".../out/visualizePlan.dest/out.txt",
+    ".../out/visualizePlan.dest/out.dot",
+    ".../out/visualizePlan.dest/out.json",
+    ".../out/visualizePlan.dest/out.png",
+    ".../out/visualizePlan.dest/out.svg"
+]
+----
+
+`mill show visualizePlan` is similar to `mill show visualize` except that it
+shows a graph of the entire build plan, including tasks not directly resolved
+by the query. Tasks directly resolved are shown with a solid border, and
+dependencies are shown with a dotted border.
+
+The above command generates the following diagram:
+
+image::VisualizeCompile.svg[VisualizeCompile.svg]
+
 == Running Mill with custom JVM options
 
 It's possible to pass JVM options to the Mill launcher. To do this you need to

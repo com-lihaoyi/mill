@@ -31,7 +31,7 @@ object baz extends MyModule {
 // Running tasks on the nested modules requires the full module path
 // `wrapper.foo.run`
 
-/** Example Usage
+/** Usage
 
 > ./mill resolve __.run
 foo.bar.run

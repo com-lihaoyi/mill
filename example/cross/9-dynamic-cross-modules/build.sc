@@ -20,7 +20,7 @@ trait FolderModule extends ScalaModule with Cross.Module[String]{
 // that Mill is aware that the module structure depends on that value, and will
 // re-compute the value and re-create the module structure if the value changes.
 
-/** Example Usage
+/** Usage
 
 > ./mill resolve modules[_]
 modules[bar]

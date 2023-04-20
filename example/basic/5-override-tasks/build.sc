@@ -24,7 +24,7 @@ object foo extends RootModule with ScalaModule {
 //
 // In Mill builds the `override` keyword is optional.
 
-/** Example Usage
+/** Usage
 
 > ./mill run
 Compiling...

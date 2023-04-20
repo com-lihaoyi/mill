@@ -16,7 +16,7 @@ object bar extends JavaModule
 // `compile`, `run`, etc., and can similarly depend on each other and have
 // their own test suites.
 
-/** Example Usage
+/** Usage
 
 > ./mill resolve __.run
 foo.run

@@ -29,7 +29,7 @@ trait BarModule extends MyModule {
 // `scalaVersion` is binary compatible (e.g. 2.10.5 is compatible with 2.10.3)
 // with the current cross-module.
 
-/** Example Usage
+/** Usage
 
 > ./mill show bar[2.10].bigSuffix
 [[[_2.10]]]

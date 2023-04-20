@@ -1278,7 +1278,7 @@ object example extends MillScalaModule {
 
       for(line <- os.read.lines(testRepoRoot().path / "build.sc")){
         val (newState, restOpt) = line match{
-          case s"/** Example Usage" =>  ("example", None)
+          case s"/** Usage" =>  ("example", None)
           case s"*/" => ("scala", None)
           case s"//$rest" => ("comment", Some(rest.stripPrefix(" ")))
           case l => (if (states.last == "comment") "scala" else states.last, Some(l))

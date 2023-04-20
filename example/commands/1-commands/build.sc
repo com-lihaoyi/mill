@@ -1,4 +1,4 @@
-// == Built-in Commands
+// The following examples will be assuming the `build.sc` file given below:
 
 import mill._, scalalib._
 
@@ -17,7 +17,7 @@ object bar extends MyModule{
 
 // === resolve
 
-/** Example Usage
+/** Usage
 
 > ./mill resolve _
 foo
@@ -52,7 +52,7 @@ foo.artifactName
 // before you run them, or to explore what modules or tasks are available
 // from the command line using `+resolve _+`, `+resolve foo._+`, etc.
 
-/** Example Usage
+/** Usage
 
 > ./mill resolve foo.{compile,run}
 > ./mill resolve "foo.{compile,run}"
@@ -67,7 +67,7 @@ foo.artifactName
 
 // === inspect
 
-/** Example Usage
+/** Usage
 
 > ./mill inspect foo.run
 foo.run(JavaModule.scala:...)
@@ -90,7 +90,7 @@ Inputs:
 // `inspect` also works with the same `+_+`/`+__+` wildcard/query syntaxes that
 // <<_resolve>> do:
 
-/** Example Usage
+/** Usage
 
 > ./mill inspect foo.compile
 > ./mill inspect foo.{compile,run}
@@ -106,7 +106,7 @@ Inputs:
 
 // === show
 
-/** Example Usage
+/** Usage
 
 > ./mill show foo.scalaVersion
 "2.13.8"
@@ -123,7 +123,7 @@ Inputs:
 // that can be shown with `show`. E.g. `compile` returns the paths to the
 // `classes` folder and `analysisFile` file produced by the compilation:
 
-/** Example Usage
+/** Usage
 
 > ./mill show foo.compile
 {
@@ -134,7 +134,7 @@ Inputs:
 
 // `show` is generally useful as a debugging tool, to see what is going on in your build:
 
-/** Example Usage
+/** Usage
 
 > ./mill show foo.sources
 [
@@ -155,7 +155,7 @@ Inputs:
 // When `show` is used with multiple targets, its output will slightly change to a
 // JSON array, containing all the results of the given targets.
 
-/** Example Usage
+/** Usage
 
 > ./mill show "foo.{sources,compileClasspath}"
 [
@@ -175,7 +175,7 @@ Inputs:
 // Same as `show`, but the output will always be structured in a JSON dictionary,
 // with the task names as key and the task results as JSON values.
 
-/** Example Usage
+/** Usage
 
 > ./mill showNamed "foo.{sources,compileClasspath}"
 {
@@ -192,7 +192,7 @@ Inputs:
 
 // === path
 
-/** Example Usage
+/** Usage
 
 > ./mill path foo.assembly foo.sources
 foo.sources
@@ -212,7 +212,7 @@ foo.assembly
 
 // === plan
 
-/** Example Usage
+/** Usage
 
 > ./mill plan foo.compileClasspath
 foo.transitiveCompileClasspath
@@ -236,55 +236,9 @@ foo.compileClasspath
 // tasks that `foo` needs to run, and you can then follow up with `mill path` on
 // any individual upstream task to see exactly how `foo` depends on it.
 
-// === visualize
-//
-// [source,bash]
-// ----
-// $ mill show visualize foo._
-// [
-//     ".../out/visualize.dest/out.txt",
-//     ".../out/visualize.dest/out.dot",
-//     ".../out/visualize.dest/out.json",
-//     ".../out/visualize.dest/out.png",
-//     ".../out/visualize.dest/out.svg"
-// ]
-// ----
-//
-// `mill show visualize` takes a subset of the Mill build graph (e.g. `+core._+`
-// is every task directly under the `core` module) and draws out their
-// relationships in `.svg` and `.png` form for you to inspect. It also generates
-// `.txt`, `.dot` and `.json` for easy processing by downstream tools.
-//
-// The above command generates the following diagram:
-//
-// image::VisualizeFoo.svg[VisualizeFoo.svg]
-//
-// === visualizePlan
-//
-// [source,bash]
-// ----
-// $ mill show visualizePlan foo.compile
-// [
-//     ".../out/visualizePlan.dest/out.txt",
-//     ".../out/visualizePlan.dest/out.dot",
-//     ".../out/visualizePlan.dest/out.json",
-//     ".../out/visualizePlan.dest/out.png",
-//     ".../out/visualizePlan.dest/out.svg"
-// ]
-// ----
-//
-// `mill show visualizePlan` is similar to `mill show visualize` except that it
-// shows a graph of the entire build plan, including tasks not directly resolved
-// by the query. Tasks directly resolved are shown with a solid border, and
-// dependencies are shown with a dotted border.
-//
-// The above command generates the following diagram:
-//
-// image::VisualizeCompile.svg[VisualizeCompile.svg]
-//
 // === clean
 
-/** Example Usage
+/** Usage
 
 > ./mill clean
 
@@ -293,7 +247,7 @@ foo.compileClasspath
 // `clean` deletes all the cached outputs of previously executed tasks. It can
 // apply to the entire project, entire modules, or specific tasks.
 
-/** Example Usage
+/** Usage
 
 > ./mill clean                     # clean all outputs
 > ./mill clean foo                 # clean all outputs for module 'foo' (including nested modules)
@@ -308,7 +262,7 @@ foo.compileClasspath
 
 // === Search for dependency updates
 
-/** Example Usage
+/** Usage
 
 > ./mill mill.scalalib.Dependency/showUpdates
 

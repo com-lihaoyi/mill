@@ -57,7 +57,7 @@ object app extends RootModule with ScalaModule{
 // and uses it to serve HTML referencing the hashed paths, but without paying
 // the cost of hashing the static resource files at runtime.
 
-/** Example Usage
+/** Usage
 
 > ./mill test
 + webapp.WebAppTests.simpleRequest

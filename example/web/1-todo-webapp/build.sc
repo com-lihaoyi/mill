@@ -23,7 +23,7 @@ object app extends RootModule with ScalaModule{
 // implementing the popular Todo-MVC demo application. It includes a test suite
 // that spins up the web server locally and makes HTTP requests against it.
 
-/** Example Usage
+/** Usage
 
 > ./mill test
 + webapp.WebAppTests.simpleRequest

@@ -31,7 +31,7 @@ object bar extends ScalaModule {
 }
 
 
-/** Example Usage
+/** Usage
 
 > ./mill foo.runBackground
 

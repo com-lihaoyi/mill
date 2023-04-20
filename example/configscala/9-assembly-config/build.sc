@@ -29,7 +29,7 @@ object bar extends ScalaModule {
 // `META-INF/MANIFEST.MF` files from assembly, and concatenates all
 // `reference.conf` files. You can also define your own merge/exclude rules.
 
-/** Example Usage
+/** Usage
 
 > ./mill foo.assembly
 

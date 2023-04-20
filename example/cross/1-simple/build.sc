@@ -23,7 +23,7 @@ trait FooModule extends Cross.Module[String] {
 // cross module, assuming you want to build the same sources for each. This can
 // be overriden
 
-/** Example Usage
+/** Usage
 
 > ./mill show foo[2.10].suffix
 "_2.10"

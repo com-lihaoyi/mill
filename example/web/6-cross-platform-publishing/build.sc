@@ -49,7 +49,7 @@ trait FooModule extends Cross.Module[String] {
 // cross-version and cross-platform: running on both Scala 2.13.8/3.2.2 as
 // well as Scala-JVM/JS.
 
-/** Example Usage
+/** Usage
 
 > ./mill show foo[2.13.8].bar.jvm.sources
 foo/bar/src

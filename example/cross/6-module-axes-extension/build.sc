@@ -34,7 +34,7 @@ trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
 // `String`, `Int`, and `Boolean`. You can define additional `ToPathSegments`
 // for your own user-defined types that you wish to use in a Cross module
 
-/** Example Usage
+/** Usage
 
 > ./mill show foo[a].param1
 "Param Value: a"

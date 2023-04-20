@@ -30,7 +30,7 @@ object foo extends ScalaJSModule {
 // that compile the module into a single Javascript file, which you can then
 // distribute or deploy with your web application
 
-/** Example Usage
+/** Usage
 
 > ./mill foo.run
 <h1>Hello World</h1>

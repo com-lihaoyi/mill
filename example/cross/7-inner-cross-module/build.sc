@@ -30,7 +30,7 @@ def baz = T { s"hello ${foo("a").bar.param()}" }
 // You can reference the modules and tasks defined within such a
 // `InnerCrossModule` as is done in `def qux` above
 
-/** Example Usage
+/** Usage
 
 > ./mill show foo[a].bar.param
 "Bar Param Value: a"

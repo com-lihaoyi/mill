@@ -47,7 +47,7 @@ object bar extends MyModule{
 // copy-paste common settings, while still letting us define any per-module
 // `ivyDeps` configuration specific to a particular module.
 
-/** Example Usage
+/** Usage
 
 > ./mill resolve __.run
 foo.run

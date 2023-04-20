@@ -27,7 +27,7 @@ object foo extends RootModule with ScalaModule {
 // You can run `assembly` to generate a standalone executable jar, which then
 // can be run from the command line or deployed to be run elsewhere.
 
-/** Example Usage
+/** Usage
 
 > ./mill resolve _ # List what tasks are available to run
 compile

@@ -38,7 +38,7 @@ trait BarModule extends CrossSbtModule{
 // This is especially useful during migrations, where a particular module may
 // be built using both SBT and Mill at the same time
 
-/** Example Usage
+/** Usage
 
 > ./mill foo.compile
 compiling 1 Scala source
