@@ -5,20 +5,52 @@ Mill comes bundled with a set of external Open Source libraries and projects.
 
 == OS-lib
 
-OS-Lib is a simple, flexible, high-performance Scala interface to common OS filesystem and subprocess APIs.
+OS-Lib is a simple, flexible, high-performance Scala interface to common OS
+filesystem and subprocess APIs.
 
 Mill uses OS-Lib for all of its file system operations.
 
 Project page:: https://github.com/com-lihaoyi/os-lib
-Documentation:: https://github.com/com-lihaoyi/os-lib/blob/master/readme.md
 ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/os-lib_2.13/latest/index.html
 
-== Ammonite
 
-Project page:: https://github.com/com-lihaoyi/Ammonite
-Documentation:: https://ammonite.io/
+== uPickle
+
+uPickle: a simple Scala JSON and Binary (MessagePack) serialization library
+
+Mill uses uPickle to cache target output to disk as JSON, and to output JSON
+for third-party tools to consume.
+
+Project page:: https://github.com/com-lihaoyi/upickle
+ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/upickle_2.13/latest/index.html
+
+== Requests-Scala
+
+Requests-Scala is a Scala port of the popular Python Requests HTTP client.
+Requests-Scala aims to provide the same API and user-experience as the
+original Requests: flexible, intuitive, and straightforward to use.
+
+Mill bundles Requests for you to use to make HTTP requests.
+
+Project page:: https://github.com/com-lihaoyi/requests-scala
+ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/requests_2.13/latest/index.html
+
+== MainArgs
+
+MainArgs is a small, dependency-free library for command line argument parsing
+in Scala.
+
+Mill uses MainArgs to handle argument parsing for `T.command`s that are run
+from the command line.
+
+Project page:: https://github.com/com-lihaoyi/mainargs
+Scaladoc:: https://javadoc.io/doc/com.lihaoyi/mainargs_2.13/latest/index.html
 
 == Coursier
+
+Coursier is the Scala application and artifact manager. Mill uses Coursier for
+all third-party artifact resolution and management in JVM languages (Scala,
+Java, etc.)
 
 Project page:: https://github.com/coursier/coursier
 Documentation:: https://get-coursier.io/docs/overview

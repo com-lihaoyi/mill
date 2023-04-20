@@ -10,8 +10,6 @@
 * xref:Cross_Builds.adoc[]
 * xref:Web_Dev_Build_Examples.adoc[]
 * xref:Extending_Mill.adoc[]
-* xref:Mill_Internals.adoc[]
-
 
 * xref:Contrib_Plugins.adoc[]
 // See also the list in Contrib_Plugins.adoc
@@ -35,10 +33,9 @@
 
 * xref:Thirdparty_Plugins.adoc[]
 
+* xref:Mill_Internals.adoc[]
+
 * xref:External_References.adoc[]
-** xref:External_References.adoc#_ammonite[Ammonite]
-** xref:External_References.adoc#_coursier[Coursier]
-** xref:External_References.adoc#_os_lib[OS-Lib]
 
 * {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
 
