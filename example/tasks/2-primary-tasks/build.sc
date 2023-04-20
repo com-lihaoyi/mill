@@ -40,7 +40,6 @@ Computing line count
 18
 
 */
-  //
 
 // The return-value of targets has to be JSON-serializable via
 // {upickle-github-url}[uPickle]. You can run targets directly from the command
