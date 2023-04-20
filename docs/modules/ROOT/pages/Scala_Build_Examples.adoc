@@ -1,4 +1,4 @@
-= Learn By Example
+= Scala Build Examples
 
 On this page, we will explore the Mill build tool via a series of simple Scala
 example projects. Each project demonstrates one particular feature of the Mill
