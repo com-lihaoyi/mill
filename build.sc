@@ -2047,6 +2047,22 @@ def launcher = T {
   PathRef(outputPath)
 }
 
+def exampleZips: Target[Seq[PathRef]] = T {
+  for {
+    exampleMod <- example.exampleModules
+    examplePath = exampleMod.millSourcePath
+  } yield {
+    println(exampleMod + " / " + examplePath)
+    val example = examplePath.subRelativeTo(T.workspace)
+    println(example)
+    os.copy(examplePath, T.dest / example, createFolders = true)
+    os.copy(launcher().path, T.dest / example / "mill")
+    val exampleStr = example.segments.mkString("-")
+    val zip = T.dest / s"$exampleStr.zip"
+    os.proc("zip", "-r", zip, example.toString).call(cwd = T.dest)
+    PathRef(zip)
+  }
+}
 
 def uploadToGithub(authKey: String) = T.command {
   val vcsState = VcsVersion.vcsState()
@@ -2073,19 +2089,9 @@ def uploadToGithub(authKey: String) = T.command {
       .asString
   }
 
-  val exampleZips = for{
-    exampleBase <- Seq("basic", "builtins", "tasks", "cross", "web", "misc")
-    examplePath <- os.list(T.workspace / "example" / exampleBase)
-  } yield {
-    val example = examplePath.subRelativeTo(T.workspace)
-    os.copy(examplePath, T.dest / example)
-    os.copy(launcher().path, T.dest / example / "mill")
-    val exampleStr = example.segments.mkString("-")
-    os.proc("zip", "-r", T.dest / s"$exampleStr.zip", T.dest / example).call(cwd = T.dest)
-    (T.dest / s"$exampleStr.zip", label + "-" + exampleStr + ".zip")
-  }
+  val examples = exampleZips().map(z => (z.path, s"${label}-${z.path.last}"))
 
-  val zips = exampleZips ++ Seq(
+  val zips = examples ++ Seq(
     (assembly().path, label + "-assembly"),
     (launcher().path, label)
   )
