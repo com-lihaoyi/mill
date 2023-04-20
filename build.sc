@@ -836,7 +836,7 @@ object scalajslib extends MillModule with BuildInfo{
 }
 
 object contrib extends MillModule {
-  def contribModules = millInternal.modules.collect { case m: ContribModule => m }
+  def contribModules: Seq[ContribModule] = millInternal.modules.collect { case m: ContribModule => m }
   trait ContribModule extends MillModule{
     def readme = T.source(millSourcePath / "readme.adoc")
   }
@@ -1256,8 +1256,9 @@ trait IntegrationTestCrossModule extends IntegrationTestModule {
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object example extends MillScalaModule {
+  def exampleModules: Seq[ExampleCrossModule] = millInternal.modules.collect { case m: ExampleCrossModule => m }
 
-  def moduleDeps = Seq(integration)
+  override def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
   object builtins extends Cross[ExampleCrossModule](listIn(millSourcePath / "builtins"): _*)
@@ -1814,14 +1815,11 @@ object docs extends Module {
     os.list(source0().path).foreach(p => os.copy(p, T.dest / p.relativeTo(source0().path)))
 
     val pagesWd = T.dest / "modules" / "ROOT" / "pages"
-    val renderedExamples: Seq[(String, PathRef)] =
-      T.traverse(example.basic.items)(t => t._2.rendered.map("basic/" + t._1.mkString -> _))() ++
-      T.traverse(example.builtins.items)(t => t._2.rendered.map("builtins/" + t._1.mkString -> _))() ++
-      T.traverse(example.tasks.items)(t => t._2.rendered.map("tasks/" + t._1.mkString -> _))() ++
-      T.traverse(example.cross.items)(t => t._2.rendered.map("cross/" + t._1.mkString -> _))() ++
-      T.traverse(example.configscala.items)(t => t._2.rendered.map("configscala/" + t._1.mkString -> _))() ++
-      T.traverse(example.misc.items)(t => t._2.rendered.map("misc/" + t._1.mkString -> _))() ++
-      T.traverse(example.web.items)(t => t._2.rendered.map("web/" + t._1.mkString -> _))()
+
+    val renderedExamples: Seq[(os.SubPath, PathRef)] =
+      T.traverse(example.exampleModules)(m => T.task {
+        (m.millSourcePath.subRelativeTo(example.millSourcePath), m.rendered())
+      })()
 
     for ((name, pref) <- renderedExamples) os.copy(
       pref.path,
@@ -2047,6 +2045,22 @@ def launcher = T {
   PathRef(outputPath)
 }
 
+def exampleZips: Target[Seq[PathRef]] = T {
+  for {
+    exampleMod <- example.exampleModules
+    examplePath = exampleMod.millSourcePath
+  } yield {
+    println(exampleMod + " / " + examplePath)
+    val example = examplePath.subRelativeTo(T.workspace)
+    println(example)
+    os.copy(examplePath, T.dest / example, createFolders = true)
+    os.copy(launcher().path, T.dest / example / "mill")
+    val exampleStr = example.segments.mkString("-")
+    val zip = T.dest / s"$exampleStr.zip"
+    os.proc("zip", "-r", zip, example.toString).call(cwd = T.dest)
+    PathRef(zip)
+  }
+}
 
 def uploadToGithub(authKey: String) = T.command {
   val vcsState = VcsVersion.vcsState()
@@ -2073,19 +2087,9 @@ def uploadToGithub(authKey: String) = T.command {
       .asString
   }
 
-  val exampleZips = for{
-    exampleBase <- Seq("basic", "builtins", "tasks", "cross", "web", "misc")
-    examplePath <- os.list(T.workspace / "example" / exampleBase)
-  } yield {
-    val example = examplePath.subRelativeTo(T.workspace)
-    os.copy(examplePath, T.dest / example)
-    os.copy(launcher().path, T.dest / example / "mill")
-    val exampleStr = example.segments.mkString("-")
-    os.proc("zip", "-r", T.dest / s"$exampleStr.zip", T.dest / example).call(cwd = T.dest)
-    (T.dest / s"$exampleStr.zip", label + "-" + exampleStr + ".zip")
-  }
+  val examples = exampleZips().map(z => (z.path, s"${label}-${z.path.last}"))
 
-  val zips = exampleZips ++ Seq(
+  val zips = examples ++ Seq(
     (assembly().path, label + "-assembly"),
     (launcher().path, label)
   )
