@@ -9,6 +9,23 @@ Mill target graphs are primarily built using methods and macros defined on
 
 - {mill-doc-url}/api/latest/mill/define/Target$.html[mill.define.Target]
 
+== Task Cheat Sheet
+
+The following table might help you make sense of the small collection of
+different Task types:
+
+[cols="<,<,<,<,<,<,<"]
+|===
+| |Target |Command |Source/Input |Anonymous Task |Persistent Target |Worker
+
+|Cached to Disk |X |X | | |X |
+|Must be JSON Writable |X |X |X| |X |
+|Must be JSON Readable |X | | | |X |
+|Runnable from the Command Line |X |X | | |X |
+|Can Take Arguments | |X | |X | |
+|Cached between Evaluations | | | | | |X
+|===
+
 include::example/tasks/1-task-graph.adoc[]
 
 == Primary Tasks
@@ -24,30 +41,12 @@ include::example/tasks/2-primary-tasks.adoc[]
 
 === Anonymous Tasks
 
-[source,scala]
-----
-def foo(x: Int) = T.task { ... x ... bar() ... }
-----
+include::example/tasks/3-anonymous-tasks.adoc[]
 
-You can define anonymous tasks using the `T.task {...}` syntax.
-These are not runnable from the command-line, but can be used to share common code you find yourself repeating in ``Target``s and ``Command``s.
+=== Inputs
 
-[source,scala]
-----
-def downstreamTarget = T { ... foo(42)() ... } 
-def downstreamCommand(x: Int) = T.command { ... foo(x)() ... }
-----
+include::example/tasks/4-inputs.adoc[]
 
-Anonymous task's output does not need to be JSON-serializable, their output is
-not cached, and they can be defined with or without arguments.
-Unlike <<_targets>> or <<_commands>>, anonymous tasks can be defined
-anywhere and passed around any way you want, until you finally make use of them
-within a downstream target or command.
-
-While an anonymous task ``foo``'s own output is not cached, if it is used in a
-downstream target `baz` and the upstream target `bar` hasn't changed,
-``baz``'s cached output will be used and ``foo``'s evaluation will be skipped
-altogether.
 
 === Persistent Targets
 
@@ -69,48 +68,6 @@ compilers you rely on!) are deterministic. They should always converge to the
 same outputs for a given set of inputs, regardless of what builds and what
 filesystem states existed before.
 
-=== Inputs
-
-[source,scala]
-----
-def foo = T.input { ... }
-----
-
-A generalization of <<_sources>>, ``T.input``s are tasks that re-evaluate
-_every time_ (unlike <<_anonymous_tasks>>), containing an
-arbitrary block of code.
-
-Inputs can be used to force re-evaluation of some external property that may
-affect your build. For example, if I have a <<_targets, Target>> `bar` that makes
-use of the current git version:
-
-
-[source,scala]
-----
-def bar = T { ... os.proc("git", "rev-parse", "HEAD").call().out.text() ... }
-----
-
-`bar` will not know that `git rev-parse` can change, and will
-not know to re-evaluate when your `git rev-parse HEAD` _does_ change. This means
-`bar` will continue to use any previously cached value, and ``bar``'s output will
-be out of date!
-
-To fix this, you can wrap your `git rev-parse HEAD` in a `T.input`:
-
-[source,scala]
-----
-def foo = T.input { os.proc("git", "rev-parse", "HEAD").call().out.text() }
-def bar = T { ... foo() ... }
-----
-
-This makes `foo` to always re-evaluate every build; if `git rev-parse HEAD`
-does not change, that will not invalidate ``bar``'s caches.
-But if `git rev-parse HEAD` _does_ change, ``foo``'s output will change and `bar` will be correctly invalidated and re-compute using the new version of `foo`.
-
-Note that because ``T.input``s re-evaluate every time, you should ensure that the
-code you put in `T.input` runs quickly. Ideally it should just be a simple check
-"did anything change?" and any heavy-lifting should be delegated to downstream
-targets.
 
 === Workers
 
@@ -159,19 +116,3 @@ def myWorker = T.worker {
 }
 ----
 
-== Task Cheat Sheet
-
-The following table might help you make sense of the small collection of
-different Task types:
-
-[cols="<,<,<,<,<,<,<"]
-|===
-| |Target |Command |Source/Input |Anonymous Task |Persistent Target |Worker 
-
-|Cached to Disk |X |X | | |X |
-|Must be JSON Writable |X |X |X| |X |
-|Must be JSON Readable |X | | | |X | 
-|Runnable from the Command Line |X |X | | |X | 
-|Can Take Arguments | |X | |X | | 
-|Cached between Evaluations | | | | | |X 
-|===

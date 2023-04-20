@@ -145,8 +145,8 @@ def summarizeClassFileStats = T{
 
 // === Sources
 
-def sources = T.source { T.workspace / "src" }
-def resources = T.source { T.workspace / "resources" }
+def sources = T.source { millSourcePath / "src" }
+def resources = T.source { millSourcePath / "resources" }
 
 // ``Source``s are defined using `T.sources {...}`, taking one-or-more
 // ``os.Path``s as arguments. A `Source` is a subclass of `Target[Seq[PathRef]]`:

@@ -119,6 +119,12 @@ object ExampleTestSuite extends IntegrationTestSuite {
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
         IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
 
+      case Seq("git", rest@_*) =>
+        val res = os
+          .proc("git", rest)
+          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
+        IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+
       case Seq("java", "-jar", rest@_*) =>
         val res = os
           .proc("java", "-jar", rest)
