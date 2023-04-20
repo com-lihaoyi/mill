@@ -1,6 +1,6 @@
 * xref:Intro_to_Mill.adoc[]
 * xref:Installation_IDE_Support.adoc[]
-* xref:Getting_Started.adoc[]
+* xref:Builtin_Commands.adoc[]
 * xref:Learn_By_Example.adoc[]
 * xref:Scala_Module_Config.adoc[]
 * xref:Library_Dependencies.adoc[]

@@ -33,8 +33,9 @@ object ExampleTestSuite extends IntegrationTestSuite {
       try {
         val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
         val usageComment = parsed.collect{case ("example", txt) => txt}.mkString("\n\n")
-        val commandBlocks = usageComment.trim.split("\n\n")
+        val commandBlocks = usageComment.trim.split("> ").filter(_.nonEmpty)
 
+        "\n("
         for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
       } finally {
         os.remove.all(workspaceRoot / "out")
@@ -45,7 +46,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
   def processCommandBlock(workspaceRoot: os.Path, commandBlock: String) = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
-    val expectedSnippets = commandBlockLines.tail
+    val expectedSnippets = commandBlockLines.tail.filter(_ != "...")
     val (commandHead, comment) = commandBlockLines.head match {
       case s"$before#$after" => (before.trim, Some(after.trim))
       case string => (string, None)
@@ -59,8 +60,8 @@ object ExampleTestSuite extends IntegrationTestSuite {
 
     if (!incorrectPlatform) {
       println("ExampleTestSuite: " + commandBlockLines.head)
-      val s">$commandStr" = commandHead
-      processCommand(workspaceRoot, expectedSnippets, commandStr)
+
+      processCommand(workspaceRoot, expectedSnippets, commandHead.trim)
     }
   }
 
@@ -160,7 +161,16 @@ object ExampleTestSuite extends IntegrationTestSuite {
       val filteredErr = plainText(evalResult.err)
       val filteredOut = plainText(evalResult.out)
 
-      assert(filteredErr.contains(expected) || filteredOut.contains(expected))
+      assert(globMatches(expected, filteredErr + "\n" + filteredOut))
     }
   }
+
+  def globMatches(expected: String, filtered: String) =
+    filtered
+      .linesIterator
+      .exists(
+        StringContext
+          .glob(s"...$expected...".split("\\.\\.\\.", -1), _)
+          .nonEmpty
+      )
 }

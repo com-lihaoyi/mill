@@ -38,3 +38,161 @@ If you are using Mill, you will find the following book by the Author useful in
 using Mill and its supporting libraries to the fullest:
 
 * https://handsonscala.com/
+
+
+include::example/basic/1-simple-scala.adoc[]
+
+Additional Mill commands you would likely need include:
+
+[source,bash]
+----
+$ mill test          # run the test suite, if any
+
+$ mill runBackground # run the main method in the background
+
+$ mill clean <task>  # delete the cached output of a task, terminate any runBackground
+
+$ mill launcher      # prepares a foo/launcher.dest/run you can run later
+
+$ mill jar           # bundle the classfiles into a jar suitable for publishing
+
+$ mill -i console    # start a Scala console within your project
+
+$ mill -i repl       # start an Ammonite REPL within your project
+----
+
+You can run `+mill resolve __+` to see a full list of the different tasks that
+are available, `+mill resolve _+` to see the tasks within `foo`,
+`mill inspect compile` to inspect a task's doc-comment documentation or what
+it depends on, or `mill show foo.scalaVersion` to show the output of any task.
+
+The most common *tasks* that Mill can run are cached *targets*, such as
+`compile`, and un-cached *commands* such as `foo.run`. Targets do not
+re-evaluate unless one of their inputs changes, whereas commands re-run every
+time.
+
+include::example/basic/2-multi-module.adoc[]
+
+
+== Watch and Re-evaluate
+
+You can use the `--watch` flag to make Mill watch a task's inputs,
+re-evaluating the task as necessary when the inputs
+change:
+
+[source,bash]
+----
+$ mill --watch foo.compile
+$ mill --watch foo.run
+$ mill -w foo.compile
+$ mill -w foo.run
+----
+
+Mill's `--watch` flag watches both the files you are building using Mill, as
+well as Mill's own `build.sc` file and anything it imports, so any changes to
+your `build.sc` will automatically get picked up.
+
+For long-running processes like web servers, you can use `runBackground` to make sure they recompile and restart when code changes,
+forcefully terminating the previous process even though it may be still alive:
+
+[source,bash]
+----
+$ mill -w foo.compile
+$ mill -w foo.runBackground
+----
+
+
+== Parallel Task Execution
+
+By default, mill will evaluate all tasks in sequence.
+But mill also supports processing tasks in parallel.
+This feature is currently experimental and we encourage you to report any issues
+you find on our bug tracker.
+
+To enable parallel task execution, use the `--jobs` (`-j`) option followed by a
+number of maximal parallel threads.
+
+Example: Use up to 4 parallel threads to compile all modules:
+
+[source,bash]
+----
+mill -j 4 __.compile
+----
+
+To use as many threads as your machine has (logical) processor cores use `--jobs 0`.
+To disable parallel execution use `--jobs 1`.
+This is currently the default.
+
+Please note that the maximal possible parallelism depends on your project.
+Tasks that depend on each other can't be processed in parallel.
+
+
+== Command-line usage
+
+Mill is a command-line tool and supports various options.
+
+Run `mill --help` for a complete list of options
+
+.Output of `mill --help`
+----
+Mill Build Tool, version {mill-version}
+usage: mill [options] [[target [target-options]] [+ [target ...]]]
+  -D --define <k=v>    Define (or overwrite) a system property.
+  -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
+  --bsp                Enable BSP server mode.
+  --color <bool>       Enable or disable colored output; by default colors are enabled in both REPL
+                       and scripts mode if the console is interactive, and disabled otherwise.
+  -d --debug           Show debug output on STDOUT
+  --disable-ticker     Disable ticker log (e.g. short-lived prints of stages and progress bars).
+  -h --home <path>     (internal) The home directory of internally used Ammonite script engine;
+                       where it looks for config and caches.
+  --help               Print this help message and exit.
+  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. This implies --no-server and no mill server will be used. Must be the
+                       first argument.
+  --import <str>       Additional ivy dependencies to load into mill, e.g. plugins.
+  -j --jobs <int>      Allow processing N targets in parallel. Use 1 to disable parallel and 0 to
+                       use as much threads as available processors.
+  -k --keep-going      Continue build, even after build failures.
+  --no-default-predef  Disable the default predef and run Mill with the minimal predef possible.
+  --no-server          Run Mill in single-process mode. In this mode, no mill server will be started
+                       or used. Must be the first argument.
+  -p --predef <path>   Lets you load your predef from a custom location, rather than the "default
+                       location in your Ammonite home
+  -s --silent          Make ivy logs during script import resolution go silent instead of printing;
+                       though failures will still throw exception.
+  -v --version         Show mill version information and exit.
+  -w --watch           Watch and re-run your scripts when they change.
+  target <str>...      The name or a pattern of the target(s) you want to build, followed by any
+                       parameters you wish to pass to those targets. To specify multiple target
+                       names or patterns, use the `+` separator.
+----
+
+All _options_ must be given before the first target.
+
+A _target_ is a fully qualified task or command optionally followed by target
+specific arguments. You can use wildcards and brace-expansion to select
+multiple targets at once or to shorten the path to deeply nested targets. If
+you provide optional target arguments and your wildcard or brace-expansion is
+resolved to multiple targets, the arguments will be applied to each of the
+targets.
+
+.Wildcards and brace-expansion
+|===
+| Wildcard | Function
+|`_` | matches a single segment of the target path
+| `__` | matches arbitrary segments of the target path
+| `{a,b}` | is equal to specifying two targets `a` and `b`
+|===
+
+You can use the `+` symbol to add another target with optional arguments.
+If you need to feed a `+` as argument to your target, you can mask it by
+preceding it with a backslash (`\`).
+
+=== Examples
+
+`+mill foo._.compile+`:: Runs `compile` for all direct sub-modules of `foo`
+`+mill foo.__.test+` :: Runs `test` for all sub-modules of `foo`
+`+mill {foo,bar}.__.testCached+` :: Runs `testCached` for all sub-modules of `foo` and `bar`
+`+mill __.compile + foo.__.test+` :: Runs all `compile` targets and all tests under `foo`.
+

@@ -29,7 +29,7 @@ object foo extends RootModule with ScalaModule {
 //    pre-rendere string it can directly print without further work.
 
 
-/* Example Usage
+/** Example Usage
 
 > ./mill compile
 compiling 1 Scala source

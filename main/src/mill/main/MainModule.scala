@@ -182,7 +182,7 @@ trait MainModule extends mill.Module {
       def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: TargetImpl[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
+          case t: mill.define.Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)

@@ -54,7 +54,7 @@ def compressBytes(input: Array[Byte]) = {
 // is eventually consistent. You can also use `mill clean` to manually purge
 // the disk contents to start fresh.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill show compressedData
 Evaluating compressedData

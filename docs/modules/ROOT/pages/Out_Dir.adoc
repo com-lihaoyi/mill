@@ -90,7 +90,7 @@ feel free to poke around the various
 `foo.dest/` folders to see what files are being created, or the `foo.json` files to see what is being returned by a
 particular task.
 You can also simply delete folders within `out/` if you want to force portions of your project to be
-rebuilt, e.g. by deleting the `+out/main/+` or `+out/main/compile.*+` folders, but we strongly encourage you to use the xref:Getting_Started.adoc#_clean[`clean` command] instead.
+rebuilt, e.g. by deleting the `+out/main/+` or `+out/main/compile.*+` folders, but we strongly encourage you to use the xref:Builtin_Commands.adoc#_clean[`clean` command] instead.
 
 [WARNING]
 --

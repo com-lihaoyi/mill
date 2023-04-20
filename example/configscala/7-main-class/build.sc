@@ -12,7 +12,7 @@ object foo extends RootModule with ScalaModule {
 // some library you can explicitly specify which one to use. This also adds the
 // main class to your `foo.jar` and `foo.assembly` jars.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill run
 Hello Qux

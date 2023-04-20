@@ -16,7 +16,7 @@ object foo extends ScalaModule {
 // that runs the tests. You can also run the test suite directly, in which case
 // it will run the `.test` task as the default task for that module.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill foo.compile
 compiling 1 Scala source
@@ -53,7 +53,7 @@ object bar extends ScalaModule {
   }
 }
 
-/* Example Usage
+/** Example Usage
 
 > ./mill bar.test
 + bar.BarTests.hello
@@ -76,7 +76,7 @@ object bar extends ScalaModule {
 // lets you pass in a selector to decide which test to run, which in Mill would be:
 
 
-/* Example Usage
+/** Example Usage
 
 > ./mill bar.test bar.BarTests.hello
 + bar.BarTests.hello
@@ -99,7 +99,7 @@ object qux extends ScalaModule {
 // Each of which will expect their sources to be in their respective `foo/test` and
 // `foo/integration` folder.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill qux.test
 + qux.QuxTests.hello

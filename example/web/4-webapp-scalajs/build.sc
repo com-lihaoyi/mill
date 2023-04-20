@@ -47,7 +47,7 @@ object app extends RootModule with ScalaModule{
 // Javascript or Scala UI frameworks to manage the UI, but those are beyond the
 // scope of this example.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill test
 + webapp.WebAppTests.simpleRequest

@@ -26,7 +26,7 @@ def bar = T { s"hello ${foo("2.10", "jvm").suffix()}" }
 // In this example we assigned `crossValue` and `crossValue2` to the names
 // `crossVersion` and `platform` for readability.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill show foo[2.10,jvm].suffix
 "_2.10_jvm"

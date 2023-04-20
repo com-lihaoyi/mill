@@ -32,7 +32,7 @@ object foo extends RootModule with ScalaModule{
 // mill foo.runLocal arg1 arg2 arg3
 // ----
 
-/* Example Usage
+/** Example Usage
 
 > ./mill run
 hello WORLD

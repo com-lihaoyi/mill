@@ -27,7 +27,7 @@ object foo extends RootModule with ScalaModule {
 // You can run `assembly` to generate a standalone executable jar, which then
 // can be run from the command line or deployed to be run elsewhere.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill resolve _ # List what tasks are available to run
 compile
@@ -38,7 +38,7 @@ inspect
 clean
 
 > ./mill inspect compile # Show documentation and inputs of a task
-compile(ScalaModule.scala:212)
+compile(ScalaModule.scala:...)
 Compiles the current module to generate compiled classfiles/bytecode.
 Inputs:
     scalaVersion

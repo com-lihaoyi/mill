@@ -14,7 +14,7 @@ object foo extends RootModule with ScalaModule {
 // filesystem, e.g. in the above snippet any jars that happen to live in the
 // `foo/lib/` folder.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill run '{"name":"John","age":30}'
 Key: name, Value: John

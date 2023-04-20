@@ -23,7 +23,7 @@ object foo extends RootModule with ScalaModule {
 //
 // Please consult the xref:Library_Dependencies.adoc[] section for even more details.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill run i am cow
 Array("i", "am", "cow")

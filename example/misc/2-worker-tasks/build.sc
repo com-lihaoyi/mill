@@ -74,7 +74,7 @@ def compressBytes(input: Array[Byte]) = {
 // read from its disk cache, where it would have normally read from its
 // in-memory cache
 
-/* Example Usage
+/** Example Usage
 
 > ./mill show compressedData
 Evaluating compressedData

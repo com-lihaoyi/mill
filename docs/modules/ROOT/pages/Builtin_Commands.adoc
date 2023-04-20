@@ -1,0 +1,50 @@
+= Built-in Commands
+
+Mill comes with a number of useful commands out of the box. These are listed
+in the Scaladoc:
+
+* {mill-doc-url}/api/latest/mill/main/MainModule.html[mill.main.MainModule]
+
+=== init
+
+[source,bash]
+----
+$ mill -i init com-lihaoyi/mill-scala-hello.g8
+....
+A minimal Scala project.
+
+name [Scala Seed Project]: hello
+
+Template applied in ./hello
+----
+
+The `init` command generates a project based on a Giter8 template.
+It prompts you to enter project name and creates a folder with that name.
+You can use it to quickly generate a starter project.
+There are lots of templates out there for many frameworks and tools!
+
+include::example/commands/1-commands.adoc[]
+
+== Running Mill with custom JVM options
+
+It's possible to pass JVM options to the Mill launcher. To do this you need to
+create a `.mill-jvm-opts` file in your project's root. This file should contain
+JVM options, one per line.
+
+For example, if your build requires a lot of memory and bigger stack size, your
+`.mill-jvm-opts` could look like this:
+
+----
+-Xss10m
+-Xmx10G
+----
+
+The file name for passing JVM options to the Mill launcher is configurable. If
+for some reason you don't want to use `.mill-jvm-opts` file name, add
+`MILL_JVM_OPTS_PATH` environment variable with any other file name.
+
+
+---
+
+Come by our https://discord.com/channels/632150470000902164/940067748103487558[Discord Channel]
+if you want to ask questions or say hi!

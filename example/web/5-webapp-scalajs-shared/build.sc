@@ -65,7 +65,7 @@ object app extends RootModule with AppScalaModule{
 // configuration. A full exploration of client-server code sharing techniques
 // is beyond the scope of this example.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill test
 + webapp.WebAppTests.simpleRequest

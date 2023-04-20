@@ -23,7 +23,7 @@ object foo extends ScalaModule with PublishModule {
 // the `.publishLocal` and `publishSigned` tasks for publishing locally to the
 // machine or to the central maven repository
 
-/* Example Usage
+/** Example Usage
 
 > ./mill foo.publishLocal
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo

@@ -34,7 +34,7 @@ object bar extends ScalaModule {
   def repositoriesTask = T.task {super.repositoriesTask() ++ sonatypeReleases}
 }
 
-/* Example Usage
+/** Example Usage
 
 > ./mill bar.compile
 

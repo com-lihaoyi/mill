@@ -25,7 +25,7 @@ trait BarModule extends CrossScalaModule
 // the `()` suffix in `moduleDeps` to select the appropriate instance of the
 // cross-module to depend on.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill resolve __.run
 foo[2.12.17].run

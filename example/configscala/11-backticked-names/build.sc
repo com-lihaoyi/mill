@@ -26,7 +26,7 @@ object unhyphenatedModule extends Module {
 //
 // Using hyphenated names at the command line is unaffected by these restrictions.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill hyphenated-module.hyphenated-target
 This is a hyphenated target in a hyphenated module.

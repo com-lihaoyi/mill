@@ -76,7 +76,7 @@ object foo extends RootModule with ScalaModule {
 // task of type `T[V]` into a value of type `V` you can make use in your task
 // implementation.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill run --text hello
 value: <h1>hello</h1>

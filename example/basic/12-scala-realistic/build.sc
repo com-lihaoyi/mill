@@ -72,7 +72,7 @@ object qux extends JavaModule with MyModule
 // own configuration. This is a very useful technique for managing the often
 // repetitive module structure in a typical project
 
-/* Example Usage
+/** Example Usage
 
 > ./mill resolve __.run
 bar[2.13.8].run

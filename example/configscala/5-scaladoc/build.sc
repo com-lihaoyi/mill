@@ -26,7 +26,7 @@ object foo extends ScalaModule {
 // pass specifically to either `javadoc` or `scaladoc`. You can pass these with
 // `javadocOptions` and `scalaDocOptions` respectively.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill show foo.docJar
 
@@ -78,7 +78,7 @@ object bar extends ScalaModule {
 // documenation.
 
 
-/* Example Usage
+/** Example Usage
 
 > ./mill show bar.docJar
 

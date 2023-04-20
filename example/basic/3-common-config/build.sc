@@ -73,7 +73,7 @@ object foo extends RootModule with ScalaModule {
 //    properly invalidate when the contents changes even when the path stays
 //    the same
 
-/* Example Usage
+/** Example Usage
 
 > ./mill run
 Foo2.value: <h1>hello2</h1>

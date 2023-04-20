@@ -37,7 +37,7 @@ object foo extends RootModule with ScalaModule {
 // This is useful for large projects where the build itself is a non-trivial
 // module which requires its own non-trivial customization.
 
-/* Example Usage
+/** Example Usage
 
 > ./mill compile
 compiling 1 Scala source
