@@ -52,4 +52,4 @@ include::example/tasks/4-inputs.adoc[]
 include::example/tasks/5-persistent-targets.adoc[]
 
 === Workers
-include::example/tasks/5-workers.adoc[]
+include::example/tasks/6-workers.adoc[]
