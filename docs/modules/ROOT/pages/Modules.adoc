@@ -12,29 +12,11 @@ Mill's comes with built in modules such as `mill.scalalib.ScalaModule` and
 `mill.scalalib.CrossSbtModule`, but you can also define your own modules to do
 things that are not built-in to Mill.
 
-
-
 include::example/tasks/7-modules.adoc[]
 
+== Use Case: DIY Java Modules
 
-== Root Modules
-
-[source,scala]
-----
-object foo extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.8"
-  def ivyDeps = Agg(
-    ivy"com.lihaoyi::scalatags:0.8.2",
-    ivy"com.lihaoyi::mainargs:0.4.0"
-  )
-}
-----
-
-``RootModule``s allow you to define a module whose targets are available directly
-via `./mill <target>`, e.g. `./mill compile` or `./mill run`, without needing
-to prefix them by the module name `./mill foo.compile`. These are useful if a
-project has a "primary" module that most people would use, as it makes
-operations on the `RootModule` more convenient to perform.
+include::example/tasks/8-diy-java-modules.adoc[]
 
 == External Modules
 

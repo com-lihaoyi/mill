@@ -2,32 +2,27 @@
 
 import mill._
 
-def sources = T.source { T.workspace / "src" }
-def resources = T.source { T.workspace / "resources" }
+def sources = T.source(millSourcePath / "src")
+def resources = T.source(millSourcePath / "resources")
 
 def allSources = T { os.walk(sources().path).map(PathRef(_)) }
 
-def classFiles = T {
-  os.proc("javac", allSources().map(_.path.toString()), "-d", T.dest).call(cwd = T.dest)
+def compile = T {
+  os.proc("javac", allSources().map(_.path), "-d", T.dest).call(cwd = T.dest)
   PathRef(T.dest)
 }
 
+def classPath = T{ Seq(compile(), resources()) }
+
 def jar = T {
-  os.copy(classFiles().path, T.dest, mergeFolders = true)
-  os.copy(resources().path, T.dest, mergeFolders = true)
-
+  for(cp <- classPath()) os.copy(cp.path, T.dest, mergeFolders = true)
   os.proc("jar", "-cfe", T.dest / "foo.jar", "foo.Foo", ".").call(cwd = T.dest)
-
   PathRef(T.dest / "foo.jar")
 }
 
 def run(args: String*) = T.command {
-  os.proc(
-      "java",
-      "-cp", s"${classFiles().path}:${resources().path}",
-      "foo.Foo",
-      args
-    )
+  val classPathStr = classPath().map(_.path).mkString(":")
+  os.proc("java", "-cp", classPathStr, "foo.Foo", args)
     .call(stdout = os.Inherit)
 }
 

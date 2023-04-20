@@ -129,7 +129,10 @@ object ExampleTestSuite extends IntegrationTestSuite {
         val res = os
           .proc("java", "-jar", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-        IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+        validateEval(
+          expectedSnippets,
+          IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+        )
 
       case Seq("unzip", "-p", zip, path) =>
         val zipFile = new java.util.zip.ZipFile((workspaceRoot / os.SubPath(zip)).toIO)

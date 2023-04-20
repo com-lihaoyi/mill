@@ -6,9 +6,9 @@
 
 import mill._
 
-object foo extends mill.Module {
+object foo extends Module {
   def bar = T { "hello" }
-  object qux extends mill.Module {
+  object qux extends Module {
     def baz = T { "world" }
   }
 }
@@ -38,40 +38,46 @@ object foo extends mill.Module {
 
 */
 
+// == Trait Modules
+//
 // Modules also provide a way to define and re-use common collections of tasks,
-// via Scala ``trait``s. For example, you can define your own `FooModule`
-// trait, and use it to instantiate modules with added customizations or
-// overrides:
+// via Scala ``trait``s. Module `trait`s support all the normal `trait` things:
+// abstract/mandatory ``def```, overrides, `super`, extension with additional
+// ``def``s, etc.
 
-trait FooModule extends mill.Module {
-  def bar = T { "hello" }
-  def qux = T { bar() + "world" }
+trait FooModule extends Module {
+  def bar: T[String] // required override
+  def qux = T { bar() + " world" }
 }
 
 object foo1 extends FooModule{
-  // `override` keyword is implicit in mill, as is `T{...}` wrapper
-  def bar = super.bar().toUpperCase
+  def bar = "hello"
+  def qux = super.qux().toUpperCase
 }
 object foo2 extends FooModule {
+  def bar = "hi"
+
   def baz = T { qux() + " I am Cow" }
 }
+
+// Note that the `override` keyword is implicit in mill, as is `T{...}` wrapper.
 
 /** Usage
 
 > ./mill show foo1.bar
-"HELLO"
-
-> ./mill show foo1.qux
-"HELLOworld"
-
-> ./mill show foo2.bar
 "hello"
 
+> ./mill show foo1.qux
+"HELLO WORLD"
+
+> ./mill show foo2.bar
+"hi"
+
 > ./mill show foo2.qux
-"helloworld"
+"hi world"
 
 > ./mill show foo2.baz
-"helloworld I am Cow"
+"hi world I am Cow"
 
 */
 
@@ -83,7 +89,7 @@ object foo2 extends FooModule {
 //
 // When defining your own module abstractions, you should be using ``trait``s
 // and not ``class``es due to implementation limitations
-
+//
 // == millSourcePath
 //
 // Each Module has a `millSourcePath` field that corresponds to the path that
