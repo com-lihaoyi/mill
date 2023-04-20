@@ -1662,8 +1662,6 @@ object docs extends Module {
     // stage the static website and/or doc into the 'stage' task destination
     // directory adapted from: https://github.com/com-lihaoyi/mill/discussions/1194
     def stage = T {
-      import mill.eval.Result
-
       if (!os.isDir(millSourcePath)) {
         T.log.info(s"""Source path "${millSourcePath}" not found, ignoring""")
         T.log.info(s"Staging index.html from method defaultSiteIndex")
@@ -1910,6 +1908,7 @@ object docs extends Module {
     )
   }
   def generatePages(authorMode: Boolean) = T.task {
+    T.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
     source()
     val docSite = T.dest
@@ -1920,6 +1919,7 @@ object docs extends Module {
       data = githubPagesPlaybookText(authorMode)(),
       createFolders = true
     )
+    T.log.errorStream.println("Running Antora ...")
     // check xrefs
     runAntora(
       npmDir = npmBase(),
@@ -1948,10 +1948,16 @@ object docs extends Module {
       )
     )
     os.write(siteDir / ".nojekyll", "")
+
     // sanitize devAntora source URLs
+    T.log.errorStream.println("Sanitizing links ...")
     sanitizeDevUrls(siteDir, devAntoraSources().path, source().path, baseDir)
-    if (authorMode) os.copy(site.stage().path, siteDir, mergeFolders = true)
-    else os.copy(site.mangled().path, siteDir, mergeFolders = true)
+
+    // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
+    T.log.errorStream.println("Copying API docs ...")
+    if (authorMode) os.copy.into(site.stage().path / "api", siteDir, mergeFolders = true)
+    else os.copy.into(site.mangled().path / "api", siteDir, mergeFolders = true)
+
     PathRef(siteDir)
   }
 //    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}

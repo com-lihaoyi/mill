@@ -220,7 +220,7 @@ mill --debug mill.bsp.BSP/install
 
 If you wish to use Bloop as your build server (it is the default metals BSP implementation) with metals / vscode, consider using the mill bloop plugin.
 
-xref:Plugin_Bloop.adoc[Bloop Plugin]
+xref:contrib/bloop.adoc[Bloop Plugin]
 
 This is preferred to the instructions (currently) on the bloop website.
 
