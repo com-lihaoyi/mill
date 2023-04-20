@@ -8,9 +8,8 @@
 * xref:Tasks.adoc[]
 * xref:Modules.adoc[]
 * xref:Cross_Builds.adoc[]
-* xref:Web_Development_Examples.adoc[]
+* xref:Web_Dev_Build_Examples.adoc[]
 * xref:Extending_Mill.adoc[]
-* xref:Using_Plugins.adoc[]
 * xref:Mill_Internals.adoc[]
 
 
