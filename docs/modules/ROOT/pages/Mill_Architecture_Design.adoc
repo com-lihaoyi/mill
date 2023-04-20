@@ -1,6 +1,6 @@
-= Mill Internals
+= Mill Architecture Design
 
-The following external resources give more of a flavor of the philosophy behind
+The following external resources give more of a flavor of the architecture behind
 Mill:
 
 * https://www.youtube.com/watch?v=j6uThGxx-18[Video: Mill a Build Tool based on Pure Functional Programming]

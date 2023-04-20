@@ -33,7 +33,7 @@
 
 * xref:Thirdparty_Plugins.adoc[]
 
-* xref:Mill_Internals.adoc[]
+* xref:Mill_Architecture_Design.adoc[]
 
 * xref:External_References.adoc[]
 
