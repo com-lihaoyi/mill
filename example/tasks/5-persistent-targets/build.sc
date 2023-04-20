@@ -1,5 +1,14 @@
+// Persistent targets defined using `T.persistent` are similar to normal
+// `Target`s, except their `T.dest` folder is not cleared before every
+// evaluation. This makes them useful for caching things on disk in a more
+// fine-grained manner than Mill's own Target-level caching.
+//
+// Below is a more realistic example of using a `T.persistent` target:
+
 import mill._, scalalib._
-import java.util.Arrays, java.io.ByteArrayOutputStream, java.util.zip.GZIPOutputStream
+import java.util.Arrays
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
 
 def data = T.source(millSourcePath / "data")
 
@@ -33,10 +42,7 @@ def compressBytes(input: Array[Byte]) = {
   bos.toByteArray
 }
 
-// Persistent targets defined using `T.persistent` are similar to normal
-// `Target`s, except their `T.dest` folder is not cleared before every
-// evaluation. This makes them useful for caching things on disk in a more
-// fine-grained manner than Mill's own Target-level caching.
+
 //
 // In this example, we implement a `compressedData` target that takes a folder
 // of files in `inputData` and compresses them, while maintaining a cache of

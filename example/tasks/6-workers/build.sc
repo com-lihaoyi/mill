@@ -1,5 +1,15 @@
+// Mill workers defined using `T.worker` are long-lived in-memory objects that
+// can persistent across multiple evaluations. These are similar to persistent
+// targets in that they let you cache things, but the fact that they let you
+// cache the worker object in-memory allows for greater performance and
+// flexibility: you are no longer limited to caching only serializable data
+// and paying the cost of serializing it to disk every evaluation. This example
+// uses a Worker to provide simple in-memory caching for compressed files.
+
 import mill._, scalalib._
-import java.util.Arrays, java.io.ByteArrayOutputStream, java.util.zip.GZIPOutputStream
+import java.util.Arrays
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
 
 def data = T.source(millSourcePath / "data")
 
@@ -45,14 +55,6 @@ def compressBytes(input: Array[Byte]) = {
   bos.toByteArray
 }
 
-// Mill workers defined using `T.worker` are long-lived in-memory objects that
-// can persistent across multiple evaluations. These are similar to persistent
-// targets in that they let you cache things, but the fact that they let you
-// cache the worker object in-memory allows for greater performance and
-// flexibility: you are no longer limited to caching only serialization data
-// and paying the cost of serializing it to disk every evaluation. This example
-// uses a Worker to provide simple in-memory caching for compressed files.
-//
 // Common things to put in workers include:
 //
 // 1. References to third-party daemon processes, e.g. Webpack or wkhtmltopdf,
@@ -95,3 +97,26 @@ Compressing: hello.txt
 Cached from disk: world.txt
 
 */
+
+// Mill uses workers to manage long-lived instances of the
+// https://github.com/sbt/zinc[Zinc Incremental Scala Compiler] and the
+// https://github.com/scala-js/scala-js[Scala.js Optimizer].
+// This lets us keep them in-memory with warm caches and fast incremental execution.
+//
+// === `Autoclosable` Workers
+//
+// As <<Workers>> may also hold limited resources, it may be necessary to free up these resources once a worker is no longer needed.
+// This is especially the case, when your worker tasks depends on other tasks and these tasks change, as Mill will then also create a new worker instance.
+//
+// To implement resource cleanup, your worker can implement `java.lang.AutoCloseable`.
+// Once the worker is no longer needed, Mill will call the `close()` method on it before any newer version of this worker is created.
+
+import mill._
+import java.lang.AutoCloseable
+
+class MyWorker() extends AutoCloseable {
+  // ...
+  override def close() = { /* cleanup and free resources */ }
+}
+
+def myWorker = T.worker { new MyWorker() }

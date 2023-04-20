@@ -47,72 +47,9 @@ include::example/tasks/3-anonymous-tasks.adoc[]
 
 include::example/tasks/4-inputs.adoc[]
 
-
 === Persistent Targets
 
-[source,scala]
-----
-def foo = T.persistent { ... }
-----
-
-Identical to <<_targets>>, except that the `dest/` folder is not cleared in between runs.
-
-This is useful if you are running external incremental-compilers, such as
-Scala's https://github.com/sbt/zinc[Zinc], Javascript's
-https://webpack.js.org/[WebPack], which rely on filesystem caches to speed up
-incremental execution of their particular build step.
-
-Since Mill no longer forces a "clean slate" re-evaluation of `T.persistent`
-targets, it is up to you to ensure your code (or the third-party incremental
-compilers you rely on!) are deterministic. They should always converge to the
-same outputs for a given set of inputs, regardless of what builds and what
-filesystem states existed before.
-
+include::example/tasks/5-persistent-targets.adoc[]
 
 === Workers
-
-[source,scala]
-----
-def foo = T.worker { ... }
-----
-
-Most tasks dispose of their in-memory return-value every evaluation; in the case
-of <<_targets>>, this is stored on disk and loaded next time if
-necessary, while <<_commands>> just re-compute them each time.
-Even if you use `--watch` or the Build REPL to keep the Mill process running, all this state is still discarded and re-built every evaluation.
-
-Workers are unique in that they store their in-memory return-value between
-evaluations.
-This makes them useful for storing in-memory caches or references to long-lived external worker processes that you can re-use.
-
-Mill uses workers to manage long-lived instances of the
-https://github.com/sbt/zinc[Zinc Incremental Scala Compiler] and the
-https://github.com/scala-js/scala-js[Scala.js Optimizer].
-This lets us keep them in-memory with warm caches and fast incremental execution.
-
-Like <<_persistent_targets>>, Workers inherently involve
-mutable state, and it is up to the implementation to ensure that this mutable
-state is only used for caching/performance and does not affect the
-externally-visible behavior of the worker.
-
-=== `Autoclosable` Workers
-
-As <<Workers>> may also hold limited resources, it may be necessary to free up these resources once a worker is no longer needed.
-This is especially the case, when your worker tasks depends on other tasks and these tasks change, as Mill will then also create a new worker instance.
-
-To implement resource cleanup, your worker can implement `java.lang.AutoCloseable`.
-Once the worker is no longer needed, Mill will call the `close()` method on it before any newer version of this worker is created.
-
-[source,scala]
-----
-import mill._
-import java.lang.AutoCloseable
-
-def myWorker = T.worker {
-  new MyWorker with AutoCloseable {
-    // ...
-    override def close() = { /* cleanup and free resources */ }
-  }
-}
-----
-
+include::example/tasks/5-workers.adoc[]
