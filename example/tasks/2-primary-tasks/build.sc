@@ -56,7 +56,10 @@ Computing line count
 
 def classFiles = T {
   println("Generating classfiles")
-  os.proc("javac", allSources().map(_.path.toString()), "-d", T.dest).call(cwd = T.dest)
+
+  os.proc("javac", allSources().map(_.path.toString()), "-d", T.dest)
+    .call(cwd = T.dest)
+
   PathRef(T.dest)
 }
 
