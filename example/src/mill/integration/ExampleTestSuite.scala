@@ -165,7 +165,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
     }
   }
 
-  def globMatches(expected: String, filtered: String) =
+  def globMatches(expected: String, filtered: String) = {
     filtered
       .linesIterator
       .exists(
@@ -173,4 +173,5 @@ object ExampleTestSuite extends IntegrationTestSuite {
           .glob(s"...$expected...".split("\\.\\.\\.", -1), _)
           .nonEmpty
       )
+  }
 }

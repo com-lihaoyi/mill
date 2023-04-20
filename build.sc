@@ -1260,7 +1260,8 @@ object example extends MillScalaModule {
   def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
-  object commands extends Cross[ExampleCrossModule](listIn(millSourcePath / "commands"): _*)
+  object builtins extends Cross[ExampleCrossModule](listIn(millSourcePath / "builtins"): _*)
+  object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"): _*)
   object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"): _*)
   object configscala extends Cross[ExampleCrossModule](listIn(millSourcePath / "configscala"): _*)
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
@@ -1817,7 +1818,8 @@ object docs extends Module {
     val pagesWd = T.dest / "modules" / "ROOT" / "pages"
     val renderedExamples: Seq[(String, PathRef)] =
       T.traverse(example.basic.items)(t => t._2.rendered.map("basic/" + t._1.mkString -> _))() ++
-      T.traverse(example.commands.items)(t => t._2.rendered.map("commands/" + t._1.mkString -> _))() ++
+      T.traverse(example.builtins.items)(t => t._2.rendered.map("builtins/" + t._1.mkString -> _))() ++
+      T.traverse(example.tasks.items)(t => t._2.rendered.map("tasks/" + t._1.mkString -> _))() ++
       T.traverse(example.cross.items)(t => t._2.rendered.map("cross/" + t._1.mkString -> _))() ++
       T.traverse(example.configscala.items)(t => t._2.rendered.map("configscala/" + t._1.mkString -> _))() ++
       T.traverse(example.misc.items)(t => t._2.rendered.map("misc/" + t._1.mkString -> _))() ++
@@ -2066,7 +2068,7 @@ def uploadToGithub(authKey: String) = T.command {
   }
 
   val exampleZips = for{
-    exampleBase <- Seq("basic", "commands", "cross", "web", "misc")
+    exampleBase <- Seq("basic", "builtins", "tasks", "cross", "web", "misc")
     examplePath <- os.list(T.workspace / "example" / exampleBase)
   } yield {
     val example = examplePath.subRelativeTo(T.workspace)
