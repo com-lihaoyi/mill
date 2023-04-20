@@ -193,7 +193,7 @@ These concepts are already familiar to anyone experienced in Scala (or any other
 programming language…), but are enough to answer all of the complicated
 build-related questions listed above.
 
-== The Object Hierarchy
+=== The Object Hierarchy
 
 The module hierarchy is the graph of objects, starting from the root of the
 `build.sc` file, that extend `mill.Module`. At the leaves of the hierarchy are
@@ -217,7 +217,7 @@ know how to run it, find its output files, find any caches, or refer to it from
 other ``Target``s. You know up-front where the ``Target``s data "lives" on disk, and
 are sure that it will never clash with any other ``Target``s data.
 
-== The Call Graph
+=== The Call Graph
 
 The Scala call graph of "which target references which other target" is core to
 how Mill operates. This graph is reified via the `T {...}` macro to make it
@@ -273,7 +273,7 @@ may be incremental, it may cache things, it may read and write from disk, but
 the fundamental syntax, and the data-flow that syntax represents, is unchanged
 from your normal Scala code.
 
-== Instantiating Traits & Classes
+=== Instantiating Traits & Classes
 
 Classes and traits are a common way of re-using common data structures in Scala:
 if you have a bunch of fields which are related and you want to make multiple
