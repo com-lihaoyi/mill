@@ -2,7 +2,6 @@
 
 Mill comes bundled with a set of external Open Source libraries and projects.
 
-
 == OS-lib
 
 OS-Lib is a simple, flexible, high-performance Scala interface to common OS

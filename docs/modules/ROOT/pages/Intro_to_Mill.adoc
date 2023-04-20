@@ -9,36 +9,20 @@ Mill aims for simplicity by reusing concepts you are already familiar with,
 borrowing ideas from modern tools like https://bazel.build/[Bazel].
 It lets you build your projects in a way that's simple, fast, and predictable.
 
-Mill automates dealing with a lot of common build-tool concerns:
-
-1. Caching on disk and in-memory
-2. Parallelism
-3. Incremental re-computation
-4. Discoverability
-5. Typechecking
-6. Templating
-7. Extensibility
-
-This allows you to focus your effort on the business logic unique to your
-build, while letting Mill take care of all the rest.
+Mill automates dealing with a lot of common build-tool concerns: Caching,
+incremental re-computation, parallelism, discoverability, etc. This allows you
+to focus your effort on the business logic unique to your build, while letting
+Mill take care of all the rest.
 
 Mill has built-in support for the https://www.scala-lang.org/[Scala]
 programming language, and can serve as a replacement for
 http://www.scala-sbt.org/[SBT].
 It can be xref:Extending_Mill.adoc[extended] to support any other language or platform via modules (written in Java or Scala) or through external subprocesses.
 
-The following external resources give more of a flavor of the philosophy behind
-Mill:
-
-* https://www.youtube.com/watch?v=j6uThGxx-18[Video: Mill a Build Tool based on Pure Functional Programming]
-* http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Blog Post: So, what's wrong with SBT?]
-* http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Blog Post: Build Tools as Pure Functional Programs]
-
 If you are using Mill, you will find the following book by the Author useful in
 using Mill and its supporting libraries to the fullest:
 
 * https://handsonscala.com/
-
 
 include::example/basic/1-simple-scala.adoc[]
 

@@ -1,16 +1,13 @@
 = Mill Internals
 
-== Mill Design Principles
+The following external resources give more of a flavor of the philosophy behind
+Mill:
 
-A lot of Mill's design principles are intended to fix SBT's flaws, as described
-in the blog post
-http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[What's wrong with SBT],
-building on the best ideas from tools like https://github.com/cvogt/cbt[CBT]
-and https://bazel.build/[Bazel], and the ideas from my blog post
-http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Build Tools as
-Pure Functional Programs].
-Before working on Mill, read through that post to understand where it is coming
-from!
+* https://www.youtube.com/watch?v=j6uThGxx-18[Video: Mill a Build Tool based on Pure Functional Programming]
+* http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Blog Post: So, what's wrong with SBT?]
+* http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Blog Post: Build Tools as Pure Functional Programs]
+
+== Mill Design Principles
 
 === Dependency graph first
 
@@ -54,7 +51,23 @@ the "slow" ones like `compile` or `assembly`.
 Caching is keyed on the `.hashCode` of the returned value. For ``Target``s
 returning the contents of a file/folder on disk, they return `PathRef` instances
 whose hashcode is based on the hash of the disk contents. Serialization of the
-returned values is tentatively done using uPickle.
+returned values is done using uPickle.
+
+=== Functional Purity
+
+Mill relies heavily on build targets being "pure": they only depend on their
+input targets, and their only output is their return value. They do not
+scribble all over the filesystem, reading and writing from random places. That
+is what allows us to be aggressive about caching and parallelizing the
+evaluation of build targets during a build.
+
+Many kinds of build steps do require files on disk, and for that Mill provides
+the `T.dest` folder. This is a folder on disk dedicated to each build target,
+so that it can read and write things to it without worrying about conflicts
+with other targets that have their own `T.dest` folders. In effect, this makes
+even file output "pure": we can know precisely where a target's output files
+live when we need to invalidate them, and it allows multiple targets all
+reading and writing to the filesystem to do so safely even when in parallel.
 
 === Short-lived build processes
 
@@ -73,9 +86,9 @@ previous process left off.
 
 Minimizing startup time means aggressive caching, as well as minimizing the
 total amount of bytecode used: Mill's current 1-2s startup time is dominated by
-JVM classloading. In future, we may have a long lived console or
-nailgun/drip-based server/client models to speed up interactive usage, but we
-should always keep "cold" startup as fast as possible.
+JVM classloading. By default Mill uses a long-lived compile server to speed
+things up even more, but ensuring that the "from scratch" performance remains
+good is a core ongoing requirement.
 
 === Static dependency graph and Applicative tasks
 
