@@ -1,5 +1,5 @@
 package mill.runner
-import mill.{BuildInfo, MillCliConfig, MillCliConfigParser}
+import mill.BuildInfo
 
 import java.io.{FileOutputStream, PrintStream}
 import java.util.Locale
