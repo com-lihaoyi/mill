@@ -33,7 +33,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
       try {
         val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
         val usageComment = parsed.collect{case ("example", txt) => txt}.mkString("\n\n")
-        val commandBlocks = usageComment.trim.split("> ").filter(_.nonEmpty)
+        val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
         "\n("
         for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
@@ -135,6 +135,9 @@ object ExampleTestSuite extends IntegrationTestSuite {
             IntegrationTestSuite.EvalResult(true, boas.toString("UTF-8"), "")
           )
         }finally{zipFile.close()}
+
+      case Seq("printf", literal, ">>", path) =>
+        mangleFile(os.Path(path, workspacePath), _ + ujson.read('"' + literal + '"').str)
 
     }
   }

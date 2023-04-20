@@ -34,7 +34,7 @@ def run(args: String*) = T.command {
 // This example does not use any of Mill's builtin support for building Java or
 // Scala projects, and instead builds a pipeline "from scratch" using Mill
 // tasks and `javac`/`jar`/`java` subprocesses. We define `T.source` folders,
-// `T{...}` targets that depend on them, and a `T.command`.
+// plain `T{...}` targets that depend on them, and a `T.command`.
 
 /** Usage
 

@@ -15,6 +15,7 @@ object BashTokenizer {
     for (i <- 0 until string.length()) {
       val c = string.charAt(i)
       if (escaping) {
+        current.append('\\')
         current.append(c)
         escaping = false
       } else if (c == '\\' && !(quoting && quoteChar == '\'')) {
