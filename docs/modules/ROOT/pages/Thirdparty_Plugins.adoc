@@ -19,7 +19,6 @@ https://www.antlr.org/[ANTLR parser generator] support for mill.
 
 Project home: https://github.com/ml86/mill-antlr
 
-=== Quickstart
 
 [source,scala]
 ----
@@ -39,7 +38,6 @@ https://projects.eclipse.org/projects/tools.aspectj[AspectJ compiler] support fo
 
 Project home: https://github.com/lefou/mill-aspectj
 
-=== Quickstart
 
 [source,scala]
 ----
@@ -91,7 +89,6 @@ imitates.
 
 Project home: https://github.com/ckipp01/mill-ci-release
 
-=== Quickstart
 
 To get started, you'll want to use `CiReleaseModule` as a drop in replacement
 where you'd normally use the Mill `PublishModule` and then ensure you implement
@@ -120,7 +117,6 @@ Show transitive dependencies of your build in your browser.
 
 Project home: https://github.com/ajrnz/mill-dgraph
 
-=== Quickstart
 
 [source,scala]
 ----
@@ -147,7 +143,6 @@ Create an http://ensime.github.io/[.ensime] file for your build.
 
 Project home: https://github.com/davoclavo/mill-ensime
 
-=== Quickstart
 
 [source,scala]
 ----
@@ -180,7 +175,6 @@ A plugin that checks that `ivyDeps` and `ivyCompileDeps` accurately reflect the 
 
 Project home: https://github.com/kierendavies/mill-explicit-deps
 
-=== Quickstart
 
 .`build.sc`
 [source,scala]
@@ -221,7 +215,6 @@ working targets for your template after generation.
 
 Project home: https://github.com/ckipp01/mill-giter8
 
-=== Quickstart
 
 .`build.sc`
 [source,scala]
@@ -281,7 +274,6 @@ Submission API].
 
 Project home: https://github.com/ckipp01/mill-github-dependency-graph
 
-=== Quickstart
 
 The easiest way to use this plugin is with the
 https://github.com/ckipp01/mill-github-dependency-graph[mill-dependency-submission]
@@ -315,7 +307,6 @@ Integration testing for mill plugins.
 
 Project home: https://github.com/lefou/mill-integrationtest
 
-=== Quickstart
 
 We assume, you have a mill plugin named `mill-demo`
 
@@ -400,7 +391,6 @@ Plugin home: https://github.com/lefou/mill-jbake
 
 JBake home: https://jbake.org
 
-=== Quickstart
 
 [source,scala]
 ----
@@ -471,7 +461,6 @@ public class BuildInfo {
 }
 ----
 
-=== Configuration options
 
 * `def buildInfoMembers: T[Map[String, String]]`
 
@@ -492,7 +481,6 @@ https://kotlinlang.org/[Kotlin] compiler support for mill.
 
 Project home: https://github.com/lefou/mill-kotlin
 
-=== Quickstart
 
 [source,scala]
 ----
@@ -517,8 +505,6 @@ object main extends KotlinModule {
 }
 ----
 
-=== Documentation
-
 For documentation please visit the https://github.com/lefou/mill-kotlin[mill-kotlin project page].
 
 You will find there also a version compatibility matrix.
@@ -538,49 +524,9 @@ Small script to automatically fetch and execute mill build tool.
 
 Project home: https://github.com/lefou/millw
 
-=== How it works
-
-`millw` is a small wrapper script around mill and works almost identical to mill. It automatically downloads a mill release into `$HOME/.mill/download`.
-
-The mill version to be used will be determined by the following steps. The search ends, after the first step that results in a version.
-
-* If the first parameter is `--mill-version`, the second parameter will be used as the mill version.
- Example
-
-`
-  sh $ mill --mill-version 0.3.6 --disable-ticker version
-  0.3.6
-`
-
-* If there is a file `.mill-version` in the working directory, it’s content will be used as mill version. The file must have only a mill version as content, no additional content or comments are supported.
- Example
-
-`
-  sh $ echo -n &quot;0.3.6&quot; &gt; .mill-version
-  sh $ mill --disable-ticker version
-  0.3.6
-`
-
-The values of the `DEFAULT_MILL_VERSION` variable inside the script will be used.
-
-=== Use cases
-
-==== As mill executable
-
-Istead of installing mill, you can just place the script into you local `$HOME/bin` directory and rename it to `mill`.
-
-If you need a special mill version in a project directory, just place a `.mill-version` file with the best mill version.
-Example: setting mill 0.3.6 as best local mill version
-
-----
-sh $ echo -n "0.3.6" > .mill-version
-----
-
-==== As a wrapper script in your project
-
-To make the start for others easier or to always have the correct mill version in your CI environment, you can just place a copy of the script as `millw` in your project root directory.
-
-You should change the `DEFAULT_MILL_VERSION` variable in that script to the correct version you want to use and add the file under version control.
+`millw` is a small wrapper script around mill and works almost identical to
+mill, but with additional features and compatibility with Windows. It
+automatically downloads a mill release into `$HOME/.mill/download`.
 
 == MiMa
 
@@ -588,7 +534,6 @@ Check binary compatibility with mill.
 
 Project home: https://github.com/lolgab/mill-mima
 
-=== Quickstart
 
 Just mix-in the `Mima` trait into your `ScalaModule`.
 And set the previous artifacts you want to check binary compatibility.
@@ -625,7 +570,6 @@ Produce OSGi Bundles with mill.
 
 Project home: https://github.com/lefou/mill-osgi
 
-=== Quickstart
 
 [source,scala]
 ----
@@ -662,7 +606,6 @@ Mill plugin to publish artifacts into a local Maven repository.
 
 Project home: https://github.com/lefou/mill-publishM2
 
-=== Quickstart
 
 Just mix-in the `PublishM2Module` into your project.
 `PublishM2Module` already extends mill's built-in `PublishModule`.
@@ -705,7 +648,6 @@ https://scalablytyped.org/[Scalablytyped] support for mill.
 
 Project home: https://github.com/lolgab/mill-scalablytyped
 
-=== Quickstart
 
 Mix-in the `ScalablyTyped` trait into your `ScalaJSModule` and
 set-up a `package.json` file with your TypeScript dependencies.
@@ -731,8 +673,6 @@ It will run ScalablyTyped and add the converted dependencies to the module's `iv
 https://scalacenter.github.io/scalafix/[Scalafix] support for mill.
 
 Project home: https://github.com/joan38/mill-scalafix
-
-=== Fix sources
 
 _build.sc_:
 
@@ -766,7 +706,6 @@ code navigation on https://sourcegraph.com/[Sourcegraph].
 
 Project home: https://github.com/ckipp01/mill-scip
 
-=== Quickstart
 
 The recommended way to use `mill-scip` is via the
 https://sourcegraph.github.io/scip-java/[`scip-java`] cli tool that can be
@@ -813,7 +752,6 @@ Project home: https://github.com/lefou/mill-vcs-version
 Lots of formatting options are provided.
 When used with its defaults, the outcome is identical to the version scheme that Mill itself uses.
 
-=== Quickstart
 
 [source,scala]
 ----
