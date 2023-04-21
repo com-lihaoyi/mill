@@ -1,5 +1,6 @@
 package foo;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
