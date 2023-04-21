@@ -1,9 +1,9 @@
 // Persistent targets defined using `T.persistent` are similar to normal
-// `Target`s, except their `T.dest` folder is not cleared before every
+// ``Target``s, except their `T.dest` folder is not cleared before every
 // evaluation. This makes them useful for caching things on disk in a more
 // fine-grained manner than Mill's own Target-level caching.
 //
-// Below is a more realistic example of using a `T.persistent` target:
+// Below is a semi-realistic example of using a `T.persistent` target:
 
 import mill._, scalalib._
 import java.util.Arrays
@@ -18,7 +18,7 @@ def compressedData = T.persistent{
   os.remove.all(T.dest / "compressed")
 
   for(p <- os.list(data().path)){
-    val compressedPath = T.dest / "compressed" / p.last
+    val compressedPath = T.dest / "compressed" / s"${p.last}.gz"
     val bytes = os.read.bytes(p)
     val hash = Arrays.hashCode(bytes)
     val cachedPath = T.dest / "cache" / hash.toHexString
@@ -28,7 +28,7 @@ def compressedData = T.persistent{
     } else {
       println("Reading Cached from disk: " + p.last)
     }
-    os.copy(cachedPath, compressedPath / os.up / s"${p.last}.gz", createFolders = true)
+    os.copy(cachedPath, compressedPath, createFolders = true)
   }
 
   os.list(T.dest / "compressed").map(PathRef(_))
@@ -42,8 +42,6 @@ def compressBytes(input: Array[Byte]) = {
   bos.toByteArray
 }
 
-
-//
 // In this example, we implement a `compressedData` target that takes a folder
 // of files in `inputData` and compresses them, while maintaining a cache of
 // compressed contents for each file. That means that if the `inputData` folder

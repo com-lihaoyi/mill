@@ -1,7 +1,10 @@
 import mill._
 
 def myInput = T.input {
-  os.proc("git", "rev-parse", "HEAD").call(cwd = T.workspace).out.text().trim()
+  os.proc("git", "rev-parse", "HEAD").call(cwd = T.workspace)
+    .out
+    .text()
+    .trim()
 }
 
 // A generalization of <<_sources>>, ``T.input``s are tasks that re-evaluate
@@ -33,7 +36,7 @@ def gitStatusTarget = T {
 
 > git commit --allow-empty -m "Second-Commit"
 
-> ./mill show gitStatusTarget
+> ./mill show gitStatusTarget # Mill didn't pick up the git change!
 "v-...-Initial-Commit"
 
 */
@@ -66,7 +69,7 @@ def gitStatusTarget2 = T { "v-" + gitStatusInput() }
 
 > git commit --allow-empty -m "Second-Commit"
 
-> ./mill show gitStatusTarget2
+> ./mill show gitStatusTarget2 # Mill picked up git change
 "v-...-Second-Commit"
 
 */
@@ -74,4 +77,4 @@ def gitStatusTarget2 = T { "v-" + gitStatusInput() }
 // Note that because ``T.input``s re-evaluate every time, you should ensure that the
 // code you put in `T.input` runs quickly. Ideally it should just be a simple check
 // "did anything change?" and any heavy-lifting should be delegated to downstream
-// targets.
+// targets where it can be cached if possible.

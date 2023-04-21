@@ -90,6 +90,10 @@ Generating jar
 // upstream dependencies has failed. Similar, even if the upstream targets is
 // not used in one branch of an `if` condition, it will get computed regardless
 // before the `if` condition is even considered.
+//
+// The following example demonstrates this behavior, with the `println` defined
+// in `def largeFile` running even though the `largeFile()` branch of the
+// `if` conditional does not get used:
 
 def largeFile = T {
   println("Finding Largest File")
@@ -109,22 +113,22 @@ def hugeFileName = T{
 > ./mill show lineCount
 18
 
-> ./mill show hugeFileName # This runs `largestFile` even though `lineCount() < 999`
+> ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() < 999`
 Finding Largest File
 <no-huge-file>
 
 */
 
 // uPickle comes with built-in support for most Scala primitive types and
-// builtin data structures: tuples, collections, `PathRef`s, etc. can be
+// builtin data structures: tuples, collections, ``PathRef``s, etc. can be
 // returned and automatically serialized/de-serialized as necessary. One
 // notable exception is ``case class``es: if you want return your own
 // `case class`, you must mark it JSON-serializable by adding the following
-// implicit def to its companion object:
+// `implicit` to its companion object:
 
 case class ClassFileData(totalFileSize: Long, largestFile: String)
 object ClassFileData {
-  implicit def rw: upickle.default.ReadWriter[ClassFileData] = upickle.default.macroRW
+  implicit val rw: upickle.default.ReadWriter[ClassFileData] = upickle.default.macroRW
 }
 
 def summarizeClassFileStats = T{
@@ -156,16 +160,6 @@ def resources = T.source { millSourcePath / "resources" }
 // it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of the filesystem
 // tree under that path.
 //
-// `T.sources` also has an overload which takes `Seq[PathRef]`, to let you
-// override-and-extend source lists the same way you would any other `T {...}`
-// definition:
-//
-// [source,scala]
-// ----
-// def additionalSources = T.sources { os.pwd / "additionalSources" }
-// override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources() }
-// ----
-//
 // `T.source` and `T.sources` are the most common inputs to your Mill build:
 // they watch source files and folders and cause downstream targets to
 // re-compute if a change is detected.
@@ -181,6 +175,39 @@ def resources = T.source { millSourcePath / "resources" }
 
 > ./mill jar # Classfiles recompiled but output unchanged, jar was not rebuilt
 Generating classfiles
+
+*/
+
+// `T.sources` can be overriden with `super`, to let you
+// override-and-extend source lists the same way you would any other target
+// definition:
+//
+
+trait Foo extends Module {
+  def sourceRoots = T.sources(millSourcePath / "src")
+  def sourceContents = T{
+    sourceRoots()
+      .flatMap(pref => os.walk(pref.path))
+      .filter(_.ext == "txt")
+      .sorted
+      .map(os.read(_))
+  }
+}
+
+trait Bar extends Foo {
+  def additionalSources = T.sources(millSourcePath / "src2")
+  def sourceRoots = T { super.sourceRoots() ++ additionalSources() }
+}
+
+object bar extends Bar
+
+/** Usage
+
+> ./mill show bar.sourceContents # includes both source folders
+[
+  "File Data From src/",
+  "File Data From src2/"
+]
 
 */
 

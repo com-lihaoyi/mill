@@ -2,11 +2,11 @@
 
 `mill.Module` serves two main purposes:
 
-1. As ``object``s, they serve as namespaces that let you group related `Task`s
+1. As ``object``s, they serve as namespaces that let you group related ``Task``s
    together to keep things neat and organized.
 
 2. As ``trait``s, they are re-usable templates that let you replicate groups
-   of related ``Task``s while allowing customizations
+   of related ``Task``s and sub-``Module``s while allowing customizations
 
 Mill's comes with built in modules such as `mill.scalalib.ScalaModule` and
 `mill.scalalib.CrossSbtModule`, but you can also define your own modules to do

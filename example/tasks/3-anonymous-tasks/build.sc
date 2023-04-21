@@ -2,11 +2,14 @@ import mill._, define.Task
 
 def data = T.source(millSourcePath / "data")
 
-def anonTask(fileName: String): Task[String] = T.task { os.read(data().path / fileName) }
+def anonTask(fileName: String): Task[String] = T.task {
+  os.read(data().path / fileName)
+}
 
 def helloFileData = T { anonTask("hello.txt")() }
-
-def printFileData(fileName: String) = T.command { println(anonTask(fileName)()) }
+def printFileData(fileName: String) = T.command {
+  println(anonTask(fileName)())
+}
 
 // You can define anonymous tasks using the `T.task {...}` syntax. These are
 // not runnable from the command-line, but can be used to share common code you
@@ -31,6 +34,7 @@ def printFileData(fileName: String) = T.command { println(anonTask(fileName)()) 
 
 > ./mill printFileData hello.txt
 Hello
+
 > ./mill printFileData world.txt
 World!
 

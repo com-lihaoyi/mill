@@ -18,7 +18,7 @@ def compressWorker = T.worker{ new CompressWorker(T.dest) }
 def compressedData = T{
   println("Evaluating compressedData")
   for(p <- os.list(data().path)){
-    os.write(
+    os.write(``
       T.dest / s"${p.last}.gz",
       compressWorker().compress(p.last, os.read.bytes(p))
     )

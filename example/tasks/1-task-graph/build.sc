@@ -5,10 +5,8 @@ import mill._
 def sources = T.source(millSourcePath / "src")
 def resources = T.source(millSourcePath / "resources")
 
-def allSources = T { os.walk(sources().path).map(PathRef(_)) }
-
 def compile = T {
-  os.proc("javac", allSources().map(_.path), "-d", T.dest).call(cwd = T.dest)
+  os.proc("javac", os.walk(sources().path), "-d", T.dest).call(cwd = T.dest)
   PathRef(T.dest)
 }
 
@@ -49,14 +47,14 @@ My Example Text
 */
 
 // When you first evaluate `jar` (e.g. via `mill jar` at the command line), it
-// will evaluate all the defined targets: `sourceRoot`, `allSources`,
-// `classFiles`, `resourceRoot` and `jar`.
+// will evaluate all the defined targets: `sources`, `allSources`,
+// `compile`, `resources` and `jar`.
 //
 // Subsequent invocations of `mill jar` will evaluate only as much as is
 // necessary, depending on what input sources changed:
 //
-// * If the files in `sourceRoot` change, it will re-evaluate `allSources`,
-//   compiling to `classFiles`, and building the `jar`
+// * If the files in `sources` change, it will re-evaluate `allSources`,
+//   compiling to `compile`, and building the `jar`
 //
-// * If the files in `resourceRoot` change, it will only re-evaluate `jar` and
-//   use the cached output of `allSources` and `classFiles`
+// * If the files in `resources` change, it will only re-evaluate `jar` and
+//   use the cached output of `allSources` and `compile`

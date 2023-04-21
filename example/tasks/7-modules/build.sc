@@ -14,10 +14,11 @@ object foo extends Module {
 }
 
 // You would be able to run the two targets via `mill foo.bar` or `mill
-// foo.baz.qux`. You can use `mill show foo.bar` or `mill show foo.baz.qux` to
+// foo.qux.baz`. You can use `mill show foo.bar` or `mill show foo.baz.qux` to
 // make Mill echo out the string value being returned by each Target. The two
-// targets will store their output metadata & files at `./out/foo/bar` and
-// `./out/foo/baz/qux` respectively.
+// targets will store their output metadata and files at
+// `./out/foo/bar.{json,dest}` and `./out/foo/baz/qux.{json,dest}`
+// respectively.
 
 /** Usage
 
@@ -41,9 +42,9 @@ object foo extends Module {
 // == Trait Modules
 //
 // Modules also provide a way to define and re-use common collections of tasks,
-// via Scala ``trait``s. Module `trait`s support all the normal `trait` things:
-// abstract/mandatory ``def```, overrides, `super`, extension with additional
-// ``def``s, etc.
+// via Scala ``trait``s. Module ``trait `s support everything nornal Scala
+// ``trait``s do: abstract ``def``s, overrides, `super`, extension
+// with additional ``def``s, etc.
 
 trait FooModule extends Module {
   def bar: T[String] // required override
@@ -52,12 +53,11 @@ trait FooModule extends Module {
 
 object foo1 extends FooModule{
   def bar = "hello"
-  def qux = super.qux().toUpperCase
+  def qux = super.qux().toUpperCase // refer to overriden value via super
 }
 object foo2 extends FooModule {
   def bar = "hi"
-
-  def baz = T { qux() + " I am Cow" }
+  def baz = T { qux() + " I am Cow" } // add a new `def`
 }
 
 // Note that the `override` keyword is implicit in mill, as is `T{...}` wrapper.
