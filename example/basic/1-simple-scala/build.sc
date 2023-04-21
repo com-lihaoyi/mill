@@ -21,7 +21,7 @@ object foo extends RootModule with ScalaModule {
 // `./mill compile` or `./mill run` without needing to prefix it as
 // `foo.compile` or `foo.run`.
 //
-// You can download this example project using the *download* link above,
+// You can download this example project using the *download* link above
 // if you want to try out the commands below yourself. The only requirement is
 // that you have some version of the JVM installed; the `./mill` script takes
 // care of any further dependencies that need to be downloaded.
