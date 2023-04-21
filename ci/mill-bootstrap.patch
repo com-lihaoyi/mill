@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 9b590d02bd..c4f9141de1 100644
+index 9b590d02bd..2e80b18950 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,27 +2,18 @@
@@ -383,6 +383,15 @@ index 9b590d02bd..c4f9141de1 100644
  
      def sources = T.sources()
      def testRepoRoot: T[PathRef] = T.source(millSourcePath)
+@@ -1318,7 +1097,7 @@ object example extends MillScalaModule {
+               val title =
+                 if (seenCode) ""
+                 else {
+-                  val label = VcsVersion.vcsState().format()
++                  val label = "xxx"
+                   val exampleDashed = examplePath.segments.mkString("-")
+                   val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
+                   val browse = s"{mill-example-url}/$examplePath[browse]"
 @@ -1349,9 +1128,9 @@ object example extends MillScalaModule {
  }
  
@@ -396,6 +405,24 @@ index 9b590d02bd..c4f9141de1 100644
  
    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
  
+@@ -1724,7 +1503,7 @@ object docs extends Module {
+     }
+     def mangled = T {
+       os.copy(stage().path, T.dest, mergeFolders = true)
+-      val sha = VcsVersion.vcsState().currentRevision
++      val sha = "xxx"
+       for(p <- os.walk(T.dest) if p.ext == "scala"){
+         os.write(
+           p,
+@@ -2067,7 +1846,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
+     examplePath = exampleMod.millSourcePath
+   } yield {
+     val example = examplePath.subRelativeTo(T.workspace)
+-    val exampleStr = VcsVersion.vcsState().format() + "-" + example.segments.mkString("-")
++    val exampleStr = "xxx" + "-" + example.segments.mkString("-")
+     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
+     os.copy(launcher().path, T.dest / exampleStr / "mill")
+     val zip = T.dest / s"$exampleStr.zip"
 @@ -2077,47 +1856,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
  }
  
