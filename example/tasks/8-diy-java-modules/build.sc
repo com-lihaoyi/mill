@@ -17,7 +17,7 @@ trait DiyJavaModule extends Module{
   def name = T{ millSourcePath.relativeTo(T.workspace).segments.mkString("-") }
 
   def cpFlag(cp: Seq[PathRef]) =
-    Seq("-cp", cp.map(_.path).mkString(sys.props("path.separator"))))
+    Seq("-cp", cp.map(_.path).mkString(sys.props("path.separator")))
 
   def compile = T {
     val allSources = os.walk(sources().path)
