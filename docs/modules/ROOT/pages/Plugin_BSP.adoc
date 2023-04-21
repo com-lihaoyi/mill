@@ -1,16 +1,6 @@
 = BSP - Build Server Protocol
 
-The contrib.bsp module is now included in mill by default and will eventually replace GenIdea.
+_The contrib.bsp plugin is no longer available.
+The BSP server is now integrated in Mill by default._
 
-Run the following command in the working directory of your project to generate the BSP config:
-
-[source,bash]
-----
-$ mill mill.bsp.BSP/install
-----
-
-== Known Issues:
-
-* Sometimes build from IntelliJ might fail due to a NoClassDefFoundException
-being thrown during the evaluation of tasks, a bug not easy to reproduce.
-In this case it is recommended to refresh the bsp project.
+Read on in the xref:Installation_IDE_Support.adoc#_build_server_protocol_bsp[Build Server Protocol] section.

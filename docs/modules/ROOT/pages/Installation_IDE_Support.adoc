@@ -151,6 +151,7 @@ To support various IDEs and Language Servers, Mill supports the https://build-se
 
 In addition to BSP, Mill also supports <<IntelliJ IDEA Support,IntelliJ IDEA project configuration generation>> directly.
 
+
 === Build Server Protocol (BSP)
 
 The Build Server Protocol has the concept of BSP server discovery, which means: A BSP client can connect to any BSP server, as long as there is a connection file under the `.bsp/` directory.
