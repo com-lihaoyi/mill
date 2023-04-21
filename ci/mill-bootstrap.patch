@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 6f66200608..7b1b60261c 100644
+index adbb16d3b5..2df77aafcf 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,27 +2,18 @@
@@ -405,27 +405,73 @@ index 6f66200608..7b1b60261c 100644
  
    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
  
-@@ -1712,8 +1491,8 @@ object docs extends Module {
-       val docReturn = zincWorker.worker().docJar(
-         scalaVersion(),
-         scalaOrganization(),
--        scalaDocClasspath().map(_.path),
--        scalacPluginClasspath().map(_.path),
-+        scalaDocClasspath(),
-+        scalacPluginClasspath(),
-         options ++ scaladocFiles.map(_.toString)
-       ) match {
-         case true => Result.Success(PathRef(T.dest))
-@@ -1724,7 +1503,7 @@ object docs extends Module {
-     }
-     def mangled = T {
-       os.copy(stage().path, T.dest, mergeFolders = true)
+@@ -1661,64 +1440,11 @@ object docs extends Module {
+     def moduleDeps = build.millInternal.modules.collect { case m: MillApiModule => m}
+ 
+     def unidocSourceUrl = T{
 -      val sha = VcsVersion.vcsState().currentRevision
 +      val sha = "xxx"
-       for(p <- os.walk(T.dest) if p.ext == "scala"){
-         os.write(
-           p,
-@@ -1844,7 +1623,7 @@ object docs extends Module {
+       Some(s"https://github.com/com-lihaoyi/mill/blob/$sha")
+     }
+   }
+ 
+-  /**
+-   * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] target that
+-   * can be used to build a unified scaladoc site for this module and all of
+-   * its transitive dependencies
+-   */
+-  trait UnidocModule extends ScalaModule {
+-    def unidocSourceUrl: T[Option[String]] = None
+-    def unidocVersion: T[Option[String]] = None
+-
+-    def unidocLocal = T {
+-      def unidocCompileClasspath =
+-        Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
+-
+-      val unidocSourceFiles =
+-        allSourceFiles() ++ T.traverse(moduleDeps)(_.allSourceFiles)().flatten
+-
+-      T.log.info(s"Staging scaladoc for ${unidocSourceFiles.length} files")
+-
+-      // the details of the options and zincWorker call are significantly
+-      // different between scala-2 scaladoc and scala-3 scaladoc
+-      // below is for scala-2 variant
+-      val options: Seq[String] = Seq(
+-        "-doc-title", "Mill",
+-        "-d", T.dest.toString,
+-        "-classpath", unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator")),
+-      ) ++
+-        unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
+-        unidocSourceUrl().toSeq.flatMap(_ => Seq("-doc-source-url", "file://€{FILE_PATH}.scala"))
+-
+-      zincWorker.worker().docJar(
+-        scalaVersion(),
+-        scalaOrganization(),
+-        scalaDocClasspath().map(_.path),
+-        scalacPluginClasspath().map(_.path),
+-        options ++ unidocSourceFiles.map(_.path.toString)
+-      ) match {
+-        case true => mill.api.Result.Success(PathRef(T.dest))
+-        case false => mill.api.Result.Failure("unidoc generation failed")
+-      }
+-    }
+-
+-    def unidocSite = T {
+-      os.copy(unidocLocal().path, T.dest, mergeFolders = true)
+-      for {
+-        sourceUrl <- unidocSourceUrl()
+-        p <- os.walk(T.dest) if p.ext == "scala"
+-      } {
+-        os.write(p, os.read(p).replace(s"file://${T.workspace}", sourceUrl))
+-      }
+-      PathRef(T.dest)
+-    }
+-  }
+-
+   private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
+   private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
+   def npmBase: T[os.Path] = T.persistent { T.dest }
+@@ -1769,7 +1495,7 @@ object docs extends Module {
  
      val contribReadmes = T.traverse(contrib.contribModules)(m =>
        T.task {
@@ -434,7 +480,7 @@ index 6f66200608..7b1b60261c 100644
        }
      )()
  
-@@ -2067,7 +1846,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
+@@ -1995,7 +1721,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
      examplePath = exampleMod.millSourcePath
    } yield {
      val example = examplePath.subRelativeTo(T.workspace)
@@ -443,7 +489,7 @@ index 6f66200608..7b1b60261c 100644
      os.copy(examplePath, T.dest / exampleStr, createFolders = true)
      os.copy(launcher().path, T.dest / exampleStr / "mill")
      val zip = T.dest / s"$exampleStr.zip"
-@@ -2077,47 +1856,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
+@@ -2005,47 +1731,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
  }
  
  def uploadToGithub(authKey: String) = T.command {
@@ -470,9 +516,9 @@ index 6f66200608..7b1b60261c 100644
 -      .header("Authorization", "token " + authKey)
 -      .asString
 -  }
--
--  val examples = exampleZips().map(z => (z.path, z.path.last))
  
+-  val examples = exampleZips().map(z => (z.path, z.path.last))
+-
 -  val zips = examples ++ Seq(
 -    (assembly().path, label + "-assembly"),
 -    (launcher().path, label)
