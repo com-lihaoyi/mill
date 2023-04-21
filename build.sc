@@ -1655,145 +1655,70 @@ object dev extends MillModule {
 object docs extends Module {
   // This module isn't really a ScalaModule, but we use it to generate
   // consolidated documentation using the Scaladoc tool.
-  object site extends ScaladocSiteModule {
+  object site extends UnidocModule {
     def scalaVersion = Deps.scalaVersion
-
-    // specify subdirectory for scaladoc
-    def scaladocSubPath: os.SubPath = os.sub / "api" / "latest"
 
     def moduleDeps = build.millInternal.modules.collect { case m: MillApiModule => m}
 
-    def scaladocPushGitURI = "git@github.com:com-lihaoyi/mill.git"
+    def unidocSourceUrl = T{
+      val sha = VcsVersion.vcsState().currentRevision
+      Some(s"https://github.com/com-lihaoyi/mill/blob/$sha")
+    }
   }
 
-  // This module isn't really a ScalaModule, but we use it to generate
-  // consolidated documentation using the Scaladoc tool.
-  trait ScaladocSiteModule extends ScalaModule {
-    def moduleDeps: Seq[JavaModule]
+  /**
+   * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] target that
+   * can be used to build a unified scaladoc site for this module and all of
+   * its transitive dependencies
+   */
+  trait UnidocModule extends ScalaModule {
+    def unidocSourceUrl: T[Option[String]] = None
+    def unidocVersion: T[Option[String]] = None
 
-    override def compileClasspath = T{
-      super.compileClasspath() ++
-      T.traverse(moduleDeps)(_.compileClasspath)().flatten
-    }
-    // stage the static website and/or doc into the 'stage' task destination
-    // directory adapted from: https://github.com/com-lihaoyi/mill/discussions/1194
-    def stage = T {
-      if (!os.isDir(millSourcePath)) {
-        T.log.info(s"""Source path "${millSourcePath}" not found, ignoring""")
-        T.log.info(s"Staging index.html from method defaultSiteIndex")
-        os.write.over(T.dest / "index.html", defaultSiteIndex)
-      } else {
-        val sitefiles = os.walk(millSourcePath, skip = (p: os.Path) => !os.isFile(p))
-        T.log.info(s"Staging ${sitefiles.length} site files from site source path ${millSourcePath}")
-        for (f <- sitefiles ){
-          os.copy.over(f, T.dest / f.subRelativeTo(millSourcePath), createFolders = true)
-        }
-      }
+    def unidocLocal = T {
+      def unidocCompileClasspath =
+        Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
 
-      val scaladocFiles: Seq[os.Path] =
-        T.traverse(moduleDeps)(_.allSourceFiles)().flatten.map(_.path)
+      val unidocSourceFiles =
+        allSourceFiles() ++ T.traverse(moduleDeps)(_.allSourceFiles)().flatten
 
-      T.log.info(s"Staging scaladoc for ${scaladocFiles.length} files")
-
-      val scaladocPath: os.Path = T.dest / scaladocSubPath
-      os.makeDir.all(scaladocPath)
+      T.log.info(s"Staging scaladoc for ${unidocSourceFiles.length} files")
 
       // the details of the options and zincWorker call are significantly
       // different between scala-2 scaladoc and scala-3 scaladoc
       // below is for scala-2 variant
       val options: Seq[String] = Seq(
         "-doc-title", "Mill",
-        "-doc-version", millVersion(),
-        "-d", scaladocPath.toString,
-        "-classpath", compileClasspath().map(_.path).mkString(":"),
-        "-doc-source-url", "file://€{FILE_PATH}.scala"
-      )
+        "-d", T.dest.toString,
+        "-classpath", unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator")),
+      ) ++
+        unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
+        unidocSourceUrl().toSeq.flatMap(_ => Seq("-doc-source-url", "file://€{FILE_PATH}.scala"))
 
-      val docReturn = zincWorker.worker().docJar(
+      zincWorker.worker().docJar(
         scalaVersion(),
         scalaOrganization(),
         scalaDocClasspath().map(_.path),
         scalacPluginClasspath().map(_.path),
-        options ++ scaladocFiles.map(_.toString)
+        options ++ unidocSourceFiles.map(_.path.toString)
       ) match {
-        case true => Result.Success(PathRef(T.dest))
-        case false => Result.Failure("doc generation failed")
+        case true => mill.api.Result.Success(PathRef(T.dest))
+        case false => mill.api.Result.Failure("unidoc generation failed")
       }
-
-      docReturn
     }
-    def mangled = T {
-      os.copy(stage().path, T.dest, mergeFolders = true)
-      val sha = VcsVersion.vcsState().currentRevision
-      for(p <- os.walk(T.dest) if p.ext == "scala"){
-        os.write(
-          p,
-          os.read(p).replace(
-            s"file://${T.workspace}",
-            s"https://github.com/com-lihaoyi/mill/blob/$sha"
-          )
-        )
+
+    def unidocSite = T {
+      os.copy(unidocLocal().path, T.dest, mergeFolders = true)
+      for {
+        sourceUrl <- unidocSourceUrl()
+        p <- os.walk(T.dest) if p.ext == "scala"
+      } {
+        os.write(p, os.read(p).replace(s"file://${T.workspace}", sourceUrl))
       }
       PathRef(T.dest)
     }
-
-    def push() = T.command {
-      val stageDir = stage().path
-
-      val workBranch = scaladocPushWorkingBranch
-      val remoteBranch = scaladocPushRemoteBranch
-      val gitURI = scaladocPushGitURI
-      val username = scaladocPushUserName
-      val useremail = scaladocPushUserEmail
-
-      T.log.info(s"pushing site to branch $remoteBranch of $gitURI")
-
-      os.proc("git", "-C", stageDir, "init", "--quiet", s"--initial-branch=${workBranch}").call()
-      os.proc("git", "-C", stageDir, "config", "user.name", username).call()
-      os.proc("git", "-C", stageDir, "config", "user.email", useremail).call()
-      os.proc("git", "-C", stageDir, "add", ".").call()
-      os.proc("git", "-C", stageDir, "commit", "-m", "push from mill").call()
-      os.proc("git", "-C", stageDir, "push", "-f", gitURI, s"${workBranch}:${remoteBranch}").call()
-
-      T.log.info("cleaning up git working directory")
-      os.proc("rm", "-rf", s"${stageDir}/.git").call()
-    }
-
-    def scaladocPushGitURI: String
-
-    def scaladocPushWorkingBranch: String = "main"
-
-    def scaladocPushRemoteBranch: String = "gh-pages"
-
-    def scaladocPushUserName: String = os.proc("git", "config", "user.name").call().out.text()
-
-    def scaladocPushUserEmail: String = os.proc("git", "config", "user.email").call().out.text()
-
-    def scaladocSubPath: os.SubPath
-
-    def defaultSiteIndex: String =
-      s"""|<!DOCTYPE html>
-          |<html lang="en">
-          |<head>
-          |    <meta charset="UTF-8">
-          |    <title>Project Documentation</title>
-          |    <script language="JavaScript">
-          |    <!--
-          |    function doRedirect()
-          |    {
-          |        window.location.replace("${scaladocSubPath}");
-          |    }
-          |    doRedirect();
-          |    //-->
-          |    </script>
-          |</head>
-          |<body>
-          |<a href="${scaladocSubPath}">Go to the project documentation
-          |</a>
-          |</body>
-          |</html>
-          |""".stripMargin
   }
+
   private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
   private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
   def npmBase: T[os.Path] = T.persistent { T.dest }
@@ -1969,8 +1894,11 @@ object docs extends Module {
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
     T.log.errorStream.println("Copying API docs ...")
-    if (authorMode) os.copy.into(site.stage().path / "api", siteDir, mergeFolders = true)
-    else os.copy.into(site.mangled().path / "api", siteDir, mergeFolders = true)
+    os.copy.into(
+      if (authorMode) site.unidocLocal().path else site.unidocSite().path,
+      siteDir / "api" / "latest",
+      mergeFolders = true
+    )
 
     PathRef(siteDir)
   }

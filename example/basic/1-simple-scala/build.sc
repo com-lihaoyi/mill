@@ -40,12 +40,17 @@ object foo extends RootModule with ScalaModule {
 /** Usage
 
 > ./mill resolve _ # List what tasks are available to run
-compile
-run
 assembly
-show
-inspect
+...
 clean
+...
+compile
+...
+run
+...
+show
+...
+inspect
 ...
 
 > ./mill inspect compile # Show documentation and inputs of a task
