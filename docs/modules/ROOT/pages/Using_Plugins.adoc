@@ -2,7 +2,7 @@
 
 Mill plugins are ordinary jars and are loaded as any other external dependency with the xref:Extending_Mill.adoc#_import_ivy[`import $ivy` mechanism].
 
-There exist a large number of Mill plugins, Many of them are available on GitHub and via Mavel Central. We also have a list of plugins, which is most likely not complete, but it might be a good start if you are looking for plugins: xref:Thirdparty_Plugins.adoc[].
+There exist a large number of Mill plugins, Many of them are available on GitHub and via Maven Central. We also have a list of plugins, which is most likely not complete, but it might be a good start if you are looking for plugins: xref:Thirdparty_Plugins.adoc[].
 
 Some plugin contributions are also hosted in Mill's own git tree as xref:Contrib_Plugins.adoc[].
 
