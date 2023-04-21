@@ -1,4 +1,6 @@
 = TestNG
+:page-aliases: TestNG_TestFramework.adoc
+
 
 Provides support for https://testng.org/doc/index.html[TestNG].
 

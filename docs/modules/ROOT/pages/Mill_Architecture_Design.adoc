@@ -1,4 +1,6 @@
 = Mill Architecture Design
+:page-aliases: Mill_Internals.adoc
+
 
 The following external resources give more of a flavor of the architecture behind
 Mill:

@@ -1,4 +1,6 @@
 = Scoverage
+:page-aliases: Plugin_Scoverage.adoc
+
 
 This module allows you to generate code coverage reports for Scala projects with
 https://github.com/scoverage[Scoverage] via the

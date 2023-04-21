@@ -1,4 +1,5 @@
 = Flyway
+:page-aliases: Plugin_Flyway.adoc
 
 Enables you to configure and run https://flywaydb.org/[Flyway] commands from your mill build file.
 The flyway module currently supports the most common flyway use cases with file based migrations.

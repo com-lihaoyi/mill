@@ -1,4 +1,5 @@
 = Bloop
+:page-aliases: Plugin_Bloop.adoc
 
 This plugin generates https://scalacenter.github.io/bloop/[bloop] configuration
 from your build file, which lets you use the bloop CLI for compiling, and makes

@@ -1,4 +1,6 @@
 = Version file
+:page-aliases: Plugin_VersionFile.adoc
+
 
 This plugin provides helpers for updating a version file and committing the changes to git.
 

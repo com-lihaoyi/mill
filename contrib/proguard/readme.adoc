@@ -1,4 +1,5 @@
 = Proguard
+:page-aliases: Plugin_Proguard.adoc
 
 This module allows https://www.guardsquare.com/en/products/proguard/manual/introduction[Proguard] to be used in Mill builds.
 ProGuard is a Java class file shrinker, optimizer, obfuscator, and preverifier.

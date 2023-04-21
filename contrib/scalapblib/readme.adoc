@@ -1,4 +1,5 @@
 = ScalaPB
+:page-aliases: Plugin_ScalaPB.adoc
 
 This module allows https://scalapb.github.io[ScalaPB] to be used in Mill builds. ScalaPB is a https://developers.google.com/protocol-buffers/[Protocol Buffers] compiler plugin that generates Scala case classes, encoders and decoders for protobuf messages.
 

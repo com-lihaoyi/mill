@@ -1,4 +1,5 @@
 = BuildInfo
+:page-aliases: Plugin_BuildInfo.adoc
 
 Generate scala code from your buildfile.
 This plugin generates a single object containing information from your build.

@@ -1,4 +1,5 @@
 = Codeartifact
+:page-aliases: Plugin_Codeartifact.adoc
 
 This plugin allows publishing to AWS Codeartifact.
 

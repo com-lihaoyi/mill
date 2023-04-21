@@ -1,4 +1,5 @@
 = JMH
+:page-aliases: Plugin_Jmh.adoc
 
 You can use `JmhModule` to integrate JMH testing with Mill.
 

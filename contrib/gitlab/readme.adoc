@@ -1,4 +1,5 @@
 = Gitlab
+:page-aliases: Plugin_Gitlab.adoc
 
 This plugin provides publishing and dependencies to Gitlab package registries.
 
