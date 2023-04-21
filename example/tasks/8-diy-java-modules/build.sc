@@ -94,7 +94,7 @@ Bar.value: 271828
 Qux.value: 9000
 
 > ./mill show foo.assembly
-".../out/foo/assembly.dest/foo.jar"
+".../out/qux/assembly.dest/qux.jar"
 
 > java -jar out/foo/assembly.dest/foo.jar
 Foo.value: 31337
