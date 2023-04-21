@@ -1,7 +1,7 @@
 = Contrib Plugins
 :page-aliases: Contrib_Modules.adoc
 
-The ((plugins)) in this section are developed/maintained in the mill git tree.
+The ((plugins)) in this section are hosted in the Mill git tree and developed / maintained by the community.
 
 For details about including plugins in your `build.sc` read xref:Using_Plugins.adoc[Using Mill Plugins].
 
