@@ -19,8 +19,8 @@ public class FooTest {
         String expectedOutput = "\n\n";
         Foo.main(new String[]{});
 
-        String outString = outContent.toString
-        assertTrue(outString.contains("Foo.value: 31337"))
-        assertTrue(outString.contains("Bar.value: 271828"))
+        String outString = outContent.toString();
+        assertTrue(outString.contains("Foo.value: 31337"));
+        assertTrue(outString.contains("Bar.value: 271828"));
     }
 }
