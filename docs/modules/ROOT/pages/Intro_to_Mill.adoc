@@ -4,7 +4,7 @@
 {mill-github-url}[Mill] is your shiny new Scala/Java build tool! Mill aims for
 simplicity by reusing concepts you are already familiar with, borrowing ideas
 from modern tools like https://bazel.build/[Bazel] and
-[SBT](https://www.scala-sbt.org/). It lets you build your projects in a way
+https://www.scala-sbt.org/[SBT]. It lets you build your projects in a way
 that's simple, fast, and predictable.
 
 Mill automates dealing with a lot of common build-tool concerns: Caching,
