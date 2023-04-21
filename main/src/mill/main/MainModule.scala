@@ -206,7 +206,8 @@ trait MainModule extends mill.Module {
         Iterator(
           ctx.applyPrefixColor(t.toString).toString,
           "(",
-          t.ctx.fileName.split('/').last,
+          // handle both Windows or Unix separators
+          t.ctx.fileName.split('/').last.split('\\').last,
           ":",
           t.ctx.lineNum.toString,
           ")",
