@@ -1,4 +1,5 @@
 = Bintray
+:page-aliases: Plugin_Bintray.adoc
 
 This plugin allows publishing to Bintray.
 

@@ -1,4 +1,6 @@
 = Twirl
+:page-aliases: Plugin_Twirl.adoc
+
 
 Twirl templates support.
 

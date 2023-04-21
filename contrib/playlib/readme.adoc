@@ -1,4 +1,5 @@
 = Play Framework
+:page-aliases: Plugin_Play.adoc
 
 This module adds basic Play Framework support to mill:
 
