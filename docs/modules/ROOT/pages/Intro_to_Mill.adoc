@@ -84,12 +84,17 @@ mill -j 4 __.compile
 ----
 
 To use as many threads as your machine has (logical) processor cores use `--jobs 0`.
-To disable parallel execution use `--jobs 1`.
-This is currently the default.
+To disable parallel execution use `--jobs 1`. This is currently the default.
+
+`mill -j` generates an output file in `out/mill-par-profile.json` that can be
+loaded into the Chrome browser's `chrome://tracing` page for visualization.
+This can make it much easier to analyze your parallel runs to find out what's
+taking the most time:
+
+image::ChromeTracing.png[ChromeTracing.png]
 
 Please note that the maximal possible parallelism depends on your project.
 Tasks that depend on each other can't be processed in parallel.
-
 
 == Command-line usage
 
