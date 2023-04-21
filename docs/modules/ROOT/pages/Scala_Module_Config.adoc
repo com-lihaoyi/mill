@@ -57,6 +57,10 @@ include::example/scalamodule/11-repository-config.adoc[]
 
 include::example/scalamodule/12-backticked-names.adoc[]
 
+== Unidoc
+
+include::example/scalamodule/13-unidoc.adoc[]
+
 == Reformatting your code
 
 Mill supports code formatting via https://scalameta.org/scalafmt/[scalafmt] out of the box.

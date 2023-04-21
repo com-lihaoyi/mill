@@ -642,7 +642,6 @@ object main extends MillModule {
     )
   }
   object core extends MillModule with BuildInfo{
-
     override def moduleDeps = Seq(api, util)
     override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
@@ -661,7 +660,6 @@ object main extends MillModule {
     )
 
     def buildInfoPackageName = "mill"
-
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
       BuildInfo.Value("workerScalaVersion212", Deps.workerScalaVersion212, "Scala 2.12 version used by some workers."),
@@ -695,7 +693,6 @@ object main extends MillModule {
       Deps.graphvizJava,
       Deps.jgraphtCore
     )
-
     override def testArgs = Seq(
       "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
     )
@@ -857,8 +854,6 @@ object contrib extends MillModule {
       scalalib
     )
     override def docJar: T[PathRef] = super[JavaModule].docJar
-
-    def readme = T.source(millSourcePath / "readme.adoc")
   }
 
   object twirllib extends ContribModule {
@@ -1258,7 +1253,7 @@ def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 object example extends MillScalaModule {
   def exampleModules: Seq[ExampleCrossModule] = millInternal.modules.collect { case m: ExampleCrossModule => m }
 
-  override def moduleDeps = Seq(integration)
+  def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
   object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"): _*)
@@ -1269,11 +1264,11 @@ object example extends MillScalaModule {
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
 
   class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
-
     def sources = T.sources()
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
+
     def parsed = T{
       val states = collection.mutable.Buffer("scala")
       val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
@@ -1752,7 +1747,7 @@ object docs extends Module {
   }
   def source0: Source = T.source(millSourcePath)
   def source = T{
-    os.list(source0().path).foreach(p => os.copy(p, T.dest / p.relativeTo(source0().path)))
+    os.copy(source0().path, T.dest, mergeFolders = true)
 
     val pagesWd = T.dest / "modules" / "ROOT" / "pages"
 
@@ -1781,6 +1776,7 @@ object docs extends Module {
 
     PathRef(T.dest)
   }
+
   def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
   def devAntoraSources: Target[PathRef] = T {
     val dest = T.dest
@@ -1841,7 +1837,6 @@ object docs extends Module {
   }
   def localPages = T {
     val pages = generatePages(authorMode = true)()
-
     T.log.outputStream.println(
       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
@@ -1897,7 +1892,7 @@ object docs extends Module {
     os.copy.into(
       if (authorMode) site.unidocLocal().path else site.unidocSite().path,
       siteDir / "api" / "latest",
-      mergeFolders = true
+      createFolders = true
     )
 
     PathRef(siteDir)
