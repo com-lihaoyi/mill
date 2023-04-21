@@ -30,18 +30,18 @@ bar[2.12.17].run
 bar[2.13.8].run
 
 > ./mill foo[2.12.17].run
-Foo.value: Hello World Scala library version 2.12.17
+Foo.value: Hello World Scala library version 2.12.17...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.12.x
 
 > ./mill foo[2.13.8].run
-Foo.value: Hello World Scala library version 2.13.8
+Foo.value: Hello World Scala library version 2.13.8...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.13.x
 
-> ./mill bar[3.2.2].run
+> ./mill bar[2.13.8].run
 Bar.value: bar-value
 
 */
@@ -52,10 +52,10 @@ Bar.value: bar-value
 // explicitly to select the right version of the cross-module:
 
 
-object foo2 extends Cross[FooModule](scalaVersions)
-trait FooModule extends CrossScalaModule{
+object foo2 extends Cross[Foo2Module](scalaVersions)
+trait Foo2Module extends CrossScalaModule{
   def moduleDeps = Seq(bar(crossScalaVersion))
 }
 
-object bar2 extends Cross[BarModule](scalaVersions)
-trait BarModule extends CrossScalaModule
+object bar2 extends Cross[Bar2Module](scalaVersions)
+trait Bar2Module extends CrossScalaModule

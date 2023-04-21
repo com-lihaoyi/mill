@@ -16,7 +16,9 @@ object foo extends ScalaModule {
 > ./mill show foo.docJar
 
 > unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
-<p>My Awesome Scaladoc for class Foo</p>
+...
+...<p>My Awesome Scaladoc for class Foo</p>...
+
 
 */
 
@@ -68,6 +70,7 @@ object bar extends ScalaModule {
 > ./mill show bar.docJar
 
 > unzip -p out/bar/docJar.dest/out.jar bar/Bar.html
-<p>My Awesome Scaladoc for class Bar</p>
+...
+...<p>My Awesome Scaladoc for class Bar</p>...
 
 */

@@ -24,12 +24,13 @@ object app extends RootModule with ScalaModule{
 /** Usage
 
 > ./mill test
-+ webapp.WebAppTests.simpleRequest
++ webapp.WebAppTests.simpleRequest...
 
 > ./mill runBackground
 
 > curl http://localhost:8080
-What needs to be done
+...What needs to be done...
+...
 
 > ./mill clean runBackground
 

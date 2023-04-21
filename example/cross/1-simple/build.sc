@@ -30,7 +30,9 @@ trait FooModule extends Cross.Module[String] {
 "[[[_2.10]]]"
 
 > ./mill show foo[2.10].sources
-foo
+[
+  ".../foo"
+]
 
 > ./mill show foo[2.12].suffix
 "_2.12"
@@ -39,6 +41,8 @@ foo
 "[[[_2.12]]]"
 
 > ./mill show foo[2.12].sources
-foo
+[
+  ".../foo"
+]
 
 */

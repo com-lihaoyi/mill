@@ -115,7 +115,7 @@ def hugeFileName = T{
 
 > ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() < 999`
 Finding Largest File
-<no-huge-file>
+"<no-huge-file>"
 
 */
 

@@ -39,8 +39,8 @@ Bar Application Conf
 Foo Application Conf
 
 > java -jar ./out/foo/assembly.dest/out.jar\
-Loaded application.conf from resources:
-Foo Application Conf
-Bar Application Conf
+Loaded application.conf from resources:...
+...Foo Application Conf
+...Bar Application Conf
 
 */

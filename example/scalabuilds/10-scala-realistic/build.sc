@@ -97,8 +97,7 @@ Bar.value: <p>world Specific code for Scala 2.x</p>
 Qux.value: 31337
 
 > ./mill bar[3.2.2].test
-bar.BarTests.test
-<p>world Specific code for Scala 3.x</p>
++ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
 
 > ./mill qux.run
 Qux.value: 31337
@@ -106,24 +105,20 @@ Qux.value: 31337
 > ./mill __.compile
 
 > ./mill __.test
-+ bar.BarTests.test
-<p>world Specific code for Scala 2.x</p>
-+ bar.BarTests.test
-<p>world Specific code for Scala 3.x</p>
-+ foo.FooTests.test
-<h1>hello</h1>
-+ foo.FooTests.test
-<h1>hello</h1>
++ bar.BarTests.test ... <p>world Specific code for Scala 2.x</p>
++ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
++ foo.FooTests.test ... <h1>hello</h1>
++ foo.FooTests.test ... <h1>hello</h1>
 
 > ./mill __.publishLocal
-Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 
 > ./mill show foo[2.13.8].assembly # mac/linux
-out/foo/2.13.8/assembly.dest/out.jar
+".../out/foo/2.13.8/assembly.dest/out.jar"
 
 > ./out/foo/2.13.8/assembly.dest/out.jar # mac/linux
 foo version 0.0.1

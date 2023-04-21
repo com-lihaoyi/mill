@@ -40,21 +40,21 @@ trait BarModule extends CrossSbtModule{
 /** Usage
 
 > ./mill foo.compile
-compiling 1 Scala source
+compiling 1 Scala source...
 
 > ./mill foo.test.compile
-compiling 1 Scala source
+compiling 1 Scala source...
 
 > ./mill foo.test.test
-+ foo.FooTests.hello
++ foo.FooTests.hello ...
 
 > ./mill foo.test
-+ foo.FooTests.hello
++ foo.FooTests.hello ...
 
 > ./mill bar[2.13.8].run
-Hello World Scala library version 2.13.8
+Bar.value: Hello World Scala library version 2.13.8...
 
 > ./mill bar[2.12.17].run
-Hello World Scala library version 2.12.17
+Bar.value: Hello World Scala library version 2.12.17...
 
 */

@@ -3,8 +3,7 @@ import mainargs.{main, ParserForMethods}
 object Foo {
   @main
   def main(text: String): Unit = {
-    val value = h1(text)
-    println("value: " + value)
+    println("text: " + text)
     println("MyDeps.value: " + MyDeps.value)
     println("my.line.count: " + sys.props("my.line.count"))
   }

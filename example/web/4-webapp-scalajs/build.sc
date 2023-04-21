@@ -48,15 +48,17 @@ object app extends RootModule with ScalaModule{
 /** Usage
 
 > ./mill test
-+ webapp.WebAppTests.simpleRequest
++ webapp.WebAppTests.simpleRequest ...
 
 > ./mill runBackground
 
-> curl http://localhost:8080
-What needs to be done
+> curl http://localhost:8082
+...What needs to be done...
+...
 
-> curl http://localhost:8080/static/main.js
-Scala.js
+> curl http://localhost:8082/static/main.js
+...Scala.js...
+...
 
 > ./mill clean runBackground
 

@@ -18,13 +18,19 @@ trait FooModule extends Cross.Module[String] {
 /** Usage
 
 > ./mill show foo[2.10].sources
-foo/2.10
+[
+  ".../foo/2.10"
+]
 
 > ./mill show foo[2.11].sources
-foo/2.11
+[
+  ".../foo/2.11"
+]
 
 > ./mill show foo[2.12].sources
-foo/2.12
+[
+  ".../foo/2.12"
+]
 
 */
 

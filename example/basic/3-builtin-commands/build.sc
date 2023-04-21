@@ -72,7 +72,6 @@ foo.artifactName
 > ./mill inspect foo.run
 foo.run(JavaModule.scala:...)
     Runs this module's code in a subprocess and waits for it to finish
-
 Inputs:
     foo.finalMainClass
     foo.runClasspath
@@ -131,7 +130,8 @@ Inputs:
 > ./mill show foo.compileClasspath
 [
   ".../foo/compile-resources",
-  ".../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+  ".../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+  ...
 ]
 
 */
@@ -151,7 +151,8 @@ Inputs:
   ],
   [
     ".../foo/compile-resources",
-    ".../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+    ".../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+    ...
   ]
 ]
 
@@ -173,7 +174,8 @@ Inputs:
   ],
   "foo.compileClasspath": [
     ".../foo/compile-resources",
-    ".../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+    ".../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+    ...
   ]
 }
 

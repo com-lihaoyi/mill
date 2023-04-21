@@ -41,10 +41,11 @@ assembly
 show
 inspect
 clean
+...
 
 > ./mill inspect compile # Show documentation and inputs of a task
 compile(ScalaModule.scala:...)
-Compiles the current module to generate compiled classfiles/bytecode.
+    Compiles the current module to generate compiled classfiles/bytecode.
 Inputs:
     scalaVersion
     upstreamCompileOutput
@@ -52,7 +53,8 @@ Inputs:
     compileClasspath
 
 > ./mill compile # compile sources into classfiles
-compiling 1 Scala source
+...
+compiling 1 Scala source to...
 
 > ./mill run # run the main method, if any
 error: Missing argument: --text <str>

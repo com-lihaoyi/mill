@@ -26,7 +26,6 @@ object foo extends RootModule with ScalaModule {
 
 /** See Also: mill-build/src/ScalaVersion.scala */
 
-
 // In this example:
 //
 // 1. Our `myScalaVersion` value comes from `mill-build/src/Versions.scala`,
@@ -47,14 +46,15 @@ object foo extends RootModule with ScalaModule {
 /** Usage
 
 > ./mill compile
-compiling 1 Scala source
+compiling 1 Scala source...
+...
 
 > ./mill run
 Foo.value: <h1>hello</h1>
 scalatagsVersion: 0.8.2
 
 > ./mill show assembly
-out/assembly.dest/out.jar
+".../out/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
 Foo.value: <h1>hello</h1>

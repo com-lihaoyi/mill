@@ -35,11 +35,14 @@ object foo extends ScalaJSModule {
 stringifiedJsObject: ["hello","world","!"]
 
 > ./mill foo.test
-+ foo.FooTests.hello
++ foo.FooTests.hello...
 
 > ./mill show foo.fullLinkJS # mac/linux
-out/foo/fullLinkJS.dest
-main.js
+{
+...
+..."jsFileName": "main.js",
+  "dest": ".../out/foo/fullLinkJS.dest"
+}
 
 > node out/foo/fullLinkJS.dest/main.js # mac/linux
 <h1>Hello World</h1>

@@ -63,14 +63,15 @@ def hashFile(path: os.Path, src: os.Path, dest: os.Path) = {
 /** Usage
 
 > ./mill test
-+ webapp.WebAppTests.simpleRequest
++ webapp.WebAppTests.simpleRequest ...
 
 > ./mill runBackground
 
-> curl http://localhost:8080
-What needs to be done
+> curl http://localhost:8081
+...What needs to be done...
+...
 
-> curl http://localhost:8080/static/main-6da98e99.js # mac/linux
+> curl http://localhost:8081/static/main-6da98e99.js # mac/linux
 initListeners()
 
 > ./mill clean runBackground

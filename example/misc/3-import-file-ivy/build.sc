@@ -34,13 +34,14 @@ object foo extends RootModule with ScalaModule {
 /** Usage
 
 > ./mill compile
-compiling 1 Scala source
+compiling 1 Scala source...
+...
 
 > ./mill run
 generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
 
 > ./mill show assembly
-out/assembly.dest/out.jar
+".../out/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
 generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>

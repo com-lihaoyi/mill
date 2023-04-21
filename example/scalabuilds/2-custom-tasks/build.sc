@@ -67,15 +67,15 @@ object foo extends RootModule with ScalaModule {
 /** Usage
 
 > ./mill run --text hello
-value: <h1>hello</h1>
+text: hello
 MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
-my.line.count: 14
+my.line.count: 12
 
 > ./mill show lineCount
-14
+12
 
 > ./mill printLineCount
-14
+12
 */
 
 // Custom targets and commands can contain arbitrary code. Whether you want to

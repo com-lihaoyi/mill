@@ -42,11 +42,11 @@ object baz extends ScalaModule {
 > ./mill qux.test
 -------------------------------- Running Tests --------------------------------
 Using BazTestUtils.bazAssertEquals
-+ qux.QuxTests.simple 2ms
++ qux.QuxTests.simple ...
 
 > ./mill baz.test
 -------------------------------- Running Tests --------------------------------
 Using BazTestUtils.bazAssertEquals
-+ baz.BazTests.simple 2ms
++ baz.BazTests.simple ...
 
 */

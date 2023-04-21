@@ -18,18 +18,18 @@ object foo extends ScalaModule {
 /** Usage
 
 > ./mill foo.compile
-compiling 1 Scala source
+compiling 1 Scala source...
 
 > ./mill foo.test.compile
-compiling 1 Scala source
+compiling 1 Scala source...
 
 > ./mill foo.test.test
-+ foo.FooTests.hello
-+ foo.FooTests.world
++ foo.FooTests.hello ...
++ foo.FooTests.world ...
 
 > ./mill foo.test
-+ foo.FooTests.hello
-+ foo.FooTests.world
++ foo.FooTests.hello ...
++ foo.FooTests.world ...
 
 */
 
@@ -55,8 +55,8 @@ object bar extends ScalaModule {
 /** Usage
 
 > ./mill bar.test
-+ bar.BarTests.hello
-+ bar.BarTests.world
++ bar.BarTests.hello ...
++ bar.BarTests.world ...
 
 */
 
@@ -78,7 +78,7 @@ object bar extends ScalaModule {
 /** Usage
 
 > ./mill bar.test bar.BarTests.hello
-+ bar.BarTests.hello
++ bar.BarTests.hello ...
 
 */
 
@@ -101,15 +101,15 @@ object qux extends ScalaModule {
 /** Usage
 
 > ./mill qux.test
-+ qux.QuxTests.hello
-+ qux.QuxTests.world
++ qux.QuxTests.hello ...
++ qux.QuxTests.world ...
 
 > ./mill qux.integration
-+ qux.QuxIntegrationTests.helloworld
++ qux.QuxIntegrationTests.helloworld ...
 
 > ./mill qux.{test,integration}
-+ qux.QuxTests.hello
-+ qux.QuxTests.world
-+ qux.QuxIntegrationTests.helloworld
++ qux.QuxTests.hello ...
++ qux.QuxTests.world ...
++ qux.QuxIntegrationTests.helloworld ...
 
 */

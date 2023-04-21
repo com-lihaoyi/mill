@@ -18,7 +18,7 @@ def compressWorker = T.worker{ new CompressWorker(T.dest) }
 def compressedData = T{
   println("Evaluating compressedData")
   for(p <- os.list(data().path)){
-    os.write(``
+    os.write(
       T.dest / s"${p.last}.gz",
       compressWorker().compress(p.last, os.read.bytes(p))
     )
@@ -81,8 +81,10 @@ def compressBytes(input: Array[Byte]) = {
 Evaluating compressedData
 Compressing: hello.txt
 Compressing: world.txt
-hello.txt.gz
-world.txt.gz
+[
+  ".../hello.txt.gz",
+  "...world.txt.gz"
+]
 
 > ./mill compressedData # when no input changes, compressedData does not evaluate at all
 

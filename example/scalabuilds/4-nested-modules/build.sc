@@ -37,7 +37,7 @@ object baz extends MyModule {
 > ./mill resolve __.run
 foo.bar.run
 foo.qux.run
-qux.run
+baz.run
 
 > ./mill foo.run --bar-text hello --qux-text world --foo-text today
 Bar.value: <h1>hello</h1>

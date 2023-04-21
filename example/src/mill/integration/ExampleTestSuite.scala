@@ -9,21 +9,36 @@ import mill.util.Util
  * Implements a bash-like test DSL for educational purposes, parsed out from a
  * `Example Usage` comment in the example's `build.sc` file. Someone should be
  * able to read the `Example Usage` comment and know roughly how to execute the
- * example themselves. Each empty-line-separated block consists of one comment
- * line (prefixed with `>`) and one or more output lines we expect to get from
- * the comman (either stdout or stderr). Output lines can be prefixed by
- * `error: ` to indicate we expect that command to fail.
+ * example themselves.
  *
- * Because our CI needs to run on Windows, we cannot rely on just executing
- * commands in the `bash` shell, and instead we implement a janky little
- * interpreter that reads the command lines and does things in-JVM in response
- * to each one.
+ * Each empty-line-separated block consists of one command (prefixed with `>`)
+ * and zero or more output lines we expect to get from the comman (either stdout
+ * or stderr):
+ *
+ * 1. If there are no expected output lines, we do not perform any assertions
+ *    on the output of the command
+ *
+ * 2. Output lines can be prefixed by `error: ` to indicate we expect that
+ *    command to fail.
+ *
+ * 3. `...` can be used to indicate wildcards, which match anything. These can
+ *    be used alone as the entire line, or in the middle of another line
+ *
+ * 4. Every line of stdout/stderr output by the command must match at least
+ *    one line of the expected output, and every line of expected output must
+ *    match at least one line of stdout/stderr. We ignore ordering of output
+ *    lines.
  *
  * For teaching purposes, the output lines do not show the entire output of
  * every command, which can be verbose and confusing. They instead contain
  * sub-strings of the command output, enough to convey the important points to
  * a learner. This is not as strict as asserting the entire command output, but
  * should be enough to catch most likely failure modes
+ *
+ * Because our CI needs to run on Windows, we cannot rely on just executing
+ * commands in the `bash` shell, and instead we implement a janky little
+ * interpreter that reads the command lines and does things in-JVM in response
+ * to each one.
  */
 object ExampleTestSuite extends IntegrationTestSuite {
   val tests = Tests {
@@ -46,7 +61,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
   def processCommandBlock(workspaceRoot: os.Path, commandBlock: String) = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
-    val expectedSnippets = commandBlockLines.tail.filter(_ != "...")
+    val expectedSnippets = commandBlockLines.tail
     val (commandHead, comment) = commandBlockLines.head match {
       case s"$before#$after" => (before.trim, Some(after.trim))
       case string => (string, None)
@@ -59,8 +74,6 @@ object ExampleTestSuite extends IntegrationTestSuite {
         (comment.exists(_.startsWith("not --no-server")) && integrationTestMode == "fork")
 
     if (!incorrectPlatform) {
-      println("ExampleTestSuite: " + commandBlockLines.head)
-
       processCommand(workspaceRoot, expectedSnippets, commandHead.trim)
     }
   }
@@ -117,13 +130,19 @@ object ExampleTestSuite extends IntegrationTestSuite {
         val res = os
           .proc("node", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-        IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+        validateEval(
+          expectedSnippets,
+          IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+      )
 
       case Seq("git", rest@_*) =>
         val res = os
           .proc("git", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-        IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+        validateEval(
+          expectedSnippets,
+          IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+        )
 
       case Seq("java", "-jar", rest@_*) =>
         val res = os
@@ -158,22 +177,41 @@ object ExampleTestSuite extends IntegrationTestSuite {
     if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
     else assert(evalResult.isSuccess)
 
-    val unwrappedExpected = expectedSnippets.map {
-      case s"error: $msg" => msg
-      case msg => msg
+
+    val unwrappedExpected = expectedSnippets
+      .map {
+        case s"error: $msg" => msg
+        case msg => msg
+      }
+      .mkString("\n")
+
+    def plainTextLines(s: String) =
+      fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
+        .replace("\\\\", "/") // Convert windows paths in JSON strings to Unix
+        .linesIterator
+        // Don't bother checking empty lines
+        .filter(_.trim.nonEmpty)
+        // Strip log4j noisy prefixes that differ on windows and mac/linux
+        .map( ln =>
+          ln.stripPrefix("[info] ").stripPrefix("info: ")
+            .stripPrefix("[error] ").stripPrefix("error: "))
+        .toVector
+
+    val filteredErr = plainTextLines(evalResult.err)
+    val filteredOut = plainTextLines(evalResult.out)
+
+    if (expectedSnippets.nonEmpty){
+      for(outLine <- filteredOut){
+        globMatchesAny(unwrappedExpected, outLine)
+      }
+      for(errLine <- filteredErr){
+        globMatchesAny(unwrappedExpected, errLine)
+      }
     }
 
-    for (expected <- unwrappedExpected) {
-      println("ExampleTestSuite expected: " + expected)
-
-      def plainText(s: String) =
-        fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
-          .replace("\\\\", "/") // Convert windows paths in JSON strings to Unix
-
-      val filteredErr = plainText(evalResult.err)
-      val filteredOut = plainText(evalResult.out)
-
-      assert(globMatches(expected, filteredErr + "\n" + filteredOut))
+    for (expectedLine <- unwrappedExpected.linesIterator) {
+      val combinedOutErr = (filteredOut ++ filteredErr).mkString("\n")
+      assert(globMatches(expectedLine, combinedOutErr))
     }
   }
 
@@ -182,8 +220,12 @@ object ExampleTestSuite extends IntegrationTestSuite {
       .linesIterator
       .exists(
         StringContext
-          .glob(s"...$expected...".split("\\.\\.\\.", -1), _)
+          .glob(expected.split("\\.\\.\\.", -1), _)
           .nonEmpty
       )
+  }
+
+  def globMatchesAny(expected: String, filtered: String) = {
+    expected.linesIterator.exists(globMatches(_, filtered))
   }
 }

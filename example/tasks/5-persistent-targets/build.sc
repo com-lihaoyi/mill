@@ -61,8 +61,10 @@ def compressBytes(input: Array[Byte]) = {
 Evaluating compressedData
 Compressing: hello.txt
 Compressing: world.txt
-hello.txt.gz
-world.txt.gz
+[
+  ".../hello.txt.gz",
+  ".../world.txt.gz"
+]
 
 > ./mill compressedData # when no input changes, compressedData does not evaluate at all
 
@@ -70,7 +72,7 @@ world.txt.gz
 
 > ./mill compressedData # when one input file changes, only that file is re-compressed
 Compressing: hello.txt
-Cached from disk: world.txt
+Reading Cached from disk: world.txt
 
 > ./mill clean compressedData
 

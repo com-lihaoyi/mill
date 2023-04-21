@@ -22,13 +22,15 @@ foo.run
 bar.run
 
 > ./mill foo.compile
-compiling 1 Java source
+compiling 1 Java source...
 
 > ./mill foo.run
 Foo.value: 31337
 Bar.value: 271828
 
 > ./mill foo.test
-Test run finished: 0 failed, 0 ignored, 2 total
+Test run started
+...
+Test run finished: 0 failed, 0 ignored, 2 total...
 
 */
