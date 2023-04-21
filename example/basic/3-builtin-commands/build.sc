@@ -88,7 +88,7 @@ Inputs:
 //
 // While `inspect` also works with the same `+_+`/`+__+` wildcard/query syntaxes
 // that <<_resolve>> do, the most common use case is to inspect one task at a
-// time.:
+// time.
 
 // === show
 
