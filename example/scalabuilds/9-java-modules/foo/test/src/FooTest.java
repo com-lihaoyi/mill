@@ -16,7 +16,6 @@ public class FooTest {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
-        String expectedOutput = "\n\n";
         Foo.main(new String[]{});
 
         String outString = outContent.toString();
