@@ -38,7 +38,7 @@ object bar extends ScalaModule {
 
 > ./mill foo.runBackground
 
-> curl http://localhost:8080
+> curl http://localhost:8079
 <html><body>Hello World!</body></html>
 
 */

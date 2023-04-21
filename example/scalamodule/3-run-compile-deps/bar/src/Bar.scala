@@ -20,7 +20,7 @@ class BarServlet extends HttpServlet {
 object Bar {
   @throws[Exception]
   def main(args: Array[String]): Unit = {
-    val server = new Server(8080)
+    val server = new Server(8079)
     val context = new ServletContextHandler
     context.setContextPath("/")
     server.setHandler(context)
