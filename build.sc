@@ -1882,7 +1882,7 @@ object docs extends Module {
        |  sources:
        |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
        |      branches: []
-       |      tags: []
+       |      tags: ["0.10.12", "0.9.12"]
        |      start_path: docs/antora
        |    # the master documentation (always in author mode)
        |    - url: ${baseDir}
