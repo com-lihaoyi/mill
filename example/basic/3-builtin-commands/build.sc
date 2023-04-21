@@ -70,7 +70,7 @@ foo.artifactName
 /** Usage
 
 > ./mill inspect foo.run
-foo.run(JavaModule.scala:...)
+foo.run(...)
     Runs this module's code in a subprocess and waits for it to finish
 Inputs:
     foo.finalMainClass

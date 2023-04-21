@@ -19,7 +19,10 @@ def jar = T {
 }
 
 def run(args: String*) = T.command {
-  val classPathStr = classPath().map(_.path).mkString(":")
+  val classPathStr = classPath()
+    .map(_.path)
+    .mkString(sys.props("path.separator"))
+
   os.proc("java", "-cp", classPathStr, "foo.Foo", args)
     .call(stdout = os.Inherit)
 }
@@ -31,7 +34,7 @@ def run(args: String*) = T.command {
 
 /** Usage
 
-> ./mill run hello
+> ./mill run hello # mac/linux
 
 > ./mill show jar
 ".../out/jar.dest/foo.jar"

@@ -49,7 +49,7 @@ clean
 ...
 
 > ./mill inspect compile # Show documentation and inputs of a task
-compile(ScalaModule.scala:...)
+compile(...)
     Compiles the current module to generate compiled classfiles/bytecode.
 Inputs:
     scalaVersion

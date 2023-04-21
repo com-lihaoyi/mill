@@ -14,7 +14,7 @@ object foo extends RootModule with ScalaModule {
 
 /** Usage
 
-> ./mill run '{"name":"John","age":30}'
+> ./mill run '{"name":"John","age":30}'     # mac/linux
 Key: name, Value: John
 Key: age, Value: 30
 
