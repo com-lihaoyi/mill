@@ -1,13 +1,11 @@
 = Introduction to Mill
 :page-aliases: index.adoc
 
-{mill-github-url}[Mill] is your shiny new Scala build tool!
-Scared of SBT? Melancholy over Maven? Grumbling about Gradle? Baffled by Bazel?
-Give Mill a try!
-
-Mill aims for simplicity by reusing concepts you are already familiar with,
-borrowing ideas from modern tools like https://bazel.build/[Bazel].
-It lets you build your projects in a way that's simple, fast, and predictable.
+{mill-github-url}[Mill] is your shiny new Scala/Java build tool! Mill aims for
+simplicity by reusing concepts you are already familiar with, borrowing ideas
+from modern tools like https://bazel.build/[Bazel] and
+[SBT](https://www.scala-sbt.org/). It lets you build your projects in a way
+that's simple, fast, and predictable.
 
 Mill automates dealing with a lot of common build-tool concerns: Caching,
 incremental re-computation, parallelism, discoverability, etc. This allows you
@@ -16,44 +14,26 @@ Mill take care of all the rest.
 
 Mill has built-in support for the https://www.scala-lang.org/[Scala]
 programming language, and can serve as a replacement for
-http://www.scala-sbt.org/[SBT].
-It can be xref:Extending_Mill.adoc[extended] to support any other language or platform via modules (written in Java or Scala) or through external subprocesses.
+http://www.scala-sbt.org/[SBT]. It can be xref:Extending_Mill.adoc[extended]
+to support any other language or platform via modules (written in Java
+or Scala) or through external subprocesses. Mill supports a rich ecosystem of
+xref:Contrib_Plugins.adoc[] and xref:Thirdparty_Plugins.adoc[].
 
 If you are using Mill, you will find the following book by the Author useful in
 using Mill and its supporting libraries to the fullest:
 
-* https://handsonscala.com/
+* https://handsonscala.com/[Hands-on Scala Programming]
+
+The rest of this page contains a quick introduction to getting start with using
+Mill to build a simple Scala program. The other pages of this doc-site go into
+more depth, with more examples of how to use Mill and more details of how the
+Mill build tool works.
+
+== Simple Scala Module
 
 include::example/basic/1-simple-scala.adoc[]
 
-Additional Mill commands you would likely need include:
-
-[source,bash]
-----
-$ mill test          # run the test suite, if any
-
-$ mill runBackground # run the main method in the background
-
-$ mill clean <task>  # delete the cached output of a task, terminate any runBackground
-
-$ mill launcher      # prepares a foo/launcher.dest/run you can run later
-
-$ mill jar           # bundle the classfiles into a jar suitable for publishing
-
-$ mill -i console    # start a Scala console within your project
-
-$ mill -i repl       # start an Ammonite REPL within your project
-----
-
-You can run `+mill resolve __+` to see a full list of the different tasks that
-are available, `+mill resolve _+` to see the tasks within `foo`,
-`mill inspect compile` to inspect a task's doc-comment documentation or what
-it depends on, or `mill show foo.scalaVersion` to show the output of any task.
-
-The most common *tasks* that Mill can run are cached *targets*, such as
-`compile`, and un-cached *commands* such as `foo.run`. Targets do not
-re-evaluate unless one of their inputs changes, whereas commands re-run every
-time.
+== Multi-Module Project
 
 include::example/basic/2-multi-module.adoc[]
 
@@ -153,30 +133,3 @@ usage: mill [options] [[target [target-options]] [+ [target ...]]]
 ----
 
 All _options_ must be given before the first target.
-
-A _target_ is a fully qualified task or command optionally followed by target
-specific arguments. You can use wildcards and brace-expansion to select
-multiple targets at once or to shorten the path to deeply nested targets. If
-you provide optional target arguments and your wildcard or brace-expansion is
-resolved to multiple targets, the arguments will be applied to each of the
-targets.
-
-.Wildcards and brace-expansion
-|===
-| Wildcard | Function
-|`_` | matches a single segment of the target path
-| `__` | matches arbitrary segments of the target path
-| `{a,b}` | is equal to specifying two targets `a` and `b`
-|===
-
-You can use the `+` symbol to add another target with optional arguments.
-If you need to feed a `+` as argument to your target, you can mask it by
-preceding it with a backslash (`\`).
-
-=== Examples
-
-`+mill foo._.compile+`:: Runs `compile` for all direct sub-modules of `foo`
-`+mill foo.__.test+` :: Runs `test` for all sub-modules of `foo`
-`+mill {foo,bar}.__.testCached+` :: Runs `testCached` for all sub-modules of `foo` and `bar`
-`+mill __.compile + foo.__.test+` :: Runs all `compile` targets and all tests under `foo`.
-

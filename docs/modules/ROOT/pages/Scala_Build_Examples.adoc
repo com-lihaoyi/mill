@@ -18,23 +18,43 @@ Many of the APIs covered here are listed in the Scaladoc:
 * {mill-doc-url}/api/latest/mill/scalalib/CrossSbtModule.html[mill.scalalib.CrossSbtModule]
 * {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.scalalib.JavaModule]
 
+== Common Configuration Overrides
+
 include::example/basic/3-common-config.adoc[]
+
+== Custom Tasks
 
 include::example/basic/4-custom-tasks.adoc[]
 
+== Overriding Tasks
+
 include::example/basic/5-override-tasks.adoc[]
+
+== Nesting Modules
 
 include::example/basic/6-nested-modules.adoc[]
 
+== Scala Module With Test Suite
+
 include::example/basic/7-test-suite.adoc[]
+
+== Publish Module
 
 include::example/basic/8-publish-module.adoc[]
 
+== Cross-Scala-Version Modules
+
 include::example/basic/9-cross-scala-version.adoc[]
+
+== SBT-Compatible Modules
 
 include::example/basic/10-sbt-compat-modules.adoc[]
 
+== Java Modules
+
 include::example/basic/11-java-modules.adoc[]
+
+== Realistic Scala Example Project
 
 include::example/basic/12-scala-realistic.adoc[]
 

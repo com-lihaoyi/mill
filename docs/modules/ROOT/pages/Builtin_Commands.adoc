@@ -5,6 +5,10 @@ in the Scaladoc:
 
 * {mill-doc-url}/api/latest/mill/main/MainModule.html[mill.main.MainModule]
 
+Mill's built-in commands are typically not directly related to building your
+application code, but instead are utilities that help you understand and work
+with your Mill build.
+
 === init
 
 [source,bash]
@@ -23,7 +27,7 @@ It prompts you to enter project name and creates a folder with that name.
 You can use it to quickly generate a starter project.
 There are lots of templates out there for many frameworks and tools!
 
-include::example/commands/1-commands.adoc[]
+include::example/builtins/1-commands.adoc[]
 
 === visualize
 
@@ -47,6 +51,9 @@ relationships in `.svg` and `.png` form for you to inspect. It also generates
 The above command generates the following diagram:
 
 image::VisualizeFoo.svg[VisualizeFoo.svg]
+
+`visualize` can be very handy for trying to understand the dependency graph of
+tasks within your Mill build.
 
 === visualizePlan
 

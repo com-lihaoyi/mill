@@ -57,11 +57,11 @@ foo.artifactName
 > ./mill resolve foo.{compile,run}
 > ./mill resolve "foo.{compile,run}"
 > ./mill resolve foo.compile foo.run
-> ./mill resolve _.compile          # list the compile tasks for every top-level module
-> ./mill resolve __.compile         # list the compile tasks for every module
-> ./mill resolve _                  # list every top level module and task
-> ./mill resolve foo._              # list every task directly within the foo module
-> ./mill resolve __                 # list every module and task recursively
+> ./mill resolve _.compile  # list the compile tasks for every top-level module
+> ./mill resolve __.compile # list the compile tasks for every module
+> ./mill resolve _          # list every top level module and task
+> ./mill resolve foo._      # list every task directly within the foo module
+> ./mill resolve __         # list every module and task recursively
 
 */
 
@@ -87,22 +87,9 @@ Inputs:
 // list of input tasks. This is very useful for debugging and interactively
 // exploring the structure of your build from the command line.
 //
-// `inspect` also works with the same `+_+`/`+__+` wildcard/query syntaxes that
-// <<_resolve>> do:
-
-/** Usage
-
-> ./mill inspect foo.compile
-> ./mill inspect foo.{compile,run}
-> ./mill inspect "foo.{compile,run}"
-> ./mill inspect foo.compile foo.run
-> ./mill inspect _.compile
-> ./mill inspect __.compile
-> ./mill inspect _
-> ./mill inspect foo._
-> ./mill inspect __
-
-*/
+// While `inspect` also works with the same `+_+`/`+__+` wildcard/query syntaxes
+// that <<_resolve>> do, the most common use case is to inspect one task at a
+// time.:
 
 // === show
 
@@ -128,7 +115,7 @@ Inputs:
 > ./mill show foo.compile
 {
   "analysisFile": ".../out/foo/compile.dest/zinc",
-  "classes": "ref:...:.../out/foo/compile.dest/classes"
+  "classes": ".../out/foo/compile.dest/classes"
 }
 */
 
@@ -172,8 +159,10 @@ Inputs:
 
 // === showNamed
 
-// Same as `show`, but the output will always be structured in a JSON dictionary,
-// with the task names as key and the task results as JSON values.
+// Same as `show`, but the output will always be structured in a JSON
+// dictionary, with the task names as key and the task results as JSON values.
+// When you are running `show` on multiple tasks, `showNamed` is probably what
+// you want.
 
 /** Usage
 
@@ -206,10 +195,13 @@ foo.assembly
 
 // `mill path` prints out a dependency chain between the first task and the
 // second. It is very useful for exploring the build graph and trying to figure
-// out how data gets from one task to another. If there are multiple possible
-// dependency chains, one of them is picked arbitrarily.
-
-
+// out how data gets from one task to another, or trying to figure out why
+// running `./mill foo` ends up running another task `bar` that you didn't
+// expect it to.
+//
+// If there are multiple possible dependency chains, one of them is picked
+// arbitrarily.
+//
 // === plan
 
 /** Usage
@@ -229,13 +221,13 @@ foo.compileClasspath
 
 */
 
-// `mill plan foo` shows which tasks would be evaluated, and in what order, if you
-// ran `mill foo`, but without actually running them. This is a useful tool for
+// `mill plan foo` shows which tasks would be evaluated if you ran `mill foo`,
+// and in what order, but without actually running them. This is a useful tool for
 // debugging your build: e.g. if you suspect a task `foo` is running things that
 // it shouldn't be running, a quick `mill plan` will list out all the upstream
 // tasks that `foo` needs to run, and you can then follow up with `mill path` on
 // any individual upstream task to see exactly how `foo` depends on it.
-
+//
 // === clean
 
 /** Usage
@@ -249,9 +241,9 @@ foo.compileClasspath
 
 /** Usage
 
-> ./mill clean                     # clean all outputs
-> ./mill clean foo                 # clean all outputs for module 'foo' (including nested modules)
-> ./mill clean foo.compile         # only clean outputs for task 'compile' in module 'foo'
+> ./mill clean             # clean all outputs
+> ./mill clean foo         # clean all outputs for module 'foo' (including nested modules)
+> ./mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
 > ./mill clean foo.{compile,run}
 > ./mill clean "foo.{compile,run}"
 > ./mill clean foo.compile foo.run
@@ -274,7 +266,7 @@ foo.compileClasspath
 // available from your project's configured repositories. Note that it uses
 // heuristics based on common versioning schemes, so it may not work as expected for
 // dependencies with particularly weird version numbers.
-
+//
 // Current limitations:
 //
 // * Only works for `JavaModule` modules (including ``ScalaModule``s,

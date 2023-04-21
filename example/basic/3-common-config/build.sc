@@ -1,4 +1,7 @@
-// == Common Configuration Overrides
+// This example shows some of the common tasks you may want to override on a
+// `ScalaModule`: specifying the `mainClass`, adding additional
+// sources/resources, generating resources, and setting compilation/run
+// options.
 
 import mill._, scalalib._
 
@@ -11,7 +14,7 @@ object foo extends RootModule with ScalaModule {
     ivy"com.lihaoyi::os-lib:0.9.1",
   )
 
-  // Choose a specific main class to use for `.run` if there are multiple present
+  // Choose a main class to use for `.run` if there are multiple present
   def mainClass: T[Option[String]] = Some("foo.Foo2")
 
   // Add (or replace) source folders for the module to use
@@ -50,10 +53,6 @@ object foo extends RootModule with ScalaModule {
   def scalacOptions: T[Seq[String]] = Seq("-deprecation", "-Xfatal-warnings")
 }
 
-// This module shows some of the common tasks you may want to override on a
-// `ScalaModule`: specifying the `mainClass`, adding additional
-// sources/resources, generating resources, and setting compilation/run
-// options.
 //
 // Note the use of `millSourcePath`, `T.dest`, and `PathRef` when preforming
 // various filesystem operations:
@@ -86,7 +85,7 @@ MyOtherResource: My Other Resource Contents
 my.custom.property: my-prop-value
 MY_CUSTOM_ENV: my-env-value
 
-> ./mill show assembly # mac/linux
+> ./mill show assembly
 out/assembly.dest/out.jar
 
 > ./out/assembly.dest/out.jar # mac/linux
@@ -101,7 +100,7 @@ my.custom.property: my-prop-value
 
 > sed -i 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
 
-> ./mill compile
+> ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
 error: object Foo2 { println(this + "hello")
 error:                       ^
 error: Implicit injection of + is deprecated. Convert to String to call +

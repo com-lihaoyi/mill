@@ -1,4 +1,3 @@
-// == Java Modules
 import mill._, scalalib._
 
 trait MyJavaModule extends JavaModule{

@@ -1,5 +1,3 @@
-// == Nesting Modules
-
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule{
@@ -28,8 +26,11 @@ object baz extends MyModule {
 // `Module` if we just need a wrapper to put the modules in without any tasks
 // defined on the wrapper.
 //
+// The outer module can also depend on the inner module (as shown above),
+// and vice versa, but not both at the same.
+//
 // Running tasks on the nested modules requires the full module path
-// `wrapper.foo.run`
+// `foo.bar.run`
 
 /** Usage
 

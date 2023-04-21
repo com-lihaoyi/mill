@@ -1,4 +1,3 @@
-// == SBT-Compatible Modules
 import mill._, scalalib._
 
 object foo extends SbtModule {
@@ -14,7 +13,6 @@ object bar extends Cross[BarModule]("2.12.17", "2.13.8")
 trait BarModule extends CrossSbtModule{
   object test extends Tests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
-
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -35,8 +33,9 @@ trait BarModule extends CrossSbtModule{
 // - `foo/src-2.13`
 // - `foo/test/src`
 //
-// This is especially useful during migrations, where a particular module may
-// be built using both SBT and Mill at the same time
+// This is especially useful if you are migrating from SBT to Mill (or vice
+// versa), during which a particular module may be built using both SBT and
+// Mill at the same time
 
 /** Usage
 

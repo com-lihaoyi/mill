@@ -1,8 +1,6 @@
-// == Overriding Tasks
-
 import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
+object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
   def sources = T{
@@ -31,22 +29,38 @@ object foo extends RootModule with ScalaModule {
 
 // You can re-define targets and commands to override them, and use `super` if you
 // want to refer to the originally defined task. The above example shows how to
-// override `compile` and `run` to add additional logging messages, but you can
-// also override `ScalaModule#generatedSources` to feed generated code to your
-// compiler, `ScalaModule#prependShellScript` to make your assemblies executable,
-// or `ScalaModule#console` to use the Ammonite REPL instead of the normal Scala
-// REPL.
+// override `compile` and `run` to add additional logging messages, and we
+// override `sources` which was `T.sources` for the `src/` folder with a plain
+// `T{...}` target that generates the  necessary source files on-the-fly.
 //
-// Note that plain `T{...}` targets, `T.sources`, and `T.input`s can override
-// each other. e.g. In the example above, we override `sources` which was
-// `T.sources` for the `src/` folder with a plain target that generates the
-// necessary source files on-the-fly.
-//
+// Note that this example *replaces* your `src/` folder with the generated
+// sources. If you want to *add* generated sources, you can either override
+// `generatedSources`, or you can override `sources` and use `super` to
+// include the original source folder:
+
+object foo2 extends ScalaModule {
+  def scalaVersion = "2.13.8"
+
+  def generatedSources = T{
+    os.write(T.dest / "Foo.scala", """...""")
+    Seq(PathRef(T.dest))
+  }
+}
+
+object foo3 extends ScalaModule {
+  def scalaVersion = "2.13.8"
+
+  def sources = T{
+    os.write(T.dest / "Foo.scala", """...""")
+    super.sources() ++ Seq(PathRef(T.dest))
+  }
+}
+
 // In Mill builds the `override` keyword is optional.
 
 /** Usage
 
-> ./mill run
+> ./mill foo.run
 Compiling...
 Running...
 Hello World

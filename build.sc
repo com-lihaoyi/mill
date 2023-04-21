@@ -1300,6 +1300,7 @@ object example extends MillScalaModule {
 
     def rendered = T{
       var seenCode = false
+      val examplePath = millSourcePath.subRelativeTo(T.workspace)
       os.write(
         T.dest / "example.adoc",
         parsed()
@@ -1307,17 +1308,22 @@ object example extends MillScalaModule {
           .map {
             case (s"see:$path", txt) =>
               s"""
-                 |.$path (https://dummy.com[browse])
+                 |.$path ({mill-example-url}/$examplePath/$path[browse])
                  |[source,scala,subs="attributes,verbatim"]
                  |----
                  |$txt
                  |----""".stripMargin
             case ("scala", txt) =>
-              val links = {
+
+              val title =
                 if (seenCode) ""
-                else s"https://dummy.com[download], https://dummy.com[browse]"
-              }
-              val title = if (seenCode) "" else s".build.sc ($links)"
+                else {
+                  val label = VcsVersion.vcsState().format()
+                  val exampleDashed = examplePath.segments.mkString("-")
+                  val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
+                  val browse = s"{mill-example-url}/$examplePath[browse]"
+                  s".build.sc ($download, $browse)"
+                }
               seenCode = true
               s"""
                  |$title
@@ -1875,9 +1881,8 @@ object docs extends Module {
        |content:
        |  sources:
        |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
-       |      branches: ${if (Settings.docBranches.isEmpty) "~"
-      else Settings.docBranches.map("'" + _ + "'").mkString("[", ",", "]")}
-       |      tags: ${Settings.docTags.map("'" + _ + "'").mkString("[", ",", "]")}
+       |      branches: []
+       |      tags: []
        |      start_path: docs/antora
        |    # the master documentation (always in author mode)
        |    - url: ${baseDir}
@@ -1894,6 +1899,8 @@ object docs extends Module {
        |  attributes:
        |    mill-github-url: ${Settings.projectUrl}
        |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else Settings.docUrl}
+       |    mill-download-url: ${if (authorMode) s"file://${exampleZips().head.path / os.up}" else "https://github.com/com-lihaoyi/mill/releases/latest"}
+       |    mill-example-url: ${if (authorMode) s"file://${T.workspace}" else "https://github.com/com-lihaoyi/mill/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |
@@ -2059,14 +2066,12 @@ def exampleZips: Target[Seq[PathRef]] = T {
     exampleMod <- example.exampleModules
     examplePath = exampleMod.millSourcePath
   } yield {
-    println(exampleMod + " / " + examplePath)
     val example = examplePath.subRelativeTo(T.workspace)
-    println(example)
-    os.copy(examplePath, T.dest / example, createFolders = true)
-    os.copy(launcher().path, T.dest / example / "mill")
-    val exampleStr = example.segments.mkString("-")
+    val exampleStr = VcsVersion.vcsState().format() + "-" + example.segments.mkString("-")
+    os.copy(examplePath, T.dest / exampleStr, createFolders = true)
+    os.copy(launcher().path, T.dest / exampleStr / "mill")
     val zip = T.dest / s"$exampleStr.zip"
-    os.proc("zip", "-r", zip, example.toString).call(cwd = T.dest)
+    os.proc("zip", "-r", zip, exampleStr).call(cwd = T.dest)
     PathRef(zip)
   }
 }
@@ -2096,7 +2101,7 @@ def uploadToGithub(authKey: String) = T.command {
       .asString
   }
 
-  val examples = exampleZips().map(z => (z.path, s"${label}-${z.path.last}"))
+  val examples = exampleZips().map(z => (z.path, z.path.last))
 
   val zips = examples ++ Seq(
     (assembly().path, label + "-assembly"),

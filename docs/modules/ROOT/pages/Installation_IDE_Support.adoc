@@ -1,12 +1,16 @@
 = Installation and IDE Support
 
 The best method of installing Mill is to just install a bootstrap script.
-This script can determine the best version to be used by a project (e.g. by reading a `.mill-version` file) and will use this exact Mill version.
-If that version is not installed locally, it will be downloading for you.
+This script can determine the best version to be used by a project (e.g. by
+reading a `.mill-version` file) and will use this exact Mill version.
+If that version is not installed locally, it will be downloaded automatically.
 
 == Bootstrap Scripts
 
-There are currently two bootstrap script available, one <<_mills_bootstrap_script_linuxos_x_only,in the Mill repository>>, which only work for Linux and Unix-like machines, and one <<_millw,external `millw` script>>, with more features and also Windows support.
+There are currently two bootstrap script available, one
+<<_mills_bootstrap_script_linuxos_x_only,in the Mill repository>>, which only
+work for Linux and Unix-like machines, and one <<_millw,external `millw` script>>,
+with more features and also Windows support.
 
 Using `millw` is recommended.
 
@@ -31,23 +35,33 @@ script directly:
 ./mill __.compile # double underscore
 ----
 
-The `mill` command will automatically use the version specified by the bootstrap script, even if you installed it via
-other means. The `./mill` file has a version number embedded within it, which you can update simply by editing the
-script. Note this only works for versions 0.5.0 and above.
+The `mill` command will automatically use the version specified by the
+bootstrap script, even if you installed it via other means. The `./mill` file
+has a version number embedded within it, which you can update simply by editing
+the script. Bootstrap scripts are also useful for running Mill in CI, ensuring
+that your Jenkins/Travis/etc. box has the correct version of Mill present to
+build/compile/test your code.
 
-Bootstrap scripts are also useful for running Mill in CI, ensuring that your Jenkins/Travis/etc. box has the correct
-version of Mill present to build/compile/test your code.
+In general, bootstrap scripts are the recommended way of installing Mill
+because they reduce the chance of errors due to the installed version of Mill
+being incompatible with the version expected by your build.
 
 === millw
 
-Instead of installing Mill directly, you can also use https://github.com/lefou/millw[lefou/millw] as drop-in
-replacement for `mill`. It provides a small shell script and also a Windows batch file, that transparently downloads `mill`
-and executes it on your behalf. It respects various ways to configure the preferred Mill version (`MILL_VERSION` env
-var, `.mill-version` file, `--mill-version` option) and can also be used as a bootstrap script in your project.
+Instead of installing Mill directly, you can also use
+https://github.com/lefou/millw[lefou/millw] as drop-in replacement for `mill`.
+It provides a small shell script and also a Windows batch file, that
+transparently downloads `mill` and executes it on your behalf. It respects
+various ways to configure the preferred Mill version (`MILL_VERSION` env var,
+`.mill-version` file, `--mill-version` option) and can also be used as a
+bootstrap script in your project.
 
 
-== Downloading Mill
+== Installing Mill Globally
 
+While the <<_bootstrap_scripts>> approach above is the recommended way of
+installing Mill for a project, you can also install Mill globally in your
+operating system using the commands shown below.
 
 === OS X
 
@@ -140,19 +154,25 @@ sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-ta
 
 === Coursier (unsupported)
 
-Installing mill via `coursier` or `cs` is currently not officially supported. There are various issues, especially with
-interactive mode.
+Installing mill via `coursier` or `cs` is currently not officially supported.
+There are various issues, especially with interactive mode.
 
 == IDE Support
 :link-metals: https://scalameta.org/metals/
 
-To support various IDEs and Language Servers, Mill supports the https://build-server-protocol.github.io/[Build Server Protocol] in version {bsp-version} and has a <<Build Server Protocol (BSP),built-in BSP server>>.
+To support various IDEs and Language Servers, Mill supports the
+https://build-server-protocol.github.io/[Build Server Protocol] in version
+{bsp-version} and has a <<Build Server Protocol (BSP),built-in BSP server>>.
 
-In addition to BSP, Mill also supports <<IntelliJ IDEA Support,IntelliJ IDEA project configuration generation>> directly.
+In addition to BSP, Mill also supports
+<<IntelliJ IDEA Support,IntelliJ IDEA project configuration generation>>
+directly.
 
 === Build Server Protocol (BSP)
 
-The Build Server Protocol has the concept of BSP server discovery, which means: A BSP client can connect to any BSP server, as long as there is a connection file under the `.bsp/` directory.
+The Build Server Protocol has the concept of BSP server discovery, which means:
+A BSP client can connect to any BSP server, as long as there is a connection
+file under the `.bsp/` directory.
 
 To install a BSP connection file `.bsp/mill-bsp.json` for Mill, run:
 
@@ -167,7 +187,8 @@ You can fine control some BSP server options by specifying command options:
 
 |===
 | Option | Description
-|`--jobs` `n` | Use `n` threads in parallel to run tasks. A value of `0` means to use as many threads as the system has cpu cores.
+|`--jobs` `n` | Use `n` threads in parallel to run tasks. A value of `0` means
+to use as many threads as the system has cpu cores.
 |===
 
 
@@ -177,38 +198,45 @@ You can fine control some BSP server options by specifying command options:
 --
 *Using Metals*
 
-When using Metals by default Bloop will be used as your build server unless you explicitly choose Mill.
-When in a Mill workspace use the "Switch Build Server" command from Metals which will allow you to switch to using Mill as your build
-server.
-If no `.bsp/mill-bsp.json` file exists, Metals will automatically create it for you and then connect to Mill.
+When using Metals by default Bloop will be used as your build server unless
+you explicitly choose Mill. When in a Mill workspace use the "Switch Build
+Server" command from Metals which will allow you to switch to using Mill as
+your build server. If no `.bsp/mill-bsp.json` file exists, Metals will
+automatically create it for you and then connect to Mill.
 
 Metals is relying on SemanticDB to enable many of its features.
-Mill BSP now also supports to provide this SemanticDB data, when the BSP client (like Metals) requests it.
+Mill BSP now also supports to provide this SemanticDB data, when the BSP client
+(like Metals) requests it.
 
-As of writing this, Metals 0.11.8 is the latest available version, which is not able to detect the fact, that Mill _is_ already providing SemanticDB data.
-As a consequence, it reports missing SemanticDB data, although some SemanticDB-based features are already working.
-This may be fixed eventually in a future release of Metals.
+As of writing this, Metals 0.11.8 is the latest available version, which is not
+able to detect the fact, that Mill _is_ already providing SemanticDB data. As a
+consequence, it reports missing SemanticDB data, although some SemanticDB-based
+features are already working. This may be fixed eventually in a future release of Metals.
 --
 
 [CAUTION]
 --
 *Updating older setups*
 
-In the past, we provided SemanticDB support via `mill.scalalib.bsp.ScalaMetalsSupport` trait, which had to be mixed-in to your Scala modules.
-This is no longer needed and deprecated.
-You should remove these mix-ins.
+In the past, we provided SemanticDB support via `mill.scalalib.bsp.ScalaMetalsSupport`
+trait, which had to be mixed-in to your Scala modules. This is no longer needed and
+deprecated. You should remove these mix-ins.
 `ScalaMetalsSupport` trait is now deprecated and will be removed in the future.
 --
 
 === If things go wrong
 
 In case things go wrong, it can be sometimes hard to find the cause.
-BSP is just a protocol, and as such, issues on the server side (the Mill BSP server) might not well propagated to the BSP client (your IDE).
+BSP is just a protocol, and as such, issues on the server side (the Mill BSP
+server) might not well propagated to the BSP client (your IDE).
 
-For that reason Mill BSP server is writing a log file under `.bsp/mill-bsp.stderr`, where you can find various information about what's going on.
-Its content should look familiar, as it contains regular Mill output accompanied by additional BSP client-server communication details.
+For that reason Mill BSP server is writing a log file under
+`.bsp/mill-bsp.stderr`, where you can find various information about what's
+going on. Its content should look familiar, as it contains regular Mill
+output accompanied by additional BSP client-server communication details.
 
-You can increase the verbosity of that log file, when you run Mill with `--debug` at installation time (of the BSP discovery file).
+You can increase the verbosity of that log file, when you run Mill with
+`--debug` at installation time (of the BSP discovery file).
 
 [source,bash]
 ----
@@ -218,21 +246,25 @@ mill --debug mill.bsp.BSP/install
 
 === Using Bloop (standalone BSP server)
 
-If you wish to use Bloop as your build server (it is the default metals BSP implementation) with metals / vscode, consider using the mill bloop plugin.
+If you wish to use Bloop as your build server (it is the default metals BSP
+implementation) with metals / vscode, consider using the mill bloop plugin.
 
 xref:contrib/bloop.adoc[Bloop Plugin]
 
 This is preferred to the instructions (currently) on the bloop website.
 
-Please be aware, that the Bloop contrib plugin is maintained by the community and is probably not on a par with the built-in BSP server.
+Please be aware, that the Bloop contrib plugin is maintained by the community
+and is probably not on a par with the built-in BSP server.
 
 
 === IntelliJ IDEA Support
 
-IntelliJ IDEA also supports the BSP protocol. To use this support, just follow the directions in <<_build_server_protocol_bsp>>.
+IntelliJ IDEA also supports the BSP protocol. To use this support, just follow
+the directions in <<_build_server_protocol_bsp>>.
 
 Additionally, you can generate IDEA project files directly with Mill.
-This is probably the preferred way if you work on polyglot projects and need support for other languages like Kotlin or AspectJ.
+This is probably the preferred way if you work on polyglot projects and need
+support for other languages like Kotlin or AspectJ.
 
 To generate IntelliJ IDEA project files into `.idea/`, run:
 
@@ -243,14 +275,17 @@ mill mill.scalalib.GenIdea/idea
 
 == Updating Mill
 
-If you have installed Mill via the recommended <<_bootstrap_scripts,`Bootstrap Script`>> method, you don't need to install multiple version of Mill explicitly.
+If you have installed Mill via the recommended <<_bootstrap_scripts,`Bootstrap Script`>>
+method, you don't need to install multiple version of Mill explicitly.
 
 Follow the next <<_overriding_mill_versions>> section for details.
 
 == Overriding Mill Versions
 
 
-Apart from downloading and installing new versions of Mill globally, there are a few ways of selecting/updating your Mill version. This will only work, if you have choosen one of the <<_bootstrap_scripts,Boostrap script methods>>:
+Apart from downloading and installing new versions of Mill globally, there are
+a few ways of selecting/updating your Mill version. This will only work, if you
+have choosen one of the <<_bootstrap_scripts,Boostrap script methods>>:
 
 * Create a `.mill-version` file to specify the version of Mill you wish to use:
 [source,bash]
@@ -274,22 +309,30 @@ or
 MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
 ----
 
-to override the Mill version manually. This takes precedence over the version specified in `./mill` or `.mill-version`
+to override the Mill version manually. This takes precedence over the version
+specified in `./mill` or `.mill-version`
 
 === Automatic Mill updates
 
-If your project is hosted on GitHub, GitLab, or Bitbucket, you can use https://github.com/scala-steward-org/scala-steward[Scala Steward] to automatically open a pull request to update your Mill version (in `.mill-version` file), whenever there is a newer version available.
+If your project is hosted on GitHub, GitLab, or Bitbucket, you can use
+https://github.com/scala-steward-org/scala-steward[Scala Steward] to
+automatically open a pull request to update your Mill version (in
+`.mill-version` file), whenever there is a newer version available.
 
-TIP: Scala Steward can also xref:Configuration.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies] and keep them up-to-date.
+TIP: Scala Steward can also
+xref:Configuration.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
+and keep them up-to-date.
 
 === Development Releases
 
-In case you want to try out the latest features and improvements that are currently in the main branch, unstable versions of Mill
+In case you want to try out the latest features and improvements that are
+currently in the main branch, unstable versions of Mill
 are
 https://github.com/com-lihaoyi/mill/releases[available] as binaries named
 `+#.#.#-n-hash+` linked to the latest tag.
 
-The easiest way to use a development release is to use one of the <<_bootstrap_scripts>>, which support
-<<_overriding_mill_versions>> via an `MILL_VERSION` environment variable or a `.mill-version` file.
+The easiest way to use a development release is to use one of the
+<<_bootstrap_scripts>>, which support <<_overriding_mill_versions>> via an
+`MILL_VERSION` environment variable or a `.mill-version` file.
 
 

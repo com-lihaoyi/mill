@@ -1,4 +1,3 @@
-// == Realistic Scala Example Project
 import mill._, scalalib._, publish._
 
 trait MyModule extends PublishModule {
@@ -60,13 +59,19 @@ object qux extends JavaModule with MyModule
 // - With generated sources to include the `publishVersion` as a string in the
 //   code, so it can be printed at runtime
 //
-// Note that for multi-module builds like this, using queries like `__.test`
-// or `__.publishLocal` to run tasks on multiple targets at once can be very
-// convenient. Also note that `ScalaModule`s can depend on `JavaModule`s, and
+// Note that for multi-module builds like this, using queries to run tasks on
+// multiple targets at once can be very convenient:
+//
+// ----
+// __.test
+// __.publishLocal
+// ----
+//
+// Also note that ``ScalaModule``s can depend on ``JavaModule``s, and
 // when multiple inter-dependent modules are published they automatically will
 // include the inter-module dependencies in the publish metadata.
 //
-// Also note how you can use `trait`s to bundle together common combinations of
+// Also note how you can use ``trait``s to bundle together common combinations of
 // modules: `MyScalaModule` not only defines a `ScalaModule` with some common
 // configuration, but it also defines a `object test` module within it with its
 // own configuration. This is a very useful technique for managing the often

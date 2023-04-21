@@ -1,4 +1,3 @@
-// == Scala Module With Test Suite
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -10,7 +9,7 @@ object foo extends ScalaModule {
 }
 
 // This build defines a single module with a test suite, configured to use
-// "uTest" as the testing framework. Test suites are themselves `ScalaModule`s,
+// "uTest" as the testing framework. Test suites are themselves ``ScalaModule``s,
 // nested within the enclosing module, and have all the normal tasks like
 // `foo.test.compile` available to run, but with an additional `.test` task
 // that runs the tests. You can also run the test suite directly, in which case
