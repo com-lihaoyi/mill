@@ -1,5 +1,3 @@
-// == TodoMVC Web App
-
 import mill._, scalalib._
 
 object app extends RootModule with ScalaModule{

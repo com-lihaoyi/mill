@@ -1,5 +1,3 @@
-// == Scala.js Modules
-
 import mill._, scalalib._, scalajslib._
 
 object foo extends ScalaJSModule {
@@ -48,3 +46,6 @@ main.js
 stringifiedJsObject: ["hello","world","!"]
 
 */
+
+// Note that running Scala.js modules locally requires the `node` Javascript
+// runtime to be installed on your machine.

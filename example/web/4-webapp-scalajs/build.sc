@@ -1,5 +1,3 @@
-// == Scala.js Webserver Integration
-
 import mill._, scalalib._, scalajslib._
 
 object app extends RootModule with ScalaModule{
@@ -13,7 +11,7 @@ object app extends RootModule with ScalaModule{
   def resources = T{
     os.makeDir(T.dest / "webapp")
     val jsPath = client.fastLinkJS().dest.path
-    // Move the main.js[.map] files into the proper filesystem position
+    // Move main.js[.map]into the proper filesystem position
     // in the resource folder for the web server code to pick up
     os.copy(jsPath / "main.js", T.dest / "webapp" / "main.js")
     os.copy(jsPath / "main.js.map", T.dest / "webapp" / "main.js.map")
@@ -37,7 +35,7 @@ object app extends RootModule with ScalaModule{
 }
 
 // A minimal example of a Scala-JVM backend server wired up with a Scala.js
-// front-end. The backend code is identical to the [2-todo-webapp] example, but
+// front-end. The backend code is identical to the <<_todomvc_web_app>> example, but
 // we replace the `main.js` client side code with the Javascript output of
 // `ClientApp.scala`.
 //

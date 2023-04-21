@@ -1,4 +1,3 @@
-// == Scala.js/Scala-JVM Code Sharing
 import mill._, scalalib._, scalajslib._
 
 trait AppScalaModule extends ScalaModule{

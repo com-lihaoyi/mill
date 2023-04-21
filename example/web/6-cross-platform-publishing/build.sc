@@ -1,5 +1,3 @@
-// == Publishing Cross-Platform Scala Modules
-
 import mill._, scalalib._, scalajslib._, publish._
 
 object foo extends Cross[FooModule]("2.13.8", "3.2.2")

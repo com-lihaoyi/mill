@@ -1,6 +1,7 @@
-// == Webapp Cache Busting
+
 
 import mill._, scalalib._
+import java.util.Arrays
 
 object app extends RootModule with ScalaModule{
   def scalaVersion = "2.13.8"
@@ -15,14 +16,7 @@ object app extends RootModule with ScalaModule{
       resourceRoot <- super.resources()
       path <- os.walk(resourceRoot.path)
       if os.isFile(path)
-    } yield {
-      val fileHash = String.format("%08x", java.util.Arrays.hashCode(os.read.bytes(path)))
-      val relPath = path.relativeTo(resourceRoot.path)
-      val extStr = if (relPath.ext == "") "" else s".${relPath.ext}"
-      val hashedPath = relPath / os.up / s"${relPath.baseName}-$fileHash$extStr"
-      os.copy(path, T.dest / hashedPath, createFolders = true)
-      (relPath.toString(), hashedPath.toString())
-    }
+    } yield hashFile(path, resourceRoot.path, T.dest)
 
     os.write(
       T.dest / "hashed-resource-mapping.json",
@@ -39,6 +33,15 @@ object app extends RootModule with ScalaModule{
       ivy"com.lihaoyi::requests::0.6.9",
     )
   }
+}
+
+def hashFile(path: os.Path, src: os.Path, dest: os.Path) = {
+  val hash = Integer.toHexString(Arrays.hashCode(os.read.bytes(path)))
+  val relPath = path.relativeTo(src)
+  val ext = if (relPath.ext == "") "" else s".${relPath.ext}"
+  val hashedPath = relPath / os.up / s"${relPath.baseName}-$hash$ext"
+  os.copy(path, dest / hashedPath, createFolders = true)
+  (relPath.toString(), hashedPath.toString())
 }
 
 // This example demonstrates how to implement webapp "cache busting" in Mill,
