@@ -16,6 +16,7 @@ object Ctx {
    * Access to the targets [[dest]] path.
    */
   trait Dest {
+
     /**
      * `T.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
      * that is assigned to every Target or Command. It is cleared before your
@@ -32,6 +33,7 @@ object Ctx {
 
   /** Access to the targets [[Logger]] instance. */
   trait Log {
+
     /**
      * `T.log` is the default logger provided for every task. While your task is running,
      * `System.out` and `System.in` are also redirected to this logger. The logs for a
@@ -41,7 +43,6 @@ object Ctx {
      *
      * Messages logged with `log.debug` appear by default only in the log files.
      * You can use the `--debug` option when running mill to show them on the console too.
-     *
      */
     def log: Logger
   }
@@ -60,6 +61,7 @@ object Ctx {
 
   /** Access to the current system environment settings. */
   trait Env {
+
     /**
      * `T.env` is the environment variable map passed to the Mill command when
      * it is run; typically used inside a `T.input` to ensure any changes in
@@ -84,6 +86,7 @@ object Ctx {
 
   /** Access to the project root (aka workspace) directory. */
   trait Workspace {
+
     /**
      * This is the `os.Path` pointing to the project root directory.
      *

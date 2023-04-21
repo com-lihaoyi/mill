@@ -47,7 +47,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
     test("exampleUsage") {
       try {
         val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
-        val usageComment = parsed.collect{case ("example", txt) => txt}.mkString("\n\n")
+        val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
         val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
         "\n("
@@ -84,7 +84,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
       commandStr: String
   ) = {
     BashTokenizer.tokenize(commandStr) match {
-      case Seq(s"./$command", rest@_*) =>
+      case Seq(s"./$command", rest @ _*) =>
         val evalResult = command match {
           case "mill" => evalStdout(rest: _*)
           case cmd =>
@@ -126,16 +126,16 @@ object ExampleTestSuite extends IntegrationTestSuite {
           IntegrationTestSuite.EvalResult(true, res, "")
         )
 
-      case Seq("node", rest@_*) =>
+      case Seq("node", rest @ _*) =>
         val res = os
           .proc("node", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
         validateEval(
           expectedSnippets,
           IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-      )
+        )
 
-      case Seq("git", rest@_*) =>
+      case Seq("git", rest @ _*) =>
         val res = os
           .proc("git", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
@@ -144,7 +144,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
           IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
         )
 
-      case Seq("java", "-jar", rest@_*) =>
+      case Seq("java", "-jar", rest @ _*) =>
         val res = os
           .proc("java", "-jar", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
@@ -162,7 +162,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
             expectedSnippets,
             IntegrationTestSuite.EvalResult(true, boas.toString("UTF-8"), "")
           )
-        }finally{zipFile.close()}
+        } finally { zipFile.close() }
 
       case Seq("printf", literal, ">>", path) =>
         mangleFile(os.Path(path, workspacePath), _ + ujson.read('"' + literal + '"').str)
@@ -176,7 +176,6 @@ object ExampleTestSuite extends IntegrationTestSuite {
   ): Unit = {
     if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
     else assert(evalResult.isSuccess)
-
 
     val unwrappedExpected = expectedSnippets
       .map {
@@ -192,19 +191,20 @@ object ExampleTestSuite extends IntegrationTestSuite {
         // Don't bother checking empty lines
         .filter(_.trim.nonEmpty)
         // Strip log4j noisy prefixes that differ on windows and mac/linux
-        .map( ln =>
+        .map(ln =>
           ln.stripPrefix("[info] ").stripPrefix("info: ")
-            .stripPrefix("[error] ").stripPrefix("error: "))
+            .stripPrefix("[error] ").stripPrefix("error: ")
+        )
         .toVector
 
     val filteredErr = plainTextLines(evalResult.err)
     val filteredOut = plainTextLines(evalResult.out)
 
-    if (expectedSnippets.nonEmpty){
-      for(outLine <- filteredOut){
+    if (expectedSnippets.nonEmpty) {
+      for (outLine <- filteredOut) {
         globMatchesAny(unwrappedExpected, outLine)
       }
-      for(errLine <- filteredErr){
+      for (errLine <- filteredErr) {
         globMatchesAny(unwrappedExpected, errLine)
       }
     }
