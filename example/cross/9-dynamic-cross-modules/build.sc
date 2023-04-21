@@ -1,5 +1,3 @@
-// == Dynamic Cross Modules
-
 import mill._, scalalib._
 
 val moduleNames = interp.watchValue(os.list(millSourcePath / "modules").map(_.last))
@@ -47,3 +45,8 @@ modules[new]
 Hello World New
 
 */
+
+// Note that because the inputs to the `Cross` constructor affects the number
+// of cross-modules that are generated, it has to be a raw value e.g.
+// `List[T]` and not a target `T[List[T]]`. That also means that the list of
+// cross-modules cannot depend on the output of any targets.

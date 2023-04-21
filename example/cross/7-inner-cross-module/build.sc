@@ -1,4 +1,3 @@
-// == Inner Cross Modules
 import mill._
 
 trait MyModule extends Module{

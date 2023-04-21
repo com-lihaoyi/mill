@@ -1,7 +1,6 @@
-// == Using Cross Modules from other Cross Modules
-//
-// Targets in cross-modules can depend on one another the same way than
+// Targets in cross-modules can use one another the same way they are used from
 // external targets:
+
 import mill._
 
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
@@ -13,6 +12,12 @@ object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
 trait BarModule extends Cross.Module[String] {
   def bigSuffix = T { "[[[" + foo(crossValue).suffix() + "]]]" }
 }
+
+// Rather than pssing in a literal `"2.10"` to the `foo` cross module, we pass
+// in the `crossValue` property that is available within every `Cross.Module`.
+// This ensures that each version of `bar` depends on the corresponding version
+// of `foo`: `bar("2.10")` depends on `foo("2.10")`, `bar("2.11")` depends on
+// `foo("2.11")`, etc.
 
 /** Usage
 

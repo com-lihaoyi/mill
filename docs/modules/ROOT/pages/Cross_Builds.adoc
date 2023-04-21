@@ -1,21 +1,43 @@
 = Cross Builds
 
+Cross-building refers to taking the same sources and configuration and building
+it multiple times with minor changes. This could mean taking the same Scala
+codebase and building it across multiple Scala versions, taking the same
+application and building twice for dev/release, or taking the same module
+config and building it across a variety of source folders.
 
+== Simple Cross Modules
 
 include::example/cross/1-simple.adoc[]
 
+== Cross Modules Source Paths
+
 include::example/cross/2-cross-source-path.adoc[]
+
+== Using Cross Modules from Outside Targets
 
 include::example/cross/3-outside-dependency.adoc[]
 
+== Using Cross Modules from other Cross Modules
+
 include::example/cross/4-cross-dependencies.adoc[]
+
+== Multiple Cross Axes
 
 include::example/cross/5-multiple-cross-axes.adoc[]
 
-include::example/cross/6-module-axes-extension.adoc[]
+== Extending Cross Modules
+
+include::example/cross/6-axes-extension.adoc[]
+
+== Inner Cross Modules
 
 include::example/cross/7-inner-cross-module.adoc[]
 
+== Cross Resolvers
+
 include::example/cross/8-resolvers.adoc[]
+
+== Dynamic Cross Modules
 
 include::example/cross/9-dynamic-cross-modules.adoc[]

@@ -1,5 +1,3 @@
-// == Simple Cross Modules
-//
 // Mill handles cross-building of all sorts via the `Cross[T]` module.
 
 import mill._

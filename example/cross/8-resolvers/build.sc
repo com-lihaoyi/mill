@@ -1,5 +1,3 @@
-// == Cross Resolvers
-
 import mill._
 
 trait MyModule extends Cross.Module[String] {

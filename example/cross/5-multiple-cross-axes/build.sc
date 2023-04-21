@@ -1,6 +1,6 @@
-// == Multiple Cross Axes
-//
-// You can have a cross-module with multiple inputs:
+// You can have a cross-module with multiple inputs using the `Cross.Module2`
+// trait:
+
 import mill._
 
 val crossMatrix = for {
