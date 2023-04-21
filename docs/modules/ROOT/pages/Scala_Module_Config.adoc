@@ -1,36 +1,61 @@
 = Scala Module Configuration
 :page-aliases: Configuring_Mill.adoc
 
-While Mill supports a range of languages and external tools, it has thorough
-support for building Scala applications bundled with the build tool. This page
-walks through some of the common things you often need to do when working with
-Scala projects.
+This page goes into more detail about the various configuration options
+for `ScalaModule`.
 
 Many of the APIs covered here are listed in the Scaladoc:
 
 * {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
 
-include::example/configscala/1-compilation-execution-flags.adoc[]
 
-include::example/configscala/2-ivy-deps.adoc[]
+== Compilation & Execution Flags
 
-include::example/configscala/3-run-compile-time-dependencies.adoc[]
+include::example/scalamodule/1-compilation-execution-flags.adoc[]
 
-include::example/configscala/4-scala-compiler-plugins.adoc[]
+== Adding Ivy Dependencies
 
-include::example/configscala/5-scaladoc.adoc[]
+include::example/scalamodule/2-ivy-deps.adoc[]
 
-include::example/configscala/6-unmanaged-jars.adoc[]
+== Runtime and Compile-time Dependencies
 
-include::example/configscala/7-main-class.adoc[]
+include::example/scalamodule/3-run-compile-deps.adoc[]
 
-include::example/configscala/8-downloading-non-maven-jars.adoc[]
+== Test Dependencies
 
-include::example/configscala/9-assembly-config.adoc[]
+include::example/scalamodule/4-test-deps.adoc[]
 
-include::example/configscala/10-repository-config.adoc[]
+== Scala Compiler Plugins
 
-include::example/configscala/11-backticked-names.adoc[]
+include::example/scalamodule/5-scala-compiler-plugins.adoc[]
+
+== Scaladoc Config
+
+include::example/scalamodule/6-scaladoc.adoc[]
+
+== Unmanaged Jars
+
+include::example/scalamodule/7-unmanaged-jars.adoc[]
+
+== Specifying the Main Class
+
+include::example/scalamodule/8-main-class.adoc[]
+
+== Downloading Non-Maven Jars
+
+include::example/scalamodule/9-downloading-non-maven-jars.adoc[]
+
+== Customizing the Assembly
+
+include::example/scalamodule/10-assembly-config.adoc[]
+
+== Repository Config
+
+include::example/scalamodule/11-repository-config.adoc[]
+
+== Backticked Names
+
+include::example/scalamodule/12-backticked-names.adoc[]
 
 == Reformatting your code
 

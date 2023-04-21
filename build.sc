@@ -1261,10 +1261,10 @@ object example extends MillScalaModule {
   override def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
-  object builtins extends Cross[ExampleCrossModule](listIn(millSourcePath / "builtins"): _*)
+  object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"): _*)
+  object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"): _*)
   object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"): _*)
   object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"): _*)
-  object configscala extends Cross[ExampleCrossModule](listIn(millSourcePath / "configscala"): _*)
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
 
