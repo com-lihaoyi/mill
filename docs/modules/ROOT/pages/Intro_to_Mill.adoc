@@ -1,3 +1,16 @@
+// Author Notes:
+//
+// This is the first page a user is expected to land on when learning about
+// Mill. It is designed to be a quick, broad overview to get someone started:
+// what is Mill, why should they care, and what some simple Mill builds look
+// like and how to use them. We intentionally touch shallowly on a lot of
+// topics without giving them a proper discussion, since the other pages have
+// plenty of space to go in-depth.
+//
+// By the end of this page, a prospective Mill user should be familiar with
+// what Mill is, hopefully have downloaded an example to try out, and be
+// interested in learning more about the Mill build tool
+
 = Introduction to Mill
 :page-aliases: index.adoc
 

@@ -21,9 +21,14 @@ object foo extends RootModule with ScalaModule {
 // `./mill compile` or `./mill run` without needing to prefix it as
 // `foo.compile` or `foo.run`.
 //
-// The source code for this module would live in the `src/` folder.
-// Output for this module (compiled files, resolved dependency lists, …) would
-// live in `out/`.
+// You can download this example project using the *download* link above,
+// if you want to try out the commands below yourself. The only requirement is
+// that you have some version of the JVM installed; the `./mill` script takes
+// care of any further dependencies that need to be downloaded.
+//
+// The source code for this module lives in the `src/` folder.
+// Output for this module (compiled files, resolved dependency lists, ...)
+// lives in `out/`.
 //
 // This example project uses two third-party dependencies - MainArgs for CLI
 // argument parsing, Scalatags for HTML generation - and uses them to wrap a
@@ -63,7 +68,7 @@ error: Missing argument: --text <str>
 <h1>hello</h1>
 
 > ./mill test
--------------------------------- Running Tests --------------------------------
+...
 + foo.FooTests.simple ...  <h1>hello</h1>
 + foo.FooTests.escaping ...  <h1>&lt;hello&gt;</h1>
 
