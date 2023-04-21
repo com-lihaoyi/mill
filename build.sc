@@ -1307,6 +1307,7 @@ object example extends MillScalaModule {
           .map {
             case (s"see:$path", txt) =>
               s"""
+                 |[.text-justify]
                  |.$path (https://dummy.com[browse])
                  |[source,scala,subs="attributes,verbatim"]
                  |----
@@ -1317,7 +1318,7 @@ object example extends MillScalaModule {
                 if (seenCode) ""
                 else s"https://dummy.com[download], https://dummy.com[browse]"
               }
-              val title = if (seenCode) "" else s".build.sc ($links)"
+              val title = if (seenCode) "" else s"[.text-justify]\n.build.sc ($links)"
               seenCode = true
               s"""
                  |$title
