@@ -1281,6 +1281,7 @@ object example extends MillScalaModule {
       for(line <- os.read.lines(testRepoRoot().path / "build.sc")){
         val (newState, restOpt) = line match{
           case s"/** Usage" =>  ("example", None)
+          case s"/** See Also: $path */" =>  (s"see:$path", Some(os.read(os.Path(path, testRepoRoot().path))))
           case s"*/" => ("scala", None)
           case s"//$rest" => ("comment", Some(rest.stripPrefix(" ")))
           case l => (if (states.last == "comment") "scala" else states.last, Some(l))
@@ -1304,6 +1305,12 @@ object example extends MillScalaModule {
         parsed()
           .filter(_._2.nonEmpty)
           .map {
+            case (s"see:$path", txt) =>
+              s"""[source,scala,subs="attributes,verbatim"]
+                 |----
+                 |// $path
+                 |$txt
+                 |----""".stripMargin
             case ("scala", txt) =>
               val links = {
                 val browse = "🔗Browse Online"
@@ -1311,9 +1318,11 @@ object example extends MillScalaModule {
                 if (seenCode) ""
                 else s"https://dummy.com[$download] https://dummy.com[$browse]\n\n"
               }
-              s"""
-                 |[source,scala,subs="attributes,verbatim"]
+              val title = if (seenCode) "" else "// build.sc"
+              seenCode = true
+              s"""[source,scala,subs="attributes,verbatim"]
                  |----
+                 |$title
                  |$txt
                  |----
                  |

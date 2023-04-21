@@ -9,6 +9,10 @@ easiest/least-flexible to the hardest/most-flexible.
 
 include::example/misc/3-import-file-ivy.adoc[]
 
+== The Mill Meta-Build
+
+include::example/misc/4-mill-build-folder.adoc[]
+
 == Evaluator Commands (experimental)
 
 _Evaluator Command are experimental and suspected to change.
