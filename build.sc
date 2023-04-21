@@ -1765,9 +1765,9 @@ object docs extends Module {
 
     def scaladocPushRemoteBranch: String = "gh-pages"
 
-    def scaladocPushUserName: String = os.proc("git", "config", "user.name").call().out.string
+    def scaladocPushUserName: String = os.proc("git", "config", "user.name").call().out.text()
 
-    def scaladocPushUserEmail: String = os.proc("git", "config", "user.email").call().out.string
+    def scaladocPushUserEmail: String = os.proc("git", "config", "user.email").call().out.text()
 
     def scaladocSubPath: os.SubPath
 
