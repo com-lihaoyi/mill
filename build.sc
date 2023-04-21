@@ -1306,27 +1306,27 @@ object example extends MillScalaModule {
           .filter(_._2.nonEmpty)
           .map {
             case (s"see:$path", txt) =>
-              s"""[source,scala,subs="attributes,verbatim"]
+              s"""
+                 |.$path (https://dummy.com[browse])
+                 |[source,scala,subs="attributes,verbatim"]
                  |----
-                 |// $path
                  |$txt
                  |----""".stripMargin
             case ("scala", txt) =>
               val links = {
-                val browse = "🔗Browse Online"
-                val download = "⇩Download Example"
                 if (seenCode) ""
-                else s"https://dummy.com[$download] https://dummy.com[$browse]\n\n"
+                else s"https://dummy.com[download], https://dummy.com[browse]"
               }
-              val title = if (seenCode) "" else "// build.sc"
+              val title = if (seenCode) "" else s".build.sc ($links)"
               seenCode = true
-              s"""[source,scala,subs="attributes,verbatim"]
-                 |----
+              s"""
                  |$title
-                 |$txt
+                 |[source,scala,subs="attributes,verbatim"]
                  |----
                  |
-                 |$links""".stripMargin
+                 |$txt
+                 |----
+                 |""".stripMargin
             case ("comment", txt) => txt
             case ("example", txt) =>
               s"""
