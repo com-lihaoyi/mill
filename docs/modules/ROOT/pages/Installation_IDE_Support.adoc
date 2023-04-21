@@ -234,7 +234,7 @@ Please be aware, that the Bloop contrib plugin is maintained by the community an
 IntelliJ IDEA also supports the BSP protocol. To use this support, just follow the directions in <<_build_server_protocol_bsp>>.
 
 Additionally, you can generate IDEA project files directly with Mill.
-This is probably the preferred way if you work on polyglot projects and need support for other languages like Kotlin or AspectJ.
+This is probably the preferred way if you work on polyglot projects and need support for other languages like Kotlin or AspectJ, which are currently not specifically configured over BSP.
 
 To generate IntelliJ IDEA project files into `.idea/`, run:
 
