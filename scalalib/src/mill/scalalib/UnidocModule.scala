@@ -24,9 +24,12 @@ trait UnidocModule extends ScalaModule {
     // different between scala-2 scaladoc and scala-3 scaladoc
     // below is for scala-2 variant
     val options: Seq[String] = Seq(
-      "-doc-title", "Mill",
-      "-d", T.dest.toString,
-      "-classpath", unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator")),
+      "-doc-title",
+      "Mill",
+      "-d",
+      T.dest.toString,
+      "-classpath",
+      unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator"))
     ) ++
       unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
       unidocSourceUrl().toSeq.flatMap(_ => Seq("-doc-source-url", "file://€{FILE_PATH}.scala"))
