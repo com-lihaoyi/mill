@@ -10,6 +10,7 @@
 * xref:Cross_Builds.adoc[]
 * xref:Web_Build_Examples.adoc[]
 * xref:Extending_Mill.adoc[]
+* xref:The_Mill_Evaluation_Model.adoc[]
 * xref:Using_Plugins.adoc[]
 * xref:Contrib_Plugins.adoc[]
 // See also the list in Contrib_Plugins.adoc
