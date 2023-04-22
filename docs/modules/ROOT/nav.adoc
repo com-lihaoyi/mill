@@ -1,4 +1,4 @@
-.Getting Started
+.Quick Start
 * xref:Intro_to_Mill.adoc[]
 * xref:Installation_IDE_Support.adoc[]
 * xref:Builtin_Commands.adoc[]
