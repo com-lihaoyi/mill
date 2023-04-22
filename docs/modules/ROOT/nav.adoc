@@ -4,6 +4,7 @@
 * xref:Builtin_Commands.adoc[]
 * xref:Scala_Build_Examples.adoc[]
 * xref:Scala_Module_Config.adoc[]
+* xref:Web_Build_Examples.adoc[]
 
 .Mill In Depth
 * xref:Library_Dependencies.adoc[]
@@ -11,7 +12,6 @@
 * xref:Tasks.adoc[]
 * xref:Modules.adoc[]
 * xref:Cross_Builds.adoc[]
-* xref:Web_Build_Examples.adoc[]
 * xref:Extending_Mill.adoc[]
 * xref:The_Mill_Evaluation_Model.adoc[]
 
