@@ -15,7 +15,7 @@ Evaluating a Mill target typically goes through the following phases:
 3. *Evaluation*: Mill evaluates the gathered ``Task``s in dependency-order,
     either serially or in parallel
 
-=== Limitations of the Mill Evaluation Model
+== Limitations of the Mill Evaluation Model
 
 This three-phase evaluation model has consequences for how you structure your
 build. For example:
@@ -41,7 +41,7 @@ and visualize their module hierarchy and task graph without running them: using
 `./mill inspect`, `./mill plan`, `./mill visualize`, etc.. This helps keep your
 Mill build discoverable even as the `build.sc` codebase grows.
 
-=== Caching at Each Layer of the Evaluation Model
+== Caching at Each Layer of the Evaluation Model
 
 Apart from fine-grained caching of ``Task``s during *Evaluation*, Mill also
 performs incremental evaluation of the other phases. This helps ensure
