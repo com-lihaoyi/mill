@@ -9,7 +9,7 @@ Mill's built-in commands are typically not directly related to building your
 application code, but instead are utilities that help you understand and work
 with your Mill build.
 
-=== init
+== init
 
 [source,bash]
 ----
@@ -29,7 +29,7 @@ There are lots of templates out there for many frameworks and tools!
 
 include::example/basic/3-builtin-commands.adoc[]
 
-=== visualize
+== visualize
 
 [source,bash]
 ----
@@ -55,7 +55,7 @@ image::VisualizeFoo.svg[VisualizeFoo.svg]
 `visualize` can be very handy for trying to understand the dependency graph of
 tasks within your Mill build.
 
-=== visualizePlan
+== visualizePlan
 
 [source,bash]
 ----

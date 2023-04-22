@@ -15,7 +15,7 @@ object bar extends MyModule{
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 }
 
-// === resolve
+// == resolve
 
 /** Usage
 
@@ -65,7 +65,7 @@ foo.artifactName
 
 */
 
-// === inspect
+// == inspect
 
 /** Usage
 
@@ -90,7 +90,7 @@ Inputs:
 // that <<_resolve>> do, the most common use case is to inspect one task at a
 // time.
 
-// === show
+// == show
 
 /** Usage
 
@@ -158,7 +158,7 @@ Inputs:
 
 */
 
-// === showNamed
+// == showNamed
 
 // Same as `show`, but the output will always be structured in a JSON
 // dictionary, with the task names as key and the task results as JSON values.
@@ -181,7 +181,7 @@ Inputs:
 
 */
 
-// === path
+// == path
 
 /** Usage
 
@@ -204,7 +204,7 @@ foo.assembly
 // If there are multiple possible dependency chains, one of them is picked
 // arbitrarily.
 //
-// === plan
+// == plan
 
 /** Usage
 
@@ -230,7 +230,7 @@ foo.compileClasspath
 // tasks that `foo` needs to run, and you can then follow up with `mill path` on
 // any individual upstream task to see exactly how `foo` depends on it.
 //
-// === clean
+// == clean
 
 /** Usage
 
@@ -254,7 +254,7 @@ foo.compileClasspath
 
 */
 
-// === Search for dependency updates
+// == Search for dependency updates
 
 /** Usage
 
