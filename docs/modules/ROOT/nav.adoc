@@ -1,8 +1,11 @@
+.Getting Started
 * xref:Intro_to_Mill.adoc[]
 * xref:Installation_IDE_Support.adoc[]
 * xref:Builtin_Commands.adoc[]
 * xref:Scala_Build_Examples.adoc[]
 * xref:Scala_Module_Config.adoc[]
+
+.Mill In Depth
 * xref:Library_Dependencies.adoc[]
 * xref:Out_Dir.adoc[]
 * xref:Tasks.adoc[]
@@ -11,6 +14,8 @@
 * xref:Web_Build_Examples.adoc[]
 * xref:Extending_Mill.adoc[]
 * xref:The_Mill_Evaluation_Model.adoc[]
+
+.Mill Plugins
 * xref:Using_Plugins.adoc[]
 * xref:Contrib_Plugins.adoc[]
 // See also the list in Contrib_Plugins.adoc
@@ -33,6 +38,8 @@
 ** xref:contrib/versionfile.adoc[]
 
 * xref:Thirdparty_Plugins.adoc[]
+
+.Reference
 
 * xref:Mill_Architecture_Design.adoc[]
 
