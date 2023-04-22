@@ -41,3 +41,7 @@ include::example/cross/8-resolvers.adoc[]
 == Dynamic Cross Modules
 
 include::example/cross/9-dynamic-cross-modules.adoc[]
+
+== Use Case: Static Blog
+
+include::example/cross/10-static-blog.adoc[]
