@@ -19,7 +19,7 @@ object foo extends RootModule with ScalaModule {
 
 /** Usage
 
-> ./mill run "textfile.txt"
+> ./mill run "textfile.txt" # mac/linux
 I am cow
 hear me moo
 I weigh twice as much as you
