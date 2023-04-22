@@ -55,7 +55,7 @@
 // but may need to look up once in a while, and thus should be written down
 // *somewhere*.
 .Reference
-* xref:Mill_Architecture_Design.adoc[]
+* xref:Mill_Design_Principles.adoc[]
 * xref:External_References.adoc[]
 * {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
 

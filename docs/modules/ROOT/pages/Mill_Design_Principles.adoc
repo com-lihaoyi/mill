@@ -9,8 +9,6 @@ Mill:
 * http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Blog Post: So, what's wrong with SBT?]
 * http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Blog Post: Build Tools as Pure Functional Programs]
 
-== Mill Design Principles
-
 === Dependency graph first
 
 Mill's most important abstraction is the dependency graph of ``Task``s.
