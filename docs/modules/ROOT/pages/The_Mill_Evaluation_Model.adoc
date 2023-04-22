@@ -5,9 +5,9 @@ Evaluating a Mill target typically goes through the following phases:
 1. *Compilation*: Mill compiles the `build.sc` to classfiles, following the
 <<_the_mill_bootstrapping_process>> to eventually produce a `RootModule` object
 
-2. *Planning*: Mill resolves the list of tasks given from the command line,
+2. *Planning*: Mill resolves the list of xref:Tasks.adoc[] given from the command line,
    e.g. `resolve _` or `foo.compile` or `{bar,qux}.__.test`, to a list of
-   concrete `Task` objects nested on modules within the `RootModule` along
+   concrete `Task` objects nested on xref:Modules.adoc[] within the `RootModule` along
    with their transitive dependencies
 
     * In the process, the relevant Mill ``Module``s  are lazily instantiated
@@ -38,7 +38,8 @@ of. In general, we have found that having "two places" to put code - outside of
 
 The hard boundary between these two phases is what lets users easily query
 and visualize their module hierarchy and task graph without running them: using
-`./mill inspect`, `./mill plan`, `./mill visualize`, etc.. This helps keep your
+xref:Builtin_Commands.adoc#inspect[inspect], xref:Builtin_Commands.adoc#plan[plan],
+xref:Builtin_Commands.adoc#_visualize[visualize], etc.. This helps keep your
 Mill build discoverable even as the `build.sc` codebase grows.
 
 == Caching at Each Layer of the Evaluation Model
@@ -50,7 +51,7 @@ the overall workflow remains fast even for large projects:
 1. *Compilation*:
 
     * Done on-demand and incrementally using the Scala
-      incremental compiler Zinc.
+      incremental compiler https://github.com/sbt/zinc[Zinc].
 
     * If some of the files `build.sc` imported changed but not others, only the
       changed files are re-compiled before the `RootModule` is re-instantiated
@@ -66,15 +67,16 @@ the overall workflow remains fast even for large projects:
 
 3. *Evaluation*:
 
-    * ``Task``s are evaluated in dependency order, and the vast majority of
-     them would be ``Target``s that only re-evaluate if their input ``Task``s
+    * ``Task``s are evaluated in dependency order
+
+    * xref:Tasks.adoc#_targets[Target]s only re-evaluate if their input ``Task``s
      change.
 
-    * ``T.persistent``s preserve the `T.dest` folder on disk between runs,
+    * xref:Tasks.adoc#_persistent_targets[T.persistent]s preserve the `T.dest` folder on disk between runs,
       allowing for finer-grained caching than Mill's default target-by-target
       caching and invalidation
 
-    * ``T.worker``s are kept in-memory between runs where possible, and only
+    * xref:Tasks.adoc#_workers[T.worker]s are kept in-memory between runs where possible, and only
       invalidated if their input ``Task``s change as well.
 
     * ``Task``s in general are invalidated if the code they depend on changes;
@@ -113,9 +115,7 @@ compile, and compiles it to classfiles
 5. Mill loads the compiled classfiles of the `build.sc` into a
 `java.lang.ClassLoader` to access it's `RootModule`
 
-Everything earlier in the doc - xref:The_Mill_Evaluation_Model.adoc[],
-<<_limitations_of_the_mill_evaluation_model>>, and
-<<_caching_at_each_layer_of_the_evaluation_model>> applies to each level of the
+Everything earlier in the doc applies to each level of meta-builds in the
 Mill bootstrapping process as well.
 
 In general, `.sc` files, `import $file`, and `import $ivy` can be thought of as
@@ -137,5 +137,5 @@ Mill supports multiple levels of meta-builds for bootstrapping:
 - Two level of meta-builds: `mill-build/mill-build/build.sc`,
   `mill-build/build.sc` and `build.sc`
 
-xref:Extending_Mill.adoc#_the_mill_meta_build[] works through a simple use case
+xref:Extending_Mill.adoc#_the_mill_meta_build[Extending Mill: The Mill Meta Build] works through a simple use case
 and example for meta-builds.

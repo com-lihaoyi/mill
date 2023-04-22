@@ -1,4 +1,4 @@
-= Mill Architecture Design
+= Mill Design Principles
 :page-aliases: Mill_Internals.adoc
 
 
