@@ -10,7 +10,7 @@ Evaluating a Mill target typically goes through the following phases:
    concrete `Task` objects nested on modules within the `RootModule` along
    with their transitive dependencies
 
-    * In the process, the relevant Mill `Module`s  are lazily instantiated
+    * In the process, the relevant Mill ``Module``s  are lazily instantiated
 
 3. *Evaluation*: Mill evaluates the gathered ``Task``s in dependency-order,
     either serially or in parallel
