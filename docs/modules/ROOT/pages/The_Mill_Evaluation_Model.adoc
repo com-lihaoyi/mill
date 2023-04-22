@@ -22,7 +22,7 @@ build. For example:
 
 1. You can have arbitrary code outside of ``Task``s that helps
    set up your task graph and module hierarchy, e.g. computing what keys exist
-   in a `Cross` module.
+   in a `Cross` module, or specifying your `def moduleDeps`
 
 2. You can have arbitrary code inside of ``Task``s, to perform your build
    actions
