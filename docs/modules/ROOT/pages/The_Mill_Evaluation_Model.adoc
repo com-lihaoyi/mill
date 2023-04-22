@@ -47,8 +47,10 @@ Apart from fine-grained caching of ``Task``s during *Evaluation*, Mill also
 performs incremental evaluation of the other phases. This helps ensure
 the overall workflow remains fast even for large projects:
 
-1. *Compilation*: done on-demand and incrementally using the Scala
-   incremental compiler Zinc.
+1. *Compilation*:
+
+    * Done on-demand and incrementally using the Scala
+      incremental compiler Zinc.
 
     * If some of the files `build.sc` imported changed but not others, only the
       changed files are re-compiled before the `RootModule` is re-instantiated
@@ -57,8 +59,10 @@ the overall workflow remains fast even for large projects:
       skipped entirely and the `RootModule` object simply re-used from the last
       run.
 
-2. *Planning*: if the `RootModule` was re-used, then all
-    previously-instantiated modules are simply-re-used
+2. *Planning*:
+
+    * If the `RootModule` was re-used, then all
+      previously-instantiated modules are simply-re-used
 
 3. *Evaluation*:
 
