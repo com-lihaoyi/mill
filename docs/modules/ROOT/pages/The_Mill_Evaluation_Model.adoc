@@ -113,7 +113,7 @@ compile, and compiles it to classfiles
 5. Mill loads the compiled classfiles of the `build.sc` into a
 `java.lang.ClassLoader` to access it's `RootModule`
 
-Everything earlier in the doc - <<_the_mill_evaluation_model>>,
+Everything earlier in the doc - xref:The_Mill_Evaluation_Model.adoc[],
 <<_limitations_of_the_mill_evaluation_model>>, and
 <<_caching_at_each_layer_of_the_evaluation_model>> applies to each level of the
 Mill bootstrapping process as well.
