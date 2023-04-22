@@ -1,0 +1,13 @@
+{{!
+Override this to remove the redundant `Mill Documentation` component-name link
+at the top of the navigation menu. We only have one component in the Mill docs
+for now, and we already have the home link at the top-level in the nav menu,
+so having another `Mill Documentation` link is superfluous
+}}
+{{#with page.navigation}}
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+{{> nav-tree navigation=this}}
+  </nav>
+</div>
+{{/with}}
