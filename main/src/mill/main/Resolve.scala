@@ -144,8 +144,7 @@ object Resolve {
       rest: Seq[String]
   ): Array[Option[Either[String, Command[_]]]] = {
     for {
-      child <- obj.millModuleDirectChildren
-      if child.millOuterCtx.segment == last
+      child <- obj.millInternal.reflectNestedObjects[Module](_ == last.pathSegments.last)
       res <- child match {
         case taskMod: TaskModule =>
           Some(
@@ -215,8 +214,8 @@ abstract class Resolve[R: ClassTag] {
                 case "_" => obj.millModuleDirectChildren
                 case _ =>
                   obj
-                    .millModuleDirectChildren
-                    .find(_.millOuterCtx.segment == Segment.Label(singleLabel))
+                    .millInternal.reflectNestedObjects[Module](_ == singleLabel)
+                    .headOption
                     .toSeq
               },
               singleLabel match {

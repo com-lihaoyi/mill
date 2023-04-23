@@ -64,7 +64,7 @@ object Module {
     lazy val millModuleEnclosing: String = outer.millOuterCtx.enclosing
     lazy val millModuleLine: Int = outer.millOuterCtx.lineNum
 
-    private def reflect[T: ClassTag](filter: (String) => Boolean): Array[T] = {
+    private def reflect[T: ClassTag](filter: String => Boolean): Array[T] = {
       val runtimeCls = implicitly[ClassTag[T]].runtimeClass
       for {
         m <- outer.getClass.getMethods.sortBy(_.getName)
