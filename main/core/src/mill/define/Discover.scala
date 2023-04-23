@@ -65,7 +65,9 @@ object Discover {
       ): Unit = {
         for (m <- methods.toList) {
           cases
-            .find { case (tt, n, label) => m.returnType <:< tt }
+            .find { case (tt, n, label) =>
+              m.returnType <:< tt && !(m.returnType <:< weakTypeOf[Nothing])
+            }
             .foreach { case (tt, n, label) =>
               if (m.paramLists.length != n) c.abort(
                 m.pos,
