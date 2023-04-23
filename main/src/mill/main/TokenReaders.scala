@@ -12,7 +12,6 @@ object Tasks {
         shortName = "<tasks>",
         read = s =>
           RunScript.resolveTasks(
-            mill.main.ResolveTasks,
             Evaluator.currentEvaluator.get,
             s,
             SelectMode.Single

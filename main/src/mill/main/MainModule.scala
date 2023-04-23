@@ -21,7 +21,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, selectMode) match {
+    RunScript.resolveTasks(evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -74,19 +74,19 @@ trait MainModule extends mill.Module {
    * Resolves a mill query string and prints out the tasks it resolves to.
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = T.command {
-    val resolved: Either[String, List[String]] = RunScript.resolveTasks(
-      mill.main.ResolveMetadata,
-      evaluator,
-      targets,
-      SelectMode.Multi
-    )
-
-    resolved match {
-      case Left(err) => Result.Failure(err)
-      case Right(rs) =>
-        rs.sorted.foreach(T.log.outputStream.println)
-        Result.Success(rs)
-    }
+//    val resolved: Either[String, List[String]] = RunScript.resolveTasks(
+//      evaluator,
+//      targets,
+//      SelectMode.Multi
+//    )
+//
+//    resolved match {
+//      case Left(err) => Result.Failure(err)
+//      case Right(rs) =>
+//        rs.sorted.foreach(T.log.outputStream.println)
+//        Result.Success(rs)
+//    }
+    List.empty[String]
   }
 
   /**
@@ -105,7 +105,6 @@ trait MainModule extends mill.Module {
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
     RunScript.resolveTasks(
-      mill.main.ResolveTasks,
       evaluator,
       targets,
       SelectMode.Multi
@@ -125,7 +124,6 @@ trait MainModule extends mill.Module {
    */
   def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] = T.command {
     val resolved = RunScript.resolveTasks(
-      mill.main.ResolveTasks,
       evaluator,
       List(src, dest),
       SelectMode.Multi
@@ -314,34 +312,34 @@ trait MainModule extends mill.Module {
       case _ => false
     }
 
-    val pathsToRemove =
-      if (targets.isEmpty)
-        Right(os.list(rootDir).filterNot(keepPath))
-      else
-        RunScript.resolveTasks(
-          mill.main.ResolveSegments,
-          evaluator,
-          targets,
-          SelectMode.Multi
-        ).map { ts =>
-          ts.flatMap { segments =>
-            val evPpaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
-            val paths = Seq(evPpaths.dest, evPpaths.meta, evPpaths.log)
-            val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
-            if (os.exists(potentialModulePath)) {
-              // this is either because of some pre-Mill-0.10 files lying around
-              // or most likely because the segments denote a module but not a task
-              // in which case we want to remove the module and all its sub-modules
-              // (If this logic is later found to be to harsh, we could further guard it,
-              // to when non of the other paths exists.)
-              paths :+ potentialModulePath
-            } else paths
-          }
-        }
+    val pathsToRemove = Right(os.list(rootDir).filterNot(keepPath))
+//      if (targets.isEmpty)
+//        Right(os.list(rootDir).filterNot(keepPath))
+//      else
+//        RunScript.resolveTasks(
+//          mill.main.ResolveSegments,
+//          evaluator,
+//          targets,
+//          SelectMode.Multi
+//        ).map { ts =>
+//          ts.flatMap { segments =>
+//            val evPpaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
+//            val paths = Seq(evPpaths.dest, evPpaths.meta, evPpaths.log)
+//            val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
+//            if (os.exists(potentialModulePath)) {
+//              // this is either because of some pre-Mill-0.10 files lying around
+//              // or most likely because the segments denote a module but not a task
+//              // in which case we want to remove the module and all its sub-modules
+//              // (If this logic is later found to be to harsh, we could further guard it,
+//              // to when non of the other paths exists.)
+//              paths :+ potentialModulePath
+//            } else paths
+//          }
+//        }
 
     pathsToRemove match {
-      case Left(err) =>
-        Result.Failure(err)
+//      case Left(err) =>
+//        Result.Failure(err)
       case Right(paths) =>
         val existing = paths.filter(p => os.exists(p))
         T.log.debug(s"Cleaning ${existing.size} paths ...")
@@ -411,7 +409,6 @@ trait MainModule extends mill.Module {
     }
 
     RunScript.resolveTasks(
-      mill.main.ResolveTasks,
       evaluator,
       targets,
       SelectMode.Multi
