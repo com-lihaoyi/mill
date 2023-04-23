@@ -58,8 +58,7 @@ object RunScript {
                   sel.value.toList,
                   rootModule,
                   rootModule.millDiscover,
-                  args,
-                  crossSelectors.toList
+                  args
                 )
               } finally {
                 mill.eval.Evaluator.currentEvaluator.set(null)

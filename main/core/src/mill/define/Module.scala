@@ -42,6 +42,39 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
 }
 
 object Module {
+  def reflect(
+      outer: Class[_],
+      inner: Class[_],
+      filter: String => Boolean
+  ): Seq[java.lang.reflect.Method] = {
+    for {
+      m <- outer.getMethods.sortBy(_.getName)
+      n = decode(m.getName)
+      if filter(n) &&
+        ParseArgs.isLegalIdentifier(n) &&
+        m.getParameterCount == 0 &&
+        (m.getModifiers & Modifier.STATIC) == 0 &&
+        (m.getModifiers & Modifier.ABSTRACT) == 0 &&
+        inner.isAssignableFrom(m.getReturnType)
+    } yield m
+  }
+
+  // For some reason, this fails to pick up concrete `object`s nested directly within
+  // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
+  // script/REPL runner always wraps user code in a wrapper object/trait
+  def reflectNestedObjects[T: ClassTag](
+      outer: Class[_],
+      filter: String => Boolean = Function.const(true)
+  ): Seq[java.lang.reflect.Member] = {
+    reflect(outer, classOf[Object], filter) ++
+      outer
+        .getClasses
+        .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
+        .flatMap(c =>
+          c.getFields.find(_.getName == "MODULE$")
+        ).distinct
+  }
+
   class Internal(outer: Module) {
     def traverse[T](f: Module => Seq[T]): Seq[T] = {
       def rec(m: Module): Seq[T] = f(m) ++ m.millModuleDirectChildren.flatMap(rec)
@@ -64,28 +97,20 @@ object Module {
     lazy val millModuleEnclosing: String = outer.millOuterCtx.enclosing
     lazy val millModuleLine: Int = outer.millOuterCtx.lineNum
 
-    private def reflect[T: ClassTag](filter: String => Boolean): Array[T] = {
-      val runtimeCls = implicitly[ClassTag[T]].runtimeClass
-      for {
-        m <- outer.getClass.getMethods.sortBy(_.getName)
-        n = decode(m.getName)
-        if filter(n) &&
-          ParseArgs.isLegalIdentifier(n) &&
-          m.getParameterCount == 0 &&
-          (m.getModifiers & Modifier.STATIC) == 0 &&
-          (m.getModifiers & Modifier.ABSTRACT) == 0 &&
-          runtimeCls.isAssignableFrom(m.getReturnType)
-      } yield m.invoke(outer).asInstanceOf[T]
+    def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {
+      Module.reflect(outer.getClass, implicitly[ClassTag[T]].runtimeClass, filter)
+        .map(_.invoke(outer).asInstanceOf[T])
     }
 
-    def reflectAll[T: ClassTag]: Array[T] = reflect(Function.const(true))
+    def reflectAll[T: ClassTag]: Seq[T] = reflect[T](Function.const(true))
 
     def reflectSingle[T: ClassTag](label: String): Option[T] = reflect(_ == label).headOption
 
     // For some reason, this fails to pick up concrete `object`s nested directly within
     // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
     // script/REPL runner always wraps user code in a wrapper object/trait
-    def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true)): Array[T] = {
+    def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true))
+        : Seq[T] = {
       reflect[T](filter) ++
         outer
           .getClass
