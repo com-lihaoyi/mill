@@ -57,8 +57,8 @@ object ResolveSegments extends Resolve[Segments] {
 
     val module =
       obj.millInternal
-        .reflectNestedObjects[Module]
-        .find(_.millOuterCtx.segment == Segment.Label(last))
+        .reflectNestedObjects[Module](_ == last)
+        .headOption
         .map(m => Right(m.millModuleSegments))
 
     command orElse target orElse module match {

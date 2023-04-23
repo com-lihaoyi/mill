@@ -26,7 +26,7 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
   // We keep a private `lazy val` and a public `def` so
   // subclasses can call `super.millModuleDirectChildren`
   private lazy val millModuleDirectChildrenImpl: Seq[Module] =
-    millInternal.reflectNestedObjects[Module].toSeq
+    millInternal.reflectNestedObjects[Module]().toSeq
   def millOuterCtx: Ctx = outerCtx0
   def millSourcePath: os.Path = millOuterCtx.millSourcePath / (millOuterCtx.segment match {
     case Segment.Label(s) => Seq(s)
@@ -85,15 +85,15 @@ object Module {
     // For some reason, this fails to pick up concrete `object`s nested directly within
     // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
     // script/REPL runner always wraps user code in a wrapper object/trait
-    def reflectNestedObjects[T: ClassTag]: Array[T] = {
-      (reflectAll[T] ++
+    def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true)): Array[T] = {
+      reflect[T](filter) ++
         outer
           .getClass
           .getClasses
           .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
           .flatMap(c =>
             c.getFields.find(_.getName == "MODULE$").map(_.get(c).asInstanceOf[T])
-          )).distinct
+          ).distinct
     }
   }
 }
