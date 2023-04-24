@@ -63,20 +63,17 @@ object MillMain {
         )
       } catch {
         case e: MillException =>
-          System.err.println(e.getMessage())
+          runnerStreams.err.println(e.getMessage())
           (false, ())
         case e: InvocationTargetException
             if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
-          System.err.println(e.getCause.getMessage())
+          runnerStreams.err.println(e.getCause.getMessage())
           (false, ())
         case NonFatal(e) =>
-          System.err.println("An unexpected error occurred")
+          runnerStreams.err.println("An unexpected error occurred")
           throw e
           (false, ())
       } finally {
-        System.setOut(initialSystemStreams.out)
-        System.setErr(initialSystemStreams.err)
-        System.setIn(initialSystemStreams.in)
         cleanupStreams.foreach(_.close())
       }
     System.exit(if (result) 0 else 1)
