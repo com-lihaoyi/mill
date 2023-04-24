@@ -1634,7 +1634,7 @@ object docs extends Module {
 
     def unidocSourceUrl = T{
       val sha = VcsVersion.vcsState().currentRevision
-      Some(s"https://github.com/com-lihaoyi/mill/blob/$sha")
+      Some(s"${Settings.projectUrl}/blob/$sha")
     }
   }
 
@@ -1797,8 +1797,8 @@ object docs extends Module {
        |  attributes:
        |    mill-github-url: ${Settings.projectUrl}
        |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else Settings.docUrl}
-       |    mill-download-url: ${if (authorMode) s"file://${exampleZips().head.path / os.up}" else "https://github.com/com-lihaoyi/mill/releases/latest"}
-       |    mill-example-url: ${if (authorMode) s"file://${T.workspace}" else "https://github.com/com-lihaoyi/mill/blob/main/"}
+       |    mill-download-url: ${if (authorMode) s"file://${exampleZips().head.path / os.up}" else s"${Settings.projectUrl}/releases/latest"}
+       |    mill-example-url: ${if (authorMode) s"file://${T.workspace}" else s"${Settings.projectUrl}/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |
