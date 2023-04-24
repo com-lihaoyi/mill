@@ -1809,6 +1809,7 @@ object docs extends Module {
        |
        |""".stripMargin
   }
+
   def githubPages: Target[PathRef] = T {
     generatePages(authorMode = false)()
   }
@@ -1818,6 +1819,7 @@ object docs extends Module {
       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
   }
+
   def generatePages(authorMode: Boolean) = T.task {
     T.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
@@ -1865,12 +1867,9 @@ object docs extends Module {
     sanitizeDevUrls(siteDir, devAntoraSources().path, source().path, baseDir)
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
-    T.log.errorStream.println("Copying API docs ...")
-    os.copy.into(
-      if (authorMode) site.unidocLocal().path else site.unidocSite().path,
-      siteDir / "api" / "latest",
-      createFolders = true
-    )
+    val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
+    T.log.errorStream.println(s"Copying API docs from ${unidocSrc} ...")
+    os.copy(unidocSrc, siteDir / "api" / "latest", createFolders = true)
 
     PathRef(siteDir)
   }
