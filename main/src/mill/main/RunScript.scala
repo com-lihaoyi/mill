@@ -54,7 +54,7 @@ object RunScript {
                 // main build. Resolving targets from external builds as CLI arguments
                 // is not currently supported
                 mill.eval.Evaluator.currentEvaluator.set(evaluator)
-                ResolveTasks.resolve(
+                Resolve.resolveTasks(
                   sel.value.toList,
                   rootModule,
                   rootModule.millDiscover,

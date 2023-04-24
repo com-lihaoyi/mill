@@ -6,30 +6,6 @@ import mill.util.EitherOps
 
 import scala.collection.immutable
 
-object ResolveTasks{
-  def resolve(
-    remainingSelector: List[Segment],
-    current: BaseModule,
-    discover: Discover[_],
-    args: Seq[String]
-  ): Either[String, Seq[NamedTask[Any]]] = {
-    val raw = Resolve.resolve(
-      remainingSelector,
-      Resolve.Resolved.Module("", current),
-      discover,
-      args,
-      Nil
-    )
-      .map(_.collect {
-        case t: Resolve.Resolved.Target => Right(t.value)
-        case t: Resolve.Resolved.Command => t.value()
-      })
-
-    val cooked = raw.map(EitherOps.sequence(_))
-
-    cooked.flatten
-  }
-}
 /**
  * Takes a single list of segments, without braces but including wildcards, and
  * resolves all possible modules, targets or commands that the segments could
@@ -38,9 +14,55 @@ object ResolveTasks{
  * Reports an error if nothing is resolved.
  */
 object Resolve {
+  def resolveTasks(remainingSelector: List[Segment],
+                   current: BaseModule,
+                   discover: Discover[_],
+                   args: Seq[String]): Either[String, Set[NamedTask[Any]]] = {
+    Resolve.resolve(
+      remainingSelector,
+      Resolve.Resolved.Module("", current),
+      discover,
+      args,
+      Nil
+    ) match {
+      case Resolve.Success(value) =>
+        println("S")
+        EitherOps.sequence(
+          value.collect {
+            case t: Resolve.Resolved.Target => Right(t.value)
+            case t: Resolve.Resolved.Command => t.value()
+          }
+        ).map(_.toSet[NamedTask[Any]])
+
+      case Resolve.NotFound(segments, found, next, possibleNexts) =>
+        val errorMsg = found.head match{
+          case s: Resolved.Module =>
+            next match {
+              case Segment.Label(s) =>
+                val possibleStrings = possibleNexts.collect { case Segment.Label(s) => s }
+                pprint.log(possibleStrings)
+                pprint.log(segments.render)
+
+                errorMsgLabel(s, possibleStrings, segments.value.toList)
+              case Segment.Cross(keys) =>
+                errorMsgCross(keys, possibleNexts.collect { case Segment.Cross(keys) => keys }.toSeq, segments.value.toList)
+            }
+          case _ =>
+
+            unableToResolve((segments ++ Seq(next)).render) +
+            " Task " + segments.render + " is not a module and has no children."
+        }
+
+        Left(errorMsg)
+
+      case Resolve.Error(value) => Left(value)
+    }
+  }
+
   sealed trait Resolved{
     def name: String
   }
+
   object Resolved {
     case class Module(name: String, value: mill.define.Module) extends Resolved
     case class Target(name: String, value: mill.define.Target[_]) extends Resolved
@@ -48,58 +70,74 @@ object Resolve {
         extends Resolved
   }
 
+  sealed trait Result
+  case class Success(value: Set[Resolved]) extends Result
+  sealed trait Failed extends Result
+  case class NotFound(deepest: Segments,
+                      found: Set[Resolved],
+                      next: Segment,
+                      possibleNexts: Set[Segment]) extends Failed
+  case class Error(msg: String) extends Failed
+
+
+
   def resolve(
     remainingSelector: List[Segment],
     current: Resolved,
     discover: Discover[_],
     args: Seq[String],
-    revSelectorsSoFar: List[Segment]
-  ): Either[String, Seq[Resolved]] = remainingSelector match {
-    case Nil => Right(Seq(current))
-
+    revSelectorsSoFar0: List[Segment]
+  ): Result = remainingSelector match {
+    case Nil =>
+      Success(Set(current))
     case head :: tail =>
-      def recurse(searchModules: Seq[Either[String, Resolved]],
-                  resolveFailureMsg: => Left[String, Nothing]): Either[String, Seq[Resolved]] = {
-        val (errors, successes) = searchModules
-          .map(_.flatMap(resolve(tail, _, discover, args, head :: revSelectorsSoFar)))
-          .partitionMap(identity)
+      val revSelectorsSoFar = head :: revSelectorsSoFar0
+      def recurse(searchModules: Set[Resolved]): Result = {
+        val (failures, successesLists) = searchModules
+          .map(resolve(tail, _, discover, args, revSelectorsSoFar))
+          .partitionMap{case s: Success => Right(s.value); case f: Failed => Left(f)}
 
-        if (errors.nonEmpty) Left(errors.mkString("\n"))
-        else successes.flatten match{
-          case Nil => resolveFailureMsg
-          case values => Right(values)
+        val (errors, notFounds) = failures.partitionMap{
+          case s: NotFound => Right(s)
+          case s: Error => Left(s.msg)
+        }
+        if (errors.nonEmpty) Error(errors.mkString("\n"))
+        else {
+          val successes = successesLists.flatten
+          if (successes.nonEmpty) Success(successes)
+          else {
+            notFounds.headOption.getOrElse {
+              val mod = current.asInstanceOf[Resolved.Module].value
+              val directChildren: Set[Segment] = resolveDirectChildren(mod, None, discover, args)
+                .map(e => Segment.Label(e.right.get.name))
+              pprint.log(mod)
+              pprint.log(directChildren)
+              NotFound(Segments(revSelectorsSoFar0.reverse), Set(current), head, directChildren)
+            }
+          }
         }
       }
 
       (head, current) match {
-        case (_, _: Resolved.Target | _: Resolved.Command) =>
-          Left(s"Task ${current.name} is not a module and has no children.")
         case (Segment.Label(singleLabel), Resolved.Module(_, obj)) =>
           lazy val directChildren = resolveDirectChildren(obj, None, discover, args)
-          recurse(
+          EitherOps.sequence(
             singleLabel match {
               case "__" =>
                 obj
                   .millInternal
                   .modules
                   .flatMap(m =>
-                    Seq(Right(Resolved.Module(m.millModuleSegments.parts.last, m))) ++
+                    Seq(Right(Resolved.Module(m.millModuleSegments.parts.lastOption.getOrElse(""), m))) ++
                       resolveDirectChildren(m, None, discover, args)
                   )
               case "_" => directChildren
               case _ => resolveDirectChildren(obj, Some(singleLabel), discover, args)
-            },
-            Resolve.errorMsgLabel(
-              directChildren.map(_.right.get.name),
-              remainingSelector,
-              revSelectorsSoFar
-            )
-          ).map(
-            _.distinctBy {
-              case t: NamedTask[_] => t.ctx.segments
-              case t => t
             }
-          )
+          ) match{
+            case Left(err) => Error(err)
+            case Right(v) => recurse(v.toSet)
+          }
 
         case (Segment.Cross(cross), Resolved.Module(_, c: Cross[_])) =>
           val searchModules: Seq[Module] =
@@ -112,26 +150,33 @@ object Resolve {
               } yield v
             } else c.segmentsToModules.get(cross.toList).toSeq
 
-          recurse(
-            searchModules.map(m => Right(Resolved.Module("", m))),
-            Resolve.errorMsgCross(
-              c.segmentsToModules.keys.toList,
-              cross,
-              c.millModuleSegments.value
-            )
-          )
+          recurse(searchModules.map(m => Resolved.Module("", m)).toSet)
 
-        case _ => Right(Nil)
+        case _ =>
+          NotFound(
+            Segments(revSelectorsSoFar0.reverse),
+            Set(current),
+            head,
+            current match{
+              case Resolved.Module(_, c: Cross[_]) =>
+                c.segmentsToModules.keys.toSet.map(Segment.Cross)
+
+              case Resolved.Module(_, obj) =>
+                resolveDirectChildren(obj, None, discover, args).map(e => Segment.Label(e.right.get.name))
+
+              case _ => Set()
+            }
+          )
       }
   }
+
 
   def resolveDirectChildren(
       obj: Module,
       nameOpt: Option[String] = None,
       discover: Discover[_],
       args: Seq[String]
-  ): Seq[Either[String, Resolved]] = {
-
+  ): Set[Either[String, Resolved]] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
 
     val modules = obj
@@ -159,7 +204,7 @@ object Resolve {
         ))
       )
 
-    modules ++ targets ++ commands
+    (modules ++ targets ++ commands).toSet
   }
 
   def invokeCommand(
@@ -202,15 +247,11 @@ object Resolve {
     }
   }
 
-  def unableToResolve(last: Segment, revSelectorsSoFar: Seq[Segment]): String = {
-    unableToResolve(Segments((last +: revSelectorsSoFar).reverse: _*).render)
-  }
-
   def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 
 
   def hintList(revSelectorsSoFar: Seq[Segment]) = {
-    val search = Segments(revSelectorsSoFar: _*).render
+    val search = Segments(revSelectorsSoFar).render
     s" Try `mill resolve $search` to see what's available."
   }
 
@@ -222,65 +263,53 @@ object Resolve {
     hintList(revSelectorsSoFar :+ Segment.Cross(Seq("__")))
   }
 
-  def errorMsgBase[T](
-                       direct: Seq[T],
-                       last0: T,
-                       editSplit: String => String,
-                       defaultErrorMsg: String
-                     )(strings: T => Seq[String], render: T => String): Left[String, Nothing] = {
-    val last = strings(last0)
-    val similar =
-      direct
-        .map(x => (x, strings(x)))
-        .filter(_._2.length == last.length)
-        .map { case (d, s) =>
-          (
-            d,
-            s.zip(last).map { case (a, b) => LevenshteinDistance.editDistance(editSplit(a), b) }.sum
-          )
-        }
-        .filter(_._2 < 3)
-        .sortBy(_._2)
+  def findMostSimilar(given: String,
+                      options: Set[String]): Option[String] = {
+    options
+      .map { option => (option, LevenshteinDistance.editDistance(given, option))}
+      .filter(_._2 < 3)
+      .minByOption(_._2)
+      .map(_._1)
+  }
 
-
-    val hint = similar match {
-      case Nil => defaultErrorMsg
-      case items => " Did you mean " + render(items.head._1) + "?"
+  def errorMsgLabel(given: String,
+                    possibleMembers: Set[String],
+                    revSelectorsSoFar: List[Segment]) = {
+    def render(x: String) = {
+      val rendered = Segments((Segment.Label(x) :: revSelectorsSoFar).reverse).render
+      pprint.log(x)
+      pprint.log(revSelectorsSoFar)
+      pprint.log(rendered)
+      rendered
     }
-    Left(unableToResolve(render(last0)) + hint)
 
+    val suggestion = findMostSimilar(given, possibleMembers) match {
+      case None => hintListLabel(revSelectorsSoFar)
+      case Some(similar) => " Did you mean " + render(similar) + "?"
+    }
+
+    val msg = unableToResolve(render(given)) + suggestion
+
+    msg
   }
 
-  def errorMsgLabel(
-                     possibleMembers: Seq[String],
-                     remaining: Seq[Segment],
-                     revSelectorsSoFar: Seq[Segment]
-                   ) = {
-    errorMsgBase(
-      possibleMembers,
-      Segments(revSelectorsSoFar ++ remaining: _*).render,
-      _.split('.').last,
-      hintListLabel(revSelectorsSoFar)
-    )(
-      rendered => Seq(rendered.split('.').last),
-      x => x
-    )
-  }
+  def errorMsgCross(givenKeys: Seq[String],
+                    possibleCrossKeys: Seq[Seq[String]],
+                    revSelectorsSoFar: List[Segment]) = {
 
-  def errorMsgCross(
-                     crossKeys: Seq[Seq[String]],
-                     last: Seq[String],
-                     revSelectorsSoFar: Seq[Segment]
-                   ) = {
-    errorMsgBase(
-      crossKeys,
-      last,
-      x => x,
-      hintListCross(revSelectorsSoFar)
-    )(
-      crossKeys => crossKeys,
-      crossKeys => Segments((Segment.Cross(crossKeys) +: revSelectorsSoFar).reverse: _*).render
-    )
+    def render(xs: Seq[String]) = {
+      Segments(Segment.Cross(xs) :: revSelectorsSoFar).render
+    }
+
+    val similarKeysOpts = givenKeys
+      .zip(possibleCrossKeys)
+      .map{case (givenKey, possibleKeys) => findMostSimilar(givenKey, possibleKeys.toSet)}
+
+    val suggestion =
+      if (similarKeysOpts.exists(_.isEmpty)) hintListCross(revSelectorsSoFar)
+      else " Did you mean " + render(similarKeysOpts.map{case Some(v) => v}) + "?"
+
+    unableToResolve(render(givenKeys)) + suggestion
   }
 
 }

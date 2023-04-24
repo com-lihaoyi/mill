@@ -116,9 +116,15 @@ object Module {
           .getClass
           .getClasses
           .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
-          .flatMap(c =>
-            c.getFields.find(_.getName == "MODULE$").map(_.get(c).asInstanceOf[T])
-          ).distinct
+          .flatMap { c =>
+            c.getSimpleName match{
+              case s"$name$$" if filter(name)=>
+                c.getFields.find(_.getName == "MODULE$").map(_.get(c).asInstanceOf[T])
+              case _ => None
+            }
+
+          }
+          .distinct
     }
   }
 }
