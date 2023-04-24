@@ -43,7 +43,7 @@ object Settings {
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root
-  val leagcyDocTags: Seq[String] = Seq(
+  val legacyDocTags: Seq[String] = Seq(
     "0.9.12",
     "0.10.0",
     "0.10.12",
