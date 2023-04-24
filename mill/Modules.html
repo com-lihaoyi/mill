@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Modules :: Mill</title>
     <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Modules.html" />
-    <link rel="prev" href="Task_Context_API.html" />
+    <link rel="prev" href="Tasks.html" />
     <link rel="next" href="Cross_Builds.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../_/css/site.css" />
@@ -30,19 +30,11 @@
     </div>
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
-        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Home</a>
-        <div class="navbar-item has-dropdown is-hoverable">
-        <a class="navbar-link" href="#">Plugins</a>
-        </div>
-        <div class="navbar-item has-dropdown is-hoverable">
-          <a class="navbar-link" href="#">Community</a>
-          <div class="navbar-dropdown">
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issue Tracker (GitHub)</a>
-            <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat (Gitter)</a>
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss (GitHub)</a>
-          </div>
-        </div>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://com-lihaoyi.github.io/mill/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat</a>
 
             <!--
         <a class="navbar-item" href="#">Home</a>
@@ -86,129 +78,179 @@
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
   <nav class="nav-menu">
-    <h3 class="title"><a href="index.html">Mill Documentation</a></h3>
 <ul class="nav-list">
-  <li class="nav-item" data-depth="0">
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Quick Start</span>
 <ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Installation.html">Installation</a>
+    <a class="nav-link" href="Installation_IDE_Support.html">Installation and IDE Support</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Getting_Started.html">Getting Started</a>
+    <a class="nav-link" href="Builtin_Commands.html">Built-in Commands</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="IDE_Support.html">IDE Support</a>
+    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+    <a class="nav-link" href="Scala_Module_Config.html">Scala Module Configuration</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Configuration.html">Configuring your Project</a>
+    <a class="nav-link" href="Web_Build_Examples.html">Web Build Examples</a>
   </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Tasks.html">Tasks</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
-  </li>
+
   <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="Modules.html">Modules</a>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Plugins</span>
+<ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
-  </li>
+
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
 <ul class="nav-list">
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Artifactory.html">Artifactory</a>
+    <a class="nav-link" href="contrib/artifactory.html">Artifactory</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Bintray.html">Bintray</a>
+    <a class="nav-link" href="contrib/bintray.html">Bintray</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Bloop.html">Bloop</a>
+    <a class="nav-link" href="contrib/bloop.html">Bloop</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
+    <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
   </li>
+
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
+    <a class="nav-link" href="contrib/codeartifact.html">Codeartifact</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Docker.html">Docker</a>
+    <a class="nav-link" href="contrib/docker.html">Docker</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
+    <a class="nav-link" href="contrib/flyway.html">Flyway</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
+    <a class="nav-link" href="contrib/gitlab.html">Gitlab</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Jmh.html">JMH</a>
+    <a class="nav-link" href="contrib/jmh.html">JMH</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
+    <a class="nav-link" href="contrib/playlib.html">Play Framework</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
+    <a class="nav-link" href="contrib/proguard.html">Proguard</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
+    <a class="nav-link" href="contrib/scalapblib.html">ScalaPB</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
+    <a class="nav-link" href="contrib/scoverage.html">Scoverage</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
+    <a class="nav-link" href="contrib/testng.html">TestNG</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
+    <a class="nav-link" href="contrib/twirllib.html">Twirl</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
+    <a class="nav-link" href="contrib/versionfile.html">Version file</a>
   </li>
 </ul>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="External_References.html">External References</a>
-<ul class="nav-list">
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_ammonite">Ammonite</a>
-  </li>
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_coursier">Coursier</a>
-  </li>
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_os_lib">OS-Lib</a>
-  </li>
 </ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="External_References.html">External References</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://com-lihaoyi.github.io/mill/api/latest/mill/index.html">Mill Scaladoc</a>
   </li>
 </ul>
   </li>
@@ -218,95 +260,26 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M7-43-8dfcea</span>
+    <span class="version">0.11.0-M7-44-abe800</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M7-43-8dfcea</a>
+          <a href="index.html">0.11.0-M7-44-abe800</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
         </li>
         <li class="version">
-          <a href="0.11.0-M6/index.html">0.11.0-M6</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M5/index.html">0.11.0-M5</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M4/index.html">0.11.0-M4</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M3/index.html">0.11.0-M3</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M2/index.html">0.11.0-M2</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M1/index.html">0.11.0-M1</a>
-        </li>
-        <li class="version">
           <a href="0.10.12/index.html">0.10.12</a>
-        </li>
-        <li class="version">
-          <a href="0.10.11/index.html">0.10.11</a>
-        </li>
-        <li class="version">
-          <a href="0.10.10/index.html">0.10.10</a>
-        </li>
-        <li class="version">
-          <a href="0.10.9/index.html">0.10.9</a>
-        </li>
-        <li class="version">
-          <a href="0.10.8/index.html">0.10.8</a>
-        </li>
-        <li class="version">
-          <a href="0.10.7/index.html">0.10.7</a>
-        </li>
-        <li class="version">
-          <a href="0.10.6/index.html">0.10.6</a>
-        </li>
-        <li class="version">
-          <a href="0.10.5/index.html">0.10.5</a>
-        </li>
-        <li class="version">
-          <a href="0.10.4/index.html">0.10.4</a>
-        </li>
-        <li class="version">
-          <a href="0.10.3/index.html">0.10.3</a>
-        </li>
-        <li class="version">
-          <a href="0.10.2/index.html">0.10.2</a>
-        </li>
-        <li class="version">
-          <a href="0.10.1/index.html">0.10.1</a>
         </li>
         <li class="version">
           <a href="0.10.0/index.html">0.10.0</a>
         </li>
         <li class="version">
           <a href="0.9.12/index.html">0.9.12</a>
-        </li>
-        <li class="version">
-          <a href="0.9.11/index.html">0.9.11</a>
-        </li>
-        <li class="version">
-          <a href="0.9.10/index.html">0.9.10</a>
-        </li>
-        <li class="version">
-          <a href="0.9.9/index.html">0.9.9</a>
-        </li>
-        <li class="version">
-          <a href="0.9.8/index.html">0.9.8</a>
-        </li>
-        <li class="version">
-          <a href="0.9.7/index.html">0.9.7</a>
-        </li>
-        <li class="version">
-          <a href="0.9.6/index.html">0.9.6</a>
         </li>
       </ul>
     </li>
@@ -322,43 +295,21 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
+    <li>Mill In Depth</li>
     <li><a href="Modules.html">Modules</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-43-8dfcea</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-44-abe800</button>
   <div class="version-menu">
-    <a class="version is-current" href="Modules.html">0.11.0-M7-43-8dfcea</a>
+    <a class="version is-current" href="Modules.html">0.11.0-M7-44-abe800</a>
     <a class="version" href="0.11.0-M7/Modules.html">0.11.0-M7</a>
-    <a class="version" href="0.11.0-M6/Modules.html">0.11.0-M6</a>
-    <a class="version" href="0.11.0-M5/Modules.html">0.11.0-M5</a>
-    <a class="version" href="0.11.0-M4/Modules.html">0.11.0-M4</a>
-    <a class="version" href="0.11.0-M3/Modules.html">0.11.0-M3</a>
-    <a class="version" href="0.11.0-M2/Modules.html">0.11.0-M2</a>
-    <a class="version" href="0.11.0-M1/Modules.html">0.11.0-M1</a>
     <a class="version" href="0.10.12/Modules.html">0.10.12</a>
-    <a class="version" href="0.10.11/Modules.html">0.10.11</a>
-    <a class="version" href="0.10.10/Modules.html">0.10.10</a>
-    <a class="version" href="0.10.9/Modules.html">0.10.9</a>
-    <a class="version" href="0.10.8/Modules.html">0.10.8</a>
-    <a class="version" href="0.10.7/Modules.html">0.10.7</a>
-    <a class="version" href="0.10.6/Modules.html">0.10.6</a>
-    <a class="version" href="0.10.5/Modules.html">0.10.5</a>
-    <a class="version" href="0.10.4/Modules.html">0.10.4</a>
-    <a class="version" href="0.10.3/Modules.html">0.10.3</a>
-    <a class="version" href="0.10.2/Modules.html">0.10.2</a>
-    <a class="version" href="0.10.1/Modules.html">0.10.1</a>
     <a class="version" href="0.10.0/Modules.html">0.10.0</a>
     <a class="version" href="0.9.12/Modules.html">0.9.12</a>
-    <a class="version" href="0.9.11/Modules.html">0.9.11</a>
-    <a class="version" href="0.9.10/Modules.html">0.9.10</a>
-    <a class="version" href="0.9.9/Modules.html">0.9.9</a>
-    <a class="version" href="0.9.8/Modules.html">0.9.8</a>
-    <a class="version" href="0.9.7/Modules.html">0.9.7</a>
-    <a class="version" href="0.9.6/Modules.html">0.9.6</a>
   </div>
 </div>
-  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/antora/modules/ROOT/pages/Modules.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/Modules.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -369,118 +320,132 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill modules are <code>object</code>s extending <code>mill.Module</code>, and let you group related
-tasks together to keep things neat and organized. Mill’s comes with built in
-modules such as <code>mill.scalalib.ScalaModule</code> and <code>mill.scalalib.CrossSbtModule</code>,
-but you can use modules for other purposes as well.</p>
+<p><code>mill.Module</code> serves two main purposes:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>As <code>object</code>s, they serve as namespaces that let you group related <code>Task</code>s
+together to keep things neat and organized.</p>
+</li>
+<li>
+<p>As <code>trait</code>s, they are re-usable templates that let you replicate groups
+of related <code>Task</code>s and sub-<code>Module</code>s while allowing customizations</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Mill’s comes with built in modules such as <code>mill.scalalib.ScalaModule</code> and
+<code>mill.scalalib.CrossSbtModule</code>, but you can also define your own modules to do
+things that are not built-in to Mill.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_using_modules"><a class="anchor" href="#_using_modules"></a>Using Modules</h2>
+<h2 id="_simple_modules"><a class="anchor" href="#_simple_modules"></a>Simple Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The path to a Mill module from the root of your build file corresponds to the
 path you would use to run tasks within that module from the command line. e.g.
-for the following build:</p>
+for the following <code>build.sc</code>:</p>
 </div>
 <div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-tasks-7-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/7-modules">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Module {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends Module {
   def bar = T { &quot;hello&quot; }
-  object baz extends mill.Module {
-    def qux = T { &quot;world&quot; }
+  object qux extends Module {
+    def baz = T { &quot;world&quot; }
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You would be able to run the two targets via <code>mill foo.bar</code> or <code>mill
-foo.baz.qux</code>. You can use <code>mill show foo.bar</code> or <code>mill show foo.baz.qux</code> to
+foo.qux.baz</code>. You can use <code>mill show foo.bar</code> or <code>mill show foo.baz.qux</code> to
 make Mill echo out the string value being returned by each Target. The two
-targets will store their output metadata &amp; files at <code>./out/foo/bar</code> and
-<code>./out/foo/baz/qux</code> respectively.</p>
-</div>
-<div class="paragraph">
-<p>Modules also provide a way to define and re-use common collections of tasks, via
-Scala <code>trait</code>s. For example, you can define your own <code>FooModule</code> trait:</p>
+targets will store their output metadata and files at
+<code>./out/foo/bar.{json,dest}</code> and <code>./out/foo/baz/qux.{json,dest}</code>
+respectively.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait FooModule extends mill.Module {
-  def bar = T { &quot;hello&quot; }
-  def baz = T { &quot;world&quot; }
-}</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.bar
+&gt; ./mill foo.qux.baz
+
+&gt; ./mill show foo.bar
+&quot;hello&quot;
+
+&gt; ./mill show foo.qux.baz
+&quot;world&quot;
+
+&gt; cat ./out/foo/bar.json # task output path follows module hierarchy
+...&quot;value&quot;: &quot;hello&quot;...
+
+&gt; cat ./out/foo/qux/baz.json
+...&quot;value&quot;: &quot;world&quot;...</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>And use it to define multiple modules with the same <code>bar</code> and <code>baz</code> targets,
-along with any other customizations such as <code>qux</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo1 extends FooModule
-object foo2 extends FooModule {
-  def qux = T { &quot;I am Cow&quot; }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This would make the following targets available from the command line</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>mill show foo1.bar</code></p>
-</li>
-<li>
-<p><code>mill show foo1.baz</code></p>
-</li>
-<li>
-<p><code>mill show foo2.bar</code></p>
-</li>
-<li>
-<p><code>mill show foo2.baz</code></p>
-</li>
-<li>
-<p><code>mill show foo2.qux</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>The built-in <code>mill.scalalib</code> package uses this to define
-<code>mill.scalalib.ScalaModule</code>, <code>mill.scalalib.SbtModule</code> and
-<code>mill.scalalib.TestScalaModule</code>, all of which contain a set of &quot;standard&quot;
-operations such as <code>compile</code>, <code>jar</code> or <code>assembly</code> that you may expect from a
-typical Scala module.</p>
-</div>
-<div class="paragraph">
-<p>When defining your own module abstractions, in general you should use <code>trait</code>s
-and not `class`es, except in the case of
-<a href="https://com-lihaoyi.github.io/mill/page/cross-builds.html">Cross Builds</a>.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_overriding_targets"><a class="anchor" href="#_overriding_targets"></a>Overriding Targets</h2>
+<h2 id="_trait_modules"><a class="anchor" href="#_trait_modules"></a>Trait Modules</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Modules also provide a way to define and re-use common collections of tasks,
+via Scala <code>trait</code>s. Module <code>trait <code>s support everything nornal Scala
+</code>trait<code>s do: abstract </code>def<code>s, overrides, `super</code>, extension
+with additional </code>def``s, etc.</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait BaseModule extends Module {
-  def foo = T { Seq(&quot;base&quot;) }
-  def cmd(i: Int) = T.command { Seq(&quot;base&quot; + i) }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait FooModule extends Module {
+  def bar: T[String] // required override
+  def qux = T { bar() + &quot; world&quot; }
 }
 
-object canOverrideSuper with BaseModule {
-  def foo = T { super.foo() ++ Seq(&quot;object&quot;) }
-  def cmd(i: Int) = T.command { super.cmd(i)() ++ Seq(&quot;object&quot; + i) }
+object foo1 extends FooModule{
+  def bar = &quot;hello&quot;
+  def qux = super.qux().toUpperCase // refer to overriden value via super
+}
+object foo2 extends FooModule {
+  def bar = &quot;hi&quot;
+  def baz = T { qux() + &quot; I am Cow&quot; } // add a new `def`
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can override targets and commands to customize them or change what they do.
-The overridden version is available via <code>super</code>. You can omit the <code>override</code>
-keyword in Mill builds.</p>
+<p>Note that the <code>override</code> keyword is implicit in mill, as is <code>T{…​}</code> wrapper.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo1.bar
+&quot;hello&quot;
+
+&gt; ./mill show foo1.qux
+&quot;HELLO WORLD&quot;
+
+&gt; ./mill show foo2.bar
+&quot;hi&quot;
+
+&gt; ./mill show foo2.qux
+&quot;hi world&quot;
+
+&gt; ./mill show foo2.baz
+&quot;hi world I am Cow&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The built-in <code>mill.scalalib</code> package uses this to define <code>ScalaModule</code>,
+<code>SbtModule</code> and <code>TestScalaModule</code>, etc. which contain a set of &quot;standard&quot;
+operations such as <code>compile</code>, <code>jar</code> or <code>assembly</code> that you may expect from a
+typical Scala module.</p>
+</div>
+<div class="paragraph">
+<p>When defining your own module abstractions, you should be using <code>trait</code>s
+and not <code>class</code>es due to implementation limitations</p>
 </div>
 </div>
 </div>
@@ -488,22 +453,41 @@ keyword in Mill builds.</p>
 <h2 id="_millsourcepath"><a class="anchor" href="#_millsourcepath"></a>millSourcePath</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Each Module has a <code>millSourcePath</code> field that corresponds to the path that module
-expects its input files to be on disk. Re-visiting our examples above:</p>
+<p>Each Module has a <code>millSourcePath</code> field that corresponds to the path that
+module expects its input files to be on disk.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Module {
-  def bar = T { &quot;hello&quot; }
-  object baz extends mill.Module {
-    def qux = T { &quot;world&quot; }
-  }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait MyModule extends Module{
+  def sources = T.source(millSourcePath / &quot;sources&quot;)
+  def target = T { &quot;hello &quot; + os.list(sources().path).map(os.read(_)).mkString(&quot; &quot;) }
+}
+
+object outer extends MyModule {
+  object inner extends MyModule
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>The <code>foo</code> module has a <code>millSourcePath</code> of <code>./foo</code>, while the <code>foo.baz</code> module has a
-<code>millSourcePath</code> of <code>./foo/baz</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>outer</code> module has a <code>millSourcePath</code> of <code>outer/</code>, and thus a
+<code>outer.sources</code> referencing <code>outer/sources/</code></p>
+</li>
+<li>
+<p>The <code>inner</code> module has a <code>millSourcePath</code> of <code>outer/inner/</code>, and thus a
+<code>outer.inner.sources</code> referencing <code>outer/inner/sources/</code></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer.target
+&quot;hello contents of file inside outer/sources/&quot;
+
+&gt; ./mill show outer.inner.target
+&quot;hello contents of file inside outer/inner/sources/&quot;</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>You can use <code>millSourcePath</code> to automatically set the source folders of your
@@ -514,57 +498,188 @@ be the same.</p>
 </div>
 <div class="paragraph">
 <p>E.g. for <code>mill.scalalib.ScalaModule</code>, the Scala source code is assumed by
-default to be in <code>millSourcePath / &quot;src&quot;</code> while resources are automatically assumed to
-be in <code>millSourcePath / &quot;resources&quot;</code>.</p>
+default to be in <code>millSourcePath / &quot;src&quot;</code> while resources are automatically
+assumed to be in <code>millSourcePath / &quot;resources&quot;</code>.</p>
 </div>
 <div class="paragraph">
 <p>You can override <code>millSourcePath</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title"><code>build.sc</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Module {
-  def millSourcePath = super.millSourcePath / &quot;lols&quot;
-  def bar = T { &quot;hello&quot; }
-  object baz extends mill.Module {
-    def qux = T { &quot;world&quot; }
-  }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object outer2 extends MyModule {
+  def millSourcePath = super.millSourcePath / &quot;nested&quot;
+  object inner extends MyModule
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>And any overrides propagate down to the module’s children: in the above example,
-module <code>foo</code> would have its <code>millSourcePath</code> be <code>./foo/lols</code> while module`foo.baz`
-would have its <code>millSourcePath</code> be <code>./foo/lols/baz</code>.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer2.target
+&quot;hello contents of file inside outer2/nested/sources/&quot;
+
+&gt; ./mill show outer2.inner.target
+&quot;hello contents of file inside outer2/nested/inner/sources/&quot;</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>Note that <code>millSourcePath</code> is generally only used for a module’s input source files.
-Output is always in the <code>out/</code> folder and cannot be changed, e.g. even with the
-overridden <code>millSourcePath</code> the output paths are still the default <code>./out/foo/bar</code> and
-<code>./out/foo/baz/qux</code> folders.</p>
+<p>Any overrides propagate down to the module’s children: in the above example,
+<code>outer2</code> would have its <code>millSourcePath</code> be <code>outer2/nested/</code> while
+<code>outer.inner</code> would have its <code>millSourcePath</code> be <code>outer2/nested/inner/</code>.</p>
+</div>
+<div class="paragraph">
+<p>Note that <code>millSourcePath</code> is meant to be used for a module’s input source
+files: source code, config files, library binaries, etc. Output is always in
+the <code>out/</code> folder and cannot be changed, e.g. even with the overridden
+<code>millSourcePath</code> the output paths are still the default <code>./out/outer2</code> and
+<code>./out/outer2/inner</code> folders:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat ./out/outer2/target.json
+...&quot;value&quot;: &quot;hello contents of file inside outer2/nested/sources/&quot;...
+
+&gt; cat ./out/outer2/inner/target.json
+...&quot;value&quot;: &quot;hello contents of file inside outer2/nested/inner/sources/&quot;...</code></pre>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_root_modules"><a class="anchor" href="#_root_modules"></a>Root Modules</h2>
+<h2 id="_use_case_diy_java_modules"><a class="anchor" href="#_use_case_diy_java_modules"></a>Use Case: DIY Java Modules</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>This section puts together what we’ve learned about <code>Task</code>s and <code>Module</code>s
+so far into a worked example: implementing our own minimal version of
+<code>mill.scalalib.JavaModule</code> from first principles.</p>
+</div>
 <div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-tasks-8-diy-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/8-diy-java-modules">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends RootModule with ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Agg(
-    ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;,
-    ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;
-  )
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+trait DiyJavaModule extends Module{
+  def moduleDeps: Seq[DiyJavaModule] = Nil
+  def mainClass: T[Option[String]] = None
+
+  def upstreamClasses: T[Seq[PathRef]] = T{
+    T.traverse(moduleDeps)(_.classPath)().flatten
+  }
+
+  def sources = T.source(millSourcePath / &quot;src&quot;)
+
+  def name = T{ millSourcePath.relativeTo(T.workspace).segments.mkString(&quot;-&quot;) }
+
+  def cpFlag(cp: Seq[PathRef]) =
+    Seq(&quot;-cp&quot;, cp.map(_.path).mkString(sys.props(&quot;path.separator&quot;)))
+
+  def compile = T {
+    val allSources = os.walk(sources().path)
+    os.proc(&quot;javac&quot;, cpFlag(upstreamClasses()), allSources, &quot;-d&quot;, T.dest)
+      .call(stdout = os.Inherit, cwd = T.dest)
+
+    PathRef(T.dest)
+  }
+
+  def classPath = T{ Seq(compile()) ++ upstreamClasses() }
+
+  def assembly = T {
+    for(cp &lt;- classPath()) os.copy(cp.path, T.dest, mergeFolders = true)
+
+    val mainFlags = mainClass().toSeq.flatMap(Seq(&quot;-e&quot;, _))
+    os.proc(&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, T.dest / s&quot;${name()}.jar&quot;, &quot;.&quot;)
+      .call(stdout = os.Inherit, cwd = T.dest)
+
+    PathRef(T.dest / s&quot;${name()}.jar&quot;)
+  }
+}
+
+object foo extends DiyJavaModule {
+  def moduleDeps = Seq(bar)
+  def mainClass = Some(&quot;foo.Foo&quot;)
+
+  object bar extends DiyJavaModule
+}
+
+object qux extends DiyJavaModule {
+  def moduleDeps = Seq(foo)
+  def mainClass = Some(&quot;qux.Qux&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>RootModule</code>s allow you to define a module whose targets are available directly
-via <code>./mill &lt;target&gt;</code>, e.g. <code>./mill compile</code> or <code>./mill run</code>, without needing
-to prefix them by the module name <code>./mill foo.compile</code>. These are useful if a
-project has a &quot;primary&quot; module that most people would use, as it makes
-operations on the <code>RootModule</code> more convenient to perform.</p>
+<p>Some notable things to call out:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>def moduleDeps</code> is not a Target. This is necessary because targets cannot
+change the shape of the task graph during evaluation, whereas <code>moduleDeps</code>
+defines  module dependencies that determine the shape of the graph.</p>
+</li>
+<li>
+<p>Using <code>T.traverse</code> to recursively gather the upstream classpath. This is
+necessary to convert the <code>Seq[T[V]]</code> into a <code>T[Seq[V]]</code> that we can work
+with inside our targets</p>
+</li>
+<li>
+<p>We use the <code>millSourcePath</code> together with <code>T.workspace</code> to infer a default
+name for the jar of each module. Users can override it if they want, but
+having a default is very convenient</p>
+</li>
+<li>
+<p><code>def cpFlag</code> is not a task or target, it’s just a normal helper method.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This simple set of <code>DiyJavaModule</code> can be used as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill showNamed __.sources
+{
+  &quot;foo.sources&quot;: &quot;.../foo/src&quot;,
+  &quot;foo.bar.sources&quot;: &quot;.../foo/bar/src&quot;,
+  &quot;qux.sources&quot;: &quot;.../qux/src&quot;
+}
+
+&gt; ./mill showNamed __.name
+{
+  &quot;foo.name&quot;: &quot;foo&quot;,
+  &quot;foo.bar.name&quot;: &quot;foo-bar&quot;,
+  &quot;qux.name&quot;: &quot;qux&quot;
+}
+
+&gt; ./mill show qux.assembly
+&quot;.../out/qux/assembly.dest/qux.jar&quot;
+
+&gt; java -jar out/qux/assembly.dest/qux.jar
+Foo.value: 31337
+Bar.value: 271828
+Qux.value: 9000
+
+&gt; ./mill show foo.assembly
+&quot;.../out/foo/assembly.dest/foo.jar&quot;
+
+&gt; java -jar out/foo/assembly.dest/foo.jar
+Foo.value: 31337
+Bar.value: 271828</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Like any other <code>Target</code>s, the compilation and packaging of the Java code
+is incremental: if you change a file in <code>foo/src/</code> and run <code>qux.assembly</code>,
+<code>foo.compile</code> and <code>qux.compile</code> will be re-computed, but <code>bar.compile</code> will
+not as it does not transitively depend on <code>foo.sources</code>. We did not need to
+build support for this caching and invalidation ourselves, as it is
+automatically done by Mill based on the structure of the build graph.</p>
+</div>
+<div class="paragraph">
+<p>Note that this is a minimal example is meant for educational purposes: the
+<code>mill.scalalib.JavaModule</code> and <code>ScalaModule</code> that Mill provides is more
+complicated to provide additional flexibility and performance. Nevertheless,
+this example should give you a good idea of how Mill <code>module</code>s can be
+developed, so you can define your own custom modules when the need arises.</p>
 </div>
 </div>
 </div>
@@ -589,7 +704,7 @@ object Bar extends mill.define.ExternalModule {
 </div>
 </div>
 <div class="paragraph">
-<p>In the above example, <code>foo.Bar</code> is an <code>ExternalModule</code> living within the <code>foo</code>
+<p>In the above example, <code>Qux</code> is an <code>ExternalModule</code> living within the <code>foo</code>
 Java package, containing the <code>baz</code> target and <code>qux</code> command. Those can be run
 from the command line via:</p>
 </div>
@@ -654,17 +769,13 @@ def someFoo = T {
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="Task_Context_API.html">Task Context API</a></span>
+  <span class="prev"><a href="Tasks.html">Tasks</a></span>
   <span class="next"><a href="Cross_Builds.html">Cross Builds</a></span>
 </nav>
 </article>
   </div>
 </main>
 </div>
-<footer class="footer">
-  <p>This page was built using the Antora default UI.</p>
-  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
-</footer>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
 <script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>

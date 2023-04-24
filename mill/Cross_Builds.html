@@ -30,19 +30,11 @@
     </div>
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
-        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Home</a>
-        <div class="navbar-item has-dropdown is-hoverable">
-        <a class="navbar-link" href="#">Plugins</a>
-        </div>
-        <div class="navbar-item has-dropdown is-hoverable">
-          <a class="navbar-link" href="#">Community</a>
-          <div class="navbar-dropdown">
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issue Tracker (GitHub)</a>
-            <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat (Gitter)</a>
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss (GitHub)</a>
-          </div>
-        </div>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://com-lihaoyi.github.io/mill/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat</a>
 
             <!--
         <a class="navbar-item" href="#">Home</a>
@@ -86,129 +78,179 @@
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
   <nav class="nav-menu">
-    <h3 class="title"><a href="index.html">Mill Documentation</a></h3>
 <ul class="nav-list">
-  <li class="nav-item" data-depth="0">
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Quick Start</span>
 <ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Installation.html">Installation</a>
+    <a class="nav-link" href="Installation_IDE_Support.html">Installation and IDE Support</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Getting_Started.html">Getting Started</a>
+    <a class="nav-link" href="Builtin_Commands.html">Built-in Commands</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="IDE_Support.html">IDE Support</a>
+    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+    <a class="nav-link" href="Scala_Module_Config.html">Scala Module Configuration</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Configuration.html">Configuring your Project</a>
+    <a class="nav-link" href="Web_Build_Examples.html">Web Build Examples</a>
   </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Tasks.html">Tasks</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
-  </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Modules.html">Modules</a>
   </li>
+
   <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Plugins</span>
+<ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
-  </li>
+
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
 <ul class="nav-list">
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Artifactory.html">Artifactory</a>
+    <a class="nav-link" href="contrib/artifactory.html">Artifactory</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Bintray.html">Bintray</a>
+    <a class="nav-link" href="contrib/bintray.html">Bintray</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Bloop.html">Bloop</a>
+    <a class="nav-link" href="contrib/bloop.html">Bloop</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
+    <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
   </li>
+
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
+    <a class="nav-link" href="contrib/codeartifact.html">Codeartifact</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Docker.html">Docker</a>
+    <a class="nav-link" href="contrib/docker.html">Docker</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
+    <a class="nav-link" href="contrib/flyway.html">Flyway</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
+    <a class="nav-link" href="contrib/gitlab.html">Gitlab</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Jmh.html">JMH</a>
+    <a class="nav-link" href="contrib/jmh.html">JMH</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
+    <a class="nav-link" href="contrib/playlib.html">Play Framework</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
+    <a class="nav-link" href="contrib/proguard.html">Proguard</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
+    <a class="nav-link" href="contrib/scalapblib.html">ScalaPB</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
+    <a class="nav-link" href="contrib/scoverage.html">Scoverage</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
+    <a class="nav-link" href="contrib/testng.html">TestNG</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
+    <a class="nav-link" href="contrib/twirllib.html">Twirl</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
+    <a class="nav-link" href="contrib/versionfile.html">Version file</a>
   </li>
 </ul>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="External_References.html">External References</a>
-<ul class="nav-list">
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_ammonite">Ammonite</a>
-  </li>
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_coursier">Coursier</a>
-  </li>
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_os_lib">OS-Lib</a>
-  </li>
 </ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="External_References.html">External References</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://com-lihaoyi.github.io/mill/api/latest/mill/index.html">Mill Scaladoc</a>
   </li>
 </ul>
   </li>
@@ -218,95 +260,26 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M7-43-8dfcea</span>
+    <span class="version">0.11.0-M7-44-abe800</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M7-43-8dfcea</a>
+          <a href="index.html">0.11.0-M7-44-abe800</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
         </li>
         <li class="version">
-          <a href="0.11.0-M6/index.html">0.11.0-M6</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M5/index.html">0.11.0-M5</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M4/index.html">0.11.0-M4</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M3/index.html">0.11.0-M3</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M2/index.html">0.11.0-M2</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M1/index.html">0.11.0-M1</a>
-        </li>
-        <li class="version">
           <a href="0.10.12/index.html">0.10.12</a>
-        </li>
-        <li class="version">
-          <a href="0.10.11/index.html">0.10.11</a>
-        </li>
-        <li class="version">
-          <a href="0.10.10/index.html">0.10.10</a>
-        </li>
-        <li class="version">
-          <a href="0.10.9/index.html">0.10.9</a>
-        </li>
-        <li class="version">
-          <a href="0.10.8/index.html">0.10.8</a>
-        </li>
-        <li class="version">
-          <a href="0.10.7/index.html">0.10.7</a>
-        </li>
-        <li class="version">
-          <a href="0.10.6/index.html">0.10.6</a>
-        </li>
-        <li class="version">
-          <a href="0.10.5/index.html">0.10.5</a>
-        </li>
-        <li class="version">
-          <a href="0.10.4/index.html">0.10.4</a>
-        </li>
-        <li class="version">
-          <a href="0.10.3/index.html">0.10.3</a>
-        </li>
-        <li class="version">
-          <a href="0.10.2/index.html">0.10.2</a>
-        </li>
-        <li class="version">
-          <a href="0.10.1/index.html">0.10.1</a>
         </li>
         <li class="version">
           <a href="0.10.0/index.html">0.10.0</a>
         </li>
         <li class="version">
           <a href="0.9.12/index.html">0.9.12</a>
-        </li>
-        <li class="version">
-          <a href="0.9.11/index.html">0.9.11</a>
-        </li>
-        <li class="version">
-          <a href="0.9.10/index.html">0.9.10</a>
-        </li>
-        <li class="version">
-          <a href="0.9.9/index.html">0.9.9</a>
-        </li>
-        <li class="version">
-          <a href="0.9.8/index.html">0.9.8</a>
-        </li>
-        <li class="version">
-          <a href="0.9.7/index.html">0.9.7</a>
-        </li>
-        <li class="version">
-          <a href="0.9.6/index.html">0.9.6</a>
         </li>
       </ul>
     </li>
@@ -322,43 +295,21 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
+    <li>Mill In Depth</li>
     <li><a href="Cross_Builds.html">Cross Builds</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-43-8dfcea</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-44-abe800</button>
   <div class="version-menu">
-    <a class="version is-current" href="Cross_Builds.html">0.11.0-M7-43-8dfcea</a>
+    <a class="version is-current" href="Cross_Builds.html">0.11.0-M7-44-abe800</a>
     <a class="version" href="0.11.0-M7/Cross_Builds.html">0.11.0-M7</a>
-    <a class="version" href="0.11.0-M6/Cross_Builds.html">0.11.0-M6</a>
-    <a class="version" href="0.11.0-M5/Cross_Builds.html">0.11.0-M5</a>
-    <a class="version" href="0.11.0-M4/Cross_Builds.html">0.11.0-M4</a>
-    <a class="version" href="0.11.0-M3/Cross_Builds.html">0.11.0-M3</a>
-    <a class="version" href="0.11.0-M2/Cross_Builds.html">0.11.0-M2</a>
-    <a class="version" href="0.11.0-M1/Cross_Builds.html">0.11.0-M1</a>
     <a class="version" href="0.10.12/Cross_Builds.html">0.10.12</a>
-    <a class="version" href="0.10.11/Cross_Builds.html">0.10.11</a>
-    <a class="version" href="0.10.10/Cross_Builds.html">0.10.10</a>
-    <a class="version" href="0.10.9/Cross_Builds.html">0.10.9</a>
-    <a class="version" href="0.10.8/Cross_Builds.html">0.10.8</a>
-    <a class="version" href="0.10.7/Cross_Builds.html">0.10.7</a>
-    <a class="version" href="0.10.6/Cross_Builds.html">0.10.6</a>
-    <a class="version" href="0.10.5/Cross_Builds.html">0.10.5</a>
-    <a class="version" href="0.10.4/Cross_Builds.html">0.10.4</a>
-    <a class="version" href="0.10.3/Cross_Builds.html">0.10.3</a>
-    <a class="version" href="0.10.2/Cross_Builds.html">0.10.2</a>
-    <a class="version" href="0.10.1/Cross_Builds.html">0.10.1</a>
     <a class="version" href="0.10.0/Cross_Builds.html">0.10.0</a>
     <a class="version" href="0.9.12/Cross_Builds.html">0.9.12</a>
-    <a class="version" href="0.9.11/Cross_Builds.html">0.9.11</a>
-    <a class="version" href="0.9.10/Cross_Builds.html">0.9.10</a>
-    <a class="version" href="0.9.9/Cross_Builds.html">0.9.9</a>
-    <a class="version" href="0.9.8/Cross_Builds.html">0.9.8</a>
-    <a class="version" href="0.9.7/Cross_Builds.html">0.9.7</a>
-    <a class="version" href="0.9.6/Cross_Builds.html">0.9.6</a>
   </div>
 </div>
-  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/antora/modules/ROOT/pages/Cross_Builds.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/Cross_Builds.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -369,38 +320,458 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill handles cross-building of all sorts via the <code>Cross[T]</code> module.</p>
+<p>Cross-building refers to taking the same sources and configuration and building
+it multiple times with minor changes. This could mean taking the same Scala
+codebase and building it across multiple Scala versions, taking the same
+application and building twice for dev/release, or taking the same module
+config and building it across a variety of source folders.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_defining_cross_modules"><a class="anchor" href="#_defining_cross_modules"></a>Defining Cross Modules</h2>
+<h2 id="_simple_cross_modules"><a class="anchor" href="#_simple_cross_modules"></a>Simple Cross Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can use this as follows:</p>
+<p>Mill handles cross-building of all sorts via the <code>Cross[T]</code> module.</p>
 </div>
 <div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
-class FooModule(crossVersion: String) extends Module {
-  def suffix = T { crossVersion }
-  def bigSuffix = T { suffix().toUpperCase() }
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends Cross.Module[String] {
+  def suffix = T { &quot;_&quot; + crossValue }
+  def bigSuffix = T { &quot;[[[&quot; + suffix() + &quot;]]]&quot; }
+  def sources = T.sources(millSourcePath)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This defines three copies of <code>FooModule</code>: <code>&quot;210&quot;</code>, <code>&quot;211&quot;</code> and <code>&quot;212&quot;</code>, each of which has their own <code>suffix</code> target. You can then run them via</p>
+<p>Cross modules defined using the <code>Cross[T]</code> class allow you to define
+multiple copies of the same module, differing only in some input key. This
+is very useful for building the same module against different versions of a
+language or library, or creating modules to represent folders on the
+filesystem.</p>
+</div>
+<div class="paragraph">
+<p>This example defines three copies of <code>FooModule</code>: <code>&quot;2.10&quot;</code>, <code>&quot;2.11&quot;</code> and
+<code>&quot;2.12&quot;</code>, each of which has their own <code>suffix</code> target. You can then run
+them as shown below. Note that by default, <code>sources</code> returns <code>foo</code> for every
+cross module, assuming you want to build the same sources for each. This can
+be overriden</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill show foo[2.10].suffix
-mill show foo[2.10].bigSuffix
-mill show foo[2.11].suffix
-mill show foo[2.11].bigSuffix
-mill show foo[2.12].suffix
-mill show foo[2.12].bigSuffix</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.10].suffix
+&quot;_2.10&quot;
+
+&gt; ./mill show foo[2.10].bigSuffix
+&quot;[[[_2.10]]]&quot;
+
+&gt; ./mill show foo[2.10].sources
+[
+  &quot;.../foo&quot;
+]
+
+&gt; ./mill show foo[2.12].suffix
+&quot;_2.12&quot;
+
+&gt; ./mill show foo[2.12].bigSuffix
+&quot;[[[_2.12]]]&quot;
+
+&gt; ./mill show foo[2.12].sources
+[
+  &quot;.../foo&quot;
+]</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cross_modules_source_paths"><a class="anchor" href="#_cross_modules_source_paths"></a>Cross Modules Source Paths</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to have dedicated <code>millSourcePath</code>s, you can add the cross
+parameters to it as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-cross-2-cross-source-path.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/2-cross-source-path">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends Cross.Module[String] {
+  def millSourcePath = super.millSourcePath / crossValue
+  def sources = T.sources(millSourcePath)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, cross modules do not include the cross key as part of the
+<code>millSourcePath</code> for each module. This is the common case, where you are
+cross-building the same sources across different input versions. If you want
+to use a cross module to build different folders with the same config, you
+can do so by overriding <code>millSourcePath</code> as shown above.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.10].sources
+[
+  &quot;.../foo/2.10&quot;
+]
+
+&gt; ./mill show foo[2.11].sources
+[
+  &quot;.../foo/2.11&quot;
+]
+
+&gt; ./mill show foo[2.12].sources
+[
+  &quot;.../foo/2.12&quot;
+]</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Before Mill 0.11.0-M5, <code>Cross</code> modules which were not also <code>CrossScalaModule</code>s, always added the cross parameters to the <code>millSourcePath</code>. This often led to setups like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def millSourcePath = super.millSourcePath / os.up</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_cross_modules_from_outside_targets"><a class="anchor" href="#_using_cross_modules_from_outside_targets"></a>Using Cross Modules from Outside Targets</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can refer to targets defined in cross-modules as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/3-outside-dependency">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends Cross.Module[String] {
+  def suffix = T { &quot;_&quot; + crossValue }
+}
+
+def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
+
+def qux = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here, <code>def bar</code> uses <code>foo(&quot;2.10&quot;)</code> to reference the <code>&quot;2.10&quot;</code> instance of
+<code>FooModule</code>. You can refer to whatever versions of the cross-module you want,
+even using multiple versions of the cross-module in the same target as we do
+in <code>def qux</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.10].suffix
+&quot;_2.10&quot;
+
+&gt; ./mill show bar
+&quot;hello _2.10&quot;
+
+&gt; ./mill show qux
+&quot;hello _2.10 world _2.12&quot;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_cross_modules_from_other_cross_modules"><a class="anchor" href="#_using_cross_modules_from_other_cross_modules"></a>Using Cross Modules from other Cross Modules</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Targets in cross-modules can use one another the same way they are used from
+external targets:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/4-cross-dependencies">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends Cross.Module[String] {
+  def suffix = T { &quot;_&quot; + crossValue }
+}
+
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait BarModule extends Cross.Module[String] {
+  def bigSuffix = T { &quot;[[[&quot; + foo(crossValue).suffix() + &quot;]]]&quot; }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rather than pssing in a literal <code>&quot;2.10&quot;</code> to the <code>foo</code> cross module, we pass
+in the <code>crossValue</code> property that is available within every <code>Cross.Module</code>.
+This ensures that each version of <code>bar</code> depends on the corresponding version
+of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&quot;2.10&quot;)</code>, <code>bar(&quot;2.11&quot;)</code> depends on
+<code>foo(&quot;2.11&quot;)</code>, etc.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill showNamed foo[__].suffix
+{
+  &quot;foo[2.10].suffix&quot;: &quot;_2.10&quot;,
+  &quot;foo[2.11].suffix&quot;: &quot;_2.11&quot;,
+  &quot;foo[2.12].suffix&quot;: &quot;_2.12&quot;
+}
+
+&gt; ./mill showNamed bar[__].bigSuffix
+{
+  &quot;bar[2.10].bigSuffix&quot;: &quot;[[[_2.10]]]&quot;,
+  &quot;bar[2.11].bigSuffix&quot;: &quot;[[[_2.11]]]&quot;,
+  &quot;bar[2.12].bigSuffix&quot;: &quot;[[[_2.12]]]&quot;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multiple_cross_axes"><a class="anchor" href="#_multiple_cross_axes"></a>Multiple Cross Axes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can have a cross-module with multiple inputs using the <code>Cross.Module2</code>
+trait:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-cross-5-multiple-cross-axes.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/5-multiple-cross-axes">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+val crossMatrix = for {
+  crossVersion &lt;- Seq(&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+  platform &lt;- Seq(&quot;jvm&quot;, &quot;js&quot;, &quot;native&quot;)
+  if !(platform == &quot;native&quot; &amp;&amp; crossVersion != &quot;2.12&quot;)
+} yield (crossVersion, platform)
+
+object foo extends mill.Cross[FooModule](crossMatrix)
+trait FooModule extends Cross.Module2[String, String] {
+  val (crossVersion, platform) = (crossValue, crossValue2)
+  def suffix = T { &quot;_&quot; + crossVersion + &quot;_&quot; + platform }
+}
+
+def bar = T { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example shows off using a for-loop to generate a list of
+cross-key-tuples, as a <code>Seq[(String, String)]</code> that we then pass it into the
+<code>Cross</code> constructor. These can be referenced from the command line as shown
+below, or referenced in other parts of your <code>build.sc</code> as shown in <code>def bar</code>
+above.</p>
+</div>
+<div class="paragraph">
+<p>In this example we assigned <code>crossValue</code> and <code>crossValue2</code> to the names
+<code>crossVersion</code> and <code>platform</code> for readability.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.10,jvm].suffix
+&quot;_2.10_jvm&quot;
+
+&gt; ./mill showNamed foo[__].suffix
+{
+  &quot;foo[2.10,jvm].suffix&quot;: &quot;_2.10_jvm&quot;,
+  &quot;foo[2.10,js].suffix&quot;: &quot;_2.10_js&quot;,
+  &quot;foo[2.11,jvm].suffix&quot;: &quot;_2.11_jvm&quot;,
+  &quot;foo[2.11,js].suffix&quot;: &quot;_2.11_js&quot;,
+  &quot;foo[2.12,jvm].suffix&quot;: &quot;_2.12_jvm&quot;,
+  &quot;foo[2.12,js].suffix&quot;: &quot;_2.12_js&quot;,
+  &quot;foo[2.12,native].suffix&quot;: &quot;_2.12_native&quot;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_extending_cross_modules"><a class="anchor" href="#_extending_cross_modules"></a>Extending Cross Modules</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can also take an existing cross module and extend it with additional cross
+axes as shown:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-cross-6-axes-extension.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/6-axes-extension">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends Cross[FooModule](&quot;a&quot;, &quot;b&quot;)
+trait FooModule extends Cross.Module[String] {
+  def param1 = T { &quot;Param Value: &quot; + crossValue }
+}
+
+object foo2 extends Cross[FooModule2]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
+trait FooModule2 extends Cross.Module2[String, Int] {
+  def param1 = T { &quot;Param Value: &quot; + crossValue }
+  def param2 = T { &quot;Param Value: &quot; + crossValue2 }
+}
+
+object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1, true), (&quot;b&quot;, 2, false))
+trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
+  def param3 = T{ &quot;Param Value: &quot; + crossValue3 }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Starting from an existing cross module with <code>Cross.Module{N-1}</code>,
+you can extend <code>Cross.ModuleN</code> to add a new axis to it.</p>
+</div>
+<div class="paragraph">
+<p>Multi-axis cross modules take their input as tuples, and each element of the
+tuple beyond the first is bound to the <code>crossValueN</code> property defined by the
+corresponding <code>Cross.ArgN</code> trait. Providing tuples of the wrong arity to the
+<code>Cross[]</code> constructor is a compile error.</p>
+</div>
+<div class="paragraph">
+<p>The Cross module’s axes can take any type <code>T</code> with <code>Cross.ToSegments[T]</code>
+defined. There are default implementations for strings, chars, numbers,
+booleans, and lists; the example above demonstrates cross axes of type
+<code>String</code>, <code>Int</code>, and <code>Boolean</code>. You can define additional <code>ToPathSegments</code>
+for your own user-defined types that you wish to use in a Cross module</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[a].param1
+&quot;Param Value: a&quot;
+
+&gt; ./mill show foo[b].param1
+&quot;Param Value: b&quot;
+
+&gt; ./mill show foo2[a,1].param1
+&quot;Param Value: a&quot;
+
+&gt; ./mill show foo2[b,2].param2
+&quot;Param Value: 2&quot;
+
+&gt; ./mill show foo3[b,2,false].param3
+&quot;Param Value: false&quot;
+
+&gt; sed -i 's/, true//g' build.sc
+
+&gt; sed -i 's/, false//g' build.sc
+
+&gt; ./mill show foo3[b,2,false].param3
+error: ...object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
+error: ...                                      ^
+error: ...value _3 is not a member of (String, Int)</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_inner_cross_modules"><a class="anchor" href="#_inner_cross_modules"></a>Inner Cross Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/7-inner-cross-module">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+trait MyModule extends Module{
+  def crossValue: String
+  def name: T[String]
+  def param = T { name() + &quot; Param Value: &quot; + crossValue }
+}
+
+object foo extends Cross[FooModule](&quot;a&quot;, &quot;b&quot;)
+trait FooModule extends Cross.Module[String] {
+  object bar extends MyModule with InnerCrossModule{
+    def name = &quot;Bar&quot;
+  }
+  object qux extends MyModule with InnerCrossModule{
+    def name = &quot;Qux&quot;
+  }
+}
+
+def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can use the <code>InnerCrossModule</code> trait within any <code>Cross.Module</code> to
+propagate the <code>crossValue</code> defined by an enclosing <code>Cross.Module</code> to some
+nested module. In this case, we use it to bind <code>crossValue</code> so it can be
+used in <code>def param</code>. This lets you reduce verbosity by defining the <code>Cross</code>
+once for a group of modules rather than once for every single module  in
+that group. There are corresponding <code>InnerCrossModuleN</code> traits for cross
+modules that take multiple inputs.</p>
+</div>
+<div class="paragraph">
+<p>You can reference the modules and tasks defined within such a
+<code>InnerCrossModule</code> as is done in <code>def qux</code> above</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[a].bar.param
+&quot;Bar Param Value: a&quot;
+
+&gt; ./mill show foo[b].qux.param
+&quot;Qux Param Value: b&quot;
+
+&gt; ./mill show baz
+&quot;hello Bar Param Value: a&quot;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cross_resolvers"><a class="anchor" href="#_cross_resolvers"></a>Cross Resolvers</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-cross-8-resolvers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/8-resolvers">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+trait MyModule extends Cross.Module[String] {
+  implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
+    def resolve[V &lt;: MyModule](c: Cross[V]): V = c.valuesToModules(List(crossValue))
+  }
+}
+
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends MyModule {
+  def suffix = T { &quot;_&quot; + crossValue }
+}
+
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait BarModule extends MyModule {
+  def bigSuffix = T { &quot;[[[&quot; + foo().suffix() + &quot;]]]&quot; }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can define an implicit <code>mill.define.Cross.Resolver</code> within your
+cross-modules, which would let you use a shorthand <code>foo()</code> syntax when
+referring to other cross-modules with an identical set of cross values.</p>
+</div>
+<div class="paragraph">
+<p>While the example <code>resolver</code> simply looks up the target <code>Cross</code> value for
+the cross-module instance with the same <code>crossVersion</code>, you can make the
+resolver arbitrarily complex. E.g. the <code>resolver</code> for
+<code>mill.scalalib.CrossScalaModule</code> looks for a cross-module instance whose
+<code>scalaVersion</code> is binary compatible (e.g. 2.10.5 is compatible with 2.10.3)
+with the current cross-module.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar[2.10].bigSuffix
+...
+&quot;[[[_2.10]]]&quot;</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -432,211 +803,248 @@ metadata and files:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">out/
 ├── foo/
-│&nbsp;&nbsp; ├── 2.10/
-│&nbsp;&nbsp; │&nbsp;&nbsp; ├── bigSuffix.json
-│&nbsp;&nbsp; │&nbsp;&nbsp; └── suffix.json
-│&nbsp;&nbsp; ├── 2.11/
-│&nbsp;&nbsp; │&nbsp;&nbsp; ├── bigSuffix.json
-│&nbsp;&nbsp; │&nbsp;&nbsp; └── suffix.json
-│&nbsp;&nbsp; └── 2.12/
-│&nbsp;&nbsp;     ├── bigSuffix.json
-│&nbsp;&nbsp;     └── suffix.json</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If you want to have dedicated <code>millSourcePath</code>s, you can add the cross parameters to it:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-
-object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
-class FooModule(crossVersion: String) extends Module {
-  def millSourcePath = super.millSourcePath / crossVersion
-}</code></pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Before Mill 0.11.0-M5, <code>Cross</code> modules which were not also <code>CrossScalaModule</code>s, always added the cross parameters to the <code>millSourcePath</code>. This often led to setups like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def millSourcePath = super.millSourcePath / os.up</code></pre>
-</div>
-</div>
-</td>
-</tr>
-</tbody></table>
-</div>
-<div class="paragraph">
-<p>You can also have a cross-build with multiple inputs:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-
-val crossMatrix = for {
-  crossVersion &lt;- Seq(&quot;210&quot;, &quot;211&quot;, &quot;212&quot;)
-  platform &lt;- Seq(&quot;jvm&quot;, &quot;js&quot;, &quot;native&quot;)
-  if !(platform == &quot;native&quot; &amp;&amp; crossVersion != &quot;212&quot;)
-} yield (crossVersion, platform)
-
-object foo extends mill.Cross[FooModule](crossMatrix:_*)
-class FooModule(crossVersion: String, platform: String) extends Module {
-  def suffix = T { crossVersion + &quot;_&quot; + platform }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Here, we define our cross-values programmatically using a <code>for</code>-loop that spits out tuples instead of individual values.
-Our <code>FooModule</code> template class then takes two parameters instead of one.
-This creates the following modules each with their own <code>suffix</code> target:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill showNamed foo[_].suffix
-[1/1] showNamed
-[1/1] showNamed &gt; [7/7] foo[212,native].suffix
-{
-  &quot;foo[210,jvm].suffix&quot;: &quot;210_jvm&quot;,
-  &quot;foo[210,js].suffix&quot;: &quot;210_js&quot;,
-  &quot;foo[211,jvm].suffix&quot;: &quot;211_jvm&quot;,
-  &quot;foo[211,js].suffix&quot;: &quot;211_js&quot;,
-  &quot;foo[212,jvm].suffix&quot;: &quot;212_jvm&quot;,
-  &quot;foo[212,js].suffix&quot;: &quot;212_js&quot;,
-  &quot;foo[212,native].suffix&quot;: &quot;212_native&quot;
-}</code></pre>
+│     ├── 2.10/
+│     │     ├── bigSuffix.json
+│     │     └── suffix.json
+│     ├── 2.11/
+│     │     ├── bigSuffix.json
+│     │     └── suffix.json
+│     └── 2.12/
+│         ├── bigSuffix.json
+│         └── suffix.json</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_using_cross_modules_from_outside"><a class="anchor" href="#_using_cross_modules_from_outside"></a>Using Cross Modules from Outside</h2>
+<h2 id="_dynamic_cross_modules"><a class="anchor" href="#_dynamic_cross_modules"></a>Dynamic Cross Modules</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>You can refer to targets defined in cross-modules as follows:</p>
-</div>
 <div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-cross-9-dynamic-cross-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/9-dynamic-cross-modules">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
-object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
-class FooModule(crossVersion: String) extends Module {
-  def suffix = T { crossVersion }
-}
+val moduleNames = interp.watchValue(os.list(millSourcePath / &quot;modules&quot;).map(_.last))
 
-def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix}&quot; }</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Here, <code>foo(&quot;2.10&quot;)</code> references the <code>&quot;2.10&quot;</code> instance of <code>FooModule</code>. You can
-refer to whatever versions of the cross-module you want, even using multiple
-versions of the cross-module in the same target:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-
-object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
-class FooModule(crossVersion: String) extends Module {
-  def suffix = T { crossVersion }
-}
-
-def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix} world ${foo(&quot;2.12&quot;).suffix}&quot; }</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_using_cross_modules_from_other_cross_modules"><a class="anchor" href="#_using_cross_modules_from_other_cross_modules"></a>Using Cross Modules from other Cross Modules</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Targets in cross-modules can depend on one another the same way than external targets:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-
-object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
-class FooModule(crossVersion: String) extends Module {
-  def suffix = T { crossVersion }
-}
-
-object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
-class BarModule(crossVersion: String) extends Module {
-  def bigSuffix = T { foo(crossVersion).suffix().toUpperCase() }
+object modules extends Cross[FolderModule](moduleNames)
+trait FolderModule extends ScalaModule with Cross.Module[String]{
+  def millSourcePath = super.millSourcePath / crossValue
+  def scalaVersion = &quot;2.13.8&quot;
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Here, you can run:</p>
+<p>It is sometimes necessary for the instances of a cross-module to vary based
+on some kind of runtime information: perhaps the list of modules is stored
+in some config file, or is inferred based on the folders present on the
+filesystem.</p>
+</div>
+<div class="paragraph">
+<p>In those cases, you can write arbitrary code to populate the cross-module
+cases, as long as you wrap the value in a <code>interp.watchValue</code>. This ensures
+that Mill is aware that the module structure depends on that value, and will
+re-compute the value and re-create the module structure if the value changes.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill show foo[2.10].suffix
-mill show foo[2.11].suffix
-mill show foo[2.12].suffix
-mill show bar[2.10].bigSuffix
-mill show bar[2.11].bigSuffix
-mill show bar[2.12].bigSuffix</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve modules[_]
+modules[bar]
+modules[foo]
+modules[qux]
+
+&gt; ./mill modules[bar].run
+Hello World Bar
+
+&gt; ./mill modules[new].run
+error: Cannot resolve modules[new]...
+
+&gt; cp -r modules/bar modules/new
+
+&gt; sed -i 's/Bar/New/g' modules/new/src/Example.scala
+
+&gt; ./mill resolve modules[_]
+modules[bar]
+modules[foo]
+modules[qux]
+modules[new]
+
+&gt; ./mill modules[new].run
+Hello World New</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>or the more compact version:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill showNamed foo[__].suffix
-[1/1] showNamed
-[1/1] showNamed &gt; [3/3] foo[2.12].suffix
-{
-  &quot;foo[2.10].suffix&quot;: &quot;2.10&quot;,
-  &quot;foo[2.11].suffix&quot;: &quot;2.11&quot;,
-  &quot;foo[2.12].suffix&quot;: &quot;2.12&quot;
-}</code></pre>
-</div>
+<p>Note that because the inputs to the <code>Cross</code> constructor affects the number
+of cross-modules that are generated, it has to be a raw value e.g.
+<code>List[T]</code> and not a target <code>T[List[T]]</code>. That also means that the list of
+cross-modules cannot depend on the output of any targets.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_cross_resolvers"><a class="anchor" href="#_cross_resolvers"></a>Cross Resolvers</h2>
+<h2 id="_use_case_static_blog"><a class="anchor" href="#_use_case_static_blog"></a>Use Case: Static Blog</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can define an implicit <code>mill.define.Cross.Resolver</code> within your
-cross-modules, which would let you use a shorthand <code>foo()</code> syntax when referring to other cross-modules with an identical set of cross values:</p>
+<p>The following example demonstrates a use case: using cross modules to
+turn files on disk into blog posts. To begin with, we import two third-party
+libraries - Commonmark and Scalatags - to deal with Markdown parsing and
+HTML generation respectively:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-cross-10-static-blog.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/10-static-blog">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::scalatags:0.9.1`, scalatags.Text.all._
+import $ivy.`com.atlassian.commonmark:commonmark:0.13.1`
+import org.commonmark.parser.Parser
+import org.commonmark.renderer.html.HtmlRenderer</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, we use <code>os.list</code> and <code>interp.watchValue</code> on the <code>post/</code> folder to
+build a <code>Cross[PostModule]</code> whose entries depend no the markdown files we
+find in that folder. Each post has a <code>source</code> pointing at the markdown file,
+and a <code>render</code> target that parses the file’s markdown and generates a HTML
+output file</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-trait MyModule extends Module {
-  def crossVersion: String
-  implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
-    def resolve[V &lt;: MyModule](c: Cross[V]): V = c.itemMap(List(crossVersion))
+def mdNameToHtml(s: String) = s.toLowerCase.replace(&quot;.md&quot;, &quot;.html&quot;)
+def mdNameToTitle(s: String) =
+  s.split('-').drop(1).mkString(&quot; &quot;).stripSuffix(&quot;.md&quot;)
+
+val posts = interp.watchValue {
+  os.list(millSourcePath / &quot;post&quot;).map(_.last).sorted
+}
+
+object post extends Cross[PostModule](posts)
+trait PostModule extends Cross.Module[String]{
+  def source = T.source(millSourcePath / crossValue)
+  def render = T{
+    val doc = Parser.builder().build().parse(os.read(source().path))
+    val title = mdNameToTitle(crossValue)
+    val rendered = doctype(&quot;html&quot;)(
+      html(
+        body(
+          h1(a(&quot;Blog&quot;, href := &quot;../index.html&quot;), &quot; / &quot;, title),
+          raw(HtmlRenderer.builder().build().render(doc))
+        )
+      )
+    )
+
+    os.write(T.dest /  mdNameToHtml(crossValue), rendered)
+    PathRef(T.dest / mdNameToHtml(crossValue))
   }
-}
-
-object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
-class FooModule(val crossVersion: String) extends MyModule {
-  def suffix = T { crossVersion }
-}
-
-object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
-class BarModule(val crossVersion: String) extends MyModule {
-  def longSuffix = T { &quot;_&quot; + foo().suffix() }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>While the example <code>resolver</code> simply looks up the target <code>Cross</code> value for the cross-module instance with the same <code>crossVersion</code>, you can make the resolver arbitrarily complex.
-E.g. the <code>resolver</code> for <code>mill.scalalib.CrossSbtModule</code> looks for a cross-module instance whose <code>scalaVersion</code> is binary compatible (e.g. 2.10.5 is compatible with 2.10.3) with the current cross-module.</p>
+<p>The last page we need to generate is the index page, listing out the various
+blog posts and providing links so we can navigate into them. To do this, we
+need to wrap the <code>posts</code> value in a <code>T.input</code>, as it can change depending on
+what <code>os.list</code> finds on disk. After that, it’s straightforward to render the
+<code>index.html</code> file we want:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def postsInput = T.input{ posts }
+
+def renderIndexEntry(mdName: String) = {
+  h2(a(mdNameToTitle(mdName), href := (&quot;post/&quot; + mdNameToHtml(mdName))))
+}
+
+def index = T{
+  val rendered = doctype(&quot;html&quot;)(
+    html(body(h1(&quot;Blog&quot;), postsInput().map(renderIndexEntry)))
+  )
+  os.write(T.dest / &quot;index.html&quot;, rendered)
+  PathRef(T.dest / &quot;index.html&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Lastly we copy the individual post HTML files and the <code>index.html</code> file
+into a single target’s <code>.dest</code> folder, and return it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def dist = T {
+  for (post &lt;- T.traverse(post.crossModules)(_.render)()) {
+    os.copy(post.path, T.dest / &quot;post&quot; / post.path.last, createFolders = true)
+  }
+  os.copy(index().path, T.dest / &quot;index.html&quot;)
+  PathRef(T.dest)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, you can run <code>mill dist</code> to generate the blog:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill dist
+
+&gt; cat out/dist.dest/index.html                    # root index page
+...
+...&lt;a href=&quot;post/1-my-first-post.html&quot;&gt;My First Post&lt;/a&gt;...
+...&lt;a href=&quot;post/2-my-second-post.html&quot;&gt;My Second Post&lt;/a&gt;...
+...&lt;a href=&quot;post/3-my-third-post.html&quot;&gt;My Third Post&lt;/a&gt;...
+
+&gt; cat out/dist.dest/post/1-my-first-post.html     # blog post page
+...
+...&lt;p&gt;Text contents of My First Post&lt;/p&gt;...</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/BlogIndex.png" alt="BlogIndex.png" />
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/BlogPost.png" alt="BlogPost.png" />
+</div>
+</div>
+<div class="paragraph">
+<p>This static blog automatically picks up new blog posts you add to the
+<code>post/</code> folder, and when you edit your posts it only re-parses and
+re-renders the markdown files that you changed. You can use <code>-w</code> to watch
+the posts folder to automatically re-run the <code>dist</code> command if a post
+changes, or <code>-j</code> e.g. <code>./mill -j 4 dist</code> to enable parallelism if there are
+enough posts that the build is becoming noticeably slow.</p>
+</div>
+<div class="paragraph">
+<p>You can also build each individual post directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show &quot;post[1-My-First-Post.md].render&quot;
+&quot;.../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html&quot;
+
+&gt; cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html
+...
+...&lt;p&gt;Text contents of My First Post&lt;/p&gt;...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All caching, incremental re-computation, and parallelism is done using the
+Mill target graph. For this simple example, the graph is as follows</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/BlogGraph.svg" alt="BlogGraph.svg" />
+</div>
+</div>
+<div class="paragraph">
+<p>This example use case is taken from the following blog post, which contains
+some extensions and fun exercises to further familiarize yourself with Mill</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.lihaoyi.com/post/HowtocreateBuildPipelinesinScala.html">How to create Build Pipelines in Scala</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -648,10 +1056,6 @@ E.g. the <code>resolver</code> for <code>mill.scalalib.CrossSbtModule</code> loo
   </div>
 </main>
 </div>
-<footer class="footer">
-  <p>This page was built using the Antora default UI.</p>
-  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
-</footer>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
 <script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>

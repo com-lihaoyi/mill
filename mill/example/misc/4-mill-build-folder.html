@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Untitled :: Mill</title>
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/example/misc/4-mill-build-folder.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script>var uiRootPath = '../../../_'</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../../_/logo-white.svg" height="20" /> Mill</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://com-lihaoyi.github.io/mill/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat</a>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Intro_to_Mill.html">Introduction to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Scala_Module_Config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Web_Build_Examples.html">Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Out_Dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Cross_Builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Extending_Mill.html">Extending Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Plugins</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Using_Plugins.html">Using Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../../Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../Plugin_BSP.html">BSP - Build Server Protocol</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../External_References.html">External References</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://com-lihaoyi.github.io/mill/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.11.0-M7-44-abe800</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../../index.html">Mill Documentation</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../../index.html">0.11.0-M7-44-abe800</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.12/index.html">0.10.12</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.0/index.html">0.10.0</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../../Intro_to_Mill.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-44-abe800</button>
+  <div class="version-menu">
+    <a class="version is-current" href="4-mill-build-folder.html">0.11.0-M7-44-abe800</a>
+    <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
+    <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
+    <a class="version is-missing" href="../../0.10.0/index.html">0.10.0</a>
+    <a class="version is-missing" href="../../0.9.12/index.html">0.9.12</a>
+  </div>
+</div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/example/misc/4-mill-build-folder.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-misc-4-mill-build-folder.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/4-mill-build-folder">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+import scalatags.Text.all._
+
+object foo extends RootModule with ScalaModule {
+  def scalaVersion = millbuild.ScalaVersion.myScalaVersion
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.9.1&quot;)
+
+  def htmlSnippet = T{ h1(&quot;hello&quot;).toString }
+  def resources = T.sources{
+    os.write(T.dest / &quot;snippet.txt&quot;, htmlSnippet())
+    super.resources() ++ Seq(PathRef(T.dest))
+  }
+
+  def forkArgs = Seq(
+    s&quot;-Dmill.scalatags.version=${millbuild.DepVersions.scalatagsVersion}&quot;
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example illustrates usage of the <code>mill-build/</code> folder. Mill’s <code>build.sc</code>
+file and it’s <code>import $file</code> and <code>$ivy</code> are a shorthand syntax for defining
+a Mill <code>ScalaModule</code>, with sources and <code>ivyDeps</code> and so on, which is
+compiled and executed to perform your build. This module lives in
+<code>mill-build/</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">mill-build/build.sc (<a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/4-mill-build-folder/mill-build/build.sc">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object millbuild extends MillBuildRootModule{
+  val scalatagsVersion = &quot;0.8.2&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
+
+  def generatedSources = T {
+    os.write(
+      T.dest / &quot;DepVersions.scala&quot;,
+      s&quot;&quot;&quot;package millbuild
+object DepVersions{
+  def scalatagsVersion = &quot;$scalatagsVersion&quot;
+}
+&quot;&quot;&quot;.stripMargin
+    )
+    super.generatedSources() ++ Seq(PathRef(T.dest))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">mill-build/src/ScalaVersion.scala (<a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/4-mill-build-folder/mill-build/src/ScalaVersion.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
+object ScalaVersion{
+  def myScalaVersion = &quot;2.13.10&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Our <code>myScalaVersion</code> value comes from <code>mill-build/src/Versions.scala</code>,
+while the Scalatags library we use in <code>build.sc</code> comes from the
+<code>def ivyDeps</code> in <code>mill-build/build.sc</code>.</p>
+</li>
+<li>
+<p>We also use <code>generatedSources</code> in <code>mill-build/build.sc</code> to create a
+<code>DepVersions</code> object that the <code>build.sc</code> can use to pass the
+<code>scalatagsVersion</code> to the application without having to copy-paste the
+version and keep the two copies in sync</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You can customize the <code>mill-build/</code> module with more flexibility than is
+provided by <code>import $ivy</code> or <code>import $file</code>, overriding any tasks that are
+present on a typical <code>ScalaModule</code>: <code>scalacOptions</code>, <code>generatedSources</code>, etc.
+This is useful for large projects where the build itself is a non-trivial
+module which requires its own non-trivial customization.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill compile
+compiling 1 Scala source...
+...
+
+&gt; ./mill run
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+scalatagsVersion: 0.8.2
+
+&gt; ./mill show assembly
+&quot;.../out/assembly.dest/out.jar&quot;
+
+&gt; ./out/assembly.dest/out.jar # mac/linux
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+scalatagsVersion: 0.8.2</code></pre>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

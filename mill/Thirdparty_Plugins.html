@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Third-Party Plugins :: Mill</title>
     <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Thirdparty_Plugins.html" />
-    <link rel="prev" href="Plugin_VersionFile.html" />
-    <link rel="next" href="External_References.html" />
+    <link rel="prev" href="contrib/versionfile.html" />
+    <link rel="next" href="Mill_Design_Principles.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script>var uiRootPath = '../_'</script>
@@ -30,19 +30,11 @@
     </div>
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
-        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Home</a>
-        <div class="navbar-item has-dropdown is-hoverable">
-        <a class="navbar-link" href="#">Plugins</a>
-        </div>
-        <div class="navbar-item has-dropdown is-hoverable">
-          <a class="navbar-link" href="#">Community</a>
-          <div class="navbar-dropdown">
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issue Tracker (GitHub)</a>
-            <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat (Gitter)</a>
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss (GitHub)</a>
-          </div>
-        </div>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://com-lihaoyi.github.io/mill/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat</a>
 
             <!--
         <a class="navbar-item" href="#">Home</a>
@@ -86,129 +78,179 @@
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
   <nav class="nav-menu">
-    <h3 class="title"><a href="index.html">Mill Documentation</a></h3>
 <ul class="nav-list">
-  <li class="nav-item" data-depth="0">
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Quick Start</span>
 <ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Installation.html">Installation</a>
+    <a class="nav-link" href="Installation_IDE_Support.html">Installation and IDE Support</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Getting_Started.html">Getting Started</a>
+    <a class="nav-link" href="Builtin_Commands.html">Built-in Commands</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="IDE_Support.html">IDE Support</a>
+    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+    <a class="nav-link" href="Scala_Module_Config.html">Scala Module Configuration</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Configuration.html">Configuring your Project</a>
+    <a class="nav-link" href="Web_Build_Examples.html">Web Build Examples</a>
   </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Tasks.html">Tasks</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
-  </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Modules.html">Modules</a>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Plugins</span>
+<ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
-  </li>
+
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
 <ul class="nav-list">
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Artifactory.html">Artifactory</a>
+    <a class="nav-link" href="contrib/artifactory.html">Artifactory</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Bintray.html">Bintray</a>
+    <a class="nav-link" href="contrib/bintray.html">Bintray</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Bloop.html">Bloop</a>
+    <a class="nav-link" href="contrib/bloop.html">Bloop</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
+    <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
   </li>
+
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
+    <a class="nav-link" href="contrib/codeartifact.html">Codeartifact</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Docker.html">Docker</a>
+    <a class="nav-link" href="contrib/docker.html">Docker</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
+    <a class="nav-link" href="contrib/flyway.html">Flyway</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
+    <a class="nav-link" href="contrib/gitlab.html">Gitlab</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Jmh.html">JMH</a>
+    <a class="nav-link" href="contrib/jmh.html">JMH</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
+    <a class="nav-link" href="contrib/playlib.html">Play Framework</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
+    <a class="nav-link" href="contrib/proguard.html">Proguard</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
+    <a class="nav-link" href="contrib/scalapblib.html">ScalaPB</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
+    <a class="nav-link" href="contrib/scoverage.html">Scoverage</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
+    <a class="nav-link" href="contrib/testng.html">TestNG</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
+    <a class="nav-link" href="contrib/twirllib.html">Twirl</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
+    <a class="nav-link" href="contrib/versionfile.html">Version file</a>
   </li>
 </ul>
   </li>
+
   <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="External_References.html">External References</a>
-<ul class="nav-list">
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_ammonite">Ammonite</a>
-  </li>
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_coursier">Coursier</a>
-  </li>
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_os_lib">OS-Lib</a>
-  </li>
 </ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="External_References.html">External References</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://com-lihaoyi.github.io/mill/api/latest/mill/index.html">Mill Scaladoc</a>
   </li>
 </ul>
   </li>
@@ -218,95 +260,26 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M7-43-8dfcea</span>
+    <span class="version">0.11.0-M7-44-abe800</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M7-43-8dfcea</a>
+          <a href="index.html">0.11.0-M7-44-abe800</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
         </li>
         <li class="version">
-          <a href="0.11.0-M6/index.html">0.11.0-M6</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M5/index.html">0.11.0-M5</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M4/index.html">0.11.0-M4</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M3/index.html">0.11.0-M3</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M2/index.html">0.11.0-M2</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M1/index.html">0.11.0-M1</a>
-        </li>
-        <li class="version">
           <a href="0.10.12/index.html">0.10.12</a>
-        </li>
-        <li class="version">
-          <a href="0.10.11/index.html">0.10.11</a>
-        </li>
-        <li class="version">
-          <a href="0.10.10/index.html">0.10.10</a>
-        </li>
-        <li class="version">
-          <a href="0.10.9/index.html">0.10.9</a>
-        </li>
-        <li class="version">
-          <a href="0.10.8/index.html">0.10.8</a>
-        </li>
-        <li class="version">
-          <a href="0.10.7/index.html">0.10.7</a>
-        </li>
-        <li class="version">
-          <a href="0.10.6/index.html">0.10.6</a>
-        </li>
-        <li class="version">
-          <a href="0.10.5/index.html">0.10.5</a>
-        </li>
-        <li class="version">
-          <a href="0.10.4/index.html">0.10.4</a>
-        </li>
-        <li class="version">
-          <a href="0.10.3/index.html">0.10.3</a>
-        </li>
-        <li class="version">
-          <a href="0.10.2/index.html">0.10.2</a>
-        </li>
-        <li class="version">
-          <a href="0.10.1/index.html">0.10.1</a>
         </li>
         <li class="version">
           <a href="0.10.0/index.html">0.10.0</a>
         </li>
         <li class="version">
           <a href="0.9.12/index.html">0.9.12</a>
-        </li>
-        <li class="version">
-          <a href="0.9.11/index.html">0.9.11</a>
-        </li>
-        <li class="version">
-          <a href="0.9.10/index.html">0.9.10</a>
-        </li>
-        <li class="version">
-          <a href="0.9.9/index.html">0.9.9</a>
-        </li>
-        <li class="version">
-          <a href="0.9.8/index.html">0.9.8</a>
-        </li>
-        <li class="version">
-          <a href="0.9.7/index.html">0.9.7</a>
-        </li>
-        <li class="version">
-          <a href="0.9.6/index.html">0.9.6</a>
         </li>
       </ul>
     </li>
@@ -322,43 +295,21 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
+    <li>Mill Plugins</li>
     <li><a href="Thirdparty_Plugins.html">Third-Party Plugins</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-43-8dfcea</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-44-abe800</button>
   <div class="version-menu">
-    <a class="version is-current" href="Thirdparty_Plugins.html">0.11.0-M7-43-8dfcea</a>
+    <a class="version is-current" href="Thirdparty_Plugins.html">0.11.0-M7-44-abe800</a>
     <a class="version" href="0.11.0-M7/Thirdparty_Plugins.html">0.11.0-M7</a>
-    <a class="version" href="0.11.0-M6/Thirdparty_Plugins.html">0.11.0-M6</a>
-    <a class="version" href="0.11.0-M5/Thirdparty_Plugins.html">0.11.0-M5</a>
-    <a class="version" href="0.11.0-M4/Thirdparty_Plugins.html">0.11.0-M4</a>
-    <a class="version" href="0.11.0-M3/Thirdparty_Plugins.html">0.11.0-M3</a>
-    <a class="version" href="0.11.0-M2/Thirdparty_Plugins.html">0.11.0-M2</a>
-    <a class="version" href="0.11.0-M1/Thirdparty_Plugins.html">0.11.0-M1</a>
     <a class="version" href="0.10.12/Thirdparty_Plugins.html">0.10.12</a>
-    <a class="version" href="0.10.11/Thirdparty_Plugins.html">0.10.11</a>
-    <a class="version" href="0.10.10/Thirdparty_Plugins.html">0.10.10</a>
-    <a class="version" href="0.10.9/Thirdparty_Plugins.html">0.10.9</a>
-    <a class="version" href="0.10.8/Thirdparty_Plugins.html">0.10.8</a>
-    <a class="version" href="0.10.7/Thirdparty_Plugins.html">0.10.7</a>
-    <a class="version" href="0.10.6/Thirdparty_Plugins.html">0.10.6</a>
-    <a class="version" href="0.10.5/Thirdparty_Plugins.html">0.10.5</a>
-    <a class="version" href="0.10.4/Thirdparty_Plugins.html">0.10.4</a>
-    <a class="version" href="0.10.3/Thirdparty_Plugins.html">0.10.3</a>
-    <a class="version" href="0.10.2/Thirdparty_Plugins.html">0.10.2</a>
-    <a class="version" href="0.10.1/Thirdparty_Plugins.html">0.10.1</a>
     <a class="version" href="0.10.0/Thirdparty_Plugins.html">0.10.0</a>
     <a class="version" href="0.9.12/Thirdparty_Plugins.html">0.9.12</a>
-    <a class="version" href="0.9.11/Thirdparty_Plugins.html">0.9.11</a>
-    <a class="version" href="0.9.10/Thirdparty_Plugins.html">0.9.10</a>
-    <a class="version is-missing" href="0.9.9/index.html">0.9.9</a>
-    <a class="version is-missing" href="0.9.8/index.html">0.9.8</a>
-    <a class="version is-missing" href="0.9.7/index.html">0.9.7</a>
-    <a class="version is-missing" href="0.9.6/index.html">0.9.6</a>
   </div>
 </div>
-  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/antora/modules/ROOT/pages/Thirdparty_Plugins.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/Thirdparty_Plugins.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -403,8 +354,6 @@ The usage examples given here are most probably incomplete and sometimes outdate
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/ml86/mill-antlr" class="bare">https://github.com/ml86/mill-antlr</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart"><a class="anchor" href="#_quickstart"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`net.mlbox::mill-antlr:0.1.0`
@@ -419,7 +368,6 @@ object foo extends ScalaModule with AntlrModule {
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_aspectj"><a class="anchor" href="#_aspectj"></a>AspectJ</h2>
 <div class="sectionbody">
@@ -429,8 +377,6 @@ object foo extends ScalaModule with AntlrModule {
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lefou/mill-aspectj" class="bare">https://github.com/lefou/mill-aspectj</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_2"><a class="anchor" href="#_quickstart_2"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
@@ -455,7 +401,6 @@ object main extends AspectjModule {
 </div>
 <div class="paragraph">
 <p>For documentation, please refer to the <a href="https://github.com/lefou/mill-aspectj">project home page</a>.</p>
-</div>
 </div>
 </div>
 </div>
@@ -497,8 +442,6 @@ imitates.</p>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/ckipp01/mill-ci-release" class="bare">https://github.com/ckipp01/mill-ci-release</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_3"><a class="anchor" href="#_quickstart_3"></a>Quickstart</h3>
 <div class="paragraph">
 <p>To get started, you’ll want to use <code>CiReleaseModule</code> as a drop in replacement
 where you’d normally use the Mill <code>PublishModule</code> and then ensure you implement
@@ -526,7 +469,6 @@ Snapshots or to the normal releases if it’s a new tag.</p>
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_dgraph"><a class="anchor" href="#_dgraph"></a>DGraph</h2>
 <div class="sectionbody">
@@ -536,8 +478,6 @@ Snapshots or to the normal releases if it’s a new tag.</p>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/ajrnz/mill-dgraph" class="bare">https://github.com/ajrnz/mill-dgraph</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_4"><a class="anchor" href="#_quickstart_4"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`</code></pre>
@@ -546,7 +486,6 @@ Snapshots or to the normal releases if it’s a new tag.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">sh&gt; mill plugin.dgraph.browseDeps(proj)()</code></pre>
-</div>
 </div>
 </div>
 </div>
@@ -574,8 +513,6 @@ Snapshots or to the normal releases if it’s a new tag.</p>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/davoclavo/mill-ensime" class="bare">https://github.com/davoclavo/mill-ensime</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_5"><a class="anchor" href="#_quickstart_5"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
@@ -605,7 +542,6 @@ import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`</code></pre>
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_explicit_deps"><a class="anchor" href="#_explicit_deps"></a>Explicit Deps</h2>
 <div class="sectionbody">
@@ -615,8 +551,6 @@ import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`</code></pre>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/kierendavies/mill-explicit-deps" class="bare">https://github.com/kierendavies/mill-explicit-deps</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_6"><a class="anchor" href="#_quickstart_6"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
 <div class="content">
@@ -644,7 +578,6 @@ main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencie
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_fish_completion"><a class="anchor" href="#_fish_completion"></a>Fish Completion</h2>
 <div class="sectionbody">
@@ -667,8 +600,6 @@ working targets for your template after generation.</p>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/ckipp01/mill-giter8" class="bare">https://github.com/ckipp01/mill-giter8</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_7"><a class="anchor" href="#_quickstart_7"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
 <div class="content">
@@ -684,7 +615,6 @@ object g8 extends G8Module {
 </div>
 <div class="paragraph">
 <p>The most common target you’d then use is <code>mill g8.validate</code>.</p>
-</div>
 </div>
 </div>
 </div>
@@ -740,8 +670,6 @@ Submission API</a>.</p>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/ckipp01/mill-github-dependency-graph" class="bare">https://github.com/ckipp01/mill-github-dependency-graph</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_8"><a class="anchor" href="#_quickstart_8"></a>Quickstart</h3>
 <div class="paragraph">
 <p>The easiest way to use this plugin is with the
 <a href="https://github.com/ckipp01/mill-github-dependency-graph">mill-dependency-submission</a>
@@ -771,7 +699,6 @@ jobs:
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_integration_testing_mill_plugins"><a class="anchor" href="#_integration_testing_mill_plugins"></a>Integration Testing Mill Plugins</h2>
 <div class="sectionbody">
@@ -781,8 +708,6 @@ jobs:
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lefou/mill-integrationtest" class="bare">https://github.com/lefou/mill-integrationtest</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_9"><a class="anchor" href="#_quickstart_9"></a>Quickstart</h3>
 <div class="paragraph">
 <p>We assume, you have a mill plugin named <code>mill-demo</code></p>
 </div>
@@ -859,7 +784,6 @@ import $exec.plugins</code></pre>
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_jacoco_code_coverage"><a class="anchor" href="#_jacoco_code_coverage"></a>JaCoCo - Code Coverage</h2>
 <div class="sectionbody">
@@ -883,8 +807,6 @@ import $exec.plugins</code></pre>
 <div class="paragraph">
 <p>JBake home: <a href="https://jbake.org" class="bare">https://jbake.org</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_10"><a class="anchor" href="#_quickstart_10"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.sc
@@ -913,7 +835,6 @@ object site extends JBakeModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">bash&gt; mill site.jbakeServe</code></pre>
-</div>
 </div>
 </div>
 </div>
@@ -964,8 +885,6 @@ public class BuildInfo {
 }</code></pre>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_configuration_options"><a class="anchor" href="#_configuration_options"></a>Configuration options</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -999,7 +918,6 @@ public class BuildInfo {
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_kotlin"><a class="anchor" href="#_kotlin"></a>Kotlin</h2>
 <div class="sectionbody">
@@ -1009,8 +927,6 @@ public class BuildInfo {
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lefou/mill-kotlin" class="bare">https://github.com/lefou/mill-kotlin</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_11"><a class="anchor" href="#_quickstart_11"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// Load the plugin from Maven Central via ivy/coursier
@@ -1034,15 +950,11 @@ object main extends KotlinModule {
 }</code></pre>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_documentation"><a class="anchor" href="#_documentation"></a>Documentation</h3>
 <div class="paragraph">
 <p>For documentation please visit the <a href="https://github.com/lefou/mill-kotlin">mill-kotlin project page</a>.</p>
 </div>
 <div class="paragraph">
 <p>You will find there also a version compatibility matrix.</p>
-</div>
 </div>
 </div>
 </div>
@@ -1070,73 +982,10 @@ Scala MDoc simply compiles properly marked Scala snippets in plain md files and 
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lefou/millw" class="bare">https://github.com/lefou/millw</a></p>
 </div>
-<div class="sect2">
-<h3 id="_how_it_works"><a class="anchor" href="#_how_it_works"></a>How it works</h3>
 <div class="paragraph">
-<p><code>millw</code> is a small wrapper script around mill and works almost identical to mill. It automatically downloads a mill release into <code>$HOME/.mill/download</code>.</p>
-</div>
-<div class="paragraph">
-<p>The mill version to be used will be determined by the following steps. The search ends, after the first step that results in a version.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If the first parameter is <code>--mill-version</code>, the second parameter will be used as the mill version.
-Example</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>`
-  sh $ mill --mill-version 0.3.6 --disable-ticker version
-  0.3.6
-`</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If there is a file <code>.mill-version</code> in the working directory, it&rsquo;s content will be used as mill version. The file must have only a mill version as content, no additional content or comments are supported.
-Example</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>`
-  sh $ echo -n &quot;0.3.6&quot; &gt; .mill-version
-  sh $ mill --disable-ticker version
-  0.3.6
-`</p>
-</div>
-<div class="paragraph">
-<p>The values of the <code>DEFAULT_MILL_VERSION</code> variable inside the script will be used.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_use_cases"><a class="anchor" href="#_use_cases"></a>Use cases</h3>
-<div class="sect3">
-<h4 id="_as_mill_executable"><a class="anchor" href="#_as_mill_executable"></a>As mill executable</h4>
-<div class="paragraph">
-<p>Istead of installing mill, you can just place the script into you local <code>$HOME/bin</code> directory and rename it to <code>mill</code>.</p>
-</div>
-<div class="paragraph">
-<p>If you need a special mill version in a project directory, just place a <code>.mill-version</code> file with the best mill version.
-Example: setting mill 0.3.6 as best local mill version</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>sh $ echo -n &quot;0.3.6&quot; &gt; .mill-version</pre>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_as_a_wrapper_script_in_your_project"><a class="anchor" href="#_as_a_wrapper_script_in_your_project"></a>As a wrapper script in your project</h4>
-<div class="paragraph">
-<p>To make the start for others easier or to always have the correct mill version in your CI environment, you can just place a copy of the script as <code>millw</code> in your project root directory.</p>
-</div>
-<div class="paragraph">
-<p>You should change the <code>DEFAULT_MILL_VERSION</code> variable in that script to the correct version you want to use and add the file under version control.</p>
-</div>
-</div>
+<p><code>millw</code> is a small wrapper script around mill and works almost identical to
+mill, but with additional features and compatibility with Windows. It
+automatically downloads a mill release into <code>$HOME/.mill/download</code>.</p>
 </div>
 </div>
 </div>
@@ -1149,8 +998,6 @@ Example: setting mill 0.3.6 as best local mill version</p>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lolgab/mill-mima" class="bare">https://github.com/lolgab/mill-mima</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_12"><a class="anchor" href="#_quickstart_12"></a>Quickstart</h3>
 <div class="paragraph">
 <p>Just mix-in the <code>Mima</code> trait into your <code>ScalaModule</code>.
 And set the previous artifacts you want to check binary compatibility.</p>
@@ -1184,7 +1031,6 @@ Binary compatibility check passed.</code></pre>
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_osgi"><a class="anchor" href="#_osgi"></a>OSGi</h2>
 <div class="sectionbody">
@@ -1194,8 +1040,6 @@ Binary compatibility check passed.</code></pre>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lefou/mill-osgi" class="bare">https://github.com/lefou/mill-osgi</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_13"><a class="anchor" href="#_quickstart_13"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, mill.scalalib._
@@ -1214,7 +1058,6 @@ object project extends ScalaModule with OsgiBundleModule {
   // other settings ...
 
 }</code></pre>
-</div>
 </div>
 </div>
 </div>
@@ -1242,8 +1085,6 @@ object project extends ScalaModule with OsgiBundleModule {
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lefou/mill-publishM2" class="bare">https://github.com/lefou/mill-publishM2</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_14"><a class="anchor" href="#_quickstart_14"></a>Quickstart</h3>
 <div class="paragraph">
 <p>Just mix-in the <code>PublishM2Module</code> into your project.
 <code>PublishM2Module</code> already extends mill’s built-in <code>PublishModule</code>.</p>
@@ -1285,7 +1126,6 @@ Publishing to /tmp/m2repo</code></pre>
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_scalablytyped"><a class="anchor" href="#_scalablytyped"></a>ScalablyTyped</h2>
 <div class="sectionbody">
@@ -1295,8 +1135,6 @@ Publishing to /tmp/m2repo</code></pre>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lolgab/mill-scalablytyped" class="bare">https://github.com/lolgab/mill-scalablytyped</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_15"><a class="anchor" href="#_quickstart_15"></a>Quickstart</h3>
 <div class="paragraph">
 <p>Mix-in the <code>ScalablyTyped</code> trait into your <code>ScalaJSModule</code> and
 set-up a <code>package.json</code> file with your TypeScript dependencies.</p>
@@ -1320,7 +1158,6 @@ object main extends ScalaJSModule with ScalablyTyped {
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_scalafix"><a class="anchor" href="#_scalafix"></a>Scalafix</h2>
 <div class="sectionbody">
@@ -1330,8 +1167,6 @@ object main extends ScalaJSModule with ScalablyTyped {
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/joan38/mill-scalafix" class="bare">https://github.com/joan38/mill-scalafix</a></p>
 </div>
-<div class="sect2">
-<h3 id="_fix_sources"><a class="anchor" href="#_fix_sources"></a>Fix sources</h3>
 <div class="paragraph">
 <p><em>build.sc</em>:</p>
 </div>
@@ -1359,7 +1194,6 @@ project.fix A Scalafix linter error was reported</code></pre>
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_scip_scip_code_intelligence_protocol"><a class="anchor" href="#_scip_scip_code_intelligence_protocol"></a>SCIP (SCIP Code Intelligence Protocol)</h2>
 <div class="sectionbody">
@@ -1371,8 +1205,6 @@ code navigation on <a href="https://sourcegraph.com/">Sourcegraph</a>.</p>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/ckipp01/mill-scip" class="bare">https://github.com/ckipp01/mill-scip</a></p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_16"><a class="anchor" href="#_quickstart_16"></a>Quickstart</h3>
 <div class="paragraph">
 <p>The recommended way to use <code>mill-scip</code> is via the
 <a href="https://sourcegraph.github.io/scip-java/"><code>scip-java</code></a> cli tool that can be
@@ -1403,7 +1235,6 @@ Mill build will generate an index and place it at the root of your project.</p>
 <div class="paragraph">
 <p>This will then generate your <code>index.scip</code> inside of
 <code>out/io/kipp/mill/scip/Scip/generate.dest/</code>.</p>
-</div>
 </div>
 </div>
 </div>
@@ -1441,8 +1272,6 @@ Mill build will generate an index and place it at the root of your project.</p>
 <p>Lots of formatting options are provided.
 When used with its defaults, the outcome is identical to the version scheme that Mill itself uses.</p>
 </div>
-<div class="sect2">
-<h3 id="_quickstart_17"><a class="anchor" href="#_quickstart_17"></a>Quickstart</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
@@ -1455,7 +1284,6 @@ import de.tobiasroeser.mill.vcs.version.VcsVersion
 object main extends JavaModule with PublishModule {
   override def publishVersion: T[String] = VcsVersion.vcsState().format()
 }</code></pre>
-</div>
 </div>
 </div>
 </div>
@@ -1475,17 +1303,13 @@ object main extends JavaModule with PublishModule {
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="Plugin_VersionFile.html">Version file</a></span>
-  <span class="next"><a href="External_References.html">External References</a></span>
+  <span class="prev"><a href="contrib/versionfile.html">Version file</a></span>
+  <span class="next"><a href="Mill_Design_Principles.html">Mill Design Principles</a></span>
 </nav>
 </article>
   </div>
 </main>
 </div>
-<footer class="footer">
-  <p>This page was built using the Antora default UI.</p>
-  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
-</footer>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
 <script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>

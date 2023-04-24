@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Tasks :: Mill</title>
     <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Tasks.html" />
-    <link rel="prev" href="Common_Project_Layouts.html" />
-    <link rel="next" href="Task_Context_API.html" />
+    <link rel="prev" href="Out_Dir.html" />
+    <link rel="next" href="Modules.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script>var uiRootPath = '../_'</script>
@@ -30,19 +30,11 @@
     </div>
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
-        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Home</a>
-        <div class="navbar-item has-dropdown is-hoverable">
-        <a class="navbar-link" href="#">Plugins</a>
-        </div>
-        <div class="navbar-item has-dropdown is-hoverable">
-          <a class="navbar-link" href="#">Community</a>
-          <div class="navbar-dropdown">
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issue Tracker (GitHub)</a>
-            <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat (Gitter)</a>
-            <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss (GitHub)</a>
-          </div>
-        </div>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://com-lihaoyi.github.io/mill/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat</a>
 
             <!--
         <a class="navbar-item" href="#">Home</a>
@@ -86,129 +78,179 @@
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
   <nav class="nav-menu">
-    <h3 class="title"><a href="index.html">Mill Documentation</a></h3>
 <ul class="nav-list">
-  <li class="nav-item" data-depth="0">
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Quick Start</span>
 <ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Installation.html">Installation</a>
+    <a class="nav-link" href="Installation_IDE_Support.html">Installation and IDE Support</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Getting_Started.html">Getting Started</a>
+    <a class="nav-link" href="Builtin_Commands.html">Built-in Commands</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="IDE_Support.html">IDE Support</a>
+    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+    <a class="nav-link" href="Scala_Module_Config.html">Scala Module Configuration</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Configuration.html">Configuring your Project</a>
+    <a class="nav-link" href="Web_Build_Examples.html">Web Build Examples</a>
   </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
   </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
   </li>
+
   <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="Tasks.html">Tasks</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
-  </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Modules.html">Modules</a>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Plugins</span>
+<ul class="nav-list">
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
-  </li>
+
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
 <ul class="nav-list">
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Artifactory.html">Artifactory</a>
+    <a class="nav-link" href="contrib/artifactory.html">Artifactory</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Bintray.html">Bintray</a>
+    <a class="nav-link" href="contrib/bintray.html">Bintray</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Bloop.html">Bloop</a>
+    <a class="nav-link" href="contrib/bloop.html">Bloop</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
+    <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
   </li>
+
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
+    <a class="nav-link" href="contrib/codeartifact.html">Codeartifact</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Docker.html">Docker</a>
+    <a class="nav-link" href="contrib/docker.html">Docker</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
+    <a class="nav-link" href="contrib/flyway.html">Flyway</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
+    <a class="nav-link" href="contrib/gitlab.html">Gitlab</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Jmh.html">JMH</a>
+    <a class="nav-link" href="contrib/jmh.html">JMH</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
+    <a class="nav-link" href="contrib/playlib.html">Play Framework</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
+    <a class="nav-link" href="contrib/proguard.html">Proguard</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
+    <a class="nav-link" href="contrib/scalapblib.html">ScalaPB</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
+    <a class="nav-link" href="contrib/scoverage.html">Scoverage</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
+    <a class="nav-link" href="contrib/testng.html">TestNG</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
+    <a class="nav-link" href="contrib/twirllib.html">Twirl</a>
   </li>
+
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
+    <a class="nav-link" href="contrib/versionfile.html">Version file</a>
   </li>
 </ul>
   </li>
+
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="External_References.html">External References</a>
-<ul class="nav-list">
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_ammonite">Ammonite</a>
-  </li>
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_coursier">Coursier</a>
-  </li>
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="External_References.html#_os_lib">OS-Lib</a>
-  </li>
 </ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="External_References.html">External References</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://com-lihaoyi.github.io/mill/api/latest/mill/index.html">Mill Scaladoc</a>
   </li>
 </ul>
   </li>
@@ -218,95 +260,26 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M7-43-8dfcea</span>
+    <span class="version">0.11.0-M7-44-abe800</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M7-43-8dfcea</a>
+          <a href="index.html">0.11.0-M7-44-abe800</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
         </li>
         <li class="version">
-          <a href="0.11.0-M6/index.html">0.11.0-M6</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M5/index.html">0.11.0-M5</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M4/index.html">0.11.0-M4</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M3/index.html">0.11.0-M3</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M2/index.html">0.11.0-M2</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M1/index.html">0.11.0-M1</a>
-        </li>
-        <li class="version">
           <a href="0.10.12/index.html">0.10.12</a>
-        </li>
-        <li class="version">
-          <a href="0.10.11/index.html">0.10.11</a>
-        </li>
-        <li class="version">
-          <a href="0.10.10/index.html">0.10.10</a>
-        </li>
-        <li class="version">
-          <a href="0.10.9/index.html">0.10.9</a>
-        </li>
-        <li class="version">
-          <a href="0.10.8/index.html">0.10.8</a>
-        </li>
-        <li class="version">
-          <a href="0.10.7/index.html">0.10.7</a>
-        </li>
-        <li class="version">
-          <a href="0.10.6/index.html">0.10.6</a>
-        </li>
-        <li class="version">
-          <a href="0.10.5/index.html">0.10.5</a>
-        </li>
-        <li class="version">
-          <a href="0.10.4/index.html">0.10.4</a>
-        </li>
-        <li class="version">
-          <a href="0.10.3/index.html">0.10.3</a>
-        </li>
-        <li class="version">
-          <a href="0.10.2/index.html">0.10.2</a>
-        </li>
-        <li class="version">
-          <a href="0.10.1/index.html">0.10.1</a>
         </li>
         <li class="version">
           <a href="0.10.0/index.html">0.10.0</a>
         </li>
         <li class="version">
           <a href="0.9.12/index.html">0.9.12</a>
-        </li>
-        <li class="version">
-          <a href="0.9.11/index.html">0.9.11</a>
-        </li>
-        <li class="version">
-          <a href="0.9.10/index.html">0.9.10</a>
-        </li>
-        <li class="version">
-          <a href="0.9.9/index.html">0.9.9</a>
-        </li>
-        <li class="version">
-          <a href="0.9.8/index.html">0.9.8</a>
-        </li>
-        <li class="version">
-          <a href="0.9.7/index.html">0.9.7</a>
-        </li>
-        <li class="version">
-          <a href="0.9.6/index.html">0.9.6</a>
         </li>
       </ul>
     </li>
@@ -322,43 +295,21 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
+    <li>Mill In Depth</li>
     <li><a href="Tasks.html">Tasks</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-43-8dfcea</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-44-abe800</button>
   <div class="version-menu">
-    <a class="version is-current" href="Tasks.html">0.11.0-M7-43-8dfcea</a>
+    <a class="version is-current" href="Tasks.html">0.11.0-M7-44-abe800</a>
     <a class="version" href="0.11.0-M7/Tasks.html">0.11.0-M7</a>
-    <a class="version" href="0.11.0-M6/Tasks.html">0.11.0-M6</a>
-    <a class="version" href="0.11.0-M5/Tasks.html">0.11.0-M5</a>
-    <a class="version" href="0.11.0-M4/Tasks.html">0.11.0-M4</a>
-    <a class="version" href="0.11.0-M3/Tasks.html">0.11.0-M3</a>
-    <a class="version" href="0.11.0-M2/Tasks.html">0.11.0-M2</a>
-    <a class="version" href="0.11.0-M1/Tasks.html">0.11.0-M1</a>
     <a class="version" href="0.10.12/Tasks.html">0.10.12</a>
-    <a class="version" href="0.10.11/Tasks.html">0.10.11</a>
-    <a class="version" href="0.10.10/Tasks.html">0.10.10</a>
-    <a class="version" href="0.10.9/Tasks.html">0.10.9</a>
-    <a class="version" href="0.10.8/Tasks.html">0.10.8</a>
-    <a class="version" href="0.10.7/Tasks.html">0.10.7</a>
-    <a class="version" href="0.10.6/Tasks.html">0.10.6</a>
-    <a class="version" href="0.10.5/Tasks.html">0.10.5</a>
-    <a class="version" href="0.10.4/Tasks.html">0.10.4</a>
-    <a class="version" href="0.10.3/Tasks.html">0.10.3</a>
-    <a class="version" href="0.10.2/Tasks.html">0.10.2</a>
-    <a class="version" href="0.10.1/Tasks.html">0.10.1</a>
     <a class="version" href="0.10.0/Tasks.html">0.10.0</a>
     <a class="version" href="0.9.12/Tasks.html">0.9.12</a>
-    <a class="version" href="0.9.11/Tasks.html">0.9.11</a>
-    <a class="version" href="0.9.10/Tasks.html">0.9.10</a>
-    <a class="version" href="0.9.9/Tasks.html">0.9.9</a>
-    <a class="version" href="0.9.8/Tasks.html">0.9.8</a>
-    <a class="version" href="0.9.7/Tasks.html">0.9.7</a>
-    <a class="version" href="0.9.6/Tasks.html">0.9.6</a>
   </div>
 </div>
-  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/antora/modules/ROOT/pages/Tasks.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/Tasks.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -366,8 +317,7 @@
 </aside>
 <article class="doc">
 <h1 class="page">Tasks</h1>
-<div class="sect1">
-<h2 id="_task_graphs"><a class="anchor" href="#_task_graphs"></a>Task Graphs</h2>
+<div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
 <p>One of Mill’s core abstractions is its <em>Task Graph</em>: this is how Mill defines,
@@ -375,77 +325,177 @@ orders and caches work it needs to do, and exists independently of any support
 for building Scala.</p>
 </div>
 <div class="paragraph">
-<p>The following is a simple self-contained example using Mill to compile Java:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, mill.modules.Jvm
-
-// sourceRoot -&gt; allSources -&gt; classFiles
-//                                |
-//                                v
-//           resourceRoot ----&gt;  jar
-
-def sourceRoot = T.sources { T.workspace / &quot;src&quot; }
-
-def resourceRoot = T.sources { T.workspace / &quot;resources&quot; }
-
-def allSources = T { sourceRoot().flatMap(p =&gt; os.walk(p.path)).map(PathRef(_)) }
-
-def classFiles = T {
-  os.makeDir.all(T.dest)
-
-  os.proc(&quot;javac&quot;, allSources().map(_.path.toString()), &quot;-d&quot;, T.dest)
-    .call(cwd = T.dest)
-  PathRef(T.dest)
-}
-
-def jar = T { Jvm.createJar(Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
-
-def run(mainClsName: String) = T.command {
-  os.proc(&quot;java&quot;, &quot;-cp&quot;, classFiles().path, mainClsName).call()
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Here, we have two <code>T.sources</code>, <code>sourceRoot</code> and <code>resourceRoot</code>, which act as the
-roots of our task graph. <code>allSources</code> depends on <code>sourceRoot</code> by calling
-<code>sourceRoot()</code> to extract its value, <code>classFiles</code> depends on <code>allSources</code> the
-same way, and <code>jar</code> depends on both <code>classFiles</code> and <code>resourceRoot</code>.</p>
-</div>
-<div class="paragraph">
-<p>Filesystem operations in Mill are done using the
-<a href="https://github.com/lihaoyi/os-lib">os-lib</a> library.</p>
-</div>
-<div class="paragraph">
-<p>The above build defines the following task graph:</p>
-</div>
-<div class="listingblock">
-<div class="title">Task graph for <code>jar</code></div>
-<div class="content">
-<pre>sourceRoot -&gt; allSources -&gt; classFiles
-                               |
-                               v
-          resourceRoot ----&gt;  jar</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>When you first evaluate <code>jar</code> (e.g. via <code>mill jar</code> at the command line), it will
-evaluate all the defined targets: <code>sourceRoot</code>, <code>allSources</code>, <code>classFiles</code>,
-<code>resourceRoot</code> and <code>jar</code>.</p>
-</div>
-<div class="paragraph">
-<p>Subsequent invocations of <code>mill jar</code> will evaluate only as much as is necessary, depending on what input sources changed:</p>
+<p>Mill target graphs are primarily built using methods and macros defined on
+<code>mill.define.Target</code>, aliased as <code>T</code> for conciseness:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>If the files in <code>sourceRoot</code> change, it will re-evaluate <code>allSources</code>,
-compiling to <code>classFiles</code>, and building the <code>jar</code></p>
+<p><a href="https://com-lihaoyi.github.io/mill/api/latest/mill/define/Target$.html">mill.define.Target</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_task_cheat_sheet"><a class="anchor" href="#_task_cheat_sheet"></a>Task Cheat Sheet</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following table might help you make sense of the small collection of
+different Task types:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 14.2857%;" />
+<col style="width: 14.2857%;" />
+<col style="width: 14.2857%;" />
+<col style="width: 14.2857%;" />
+<col style="width: 14.2857%;" />
+<col style="width: 14.2857%;" />
+<col style="width: 14.2858%;" />
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Target</th>
+<th class="tableblock halign-left valign-top">Command</th>
+<th class="tableblock halign-left valign-top">Source/Input</th>
+<th class="tableblock halign-left valign-top">Anonymous Task</th>
+<th class="tableblock halign-left valign-top">Persistent Target</th>
+<th class="tableblock halign-left valign-top">Worker</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cached to Disk</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON Writable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON Readable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CLI Runnable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Takes Arguments</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cached In-Memory</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following is a simple self-contained example using Mill to compile Java:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/1-task-graph">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+def sources = T.source(millSourcePath / &quot;src&quot;)
+def resources = T.source(millSourcePath / &quot;resources&quot;)
+
+def compile = T {
+  os.proc(&quot;javac&quot;, os.walk(sources().path), &quot;-d&quot;, T.dest).call(cwd = T.dest)
+  PathRef(T.dest)
+}
+
+def classPath = T{ Seq(compile(), resources()) }
+
+def jar = T {
+  for(cp &lt;- classPath()) os.copy(cp.path, T.dest, mergeFolders = true)
+  os.proc(&quot;jar&quot;, &quot;-cfe&quot;, T.dest / &quot;foo.jar&quot;, &quot;foo.Foo&quot;, &quot;.&quot;).call(cwd = T.dest)
+  PathRef(T.dest / &quot;foo.jar&quot;)
+}
+
+def run(args: String*) = T.command {
+  val classPathStr = classPath()
+    .map(_.path)
+    .mkString(sys.props(&quot;path.separator&quot;))
+
+  os.proc(&quot;java&quot;, &quot;-cp&quot;, classPathStr, &quot;foo.Foo&quot;, args)
+    .call(stdout = os.Inherit)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example does not use any of Mill’s builtin support for building Java or
+Scala projects, and instead builds a pipeline &quot;from scratch&quot; using Mill
+tasks and <code>javac</code>/<code>jar</code>/<code>java</code> subprocesses. We define <code>T.source</code> folders,
+plain <code>T{…​}</code> targets that depend on them, and a <code>T.command</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run hello # mac/linux
+
+&gt; ./mill show jar
+&quot;.../out/jar.dest/foo.jar&quot;
+
+&gt; java -jar out/jar.dest/foo.jar i am cow
+Foo.value: 31337
+args: i am cow
+foo.txt resource: My Example Text
+
+&gt; unzip -p out/jar.dest/foo.jar foo.txt
+My Example Text</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you first evaluate <code>jar</code> (e.g. via <code>mill jar</code> at the command line), it
+will evaluate all the defined targets: <code>sources</code>, <code>allSources</code>,
+<code>compile</code>, <code>resources</code> and <code>jar</code>.</p>
+</div>
+<div class="paragraph">
+<p>Subsequent invocations of <code>mill jar</code> will evaluate only as much as is
+necessary, depending on what input sources changed:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the files in <code>sources</code> change, it will re-evaluate <code>allSources</code>,
+compiling to <code>compile</code>, and building the <code>jar</code></p>
 </li>
 <li>
-<p>If the files in <code>resourceRoot</code> change, it will only re-evaluate <code>jar</code> and use
-the cached output of <code>allSources</code> and <code>classFiles</code></p>
+<p>If the files in <code>resources</code> change, it will only re-evaluate <code>jar</code> and
+use the cached output of <code>allSources</code> and <code>compile</code></p>
 </li>
 </ul>
 </div>
@@ -473,81 +523,228 @@ the cached output of <code>allSources</code> and <code>classFiles</code></p>
 <div class="sect2">
 <h3 id="_targets"><a class="anchor" href="#_targets"></a>Targets</h3>
 <div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/2-primary-tasks">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def allSources = T { os.walk(sourceRoot().path).map(PathRef(_)) }</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>Target</code>s are defined using the <code>def foo = T {…​}</code> syntax, and dependencies on
-other targets are defined using <code>foo()</code> to extract the value from them.
-Apart from the <code>foo()</code> calls, the <code>T {…​}</code> block contains arbitrary code that does some work and returns a result.</p>
-</div>
-<div class="paragraph">
-<p>Each target, e.g. <code>classFiles</code>, is assigned a path on disk as scratch space &amp; to
-store its output files at <code>out/classFiles.dest/</code>, and its returned metadata is
-automatically JSON-serialized and stored at <code>out/classFiles.json</code>.
-The return-value of targets has to be JSON-serializable via
-<a href="https://github.com/com-lihaoyi/upickle">uPickle</a>.</p>
-</div>
-<div class="paragraph">
-<p>In case you want return your own
-case class (e.g. <code>MyCaseClass</code>), you can make it JSON-serializable by adding the
-following implicit def to its companion object:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object MyCaseClass {
-  implicit def rw: upickle.default.ReadWriter[MyCaseClass] = upickle.default.macroRW
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+def allSources = T { os.walk(sources().path).map(PathRef(_)) }
+
+def lineCount: T[Int] = T {
+  println(&quot;Computing line count&quot;)
+  allSources()
+    .map(_.path)
+    .filter(_.ext == &quot;java&quot;)
+    .map(os.read.lines(_))
+    .map(_.size)
+    .sum
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If you want to return a file or a set of files as the result of a <code>Target</code>,
-write them to disk within your <code>T.dest</code> available through the
-<a href="Task_Context_API.html#_mill_api_ctx_dest" class="xref page">Task_Context_API.adoc#_mill_api_ctx_dest</a> and return a <code>PathRef(T.dest)</code>
-that hashes the files you wrote.</p>
-</div>
-<div class="paragraph">
-<p>If a target’s inputs change but its output does not, e.g. someone changes a
+<p><code>Target</code>s are defined using the <code>def foo = T {…​}</code> syntax, and dependencies
+on other targets are defined using <code>foo()</code> to extract the value from them.
+Apart from the <code>foo()</code> calls, the <code>T {…​}</code> block contains arbitrary code that
+does some work and returns a result.
+If a target’s inputs change but its output does not, e.g. someone changes a
 comment within the source files that doesn’t affect the classfiles, then
-downstream targets do not re-evaluate.
-This is determined using the <code>.hashCode</code> of the Target’s return value.
-For targets returning <code>os.Path</code>s that reference files on disk, you can wrap the <code>Path</code> in a <code>PathRef</code> (shown above) whose <code>.hashCode()</code> will include the hashes of all files on disk at time of creation.</p>
+downstream targets do not re-evaluate. This is determined using the
+<code>.hashCode</code> of the Target’s return value.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
+Computing line count
+18
+
+&gt; ./mill show lineCount # line count already cached, doesn't need to be computed
+18</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>The graph of inter-dependent targets is evaluated in topological order; that
+<p>The return-value of targets has to be JSON-serializable via
+<a href="https://github.com/com-lihaoyi/upickle">uPickle</a>. You can run targets directly from the command
+line, or use <code>show</code> if you want to see the JSON content or pipe it to
+external tools.
+Each target, e.g. <code>classFiles</code>, is assigned a <a href="https://com-lihaoyi.github.io/mill/api/latest/mill/api/Ctx.html#dest:os.Path">T.dest</a>
+folder e.g. <code>out/classFiles.dest/</code> on disk as scratch space &amp; to store its
+output files , and its returned metadata is automatically JSON-serialized
+and stored at <code>out/classFiles.json</code>. If you want to return a file or a set
+of files as the result of a <code>Target</code>, write them to disk within your <code>T.dest</code>
+folder and return a <code>PathRef()</code> that referencing the files or folders
+you want to return:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def classFiles = T {
+  println(&quot;Generating classfiles&quot;)
+
+  os.proc(&quot;javac&quot;, allSources().map(_.path.toString()), &quot;-d&quot;, T.dest)
+    .call(cwd = T.dest)
+
+  PathRef(T.dest)
+}
+
+def jar = T {
+  println(&quot;Generating jar&quot;)
+  os.copy(classFiles().path, T.dest, mergeFolders = true)
+  os.copy(resources().path, T.dest, mergeFolders = true)
+
+  os.proc(&quot;jar&quot;, &quot;-cfe&quot;, T.dest / &quot;foo.jar&quot;, &quot;foo.Foo&quot;, &quot;.&quot;).call(cwd = T.dest)
+
+  PathRef(T.dest / &quot;foo.jar&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jar
+Generating classfiles
+Generating jar
+
+&gt; ./mill show jar
+&quot;.../out/jar.dest/foo.jar&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Targets can depend on other targets via the <code>foo()</code> syntax.
+The graph of inter-dependent targets is evaluated in topological order; that
 means that the body of a target will not even begin to evaluate if one of its
-upstream dependencies has failed.
-This is unlike normal Scala functions: a plain old function <code>foo</code> would evaluate halfway and then blow up if one of <code>foo</code>'s dependencies throws an exception.</p>
+upstream dependencies has failed. Similar, even if the upstream targets is
+not used in one branch of an <code>if</code> condition, it will get computed regardless
+before the <code>if</code> condition is even considered.</p>
 </div>
 <div class="paragraph">
-<p>Targets cannot take parameters and must be 0-argument <code>def</code>s defined directly
-within a <code>Module</code> body.</p>
+<p>The following example demonstrates this behavior, with the <code>println</code> defined
+in <code>def largeFile</code> running even though the <code>largeFile()</code> branch of the
+<code>if</code> conditional does not get used:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def largeFile = T {
+  println(&quot;Finding Largest File&quot;)
+  allSources()
+    .map(_.path)
+    .filter(_.ext == &quot;java&quot;)
+    .maxBy(os.read.lines(_).size)
+}
+
+def hugeFileName = T{
+  if (lineCount() &gt; 999) largeFile().last
+  else &quot;&lt;no-huge-file&gt;&quot;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
+18
+
+&gt; ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() &lt; 999`
+Finding Largest File
+&quot;&lt;no-huge-file&gt;&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>uPickle comes with built-in support for most Scala primitive types and
+builtin data structures: tuples, collections, <code>PathRef</code>s, etc. can be
+returned and automatically serialized/de-serialized as necessary. One
+notable exception is <code>case class</code>es: if you want return your own
+<code>case class</code>, you must mark it JSON-serializable by adding the following
+<code>implicit</code> to its companion object:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">case class ClassFileData(totalFileSize: Long, largestFile: String)
+object ClassFileData {
+  implicit val rw: upickle.default.ReadWriter[ClassFileData] = upickle.default.macroRW
+}
+
+def summarizeClassFileStats = T{
+  val files = os.walk(classFiles().path)
+  ClassFileData(
+    totalFileSize = files.map(os.size(_)).sum,
+    largestFile = files.maxBy(os.size(_)).last
+  )
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
+{
+  &quot;totalFileSize&quot;: ...,
+  &quot;largestFile&quot;: &quot;...&quot;
+}</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sourceRootPath = os.pwd / &quot;src&quot;
-
-def sourceRoots = T.sources { sourceRootPath }</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sources = T.source { millSourcePath / &quot;src&quot; }
+def resources = T.source { millSourcePath / &quot;resources&quot; }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p><code>Source</code>s are defined using <code>T.sources {…​}</code>, taking one-or-more
-<code>os.Path</code>s as arguments.
-A <code>Source</code> is a subclass of <code>Target[Seq[PathRef]]</code>: this means that its build signature/<code>hashCode</code> depends not just on the path it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the filesystem tree under that path.</p>
+<code>os.Path</code>s as arguments. A <code>Source</code> is a subclass of <code>Target[Seq[PathRef]]</code>:
+this means that its build signature/<code>hashCode</code> depends not just on the path
+it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the filesystem
+tree under that path.</p>
 </div>
 <div class="paragraph">
-<p><code>T.sources</code> also has an overload which takes <code>Seq[PathRef]</code>, to let you
-override-and-extend source lists the same way you would any other <code>T {…​}</code>
+<p><code>T.source</code> and <code>T.sources</code> are the most common inputs to your Mill build:
+they watch source files and folders and cause downstream targets to
+re-compute if a change is detected.</p>
+</div>
+<div class="paragraph">
+<p>Note that even though a source file changed, that does not necessarily cause
+all transitive downstream targets to re-compute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jar # Cached from earlier
+
+&gt; printf &quot;\n&quot; &gt;&gt; src/Foo.java # Add a newline to the end of Foo.java
+
+&gt; ./mill jar # Classfiles recompiled but output unchanged, jar was not rebuilt
+Generating classfiles</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>T.sources</code> can be overriden with <code>super</code>, to let you
+override-and-extend source lists the same way you would any other target
 definition:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def additionalSources = T.sources { os.pwd / &quot;additionalSources&quot; }
-override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources() }</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Foo extends Module {
+  def sourceRoots = T.sources(millSourcePath / &quot;src&quot;)
+  def sourceContents = T{
+    sourceRoots()
+      .flatMap(pref =&gt; os.walk(pref.path))
+      .filter(_.ext == &quot;txt&quot;)
+      .sorted
+      .map(os.read(_))
+  }
+}
+
+trait Bar extends Foo {
+  def additionalSources = T.sources(millSourcePath / &quot;src2&quot;)
+  def sourceRoots = T { super.sourceRoots() ++ additionalSources() }
+}
+
+object bar extends Bar</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders
+[
+  &quot;File Data From src/&quot;,
+  &quot;File Data From src2/&quot;
+]</code></pre>
 </div>
 </div>
 </div>
@@ -555,8 +752,14 @@ override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources(
 <h3 id="_commands"><a class="anchor" href="#_commands"></a>Commands</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClsName: String) = T.command {
-  os.proc(&quot;java&quot;, &quot;-cp&quot;, classFiles().path, mainClsName).call()
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(args: String*) = T.command {
+  os.proc(
+      &quot;java&quot;,
+      &quot;-cp&quot;, s&quot;${classFiles().path}:${resources().path}&quot;,
+      &quot;foo.Foo&quot;,
+      args
+    )
+    .call(stdout = os.Inherit)
 }</code></pre>
 </div>
 </div>
@@ -606,19 +809,26 @@ path for consumption by external tools.</p>
 <div class="sect2">
 <h3 id="_anonymous_tasks"><a class="anchor" href="#_anonymous_tasks"></a>Anonymous Tasks</h3>
 <div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/3-anonymous-tasks">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def foo(x: Int) = T.task { ... x ... bar() ... }</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, define.Task
+
+def data = T.source(millSourcePath / &quot;data&quot;)
+
+def anonTask(fileName: String): Task[String] = T.task {
+  os.read(data().path / fileName)
+}
+
+def helloFileData = T { anonTask(&quot;hello.txt&quot;)() }
+def printFileData(fileName: String) = T.command {
+  println(anonTask(fileName)())
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can define anonymous tasks using the <code>T.task {…​}</code> syntax.
-These are not runnable from the command-line, but can be used to share common code you find yourself repeating in <code>Target</code>s and <code>Command</code>s.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def downstreamTarget = T { ... foo(42)() ... }
-def downstreamCommand(x: Int) = T.command { ... foo(x)() ... }</code></pre>
-</div>
+<p>You can define anonymous tasks using the <code>T.task {…​}</code> syntax. These are
+not runnable from the command-line, but can be used to share common code you
+find yourself repeating in <code>Target</code>s and <code>Command</code>s.</p>
 </div>
 <div class="paragraph">
 <p>Anonymous task’s output does not need to be JSON-serializable, their output is
@@ -633,36 +843,32 @@ downstream target <code>baz</code> and the upstream target <code>bar</code> hasn
 <code>baz</code>'s cached output will be used and <code>foo</code>'s evaluation will be skipped
 altogether.</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_persistent_targets"><a class="anchor" href="#_persistent_targets"></a>Persistent Targets</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def foo = T.persistent { ... }</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show helloFileData
+&quot;Hello&quot;
+
+&gt; ./mill printFileData hello.txt
+Hello
+
+&gt; ./mill printFileData world.txt
+World!</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>Identical to <a href="#_targets">Targets</a>, except that the <code>dest/</code> folder is not cleared in between runs.</p>
-</div>
-<div class="paragraph">
-<p>This is useful if you are running external incremental-compilers, such as
-Scala’s <a href="https://github.com/sbt/zinc">Zinc</a>, Javascript’s
-<a href="https://webpack.js.org/">WebPack</a>, which rely on filesystem caches to speed up
-incremental execution of their particular build step.</p>
-</div>
-<div class="paragraph">
-<p>Since Mill no longer forces a &quot;clean slate&quot; re-evaluation of <code>T.persistent</code>
-targets, it is up to you to ensure your code (or the third-party incremental
-compilers you rely on!) are deterministic. They should always converge to the
-same outputs for a given set of inputs, regardless of what builds and what
-filesystem states existed before.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_inputs"><a class="anchor" href="#_inputs"></a>Inputs</h3>
 <div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/4-inputs">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def foo = T.input { ... }</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+def myInput = T.input {
+  os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call(cwd = T.workspace)
+    .out
+    .text()
+    .trim()
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -672,70 +878,297 @@ arbitrary block of code.</p>
 </div>
 <div class="paragraph">
 <p>Inputs can be used to force re-evaluation of some external property that may
-affect your build. For example, if I have a <a href="#_targets">Target</a> <code>bar</code> that makes
-use of the current git version:</p>
+affect your build. For example, if I have a <a href="#_targets">Target</a> <code>bar</code> that
+calls out to <code>git</code> to compute the latest commit hash and message directly,
+that target does not have any <code>Task</code> inputs and so will never re-compute
+even if the external <code>git</code> status changes:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bar = T { ... os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call().out.text() ... }</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTarget = T {
+  &quot;v-&quot; +
+  os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
+    .call(cwd = T.workspace)
+    .out
+    .text()
+    .trim()
+}</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p><code>bar</code> will not know that <code>git rev-parse</code> can change, and will
-not know to re-evaluate when your <code>git rev-parse HEAD</code> <em>does</em> change. This means
-<code>bar</code> will continue to use any previously cached value, and <code>bar</code>'s output will
-be out of date!</p>
-</div>
-<div class="paragraph">
-<p>To fix this, you can wrap your <code>git rev-parse HEAD</code> in a <code>T.input</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def foo = T.input { os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call().out.text() }
-def bar = T { ... foo() ... }</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git init .
+&gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
+
+&gt; ./mill show gitStatusTarget
+&quot;v-...-Initial-Commit&quot;
+
+&gt; git commit --allow-empty -m &quot;Second-Commit&quot;
+
+&gt; ./mill show gitStatusTarget # Mill didn't pick up the git change!
+&quot;v-...-Initial-Commit&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This makes <code>foo</code> to always re-evaluate every build; if <code>git rev-parse HEAD</code>
-does not change, that will not invalidate <code>bar</code>'s caches.
-But if <code>git rev-parse HEAD</code> <em>does</em> change, <code>foo</code>'s output will change and <code>bar</code> will be correctly invalidated and re-compute using the new version of <code>foo</code>.</p>
+<p><code>gitStatusTarget</code> will not know that <code>git rev-parse</code> can change, and will
+not know to re-evaluate when your <code>git log</code> <em>does</em> change. This means
+<code>gitStatusTarget</code> will continue to use any previously cached value, and
+<code>gitStatusTarget</code>'s output will  be out of date!
+To fix this, you can wrap your <code>git log</code> in a <code>T.input</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusInput = T.input {
+  os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
+    .call(cwd = T.workspace)
+    .out
+    .text()
+    .trim()
+}
+def gitStatusTarget2 = T { &quot;v-&quot; + gitStatusInput() }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This makes <code>gitStatusInput</code> to always re-evaluate every build, and only if
+the output of <code>gitStatusInput</code> changes will <code>gitStatusTarget2</code> re-compute</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
+
+&gt; ./mill show gitStatusTarget2
+&quot;v-...-Initial-Commit&quot;
+
+&gt; git commit --allow-empty -m &quot;Second-Commit&quot;
+
+&gt; ./mill show gitStatusTarget2 # Mill picked up git change
+&quot;v-...-Second-Commit&quot;</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Note that because <code>T.input</code>s re-evaluate every time, you should ensure that the
 code you put in <code>T.input</code> runs quickly. Ideally it should just be a simple check
 &quot;did anything change?&quot; and any heavy-lifting should be delegated to downstream
-targets.</p>
+targets where it can be cached if possible.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_persistent_targets"><a class="anchor" href="#_persistent_targets"></a>Persistent Targets</h3>
+<div class="paragraph">
+<p>Persistent targets defined using <code>T.persistent</code> are similar to normal
+<code>Target</code>s, except their <code>T.dest</code> folder is not cleared before every
+evaluation. This makes them useful for caching things on disk in a more
+fine-grained manner than Mill’s own Target-level caching.</p>
+</div>
+<div class="paragraph">
+<p>Below is a semi-realistic example of using a <code>T.persistent</code> target:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-tasks-5-persistent-targets.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/5-persistent-targets">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+import java.util.Arrays
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
+
+def data = T.source(millSourcePath / &quot;data&quot;)
+
+def compressedData = T.persistent{
+  println(&quot;Evaluating compressedData&quot;)
+  os.makeDir.all(T.dest / &quot;cache&quot;)
+  os.remove.all(T.dest / &quot;compressed&quot;)
+
+  for(p &lt;- os.list(data().path)){
+    val compressedPath = T.dest / &quot;compressed&quot; / s&quot;${p.last}.gz&quot;
+    val bytes = os.read.bytes(p)
+    val hash = Arrays.hashCode(bytes)
+    val cachedPath = T.dest / &quot;cache&quot; / hash.toHexString
+    if (!os.exists(cachedPath)) {
+      println(&quot;Compressing: &quot; + p.last)
+      os.write(cachedPath, compressBytes(bytes))
+    } else {
+      println(&quot;Reading Cached from disk: &quot; + p.last)
+    }
+    os.copy(cachedPath, compressedPath, createFolders = true)
+  }
+
+  os.list(T.dest / &quot;compressed&quot;).map(PathRef(_))
+}
+
+def compressBytes(input: Array[Byte]) = {
+  val bos = new ByteArrayOutputStream(input.length)
+  val gzip = new GZIPOutputStream(bos)
+  gzip.write(input)
+  gzip.close()
+  bos.toByteArray
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, we implement a <code>compressedData</code> target that takes a folder
+of files in <code>inputData</code> and compresses them, while maintaining a cache of
+compressed contents for each file. That means that if the <code>inputData</code> folder
+is modified, but some files remain unchanged, those files would not be
+unnecessarily re-compressed when <code>compressedData</code> evaluates.</p>
+</div>
+<div class="paragraph">
+<p>Since persistent targets have long-lived state on disk that lives beyond a
+single evaluation, this raises the possibility of the disk contents getting
+into a bad state and causing all future evaluations to fail. It is left up
+to the person implementing the <code>T.persistent</code> to ensure their implementation
+is eventually consistent. You can also use <code>mill clean</code> to manually purge
+the disk contents to start fresh.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show compressedData
+Evaluating compressedData
+Compressing: hello.txt
+Compressing: world.txt
+[
+  &quot;.../hello.txt.gz&quot;,
+  &quot;.../world.txt.gz&quot;
+]
+
+&gt; ./mill compressedData # when no input changes, compressedData does not evaluate at all
+
+&gt; sed -i 's/Hello/HELLO/g' data/hello.txt
+
+&gt; ./mill compressedData # when one input file changes, only that file is re-compressed
+Compressing: hello.txt
+Reading Cached from disk: world.txt
+
+&gt; ./mill clean compressedData
+
+&gt; ./mill compressedData
+Evaluating compressedData
+Compressing: hello.txt
+Compressing: world.txt</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_workers"><a class="anchor" href="#_workers"></a>Workers</h3>
+<div class="paragraph">
+<p>Mill workers defined using <code>T.worker</code> are long-lived in-memory objects that
+can persistent across multiple evaluations. These are similar to persistent
+targets in that they let you cache things, but the fact that they let you
+cache the worker object in-memory allows for greater performance and
+flexibility: you are no longer limited to caching only serializable data
+and paying the cost of serializing it to disk every evaluation. This example
+uses a Worker to provide simple in-memory caching for compressed files.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/6-workers">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+import java.util.Arrays
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
+
+def data = T.source(millSourcePath / &quot;data&quot;)
+
+def compressWorker = T.worker{ new CompressWorker(T.dest) }
+
+def compressedData = T{
+  println(&quot;Evaluating compressedData&quot;)
+  for(p &lt;- os.list(data().path)){
+    os.write(
+      T.dest / s&quot;${p.last}.gz&quot;,
+      compressWorker().compress(p.last, os.read.bytes(p))
+    )
+  }
+  os.list(T.dest).map(PathRef(_))
+}
+
+class CompressWorker(dest: os.Path){
+  val cache = collection.mutable.Map.empty[Int, Array[Byte]]
+  def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
+    val hash = Arrays.hashCode(bytes)
+    if (!cache.contains(hash)) {
+      val cachedPath = dest / hash.toHexString
+      if (!os.exists(cachedPath)) {
+        println(&quot;Compressing: &quot; + name)
+        cache(hash) = compressBytes(bytes)
+        os.write(cachedPath, cache(hash))
+      }else{
+        println(&quot;Cached from disk: &quot; + name)
+        cache(hash) = os.read.bytes(cachedPath)
+      }
+    }else {
+      println(&quot;Cached from memory: &quot; + name)
+    }
+    cache(hash)
+  }
+}
+
+def compressBytes(input: Array[Byte]) = {
+  val bos = new ByteArrayOutputStream(input.length)
+  val gzip = new GZIPOutputStream(bos)
+  gzip.write(input)
+  gzip.close()
+  bos.toByteArray
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Common things to put in workers include:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>References to third-party daemon processes, e.g. Webpack or wkhtmltopdf,
+which perform their own in-memory caching</p>
+</li>
+<li>
+<p>Classloaders containing plugin code, to avoid classpath conflicts while
+also avoiding classloading cost every time the code is executed</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Workers live as long as the Mill process. By default, consecutive <code>mill</code>
+commands in the same folder will re-use the same Mill process and workers,
+unless <code>--no-server</code> is passed which will terminate the Mill process and
+workers after every command. Commands run repeatedly using <code>--watch</code> will
+also preserve the workers between them.</p>
+</div>
+<div class="paragraph">
+<p>Workers can also make use of their <code>T.dest</code> folder as a cache that persist
+when the worker shuts down, as a second layer of caching. The example usage
+below demonstrates how using the <code>--no-server</code> flag will make the worker
+read from its disk cache, where it would have normally read from its
+in-memory cache</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def foo = T.worker { ... }</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show compressedData
+Evaluating compressedData
+Compressing: hello.txt
+Compressing: world.txt
+[
+  &quot;.../hello.txt.gz&quot;,
+  &quot;...world.txt.gz&quot;
+]
+
+&gt; ./mill compressedData # when no input changes, compressedData does not evaluate at all
+
+&gt; sed -i 's/Hello/HELLO/g' data/hello.txt
+
+&gt; ./mill compressedData # not --no-server, we read the data from memory
+Compressing: hello.txt
+Cached from memory: world.txt
+
+&gt; ./mill compressedData # --no-server, we read the data from disk
+Compressing: hello.txt
+Cached from disk: world.txt</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>Most tasks dispose of their in-memory return-value every evaluation; in the case
-of <a href="#_targets">Targets</a>, this is stored on disk and loaded next time if
-necessary, while <a href="#_commands">Commands</a> just re-compute them each time.
-Even if you use <code>--watch</code> or the Build REPL to keep the Mill process running, all this state is still discarded and re-built every evaluation.</p>
-</div>
-<div class="paragraph">
-<p>Workers are unique in that they store their in-memory return-value between
-evaluations.
-This makes them useful for storing in-memory caches or references to long-lived external worker processes that you can re-use.</p>
 </div>
 <div class="paragraph">
 <p>Mill uses workers to manage long-lived instances of the
 <a href="https://github.com/sbt/zinc">Zinc Incremental Scala Compiler</a> and the
 <a href="https://github.com/scala-js/scala-js">Scala.js Optimizer</a>.
 This lets us keep them in-memory with warm caches and fast incremental execution.</p>
-</div>
-<div class="paragraph">
-<p>Like <a href="#_persistent_targets">Persistent Targets</a>, Workers inherently involve
-mutable state, and it is up to the implementation to ensure that this mutable
-state is only used for caching/performance and does not affect the
-externally-visible behavior of the worker.</p>
 </div>
 </div>
 <div class="sect2">
@@ -753,116 +1186,25 @@ Once the worker is no longer needed, Mill will call the <code>close()</code> met
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 import java.lang.AutoCloseable
 
-def myWorker = T.worker {
-  new MyWorker with AutoCloseable {
-    // ...
-    override def close() = { /* cleanup and free resources */ }
-  }
-}</code></pre>
+class MyWorker() extends AutoCloseable {
+  // ...
+  override def close() = { /* cleanup and free resources */ }
+}
+
+def myWorker = T.worker { new MyWorker() }</code></pre>
 </div>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_task_cheat_sheet"><a class="anchor" href="#_task_cheat_sheet"></a>Task Cheat Sheet</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The following table might help you make sense of the small collection of
-different Task types:</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 14.2857%;" />
-<col style="width: 14.2857%;" />
-<col style="width: 14.2857%;" />
-<col style="width: 14.2857%;" />
-<col style="width: 14.2857%;" />
-<col style="width: 14.2857%;" />
-<col style="width: 14.2858%;" />
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top"></th>
-<th class="tableblock halign-left valign-top">Target</th>
-<th class="tableblock halign-left valign-top">Command</th>
-<th class="tableblock halign-left valign-top">Source/Input</th>
-<th class="tableblock halign-left valign-top">Anonymous Task</th>
-<th class="tableblock halign-left valign-top">Persistent Target</th>
-<th class="tableblock halign-left valign-top">Worker</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Cached to Disk</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Must be JSON Writable</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Must be JSON Readable</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Runnable from the Command Line</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Can Take Arguments</p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Cached between Evaluations</p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="Common_Project_Layouts.html">Common Project Layouts</a></span>
-  <span class="next"><a href="Task_Context_API.html">Task Context API</a></span>
+  <span class="prev"><a href="Out_Dir.html">The Output Directory</a></span>
+  <span class="next"><a href="Modules.html">Modules</a></span>
 </nav>
 </article>
   </div>
 </main>
 </div>
-<footer class="footer">
-  <p>This page was built using the Antora default UI.</p>
-  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
-</footer>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
 <script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>

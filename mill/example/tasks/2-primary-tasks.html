@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Untitled :: Mill</title>
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/example/tasks/2-primary-tasks.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script>var uiRootPath = '../../../_'</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../../../_/logo-white.svg" height="20" /> Mill</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://com-lihaoyi.github.io/mill/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat</a>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Intro_to_Mill.html">Introduction to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Scala_Module_Config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Web_Build_Examples.html">Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Out_Dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Cross_Builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Extending_Mill.html">Extending Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Plugins</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Using_Plugins.html">Using Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../../Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../Plugin_BSP.html">BSP - Build Server Protocol</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../External_References.html">External References</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://com-lihaoyi.github.io/mill/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.11.0-M7-44-abe800</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../../index.html">Mill Documentation</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../../index.html">0.11.0-M7-44-abe800</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.12/index.html">0.10.12</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.0/index.html">0.10.0</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../../Intro_to_Mill.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-44-abe800</button>
+  <div class="version-menu">
+    <a class="version is-current" href="2-primary-tasks.html">0.11.0-M7-44-abe800</a>
+    <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
+    <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
+    <a class="version is-missing" href="../../0.10.0/index.html">0.10.0</a>
+    <a class="version is-missing" href="../../0.9.12/index.html">0.9.12</a>
+  </div>
+</div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/example/tasks/2-primary-tasks.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<div class="paragraph">
+<p>There are three primary kinds of <em>Tasks</em> that you should care about:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#_targets">Targets</a>, defined using <code>T {…​}</code></p>
+</li>
+<li>
+<p><a href="#_sources">Sources</a>, defined using <code>T.sources {…​}</code></p>
+</li>
+<li>
+<p><a href="#_commands">Commands</a>, defined using <code>T.command {…​}</code></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_targets"><a class="anchor" href="#_targets"></a>Targets</h3>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/2-primary-tasks">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+def allSources = T { os.walk(sources().path).map(PathRef(_)) }
+
+def lineCount: T[Int] = T {
+  println(&quot;Computing line count&quot;)
+  allSources()
+    .map(_.path)
+    .filter(_.ext == &quot;java&quot;)
+    .map(os.read.lines(_))
+    .map(_.size)
+    .sum
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Target</code>s are defined using the <code>def foo = T {…​}</code> syntax, and dependencies
+on other targets are defined using <code>foo()</code> to extract the value from them.
+Apart from the <code>foo()</code> calls, the <code>T {…​}</code> block contains arbitrary code that
+does some work and returns a result.
+If a target’s inputs change but its output does not, e.g. someone changes a
+comment within the source files that doesn’t affect the classfiles, then
+downstream targets do not re-evaluate. This is determined using the
+<code>.hashCode</code> of the Target’s return value.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
+Computing line count
+18
+
+&gt; ./mill show lineCount # line count already cached, doesn't need to be computed
+18</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The return-value of targets has to be JSON-serializable via
+<a href="https://github.com/com-lihaoyi/upickle">uPickle</a>. You can run targets directly from the command
+line, or use <code>show</code> if you want to see the JSON content or pipe it to
+external tools.
+Each target, e.g. <code>classFiles</code>, is assigned a <a href="https://com-lihaoyi.github.io/mill/api/latest/mill/api/Ctx.html#dest:os.Path">T.dest</a>
+folder e.g. <code>out/classFiles.dest/</code> on disk as scratch space &amp; to store its
+output files , and its returned metadata is automatically JSON-serialized
+and stored at <code>out/classFiles.json</code>. If you want to return a file or a set
+of files as the result of a <code>Target</code>, write them to disk within your <code>T.dest</code>
+folder and return a <code>PathRef()</code> that referencing the files or folders
+you want to return:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def classFiles = T {
+  println(&quot;Generating classfiles&quot;)
+
+  os.proc(&quot;javac&quot;, allSources().map(_.path.toString()), &quot;-d&quot;, T.dest)
+    .call(cwd = T.dest)
+
+  PathRef(T.dest)
+}
+
+def jar = T {
+  println(&quot;Generating jar&quot;)
+  os.copy(classFiles().path, T.dest, mergeFolders = true)
+  os.copy(resources().path, T.dest, mergeFolders = true)
+
+  os.proc(&quot;jar&quot;, &quot;-cfe&quot;, T.dest / &quot;foo.jar&quot;, &quot;foo.Foo&quot;, &quot;.&quot;).call(cwd = T.dest)
+
+  PathRef(T.dest / &quot;foo.jar&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jar
+Generating classfiles
+Generating jar
+
+&gt; ./mill show jar
+&quot;.../out/jar.dest/foo.jar&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Targets can depend on other targets via the <code>foo()</code> syntax.
+The graph of inter-dependent targets is evaluated in topological order; that
+means that the body of a target will not even begin to evaluate if one of its
+upstream dependencies has failed. Similar, even if the upstream targets is
+not used in one branch of an <code>if</code> condition, it will get computed regardless
+before the <code>if</code> condition is even considered.</p>
+</div>
+<div class="paragraph">
+<p>The following example demonstrates this behavior, with the <code>println</code> defined
+in <code>def largeFile</code> running even though the <code>largeFile()</code> branch of the
+<code>if</code> conditional does not get used:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def largeFile = T {
+  println(&quot;Finding Largest File&quot;)
+  allSources()
+    .map(_.path)
+    .filter(_.ext == &quot;java&quot;)
+    .maxBy(os.read.lines(_).size)
+}
+
+def hugeFileName = T{
+  if (lineCount() &gt; 999) largeFile().last
+  else &quot;&lt;no-huge-file&gt;&quot;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
+18
+
+&gt; ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() &lt; 999`
+Finding Largest File
+&quot;&lt;no-huge-file&gt;&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>uPickle comes with built-in support for most Scala primitive types and
+builtin data structures: tuples, collections, <code>PathRef</code>s, etc. can be
+returned and automatically serialized/de-serialized as necessary. One
+notable exception is <code>case class</code>es: if you want return your own
+<code>case class</code>, you must mark it JSON-serializable by adding the following
+<code>implicit</code> to its companion object:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">case class ClassFileData(totalFileSize: Long, largestFile: String)
+object ClassFileData {
+  implicit val rw: upickle.default.ReadWriter[ClassFileData] = upickle.default.macroRW
+}
+
+def summarizeClassFileStats = T{
+  val files = os.walk(classFiles().path)
+  ClassFileData(
+    totalFileSize = files.map(os.size(_)).sum,
+    largestFile = files.maxBy(os.size(_)).last
+  )
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
+{
+  &quot;totalFileSize&quot;: ...,
+  &quot;largestFile&quot;: &quot;...&quot;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sources = T.source { millSourcePath / &quot;src&quot; }
+def resources = T.source { millSourcePath / &quot;resources&quot; }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Source</code>s are defined using <code>T.sources {…​}</code>, taking one-or-more
+<code>os.Path</code>s as arguments. A <code>Source</code> is a subclass of <code>Target[Seq[PathRef]]</code>:
+this means that its build signature/<code>hashCode</code> depends not just on the path
+it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the filesystem
+tree under that path.</p>
+</div>
+<div class="paragraph">
+<p><code>T.source</code> and <code>T.sources</code> are the most common inputs to your Mill build:
+they watch source files and folders and cause downstream targets to
+re-compute if a change is detected.</p>
+</div>
+<div class="paragraph">
+<p>Note that even though a source file changed, that does not necessarily cause
+all transitive downstream targets to re-compute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jar # Cached from earlier
+
+&gt; printf &quot;\n&quot; &gt;&gt; src/Foo.java # Add a newline to the end of Foo.java
+
+&gt; ./mill jar # Classfiles recompiled but output unchanged, jar was not rebuilt
+Generating classfiles</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>T.sources</code> can be overriden with <code>super</code>, to let you
+override-and-extend source lists the same way you would any other target
+definition:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Foo extends Module {
+  def sourceRoots = T.sources(millSourcePath / &quot;src&quot;)
+  def sourceContents = T{
+    sourceRoots()
+      .flatMap(pref =&gt; os.walk(pref.path))
+      .filter(_.ext == &quot;txt&quot;)
+      .sorted
+      .map(os.read(_))
+  }
+}
+
+trait Bar extends Foo {
+  def additionalSources = T.sources(millSourcePath / &quot;src2&quot;)
+  def sourceRoots = T { super.sourceRoots() ++ additionalSources() }
+}
+
+object bar extends Bar</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders
+[
+  &quot;File Data From src/&quot;,
+  &quot;File Data From src2/&quot;
+]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_commands"><a class="anchor" href="#_commands"></a>Commands</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(args: String*) = T.command {
+  os.proc(
+      &quot;java&quot;,
+      &quot;-cp&quot;, s&quot;${classFiles().path}:${resources().path}&quot;,
+      &quot;foo.Foo&quot;,
+      args
+    )
+    .call(stdout = os.Inherit)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Defined using <code>T.command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
+dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
+Commands can be parametrized, but their output is not cached, so they will
+re-evaluate every time even if none of their inputs have changed.
+A command with no parameter is defined as <code>def myCommand() = T.command {…​}</code>.
+It is a compile error if <code>()</code> is missing.</p>
+</div>
+<div class="paragraph">
+<p>Like <a href="#_targets">Targets</a>, a command only evaluates after all its upstream
+dependencies have completed, and will not begin to run if any upstream
+dependency has failed.</p>
+</div>
+<div class="paragraph">
+<p>Commands are assigned the same scratch/output folder <code>out/run.dest/</code> as
+Targets are, and its returned metadata stored at the same <code>out/run.json</code>
+path for consumption by external tools.</p>
+</div>
+<div class="paragraph">
+<p>Commands can only be defined directly within a <code>Module</code> body.</p>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

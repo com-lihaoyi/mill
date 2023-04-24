@@ -1,0 +1,571 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>The Mill Evaluation Model :: Mill</title>
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/The_Mill_Evaluation_Model.html" />
+    <link rel="prev" href="Extending_Mill.html" />
+    <link rel="next" href="Using_Plugins.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script>var uiRootPath = '../_'</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../_/logo-white.svg" height="20" /> Mill</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://com-lihaoyi.github.io/mill/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat</a>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Scala_Module_Config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Web_Build_Examples.html">Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Plugins</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="External_References.html">External References</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://com-lihaoyi.github.io/mill/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.11.0-M7-44-abe800</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="index.html">Mill Documentation</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="index.html">0.11.0-M7-44-abe800</a>
+        </li>
+        <li class="version">
+          <a href="0.11.0-M7/index.html">0.11.0-M7</a>
+        </li>
+        <li class="version">
+          <a href="0.10.12/index.html">0.10.12</a>
+        </li>
+        <li class="version">
+          <a href="0.10.0/index.html">0.10.0</a>
+        </li>
+        <li class="version">
+          <a href="0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="Intro_to_Mill.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Mill Documentation</a></li>
+    <li>Mill In Depth</li>
+    <li><a href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a></li>
+  </ul>
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-44-abe800</button>
+  <div class="version-menu">
+    <a class="version is-current" href="The_Mill_Evaluation_Model.html">0.11.0-M7-44-abe800</a>
+    <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
+    <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
+    <a class="version is-missing" href="0.10.0/index.html">0.10.0</a>
+    <a class="version is-missing" href="0.9.12/index.html">0.9.12</a>
+  </div>
+</div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/The_Mill_Evaluation_Model.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">The Mill Evaluation Model</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Evaluating a Mill target typically goes through the following phases:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Compilation</strong>: Mill compiles the <code>build.sc</code> to classfiles, following the
+<a href="#_the_mill_bootstrapping_process">The Mill Bootstrapping Process</a> to eventually produce a <code>RootModule</code> object</p>
+</li>
+<li>
+<p><strong>Planning</strong>: Mill resolves the list of <a href="Tasks.html" class="xref page">Tasks</a> given from the command line,
+e.g. <code>resolve <em></em></code> or <code>foo.compile</code> or <code>{bar,qux}._.test</code>, to a list of
+concrete <code>Task</code> objects nested on <a href="Modules.html" class="xref page">Modules</a> within the <code>RootModule</code> along
+with their transitive dependencies</p>
+<div class="ulist">
+<ul>
+<li>
+<p>In the process, the relevant Mill <code>Module</code>s  are lazily instantiated</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Evaluation</strong>: Mill evaluates the gathered <code>Task</code>s in dependency-order,
+either serially or in parallel</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_limitations_of_the_mill_evaluation_model"><a class="anchor" href="#_limitations_of_the_mill_evaluation_model"></a>Limitations of the Mill Evaluation Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This three-phase evaluation model has consequences for how you structure your
+build. For example:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>You can have arbitrary code outside of <code>Task</code>s that helps
+set up your task graph and module hierarchy, e.g. computing what keys exist
+in a <code>Cross</code> module, or specifying your <code>def moduleDeps</code></p>
+</li>
+<li>
+<p>You can have arbitrary code inside of <code>Task</code>s, to perform your build
+actions</p>
+</li>
+<li>
+<p><strong>But</strong> your code inside of <code>Task</code>s cannot influence the shape of the task
+graph or module hierarchy, as all <strong>Resolving</strong> and <strong>Planning</strong> happens first
+<strong>before</strong> any <code>Task</code>s are evaluated.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This should not be a problem for most builds, but it is something to be aware
+of. In general, we have found that having &quot;two places&quot; to put code - outside of
+<code>Task</code>s to run during <strong>Planning</strong> or inside of <code>Task</code>s to run during
+<strong>Evaluation</strong> - is generally enough flexibility for most use cases.</p>
+</div>
+<div class="paragraph">
+<p>The hard boundary between these two phases is what lets users easily query
+and visualize their module hierarchy and task graph without running them: using
+<a href="Builtin_Commands.html#inspect" class="xref page">inspect</a>, <a href="Builtin_Commands.html#plan" class="xref page">plan</a>,
+<a href="Builtin_Commands.html#_visualize" class="xref page">visualize</a>, etc.. This helps keep your
+Mill build discoverable even as the <code>build.sc</code> codebase grows.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_caching_at_each_layer_of_the_evaluation_model"><a class="anchor" href="#_caching_at_each_layer_of_the_evaluation_model"></a>Caching at Each Layer of the Evaluation Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Apart from fine-grained caching of <code>Task</code>s during <strong>Evaluation</strong>, Mill also
+performs incremental evaluation of the other phases. This helps ensure
+the overall workflow remains fast even for large projects:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Compilation</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Done on-demand and incrementally using the Scala
+incremental compiler <a href="https://github.com/sbt/zinc">Zinc</a>.</p>
+</li>
+<li>
+<p>If some of the files <code>build.sc</code> imported changed but not others, only the
+changed files are re-compiled before the <code>RootModule</code> is re-instantiated</p>
+</li>
+<li>
+<p>In the common case where <code>build.sc</code> was not changed at all, this step is
+skipped entirely and the <code>RootModule</code> object simply re-used from the last
+run.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Planning</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the <code>RootModule</code> was re-used, then all
+previously-instantiated modules are simply-re-used</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Evaluation</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Task</code>s are evaluated in dependency order</p>
+</li>
+<li>
+<p><a href="Tasks.html#_targets" class="xref page">Target</a>s only re-evaluate if their input <code>Task</code>s
+change.</p>
+</li>
+<li>
+<p><a href="Tasks.html#_persistent_targets" class="xref page">T.persistent</a>s preserve the <code>T.dest</code> folder on disk between runs,
+allowing for finer-grained caching than Mill’s default target-by-target
+caching and invalidation</p>
+</li>
+<li>
+<p><a href="Tasks.html#_workers" class="xref page">T.worker</a>s are kept in-memory between runs where possible, and only
+invalidated if their input <code>Task</code>s change as well.</p>
+</li>
+<li>
+<p><code>Task</code>s in general are invalidated if the code they depend on changes;
+e.g. if <code>build.sc</code> imports <code>helper.sc</code>, then a change in <code>build.sc</code> would
+invalidate all tasks in <code>build.sc</code>, but not those in <code>helper.sc</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This approach to caching does assume a certain programming style inside your
+<code>build.sc</code>: we may or may not re-instantiate the <code>RootModule</code> of your
+<code>build.sc</code> depending on caching, and your code should work either way. For code
+written in a typical Scala style, this is not a problem at all.</p>
+</div>
+<div class="paragraph">
+<p>One thing to note is for code that runs during <strong>Planning</strong>: any reading of
+external mutable state needs to be wrapped in an <code>interp.watchValue{…​}</code>
+wrapper. This ensures that Mill knows where these external reads are, so that
+it can check if their value changed and if so re-instantiate <code>RootModule</code> with
+the new value.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_mill_bootstrapping_process"><a class="anchor" href="#_the_mill_bootstrapping_process"></a>The Mill Bootstrapping Process</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill’s bootstrapping proceeds roughly in the following phases:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>If using the bootstrap script, it first checks if the right version of Mill
+is already present, and if not it downloads it to <code>~/.mill/download</code></p>
+</li>
+<li>
+<p>It instantiates an in-memory <code>MillBuildRootModule.BootstrapModule</code>,
+which is a hard-coded <code>build.sc</code> used for bootstrapping Mill</p>
+</li>
+<li>
+<p>If there is a meta-build present <code>mill-build/build.sc</code>, it processes that
+first and uses the <code>MillBuildRootModule</code> returned for the next steps.
+Otherwise it uses the <code>MillBuildRootModule.BootstrapModule</code> directly</p>
+</li>
+<li>
+<p>Mill evaluates the <code>MillBuildRootModule</code> to parse the <code>build.sc</code>, generate
+a list of <code>ivyDeps</code> as well as appropriately wrapped Scala code that we can
+compile, and compiles it to classfiles</p>
+</li>
+<li>
+<p>Mill loads the compiled classfiles of the <code>build.sc</code> into a
+<code>java.lang.ClassLoader</code> to access it’s <code>RootModule</code></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Everything earlier in the doc applies to each level of meta-builds in the
+Mill bootstrapping process as well.</p>
+</div>
+<div class="paragraph">
+<p>In general, <code>.sc</code> files, <code>import $file</code>, and <code>import $ivy</code> can be thought of as
+a short-hand for configuring the meta-build living in <code>mill-build/build.sc</code>:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>.sc</code> and <code>import $file</code> are a shorthand for specifying the <code>.scala</code> files
+living in <code>mill-build/src/</code></p>
+</li>
+<li>
+<p><code>import $ivy</code> is a short-hand for configurin the <code>def ivyDeps</code> in
+<code>mill-build/build.sc</code></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Most builds would not need the flexibility of a meta-build’s
+<code>mill-build/build.sc</code>, but it is there if necessary.</p>
+</div>
+<div class="paragraph">
+<p>Mill supports multiple levels of meta-builds for bootstrapping:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Just <code>build.sc</code></p>
+</li>
+<li>
+<p>One level of meta-builds: <code>mill-build/build.sc</code> and <code>build.sc</code></p>
+</li>
+<li>
+<p>Two level of meta-builds: <code>mill-build/mill-build/build.sc</code>,
+<code>mill-build/build.sc</code> and <code>build.sc</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><a href="Extending_Mill.html#_the_mill_meta_build" class="xref page">Extending Mill: The Mill Meta Build</a> works through a simple use case
+and example for meta-builds.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="Extending_Mill.html">Extending Mill</a></span>
+  <span class="next"><a href="Using_Plugins.html">Using Plugins</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

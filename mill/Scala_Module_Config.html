@@ -1,0 +1,1184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Scala Module Configuration :: Mill</title>
+    <link rel="canonical" href="https://com-lihaoyi.github.io/mill/mill/Scala_Module_Config.html" />
+    <link rel="prev" href="Scala_Build_Examples.html" />
+    <link rel="next" href="Web_Build_Examples.html" />
+    <meta name="generator" content="Antora 3.0.1" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script>var uiRootPath = '../_'</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://com-lihaoyi.github.io/mill"><img src="../_/logo-white.svg" height="20" /> Mill</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://com-lihaoyi.github.io/mill/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://gitter.im/lihaoyi/mill">Chat</a>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="Scala_Module_Config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Web_Build_Examples.html">Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Plugins</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="External_References.html">External References</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://com-lihaoyi.github.io/mill/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.11.0-M7-44-abe800</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="index.html">Mill Documentation</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="index.html">0.11.0-M7-44-abe800</a>
+        </li>
+        <li class="version">
+          <a href="0.11.0-M7/index.html">0.11.0-M7</a>
+        </li>
+        <li class="version">
+          <a href="0.10.12/index.html">0.10.12</a>
+        </li>
+        <li class="version">
+          <a href="0.10.0/index.html">0.10.0</a>
+        </li>
+        <li class="version">
+          <a href="0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="Intro_to_Mill.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Mill Documentation</a></li>
+    <li>Quick Start</li>
+    <li><a href="Scala_Module_Config.html">Scala Module Configuration</a></li>
+  </ul>
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7-44-abe800</button>
+  <div class="version-menu">
+    <a class="version is-current" href="Scala_Module_Config.html">0.11.0-M7-44-abe800</a>
+    <a class="version" href="0.11.0-M7/Configuration.html">0.11.0-M7</a>
+    <a class="version" href="0.10.12/Configuration.html">0.10.12</a>
+    <a class="version" href="0.10.0/Configuring_Mill.html">0.10.0</a>
+    <a class="version" href="0.9.12/Configuring_Mill.html">0.9.12</a>
+  </div>
+</div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/Scala_Module_Config.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Scala Module Configuration</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page goes into more detail about the various configuration options
+for <code>ScalaModule</code>.</p>
+</div>
+<div class="paragraph">
+<p>Many of the APIs covered here are listed in the Scaladoc:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://com-lihaoyi.github.io/mill/api/latest/mill/scalalib/ScalaModule.html">mill.scalalib.ScalaModule</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-1-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/1-compilation-execution-flags">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends RootModule with ScalaModule{
+  def scalaVersion = &quot;2.13.8&quot;
+  def scalacOptions = Seq(&quot;-Ydelambdafy:inline&quot;)
+  def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
+  def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can pass flags to the Scala compiler via <code>scalacOptions</code>. By default,
+<code>run</code> runs the compiled code in a subprocess, and you can pass in JVM flags
+via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can also run your code via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.runLocal</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which runs it in-process within an isolated classloader. This may be faster
+since you avoid the JVM startup, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you want to pass main-method arguments to <code>run</code> or <code>runLocal</code>, simply pass
+them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.run arg1 arg2 arg3
+mill foo.runLocal arg1 arg2 arg3</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+hello WORLD</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_adding_ivy_dependencies"><a class="anchor" href="#_adding_ivy_dependencies"></a>Adding Ivy Dependencies</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-2-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/2-ivy-deps">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends RootModule with ScalaModule {
+  def scalaVersion = &quot;2.12.17&quot;
+  def ivyDeps = Agg(
+    ivy&quot;com.lihaoyi::upickle:3.1.0&quot;,
+    ivy&quot;com.lihaoyi::pprint:0.8.1&quot;,
+    ivy&quot;${scalaOrganization()}:scala-reflect:${scalaVersion()}&quot;
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can define the <code>ivyDeps</code> field to add ivy dependencies to your module.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Single <code>:</code> syntax (e.g. <code>&quot;ivy&quot;org.testng:testng:6.11&quot;</code>) defines Java
+dependencies</p>
+</li>
+<li>
+<p>Double <code>::</code> syntax (e.g. <code>ivy&quot;com.lihaoyi::upickle:0.5.1&quot;</code>) defines Scala
+dependencies</p>
+</li>
+<li>
+<p>Triple <code>:::</code> syntax (e.g. <code>ivy&quot;org.scalamacros:::paradise:2.1.1&quot;</code>) defines
+dependencies cross-published against the full Scala version e.g. <code>2.12.4</code>
+instead of just <code>2.12</code>. These are typically Scala compiler plugins or
+similar.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To select the test-jars from a dependency use the following syntax:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Please consult the <a href="Library_Dependencies.html" class="xref page">Library Dependencies in Mill</a> section for even more details.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run i am cow
+pretty-printed using PPrint: Array(&quot;i&quot;, &quot;am&quot;, &quot;cow&quot;)
+serialized using uPickle: [&quot;i&quot;,&quot;am&quot;,&quot;cow&quot;]</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_runtime_and_compile_time_dependencies"><a class="anchor" href="#_runtime_and_compile_time_dependencies"></a>Runtime and Compile-time Dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to use additional dependencies at runtime or override
+dependencies and their versions at runtime, you can do so with
+<code>runIvyDeps</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-3-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/3-run-compile-deps">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def moduleDeps = Seq(bar)
+  def runIvyDeps = Agg(
+    ivy&quot;javax.servlet:servlet-api:2.5&quot;,
+    ivy&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
+    ivy&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
+  )
+  def mainClass = Some(&quot;bar.Bar&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also declare compile-time-only dependencies with <code>compileIvyDeps</code>.
+These are present in the compile classpath, but will not propagated to the
+transitive dependencies.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def compileIvyDeps = Agg(
+    ivy&quot;javax.servlet:servlet-api:2.5&quot;,
+    ivy&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
+    ivy&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Typically, Mill assumes that a module with compile-time dependencies will
+only be run after someone includes the equivalent run-time dependencies in
+a later build step. e.g. in the case above, <code>bar</code> defines the compile-time
+dependencies, and <code>foo</code> then depends on <code>bar</code> and includes the runtime
+dependencies. That is why we can run <code>foo</code> as show below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.runBackground
+
+&gt; curl http://localhost:8079
+&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Compile-time dependencies are translated to <code>provided</code>-scoped
+dependencies when publish to Maven or Ivy-Repositories.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="sect2">
+<h3 id="_keeping_up_to_date_with_scala_steward"><a class="anchor" href="#_keeping_up_to_date_with_scala_steward"></a>Keeping up-to-date with Scala Steward</h3>
+<div class="paragraph">
+<p>It’s always a good idea to keep your dependencies up-to-date.</p>
+</div>
+<div class="paragraph">
+<p>If your project is hosted on GitHub, GitLab, or Bitbucket, you can use
+<a href="https://github.com/scala-steward-org/scala-steward">Scala Steward</a> to
+automatically open a pull request to update your dependencies whenever
+there is a newer version available.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Scala Steward can also keep your
+<a href="Installation_IDE_Support.html#_automatic_mill_updates" class="xref page">Mill version up-to-date</a>.
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_test_dependencies"><a class="anchor" href="#_test_dependencies"></a>Test Dependencies</h2>
+<div class="sectionbody">
+<div class="admonitionblock important">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>Mill has no <code>test</code>-scoped dependencies!</em></p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>You might be used to test-scoped dependencies from other build tools like
+Maven, Gradle or sbt. As test modules in Mill are just regular modules,
+there is no special need for a dedicated test-scope. You can use <code>ivyDeps</code>
+and <code>runIvyDeps</code> to declare dependencies in test modules, and test modules
+can use their <code>moduleDeps</code> to also depend on each other</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-4-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/4-test-deps">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object qux extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def moduleDeps = Seq(baz)
+
+  object test extends Tests {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+    def moduleDeps = super.moduleDeps ++ Seq(baz.test)
+  }
+}
+
+
+object baz extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+
+  object test extends Tests {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, not only does <code>qux</code> depend on <code>baz</code>, but we also make
+<code>qux.test</code> depend on <code>baz.test</code>. That lets <code>qux.test</code> make use of the
+<code>BazTestUtils</code> class that <code>baz.test</code> defines, allowing us to re-use this
+test helper throughout multiple modules' test suites</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.test
+-------------------------------- Running Tests --------------------------------
+Using BazTestUtils.bazAssertEquals
++ qux.QuxTests.simple ...
+
+&gt; ./mill baz.test
+-------------------------------- Running Tests --------------------------------
+Using BazTestUtils.bazAssertEquals
++ baz.BazTests.simple ...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scala_compiler_plugins"><a class="anchor" href="#_scala_compiler_plugins"></a>Scala Compiler Plugins</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-5-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/5-scala-compiler-plugins">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends RootModule with ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+
+  def compileIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;)
+  def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
+  def scalacPluginIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can use Scala compiler plugins by setting <code>scalacPluginIvyDeps</code>. The above
+example also adds the plugin to <code>compileIvyDeps</code>, since that plugin’s artifact
+is needed on the compilation classpath (though not at runtime).</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Remember that compiler plugins are published against the full Scala
+version (eg. 2.13.8 instead of just 2.13), so when including them make sure to
+use the  <code>:::</code> syntax shown above in the example.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill compile
+...
+error: Unwanted cyclic dependency
+error: ...src/Foo.scala...
+error:   def y = Bar.z
+error: ...src/Bar.scala...
+error:   def x = Foo.y</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scaladoc_config"><a class="anchor" href="#_scaladoc_config"></a>Scaladoc Config</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To generate API documenation you can use the <code>docJar</code> task on the module you’d
+like to create the documenation for, configured via <code>scalaDocOptions</code> or
+<code>javadocOptions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-6-scaladoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/6-scaladoc">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;3.1.3&quot;
+
+  def scalaDocOptions = Seq(&quot;-siteroot&quot;, &quot;mydocs&quot;, &quot;-no-link-warnings&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.docJar
+
+&gt; unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
+...
+...&lt;p&gt;My Awesome Scaladoc for class Foo&lt;/p&gt;...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When using Scala 3 you’re also able to use Scaladoc to generate a full static
+site next to your API documention. This can include general documenation for
+your project and even a blog. While you can find the full documenation for this
+in the <a href="https://docs.scala-lang.org/scala3/guides/scaladoc/index.html">Scala 3
+docs</a>, below you’ll find some useful information to help you generate this with
+Mill.</p>
+</div>
+<div class="paragraph">
+<p>By default, Mill will consider the <em>site root</em> as it’s called in
+<a href="https://docs.scala-lang.org/scala3/guides/scaladoc/static-site.html">Scala 3
+docs</a>, to be the value of <code>docResources()</code>. It will look there for your
+<code>_docs/</code> and your <code>_blog/</code> directory if any exist. Given a
+project called <code>bar</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends ScalaModule {
+  def scalaVersion = &quot;3.1.3&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your project structure for this would look something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>.
+├── build.sc
+├── bar
+│  ├── docs
+│  │  ├── _blog
+│  │  │  ├── _posts
+│  │  │  │  └── 2022-08-14-hello-world.md
+│  │  │  └── index.md
+│  │  └── _docs
+│  │     ├── getting-started.md
+│  │     ├── index.html
+│  │     └── index.md
+│  └── src
+│     └── example
+│        └── Hello.scala</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After generating your docs with <code>mill example.docJar</code> you’ll find by opening
+your <code>out/app/docJar.dest/javadoc/index.html</code> locally in your browser you’ll
+have a full static site including your API docs, your blog, and your
+documentation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.docJar
+
+&gt; unzip -p out/bar/docJar.dest/out.jar bar/Bar.html
+...
+...&lt;p&gt;My Awesome Scaladoc for class Bar&lt;/p&gt;...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_unmanaged_jars"><a class="anchor" href="#_unmanaged_jars"></a>Unmanaged Jars</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-7-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/7-unmanaged-jars">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends RootModule with ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def unmanagedClasspath = T {
+    if (!os.exists(millSourcePath / &quot;lib&quot;)) Agg()
+    else Agg.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can override <code>unmanagedClasspath</code> to point it at any jars you place on the
+filesystem, e.g. in the above snippet any jars that happen to live in the
+<code>lib/</code> folder.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run '{&quot;name&quot;:&quot;John&quot;,&quot;age&quot;:30}'     # mac/linux
+Key: name, Value: John
+Key: age, Value: 30</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-8-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/8-main-class">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends RootModule with ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def mainClass = Some(&quot;foo.Qux&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill’s <code>foo.run</code> by default will discover which main class to run from your
+compilation output, but if there is more than one or the main class comes from
+some library you can explicitly specify which one to use. This also adds the
+main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+Hello Qux</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_downloading_non_maven_jars"><a class="anchor" href="#_downloading_non_maven_jars"></a>Downloading Non-Maven Jars</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-9-downloading-non-maven-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/9-downloading-non-maven-jars">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends RootModule with ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def unmanagedClasspath = T {
+    os.write(
+      T.dest / &quot;fastjavaio.jar&quot;,
+      requests.get.stream(
+        &quot;https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar&quot;
+      )
+    )
+    Agg(PathRef(T.dest / &quot;fastjavaio.jar&quot;))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also override <code>unmanagedClasspath</code> to point it at jars that you want to
+download from arbitrary URLs. Note that targets like <code>unmanagedClasspath</code> are
+cached, so your jar is downloaded only once and re-used indefinitely after that.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run &quot;textfile.txt&quot; # mac/linux
+I am cow
+hear me moo
+I weigh twice as much as you</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_customizing_the_assembly"><a class="anchor" href="#_customizing_the_assembly"></a>Customizing the Assembly</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-10-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/10-assembly-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+import mill.modules.Assembly._
+
+object foo extends ScalaModule {
+  def moduleDeps = Seq(bar)
+  def scalaVersion = &quot;2.13.8&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.9.1&quot;)
+  def assemblyRules = Seq(
+    // all application.conf files will be concatenated into single file
+    Rule.Append(&quot;application.conf&quot;),
+    // all *.conf files will be concatenated into single file
+    Rule.AppendPattern(&quot;.*\\.conf&quot;),
+    // all *.temp files will be excluded from a final jar
+    Rule.ExcludePattern(&quot;.*\\.temp&quot;),
+    // the `shapeless` package will be shaded under the `shade` package
+    Rule.Relocate(&quot;shapeless.**&quot;, &quot;shade.shapless.@1&quot;)
+  )
+}
+
+object bar extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you make a runnable jar of your project with <code>assembly</code> command,
+you may want to exclude some files from a final jar (like signature files,
+and manifest files from library jars), and merge duplicated files (for
+instance <code>reference.conf</code> files from library dependencies).</p>
+</div>
+<div class="paragraph">
+<p>By default mill excludes all <code>*.sf</code>, <code>*.dsa</code>, <code>*.rsa</code>, and
+<code>META-INF/MANIFEST.MF</code> files from assembly, and concatenates all
+<code>reference.conf</code> files. You can also define your own merge/exclude rules.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.assembly
+
+&gt; unzip -p ./out/foo/assembly.dest/out.jar application.conf
+Bar Application Conf
+Foo Application Conf
+
+&gt; java -jar ./out/foo/assembly.dest/out.jar\
+Loaded application.conf from resources:...
+...Foo Application Conf
+...Bar Application Conf</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_repository_config"><a class="anchor" href="#_repository_config"></a>Repository Config</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, dependencies are resolved from maven central, but you can add
+your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-11-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/11-repository-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+import coursier.maven.MavenRepository
+
+val sonatypeReleases = Seq(
+  MavenRepository(&quot;https://oss.sonatype.org/content/repositories/releases&quot;)
+)
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+
+  def repositoriesTask = T.task {
+    super.repositoriesTask() ++ sonatypeReleases
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To add custom resolvers to the initial bootstrap of the build, you can create a
+custom <code>ZincWorkerModule</code>, and override the <code>zincWorker</code> method in your
+<code>ScalaModule</code> by pointing it to that custom object:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
+  def repositoriesTask() = T.task { super.repositoriesTask() ++ sonatypeReleases }
+}
+
+object bar extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def zincWorker = CustomZincWorkerModule
+  // ... rest of your build definitions
+
+  def repositoriesTask = T.task {super.repositoriesTask() ++ sonatypeReleases}
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.compile</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_backticked_names"><a class="anchor" href="#_backticked_names"></a>Backticked Names</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-12-backticked-names.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/12-backticked-names">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+import mill.scalalib._
+
+object `hyphenated-module` extends Module {
+  def `hyphenated-target` = T{
+    println(&quot;hyphenated target in a hyphenated module.&quot;)
+  }
+}
+
+object unhyphenatedModule extends Module {
+  def unhyphenated_target = T{
+    println(&quot;unhyphenated target in an unhyphenated module.&quot;)
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill modules and tasks may be composed of the following character types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Alphanumeric (A-Z, a-z, and 0-9)</p>
+</li>
+<li>
+<p>Underscore (<code>_</code>)</p>
+</li>
+<li>
+<p>Hyphen (<code>-</code>)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Due to Scala naming restrictions, module and task names with hyphens must be
+surrounded by back-ticks (<code>`</code>).</p>
+</div>
+<div class="paragraph">
+<p>Using hyphenated names at the command line is unaffected by these restrictions.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill hyphenated-module.hyphenated-target
+hyphenated target in a hyphenated module.
+
+&gt; ./mill unhyphenatedModule.unhyphenated_target
+unhyphenated target in an unhyphenated module.</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_unidoc"><a class="anchor" href="#_unidoc"></a>Unidoc</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M7-44-abe800-example-scalamodule-13-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/13-unidoc">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule with UnidocModule{
+  def scalaVersion = &quot;2.13.8&quot;
+  def moduleDeps = Seq(bar, qux)
+
+  object bar extends ScalaModule{
+    def scalaVersion = &quot;2.13.8&quot;
+  }
+
+  object qux extends ScalaModule {
+    def scalaVersion = &quot;2.13.8&quot;
+    def moduleDeps = Seq(bar)
+  }
+
+  def unidocVersion = Some(&quot;0.1.0&quot;)
+  def unidocSourceUrl = Some(&quot;https://github.com/lihaoyi/test/blob/master&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates use of <code>mill.scalalib.UnidocModule</code>. This can be
+mixed in to any <code>ScalaModule</code>, and generates a combined Scaladoc for the
+module and all its transitive dependencies. Two targets are provided:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>.unidocLocal</code>: this generates a site suitable for local browsing. If
+unidocSourceUrl is provided, the scaladoc provides links back to the
+local sources</p>
+</li>
+<li>
+<p><code>.unidocSite</code>: this generates a site suitable for local browsing. If
+unidocSourceUrl is provided, the scaladoc provides links back to the
+sources as browsable from the <code>unidocSourceUrl</code> base (e.g. on Github)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.unidocLocal
+&quot;.../out/foo/unidocLocal.dest&quot;
+
+&gt; cat out/foo/unidocLocal.dest/foo/Foo.html
+...
+...My Eloquent Scaladoc for Foo...
+
+&gt; cat out/foo/unidocLocal.dest/foo/qux/Qux.html
+...
+...My Excellent Scaladoc for Qux...
+
+&gt; cat out/foo/unidocLocal.dest/foo/bar/Bar.html
+...
+...My Lucid Scaladoc for Bar...
+
+&gt; ./mill show foo.unidocSite</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reformatting_your_code"><a class="anchor" href="#_reformatting_your_code"></a>Reformatting your code</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill supports code formatting via <a href="https://scalameta.org/scalafmt/">scalafmt</a> out of the box.</p>
+</div>
+<div class="paragraph">
+<p>To have a formatting per-module you need to make your module extend <code>mill.scalalib.scalafmt.ScalafmtModule</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalafmt._
+
+object foo extends ScalaModule with ScalafmtModule {
+  def scalaVersion = &quot;2.13.10&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you can reformat code with <code>mill foo.reformat</code> command, or only check for misformatted files with <code>mill foo.checkFormat</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can also reformat your project’s code globally with <code>mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources</code> command,
+or only check the code’s format with <code>mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources</code>.
+It will reformat all sources that matches <code>__.sources</code> query.</p>
+</div>
+<div class="paragraph">
+<p>If you add a <code>.scalafmt.conf</code> file at the root of you project, it will be used
+to configure formatting. It can contain a <code>version</code> key to specify the scalafmt
+version used to format your code. See the
+<a href="https://scalameta.org/scalafmt/docs/configuration.html">scalafmt configuration documentation</a>
+for details.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_the_ammonite_repl_scala_console"><a class="anchor" href="#_using_the_ammonite_repl_scala_console"></a>Using the Ammonite Repl / Scala console</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All <code>ScalaModule</code>s have a <code>console</code> and a <code>repl</code> target, to start a Scala console or an Ammonite Repl.</p>
+</div>
+<div class="paragraph">
+<p>To use the latter, you can (and sometimes need to) customize the Ammonite version to work with your selected Scala version.
+The default Ammonite version is the one, which is used by Mill internally (Mill’s <code>build.sc</code> is an Ammonite script, after all).
+But depending on the Scala version you are using, there is probably no matching Ammonite release available.
+In order to start the repl, you have to specify a different available Ammonite version.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Overriding <code>ammoniteVersion</code> to select a release compatible to the <code>scalaVersion</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._. scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.6&quot;
+  def ammoniteVersion = &quot;2.4.0&quot;
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>Why is Ammonite tied to the exact Scala version?</em></p>
+</div>
+<div class="paragraph">
+<p>This is because Ammonite depends on the Scala compiler.
+In contrast to the Scala library, compiler releases do not guarantee any binary compatibility between releases.
+As a consequence, Ammonite needs full Scala version specific releases.</p>
+</div>
+<div class="paragraph">
+<p>The older your used Mill version or the newer the Scala version you want to use, the higher is the risk that the default Ammonite version will not match.</p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="Scala_Build_Examples.html">Scala Build Examples</a></span>
+  <span class="next"><a href="Web_Build_Examples.html">Web Build Examples</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>
