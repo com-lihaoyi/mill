@@ -249,6 +249,35 @@ corresponding version of Mill.
 == Changelog
 
 
+[#main]
+=== main
+
+* Added an https://github.com/com-lihaoyi/mill/tree/main/example[example/]
+  folder in the Mill repo, containing common build setups demonstrating Mill
+  features with explanations of how each feature works
+
+* Pre-compiled Scala incremental compiler interface
+  https://github.com/com-lihaoyi/mill/pull/2424[#2424], to speed up clean builds
+
+* Add some helpers to simplify cross-version/cross-platform modules {#2406}[https://github.com/com-lihaoyi/mill/pull/2406]
+
+* You can now override `T{...}` ``Target``s with `T.source` or `T.sources`, and
+  vice versa https://github.com/com-lihaoyi/mill/pull/2402[#2402]
+
+* Removed the Ammonite script runner dependency used to evaluate `build.sc`
+  files and instead compile them using Mill https://github.com/com-lihaoyi/mill/pull/2377[#2377]
+
+* Add `TestModule.ZioTest` {#2432}[https://github.com/com-lihaoyi/mill/pull/2432]
+
+* Caching fixes for external modules https://github.com/com-lihaoyi/mill/issues/2419[#2419]
+
+* Overhaul of the Mill `BuildInfo` plugin, moving the key-value into resources
+  to avoid needing to re-compile your module when the values change, adding
+  `JavaModule` support, and allowing Javadoc/Scaladoc comments to be associated
+  with the generated `BuildInfo` constants https://github.com/com-lihaoyi/mill/pull/2425[#2425]
+
+* Global Configuration via `~/.mill/ammonite/predefScript.sc` is no longer supported in this version. If that breaks your workflow, please report and tell us your use case so we can provide sufficient replacement or support for your use case before Mill 0.11.
+
 [#0-11-0-M7]
 === 0.11.0-M7 - 2023-03-30
 :version: 0.11.0-M7
@@ -932,7 +961,7 @@ _Changes since {prev-version}:_
 * `ScalaModule`: Support for Scala 3
 * `CoursierModule`: Support customized dependency resolution (needed to work with ScalaFX)
 * `TestModule`: Added new `testFramework` target and only support one test framework. Deprecated `testFrameworks` targets.
-* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit4`, `TestModule.ScalaTest`, `TestModule.Utest`, and many more
+* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit4`, `TestModule.ScalaTest`, `TestModule.Utest` and many more
 * `Bloop`: Added support for foreign modules
 * Better support for Windows environments
 * Various internal improvements, cleanups, and deprecations

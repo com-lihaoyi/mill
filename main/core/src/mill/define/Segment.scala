@@ -9,5 +9,5 @@ sealed trait Segment {
 
 object Segment {
   final case class Label(value: String) extends Segment
-  final case class Cross(value: Seq[Any]) extends Segment
+  final case class Cross(value: Seq[String]) extends Segment
 }

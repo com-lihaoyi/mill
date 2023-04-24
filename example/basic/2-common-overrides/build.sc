@@ -1,7 +1,7 @@
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.10"
+  def scalaVersion = "2.13.8"
 
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(

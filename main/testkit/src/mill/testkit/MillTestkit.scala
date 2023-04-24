@@ -1,15 +1,16 @@
 package mill.testkit
 
 import mill.define._
-import mill.api.Result
+import mill.api.{DummyInputStream, Result, SystemStreams}
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
+
 import java.io.{InputStream, PrintStream}
 import mill.define.{Input, Task}
 import mill.eval.Evaluator
-import language.experimental.macros
-import mill.api.{DummyInputStream, Result}
+import mill.util.PrintLogger
 
+import language.experimental.macros
 import scala.collection.mutable
 
 trait MillTestKit {
@@ -18,8 +19,6 @@ trait MillTestKit {
     sys.env.get("MILL_TESTKIT_BASEDIR").map(os.pwd / os.RelPath(_)).getOrElse(os.temp.dir())
 
   def targetDir: os.Path = defaultTargetDir
-
-  def externalOutPath: os.Path = targetDir / "external"
 
   def staticTestEvaluator(module: => mill.define.BaseModule)(implicit
       fullName: sourcecode.FullName
@@ -81,12 +80,10 @@ trait MillTestKit {
       enableTicker = true,
       mill.util.Colors.Default.info,
       mill.util.Colors.Default.error,
-      outStream,
-      outStream,
-      outStream,
-      inStream,
+      new SystemStreams(outStream, outStream, inStream),
       debugEnabled = debugEnabled,
-      context = ""
+      context = "",
+      new PrintLogger.State()
     ) {
       val prefix = {
         val idx = fullName.value.lastIndexOf(".")
@@ -101,7 +98,7 @@ trait MillTestKit {
     val evaluator = Evaluator(
       mill.api.Ctx.defaultHome,
       outPath,
-      externalOutPath,
+      outPath,
       module,
       logger,
       0

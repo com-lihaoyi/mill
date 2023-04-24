@@ -11,7 +11,7 @@ import mill.BuildInfo
 import mill.main.client._
 import mill.api.internal
 import mill.main.client.lock.{Lock, Locks}
-import mill.util.SystemStreams
+import mill.api.SystemStreams
 
 @internal
 trait MillServerMain[T] {
@@ -66,11 +66,12 @@ object MillServerMain extends MillServerMain[RunnerState] {
       initialSystemProperties: Map[String, String]
   ): (Boolean, RunnerState) = {
     MillMain.main0(
-      args,
-      stateCache,
+      args = args,
+      stateCache = stateCache,
       mainInteractive = mainInteractive,
-      streams,
-      env,
+      streams0 = streams,
+      bspLog = None,
+      env = env,
       setIdle = setIdle,
       userSpecifiedProperties0 = userSpecifiedProperties,
       initialSystemProperties = initialSystemProperties

@@ -9,7 +9,7 @@ import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result}
 import mill.define.{Command, Discover, ExternalModule, Input, Target, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil}
+import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
 import os.Path
 
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
@@ -55,6 +55,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       classpath().map(_.path.toNIO.toUri.toURL).iterator.to(Vector),
       getClass.getClassLoader
     )
+
     val cls = cl.loadClass("mill.scalalib.worker.ZincWorkerImpl")
     val instance = cls.getConstructor(
       classOf[
@@ -73,7 +74,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         Left((
           T.ctx(),
           (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, repositoriesTask()).asSuccess.get.value
+            scalaCompilerBridgeJar(x, y, repositoriesTask())
+              .asSuccess
+              .getOrElse(
+                throw new Exception(s"Failed to load compiler bridge for $x $y")
+              )
+              .value
         )),
         ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false),
         ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),
@@ -101,6 +107,11 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
           else "scala3-sbt-bridge"
         val version = scalaVersion
         (ivy"$org:$name:$version", name, version)
+      } else if (ZincWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
+        val org = "com.lihaoyi"
+        val name = s"mill-scala-compiler-bridge_$scalaVersion"
+        val version = Versions.millCompilerBridgeVersion
+        (ivy"$org:$name:$version", name, version)
       } else {
         val org = "org.scala-sbt"
         val name = "compiler-bridge"
@@ -111,6 +122,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
           version
         )
       }
+
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
     val bridgeJar = resolveDependencies(

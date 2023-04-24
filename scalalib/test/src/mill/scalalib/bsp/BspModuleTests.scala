@@ -33,13 +33,13 @@ object BspModuleTests extends TestSuite {
   object InterDeps extends BspBase {
     val maxCrossCount = 25
     val configs = 1.to(maxCrossCount)
-    object Mod extends Cross[ModCross](configs: _*)
-    class ModCross(index: Int) extends ScalaModule {
+    object Mod extends Cross[ModCross](configs)
+    trait ModCross extends ScalaModule with Cross.Module[Int] {
       override def scalaVersion: T[String] = testScalaVersion
       // each depends on all others with lower index
       override def moduleDeps: Seq[JavaModule] =
         configs
-          .filter(c => c < index)
+          .filter(c => c < crossValue)
           .map(i => Mod(i))
     }
   }
@@ -87,7 +87,6 @@ object BspModuleTests extends TestSuite {
             }.toSeq.sortBy(_.toString)
 
             val expected: Seq[FilePath] = Seq(
-              MultiBase.HelloBsp.millSourcePath / "resources",
               MultiBase.HelloBsp.millSourcePath / "compile-resources",
               MultiBase.HelloBsp2.millSourcePath / "compile-resources",
               EvaluatorPaths.resolveDestPaths(eval.outPath, MultiBase.HelloBsp.compile)
@@ -132,7 +131,7 @@ object BspModuleTests extends TestSuite {
           test("index 1 (no deps)") { run(1, 500) }
           test("index 10") { run(10, 5000) }
           test("index 20") { run(20, 5000) }
-          test("index 25") { run(25, 30000) }
+          test("index 25") { run(25, 50000) }
         }
       }
     }

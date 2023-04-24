@@ -1,4 +1,4 @@
-def myScalaVersion = "2.13.2"
+def myScalaVersion = "2.13.8"
 
 
 println(doesntExist})

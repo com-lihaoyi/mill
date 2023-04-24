@@ -1,5 +1,7 @@
 package mill.util
 
+import mill.api.SystemStreams
+
 object Util {
 
   def isInteractive() = System.console() != null

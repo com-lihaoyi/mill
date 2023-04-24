@@ -102,7 +102,7 @@ case class GenIdeaImpl(
               LocalRepositories.ivy2Local,
               Repositories.central
             )
-            val millDeps = BuildInfo.millEmbeddedDeps.map(d => ivy"$d").map(dep =>
+            val millDeps = BuildInfo.millEmbeddedDeps.split(",").map(d => ivy"$d").map(dep =>
               BoundDep(Lib.depToDependency(dep, BuildInfo.scalaVersion, ""), dep.force)
             )
             val Result.Success(res) = scalalib.Lib.resolveDependencies(

@@ -113,8 +113,7 @@ object WebApp extends cask.MainRoutes{
           meta(charset := "utf-8"),
           meta(name := "viewport", content := "width=device-width, initial-scale=1"),
           tags2.title("Template • TodoMVC"),
-          link(rel := "stylesheet", href := "" +
-            "/static/index.css")
+          link(rel := "stylesheet", href := "/static/index.css")
         ),
         body(
           tags2.section(cls := "todoapp", renderBody("all")),
