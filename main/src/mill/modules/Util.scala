@@ -1,15 +1,12 @@
 package mill.modules
 
-import coursier.{Repository, moduleString}
-import mill.BuildInfo
-import mill.api.{Ctx, IO, Loose, PathRef, experimental}
+import coursier.{Repository}
+import mill.{Agg, BuildInfo}
+import mill.api.{Ctx, IO, PathRef, Result, experimental}
 import mill.define.Module
 import mill.main.BuildScriptException
 
 import scala.annotation.tailrec
-import coursier.Repository
-import mill.{Agg, BuildInfo}
-import mill.api.{Ctx, IO, Loose, PathRef, Result}
 
 object Util {
 
@@ -21,7 +18,7 @@ object Util {
       LongMillProps.load(new java.io.FileInputStream(millOptionsPath))
   }
 
-  def cleanupScaladoc(v: String) = {
+  def cleanupScaladoc(v: String): Array[String] = {
     v.linesIterator.map(
       _.dropWhile(_.isWhitespace)
         .stripPrefix("/**")
@@ -107,7 +104,7 @@ object Util {
   @experimental
   def recursive[T <: Module](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
 
-    @tailrec def rec2(
+    @tailrec def rec(
         seenModules: List[T],
         toAnalyze: List[(List[T], List[T])]
     ): List[T] = {
@@ -115,7 +112,7 @@ object Util {
         case Nil => seenModules
         case traces :: rest =>
           traces match {
-            case (_, Nil) => rec2(seenModules, rest)
+            case (_, Nil) => rec(seenModules, rest)
             case (trace, cand :: remaining) =>
               if (trace.contains(cand)) {
                 // cycle!
@@ -125,7 +122,7 @@ object Util {
                 println(msg)
                 throw new BuildScriptException(msg)
               }
-              rec2(
+              rec(
                 seenModules ++ Seq(cand),
                 toAnalyze = ((cand :: trace, deps(cand).toList)) :: (trace, remaining) :: rest
               )
@@ -133,7 +130,7 @@ object Util {
       }
     }
 
-    rec2(
+    rec(
       seenModules = List(),
       toAnalyze = List((List(start), deps(start).toList))
     ).reverse
