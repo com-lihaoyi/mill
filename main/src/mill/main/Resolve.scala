@@ -72,6 +72,8 @@ object Resolve {
       }
 
       (head, current) match {
+        case (_, _: Resolved.Target | _: Resolved.Command) =>
+          Left(s"Task ${current.name} is not a module and has no children.")
         case (Segment.Label(singleLabel), Resolved.Module(_, obj)) =>
           lazy val directChildren = resolveDirectChildren(obj, None, discover, args)
           recurse(
