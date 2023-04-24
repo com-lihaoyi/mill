@@ -1,0 +1,777 @@
+= Third-Party Plugins
+:page-aliases: Thirdparty_Modules.adoc
+
+The Plugins in this section are developed/maintained outside the mill git tree.
+This list is most likely not complete.
+If you wrote a Mill plugin or find that one is missing in this list, please open a {mill-github-url}/pulls[pull request] and add that plugin with a short description (in alphabetical order).
+
+For details about including plugins in your `build.sc` read xref:Using_Plugins.adoc[Using Mill Plugins].
+
+CAUTION: Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
+The usage examples given here are most probably incomplete and sometimes outdated!
+
+Additional to this list, you can also search the https://github.com/topics/mill-plugin[`mill-plugin` topic on GitHub] for more plugins.
+
+
+== Antlr
+
+https://www.antlr.org/[ANTLR parser generator] support for mill.
+
+Project home: https://github.com/ml86/mill-antlr
+
+
+[source,scala]
+----
+import $ivy.`net.mlbox::mill-antlr:0.1.0`
+import net.mlbox.millantlr.AntlrModule
+
+object foo extends ScalaModule with AntlrModule {
+  override def antlrGrammarSources = T.sources {
+    Seq(os.pwd/"someGrammar.g4").map(PathRef(_))
+  }
+}
+----
+
+== AspectJ
+
+https://projects.eclipse.org/projects/tools.aspectj[AspectJ compiler] support for mill.
+
+Project home: https://github.com/lefou/mill-aspectj
+
+
+[source,scala]
+----
+import mill._
+import mill.scalalib._
+import mill.define._
+
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.aspectj_mill0.9:0.3.1-12-89db01
+import de.tobiasroeser.mill.aspectj._
+
+object main extends AspectjModule {
+
+  // Select the AspectJ version
+  def aspectjVersion = "1.9.5"
+
+  // Set AspectJ options, e.g. the language level and annotation processor
+  // Run `mill main.ajcHelp` to get a list of supported options
+  def ajcOptions = Seq("-8", "-proc:none")
+
+}
+----
+
+For documentation, please refer to the https://github.com/lefou/mill-aspectj[project home page].
+
+== Bash Completion
+
+Limited bash completion support.
+
+Project home: https://github.com/lefou/mill-bash-completion
+
+== Bundler
+
+`mill-bundler` is comparable to `scalajs-bundler` for SBT: It manages NPM dependencies for a Scala.js module and
+bundling it. Currently Webpack and Rollup are implemented but it's easy to use another one.
+
+Project home: https://github.com/nafg/mill-bundler
+
+
+== CI Release
+
+`mill-ci-release` is a wrapper around the existing publish functionality of
+Mill with the aim to making releasing your project in GitHub Actions to Maven
+easier by automating common setup such as setting up gpg in CI, setting up
+versioning, and ensuring merges to into your main branch get published as a
+SNAPSHOT. If you're coming from sbt, then you're likely familiar with
+https://github.com/sbt/sbt-ci-release[`sbt-ci-release`] which this plugin
+imitates.
+
+Project home: https://github.com/ckipp01/mill-ci-release
+
+
+To get started, you'll want to use `CiReleaseModule` as a drop in replacement
+where you'd normally use the Mill `PublishModule` and then ensure you implement
+everything that `PublishModule` requires.
+
+Secondly, you'll need to ensure you have a few environment variables correctly
+set in your GitHub repo. You can see detailed instuctions on which are
+necessary https://github.com/ckipp01/mill-ci-release#secrets[here].
+
+Then in CI to publish you'll simply issue a single command:
+
+[source,yaml]
+----
+- run: mill -i io.kipp.mill.ci.release.ReleaseModule/publishAll
+----
+
+This will automatically grab all the artifacts that you've defined to publish
+in your build and publish them. Your version will automatically be managed by
+https://github.com/lefou/mill-vcs-version[`mill-vcs-version`] and if your
+version ends in `-SNAPSHOT` you're project will be published to Sonatype
+Snapshots or to the normal releases if it's a new tag.
+
+== DGraph
+
+Show transitive dependencies of your build in your browser.
+
+Project home: https://github.com/ajrnz/mill-dgraph
+
+
+[source,scala]
+----
+import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
+----
+
+[source,sh]
+----
+sh> mill plugin.dgraph.browseDeps(proj)()
+----
+
+== Docusaurus 2
+
+Simple Docusaurus runner for Mill
+
+The plugin provides a mill module that allows to build the project web site using https://docusaurus.io/[Docusaurus 2] as a static content generator.
+
+Project home. https://github.com/atooni/mill-docusaurus2
+
+
+== Ensime
+
+Create an http://ensime.github.io/[.ensime] file for your build.
+
+Project home: https://github.com/davoclavo/mill-ensime
+
+
+[source,scala]
+----
+import mill._
+interp.repositories() =
+  interp.repositories() ++ Seq(coursier.MavenRepository("https://jitpack.io"))
+
+@
+
+import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`
+----
+
+You can then run the following to generate the .ensime file
+
+[source,sh]
+----
+mill fun.valycorp.mill.GenEnsime/ensimeConfig
+----
+
+Optionally, you can specify the ensime server version using the –server flag like
+
+[source,sh]
+----
+mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"
+----
+
+== Explicit Deps
+
+A plugin that checks that `ivyDeps` and `ivyCompileDeps` accurately reflect the direct dependencies of your source code.
+
+Project home: https://github.com/kierendavies/mill-explicit-deps
+
+
+.`build.sc`
+[source,scala]
+----
+import $ivy.`io.github.kierendavies::mill-explicit-deps::0.1.0`
+import io.github.kierendavies.mill.explicitdeps.ExplicitDepsModule
+
+object foo extends ScalaModule with ExplicitDepsModule {
+    // ...
+}
+----
+
+[source,shell script]
+----
+> mill foo.checkExplicitDeps
+[37/37] main.checkExplicitDeps
+Found undeclared dependencies: (add these to ivyDeps)
+    ivy"org.typelevel::cats-kernel:2.7.0",
+
+Found unimported dependencies: (remove these from ivyDeps)
+    ivy"org.typelevel::cats-effect:3.3.6",
+
+1 targets failed
+main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies
+----
+
+== Fish Completion
+
+Limited fish completion support.
+
+Project home: https://github.com/ckipp01/mill-fish-completions
+
+== Giter8
+
+A plugin to test the generation of your
+http://www.foundweekends.org/giter8/index.html[Giter8] template and expected
+working targets for your template after generation.
+
+Project home: https://github.com/ckipp01/mill-giter8
+
+
+.`build.sc`
+[source,scala]
+----
+import $ivy.`io.chris-kipp::mill-giter8::0.2.0`
+
+import io.kipp.mill.giter8.G8Module
+
+object g8 extends G8Module {
+  override def validationTargets =
+    Seq("example.compile", "example.fix", "example.reformat")
+}
+----
+
+The most common target you'd then use is `mill g8.validate`.
+
+== Git
+
+A git version plugin for mill.
+
+Project home: https://github.com/joan38/mill-git
+
+_build.sc_:
+
+[source,scala]
+----
+import $ivy.`com.goyeau::mill-git:<latest version>`
+import com.goyeau.mill.git.GitVersionedPublishModule
+import mill.scalalib.JavaModule
+import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
+
+object `jvm-project` extends JavaModule with GitVersionedPublishModule {
+  override def pomSettings = PomSettings(
+    description = "JVM Project",
+    organization = "com.goyeau",
+    url = "https://github.com/joan38/mill-git",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("joan38", "mill-git"),
+    developers = Seq(Developer("joan38", "Joan Goyeau", "https://github.com/joan38"))
+  )
+}
+----
+
+[source,shell script]
+----
+> mill show jvm-project.publishVersion
+[1/1] show 
+[2/2] com.goyeau.mill.git.GitVersionModule.version 
+"0.0.0-470-6d0b3d9"
+----
+
+== GitHub Dependency Graph Submission
+
+A plugin to submit your mill dependency graph to GiHub through their
+https://github.blog/2022-06-17-creating-comprehensive-dependency-graph-build-time-detection/[Dependency
+Submission API].
+
+Project home: https://github.com/ckipp01/mill-github-dependency-graph
+
+
+The easiest way to use this plugin is with the
+https://github.com/ckipp01/mill-github-dependency-graph[mill-dependency-submission]
+action. You can add it as a workflow:
+
+[source,yaml]
+----
+name: github-dependency-graph
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  submit-dependency-graph:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: coursier/cache-action@v6
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - uses: ckipp01/mill-dependency-submission@v1
+----
+
+== Integration Testing Mill Plugins
+
+Integration testing for mill plugins.
+
+Project home: https://github.com/lefou/mill-integrationtest
+
+
+We assume, you have a mill plugin named `mill-demo`
+
+[source,scala]
+----
+// build.sc
+import mill._, mill.scalalib._
+object demo extends ScalaModule with PublishModule {
+  // ...
+}
+----
+
+Add a new test sub-project, e.g. `itest`.
+
+[source,scala]
+----
+// build.sc
+import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0`
+import de.tobiasroeser.mill.integrationtest._
+
+object demo extends ScalaModule with PublishModule {
+  // ...
+}
+
+object itest extends MillIntegrationTestModule {
+
+  def millTestVersion = "0.9.3"
+
+  def pluginsUnderTest = Seq(demo)
+
+}
+----
+
+Your project should now look similar to this:
+
+[source,text]
+----
+.
++-- demo/
+|   +-- src/
+|
++-- it/
+    +-- src/
+        +-- 01-first-test/
+        |   +-- build.sc
+        |   +-- src/
+        |
+        +-- 02-second-test/
+            +-- build.sc
+----
+
+As the buildfiles `build.sc` in your test cases typically want to access the locally built plugin(s),
+the plugins publishes all plugins referenced under `pluginsUnderTest` to a temporary ivy repository, just before the test is executed.
+The mill version used in the integration test then used that temporary ivy repository.
+
+Instead of referring to your plugin with `import $ivy.&#39;your::plugin:version&#39;`,
+you can use the following line instead, which ensures you will use the correct locally build plugins.
+
+[source,scala]
+----
+// build.sc
+import $exec.plugins
+----
+
+Effectively, at execution time, this line gets replaced by the content of `plugins.sc`, a file which was generated just before the test started to execute.
+
+Please always refer to the https://github.com/lefou/mill-integrationtest[official plugin documentation site] for complete and up-to-date information.
+
+== JaCoCo - Code Coverage
+
+Mill plugin to collect test coverage data with https://www.jacoco.org/jacoco/[JaCoCo] and generate reports.
+
+Plugin home: https://github.com/lefou/mill-jacoco
+
+
+
+== JBake
+
+Create static sites/blogs with JBake.
+
+Plugin home: https://github.com/lefou/mill-jbake
+
+JBake home: https://jbake.org
+
+
+[source,scala]
+----
+// build.sc
+import mill._
+import $ivy.`de.tototec::de.tobiasroeser.mill.jbake:0.1.0`
+import de.tobiasroeser.mill.jbake._
+
+object site extends JBakeModule {
+
+  def jbakeVersion = "2.6.4"
+
+}
+----
+
+Generate the site:
+
+[source,sh]
+----
+bash> mill site.jbake
+----
+
+Start a local Web-Server on Port 8820 with the generated site:
+
+[source,sh]
+----
+bash> mill site.jbakeServe
+----
+
+== JBuildInfo
+
+This is a https://www.lihaoyi.com/mill/[mill] module similar to
+https://www.lihaoyi.com/mill/page/contrib-modules.html#buildinfo[BuildInfo]
+but for Java.
+It will generate a Java class containing information from your build.
+
+Project home: https://github.com/carueda/mill-jbuildinfo
+
+To declare a module that uses this plugin, extend the
+`com.github.carueda.mill.JBuildInfo` trait and provide
+the desired information via the `buildInfoMembers` method:
+
+[source,scala]
+----
+// build.sc
+import $ivy.`com.github.carueda::jbuildinfo:0.1.2`
+import com.github.carueda.mill.JBuildInfo
+import mill.T
+
+object project extends JBuildInfo {
+  def buildInfoMembers: T[Map[String, String]] = T {
+    Map(
+      "name" -> "some name",
+      "version" -> "x.y.z"
+    )
+  }
+}
+----
+
+This will generate:
+
+[source,java]
+----
+// BuildInfo.java
+public class BuildInfo {
+  public static final String getName() { return "some name"; }
+  public static final String getVersion() { return "x.y.z"; }
+}
+----
+
+
+* `def buildInfoMembers: T[Map[String, String]]`
+
+The map containing all member names and values for the generated class.
+
+* `def buildInfoClassName: String`, default: `BuildInfo`
+
+The name of the class that will contain all the members from
+`buildInfoMembers`.
+
+* `def buildInfoPackageName: Option[String]`, default: `None`
+
+The package name for the generated class.
+
+== Kotlin
+
+https://kotlinlang.org/[Kotlin] compiler support for mill.
+
+Project home: https://github.com/lefou/mill-kotlin
+
+
+[source,scala]
+----
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.kotlin_mill0.9:0.2.0`
+
+import mill._
+import mill.scalalib._
+import mill.define._
+
+import de.tobiasroeser.mill.kotlin._
+
+object main extends KotlinModule {
+
+  // Select the Kotlin version
+  def kotlinVersion = "1.4.21"
+
+  // Set additional Kotlin compiler options, e.g. the language level and annotation processor
+  // Run `mill main.kotlincHelp` to get a list of supported options
+  def kotlincOptions = super.kotlincOptions() ++ Seq("-verbose")
+
+}
+----
+
+For documentation please visit the https://github.com/lefou/mill-kotlin[mill-kotlin project page].
+
+You will find there also a version compatibility matrix.
+
+== MDoc
+
+Simple MDoc runner for Mill
+
+This plugin provides a mill module that allows to execute https://scalameta.org/mdoc/[Scala MDoc] from within a mill build.
+Scala MDoc simply compiles properly marked Scala snippets in plain md files and optionally runs them through an interpreter, augmenting the code with the interpreter output.
+
+Project home: https://github.com/atooni/mill-mdoc
+
+== `millw` / `millw.bat` - Mill Wrapper Scripts
+
+Small script to automatically fetch and execute mill build tool.
+
+Project home: https://github.com/lefou/millw
+
+`millw` is a small wrapper script around mill and works almost identical to
+mill, but with additional features and compatibility with Windows. It
+automatically downloads a mill release into `$HOME/.mill/download`.
+
+== MiMa
+
+Check binary compatibility with mill.
+
+Project home: https://github.com/lolgab/mill-mima
+
+
+Just mix-in the `Mima` trait into your `ScalaModule`.
+And set the previous artifacts you want to check binary compatibility.
+
+[source,scala]
+----
+import mill._, scalalib._
+
+import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.2`
+import com.github.lolgab.mill.mima._
+
+object main extends ScalaModule with Mima {
+
+  def mimaPreviousArtifacts = Agg(
+    ivy"my_group_id::main:my_previous_version"
+  )
+
+  // other settings ...
+
+}
+----
+
+You can then check the binary compatibility of the module with:
+
+[source,bash]
+----
+> mill main.mimaReportBinaryIssues
+Binary compatibility check passed.
+----
+
+== OSGi
+
+Produce OSGi Bundles with mill.
+
+Project home: https://github.com/lefou/mill-osgi
+
+
+[source,scala]
+----
+import mill._, mill.scalalib._
+import $ivy.`de.tototec::de.tobiasroeser.mill.osgi:0.0.5`
+import de.tobiasroeser.mill.osgi._
+
+object project extends ScalaModule with OsgiBundleModule {
+
+  def bundleSymbolicName = "com.example.project"
+
+  def osgiHeaders = T{ super.osgiHeaders().copy(
+    `Export-Package`   = Seq("com.example.api"),
+    `Bundle-Activator` = Some("com.example.internal.Activator")
+  )}
+
+  // other settings ...
+
+}
+----
+
+== PowerShell Completion
+
+Basic PowerShell completion support.
+
+Project home: https://github.com/sake92/mill-powershell-completion
+
+
+== PublishM2
+
+_Since Mill `0.6.1-27-f265a4` there is a built-in `publishM2Local` target in `PublishModule`._
+
+Mill plugin to publish artifacts into a local Maven repository.
+
+Project home: https://github.com/lefou/mill-publishM2
+
+
+Just mix-in the `PublishM2Module` into your project.
+`PublishM2Module` already extends mill's built-in `PublishModule`.
+
+File: `build.sc`
+
+[source,scala]
+----
+import mill._, scalalib._, publish._
+
+import $ivy.`de.tototec::de.tobiasroeser.mill.publishM2:0.0.1`
+import de.tobiasroeser.mill.publishM2._
+
+object project extends PublishModule with PublishM2Module {
+  // ...
+}
+----
+
+Publishing to default local Maven repository
+
+[source,bash]
+----
+> mill project.publishM2Local
+[40/40] project.publishM2Local
+Publishing to /home/user/.m2/repository
+----
+
+Publishing to custom local Maven repository
+
+[source,bash]
+----
+> mill project.publishM2Local /tmp/m2repo
+[40/40] project.publishM2Local
+Publishing to /tmp/m2repo
+----
+
+== ScalablyTyped
+
+https://scalablytyped.org/[Scalablytyped] support for mill.
+
+Project home: https://github.com/lolgab/mill-scalablytyped
+
+
+Mix-in the `ScalablyTyped` trait into your `ScalaJSModule` and
+set-up a `package.json` file with your TypeScript dependencies.
+
+[source,scala]
+----
+import mill._, scalalib._
+
+import $ivy.`com.github.lolgab::mill-scalablytyped::0.0.2`
+import com.github.lolgab.mill.scalablytyped._
+
+object main extends ScalaJSModule with ScalablyTyped {
+
+  // other settings ...
+
+}
+----
+
+It will run ScalablyTyped and add the converted dependencies to the module's `ivyDeps`.
+
+== Scalafix
+
+https://scalacenter.github.io/scalafix/[Scalafix] support for mill.
+
+Project home: https://github.com/joan38/mill-scalafix
+
+_build.sc_:
+
+[source,scala]
+----
+import $ivy.`com.goyeau::mill-scalafix:<latest version>`
+import com.goyeau.mill.scalafix.ScalafixModule
+import mill.scalalib._
+
+object project extends ScalaModule with ScalafixModule {
+  def scalaVersion = "2.12.11"
+}
+----
+
+[source,shell script]
+----
+> mill project.fix
+[29/29] project.fix
+/project/project/src/MyClass.scala:12:11: error: [DisableSyntax.var] mutable state should be avoided
+  private var hashLength = 7
+          ^^^
+1 targets failed
+project.fix A Scalafix linter error was reported
+----
+
+== SCIP (SCIP Code Intelligence Protocol)
+
+Support for generating https://about.sourcegraph.com/blog/announcing-scip[SCIP]
+indexes from your Mill build. This is most commonly used to power intelligent
+code navigation on https://sourcegraph.com/[Sourcegraph].
+
+Project home: https://github.com/ckipp01/mill-scip
+
+
+The recommended way to use `mill-scip` is via the
+https://sourcegraph.github.io/scip-java/[`scip-java`] cli tool that can be
+installed via https://get-coursier.io/[Coursier].
+
+[source, shell script]
+----
+cs install scip-java
+----
+
+Once you have `scip-java` installed the following command and the root of your
+Mill build will generate an index and place it at the root of your project.
+
+[source, shell script]
+----
+scip-java index
+----
+
+You can also manually trigger this with Mill by doing the following:
+
+[source, shell script]
+----
+
+mill --import ivy:io.chris-kipp::mill-scip::0.2.2 io.kipp.mill.scip.Scip/generate
+----
+
+This will then generate your `index.scip` inside of
+`out/io/kipp/mill/scip/Scip/generate.dest/`.
+
+== Shell Completions
+
+As Mill is a tool often used from the CLI (Command line interface), you may be also interested in installing some completion support for your preferred shell:
+
+* <<_bash_completion>>
+* <<_fish_completion>>
+* <<_zsh_completion>>
+
+== VCS Version
+
+Mill plugin to derive a version from (last) git tag and edit state. It may support other VCS as well.
+
+Project home: https://github.com/lefou/mill-vcs-version
+
+Lots of formatting options are provided.
+When used with its defaults, the outcome is identical to the version scheme that Mill itself uses.
+
+
+[source,scala]
+----
+import mill._
+import mill.scalalib._
+
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2`
+import de.tobiasroeser.mill.vcs.version.VcsVersion
+
+object main extends JavaModule with PublishModule {
+  override def publishVersion: T[String] = VcsVersion.vcsState().format()
+}
+----
+
+== Zsh Completion
+
+Limited zsh completion support.
+
+This script is part of a collection of configuration files and comes without documentation, but might be useful nonetheless, if you are a zsh user.
+
+
+Project home: https://github.com/carlosedp/dotfiles/blob/master/completion/_mill

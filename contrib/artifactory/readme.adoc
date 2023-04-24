@@ -1,0 +1,26 @@
+= Artifactory
+:page-aliases: Plugin_Artifactory.adoc
+
+This plugin allows publishing to Artifactory.
+
+== Quickstart
+
+[source,scala]
+----
+import $ivy.`com.lihaoyi::mill-contrib-artifactory:`
+import mill.contrib.artifactory.ArtifactoryPublishModule
+
+object mymodule extends ArtifactoryPublishModule {
+  def artifactoryUri: String = "https://example.com/artifactory/my-repo"
+  def artifactorySnapshotUri: String = "https://example.com/artifactory/my-snapshot-repo"
+
+  ...
+}
+----
+
+Then in your terminal:
+
+[source,bash]
+----
+$ mill mymodule.publishArtifactory --credentials $ARTIFACTORY_USER:$ARTIFACTORY_PASSWORD
+----

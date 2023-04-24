@@ -12,10 +12,16 @@ import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDot
 import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
 import os.Path
 
+/**
+ * A default implementation of [[ZincWorkerModule]]
+ */
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
 }
 
+/**
+ * A module managing an in-memory Zinc Scala incremental compiler
+ */
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
 
   def classpath: Target[Agg[PathRef]] = T {

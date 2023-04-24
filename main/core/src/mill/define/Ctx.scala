@@ -4,6 +4,22 @@ import os.Path
 
 import scala.annotation.implicitNotFound
 
+/**
+ * The contextual information provided by a [[mill.define.Module]].
+ *
+ * @param enclosing
+ * @param lineNum the line number that this module is defined at. Useful for
+ *                error reporting purposes
+ * @param segment
+ * @param millSourcePath
+ * @param segments
+ * @param external
+ * @param foreign
+ * @param fileName the file name that this module is defined in. Useful for
+ *                 error reporting purposes
+ * @param enclosingCls
+ * @param crossValues
+ */
 @implicitNotFound("Modules, Targets and Commands can only be defined within a mill Module")
 case class Ctx private (
     enclosing: String,
