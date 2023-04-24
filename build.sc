@@ -1773,7 +1773,7 @@ object docs extends Module {
   def githubPagesPlaybookText(authorMode: Boolean): Task[String] = T.task {
     s"""site:
        |  title: Mill
-       |  url: ${if (authorMode) s"${T.dest}/site/index.html" else Settings.docUrl}
+       |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
        |  start_page: mill::Intro_to_Mill.adoc
        |
        |content:
