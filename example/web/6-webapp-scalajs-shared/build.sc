@@ -26,8 +26,8 @@ object app extends RootModule with AppScalaModule{
     def testFramework = "utest.runner.Framework"
 
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest::0.7.10",
-      ivy"com.lihaoyi::requests::0.6.9",
+      ivy"com.lihaoyi::utest:0.7.10",
+      ivy"com.lihaoyi::requests:0.6.9",
     )
   }
 
@@ -35,8 +35,8 @@ object app extends RootModule with AppScalaModule{
     trait SharedModule extends AppScalaModule with PlatformScalaModule {
 
       def ivyDeps = Agg(
-        ivy"com.lihaoyi::scalatags::0.12.0",
-        ivy"com.lihaoyi::upickle::3.0.0",
+        ivy"com.lihaoyi::scalatags:0.12.0",
+        ivy"com.lihaoyi::upickle:3.0.0",
       )
     }
 
@@ -46,7 +46,7 @@ object app extends RootModule with AppScalaModule{
 
   object client extends AppScalaJSModule {
     def moduleDeps = Seq(shared.js)
-    def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
+    def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom:2.2.0")
   }
 }
 

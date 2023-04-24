@@ -22,15 +22,15 @@ object app extends RootModule with ScalaModule{
     def testFramework = "utest.runner.Framework"
 
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest::0.7.10",
-      ivy"com.lihaoyi::requests::0.6.9",
+      ivy"com.lihaoyi::utest:0.7.10",
+      ivy"com.lihaoyi::requests:0.6.9",
     )
   }
 
   object client extends ScalaJSModule {
     def scalaVersion = "2.13.8"
     def scalaJSVersion = "1.13.0"
-    def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
+    def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom:2.2.0")
   }
 }
 

@@ -14,7 +14,7 @@ In your terminal:
 ----
 
 It generate correct bloop config for any `JavaModule`, `ScalaModule`,
-`ScalaJsModule` or `ScalaNativeModule` under the `.bloop` folder
+`ScalaJSModule` or `ScalaNativeModule` under the `.bloop` folder
 
 == Mix-in
 

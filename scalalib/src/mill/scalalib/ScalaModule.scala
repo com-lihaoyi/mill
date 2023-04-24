@@ -171,7 +171,8 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDeps(
       T.task {
         val bind = bindDependency()
-        Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion()).map(bind)
+        Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion()).map(_.withPlatformed(false)).map(bind)
+
       }
     )()
   }
@@ -203,7 +204,7 @@ trait ScalaModule extends JavaModule { outer =>
       T.task {
         val bind = bindDependency()
         (Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
-          scalaLibraryIvyDeps()).map(bind)
+          scalaLibraryIvyDeps()).map(_.withPlatformed(false)).map(bind)
       }
     )()
   }

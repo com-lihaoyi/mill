@@ -94,6 +94,12 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
       case _ =>
         this
     }
+  def withPlatformed(platformed: Boolean): Dep =
+    copy(cross = cross match {
+      case c: CrossVersion.Constant => c.copy(platformed = platformed)
+      case c: CrossVersion.Binary => c.copy(platformed = platformed)
+      case c: CrossVersion.Full => c.copy(platformed = platformed)
+    })
 }
 
 object Dep {
@@ -113,7 +119,7 @@ object Dep {
     (module.split(':') match {
       case Array(a, b, c) => Dep(a, b, c, cross = empty(platformed = false))
       case Array(a, b, "", c) => Dep(a, b, c, cross = empty(platformed = true))
-      case Array(a, "", b, c) => Dep(a, b, c, cross = Binary(platformed = false))
+      case Array(a, "", b, c) => Dep(a, b, c, cross = Binary(platformed = true))
       case Array(a, "", b, "", c) => Dep(a, b, c, cross = Binary(platformed = true))
       case Array(a, "", "", b, c) => Dep(a, b, c, cross = Full(platformed = false))
       case Array(a, "", "", b, "", c) => Dep(a, b, c, cross = Full(platformed = true))

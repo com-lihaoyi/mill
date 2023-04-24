@@ -12,8 +12,8 @@ object app extends RootModule with ScalaModule{
     def testFramework = "utest.runner.Framework"
 
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest::0.7.10",
-      ivy"com.lihaoyi::requests::0.6.9",
+      ivy"com.lihaoyi::utest:0.7.10",
+      ivy"com.lihaoyi::requests:0.6.9",
     )
   }
 }
