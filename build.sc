@@ -50,7 +50,7 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq()
-  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M7")
+  val mimaBaseVersions: Seq[String] = Seq()
 }
 
 object Deps {
