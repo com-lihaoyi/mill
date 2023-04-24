@@ -44,32 +44,9 @@ object Settings {
   val docBranches = Seq()
   // the exact tags containing a doc root
   val docTags: Seq[String] = Seq(
-    "0.9.6",
-    "0.9.7",
-    "0.9.8",
-    "0.9.9",
-    "0.9.10",
-    "0.9.11",
     "0.9.12",
     "0.10.0",
-    "0.10.1",
-    "0.10.2",
-    "0.10.3",
-    "0.10.4",
-    "0.10.5",
-    "0.10.6",
-    "0.10.7",
-    "0.10.8",
-    "0.10.9",
-    "0.10.10",
-    "0.10.11",
     "0.10.12",
-    "0.11.0-M1",
-    "0.11.0-M2",
-    "0.11.0-M3",
-    "0.11.0-M4",
-    "0.11.0-M5",
-    "0.11.0-M6",
     "0.11.0-M7"
   )
   val mimaBaseVersions: Seq[String] = Seq("0.11.0-M7")
@@ -1803,7 +1780,7 @@ object docs extends Module {
        |  sources:
        |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
        |      branches: []
-       |      tags: ["0.10.12", "0.9.12"]
+       |      tags: ${Settings.docTags.map("'" + _ + "'").mkString("[", ",", "]")}
        |      start_path: docs/antora
        |    # the master documentation (always in author mode)
        |    - url: ${baseDir}
