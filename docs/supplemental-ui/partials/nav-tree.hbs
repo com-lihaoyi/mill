@@ -1,0 +1,28 @@
+{{!
+override this template to add is-active to top-level <li> where `level` is not defined
+
+This lets us open up the first-level tree nodes by default, letting us use tree
+nodes to organize things while keeping them open and easily browsable/discoverable
+}}
+{{#if navigation.length}}
+<ul class="nav-list">
+  {{#each navigation}}
+
+  <li class="nav-item{{#if (eq ./url @root.page.url)}} is-current-page{{/if}}{{#unless ../level}} is-active{{/unless}}" data-depth="{{or ../level 0}}">
+    {{#if ./content}}
+    {{#if ./items.length}}
+    <button class="nav-item-toggle"></button>
+    {{/if}}
+    {{#if ./url}}
+    <a class="nav-link" href="
+      {{~#if (eq ./urlType 'internal')}}{{{relativize ./url}}}
+      {{~else}}{{{./url}}}{{~/if}}">{{{./content}}}</a>
+    {{else}}
+    <span class="nav-text">{{{./content}}}</span>
+    {{/if}}
+    {{/if}}
+{{> nav-tree navigation=./items level=(increment ../level)}}
+  </li>
+  {{/each}}
+</ul>
+{{/if}}

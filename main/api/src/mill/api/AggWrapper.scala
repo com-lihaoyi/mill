@@ -7,7 +7,7 @@ import scala.language.implicitConversions
 object Strict extends AggWrapper(true)
 object Loose extends AggWrapper(false)
 
-sealed class AggWrapper(strictUniqueness: Boolean) {
+private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
 
   /**
    * A collection with enforced uniqueness, fast contains and deterministic
