@@ -49,7 +49,8 @@ object MillMain {
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
     val (result, _) =
-      try main0(
+      try {
+        main0(
           args = args,
           stateCache = RunnerState.empty,
           mainInteractive = mill.util.Util.isInteractive(),

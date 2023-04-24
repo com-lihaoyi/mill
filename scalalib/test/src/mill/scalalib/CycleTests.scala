@@ -1,7 +1,6 @@
 package mill.scalalib
 
 import mill.main.BuildScriptException
-import mill.scalalib.HelloWorldTests.HelloWorldScalaOverride
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, compileError, intercept, test, assert}
