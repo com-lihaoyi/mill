@@ -87,29 +87,11 @@ object Resolve {
               case "_" => directChildren
               case _ => resolveDirectChildren(obj, Some(singleLabel), discover, args)
             },
-            singleLabel match {
-              case "_" =>
-                Left(
-                  "Cannot resolve " + Segments(
-                    (remainingSelector.reverse ++ obj.millModuleSegments.value).reverse: _*
-                  ).render +
-                    ". Try `mill resolve " + Segments(
-                    (Segment.Label("_") +: obj.millModuleSegments.value).reverse: _*
-                  ).render + "` to see what's available."
-                )
-              case "__" =>
-                Resolve.errorMsgLabel(
-                  directChildren.map(_.right.get.name),
-                  remainingSelector,
-                  obj.millModuleSegments.value
-                )
-              case _ =>
-                Resolve.errorMsgLabel(
-                  directChildren.map(_.right.get.name),
-                  Seq(Segment.Label(singleLabel)),
-                  obj.millModuleSegments.value
-                )
-            }
+            Resolve.errorMsgLabel(
+              directChildren.map(_.right.get.name),
+              remainingSelector,
+              revSelectorsSoFar
+            )
           ).map(
             _.distinctBy {
               case t: NamedTask[_] => t.ctx.segments
@@ -131,8 +113,8 @@ object Resolve {
           recurse(
             searchModules.map(m => Right(Resolved.Module("", m))),
             Resolve.errorMsgCross(
-              c.segmentsToModules.map(_._1.map(_.toString)).toList,
-              cross.map(_.toString),
+              c.segmentsToModules.keys.toList,
+              cross,
               c.millModuleSegments.value
             )
           )
@@ -258,19 +240,13 @@ object Resolve {
         .filter(_._2 < 3)
         .sortBy(_._2)
 
-    if (similar.headOption.exists(_._1 == last0)) {
-      // Special case: if the most similar segment is the desired segment itself,
-      // this means we are trying to resolve a module where a task is present.
-      // Special case the error message to make it something meaningful
-      Left("Task " + last0 + " is not a module and has no children.")
-    } else {
 
-      val hint = similar match {
-        case Nil => defaultErrorMsg
-        case items => " Did you mean " + render(items.head._1) + "?"
-      }
-      Left(unableToResolve(render(last0)) + hint)
+    val hint = similar match {
+      case Nil => defaultErrorMsg
+      case items => " Did you mean " + render(items.head._1) + "?"
     }
+    Left(unableToResolve(render(last0)) + hint)
+
   }
 
   def errorMsgLabel(
