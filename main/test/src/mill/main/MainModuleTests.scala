@@ -165,7 +165,6 @@ object MainModuleTests extends TestSuite {
           os.sub / "bar" / "target.dest" / "dummy.txt"
         )
 
-        println("\n\nCleaning foo.target\n\n")
         val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator, "foo.target")))
         assert(r2.failing.keyCount == 0)
         checkExists(false)(
