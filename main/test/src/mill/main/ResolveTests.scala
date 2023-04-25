@@ -3,7 +3,7 @@ package mill.main
 import mill.define.{NamedTask, SelectMode}
 import mill.util.TestGraphs._
 import utest._
-object ResolversTests extends TestSuite {
+object ResolveTests extends TestSuite {
 
   class Checker[T <: mill.define.BaseModule](module: T) {
 
