@@ -170,6 +170,7 @@ object ResolveCore {
     }
 
     val targets = Module
+      .Internal
       .reflect(obj.getClass, classOf[Target[_]], namePred, noParams = true)
       .map { m =>
         Resolved.Target(
@@ -179,6 +180,7 @@ object ResolveCore {
       }
 
     val commands = Module
+      .Internal
       .reflect(obj.getClass, classOf[Command[_]], namePred, noParams = false)
       .map(m => decode(m.getName))
       .map { name =>

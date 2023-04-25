@@ -255,7 +255,6 @@ object Cross {
   trait Resolver[-T <: Cross.Module[_]] {
     def resolve[V <: T](c: Cross[V]): V
   }
-
 }
 
 /**
@@ -271,6 +270,9 @@ object Cross {
 class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mill.define.Ctx)
     extends mill.define.Module()(ctx) {
 
+  // We lazily initialize the instances of `Cross.Module` only when they are
+  // requested, to avoid unexpected failures in one module initialization
+  // causing problems using others.
   private class Lazy[T](t: () => T) {
     lazy val value = t()
   }

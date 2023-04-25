@@ -1,7 +1,5 @@
 package mill.define
 
-import mill.api.internal
-
 import language.experimental.macros
 import scala.collection.mutable
 import scala.reflect.macros.blackbox
