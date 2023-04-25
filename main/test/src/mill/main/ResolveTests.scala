@@ -588,9 +588,9 @@ object ResolveTests extends TestSuite {
         def isShortFooTrace(res: Either[String, List[NamedTask[_]]]) = {
           res.isLeft &&
           res.left.exists(_.contains("Foo Boom") &&
-          // Make sure the stack traces are truncated and short-ish, and do not
-          // contain the entire Mill internal call stack at point of failure
-          res.left.exists(_.linesIterator.size < 20))
+            // Make sure the stack traces are truncated and short-ish, and do not
+            // contain the entire Mill internal call stack at point of failure
+            res.left.exists(_.linesIterator.size < 20))
         }
         "fooTarget" - check.checkSeq0(
           Seq("foo.fooTarget"),

@@ -46,11 +46,12 @@ object ResolveCore {
   ) extends Failed
   case class Error(msg: String) extends Failed
 
-  def resolve(remainingQuery: List[Segment],
-              current: Resolved,
-              discover: Discover[_],
-              args: Seq[String],
-              querySoFar: Segments
+  def resolve(
+      remainingQuery: List[Segment],
+      current: Resolved,
+      discover: Discover[_],
+      args: Seq[String],
+      querySoFar: Segments
   ): Result = remainingQuery match {
     case Nil => Success(Set(current))
     case head :: tail =>
@@ -92,7 +93,13 @@ object ResolveCore {
               case "_" =>
                 Right(resolveDirectChildren(obj, None, discover, args, current.segments))
               case _ =>
-                Right(resolveDirectChildren(obj, Some(singleLabel), discover, args, current.segments))
+                Right(resolveDirectChildren(
+                  obj,
+                  Some(singleLabel),
+                  discover,
+                  args,
+                  current.segments
+                ))
             }
           }
 
@@ -111,10 +118,9 @@ object ResolveCore {
                 if segments.zip(cross).forall { case (l, r) => l == r || r == "_" }
               } yield v
             } else c.segmentsToModules.get(cross.toList).toSeq
-
           )
 
-          searchModulesOrErr match{
+          searchModulesOrErr match {
             case Left(err) => Error(err)
             case Right(searchModules) =>
               recurse(searchModules.map(m => Resolved.Module(m.millModuleSegments, Right(m))).toSet)
@@ -126,12 +132,12 @@ object ResolveCore {
 
   def catchReflectException[T](t: => T): Either[String, T] = {
     try Right(t)
-    catch {case e: Exception => makeResultException(e.getCause, new Exception())}
+    catch { case e: Exception => makeResultException(e.getCause, new Exception()) }
   }
 
   def catchNormalException[T](t: => T): Either[String, T] = {
     try Right(t)
-    catch {case e: Exception => makeResultException(e, new Exception())}
+    catch { case e: Exception => makeResultException(e, new Exception()) }
   }
 
   def makeResultException(e: Throwable, base: Exception) = {

@@ -49,11 +49,11 @@ object Module {
   @internal
   object Internal {
     def reflect(
-                 outer: Class[_],
-                 inner: Class[_],
-                 filter: String => Boolean,
-                 noParams: Boolean
-               ): Seq[java.lang.reflect.Method] = {
+        outer: Class[_],
+        inner: Class[_],
+        filter: String => Boolean,
+        noParams: Boolean
+    ): Seq[java.lang.reflect.Method] = {
       for {
         m <- outer.getMethods.sortBy(_.getName)
         n = decode(m.getName)
@@ -70,9 +70,9 @@ object Module {
     // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
     // script/REPL runner always wraps user code in a wrapper object/trait
     def reflectNestedObjects[T: ClassTag](
-                                           outer: Class[_],
-                                           filter: String => Boolean = Function.const(true)
-                                         ): Seq[java.lang.reflect.Member] = {
+        outer: Class[_],
+        filter: String => Boolean = Function.const(true)
+    ): Seq[java.lang.reflect.Member] = {
       reflect(outer, classOf[Object], filter, noParams = true) ++
         outer
           .getClasses
@@ -107,7 +107,12 @@ object Module {
     lazy val millModuleLine: Int = outer.millOuterCtx.lineNum
 
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {
-      Module.Internal.reflect(outer.getClass, implicitly[ClassTag[T]].runtimeClass, filter, noParams = true)
+      Module.Internal.reflect(
+        outer.getClass,
+        implicitly[ClassTag[T]].runtimeClass,
+        filter,
+        noParams = true
+      )
         .map(_.invoke(outer).asInstanceOf[T])
     }
 

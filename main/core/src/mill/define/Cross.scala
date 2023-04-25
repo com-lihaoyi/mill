@@ -283,8 +283,8 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mi
       factory.crossSegmentsList.zip(factory.crossValuesListLists.zip(factory.makeList))
   } yield {
     val relPath = ctx.segment.pathSegments
-    val sub = new Lazy(
-      () => make(
+    val sub = new Lazy(() =>
+      make(
         ctx
           .withSegments(ctx.segments ++ Seq(ctx.segment))
           .withMillSourcePath(ctx.millSourcePath / relPath)
