@@ -26,7 +26,6 @@ object Resolve {
       Nil
     ) match {
       case Resolve.Success(value) =>
-        println("S")
         EitherOps.sequence(
           value.collect {
             case t: Resolve.Resolved.Target => Right(t.value)
@@ -40,12 +39,11 @@ object Resolve {
             next match {
               case Segment.Label(s) =>
                 val possibleStrings = possibleNexts.collect { case Segment.Label(s) => s }
-                pprint.log(possibleStrings)
-                pprint.log(segments.render)
 
-                errorMsgLabel(s, possibleStrings, segments.value.toList)
+                errorMsgLabel(s, possibleStrings, segments)
               case Segment.Cross(keys) =>
-                errorMsgCross(keys, possibleNexts.collect { case Segment.Cross(keys) => keys }.toSeq, segments.value.toList)
+                val possibleCrossKeys = possibleNexts.collect { case Segment.Cross(keys) => keys }
+                errorMsgCross(keys, possibleCrossKeys, segments)
             }
           case _ =>
 
@@ -101,18 +99,14 @@ object Resolve {
           case s: NotFound => Right(s)
           case s: Error => Left(s.msg)
         }
+
         if (errors.nonEmpty) Error(errors.mkString("\n"))
         else {
           val successes = successesLists.flatten
           if (successes.nonEmpty) Success(successes)
           else {
             notFounds.headOption.getOrElse {
-              val mod = current.asInstanceOf[Resolved.Module].value
-              val directChildren: Set[Segment] = resolveDirectChildren(mod, None, discover, args)
-                .map(e => Segment.Label(e.right.get.name))
-              pprint.log(mod)
-              pprint.log(directChildren)
-              NotFound(Segments(revSelectorsSoFar0.reverse), Set(current), head, directChildren)
+              notFoundResult(revSelectorsSoFar0, current, head, discover, args)
             }
           }
         }
@@ -152,21 +146,7 @@ object Resolve {
 
           recurse(searchModules.map(m => Resolved.Module("", m)).toSet)
 
-        case _ =>
-          NotFound(
-            Segments(revSelectorsSoFar0.reverse),
-            Set(current),
-            head,
-            current match{
-              case Resolved.Module(_, c: Cross[_]) =>
-                c.segmentsToModules.keys.toSet.map(Segment.Cross)
-
-              case Resolved.Module(_, obj) =>
-                resolveDirectChildren(obj, None, discover, args).map(e => Segment.Label(e.right.get.name))
-
-              case _ => Set()
-            }
-          )
+        case _ => notFoundResult(revSelectorsSoFar0, current, head, discover, args)
       }
   }
 
@@ -206,6 +186,26 @@ object Resolve {
 
     (modules ++ targets ++ commands).toSet
   }
+
+  def notFoundResult(revSelectorsSoFar0: List[Segment],
+                     current: Resolved,
+                     next: Segment,
+                     discover: Discover[_],
+                     args: Seq[String]) =
+    NotFound(
+      Segments(revSelectorsSoFar0.reverse),
+      Set(current),
+      next,
+      current match {
+        case Resolved.Module(_, c: Cross[_]) =>
+          c.segmentsToModules.keys.toSet.map(Segment.Cross)
+
+        case Resolved.Module(_, obj) =>
+          resolveDirectChildren(obj, None, discover, args).map(e => Segment.Label(e.right.get.name))
+
+        case _ => Set()
+      }
+    )
 
   def invokeCommand(
       target: Module,
@@ -274,17 +274,11 @@ object Resolve {
 
   def errorMsgLabel(given: String,
                     possibleMembers: Set[String],
-                    revSelectorsSoFar: List[Segment]) = {
-    def render(x: String) = {
-      val rendered = Segments((Segment.Label(x) :: revSelectorsSoFar).reverse).render
-      pprint.log(x)
-      pprint.log(revSelectorsSoFar)
-      pprint.log(rendered)
-      rendered
-    }
+                    segments: Segments) = {
+    def render(x: String) = (segments ++ Seq(Segment.Label(x))).render
 
     val suggestion = findMostSimilar(given, possibleMembers) match {
-      case None => hintListLabel(revSelectorsSoFar)
+      case None => hintListLabel(segments.value)
       case Some(similar) => " Did you mean " + render(similar) + "?"
     }
 
@@ -294,20 +288,19 @@ object Resolve {
   }
 
   def errorMsgCross(givenKeys: Seq[String],
-                    possibleCrossKeys: Seq[Seq[String]],
-                    revSelectorsSoFar: List[Segment]) = {
+                    possibleCrossKeys: Set[Seq[String]],
+                    segments: Segments) = {
 
-    def render(xs: Seq[String]) = {
-      Segments(Segment.Cross(xs) :: revSelectorsSoFar).render
+    def render(xs: Seq[String]) = (segments ++ Seq(Segment.Cross(xs))).render
+
+
+    val suggestion = findMostSimilar(
+      givenKeys.mkString(","),
+      possibleCrossKeys.map(_.mkString(","))
+    ) match {
+      case None => hintListLabel(segments.value)
+      case Some(similar) => " Did you mean " + render(similar.split(',')) + "?"
     }
-
-    val similarKeysOpts = givenKeys
-      .zip(possibleCrossKeys)
-      .map{case (givenKey, possibleKeys) => findMostSimilar(givenKey, possibleKeys.toSet)}
-
-    val suggestion =
-      if (similarKeysOpts.exists(_.isEmpty)) hintListCross(revSelectorsSoFar)
-      else " Did you mean " + render(similarKeysOpts.map{case Some(v) => v}) + "?"
 
     unableToResolve(render(givenKeys)) + suggestion
   }

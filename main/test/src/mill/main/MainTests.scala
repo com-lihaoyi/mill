@@ -155,7 +155,7 @@ object MainTests extends TestSuite {
         "neg2" - check(
           "cross[doesntExist].doesntExist",
           Left(
-            "Cannot resolve cross[doesntExist]. Try `mill resolve cross[__]` to see what's available."
+            "Cannot resolve cross[doesntExist]. Try `mill resolve cross._` to see what's available."
           )
         )
         "neg3" - check(
@@ -165,7 +165,7 @@ object MainTests extends TestSuite {
         "neg4" - check(
           "cross[doesntExist].suffix",
           Left(
-            "Cannot resolve cross[doesntExist]. Try `mill resolve cross[__]` to see what's available."
+            "Cannot resolve cross[doesntExist]. Try `mill resolve cross._` to see what's available."
           )
         )
         "wildcard" - check(
@@ -198,28 +198,28 @@ object MainTests extends TestSuite {
         "wildcard" - {
           "labelNeg1" - check(
             "_.suffix",
-            Left("Cannot resolve cross.suffix. Try `mill resolve cross._` to see what's available.")
+            Left("Cannot resolve _.suffix. Try `mill resolve _._` to see what's available.")
           )
           "labelNeg2" - check(
             "_.doesntExist",
             Left(
-              "Cannot resolve cross.doesntExist. Try `mill resolve cross._` to see what's available."
+              "Cannot resolve _.doesntExist. Try `mill resolve _._` to see what's available."
             )
           )
           "labelNeg3" - check(
             "__.doesntExist",
-            Left("Cannot resolve __.doesntExist. Try `mill resolve _` to see what's available.")
+            Left("Cannot resolve __.doesntExist. Try `mill resolve __._` to see what's available.")
           )
           "labelNeg4" - check(
             "cross.__.doesntExist",
             Left(
-              "Cannot resolve cross.__.doesntExist. Try `mill resolve cross._` to see what's available."
+              "Cannot resolve cross.__.doesntExist. Try `mill resolve cross.__._` to see what's available."
             )
           )
           "labelNeg5" - check(
             "cross._.doesntExist",
             Left(
-              "Cannot resolve cross._.doesntExist. Try `mill resolve cross._` to see what's available."
+              "Cannot resolve cross._. Try `mill resolve cross._` to see what's available."
             )
           )
           "labelPos" - check(
