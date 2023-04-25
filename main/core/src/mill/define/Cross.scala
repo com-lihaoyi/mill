@@ -303,7 +303,7 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mi
    * A list of the cross modules, in
    * the order the original cross values were given in
    */
-  val crossModules: SeqView[M] = items.view.map { case (_, _, v) => v.value }
+  val crossModules: Seq[M] = items.map { case (_, _, v) => v.value }
 
   /**
    * A mapping of the raw cross values to the cross modules, in
