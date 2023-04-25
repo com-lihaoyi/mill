@@ -8,16 +8,16 @@ object ResolversTests extends TestSuite {
   class Checker[T <: mill.define.BaseModule](module: T) {
 
     def apply(
-               selectorString: String,
-               expected0: Either[String, Set[T => NamedTask[_]]],
-               expectedMetadata: Set[String] = Set()
-             ) = checkSeq(Seq(selectorString), expected0, expectedMetadata)
+        selectorString: String,
+        expected0: Either[String, Set[T => NamedTask[_]]],
+        expectedMetadata: Set[String] = Set()
+    ) = checkSeq(Seq(selectorString), expected0, expectedMetadata)
 
     def checkSeq(
-                  selectorStrings: Seq[String],
-                  expected0: Either[String, Set[T => NamedTask[_]]],
-                  expectedMetadata: Set[String] = Set()
-                ) = {
+        selectorStrings: Seq[String],
+        expected0: Either[String, Set[T => NamedTask[_]]],
+        expectedMetadata: Set[String] = Set()
+    ) = {
       val expected = expected0.map(_.map(_(module)))
       val (resolvedTasks, resolvedMetadata) = resolveTasksAndMetadata(selectorStrings)
       assert(
@@ -31,10 +31,10 @@ object ResolversTests extends TestSuite {
     }
 
     def checkSeq0(
-                   selectorStrings: Seq[String],
-                   check: Either[String, List[NamedTask[_]]] => Boolean,
-                   checkMetadata: Either[String, List[String]] => Boolean = _ => true
-                 ) = {
+        selectorStrings: Seq[String],
+        check: Either[String, List[NamedTask[_]]] => Boolean,
+        checkMetadata: Either[String, List[String]] => Boolean = _ => true
+    ) = {
 
       val (resolvedTasks, resolvedMetadata) = resolveTasksAndMetadata(selectorStrings)
       assert(check(resolvedTasks))
@@ -59,7 +59,6 @@ object ResolversTests extends TestSuite {
       (resolvedTasks, resolvedMetadata)
     }
   }
-
 
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
@@ -105,7 +104,11 @@ object ResolversTests extends TestSuite {
         Left("Parsing exception Position 1:10, found \"&\"")
       )
       "nested" - {
-        "pos" - check("nested-module.nested-target", Right(Set(_.`nested-module`.`nested-target`)), Set("nested-module.nested-target"))
+        "pos" - check(
+          "nested-module.nested-target",
+          Right(Set(_.`nested-module`.`nested-target`)),
+          Set("nested-module.nested-target")
+        )
         "neg" - check(
           "nested-module.doesntExist",
           Left(
@@ -118,7 +121,11 @@ object ResolversTests extends TestSuite {
       val check = new Checker(nestedModule)
       "pos1" - check("single", Right(Set(_.single)), Set("single"))
       "pos2" - check("nested.single", Right(Set(_.nested.single)), Set("nested.single"))
-      "pos3" - check("classInstance.single", Right(Set(_.classInstance.single)), Set("classInstance.single"))
+      "pos3" - check(
+        "classInstance.single",
+        Right(Set(_.classInstance.single)),
+        Set("classInstance.single")
+      )
       "posCurly1" - check(
         "{nested,classInstance}.single",
         Right(Set(_.nested.single, _.classInstance.single)),
@@ -206,7 +213,11 @@ object ResolversTests extends TestSuite {
       val check = new Checker(doubleNestedModule)
       "pos1" - check("single", Right(Set(_.single)), Set("single"))
       "pos2" - check("nested.single", Right(Set(_.nested.single)), Set("nested.single"))
-      "pos3" - check("nested.inner.single", Right(Set(_.nested.inner.single)), Set("nested.inner.single"))
+      "pos3" - check(
+        "nested.inner.single",
+        Right(Set(_.nested.inner.single)),
+        Set("nested.inner.single")
+      )
       "neg1" - check(
         "doesntExist",
         Left("Cannot resolve doesntExist. Try `mill resolve _` to see what's available.")
@@ -234,8 +245,16 @@ object ResolversTests extends TestSuite {
     "cross" - {
       "single" - {
         val check = new Checker(singleCross)
-        "pos1" - check("cross[210].suffix", Right(Set(_.cross("210").suffix)), Set("cross[210].suffix"))
-        "pos2" - check("cross[211].suffix", Right(Set(_.cross("211").suffix)), Set("cross[211].suffix"))
+        "pos1" - check(
+          "cross[210].suffix",
+          Right(Set(_.cross("210").suffix)),
+          Set("cross[210].suffix")
+        )
+        "pos2" - check(
+          "cross[211].suffix",
+          Right(Set(_.cross("211").suffix)),
+          Set("cross[211].suffix")
+        )
         "posCurly" - check(
           "cross[{210,211}].suffix",
           Right(Set(_.cross("210").suffix, _.cross("211").suffix)),
@@ -339,7 +358,7 @@ object ResolversTests extends TestSuite {
               "cross[211,js].suffix",
               "cross[212,jvm].suffix",
               "cross[212,js].suffix",
-              "cross[212,native].suffix",
+              "cross[212,native].suffix"
             )
           )
           "first" - check(
@@ -352,7 +371,7 @@ object ResolversTests extends TestSuite {
             Set(
               "cross[210,jvm].suffix",
               "cross[211,jvm].suffix",
-              "cross[212,jvm].suffix",
+              "cross[212,jvm].suffix"
             )
           )
           "second" - check(
@@ -385,7 +404,7 @@ object ResolversTests extends TestSuite {
               "cross[212,jvm].suffix",
               "cross[212,js].suffix",
               "cross[212,js].suffix",
-              "cross[212,native].suffix",
+              "cross[212,native].suffix"
             )
           )
           "both2" - check(
@@ -407,7 +426,7 @@ object ResolversTests extends TestSuite {
               "cross[212,jvm].suffix",
               "cross[212,js].suffix",
               "cross[212,js].suffix",
-              "cross[212,native].suffix",
+              "cross[212,native].suffix"
             )
           )
         }
@@ -488,7 +507,7 @@ object ResolversTests extends TestSuite {
         "pos1" - check.checkSeq(
           Seq("cross1[210].cross2[js].suffixCmd"),
           Right(Set(_.cross1("210").cross2("js").suffixCmd())),
-          Set("cross1[210].cross2[js].suffixCmd"),
+          Set("cross1[210].cross2[js].suffixCmd")
         )
         "pos1Default" - check.checkSeq(
           Seq("cross1[210].cross2[js]"),

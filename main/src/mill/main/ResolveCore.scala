@@ -23,16 +23,13 @@ object ResolveCore {
   }
 
   object Resolved {
-    case class Module(segments: Segments,
-                      valueOrErr: Either[String, mill.define.Module])
-      extends Resolved
+    case class Module(segments: Segments, valueOrErr: Either[String, mill.define.Module])
+        extends Resolved
 
-    case class Target(segments: Segments,
-                      valueOrErr: Either[String, mill.define.Target[_]])
-      extends Resolved
+    case class Target(segments: Segments, valueOrErr: Either[String, mill.define.Target[_]])
+        extends Resolved
 
-    case class Command(segments: Segments,
-                       valueOrErr: Either[String, mill.define.Command[_]])
+    case class Command(segments: Segments, valueOrErr: Either[String, mill.define.Command[_]])
         extends Resolved
   }
 
@@ -49,11 +46,12 @@ object ResolveCore {
   ) extends Failed
   case class Error(msg: String) extends Failed
 
-  def resolve(remainingQuery: List[Segment],
-              current: Resolved,
-              discover: Discover[_],
-              args: Seq[String],
-              revQuerySoFar0: List[Segment]
+  def resolve(
+      remainingQuery: List[Segment],
+      current: Resolved,
+      discover: Discover[_],
+      args: Seq[String],
+      revQuerySoFar0: List[Segment]
   ): Result = remainingQuery match {
     case Nil => Success(Set(current))
     case head :: tail =>
@@ -79,7 +77,6 @@ object ResolveCore {
 
       (head, current) match {
         case (Segment.Label(singleLabel), m: Resolved.Module) =>
-
           val resOrErr = m.valueOrErr.flatMap { obj =>
             singleLabel match {
               case "__" =>
@@ -90,7 +87,7 @@ object ResolveCore {
                 ).map(
                   _.flatMap(m =>
                     Seq(Resolved.Module(m.millModuleSegments, Right(m))) ++
-                    resolveDirectChildren(m, None, discover, args, m.millModuleSegments)
+                      resolveDirectChildren(m, None, discover, args, m.millModuleSegments)
                   )
                 )
               case "_" =>
@@ -100,11 +97,10 @@ object ResolveCore {
             }
           }
 
-          resOrErr match{
+          resOrErr match {
             case Left(err) => Error(err)
             case Right(res) => recurse(res.toSet)
           }
-
 
         case (Segment.Cross(cross), Resolved.Module(_, Right(c: Cross[_]))) =>
           val searchModules: Seq[Module] =
@@ -144,7 +140,7 @@ object ResolveCore {
     val modules = obj
       .millInternal
       .reflectNestedObjects0[Module](namePred)
-      .map{case (name, f) =>
+      .map { case (name, f) =>
         Resolved.Module(
           segments ++ Seq(Segment.Label(name)),
           catchReflectException(f())
@@ -167,7 +163,8 @@ object ResolveCore {
       .map { m =>
         Resolved.Target(
           segments ++ Seq(Segment.Label(decode(m.getName))),
-          catchReflectException(m.invoke(obj).asInstanceOf[Target[_]]))
+          catchReflectException(m.invoke(obj).asInstanceOf[Target[_]])
+        )
       }
 
     val commands = Module
@@ -206,7 +203,7 @@ object ResolveCore {
       case _ => Right(Set[Segment]())
     }
 
-    possibleNextsOrErr match{
+    possibleNextsOrErr match {
       case Right(nexts) => NotFound(segments, Set(current), next, nexts)
       case Left(err) => Error(err)
     }

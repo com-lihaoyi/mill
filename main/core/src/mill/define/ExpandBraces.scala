@@ -2,7 +2,7 @@ package mill.define
 import fastparse._
 import fastparse.NoWhitespace.noWhitespaceImplicit
 
-object ExpandBraces{
+object ExpandBraces {
   private sealed trait Fragment
   private object Fragment {
     case class Keep(value: String) extends Fragment
@@ -41,7 +41,6 @@ object ExpandBraces{
 
   private def plainChars[_p: P]: P[Fragment.Keep] =
     P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep)
-
 
   private def emptyExpansionBranch[_p: P] = P("").map(_ => List(Fragment.Keep("")))
 

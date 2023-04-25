@@ -129,23 +129,23 @@ class TestGraphs() {
 
   }
 
-  object moduleInitError extends TestUtil.BaseModule{
-    def rootTarget = T{ println("Running rootTarget"); "rootTarget Result" }
-    def rootCommand(s: String) = T.command{ println(s"Running rootCommand $s") }
+  object moduleInitError extends TestUtil.BaseModule {
+    def rootTarget = T { println("Running rootTarget"); "rootTarget Result" }
+    def rootCommand(s: String) = T.command { println(s"Running rootCommand $s") }
 
-    object foo extends Module{
-      def fooTarget = T{ println(s"Running fooTarget"); 123 }
-      def fooCommand(s: String) = T.command{ println(s"Running fooCommand $s") }
+    object foo extends Module {
+      def fooTarget = T { println(s"Running fooTarget"); 123 }
+      def fooCommand(s: String) = T.command { println(s"Running fooCommand $s") }
       throw new Exception("Foo Boom")
     }
 
     object bar extends Module {
       def barTarget = T { println(s"Running barTarget"); "barTarget Result" }
-      def barCommand(s: String) = T.command{ println(s"Running barCommand $s") }
+      def barCommand(s: String) = T.command { println(s"Running barCommand $s") }
 
-      object qux extends Module{
+      object qux extends Module {
         def quxTarget = T { println(s"Running quxTarget"); "quxTarget Result" }
-        def quxCommand(s: String) = T.command{ println(s"Running quxCommand $s") }
+        def quxCommand(s: String) = T.command { println(s"Running quxCommand $s") }
         throw new Exception("Qux Boom")
       }
     }
@@ -153,22 +153,22 @@ class TestGraphs() {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  object crossModuleSimpleInitError extends TestUtil.BaseModule{
-   object myCross extends Cross[MyCross](1, 2, 3, 4){
-     throw new Exception(s"MyCross Boom")
-   }
-   trait MyCross extends Cross.Module[Int]{
-     def foo = T{ crossValue }
-   }
+  object crossModuleSimpleInitError extends TestUtil.BaseModule {
+    object myCross extends Cross[MyCross](1, 2, 3, 4) {
+      throw new Exception(s"MyCross Boom")
+    }
+    trait MyCross extends Cross.Module[Int] {
+      def foo = T { crossValue }
+    }
 
     override lazy val millDiscover = Discover[this.type]
   }
-  object crossModulePartialInitError extends TestUtil.BaseModule{
-   object myCross extends Cross[MyCross](1, 2, 3, 4)
-   trait MyCross extends Cross.Module[Int]{
-     if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")
-     def foo = T{ crossValue }
-   }
+  object crossModulePartialInitError extends TestUtil.BaseModule {
+    object myCross extends Cross[MyCross](1, 2, 3, 4)
+    trait MyCross extends Cross.Module[Int] {
+      if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")
+      def foo = T { crossValue }
+    }
 
     override lazy val millDiscover = Discover[this.type]
   }

@@ -134,14 +134,14 @@ object Module {
           .flatMap { c =>
             c.getSimpleName match {
               case s"$name$$" if filter(name) =>
-                c.getFields.find(_.getName == "MODULE$").map(f => (name, () => f.get(c).asInstanceOf[T]))
+                c.getFields.find(_.getName == "MODULE$").map(f =>
+                  (name, () => f.get(c).asInstanceOf[T])
+                )
               case _ => None
             }
 
           }
           .distinct
-
-
 
       first ++ second
     }
