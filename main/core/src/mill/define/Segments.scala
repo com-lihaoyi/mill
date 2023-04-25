@@ -9,6 +9,7 @@ package mill.define
  */
 case class Segments private (value: Seq[Segment]) {
 
+  def ++(other: Segment): Segments = Segments(value ++ Seq(other))
   def ++(other: Seq[Segment]): Segments = Segments(value ++ other)
   def ++(other: Segments): Segments = Segments(value ++ other.value)
 

@@ -141,7 +141,7 @@ object ResolveCore {
       .reflectNestedObjects0[Module](namePred)
       .map { case (name, f) =>
         Resolved.Module(
-          segments ++ Seq(Segment.Label(decode(name))),
+          segments ++ Segment.Label(decode(name)),
           catchReflectException(f())
         )
       }
@@ -150,7 +150,7 @@ object ResolveCore {
       case c: Cross[_] if nameOpt.isEmpty =>
         c.segmentsToModules.map { case (k, v) =>
           Resolved.Module(
-            segments ++ Seq(Segment.Cross(k)),
+            segments ++ Segment.Cross(k),
             catchReflectException(v)
           )
         }
@@ -161,7 +161,7 @@ object ResolveCore {
       .reflect(obj.getClass, classOf[Target[_]], namePred, noParams = true)
       .map { m =>
         Resolved.Target(
-          segments ++ Seq(Segment.Label(decode(m.getName))),
+          segments ++ Segment.Label(decode(m.getName)),
           catchReflectException(m.invoke(obj).asInstanceOf[Target[_]])
         )
       }
@@ -171,7 +171,7 @@ object ResolveCore {
       .map(m => decode(m.getName))
       .map { name =>
         Resolved.Command(
-          segments ++ Seq(Segment.Label(name)),
+          segments ++ Segment.Label(name),
           invokeCommand(
             obj,
             name,

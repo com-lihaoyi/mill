@@ -68,7 +68,7 @@ object ResolveNonEmpty {
       case None => hintListLabel(prefixSegments.value)
       case Some(similar) =>
         " Did you mean " +
-          (prefixSegments ++ Seq(Segment.Label(similar))).render +
+          (prefixSegments ++ Segment.Label(similar)).render +
           "?"
     }
 
@@ -91,7 +91,7 @@ object ResolveNonEmpty {
       case None => hintListLabel(prefixSegments.value)
       case Some(similar) =>
         " Did you mean " +
-          (prefixSegments ++ Seq(Segment.Cross(similar.split(',')))).render +
+          (prefixSegments ++ Segment.Cross(similar.split(','))).render +
           "?"
     }
 
