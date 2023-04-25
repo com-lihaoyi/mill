@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 4f70fbc1a4..6506f15622 100644
+index 5c282841c..bf8c56c47 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,27 +2,18 @@
@@ -33,7 +33,7 @@ index 4f70fbc1a4..6506f15622 100644
  import mill.scalalib.publish._
  import mill.modules.Jvm
  import mill.define.SelectMode
-@@ -185,12 +176,8 @@ object Deps {
+@@ -162,12 +153,8 @@ object Deps {
    val requests = ivy"com.lihaoyi::requests:0.8.0"
  }
  
@@ -48,12 +48,25 @@ index 4f70fbc1a4..6506f15622 100644
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
-@@ -240,219 +227,23 @@ class BridgeModule(val crossScalaVersion: String) extends PublishModule with Cro
+@@ -216,8 +203,8 @@ val buildBridgeScalaVersions =
+   if (!buildAllCompilerBridges) Seq()
+   else bridgeScalaVersions
+ 
+-object bridge extends Cross[BridgeModule](buildBridgeScalaVersions: _*)
+-class BridgeModule(val crossScalaVersion: String) extends PublishModule with CrossScalaModule {
++object bridge extends Cross[BridgeModule](buildBridgeScalaVersions)
++trait BridgeModule extends PublishModule with CrossScalaModule {
+   def scalaVersion = crossScalaVersion
+   def publishVersion = bridgeVersion
+   def artifactName = T { "mill-scala-compiler-bridge" }
+@@ -236,239 +223,25 @@ class BridgeModule(val crossScalaVersion: String) extends PublishModule with Cro
    def generatedSources = T {
      import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
      val resolvedJars = resolveDeps(
 -      T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}") },
-+      T.task { Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}").map(bindDependency()) },
++      T.task {
++        Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}").map(bindDependency())
++      },
        sources = true
      )()
  
@@ -72,8 +85,8 @@ index 4f70fbc1a4..6506f15622 100644
    }
  }
  
--
 -trait BuildInfo extends JavaModule {
+-
 -  /**
 -   * The package name under which the BuildInfo data object will be stored.
 -   */
@@ -99,18 +112,23 @@ index 4f70fbc1a4..6506f15622 100644
 -
 -  def resources =
 -    if (buildInfoStaticCompiled) super.resources
--    else T.sources{ super.resources() ++ Seq(buildInfoResources()) }
+-    else T.sources { super.resources() ++ Seq(buildInfoResources()) }
 -
--  def buildInfoResources = T{
+-  def buildInfoResources = T {
 -    val p = new java.util.Properties
 -    for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
 -
 -    val stream = os.write.outputStream(
--      T.dest / os.SubPath(buildInfoPackageName.replace('.', '/')) / s"$buildInfoObjectName.buildinfo.properties",
+-      T.dest / os.SubPath(
+-        buildInfoPackageName.replace('.', '/')
+-      ) / s"$buildInfoObjectName.buildinfo.properties",
 -      createFolders = true
 -    )
 -
--    p.store(stream, s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}")
+-    p.store(
+-      stream,
+-      s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}"
+-    )
 -    stream.close()
 -    PathRef(T.dest)
 -  }
@@ -121,13 +139,20 @@ index 4f70fbc1a4..6506f15622 100644
 -    super.generatedSources() ++ buildInfoSources()
 -  }
 -
--  def buildInfoSources = T{
+-  def buildInfoSources = T {
 -    if (buildInfoMembers().isEmpty) Nil
 -    else {
 -      val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
--        buildInfoMembers(), isScala, buildInfoPackageName, buildInfoObjectName
--      ) else BuildInfo.codegen(
--        buildInfoMembers(), isScala, buildInfoPackageName, buildInfoObjectName
+-        buildInfoMembers(),
+-        isScala,
+-        buildInfoPackageName,
+-        buildInfoObjectName
+-      )
+-      else BuildInfo.codegen(
+-        buildInfoMembers(),
+-        isScala,
+-        buildInfoPackageName,
+-        buildInfoObjectName
 -      )
 -
 -      val ext = if (isScala) "scala" else "java"
@@ -142,28 +167,31 @@ index 4f70fbc1a4..6506f15622 100644
 -  }
 -}
 -
--object BuildInfo{
+-object BuildInfo {
 -  case class Value(key: String, value: String, comment: String = "")
--  object Value{
+-  object Value {
 -    implicit val rw: upickle.default.ReadWriter[Value] = upickle.default.macroRW
 -  }
--  def staticCompiledCodegen(buildInfoMembers: Seq[Value],
--                            isScala: Boolean,
--                            buildInfoPackageName: String,
--                            buildInfoObjectName: String): String = {
+-  def staticCompiledCodegen(
+-      buildInfoMembers: Seq[Value],
+-      isScala: Boolean,
+-      buildInfoPackageName: String,
+-      buildInfoObjectName: String
+-  ): String = {
 -    val bindingsCode = buildInfoMembers
 -      .sortBy(_.key)
 -      .map {
 -        case v =>
 -          if (isScala) s"""${commentStr(v)}val ${v.key} = ${pprint.Util.literalize(v.value)}"""
--          else s"""${commentStr(v)}public static java.lang.String ${v.key} = ${pprint.Util.literalize(v.value)};"""
+-          else s"""${commentStr(
+-              v
+-            )}public static java.lang.String ${v.key} = ${pprint.Util.literalize(v.value)};"""
 -      }
 -      .mkString("\n\n  ")
 -
--
 -    if (isScala) {
 -      val mapEntries = buildInfoMembers
--        .map { case v => s""""${v.key}" -> ${v.key}"""}
+-        .map { case v => s""""${v.key}" -> ${v.key}""" }
 -        .mkString(",\n")
 -
 -      s"""
@@ -197,16 +225,21 @@ index 4f70fbc1a4..6506f15622 100644
 -    }
 -  }
 -
--  def codegen(buildInfoMembers: Seq[Value],
--              isScala: Boolean,
--              buildInfoPackageName: String,
--              buildInfoObjectName: String): String = {
+-  def codegen(
+-      buildInfoMembers: Seq[Value],
+-      isScala: Boolean,
+-      buildInfoPackageName: String,
+-      buildInfoObjectName: String
+-  ): String = {
 -    val bindingsCode = buildInfoMembers
 -      .sortBy(_.key)
 -      .map {
 -        case v =>
--          if (isScala) s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
--          else s"""${commentStr(v)}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
+-          if (isScala)
+-            s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
+-          else s"""${commentStr(
+-              v
+-            )}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
 -      }
 -      .mkString("\n\n  ")
 -
@@ -259,7 +292,7 @@ index 4f70fbc1a4..6506f15622 100644
 -    if (v.comment.isEmpty) ""
 -    else {
 -      val lines = v.comment.linesIterator.toVector
--      lines.length match{
+-      lines.length match {
 -        case 1 => s"""/** ${v.comment} */\n  """
 -        case _ => s"""/**\n    ${lines.map("* " + _).mkString("\n    ")}\n    */\n  """
 -      }
@@ -271,7 +304,7 @@ index 4f70fbc1a4..6506f15622 100644
  def commonPomSettings(artifactName: String) = {
    PomSettings(
      description = artifactName,
-@@ -506,27 +297,8 @@ trait MillCoursierModule extends CoursierModule {
+@@ -522,27 +295,8 @@ trait MillCoursierModule extends CoursierModule {
    )
  }
  
@@ -300,42 +333,192 @@ index 4f70fbc1a4..6506f15622 100644
  }
  
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -823,6 +595,7 @@ object scalajslib extends MillModule with BuildInfo{
+@@ -854,8 +608,10 @@ object scalajslib extends MillModule with BuildInfo {
+     override def ivyDeps = Agg(Deps.sbtTestInterface)
+   }
    object worker extends Cross[WorkerModule]("1")
-   class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
+-  class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
++  trait WorkerModule extends MillInternalModule with Cross.Module[String] {
++    def scalajsWorkerVersion = crossValue
      override def moduleDeps = Seq(scalajslib.`worker-api`, main.client, main.api)
 +    override def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
        Deps.Scalajs_1.scalajsSbtTestAdapter,
-@@ -884,6 +657,7 @@ object contrib extends MillModule {
+@@ -921,8 +677,10 @@ object contrib extends MillModule {
  
-     object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
-     class WorkerModule(playBinary: String) extends MillInternalModule {
+     object api extends MillPublishModule
+ 
+-    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq: _*)
+-    class WorkerModule(playBinary: String) extends MillInternalModule {
++    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq)
++    trait WorkerModule extends MillInternalModule with Cross.Module[String] {
++      def playBinary = crossValue
 +      override def millSourcePath: os.Path = super.millSourcePath / playBinary
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -1075,6 +849,7 @@ object scalanativelib extends MillModule {
+@@ -1112,8 +870,9 @@ object scalanativelib extends MillModule {
+     override def ivyDeps = Agg(Deps.sbtTestInterface)
+   }
    object worker extends Cross[WorkerModule]("0.4")
-   class WorkerModule(scalaNativeWorkerVersion: String)
-       extends MillInternalModule {
+-  class WorkerModule(scalaNativeWorkerVersion: String)
+-      extends MillInternalModule {
++  trait WorkerModule extends MillInternalModule with Cross.Module[String] {
++    def scalaNativeWorkerVersion = crossValue
 +    override def millSourcePath: os.Path = super.millSourcePath / scalaNativeWorkerVersion
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1237,6 +1012,7 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1288,7 +1047,9 @@ trait IntegrationTestModule extends MillScalaModule {
+   }
  }
  
- trait IntegrationTestCrossModule extends IntegrationTestModule {
+-trait IntegrationTestCrossModule extends IntegrationTestModule {
++trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module[String] {
++  def repoSlug = crossValue
 +  override def millSourcePath = super.millSourcePath / repoSlug
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1791,53 +1567,7 @@ def launcher = T {
+@@ -1302,15 +1063,15 @@ object example extends MillScalaModule {
  
+   def moduleDeps = Seq(integration)
  
- def uploadToGithub(authKey: String) = T.command {
+-  object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
+-  object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"): _*)
+-  object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"): _*)
+-  object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"): _*)
+-  object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"): _*)
+-  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
+-  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
++  object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
++  object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
++  object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
++  object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
++  object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
++  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))
++  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
+ 
+-  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
++  trait ExampleCrossModule extends IntegrationTestCrossModule {
+     def sources = T.sources()
+     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
+     def compile = example.compile()
+@@ -1360,7 +1121,7 @@ object example extends MillScalaModule {
+               val title =
+                 if (seenCode) ""
+                 else {
+-                  val label = VcsVersion.vcsState().format()
++                  val label = "xxx"
+                   val exampleDashed = examplePath.segments.mkString("-")
+                   val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
+                   val browse = s"{mill-example-url}/$examplePath[browse]"
+@@ -1391,9 +1152,9 @@ object example extends MillScalaModule {
+ }
+ 
+ object integration extends MillScalaModule {
+-  object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"): _*)
+-  object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"): _*)
+-  class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestCrossModule
++  object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"))
++  object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"))
++  trait IntegrationCrossModule extends IntegrationTestCrossModule
+ 
+   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
+ 
+@@ -1702,67 +1463,11 @@ object docs extends Module {
+     def moduleDeps = build.millInternal.modules.collect { case m: MillApiModule => m }
+ 
+     def unidocSourceUrl = T {
+-      val sha = VcsVersion.vcsState().currentRevision
++      val sha = "xxx"
+       Some(s"${Settings.projectUrl}/blob/$sha")
+     }
+   }
+ 
+-  /**
+-   * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] target that
+-   * can be used to build a unified scaladoc site for this module and all of
+-   * its transitive dependencies
+-   */
+-  trait UnidocModule extends ScalaModule {
+-    def unidocSourceUrl: T[Option[String]] = None
+-    def unidocVersion: T[Option[String]] = None
+-
+-    def unidocLocal = T {
+-      def unidocCompileClasspath =
+-        Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
+-
+-      val unidocSourceFiles =
+-        allSourceFiles() ++ T.traverse(moduleDeps)(_.allSourceFiles)().flatten
+-
+-      T.log.info(s"Staging scaladoc for ${unidocSourceFiles.length} files")
+-
+-      // the details of the options and zincWorker call are significantly
+-      // different between scala-2 scaladoc and scala-3 scaladoc
+-      // below is for scala-2 variant
+-      val options: Seq[String] = Seq(
+-        "-doc-title",
+-        "Mill",
+-        "-d",
+-        T.dest.toString,
+-        "-classpath",
+-        unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator"))
+-      ) ++
+-        unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
+-        unidocSourceUrl().toSeq.flatMap(_ => Seq("-doc-source-url", "file://€{FILE_PATH}.scala"))
+-
+-      zincWorker.worker().docJar(
+-        scalaVersion(),
+-        scalaOrganization(),
+-        scalaDocClasspath().map(_.path),
+-        scalacPluginClasspath().map(_.path),
+-        options ++ unidocSourceFiles.map(_.path.toString)
+-      ) match {
+-        case true => mill.api.Result.Success(PathRef(T.dest))
+-        case false => mill.api.Result.Failure("unidoc generation failed")
+-      }
+-    }
+-
+-    def unidocSite = T {
+-      os.copy(unidocLocal().path, T.dest, mergeFolders = true)
+-      for {
+-        sourceUrl <- unidocSourceUrl()
+-        p <- os.walk(T.dest) if p.ext == "scala"
+-      } {
+-        os.write(p, os.read(p).replace(s"file://${T.workspace}", sourceUrl))
+-      }
+-      PathRef(T.dest)
+-    }
+-  }
+-
+   private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
+   private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
+   def npmBase: T[os.Path] = T.persistent { T.dest }
+@@ -1815,7 +1520,7 @@ object docs extends Module {
+ 
+     val contribReadmes = T.traverse(contrib.contribModules)(m =>
+       T.task {
+-        m.millModuleSegments.last.render -> m.readme()
++        m.millModuleSegments.parts.last -> m.readme()
+       }
+     )()
+ 
+@@ -2045,7 +1750,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
+     examplePath = exampleMod.millSourcePath
+   } yield {
+     val example = examplePath.subRelativeTo(T.workspace)
+-    val exampleStr = VcsVersion.vcsState().format() + "-" + example.segments.mkString("-")
++    val exampleStr = "xxx" + "-" + example.segments.mkString("-")
+     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
+     os.copy(launcher().path, T.dest / exampleStr / "mill")
+     val zip = T.dest / s"$exampleStr.zip"
+@@ -2054,49 +1759,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
+   }
+ }
+ 
+-def uploadToGithub(authKey: String) = T.command {
 -  val vcsState = VcsVersion.vcsState()
 -  val label = vcsState.format()
 -  if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
@@ -360,15 +543,9 @@ index 4f70fbc1a4..6506f15622 100644
 -      .asString
 -  }
 -
--  val exampleZips = Seq("example-1", "example-2", "example-3")
--    .map { example =>
--      os.copy(T.workspace / "example" / example, T.dest / example)
--      os.copy(launcher().path, T.dest / example / "mill")
--      os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
--      (T.dest / s"$example.zip", label + "-" + example + ".zip")
--    }
+-  val examples = exampleZips().map(z => (z.path, z.path.last))
 -
--  val zips = exampleZips ++ Seq(
+-  val zips = examples ++ Seq(
 -    (assembly().path, label + "-assembly"),
 -    (launcher().path, label)
 -  )
@@ -383,7 +560,8 @@ index 4f70fbc1a4..6506f15622 100644
 -      Settings.githubRepo
 -    )
 -  }
-+  // never upload a bootstrapped version
- }
+-}
++def uploadToGithub(authKey: String) = T.command {}
  
  def validate(ev: Evaluator): Command[Unit] = T.command {
+   T.task(MainModule.evaluateTasks(

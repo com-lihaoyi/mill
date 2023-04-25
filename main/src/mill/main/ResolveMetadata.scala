@@ -54,15 +54,16 @@ object ResolveMetadata extends Resolve[String] {
     obj match {
       case c: Cross[_] =>
         last match {
-          case List("__") => Right(c.items.map(_._2.toString))
+          case List("__") => Right(c.crossModules.map(_.toString))
           case items =>
-            c.items
+            c.segmentsToModules
+              .toList
               .filter(_._1.length == items.length)
               .filter(_._1.zip(last).forall { case (a, b) => b == "_" || a.toString == b })
               .map(_._2.toString) match {
               case Nil =>
                 Resolve.errorMsgCross(
-                  c.items.map(_._1.map(_.toString)),
+                  c.segmentsToModules.map(_._1).toList,
                   last,
                   obj.millModuleSegments.value
                 )

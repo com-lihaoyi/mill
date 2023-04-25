@@ -1,0 +1,6 @@
+= BSP - Build Server Protocol
+
+_The contrib.bsp plugin is no longer available.
+The BSP server is now integrated in Mill by default._
+
+Read on in the xref:Installation_IDE_Support.adoc#_build_server_protocol_bsp[Build Server Protocol] section.

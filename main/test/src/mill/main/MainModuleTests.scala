@@ -32,7 +32,7 @@ object MainModuleTests extends TestSuite {
       }
     }
     object bazz extends Cross[Bazz]("1", "2", "3")
-    class Bazz(v: String) extends Cleanable
+    trait Bazz extends Cleanable with Cross.Module[String]
 
     def all = T {
       foo.target()

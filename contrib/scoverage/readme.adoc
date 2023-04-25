@@ -1,0 +1,74 @@
+= Scoverage
+:page-aliases: Plugin_Scoverage.adoc
+
+
+This module allows you to generate code coverage reports for Scala projects with
+https://github.com/scoverage[Scoverage] via the
+https://github.com/scoverage/scalac-scoverage-plugin[scalac-scoverage-plugin].
+
+To declare a module for which you want to generate coverage reports you can
+extends the `mill.contrib.scoverage.ScoverageModule` trait when defining your
+module. Additionally, you must define a submodule that extends the
+`ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
+
+.`build.sc`
+[source,scala]
+----
+import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
+import mill.contrib.scoverage.ScoverageModule
+
+object foo extends ScoverageModule  {
+  def scalaVersion = "2.12.9"
+  def scoverageVersion = "1.4.0"
+
+  object test extends ScoverageTests with TestModule.ScalaTest {
+    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
+  }
+}
+----
+
+In addition to the normal tasks available to your Scala module, Scoverage
+modules introduce a few new tasks and changes the behavior of an existing one.
+
+[source,bash]
+----
+mill foo.scoverage.compile      # compiles your module with test instrumentation
+                                # (you don't have to run this manually, running the test task will force its invocation)
+
+mill foo.test                   # tests your project and collects metrics on code coverage
+mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
+mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
+----
+
+The measurement data is by default available at `out/foo/scoverage/data/dest`,
+the html report is saved in `out/foo/scoverage/htmlReport.dest/`,
+and the xml report is saved in `out/foo/scoverage/xmlReport.dest/`.
+
+== Multi-module projects
+
+If you're using Scoverage on a project with multiple modules then an additional
+module, `ScoverageReport`, is available to help aggregate the reports from all
+``ScoverageModule``s.
+
+Simply define a `scoverage` module at the root of your project as shown:
+
+[source,scala]
+----
+  object scoverage extends ScoverageReport {
+    override def scalaVersion     = "<scala-version>"
+    override def scoverageVersion = "<scoverage-version>"
+  }
+----
+
+This provides you with various reporting functions:
+
+[source,bash]
+----
+mill __.test                     # run tests for all modules
+mill scoverage.htmlReportAll     # generates report in html format for all modules
+mill scoverage.xmlReportAll      # generates report in xml format for all modules
+mill scoverage.consoleReportAll  # reports to the console for all modules
+----
+
+The aggregated report will be available at either `out/scoverage/htmlReportAll.dest/`
+for html reports or `out/scoverage/xmlReportAll.dest/` for xml reports.

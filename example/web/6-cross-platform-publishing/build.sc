@@ -1,8 +1,8 @@
 import mill._, scalalib._, scalajslib._, publish._
 
 object foo extends Cross[FooModule]("2.13.8", "3.2.2")
-class FooModule(val crossScalaVersion: String) extends CrossScalaModule.Base {
-  trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModule {
+trait FooModule extends Cross.Module[String] {
+  trait Shared extends CrossScalaModule with InnerCrossModule with PlatformScalaModule with PublishModule {
     def publishVersion = "0.0.1"
 
     def pomSettings = PomSettings(
@@ -28,7 +28,6 @@ class FooModule(val crossScalaVersion: String) extends CrossScalaModule.Base {
 
   object bar extends Module {
     object jvm extends Shared
-
     object js extends SharedJS
   }
 
@@ -37,38 +36,42 @@ class FooModule(val crossScalaVersion: String) extends CrossScalaModule.Base {
       def moduleDeps = Seq(bar.jvm)
       def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
     }
+
     object js extends SharedJS {
       def moduleDeps = Seq(bar.js)
     }
   }
-
 }
 
 // This example demonstrates how to publish Scala modules which are both
 // cross-version and cross-platform: running on both Scala 2.13.8/3.2.2 as
 // well as Scala-JVM/JS.
 
-/* Example Usage
+/** Usage
 
 > ./mill show foo[2.13.8].bar.jvm.sources
-foo/bar/src
-foo/bar/src-jvm
-foo/bar/src-2.13.8
-foo/bar/src-2.13.8-jvm
-foo/bar/src-2.13
-foo/bar/src-2.13-jvm
-foo/bar/src-2
-foo/bar/src-2-jvm
+[
+  ".../foo/bar/src",
+  ".../foo/bar/src-jvm",
+  ".../foo/bar/src-2.13.8",
+  ".../foo/bar/src-2.13.8-jvm",
+  ".../foo/bar/src-2.13",
+  ".../foo/bar/src-2.13-jvm",
+  ".../foo/bar/src-2",
+  ".../foo/bar/src-2-jvm"
+]
 
 > ./mill show foo[3.2.2].qux.js.sources
-foo/qux/src
-foo/qux/src-js
-foo/qux/src-3.2.2
-foo/qux/src-3.2.2-js
-foo/qux/src-3.2
-foo/qux/src-3.2-js
-foo/qux/src-3
-foo/qux/src-3-js
+[
+  ".../foo/qux/src",
+  ".../foo/qux/src-js",
+  ".../foo/qux/src-3.2.2",
+  ".../foo/qux/src-3.2.2-js",
+  ".../foo/qux/src-3.2",
+  ".../foo/qux/src-3.2-js",
+  ".../foo/qux/src-3",
+  ".../foo/qux/src-3-js"
+]
 
 > ./mill foo[2.13.8].qux.jvm.run
 Bar.value: <p>world Specific code for Scala 2.x</p>
@@ -81,12 +84,12 @@ Parsing JSON with js.JSON.parse
 Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
 > ./mill __.publishLocal
-Publishing Artifact(com.lihaoyi,foo-bar_sjs1_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo-bar_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo-qux_sjs1_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo-qux_2.13,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo-bar_sjs1_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo-bar_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo-qux_sjs1_3,0.0.1) to ivy repo
-Publishing Artifact(com.lihaoyi,foo-qux_3,0.0.1) to ivy repo
+Publishing Artifact(com.lihaoyi,foo-bar_sjs1_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-bar_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-qux_sjs1_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-qux_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-bar_sjs1_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-bar_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-qux_sjs1_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-qux_3,0.0.1) to ivy repo...
 */

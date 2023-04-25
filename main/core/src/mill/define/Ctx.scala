@@ -4,6 +4,22 @@ import os.Path
 
 import scala.annotation.implicitNotFound
 
+/**
+ * The contextual information provided by a [[mill.define.Module]].
+ *
+ * @param enclosing
+ * @param lineNum the line number that this module is defined at. Useful for
+ *                error reporting purposes
+ * @param segment
+ * @param millSourcePath
+ * @param segments
+ * @param external
+ * @param foreign
+ * @param fileName the file name that this module is defined in. Useful for
+ *                 error reporting purposes
+ * @param enclosingCls
+ * @param crossValues
+ */
 @implicitNotFound("Modules, Targets and Commands can only be defined within a mill Module")
 case class Ctx private (
     enclosing: String,
@@ -15,7 +31,7 @@ case class Ctx private (
     foreign: Option[Segments],
     fileName: String,
     enclosingCls: Class[_],
-    crossInstances: Seq[AnyRef]
+    crossValues: Seq[Any]
 ) {
   private def copy(
       enclosing: String = enclosing,
@@ -27,7 +43,7 @@ case class Ctx private (
       foreign: Option[Segments] = foreign,
       fileName: String = fileName,
       enclosingCls: Class[_] = enclosingCls,
-      crossInstances: Seq[AnyRef] = crossInstances
+      crossValues: Seq[Any] = crossValues
   ): Ctx = new Ctx(
     enclosing,
     lineNum,
@@ -38,9 +54,9 @@ case class Ctx private (
     foreign,
     fileName,
     enclosingCls,
-    crossInstances
+    crossValues
   )
-  def withCrossInstances(crossInstances: Seq[AnyRef]): Ctx = copy(crossInstances = crossInstances)
+  def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
   def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
   def withSegment(segment: Segment): Ctx = copy(segment = segment)
   def withSegments(segments: Segments): Ctx = copy(segments = segments)
@@ -99,7 +115,7 @@ object Ctx {
       foreign: Option[Segments],
       fileName: String,
       enclosingCls: Class[_],
-      crossInstances: Seq[AnyRef]
+      crossValues: Seq[Any]
   ): Ctx = new Ctx(
     enclosing,
     lineNum,
@@ -110,7 +126,7 @@ object Ctx {
     foreign,
     fileName,
     enclosingCls,
-    crossInstances
+    crossValues
   )
   private def unapply(ctx: Ctx): Option[(
       String,
@@ -122,7 +138,7 @@ object Ctx {
       Option[Segments],
       String,
       Class[_],
-      Seq[AnyRef]
+      Seq[Any]
   )] = Some((
     ctx.enclosing,
     ctx.lineNum,
@@ -133,6 +149,6 @@ object Ctx {
     ctx.foreign,
     ctx.fileName,
     ctx.enclosingCls,
-    ctx.crossInstances
+    ctx.crossValues
   ))
 }

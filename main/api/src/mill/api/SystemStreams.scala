@@ -2,13 +2,19 @@ package mill.api
 
 import java.io.{InputStream, PrintStream}
 
+/**
+ * Represents a set of streams that look similar to those provided by the
+ * operating system. These may internally be proxied/redirected/processed, but
+ * from the consumer's perspective they look just like the stdout/stderr/stdin
+ * that any Unix process receives from the OS.
+ */
 class SystemStreams(
     val out: PrintStream,
     val err: PrintStream,
     val in: InputStream
 )
 
-object SystemStreams{
+object SystemStreams {
 
   private val original = new SystemStreams(System.out, System.err, System.in)
 

@@ -1,0 +1,43 @@
+= Extending Mill
+:link-ammonite: https://ammonite.io/
+
+There are different ways of extending Mill, depending on how much customization
+and flexibility you need. This page will go through your options from the
+easiest/least-flexible to the hardest/most-flexible.
+
+== import $file and import $ivy
+
+include::example/misc/3-import-file-ivy.adoc[]
+
+== The Mill Meta-Build
+
+include::example/misc/4-mill-build-folder.adoc[]
+
+== Evaluator Commands (experimental)
+
+_Evaluator Command are experimental and suspected to change.
+See {mill-github-url}/issues/502[issue #502] for details._
+
+You can define a command that takes in the current `Evaluator` as an argument,
+which you can use to inspect the entire build, or run arbitrary tasks.
+For example, here is the `mill.scalalib.GenIdea/idea` command which uses this
+to traverse the module-tree and generate an Intellij project config for your
+build.
+
+[source,scala]
+----
+def idea(ev: Evaluator) = T.command {
+  mill.scalalib.GenIdea(
+    implicitly,
+    ev.rootModule,
+    ev.discover
+  )
+}
+----
+
+Many built-in tools are implemented as custom evaluator commands:
+xref:Builtin_Commands.adoc#_inspect[inspect],
+xref:Builtin_Commands.adoc#_resolve[resolve],
+xref:Builtin_Commands.adoc#_show[show].
+If you want a way to run Mill commands and programmatically manipulate the
+tasks and outputs, you do so with your own evaluator command.

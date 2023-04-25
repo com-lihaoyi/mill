@@ -1,0 +1,61 @@
+// This section of the docs is very much "by example": how to do this, do that,
+// do this other thing, etc. We touch on a lot of topics about how Mill works,
+// but we intentionally skim over them and do not go into depth: the focus is
+// on end user goals and how to achieve them.
+.Quick Start
+* xref:Intro_to_Mill.adoc[]
+* xref:Installation_IDE_Support.adoc[]
+* xref:Builtin_Commands.adoc[]
+* xref:Scala_Build_Examples.adoc[]
+* xref:Scala_Module_Config.adoc[]
+* xref:Web_Build_Examples.adoc[]
+
+// This section is all about developing a deeper understanding of specific
+// topics in Mill. This is the opposite of `Quick Start` above: while we touch
+// on some end-user use cases, it is only to motivate the Mill features that we
+// want to present to the reader. The focus is on Mill's design and
+// functionality.
+.Mill In Depth
+* xref:Library_Dependencies.adoc[]
+* xref:Out_Dir.adoc[]
+* xref:Tasks.adoc[]
+* xref:Modules.adoc[]
+* xref:Cross_Builds.adoc[]
+* xref:Extending_Mill.adoc[]
+* xref:The_Mill_Evaluation_Model.adoc[]
+
+// This section talks about Mill plugins. While it could theoretically fit in
+// either section above, it is probably an important enough topic it is worth
+// breaking out on its own
+.Mill Plugins
+* xref:Using_Plugins.adoc[]
+* xref:Contrib_Plugins.adoc[]
+// See also the list in Contrib_Plugins.adoc
+** xref:contrib/artifactory.adoc[]
+** xref:contrib/bintray.adoc[]
+** xref:contrib/bloop.adoc[]
+** xref:contrib/buildinfo.adoc[]
+** xref:Plugin_BSP.adoc[]
+** xref:contrib/codeartifact.adoc[]
+** xref:contrib/docker.adoc[]
+** xref:contrib/flyway.adoc[]
+** xref:contrib/gitlab.adoc[]
+** xref:contrib/jmh.adoc[]
+** xref:contrib/playlib.adoc[]
+** xref:contrib/proguard.adoc[]
+** xref:contrib/scalapblib.adoc[]
+** xref:contrib/scoverage.adoc[]
+** xref:contrib/testng.adoc[]
+** xref:contrib/twirllib.adoc[]
+** xref:contrib/versionfile.adoc[]
+
+* xref:Thirdparty_Plugins.adoc[]
+
+// Reference pages that a typical user would not typically read top-to-bottom,
+// but may need to look up once in a while, and thus should be written down
+// *somewhere*.
+.Reference
+* xref:Mill_Design_Principles.adoc[]
+* xref:External_References.adoc[]
+* {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
+

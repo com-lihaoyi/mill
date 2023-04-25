@@ -75,14 +75,14 @@ trait AmmDependenciesResourceFileModule extends JavaModule {
 }
 
 object ops extends Cross[OpsModule](binCrossScalaVersions: _*)
-class OpsModule(val crossScalaVersion: String) extends AmmModule {
+trait OpsModule extends AmmModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.2.0")
   def scalacOptions = super.scalacOptions().filter(!_.contains("acyclic"))
   object test extends Tests
 }
 
 object terminal extends Cross[TerminalModule](binCrossScalaVersions: _*)
-class TerminalModule(val crossScalaVersion: String) extends AmmModule {
+trait TerminalModule extends AmmModule {
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode:0.1.3",
     ivy"com.lihaoyi::fansi:0.2.4"
@@ -96,7 +96,7 @@ class TerminalModule(val crossScalaVersion: String) extends AmmModule {
 
 object amm extends Cross[MainModule](fullCrossScalaVersions: _*) {
   object util extends Cross[UtilModule](binCrossScalaVersions: _*)
-  class UtilModule(val crossScalaVersion: String) extends AmmModule {
+  trait UtilModule extends AmmModule {
     def moduleDeps = Seq(ops())
     def ivyDeps = Agg(
       ivy"com.lihaoyi::upickle:0.6.7",
@@ -110,7 +110,7 @@ object amm extends Cross[MainModule](fullCrossScalaVersions: _*) {
   }
 
   object runtime extends Cross[RuntimeModule](binCrossScalaVersions: _*)
-  class RuntimeModule(val crossScalaVersion: String) extends AmmModule {
+  trait RuntimeModule extends AmmModule {
     def moduleDeps = Seq(ops(), amm.util())
     def ivyDeps = Agg(
       ivy"io.get-coursier::coursier:1.1.0-M7",
@@ -124,7 +124,7 @@ object amm extends Cross[MainModule](fullCrossScalaVersions: _*) {
   }
 
   object interp extends Cross[InterpModule](fullCrossScalaVersions: _*)
-  class InterpModule(val crossScalaVersion: String) extends AmmModule {
+  trait InterpModule extends AmmModule {
     def moduleDeps = Seq(ops(), amm.util(), amm.runtime())
     def crossFullScalaVersion = true
     def ivyDeps = Agg(
@@ -136,7 +136,7 @@ object amm extends Cross[MainModule](fullCrossScalaVersions: _*) {
   }
 
   object repl extends Cross[ReplModule](fullCrossScalaVersions: _*)
-  class ReplModule(val crossScalaVersion: String) extends AmmModule {
+  trait ReplModule extends AmmModule {
     def crossFullScalaVersion = true
     def moduleDeps = Seq(
       ops(),
@@ -238,7 +238,7 @@ class MainModule(val crossScalaVersion: String) extends AmmModule
 }
 
 object shell extends Cross[ShellModule](fullCrossScalaVersions: _*)
-class ShellModule(val crossScalaVersion: String) extends AmmModule {
+trait ShellModule extends AmmModule {
   def moduleDeps = Seq(ops(), amm())
   def crossFullScalaVersion = true
   object test extends Tests {
@@ -250,7 +250,7 @@ class ShellModule(val crossScalaVersion: String) extends AmmModule {
   }
 }
 object integration extends Cross[IntegrationModule](fullCrossScalaVersions: _*)
-class IntegrationModule(val crossScalaVersion: String) extends AmmInternalModule {
+trait IntegrationModule extends AmmInternalModule {
   def moduleDeps = Seq(ops(), amm())
   object test extends Tests {
     def forkEnv = super.forkEnv() ++ Seq(
@@ -261,7 +261,7 @@ class IntegrationModule(val crossScalaVersion: String) extends AmmInternalModule
 }
 
 object sshd extends Cross[SshdModule](fullCrossScalaVersions: _*)
-class SshdModule(val crossScalaVersion: String) extends AmmModule {
+trait SshdModule extends AmmModule {
   def moduleDeps = Seq(ops(), amm())
   def crossFullScalaVersion = true
   def ivyDeps = Agg(

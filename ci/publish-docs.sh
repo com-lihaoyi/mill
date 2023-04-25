@@ -3,7 +3,7 @@
 set -eu
 
 # Build the pages
-./mill -i docs.antora.githubPages
+./mill -i docs.githubPages
 
 # Prepare ssh-key for git actions
 echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
@@ -24,7 +24,7 @@ git worktree add -b gh-pages gh-pages origin/gh-pages
 
 # we want to keep history, so we prepare a new commit
 rm -r ${PAGES_REPO}/*
-cp -r out/docs/antora/githubPages.dest/site/* ${PAGES_REPO}/
+cp -r out/docs/githubPages.dest/site/* ${PAGES_REPO}/
 touch ${PAGES_REPO}/.nojekyll
 
 cd $PAGES_REPO

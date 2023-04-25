@@ -11,7 +11,7 @@ object app extends RootModule with ScalaModule{
   def resources = T{
     os.makeDir(T.dest / "webapp")
     val jsPath = client.fastLinkJS().dest.path
-    // Move the main.js[.map] files into the proper filesystem position
+    // Move main.js[.map]into the proper filesystem position
     // in the resource folder for the web server code to pick up
     os.copy(jsPath / "main.js", T.dest / "webapp" / "main.js")
     os.copy(jsPath / "main.js.map", T.dest / "webapp" / "main.js.map")
@@ -35,7 +35,7 @@ object app extends RootModule with ScalaModule{
 }
 
 // A minimal example of a Scala-JVM backend server wired up with a Scala.js
-// front-end. The backend code is identical to the [2-todo-webapp] example, but
+// front-end. The backend code is identical to the <<_todomvc_web_app>> example, but
 // we replace the `main.js` client side code with the Javascript output of
 // `ClientApp.scala`.
 //
@@ -45,18 +45,20 @@ object app extends RootModule with ScalaModule{
 // Javascript or Scala UI frameworks to manage the UI, but those are beyond the
 // scope of this example.
 
-/* Example Usage
+/** Usage
 
 > ./mill test
-+ webapp.WebAppTests.simpleRequest
++ webapp.WebAppTests.simpleRequest ...
 
 > ./mill runBackground
 
-> curl http://localhost:8080
-What needs to be done
+> curl http://localhost:8082
+...What needs to be done...
+...
 
-> curl http://localhost:8080/static/main.js
-Scala.js
+> curl http://localhost:8082/static/main.js
+...Scala.js...
+...
 
 > ./mill clean runBackground
 

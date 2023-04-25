@@ -9,9 +9,7 @@ trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
 }
 
 object app extends RootModule with AppScalaModule{
-
   def moduleDeps = Seq(shared.jvm)
-
   def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
 
   def resources = T{
@@ -33,7 +31,6 @@ object app extends RootModule with AppScalaModule{
 
   object shared extends Module{
     trait SharedModule extends AppScalaModule with PlatformScalaModule {
-
       def ivyDeps = Agg(
         ivy"com.lihaoyi::scalatags::0.12.0",
         ivy"com.lihaoyi::upickle::3.0.0",
@@ -67,18 +64,20 @@ object app extends RootModule with AppScalaModule{
 // configuration. A full exploration of client-server code sharing techniques
 // is beyond the scope of this example.
 
-/* Example Usage
+/** Usage
 
 > ./mill test
-+ webapp.WebAppTests.simpleRequest
++ webapp.WebAppTests.simpleRequest ...
 
 > ./mill runBackground
 
-> curl http://localhost:8080
-What needs to be done
+> curl http://localhost:8083
+...What needs to be done...
+...
 
-> curl http://localhost:8080/static/main.js
-Scala.js
+> curl http://localhost:8083/static/main.js
+...Scala.js...
+...
 
 > ./mill clean runBackground
 

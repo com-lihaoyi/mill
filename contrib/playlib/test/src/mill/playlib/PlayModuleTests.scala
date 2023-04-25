@@ -4,14 +4,13 @@ package playlib
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
-import mill.scalalib.CrossScalaModule
 
 object PlayModuleTests extends TestSuite with PlayTestSuite {
 
   object playmulti extends TestUtil.BaseModule {
-    object core extends Cross[CoreCrossModule](matrix: _*)
-    class CoreCrossModule(val crossScalaVersion: String, crossPlayVersion: String)
-        extends PlayModule {
+    object core extends Cross[CoreCrossModule](matrix)
+    trait CoreCrossModule extends PlayModule with Cross.Module2[String, String] {
+      val (crossScalaVersion, crossPlayVersion) = (crossValue, crossValue2)
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
       override def twirlVersion = "1.5.1"
