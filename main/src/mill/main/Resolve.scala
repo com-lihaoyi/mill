@@ -26,12 +26,18 @@ object Resolve {
       Nil
     ) match {
       case Resolve.Success(value) =>
-        EitherOps.sequence(
-          value.collect {
-            case t: Resolve.Resolved.Target => Right(t.value)
-            case t: Resolve.Resolved.Command => t.value()
-          }
-        ).map(_.toSet[NamedTask[Any]])
+        val taskList: Set[Either[String, NamedTask[_]]] = value.collect {
+          case Resolved.Target(name, value) => Right(value)
+          case Resolved.Command(name, value) => value()
+          case Resolved.Module(name, value: TaskModule) =>
+            resolveDirectChildren(value, Some(value.defaultCommandName()), discover, args).head.flatMap{
+              case Resolved.Target(name, value) => Right(value)
+              case Resolved.Command(name, value) => value()
+            }
+        }
+
+        if (taskList.nonEmpty) EitherOps.sequence(taskList).map(_.toSet[NamedTask[Any]])
+        else Left(s"Cannot find default task to evaluate for module ${Segments(remainingSelector).render}")
 
       case Resolve.NotFound(segments, found, next, possibleNexts) =>
         val errorMsg = found.head match{
@@ -69,7 +75,9 @@ object Resolve {
   }
 
   sealed trait Result
-  case class Success(value: Set[Resolved]) extends Result
+  case class Success(value: Set[Resolved]) extends Result{
+    assert(value.nonEmpty)
+  }
   sealed trait Failed extends Result
   case class NotFound(deepest: Segments,
                       found: Set[Resolved],

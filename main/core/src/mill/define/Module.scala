@@ -52,7 +52,6 @@ object Module {
       n = decode(m.getName)
       if filter(n) &&
         ParseArgs.isLegalIdentifier(n) &&
-        m.getParameterCount == 0 &&
         (m.getModifiers & Modifier.STATIC) == 0 &&
         (m.getModifiers & Modifier.ABSTRACT) == 0 &&
         inner.isAssignableFrom(m.getReturnType)
