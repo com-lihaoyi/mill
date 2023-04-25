@@ -142,13 +142,12 @@ object Module {
           .getClasses
           .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
           .flatMap { c =>
-            // Ideally we would just use `getSimpleName` here, but
-            // that blows up on JDK 8
             c.getName.stripPrefix(outer.getClass.getName) match {
-              case s"$$$name$$" if filter(name) =>
-                c.getFields.find(_.getName == "MODULE$")
-                  .map(f => (name, () => f.get(c).asInstanceOf[T]))
-
+              case s"$name$$" if filter(name) =>
+                pprint.log(name)
+                c.getFields.find(_.getName == "MODULE$").map(f =>
+                  (name, () => f.get(c).asInstanceOf[T])
+                )
               case _ => None
             }
 
