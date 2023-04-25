@@ -6,13 +6,13 @@ import mill.main.ResolveCore.Resolved
 /**
  * Wraps [[ResolveCore]] to report error messages if nothing was resolved
  */
-object ResolveNonEmpty{
+object ResolveNonEmpty {
   def resolveNonEmpty(
-                       selector: List[Segment],
-                       current: BaseModule,
-                       discover: Discover[_],
-                       args: Seq[String]
-                     ): Either[String, Set[Resolved]] = {
+      selector: List[Segment],
+      current: BaseModule,
+      discover: Discover[_],
+      args: Seq[String]
+  ): Either[String, Set[Resolved]] = {
     ResolveCore.resolve(
       selector,
       ResolveCore.Resolved.Module(current),
@@ -21,22 +21,20 @@ object ResolveNonEmpty{
       Nil
     ) match {
       case ResolveCore.Success(value) => Right(value)
-
       case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-        val errorMsg = found.head match {
-          case s: Resolved.Module =>
-            next match {
-              case Segment.Label(s) =>
-                val possibleStrings = possibleNexts.collect { case Segment.Label(s) => s }
+        val errorMsg = if (found.head.isInstanceOf[Resolved.Module]) {
+          next match {
+            case Segment.Label(s) =>
+              val possibleStrings = possibleNexts.collect { case Segment.Label(s) => s }
 
-                errorMsgLabel(s, possibleStrings, segments, Segments(selector))
-              case Segment.Cross(keys) =>
-                val possibleCrossKeys = possibleNexts.collect { case Segment.Cross(keys) => keys }
-                errorMsgCross(keys, possibleCrossKeys, segments, Segments(selector))
-            }
-          case x =>
-            unableToResolve((segments ++ Seq(next)).render) +
-              s" ${segments.render} resolves to a Task with no children."
+              errorMsgLabel(s, possibleStrings, segments, Segments(selector))
+            case Segment.Cross(keys) =>
+              val possibleCrossKeys = possibleNexts.collect { case Segment.Cross(keys) => keys }
+              errorMsgCross(keys, possibleCrossKeys, segments, Segments(selector))
+          }
+        } else {
+          unableToResolve((segments ++ Seq(next)).render) +
+            s" ${segments.render} resolves to a Task with no children."
         }
 
         Left(errorMsg)
@@ -44,7 +42,6 @@ object ResolveNonEmpty{
       case ResolveCore.Error(value) => Left(value)
     }
   }
-
 
   def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 
@@ -66,11 +63,11 @@ object ResolveNonEmpty{
   }
 
   def errorMsgLabel(
-                     given: String,
-                     possibleMembers: Set[String],
-                     prefixSegments: Segments,
-                     fullSegments: Segments
-                   ) = {
+      given: String,
+      possibleMembers: Set[String],
+      prefixSegments: Segments,
+      fullSegments: Segments
+  ) = {
     val suggestion = findMostSimilar(given, possibleMembers) match {
       case None => hintListLabel(prefixSegments.value)
       case Some(similar) =>
@@ -85,11 +82,11 @@ object ResolveNonEmpty{
   }
 
   def errorMsgCross(
-                     givenKeys: Seq[String],
-                     possibleCrossKeys: Set[Seq[String]],
-                     prefixSegments: Segments,
-                     fullSegments: Segments
-                   ) = {
+      givenKeys: Seq[String],
+      possibleCrossKeys: Set[Seq[String]],
+      prefixSegments: Segments,
+      fullSegments: Segments
+  ) = {
 
     val suggestion = findMostSimilar(
       givenKeys.mkString(","),

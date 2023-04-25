@@ -23,7 +23,9 @@ object ResolveSegments extends Resolve[Segments] {
       discover: Discover[_],
       args: Seq[String]
   ) = {
-    ResolveNonEmpty.resolveNonEmpty(selector, current, discover, args).map { value => value.map(_.segments) }
+    ResolveNonEmpty.resolveNonEmpty(selector, current, discover, args).map { value =>
+      value.map(_.segments)
+    }
   }
 }
 
@@ -34,7 +36,9 @@ object ResolveMetadata extends Resolve[String] {
       discover: Discover[_],
       args: Seq[String]
   ) = {
-    ResolveNonEmpty.resolveNonEmpty(selector, current, discover, args).map { value => value.map(_.segments.render) }
+    ResolveNonEmpty.resolveNonEmpty(selector, current, discover, args).map { value =>
+      value.map(_.segments.render)
+    }
   }
 }
 
@@ -83,25 +87,25 @@ trait Resolve[T] {
   ): Either[String, List[T]] = {
     val parsedGroups: Either[String, Seq[TargetsWithParams]] = ParseArgs(scriptArgs, selectMode)
     val resolvedGroups = parsedGroups.flatMap { groups =>
-      val resolved = groups.map { case (selectors, args)  =>
+      val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
           for (rootModule <- resolveRootModule(evaluator, scopedSel))
-          yield try {
-            // We inject the `evaluator.rootModule` into the TargetScopt, rather
-            // than the `rootModule`, because even if you are running an external
-            // module we still want you to be able to resolve targets from your
-            // main build. Resolving targets from external builds as CLI arguments
-            // is not currently supported
-            mill.eval.Evaluator.currentEvaluator.set(evaluator)
-            resolveNonEmpty(
-              sel.value.toList,
-              rootModule,
-              rootModule.millDiscover,
-              args
-            )
-          } finally {
-            mill.eval.Evaluator.currentEvaluator.set(null)
-          }
+            yield try {
+              // We inject the `evaluator.rootModule` into the TargetScopt, rather
+              // than the `rootModule`, because even if you are running an external
+              // module we still want you to be able to resolve targets from your
+              // main build. Resolving targets from external builds as CLI arguments
+              // is not currently supported
+              mill.eval.Evaluator.currentEvaluator.set(evaluator)
+              resolveNonEmpty(
+                sel.value.toList,
+                rootModule,
+                rootModule.millDiscover,
+                args
+              )
+            } finally {
+              mill.eval.Evaluator.currentEvaluator.set(null)
+            }
         }
         for {
           taskss <- EitherOps.sequence(selected).map(_.toList)
