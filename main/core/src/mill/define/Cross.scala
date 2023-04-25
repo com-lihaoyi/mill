@@ -319,7 +319,7 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mi
    * A mapping of the string-ified string segments to the cross modules, in
    * the order the original cross values were given in
    */
-  lazy val segmentsToModules: collection.MapView[List[String], M] = items
+  val segmentsToModules: collection.MapView[List[String], M] = items
     .map { case (values, segments, subs) => (segments, subs) }
     .to(collection.mutable.LinkedHashMap)
     .view
