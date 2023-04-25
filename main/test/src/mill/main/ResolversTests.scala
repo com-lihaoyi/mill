@@ -14,8 +14,20 @@ object ResolversTests extends TestSuite {
       selectorStrings: Seq[String],
       expected0: Either[String, Set[T => NamedTask[_]]]
   ) = {
-
     val expected = expected0.map(_.map(_(module)))
+    checkSeq0[T](module)(
+      selectorStrings,
+      resolved => {
+        resolved.map(_.map(_.toString).toSet[String]) ==
+        expected.map(_.map(_.toString))
+      }
+    )
+  }
+
+  def checkSeq0[T <: mill.define.BaseModule](module: T)(
+      selectorStrings: Seq[String],
+      check: Either[String, List[NamedTask[_]]] => Boolean
+  ) = {
     val resolved = for {
       task <- mill.main.ResolveTasks.resolve0(
         None,
@@ -25,7 +37,7 @@ object ResolversTests extends TestSuite {
       )
     } yield task
 
-    assert(resolved.map(_.map(_.toString).toSet[String]) == expected.map(_.map(_.toString)))
+    assert(check(resolved))
   }
 
   val tests = Tests {
@@ -406,14 +418,21 @@ object ResolversTests extends TestSuite {
     }
 
     "moduleInitError" - {
-      val check = ResolversTests.checkSeq(moduleInitError) _
-      "rootTarget" - check(
+      "rootTarget" - ResolversTests.checkSeq(moduleInitError)(
         Seq("rootTarget"),
         Right(Set(_.rootTarget))
       )
-      "fooTarget" - check(
-        Seq("fooTarget"),
-        Left("Foo Boom")
+      "fooTarget" - ResolversTests.checkSeq0(moduleInitError)(
+        Seq("foo.fooTarget"),
+        res => res.isLeft && res.left.exists(_.contains("Foo Boom"))
+      )
+      "barTarget" - ResolversTests.checkSeq(moduleInitError)(
+        Seq("bar.barTarget"),
+        Right(Set(_.bar.barTarget))
+      )
+      "quxTarget" - ResolversTests.checkSeq0(moduleInitError)(
+        Seq("bar.qux.barTarget"),
+        res => res.isLeft && res.left.exists(_.contains("Qux Boom"))
       )
 
     }
