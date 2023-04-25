@@ -26,11 +26,15 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
       val res = evalStdout("foo.fooTarget")
       assert(res.isSuccess == false)
       assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Foo Boom"""))
+      // Make sure the stack trace is "short" and does not contain all the stack
+      // frames from the Mill launcher
+      assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
     }
     test("fooCommand") {
       val res = evalStdout("foo.fooCommand", "hello")
       assert(res.isSuccess == false)
       assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Foo Boom"""))
+      assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
     }
     test("barTarget") {
       val res = evalStdout("bar.barTarget")
@@ -46,11 +50,13 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
       val res = evalStdout("bar.qux.quxTarget")
       assert(res.isSuccess == false)
       assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Qux Boom"""))
+      assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
     }
     test("quxCommand") {
       val res = evalStdout("bar.qux.quxCommand", "hello")
       assert(res.isSuccess == false)
       assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Qux Boom"""))
+      assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
     }
   }
 }

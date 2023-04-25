@@ -1,5 +1,6 @@
 package mill.util
 import TestUtil.test
+import mill.api.SystemStreams
 import mill.define.{Command, Cross, Discover, TaskModule}
 import mill.{Module, T}
 
@@ -147,6 +148,28 @@ class TestGraphs() {
         def quxTarget = T { println(s"Running quxTarget"); "quxTarget Result" }
         def quxCommand(s: String) = T.command { println(s"Running quxCommand $s") }
         throw new Exception("Qux Boom")
+      }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  object moduleDependencyInitError extends TestUtil.BaseModule {
+
+    object foo extends Module {
+      def fooTarget = T { println(s"Running fooTarget"); 123 }
+      def fooCommand(s: String) = T.command { println(s"Running fooCommand $s") }
+      throw new Exception("Foo Boom")
+    }
+
+    object bar extends Module {
+      def barTarget = T {
+        println(s"Running barTarget")
+        foo.fooTarget() + " barTarget Result"
+      }
+      def barCommand(s: String) = T.command {
+        foo.fooCommand(s)()
+        println(s"Running barCommand $s")
       }
     }
 

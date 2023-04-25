@@ -582,6 +582,39 @@ object ResolversTests extends TestSuite {
           res => res.isLeft && res.left.exists(_.contains("Qux Boom"))
         )
       }
+
+      "dependency" - {
+        val check = new Checker(moduleDependencyInitError)
+        def isShortFooTrace(res: Either[String, List[NamedTask[_]]]) = {
+          pprint.log(res)
+          res.isLeft &&
+          res.left.exists(_.contains("Foo Boom") &&
+          // Make sure the stack traces are truncated and short-ish, and do not
+          // contain the entire Mill internal call stack at point of failure
+          res.left.exists(_.linesIterator.size < 20))
+        }
+        "fooTarget" - check.checkSeq0(
+          Seq("foo.fooTarget"),
+          isShortFooTrace
+        )
+        "fooCommand" - check.checkSeq0(
+          Seq("foo.fooCommand", "hello"),
+          isShortFooTrace
+        )
+        // Even though the `bar` module doesn't throw, `barTarget` and
+        // `barCommand` depend on the `fooTarget` and `fooCommand` tasks on the
+        // `foo` module, and the `foo` module blows up. This should turn up as
+        // a stack trace when we try to resolve bar
+        "barTarget" - check.checkSeq0(
+          Seq("bar.barTarget"),
+          isShortFooTrace
+        )
+        "barCommand" - check.checkSeq0(
+          Seq("bar.barCommand", "hello"),
+          isShortFooTrace
+        )
+      }
+
       "cross" - {
         "simple" - {
           val check = new Checker(crossModuleSimpleInitError)

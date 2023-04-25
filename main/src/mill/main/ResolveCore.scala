@@ -172,12 +172,14 @@ object ResolveCore {
       .map { name =>
         Resolved.Command(
           segments ++ Segment.Label(name),
-          invokeCommand(
-            obj,
-            name,
-            discover.asInstanceOf[Discover[Module]],
-            args
-          ).head
+          catchReflectException(
+            invokeCommand(
+              obj,
+              name,
+              discover.asInstanceOf[Discover[Module]],
+              args
+            ).head
+          ).flatten
         )
       }
 
@@ -232,6 +234,11 @@ object ResolveCore {
       )
     } match {
       case mainargs.Result.Success(v: Command[_]) => Right(v)
+
+      case mainargs.Result.Failure.Exception(e) =>
+        val outerStack = new mill.api.Result.OuterStack(new Exception().getStackTrace)
+        Left(mill.api.Result.Exception(e, outerStack).toString)
+
       case f: mainargs.Result.Failure =>
         Left(
           mainargs.Renderer.renderResult(
