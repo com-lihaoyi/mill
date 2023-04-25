@@ -21,8 +21,12 @@ object ExpandBraces{
               head match {
                 case Fragment.Keep(s) => tailStrings.map(s :: _)
                 case Fragment.Expand(fragmentLists) =>
-                  if (fragmentLists == Nil) tailStrings.map("{}" :: _)
-                  else for {
+                  if (fragmentLists.length == 1) {
+                    for {
+                      lhs <- fragmentLists.flatMap(processFragmentSequence)
+                      rhs <- tailStrings
+                    } yield List("{") ::: lhs ::: List("}") ::: rhs
+                  } else for {
                     lhs <- fragmentLists.flatMap(processFragmentSequence)
                     rhs <- tailStrings
                   } yield lhs ::: rhs
@@ -36,12 +40,15 @@ object ExpandBraces{
   }
 
   private def plainChars[_p: P]: P[Fragment.Keep] =
-    P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep)
+    P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep).log
+
+
+  private def emptyExpansionBranch[_p: P] = P("").map(_ => List(Fragment.Keep("")))
 
   private def toExpand[_p: P]: P[Fragment] =
-    P("{" ~ braceParser.rep(1).rep(sep = ",") ~ "}").map(x =>
+    P("{" ~ (braceParser.rep(1) | emptyExpansionBranch).rep(sep = ",") ~ "}").map(x =>
       Fragment.Expand(x.toList.map(_.toList))
-    )
+    ).log
 
   private def braceParser[_p: P]: P[Fragment] = P(toExpand | plainChars)
 

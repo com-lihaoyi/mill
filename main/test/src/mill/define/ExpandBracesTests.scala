@@ -39,10 +39,13 @@ object ExpandBracesTests extends TestSuite {
         check("{a{b,c},d{e,f}}", List("ab", "ac", "de", "df"))
         check("{a,b{c,d},e{f,g}}", List("a", "bc", "bd", "ef", "eg"))
       }
-      "expandMixed" - check(
-        "{a,b}.{c}.{}.e",
-        List("a.c.{}.e", "b.c.{}.e")
-      )
+      "expandMixed" - {
+        test - check(
+          "{a,b}.{c}.{}.e",
+          List("a.{c}.{}.e", "b.{c}.{}.e")
+        )
+        test - check("{{b,c}}d", List("{b}d", "{c}d"))
+      }
       "malformed" - {
         val malformed = Seq("core.{compile", "core.{compile,test]")
 
@@ -52,9 +55,10 @@ object ExpandBracesTests extends TestSuite {
         }
       }
       "dontExpand" - {
-        check("core.compile", List("core.compile"))
-        check("{}.compile", List("{}.compile"))
-        check("{core}.compile", List("{core}.compile"))
+        test - check("core.compile", List("core.compile"))
+        test - check("{}.compile", List("{}.compile"))
+        test - check("{core}.compile", List("{core}.compile"))
+
       }
       "keepUnknownSymbols" - {
         check("{a,b}.e<>", List("a.e<>", "b.e<>"))

@@ -34,7 +34,6 @@ object ResolversTests extends TestSuite {
     "single" - {
       val check = ResolversTests.check(singleton) _
       "pos" - check("single", Right(Set(_.single)))
-      "posCurly" - check("{single}", Right(Set(_.single)))
       "neg1" - check("sngle", Left("Cannot resolve sngle. Did you mean single?"))
       "neg2" - check("snigle", Left("Cannot resolve snigle. Did you mean single?"))
       "neg3" - check("nsiigle", Left("Cannot resolve nsiigle. Did you mean single?"))
@@ -86,25 +85,20 @@ object ResolversTests extends TestSuite {
       "pos1" - check("single", Right(Set(_.single)))
       "pos2" - check("nested.single", Right(Set(_.nested.single)))
       "pos3" - check("classInstance.single", Right(Set(_.classInstance.single)))
-      "posCurly1" - check("classInstance.{single}", Right(Set(_.classInstance.single)))
-      "posCurly2" - check(
+      "posCurly1" - check(
         "{nested,classInstance}.single",
         Right(Set(_.nested.single, _.classInstance.single))
       )
-      "posCurly3" - check(
-        "{nested,classInstance}.{single}",
-        Right(Set(_.nested.single, _.classInstance.single))
-      )
-      "posCurly4" - check(
-        "{single,{nested,classInstance}.{single}}",
+      "posCurly2" - check(
+        "{single,{nested,classInstance}.single}",
         Right(Set(_.single, _.nested.single, _.classInstance.single))
       )
-      "posCurly5" - check(
+      "posCurly3" - check(
         "{single,nested.single,classInstance.single}",
         Right(Set(_.single, _.nested.single, _.classInstance.single))
       )
-      "posCurly6" - check(
-        "{{single},{nested,classInstance}.{single}}",
+      "posCurly4" - check(
+        "{,nested.,classInstance.}single",
         Right(Set(_.single, _.nested.single, _.classInstance.single))
       )
       "neg1" - check(
