@@ -133,7 +133,7 @@ trait Resolve[T] {
   }
 
   def resolveTasks[R](
-      resolver: mill.main.Resolver[R],
+      resolver: mill.main.Resolve[R],
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
@@ -149,7 +149,7 @@ trait Resolve[T] {
   }
 
   private def resolveTasks[R](
-      resolver: mill.main.Resolver[R],
+      resolver: mill.main.Resolve[R],
       evaluator: Evaluator,
       targetsWithParams: Either[String, TargetsWithParams]
   ): Either[String, List[R]] = {
