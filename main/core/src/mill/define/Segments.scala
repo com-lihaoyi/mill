@@ -34,7 +34,10 @@ case class Segments private (value: Seq[Segment]) {
   def render: String = value.toList match {
     case Nil => ""
     case Segment.Label(head) :: rest =>
-      val stringSegments = rest.map(_.render)
+      val stringSegments = rest.map {
+        case Segment.Label(s) => "." + s
+        case Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
+      }
       head + stringSegments.mkString
     case Segment.Cross(_) :: _ =>
       throw new IllegalArgumentException("Segments must start with a Label, but found a Cross.")
