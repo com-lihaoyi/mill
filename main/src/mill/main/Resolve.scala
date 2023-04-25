@@ -1,213 +1,187 @@
 package mill.main
 
-import mainargs.{MainData, TokenGrouping}
-import mill.define._
+import mill.define.ParseArgs.TargetsWithParams
+import mill.define.{
+  BaseModule,
+  Discover,
+  ExternalModule,
+  NamedTask,
+  ParseArgs,
+  Segment,
+  Segments,
+  SelectMode,
+  TaskModule
+}
+import mill.eval.Evaluator
+import mill.main.ResolveCore.Resolved
 import mill.util.EitherOps
-import scala.reflect.NameTransformer.decode
 
-import scala.collection.immutable
-
-/**
- * Takes a single list of segments, without braces but including wildcards, and
- * resolves all possible modules, targets or commands that the segments could
- * resolve to.
- *
- * Returns a [[Result]], either containing a [[Success]] containing the
- * [[Resolved]] set, [[NotFound]] if it couldn't find anything with some
- * metadata about what it was looking for, or [[Error]] if something blew up.
- */
-object Resolve {
-
-  sealed trait Resolved{
-    def segments: Segments
-  }
-
-  object Resolved {
-    case class Module(value: mill.define.Module) extends Resolved{
-      def segments = value.millModuleSegments
-    }
-    case class Target(value: mill.define.Target[_]) extends Resolved{
-      def segments = value.ctx.segments
-    }
-    case class Command(value: () => Either[String, mill.define.Command[_]])
-        extends Resolved{
-      def segments = value().right.get.ctx.segments
-    }
-  }
-
-  sealed trait Result
-  case class Success(value: Set[Resolved]) extends Result{
-    assert(value.nonEmpty)
-  }
-  sealed trait Failed extends Result
-  case class NotFound(deepest: Segments,
-                      found: Set[Resolved],
-                      next: Segment,
-                      possibleNexts: Set[Segment]) extends Failed
-  case class Error(msg: String) extends Failed
-
-
-
-  def resolve(
-    remainingSelector: List[Segment],
-    current: Resolved,
-    discover: Discover[_],
-    args: Seq[String],
-    revSelectorsSoFar0: List[Segment]
-  ): Result = remainingSelector match {
-    case Nil => Success(Set(current))
-    case head :: tail =>
-      val revSelectorsSoFar = head :: revSelectorsSoFar0
-      def recurse(searchModules: Set[Resolved]): Result = {
-        val (failures, successesLists) = searchModules
-          .map(resolve(tail, _, discover, args, revSelectorsSoFar))
-          .partitionMap{case s: Success => Right(s.value); case f: Failed => Left(f)}
-
-        val (errors, notFounds) = failures.partitionMap{
-          case s: NotFound => Right(s)
-          case s: Error => Left(s.msg)
-        }
-
-        if (errors.nonEmpty) Error(errors.mkString("\n"))
-        else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
-        else notFounds.size match{
-          case 1 => notFounds.head
-          case _ => notFoundResult(revSelectorsSoFar0, current, head, discover, args)
-        }
-      }
-
-      (head, current) match {
-        case (Segment.Label(singleLabel), Resolved.Module(obj)) =>
-          EitherOps.sequence(
-            singleLabel match {
-              case "__" =>
-                obj
-                  .millInternal
-                  .modules
-                  .flatMap(m =>
-                    Seq(Right(Resolved.Module(m))) ++
-                      resolveDirectChildren(m, None, discover, args).values
-                  )
-              case "_" => resolveDirectChildren(obj, None, discover, args).values
-              case _ => resolveDirectChildren(obj, Some(singleLabel), discover, args).values
-            }
-          ) match{
-            case Left(err) => Error(err)
-            case Right(v) => recurse(v.toSet)
-          }
-
-        case (Segment.Cross(cross), Resolved.Module(c: Cross[_])) =>
-          val searchModules: Seq[Module] =
-            if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
-            else if (cross.contains("_")) {
-              for {
-                (segments, v) <- c.segmentsToModules.toList
-                if segments.length == cross.length
-                if segments.zip(cross).forall { case (l, r) => l == r || r == "_" }
-              } yield v
-            } else c.segmentsToModules.get(cross.toList).toSeq
-
-          recurse(searchModules.map(m => Resolved.Module(m)).toSet)
-
-        case _ => notFoundResult(revSelectorsSoFar0, current, head, discover, args)
-      }
-  }
-
-
-  def resolveDirectChildren(
-      obj: Module,
-      nameOpt: Option[String] = None,
+object ResolveSegments extends Resolve[Segments] {
+  def resolveNonEmpty(
+      selector: List[Segment],
+      current: BaseModule,
       discover: Discover[_],
       args: Seq[String]
-  ): Map[Segment, Either[String, Resolved]] = {
-    def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
+  ) = {
+    ResolveNonEmpty.resolveNonEmpty(selector, current, discover, args).map { value => value.map(_.segments) }
+  }
+}
 
-    val modules = obj
-      .millInternal
-      .reflectNestedObjects[Module](namePred)
-      .map(t => Segment.Label(t.millModuleSegments.parts.last) -> Right(Resolved.Module(t)))
+object ResolveMetadata extends Resolve[String] {
+  def resolveNonEmpty(
+      selector: List[Segment],
+      current: BaseModule,
+      discover: Discover[_],
+      args: Seq[String]
+  ) = {
+    ResolveNonEmpty.resolveNonEmpty(selector, current, discover, args).map { value => value.map(_.segments.render) }
+  }
+}
 
-    val crosses = obj match {
-      case c: Cross[_] if nameOpt.isEmpty => c.segmentsToModules.map{case (k, v) => Segment.Cross(k) -> Right(Resolved.Module(v))}
-      case _ => Nil
+object ResolveTasks extends Resolve[NamedTask[Any]] {
+  def resolveNonEmpty(
+      selector: List[Segment],
+      current: BaseModule,
+      discover: Discover[_],
+      args: Seq[String]
+  ) = {
+    ResolveNonEmpty.resolveNonEmpty(selector, current, discover, args).flatMap { value =>
+      val taskList: Set[Either[String, NamedTask[_]]] = value.collect {
+        case Resolved.Target(value) => Right(value)
+        case Resolved.Command(value) => value()
+        case Resolved.Module(value: TaskModule) =>
+          ResolveCore.resolveDirectChildren(
+            value,
+            Some(value.defaultCommandName()),
+            discover,
+            args
+          ).values.head.flatMap {
+            case Resolved.Target(value) => Right(value)
+            case Resolved.Command(value) => value()
+          }
+      }
+
+      if (taskList.nonEmpty) EitherOps.sequence(taskList).map(_.toSet[NamedTask[Any]])
+      else Left(s"Cannot find default task to evaluate for module ${Segments(selector).render}")
     }
 
-    val targets = Module
-      .reflect(obj.getClass, classOf[Target[_]], namePred, noParams = true)
-      .map(m => Segment.Label(decode(m.getName)) -> Right(Resolved.Target(m.invoke(obj).asInstanceOf[Target[_]])))
+  }
+}
 
-    val commands = Module
-      .reflect(obj.getClass, classOf[Command[_]], namePred, noParams = false)
-      .map(m => decode(m.getName))
-      .map(name =>
-        Segment.Label(name) -> Right(Resolved.Command(
-          () =>
-            invokeCommand(
-              obj,
-              name,
-              discover.asInstanceOf[Discover[Module]],
+trait Resolve[T] {
+  def resolveNonEmpty(
+      selector: List[Segment],
+      current: BaseModule,
+      discover: Discover[_],
+      args: Seq[String]
+  ): Either[String, Set[T]]
+
+  def resolveTasks(
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, List[T]] = {
+    val parsedGroups: Either[String, Seq[TargetsWithParams]] = ParseArgs(scriptArgs, selectMode)
+    val resolvedGroups = parsedGroups.flatMap { groups =>
+      val resolved = groups.map { case (selectors, args)  =>
+        val selected = selectors.map { case (scopedSel, sel) =>
+          for (rootModule <- resolveRootModule(evaluator, scopedSel))
+          yield try {
+            // We inject the `evaluator.rootModule` into the TargetScopt, rather
+            // than the `rootModule`, because even if you are running an external
+            // module we still want you to be able to resolve targets from your
+            // main build. Resolving targets from external builds as CLI arguments
+            // is not currently supported
+            mill.eval.Evaluator.currentEvaluator.set(evaluator)
+            resolveNonEmpty(
+              sel.value.toList,
+              rootModule,
+              rootModule.millDiscover,
               args
-            ).head
-        ))
-      )
-
-    (modules ++ crosses ++ targets ++ commands).toMap
+            )
+          } finally {
+            mill.eval.Evaluator.currentEvaluator.set(null)
+          }
+        }
+        for {
+          taskss <- EitherOps.sequence(selected).map(_.toList)
+          res <- EitherOps.sequence(taskss)
+        } yield res.flatten
+      }
+      EitherOps.sequence(resolved)
+    }
+    resolvedGroups.map(_.flatten.toList)
   }
 
-  def notFoundResult(revSelectorsSoFar0: List[Segment],
-                     current: Resolved,
-                     next: Segment,
-                     discover: Discover[_],
-                     args: Seq[String]) =
-    NotFound(
-      Segments(revSelectorsSoFar0.reverse),
-      Set(current),
-      next,
-      current match {
-        case Resolved.Module(obj) =>
-          resolveDirectChildren(obj, None, discover, args).keySet
-
-        case _ => Set()
-      }
-    )
-
-  def invokeCommand(
-      target: Module,
-      name: String,
-      discover: Discover[Module],
-      rest: Seq[String]
-  ): immutable.Iterable[Either[String, Command[_]]] = for {
-    (cls, entryPoints) <- discover.value
-    if cls.isAssignableFrom(target.getClass)
-    ep <- entryPoints
-    if ep._2.name == name
-  } yield {
-    mainargs.TokenGrouping.groupArgs(
-      rest,
-      ep._2.argSigs0,
-      allowPositional = true,
-      allowRepeats = false,
-      allowLeftover = ep._2.leftoverArgSig.nonEmpty
-    ).flatMap { grouped =>
-      mainargs.Invoker.invoke(
-        target,
-        ep._2.asInstanceOf[MainData[_, Any]],
-        grouped.asInstanceOf[TokenGrouping[Any]]
-      )
-    } match {
-      case mainargs.Result.Success(v: Command[_]) => Right(v)
-      case f: mainargs.Result.Failure =>
-        Left(
-          mainargs.Renderer.renderResult(
-            ep._2,
-            f,
-            totalWidth = 100,
-            printHelpOnError = true,
-            docsOnNewLine = false,
-            customName = None,
-            customDoc = None
-          )
-        )
+  def resolveRootModule(evaluator: Evaluator, scopedSel: Option[Segments]) = {
+    scopedSel match {
+      case None => Right(evaluator.rootModule)
+      case Some(scoping) =>
+        for {
+          moduleCls <-
+            try Right(evaluator.rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
+            catch {
+              case e: ClassNotFoundException =>
+                Left("Cannot resolve external module " + scoping.render)
+            }
+          rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
+            case rootModule: ExternalModule => Right(rootModule)
+            case _ => Left("Class " + scoping.render + " is not an external module")
+          }
+        } yield rootModule
     }
+  }
+
+  def resolveTasks[R](
+      resolver: mill.main.Resolver[R],
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, List[R]] = {
+    val parsedGroups: Either[String, Seq[TargetsWithParams]] = ParseArgs(scriptArgs, selectMode)
+    val resolvedGroups = parsedGroups.flatMap { groups =>
+      val resolved = groups.map { parsed: TargetsWithParams =>
+        resolveTasks(resolver, evaluator, Right(parsed))
+      }
+      EitherOps.sequence(resolved)
+    }
+    resolvedGroups.map(_.flatten.toList)
+  }
+
+  private def resolveTasks[R](
+      resolver: mill.main.Resolver[R],
+      evaluator: Evaluator,
+      targetsWithParams: Either[String, TargetsWithParams]
+  ): Either[String, List[R]] = {
+    for {
+      parsed <- targetsWithParams
+      (selectors, args) = parsed
+      taskss <- {
+        val selected = selectors.map { case (scopedSel, sel) =>
+          for (rootModule <- resolveRootModule(evaluator, scopedSel))
+            yield {
+
+              try {
+                // We inject the `evaluator.rootModule` into the TargetScopt, rather
+                // than the `rootModule`, because even if you are running an external
+                // module we still want you to be able to resolve targets from your
+                // main build. Resolving targets from external builds as CLI arguments
+                // is not currently supported
+                mill.eval.Evaluator.currentEvaluator.set(evaluator)
+                resolver.resolveNonEmpty(
+                  sel.value.toList,
+                  rootModule,
+                  rootModule.millDiscover,
+                  args
+                )
+              } finally {
+                mill.eval.Evaluator.currentEvaluator.set(null)
+              }
+            }
+        }
+        EitherOps.sequence(selected).map(_.toList)
+      }
+      res <- EitherOps.sequence(taskss)
+    } yield res.flatten
   }
 }

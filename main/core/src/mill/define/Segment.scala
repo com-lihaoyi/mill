@@ -10,10 +10,10 @@ sealed trait Segment {
 }
 
 object Segment {
-  final case class Label(value: String) extends Segment{
+  final case class Label(value: String) extends Segment {
     def render = s".$value"
   }
-  final case class Cross(value: Seq[String]) extends Segment{
+  final case class Cross(value: Seq[String]) extends Segment {
     def render = "[" + value.mkString(",") + "]"
   }
 }

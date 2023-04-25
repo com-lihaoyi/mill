@@ -18,7 +18,7 @@ object ResolversTests extends TestSuite {
     val expected = expected0.map(_.map(_(module)))
     val resolved = for {
       selectors <- mill.define.ParseArgs(selectorStrings, SelectMode.Single).map(_.head._1.head)
-      task <- mill.main.ResolveTasks.resolve(
+      task <- mill.main.ResolveTasks.resolveNonEmpty(
         selectors._2.value.toList,
         module,
         module.millDiscover,

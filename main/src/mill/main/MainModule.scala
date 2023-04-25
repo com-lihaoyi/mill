@@ -21,7 +21,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    RunScript.resolveTasks(ResolveTasks, evaluator, targets, selectMode) match {
+    ResolveTasks.resolveTasks(evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -74,8 +74,7 @@ trait MainModule extends mill.Module {
    * Resolves a mill query string and prints out the tasks it resolves to.
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = T.command {
-    val resolved: Either[String, List[String]] = RunScript.resolveTasks(
-      ResolveMetadata,
+    val resolved: Either[String, List[String]] = ResolveMetadata.resolveTasks(
       evaluator,
       targets,
       SelectMode.Multi
@@ -105,8 +104,7 @@ trait MainModule extends mill.Module {
   }
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
-    RunScript.resolveTasks(
-      ResolveTasks,
+    ResolveTasks.resolveTasks(
       evaluator,
       targets,
       SelectMode.Multi
@@ -125,8 +123,7 @@ trait MainModule extends mill.Module {
    * chosen is arbitrary.
    */
   def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] = T.command {
-    val resolved = RunScript.resolveTasks(
-      ResolveTasks,
+    val resolved = ResolveTasks.resolveTasks(
       evaluator,
       List(src, dest),
       SelectMode.Multi
@@ -319,8 +316,7 @@ trait MainModule extends mill.Module {
       if (targets.isEmpty)
         Right(os.list(rootDir).filterNot(keepPath))
       else
-        RunScript.resolveTasks(
-          mill.main.ResolveSegments,
+        mill.main.ResolveSegments.resolveTasks(
           evaluator,
           targets,
           SelectMode.Multi
@@ -411,8 +407,7 @@ trait MainModule extends mill.Module {
       out.take()
     }
 
-    RunScript.resolveTasks(
-      ResolveTasks,
+    ResolveTasks.resolveTasks(
       evaluator,
       targets,
       SelectMode.Multi
