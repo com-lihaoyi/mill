@@ -12,6 +12,7 @@ object Tasks {
         shortName = "<tasks>",
         read = s =>
           RunScript.resolveTasks(
+            ResolveTasks,
             Evaluator.currentEvaluator.get,
             s,
             SelectMode.Single

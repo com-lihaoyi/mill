@@ -19,25 +19,28 @@ object RunScript {
 
   type TaskName = String
 
-  def resolveTasks[T](
+
+  def resolveTasks[T, R: ClassTag](
+      resolver: mill.main.Resolver[R],
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
-  ): Either[String, List[NamedTask[Any]]] = {
+  ): Either[String, List[R]] = {
     val parsedGroups: Either[String, Seq[TargetsWithParams]] = ParseArgs(scriptArgs, selectMode)
     val resolvedGroups = parsedGroups.flatMap { groups =>
       val resolved = groups.map { parsed: TargetsWithParams =>
-        resolveTasks(evaluator, Right(parsed))
+        resolveTasks(resolver, evaluator, Right(parsed))
       }
       EitherOps.sequence(resolved)
     }
     resolvedGroups.map(_.flatten.toList)
   }
 
-  private def resolveTasks[T](
+  private def resolveTasks[T, R: ClassTag](
+      resolver: mill.main.Resolver[R],
       evaluator: Evaluator,
       targetsWithParams: Either[String, TargetsWithParams]
-  ): Either[String, List[NamedTask[Any]]] = {
+  ): Either[String, List[R]] = {
     for {
       parsed <- targetsWithParams
       (selectors, args) = parsed
@@ -54,7 +57,7 @@ object RunScript {
                 // main build. Resolving targets from external builds as CLI arguments
                 // is not currently supported
                 mill.eval.Evaluator.currentEvaluator.set(evaluator)
-                Resolve.resolveTasks(
+                resolver.resolve(
                   sel.value.toList,
                   rootModule,
                   rootModule.millDiscover,
@@ -110,7 +113,7 @@ object RunScript {
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]])] = {
-    for (targets <- resolveTasks(evaluator, scriptArgs, selectMode))
+    for (targets <- resolveTasks(ResolveTasks, evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
 
@@ -129,7 +132,7 @@ object RunScript {
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] = {
-    for (targets <- resolveTasks(evaluator, scriptArgs, selectMode))
+    for (targets <- resolveTasks(ResolveTasks, evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluateNamed(evaluator, Agg.from(targets.distinct))
 

@@ -3,6 +3,7 @@ package mill.main
 import mainargs.{MainData, TokenGrouping}
 import mill.define._
 import mill.util.EitherOps
+import scala.reflect.NameTransformer.decode
 
 import scala.collection.immutable
 
@@ -11,64 +12,27 @@ import scala.collection.immutable
  * resolves all possible modules, targets or commands that the segments could
  * resolve to.
  *
- * Reports an error if nothing is resolved.
+ * Returns a [[Result]], either containing a [[Success]] containing the
+ * [[Resolved]] set, [[NotFound]] if it couldn't find anything with some
+ * metadata about what it was looking for, or [[Error]] if something blew up.
  */
 object Resolve {
-  def resolveTasks(selector: List[Segment],
-                   current: BaseModule,
-                   discover: Discover[_],
-                   args: Seq[String]): Either[String, Set[NamedTask[Any]]] = {
-    Resolve.resolve(
-      selector,
-      Resolve.Resolved.Module(current),
-      discover,
-      args,
-      Nil
-    ) match {
-      case Resolve.Success(value) =>
-        val taskList: Set[Either[String, NamedTask[_]]] = value.collect {
-          case Resolved.Target(value) => Right(value)
-          case Resolved.Command(value) => value()
-          case Resolved.Module(value: TaskModule) =>
-            resolveDirectChildren(value, Some(value.defaultCommandName()), discover, args).values.head.flatMap{
-              case Resolved.Target(value) => Right(value)
-              case Resolved.Command(value) => value()
-            }
-        }
 
-        if (taskList.nonEmpty) EitherOps.sequence(taskList).map(_.toSet[NamedTask[Any]])
-        else Left(s"Cannot find default task to evaluate for module ${Segments(selector).render}")
-
-      case Resolve.NotFound(segments, found, next, possibleNexts) =>
-        val errorMsg = found.head match{
-          case s: Resolved.Module =>
-            next match {
-              case Segment.Label(s) =>
-                val possibleStrings = possibleNexts.collect { case Segment.Label(s) => s }
-
-                errorMsgLabel(s, possibleStrings, segments, Segments(selector))
-              case Segment.Cross(keys) =>
-                val possibleCrossKeys = possibleNexts.collect { case Segment.Cross(keys) => keys }
-                errorMsgCross(keys, possibleCrossKeys, segments, Segments(selector))
-            }
-          case x =>
-            unableToResolve((segments ++ Seq(next)).render) +
-            s" ${segments.render} resolves to a Task with no children."
-        }
-
-        Left(errorMsg)
-
-      case Resolve.Error(value) => Left(value)
-    }
+  sealed trait Resolved{
+    def segments: Segments
   }
 
-  sealed trait Resolved
-
   object Resolved {
-    case class Module(value: mill.define.Module) extends Resolved
-    case class Target(value: mill.define.Target[_]) extends Resolved
+    case class Module(value: mill.define.Module) extends Resolved{
+      def segments = value.millModuleSegments
+    }
+    case class Target(value: mill.define.Target[_]) extends Resolved{
+      def segments = value.ctx.segments
+    }
     case class Command(value: () => Either[String, mill.define.Command[_]])
-        extends Resolved
+        extends Resolved{
+      def segments = value().right.get.ctx.segments
+    }
   }
 
   sealed trait Result
@@ -170,11 +134,11 @@ object Resolve {
 
     val targets = Module
       .reflect(obj.getClass, classOf[Target[_]], namePred)
-      .map(m => Segment.Label(m.getName) -> Right(Resolved.Target(m.invoke(obj).asInstanceOf[Target[_]])))
+      .map(m => Segment.Label(decode(m.getName)) -> Right(Resolved.Target(m.invoke(obj).asInstanceOf[Target[_]])))
 
     val commands = Module
       .reflect(obj.getClass, classOf[Command[_]], namePred)
-      .map(_.getName)
+      .map(m => decode(m.getName))
       .map(name =>
         Segment.Label(name) -> Right(Resolved.Command(
           () =>
@@ -246,62 +210,4 @@ object Resolve {
         )
     }
   }
-
-  def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
-
-
-  def hintList(revSelectorsSoFar: Seq[Segment]) = {
-    val search = Segments(revSelectorsSoFar).render
-    s" Try `mill resolve $search` to see what's available."
-  }
-
-  def hintListLabel(revSelectorsSoFar: Seq[Segment]) = {
-    hintList(revSelectorsSoFar :+ Segment.Label("_"))
-  }
-
-  def findMostSimilar(given: String,
-                      options: Set[String]): Option[String] = {
-    options
-      .map { option => (option, LevenshteinDistance.editDistance(given, option))}
-      .filter(_._2 < 3)
-      .minByOption(_._2)
-      .map(_._1)
-  }
-
-  def errorMsgLabel(given: String,
-                    possibleMembers: Set[String],
-                    prefixSegments: Segments,
-                    fullSegments: Segments) = {
-    val suggestion = findMostSimilar(given, possibleMembers) match {
-      case None => hintListLabel(prefixSegments.value)
-      case Some(similar) =>
-        " Did you mean " +
-        (prefixSegments ++ Seq(Segment.Label(similar))).render+
-        "?"
-    }
-
-    val msg = unableToResolve(fullSegments.render) + suggestion
-
-    msg
-  }
-
-  def errorMsgCross(givenKeys: Seq[String],
-                    possibleCrossKeys: Set[Seq[String]],
-                    prefixSegments: Segments,
-                    fullSegments: Segments) = {
-
-    val suggestion = findMostSimilar(
-      givenKeys.mkString(","),
-      possibleCrossKeys.map(_.mkString(","))
-    ) match {
-      case None => hintListLabel(prefixSegments.value)
-      case Some(similar) =>
-        " Did you mean " +
-        (prefixSegments ++ Seq(Segment.Cross(similar.split(',')))).render +
-        "?"
-    }
-
-    unableToResolve(fullSegments.render) + suggestion
-  }
-
 }

@@ -3,7 +3,7 @@ package mill.main
 import mill.define.{NamedTask, Segment, SelectMode}
 import mill.util.TestGraphs._
 import utest._
-object MainTests extends TestSuite {
+object ResolversTests extends TestSuite {
 
   def check[T <: mill.define.BaseModule](module: T)(
       selectorString: String,
@@ -18,7 +18,7 @@ object MainTests extends TestSuite {
     val expected = expected0.map(_.map(_(module)))
     val resolved = for {
       selectors <- mill.define.ParseArgs(selectorStrings, SelectMode.Single).map(_.head._1.head)
-      task <- mill.main.Resolve.resolveTasks(
+      task <- mill.main.ResolveTasks.resolve(
         selectors._2.value.toList,
         module,
         module.millDiscover,
@@ -34,7 +34,7 @@ object MainTests extends TestSuite {
     val graphs = new mill.util.TestGraphs()
     import graphs._
     "single" - {
-      val check = MainTests.check(singleton) _
+      val check = ResolversTests.check(singleton) _
       "pos" - check("single", Right(Set(_.single)))
       "neg1" - check("sngle", Left("Cannot resolve sngle. Did you mean single?"))
       "neg2" - check("snigle", Left("Cannot resolve snigle. Did you mean single?"))
@@ -53,33 +53,33 @@ object MainTests extends TestSuite {
       )
       "neg7" - check("", Left("Selector cannot be empty"))
     }
-//    "backtickIdentifiers" - {
-//      val check = MainTests.check(bactickIdentifiers) _
-//      "pos1" - check("up-target", Right(Seq(_.`up-target`)))
-//      "pos2" - check("a-down-target", Right(Seq(_.`a-down-target`)))
-//      "neg1" - check("uptarget", Left("Cannot resolve uptarget. Did you mean up-target?"))
-//      "neg2" - check("upt-arget", Left("Cannot resolve upt-arget. Did you mean up-target?"))
-//      "neg3" - check(
-//        "up-target.doesntExist",
-//        Left("Task up-target is not a module and has no children.")
-//      )
-//      "neg4" - check("", Left("Selector cannot be empty"))
-//      "neg5" - check(
-//        "invisible&",
-//        Left("Cannot resolve invisible. Try `mill resolve _` to see what's available.")
-//      )
-//      "nested" - {
-//        "pos" - check("nested-module.nested-target", Right(Seq(_.`nested-module`.`nested-target`)))
-//        "neg" - check(
-//          "nested-module.doesntExist",
-//          Left(
-//            "Cannot resolve nested-module.doesntExist. Try `mill resolve nested-module._` to see what's available."
-//          )
-//        )
-//      }
-//    }
+    "backtickIdentifiers" - {
+      val check = ResolversTests.check(bactickIdentifiers) _
+      "pos1" - check("up-target", Right(Set(_.`up-target`)))
+      "pos2" - check("a-down-target", Right(Set(_.`a-down-target`)))
+      "neg1" - check("uptarget", Left("Cannot resolve uptarget. Did you mean up-target?"))
+      "neg2" - check("upt-arget", Left("Cannot resolve upt-arget. Did you mean up-target?"))
+      "neg3" - check(
+        "up-target.doesntExist",
+        Left("Cannot resolve up-target.doesntExist. up-target resolves to a Task with no children.")
+      )
+      "neg4" - check("", Left("Selector cannot be empty"))
+      "neg5" - check(
+        "invisible&",
+        Left("Cannot resolve invisible. Try `mill resolve _` to see what's available.")
+      )
+      "nested" - {
+        "pos" - check("nested-module.nested-target", Right(Set(_.`nested-module`.`nested-target`)))
+        "neg" - check(
+          "nested-module.doesntExist",
+          Left(
+            "Cannot resolve nested-module.doesntExist. Try `mill resolve nested-module._` to see what's available."
+          )
+        )
+      }
+    }
     "nested" - {
-      val check = MainTests.check(nestedModule) _
+      val check = ResolversTests.check(nestedModule) _
       "pos1" - check("single", Right(Set(_.single)))
       "pos2" - check("nested.single", Right(Set(_.nested.single)))
       "pos3" - check("classInstance.single", Right(Set(_.classInstance.single)))
@@ -144,7 +144,7 @@ object MainTests extends TestSuite {
       )
     }
     "doubleNested" - {
-      val check = MainTests.check(doubleNestedModule) _
+      val check = ResolversTests.check(doubleNestedModule) _
       "pos1" - check("single", Right(Set(_.single)))
       "pos2" - check("nested.single", Right(Set(_.nested.single)))
       "pos3" - check("nested.inner.single", Right(Set(_.nested.inner.single)))
@@ -174,7 +174,7 @@ object MainTests extends TestSuite {
 
     "cross" - {
       "single" - {
-        val check = MainTests.check(singleCross) _
+        val check = ResolversTests.check(singleCross) _
         "pos1" - check("cross[210].suffix", Right(Set(_.cross("210").suffix)))
         "pos2" - check("cross[211].suffix", Right(Set(_.cross("211").suffix)))
         "neg1" - check(
@@ -217,7 +217,7 @@ object MainTests extends TestSuite {
         )
       }
       "double" - {
-        val check = MainTests.check(doubleCross) _
+        val check = ResolversTests.check(doubleCross) _
         "pos1" - check(
           "cross[210,jvm].suffix",
           Right(Set(_.cross("210", "jvm").suffix))
@@ -307,7 +307,7 @@ object MainTests extends TestSuite {
         }
       }
       "nested" - {
-        val check = MainTests.check(nestedCrosses) _
+        val check = ResolversTests.check(nestedCrosses) _
         "pos1" - check(
           "cross[210].cross2[js].suffix",
           Right(Set(_.cross("210").cross2("js").suffix))
@@ -355,7 +355,7 @@ object MainTests extends TestSuite {
       }
 
       "nestedCrossTaskModule" - {
-        val check = MainTests.checkSeq(nestedTaskCrosses) _
+        val check = ResolversTests.checkSeq(nestedTaskCrosses) _
         "pos1" - check(
           Seq("cross1[210].cross2[js].suffixCmd"),
           Right(Set(_.cross1("210").cross2("js").suffixCmd()))
