@@ -9,13 +9,13 @@ import mill.api.internal
  * react if a new folder is added.
  */
 @internal
-trait Watchable {
+private[mill] trait Watchable {
   def poll(): Long
   def signature: Long
   def validate(): Boolean = poll() == signature
 }
 @internal
-object Watchable {
+private[mill] object Watchable {
   case class Path(p: mill.api.PathRef) extends Watchable {
     def poll() = p.recomputeSig()
     def signature = p.sig

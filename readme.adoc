@@ -249,8 +249,8 @@ corresponding version of Mill.
 == Changelog
 
 
-[#main]
-=== main
+[#0-11-0-M8]
+=== 0.11.0-M8 - 2023-04-24
 
 * Added an https://github.com/com-lihaoyi/mill/tree/main/example[example/]
   folder in the Mill repo, containing common build setups demonstrating Mill
@@ -277,6 +277,11 @@ corresponding version of Mill.
   with the generated `BuildInfo` constants https://github.com/com-lihaoyi/mill/pull/2425[#2425]
 
 * Global Configuration via `~/.mill/ammonite/predefScript.sc` is no longer supported in this version. If that breaks your workflow, please report and tell us your use case so we can provide sufficient replacement or support for your use case before Mill 0.11.
+
+* Overhaul of the documentation. Created many executable example projects which are included in the documentation and run/tested on CI
+
+* Change cross module definitions to be traits instead of classes, for greater regularity and less builerplate at call sites. _This change requires slight modification to existing build scripts that define cross modules._
+
 
 [#0-11-0-M7]
 === 0.11.0-M7 - 2023-03-30

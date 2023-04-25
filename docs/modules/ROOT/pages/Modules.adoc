@@ -1,0 +1,92 @@
+= Modules
+
+`mill.Module` serves two main purposes:
+
+1. As ``object``s, they serve as namespaces that let you group related ``Task``s
+   together to keep things neat and organized.
+
+2. As ``trait``s, they are re-usable templates that let you replicate groups
+   of related ``Task``s and sub-``Module``s while allowing customizations
+
+Mill's comes with built in modules such as `mill.scalalib.ScalaModule` and
+`mill.scalalib.CrossSbtModule`, but you can also define your own modules to do
+things that are not built-in to Mill.
+
+include::example/tasks/7-modules.adoc[]
+
+== Use Case: DIY Java Modules
+
+include::example/tasks/8-diy-java-modules.adoc[]
+
+== External Modules
+
+Libraries for use in Mill can define ``ExternalModule``s: ``Module``s which are
+shared between all builds which use that library:
+
+[source,scala]
+----
+package foo
+import mill._
+
+object Bar extends mill.define.ExternalModule {
+  def baz = T { 1 }
+  def qux() = T.command { println(baz() + 1) }
+
+  lazy val millDiscover = mill.define.Discover[this.type]
+}
+----
+
+In the above example, `Qux` is an `ExternalModule` living within the `foo`
+Java package, containing the `baz` target and `qux` command. Those can be run
+from the command line via:
+
+[source,bash]
+----
+mill foo.Bar/baz
+mill foo.Bar/qux
+----
+
+``ExternalModule``s are useful for someone providing a library for use with Mill
+that is shared by the entire build: for example,
+`mill.scalalib.ZincWorkerApi/zincWorker` provides a shared Scala compilation
+service & cache that is shared between all ``ScalaModule``s, and
+`mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
+needing to define your own `T.command` in your `build.sc` file
+
+== Foreign Modules
+
+Mill can load other mill projects from external (or sub) folders,
+using Ammonite's `$file` magic import, allowing to depend on foreign modules.
+This allows, for instance, to depend on other projects' sources, or split
+your build logic into smaller files.
+
+For instance, assuming the following structure : 
+
+[source,text]
+----
+foo/
+    build.sc
+    bar/
+        build.sc 
+baz/
+    build.sc     
+----
+
+you can write the following in `foo/build.sc` : 
+
+[source,scala]
+----
+
+import $file.bar.build
+import $file.^.baz.build
+import mill._ 
+
+def someFoo = T {
+
+    ^.baz.build.someBaz(...)
+    bar.build.someBar(...) 
+    ...
+}
+----
+
+The output of the foreign tasks will be cached under `foo/out/foreign-modules/`.

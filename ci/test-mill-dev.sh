@@ -18,4 +18,4 @@ ci/prepare-mill-bootstrap.sh
 out/dev/assembly.dest/mill -i -j 0 main.test.compile
 out/dev/assembly.dest/mill -i contrib.buildinfo.publishLocal
 out/dev/assembly.dest/mill -i "{main,scalalib,scalajslib,scalanativelib,bsp,contrib.twirllib,contrib.scalapblib}.test"
-out/dev/assembly.dest/mill -i "example.basic[1-hello-world].server.test"
+out/dev/assembly.dest/mill -i "example.basic[1-simple-scala].server.test"

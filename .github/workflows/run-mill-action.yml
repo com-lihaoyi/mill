@@ -36,8 +36,8 @@ jobs:
 
       - name: Prepare git config
         run: |
-          git config --add user.name "Mill GithHub Actions"
-          git config --add user.email "mill-ci@localhost"
+          git config --global user.name "Mill GithHub Actions"
+          git config --global user.email "mill-ci@localhost"
 
       - name: Run '${{ inputs.buildcmd }}'
         run: ${{ inputs.buildcmd }}

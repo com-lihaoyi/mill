@@ -9,6 +9,9 @@ import scala.reflect.ClassTag
 import scala.reflect.NameTransformer.decode
 
 /**
+ * Represents a namespace within the Mill build hierarchy, containing nested
+ * modules or tasks.
+ *
  * `Module` is a class meant to be extended by `trait`s *only*, in order to
  * propagate the implicit parameters forward to the final concrete
  * instantiation site so they can capture the enclosing/line information of
@@ -129,6 +132,16 @@ object Module {
     }
   }
 }
+
+/**
+ * A [[Module]] that has a [[defaultCommandName]] that will be automatically
+ * executed if the module name is provide at the Mill command line
+ */
 trait TaskModule extends Module {
+
+  /**
+   * The name of the default command, which will be automatically excecuted if
+   * the module name is provided at the Mill command line
+   */
   def defaultCommandName(): String
 }

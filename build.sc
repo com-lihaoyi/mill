@@ -43,36 +43,14 @@ object Settings {
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root
-  val docTags: Seq[String] = Seq(
-    "0.9.6",
-    "0.9.7",
-    "0.9.8",
-    "0.9.9",
-    "0.9.10",
-    "0.9.11",
+  val legacyDocTags: Seq[String] = Seq(
     "0.9.12",
     "0.10.0",
-    "0.10.1",
-    "0.10.2",
-    "0.10.3",
-    "0.10.4",
-    "0.10.5",
-    "0.10.6",
-    "0.10.7",
-    "0.10.8",
-    "0.10.9",
-    "0.10.10",
-    "0.10.11",
     "0.10.12",
-    "0.11.0-M1",
-    "0.11.0-M2",
-    "0.11.0-M3",
-    "0.11.0-M4",
-    "0.11.0-M5",
-    "0.11.0-M6",
     "0.11.0-M7"
   )
-  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M7")
+  val docTags: Seq[String] = Seq()
+  val mimaBaseVersions: Seq[String] = Seq()
 }
 
 object Deps {
@@ -642,7 +620,6 @@ object main extends MillModule {
     )
   }
   object core extends MillModule with BuildInfo{
-    
     override def moduleDeps = Seq(api, util)
     override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
@@ -661,7 +638,6 @@ object main extends MillModule {
     )
 
     def buildInfoPackageName = "mill"
-    
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
       BuildInfo.Value("workerScalaVersion212", Deps.workerScalaVersion212, "Scala 2.12 version used by some workers."),
@@ -835,7 +811,11 @@ object scalajslib extends MillModule with BuildInfo{
 }
 
 object contrib extends MillModule {
-  object testng extends JavaModule with MillModule {
+  def contribModules: Seq[ContribModule] = millInternal.modules.collect { case m: ContribModule => m }
+  trait ContribModule extends MillModule{
+    def readme = T.source(millSourcePath / "readme.adoc")
+  }
+  object testng extends JavaModule with ContribModule {
     // pure Java implementation
     override def artifactSuffix: T[String] = ""
     override def scalaLibraryIvyDeps: Target[Agg[Dep]] = T { Agg.empty[Dep] }
@@ -854,12 +834,12 @@ object contrib extends MillModule {
     override def docJar: T[PathRef] = super[JavaModule].docJar
   }
 
-  object twirllib extends MillModule {
+  object twirllib extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
-  object playlib extends MillModule {
+  object playlib extends ContribModule {
     override def moduleDeps = Seq(twirllib, playlib.api)
     override def compileModuleDeps = Seq(scalalib)
 
@@ -898,12 +878,12 @@ object contrib extends MillModule {
     }
   }
 
-  object scalapblib extends MillModule {
+  object scalapblib extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
-  object scoverage extends MillModule {
+  object scoverage extends ContribModule {
     object api extends MillApiModule {
       override def compileModuleDeps = Seq(main.api)
     }
@@ -962,7 +942,7 @@ object contrib extends MillModule {
     }
   }
 
-  object buildinfo extends MillModule {
+  object buildinfo extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     // why do I need this?
     override def testArgs = T {
@@ -973,7 +953,7 @@ object contrib extends MillModule {
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
-  object proguard extends MillModule {
+  object proguard extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def testArgs = T {
       Seq(
@@ -984,13 +964,13 @@ object contrib extends MillModule {
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
-  object flyway extends MillModule {
+  object flyway extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = Agg(Deps.flywayCore)
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
-  object docker extends MillModule {
+  object docker extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def testArgs = T {
       Seq("-Djna.nosys=true") ++
@@ -1000,7 +980,7 @@ object contrib extends MillModule {
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
-  object bloop extends MillModule with BuildInfo {
+  object bloop extends ContribModule with BuildInfo {
     override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
     override def ivyDeps = Agg(
       Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13")
@@ -1011,32 +991,32 @@ object contrib extends MillModule {
       scalajslib,
       scalanativelib
     )
-    
-    def buildInfoPackageName = "mill.contrib.bloop" 
+
+    def buildInfoPackageName = "mill.contrib.bloop"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(BuildInfo.Value("bloop", Deps.bloopConfig.dep.version))
   }
 
-  object artifactory extends MillModule {
+  object artifactory extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests) }
   }
 
-  object codeartifact extends MillModule {
+  object codeartifact extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests) }
   }
 
-  object versionfile extends MillModule {
+  object versionfile extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
   }
 
-  object bintray extends MillModule {
+  object bintray extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests) }
   }
 
-  object gitlab extends MillInternalModule with MillAutoTestSetup {
+  object gitlab extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests, Deps.osLib) }
 
@@ -1045,7 +1025,7 @@ object contrib extends MillModule {
     )
   }
 
-  object jmh extends MillInternalModule with MillAutoTestSetup with WithMillCompiler {
+  object jmh extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def testArgs = T {
       Seq(
@@ -1185,11 +1165,15 @@ trait IntegrationTestModule extends MillScalaModule {
 
     def scalaVersion = integration.scalaVersion()
 
-    override def forkEnv = super.forkEnv() ++ Map(
-      "MILL_INTEGRATION_TEST_MODE" -> mode,
-      "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
-      "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
-    ) ++ testReleaseEnv()
+    override def forkEnv =
+      super.forkEnv() ++
+      IntegrationTestModule.this.forkEnv() ++
+      Map(
+        "MILL_INTEGRATION_TEST_MODE" -> mode,
+        "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
+        "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
+      ) ++
+      testReleaseEnv()
 
     def workspaceDir = T.persistent {
       PathRef(T.dest)
@@ -1210,6 +1194,7 @@ trait IntegrationTestModule extends MillScalaModule {
 
       super.forkArgs() ++
         scalajslib.testArgs() ++
+        main.graphviz.testArgs() ++
         scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
         scalanativelib.testArgs() ++
@@ -1244,16 +1229,95 @@ trait IntegrationTestCrossModule extends IntegrationTestModule {
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object example extends MillScalaModule {
+  def exampleModules: Seq[ExampleCrossModule] = millInternal.modules.collect { case m: ExampleCrossModule => m }
 
   def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"): _*)
+  object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"): _*)
+  object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"): _*)
+  object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"): _*)
+  object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"): _*)
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
 
   class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
+    def sources = T.sources()
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
+    def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
+
+    def parsed = T{
+      val states = collection.mutable.Buffer("scala")
+      val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
+
+      for(line <- os.read.lines(testRepoRoot().path / "build.sc")){
+        val (newState, restOpt) = line match{
+          case s"/** Usage" =>  ("example", None)
+          case s"/** See Also: $path */" =>  (s"see:$path", Some(os.read(os.Path(path, testRepoRoot().path))))
+          case s"*/" => ("scala", None)
+          case s"//$rest" => ("comment", Some(rest.stripPrefix(" ")))
+          case l => (if (states.last == "comment") "scala" else states.last, Some(l))
+        }
+
+        if (newState != states.last) {
+          states.append(newState)
+          chunks.append(collection.mutable.Buffer.empty[String])
+        }
+
+        restOpt.foreach(r => chunks.last.append(r))
+      }
+
+      states.zip(chunks.map(_.mkString("\n").trim)).filter(_._2.nonEmpty)
+    }
+
+    def rendered = T{
+      var seenCode = false
+      val examplePath = millSourcePath.subRelativeTo(T.workspace)
+      os.write(
+        T.dest / "example.adoc",
+        parsed()
+          .filter(_._2.nonEmpty)
+          .map {
+            case (s"see:$path", txt) =>
+              s"""
+                 |.$path ({mill-example-url}/$examplePath/$path[browse])
+                 |[source,scala,subs="attributes,verbatim"]
+                 |----
+                 |$txt
+                 |----""".stripMargin
+            case ("scala", txt) =>
+
+              val title =
+                if (seenCode) ""
+                else {
+                  val label = VcsVersion.vcsState().format()
+                  val exampleDashed = examplePath.segments.mkString("-")
+                  val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
+                  val browse = s"{mill-example-url}/$examplePath[browse]"
+                  s".build.sc ($download, $browse)"
+                }
+              seenCode = true
+              s"""
+                 |$title
+                 |[source,scala,subs="attributes,verbatim"]
+                 |----
+                 |
+                 |$txt
+                 |----
+                 |""".stripMargin
+            case ("comment", txt) => txt
+            case ("example", txt) =>
+              s"""
+                 |[source,bash,subs="attributes,verbatim"]
+                 |----
+                 |$txt
+                 |----""".stripMargin
+          }
+          .mkString("\n")
+      )
+      PathRef(T.dest / "example.adoc")
+    }
   }
 }
 
@@ -1559,190 +1623,303 @@ object dev extends MillModule {
   }
 }
 
-object docs extends Module {
 
-  /** Generates the mill documentation with Antora. */
-  object antora extends Module {
-    private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
-    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
-    def npmBase: T[os.Path] = T.persistent { T.dest }
-    def prepareAntora(npmDir: os.Path) = {
-      Jvm.runSubprocess(
-        commandArgs = Seq(
-          npmExe,
-          "install",
-          "@antora/cli@3.0.1",
-          "@antora/site-generator-default@3.0.1",
-          "gitlab:antora/xref-validator",
-          "@antora/lunr-extension@v1.0.0-alpha.6"
-        ),
-        envArgs = Map(),
-        workingDir = npmDir
-      )
+/** Generates the mill documentation with Antora. */
+object docs extends Module {
+  // This module isn't really a ScalaModule, but we use it to generate
+  // consolidated documentation using the Scaladoc tool.
+  object site extends UnidocModule {
+    def scalaVersion = Deps.scalaVersion
+
+    def moduleDeps = build.millInternal.modules.collect { case m: MillApiModule => m}
+
+    def unidocSourceUrl = T{
+      val sha = VcsVersion.vcsState().currentRevision
+      Some(s"${Settings.projectUrl}/blob/$sha")
     }
-    def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
-        ctx: mill.api.Ctx.Log
-    ) = {
-      prepareAntora(npmDir)
-      val cmdArgs =
-        Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
-      ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
-      Jvm.runSubprocess(
-        commandArgs = cmdArgs,
-        envArgs = Map("CI" -> "true"),
-        workingDir = workDir
-      )
-      PathRef(workDir / "build" / "site")
-    }
-    def source: Source = T.source(millSourcePath)
-    def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
-    def devAntoraSources: Target[PathRef] = T {
-      val dest = T.dest
-      shared.mycopy(source().path, dest, mergeFolders = true)
-      val lines = os.read(dest / "antora.yml").linesIterator.map {
-        case l if l.startsWith("version:") =>
-          s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
-        case l if l.startsWith("    mill-version:") =>
-          s"    mill-version: '${millVersion()}'"
-        case l if l.startsWith("    mill-last-tag:") =>
-          s"    mill-last-tag: '${millLastTag()}'"
-        case l => l
+  }
+
+  /**
+   * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] target that
+   * can be used to build a unified scaladoc site for this module and all of
+   * its transitive dependencies
+   */
+  trait UnidocModule extends ScalaModule {
+    def unidocSourceUrl: T[Option[String]] = None
+    def unidocVersion: T[Option[String]] = None
+
+    def unidocLocal = T {
+      def unidocCompileClasspath =
+        Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
+
+      val unidocSourceFiles =
+        allSourceFiles() ++ T.traverse(moduleDeps)(_.allSourceFiles)().flatten
+
+      T.log.info(s"Staging scaladoc for ${unidocSourceFiles.length} files")
+
+      // the details of the options and zincWorker call are significantly
+      // different between scala-2 scaladoc and scala-3 scaladoc
+      // below is for scala-2 variant
+      val options: Seq[String] = Seq(
+        "-doc-title", "Mill",
+        "-d", T.dest.toString,
+        "-classpath", unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator")),
+      ) ++
+        unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
+        unidocSourceUrl().toSeq.flatMap(_ => Seq("-doc-source-url", "file://€{FILE_PATH}.scala"))
+
+      zincWorker.worker().docJar(
+        scalaVersion(),
+        scalaOrganization(),
+        scalaDocClasspath().map(_.path),
+        scalacPluginClasspath().map(_.path),
+        options ++ unidocSourceFiles.map(_.path.toString)
+      ) match {
+        case true => mill.api.Result.Success(PathRef(T.dest))
+        case false => mill.api.Result.Failure("unidoc generation failed")
       }
-      os.write.over(dest / "antora.yml", lines.mkString("\n"))
-      PathRef(dest)
     }
-    def githubPagesPlaybookText(authorMode: Boolean): Task[String] = T.task {
-      s"""site:
-         |  title: Mill
-         |  url: ${Settings.docUrl}
-         |  start_page: mill::Intro_to_Mill.adoc
-         |
-         |content:
-         |  sources:
-         |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
-         |      branches: ${if (Settings.docBranches.isEmpty) "~"
-        else Settings.docBranches.map("'" + _ + "'").mkString("[", ",", "]")}
-         |      tags: ${Settings.docTags.map("'" + _ + "'").mkString("[", ",", "]")}
-         |      start_path: docs/antora
-         |    # the master documentation (always in author mode)
-         |    - url: ${baseDir}
-         |      # edit_url: ${Settings.projectUrl}/edit/{refname}/{path}
-         |      branches: HEAD
-         |      start_path: ${devAntoraSources().path.relativeTo(baseDir)}
-         |ui:
-         |  bundle:
-         |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
-         |    snapshot: true
-         |  supplemental_files: ${supplementalFiles().path.toString()}
-         |
-         |asciidoc:
-         |  attributes:
-         |    mill-github-url: ${Settings.projectUrl}
-         |    mill-doc-url: ${Settings.docUrl}
-         |    utest-github-url: https://github.com/com-lihaoyi/utest
-         |    upickle-github-url: https://github.com/com-lihaoyi/upickle
-         |
-         |antora:
-         |  extensions:
-         |  - require: '@antora/lunr-extension'
-         |    index_latest_only: true
-         |
-         |""".stripMargin
+
+    def unidocSite = T {
+      os.copy(unidocLocal().path, T.dest, mergeFolders = true)
+      for {
+        sourceUrl <- unidocSourceUrl()
+        p <- os.walk(T.dest) if p.ext == "scala"
+      } {
+        os.write(p, os.read(p).replace(s"file://${T.workspace}", sourceUrl))
+      }
+      PathRef(T.dest)
     }
-    def githubPages: Target[PathRef] = T {
-      generatePages(authorMode = false)()
+  }
+
+  private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
+  private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
+  def npmBase: T[os.Path] = T.persistent { T.dest }
+  def prepareAntora(npmDir: os.Path) = {
+    Jvm.runSubprocess(
+      commandArgs = Seq(
+        npmExe,
+        "install",
+        "@antora/cli@3.0.1",
+        "@antora/site-generator-default@3.0.1",
+        "gitlab:antora/xref-validator",
+        "@antora/lunr-extension@v1.0.0-alpha.6"
+      ),
+      envArgs = Map(),
+      workingDir = npmDir
+    )
+  }
+  def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
+      ctx: mill.api.Ctx.Log
+  ) = {
+    prepareAntora(npmDir)
+    val cmdArgs =
+      Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
+    ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
+    Jvm.runSubprocess(
+      commandArgs = cmdArgs,
+      envArgs = Map("CI" -> "true"),
+      workingDir = workDir
+    )
+    PathRef(workDir / "build" / "site")
+  }
+  def source0: Source = T.source(millSourcePath)
+  def source = T{
+    os.copy(source0().path, T.dest, mergeFolders = true)
+
+    val pagesWd = T.dest / "modules" / "ROOT" / "pages"
+
+    val renderedExamples: Seq[(os.SubPath, PathRef)] =
+      T.traverse(example.exampleModules)(m => T.task {
+        (m.millSourcePath.subRelativeTo(example.millSourcePath), m.rendered())
+      })()
+
+    for ((name, pref) <- renderedExamples) os.copy(
+      pref.path,
+      pagesWd / "example" / os.SubPath(s"$name.adoc"),
+      createFolders = true
+    )
+
+    val contribReadmes = T.traverse(contrib.contribModules)(m =>
+      T.task {
+        m.millModuleSegments.last.render -> m.readme()
+      }
+    )()
+
+    for ((name, pref) <- contribReadmes) os.copy(
+      pref.path,
+      pagesWd / "contrib" / s"${name}.adoc",
+      createFolders = true
+    )
+
+    PathRef(T.dest)
+  }
+
+  def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
+  def devAntoraSources: Target[PathRef] = T {
+    val dest = T.dest
+    shared.mycopy(source().path, dest, mergeFolders = true)
+    val lines = os.read(dest / "antora.yml").linesIterator.map {
+      case l if l.startsWith("version:") =>
+        s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
+      case l if l.startsWith("    mill-version:") =>
+        s"    mill-version: '${millVersion()}'"
+      case l if l.startsWith("    mill-last-tag:") =>
+        s"    mill-last-tag: '${millLastTag()}'"
+      case l => l
     }
-    def localPages = T {
-      val pages = generatePages(authorMode = true)()
-      T.log.outputStream.println(
-        s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+    os.write.over(dest / "antora.yml", lines.mkString("\n"))
+    PathRef(dest)
+  }
+  def githubPagesPlaybookText(authorMode: Boolean): Task[String] = T.task {
+    s"""site:
+       |  title: Mill
+       |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
+       |  start_page: mill::Intro_to_Mill.adoc
+       |
+       |content:
+       |  sources:
+       |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
+       |      branches: []
+       |      tags: ${Settings.legacyDocTags.map("'" + _ + "'").mkString("[", ",", "]")}
+       |      start_path: docs/antora
+       |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
+       |      branches: []
+       |      tags: ${Settings.docTags.map("'" + _ + "'").mkString("[", ",", "]")}
+       |      start_path: docs
+       |    # the master documentation (always in author mode)
+       |    - url: ${baseDir}
+       |      # edit_url: ${Settings.projectUrl}/edit/{refname}/{path}
+       |      branches: HEAD
+       |      start_path: ${devAntoraSources().path.relativeTo(baseDir)}
+       |ui:
+       |  bundle:
+       |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
+       |    snapshot: true
+       |  supplemental_files: ${supplementalFiles().path.toString()}
+       |
+       |asciidoc:
+       |  attributes:
+       |    mill-github-url: ${Settings.projectUrl}
+       |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else Settings.docUrl}
+       |    mill-download-url: ${if (authorMode) s"file://${exampleZips().head.path / os.up}" else s"${Settings.projectUrl}/releases/latest"}
+       |    mill-example-url: ${if (authorMode) s"file://${T.workspace}" else s"${Settings.projectUrl}/blob/main/"}
+       |    utest-github-url: https://github.com/com-lihaoyi/utest
+       |    upickle-github-url: https://github.com/com-lihaoyi/upickle
+       |
+       |antora:
+       |  extensions:
+       |  - require: '@antora/lunr-extension'
+       |    index_latest_only: true
+       |
+       |""".stripMargin
+  }
+
+  def githubPages: Target[PathRef] = T {
+    generatePages(authorMode = false)()
+  }
+  def localPages = T {
+    val pages = generatePages(authorMode = true)()
+    T.log.outputStream.println(
+      s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+    )
+  }
+
+  def generatePages(authorMode: Boolean) = T.task {
+    T.log.errorStream.println("Creating Antora playbook ...")
+    // dependency to sources
+    source()
+    val docSite = T.dest
+    val playbook = docSite / "antora-playbook.yml"
+    val siteDir = docSite / "site"
+    os.write(
+      target = playbook,
+      data = githubPagesPlaybookText(authorMode)(),
+      createFolders = true
+    )
+    T.log.errorStream.println("Running Antora ...")
+    // check xrefs
+    runAntora(
+      npmDir = npmBase(),
+      workDir = docSite,
+      args = Seq(
+        "--generator",
+        "@antora/xref-validator",
+        playbook.last,
+        "--to-dir",
+        siteDir.toString(),
+        "--attribute",
+        "page-pagination"
+      ) ++
+        Seq("--fetch").filter(_ => !authorMode)
+    )
+    // generate site (we can skip the --fetch now)
+    runAntora(
+      npmDir = npmBase(),
+      workDir = docSite,
+      args = Seq(
+        playbook.last,
+        "--to-dir",
+        siteDir.toString(),
+        "--attribute",
+        "page-pagination"
       )
-    }
-    def generatePages(authorMode: Boolean) = T.task {
-      // dependency to sources
-      source()
-      val docSite = T.dest
-      val playbook = docSite / "antora-playbook.yml"
-      val siteDir = docSite / "site"
-      os.write(
-        target = playbook,
-        data = githubPagesPlaybookText(authorMode)(),
-        createFolders = true
-      )
-      // check xrefs
-      runAntora(
-        npmDir = npmBase(),
-        workDir = docSite,
-        args = Seq(
-          "--generator",
-          "@antora/xref-validator",
-          playbook.last,
-          "--to-dir",
-          siteDir.toString(),
-          "--attribute",
-          "page-pagination"
-        ) ++
-          Seq("--fetch").filter(_ => !authorMode)
-      )
-      // generate site (we can skip the --fetch now)
-      runAntora(
-        npmDir = npmBase(),
-        workDir = docSite,
-        args = Seq(
-          playbook.last,
-          "--to-dir",
-          siteDir.toString(),
-          "--attribute",
-          "page-pagination"
-        )
-      )
-      os.write(siteDir / ".nojekyll", "")
-      // sanitize devAntora source URLs
-      sanitizeDevUrls(siteDir, devAntoraSources().path, source().path, baseDir)
-      PathRef(siteDir)
-    }
+    )
+    os.write(siteDir / ".nojekyll", "")
+
+    // sanitize devAntora source URLs
+    T.log.errorStream.println("Sanitizing links ...")
+    sanitizeDevUrls(siteDir, devAntoraSources().path, source().path, baseDir)
+
+    // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
+    val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
+    T.log.errorStream.println(s"Copying API docs from ${unidocSrc} ...")
+    os.copy(unidocSrc, siteDir / "api" / "latest", createFolders = true)
+
+    PathRef(siteDir)
+  }
 //    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}
-    def sanitizeDevUrls(
-        dir: os.Path,
-        sourceDir: os.Path,
-        newSourceDir: os.Path,
-        baseDir: os.Path
-    ): Unit = {
-      val pathToRemove = sourceDir.relativeTo(baseDir).toString()
-      val replacePath = newSourceDir.relativeTo(baseDir).toString()
+  def sanitizeDevUrls(
+      dir: os.Path,
+      sourceDir: os.Path,
+      newSourceDir: os.Path,
+      baseDir: os.Path
+  ): Unit = {
+    val pathToRemove = sourceDir.relativeTo(baseDir).toString()
+    val replacePath = newSourceDir.relativeTo(baseDir).toString()
 //      println(s"Cleaning relative path '${pathToRemove}' ...")
-      import org.htmlcleaner._
-      val cleaner = new HtmlCleaner()
-      var changed = false
-      os.walk(dir).foreach { file =>
-        if (os.isFile(file) && file.ext == "html") {
-          val node: TagNode = cleaner.clean(file.toIO)
-          node.traverse { (parentNode: TagNode, htmlNode: HtmlNode) =>
-            htmlNode match {
-              case tag: TagNode if tag.getName() == "a" =>
-                Option(tag.getAttributeByName("href")).foreach { href =>
-                  val newHref = href.replace(pathToRemove, replacePath)
-                  if (href != newHref) {
-                    tag.removeAttribute("href")
-                    tag.addAttribute("href", newHref)
-                    changed = true
-                    println(s"Replaced: '${href}' --> '${newHref}'")
-                  }
+    import org.htmlcleaner._
+    val cleaner = new HtmlCleaner()
+    var changed = false
+    os.walk(dir).foreach { file =>
+      if (os.isFile(file) && file.ext == "html") {
+        val node: TagNode = cleaner.clean(file.toIO)
+        node.traverse { (parentNode: TagNode, htmlNode: HtmlNode) =>
+          htmlNode match {
+            case tag: TagNode if tag.getName() == "a" =>
+              Option(tag.getAttributeByName("href")).foreach { href =>
+                val newHref = href.replace(pathToRemove, replacePath)
+                if (href != newHref) {
+                  tag.removeAttribute("href")
+                  tag.addAttribute("href", newHref)
+                  changed = true
+                  println(s"Replaced: '${href}' --> '${newHref}'")
                 }
-                true
-              case _ => true
-            }
+              }
+              true
+            case _ => true
           }
-          if (changed) {
-            println(s"Writing '${file}' ...")
-            val newHtml = new SimpleHtmlSerializer(cleaner.getProperties()).getAsString(node)
-            os.write.over(file, newHtml)
-          }
+        }
+        if (changed) {
+          println(s"Writing '${file}' ...")
+          val newHtml = new SimpleHtmlSerializer(cleaner.getProperties()).getAsString(node)
+          os.write.over(file, newHtml)
         }
       }
     }
   }
 }
+
 
 def assembly = T {
   val version = millVersion()
@@ -1788,6 +1965,20 @@ def launcher = T {
   PathRef(outputPath)
 }
 
+def exampleZips: Target[Seq[PathRef]] = T {
+  for {
+    exampleMod <- example.exampleModules
+    examplePath = exampleMod.millSourcePath
+  } yield {
+    val example = examplePath.subRelativeTo(T.workspace)
+    val exampleStr = VcsVersion.vcsState().format() + "-" + example.segments.mkString("-")
+    os.copy(examplePath, T.dest / exampleStr, createFolders = true)
+    os.copy(launcher().path, T.dest / exampleStr / "mill")
+    val zip = T.dest / s"$exampleStr.zip"
+    os.proc("zip", "-r", zip, exampleStr).call(cwd = T.dest)
+    PathRef(zip)
+  }
+}
 
 def uploadToGithub(authKey: String) = T.command {
   val vcsState = VcsVersion.vcsState()
@@ -1814,19 +2005,9 @@ def uploadToGithub(authKey: String) = T.command {
       .asString
   }
 
-  val exampleZips = for{
-    exampleBase <- Seq("basic", "web", "misc")
-    examplePath <- os.list(T.workspace / "example" / exampleBase)
-  } yield {
-    val example = examplePath.subRelativeTo(T.workspace)
-    os.copy(examplePath, T.dest / example, createFolders = true)
-    os.copy(launcher().path, T.dest / example / "mill", createFolders = true)
-    val exampleStr = example.segments.mkString("-")
-    os.proc("zip", "-r", T.dest / s"$exampleStr.zip", T.dest / example).call(cwd = T.dest)
-    (T.dest / s"$exampleStr.zip", label + "-" + exampleStr + ".zip")
-  }
+  val examples = exampleZips().map(z => (z.path, z.path.last))
 
-  val zips = exampleZips ++ Seq(
+  val zips = examples ++ Seq(
     (assembly().path, label + "-assembly"),
     (launcher().path, label)
   )
@@ -1854,7 +2035,7 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
       "mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll",
       "__.sources",
       "+",
-      "docs.antora.localPages"
+      "docs.localPages"
     ),
     selectMode = SelectMode.Separated
   )(identity))()

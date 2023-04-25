@@ -1,7 +1,5 @@
 package mill.main
 
-import mainargs.TokensReader
-
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result, internal}
@@ -57,6 +55,10 @@ object MainModule {
   }
 }
 
+/**
+ * [[mill.Module]] containing all the default tasks that Mill provides: [[resolve]],
+ * [[show]], [[inspect]], [[plan]], etc.
+ */
 trait MainModule extends mill.Module {
 
   implicit def millDiscover: mill.define.Discover[_]
@@ -178,7 +180,7 @@ trait MainModule extends mill.Module {
       def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: TargetImpl[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
+          case t: mill.define.Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)
@@ -202,7 +204,8 @@ trait MainModule extends mill.Module {
         Iterator(
           ctx.applyPrefixColor(t.toString).toString,
           "(",
-          t.ctx.fileName.split('/').last,
+          // handle both Windows or Unix separators
+          t.ctx.fileName.split('/').last.split('\\').last,
           ":",
           t.ctx.lineNum.toString,
           ")",
@@ -378,6 +381,12 @@ trait MainModule extends mill.Module {
     System.exit(0)
   }
 
+  /**
+   * The `init`` command generates a project based on a Giter8 template. It
+   * prompts you to enter project name and creates a folder with that name.
+   * You can use it to quickly generate a starter project. There are lots of
+   * templates out there for many frameworks and tools!
+   */
   def init(evaluator: Evaluator, args: String*): Command[Unit] = T.command {
     MainModule.evaluateTasks(
       evaluator,

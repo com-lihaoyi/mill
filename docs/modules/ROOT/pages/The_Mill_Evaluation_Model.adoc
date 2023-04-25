@@ -1,0 +1,141 @@
+= The Mill Evaluation Model
+
+Evaluating a Mill target typically goes through the following phases:
+
+1. *Compilation*: Mill compiles the `build.sc` to classfiles, following the
+<<_the_mill_bootstrapping_process>> to eventually produce a `RootModule` object
+
+2. *Planning*: Mill resolves the list of xref:Tasks.adoc[] given from the command line,
+   e.g. `resolve _` or `foo.compile` or `{bar,qux}.__.test`, to a list of
+   concrete `Task` objects nested on xref:Modules.adoc[] within the `RootModule` along
+   with their transitive dependencies
+
+    * In the process, the relevant Mill ``Module``s  are lazily instantiated
+
+3. *Evaluation*: Mill evaluates the gathered ``Task``s in dependency-order,
+    either serially or in parallel
+
+== Limitations of the Mill Evaluation Model
+
+This three-phase evaluation model has consequences for how you structure your
+build. For example:
+
+1. You can have arbitrary code outside of ``Task``s that helps
+   set up your task graph and module hierarchy, e.g. computing what keys exist
+   in a `Cross` module, or specifying your `def moduleDeps`
+
+2. You can have arbitrary code inside of ``Task``s, to perform your build
+   actions
+
+3. *But* your code inside of ``Task``s cannot influence the shape of the task
+   graph or module hierarchy, as all *Resolving* and *Planning* happens first
+   *before* any ``Task``s are evaluated.
+
+This should not be a problem for most builds, but it is something to be aware
+of. In general, we have found that having "two places" to put code - outside of
+``Task``s to run during *Planning* or inside of ``Task``s to run during
+*Evaluation* - is generally enough flexibility for most use cases.
+
+The hard boundary between these two phases is what lets users easily query
+and visualize their module hierarchy and task graph without running them: using
+xref:Builtin_Commands.adoc#inspect[inspect], xref:Builtin_Commands.adoc#plan[plan],
+xref:Builtin_Commands.adoc#_visualize[visualize], etc.. This helps keep your
+Mill build discoverable even as the `build.sc` codebase grows.
+
+== Caching at Each Layer of the Evaluation Model
+
+Apart from fine-grained caching of ``Task``s during *Evaluation*, Mill also
+performs incremental evaluation of the other phases. This helps ensure
+the overall workflow remains fast even for large projects:
+
+1. *Compilation*:
+
+    * Done on-demand and incrementally using the Scala
+      incremental compiler https://github.com/sbt/zinc[Zinc].
+
+    * If some of the files `build.sc` imported changed but not others, only the
+      changed files are re-compiled before the `RootModule` is re-instantiated
+
+    * In the common case where `build.sc` was not changed at all, this step is
+      skipped entirely and the `RootModule` object simply re-used from the last
+      run.
+
+2. *Planning*:
+
+    * If the `RootModule` was re-used, then all
+      previously-instantiated modules are simply-re-used
+
+3. *Evaluation*:
+
+    * ``Task``s are evaluated in dependency order
+
+    * xref:Tasks.adoc#_targets[Target]s only re-evaluate if their input ``Task``s
+     change.
+
+    * xref:Tasks.adoc#_persistent_targets[T.persistent]s preserve the `T.dest` folder on disk between runs,
+      allowing for finer-grained caching than Mill's default target-by-target
+      caching and invalidation
+
+    * xref:Tasks.adoc#_workers[T.worker]s are kept in-memory between runs where possible, and only
+      invalidated if their input ``Task``s change as well.
+
+    * ``Task``s in general are invalidated if the code they depend on changes;
+      e.g. if `build.sc` imports `helper.sc`, then a change in `build.sc` would
+      invalidate all tasks in `build.sc`, but not those in `helper.sc`
+
+This approach to caching does assume a certain programming style inside your
+`build.sc`: we may or may not re-instantiate the `RootModule` of your
+`build.sc` depending on caching, and your code should work either way. For code
+written in a typical Scala style, this is not a problem at all.
+
+One thing to note is for code that runs during *Planning*: any reading of
+external mutable state needs to be wrapped in an `interp.watchValue{...}`
+wrapper. This ensures that Mill knows where these external reads are, so that
+it can check if their value changed and if so re-instantiate `RootModule` with
+the new value.
+
+== The Mill Bootstrapping Process
+
+Mill's bootstrapping proceeds roughly in the following phases:
+
+1. If using the bootstrap script, it first checks if the right version of Mill
+is already present, and if not it downloads it to `~/.mill/download`
+
+2. It instantiates an in-memory `MillBuildRootModule.BootstrapModule`,
+which is a hard-coded `build.sc` used for bootstrapping Mill
+
+3. If there is a meta-build present `mill-build/build.sc`, it processes that
+first and uses the `MillBuildRootModule` returned for the next steps.
+Otherwise it uses the `MillBuildRootModule.BootstrapModule` directly
+
+4. Mill evaluates the `MillBuildRootModule` to parse the `build.sc`, generate
+a list of `ivyDeps` as well as appropriately wrapped Scala code that we can
+compile, and compiles it to classfiles
+
+5. Mill loads the compiled classfiles of the `build.sc` into a
+`java.lang.ClassLoader` to access it's `RootModule`
+
+Everything earlier in the doc applies to each level of meta-builds in the
+Mill bootstrapping process as well.
+
+In general, `.sc` files, `import $file`, and `import $ivy` can be thought of as
+a short-hand for configuring the meta-build living in `mill-build/build.sc`:
+
+1. `.sc` and `import $file` are a shorthand for specifying the `.scala` files
+   living in `mill-build/src/`
+
+2. `import $ivy` is a short-hand for configurin the `def ivyDeps` in
+   `mill-build/build.sc`
+
+Most builds would not need the flexibility of a meta-build's
+`mill-build/build.sc`, but it is there if necessary.
+
+Mill supports multiple levels of meta-builds for bootstrapping:
+
+- Just `build.sc`
+- One level of meta-builds: `mill-build/build.sc` and `build.sc`
+- Two level of meta-builds: `mill-build/mill-build/build.sc`,
+  `mill-build/build.sc` and `build.sc`
+
+xref:Extending_Mill.adoc#_the_mill_meta_build[Extending Mill: The Mill Meta Build] works through a simple use case
+and example for meta-builds.

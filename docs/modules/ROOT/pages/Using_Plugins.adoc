@@ -1,0 +1,71 @@
+= Using Plugins
+
+Mill plugins are ordinary jars and are loaded as any other external dependency with the xref:Extending_Mill.adoc#_import_ivy[`import $ivy` mechanism].
+
+There exist a large number of Mill plugins, Many of them are available on GitHub and via Maven Central. We also have a list of plugins, which is most likely not complete, but it might be a good start if you are looking for plugins: xref:Thirdparty_Plugins.adoc[].
+
+Some plugin contributions are also hosted in Mill's own git tree as xref:Contrib_Plugins.adoc[].
+
+Mill plugins are typically bound to a specific version range of Mill.
+This is called the binary platform.
+To ease the use of the correct versions and avoid runtime issues (caused by binary incompatible plugins, which are hard to debug) you can apply one of the following techniques:
+
+== Use the specific Mill Binary Platform notation
+
+[source,scala]
+----
+// for classic Scala dependencies
+import $ivy.`<group>::<plugin>::<version>` // <1>
+// for dependencies specific to the exact Scala version
+import $ivy.`<group>:::<plugin>::<version>` // <2>
+----
+<1> This is equivalent to
++
+[source,scala]
+----
+import $ivy.`<group>::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
+----
+<2> This is equivalent to
++
+[source,scala]
+----
+import $ivy.`<group>:::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
+----
+
+
+== Use special placeholders in your `import $ivy`
+
+`$MILL_VERSION` ::
++
+--
+to substitute the currently used Mill version.
+This is typical required for Mill contrib modules, which are developed in the Mill repository and highly bound to the current Mill version.
+
+.Example: Use `mill-contrib-bloop` plugin matching the current Mill version
+----
+import $ivy.`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`
+----
+
+There is the even more convenient option to leave the version completely empty.
+Mill will substitute it with its current version.
+But don't forget to provide the trailing colon!
+
+.Example: Use `mill-contrib-bloop` plugin matching the current Mill version
+----
+import $ivy.`com.lihaoyi:mill-contrib-bloop:`
+----
+--
+
+`$MILL_BIN_PLATFORM` ::
++
+--
+to substitute the currently used Mill binary platform.
+
+.Example: Using `mill-vcs-version` plugin matching the current Mill Binary Platfrom
+----
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`
+----
+--
+
+TIP: If you want to publish re-usable libraries that _other_ people can use in their builds, simply publish your code as a library to maven central.
+
