@@ -1,6 +1,5 @@
 package mill.main
 
-import mill.define.ParseArgs.TargetsWithParams
 import mill.define.{
   BaseModule,
   Discover,
@@ -17,104 +16,94 @@ import mill.main.ResolveCore.Resolved
 import mill.util.EitherOps
 
 object ResolveSegments extends Resolve[Segments] {
-  def resolveNonEmpty(
-      selector: List[Segment],
-      current: BaseModule,
-      discover: Discover[_],
-      args: Seq[String]
-  ) = {
-    ResolveNonEmpty.resolveNonEmpty(selector, current, discover, args).map { value =>
-      value.map(_.segments)
-    }
+  def handleResolved(resolved: Set[Resolved],
+                     discover: Discover[_],
+                     args: Seq[String],
+                     selector: Segments) = {
+    Right(resolved.map(_.segments))
   }
 }
 
 object ResolveMetadata extends Resolve[String] {
-  def resolveNonEmpty(
-      selector: List[Segment],
-      current: BaseModule,
-      discover: Discover[_],
-      args: Seq[String]
-  ) = {
-    ResolveNonEmpty.resolveNonEmpty(selector, current, discover, args).map { value =>
-      value.map(_.segments.render)
-    }
+  def handleResolved(resolved: Set[Resolved],
+                     discover: Discover[_],
+                     args: Seq[String],
+                     selector: Segments) = {
+    Right(resolved.map(_.segments.render))
   }
 }
 
 object ResolveTasks extends Resolve[NamedTask[Any]] {
-  def resolveNonEmpty(
-      selector: List[Segment],
-      current: BaseModule,
-      discover: Discover[_],
-      args: Seq[String]
-  ) = {
-    ResolveNonEmpty.resolveNonEmpty(selector, current, discover, args).flatMap { value =>
-      val taskList: Set[Either[String, NamedTask[_]]] = value.collect {
-        case Resolved.Target(value) => Right(value)
-        case Resolved.Command(value) => value()
-        case Resolved.Module(value: TaskModule) =>
-          ResolveCore.resolveDirectChildren(
-            value,
-            Some(value.defaultCommandName()),
-            discover,
-            args
-          ).values.head.flatMap {
-            case Resolved.Target(value) => Right(value)
-            case Resolved.Command(value) => value()
-          }
-      }
+  def handleResolved(resolved: Set[Resolved],
+                     discover: Discover[_],
+                     args: Seq[String],
+                     selector: Segments) = {
 
-      if (taskList.nonEmpty) EitherOps.sequence(taskList).map(_.toSet[NamedTask[Any]])
-      else Left(s"Cannot find default task to evaluate for module ${Segments(selector).render}")
+    val taskList: Set[Either[String, NamedTask[_]]] = resolved.collect {
+      case Resolved.Target(value) => Right(value)
+      case Resolved.Command(value) => value()
+      case Resolved.Module(value: TaskModule) =>
+        ResolveCore.resolveDirectChildren(
+          value,
+          Some(value.defaultCommandName()),
+          discover,
+          args
+        ).values.head.flatMap {
+          case Resolved.Target(value) => Right(value)
+          case Resolved.Command(value) => value()
+        }
     }
 
+    if (taskList.nonEmpty) EitherOps.sequence(taskList).map(_.toSet[NamedTask[Any]])
+    else Left(s"Cannot find default task to evaluate for module ${selector.render}")
   }
 }
 
 trait Resolve[T] {
-  def resolveNonEmpty(
-      selector: List[Segment],
-      current: BaseModule,
-      discover: Discover[_],
-      args: Seq[String]
-  ): Either[String, Set[T]]
+  def handleResolved(resolved: Set[Resolved],
+                     discover: Discover[_],
+                     args: Seq[String],
+                     segments: Segments): Either[String, Set[T]]
 
   def resolveTasks(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    val parsedGroups: Either[String, Seq[TargetsWithParams]] = ParseArgs(scriptArgs, selectMode)
-    val resolvedGroups = parsedGroups.flatMap { groups =>
+    val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
-          for (rootModule <- resolveRootModule(evaluator, scopedSel))
-            yield try {
+          resolveRootModule(evaluator, scopedSel).map{rootModule =>
+            try {
               // We inject the `evaluator.rootModule` into the TargetScopt, rather
               // than the `rootModule`, because even if you are running an external
               // module we still want you to be able to resolve targets from your
               // main build. Resolving targets from external builds as CLI arguments
               // is not currently supported
               mill.eval.Evaluator.currentEvaluator.set(evaluator)
-              resolveNonEmpty(
-                sel.value.toList,
-                rootModule,
-                rootModule.millDiscover,
-                args
-              )
+
+              resolveNonEmptyAndHandle(args, sel, rootModule)
             } finally {
               mill.eval.Evaluator.currentEvaluator.set(null)
             }
+          }
         }
-        for {
-          taskLists <- EitherOps.sequence(selected).map(_.toList)
-          res <- EitherOps.sequence(taskLists)
-        } yield res.flatten
+
+        EitherOps
+          .sequence(selected)
+          .flatMap(EitherOps.sequence(_))
+          .map(_.flatten)
       }
+
       EitherOps.sequence(resolved)
     }
+
     resolvedGroups.map(_.flatten.toList)
+  }
+
+  def resolveNonEmptyAndHandle(args: Seq[String], sel: Segments, rootModule: BaseModule): Either[String, Set[T]] = {
+    ResolveNonEmpty.resolveNonEmpty(sel.value.toList, rootModule, rootModule.millDiscover, args)
+      .flatMap(handleResolved(_, rootModule.millDiscover, args, sel))
   }
 
   def resolveRootModule(evaluator: Evaluator, scopedSel: Option[Segments]) = {

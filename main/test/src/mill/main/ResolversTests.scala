@@ -1,6 +1,6 @@
 package mill.main
 
-import mill.define.{NamedTask, Segment, SelectMode}
+import mill.define.{NamedTask, Segment, Segments, SelectMode}
 import mill.util.TestGraphs._
 import utest._
 object ResolversTests extends TestSuite {
@@ -18,11 +18,10 @@ object ResolversTests extends TestSuite {
     val expected = expected0.map(_.map(_(module)))
     val resolved = for {
       selectors <- mill.define.ParseArgs(selectorStrings, SelectMode.Single).map(_.head._1.head)
-      task <- mill.main.ResolveTasks.resolveNonEmpty(
-        selectors._2.value.toList,
-        module,
-        module.millDiscover,
-        Nil
+      task <- mill.main.ResolveTasks.resolveNonEmptyAndHandle(
+        Nil,
+        Segments(selectors._2.value.toList),
+        module
       )
     } yield task
     // doesn't work for commands, don't know why
