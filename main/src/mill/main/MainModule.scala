@@ -315,7 +315,7 @@ trait MainModule extends mill.Module {
       case _ => false
     }
 
-    val pathsToRemove = Right(os.list(rootDir).filterNot(keepPath))
+    val pathsToRemove =
       if (targets.isEmpty)
         Right(os.list(rootDir).filterNot(keepPath))
       else
@@ -326,8 +326,8 @@ trait MainModule extends mill.Module {
           SelectMode.Multi
         ).map { ts =>
           ts.flatMap { segments =>
-            val evPpaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
-            val paths = Seq(evPpaths.dest, evPpaths.meta, evPpaths.log)
+            val evPaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
+            val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
             val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
             if (os.exists(potentialModulePath)) {
               // this is either because of some pre-Mill-0.10 files lying around

@@ -45,13 +45,15 @@ object Module {
   def reflect(
       outer: Class[_],
       inner: Class[_],
-      filter: String => Boolean
+      filter: String => Boolean,
+      noParams: Boolean
   ): Seq[java.lang.reflect.Method] = {
     for {
       m <- outer.getMethods.sortBy(_.getName)
       n = decode(m.getName)
       if filter(n) &&
         ParseArgs.isLegalIdentifier(n) &&
+        (!noParams || m.getParameterCount == 0) &&
         (m.getModifiers & Modifier.STATIC) == 0 &&
         (m.getModifiers & Modifier.ABSTRACT) == 0 &&
         inner.isAssignableFrom(m.getReturnType)
@@ -65,7 +67,7 @@ object Module {
       outer: Class[_],
       filter: String => Boolean = Function.const(true)
   ): Seq[java.lang.reflect.Member] = {
-    reflect(outer, classOf[Object], filter) ++
+    reflect(outer, classOf[Object], filter, noParams = true) ++
       outer
         .getClasses
         .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
@@ -97,7 +99,7 @@ object Module {
     lazy val millModuleLine: Int = outer.millOuterCtx.lineNum
 
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {
-      Module.reflect(outer.getClass, implicitly[ClassTag[T]].runtimeClass, filter)
+      Module.reflect(outer.getClass, implicitly[ClassTag[T]].runtimeClass, filter, noParams = true)
         .map(_.invoke(outer).asInstanceOf[T])
     }
 

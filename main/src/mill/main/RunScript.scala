@@ -46,9 +46,8 @@ object RunScript {
       (selectors, args) = parsed
       taskss <- {
         val selected = selectors.map { case (scopedSel, sel) =>
-          for (res <- prepareResolve(evaluator, scopedSel, sel))
+          for (rootModule <- resolveRootModule(evaluator, scopedSel))
             yield {
-              val (rootModule, crossSelectors) = res
 
               try {
                 // We inject the `evaluator.rootModule` into the TargetScopt, rather
@@ -93,20 +92,6 @@ object RunScript {
     }
   }
 
-  def prepareResolve[T](
-      evaluator: Evaluator,
-      scopedSel: Option[Segments],
-      sel: Segments
-  ): Either[String, (BaseModule, Seq[List[String]])] = {
-    for (rootModule <- resolveRootModule(evaluator, scopedSel))
-      yield {
-        val crossSelectors = sel.value.map {
-          case Segment.Cross(x) => x.toList.map(_.toString)
-          case _ => Nil
-        }
-        (rootModule, crossSelectors)
-      }
-  }
 
   def evaluateTasks[T](
       evaluator: Evaluator,

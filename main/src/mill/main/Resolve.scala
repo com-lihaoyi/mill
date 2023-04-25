@@ -133,11 +133,11 @@ object Resolve {
     }
 
     val targets = Module
-      .reflect(obj.getClass, classOf[Target[_]], namePred)
+      .reflect(obj.getClass, classOf[Target[_]], namePred, noParams = true)
       .map(m => Segment.Label(decode(m.getName)) -> Right(Resolved.Target(m.invoke(obj).asInstanceOf[Target[_]])))
 
     val commands = Module
-      .reflect(obj.getClass, classOf[Command[_]], namePred)
+      .reflect(obj.getClass, classOf[Command[_]], namePred, noParams = false)
       .map(m => decode(m.getName))
       .map(name =>
         Segment.Label(name) -> Right(Resolved.Command(
