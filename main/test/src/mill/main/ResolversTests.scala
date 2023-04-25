@@ -19,16 +19,14 @@ object ResolversTests extends TestSuite {
                   expectedMetadata: Set[String] = Set()
                 ) = {
       val expected = expected0.map(_.map(_(module)))
-      checkSeq0(
-        selectorStrings,
-        resolvedTasks => {
-          resolvedTasks.map(_.map(_.toString).toSet[String]) ==
-            expected.map(_.map(_.toString))
-        },
-        resolvedMetadata => {
-          expectedMetadata.isEmpty ||
+      val (resolvedTasks, resolvedMetadata) = resolveTasksAndMetadata(selectorStrings)
+      assert(
+        resolvedTasks.map(_.map(_.toString).toSet[String]) ==
+          expected.map(_.map(_.toString))
+      )
+      assert(
+        expectedMetadata.isEmpty ||
           resolvedMetadata.map(_.toSet) == Right(expectedMetadata)
-        }
       )
     }
 
@@ -37,28 +35,31 @@ object ResolversTests extends TestSuite {
                    check: Either[String, List[NamedTask[_]]] => Boolean,
                    checkMetadata: Either[String, List[String]] => Boolean = _ => true
                  ) = {
-      val resolved = for {
-        task <- mill.main.ResolveTasks.resolve0(
-          None,
-          module,
-          selectorStrings,
-          SelectMode.Separated
-        )
-      } yield task
 
-      val resolvedMetadata = for {
-        task <- mill.main.ResolveMetadata.resolve0(
-          None,
-          module,
-          selectorStrings,
-          SelectMode.Separated
-        )
-      } yield task
-
-      assert(check(resolved))
+      val (resolvedTasks, resolvedMetadata) = resolveTasksAndMetadata(selectorStrings)
+      assert(check(resolvedTasks))
       assert(checkMetadata(resolvedMetadata))
     }
+
+    def resolveTasksAndMetadata(selectorStrings: Seq[String]) = {
+      val resolvedTasks = mill.main.ResolveTasks.resolve0(
+        None,
+        module,
+        selectorStrings,
+        SelectMode.Separated
+      )
+
+      val resolvedMetadata = mill.main.ResolveMetadata.resolve0(
+        None,
+        module,
+        selectorStrings,
+        SelectMode.Separated
+      )
+
+      (resolvedTasks, resolvedMetadata)
+    }
   }
+
 
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
