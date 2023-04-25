@@ -47,7 +47,10 @@ object MainTests extends TestSuite {
         "doesntExist",
         Left("Cannot resolve doesntExist. Try `mill resolve _` to see what's available.")
       )
-//      "neg6" - check("single.doesntExist", Left("Task single is not a module and has no children."))
+      "neg6" - check(
+        "single.doesntExist",
+        Left("Cannot resolve single.doesntExist. single resolves to a Task with no children.")
+      )
       "neg7" - check("", Left("Selector cannot be empty"))
     }
 //    "backtickIdentifiers" - {
@@ -84,10 +87,10 @@ object MainTests extends TestSuite {
         "doesntExist",
         Left("Cannot resolve doesntExist. Try `mill resolve _` to see what's available.")
       )
-//      "neg2" - check(
-//        "single.doesntExist",
-//        Left("Task single is not a module and has no children.")
-//      )
+      "neg2" - check(
+        "single.doesntExist",
+        Left("Cannot resolve single.doesntExist. single resolves to a Task with no children.")
+      )
       "neg3" - check(
         "nested.doesntExist",
         Left(
@@ -139,8 +142,36 @@ object MainTests extends TestSuite {
           _.nested.single
         ))
       )
-
     }
+    "doubleNested" - {
+      val check = MainTests.check(doubleNestedModule) _
+      "pos1" - check("single", Right(Set(_.single)))
+      "pos2" - check("nested.single", Right(Set(_.nested.single)))
+      "pos3" - check("nested.inner.single", Right(Set(_.nested.inner.single)))
+      "neg1" - check(
+        "doesntExist",
+        Left("Cannot resolve doesntExist. Try `mill resolve _` to see what's available.")
+      )
+      "neg2" - check(
+        "nested.doesntExist",
+        Left(
+          "Cannot resolve nested.doesntExist. Try `mill resolve nested._` to see what's available."
+        )
+      )
+      "neg3" - check(
+        "nested.inner.doesntExist",
+        Left(
+          "Cannot resolve nested.inner.doesntExist. Try `mill resolve nested.inner._` to see what's available."
+        )
+      )
+      "neg4" - check(
+        "nested.inner.doesntExist.alsoDoesntExist2",
+        Left(
+          "Cannot resolve nested.inner.doesntExist.alsoDoesntExist2. Try `mill resolve nested.inner._` to see what's available."
+        )
+      )
+    }
+
     "cross" - {
       "single" - {
         val check = MainTests.check(singleCross) _
@@ -333,12 +364,10 @@ object MainTests extends TestSuite {
           Seq("cross1[210].cross2[js]"),
           Right(Set(_.cross1("210").cross2("js").suffixCmd()))
         )
-        // does not work because we're reflecting the Module for `def` without args,
-        // which misses command with args :-(
-//        "pos1WithWildcard" - check(
-//          Set("cross1[210].cross2[js]._"),
-//          Right(Set(_.cross1("210").cross2("js").suffixCmd()))
-//        )
+        "pos1WithWildcard" - check(
+          Seq("cross1[210].cross2[js]._"),
+          Right(Set(_.cross1("210").cross2("js").suffixCmd()))
+        )
         "pos1WithArgs" - check(
           Seq("cross1[210].cross2[js].suffixCmd", "suffix-arg"),
           Right(Set(_.cross1("210").cross2("js").suffixCmd("suffix-arg")))

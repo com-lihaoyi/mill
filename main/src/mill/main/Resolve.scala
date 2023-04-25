@@ -271,7 +271,7 @@ object Resolve {
   def errorMsgLabel(given: String,
                     possibleMembers: Set[String],
                     prefixSegments: Segments,
-                    fullSegements: Segments) = {
+                    fullSegments: Segments) = {
     val suggestion = findMostSimilar(given, possibleMembers) match {
       case None => hintListLabel(prefixSegments.value)
       case Some(similar) =>
@@ -280,7 +280,7 @@ object Resolve {
         "?"
     }
 
-    val msg = unableToResolve(fullSegements.render) + suggestion
+    val msg = unableToResolve(fullSegments.render) + suggestion
 
     msg
   }
@@ -288,7 +288,7 @@ object Resolve {
   def errorMsgCross(givenKeys: Seq[String],
                     possibleCrossKeys: Set[Seq[String]],
                     prefixSegments: Segments,
-                    fullSegements: Segments) = {
+                    fullSegments: Segments) = {
 
     val suggestion = findMostSimilar(
       givenKeys.mkString(","),
@@ -301,7 +301,7 @@ object Resolve {
         "?"
     }
 
-    unableToResolve(fullSegements.render) + suggestion
+    unableToResolve(fullSegments.render) + suggestion
   }
 
 }

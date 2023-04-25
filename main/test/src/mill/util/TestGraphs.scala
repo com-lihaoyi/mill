@@ -176,6 +176,16 @@ object TestGraphs {
     object classInstance extends CanNest
 
   }
+  object doubleNestedModule extends TestUtil.BaseModule {
+    def single = T { 5 }
+    object nested extends Module {
+      def single = T { 7 }
+
+      object inner extends Module {
+        def single = T { 9 }
+      }
+    }
+  }
 
   trait BaseModule extends Module {
     def foo = T { Seq("base") }
