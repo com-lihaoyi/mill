@@ -17,7 +17,7 @@ object ResolversTests extends TestSuite {
 
     val expected = expected0.map(_.map(_(module)))
     val resolved = for {
-      task <- mill.main.ResolveTasks.resolveTasks0(
+      task <- mill.main.ResolveTasks.resolve0(
         None,
         module,
         selectorStrings,

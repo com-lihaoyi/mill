@@ -19,7 +19,7 @@ object RunScript {
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]])] = {
-    for (targets <- ResolveTasks.resolveTasks(evaluator, scriptArgs, selectMode))
+    for (targets <- ResolveTasks.resolve(evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
 
@@ -38,7 +38,7 @@ object RunScript {
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] = {
-    for (targets <- ResolveTasks.resolveTasks(evaluator, scriptArgs, selectMode))
+    for (targets <- ResolveTasks.resolve(evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluateNamed(evaluator, Agg.from(targets.distinct))
 

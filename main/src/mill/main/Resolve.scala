@@ -73,14 +73,14 @@ trait Resolve[T] {
       segments: Segments
   ): Either[String, Set[T]]
 
-  def resolveTasks(
+  def resolve(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    resolveTasks0(Some(evaluator), evaluator.rootModule, scriptArgs, selectMode)
+    resolve0(Some(evaluator), evaluator.rootModule, scriptArgs, selectMode)
   }
-  def resolveTasks0(
+  def resolve0(
       evaluatorOpt: Option[Evaluator],
       baseModule: BaseModule,
       scriptArgs: Seq[String],

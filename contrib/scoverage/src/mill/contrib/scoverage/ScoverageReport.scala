@@ -81,7 +81,7 @@ trait ScoverageReport extends Module {
       sources: String,
       dataTargets: String
   ): Task[PathRef] = {
-    val sourcesTasks: Seq[Task[Seq[PathRef]]] = ResolveTasks.resolveTasks(
+    val sourcesTasks: Seq[Task[Seq[PathRef]]] = ResolveTasks.resolve(
       evaluator,
       Seq(sources),
       SelectMode.Single
@@ -89,7 +89,7 @@ trait ScoverageReport extends Module {
       case Left(err) => throw new Exception(err)
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[Seq[PathRef]]]]
     }
-    val dataTasks: Seq[Task[PathRef]] = ResolveTasks.resolveTasks(
+    val dataTasks: Seq[Task[PathRef]] = ResolveTasks.resolve(
       evaluator,
       Seq(dataTargets),
       SelectMode.Single

@@ -11,7 +11,7 @@ object Tasks {
       extends mainargs.TokensReader[Tasks[T]](
         shortName = "<tasks>",
         read = s =>
-          ResolveTasks.resolveTasks(
+          ResolveTasks.resolve(
             Evaluator.currentEvaluator.get,
             s,
             SelectMode.Single
