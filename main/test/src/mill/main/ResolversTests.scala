@@ -418,20 +418,48 @@ object ResolversTests extends TestSuite {
     }
 
     "moduleInitError" - {
-      "rootTarget" - ResolversTests.checkSeq(moduleInitError)(
+      val check = ResolversTests.checkSeq(moduleInitError) _
+      val checkCond = ResolversTests.checkSeq0(moduleInitError) _
+      // We can resolve the root module tasks even when the
+      // sub-modules fail to initialize
+      "rootTarget" - check(
         Seq("rootTarget"),
         Right(Set(_.rootTarget))
       )
-      "fooTarget" - ResolversTests.checkSeq0(moduleInitError)(
+      "rootCommand" - check(
+        Seq("rootCommand", "hello"),
+        Right(Set(_.rootCommand("hello")))
+      )
+
+      // Resolving tasks on a module that fails to initialize is properly
+      // caught and reported in the Either result
+      "fooTarget" - checkCond(
         Seq("foo.fooTarget"),
         res => res.isLeft && res.left.exists(_.contains("Foo Boom"))
       )
-      "barTarget" - ResolversTests.checkSeq(moduleInitError)(
+      "fooCommand" - checkCond(
+        Seq("foo.fooCommand", "hello"),
+        res => res.isLeft && res.left.exists(_.contains("Foo Boom"))
+      )
+
+      // Sub-modules that can initialize allow tasks to be resolved, even
+      // if their siblings or children are broken
+      "barTarget" - check(
         Seq("bar.barTarget"),
         Right(Set(_.bar.barTarget))
       )
-      "quxTarget" - ResolversTests.checkSeq0(moduleInitError)(
-        Seq("bar.qux.barTarget"),
+      "barCommand" - check(
+        Seq("bar.barCommand", "hello"),
+        Right(Set(_.bar.barCommand("hello")))
+      )
+
+      // Nested sub-modules that fail to initialize are properly handled
+      "quxTarget" - checkCond(
+        Seq("bar.qux.quxTarget"),
+        res => res.isLeft && res.left.exists(_.contains("Qux Boom"))
+      )
+      "quxCommand" - checkCond(
+        Seq("bar.qux.quxCommand", "hello"),
         res => res.isLeft && res.left.exists(_.contains("Qux Boom"))
       )
 
