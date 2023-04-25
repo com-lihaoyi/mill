@@ -99,7 +99,7 @@ object ParseArgs {
   }
 
   def extractSegments(selectorString: String): Either[String, (Option[Segments], Segments)] =
-    parseSelector(selectorString) match {
+    parse(selectorString, selector(_)) match {
       case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Right(selector)
     }
@@ -110,17 +110,17 @@ object ParseArgs {
   def isLegalIdentifier(identifier: String): Boolean =
     parse(identifier, standaloneIdent(_)).isInstanceOf[Parsed.Success[_]]
 
-  private def parseSelector(input: String): Parsed[(Option[Segments], Segments)] = {
-    def ident2[_p: P] = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def segment[_p: P] = P(ident).map(Segment.Label)
-    def crossSegment[_p: P] = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
-    def simpleQuery[_p: P] = P(segment ~ ("." ~ segment | crossSegment).rep).map {
+  private def selector[_p: P]: P[(Option[Segments], Segments)] = {
+    def ident2 = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
+    def segment = P(ident).map(Segment.Label)
+    def crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
+    def simpleQuery = P(segment ~ ("." ~ segment | crossSegment).rep).map {
       case (h, rest) => Segments(h +: rest)
     }
-    def query[_p: P] = P(simpleQuery ~ ("/" ~/ simpleQuery).?).map {
+
+    P(simpleQuery ~ ("/" ~/ simpleQuery).? ~ End).map {
       case (q, None) => (None, q)
       case (q, Some(q2)) => (Some(q), q2)
     }
-    parse(input, query(_))
   }
 }

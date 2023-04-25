@@ -64,8 +64,12 @@ object ResolversTests extends TestSuite {
       )
       "neg4" - check("", Left("Selector cannot be empty"))
       "neg5" - check(
-        "invisible&",
+        "invisible",
         Left("Cannot resolve invisible. Try `mill resolve _` to see what's available.")
+      )
+      "negBadParse" - check(
+        "invisible&",
+        Left("Parsing exception Position 1:10, found \"&\"")
       )
       "nested" - {
         "pos" - check("nested-module.nested-target", Right(Set(_.`nested-module`.`nested-target`)))
