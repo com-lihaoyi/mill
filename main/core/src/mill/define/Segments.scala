@@ -17,7 +17,7 @@ case class Segments private (value: Seq[Segment]) {
     case Segment.Label(head) :: rest =>
       val stringSegments = rest.flatMap {
         case Segment.Label(s) => Seq(s)
-        case Segment.Cross(vs) => vs.map(_.toString)
+        case Segment.Cross(vs) => vs
       }
       head +: stringSegments
     case Segment.Cross(_) :: _ =>
