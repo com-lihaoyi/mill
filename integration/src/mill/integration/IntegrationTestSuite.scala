@@ -1,7 +1,7 @@
 package mill.integration
 
 import mainargs.Flag
-import mill.MillCliConfig
+import mill.runner.MillCliConfig
 import mill.define.SelectMode
 import mill.runner.{MillBuildBootstrap, MillMain, RunnerState, Watching}
 import mill.api.SystemStreams

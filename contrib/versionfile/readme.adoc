@@ -1,0 +1,197 @@
+= Version file
+:page-aliases: Plugin_VersionFile.adoc
+
+
+This plugin provides helpers for updating a version file and committing the changes to git.
+
+*Note: You can still make manual changes to the version file in-between execution of the targets provided by the module.*
+*Each target operates on the version file as is at the time of execution.*
+
+== Quickstart
+
+Add a `VersionFileModule` to the `build.sc` file:
+
+[source,scala]
+----
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule
+----
+
+The module will read and write to the file `version` located at the module's `millSourcePath`.
+In the example above, that would be `/versionFile/version` relative to the `build.sc` file.
+
+Create the version file with the initial version number:
+
+[source,bash]
+----
+$ 0.1.0-SNAPSHOT > versionFile/version
+----
+
+Then to write a release version or snapshot version to file:
+
+[source,bash]
+----
+$ mill versionFile.setReleaseVersion           # Sets release
+$ mill versionFile.setNextVersion --bump minor # Sets snapshot
+----
+
+You can also make manual changes in-between:
+
+[source,bash]
+----
+$ mill versionFile.setReleaseVersion
+$ echo 0.1.0 > versionFile/version
+$ mill versionFile.setNextVersion --bump minor # Will now set the version to 0.2.0-SNAPSHOT
+----
+
+If you want to use the version file for publishing, you can do it like this:
+
+[source,scala]
+----
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule
+
+object mymodule extends PublishModule {
+  def publishVersion = versionFile.currentVersion().toString
+  ...
+}
+----
+
+== Configure the version file
+
+If you want the version file to have another name, you will need to override the `versionFile` task.
+
+If you have a project wide version file like in the example above, and you want the version file to reside
+at the root of the project, you can override `millSourcePath`:
+
+[source,scala]
+----
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule {
+  def millSourcePath = millOuterCtx.millSourcePath
+}
+----
+
+In this example, it would look for the file `version` in the same directory as the `build.sc`.
+
+== Set release version
+
+The `setReleaseVersion` target removes the `-SNAPSHOT` identifier from the version,
+then overwrites the previous content in the version file with this new version.
+
+=== Example
+
+Your version file contains `0.1.0-SNAPSHOT`. In your terminal you do the following:
+
+[source,bash]
+----
+$ mill versionFile.setReleaseVersion
+----
+
+This will update the version file to contain `0.1.0`.
+
+== Set next version
+
+The `setNextVersion` target bumps the version and changes it to a snapshot version,
+then overwrites the previous content in the version file with this new version.
+
+=== Parameters
+
+==== –bump (major | minor | patch)
+
+Sets what segment of the version to bump.
+
+For a version number `1.2.3` in the version file:
+
+`--bump major` will set it to `2.0.0`
+
+`--bump minor` will set it to `1.3.0`
+
+`--bump patch` will set it to `1.2.4`
+
+=== Example
+
+Your version file contains `0.1.0`. In your terminal you do the following:
+
+[source,bash]
+----
+$ mill versionFile.setNextVersion --bump minor
+----
+
+This will update the version file to contain `0.2.0-SNAPSHOT`.
+
+== Set version
+
+The `setVersion` overwrites the previous content of the version file with an arbitrary version.
+
+=== Parameters
+
+==== –version x.y.z[-SNAPSHOT]
+
+The version to write to the version file.
+
+=== Example
+
+Your version file contains `0.1.0`. In your terminal you do the following:
+
+[source,bash]
+----
+$ mill versionFile.setVersion --version 0.5.2-SNAPSHOT
+----
+
+This will update the version file to contain `0.5.2-SNAPSHOT`.
+
+== Output version numbers
+
+If you need to output the version numbers (for example for other CI tools you might use), you can use the following commands:
+
+[source,bash]
+----
+# Show the current version from the version file.
+$ mill show versionFile.currentVersion
+----
+
+[source,bash]
+----
+# Show the version that would be used as release version.
+$ mill show versionFile.releaseVersion
+----
+
+[source,bash]
+----
+# Show the version that would be used as next version with the given --bump argument.
+$ mill show versionFile.nextVersion --bump minor
+----
+
+== VCS operations
+
+The module has an `exec` task that allows you to execute tasks of type `T[Seq[os.proc]]`:
+
+[source,bash]
+----
+$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.tag
+$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.push
+----
+
+=== Built-in git operations
+
+The `VersionFileModule` comes with two tasks of this type:
+
+==== Tag
+
+Commits the changes, then creates a tag with the current version for that commit.
+
+==== Push
+
+Commits the changes, then pushes the changes to origin/master with tags.
+
+=== Custom operations
+
+It's possible to override the tasks above, or add your own tasks, to adapt the module
+to work with other version control systems than git.
