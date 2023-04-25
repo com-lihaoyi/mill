@@ -130,12 +130,15 @@ object Module {
     def reflectNestedObjects0[T: ClassTag](filter: String => Boolean = Function.const(true))
         : Seq[(String, () => T)] = {
 
-      val first = Module.Internal.reflect(
-        outer.getClass,
-        implicitly[ClassTag[T]].runtimeClass,
-        filter,
-        noParams = true
-      ).map(m => (m.getName, () => m.invoke(outer).asInstanceOf[T]))
+      val first = Module.Internal
+        .reflect(
+          outer.getClass,
+          implicitly[ClassTag[T]].runtimeClass,
+          filter,
+          noParams = true
+        )
+        .map(m => (m.getName, () => m.invoke(outer).asInstanceOf[T]))
+
       val second =
         outer
           .getClass
@@ -147,7 +150,7 @@ object Module {
                 pprint.log(name)
                 c.getFields.find(_.getName == "MODULE$")
                   .map(f => (name, () => f.get(c).asInstanceOf[T]))
-                
+
               case _ => None
             }
 
