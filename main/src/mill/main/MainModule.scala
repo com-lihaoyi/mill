@@ -339,10 +339,9 @@ trait MainModule extends mill.Module {
           }
         }
 
-    pprint.log(pathsToRemove)
     pathsToRemove match {
-//      case Left(err) =>
-//        Result.Failure(err)
+      case Left(err) =>
+        Result.Failure(err)
       case Right(paths) =>
         val existing = paths.filter(p => os.exists(p))
         T.log.debug(s"Cleaning ${existing.size} paths ...")

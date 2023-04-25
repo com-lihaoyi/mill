@@ -403,7 +403,6 @@ object ResolversTests extends TestSuite {
               "cross[211,js].suffix",
               "cross[212,jvm].suffix",
               "cross[212,js].suffix",
-              "cross[212,js].suffix",
               "cross[212,native].suffix"
             )
           )
@@ -495,8 +494,8 @@ object ResolversTests extends TestSuite {
               "cross[211].cross2[js].suffix",
               "cross[211].cross2[native].suffix",
               "cross[212].cross2[jvm].suffix",
-              "cross[213].cross2[js].suffix",
-              "cross[214].cross2[native].suffix"
+              "cross[212].cross2[js].suffix",
+              "cross[212].cross2[native].suffix"
             )
           )
         }
@@ -512,7 +511,7 @@ object ResolversTests extends TestSuite {
         "pos1Default" - check.checkSeq(
           Seq("cross1[210].cross2[js]"),
           Right(Set(_.cross1("210").cross2("js").suffixCmd())),
-          Set("cross1[210].cross2[js]]")
+          Set("cross1[210].cross2[js]")
         )
         "pos1WithWildcard" - check.checkSeq(
           Seq("cross1[210].cross2[js]._"),
