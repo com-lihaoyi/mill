@@ -153,7 +153,17 @@ class TestGraphs() {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  object crossModuleInitError extends TestUtil.BaseModule{
+  object crossModuleSimpleInitError extends TestUtil.BaseModule{
+   object myCross extends Cross[MyCross](1, 2, 3, 4){
+     throw new Exception(s"MyCross Boom")
+   }
+   trait MyCross extends Cross.Module[Int]{
+     def foo = T{ crossValue }
+   }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+  object crossModulePartialInitError extends TestUtil.BaseModule{
    object myCross extends Cross[MyCross](1, 2, 3, 4)
    trait MyCross extends Cross.Module[Int]{
      if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")

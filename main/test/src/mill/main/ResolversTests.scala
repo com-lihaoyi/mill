@@ -465,17 +465,25 @@ object ResolversTests extends TestSuite {
         )
       }
       "cross" - {
-        val check = ResolversTests.checkSeq(crossModuleInitError) _
-        val checkCond = ResolversTests.checkSeq0(crossModuleInitError) _
-        test - check(
-          Seq("myCross[1].foo"),
-          Right(Set(_.myCross(1).foo))
-        )
-        test - checkCond(
-          Seq("myCross[3].foo"),
-          res => res.isLeft && res.left.exists(_.contains("MyCross Boom 3"))
-        )
-
+        "simple" - {
+          val checkCond = ResolversTests.checkSeq0(crossModuleSimpleInitError) _
+          checkCond(
+            Seq("myCross[1].foo"),
+            res => res.isLeft && res.left.exists(_.contains("MyCross Boom"))
+          )
+        }
+        "partial" - {
+          val check = ResolversTests.checkSeq(crossModulePartialInitError) _
+          val checkCond = ResolversTests.checkSeq0(crossModulePartialInitError) _
+          test - check(
+            Seq("myCross[1].foo"),
+            Right(Set(_.myCross(1).foo))
+          )
+          test - checkCond(
+            Seq("myCross[3].foo"),
+            res => res.isLeft && res.left.exists(_.contains("MyCross Boom 3"))
+          )
+        }
       }
     }
   }

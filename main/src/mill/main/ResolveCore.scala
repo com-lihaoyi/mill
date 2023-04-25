@@ -196,18 +196,20 @@ object ResolveCore {
       args: Seq[String]
   ) = {
     val segments = Segments(revSelectorsSoFar0.reverse)
-    NotFound(
-      segments,
-      Set(current),
-      next,
-      current match {
-        case m: Resolved.Module =>
-          resolveDirectChildren(m.valueOrErr.right.get, None, discover, args, segments)
+    val possibleNextsOrErr = current match {
+      case m: Resolved.Module =>
+        m.valueOrErr.map(obj =>
+          resolveDirectChildren(obj, None, discover, args, segments)
             .map(_.segments.value.last)
+        )
 
-        case _ => Set()
-      }
-    )
+      case _ => Right(Set[Segment]())
+    }
+
+    possibleNextsOrErr match{
+      case Right(nexts) => NotFound(segments, Set(current), next, nexts)
+      case Left(err) => Error(err)
+    }
   }
 
   def invokeCommand(
