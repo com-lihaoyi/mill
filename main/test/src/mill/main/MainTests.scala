@@ -113,15 +113,15 @@ object MainTests extends TestSuite {
       )
       "wildcardNeg" - check(
         "_._.single",
-        Left("Cannot resolve _._.single. Task _._ is not a module and has no children.")
+        Left("Cannot resolve _._.single. Try `mill resolve _` to see what's available.")
       )
       "wildcardNeg2" - check(
         "_._.__",
-        Left("Cannot resolve _._.__. Task _._ is not a module and has no children.")
+        Left("Cannot resolve _._.__. Try `mill resolve _` to see what's available.")
       )
       "wildcardNeg3" - check(
         "nested._.foobar",
-        Left("Cannot resolve nested._.foobar. Task nested._ is not a module and has no children.")
+        Left("Cannot resolve nested._.foobar. nested._ resolves to a Task with no children.")
       )
       "wildcard2" - check(
         "__.single",
@@ -155,17 +155,17 @@ object MainTests extends TestSuite {
         "neg2" - check(
           "cross[doesntExist].doesntExist",
           Left(
-            "Cannot resolve cross[doesntExist]. Try `mill resolve cross._` to see what's available."
+            "Cannot resolve cross[doesntExist].doesntExist. Try `mill resolve cross._` to see what's available."
           )
         )
         "neg3" - check(
           "cross[221].doesntExist",
-          Left("Cannot resolve cross[221]. Did you mean cross[211]?")
+          Left("Cannot resolve cross[221].doesntExist. Did you mean cross[211]?")
         )
         "neg4" - check(
           "cross[doesntExist].suffix",
           Left(
-            "Cannot resolve cross[doesntExist]. Try `mill resolve cross._` to see what's available."
+            "Cannot resolve cross[doesntExist].suffix. Try `mill resolve cross._` to see what's available."
           )
         )
         "wildcard" - check(
@@ -208,18 +208,18 @@ object MainTests extends TestSuite {
           )
           "labelNeg3" - check(
             "__.doesntExist",
-            Left("Cannot resolve __.doesntExist. Try `mill resolve __._` to see what's available.")
+            Left("Cannot resolve __.doesntExist. Try `mill resolve _` to see what's available.")
           )
           "labelNeg4" - check(
             "cross.__.doesntExist",
             Left(
-              "Cannot resolve cross.__.doesntExist. Try `mill resolve cross.__._` to see what's available."
+              "Cannot resolve cross.__.doesntExist. Try `mill resolve cross._` to see what's available."
             )
           )
           "labelNeg5" - check(
             "cross._.doesntExist",
             Left(
-              "Cannot resolve cross._. Try `mill resolve cross._` to see what's available."
+              "Cannot resolve cross._.doesntExist. Try `mill resolve cross._` to see what's available."
             )
           )
           "labelPos" - check(
