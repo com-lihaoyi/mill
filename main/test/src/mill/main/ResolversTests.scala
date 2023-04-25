@@ -1,6 +1,6 @@
 package mill.main
 
-import mill.define.{NamedTask, Segment, Segments, SelectMode}
+import mill.define.{NamedTask, SelectMode}
 import mill.util.TestGraphs._
 import utest._
 object ResolversTests extends TestSuite {
