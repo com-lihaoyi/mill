@@ -657,7 +657,7 @@ class MillBuildServer(
             val mainModule = new MainModule {
               override implicit def millDiscover: Discover[_] = Discover[this.type]
             }
-            val compileTargetName = (module.millModuleSegments ++ Segments(Label("compile"))).render
+            val compileTargetName = (module.millModuleSegments ++ Seq(Label("compile"))).render
             log.debug(s"about to clean: ${compileTargetName}")
             val cleanTask = mainModule.clean(evaluator, Seq(compileTargetName): _*)
             val cleanResult = evaluator.evaluate(
