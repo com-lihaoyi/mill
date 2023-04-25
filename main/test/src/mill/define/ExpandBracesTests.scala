@@ -41,7 +41,7 @@ object ExpandBracesTests extends TestSuite {
       }
       "expandMixed" - check(
         "{a,b}.{c}.{}.e",
-        List("a.{c}.{}.e", "b.{c}.{}.e")
+        List("a.c.{}.e", "b.c.{}.e")
       )
       "malformed" - {
         val malformed = Seq("core.{compile", "core.{compile,test]")

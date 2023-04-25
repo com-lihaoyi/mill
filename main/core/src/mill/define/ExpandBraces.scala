@@ -21,7 +21,8 @@ object ExpandBraces{
               head match {
                 case Fragment.Keep(s) => tailStrings.map(s :: _)
                 case Fragment.Expand(fragmentLists) =>
-                  for {
+                  if (fragmentLists == Nil) tailStrings.map("{}" :: _)
+                  else for {
                     lhs <- fragmentLists.flatMap(processFragmentSequence)
                     rhs <- tailStrings
                   } yield lhs ::: rhs
