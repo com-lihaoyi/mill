@@ -339,6 +339,7 @@ trait MainModule extends mill.Module {
           }
         }
 
+    pprint.log(pathsToRemove)
     pathsToRemove match {
 //      case Left(err) =>
 //        Result.Failure(err)

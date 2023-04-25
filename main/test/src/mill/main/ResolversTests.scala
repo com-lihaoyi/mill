@@ -473,11 +473,14 @@ object ResolversTests extends TestSuite {
           )
         }
         "partial" - {
-          val check = ResolversTests.checkSeq(crossModulePartialInitError) _
           val checkCond = ResolversTests.checkSeq0(crossModulePartialInitError) _
-          test - check(
+
+          // If any one of the cross modules fails to initialize, even if it's
+          // not the one you are asking for, we fail and make sure to catch and
+          // handle the error
+          test - checkCond(
             Seq("myCross[1].foo"),
-            Right(Set(_.myCross(1).foo))
+            res => res.isLeft && res.left.exists(_.contains("MyCross Boom 3"))
           )
           test - checkCond(
             Seq("myCross[3].foo"),

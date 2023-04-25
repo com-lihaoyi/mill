@@ -49,20 +49,19 @@ object ResolveCore {
   ) extends Failed
   case class Error(msg: String) extends Failed
 
-  def resolve(
-      remainingSelector: List[Segment],
-      current: Resolved,
-      discover: Discover[_],
-      args: Seq[String],
-      revSelectorsSoFar0: List[Segment]
-  ): Result = remainingSelector match {
+  def resolve(remainingQuery: List[Segment],
+              current: Resolved,
+              discover: Discover[_],
+              args: Seq[String],
+              revQuerySoFar0: List[Segment]
+  ): Result = remainingQuery match {
     case Nil => Success(Set(current))
     case head :: tail =>
-      val revSelectorsSoFar = head :: revSelectorsSoFar0
-      val segments = Segments(revSelectorsSoFar.reverse)
+      val revQuerySoFar = head :: revQuerySoFar0
+      val querySegments = Segments(revQuerySoFar0.reverse)
       def recurse(searchModules: Set[Resolved]): Result = {
         val (failures, successesLists) = searchModules
-          .map(resolve(tail, _, discover, args, revSelectorsSoFar))
+          .map(resolve(tail, _, discover, args, revQuerySoFar))
           .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
 
         val (errors, notFounds) = failures.partitionMap {
@@ -74,7 +73,7 @@ object ResolveCore {
         else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
         else notFounds.size match {
           case 1 => notFounds.head
-          case _ => notFoundResult(revSelectorsSoFar0, current, head, discover, args)
+          case _ => notFoundResult(revQuerySoFar0, current, head, discover, args)
         }
       }
 
@@ -94,8 +93,10 @@ object ResolveCore {
                     resolveDirectChildren(m, None, discover, args, m.millModuleSegments)
                   )
                 )
-              case "_" => Right(resolveDirectChildren(obj, None, discover, args, segments))
-              case _ => Right(resolveDirectChildren(obj, Some(singleLabel), discover, args, segments))
+              case "_" =>
+                Right(resolveDirectChildren(obj, None, discover, args, querySegments))
+              case _ =>
+                Right(resolveDirectChildren(obj, Some(singleLabel), discover, args, querySegments))
             }
           }
 
@@ -118,7 +119,7 @@ object ResolveCore {
 
           recurse(searchModules.map(m => Resolved.Module(m.millModuleSegments, Right(m))).toSet)
 
-        case _ => notFoundResult(revSelectorsSoFar0, current, head, discover, args)
+        case _ => notFoundResult(revQuerySoFar0, current, head, discover, args)
       }
   }
 
@@ -163,12 +164,13 @@ object ResolveCore {
 
     val targets = Module
       .reflect(obj.getClass, classOf[Target[_]], namePred, noParams = true)
-      .map(m =>
+      .map { m =>
+        pprint.log(segments.render)
+        pprint.log((segments ++ Seq(Segment.Label(decode(m.getName)))).render)
         Resolved.Target(
           segments ++ Seq(Segment.Label(decode(m.getName))),
           catchReflectException(m.invoke(obj).asInstanceOf[Target[_]]))
-
-      )
+      }
 
     val commands = Module
       .reflect(obj.getClass, classOf[Command[_]], namePred, noParams = false)
