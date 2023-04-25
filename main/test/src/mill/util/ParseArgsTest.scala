@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.define.{ParseArgs, Segment, Segments, SelectMode}
+import mill.define.{ExpandBraces, ParseArgs, Segment, Segments, SelectMode}
 import mill.define.Segment.{Cross, Label}
 import mill.define.ParseArgs.{TargetSeparator, TargetsWithParams}
 import utest._
@@ -88,7 +88,7 @@ object ParseArgsTest extends TestSuite {
     }
     "expandBraces" - {
       def check(input: String, expectedExpansion: List[String]) = {
-        val Right(expanded) = ParseArgs.expandBraces(input)
+        val Right(expanded) = ExpandBraces.expandBraces(input)
 
         assert(expanded == expectedExpansion)
       }
@@ -128,7 +128,7 @@ object ParseArgsTest extends TestSuite {
         val malformed = Seq("core.{compile", "core.{compile,test]")
 
         malformed.foreach { m =>
-          val Left(error) = ParseArgs.expandBraces(m)
+          val Left(error) = ExpandBraces.expandBraces(m)
           assert(error.contains("Parsing exception"))
         }
       }

@@ -70,7 +70,7 @@ object ParseArgs {
     for {
       _ <- validateSelectors(selectors)
       expandedSelectors <- EitherOps
-        .sequence(selectors.map(expandBraces))
+        .sequence(selectors.map(ExpandBraces.expandBraces))
         .map(_.flatten)
       selectors <- EitherOps.sequence(expandedSelectors.map(extractSegments))
     } yield (selectors.toList, args)
@@ -96,76 +96,6 @@ object ParseArgs {
     if (selectors.isEmpty || selectors.exists(_.isEmpty))
       Left("Selector cannot be empty")
     else Right(())
-  }
-
-  def expandBraces(selectorString: String): Either[String, List[String]] = {
-    parseBraceExpansion(selectorString) match {
-      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
-      case Parsed.Success(expanded, _) => Right(expanded.toList)
-    }
-  }
-
-  private sealed trait Fragment
-  private object Fragment {
-    case class Keep(value: String) extends Fragment
-    case class Expand(values: List[List[Fragment]]) extends Fragment
-
-    def unfold(fragments: List[Fragment]): Seq[String] = {
-      fragments match {
-        case head :: rest =>
-          val prefixes = head match {
-            case Keep(v) => Seq(v)
-            case Expand(Nil) => Seq("{}")
-            case Expand(List(vs)) => unfold(vs).map("{" + _ + "}")
-            case Expand(vss) => vss.flatMap(unfold)
-          }
-          for {
-            prefix <- prefixes
-            suffix <- unfold(rest)
-          } yield prefix + suffix
-
-        case Nil => Seq("")
-      }
-    }
-  }
-
-  private object BraceExpansionParser {
-    def plainChars[_p: P]: P[Fragment.Keep] =
-      P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep)
-
-    def toExpand[_p: P]: P[Fragment] =
-      P("{" ~ braceParser.rep(1).rep(sep = ",") ~ "}").map(x =>
-        Fragment.Expand(x.toList.map(_.toList))
-      )
-
-    def braceParser[_p: P]: P[Fragment] = P(toExpand | plainChars)
-
-    def parser[_p: P]: P[Seq[String]] = P(braceParser.rep(1).rep(sep = ",") ~ End).map { vss =>
-      def unfold(vss: List[Seq[String]]): Seq[String] = {
-        vss match {
-          case Nil => Seq("")
-          case head :: rest =>
-            for {
-              str <- head
-              r <- unfold(rest)
-            } yield r match {
-              case "" => str
-              case _ => str + "," + r
-            }
-        }
-      }
-
-      val stringss = vss.map(x => Fragment.unfold(x.toList)).toList
-      unfold(stringss)
-    }
-  }
-
-  private def parseBraceExpansion(input: String): Parsed[Seq[String]] = {
-
-    parse(
-      input,
-      BraceExpansionParser.parser(_)
-    )
   }
 
   def extractSegments(selectorString: String): Either[String, (Option[Segments], Segments)] =

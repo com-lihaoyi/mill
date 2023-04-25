@@ -17,16 +17,15 @@ object ResolversTests extends TestSuite {
 
     val expected = expected0.map(_.map(_(module)))
     val resolved = for {
-      selectors <- mill.define.ParseArgs(selectorStrings, SelectMode.Single).map(_.head._1.head)
-      task <- mill.main.ResolveTasks.resolveNonEmptyAndHandle(
-        Nil,
-        Segments(selectors._2.value.toList),
-        module
+      task <- mill.main.ResolveTasks.resolveTasks0(
+        None,
+        module,
+        selectorStrings,
+        SelectMode.Separated
       )
     } yield task
-    // doesn't work for commands, don't know why
-    // assert(resolved == expected)
-    assert(resolved.map(_.map(_.toString)) == expected.map(_.map(_.toString)))
+
+    assert(resolved.map(_.map(_.toString).toSet[String]) == expected.map(_.map(_.toString)))
   }
 
   val tests = Tests {
@@ -35,6 +34,7 @@ object ResolversTests extends TestSuite {
     "single" - {
       val check = ResolversTests.check(singleton) _
       "pos" - check("single", Right(Set(_.single)))
+      "posCurly" - check("{single}", Right(Set(_.single)))
       "neg1" - check("sngle", Left("Cannot resolve sngle. Did you mean single?"))
       "neg2" - check("snigle", Left("Cannot resolve snigle. Did you mean single?"))
       "neg3" - check("nsiigle", Left("Cannot resolve nsiigle. Did you mean single?"))
@@ -82,6 +82,27 @@ object ResolversTests extends TestSuite {
       "pos1" - check("single", Right(Set(_.single)))
       "pos2" - check("nested.single", Right(Set(_.nested.single)))
       "pos3" - check("classInstance.single", Right(Set(_.classInstance.single)))
+      "posCurly1" - check("classInstance.{single}", Right(Set(_.classInstance.single)))
+      "posCurly2" - check(
+        "{nested,classInstance}.single",
+        Right(Set(_.nested.single, _.classInstance.single))
+      )
+      "posCurly3" - check(
+        "{nested,classInstance}.{single}",
+        Right(Set(_.nested.single, _.classInstance.single))
+      )
+      "posCurly4" - check(
+        "{single,{nested,classInstance}.{single}}",
+        Right(Set(_.single, _.nested.single, _.classInstance.single))
+      )
+      "posCurly5" - check(
+        "{single,nested.single,classInstance.single}",
+        Right(Set(_.single, _.nested.single, _.classInstance.single))
+      )
+      "posCurly6" - check(
+        "{{single},{nested,classInstance}.{single}}",
+        Right(Set(_.single, _.nested.single, _.classInstance.single))
+      )
       "neg1" - check(
         "doesntExist",
         Left("Cannot resolve doesntExist. Try `mill resolve _` to see what's available.")
@@ -176,6 +197,10 @@ object ResolversTests extends TestSuite {
         val check = ResolversTests.check(singleCross) _
         "pos1" - check("cross[210].suffix", Right(Set(_.cross("210").suffix)))
         "pos2" - check("cross[211].suffix", Right(Set(_.cross("211").suffix)))
+        "posCurly" - check(
+          "cross[{210,211}].suffix",
+          Right(Set(_.cross("210").suffix, _.cross("211").suffix))
+        )
         "neg1" - check(
           "cross[210].doesntExist",
           Left(
