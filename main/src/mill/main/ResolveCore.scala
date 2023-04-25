@@ -23,16 +23,17 @@ object ResolveCore {
   }
 
   object Resolved {
-    case class Module(value: mill.define.Module) extends Resolved {
-      def segments = value.millModuleSegments
-    }
-    case class Target(value: mill.define.Target[_]) extends Resolved {
-      def segments = value.ctx.segments
-    }
-    case class Command(value: () => Either[String, mill.define.Command[_]])
-        extends Resolved {
-      def segments = value().right.get.ctx.segments
-    }
+    case class Module(segments: Segments,
+                      valueOrErr: Either[String, mill.define.Module])
+      extends Resolved
+
+    case class Target(segments: Segments,
+                      valueOrErr: Either[String, mill.define.Target[_]])
+      extends Resolved
+
+    case class Command(segments: Segments,
+                       valueOrErr: Either[String, mill.define.Command[_]])
+        extends Resolved
   }
 
   sealed trait Result
@@ -58,6 +59,7 @@ object ResolveCore {
     case Nil => Success(Set(current))
     case head :: tail =>
       val revSelectorsSoFar = head :: revSelectorsSoFar0
+      val segments = Segments(revSelectorsSoFar.reverse)
       def recurse(searchModules: Set[Resolved]): Result = {
         val (failures, successesLists) = searchModules
           .map(resolve(tail, _, discover, args, revSelectorsSoFar))
@@ -77,26 +79,33 @@ object ResolveCore {
       }
 
       (head, current) match {
-        case (Segment.Label(singleLabel), Resolved.Module(obj)) =>
-          EitherOps.sequence(
+        case (Segment.Label(singleLabel), m: Resolved.Module) =>
+
+          val resOrErr = m.valueOrErr.flatMap { obj =>
             singleLabel match {
               case "__" =>
-                obj
-                  .millInternal
-                  .modules
-                  .flatMap(m =>
-                    Seq(Right(Resolved.Module(m))) ++
-                      resolveDirectChildren(m, None, discover, args).values
+                catchReflectException(
+                  obj
+                    .millInternal
+                    .modules
+                ).map(
+                  _.flatMap(m =>
+                    Seq(Resolved.Module(m.millModuleSegments, Right(m))) ++
+                    resolveDirectChildren(m, None, discover, args, m.millModuleSegments)
                   )
-              case "_" => resolveDirectChildren(obj, None, discover, args).values
-              case _ => resolveDirectChildren(obj, Some(singleLabel), discover, args).values
+                )
+              case "_" => Right(resolveDirectChildren(obj, None, discover, args, segments))
+              case _ => Right(resolveDirectChildren(obj, Some(singleLabel), discover, args, segments))
             }
-          ) match {
-            case Left(err) => Error(err)
-            case Right(v) => recurse(v.toSet)
           }
 
-        case (Segment.Cross(cross), Resolved.Module(c: Cross[_])) =>
+          resOrErr match{
+            case Left(err) => Error(err)
+            case Right(res) => recurse(res.toSet)
+          }
+
+
+        case (Segment.Cross(cross), Resolved.Module(_, Right(c: Cross[_]))) =>
           val searchModules: Seq[Module] =
             if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
             else if (cross.contains("_")) {
@@ -107,54 +116,76 @@ object ResolveCore {
               } yield v
             } else c.segmentsToModules.get(cross.toList).toSeq
 
-          recurse(searchModules.map(m => Resolved.Module(m)).toSet)
+          recurse(searchModules.map(m => Resolved.Module(m.millModuleSegments, Right(m))).toSet)
 
         case _ => notFoundResult(revSelectorsSoFar0, current, head, discover, args)
       }
+  }
+
+  def catchReflectException[T](t: => T): Either[String, T] = {
+    try Right(t)
+    catch {
+      case e: java.lang.reflect.InvocationTargetException =>
+        val outerStack = new mill.api.Result.OuterStack(new Exception().getStackTrace)
+        Left(mill.api.Result.Exception(e.getCause, outerStack).toString)
+    }
   }
 
   def resolveDirectChildren(
       obj: Module,
       nameOpt: Option[String] = None,
       discover: Discover[_],
-      args: Seq[String]
-  ): Map[Segment, Either[String, Resolved]] = {
+      args: Seq[String],
+      segments: Segments
+  ): Set[Resolved] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
 
     val modules = obj
       .millInternal
-      .reflectNestedObjects[Module](namePred)
-      .map(t => Segment.Label(t.millModuleSegments.parts.last) -> Right(Resolved.Module(t)))
+      .reflectNestedObjects0[Module](namePred)
+      .map{case (name, f) =>
+        Resolved.Module(
+          segments ++ Seq(Segment.Label(name)),
+          catchReflectException(f())
+        )
+      }
 
     val crosses = obj match {
       case c: Cross[_] if nameOpt.isEmpty =>
-        c.segmentsToModules.map { case (k, v) => Segment.Cross(k) -> Right(Resolved.Module(v)) }
+        c.segmentsToModules.map { case (k, v) =>
+          Resolved.Module(
+            segments ++ Seq(Segment.Cross(k)),
+            catchReflectException(v)
+          )
+        }
       case _ => Nil
     }
 
     val targets = Module
       .reflect(obj.getClass, classOf[Target[_]], namePred, noParams = true)
       .map(m =>
-        Segment.Label(decode(m.getName)) -> Right(
-          Resolved.Target(m.invoke(obj).asInstanceOf[Target[_]])
-        )
+        Resolved.Target(
+          segments ++ Seq(Segment.Label(decode(m.getName))),
+          catchReflectException(m.invoke(obj).asInstanceOf[Target[_]]))
+
       )
 
     val commands = Module
       .reflect(obj.getClass, classOf[Command[_]], namePred, noParams = false)
       .map(m => decode(m.getName))
       .map(name =>
-        Segment.Label(name) -> Right(Resolved.Command(() =>
+        Resolved.Command(
+          segments ++ Seq(Segment.Label(name)),
           invokeCommand(
             obj,
             name,
             discover.asInstanceOf[Discover[Module]],
             args
           ).head
-        ))
+        )
       )
 
-    (modules ++ crosses ++ targets ++ commands).toMap
+    (modules ++ crosses ++ targets ++ commands).toSet
   }
 
   def notFoundResult(
@@ -163,18 +194,21 @@ object ResolveCore {
       next: Segment,
       discover: Discover[_],
       args: Seq[String]
-  ) =
+  ) = {
+    val segments = Segments(revSelectorsSoFar0.reverse)
     NotFound(
-      Segments(revSelectorsSoFar0.reverse),
+      segments,
       Set(current),
       next,
       current match {
-        case Resolved.Module(obj) =>
-          resolveDirectChildren(obj, None, discover, args).keySet
+        case m: Resolved.Module =>
+          resolveDirectChildren(m.valueOrErr.right.get, None, discover, args, segments)
+            .map(_.segments.value.last)
 
         case _ => Set()
       }
     )
+  }
 
   def invokeCommand(
       target: Module,

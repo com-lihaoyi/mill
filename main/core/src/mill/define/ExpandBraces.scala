@@ -40,7 +40,7 @@ object ExpandBraces{
   }
 
   private def plainChars[_p: P]: P[Fragment.Keep] =
-    P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep).log
+    P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep)
 
 
   private def emptyExpansionBranch[_p: P] = P("").map(_ => List(Fragment.Keep("")))
@@ -48,7 +48,7 @@ object ExpandBraces{
   private def toExpand[_p: P]: P[Fragment] =
     P("{" ~ (braceParser.rep(1) | emptyExpansionBranch).rep(sep = ",") ~ "}").map(x =>
       Fragment.Expand(x.toList.map(_.toList))
-    ).log
+    )
 
   private def braceParser[_p: P]: P[Fragment] = P(toExpand | plainChars)
 

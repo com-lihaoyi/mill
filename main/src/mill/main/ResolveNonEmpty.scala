@@ -15,7 +15,7 @@ object ResolveNonEmpty {
   ): Either[String, Set[Resolved]] = {
     ResolveCore.resolve(
       selector,
-      ResolveCore.Resolved.Module(current),
+      ResolveCore.Resolved.Module(current.millModuleSegments, Right(current)),
       discover,
       args,
       Nil

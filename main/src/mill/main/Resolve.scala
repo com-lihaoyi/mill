@@ -46,18 +46,23 @@ object ResolveTasks extends Resolve[NamedTask[Any]] {
   ) = {
 
     val taskList: Set[Either[String, NamedTask[_]]] = resolved.collect {
-      case Resolved.Target(value) => Right(value)
-      case Resolved.Command(value) => value()
-      case Resolved.Module(value: TaskModule) =>
-        ResolveCore.resolveDirectChildren(
-          value,
-          Some(value.defaultCommandName()),
-          discover,
-          args
-        ).values.head.flatMap {
-          case Resolved.Target(value) => Right(value)
-          case Resolved.Command(value) => value()
+      case r: Resolved.Target => r.valueOrErr
+      case r: Resolved.Command => r.valueOrErr
+      case r: Resolved.Module =>
+        r.valueOrErr match {
+          case Right(value: TaskModule) =>
+            ResolveCore.resolveDirectChildren(
+              value,
+              Some(value.defaultCommandName()),
+              discover,
+              args,
+              value.millModuleSegments
+            ).head match {
+              case r: Resolved.Target => r.valueOrErr
+              case r: Resolved.Command => r.valueOrErr
+            }
         }
+
     }
 
     if (taskList.nonEmpty) EitherOps.sequence(taskList).map(_.toSet[NamedTask[Any]])

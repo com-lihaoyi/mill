@@ -113,9 +113,20 @@ object Module {
     // For some reason, this fails to pick up concrete `object`s nested directly within
     // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
     // script/REPL runner always wraps user code in a wrapper object/trait
-    def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true))
-        : Seq[T] = {
-      reflect[T](filter) ++
+    def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true)) = {
+      reflectNestedObjects0(filter).map(_._2())
+    }
+
+    def reflectNestedObjects0[T: ClassTag](filter: String => Boolean = Function.const(true))
+        : Seq[(String, () => T)] = {
+
+      val first = Module.reflect(
+        outer.getClass,
+        implicitly[ClassTag[T]].runtimeClass,
+        filter,
+        noParams = true
+      ).map(m => (m.getName, () => m.invoke(outer).asInstanceOf[T]))
+      val second =
         outer
           .getClass
           .getClasses
@@ -123,12 +134,16 @@ object Module {
           .flatMap { c =>
             c.getSimpleName match {
               case s"$name$$" if filter(name) =>
-                c.getFields.find(_.getName == "MODULE$").map(_.get(c).asInstanceOf[T])
+                c.getFields.find(_.getName == "MODULE$").map(f => (name, () => f.get(c).asInstanceOf[T]))
               case _ => None
             }
 
           }
           .distinct
+
+
+
+      first ++ second
     }
   }
 }

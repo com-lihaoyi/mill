@@ -404,5 +404,18 @@ object ResolversTests extends TestSuite {
         )
       }
     }
+
+    "moduleInitError" - {
+      val check = ResolversTests.checkSeq(moduleInitError) _
+      "rootTarget" - check(
+        Seq("rootTarget"),
+        Right(Set(_.rootTarget))
+      )
+      "fooTarget" - check(
+        Seq("fooTarget"),
+        Left("Foo Boom")
+      )
+
+    }
   }
 }
