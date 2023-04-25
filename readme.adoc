@@ -251,6 +251,14 @@ corresponding version of Mill.
 
 [#0-11-0-M8]
 === 0.11.0-M8 - 2023-04-24
+:version: 0.11.0-M8
+:milestone-name: 0.11.0-M8
+:milestone: 79
+:prev-version: 0.11.0-M7
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
 
 * Added an https://github.com/com-lihaoyi/mill/tree/main/example[example/]
   folder in the Mill repo, containing common build setups demonstrating Mill
@@ -281,6 +289,10 @@ corresponding version of Mill.
 * Overhaul of the documentation. Created many executable example projects which are included in the documentation and run/tested on CI
 
 * Change cross module definitions to be traits instead of classes, for greater regularity and less builerplate at call sites. _This change requires slight modification to existing build scripts that define cross modules._
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-0-M7]
