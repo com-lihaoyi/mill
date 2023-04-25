@@ -165,8 +165,6 @@ object ResolveCore {
     val targets = Module
       .reflect(obj.getClass, classOf[Target[_]], namePred, noParams = true)
       .map { m =>
-        pprint.log(segments.render)
-        pprint.log((segments ++ Seq(Segment.Label(decode(m.getName)))).render)
         Resolved.Target(
           segments ++ Seq(Segment.Label(decode(m.getName))),
           catchReflectException(m.invoke(obj).asInstanceOf[Target[_]]))
