@@ -26,8 +26,8 @@ object ResolveNonEmpty {
           next match {
             case Segment.Label(s) =>
               val possibleStrings = possibleNexts.collect { case Segment.Label(s) => s }
-
               errorMsgLabel(s, possibleStrings, segments, Segments(selector))
+
             case Segment.Cross(keys) =>
               val possibleCrossKeys = possibleNexts.collect { case Segment.Cross(keys) => keys }
               errorMsgCross(keys, possibleCrossKeys, segments, Segments(selector))
