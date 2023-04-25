@@ -418,51 +418,65 @@ object ResolversTests extends TestSuite {
     }
 
     "moduleInitError" - {
-      val check = ResolversTests.checkSeq(moduleInitError) _
-      val checkCond = ResolversTests.checkSeq0(moduleInitError) _
-      // We can resolve the root module tasks even when the
-      // sub-modules fail to initialize
-      "rootTarget" - check(
-        Seq("rootTarget"),
-        Right(Set(_.rootTarget))
-      )
-      "rootCommand" - check(
-        Seq("rootCommand", "hello"),
-        Right(Set(_.rootCommand("hello")))
-      )
+      "simple" - {
+        val check = ResolversTests.checkSeq(moduleInitError) _
+        val checkCond = ResolversTests.checkSeq0(moduleInitError) _
+        // We can resolve the root module tasks even when the
+        // sub-modules fail to initialize
+        "rootTarget" - check(
+          Seq("rootTarget"),
+          Right(Set(_.rootTarget))
+        )
+        "rootCommand" - check(
+          Seq("rootCommand", "hello"),
+          Right(Set(_.rootCommand("hello")))
+        )
 
-      // Resolving tasks on a module that fails to initialize is properly
-      // caught and reported in the Either result
-      "fooTarget" - checkCond(
-        Seq("foo.fooTarget"),
-        res => res.isLeft && res.left.exists(_.contains("Foo Boom"))
-      )
-      "fooCommand" - checkCond(
-        Seq("foo.fooCommand", "hello"),
-        res => res.isLeft && res.left.exists(_.contains("Foo Boom"))
-      )
+        // Resolving tasks on a module that fails to initialize is properly
+        // caught and reported in the Either result
+        "fooTarget" - checkCond(
+          Seq("foo.fooTarget"),
+          res => res.isLeft && res.left.exists(_.contains("Foo Boom"))
+        )
+        "fooCommand" - checkCond(
+          Seq("foo.fooCommand", "hello"),
+          res => res.isLeft && res.left.exists(_.contains("Foo Boom"))
+        )
 
-      // Sub-modules that can initialize allow tasks to be resolved, even
-      // if their siblings or children are broken
-      "barTarget" - check(
-        Seq("bar.barTarget"),
-        Right(Set(_.bar.barTarget))
-      )
-      "barCommand" - check(
-        Seq("bar.barCommand", "hello"),
-        Right(Set(_.bar.barCommand("hello")))
-      )
+        // Sub-modules that can initialize allow tasks to be resolved, even
+        // if their siblings or children are broken
+        "barTarget" - check(
+          Seq("bar.barTarget"),
+          Right(Set(_.bar.barTarget))
+        )
+        "barCommand" - check(
+          Seq("bar.barCommand", "hello"),
+          Right(Set(_.bar.barCommand("hello")))
+        )
 
-      // Nested sub-modules that fail to initialize are properly handled
-      "quxTarget" - checkCond(
-        Seq("bar.qux.quxTarget"),
-        res => res.isLeft && res.left.exists(_.contains("Qux Boom"))
-      )
-      "quxCommand" - checkCond(
-        Seq("bar.qux.quxCommand", "hello"),
-        res => res.isLeft && res.left.exists(_.contains("Qux Boom"))
-      )
+        // Nested sub-modules that fail to initialize are properly handled
+        "quxTarget" - checkCond(
+          Seq("bar.qux.quxTarget"),
+          res => res.isLeft && res.left.exists(_.contains("Qux Boom"))
+        )
+        "quxCommand" - checkCond(
+          Seq("bar.qux.quxCommand", "hello"),
+          res => res.isLeft && res.left.exists(_.contains("Qux Boom"))
+        )
+      }
+      "cross" - {
+        val check = ResolversTests.checkSeq(crossModuleInitError) _
+        val checkCond = ResolversTests.checkSeq0(crossModuleInitError) _
+        test - check(
+          Seq("myCross[1].foo"),
+          Right(Set(_.myCross(1).foo))
+        )
+        test - checkCond(
+          Seq("myCross[3].foo"),
+          res => res.isLeft && res.left.exists(_.contains("MyCross Boom 3"))
+        )
 
+      }
     }
   }
 }
