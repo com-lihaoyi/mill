@@ -145,9 +145,9 @@ object Module {
             c.getName.stripPrefix(outer.getClass.getName) match {
               case s"$name$$" if filter(name) =>
                 pprint.log(name)
-                c.getFields.find(_.getName == "MODULE$").map(f =>
-                  (name, () => f.get(c).asInstanceOf[T])
-                )
+                c.getFields.find(_.getName == "MODULE$")
+                  .map(f => (name, () => f.get(c).asInstanceOf[T]))
+                
               case _ => None
             }
 
