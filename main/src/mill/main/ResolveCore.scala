@@ -102,7 +102,7 @@ object ResolveCore {
           }
 
         case (Segment.Cross(cross), Resolved.Module(_, Right(c: Cross[_]))) =>
-          val searchModules: Seq[Module] =
+          val searchModulesOrErr = catchNormalException(
             if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
             else if (cross.contains("_")) {
               for {
@@ -112,7 +112,13 @@ object ResolveCore {
               } yield v
             } else c.segmentsToModules.get(cross.toList).toSeq
 
-          recurse(searchModules.map(m => Resolved.Module(m.millModuleSegments, Right(m))).toSet)
+          )
+
+          searchModulesOrErr match{
+            case Left(err) => Error(err)
+            case Right(searchModules) =>
+              recurse(searchModules.map(m => Resolved.Module(m.millModuleSegments, Right(m))).toSet)
+          }
 
         case _ => notFoundResult(querySoFar, current, head, discover, args)
       }
@@ -120,11 +126,17 @@ object ResolveCore {
 
   def catchReflectException[T](t: => T): Either[String, T] = {
     try Right(t)
-    catch {
-      case e: java.lang.reflect.InvocationTargetException =>
-        val outerStack = new mill.api.Result.OuterStack(new Exception().getStackTrace)
-        Left(mill.api.Result.Exception(e.getCause, outerStack).toString)
-    }
+    catch {case e: Exception => makeResultException(e.getCause, new Exception())}
+  }
+
+  def catchNormalException[T](t: => T): Either[String, T] = {
+    try Right(t)
+    catch {case e: Exception => makeResultException(e, new Exception())}
+  }
+
+  def makeResultException(e: Throwable, base: Exception) = {
+    val outerStack = new mill.api.Result.OuterStack(base.getStackTrace)
+    Left(mill.api.Result.Exception(e, outerStack).toString)
   }
 
   def resolveDirectChildren(
@@ -234,11 +246,7 @@ object ResolveCore {
       )
     } match {
       case mainargs.Result.Success(v: Command[_]) => Right(v)
-
-      case mainargs.Result.Failure.Exception(e) =>
-        val outerStack = new mill.api.Result.OuterStack(new Exception().getStackTrace)
-        Left(mill.api.Result.Exception(e, outerStack).toString)
-
+      case mainargs.Result.Failure.Exception(e) => makeResultException(e, new Exception())
       case f: mainargs.Result.Failure =>
         Left(
           mainargs.Renderer.renderResult(

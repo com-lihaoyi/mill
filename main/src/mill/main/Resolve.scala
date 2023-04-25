@@ -17,7 +17,7 @@ import mill.util.EitherOps
 
 object ResolveSegments extends Resolve[Segments] {
   def handleResolved(
-      resolved: Set[Resolved],
+      resolved: Seq[Resolved],
       discover: Discover[_],
       args: Seq[String],
       selector: Segments
@@ -28,7 +28,7 @@ object ResolveSegments extends Resolve[Segments] {
 
 object ResolveMetadata extends Resolve[String] {
   def handleResolved(
-      resolved: Set[Resolved],
+      resolved: Seq[Resolved],
       discover: Discover[_],
       args: Seq[String],
       selector: Segments
@@ -39,13 +39,13 @@ object ResolveMetadata extends Resolve[String] {
 
 object ResolveTasks extends Resolve[NamedTask[Any]] {
   def handleResolved(
-      resolved: Set[Resolved],
+      resolved: Seq[Resolved],
       discover: Discover[_],
       args: Seq[String],
       selector: Segments
   ) = {
 
-    val taskList: Set[Either[String, NamedTask[_]]] = resolved
+    val taskList: Seq[Either[String, NamedTask[_]]] = resolved
       .collect {
         case r: Resolved.Target => Some(r.valueOrErr)
         case r: Resolved.Command => Some(r.valueOrErr)
@@ -67,18 +67,18 @@ object ResolveTasks extends Resolve[NamedTask[Any]] {
       }
       .flatten
 
-    if (taskList.nonEmpty) EitherOps.sequence(taskList).map(_.toSet[NamedTask[Any]])
+    if (taskList.nonEmpty) EitherOps.sequence(taskList)
     else Left(s"Cannot find default task to evaluate for module ${selector.render}")
   }
 }
 
 trait Resolve[T] {
   def handleResolved(
-      resolved: Set[Resolved],
+      resolved: Seq[Resolved],
       discover: Discover[_],
       args: Seq[String],
       segments: Segments
-  ): Either[String, Set[T]]
+  ): Either[String, Seq[T]]
 
   def resolve(
       evaluator: Evaluator,
@@ -128,8 +128,9 @@ trait Resolve[T] {
       args: Seq[String],
       sel: Segments,
       rootModule: BaseModule
-  ): Either[String, Set[T]] = {
+  ): Either[String, Seq[T]] = {
     ResolveNonEmpty.resolveNonEmpty(sel.value.toList, rootModule, rootModule.millDiscover, args)
+      .map(_.toSeq.sortBy(_.segments.render))
       .flatMap(handleResolved(_, rootModule.millDiscover, args, sel))
   }
 

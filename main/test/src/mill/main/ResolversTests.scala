@@ -586,7 +586,6 @@ object ResolversTests extends TestSuite {
       "dependency" - {
         val check = new Checker(moduleDependencyInitError)
         def isShortFooTrace(res: Either[String, List[NamedTask[_]]]) = {
-          pprint.log(res)
           res.isLeft &&
           res.left.exists(_.contains("Foo Boom") &&
           // Make sure the stack traces are truncated and short-ish, and do not
@@ -629,9 +628,9 @@ object ResolversTests extends TestSuite {
           // If any one of the cross modules fails to initialize, even if it's
           // not the one you are asking for, we fail and make sure to catch and
           // handle the error
-          test - check.checkSeq0(
+          test - check.checkSeq(
             Seq("myCross[1].foo"),
-            res => res.isLeft && res.left.exists(_.contains("MyCross Boom 3"))
+            Right(Set(_.myCross(1).foo))
           )
           test - check.checkSeq0(
             Seq("myCross[3].foo"),
