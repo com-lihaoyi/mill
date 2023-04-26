@@ -31,6 +31,8 @@
 * xref:Using_Plugins.adoc[]
 * xref:Contrib_Plugins.adoc[]
 // See also the list in Contrib_Plugins.adoc
+** xref:contrib/vcsversion.adoc[]
+** xref:contrib/mima.adoc[]
 ** xref:contrib/artifactory.adoc[]
 ** xref:contrib/bintray.adoc[]
 ** xref:contrib/bloop.adoc[]

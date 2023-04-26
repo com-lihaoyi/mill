@@ -30,6 +30,8 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 == List of Contrib Plugins
 
 // See also the list in nav.adoc
+* xref:contrib/vcsversion.adoc[]
+* xref:contrib/mima.adoc[]
 * xref:contrib/artifactory.adoc[]
 * xref:contrib/bintray.adoc[]
 * xref:contrib/bloop.adoc[]

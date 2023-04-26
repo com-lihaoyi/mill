@@ -1095,12 +1095,12 @@ object contrib extends MillModule {
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
-  object `vcs-version` extends ContribModule {
+  object vcsversion extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests) }
     object example extends Cross[ExampleCrossModule](listIn(millSourcePath / "example"): _*)
     class ExampleCrossModule(val repoSlug: String) extends build.example.ExampleCrossModule(repoSlug) {
-      def moduleDeps = super.moduleDeps ++ Seq(`vcs-version`)
+      def moduleDeps = super.moduleDeps ++ Seq(vcsversion)
     }
   }
 

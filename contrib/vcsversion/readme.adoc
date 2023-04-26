@@ -1,0 +1,77 @@
+= VCS Version
+:version: 0.3.0
+:mill-platform: 0.10
+:project-home: https://github.com/lefou/mill-vcs-version
+:toc:
+:toc-placement: preamble
+
+ifdef::env-github[]
+image:https://github.com/lefou/mill-vcs-version/workflows/.github/workflows/build.yml/badge.svg["Build Status (GitHub Actions)", link="https://github.com/lefou/mill-vcs-version/actions"]
+image:https://codecov.io/gh/lefou/mill-vcs-version/branch/main/graph/badge.svg[Test Coverage (Codecov.io), link="https://codecov.io/gh/lefou/mill-vcs-version"]
+image:https://index.scala-lang.org/lefou/mill-vcs-version/de.tobiasroeser.mill.vcs.version_mill{mill-platform}/latest.svg["Latest version (Scaladex)", link="https://index.scala-lang.org/lefou/mill-vcs-version/de.tobiasroeser.mill.vcs.version_mill{mill-platform}"]
+endif::[]
+
+Mill plugin to derive a version from (last) git tag and edit state.
+It may support other VCS as well.
+
+== Quickstart
+
+To use a git-derived version for publishing, all you need is to use `VcsVersion.vcsState` target.
+`VcsVersion` is an external mill module and as such can be used out of the box without further configuration.
+
+[source,scala,subs="attributes,verbatim"]
+----
+import mill._
+import mill.scalalib._
+import mill.define._
+
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::{version}`
+import de.tobiasroeser.mill.vcs.version.VcsVersion
+
+object main extends JavaModule with PublishModule {
+  override def publishVersion: T[String] = VcsVersion.vcsState().format()
+}
+----
+
+== Formatting options
+
+The formatted version is base on
+
+* the latest git tag
+* the count of commits since the latest tag
+* the difference between the latest commit and the actual local state (changes or new files)
+
+The format is highly customizable.
+
+----
+{git-tag}{commit-count-sep}{commit-count}{revision-sep}{revision-hash}{dirty-dep}{dirty-hash}
+----
+
+The `format` method has the following options:
+
+* `noTagFallback: String = "0.0.0"` - will be used when no tag was found
+* `countSep: String = "-"` - will be printed before the commit count when it is greater than zero
+* `commitCountPad: Byte = 0` - if greater than zero, the commit count will be padded to the given length; a negative value results in never adding the commit count
+* `revSep: String = "-"` - will be printed before the revision hash if it is not a tagged revision
+* `revHashDigits: Int = 6` - the number of digits to be used for the revision hash
+* `dirtySep: String = "-DIRTY"` - will be printed before the dirty hash if the local repository is in modified state
+* `dirtyHashDigits: Int = 8` - the number of digits to be used for the dirty hash
+* `tagModifier: String => String` - allows to modify the git tag (By default this strips a leading `v` if one exists. e.g. v1.2.3 -> 1.2.3)
+* `untaggedSuffix: String = "" - will append the given string at the end of the version when the current revision is not tagged (e.g. use with `"-SNAPSHOT"` to publish to Maven Snapshot repositories)
+
+When used with its defaults, the outcome is identical to the version scheme used by Mill.
+
+me::
++
+--
+https://github.com/lefou/[I'm] a professional software developer and love to write and use open source software.
+I'm actively developing and maintaining mill as well as https://github.com/lefou?utf8=%E2%9C%93&tab=repositories&q=topic%3Amill&type=&language=[several mill plugins].
+
+If you like my work, please star it on GitHub. You can also support me via https://github.com/sponsors/lefou[GitHub Sponsors].
+--
+
+Contributing::
+  If you found a bug or have a feature request, please open a {project-home}/issues[new issue on GitHub].
+  I also accept {project-home}/pulls[pull requests on GitHub].
+
