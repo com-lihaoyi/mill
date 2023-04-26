@@ -1,13 +1,15 @@
 diff --git a/build.sc b/build.sc
-index 99c74fbd5f..156f2d4524 100644
+index 99c74fbd5f..d9a84c2d77 100644
 --- a/build.sc
 +++ b/build.sc
-@@ -2,27 +2,18 @@
+@@ -2,13 +2,15 @@
  import $file.ci.shared
  import $file.ci.upload
  import $ivy.`org.scalaj::scalaj-http:2.4.2`
 -import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.0`
 -import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.13`
++import $ivy.`com.lihaoyi::mill-contrib-vcsversion:$MILL_VERSION`
++import $ivy.`com.lihaoyi::mill-contrib-mima:$MILL_VERSION`
  import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 +import $ivy.`com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION`
 +import mill.contrib.buildinfo.BuildInfo
@@ -15,15 +17,17 @@ index 99c74fbd5f..156f2d4524 100644
  // imports
 -import com.github.lolgab.mill.mima
 -import com.github.lolgab.mill.mima.{
--  CheckDirection,
--  DirectMissingMethodProblem,
--  IncompatibleMethTypeProblem,
--  IncompatibleSignatureProblem,
--  ProblemFilter,
--  ReversedMissingMethodProblem
--}
++import mill.mima
++import mill.mima.{
+   CheckDirection,
+   DirectMissingMethodProblem,
+   IncompatibleMethTypeProblem,
+@@ -17,12 +19,13 @@ import com.github.lolgab.mill.mima.{
+   ReversedMissingMethodProblem
+ }
  import coursier.maven.MavenRepository
 -import de.tobiasroeser.mill.vcs.version.VcsVersion
++import mill.vcs.version.VcsVersion
  import mill._
  import mill.define.{Command, Source, Sources, Target, Task}
  import mill.eval.Evaluator
@@ -33,7 +37,7 @@ index 99c74fbd5f..156f2d4524 100644
  import mill.scalalib.publish._
  import mill.modules.Jvm
  import mill.define.SelectMode
-@@ -162,12 +153,8 @@ object Deps {
+@@ -162,12 +165,8 @@ object Deps {
    val requests = ivy"com.lihaoyi::requests:0.8.0"
  }
  
@@ -48,7 +52,7 @@ index 99c74fbd5f..156f2d4524 100644
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
-@@ -216,8 +203,8 @@ val buildBridgeScalaVersions =
+@@ -216,8 +215,8 @@ val buildBridgeScalaVersions =
    if (!buildAllCompilerBridges) Seq()
    else bridgeScalaVersions
  
@@ -59,7 +63,7 @@ index 99c74fbd5f..156f2d4524 100644
    def scalaVersion = crossScalaVersion
    def publishVersion = bridgeVersion
    def artifactName = T { "mill-scala-compiler-bridge" }
-@@ -236,239 +223,25 @@ class BridgeModule(val crossScalaVersion: String) extends PublishModule with Cro
+@@ -236,239 +235,25 @@ class BridgeModule(val crossScalaVersion: String) extends PublishModule with Cro
    def generatedSources = T {
      import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
      val resolvedJars = resolveDeps(
@@ -304,36 +308,7 @@ index 99c74fbd5f..156f2d4524 100644
  def commonPomSettings(artifactName: String) = {
    PomSettings(
      description = artifactName,
-@@ -522,27 +295,8 @@ trait MillCoursierModule extends CoursierModule {
-   )
- }
- 
--trait MillMimaConfig extends mima.Mima {
-+trait MillMimaConfig extends Module {
-   def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
--  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
--  override def mimaPreviousArtifacts: T[Agg[Dep]] = T {
--    Agg.from(
--      Settings.mimaBaseVersions
--        .filter(v => !skipPreviousVersions().contains(v))
--        .map(version =>
--          ivy"${pomSettings().organization}:${artifactId()}:${version}"
--        )
--    )
--  }
--  override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
--    "mill.api.internal",
--    "mill.api.experimental"
--  )
--  override def mimaCheckDirection: Target[CheckDirection] = T { CheckDirection.Backward }
--  override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
--    issueFilterByModule.getOrElse(this, Seq())
--  }
--  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
- }
- 
- /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -854,8 +608,10 @@ object scalajslib extends MillModule with BuildInfo {
+@@ -854,8 +639,10 @@ object scalajslib extends MillModule with BuildInfo {
      override def ivyDeps = Agg(Deps.sbtTestInterface)
    }
    object worker extends Cross[WorkerModule]("1")
@@ -345,7 +320,7 @@ index 99c74fbd5f..156f2d4524 100644
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
        Deps.Scalajs_1.scalajsSbtTestAdapter,
-@@ -921,8 +677,10 @@ object contrib extends MillModule {
+@@ -921,8 +708,10 @@ object contrib extends MillModule {
  
      object api extends MillPublishModule
  
@@ -358,7 +333,7 @@ index 99c74fbd5f..156f2d4524 100644
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -1098,8 +856,8 @@ object contrib extends MillModule {
+@@ -1098,8 +887,8 @@ object contrib extends MillModule {
    object vcsversion extends ContribModule {
      override def compileModuleDeps = Seq(scalalib)
      override def ivyDeps = T { Agg(Deps.requests) }
@@ -369,7 +344,7 @@ index 99c74fbd5f..156f2d4524 100644
        def moduleDeps = super.moduleDeps ++ Seq(vcsversion)
      }
    }
-@@ -1119,8 +877,8 @@ object contrib extends MillModule {
+@@ -1119,8 +908,8 @@ object contrib extends MillModule {
        Seq("-DMILL_MIMA_WORKER_IMPL=" + `worker-impl`.runClasspath().map(_.path).mkString(","))
      }
  
@@ -380,7 +355,7 @@ index 99c74fbd5f..156f2d4524 100644
        def moduleDeps = super.moduleDeps ++ Seq(mima)
        def forkArgs = super.forkArgs() ++ mima.testArgs()
      }
-@@ -1143,8 +901,9 @@ object scalanativelib extends MillModule {
+@@ -1143,8 +932,9 @@ object scalanativelib extends MillModule {
      override def ivyDeps = Agg(Deps.sbtTestInterface)
    }
    object worker extends Cross[WorkerModule]("0.4")
@@ -392,7 +367,7 @@ index 99c74fbd5f..156f2d4524 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1322,7 +1081,9 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1322,7 +1112,9 @@ trait IntegrationTestModule extends MillScalaModule {
    }
  }
  
@@ -403,7 +378,7 @@ index 99c74fbd5f..156f2d4524 100644
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1336,15 +1097,15 @@ object example extends MillScalaModule {
+@@ -1336,15 +1128,15 @@ object example extends MillScalaModule {
  
    def moduleDeps = Seq(integration)
  
@@ -427,7 +402,7 @@ index 99c74fbd5f..156f2d4524 100644
      def sources = T.sources()
      def testRepoRoot: T[PathRef] = T.source(millSourcePath)
      def compile = example.compile()
-@@ -1394,7 +1155,7 @@ object example extends MillScalaModule {
+@@ -1394,7 +1186,7 @@ object example extends MillScalaModule {
                val title =
                  if (seenCode) ""
                  else {
@@ -436,7 +411,7 @@ index 99c74fbd5f..156f2d4524 100644
                    val exampleDashed = examplePath.segments.mkString("-")
                    val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
                    val browse = s"{mill-example-url}/$examplePath[browse]"
-@@ -1425,9 +1186,9 @@ object example extends MillScalaModule {
+@@ -1425,9 +1217,9 @@ object example extends MillScalaModule {
  }
  
  object integration extends MillScalaModule {
@@ -449,13 +424,7 @@ index 99c74fbd5f..156f2d4524 100644
  
    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
  
-@@ -1736,67 +1497,11 @@ object docs extends Module {
-     def moduleDeps = build.millInternal.modules.collect { case m: MillApiModule => m }
- 
-     def unidocSourceUrl = T {
--      val sha = VcsVersion.vcsState().currentRevision
-+      val sha = "xxx"
-       Some(s"${Settings.projectUrl}/blob/$sha")
+@@ -1741,62 +1533,6 @@ object docs extends Module {
      }
    }
  
@@ -518,7 +487,7 @@ index 99c74fbd5f..156f2d4524 100644
    private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
    def npmBase: T[os.Path] = T.persistent { T.dest }
-@@ -1849,7 +1554,7 @@ object docs extends Module {
+@@ -1849,7 +1585,7 @@ object docs extends Module {
  
      val contribReadmes = T.traverse(contrib.contribModules)(m =>
        T.task {
@@ -527,63 +496,3 @@ index 99c74fbd5f..156f2d4524 100644
        }
      )()
  
-@@ -2079,7 +1784,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
-     examplePath = exampleMod.millSourcePath
-   } yield {
-     val example = examplePath.subRelativeTo(T.workspace)
--    val exampleStr = VcsVersion.vcsState().format() + "-" + example.segments.mkString("-")
-+    val exampleStr = "xxx" + "-" + example.segments.mkString("-")
-     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
-     os.copy(launcher().path, T.dest / exampleStr / "mill")
-     val zip = T.dest / s"$exampleStr.zip"
-@@ -2088,49 +1793,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
-   }
- }
- 
--def uploadToGithub(authKey: String) = T.command {
--  val vcsState = VcsVersion.vcsState()
--  val label = vcsState.format()
--  if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
--  val releaseTag = vcsState.lastTag.getOrElse(sys.error(
--    "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
--  ))
--
--  if (releaseTag == label) {
--    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
--    scalaj.http.Http(
--      s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
--    )
--      .postData(
--        ujson.write(
--          ujson.Obj(
--            "tag_name" -> releaseTag,
--            "name" -> releaseTag
--          )
--        )
--      )
--      .header("Authorization", "token " + authKey)
--      .asString
--  }
--
--  val examples = exampleZips().map(z => (z.path, z.path.last))
--
--  val zips = examples ++ Seq(
--    (assembly().path, label + "-assembly"),
--    (launcher().path, label)
--  )
--
--  for ((zip, name) <- zips) {
--    upload.apply(
--      zip,
--      releaseTag,
--      name,
--      authKey,
--      Settings.githubOrg,
--      Settings.githubRepo
--    )
--  }
--}
-+def uploadToGithub(authKey: String) = T.command {}
- 
- def validate(ev: Evaluator): Command[Unit] = T.command {
-   T.task(MainModule.evaluateTasks(
