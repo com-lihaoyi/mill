@@ -10,23 +10,23 @@ object ExpandBraces {
   }
 
   def expandRec(frags: List[Fragment]): List[List[String]] = frags match {
-      case Nil => List(List())
-      case head :: tail =>
-        val tailStrings = expandRec(tail)
-        head match {
-          case Fragment.Keep(s) => tailStrings.map(s :: _)
-          case Fragment.Expand(fragmentLists) =>
-            if (fragmentLists.length == 1) {
-              for {
-                lhs <- fragmentLists.flatMap(expandRec)
-                rhs <- tailStrings
-              } yield List("{") ::: lhs ::: List("}") ::: rhs
-            } else for {
+    case Nil => List(List())
+    case head :: tail =>
+      val tailStrings = expandRec(tail)
+      head match {
+        case Fragment.Keep(s) => tailStrings.map(s :: _)
+        case Fragment.Expand(fragmentLists) =>
+          if (fragmentLists.length == 1) {
+            for {
               lhs <- fragmentLists.flatMap(expandRec)
               rhs <- tailStrings
-            } yield lhs ::: rhs
-        }
-    }
+            } yield List("{") ::: lhs ::: List("}") ::: rhs
+          } else for {
+            lhs <- fragmentLists.flatMap(expandRec)
+            rhs <- tailStrings
+          } yield lhs ::: rhs
+      }
+  }
 
   def expandBraces(selectorString: String): Either[String, Seq[String]] = {
     parse(selectorString, parser(_)) match {

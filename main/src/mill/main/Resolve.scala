@@ -50,7 +50,7 @@ object ResolveTasks extends Resolve[NamedTask[Any]] {
         case r: Resolved.Target => Some(r.valueOrErr)
         case r: Resolved.Command => Some(r.valueOrErr)
         case r: Resolved.Module =>
-          r.valueOrErr.toOption.collect{ case value: TaskModule =>
+          r.valueOrErr.toOption.collect { case value: TaskModule =>
             ResolveCore.resolveDirectChildren(
               value,
               Some(value.defaultCommandName()),
