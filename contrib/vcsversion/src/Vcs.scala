@@ -1,4 +1,4 @@
-package mill.vcs.version
+package mill.vcsversion
 
 case class Vcs(val name: String)
 

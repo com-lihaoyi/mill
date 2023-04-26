@@ -26,8 +26,8 @@ import mill.scalalib._
 import mill.define._
 
 // Load the plugin from Maven Central via ivy/coursier
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::{version}`
-import de.tobiasroeser.mill.vcs.version.VcsVersion
+import $ivy.`com.lihaoyi::mill.vcsversion::$MILL_VERSION`
+import mill.vcsversion.VcsVersion
 
 object main extends JavaModule with PublishModule {
   override def publishVersion: T[String] = VcsVersion.vcsState().format()

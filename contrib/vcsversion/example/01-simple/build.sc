@@ -1,5 +1,5 @@
 
-import mill.vcs.version._
+import mill.vcsversion._
 import mill._
 import mill.define.Command
 
@@ -27,7 +27,7 @@ def vcsFormat = T{ VcsVersion.vcsState().format() }
 
 > ./mill verify1
 
-> ./mill mill.vcs.version.VcsVersion/vcsState
+> ./mill mill.vcsversion.VcsVersion/vcsState
 
 > printf "\n// dummy text" >> plugins.sc
 

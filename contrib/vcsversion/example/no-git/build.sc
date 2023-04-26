@@ -1,5 +1,5 @@
 
-import mill.vcs.version._
+import mill.vcsversion._
 import mill._
 import mill.define.Command
 

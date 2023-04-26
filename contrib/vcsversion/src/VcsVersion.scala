@@ -1,4 +1,4 @@
-package mill.vcs.version
+package mill.vcsversion
 
 import scala.util.control.NonFatal
 import mill.T

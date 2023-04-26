@@ -27,7 +27,7 @@ index 99c74fbd5f..d9a84c2d77 100644
  }
  import coursier.maven.MavenRepository
 -import de.tobiasroeser.mill.vcs.version.VcsVersion
-+import mill.vcs.version.VcsVersion
++import mill.vcsversion.VcsVersion
  import mill._
  import mill.define.{Command, Source, Sources, Target, Task}
  import mill.eval.Evaluator
