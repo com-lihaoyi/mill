@@ -42,7 +42,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   var runnerState = RunnerState.empty
 
-  private def runnerStdout(stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
+  private def runnerStdout(env: Map[String, String], stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
     val streams = new SystemStreams(stdout, stderr, stdIn)
     SystemStreams.withStreams(streams) {
       val config = MillCliConfig(
@@ -69,7 +69,7 @@ abstract class IntegrationTestSuite extends TestSuite {
           new MillBuildBootstrap(
             projectRoot = wd,
             config = config,
-            env = Map.empty,
+            env = env,
             threadCount = threadCount,
             targetsAndParams = s.toList,
             prevRunnerState = runnerState,
@@ -84,7 +84,7 @@ abstract class IntegrationTestSuite extends TestSuite {
   }
 
   def eval(s: String*): Boolean = {
-    if (integrationTestMode == "local") runnerStdout(System.out, System.err, s)._1
+    if (integrationTestMode == "local") runnerStdout(Map(), System.out, System.err, s)._1
     else evalFork(os.Inherit, os.Inherit, s)
   }
 
@@ -94,11 +94,13 @@ abstract class IntegrationTestSuite extends TestSuite {
     def text() = byteArrayOutputStream.toString("UTF-8").linesIterator.mkString("\n")
   }
 
-  def evalStdout(s: String*): IntegrationTestSuite.EvalResult = {
+  def evalStdout(s: String*): IntegrationTestSuite.EvalResult = evalEnvStdout(Map(), s: _*)
+
+  def evalEnvStdout(env: Map[String, String], s: String*): IntegrationTestSuite.EvalResult = {
     if (integrationTestMode == "local") {
       val outputStream = new ByteArrayOutputPrintStreams()
       val errorStream = new ByteArrayOutputPrintStreams()
-      val result = runnerStdout(outputStream.printStream, errorStream.printStream, s.toList)
+      val result = runnerStdout(env, outputStream.printStream, errorStream.printStream, s.toList)
 
       IntegrationTestSuite.EvalResult(result._1, outputStream.text(), errorStream.text())
     } else {

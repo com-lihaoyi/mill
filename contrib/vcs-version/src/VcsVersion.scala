@@ -15,12 +15,12 @@ trait VcsVersion extends Module {
    *
    * @return A tuple of (the latest tag, the calculated version string)
    */
-  def vcsState: Input[VcsState] = T.input { calcVcsState(T.log) }
+  def vcsState: Input[VcsState] = T.input { calcVcsState(T.log, T.env) }
 
-  private[this] def calcVcsState(logger: Logger): VcsState = {
+  private[this] def calcVcsState(logger: Logger, env: Map[String, String]): VcsState = {
     val curHeadRaw =
       try {
-        Option(os.proc("git", "rev-parse", "HEAD").call(cwd = vcsBasePath).out.trim)
+        Option(os.proc("git", "rev-parse", "HEAD").call(cwd = vcsBasePath, env = env).out.trim)
       } catch {
         case e: SubprocessException =>
           logger.error(s"${vcsBasePath} is not a git repository.")
@@ -39,7 +39,7 @@ trait VcsVersion extends Module {
             curHead
               .map(curHead =>
                 os.proc("git", "describe", "--exact-match", "--tags", "--always", curHead)
-                  .call(cwd = vcsBasePath)
+                  .call(cwd = vcsBasePath, env = env)
                   .out
                   .text()
                   .trim
@@ -53,7 +53,7 @@ trait VcsVersion extends Module {
           try {
             Option(
               os.proc("git", "describe", "--abbrev=0", "--tags")
-                .call()
+                .call(env = env)
                 .out
                 .text()
                 .trim()
@@ -78,7 +78,7 @@ trait VcsVersion extends Module {
                     case _         => Seq()
                   },
                   "--count"
-                ).call()
+                ).call(env = env)
                   .out
                   .trim
                   .toInt
@@ -86,7 +86,7 @@ trait VcsVersion extends Module {
               .getOrElse(0)
           }
 
-        val dirtyHashCode: Option[String] = Option(os.proc("git", "diff").call().out.text().trim()).flatMap {
+        val dirtyHashCode: Option[String] = Option(os.proc("git", "diff").call(env = env).out.text().trim()).flatMap {
           case "" => None
           case s  => Some(Integer.toHexString(s.hashCode))
         }

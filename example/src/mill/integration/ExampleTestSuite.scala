@@ -89,7 +89,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
     tokens.drop(envTokens.length) match {
       case Seq(s"./$command", rest @ _*) =>
         val evalResult = command match {
-          case "mill" => evalStdout(rest: _*)
+          case "mill" => evalEnvStdout(envVars, rest: _*)
           case cmd =>
             val tokens = cmd +: rest
             val executable = workspaceRoot / os.RelPath(tokens.head)
