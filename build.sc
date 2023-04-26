@@ -1115,9 +1115,14 @@ object contrib extends MillModule {
       override def ivyDeps = T { Agg(ivy"com.typesafe::mima-core:1.1.2") }
     }
 
+    override def testArgs = T {
+      Seq("-DMILL_MIMA_WORKER_IMPL=" + `worker-impl`.runClasspath().map(_.path).mkString(","))
+    }
+
     object example extends Cross[ExampleCrossModule](listIn(millSourcePath / "example"): _*)
     class ExampleCrossModule(val repoSlug: String) extends build.example.ExampleCrossModule(repoSlug){
-      def moduleDeps = Seq(mima)
+      def moduleDeps = super.moduleDeps ++ Seq(mima)
+      def forkArgs = super.forkArgs() ++ mima.testArgs()
     }
   }
 }
@@ -1288,7 +1293,8 @@ trait IntegrationTestModule extends MillScalaModule {
           genTask(scalajslib)() ++
           genTask(scalanativelib)()
 
-      super.forkArgs() ++
+      IntegrationTestModule.this.forkArgs() ++
+        super.forkArgs() ++
         scalajslib.testArgs() ++
         main.graphviz.testArgs() ++
         scalalib.worker.testArgs() ++

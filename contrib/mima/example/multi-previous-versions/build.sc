@@ -24,20 +24,10 @@ object prev2 extends Common {
 object curr extends Common with Mima {
   def publishVersion = "0.0.3"
   def mimaPreviousArtifacts = T(
-    Agg(
-      ivy"org::prev:0.0.1",
-      ivy"org::prev:0.0.2"
-    )
+    Agg(ivy"org::prev:0.0.1", ivy"org::prev:0.0.2")
   )
 }
 
-val repo = sys.props("ivy.home") + "/local"
-
-def prepare() = T.command {
-  prev.publishLocal(repo)()
-  prev2.publishLocal(repo)()
-  ()
-}
 
 def verify() = T.command {
   assert(curr.mimaPreviousArtifacts().iterator.size == 2)
@@ -51,11 +41,17 @@ def verifyFail() = T.command {
 
 /** Usage
 
-> ./mill prepare
+> ./mill prev.publishLocal
+> ./mill prev2.publishLocal
 
 > ./mill verify
 
-> ./mill verifyFail
-error:
+> ./mill curr.mimaReportBinaryIssues
+...
+error: Found 2 issue when checking against org:prev:0.0.1
+error:  * static method hello()java.lang.String in class Main does not have a correspondent in current version
+error:    filter with: ProblemFilter.exclude[DirectMissingMethodProblem]("Main.hello")
+error:  * method hello()java.lang.String in object Main does not have a correspondent in current version
+error:    filter with: ProblemFilter.exclude[DirectMissingMethodProblem]("Main.hello")
 
- */
+*/

@@ -18,18 +18,12 @@ object curr extends Common with Mima {
   }
 }
 
-def prepare() = T.command {
-  prev.publishLocal(sys.props("ivy.home") + "/local")()
-}
-
-def verify() = T.command {
-  curr.mimaReportBinaryIssues()
-}
-
 /** Usage
 
-> ./mill prepare
+> ./mill prev.publishLocal
 
-> ./mill verify
+> ./mill curr.mimaReportBinaryIssues
+...
+Binary compatibility check passed
 
 */

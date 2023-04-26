@@ -21,6 +21,7 @@ trait Common extends ScalaModule with PublishModule with Mima { outer =>
     override def mimaPreviousVersions = outer.mimaPreviousVersions
   }
 }
+
 object prev extends Common {
   object js extends Js
 }
@@ -29,39 +30,26 @@ object curr extends Common with Mima {
   object js extends Js
 }
 
-def prepare() = T.command {
-  prev.publishLocal(sys.props("ivy.home") + "/local")()
-  prev.js.publishLocal(sys.props("ivy.home") + "/local")()
-}
-
-def verify() = T.command {
-  // tests mimaPreviousVersions
-  assertEquals(curr.mimaPreviousArtifacts(), Agg(ivy"org:prev_2.13:0.0.1"))
-  assertEquals(
-    curr.js.mimaPreviousArtifacts(),
-    Agg(ivy"org:prev-js_sjs1_2.13:0.0.1")
-  )
-}
-
-def verifyFail() = T.command {
-  curr.mimaReportBinaryIssues()()
-}
-
-def verifyFailJs() = T.command {
-  curr.js.mimaReportBinaryIssues()()
-}
-
 
 /** Usage
 
-> ./mill prepare
+> ./mill prev.publishLocal
+> ./mill prev.js.publishLocal
 
-> ./mill verify
+> ./mill curr.mimaReportBinaryIssues
+...
+error: Found 2 issue when checking against org:prev_2.13:0.0.1
+error:  * static method hello()java.lang.String in class Main does not have a correspondent in current version
+error:    filter with: ProblemFilter.exclude[DirectMissingMethodProblem]("Main.hello")
+error:  * method hello()java.lang.String in object Main does not have a correspondent in current version
+error:    filter with: ProblemFilter.exclude[DirectMissingMethodProblem]("Main.hello")
 
-> ./mill verifyFail
-error:
-
-> ./mill verifyFailJs
-error:
+> ./mill curr.js.mimaReportBinaryIssues
+...
+error: Found 2 issue when checking against org:prev-js_sjs1_2.13:0.0.1
+error:  * static method hello()java.lang.String in class Main does not have a correspondent in current version
+error:    filter with: ProblemFilter.exclude[DirectMissingMethodProblem]("Main.hello")
+error:  * method hello()java.lang.String in object Main does not have a correspondent in current version
+error:    filter with: ProblemFilter.exclude[DirectMissingMethodProblem]("Main.hello")
 
 */

@@ -10,29 +10,24 @@ trait Common extends ScalaModule with PublishModule {
   def pomSettings =
     PomSettings("", organization = "org", "", Seq(), VersionControl(), Seq())
 }
+
 object prev extends Common
 object curr extends Common with Mima {
   override def mimaPreviousArtifacts = T(Agg(ivy"org::prev:0.0.1"))
   override def mimaCheckDirection = CheckDirection.Backward
 }
 
-def prepare() = T.command {
-  prev.publishLocal(sys.props("ivy.home") + "/local")()
-}
-
-def verify() = T.command {
-  curr.mimaReportBinaryIssues()()
-  ()
-}
-
-
-
 
 /** Usage
 
-> ./mill prepare
+> ./mill prev.publishLocal
 
-> ./mill verify
-error:
+> ./mill curr.mimaReportBinaryIssues
+...
+error: Found 2 issue when checking against org:prev:0.0.1
+error:  * static method hello()java.lang.String in class Main does not have a correspondent in current version
+error:    filter with: ProblemFilter.exclude[DirectMissingMethodProblem]("Main.hello")
+error:  * method hello()java.lang.String in object Main does not have a correspondent in current version
+error:    filter with: ProblemFilter.exclude[DirectMissingMethodProblem]("Main.hello")
 
 */
