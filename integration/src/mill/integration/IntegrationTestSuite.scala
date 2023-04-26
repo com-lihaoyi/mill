@@ -156,7 +156,8 @@ abstract class IntegrationTestSuite extends TestSuite {
   }
 
   def initWorkspace(): Path = {
-    os.remove.all(workspacePath)
+    if (os.exists(workspacePath)) os.list(workspacePath).foreach(os.remove.all)
+
     os.makeDir.all(workspacePath / os.up)
     // The unzipped git repo snapshots we get from github come with a
     // wrapper-folder inside the zip file, so copy the wrapper folder to the
