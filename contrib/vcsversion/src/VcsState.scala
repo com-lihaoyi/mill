@@ -60,7 +60,7 @@ case class VcsState(
     }
 
   @deprecated("Binary compatibility shim. Use other overload instead.", "mill-vcs-version after 0.2.0")
-  private[version] def format(
+  private[vcsversion] def format(
                                noTagFallback: String,
                                countSep: String,
                                commitCountPad: Byte,
