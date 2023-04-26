@@ -70,7 +70,7 @@ object ParseArgs {
     for {
       _ <- validateSelectors(selectors)
       expandedSelectors <- EitherOps
-        .sequence(selectors.map(expandBraces))
+        .sequence(selectors.map(ExpandBraces.expandBraces))
         .map(_.flatten)
       selectors <- EitherOps.sequence(expandedSelectors.map(extractSegments))
     } yield (selectors.toList, args)
@@ -98,78 +98,8 @@ object ParseArgs {
     else Right(())
   }
 
-  def expandBraces(selectorString: String): Either[String, List[String]] = {
-    parseBraceExpansion(selectorString) match {
-      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
-      case Parsed.Success(expanded, _) => Right(expanded.toList)
-    }
-  }
-
-  private sealed trait Fragment
-  private object Fragment {
-    case class Keep(value: String) extends Fragment
-    case class Expand(values: List[List[Fragment]]) extends Fragment
-
-    def unfold(fragments: List[Fragment]): Seq[String] = {
-      fragments match {
-        case head :: rest =>
-          val prefixes = head match {
-            case Keep(v) => Seq(v)
-            case Expand(Nil) => Seq("{}")
-            case Expand(List(vs)) => unfold(vs).map("{" + _ + "}")
-            case Expand(vss) => vss.flatMap(unfold)
-          }
-          for {
-            prefix <- prefixes
-            suffix <- unfold(rest)
-          } yield prefix + suffix
-
-        case Nil => Seq("")
-      }
-    }
-  }
-
-  private object BraceExpansionParser {
-    def plainChars[_p: P]: P[Fragment.Keep] =
-      P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep)
-
-    def toExpand[_p: P]: P[Fragment] =
-      P("{" ~ braceParser.rep(1).rep(sep = ",") ~ "}").map(x =>
-        Fragment.Expand(x.toList.map(_.toList))
-      )
-
-    def braceParser[_p: P]: P[Fragment] = P(toExpand | plainChars)
-
-    def parser[_p: P]: P[Seq[String]] = P(braceParser.rep(1).rep(sep = ",") ~ End).map { vss =>
-      def unfold(vss: List[Seq[String]]): Seq[String] = {
-        vss match {
-          case Nil => Seq("")
-          case head :: rest =>
-            for {
-              str <- head
-              r <- unfold(rest)
-            } yield r match {
-              case "" => str
-              case _ => str + "," + r
-            }
-        }
-      }
-
-      val stringss = vss.map(x => Fragment.unfold(x.toList)).toList
-      unfold(stringss)
-    }
-  }
-
-  private def parseBraceExpansion(input: String): Parsed[Seq[String]] = {
-
-    parse(
-      input,
-      BraceExpansionParser.parser(_)
-    )
-  }
-
   def extractSegments(selectorString: String): Either[String, (Option[Segments], Segments)] =
-    parseSelector(selectorString) match {
+    parse(selectorString, selector(_)) match {
       case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Right(selector)
     }
@@ -180,17 +110,17 @@ object ParseArgs {
   def isLegalIdentifier(identifier: String): Boolean =
     parse(identifier, standaloneIdent(_)).isInstanceOf[Parsed.Success[_]]
 
-  private def parseSelector(input: String): Parsed[(Option[Segments], Segments)] = {
-    def ident2[_p: P] = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def segment[_p: P] = P(ident).map(Segment.Label)
-    def crossSegment[_p: P] = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
-    def simpleQuery[_p: P] = P(segment ~ ("." ~ segment | crossSegment).rep).map {
-      case (h, rest) => Segments(h, rest: _*)
+  private def selector[_p: P]: P[(Option[Segments], Segments)] = {
+    def ident2 = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
+    def segment = P(ident).map(Segment.Label)
+    def crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
+    def simpleQuery = P(segment ~ ("." ~ segment | crossSegment).rep).map {
+      case (h, rest) => Segments(h +: rest)
     }
-    def query[_p: P] = P(simpleQuery ~ ("/" ~/ simpleQuery).?).map {
+
+    P(simpleQuery ~ ("/" ~/ simpleQuery).? ~ End).map {
       case (q, None) => (None, q)
       case (q, Some(q2)) => (Some(q), q2)
     }
-    parse(input, query(_))
   }
 }

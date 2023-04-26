@@ -828,7 +828,7 @@ object Evaluator {
               Segments(
                 segments.value.init ++
                   Seq(Segment.Label(tName + ".super")) ++
-                  t.ctx.enclosing.split("[.# ]").map(Segment.Label): _*
+                  t.ctx.enclosing.split("[.# ]").map(Segment.Label)
               )
             }
           )

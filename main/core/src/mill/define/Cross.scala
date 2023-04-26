@@ -1,6 +1,7 @@
 package mill.define
 
 import language.experimental.macros
+import scala.collection.SeqView
 import scala.reflect.macros.blackbox
 
 object Cross {
@@ -269,18 +270,27 @@ object Cross {
 class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mill.define.Ctx)
     extends mill.define.Module()(ctx) {
 
-  private val items: List[(List[Any], List[String], M)] = for {
+  // We lazily initialize the instances of `Cross.Module` only when they are
+  // requested, to avoid unexpected failures in one module initialization
+  // causing problems using others.
+  private class Lazy[T](t: () => T) {
+    lazy val value = t()
+  }
+
+  private val items: List[(List[Any], List[String], Lazy[M])] = for {
     factory <- factories.toList
     (crossSegments, (crossValues, make)) <-
       factory.crossSegmentsList.zip(factory.crossValuesListLists.zip(factory.makeList))
   } yield {
     val relPath = ctx.segment.pathSegments
-    val sub = make(
-      ctx
-        .withSegments(ctx.segments ++ Seq(ctx.segment))
-        .withMillSourcePath(ctx.millSourcePath / relPath)
-        .withSegment(Segment.Cross(crossSegments))
-        .withCrossValues(factories.flatMap(_.crossValuesRaw))
+    val sub = new Lazy(() =>
+      make(
+        ctx
+          .withSegments(ctx.segments ++ Seq(ctx.segment))
+          .withMillSourcePath(ctx.millSourcePath / relPath)
+          .withSegment(Segment.Cross(crossSegments))
+          .withCrossValues(factories.flatMap(_.crossValuesRaw))
+      )
     )
 
     (crossValues.toList, crossSegments.toList, sub)
@@ -293,25 +303,27 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mi
    * A list of the cross modules, in
    * the order the original cross values were given in
    */
-  def crossModules: List[M] = items.collect { case (_, _, v) => v }
+  lazy val crossModules: Seq[M] = items.map { case (_, _, v) => v.value }
 
   /**
    * A mapping of the raw cross values to the cross modules, in
    * the order the original cross values were given in
    */
-  val valuesToModules: collection.Map[List[Any], M] =
-    items.map { case (values, segments, subs) => (values, subs) }.to(
-      collection.mutable.LinkedHashMap
-    )
+  val valuesToModules: collection.MapView[List[Any], M] = items
+    .map { case (values, segments, subs) => (values, subs) }
+    .to(collection.mutable.LinkedHashMap)
+    .view
+    .mapValues(_.value)
 
   /**
    * A mapping of the string-ified string segments to the cross modules, in
    * the order the original cross values were given in
    */
-  val segmentsToModules: collection.Map[List[String], M] =
-    items.map { case (values, segments, subs) => (segments, subs) }.to(
-      collection.mutable.LinkedHashMap
-    )
+  val segmentsToModules: collection.MapView[List[String], M] = items
+    .map { case (values, segments, subs) => (segments, subs) }
+    .to(collection.mutable.LinkedHashMap)
+    .view
+    .mapValues(_.value)
 
   /**
    * Fetch the cross module corresponding to the given cross values
@@ -321,9 +333,7 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mi
   /**
    * Fetch the cross module corresponding to the given cross values
    */
-  def apply(arg0: Any, args: Any*): M = {
-    valuesToModules(arg0 :: args.toList)
-  }
+  def apply(arg0: Any, args: Any*): M = valuesToModules(arg0 :: args.toList)
 
   /**
    * Fetch the relevant cross module given the implicit resolver you have in

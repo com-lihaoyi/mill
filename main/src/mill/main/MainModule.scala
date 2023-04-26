@@ -19,7 +19,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, selectMode) match {
+    ResolveTasks.resolve(evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -76,8 +76,7 @@ trait MainModule extends mill.Module {
    * Resolves a mill query string and prints out the tasks it resolves to.
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = T.command {
-    val resolved: Either[String, List[String]] = RunScript.resolveTasks(
-      mill.main.ResolveMetadata,
+    val resolved: Either[String, List[String]] = ResolveMetadata.resolve(
       evaluator,
       targets,
       SelectMode.Multi
@@ -89,6 +88,7 @@ trait MainModule extends mill.Module {
         rs.sorted.foreach(T.log.outputStream.println)
         Result.Success(rs)
     }
+    List.empty[String]
   }
 
   /**
@@ -106,8 +106,7 @@ trait MainModule extends mill.Module {
   }
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
-    RunScript.resolveTasks(
-      mill.main.ResolveTasks,
+    ResolveTasks.resolve(
       evaluator,
       targets,
       SelectMode.Multi
@@ -126,8 +125,7 @@ trait MainModule extends mill.Module {
    * chosen is arbitrary.
    */
   def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] = T.command {
-    val resolved = RunScript.resolveTasks(
-      mill.main.ResolveTasks,
+    val resolved = ResolveTasks.resolve(
       evaluator,
       List(src, dest),
       SelectMode.Multi
@@ -321,15 +319,14 @@ trait MainModule extends mill.Module {
       if (targets.isEmpty)
         Right(os.list(rootDir).filterNot(keepPath))
       else
-        RunScript.resolveTasks(
-          mill.main.ResolveSegments,
+        mill.main.ResolveSegments.resolve(
           evaluator,
           targets,
           SelectMode.Multi
         ).map { ts =>
           ts.flatMap { segments =>
-            val evPpaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
-            val paths = Seq(evPpaths.dest, evPpaths.meta, evPpaths.log)
+            val evPaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
+            val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
             val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
             if (os.exists(potentialModulePath)) {
               // this is either because of some pre-Mill-0.10 files lying around
@@ -419,8 +416,7 @@ trait MainModule extends mill.Module {
       out.take()
     }
 
-    RunScript.resolveTasks(
-      mill.main.ResolveTasks,
+    ResolveTasks.resolve(
       evaluator,
       targets,
       SelectMode.Multi

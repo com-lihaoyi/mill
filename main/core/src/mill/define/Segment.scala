@@ -3,7 +3,7 @@ package mill.define
 sealed trait Segment {
   def pathSegments: Seq[String] = this match {
     case Segment.Label(s) => Seq(s)
-    case Segment.Cross(vs) => vs.map(_.toString)
+    case Segment.Cross(vs) => vs
   }
 }
 

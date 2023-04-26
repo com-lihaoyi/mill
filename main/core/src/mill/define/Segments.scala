@@ -7,17 +7,18 @@ package mill.define
  * `.`-separated segments are [[Segment.Label]]s,
  * while `[]`-delimited segments are [[Segment.Cross]]s
  */
-case class Segments private (value: Segment*) {
+case class Segments private (value: Seq[Segment]) {
 
-  def ++(other: Seq[Segment]): Segments = Segments(value ++ other: _*)
-  def ++(other: Segments): Segments = Segments(value ++ other.value: _*)
+  def ++(other: Segment): Segments = Segments(value ++ Seq(other))
+  def ++(other: Seq[Segment]): Segments = Segments(value ++ other)
+  def ++(other: Segments): Segments = Segments(value ++ other.value)
 
   def parts: List[String] = value.toList match {
     case Nil => Nil
     case Segment.Label(head) :: rest =>
       val stringSegments = rest.flatMap {
         case Segment.Label(s) => Seq(s)
-        case Segment.Cross(vs) => vs.map(_.toString)
+        case Segment.Cross(vs) => vs
       }
       head +: stringSegments
     case Segment.Cross(_) :: _ =>
@@ -44,10 +45,7 @@ case class Segments private (value: Segment*) {
 }
 
 object Segments {
-  def apply(): Segments = new Segments()
-  def apply(head: Segment.Label, tail: Segment*): Segments = new Segments(head +: tail: _*)
-
-  def labels(values: String*): Segments =
-    Segments(values.map(Segment.Label): _*)
-
+  def apply(): Segments = new Segments(Nil)
+  def apply(items: List[Segment]): Segments = new Segments(items)
+  def labels(values: String*): Segments = Segments(values.map(Segment.Label))
 }
