@@ -1094,6 +1094,23 @@ object contrib extends MillModule {
     }
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
+
+  object `vcs-version` extends ContribModule {
+    override def compileModuleDeps = Seq(scalalib)
+    override def ivyDeps = T { Agg(Deps.requests) }
+  }
+
+  object mima extends ContribModule {
+    def moduleDeps = Seq(`worker-api`)
+    override def compileModuleDeps = Seq(scalalib)
+    override def ivyDeps = T { Agg(Deps.requests) }
+
+    object `worker-api` extends MillInternalModule
+    object `worker-impl` extends MillInternalModule{
+      def moduleDeps = Seq(`worker-api`)
+      override def ivyDeps = T { Agg(ivy"com.typesafe::mima-core:1.1.2") }
+    }
+  }
 }
 
 object scalanativelib extends MillModule {
