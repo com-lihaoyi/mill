@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 32b37ad135..1a86910150 100644
+index 32b37ad135..86ed679d03 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,13 +2,15 @@
@@ -366,7 +366,7 @@ index 32b37ad135..1a86910150 100644
  }
  
  def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
-@@ -1336,15 +1129,18 @@ object example extends MillScalaModule {
+@@ -1336,15 +1129,15 @@ object example extends MillScalaModule {
  
    def moduleDeps = Seq(integration)
  
@@ -384,16 +384,13 @@ index 32b37ad135..1a86910150 100644
 +  object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
 +  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))
 +  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
-+
-+  trait ExampleCrossModule extends IntegrationTestCrossModule{
-+    def repoSlug = crossValue
-+    override def millSourcePath = super.millSourcePath / repoSlug
  
 -  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestModule {
++  trait ExampleCrossModule extends IntegrationTestCrossModule{
      def sources = T.sources()
      def testRepoRoot: T[PathRef] = T.source(millSourcePath)
      def compile = example.compile()
-@@ -1394,7 +1190,7 @@ object example extends MillScalaModule {
+@@ -1394,7 +1187,7 @@ object example extends MillScalaModule {
                val title =
                  if (seenCode) ""
                  else {
@@ -402,7 +399,7 @@ index 32b37ad135..1a86910150 100644
                    val exampleDashed = examplePath.segments.mkString("-")
                    val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
                    val browse = s"{mill-example-url}/$examplePath[browse]"
-@@ -1427,9 +1223,13 @@ object example extends MillScalaModule {
+@@ -1427,9 +1220,13 @@ object example extends MillScalaModule {
  }
  
  object integration extends MillScalaModule {
@@ -419,7 +416,7 @@ index 32b37ad135..1a86910150 100644
  
    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
  
-@@ -1743,62 +1543,6 @@ object docs extends Module {
+@@ -1743,62 +1540,6 @@ object docs extends Module {
      }
    }
  
@@ -482,7 +479,7 @@ index 32b37ad135..1a86910150 100644
    private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
    def npmBase: T[os.Path] = T.persistent { T.dest }
-@@ -1851,7 +1595,7 @@ object docs extends Module {
+@@ -1851,7 +1592,7 @@ object docs extends Module {
  
      val contribReadmes = T.traverse(contrib.contribModules)(m =>
        T.task {
