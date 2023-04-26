@@ -5,7 +5,7 @@ set -eux
 
 ./mill contrib.buildinfo.publishLocal
 ./mill contrib.vcsversion.publishLocal
-./mill contrib.mima.publishLocal
+./mill contrib.mima.__.publishLocal
 
 # Patch local build
 ci/patch-mill-bootstrap.sh
