@@ -12,27 +12,27 @@ import scala.jdk.CollectionConverters._
 class MimaWorkerImpl extends MimaWorkerApi {
 
   def reportBinaryIssues(
-                          scalaBinaryVersion: String,
-                          logDebug: java.util.function.Consumer[String],
-                          logError: java.util.function.Consumer[String],
-                          logPrintln: java.util.function.Consumer[String],
-                          checkDirection: CheckDirection,
-                          runClasspath: Array[java.io.File],
-                          previous: Array[Artifact],
-                          current: java.io.File,
-                          binaryFilters: Array[ProblemFilter],
-                          backwardFilters: java.util.Map[String, Array[ProblemFilter]],
-                          forwardFilters: java.util.Map[String, Array[ProblemFilter]],
-                          excludeAnnos: Array[String],
-                          publishVersion: String
-                        ): java.util.Optional[String] = {
+      scalaBinaryVersion: String,
+      logDebug: java.util.function.Consumer[String],
+      logError: java.util.function.Consumer[String],
+      logPrintln: java.util.function.Consumer[String],
+      checkDirection: CheckDirection,
+      runClasspath: Array[java.io.File],
+      previous: Array[Artifact],
+      current: java.io.File,
+      binaryFilters: Array[ProblemFilter],
+      backwardFilters: java.util.Map[String, Array[ProblemFilter]],
+      forwardFilters: java.util.Map[String, Array[ProblemFilter]],
+      excludeAnnos: Array[String],
+      publishVersion: String
+  ): java.util.Optional[String] = {
     sanityCheckScalaBinaryVersion(scalaBinaryVersion)
 
     val mimaLib = new MiMaLib(runClasspath.toSeq)
 
     def isReported(
-                    versionedFilters: java.util.Map[String, Array[ProblemFilter]]
-                  )(problem: Problem) = {
+        versionedFilters: java.util.Map[String, Array[ProblemFilter]]
+    )(problem: Problem) = {
       val filters = binaryFilters.map(problemFilterToMima).toSeq
       val mimaVersionedFilters = versionedFilters.asScala.map { case (k, v) =>
         k -> v.map(problemFilterToMima).toSeq
@@ -57,8 +57,8 @@ class MimaWorkerImpl extends MimaWorkerApi {
 
         val (backward, forward) = checkDirection match {
           case CheckDirection.Backward => (checkBC, Nil)
-          case CheckDirection.Forward  => (Nil, checkFC)
-          case CheckDirection.Both     => (checkBC, checkFC)
+          case CheckDirection.Forward => (Nil, checkFC)
+          case CheckDirection.Both => (checkBC, checkFC)
         }
         val backErrors = backward.filter(isReported(backwardFilters))
         val forwErrors = forward.filter(isReported(forwardFilters))
@@ -102,8 +102,8 @@ class MimaWorkerImpl extends MimaWorkerApi {
   }
 
   private def problemFilterToMima(
-                                   problemFilter: ProblemFilter
-                                 ): MimaProblemFilter =
+      problemFilter: ProblemFilter
+  ): MimaProblemFilter =
     ProblemFilters.exclude(problemFilter.problem, problemFilter.name)
 
 }

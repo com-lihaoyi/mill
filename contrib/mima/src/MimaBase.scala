@@ -13,7 +13,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.chaining._
 
 private[mima] trait MimaBase
-  extends ScalaModule
+    extends ScalaModule
     with PublishModule
     with ExtraCoursierSupport
     with VersionSpecific {
@@ -21,7 +21,8 @@ private[mima] trait MimaBase
   /** Set of versions to check binary compatibility against. */
   def mimaPreviousVersions: Target[Seq[String]] = T { Seq.empty[String] }
 
-  /** Set of artifacts to check binary compatibility against. By default this is
+  /**
+   * Set of artifacts to check binary compatibility against. By default this is
    * derived from [[mimaPreviousVersions]].
    */
   def mimaPreviousArtifacts: Target[Agg[Dep]] = T {
@@ -48,8 +49,8 @@ private[mima] trait MimaBase
   /** Compatibility checking direction. */
   def mimaCheckDirection: Target[CheckDirection] = T {
     mimaCheckDirectionInput() match {
-      case Some("both")            => Result.Success(CheckDirection.Both)
-      case Some("forward")         => Result.Success(CheckDirection.Forward)
+      case Some("both") => Result.Success(CheckDirection.Both)
+      case Some("forward") => Result.Success(CheckDirection.Forward)
       case Some("backward") | None => Result.Success(CheckDirection.Backward)
       case Some(other) =>
         Result.Failure(
@@ -64,14 +65,16 @@ private[mima] trait MimaBase
     )
   }
 
-  /** Filters to apply to binary issues found. Applies both to backward and
+  /**
+   * Filters to apply to binary issues found. Applies both to backward and
    * forward binary compatibility checking.
    */
   def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
     Seq.empty[ProblemFilter]
   }
 
-  /** Filters to apply to binary issues found grouped by version of a module
+  /**
+   * Filters to apply to binary issues found grouped by version of a module
    * checked against. These filters only apply to backward compatibility
    * checking.
    */
@@ -79,7 +82,8 @@ private[mima] trait MimaBase
     Map.empty[String, Seq[ProblemFilter]]
   }
 
-  /** Filters to apply to binary issues found grouped by version of a module
+  /**
+   * Filters to apply to binary issues found grouped by version of a module
    * checked against. These filters only apply to forward compatibility
    * checking.
    */
@@ -87,14 +91,16 @@ private[mima] trait MimaBase
     Map.empty[String, Seq[ProblemFilter]]
   }
 
-  /** The fully-qualified class names of annotations that exclude parts of the
+  /**
+   * The fully-qualified class names of annotations that exclude parts of the
    * API from problem checking.
    */
   def mimaExcludeAnnotations: Target[Seq[String]] = T {
     Seq.empty[String]
   }
 
-  /** If true, report `IncompatibleSignatureProblem`s.
+  /**
+   * If true, report `IncompatibleSignatureProblem`s.
    */
   def mimaReportSignatureProblems: Target[Boolean] = T {
     false
@@ -118,7 +124,7 @@ private[mima] trait MimaBase
       runClasspath().view.map(_.path).filter(os.exists).map(_.toIO).toArray
     val current = compile().classes.path.pipe {
       case p if os.exists(p) => p
-      case _                 => (T.dest / "emptyClasses").tap(os.makeDir)
+      case _ => (T.dest / "emptyClasses").tap(os.makeDir)
     }.toIO
 
     val previous = resolvedMimaPreviousArtifacts().iterator.map {
@@ -127,9 +133,9 @@ private[mima] trait MimaBase
     }.toArray
 
     val checkDirection = mimaCheckDirection() match {
-      case CheckDirection.Forward  => worker.api.CheckDirection.Forward
+      case CheckDirection.Forward => worker.api.CheckDirection.Forward
       case CheckDirection.Backward => worker.api.CheckDirection.Backward
-      case CheckDirection.Both     => worker.api.CheckDirection.Both
+      case CheckDirection.Both => worker.api.CheckDirection.Both
     }
 
     def toWorkerApi(p: ProblemFilter) =

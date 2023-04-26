@@ -10,10 +10,11 @@ import mill.scalalib._
 import scala.util.chaining._
 
 private[mima] trait ExtraCoursierSupport
-  extends CoursierModule
+    extends CoursierModule
     with ScalaModule {
 
-  /** Resolves each dependency independently.
+  /**
+   * Resolves each dependency independently.
    *
    * @param deps
    *   The dependencies to resolve.
@@ -24,8 +25,8 @@ private[mima] trait ExtraCoursierSupport
    *   artifacts.
    */
   protected def resolveSeparateNonTransitiveDeps(
-                                                  deps: Task[Agg[Dep]]
-                                                ): Task[Agg[(Dep, Agg[PathRef])]] = T.task {
+      deps: Task[Agg[Dep]]
+  ): Task[Agg[(Dep, Agg[PathRef])]] = T.task {
     val pRepositories = repositoriesTask()
     val pDeps = deps()
     val scalaV = scalaVersion()

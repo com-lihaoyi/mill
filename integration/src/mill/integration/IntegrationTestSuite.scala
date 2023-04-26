@@ -42,7 +42,12 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   var runnerState = RunnerState.empty
 
-  private def runnerStdout(env: Map[String, String], stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
+  private def runnerStdout(
+      env: Map[String, String],
+      stdout: PrintStream,
+      stderr: PrintStream,
+      s: Seq[String]
+  ) = {
     val streams = new SystemStreams(stdout, stderr, stdIn)
     SystemStreams.withStreams(streams) {
       val config = MillCliConfig(

@@ -75,7 +75,7 @@ trait VcsVersion extends Module {
                   curHead,
                   lastTag match {
                     case Some(tag) => Seq("--not", tag)
-                    case _         => Seq()
+                    case _ => Seq()
                   },
                   "--count"
                 ).call(env = env)
@@ -86,10 +86,11 @@ trait VcsVersion extends Module {
               .getOrElse(0)
           }
 
-        val dirtyHashCode: Option[String] = Option(os.proc("git", "diff").call(env = env).out.text().trim()).flatMap {
-          case "" => None
-          case s  => Some(Integer.toHexString(s.hashCode))
-        }
+        val dirtyHashCode: Option[String] =
+          Option(os.proc("git", "diff").call(env = env).out.text().trim()).flatMap {
+            case "" => None
+            case s => Some(Integer.toHexString(s.hashCode))
+          }
 
         new VcsState(
           currentRevision = curHead.getOrElse(""),

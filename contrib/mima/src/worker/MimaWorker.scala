@@ -11,8 +11,8 @@ class MimaWorker {
   private var scalaInstanceCache = Option.empty[(Long, MimaWorkerApi)]
 
   def impl(
-            mimaWorkerClasspath: Agg[PathRef]
-          )(implicit ctx: mill.api.Ctx.Home): MimaWorkerApi = {
+      mimaWorkerClasspath: Agg[PathRef]
+  )(implicit ctx: mill.api.Ctx.Home): MimaWorkerApi = {
     val classloaderSig = mimaWorkerClasspath.hashCode
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
@@ -31,8 +31,8 @@ class MimaWorker {
             .getDeclaredConstructor()
             .newInstance()
             .asInstanceOf[
-            mill.mima.worker.api.MimaWorkerApi
-          ]
+              mill.mima.worker.api.MimaWorkerApi
+            ]
           scalaInstanceCache = Some((classloaderSig, bridge))
           bridge
         } catch {

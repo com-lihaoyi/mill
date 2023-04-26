@@ -44,4 +44,4 @@ final case class ReversedAbstractMethodProblem() extends MemberProblem
 final case class UpdateForwarderBodyProblem() extends MemberProblem
 final case class NewMixinForwarderProblem() extends MemberProblem
 final case class InheritedNewAbstractMethodProblem()
-  extends AbstractMethodProblem
+    extends AbstractMethodProblem
