@@ -317,9 +317,14 @@ class Evaluator private (
     )
 
     val scriptsHash = {
+      val possibleScripts = scriptImportGraph.keySet.map(_.toString)
       val scripts = new Loose.Agg.Mutable[os.Path]()
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
-        case namedTask: NamedTask[_] => scripts.append(os.Path(namedTask.ctx.fileName))
+        // Filter out the `fileName` as a string before we call `os.Path` on it, because
+        // otherwise linux paths on earlier-compiled artifacts can cause this to crash
+        // when running on Windows with a different file path format
+        case namedTask: NamedTask[_] if possibleScripts.contains(namedTask.ctx.fileName) =>
+          scripts.append(os.Path(namedTask.ctx.fileName))
         case _ =>
       }
 
