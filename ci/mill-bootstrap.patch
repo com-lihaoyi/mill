@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 99c74fbd5f..07265b49f2 100644
+index 32b37ad135..1a86910150 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -2,13 +2,15 @@
@@ -352,18 +352,21 @@ index 99c74fbd5f..07265b49f2 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1322,7 +1116,9 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1322,10 +1116,9 @@ trait IntegrationTestModule extends MillScalaModule {
    }
  }
  
 -trait IntegrationTestCrossModule extends IntegrationTestModule {
+-  object local extends ModeModule
+-  object fork extends ModeModule
+-  object server extends ModeModule
 +trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module[String] {
 +  def repoSlug = crossValue
 +  override def millSourcePath = super.millSourcePath / repoSlug
-   object local extends ModeModule
-   object fork extends ModeModule
-   object server extends ModeModule
-@@ -1336,15 +1132,15 @@ object example extends MillScalaModule {
+ }
+ 
+ def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
+@@ -1336,15 +1129,18 @@ object example extends MillScalaModule {
  
    def moduleDeps = Seq(integration)
  
@@ -381,9 +384,12 @@ index 99c74fbd5f..07265b49f2 100644
 +  object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
 +  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))
 +  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
++
++  trait ExampleCrossModule extends IntegrationTestCrossModule{
++    def repoSlug = crossValue
++    override def millSourcePath = super.millSourcePath / repoSlug
  
--  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
-+  trait ExampleCrossModule extends IntegrationTestCrossModule {
+-  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestModule {
      def sources = T.sources()
      def testRepoRoot: T[PathRef] = T.source(millSourcePath)
      def compile = example.compile()
@@ -396,7 +402,7 @@ index 99c74fbd5f..07265b49f2 100644
                    val exampleDashed = examplePath.segments.mkString("-")
                    val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
                    val browse = s"{mill-example-url}/$examplePath[browse]"
-@@ -1425,9 +1221,9 @@ object example extends MillScalaModule {
+@@ -1427,9 +1223,13 @@ object example extends MillScalaModule {
  }
  
  object integration extends MillScalaModule {
@@ -405,11 +411,15 @@ index 99c74fbd5f..07265b49f2 100644
 -  class IntegrationCrossModule(val repoSlug: String) extends IntegrationTestCrossModule
 +  object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"))
 +  object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"))
-+  trait IntegrationCrossModule extends IntegrationTestCrossModule
++  trait IntegrationCrossModule extends IntegrationTestCrossModule{
++    object local extends ModeModule
++    object fork extends ModeModule
++    object server extends ModeModule
++  }
  
    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
  
-@@ -1741,62 +1537,6 @@ object docs extends Module {
+@@ -1743,62 +1543,6 @@ object docs extends Module {
      }
    }
  
@@ -472,7 +482,7 @@ index 99c74fbd5f..07265b49f2 100644
    private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
    def npmBase: T[os.Path] = T.persistent { T.dest }
-@@ -1849,7 +1589,7 @@ object docs extends Module {
+@@ -1851,7 +1595,7 @@ object docs extends Module {
  
      val contribReadmes = T.traverse(contrib.contribModules)(m =>
        T.task {
