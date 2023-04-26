@@ -163,7 +163,7 @@ abstract class IntegrationTestSuite extends TestSuite {
     // wrapper-folder inside the zip file, so copy the wrapper folder to the
     // destination instead of the folder containing the wrapper.
 
-    os.copy(scriptSourcePath, workspacePath)
+    os.copy(scriptSourcePath, workspacePath, mergeFolders = true)
     os.remove.all(workspacePath / "out")
     workspacePath
   }
