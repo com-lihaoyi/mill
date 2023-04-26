@@ -1344,7 +1344,7 @@ object example extends MillScalaModule {
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"): _*)
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"): _*)
 
-  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestCrossModule {
+  class ExampleCrossModule(val repoSlug: String) extends IntegrationTestModule {
     def sources = T.sources()
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
@@ -1421,6 +1421,8 @@ object example extends MillScalaModule {
       )
       PathRef(T.dest / "example.adoc")
     }
+
+    object local extends ModeModule
   }
 }
 
