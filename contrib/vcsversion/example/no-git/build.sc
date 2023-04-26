@@ -5,20 +5,17 @@ import mill.define.Command
 
 def baseDir = build.millSourcePath
 
-def verify(): Command[Unit] = T.command {
-  val vcState = VcsVersion.vcsState()
-  T.log.errorStream.println(s"vcsState: ${vcState}")
-  assert(vcState.vcs == None)
+def vcsState = T{ VcsVersion.vcsState().vcs }
 
-  val version = vcState.format()
-  T.log.errorStream.println(s"version: ${version}")
-
-  assert(version == "0.0.0-0-no-vcs", s"""Expected: "0.0.0-0-no-vcs", actual: "$version"""")
-  ()
-}
+def vcsFormat = T{ VcsVersion.vcsState().format() }
 
 /** Usage
 
-> GIT_DIR=. ./mill verify
+> GIT_DIR=. ./mill show vcsState
+[
+]
+
+> GIT_DIR=. ./mill show vcsFormat
+"0.0.0-0-no-vcs"
 
 */

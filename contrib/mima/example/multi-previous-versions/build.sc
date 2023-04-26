@@ -29,22 +29,15 @@ object curr extends Common with Mima {
 }
 
 
-def verify() = T.command {
-  assert(curr.mimaPreviousArtifacts().iterator.size == 2)
-  ()
-}
-
-def verifyFail() = T.command {
-  curr.mimaReportBinaryIssues()()
-}
-
+def mimaPreviousArtifactsSize = T{ curr.mimaPreviousArtifacts().iterator.size }
 
 /** Usage
 
 > ./mill prev.publishLocal
 > ./mill prev2.publishLocal
 
-> ./mill verify
+> ./mill show mimaPreviousArtifactsSize
+2
 
 > ./mill curr.mimaReportBinaryIssues
 ...
