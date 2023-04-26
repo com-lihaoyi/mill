@@ -1098,9 +1098,13 @@ object contrib extends MillModule {
   object `vcs-version` extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests) }
+    object example extends Cross[ExampleCrossModule](listIn(millSourcePath / "example"): _*)
+    class ExampleCrossModule(val repoSlug: String) extends build.example.ExampleCrossModule(repoSlug) {
+      def moduleDeps = super.moduleDeps ++ Seq(`vcs-version`)
+    }
   }
 
-  object mima extends ContribModule {
+  object mima extends ContribModule with MillScalaModule {
     def moduleDeps = Seq(`worker-api`)
     override def compileModuleDeps = Seq(scalalib)
     override def ivyDeps = T { Agg(Deps.requests) }
@@ -1109,6 +1113,11 @@ object contrib extends MillModule {
     object `worker-impl` extends MillInternalModule{
       def moduleDeps = Seq(`worker-api`)
       override def ivyDeps = T { Agg(ivy"com.typesafe::mima-core:1.1.2") }
+    }
+
+    object example extends Cross[ExampleCrossModule](listIn(millSourcePath / "example"): _*)
+    class ExampleCrossModule(val repoSlug: String) extends build.example.ExampleCrossModule(repoSlug){
+      def moduleDeps = Seq(mima)
     }
   }
 }
@@ -1241,7 +1250,7 @@ trait IntegrationTestModule extends MillScalaModule {
   def repoSlug: String
 
   def scalaVersion = integration.scalaVersion()
-  def moduleDeps = Seq(main.test, integration)
+  def moduleDeps: Seq[ScalaModule] = Seq(main.test, integration)
   def sources = T.sources(millSourcePath / "test" / "src")
   def testRepoRoot: T[PathRef] = T.source(millSourcePath / "repo")
 
@@ -1259,6 +1268,8 @@ trait IntegrationTestModule extends MillScalaModule {
           "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
         ) ++
         testReleaseEnv()
+
+    def forkWorkingDir = workspaceDir().path
 
     def workspaceDir = T.persistent {
       PathRef(T.dest)

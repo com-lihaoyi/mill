@@ -50,10 +50,9 @@ object ExampleTestSuite extends IntegrationTestSuite {
         val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
         val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
-        "\n("
         for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
       } finally {
-        os.remove.all(workspaceRoot / "out")
+//        os.remove.all(workspaceRoot / "out")
       }
     }
   }
@@ -83,7 +82,11 @@ object ExampleTestSuite extends IntegrationTestSuite {
       expectedSnippets: Vector[String],
       commandStr: String
   ) = {
-    BashTokenizer.tokenize(commandStr) match {
+    val tokens = BashTokenizer.tokenize(commandStr)
+    val envTokens = tokens.takeWhile(_.contains('='))
+    val envVars = envTokens.map { case s"$k=$v" => (k, v) }.toMap
+
+    tokens.drop(envTokens.length) match {
       case Seq(s"./$command", rest @ _*) =>
         val evalResult = command match {
           case "mill" => evalStdout(rest: _*)
@@ -98,7 +101,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
             }
             val res = os
               .proc(executable, tokens.tail)
-              .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
+              .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot, env = envVars)
 
             IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
         }
@@ -129,7 +132,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
       case Seq("node", rest @ _*) =>
         val res = os
           .proc("node", rest)
-          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
+          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot, env = envVars)
         validateEval(
           expectedSnippets,
           IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
@@ -138,7 +141,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
       case Seq("git", rest @ _*) =>
         val res = os
           .proc("git", rest)
-          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
+          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot, env = envVars)
         validateEval(
           expectedSnippets,
           IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
@@ -147,7 +150,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
       case Seq("java", "-jar", rest @ _*) =>
         val res = os
           .proc("java", "-jar", rest)
-          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
+          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot, env = envVars)
         validateEval(
           expectedSnippets,
           IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
@@ -174,7 +177,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
       expectedSnippets: Vector[String],
       evalResult: IntegrationTestSuite.EvalResult
   ): Unit = {
-    if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
+    if (expectedSnippets.exists(_.startsWith("error:"))) assert(!evalResult.isSuccess)
     else assert(evalResult.isSuccess)
 
     val unwrappedExpected = expectedSnippets
