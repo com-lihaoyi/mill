@@ -9,33 +9,30 @@ object ExpandBraces {
     case class Expand(values: List[List[Fragment]]) extends Fragment
   }
 
+  def expandRec(frags: List[Fragment]): List[List[String]] = frags match {
+      case Nil => List(List())
+      case head :: tail =>
+        val tailStrings = expandRec(tail)
+        head match {
+          case Fragment.Keep(s) => tailStrings.map(s :: _)
+          case Fragment.Expand(fragmentLists) =>
+            if (fragmentLists.length == 1) {
+              for {
+                lhs <- fragmentLists.flatMap(expandRec)
+                rhs <- tailStrings
+              } yield List("{") ::: lhs ::: List("}") ::: rhs
+            } else for {
+              lhs <- fragmentLists.flatMap(expandRec)
+              rhs <- tailStrings
+            } yield lhs ::: rhs
+        }
+    }
+
   def expandBraces(selectorString: String): Either[String, Seq[String]] = {
     parse(selectorString, parser(_)) match {
       case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(fragmentLists, _) =>
-        def processFragmentSequence(remaining: List[Fragment]): List[List[String]] =
-          remaining match {
-            case Nil => List(List())
-            case head :: tail =>
-              val tailStrings = processFragmentSequence(tail)
-              head match {
-                case Fragment.Keep(s) => tailStrings.map(s :: _)
-                case Fragment.Expand(fragmentLists) =>
-                  if (fragmentLists.length == 1) {
-                    for {
-                      lhs <- fragmentLists.flatMap(processFragmentSequence)
-                      rhs <- tailStrings
-                    } yield List("{") ::: lhs ::: List("}") ::: rhs
-                  } else for {
-                    lhs <- fragmentLists.flatMap(processFragmentSequence)
-                    rhs <- tailStrings
-                  } yield lhs ::: rhs
-              }
-          }
-
-        val res = processFragmentSequence(fragmentLists.toList).map(_.mkString)
-
-        Right(res)
+        Right(expandRec(fragmentLists.toList).map(_.mkString))
     }
   }
 
@@ -45,9 +42,8 @@ object ExpandBraces {
   private def emptyExpansionBranch[_p: P] = P("").map(_ => List(Fragment.Keep("")))
 
   private def toExpand[_p: P]: P[Fragment] =
-    P("{" ~ (braceParser.rep(1) | emptyExpansionBranch).rep(sep = ",") ~ "}").map(x =>
-      Fragment.Expand(x.toList.map(_.toList))
-    )
+    P("{" ~ (braceParser.rep(1) | emptyExpansionBranch).rep(sep = ",") ~ "}")
+      .map(x => Fragment.Expand(x.toList.map(_.toList)))
 
   private def braceParser[_p: P]: P[Fragment] = P(toExpand | plainChars)
 

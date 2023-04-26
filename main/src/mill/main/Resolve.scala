@@ -46,26 +46,23 @@ object ResolveTasks extends Resolve[NamedTask[Any]] {
   ) = {
 
     val taskList: Seq[Either[String, NamedTask[_]]] = resolved
-      .collect {
+      .flatMap {
         case r: Resolved.Target => Some(r.valueOrErr)
         case r: Resolved.Command => Some(r.valueOrErr)
         case r: Resolved.Module =>
-          r.valueOrErr match {
-            case Right(value: TaskModule) =>
-              ResolveCore.resolveDirectChildren(
-                value,
-                Some(value.defaultCommandName()),
-                discover,
-                args,
-                value.millModuleSegments
-              ).head match {
-                case r: Resolved.Target => Some(r.valueOrErr)
-                case r: Resolved.Command => Some(r.valueOrErr)
-              }
-            case _ => None
+          r.valueOrErr.toOption.collect{ case value: TaskModule =>
+            ResolveCore.resolveDirectChildren(
+              value,
+              Some(value.defaultCommandName()),
+              discover,
+              args,
+              value.millModuleSegments
+            ).head match {
+              case r: Resolved.Target => r.valueOrErr
+              case r: Resolved.Command => r.valueOrErr
+            }
           }
       }
-      .flatten
 
     if (taskList.nonEmpty) EitherOps.sequence(taskList)
     else Left(s"Cannot find default task to evaluate for module ${selector.render}")
