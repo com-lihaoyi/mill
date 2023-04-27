@@ -2,7 +2,7 @@ package mill.scalalib.scalafmt
 
 import mill._
 import mill.api.Result
-import mill.define._
+import mill.define.{ExternalModule, Discover}
 import mill.scalalib._
 
 trait ScalafmtModule extends JavaModule {

@@ -4,7 +4,6 @@ import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
-import mill.define.{Command, Persistent, Sources, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 import mill.api.Result

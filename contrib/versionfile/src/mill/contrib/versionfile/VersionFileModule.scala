@@ -5,7 +5,7 @@ import mill._, scalalib._
 trait VersionFileModule extends Module {
 
   /** The file containing the current version. */
-  def versionFile: define.Source = T.source(millSourcePath / "version")
+  def versionFile: Source = T.source(millSourcePath / "version")
 
   /** The current version. */
   def currentVersion: T[Version] = T { Version.of(os.read(versionFile().path).trim) }

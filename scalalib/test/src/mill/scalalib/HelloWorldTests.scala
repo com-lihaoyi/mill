@@ -7,7 +7,7 @@ import scala.util.{Properties, Using}
 import scala.xml.NodeSeq
 import mill._
 import mill.api.Result
-import mill.define.{Input, NamedTask, Target}
+import mill.define.NamedTask
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.modules.Assembly
 import mill.scalalib.api.ZincWorkerUtil

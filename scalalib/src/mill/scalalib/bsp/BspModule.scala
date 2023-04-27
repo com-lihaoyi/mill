@@ -1,13 +1,9 @@
 package mill.scalalib.bsp
 
-import mill.api.{Loose, PathRef, internal}
-import mill.define.{BaseModule, Segments, Sources, Task}
-import mill.eval.EvaluatorPathsResolver
-import mill.modules.Jvm
-import mill.scalalib.api.CompilationResult
+import mill.api.internal
+import mill.define.Task
 import mill.scalalib.internal.ModuleUtils
-import mill.scalalib.{Dep, DepSyntax, ScalaModule}
-import mill.{Agg, BuildInfo, Module, T}
+import mill._
 
 trait BspModule extends Module {
   import BspModule._

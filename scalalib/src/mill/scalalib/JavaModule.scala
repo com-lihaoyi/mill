@@ -11,7 +11,6 @@ import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{JarManifest, PathRef, Result, internal}
-import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.modules.{Assembly, Jvm}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
