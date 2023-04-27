@@ -23,7 +23,7 @@ object foo extends ScalaModule {
 
   def run(args: Task[Args] = T.task(Args())) = T.command {
     println("Running..." + args().value.mkString(" "))
-    super.run(args)
+    super.run(args)()
   }
 }
 
