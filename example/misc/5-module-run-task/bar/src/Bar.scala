@@ -1,8 +1,7 @@
 package bar
 object Bar {
   def main(args: Array[String]) = {
-    val Array(sourcesStrJoined, destStr) = args
-    val sourceStrs = sourcesStrJoined.split(",")
+    val Array(destStr, sourceStrs @ _*) = args
     val dest = os.Path(destStr)
     for(sourceStr <- sourceStrs){
       val sourcePath = os.Path(sourceStr)

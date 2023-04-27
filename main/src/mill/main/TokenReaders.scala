@@ -53,7 +53,7 @@ object TokenReaders {
 
   implicit def millArgsTokenReader: mainargs.TokensReader.ShortNamed[Args] =
     new TokensReader.Leftover[Args, String]{
-      def read(strs: Seq[String]) = Right(new Args(strs:_*))
+      def read(strs: Seq[String]) = Right(new Args(strs))
       def wrapped = implicitly[TokensReader.ShortNamed[String]]
     }
 
