@@ -1,23 +1,22 @@
 import mill._, scalalib._
 
-trait MyModule extends ScalaModule{
+object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
-}
-
-object foo extends MyModule {
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+  def barWorkingDir = T{ T.dest }
   def barArgs = T.task{
-    mainargs.Leftover(super.sources().map(_.path).mkString(","), T.dest.toString())
+    Args(super.sources().map(_.path).mkString(","), barWorkingDir().toString())
   }
 
   def sources = T{
     val dest = bar.run(barArgs)()
-    Seq(PathRef(T.dest))
+    Seq(PathRef(barWorkingDir()))
   }
 }
 
-object bar extends MyModule{
+object bar extends ScalaModule{
+  def scalaVersion = "2.13.8"
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
 }
 
@@ -25,11 +24,8 @@ object bar extends MyModule{
 
 /** Usage
 
-> ./mill show foo.sources
-sdad
-
 > ./mill foo.run
-asdas
-
+...
+Foo.value: HELLO
 
 */

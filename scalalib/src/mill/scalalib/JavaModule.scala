@@ -707,7 +707,7 @@ trait JavaModule
    * since the code can dirty the parent Mill process and potentially leave it
    * in a bad state.
    */
-  def runLocal(args: Task[mainargs.Leftover[String]]): Command[Unit] = T.command {
+  def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
     Jvm.runLocal(
       finalMainClass(),
       runClasspath().map(_.path),
@@ -718,7 +718,7 @@ trait JavaModule
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def run(args: Task[mainargs.Leftover[String]]): Command[Unit] = T.command {
+  def run(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
     try Result.Success(
         Jvm.runSubprocess(
           finalMainClass(),

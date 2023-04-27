@@ -37,7 +37,7 @@ object ScalaVersionsRangesTests extends TestSuite {
     test("main with Scala 2.12- and 2.13+ specific code") {
       workspaceTest(ScalaVersionsRanges) { eval =>
         ScalaVersionsRanges.core.crossModules.map { c =>
-          val Right(_) = eval(c.run((T.task(mainargs.Leftover[String]()))))
+          val Right(_) = eval(c.run())
         }
       }
     }

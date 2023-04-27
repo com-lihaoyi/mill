@@ -10,4 +10,6 @@ package object mill extends mill.api.JsonFormatters {
   val Agg = mill.api.Loose.Agg
   type RootModule = mill.main.RootModule
   val RootModule = mill.main.RootModule
+  type Args = define.Args
+  val Args = define.Args
 }

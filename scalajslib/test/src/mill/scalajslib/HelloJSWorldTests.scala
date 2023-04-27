@@ -273,7 +273,7 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
-      val task = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run(T.task(mainargs.Leftover[String]()))
+      val task = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
 
       val Right((_, evalCount)) = helloWorldEvaluator(task)
 

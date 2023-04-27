@@ -538,7 +538,7 @@ class MillBuildServer(
         case m: JavaModule => m
       }.get
       val args = params.getArguments.getOrElse(Seq.empty[String])
-      val runTask = module.run(T.task(mainargs.Leftover(args:_*)))
+      val runTask = module.run()
       val runResult = evaluator.evaluate(
         Strict.Agg(runTask),
         Utils.getBspLoggedReporterPool(runParams.getOriginId, bspIdByModule, client),

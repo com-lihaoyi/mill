@@ -688,7 +688,7 @@ object HelloWorldTests extends TestSuite {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.core.run(T.task(mainargs.Leftover(runResult.toString)))
+          HelloWorldWithMain.core.run(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -702,7 +702,7 @@ object HelloWorldTests extends TestSuite {
         HelloWorldWithoutMain,
         os.pwd / "scalalib" / "test" / "resources" / "hello-world-no-main"
       ) { eval =>
-        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run((T.task(mainargs.Leftover[String]()))))
+        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run())
       }
 
       "runDiscoverMainClass" - workspaceTest(HelloWorldWithoutMain) { eval =>
@@ -710,7 +710,7 @@ object HelloWorldTests extends TestSuite {
         // discovered by Zinc and used
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithoutMain.core.run((T.task(mainargs.Leftover(runResult.toString))))
+          HelloWorldWithoutMain.core.run(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -726,7 +726,7 @@ object HelloWorldTests extends TestSuite {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.core.runLocal((T.task(mainargs.Leftover(runResult.toString))))
+          HelloWorldWithMain.core.runLocal(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -739,7 +739,7 @@ object HelloWorldTests extends TestSuite {
       "runWithDefaultMain" - workspaceTest(HelloWorldDefaultMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldDefaultMain.core.runLocal((T.task(mainargs.Leftover(runResult.toString))))
+          HelloWorldDefaultMain.core.runLocal(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -753,7 +753,7 @@ object HelloWorldTests extends TestSuite {
         HelloWorldWithoutMain,
         os.pwd / "scalalib" / "test" / "resources" / "hello-world-no-main"
       ) { eval =>
-        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal((T.task(mainargs.Leftover[String]()))))
+        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
 
       }
     }
@@ -1156,7 +1156,7 @@ object HelloWorldTests extends TestSuite {
       Dotty213,
       resourcePath = os.pwd / "scalalib" / "test" / "resources" / "dotty213"
     ) { eval =>
-      val Right((_, evalCount)) = eval.apply(Dotty213.foo.run((T.task(mainargs.Leftover[String]()))))
+      val Right((_, evalCount)) = eval.apply(Dotty213.foo.run())
       assert(evalCount > 0)
     }
 

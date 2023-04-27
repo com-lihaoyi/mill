@@ -2,7 +2,7 @@ package mill.main
 
 import mainargs.TokensReader
 import mill.eval.Evaluator
-import mill.define.{SelectMode, Target, Task}
+import mill.define.{Args, SelectMode, Target, Task}
 
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
@@ -46,12 +46,16 @@ class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
 }
 
 object TokenReaders {
-  implicitly[TokensReader[Task[mainargs.Leftover[String]]]]
   implicit def millEvaluatorTokenReader[T] = new mill.main.EvaluatorTokenReader[T]()
 
   implicit def millTasksTokenReader[T]: mainargs.TokensReader[Tasks[T]] =
     new mill.main.Tasks.TokenReader[T]()
 
+  implicit def millArgsTokenReader: mainargs.TokensReader.ShortNamed[Args] =
+    new TokensReader.Leftover[Args, String]{
+      def read(strs: Seq[String]) = Right(new Args(strs:_*))
+      def wrapped = implicitly[TokensReader.ShortNamed[String]]
+    }
 
   implicit def millTaskTokenReader[T](implicit
       tokensReaderOfT: TokensReader.ShortNamed[T]
