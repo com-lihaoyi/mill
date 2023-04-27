@@ -7,14 +7,13 @@ trait MyModule extends ScalaModule{
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
-  def sources = T{
-    val dest = bar.run(
-      T.task{
-        mainargs.Leftover(super.sources().map(_.path).mkString(","), T.dest.toString())
-      }
-    ).mapCtx((x, y) => y.dest)()
+  def barArgs = T.task{
+    mainargs.Leftover(super.sources().map(_.path).mkString(","), T.dest.toString())
+  }
 
-    Seq(PathRef(dest))
+  def sources = T{
+    val dest = bar.run(barArgs)()
+    Seq(PathRef(T.dest))
   }
 }
 
