@@ -40,7 +40,7 @@ class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
     extends mainargs.TokensReader.Leftover[Task[T], T] {
   def read(strs: Seq[String]): Either[String, Task[T]] =
     tokensReaderOfT.read(strs).map(t => Target.task(t))
-  def wrapped = tokensReaderOfT
+  def shortName = tokensReaderOfT.shortName
 }
 
 object TokenReaders {
@@ -52,7 +52,7 @@ object TokenReaders {
   implicit def millArgsTokenReader: mainargs.TokensReader.ShortNamed[Args] =
     new TokensReader.Leftover[Args, String] {
       def read(strs: Seq[String]) = Right(new Args(strs))
-      def wrapped = implicitly[TokensReader.ShortNamed[String]]
+      def shortName = implicitly[TokensReader.ShortNamed[String]].shortName
     }
 
   implicit def millTaskTokenReader[T](implicit
