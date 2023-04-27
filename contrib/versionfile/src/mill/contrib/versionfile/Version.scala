@@ -69,8 +69,9 @@ object Version {
   implicit val readWriter: ReadWriter[Version] =
     readwriter[String].bimap(_.toString, Version.of)
 
-  implicit val read: mainargs.TokensReader.Simple[Version] = new mainargs.TokensReader.Simple[Version] {
-    def shortName = "<version>"
-    def read(s: Seq[String]) = Right(Version.of(s.last))
-  }
+  implicit val read: mainargs.TokensReader.Simple[Version] =
+    new mainargs.TokensReader.Simple[Version] {
+      def shortName = "<version>"
+      def read(s: Seq[String]) = Right(Version.of(s.last))
+    }
 }

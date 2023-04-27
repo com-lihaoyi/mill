@@ -58,10 +58,9 @@ import com.google.gson.JsonObject
 import mill.T
 import mill.api.{DummyTestReporter, PathRef, Result, Strict, internal}
 import mill.define.Segment.Label
-import mill.define.{Discover, ExternalModule, Module, Segments, Task}
+import mill.define.{Args, Discover, ExternalModule, Module, Segments, Task}
 import mill.eval.Evaluator
 import mill.main.{BspServerResult, MainModule}
-import mill.main.TokenReaders._
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, MillBuildModule, ScalaBuildTarget}
 import mill.scalalib.internal.ModuleUtils
@@ -538,7 +537,7 @@ class MillBuildServer(
         case m: JavaModule => m
       }.get
       val args = params.getArguments.getOrElse(Seq.empty[String])
-      val runTask = module.run()
+      val runTask = module.run(T.task(Args(args)))
       val runResult = evaluator.evaluate(
         Strict.Agg(runTask),
         Utils.getBspLoggedReporterPool(runParams.getOriginId, bspIdByModule, client),

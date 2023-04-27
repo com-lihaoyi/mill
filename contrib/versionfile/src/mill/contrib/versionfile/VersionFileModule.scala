@@ -90,7 +90,5 @@ object VersionFileModule extends define.ExternalModule {
     } yield proc.call()
   }
 
-  import mill.main.TokenReaders._
-
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

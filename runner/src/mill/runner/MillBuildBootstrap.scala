@@ -4,7 +4,6 @@ import mill.{BuildInfo, T}
 import mill.api.{PathRef, internal}
 import mill.eval.Evaluator
 import mill.main.{RootModule, RunScript}
-import mill.main.TokenReaders._
 import mill.define.{Discover, Segments, SelectMode, Watchable}
 
 import java.net.URLClassLoader

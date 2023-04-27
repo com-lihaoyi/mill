@@ -159,7 +159,6 @@ object BuildInfoTests extends TestSuite {
     "run" - workspaceTest(BuildInfoPlain, "scala") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
-
         eval.apply(BuildInfoPlain.run(T.task(Args(runResult.toString))))
 
       assert(

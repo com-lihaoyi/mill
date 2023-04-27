@@ -87,7 +87,5 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
         )
     }
 
-  import mill.main.TokenReaders._
-
   lazy val millDiscover = Discover[this.type]
 }

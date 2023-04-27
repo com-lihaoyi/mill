@@ -44,7 +44,6 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 }
 
 object Task {
-
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
     def mapCtx[V](f: (T, mill.api.Ctx) => Result[V]) = new Task.MappedCtx(this, f)
@@ -80,7 +79,8 @@ object Task {
     val inputs = List(source)
   }
 
-  private[define] class MappedCtx[+T, +V](source: Task[T], f: (T, mill.api.Ctx) => Result[V]) extends Task[V] {
+  private[define] class MappedCtx[+T, +V](source: Task[T], f: (T, mill.api.Ctx) => Result[V])
+      extends Task[V] {
     def evaluate(ctx: mill.api.Ctx) = f(ctx.args(0).asInstanceOf[T], ctx)
     val inputs = List(source)
   }

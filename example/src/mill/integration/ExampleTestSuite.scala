@@ -52,7 +52,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
 
         for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
       } finally {
-//        os.remove.all(workspaceRoot / "out")
+        os.remove.all(workspaceRoot / "out")
       }
     }
   }
