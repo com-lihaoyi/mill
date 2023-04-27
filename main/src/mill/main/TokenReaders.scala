@@ -21,11 +21,8 @@ object Tasks {
   }
 }
 
-class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Simple[mill.eval.Evaluator] {
-  def shortName = "<eval>"
-  def read(s: Seq[String]) = Right(Evaluator.currentEvaluator.get.asInstanceOf[mill.eval.Evaluator])
-  override def alwaysRepeatable = false
-  override def allowEmpty = true
+class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[mill.eval.Evaluator] {
+  def read() = Right(Evaluator.currentEvaluator.get.asInstanceOf[mill.eval.Evaluator])
 }
 
 /**
