@@ -6,6 +6,7 @@ package mill.define
  */
 class Args(val value: Seq[String])
 object Args {
+
   /**
    * Constructs an [[Args]] object from `os.Shellable`s
    */
