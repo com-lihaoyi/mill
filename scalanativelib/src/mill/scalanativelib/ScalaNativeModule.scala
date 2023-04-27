@@ -261,9 +261,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // Runs the native binary
-  override def run(args: String*) = T.command {
+  override def run(args: Task[mainargs.Leftover[String]]) = T.command {
     Jvm.runSubprocess(
-      commandArgs = Vector(nativeLink().toString) ++ args,
+      commandArgs = Vector(nativeLink().toString) ++ args().value,
       envArgs = forkEnv(),
       workingDir = forkWorkingDir()
     )

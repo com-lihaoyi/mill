@@ -114,7 +114,7 @@ object Discover {
       }
 
       c.Expr[Discover[T]](
-        q"_root_.mill.define.Discover(_root_.scala.collection.immutable.Map(..$mapping))"
+        q"import mill.main.TokenReaders._; _root_.mill.define.Discover(_root_.scala.collection.immutable.Map(..$mapping))"
       )
     }
   }

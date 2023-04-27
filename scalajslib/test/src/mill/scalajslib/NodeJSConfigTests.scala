@@ -92,7 +92,7 @@ object NodeJSConfigTests extends TestSuite {
     }
 
     def checkRun(nodeArgs: List[String], notNodeArgs: List[String]): Unit = {
-      checkLog(HelloJSWorld.helloJsWorld(scalaVersion, nodeArgs).run(), nodeArgs, notNodeArgs)
+      checkLog(HelloJSWorld.helloJsWorld(scalaVersion, nodeArgs).run(T.task(mainargs.Leftover[String]())), nodeArgs, notNodeArgs)
     }
 
     "run" - {

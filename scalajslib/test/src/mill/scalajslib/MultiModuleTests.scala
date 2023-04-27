@@ -64,7 +64,7 @@ object MultiModuleTests extends TestSuite {
     }
 
     test("run") {
-      val command = MultiModule.client.run()
+      val command = MultiModule.client.run(T.task(mainargs.Leftover[String]()))
 
       val Right((_, evalCount)) = evaluator(command)
 

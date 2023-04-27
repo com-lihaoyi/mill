@@ -18,6 +18,7 @@ import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
 import os.Path
 
+
 /**
  * Core configuration required to compile a single Java compilation target
  */
@@ -706,25 +707,25 @@ trait JavaModule
    * since the code can dirty the parent Mill process and potentially leave it
    * in a bad state.
    */
-  def runLocal(args: String*): Command[Unit] = T.command {
+  def runLocal(args: Task[mainargs.Leftover[String]]): Command[Unit] = T.command {
     Jvm.runLocal(
       finalMainClass(),
       runClasspath().map(_.path),
-      args
+      args().value
     )
   }
 
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def run(args: String*): Command[Unit] = T.command {
+  def run(args: Task[mainargs.Leftover[String]]): Command[Unit] = T.command {
     try Result.Success(
         Jvm.runSubprocess(
           finalMainClass(),
           runClasspath().map(_.path),
           forkArgs(),
           forkEnv(),
-          args,
+          args().value,
           workingDir = forkWorkingDir(),
           useCpPassingJar = runUseArgsFile()
         )

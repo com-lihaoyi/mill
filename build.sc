@@ -127,7 +127,7 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.20.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.9.1"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.4.0"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.5.0-M1"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -726,7 +726,7 @@ object main extends MillModule {
   }
 
   object testkit extends MillInternalModule with MillAutoTestSetup {
-    def moduleDeps = Seq(core, util)
+    def moduleDeps = Seq(core, util, main)
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)

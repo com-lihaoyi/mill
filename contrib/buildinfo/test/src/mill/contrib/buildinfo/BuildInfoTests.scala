@@ -159,7 +159,8 @@ object BuildInfoTests extends TestSuite {
     "run" - workspaceTest(BuildInfoPlain, "scala") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
-        eval.apply(BuildInfoPlain.run(runResult.toString))
+
+        eval.apply(BuildInfoPlain.run(T.task(mainargs.Leftover(runResult.toString))))
 
       assert(
         os.exists(runResult),
@@ -173,7 +174,7 @@ object BuildInfoTests extends TestSuite {
       val runResult = eval.outPath / "hello-mill"
 
       val Right((result2, evalCount2)) =
-        eval.apply(BuildInfoStatic.run(runResult.toString))
+        eval.apply(BuildInfoStatic.run(T.task(mainargs.Leftover(runResult.toString))))
 
       assert(os.exists(buildInfoSourcePath(eval)))
       assert(!os.exists(buildInfoResourcePath(eval)))
@@ -184,7 +185,7 @@ object BuildInfoTests extends TestSuite {
     "java" - workspaceTest(BuildInfoJava, "java") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
-        eval.apply(BuildInfoJava.run(runResult.toString))
+        eval.apply(BuildInfoJava.run(T.task(mainargs.Leftover(runResult.toString))))
 
       assert(
         os.exists(runResult),

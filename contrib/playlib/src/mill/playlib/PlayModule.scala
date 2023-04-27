@@ -1,5 +1,6 @@
 package mill.playlib
 
+import mill.define.Task
 import mill.playlib.api.Versions
 import mill.scalalib._
 import mill.{Agg, T}
@@ -17,7 +18,7 @@ trait PlayApiModule extends Dependencies with Router with Server {
     override def sources = T.sources { millSourcePath }
   }
 
-  def start(args: String*) = T.command { run(args: _*) }
+  def start(args: Task[mainargs.Leftover[String]]) = T.command { run(args) }
 
 }
 trait PlayModule extends PlayApiModule with Static with Twirl
