@@ -1,13 +1,6 @@
 package mill.main
 
-import mill.define.{
-  BaseModule,
-  Discover,
-  ExternalModule,
-  NamedTask,
-  Segments,
-  TaskModule
-}
+import mill.define.{BaseModule, Discover, ExternalModule, NamedTask, Segments, TaskModule}
 import mill.eval.Evaluator
 import mill.main.ResolveCore.Resolved
 import mill.util.EitherOps
