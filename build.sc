@@ -572,7 +572,8 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   }
 
   // Test setup
-  def testDep = T{ s"-DMILL_TEST_DEP_com.lihaoyi-${artifactName()}=${runClasspath().map(_.path).mkString(",")}" }
+  def testDepPaths = T{ runClasspath() }
+  def testDep = T{ s"-DMILL_TEST_DEP_com.lihaoyi-${artifactName()}=${testDepPaths.map(_.path).mkString(",")}" }
   def testArgs: T[Seq[String]] = Seq(testDep())
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
@@ -844,6 +845,7 @@ object scalajslib extends MillModule with BuildInfo {
   }
   object worker extends Cross[WorkerModule]("1")
   class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
+    def testDepPaths = T{ Seq(compile().classes) }
     override def moduleDeps = Seq(scalajslib.`worker-api`, main.client, main.api)
     override def ivyDeps = Agg(
       Deps.Scalajs_1.scalajsLinker,
@@ -961,6 +963,7 @@ object contrib extends MillModule {
     object worker extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
       override def moduleDeps = Seq(scoverage.api)
+      def testDepPaths = T{ Seq(compile().classes) }
       override def compileIvyDeps = T {
         Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
@@ -976,6 +979,7 @@ object contrib extends MillModule {
     object worker2 extends MillInternalModule {
       override def compileModuleDeps = Seq(main.api)
       override def moduleDeps = Seq(scoverage.api)
+      def testDepPaths = T{ Seq(compile().classes) }
       override def compileIvyDeps = T {
         Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
@@ -1099,6 +1103,7 @@ object scalanativelib extends MillModule {
   object worker extends Cross[WorkerModule]("0.4")
   class WorkerModule(scalaNativeWorkerVersion: String)
       extends MillInternalModule {
+    def testDepPaths = T{ Seq(compile().classes) }
     override def moduleDeps = Seq(scalanativelib.`worker-api`)
     override def ivyDeps = scalaNativeWorkerVersion match {
       case "0.4" =>
