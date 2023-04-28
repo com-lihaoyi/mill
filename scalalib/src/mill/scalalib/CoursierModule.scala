@@ -46,13 +46,12 @@ trait CoursierModule extends mill.Module {
         sys.props.get(propKey).map(_.split(",").map(s => PathRef(os.Path(s))).toSeq)
       }
 
-      def combinedIvyDeps = T.task{  transitiveCompileIvyDeps() ++ transitiveIvyDeps() }
-      def localTestDeps = T.task{ combinedIvyDeps().flatMap(isLocalTestDep(_)).flatMap(identity) }
-      def normalDeps = T.task{ combinedIvyDeps().filter(isLocalTestDep(_).isEmpty) }
+      val localTestDeps = deps().flatMap(isLocalTestDep(_)).flatMap(identity)
+      val normalDeps = deps().filter(isLocalTestDep(_).isEmpty)
 
-      localTestDeps() ++ Lib.resolveDependencies(
+      localTestDeps ++ Lib.resolveDependencies(
         repositories = repositoriesTask(),
-        deps = normalDeps(),
+        deps = normalDeps,
         sources = sources,
         mapDependencies = Some(mapDependencies()),
         customizer = resolutionCustomizer(),
