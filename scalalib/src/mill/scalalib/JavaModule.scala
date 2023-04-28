@@ -392,19 +392,10 @@ trait JavaModule
   /**
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
-  private def isLocalTestDep(d: BoundDep): Option[Seq[PathRef]] = {
-    val org = d.dep.module.organization.value
-    val name = d.dep.module.name.value
-    val propKey = s"MILL_TEST_DEP_$org-${name.stripSuffix("_2.13")}"
-    sys.props.get(propKey).map(_.split(",").map(s => PathRef(os.Path(s))).toSeq)
-  }
-
-  private def combinedIvyDeps = T {  transitiveCompileIvyDeps() ++ transitiveIvyDeps() }
-  private def localTestDeps = T{ combinedIvyDeps().flatMap(isLocalTestDep(_)).flatMap(identity) }
-  private def normalDeps = T{ combinedIvyDeps().filter(isLocalTestDep(_).isEmpty) }
-
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    localTestDeps() ++ resolveDeps(normalDeps)()
+    resolveDeps(T.task {
+      transitiveCompileIvyDeps() ++ transitiveIvyDeps()
+    })()
   }
 
   /**
@@ -413,16 +404,14 @@ trait JavaModule
    */
   def upstreamAssemblyClasspath: T[Agg[PathRef]] = T {
     transitiveLocalClasspath() ++
-    unmanagedClasspath() ++
-    resolvedRunIvyDeps()
+      unmanagedClasspath() ++
+      resolvedRunIvyDeps()
   }
 
-  private def combinedIvyRunDeps = T { runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps() }
-  private def localTestRunDeps = T{ combinedIvyRunDeps().flatMap(isLocalTestDep(_)).flatMap(identity) }
-  private def normalRunDeps = T{ combinedIvyRunDeps().filter(isLocalTestDep(_).isEmpty) }
-
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
-    localTestRunDeps() ++ resolveDeps(normalRunDeps)()
+    resolveDeps(T.task {
+      runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
+    })()
   }
 
   /**
