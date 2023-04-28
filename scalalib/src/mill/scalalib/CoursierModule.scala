@@ -39,19 +39,9 @@ trait CoursierModule extends mill.Module {
    */
   def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] =
     T.task {
-     def isLocalTestDep(d: BoundDep): Option[Seq[PathRef]] = {
-        val org = d.dep.module.organization.value
-        val name = d.dep.module.name.value
-        val propKey = s"MILL_TEST_DEP_$org-${name.stripSuffix("_2.13")}"
-        sys.props.get(propKey).map(_.split(",").map(s => PathRef(os.Path(s))).toSeq)
-      }
-
-      val localTestDeps = deps().flatMap(isLocalTestDep(_)).flatMap(identity)
-      val normalDeps = deps().filter(isLocalTestDep(_).isEmpty)
-
-      localTestDeps ++ Lib.resolveDependencies(
+      Lib.resolveDependencies(
         repositories = repositoriesTask(),
-        deps = normalDeps,
+        deps = deps(),
         sources = sources,
         mapDependencies = Some(mapDependencies()),
         customizer = resolutionCustomizer(),

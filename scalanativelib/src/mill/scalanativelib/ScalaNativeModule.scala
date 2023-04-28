@@ -6,18 +6,10 @@ import mill.api.Loose.Agg
 import mill.api.{Result, internal}
 import mill.define.{Command, Target, Task}
 import mill.modules.Jvm
+import mill.modules.Util.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
-import mill.scalalib.{
-  BoundDep,
-  CrossVersion,
-  Dep,
-  DepSyntax,
-  Lib,
-  SbtModule,
-  ScalaModule,
-  TestModule
-}
+import mill.scalalib.{BoundDep, CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.TestRunner
 import mill.scalanativelib.api._
 import mill.scalanativelib.worker.{ScalaNativeWorkerExternalModule, api => workerApi}
@@ -45,11 +37,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     T { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath = T {
-    val workerKey =
-      s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}"
-        .replace('.', '_')
-    mill.modules.Util.millProjectModule(
-      workerKey,
+    millProjectModule(
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
       repositoriesTask(),
       resolveFilter = _.toString.contains("mill-scalanativelib-worker")

@@ -89,12 +89,28 @@ trait CoursierSupport {
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
+      ] = None,
+      resolveFilter: os.Path => Boolean = _ => true,
   ): Result[Agg[PathRef]] = {
+
+    def isLocalTestDep(dep: coursier.Dependency): Option[Seq[PathRef]] = {
+      val org = dep.module.organization.value
+      val name = dep.module.name.value
+      val propKey = s"MILL_TEST_DEP_$org-${name.stripSuffix("_2.13")}"
+      Util.millProperty(propKey).map(_.split(",").map(s => PathRef(os.Path(s))).toSeq)
+    }
+
+    val (localTestDeps, remoteDeps) = deps.toSeq.partitionMap( d =>
+      isLocalTestDep(d) match{
+        case None => Right(d)
+        case Some(vs) => Left(vs)
+      }
+    )
+    val localTestDepsFlatten = localTestDeps.flatten
 
     val (_, resolution) = resolveDependenciesMetadata(
       repositories,
-      deps,
+      remoteDeps,
       force,
       mapDependencies,
       customizer,
@@ -172,7 +188,8 @@ trait CoursierSupport {
       if (errors.isEmpty) {
         mill.Agg.from(
           successes.map(os.Path(_)).filter(_.ext == "jar").map(PathRef(_, quick = true))
-        )
+        ).filter(x => resolveFilter(x.path)) ++ localTestDeps.flatten
+
       } else {
         val errorDetails = errors.map(e => s"${System.lineSeparator()}  ${e.describe}").mkString
         Result.Failure(

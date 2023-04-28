@@ -3,6 +3,7 @@ package mill.runner
 import mill._
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.define.{Caller, Discover, Target, Task}
+import mill.modules.Util.millProjectModule
 import mill.scalalib.{BoundDep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.Versions
 import os.Path
@@ -120,11 +121,7 @@ class MillBuildRootModule()(implicit
     super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
 
   def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
-    mill.modules.Util.millProjectModule(
-      "MILL_LINENUMBERS",
-      "mill-runner-linenumbers",
-      repositoriesTask()
-    )
+    millProjectModule("mill-runner-linenumbers", repositoriesTask())
   }
 }
 
