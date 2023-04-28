@@ -96,8 +96,13 @@ trait CoursierSupport {
     def isLocalTestDep(dep: coursier.Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
       val name = dep.module.name.value
-      val propKey = s"MILL_TEST_DEP_$org-${name.stripSuffix("_2.13").stripSuffix("_2.12")}"
-      Util.millProperty(propKey).map(_.split(",").map(s => PathRef(os.Path(s))).toSeq)
+      val classpathKey = s"$org-${name.stripSuffix("_2.13").stripSuffix("_2.12")}"
+
+      val classpathResourceText =
+        try Some(os.read(os.resource(getClass.getClassLoader) / "mill" / "local-test-overrides" / classpathKey))
+        catch{case e: os.ResourceNotFoundException => None }
+
+      classpathResourceText.map(_.linesIterator.map(s => PathRef(os.Path(s))).toSeq)
     }
 
     val (localTestDeps, remoteDeps) = deps.toSeq.partitionMap( d =>
@@ -106,7 +111,6 @@ trait CoursierSupport {
         case Some(vs) => Left(vs)
       }
     )
-    val localTestDepsFlatten = localTestDeps.flatten
 
     val (_, resolution) = resolveDependenciesMetadata(
       repositories,
