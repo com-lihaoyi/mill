@@ -26,7 +26,7 @@ object FileImportGraph {
    * starting from `build.sc`, collecting the information necessary to
    * instantiate the [[MillRootModule]]
    */
-  def parseBuildFiles(topLevelProjectRoot: os.Path, projectRoot: os.Path) = {
+  def parseBuildFiles(topLevelProjectRoot: os.Path, projectRoot: os.Path): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val seenIvy = mutable.Set.empty[String]
     val importGraphEdges = mutable.Map.empty[os.Path, Seq[os.Path]]
@@ -116,7 +116,7 @@ object FileImportGraph {
     s / os.up / restSegments / os.up / s"${rest.last}.sc"
   }
 
-  def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean) = {
+  def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean): Seq[String] = {
     val rel = (s / os.up / (if (stripExt) s.baseName else s.last)).relativeTo(base)
     Seq("millbuild") ++ Seq.fill(rel.ups)("^") ++ rel.segments
   }
