@@ -573,7 +573,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
 
   // Test setup
   def testDepPaths = T{ runClasspath() }
-  def testDep = T{ s"-DMILL_TEST_DEP_com.lihaoyi-${artifactName()}=${testDepPaths.map(_.path).mkString(",")}" }
+  def testDep = T{ s"-DMILL_TEST_DEP_com.lihaoyi-${artifactName()}=${testDepPaths().map(_.path).mkString(",")}" }
   def testArgs: T[Seq[String]] = Seq(testDep())
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
