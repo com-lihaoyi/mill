@@ -3,7 +3,7 @@ package mill.main
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result, internal}
-import mill.define.{Command, Segments, SelectMode, NamedTask, TargetImpl, Task}
+import mill.define.{Command, Segments, NamedTask, TargetImpl, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{PrintLogger, Watched}
 import pprint.{Renderer, Tree, Truncated}

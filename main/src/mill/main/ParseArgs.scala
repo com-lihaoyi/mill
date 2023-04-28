@@ -1,10 +1,11 @@
-package mill.define
+package mill.main
+
+import fastparse.NoWhitespace.noWhitespaceImplicit
+import fastparse._
+import mill.define.{Segment, Segments}
+import mill.util.EitherOps
 
 import scala.annotation.tailrec
-
-import fastparse._
-import fastparse.NoWhitespace.noWhitespaceImplicit
-import mill.util.EitherOps
 
 sealed trait SelectMode
 object SelectMode {

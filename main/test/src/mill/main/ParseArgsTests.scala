@@ -1,7 +1,8 @@
-package mill.define
+package mill.main
 
-import mill.define.ParseArgs.TargetSeparator
+import mill.define.{Segment, Segments}
 import mill.define.Segment.{Cross, Label}
+import mill.main.ParseArgs.TargetSeparator
 import utest._
 
 object ParseArgsTests extends TestSuite {

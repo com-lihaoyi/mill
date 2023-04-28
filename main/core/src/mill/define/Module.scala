@@ -3,7 +3,6 @@ package mill.define
 import mill.api.internal
 
 import java.lang.reflect.Modifier
-import mill.define.ParseArgs
 
 import scala.language.experimental.macros
 import scala.reflect.ClassTag
@@ -58,7 +57,7 @@ object Module {
         m <- outer.getMethods.sortBy(_.getName)
         n = decode(m.getName)
         if filter(n) &&
-          ParseArgs.isLegalIdentifier(n) &&
+          n != "<init>" &&
           (!noParams || m.getParameterCount == 0) &&
           (m.getModifiers & Modifier.STATIC) == 0 &&
           (m.getModifiers & Modifier.ABSTRACT) == 0 &&

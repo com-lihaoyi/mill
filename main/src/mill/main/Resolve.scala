@@ -5,10 +5,7 @@ import mill.define.{
   Discover,
   ExternalModule,
   NamedTask,
-  ParseArgs,
-  Segment,
   Segments,
-  SelectMode,
   TaskModule
 }
 import mill.eval.Evaluator
