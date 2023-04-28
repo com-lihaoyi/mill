@@ -571,7 +571,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   }
 
   // Test setup
-  def testDepPaths = T{ runClasspath() }
+  def testDepPaths = T{ upstreamAssemblyClasspath() ++ Seq(compile().classes) }
   def testDep = T{ (s"com.lihaoyi-${artifactName()}", testDepPaths().map(_.path).mkString("\n")) }
   def testArgs: T[Seq[String]] = T{ Seq[String]() }
 
@@ -588,14 +588,15 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
     if (this == main) Seq(main)
     else Seq(this, main.test)
 
+
   trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
       with WithMillCompiler with BaseMillTestsModule {
 
-    def resources = T.sources{
-      for((k, v) <- testTransitiveDeps()) {
+    def runClasspath = T {
+      for ((k, v) <- testTransitiveDeps()) {
         os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
       }
-      super.resources() ++ Seq(PathRef(T.dest))
+      super.runClasspath() ++ Seq(PathRef(T.dest))
     }
 
     override def forkArgs = super.forkArgs() ++ outer.testArgs()
@@ -1241,7 +1242,19 @@ trait IntegrationTestModule extends MillScalaModule {
 }
 
 trait IntegrationTestCrossModule extends IntegrationTestModule {
-  object local extends ModeModule
+  object local extends ModeModule{
+    def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
+      runner.linenumbers.testDep(),
+      scalalib.backgroundwrapper.testDep(),
+      contrib.buildinfo.testDep(),
+    )
+    def runClasspath = T {
+      for ((k, v) <- testTransitiveDeps()) {
+        os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
+      }
+      super.runClasspath() ++ Seq(PathRef(T.dest))
+    }
+  }
   object fork extends ModeModule
   object server extends ModeModule
 }
