@@ -1,6 +1,6 @@
-package mill.define
+package mill.eval
 
-import mill.define.Tarjans
+import mill.define.Task
 import mill.util.MultiBiMap
 import mill.api.Strict.Agg
 

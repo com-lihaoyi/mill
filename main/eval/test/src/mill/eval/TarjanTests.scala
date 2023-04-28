@@ -1,4 +1,4 @@
-package mill.define
+package mill.eval
 
 import utest._
 
