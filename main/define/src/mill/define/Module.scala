@@ -47,6 +47,15 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
 object Module {
   @internal
   object Internal {
+    import fastparse._, NoWhitespace._
+
+    def ident[_p: P]: P[String] = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
+
+    def standaloneIdent[_p: P]: P[String] = P(Start ~ ident ~ End)
+
+    def isLegalIdentifier(identifier: String): Boolean =
+      parse(identifier, standaloneIdent(_)).isInstanceOf[Parsed.Success[_]]
+
     def reflect(
         outer: Class[_],
         inner: Class[_],
@@ -57,7 +66,7 @@ object Module {
         m <- outer.getMethods.sortBy(_.getName)
         n = decode(m.getName)
         if filter(n) &&
-          n != "<init>" &&
+          isLegalIdentifier(n) &&
           (!noParams || m.getParameterCount == 0) &&
           (m.getModifiers & Modifier.STATIC) == 0 &&
           (m.getModifiers & Modifier.ABSTRACT) == 0 &&

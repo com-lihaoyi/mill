@@ -105,15 +105,9 @@ object ParseArgs {
       case Parsed.Success(selector, _) => Right(selector)
     }
 
-  private def ident[_p: P]: P[String] = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
-
-  def standaloneIdent[_p: P]: P[String] = P(Start ~ ident ~ End)
-  def isLegalIdentifier(identifier: String): Boolean =
-    parse(identifier, standaloneIdent(_)).isInstanceOf[Parsed.Success[_]]
-
   private def selector[_p: P]: P[(Option[Segments], Segments)] = {
     def ident2 = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def segment = P(ident).map(Segment.Label)
+    def segment = P(mill.define.Module.Internal.ident).map(Segment.Label)
     def crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
     def simpleQuery = P(segment ~ ("." ~ segment | crossSegment).rep).map {
       case (h, rest) => Segments(h +: rest)

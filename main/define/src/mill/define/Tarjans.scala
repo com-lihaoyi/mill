@@ -1,4 +1,4 @@
-package mill.eval
+package mill.define
 
 import scala.collection.mutable
 
