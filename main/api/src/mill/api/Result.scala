@@ -94,7 +94,9 @@ object Result {
   }
 
   class OuterStack(val value: Seq[StackTraceElement]) {
-    override def hashCode() = value.hashCode()
+    def this(value: Array[StackTraceElement]) = this(value.toIndexedSeq)
+
+    override def hashCode(): Int = value.hashCode()
 
     override def equals(obj: scala.Any) = obj match {
       case o: OuterStack => value.equals(o.value)
