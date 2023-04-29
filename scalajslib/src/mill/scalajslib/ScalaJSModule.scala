@@ -35,9 +35,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSWorkerVersion = T { ZincWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
   def scalaJSWorkerClasspath = T {
-    val workerKey = "MILL_SCALAJS_WORKER_" + scalaJSWorkerVersion().replace('.', '_')
     mill.modules.Util.millProjectModule(
-      key = workerKey,
       artifact = s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
       repositories = repositoriesTask(),
       resolveFilter = _.toString.contains("mill-scalajslib-worker")

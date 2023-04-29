@@ -1,6 +1,6 @@
-package mill.define
+package mill.eval
 
-import mill.eval.Evaluator
+import mill.define.{Task, Target, NamedTask, TargetImpl}
 import mill.util.{TestGraphs, TestUtil}
 import utest._
 import mill.api.Strict.Agg

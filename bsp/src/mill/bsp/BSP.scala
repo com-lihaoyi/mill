@@ -8,6 +8,7 @@ import mill.{Agg, T, BuildInfo => MillBuildInfo}
 import mill.define.{Command, Discover, ExternalModule, Task}
 import mill.eval.Evaluator
 import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
+import mill.modules.Util.millProjectModule
 import mill.scalalib.{CoursierModule, Dep}
 import mill.util.PrintLogger
 import os.Path
@@ -20,11 +21,7 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
   private[this] val millServerHandle = Promise[BspServerHandle]()
 
   private def bspWorkerLibs: T[Agg[PathRef]] = T {
-    mill.modules.Util.millProjectModule(
-      "MILL_BSP_WORKER",
-      "mill-bsp-worker",
-      repositoriesTask()
-    )
+    millProjectModule("mill-bsp-worker", repositoriesTask())
   }
 
   /**

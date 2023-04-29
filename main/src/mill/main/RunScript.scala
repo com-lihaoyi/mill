@@ -3,12 +3,10 @@ package mill.main
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{EitherOps, Watched}
-import mill.define.SelectMode
-import mill.define.ParseArgs
 import mill.api.{PathRef, Result}
 import mill.api.Strict.Agg
 import scala.reflect.ClassTag
-import mill.define.ParseArgs.TargetsWithParams
+import mill.main.ParseArgs.TargetsWithParams
 
 object RunScript {
 

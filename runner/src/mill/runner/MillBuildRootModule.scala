@@ -5,6 +5,7 @@ import mill._
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.define.{Caller, Discover, Target, Task}
 import mill.modules.CoursierSupport
+import mill.modules.Util.millProjectModule
 import mill.scalalib.{BoundDep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.Versions
 import os.{Path, rel}
@@ -64,7 +65,7 @@ class MillBuildRootModule()(implicit
 
   override def ivyDeps = T {
     Agg.from(
-      parseBuildFiles().ivyDeps
+      MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(str =>
           mill.scalalib.Dep.parse(
             str
@@ -127,18 +128,21 @@ class MillBuildRootModule()(implicit
 
   override def scalacOptions: T[Seq[String]] = T {
     super.scalacOptions() ++
-      Seq("-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","), "-nowarn")
+      Seq(
+        "-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","),
+        "-nowarn",
+        // Make sure we abort of the plugin is not found, to ensure any
+        // classpath/plugin-discovery issues are surfaced early rather than
+        // after hours of debugging
+        "-Xplugin-require:mill-linenumber-plugin"
+      )
   }
 
   override def scalacPluginClasspath: T[Agg[PathRef]] =
     super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
 
   def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
-    mill.modules.Util.millProjectModule(
-      "MILL_LINENUMBERS",
-      "mill-runner-linenumbers",
-      repositoriesTask()
-    )
+    millProjectModule("mill-runner-linenumbers", repositoriesTask())
   }
 }
 

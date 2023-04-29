@@ -3,8 +3,7 @@ package mill.contrib.scoverage
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.{Command, Module, Task}
 import mill.eval.Evaluator
-import mill.main.{ResolveTasks, RunScript}
-import mill.define.SelectMode
+import mill.main.{ResolveTasks, RunScript, SelectMode}
 import mill.{PathRef, T}
 import os.Path
 

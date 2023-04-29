@@ -50,7 +50,6 @@ object ExampleTestSuite extends IntegrationTestSuite {
         val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
         val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
-        "\n("
         for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
       } finally {
         os.remove.all(workspaceRoot / "out")
