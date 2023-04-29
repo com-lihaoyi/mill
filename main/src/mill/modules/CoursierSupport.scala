@@ -90,7 +90,7 @@ trait CoursierSupport {
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
-      resolveFilter: os.Path => Boolean = _ => true,
+      resolveFilter: os.Path => Boolean = _ => true
   ): Result[Agg[PathRef]] = {
 
     def isLocalTestDep(dep: coursier.Dependency): Option[Seq[PathRef]] = {
@@ -99,14 +99,16 @@ trait CoursierSupport {
       val classpathKey = s"$org-${name.stripSuffix("_2.13").stripSuffix("_2.12")}"
 
       val classpathResourceText =
-        try Some(os.read(os.resource(getClass.getClassLoader) / "mill" / "local-test-overrides" / classpathKey))
-        catch{case e: os.ResourceNotFoundException => None }
+        try Some(os.read(
+            os.resource(getClass.getClassLoader) / "mill" / "local-test-overrides" / classpathKey
+          ))
+        catch { case e: os.ResourceNotFoundException => None }
 
       classpathResourceText.map(_.linesIterator.map(s => PathRef(os.Path(s))).toSeq)
     }
 
-    val (localTestDeps, remoteDeps) = deps.toSeq.partitionMap( d =>
-      isLocalTestDep(d) match{
+    val (localTestDeps, remoteDeps) = deps.toSeq.partitionMap(d =>
+      isLocalTestDep(d) match {
         case None => Right(d)
         case Some(vs) => Left(vs)
       }

@@ -1,6 +1,5 @@
 package mill.runner
 
-
 object MillIvy {
   def processMillIvyDepSignature(signatures: Set[String]): Set[String] = {
     // replace platform notation and empty version
@@ -10,10 +9,10 @@ object MillIvy {
       //      else
       signature.split("[:]") match {
         case Array(org, "", pname, "", version)
-          if org.length > 0 && pname.length > 0 && version.length > 0 =>
+            if org.length > 0 && pname.length > 0 && version.length > 0 =>
           s"${org}::${pname}_mill$$MILL_BIN_PLATFORM:${version}"
         case Array(org, "", "", pname, "", version)
-          if org.length > 0 && pname.length > 0 && version.length > 0 =>
+            if org.length > 0 && pname.length > 0 && version.length > 0 =>
           s"${org}:::${pname}_mill$$MILL_BIN_PLATFORM:${version}"
         case Array(org, "", name) if org.length > 0 && name.length > 0 && signature.endsWith(":") =>
           s"${org}::${name}:$$MILL_VERSION"

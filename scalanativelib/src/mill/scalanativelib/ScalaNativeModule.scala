@@ -9,7 +9,16 @@ import mill.modules.Jvm
 import mill.modules.Util.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
-import mill.scalalib.{BoundDep, CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
+import mill.scalalib.{
+  BoundDep,
+  CrossVersion,
+  Dep,
+  DepSyntax,
+  Lib,
+  SbtModule,
+  ScalaModule,
+  TestModule
+}
 import mill.testrunner.TestRunner
 import mill.scalanativelib.api._
 import mill.scalanativelib.worker.{ScalaNativeWorkerExternalModule, api => workerApi}
