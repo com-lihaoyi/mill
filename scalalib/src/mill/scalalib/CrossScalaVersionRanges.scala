@@ -14,10 +14,9 @@ import mill.scalalib.api.ZincWorkerUtil
  * the `src-2.13+` and `src-2.12-`, based on the `crossScalaVersion`.
  */
 trait CrossScalaVersionRanges extends CrossModuleBase {
-  val crossScalaVersions = millOuterCtx.crossInstances.map(
-    _.asInstanceOf[CrossScalaModule].crossScalaVersion
-  )
+  val crossScalaVersionsRangeAllVersions = millOuterCtx.crossValues.map(_.toString)
+
   override def scalaVersionDirectoryNames =
     super.scalaVersionDirectoryNames ++
-      ZincWorkerUtil.versionRanges(crossScalaVersion, crossScalaVersions)
+      ZincWorkerUtil.versionRanges(crossScalaVersion, crossScalaVersionsRangeAllVersions)
 }

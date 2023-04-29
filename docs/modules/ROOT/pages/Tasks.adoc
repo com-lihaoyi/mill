@@ -1,0 +1,55 @@
+= Tasks
+
+One of Mill's core abstractions is its _Task Graph_: this is how Mill defines,
+orders and caches work it needs to do, and exists independently of any support
+for building Scala.
+
+Mill target graphs are primarily built using methods and macros defined on
+`mill.define.Target`, aliased as `T` for conciseness:
+
+- {mill-doc-url}/api/latest/mill/define/Target$.html[mill.define.Target]
+
+== Task Cheat Sheet
+
+The following table might help you make sense of the small collection of
+different Task types:
+
+[cols="<,<,<,<,<,<,<"]
+|===
+| |Target |Command |Source/Input |Anonymous Task |Persistent Target |Worker
+
+|Cached to Disk |X | | | |X |
+|JSON Writable |X |X |X| |X |
+|JSON Readable |X | | | |X |
+|CLI Runnable |X |X | | |X |
+|Takes Arguments | |X | |X | |
+|Cached In-Memory | | | | | |X
+|===
+
+include::example/tasks/1-task-graph.adoc[]
+
+== Primary Tasks
+
+include::example/tasks/2-primary-tasks.adoc[]
+
+== Other Tasks
+
+* <<_anonymous_tasks>>, defined using `T.task {...}`
+* <<_persistent_targets>>
+* <<_inputs>>
+* <<_workers>>
+
+=== Anonymous Tasks
+
+include::example/tasks/3-anonymous-tasks.adoc[]
+
+=== Inputs
+
+include::example/tasks/4-inputs.adoc[]
+
+=== Persistent Targets
+
+include::example/tasks/5-persistent-targets.adoc[]
+
+=== Workers
+include::example/tasks/6-workers.adoc[]

@@ -2,7 +2,7 @@ package mill.main
 
 import mainargs.TokensReader
 import mill.eval.Evaluator
-import mill.define.{SelectMode, Target, Task}
+import mill.define.{Target, Task}
 
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
@@ -11,8 +11,7 @@ object Tasks {
       extends mainargs.TokensReader[Tasks[T]](
         shortName = "<tasks>",
         read = s =>
-          RunScript.resolveTasks(
-            mill.main.ResolveTasks,
+          ResolveTasks.resolve(
             Evaluator.currentEvaluator.get,
             s,
             SelectMode.Single

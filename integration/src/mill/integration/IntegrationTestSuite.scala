@@ -1,8 +1,8 @@
 package mill.integration
 
 import mainargs.Flag
-import mill.MillCliConfig
-import mill.define.SelectMode
+import mill.runner.MillCliConfig
+import mill.main.SelectMode
 import mill.runner.{MillBuildBootstrap, MillMain, RunnerState, Watching}
 import mill.api.SystemStreams
 import mill.util.PrintLogger
@@ -142,7 +142,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   def meta(s: String): String = {
     val Seq((List(selector), _)) =
-      mill.define.ParseArgs.apply(Seq(s), SelectMode.Single).getOrElse(???)
+      mill.main.ParseArgs.apply(Seq(s), SelectMode.Single).getOrElse(???)
 
     val segments = selector._2.value.flatMap(_.pathSegments)
     os.read(wd / "out" / segments.init / s"${segments.last}.json")

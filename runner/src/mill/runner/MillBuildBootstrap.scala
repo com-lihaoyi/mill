@@ -1,11 +1,11 @@
 package mill.runner
 import mill.util.{ColorLogger, PrefixLogger, Util}
-import mill.{BuildInfo, MillCliConfig, T}
+import mill.{BuildInfo, T}
 import mill.api.{PathRef, internal}
 import mill.eval.Evaluator
-import mill.main.{RootModule, RunScript}
+import mill.main.{RootModule, RunScript, SelectMode}
 import mill.main.TokenReaders._
-import mill.define.{Discover, Segments, SelectMode, Watchable}
+import mill.define.{Discover, Segments, Watchable}
 
 import java.net.URLClassLoader
 
@@ -93,8 +93,8 @@ class MillBuildBootstrap(
       }
 
       val childRootModules: Seq[RootModule] = rootModule0
-        .millModuleDirectChildren
-        .collect { case b: RootModule => b }
+        .millInternal
+        .reflectNestedObjects[RootModule]()
 
       val rootModuleOrErr = childRootModules match {
         case Seq() => Right(rootModule0)

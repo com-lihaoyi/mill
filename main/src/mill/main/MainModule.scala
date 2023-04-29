@@ -1,11 +1,9 @@
 package mill.main
 
-import mainargs.TokensReader
-
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result, internal}
-import mill.define.{Command, Segments, SelectMode, NamedTask, TargetImpl, Task}
+import mill.define.{Command, Segments, NamedTask, TargetImpl, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{PrintLogger, Watched}
 import pprint.{Renderer, Tree, Truncated}
@@ -21,7 +19,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, selectMode) match {
+    ResolveTasks.resolve(evaluator, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -57,6 +55,10 @@ object MainModule {
   }
 }
 
+/**
+ * [[mill.Module]] containing all the default tasks that Mill provides: [[resolve]],
+ * [[show]], [[inspect]], [[plan]], etc.
+ */
 trait MainModule extends mill.Module {
 
   implicit def millDiscover: mill.define.Discover[_]
@@ -74,8 +76,7 @@ trait MainModule extends mill.Module {
    * Resolves a mill query string and prints out the tasks it resolves to.
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = T.command {
-    val resolved: Either[String, List[String]] = RunScript.resolveTasks(
-      mill.main.ResolveMetadata,
+    val resolved: Either[String, List[String]] = ResolveMetadata.resolve(
       evaluator,
       targets,
       SelectMode.Multi
@@ -87,6 +88,7 @@ trait MainModule extends mill.Module {
         rs.sorted.foreach(T.log.outputStream.println)
         Result.Success(rs)
     }
+    List.empty[String]
   }
 
   /**
@@ -104,8 +106,7 @@ trait MainModule extends mill.Module {
   }
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
-    RunScript.resolveTasks(
-      mill.main.ResolveTasks,
+    ResolveTasks.resolve(
       evaluator,
       targets,
       SelectMode.Multi
@@ -124,8 +125,7 @@ trait MainModule extends mill.Module {
    * chosen is arbitrary.
    */
   def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] = T.command {
-    val resolved = RunScript.resolveTasks(
-      mill.main.ResolveTasks,
+    val resolved = ResolveTasks.resolve(
       evaluator,
       List(src, dest),
       SelectMode.Multi
@@ -180,7 +180,7 @@ trait MainModule extends mill.Module {
       def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: TargetImpl[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
+          case t: mill.define.Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)
@@ -204,7 +204,8 @@ trait MainModule extends mill.Module {
         Iterator(
           ctx.applyPrefixColor(t.toString).toString,
           "(",
-          t.ctx.fileName.split('/').last,
+          // handle both Windows or Unix separators
+          t.ctx.fileName.split('/').last.split('\\').last,
           ":",
           t.ctx.lineNum.toString,
           ")",
@@ -318,15 +319,14 @@ trait MainModule extends mill.Module {
       if (targets.isEmpty)
         Right(os.list(rootDir).filterNot(keepPath))
       else
-        RunScript.resolveTasks(
-          mill.main.ResolveSegments,
+        mill.main.ResolveSegments.resolve(
           evaluator,
           targets,
           SelectMode.Multi
         ).map { ts =>
           ts.flatMap { segments =>
-            val evPpaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
-            val paths = Seq(evPpaths.dest, evPpaths.meta, evPpaths.log)
+            val evPaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
+            val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
             val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
             if (os.exists(potentialModulePath)) {
               // this is either because of some pre-Mill-0.10 files lying around
@@ -381,6 +381,12 @@ trait MainModule extends mill.Module {
     System.exit(0)
   }
 
+  /**
+   * The `init`` command generates a project based on a Giter8 template. It
+   * prompts you to enter project name and creates a folder with that name.
+   * You can use it to quickly generate a starter project. There are lots of
+   * templates out there for many frameworks and tools!
+   */
   def init(evaluator: Evaluator, args: String*): Command[Unit] = T.command {
     MainModule.evaluateTasks(
       evaluator,
@@ -410,8 +416,7 @@ trait MainModule extends mill.Module {
       out.take()
     }
 
-    RunScript.resolveTasks(
-      mill.main.ResolveTasks,
+    ResolveTasks.resolve(
       evaluator,
       targets,
       SelectMode.Multi

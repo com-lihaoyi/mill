@@ -3,7 +3,7 @@ package mill.contrib.proguard
 import scala.util.Properties
 
 import coursier.Repositories
-import io.github.retronym.java9rtexport.Export
+import mill.java9rtexport.Export
 import mill.T
 import mill.Agg
 import mill.api.{Logger, Loose, PathRef, Result}

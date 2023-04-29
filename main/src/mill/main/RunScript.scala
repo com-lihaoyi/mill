@@ -3,117 +3,21 @@ package mill.main
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{EitherOps, Watched}
-import mill.define.SelectMode
-import mill.define.ParseArgs
 import mill.api.{PathRef, Result}
 import mill.api.Strict.Agg
 import scala.reflect.ClassTag
-import mill.define.ParseArgs.TargetsWithParams
+import mill.main.ParseArgs.TargetsWithParams
 
-/**
- * Custom version of ammonite.main.Scripts, letting us run the build.sc script
- * directly without going through Ammonite's main-method/argument-parsing
- * subsystem
- */
 object RunScript {
 
   type TaskName = String
 
-  def resolveTasks[T, R: ClassTag](
-      resolver: mill.main.Resolve[R],
-      evaluator: Evaluator,
-      scriptArgs: Seq[String],
-      selectMode: SelectMode
-  ): Either[String, List[R]] = {
-    val parsedGroups: Either[String, Seq[TargetsWithParams]] = ParseArgs(scriptArgs, selectMode)
-    val resolvedGroups = parsedGroups.flatMap { groups =>
-      val resolved = groups.map { parsed: TargetsWithParams =>
-        resolveTasks(resolver, evaluator, Right(parsed))
-      }
-      EitherOps.sequence(resolved)
-    }
-    resolvedGroups.map(_.flatten.toList)
-  }
-
-  private def resolveTasks[T, R: ClassTag](
-      resolver: mill.main.Resolve[R],
-      evaluator: Evaluator,
-      targetsWithParams: Either[String, TargetsWithParams]
-  ): Either[String, List[R]] = {
-    for {
-      parsed <- targetsWithParams
-      (selectors, args) = parsed
-      taskss <- {
-        val selected = selectors.map { case (scopedSel, sel) =>
-          for (res <- prepareResolve(evaluator, scopedSel, sel))
-            yield {
-              val (rootModule, crossSelectors) = res
-
-              try {
-                // We inject the `evaluator.rootModule` into the TargetScopt, rather
-                // than the `rootModule`, because even if you are running an external
-                // module we still want you to be able to resolve targets from your
-                // main build. Resolving targets from external builds as CLI arguments
-                // is not currently supported
-                mill.eval.Evaluator.currentEvaluator.set(evaluator)
-                resolver.resolve(
-                  sel.value.toList,
-                  rootModule,
-                  rootModule.millDiscover,
-                  args,
-                  crossSelectors.toList
-                )
-              } finally {
-                mill.eval.Evaluator.currentEvaluator.set(null)
-              }
-            }
-        }
-        EitherOps.sequence(selected).map(_.toList)
-      }
-      res <- EitherOps.sequence(taskss)
-    } yield res.flatten
-  }
-
-  def resolveRootModule[T](evaluator: Evaluator, scopedSel: Option[Segments]) = {
-    scopedSel match {
-      case None => Right(evaluator.rootModule)
-      case Some(scoping) =>
-        for {
-          moduleCls <-
-            try Right(evaluator.rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
-            catch {
-              case e: ClassNotFoundException =>
-                Left("Cannot resolve external module " + scoping.render)
-            }
-          rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
-            case rootModule: ExternalModule => Right(rootModule)
-            case _ => Left("Class " + scoping.render + " is not an external module")
-          }
-        } yield rootModule
-    }
-  }
-
-  def prepareResolve[T](
-      evaluator: Evaluator,
-      scopedSel: Option[Segments],
-      sel: Segments
-  ): Either[String, (BaseModule, Seq[List[String]])] = {
-    for (rootModule <- resolveRootModule(evaluator, scopedSel))
-      yield {
-        val crossSelectors = sel.value.map {
-          case Segment.Cross(x) => x.toList.map(_.toString)
-          case _ => Nil
-        }
-        (rootModule, crossSelectors)
-      }
-  }
-
-  def evaluateTasks[T](
+  def evaluateTasks(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]])] = {
-    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, selectMode))
+    for (targets <- ResolveTasks.resolve(evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
 
@@ -132,7 +36,7 @@ object RunScript {
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] = {
-    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, selectMode))
+    for (targets <- ResolveTasks.resolve(evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluateNamed(evaluator, Agg.from(targets.distinct))
 

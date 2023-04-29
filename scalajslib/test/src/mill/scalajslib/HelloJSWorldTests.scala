@@ -5,7 +5,7 @@ import mill._
 import mill.api.Result
 import mill.define.Discover
 import mill.eval.EvaluatorPaths
-import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
+import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, ScalaModule, TestModule}
 import mill.testrunner.TestRunner
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.util.{TestEvaluator, TestUtil}
@@ -17,7 +17,11 @@ import mill.scalalib.api.ZincWorkerUtil
 object HelloJSWorldTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
 
-  trait HelloJSWorldModule extends CrossScalaModule with ScalaJSModule with PublishModule {
+  trait HelloJSWorldModule
+      extends ScalaModule with ScalaJSModule with PublishModule
+      with Cross.Module2[String, String] {
+    val (crossScalaVersion, sjsVersion0) = (crossValue, crossValue2)
+    def scalaVersion = crossScalaVersion
     override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("Main")
@@ -32,9 +36,8 @@ object HelloJSWorldTests extends TestSuite {
       if !(ZincWorkerUtil.isScala3(scala) && scalaJS != scalaJSVersions.head)
     } yield (scala, scalaJS)
 
-    object helloJsWorld extends Cross[RootModule](matrix: _*)
-    class RootModule(val crossScalaVersion: String, sjsVersion0: String)
-        extends HelloJSWorldModule {
+    object helloJsWorld extends Cross[RootModule](matrix)
+    trait RootModule extends HelloJSWorldModule {
       override def artifactName = "hello-js-world"
       def scalaJSVersion = sjsVersion0
       def pomSettings = PomSettings(
@@ -48,9 +51,8 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
 
-    object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
-    class BuildModuleUtest(crossScalaVersion: String, sjsVersion0: String)
-        extends RootModule(crossScalaVersion, sjsVersion0) {
+    object buildUTest extends Cross[BuildModuleUtest](matrix)
+    trait BuildModuleUtest extends RootModule {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
@@ -60,11 +62,8 @@ object HelloJSWorldTests extends TestSuite {
       }
     }
 
-    object buildScalaTest extends Cross[BuildModuleScalaTest](matrix: _*)
-    class BuildModuleScalaTest(
-        crossScalaVersion: String,
-        sjsVersion0: String
-    ) extends RootModule(crossScalaVersion, sjsVersion0) {
+    object buildScalaTest extends Cross[BuildModuleScalaTest](matrix)
+    trait BuildModuleScalaTest extends RootModule {
       object test extends super.Tests with TestModule.ScalaTest {
         override def sources = T.sources { millSourcePath / "src" / "scalatest" }
         override def ivyDeps = Agg(
