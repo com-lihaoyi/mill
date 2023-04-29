@@ -1,6 +1,7 @@
-package mill.define
-import fastparse._
+package mill.main
+
 import fastparse.NoWhitespace.noWhitespaceImplicit
+import fastparse._
 
 object ExpandBraces {
   private sealed trait Fragment

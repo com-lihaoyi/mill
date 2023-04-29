@@ -2,8 +2,8 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.0`
-import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.13`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.1`
+import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.19`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
 // imports
@@ -139,7 +139,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.3"
-  val scalametaTrees = ivy"org.scalameta::trees:4.7.6"
+  val scalametaTrees = ivy"org.scalameta::trees:4.7.7"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.8"
@@ -149,8 +149,8 @@ object Deps {
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.6"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.13"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.7"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.16"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:3.1.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
@@ -647,7 +647,7 @@ trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompi
 
 object main extends MillModule {
 
-  override def moduleDeps = Seq(core, client)
+  override def moduleDeps = Seq(eval, client)
   override def ivyDeps = Agg(
     Deps.windowsAnsi,
     Deps.mainargs,
@@ -658,7 +658,7 @@ object main extends MillModule {
     Deps.scalaReflect(scalaVersion())
   )
 
-  object api extends MillApiModule with BuildInfo {
+  object api extends MillApiModule with BuildInfo with MillAutoTestSetup{
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
     override def ivyDeps = Agg(
@@ -674,7 +674,7 @@ object main extends MillModule {
       Deps.fansi
     )
   }
-  object core extends MillModule with BuildInfo {
+  object define extends MillModule with BuildInfo {
     override def moduleDeps = Seq(api, util)
     override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
@@ -718,6 +718,10 @@ object main extends MillModule {
     )
   }
 
+  object eval extends MillModule {
+    override def moduleDeps = Seq(define)
+  }
+
   object client extends MillPublishModule with BuildInfo {
     def buildInfoPackageName = "mill.main.client"
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
@@ -738,7 +742,7 @@ object main extends MillModule {
   }
 
   object testkit extends MillInternalModule with MillAutoTestSetup {
-    def moduleDeps = Seq(core, util)
+    def moduleDeps = Seq(eval, util)
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
@@ -1205,7 +1209,6 @@ trait IntegrationTestModule extends MillScalaModule {
     def workspaceDir = T.persistent {
       PathRef(T.dest)
     }
-
 
     def forkArgs: Target[Seq[String]] = T {
       super.forkArgs() ++
