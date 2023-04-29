@@ -114,7 +114,7 @@ object Deps {
   val coursier = ivy"io.get-coursier::coursier:2.1.2"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.15"
 
-  val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
+  val flywayCore = ivy"org.flywaydb:flyway-core:9.17.0"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.2"
 
@@ -643,7 +643,7 @@ object main extends MillModule {
     "-DMILL_VERSION=" + publishVersion()
   )
 
-  object api extends MillApiModule with BuildInfo with MillAutoTestSetup{
+  object api extends MillApiModule with BuildInfo with MillAutoTestSetup {
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
     override def ivyDeps = Agg(
