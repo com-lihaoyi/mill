@@ -576,18 +576,18 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   def testArgs: T[Seq[String]] = T{ Seq[String]() }
 
   def testTransitiveDeps: T[Map[String, String]] = T{
-    val upstream = T.traverse(outer.moduleDeps) {
+    val upstream = T.traverse(outer.moduleDeps ++ outer.compileModuleDeps) {
       case m: MillScalaModule => m.testTransitiveDeps.map(Some(_))
       case _ => T.task(None)
     }().flatten.flatten
     val current = Seq(outer.testDep())
     upstream.toMap ++ current
   }
+
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
   def testModuleDeps: Seq[JavaModule] =
     if (this == main) Seq(main)
     else Seq(this, main.test)
-
 
   trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
       with WithMillCompiler with BaseMillTestsModule {
@@ -885,6 +885,10 @@ object contrib extends MillModule {
     def readme = T.source(millSourcePath / "readme.adoc")
   }
   object testng extends JavaModule with ContribModule {
+
+    override def testTransitiveDeps =
+      super.testTransitiveDeps() ++ Seq(scalalib.testDep(), scalalib.worker.testDep())
+
     // pure Java implementation
     override def artifactSuffix: T[String] = ""
     override def scalaLibraryIvyDeps: Target[Agg[Dep]] = T { Agg.empty[Dep] }
@@ -905,6 +909,10 @@ object contrib extends MillModule {
   object playlib extends ContribModule {
     override def moduleDeps = Seq(twirllib, playlib.api)
     override def compileModuleDeps = Seq(scalalib)
+
+    override def testTransitiveDeps =
+      super.testTransitiveDeps() ++ T.traverse(Deps.play.keys.toSeq)(worker(_).testDep)()
+
 
     override def testArgs = T {
       super.testArgs() ++
@@ -947,6 +955,8 @@ object contrib extends MillModule {
     }
     override def moduleDeps = Seq(scoverage.api)
     override def compileModuleDeps = Seq(scalalib)
+
+    override def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep(), worker2.testDep())
 
     override def testArgs = T {
       super.testArgs() ++
@@ -1557,6 +1567,13 @@ object dev extends MillModule {
     Seq(m.jar(), m.sourceJar()) ++ m.runClasspath()
   }
 
+  def runClasspath = T {
+    for ((k, v) <- testTransitiveDeps()) {
+      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
+    }
+    super.runClasspath() ++ Seq(PathRef(T.dest))
+  }
+
   def forkArgs: T[Seq[String]] = T{
 
     val genIdeaArgs =
@@ -1604,6 +1621,10 @@ object dev extends MillModule {
       PublishInfo(file = assembly(), classifier = Some("assembly"), ivyConfig = "compile")
     )
   }
+
+  override def assemblyRules = super.assemblyRules ++ Seq(
+    mill.modules.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
+  )
 
   override def assembly = T {
     val isWin = scala.util.Properties.isWin
