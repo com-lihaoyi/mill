@@ -7,6 +7,7 @@ import scala.collection.mutable
 @internal
 case class FileImportGraph(
     seenScripts: Map[os.Path, String],
+    repos: Seq[(String, os.Path)],
     ivyDeps: Set[String],
     importGraphEdges: Map[os.Path, Seq[os.Path]],
     errors: Seq[String]
@@ -29,6 +30,7 @@ object FileImportGraph {
   def parseBuildFiles(topLevelProjectRoot: os.Path, projectRoot: os.Path): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val seenIvy = mutable.Set.empty[String]
+    val seenRepo = mutable.ListBuffer.empty[(String, os.Path)]
     val importGraphEdges = mutable.Map.empty[os.Path, Seq[os.Path]]
     val errors = mutable.Buffer.empty[String]
 
@@ -73,6 +75,12 @@ object FileImportGraph {
       var stmt = stmt0
       for (importTree <- importTrees) {
         val (start, patchString, end) = importTree match {
+          case ImportTree(Seq(("$repo", _), rest @ _*), mapping, start, end) =>
+            for {
+              repo <- mapping.map(_._1)
+              if seenRepo.find(_._1 == repo).isEmpty
+            } seenRepo.addOne((repo, s))
+            (start, "_root_._", end)
           case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
             seenIvy.addAll(mapping.map(_._1))
             (start, "_root_._", end)
@@ -100,7 +108,13 @@ object FileImportGraph {
     }
 
     walkScripts(projectRoot / "build.sc")
-    new FileImportGraph(seenScripts.toMap, seenIvy.toSet, importGraphEdges.toMap, errors.toSeq)
+    new FileImportGraph(
+      seenScripts.toMap,
+      seenRepo.toSeq,
+      seenIvy.toSet,
+      importGraphEdges.toMap,
+      errors.toSeq
+    )
   }
 
   def nextPathFor(s: os.Path, rest: Seq[String]): os.Path = {

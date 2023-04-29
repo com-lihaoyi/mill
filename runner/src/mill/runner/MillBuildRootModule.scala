@@ -1,12 +1,16 @@
 package mill.runner
 
+import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.define.{Caller, Discover, Target, Task}
+import mill.modules.CoursierSupport
 import mill.scalalib.{BoundDep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.Versions
-import os.Path
+import os.{Path, rel}
 import pprint.Util.literalize
+
+import scala.util.Try
 
 /**
  * Mill module for pre-processing a Mill `build.sc` and related files and then
@@ -46,6 +50,16 @@ class MillBuildRootModule()(implicit
       millBuildRootModule.topLevelProjectRoot,
       millBuildRootModule.projectRoot / os.up
     )
+  }
+
+  override def repositoriesTask: Task[Seq[Repository]] = T.task {
+    super.repositoriesTask() ++ {
+      parseBuildFiles().repos.flatMap { case (repo, srcFile) =>
+        // On windows, we may not be able to make it relative
+        val relFile = Try { srcFile.relativeTo(T.workspace) }.recover { case _ => srcFile }.get
+        CoursierSupport.repoFromString(repo, s"Buildfile ${relFile}: import $$repo.`${repo}`")
+      }.flatten
+    }
   }
 
   override def ivyDeps = T {
