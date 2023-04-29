@@ -114,7 +114,13 @@ class MillBuildRootModule()(implicit
 
   override def scalacOptions: T[Seq[String]] = T {
     super.scalacOptions() ++
-      Seq("-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","), "-nowarn")
+      Seq("-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","),
+        "-nowarn",
+        // Make sure we abort of the plugin is not found, to ensure any
+        // classpath/plugin-discovery issues are surfaced early rather than
+        // after hours of debugging
+        "-Xplugin-require:mill-linenumber-plugin"
+      )
   }
 
   override def scalacPluginClasspath: T[Agg[PathRef]] =
