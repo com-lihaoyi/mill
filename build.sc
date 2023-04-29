@@ -1989,7 +1989,8 @@ def assembly = T {
         cmdArgs,
         Agg("$0"),
         Agg("%~dpnx0")
-      )
+      ),
+      assemblyRules = dev.assemblyRules
     ).path,
     T.ctx.dest / filename
   )
