@@ -1099,9 +1099,6 @@ object bsp extends MillModule with BuildInfo {
   override def compileModuleDeps = Seq(scalalib)
   override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ compileModuleDeps
 
-  override def testTransitiveDeps = T {
-    super.testTransitiveDeps() ++ Seq(worker.testDep())
-  }
   def buildInfoPackageName = "mill.bsp"
   def buildInfoMembers = T {
     val workerDep = worker.publishSelfDependency()
@@ -1238,6 +1235,7 @@ trait IntegrationTestCrossModule extends IntegrationTestModule {
       runner.linenumbers.testDep(),
       scalalib.backgroundwrapper.testDep(),
       contrib.buildinfo.testDep(),
+      bsp.worker.testDep(),
     )
   }
   object fork extends ModeModule
