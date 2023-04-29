@@ -182,7 +182,11 @@ class Evaluator private (
     for ((k, vs) <- sortedGroups.items()) {
       failing.addAll(
         k,
-        vs.items.flatMap(results.get).collect { case f: mill.api.Result.Failing[_] => f.map(_._1) }
+        Loose.Agg.from(
+          vs.items.flatMap(results.get).collect { case f: mill.api.Result.Failing[_] =>
+            f.map(_._1)
+          }
+        )
       )
     }
     failing
