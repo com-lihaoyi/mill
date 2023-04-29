@@ -589,15 +589,19 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
     if (this == main) Seq(main)
     else Seq(this, main.test)
 
+  def writeLocalTestOverrides = T.task{
+    for ((k, v) <- testTransitiveDeps()) {
+      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
+    }
+    Seq(PathRef(T.dest))
+  }
+
+  def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+
   trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
       with WithMillCompiler with BaseMillTestsModule {
 
-    def runClasspath = T {
-      for ((k, v) <- testTransitiveDeps()) {
-        os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
-      }
-      super.runClasspath() ++ Seq(PathRef(T.dest))
-    }
+    def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
 
     override def forkArgs = super.forkArgs() ++ outer.testArgs()
     override def moduleDeps = outer.testModuleDeps
@@ -1235,12 +1239,6 @@ trait IntegrationTestCrossModule extends IntegrationTestModule {
       scalalib.backgroundwrapper.testDep(),
       contrib.buildinfo.testDep(),
     )
-    def runClasspath = T {
-      for ((k, v) <- testTransitiveDeps()) {
-        os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
-      }
-      super.runClasspath() ++ Seq(PathRef(T.dest))
-    }
   }
   object fork extends ModeModule
   object server extends ModeModule
@@ -1542,13 +1540,6 @@ object dev extends MillModule {
 
   def genTask(m: ScalaModule) = T.task {
     Seq(m.jar(), m.sourceJar()) ++ m.runClasspath()
-  }
-
-  def runClasspath = T {
-    for ((k, v) <- testTransitiveDeps()) {
-      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
-    }
-    super.runClasspath() ++ Seq(PathRef(T.dest))
   }
 
   def forkArgs: T[Seq[String]] = T{
