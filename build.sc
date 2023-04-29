@@ -1555,7 +1555,8 @@ object dev extends MillModule {
 
     val genIdeaArgs =
     //      genTask(main.moduledefs)() ++
-      genTask(main.core)() ++
+      genTask(main.define)() ++
+      genTask(main.eval)() ++
         genTask(main)() ++
         genTask(scalalib)() ++
         genTask(scalajslib)() ++
