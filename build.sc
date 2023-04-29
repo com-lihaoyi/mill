@@ -571,7 +571,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   }
 
   // Test setup
-  def testDepPaths = T{ upstreamAssemblyClasspath() ++ Seq(compile().classes) }
+  def testDepPaths = T{ upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
   def testDep = T{ (s"com.lihaoyi-${artifactName()}", testDepPaths().map(_.path).mkString("\n")) }
   def testArgs: T[Seq[String]] = T{ Seq[String]() }
 
