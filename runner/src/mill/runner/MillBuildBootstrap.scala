@@ -3,9 +3,9 @@ import mill.util.{ColorLogger, PrefixLogger, Util}
 import mill.{BuildInfo, T}
 import mill.api.{PathRef, internal}
 import mill.eval.Evaluator
-import mill.main.{RootModule, RunScript}
+import mill.main.{RootModule, RunScript, SelectMode}
 import mill.main.TokenReaders._
-import mill.define.{Discover, Segments, SelectMode, Watchable}
+import mill.define.{Discover, Segments, Watchable}
 
 import java.net.URLClassLoader
 

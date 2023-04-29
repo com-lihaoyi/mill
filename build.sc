@@ -629,7 +629,7 @@ trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompi
 
 object main extends MillModule {
 
-  override def moduleDeps = Seq(core, client)
+  override def moduleDeps = Seq(eval, client)
   override def ivyDeps = Agg(
     Deps.windowsAnsi,
     Deps.mainargs,
@@ -643,7 +643,7 @@ object main extends MillModule {
     "-DMILL_VERSION=" + publishVersion()
   )
 
-  object api extends MillApiModule with BuildInfo {
+  object api extends MillApiModule with BuildInfo with MillAutoTestSetup{
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
     override def ivyDeps = Agg(
@@ -659,7 +659,7 @@ object main extends MillModule {
       Deps.fansi
     )
   }
-  object core extends MillModule with BuildInfo {
+  object define extends MillModule with BuildInfo {
     override def moduleDeps = Seq(api, util)
     override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
@@ -703,6 +703,10 @@ object main extends MillModule {
     )
   }
 
+  object eval extends MillModule {
+    override def moduleDeps = Seq(define)
+  }
+
   object client extends MillPublishModule with BuildInfo {
     def buildInfoPackageName = "mill.main.client"
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
@@ -726,7 +730,7 @@ object main extends MillModule {
   }
 
   object testkit extends MillInternalModule with MillAutoTestSetup {
-    def moduleDeps = Seq(core, util)
+    def moduleDeps = Seq(eval, util)
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
@@ -1255,7 +1259,7 @@ trait IntegrationTestModule extends MillScalaModule {
     override def forkArgs: Target[Seq[String]] = T {
       val genIdeaArgs =
         //      genTask(main.moduledefs)() ++
-        genTask(main.core)() ++
+        genTask(main.eval)() ++
           genTask(main)() ++
           genTask(scalalib)() ++
           genTask(scalajslib)() ++
