@@ -242,7 +242,7 @@ object ResolveCore {
   } yield {
     mainargs.TokenGrouping.groupArgs(
       rest,
-      ep._2.argSigs0,
+      ep._2.flattenedArgSigs,
       allowPositional = true,
       allowRepeats = false,
       allowLeftover = ep._2.argSigs0.exists(_.reader.isLeftover)

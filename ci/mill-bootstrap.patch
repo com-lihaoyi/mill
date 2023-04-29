@@ -1,13 +1,13 @@
 diff --git a/build.sc b/build.sc
-index 5c282841c..bf8c56c47 100644
+index 9bde15da2b..419ffbcab4 100644
 --- a/build.sc
 +++ b/build.sc
-@@ -2,27 +2,18 @@
+@@ -2,30 +2,21 @@
  import $file.ci.shared
  import $file.ci.upload
  import $ivy.`org.scalaj::scalaj-http:2.4.2`
--import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.0`
--import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.13`
+-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.1`
+-import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.19`
  import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 +import $ivy.`com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION`
 +import mill.contrib.buildinfo.BuildInfo
@@ -32,8 +32,12 @@ index 5c282841c..bf8c56c47 100644
 +import mill.scalalib.api.Versions
  import mill.scalalib.publish._
  import mill.modules.Jvm
- import mill.define.SelectMode
-@@ -162,12 +153,8 @@ object Deps {
+-import mill.define.SelectMode
++import mill.main.SelectMode
+ 
+ import scala.util.control.NonFatal
+ import mill.T
+@@ -163,12 +154,8 @@ object Deps {
    val requests = ivy"com.lihaoyi::requests:0.8.0"
  }
  
@@ -48,7 +52,7 @@ index 5c282841c..bf8c56c47 100644
  def millBinPlatform: T[String] = T {
    val tag = millLastTag()
    if (tag.contains("-M")) tag
-@@ -216,8 +203,8 @@ val buildBridgeScalaVersions =
+@@ -217,8 +204,8 @@ val buildBridgeScalaVersions =
    if (!buildAllCompilerBridges) Seq()
    else bridgeScalaVersions
  
@@ -59,7 +63,7 @@ index 5c282841c..bf8c56c47 100644
    def scalaVersion = crossScalaVersion
    def publishVersion = bridgeVersion
    def artifactName = T { "mill-scala-compiler-bridge" }
-@@ -236,239 +223,25 @@ class BridgeModule(val crossScalaVersion: String) extends PublishModule with Cro
+@@ -237,239 +224,25 @@ class BridgeModule(val crossScalaVersion: String) extends PublishModule with Cro
    def generatedSources = T {
      import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
      val resolvedJars = resolveDeps(
@@ -304,7 +308,7 @@ index 5c282841c..bf8c56c47 100644
  def commonPomSettings(artifactName: String) = {
    PomSettings(
      description = artifactName,
-@@ -522,27 +295,8 @@ trait MillCoursierModule extends CoursierModule {
+@@ -523,27 +296,8 @@ trait MillCoursierModule extends CoursierModule {
    )
  }
  
@@ -333,7 +337,7 @@ index 5c282841c..bf8c56c47 100644
  }
  
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -854,8 +608,10 @@ object scalajslib extends MillModule with BuildInfo {
+@@ -859,8 +613,10 @@ object scalajslib extends MillModule with BuildInfo {
      override def ivyDeps = Agg(Deps.sbtTestInterface)
    }
    object worker extends Cross[WorkerModule]("1")
@@ -345,7 +349,7 @@ index 5c282841c..bf8c56c47 100644
      override def ivyDeps = Agg(
        Deps.Scalajs_1.scalajsLinker,
        Deps.Scalajs_1.scalajsSbtTestAdapter,
-@@ -921,8 +677,10 @@ object contrib extends MillModule {
+@@ -926,8 +682,10 @@ object contrib extends MillModule {
  
      object api extends MillPublishModule
  
@@ -358,7 +362,7 @@ index 5c282841c..bf8c56c47 100644
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -1112,8 +870,9 @@ object scalanativelib extends MillModule {
+@@ -1117,8 +875,9 @@ object scalanativelib extends MillModule {
      override def ivyDeps = Agg(Deps.sbtTestInterface)
    }
    object worker extends Cross[WorkerModule]("0.4")
@@ -370,7 +374,7 @@ index 5c282841c..bf8c56c47 100644
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
        case "0.4" =>
-@@ -1288,7 +1047,9 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1293,7 +1052,9 @@ trait IntegrationTestModule extends MillScalaModule {
    }
  }
  
@@ -381,7 +385,7 @@ index 5c282841c..bf8c56c47 100644
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1302,15 +1063,15 @@ object example extends MillScalaModule {
+@@ -1307,15 +1068,15 @@ object example extends MillScalaModule {
  
    def moduleDeps = Seq(integration)
  
@@ -405,7 +409,7 @@ index 5c282841c..bf8c56c47 100644
      def sources = T.sources()
      def testRepoRoot: T[PathRef] = T.source(millSourcePath)
      def compile = example.compile()
-@@ -1360,7 +1121,7 @@ object example extends MillScalaModule {
+@@ -1365,7 +1126,7 @@ object example extends MillScalaModule {
                val title =
                  if (seenCode) ""
                  else {
@@ -414,7 +418,7 @@ index 5c282841c..bf8c56c47 100644
                    val exampleDashed = examplePath.segments.mkString("-")
                    val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
                    val browse = s"{mill-example-url}/$examplePath[browse]"
-@@ -1391,9 +1152,9 @@ object example extends MillScalaModule {
+@@ -1396,9 +1157,9 @@ object example extends MillScalaModule {
  }
  
  object integration extends MillScalaModule {
@@ -427,7 +431,7 @@ index 5c282841c..bf8c56c47 100644
  
    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
  
-@@ -1702,67 +1463,11 @@ object docs extends Module {
+@@ -1707,67 +1468,11 @@ object docs extends Module {
      def moduleDeps = build.millInternal.modules.collect { case m: MillApiModule => m }
  
      def unidocSourceUrl = T {
@@ -496,7 +500,7 @@ index 5c282841c..bf8c56c47 100644
    private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
    def npmBase: T[os.Path] = T.persistent { T.dest }
-@@ -1815,7 +1520,7 @@ object docs extends Module {
+@@ -1820,7 +1525,7 @@ object docs extends Module {
  
      val contribReadmes = T.traverse(contrib.contribModules)(m =>
        T.task {
@@ -505,7 +509,7 @@ index 5c282841c..bf8c56c47 100644
        }
      )()
  
-@@ -2045,7 +1750,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
+@@ -2050,7 +1755,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
      examplePath = exampleMod.millSourcePath
    } yield {
      val example = examplePath.subRelativeTo(T.workspace)
@@ -514,7 +518,7 @@ index 5c282841c..bf8c56c47 100644
      os.copy(examplePath, T.dest / exampleStr, createFolders = true)
      os.copy(launcher().path, T.dest / exampleStr / "mill")
      val zip = T.dest / s"$exampleStr.zip"
-@@ -2054,49 +1759,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
+@@ -2059,49 +1764,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
    }
  }
  

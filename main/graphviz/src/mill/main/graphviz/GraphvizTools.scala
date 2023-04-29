@@ -1,6 +1,8 @@
 package mill.main.graphviz
 import guru.nidi.graphviz.attribute.Style
-import mill.define.{Graph, NamedTask}
+import mill.define.NamedTask
+import mill.eval.Graph
+
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 object GraphvizTools {
   def apply(targets: Seq[NamedTask[Any]], rs: Seq[NamedTask[Any]], dest: os.Path) = {
