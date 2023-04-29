@@ -1,11 +1,10 @@
-
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::scalatags:0.8.2",
-    ivy"com.lihaoyi::mainargs:0.4.0"
+    ivy"com.lihaoyi::mainargs:0.5.0"
   )
 
   object test extends Tests {
@@ -37,58 +36,58 @@ object foo extends RootModule with ScalaModule {
 // You can run `assembly` to generate a standalone executable jar, which then
 // can be run from the command line or deployed to be run elsewhere.
 
-/** Usage
-
-> ./mill resolve _ # List what tasks are available to run
-assembly
-...
-clean
-...
-compile
-...
-run
-...
-show
-...
-inspect
-...
-
-> ./mill inspect compile # Show documentation and inputs of a task
-compile(ScalaModule.scala:...)
-    Compiles the current module to generate compiled classfiles/bytecode.
-Inputs:
-    scalaVersion
-    upstreamCompileOutput
-    allSourceFiles
-    compileClasspath
-
-> ./mill compile # compile sources into classfiles
-...
-compiling 1 Scala source to...
-
-> ./mill run # run the main method, if any
-error: Missing argument: --text <str>
-
-> ./mill run --text hello
-<h1>hello</h1>
-
-> ./mill test
-...
-+ foo.FooTests.simple ...  <h1>hello</h1>
-+ foo.FooTests.escaping ...  <h1>&lt;hello&gt;</h1>
-
-> ./mill assembly # bundle classfiles and libraries into a jar for deployment
-
-> ./mill show assembly # show the output of the assembly task
-".../out/assembly.dest/out.jar"
-
-> java -jar ./out/assembly.dest/out.jar --text hello
-<h1>hello</h1>
-
-> ./out/assembly.dest/out.jar --text hello # mac/linux
-<h1>hello</h1>
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill resolve _ # List what tasks are available to run
+ * assembly
+ * ...
+ * clean
+ * ...
+ * compile
+ * ...
+ * run
+ * ...
+ * show
+ * ...
+ * inspect
+ * ...
+ *
+ * > ./mill inspect compile # Show documentation and inputs of a task
+ * compile(ScalaModule.scala:...)
+ *    Compiles the current module to generate compiled classfiles/bytecode.
+ * Inputs:
+ *    scalaVersion
+ *    upstreamCompileOutput
+ *    allSourceFiles
+ *    compileClasspath
+ *
+ * > ./mill compile # compile sources into classfiles
+ * ...
+ * compiling 1 Scala source to...
+ *
+ * > ./mill run # run the main method, if any
+ * error: Missing argument: --text <str>
+ *
+ * > ./mill run --text hello
+ * <h1>hello</h1>
+ *
+ * > ./mill test
+ * ...
+ * + foo.FooTests.simple ...  <h1>hello</h1>
+ * + foo.FooTests.escaping ...  <h1>&lt;hello&gt;</h1>
+ *
+ * > ./mill assembly # bundle classfiles and libraries into a jar for deployment
+ *
+ * > ./mill show assembly # show the output of the assembly task
+ * ".../out/assembly.dest/out.jar"
+ *
+ * > java -jar ./out/assembly.dest/out.jar --text hello
+ * <h1>hello</h1>
+ *
+ * > ./out/assembly.dest/out.jar --text hello # mac/linux
+ * <h1>hello</h1>
+ */
 
 // The output of every Mill task is stored in the `out/` folder under a name
 // corresponding to the task that created it. e.g. The `assembly` task puts its
