@@ -573,7 +573,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
   // Test setup
   def testDepPaths = T{ upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
   def testDep = T{ (s"com.lihaoyi-${artifactName()}", testDepPaths().map(_.path).mkString("\n")) }
-  def testArgs: T[Seq[String]] = T{ Seq[String]() }
+  def testArgs: T[Seq[String]] = T{ Seq("-Djna.nosys=true") }
 
   def testTransitiveDeps: T[Map[String, String]] = T{
     val upstream = T.traverse(outer.moduleDeps ++ outer.compileModuleDeps) {
@@ -657,7 +657,6 @@ object main extends MillModule {
   override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
   )
-  def testArgs = super.testArgs() ++ Seq("-DMILL_VERSION=" + publishVersion())
 
   object api extends MillApiModule with BuildInfo {
     def buildInfoPackageName = "mill.api"
@@ -762,25 +761,10 @@ object scalalib extends MillModule {
     super.testTransitiveDeps() ++ Seq(worker.testDep())
   }
 
-  def testArgs = T {
-
-    val artifactsString =
-      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
-        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
-        .mkString(",")
-
-    super.testArgs() ++
-    Seq(
-      "-Djna.nosys=true",
-      s"-DTEST_SCALAFMT_VERSION=${Deps.scalafmtDynamic.dep.version}",
-      s"-DMILL_EMBEDDED_DEPS=$artifactsString"
-    )
-  }
   object backgroundwrapper extends MillPublishModule with MillScalaModule{
-    override def ivyDeps = Agg(
-      Deps.sbtTestInterface
-    )
+    override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
+
   object api extends MillApiModule with BuildInfo {
     override def moduleDeps = Seq(main.api)
 
@@ -791,6 +775,7 @@ object scalalib extends MillModule {
     def buildInfoMembers = Seq(
       BuildInfo.Value("ammonite", Deps.ammoniteVersion, "Version of Ammonite."),
       BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc"),
+      BuildInfo.Value("scalafmtVersion", Deps.scalafmtDynamic.dep.version, "Version of Scalafmt"),
       BuildInfo.Value("semanticDBVersion", Deps.semanticDB.dep.version, "SemanticDB version."),
       BuildInfo.Value(
         "semanticDbJavaVersion",
@@ -828,11 +813,6 @@ object scalajslib extends MillModule with BuildInfo {
 
   override def testTransitiveDeps = T {
     super.testTransitiveDeps() ++ Seq(worker("1").testDep())
-  }
-
-  override def testArgs = T {
-    super.testArgs() ++
-    Seq("-Djna.nosys=true")
   }
 
   def buildInfoPackageName = "mill.scalajslib"
@@ -1010,11 +990,6 @@ object contrib extends MillModule {
 
   object buildinfo extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
-    // why do I need this?
-    override def testArgs = T {
-      super.testArgs() ++
-      Seq("-Djna.nosys=true")
-    }
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
@@ -1031,10 +1006,6 @@ object contrib extends MillModule {
 
   object docker extends ContribModule {
     override def compileModuleDeps = Seq(scalalib)
-    override def testArgs = T {
-      super.testArgs() ++
-      Seq("-Djna.nosys=true")
-    }
     override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
@@ -1597,7 +1568,6 @@ object dev extends MillModule {
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
       Seq(
         "-Djna.nosys=true",
-        "-DMILL_VERSION=" + publishVersion(),
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
         "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
         s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}",
@@ -1998,7 +1968,6 @@ def assembly = T {
   val devRunClasspath = dev.runClasspath().map(_.path)
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
   val commonArgs = Seq(
-    "-DMILL_VERSION=" + version,
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
     "-Djna.nosys=true"
