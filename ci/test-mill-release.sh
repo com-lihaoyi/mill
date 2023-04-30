@@ -20,7 +20,7 @@ rm -rf ~/.mill/ammonite
 # Prepare local build
 ci/prepare-mill-bootstrap.sh
 
-target/mill-release
+MILL_RUNNER=target/mill-release ci/test-example.sh
 
 # Run tests
 target/mill-release -i "__.compile"
