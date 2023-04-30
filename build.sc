@@ -1187,8 +1187,12 @@ trait IntegrationTestModule extends MillScalaModule {
     }
 
     def testReleaseEnv =
-      if (mode == "local") T { Map.empty[String, String] }
-      else T { Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
+      if (mode == "local") T {
+        Map("MILL_TEST_LAUNCHER" -> dev.launcher().path.toString())
+      }
+      else T {
+        Map("MILL_TEST_LAUNCHER" -> integration.testMill().path.toString())
+      }
 
     def compile = IntegrationTestModule.this.compile()
     def moduleDeps = Seq(IntegrationTestModule.this)
