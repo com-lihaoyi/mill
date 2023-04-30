@@ -1592,11 +1592,31 @@ object dev extends MillModule {
     mill.modules.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
-  override def assembly = T {
-    val isWin = scala.util.Properties.isWin
-    val millPath = T.ctx.dest / (if (isWin) "mill.bat" else "mill")
-    os.copy(super.assembly().path, millPath)
-    PathRef(millPath)
+  def assembly = T {
+    val version = millVersion()
+    val devRunClasspath = runClasspath().map(_.path)
+    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+    val commonArgs = Seq(
+      // Workaround for Zinc/JNA bug
+      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+      "-Djna.nosys=true"
+    )
+    val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
+    val cmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""") ++ commonArgs
+    os.move(
+      Jvm.createAssembly(
+        devRunClasspath,
+        prependShellScript = launcherScript(
+          shellArgs,
+          cmdArgs,
+          Agg("$0"),
+          Agg("%~dpnx0")
+        ),
+        assemblyRules = assemblyRules
+      ).path,
+      T.ctx.dest / filename
+    )
+    PathRef(T.ctx.dest / filename)
   }
 
   def prependShellScript = T {
@@ -1959,36 +1979,9 @@ object docs extends Module {
   }
 }
 
-def assembly = T {
-  val version = millVersion()
-  val devRunClasspath = dev.runClasspath().map(_.path)
-  val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-  val commonArgs = Seq(
-    // Workaround for Zinc/JNA bug
-    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-    "-Djna.nosys=true"
-  )
-  val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
-  val cmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""") ++ commonArgs
-  os.move(
-    Jvm.createAssembly(
-      devRunClasspath,
-      prependShellScript = launcherScript(
-        shellArgs,
-        cmdArgs,
-        Agg("$0"),
-        Agg("%~dpnx0")
-      ),
-      assemblyRules = dev.assemblyRules
-    ).path,
-    T.ctx.dest / filename
-  )
-  PathRef(T.ctx.dest / filename)
-}
-
 def millBootstrap = T.sources(T.workspace / "mill")
 
-def launcher = T {
+def exampleLauncher = T {
   val outputPath = T.ctx.dest / "mill"
   val millBootstrapGrepPrefix = "\nDEFAULT_MILL_VERSION="
   os.write(
@@ -2011,7 +2004,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
     val example = examplePath.subRelativeTo(T.workspace)
     val exampleStr = VcsVersion.vcsState().format() + "-" + example.segments.mkString("-")
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
-    os.copy(launcher().path, T.dest / exampleStr / "mill")
+    os.copy(exampleLauncher().path, T.dest / exampleStr / "mill")
     val zip = T.dest / s"$exampleStr.zip"
     os.proc("zip", "-r", zip, exampleStr).call(cwd = T.dest)
     PathRef(zip)
