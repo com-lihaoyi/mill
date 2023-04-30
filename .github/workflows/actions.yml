@@ -97,7 +97,7 @@ jobs:
         buildcmd:
           # Run a stripped down build matrix on Windows, to avoid taking too long
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib}.__.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
 
         include:
           # Limit some tests to Java 17 to limit CI times
