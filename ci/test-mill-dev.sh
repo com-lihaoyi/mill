@@ -9,12 +9,15 @@ git stash -a
 # Build Mill
 ./mill -i dev.launcher
 
-rm -rf ~/.mill/ammonite
+EXAMPLE=example/scalabuilds/10-scala-realistic
 
-# Prepare local build
-ci/patch-mill-bootstrap.sh
+test ! -d $EXAMPLE/out/foo/3.2.2/compile.dest
+test ! -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
 
-# Second build & run tests
-out/dev/launcher.dest/run -i "__.compile"
-out/dev/launcher.dest/run -i "{main,scalalib}.__.test"
-out/dev/launcher.dest/run -i "example.basic[1-simple-scala].server.test"
+./mill -i dev.run $EXAMPLE -i "foo[3.2.2].run"
+
+test -d $EXAMPLE/out/foo/3.2.2/compile.dest/out.jar
+
+./mill -i dev.run $EXAMPLE show "bar[2.13.8].assembly"
+
+test -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
