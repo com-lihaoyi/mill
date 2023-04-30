@@ -55,7 +55,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
         if (integrationTestMode != "fork") evalStdout("shutdown")
       } finally {
         try os.remove.all(workspaceRoot / "out")
-        catch{case e: Throwable => /*do nothing*/}
+        catch { case e: Throwable => /*do nothing*/ }
       }
     }
   }

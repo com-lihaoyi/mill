@@ -56,6 +56,8 @@ jobs:
           - java-version: 17
             buildcmd: ci/test-mill-dev.sh
           - java-version: 17
+            buildcmd: ci/test-mill-bootstrap.sh
+          - java-version: 17
             buildcmd: ./mill -i -k "example.__.local.test"
           - java-version: 17
             buildcmd: ./mill -i -k "integration.feature.__.local.test"

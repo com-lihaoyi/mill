@@ -86,7 +86,7 @@ The following table contains the main ways you can test the code in
 | In-Process Tests | `main.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
 | Sub-Process w/o packaging/publishing| `example.\\__.local`, `integration.__.local` | `dev.run` | `test-mill-dev.sh`
 | Sub-Process w/ packaging/publishing | `example.\\__.server`, `integration.__.server` | `dev.assembly` | `test-mill-release.sh`
-| Bootstrapping: Building Mill with your current checkout of Mill |  | `installLocal` | `test-mill-release.sh`
+| Bootstrapping: Building Mill with your current checkout of Mill |  | `installLocal` | `test-mill-bootstrap.sh`
 |===
 
 === In-Process Tests
