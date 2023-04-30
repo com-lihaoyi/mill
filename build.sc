@@ -1558,8 +1558,10 @@ object dev extends MillModule {
     mill.modules.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
+  val allPublishModules = build.millInternal.modules.collect { case m: PublishModule => m}
+
   def assembly = T {
-    T.traverse(build.millInternal.modules.collect { case m: PublishModule => m})(m => m.publishLocal(ivyRepo))()
+    T.traverse(allPublishModules)(m => m.publishLocal())()
     val version = millVersion()
     val devRunClasspath = runClasspath().map(_.path)
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
@@ -1965,19 +1967,14 @@ def installLocalCache() = T.command {
   PathRef(path)
 }
 
-def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
-  val modules =
-
-    T.task {
-
-      val millBin = dev.assembly()
-      val targetFile = os.Path(binFile(), T.workspace)
-      if (os.exists(targetFile))
-        T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
-      os.copy.over(millBin.path, targetFile, createFolders = true)
-      T.log.info(s"Published ${modules.size} modules and installed ${targetFile}")
-      targetFile
-    }
+def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = T.task {
+  val millBin = dev.assembly()
+  val targetFile = os.Path(binFile(), T.workspace)
+  if (os.exists(targetFile))
+    T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+  os.copy.over(millBin.path, targetFile, createFolders = true)
+  T.log.info(s"Published ${allPublishModules.size} modules and installed ${targetFile}")
+  targetFile
 }
 
 def millBootstrap = T.sources(T.workspace / "mill")
