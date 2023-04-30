@@ -45,11 +45,19 @@ object ExampleTestSuite extends IntegrationTestSuite {
     val workspaceRoot = initWorkspace()
 
     test("exampleUsage") {
-      val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
-      val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
-      val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
+      try {
+        val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
+        val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
+        val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
-      for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
+        for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
+
+        // If we're
+        if (integrationTestMode != "fork") evalStdout("shutdown")
+      } finally {
+        try os.remove.all(workspaceRoot / "out")
+        catch{case e: Throwable => /*do nothing*/}
+      }
     }
   }
 
