@@ -1,13 +1,13 @@
 package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
-
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
 import mill.T
 import mill.define.{Discover, ExternalModule}
 import mill.api.{PathRef, Result}
+import mill.modules.Util.millProjectModule
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
   def repositories = Seq(
@@ -22,7 +22,7 @@ trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
   def classpath = T {
-    mill.modules.Util.millProjectModule("MILL_GRAPHVIZ", "mill-main-graphviz", repositories)
+    millProjectModule("mill-main-graphviz", repositories)
   }
 
   /**

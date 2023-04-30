@@ -10,6 +10,7 @@ import mill.define.{ExternalModule, Discover}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
+import mill.modules.Util.millProjectModule
 
 /**
  * A default implementation of [[ZincWorkerModule]]
@@ -24,24 +25,15 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
 
   def classpath: Target[Agg[PathRef]] = T {
-    mill.modules.Util.millProjectModule(
-      "MILL_SCALA_WORKER",
-      "mill-scalalib-worker",
-      repositoriesTask()
-    )
+    millProjectModule("mill-scalalib-worker", repositoriesTask())
   }
 
   def scalalibClasspath: Target[Agg[PathRef]] = T {
-    mill.modules.Util.millProjectModule(
-      "MILL_SCALA_LIB",
-      "mill-scalalib",
-      repositoriesTask()
-    )
+    millProjectModule("mill-scalalib", repositoriesTask())
   }
 
   def backgroundWrapperClasspath: Target[Agg[PathRef]] = T {
-    mill.modules.Util.millProjectModule(
-      "MILL_BACKGROUNDWRAPPER",
+    millProjectModule(
       "mill-scalalib-backgroundwrapper",
       repositoriesTask(),
       artifactSuffix = ""

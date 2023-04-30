@@ -3,6 +3,7 @@ package testng
 
 import mill.api.Result.Exception
 import mill.define.Target
+import mill.modules.Util.millProjectModule
 import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
@@ -16,11 +17,7 @@ object TestNGTests extends TestSuite {
 
     object test extends super.Tests {
       def testngClasspath = T {
-        mill.modules.Util.millProjectModule(
-          "MILL_TESTNG_LIB",
-          "mill-contrib-testng",
-          repositoriesTask()
-        )
+        millProjectModule("mill-contrib-testng", repositoriesTask())
       }
 
       override def runClasspath: Target[Seq[PathRef]] =

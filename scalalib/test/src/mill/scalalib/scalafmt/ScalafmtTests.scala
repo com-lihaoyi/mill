@@ -9,7 +9,7 @@ import utest.framework.TestPath
 
 object ScalafmtTests extends TestSuite {
 
-  val scalafmtTestVersion = sys.props.getOrElse("TEST_SCALAFMT_VERSION", ???)
+  val scalafmtTestVersion = mill.scalalib.api.Versions.scalafmtVersion
 
   trait TestBase extends TestUtil.BaseModule {
     def millSourcePath =
