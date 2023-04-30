@@ -1200,14 +1200,7 @@ trait IntegrationTestModule extends MillScalaModule {
 }
 
 trait IntegrationTestCrossModule extends IntegrationTestModule {
-  object local extends ModeModule{
-    def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
-      runner.linenumbers.testDep(),
-      scalalib.backgroundwrapper.testDep(),
-      contrib.buildinfo.testDep(),
-      bsp.worker.testDep(),
-    )
-  }
+  object local extends ModeModule
   object fork extends ModeModule
   object server extends ModeModule
 }
@@ -1505,6 +1498,13 @@ object runner extends MillModule {
 
 object dev extends MillModule {
   override def moduleDeps = Seq(runner)
+
+  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
+    runner.linenumbers.testDep(),
+    scalalib.backgroundwrapper.testDep(),
+    contrib.buildinfo.testDep(),
+    bsp.worker.testDep(),
+  )
 
   def genTask(m: ScalaModule) = T.task {
     Seq(m.jar(), m.sourceJar()) ++ m.runClasspath()
