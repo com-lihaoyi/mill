@@ -1973,7 +1973,7 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
   if (os.exists(targetFile))
     T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
   os.copy.over(millBin.path, targetFile, createFolders = true)
-  T.log.info(s"Published ${allPublishModules.size} modules and installed ${targetFile}")
+  T.log.info(s"Published ${dev.allPublishModules.size} modules and installed ${targetFile}")
   targetFile
 }
 
