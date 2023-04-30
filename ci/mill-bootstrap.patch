@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 4f4ee828ae..900de3fd51 100644
+index 4f4ee828ae..2d47091841 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -25,8 +25,10 @@ import mill.main.MainModule
@@ -352,17 +352,19 @@ index 4f4ee828ae..900de3fd51 100644
      def testDepPaths = T{ Seq(compile().classes) }
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
-@@ -1199,7 +970,8 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1199,7 +970,10 @@ trait IntegrationTestModule extends MillScalaModule {
    }
  }
  
 -trait IntegrationTestCrossModule extends IntegrationTestModule {
 +trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module[String] {
 +  def repoSlug = crossValue
++  override def millSourcePath = super.millSourcePath / repoSlug
++
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1213,15 +985,15 @@ object example extends MillScalaModule {
+@@ -1213,15 +987,15 @@ object example extends MillScalaModule {
  
    def moduleDeps = Seq(integration)
  
@@ -386,7 +388,7 @@ index 4f4ee828ae..900de3fd51 100644
      def sources = T.sources()
      def testRepoRoot: T[PathRef] = T.source(millSourcePath)
      def compile = example.compile()
-@@ -1271,7 +1043,7 @@ object example extends MillScalaModule {
+@@ -1271,7 +1045,7 @@ object example extends MillScalaModule {
                val title =
                  if (seenCode) ""
                  else {
@@ -395,7 +397,7 @@ index 4f4ee828ae..900de3fd51 100644
                    val exampleDashed = examplePath.segments.mkString("-")
                    val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
                    val browse = s"{mill-example-url}/$examplePath[browse]"
-@@ -1302,9 +1074,9 @@ object example extends MillScalaModule {
+@@ -1302,9 +1076,9 @@ object example extends MillScalaModule {
  }
  
  object integration extends MillScalaModule {
@@ -408,7 +410,7 @@ index 4f4ee828ae..900de3fd51 100644
  
    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
  
-@@ -1661,67 +1433,11 @@ object docs extends Module {
+@@ -1661,67 +1435,11 @@ object docs extends Module {
      def moduleDeps = build.millInternal.modules.collect { case m: MillApiModule => m }
  
      def unidocSourceUrl = T {
@@ -477,7 +479,7 @@ index 4f4ee828ae..900de3fd51 100644
    private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
    def npmBase: T[os.Path] = T.persistent { T.dest }
-@@ -1774,7 +1490,7 @@ object docs extends Module {
+@@ -1774,7 +1492,7 @@ object docs extends Module {
  
      val contribReadmes = T.traverse(contrib.contribModules)(m =>
        T.task {
@@ -486,7 +488,7 @@ index 4f4ee828ae..900de3fd51 100644
        }
      )()
  
-@@ -2006,7 +1722,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
+@@ -2006,7 +1724,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
      examplePath = exampleMod.millSourcePath
    } yield {
      val example = examplePath.subRelativeTo(T.workspace)
@@ -495,7 +497,7 @@ index 4f4ee828ae..900de3fd51 100644
      os.copy(examplePath, T.dest / exampleStr, createFolders = true)
      os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
      val zip = T.dest / s"$exampleStr.zip"
-@@ -2016,47 +1732,6 @@ def exampleZips: Target[Seq[PathRef]] = T {
+@@ -2016,47 +1734,6 @@ def exampleZips: Target[Seq[PathRef]] = T {
  }
  
  def uploadToGithub(authKey: String) = T.command {
