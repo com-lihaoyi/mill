@@ -63,8 +63,12 @@ abstract class IntegrationTestSuite extends TestSuite {
       stderr: os.ProcessOutput,
       s: Seq[String]
   ): Boolean = {
-    val serverArgs = if (integrationTestMode == "server") Seq() else Seq("--no-server")
+    val serverArgs =
+      if (integrationTestMode == "server" || integrationTestMode == "local") Seq()
+      else Seq("--no-server")
+
     val debugArgs = if (debugLog) Seq("--debug") else Seq()
+
     try {
       os.proc(millReleaseFileOpt.get, serverArgs, debugArgs, s).call(
         cwd = wd,
