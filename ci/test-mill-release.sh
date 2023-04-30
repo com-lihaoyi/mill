@@ -2,18 +2,20 @@
 
 set -eux
 
-# Starting from scratch...
-git stash -u
-git stash -a
-
 # Build Mill
 ./mill -i dev.assembly
 
-# Clean up
-git stash -a -m "preserve mill-release" -- target/mill-release
-git stash -u
-git stash -a
-git stash pop "$(git stash list | grep "preserve mill-release" | head -n1 | sed -E 's/([^:]+):.*/\1/')"
+EXAMPLE=example/scalabuilds/10-scala-realistic
 
+rm -rf $EXAMPLE/out
 
-MILL_RUNNER=out/dev/assembly.dest/mill ci/test-example.sh
+test ! -d $EXAMPLE/out/foo/3.2.2/compile.dest
+test ! -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
+
+(cd $EXAMPLE && ../../../out/dev/assembly.dest/mill -i "foo[3.2.2].run")
+
+test -d $EXAMPLE/out/foo/3.2.2/compile.dest
+
+(cd $EXAMPLE && ../../../out/dev/assembly.dest/mill show "bar[2.13.8].assembly")
+
+test -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
