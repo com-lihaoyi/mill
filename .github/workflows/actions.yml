@@ -35,7 +35,7 @@ jobs:
         java-version: [8, 17]
         buildcmd:
           # bootstrap tests
-          - ci/test-mill-bootstrap-0.sh
+          - ci/test-mill-bootstrap.sh
           # unit and module tests
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
 
@@ -53,8 +53,6 @@ jobs:
               ./mill -i -k __.ivyDepsTree --withRuntime true
 
           # Limit some tests to Java 17 to limit CI times
-          - java-version: 17
-            buildcmd: ci/test-mill-bootstrap-1.sh
           - java-version: 17
             buildcmd: ci/test-mill-release.sh
           - java-version: 17

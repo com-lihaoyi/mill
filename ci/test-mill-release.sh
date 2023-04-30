@@ -20,8 +20,9 @@ rm -rf ~/.mill/ammonite
 # Prepare local build
 ci/prepare-mill-bootstrap.sh
 
-export MILL_TEST_RELEASE="$(pwd)/target/mill-release"
+target/mill-release
 
 # Run tests
-"$MILL_TEST_RELEASE" -i "example.basic[1-simple-scala].server.test"
-"$MILL_TEST_RELEASE" -i integration.thirdparty.__.fork.test
+target/mill-release -i "__.compile"
+target/mill-release -i "{main,scalalib}.__.test"
+target/mill-release -i "example.basic[1-simple-scala].server.test"

@@ -39,5 +39,6 @@ rm -rf ~/.mill/ammonite
 ci/prepare-mill-bootstrap.sh
 
 # Use second build to run tests using Mill
+target/mill-2 -i "__.compile"
+target/mill-2 -i "{main,scalalib}.__.test"
 target/mill-2 -i "example.basic[1-simple-scala].server.test"
-target/mill-2 -i "contrib.__.test"

@@ -7,15 +7,14 @@ git stash -u
 git stash -a
 
 # Build Mill
-./mill -i dev.assembly
+./mill -i dev.launcher
 
 rm -rf ~/.mill/ammonite
 
 # Prepare local build
-ci/prepare-mill-bootstrap.sh
+ci/patch-mill-bootstrap.sh
 
 # Second build & run tests
-out/dev/assembly.dest/mill -i -j 0 main.test.compile
-out/dev/assembly.dest/mill -i contrib.buildinfo.publishLocal
-out/dev/assembly.dest/mill -i "{main,scalalib,scalajslib,scalanativelib,bsp,contrib.twirllib,contrib.scalapblib}.test"
-out/dev/assembly.dest/mill -i "example.basic[1-simple-scala].server.test"
+out/dev/launcher.dest/run -i "__.compile"
+out/dev/launcher.dest/run -i "{main,scalalib}.__.test"
+out/dev/launcher.dest/run -i "example.basic[1-simple-scala].server.test"
