@@ -45,15 +45,11 @@ object ExampleTestSuite extends IntegrationTestSuite {
     val workspaceRoot = initWorkspace()
 
     test("exampleUsage") {
-      try {
-        val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
-        val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
-        val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
+      val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
+      val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
+      val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
-        for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
-      } finally {
-        os.remove.all(workspaceRoot / "out")
-      }
+      for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
     }
   }
 
