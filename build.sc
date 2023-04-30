@@ -1558,7 +1558,7 @@ object dev extends MillModule {
     mill.modules.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
-  val allPublishModules = build.millInternal.modules.collect { case m: PublishModule => m}
+  lazy val allPublishModules = build.millInternal.modules.collect { case m: PublishModule => m}
 
   def assembly = T {
     T.traverse(allPublishModules)(m => m.publishLocal())()
