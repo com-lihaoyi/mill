@@ -45,6 +45,11 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 
 object Task {
 
+  private[define] class Simple[+T](value: => Result[T]) extends Task[T] {
+    val inputs = Nil
+    def evaluate(ctx: mill.api.Ctx) = value
+  }
+
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
 
@@ -439,7 +444,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       mill.moduledefs.Cacher.impl0[SourcesImpl](c)(
         reify(
           new SourcesImpl(
-            Applicative.impl0[Task, Seq[PathRef], mill.api.Ctx](c)(values.tree).splice,
+            new Task.Simple(values.splice),
             ctx.splice,
             taskIsPrivate.splice
           )
@@ -451,17 +456,13 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
         : c.Expr[Target[PathRef]] = {
       import c.universe._
 
-      val wrapped =
-        Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
-          reify(value.splice.map(PathRef(_))).tree
-        )
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
         reify(
           new SourceImpl(
-            wrapped.splice,
+            new Task.Simple(value.splice.map(PathRef(_))),
             ctx.splice,
             taskIsPrivate.splice
           )
@@ -478,7 +479,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
         reify(
           new SourceImpl(
-            Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(value.tree).splice,
+            new Task.Simple(value.splice),
             ctx.splice,
             taskIsPrivate.splice
           )
@@ -486,7 +487,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       )
     }
 
-    def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
+    def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[Result[T]])(
         w: c.Expr[upickle.default.Writer[T]],
         ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[Target[T]] = {
@@ -497,7 +498,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       mill.moduledefs.Cacher.impl0[InputImpl[T]](c)(
         reify(
           new InputImpl[T](
-            Applicative.impl[Task, T, mill.api.Ctx](c)(value).splice,
+            new Task.Simple(value.splice),
             ctx.splice,
             w.splice,
             taskIsPrivate.splice

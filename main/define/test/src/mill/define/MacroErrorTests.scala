@@ -170,5 +170,42 @@ object MacroErrorTests extends TestSuite {
         "could not find implicit value for evidence parameter of type mill.define.Cross.ToSegments[sun.misc.Unsafe]"
       ))
     }
+
+    "inputsNoDeps" - {
+      val error = utest.compileError(
+        """
+        object foo extends mill.util.TestUtil.BaseModule{
+          def task = T.task("hello")
+          def input = T.input(task())
+        }
+      """
+      )
+      assert(error.pos.contains("def input = T.input(task())"))
+      assert(error.msg.contains("Target#apply() can only be used with a T{...} block"))
+    }
+    "sourceNoDeps" - {
+      val error = utest.compileError(
+        """
+        object foo extends mill.util.TestUtil.BaseModule{
+          def task = T.task(mill.api.PathRef(os.pwd))
+          def source = T.input(task())
+        }
+      """
+      )
+      assert(error.pos.contains("def source = T.input(task())"))
+      assert(error.msg.contains("Target#apply() can only be used with a T{...} block"))
+    }
+    "sourcesNoDeps" - {
+      val error = utest.compileError(
+        """
+        object foo extends mill.util.TestUtil.BaseModule{
+          def task = T.task(Seq(mill.api.PathRef(os.pwd)))
+          def sources = T.input(task())
+        }
+      """
+      )
+      assert(error.pos.contains("def sources = T.input(task())"))
+      assert(error.msg.contains("Target#apply() can only be used with a T{...} block"))
+    }
   }
 }
