@@ -2,11 +2,10 @@ package mill.main
 
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.util.{EitherOps, Watched}
+import mill.util.{Watchable, Watched}
 import mill.api.{PathRef, Result}
 import mill.api.Strict.Agg
-import scala.reflect.ClassTag
-import mill.main.ParseArgs.TargetsWithParams
+
 
 object RunScript {
 
@@ -16,7 +15,7 @@ object RunScript {
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
-  ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]])] = {
+  ): Either[String, (Seq[Watchable], Either[String, Seq[(Any, Option[ujson.Value])]])] = {
     for (targets <- ResolveTasks.resolve(evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
@@ -27,6 +26,8 @@ object RunScript {
           w <- extraWatched
         } yield w
 
+        pprint.log(watched.map(_.pretty))
+        pprint.log(watched2.map(_.pretty))
         (watched ++ watched2, res)
       }
   }
@@ -35,7 +36,7 @@ object RunScript {
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
-  ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] = {
+  ): Either[String, (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] = {
     for (targets <- ResolveTasks.resolve(evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluateNamed(evaluator, Agg.from(targets.distinct))
@@ -53,8 +54,9 @@ object RunScript {
   def evaluate(
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
-  ): (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]]) = {
+  ): (Seq[Watchable], Either[String, Seq[(Any, Option[ujson.Value])]]) = {
     val (watched, results) = evaluateNamed(evaluator, targets)
+    pprint.log(watched.map(_.pretty))
     // we drop the task name in the inner tuple
     (watched, results.map(_.map(p => (p._1, p._2.map(_._2)))))
   }
@@ -67,16 +69,23 @@ object RunScript {
   def evaluateNamed(
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
-  ): (Seq[PathRef], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
+  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
     val evaluated: Evaluator.Results = evaluator.evaluate(targets)
     val watched = evaluated.results
       .iterator
       .collect {
-        case (t: SourcesImpl, Result.Success(ps: Seq[PathRef])) => ps
-        case (t: SourceImpl, Result.Success(p: PathRef)) => Seq(p)
+        case (t: SourcesImpl, Result.Success(ps: Seq[PathRef], _)) => ps.map(Watchable.Path(_))
+        case (t: SourceImpl, Result.Success(p: PathRef, _)) => Seq(Watchable.Path(p))
+        case (t: InputImpl[_], Result.Success(v, signature)) =>
+          val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
+          println("INPUT FOUND " + pretty)
+          Seq(Watchable.Value(() => signature(), signature(), pretty))
       }
       .flatten
       .toSeq
+
+    pprint.log(targets)
+    pprint.log(watched.map(_.pretty))
 
     val errorStr = Evaluator.formatFailing(evaluated)
 

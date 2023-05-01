@@ -49,7 +49,7 @@ object MainModuleTests extends TestSuite {
       val eval = new TestEvaluator(mainModule)
       test("single") {
         val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
-        val Result.Success(value: String) = res.rawValues.head
+        val Result.Success(value: String, _) = res.rawValues.head
         assert(
           res.failing.keyCount == 0,
           value.startsWith("hello("),
@@ -59,7 +59,7 @@ object MainModuleTests extends TestSuite {
       test("multi") {
         val res =
           eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello", "hello2")))
-        val Result.Success(value: String) = res.rawValues.head
+        val Result.Success(value: String, _) = res.rawValues.head
         assert(
           res.failing.keyCount == 0,
           value.startsWith("hello("),
@@ -77,7 +77,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(value, _) = results.rawValues.head
 
         assert(value == ujson.Arr.from(Seq("hello", "world")))
       }
@@ -92,7 +92,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(value, _) = results.rawValues.head
 
         assert(value == ujson.Arr.from(Seq(
           ujson.Arr.from(Seq("hello", "world")),
@@ -109,7 +109,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(value, _) = results.rawValues.head
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world"))
@@ -126,7 +126,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(value, _) = results.rawValues.head
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world")),

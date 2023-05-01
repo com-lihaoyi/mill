@@ -1,7 +1,8 @@
 package mill.runner
 
 import mill.api.{PathRef, internal}
-import mill.define.{BaseModule, Segments, Watchable}
+import mill.define.{BaseModule, Segments}
+import mill.util.Watchable
 import upickle.default.{ReadWriter, macroRW}
 import mill.api.JsonFormatters._
 import mill.main.RootModule

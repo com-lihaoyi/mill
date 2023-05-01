@@ -1,11 +1,11 @@
 package mill.runner
-import mill.util.{ColorLogger, PrefixLogger, Util}
+import mill.util.{ColorLogger, PrefixLogger, Util, Watchable}
 import mill.{BuildInfo, T}
 import mill.api.{PathRef, internal}
 import mill.eval.Evaluator
 import mill.main.{RootModule, RunScript, SelectMode}
 import mill.main.TokenReaders._
-import mill.define.{Discover, Segments, Watchable}
+import mill.define.{Discover, Segments}
 
 import java.net.URLClassLoader
 
@@ -48,6 +48,7 @@ class MillBuildBootstrap(
       )
     }
 
+    pprint.log(runnerState.frames.map(_.evalWatched.map(_.pretty)))
     Watching.Result(
       watched = runnerState.frames.flatMap(_.evalWatched),
       error = runnerState.errorOpt,
@@ -254,6 +255,7 @@ class MillBuildBootstrap(
     val (evaled, evalWatched, moduleWatches) =
       MillBuildBootstrap.evaluateWithWatches(rootModule, evaluator, targetsAndParams)
 
+
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
       evalWatched,
@@ -338,11 +340,10 @@ object MillBuildBootstrap {
 
     evalTaskResult match {
       case Left(msg) => (Left(msg), Nil, moduleWatched)
-      case Right((watchedPaths, evaluated)) =>
-        val evalWatched = watchedPaths.map(Watchable.Path)
+      case Right((watched, evaluated)) =>
         evaluated match {
-          case Left(msg) => (Left(msg), evalWatched, moduleWatched)
-          case Right(results) => (Right(results.map(_._1)), evalWatched, moduleWatched)
+          case Left(msg) => (Left(msg), watched, moduleWatched)
+          case Right(results) => (Right(results.map(_._1)), watched, moduleWatched)
         }
     }
   }

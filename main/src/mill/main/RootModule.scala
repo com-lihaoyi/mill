@@ -1,7 +1,8 @@
 package mill.main
 
 import mill.api.{PathRef, internal}
-import mill.define.{Caller, Discover, Segments, Watchable}
+import mill.util.Watchable
+import mill.define.{Caller, Discover, Segments}
 import TokenReaders._
 
 import scala.collection.mutable
@@ -36,24 +37,6 @@ abstract class RootModule()(implicit
   // user-defined BaseModule can have a complete Discover[_] instance without
   // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
   override lazy val millDiscover = baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
-
-  object interp {
-
-    def watchValue[T](v0: => T): T = {
-      val v = v0
-      val watchable = Watchable.Value(() => v0.hashCode, v.hashCode())
-      watchedValues.append(watchable)
-      v
-    }
-
-    def watch(p: os.Path): os.Path = {
-      val watchable = Watchable.Path(PathRef(p))
-      watchedValues.append(watchable)
-      p
-    }
-  }
-
-  protected[mill] val watchedValues = mutable.Buffer.empty[Watchable]
 }
 
 @internal

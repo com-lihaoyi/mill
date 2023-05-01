@@ -423,7 +423,7 @@ class Evaluator private (
         upToDateWorker.map((_, inputsHash)) orElse cached match {
           case Some((v, hashCode)) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
-            newResults(labelledNamedTask.task) = mill.api.Result.Success((v, hashCode))
+            newResults(labelledNamedTask.task) = mill.api.Result.Success((v, hashCode), () => 0)
 
             Evaluated(newResults, Nil, cached = true)
 
@@ -452,7 +452,7 @@ class Evaluator private (
               case mill.api.Result.Failure(_, Some((v, _))) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
-              case mill.api.Result.Success((v, _)) =>
+              case mill.api.Result.Success((v, _), _) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case _ =>
@@ -557,7 +557,7 @@ class Evaluator private (
       newEvaluated.append(task)
       val targetInputValues = task.inputs
         .map { x => newResults.getOrElse(x, results(x)) }
-        .collect { case mill.api.Result.Success((v, _)) => v }
+        .collect { case mill.api.Result.Success((v, _), _) => v }
 
       val res =
         if (targetInputValues.length != task.inputs.length) mill.api.Result.Skipped
@@ -771,7 +771,7 @@ object Evaluator {
       failing: MultiBiMap[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]],
       results: collection.Map[Task[_], mill.api.Result[Any]]
   ) {
-    def values: Seq[Any] = rawValues.collect { case mill.api.Result.Success(v) => v }
+    def values: Seq[Any] = rawValues.collect { case mill.api.Result.Success(v, _) => v }
     private def copy(
         rawValues: Seq[Result[Any]] = rawValues,
         evaluated: Agg[Task[_]] = evaluated,

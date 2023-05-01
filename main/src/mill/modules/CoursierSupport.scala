@@ -192,10 +192,11 @@ trait CoursierSupport {
       }
 
       if (errors.isEmpty) {
-        mill.Agg.from(
-          successes.map(os.Path(_)).filter(_.ext == "jar").map(PathRef(_, quick = true))
-        ).filter(x => resolveFilter(x.path)) ++ localTestDeps.flatten
-
+        Result.Success(
+          mill.Agg.from(
+            successes.map(os.Path(_)).filter(_.ext == "jar").map(PathRef(_, quick = true))
+          ).filter(x => resolveFilter(x.path)) ++ localTestDeps.flatten
+        )
       } else {
         val errorDetails = errors.map(e => s"${System.lineSeparator()}  ${e.describe}").mkString
         Result.Failure(

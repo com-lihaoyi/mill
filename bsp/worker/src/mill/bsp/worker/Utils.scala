@@ -46,7 +46,7 @@ object Utils {
       task: mill.define.Task[_]
   ): StatusCode = {
     results.results(task) match {
-      case Success(_) => StatusCode.OK
+      case Success(_, _) => StatusCode.OK
       case Skipped => StatusCode.CANCELLED
       case _ => StatusCode.ERROR
     }
