@@ -33,17 +33,7 @@ object Result {
     override def asSuccess: Option[Success[T]] = Some(this)
   }
   object Success{
-    def apply[T](value: => T) = {
-      new Success(
-        value,
-        () => {
-//          if (value.toString.length < 100) {
-//            mill.api.SystemStreams.originalErr.println("Signature " + System.identityHashCode(value))
-//          }
-          value.hashCode()
-        }
-      )
-    }
+    def apply[T](value: => T) = new Success(value, () => value.hashCode())
   }
 
   /**
