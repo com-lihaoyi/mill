@@ -557,13 +557,13 @@ class Evaluator private (
       newEvaluated.append(task)
       val targetInputValues = task.inputs
         .map { x => newResults.getOrElse(x, results(x)) }
-        .collect { case mill.api.Result.Success((v, _), _) => v }
+        .collect { case Result.Success((v, _), sig) => Result.Success(v, sig) }
 
       val res =
         if (targetInputValues.length != task.inputs.length) mill.api.Result.Skipped
         else {
           val args = new Ctx(
-            args = targetInputValues.toArray[Any].toIndexedSeq,
+            args = targetInputValues.toArray[Result.Success[Any]].toIndexedSeq,
             dest0 = () =>
               paths match {
                 case Some(dest) =>

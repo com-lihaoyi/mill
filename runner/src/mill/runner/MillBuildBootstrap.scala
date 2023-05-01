@@ -48,7 +48,6 @@ class MillBuildBootstrap(
       )
     }
 
-    pprint.log(runnerState.frames.map(_.evalWatched.map(_.pretty)))
     Watching.Result(
       watched = runnerState.frames.flatMap(_.evalWatched),
       error = runnerState.errorOpt,

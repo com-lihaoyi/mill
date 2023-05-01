@@ -58,7 +58,7 @@ object Task {
     val inputs = inputs0
     def evaluate(ctx: mill.api.Ctx) = {
       for (i <- 0 until ctx.args.length)
-        yield ctx.args(i).asInstanceOf[T]
+        yield ctx.arg[T](i).value
     }
   }
   private[define] class TraverseCtx[+T, V](
@@ -69,17 +69,19 @@ object Task {
     def evaluate(ctx: mill.api.Ctx) = {
       f(
         for (i <- 0 until ctx.args.length)
-          yield ctx.args(i).asInstanceOf[T],
+          yield ctx.arg[T](i).value,
         ctx
       )
     }
   }
   private[define] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
-    def evaluate(ctx: mill.api.Ctx) = f(ctx.arg(0))
+    def evaluate(ctx: mill.api.Ctx) = ctx.arg(0).map(f)
     val inputs = List(source)
   }
   private[define] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
-    def evaluate(ctx: mill.api.Ctx) = (ctx.arg(0), ctx.arg(1))
+    def evaluate(ctx: mill.api.Ctx) = (ctx.arg[T](0), ctx.arg[V](1)) match{
+      case (Result.Success(a, _), Result.Success(b, _)) => (a, b)
+    }
     val inputs = List(source1, source2)
   }
 }
@@ -105,7 +107,7 @@ trait NamedTask[+T] extends Task[T] {
   }
   override def toString = ctx.segments.render
 
-  def evaluate(ctx: mill.api.Ctx) = ctx.arg[T](0)
+  def evaluate(ctx: mill.api.Ctx): Result[T] = ctx.arg[T](0)
 
   val ctx = ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)

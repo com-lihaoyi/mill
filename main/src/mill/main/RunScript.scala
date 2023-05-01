@@ -26,8 +26,6 @@ object RunScript {
           w <- extraWatched
         } yield w
 
-        pprint.log(watched.map(_.pretty))
-        pprint.log(watched2.map(_.pretty))
         (watched ++ watched2, res)
       }
   }
@@ -56,7 +54,6 @@ object RunScript {
       targets: Agg[Task[Any]]
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[ujson.Value])]]) = {
     val (watched, results) = evaluateNamed(evaluator, targets)
-    pprint.log(watched.map(_.pretty))
     // we drop the task name in the inner tuple
     (watched, results.map(_.map(p => (p._1, p._2.map(_._2)))))
   }
@@ -78,14 +75,10 @@ object RunScript {
         case (t: SourceImpl, Result.Success(p: PathRef, _)) => Seq(Watchable.Path(p))
         case (t: InputImpl[_], Result.Success(v, signature)) =>
           val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
-          println("INPUT FOUND " + pretty)
           Seq(Watchable.Value(() => signature(), signature(), pretty))
       }
       .flatten
       .toSeq
-
-    pprint.log(targets)
-    pprint.log(watched.map(_.pretty))
 
     val errorStr = Evaluator.formatFailing(evaluated)
 
