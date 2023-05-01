@@ -27,13 +27,13 @@ object Result {
    * @param value The value computed by the task.
    * @tparam T The result type of the computed task.
    */
-  case class Success[+T](value: T, signature: () => Int) extends Result[T] {
-    def map[V](f: T => V): Success[V] = Result.Success(f(value), signature)
+  case class Success[+T](value: T, recalc: () => T) extends Result[T] {
+    def map[V](f: T => V): Success[V] = Result.Success(f(value), () => f(recalc()))
     def flatMap[V](f: T => Result[V]): Result[V] = f(value)
     override def asSuccess: Option[Success[T]] = Some(this)
   }
   object Success{
-    def apply[T](value: => T) = new Success(value, () => value.hashCode())
+    def apply[T](value: => T) = new Success(value, () => value)
   }
 
   /**

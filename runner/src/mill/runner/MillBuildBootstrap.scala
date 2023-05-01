@@ -49,7 +49,7 @@ class MillBuildBootstrap(
     }
 
     Watching.Result(
-      watched = runnerState.frames.flatMap(_.evalWatched),
+      watched = runnerState.frames.flatMap(f => f.evalWatched ++ f.moduleWatched),
       error = runnerState.errorOpt,
       result = runnerState
     )
@@ -254,7 +254,6 @@ class MillBuildBootstrap(
     val (evaled, evalWatched, moduleWatches) =
       MillBuildBootstrap.evaluateWithWatches(rootModule, evaluator, targetsAndParams)
 
-
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
       evalWatched,
@@ -333,16 +332,17 @@ object MillBuildBootstrap {
       evaluator: Evaluator,
       targetsAndParams: Seq[String]
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
-
-    val evalTaskResult = RunScript.evaluateTasks(evaluator, targetsAndParams, SelectMode.Separated)
+    rootModule.evalWatchedValues.clear()
+    val evalTaskResult = RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
     val moduleWatched = rootModule.watchedValues.toVector
+    val addedEvalWatched = rootModule.evalWatchedValues.toVector
 
     evalTaskResult match {
       case Left(msg) => (Left(msg), Nil, moduleWatched)
       case Right((watched, evaluated)) =>
         evaluated match {
-          case Left(msg) => (Left(msg), watched, moduleWatched)
-          case Right(results) => (Right(results.map(_._1)), watched, moduleWatched)
+          case Left(msg) => (Left(msg), watched ++ addedEvalWatched, moduleWatched)
+          case Right(results) => (Right(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
         }
     }
   }

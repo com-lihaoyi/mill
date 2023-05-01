@@ -423,7 +423,7 @@ class Evaluator private (
         upToDateWorker.map((_, inputsHash)) orElse cached match {
           case Some((v, hashCode)) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
-            newResults(labelledNamedTask.task) = mill.api.Result.Success((v, hashCode), () => 0)
+            newResults(labelledNamedTask.task) = Result.Success((v, hashCode), () => (v, hashCode))
 
             Evaluated(newResults, Nil, cached = true)
 
