@@ -25,6 +25,5 @@ object Dependency extends ExternalModule {
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)())
   }
 
-  import mill.main.TokenReaders._
   lazy val millDiscover: Discover[Dependency.this.type] = Discover[this.type]
 }

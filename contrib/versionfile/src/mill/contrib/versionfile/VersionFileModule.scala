@@ -5,7 +5,7 @@ import mill._, scalalib._
 trait VersionFileModule extends Module {
 
   /** The file containing the current version. */
-  def versionFile: define.Source = T.source(millSourcePath / "version")
+  def versionFile: Source = T.source(millSourcePath / "version")
 
   /** The current version. */
   def currentVersion: T[Version] = T { Version.of(os.read(versionFile().path).trim) }
@@ -89,8 +89,6 @@ object VersionFileModule extends define.ExternalModule {
       proc <- procs
     } yield proc.call()
   }
-
-  import mill.main.TokenReaders._
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

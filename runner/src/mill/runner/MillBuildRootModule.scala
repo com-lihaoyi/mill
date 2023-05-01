@@ -223,7 +223,6 @@ object MillBuildRootModule {
        |    _root_.os.Path(${literalize(base.toString)}),
        |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)})
        |  )
-       |  import mill.main.TokenReaders._
        |  implicit val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
        |    millBuildRootModuleInfo.projectRoot,
        |    _root_.mill.define.Discover[$name]
