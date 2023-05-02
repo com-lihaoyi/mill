@@ -354,7 +354,7 @@ class Evaluator private (
       case Left(task) =>
         val (newResults, newEvaluated) = evaluateGroup(
           group,
-          results,
+          results.toMap,
           inputsHash,
           paths = None,
           maybeTargetLabel = None,
@@ -440,7 +440,7 @@ class Evaluator private (
               Evaluator.dynamicTickerPrefix.withValue(s"[$counterMsg] $targetLabel > ") {
                 evaluateGroup(
                   group,
-                  results,
+                  results.toMap,
                   inputsHash,
                   paths = Some(paths),
                   maybeTargetLabel = Some(targetLabel),
@@ -491,7 +491,7 @@ class Evaluator private (
     labelledNamedTask.task.asWorker match {
       case Some(w) =>
         workerCache.synchronized {
-          workerCache.update(w.ctx.segments, (inputsHash, v))
+          workerCache.update(w.ctx.segments, (inputsHash, v.value))
         }
       case None =>
         val terminalResult = labelledNamedTask
@@ -525,93 +525,96 @@ class Evaluator private (
       logger: mill.api.Logger
   ): (mutable.LinkedHashMap[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
-    val newEvaluated = mutable.Buffer.empty[Task[_]]
-    val newResults = mutable.LinkedHashMap.empty[Task[_], TaskResult[(Val, Int)]]
+    def computeAll() = {
+      val newEvaluated = mutable.Buffer.empty[Task[_]]
+      val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Val, Int)]]
 
-    val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
+      val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
-    // should we log progress?
-    val logRun = maybeTargetLabel.isDefined && {
-      val inputResults = for {
-        target <- nonEvaluatedTargets
-        item <- target.inputs.filterNot(group.contains)
-      } yield results(item).map(_._1)
-      inputResults.forall(_.result.isInstanceOf[mill.api.Result.Success[_]])
-    }
-
-    val tickerPrefix = maybeTargetLabel.map { targetLabel =>
-      val prefix = s"[$counterMsg] $targetLabel "
-      if (logRun) logger.ticker(prefix)
-      prefix + "| "
-    }
-
-    val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
-      override def ticker(s: String): Unit = {
-        super.ticker(tickerPrefix.getOrElse("") + s)
+      // should we log progress?
+      val logRun = maybeTargetLabel.isDefined && {
+        val inputResults = for {
+          target <- nonEvaluatedTargets
+          item <- target.inputs.filterNot(group.contains)
+        } yield results(item).map(_._1)
+        inputResults.forall(_.result.isInstanceOf[mill.api.Result.Success[_]])
       }
-    }
-    // This is used to track the usage of `T.dest` in more than one Task
-    // But it's not really clear what issue we try to prevent here
-    // Vice versa, being able to use T.dest in multiple `T.task`
-    // is rather essential to split up larger tasks into small parts
-    // So I like to disable this detection for now
-    var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]
-    for (task <- nonEvaluatedTargets) {
-      newEvaluated.append(task)
-      val targetInputValues = task.inputs
-        .map { x => newResults.getOrElse(x, results(x)) }
-        .collect { case TaskResult(Result.Success((v, _)), _) => v }
 
-      val res =
-        if (targetInputValues.length != task.inputs.length) mill.api.Result.Skipped
-        else {
-          val args = new Ctx(
-            args = targetInputValues.map(_.value).toIndexedSeq,
-            dest0 = () =>
-              paths match {
-                case Some(dest) =>
-                  if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-                  usedDest = Some((task, new Exception().getStackTrace))
-                  dest.dest
-                case None =>
-                  throw new Exception("No `dest` folder available here")
-                //                }
-              },
-            log = multiLogger,
-            home = home,
-            env = env,
-            reporter = reporter,
-            testReporter = testReporter,
-            workspace = rootModule.millSourcePath
-          ) with mill.api.Ctx.Jobs {
-            override def jobs: Int = effectiveThreadCount
-          }
+      val tickerPrefix = maybeTargetLabel.map { targetLabel =>
+        val prefix = s"[$counterMsg] $targetLabel "
+        if (logRun) logger.ticker(prefix)
+        prefix + "| "
+      }
 
-          mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
-            try task.evaluate(args).map(Val(_))
-            catch {
-              case NonFatal(e) =>
-                mill.api.Result.Exception(
-                  e,
-                  new OuterStack(new Exception().getStackTrace.toIndexedSeq)
-                )
+      val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
+        override def ticker(s: String): Unit = {
+          super.ticker(tickerPrefix.getOrElse("") + s)
+        }
+      }
+      // This is used to track the usage of `T.dest` in more than one Task
+      // But it's not really clear what issue we try to prevent here
+      // Vice versa, being able to use T.dest in multiple `T.task`
+      // is rather essential to split up larger tasks into small parts
+      // So I like to disable this detection for now
+      var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]
+      for (task <- nonEvaluatedTargets) {
+        newEvaluated.append(task)
+        val targetInputValues = task.inputs
+          .map { x => newResults.getOrElse(x, results(x).result) }
+          .collect { case Result.Success((v, _)) => v }
+
+        val compute = {
+          if (targetInputValues.length != task.inputs.length) () => mill.api.Result.Skipped
+          else {  () =>
+            val args = new Ctx(
+              args = targetInputValues.map(_.value).toIndexedSeq,
+              dest0 = () =>
+                paths match {
+                  case Some(dest) =>
+                    if (usedDest.isEmpty) os.makeDir.all(dest.dest)
+                    usedDest = Some((task, new Exception().getStackTrace))
+                    dest.dest
+                  case None =>
+                    throw new Exception("No `dest` folder available here")
+                  //                }
+                },
+              log = multiLogger,
+              home = home,
+              env = env,
+              reporter = reporter,
+              testReporter = testReporter,
+              workspace = rootModule.millSourcePath
+            ) with mill.api.Ctx.Jobs {
+              override def jobs: Int = effectiveThreadCount
+            }
+
+            mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
+              try task.evaluate(args).map(Val(_))
+              catch {
+                case NonFatal(e) =>
+                  mill.api.Result.Exception(
+                    e,
+                    new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                  )
+              }
             }
           }
         }
 
-      def makeTuple() = for (v <- res) yield {
-        (
-          v,
-          if (task.isInstanceOf[Worker[_]]) inputsHash
-          else v.##
-        )
+        newResults(task) = for (v <- compute()) yield {
+          (
+            v,
+            if (task.isInstanceOf[Worker[_]]) inputsHash
+            else v.##
+          )
+        }
       }
-      newResults(task) = TaskResult(
-        makeTuple(),
-        Option.when(task.isInstanceOf[InputImpl[_]])(() => makeTuple())
-      )
-
+      multiLogger.close()
+      (newResults, newEvaluated)
     }
+
+    val (newResults, newEvaluated) = computeAll()
+
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
       val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[_]])
@@ -620,9 +623,21 @@ class Evaluator private (
       }
     }
 
-    multiLogger.close()
-
-    (newResults, newEvaluated)
+    (
+      newResults.map{case (k, v) =>
+        (
+          k,
+          TaskResult(
+            v,
+            Some{ () =>
+              val (recalced, _) = computeAll()
+              recalced.apply(k)
+            }
+          )
+        )
+      },
+      newEvaluated
+    )
   }
 
   def resolveLogger(logPath: Option[os.Path], logger: mill.api.Logger): mill.api.Logger =

@@ -1,7 +1,7 @@
 
 import mill._
 
-interp.watchValue(System.currentTimeMillis() / 5000)
+interp.watchValue{ System.currentTimeMillis() / 5000 }
 
 println("Setting up build.sc")
 def foo = T.input{ System.currentTimeMillis() / 1000 }

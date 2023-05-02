@@ -34,9 +34,9 @@ object RunScript {
     val watched = evaluated.results
       .iterator
       .collect {
-        case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), None)) => ps.map(Watchable.Path(_))
-        case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), None)) => Seq(Watchable.Path(p))
-        case (t: InputImpl[_], TaskResult(Result.Success(Val(v)), Some(recalc))) =>
+        case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) => ps.map(Watchable.Path(_))
+        case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) => Seq(Watchable.Path(p))
+        case (t: InputImpl[_], TaskResult(_, Some(recalc))) =>
           val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
           Seq(Watchable.Value(() => recalc().hashCode(), recalc().hashCode(), pretty))
       }
