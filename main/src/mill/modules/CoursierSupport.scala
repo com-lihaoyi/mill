@@ -330,10 +330,11 @@ object CoursierSupport {
     }
   }
 
+  // Parse a list of repositories from their string representation
   def repoFromString(str: String, origin: String): Option[Seq[Repository]] = {
     val spaceSep = "\\s+".r
 
-    val l =
+    val repoList =
       if (spaceSep.findFirstIn(str).isEmpty)
         str
           .split('|')
@@ -345,7 +346,7 @@ object CoursierSupport {
           .toSeq
           .filter(_.nonEmpty)
 
-    RepositoryParser.repositories(l).either match {
+    RepositoryParser.repositories(repoList).either match {
       case Left(errs) =>
         System.err.println(
           s"Ignoring $origin, error parsing repositories from it:" + System.lineSeparator() +
