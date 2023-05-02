@@ -599,15 +599,16 @@ class Evaluator private (
           }
         }
 
+      def makeTuple() = for (v <- res) yield {
+        (
+          v,
+          if (task.isInstanceOf[Worker[_]]) inputsHash
+          else v.##
+        )
+      }
       newResults(task) = TaskResult(
-        for (v <- res) yield {
-          (
-            v,
-            if (task.isInstanceOf[Worker[_]]) inputsHash
-            else v.##
-          )
-        },
-        None
+        makeTuple(),
+        Option.when(task.isInstanceOf[InputImpl[_]])(() => makeTuple())
       )
 
     }
