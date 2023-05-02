@@ -53,13 +53,27 @@ class MillBuildRootModule()(implicit
     )
   }
 
-  override def repositoriesTask: Task[Seq[Repository]] = T.task {
-    super.repositoriesTask() ++ {
-      parseBuildFiles().repos.flatMap { case (repo, srcFile) =>
-        // On windows, we may not be able to make it relative
-        val relFile = Try { srcFile.relativeTo(T.workspace) }.recover { case _ => srcFile }.get
-        CoursierSupport.repoFromString(repo, s"Buildfile ${relFile}: import $$repo.`${repo}`")
-      }.flatten
+  override def repositoriesTask: Task[Seq[Repository]] = {
+    val importedRepos = T.task {
+      val repos = parseBuildFiles().repos.map { case (repo, srcFile) =>
+        val relFile = Try {
+          srcFile.relativeTo(T.workspace)
+        }.recover { case _ => srcFile }.get
+        CoursierSupport.repoFromString(
+          repo,
+          s"buildfile `${relFile}`: import $$repo.`${repo}`"
+        )
+      }
+      repos.find(_.asSuccess.isEmpty) match {
+        case Some(error) => error
+        case None =>
+          val res = repos.flatMap(_.asSuccess).map(_.value).flatten
+          Result.Success(res)
+      }
+    }
+
+    T.task {
+      super.repositoriesTask() ++ importedRepos()
     }
   }
 

@@ -331,7 +331,7 @@ object CoursierSupport {
   }
 
   // Parse a list of repositories from their string representation
-  def repoFromString(str: String, origin: String): Option[Seq[Repository]] = {
+  def repoFromString(str: String, origin: String): Result[Seq[Repository]] = {
     val spaceSep = "\\s+".r
 
     val repoList =
@@ -348,15 +348,13 @@ object CoursierSupport {
 
     RepositoryParser.repositories(repoList).either match {
       case Left(errs) =>
-        System.err.println(
-          s"Ignoring $origin, error parsing repositories from it:" + System.lineSeparator() +
+        val msg =
+          s"Invalid repository string in $origin:" + System.lineSeparator() +
             errs.map("  " + _ + System.lineSeparator()).mkString
-        )
-        None
+        Result.Failure(msg, Some(Seq()))
       case Right(repos) =>
-        Some(repos)
+        Result.Success(repos)
     }
   }
-
 
 }
