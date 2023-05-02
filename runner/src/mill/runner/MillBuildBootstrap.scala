@@ -194,8 +194,8 @@ class MillBuildBootstrap(
 
       case (
             Right(Seq(
-              runClasspath: Seq[PathRef],
-              scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+              Evaluator.Val(runClasspath: Seq[PathRef]),
+              Evaluator.Val(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])])
             )),
             evalWatches,
             moduleWatches

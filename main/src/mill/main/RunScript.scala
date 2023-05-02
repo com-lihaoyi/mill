@@ -5,7 +5,7 @@ import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.Watchable
 import mill.api.{PathRef, Result}
 import mill.api.Strict.Agg
-
+import Evaluator._
 
 object RunScript {
 
@@ -29,14 +29,14 @@ object RunScript {
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
-    val evaluated: Evaluator.Results = evaluator.evaluate(targets)
+    val evaluated: Results = evaluator.evaluate(targets)
 
     val watched = evaluated.results
       .iterator
       .collect {
-        case (t: SourcesImpl, Evaluator.EvalResult(Result.Success(ps: Seq[PathRef]), None)) => ps.map(Watchable.Path(_))
-        case (t: SourceImpl, Evaluator.EvalResult(Result.Success(p: PathRef), None)) => Seq(Watchable.Path(p))
-        case (t: InputImpl[_], Evaluator.EvalResult(Result.Success(v), Some(recalc))) =>
+        case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), None)) => ps.map(Watchable.Path(_))
+        case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), None)) => Seq(Watchable.Path(p))
+        case (t: InputImpl[_], TaskResult(Result.Success(Val(v)), Some(recalc))) =>
           val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
           Seq(Watchable.Value(() => recalc().hashCode(), recalc().hashCode(), pretty))
       }
