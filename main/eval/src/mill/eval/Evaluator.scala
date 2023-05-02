@@ -452,9 +452,11 @@ class Evaluator private (
 
             newResults(labelledNamedTask.task) match {
               case Evaluator.EvalResult(mill.api.Result.Failure(_, Some((v, _))), _) =>
+                pprint.log(v)
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case Evaluator.EvalResult(mill.api.Result.Success((v, _)), _) =>
+                pprint.log(v)
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case _ =>
@@ -602,6 +604,7 @@ class Evaluator private (
 
         }
 
+      pprint.log(res)
       newResults(task) = Evaluator.EvalResult(
         for (v <- res) yield {
           (
@@ -612,6 +615,8 @@ class Evaluator private (
         },
         None
       )
+
+      pprint.log(newResults(task))
     }
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
