@@ -122,14 +122,14 @@ class Evaluator private (
 
     val (sortedGroups, transitive) = Evaluator.plan(goals)
     val evaluated = new Agg.Mutable[Task[_]]
-    val results = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
+    val results = mutable.LinkedHashMap.empty[Task[_], Evaluator.EvalResult[(_, Int)]]
     var someTaskFailed: Boolean = false
 
     val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
     for (((terminal, group), i) <- sortedGroups.items().zipWithIndex) {
       if (failFast && someTaskFailed) {
         // we exit early and set aborted state for all left tasks
-        group.iterator.foreach { task => results.put(task, Aborted) }
+        group.iterator.foreach { task => results.put(task, Evaluator.EvalResult(Aborted, None)) }
 
       } else {
 
@@ -170,21 +170,21 @@ class Evaluator private (
       evaluated = evaluated,
       transitive = transitive,
       failing = getFailing(sortedGroups, results),
-      results = results.map { case (k, v) => (k, v.map(_._1)) }
+      results = results
     )
   }
 
   def getFailing(
       sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]],
-      results: collection.Map[Task[_], mill.api.Result[(Any, Int)]]
+      results: collection.Map[Task[_], Evaluator.EvalResult[(_, Int)]]
   ): MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Failing[_]] = {
     val failing = new MultiBiMap.Mutable[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]]
     for ((k, vs) <- sortedGroups.items()) {
       failing.addAll(
         k,
         Loose.Agg.from(
-          vs.items.flatMap(results.get).collect { case f: mill.api.Result.Failing[_] =>
-            f.map(_._1)
+          vs.items.flatMap(results.get).collect { case er @ Evaluator.EvalResult(f: mill.api.Result.Failing[_], _) =>
+            f
           }
         )
       )
@@ -254,7 +254,7 @@ class Evaluator private (
               contextLogger
             )
 
-            if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty)) failed.set(true)
+            if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty)) failed.set(true)
 
             val endTime = System.currentTimeMillis()
             timeLog.timeTrace(
@@ -275,16 +275,18 @@ class Evaluator private (
 
       val finishedOptsMap = finishedOpts.toMap
 
-      val results = terminals
+      val results0: Vector[(Task[_], Evaluator.EvalResult[(_, Int)])] = terminals
         .flatMap { t =>
           sortedGroups.lookupKey(t).flatMap { t0 =>
             finishedOptsMap(t) match {
-              case None => Some((t0, Aborted))
+              case None => Some((t0, Evaluator.EvalResult(Aborted, None)))
               case Some(res) => res.newResults.get(t0).map(r => (t0, r))
             }
           }
         }
-        .toMap
+
+      val results: Map[Task[_], Evaluator.EvalResult[(_, Int)]] =
+        results0.toMap
 
       timeLog.close()
 
@@ -304,7 +306,7 @@ class Evaluator private (
   protected def evaluateGroupCached(
       terminal: Terminal,
       group: Agg[Task[_]],
-      results: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
+      results: collection.Map[Task[_], Evaluator.EvalResult[(_, Int)]],
       counterMsg: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
@@ -313,7 +315,7 @@ class Evaluator private (
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
-        .flatMap(results(_).asSuccess.map(_.value._2))
+        .flatMap(results(_).result.asSuccess.map(_.value._2))
     )
 
     val sideHashes = scala.util.hashing.MurmurHash3.orderedHash(
@@ -422,8 +424,8 @@ class Evaluator private (
 
         upToDateWorker.map((_, inputsHash)) orElse cached match {
           case Some((v, hashCode)) =>
-            val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
-            newResults(labelledNamedTask.task) = Result.Success((v, hashCode), () => (v, hashCode))
+            val newResults = mutable.LinkedHashMap.empty[Task[_], Evaluator.EvalResult[(Any, Int)]]
+            newResults(labelledNamedTask.task) = Evaluator.EvalResult(Result.Success((v, hashCode)), None)
 
             Evaluated(newResults, Nil, cached = true)
 
@@ -449,10 +451,10 @@ class Evaluator private (
               }
 
             newResults(labelledNamedTask.task) match {
-              case mill.api.Result.Failure(_, Some((v, _))) =>
+              case Evaluator.EvalResult(mill.api.Result.Failure(_, Some((v, _))), _) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
-              case mill.api.Result.Success((v, _), _) =>
+              case Evaluator.EvalResult(mill.api.Result.Success((v, _)), _) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case _ =>
@@ -512,7 +514,7 @@ class Evaluator private (
 
   protected def evaluateGroup(
       group: Agg[Task[_]],
-      results: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
+      results: collection.Map[Task[_], Evaluator.EvalResult[(_, Int)]],
       inputsHash: Int,
       paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
@@ -520,10 +522,10 @@ class Evaluator private (
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger
-  ): (mutable.LinkedHashMap[Task[_], mill.api.Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
+  ): (mutable.LinkedHashMap[Task[_], Evaluator.EvalResult[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
-    val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
+    val newResults = mutable.LinkedHashMap.empty[Task[_], Evaluator.EvalResult[(Any, Int)]]
 
     val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
@@ -557,7 +559,7 @@ class Evaluator private (
       newEvaluated.append(task)
       val targetInputValues = task.inputs
         .map { x => newResults.getOrElse(x, results(x)) }
-        .collect { case Result.Success((v, _), sig) => Result.Success(v, sig) }
+        .collect { case Evaluator.EvalResult(Result.Success((v, _)), _) => Result.Success(v) }
 
       val res =
         if (targetInputValues.length != task.inputs.length) mill.api.Result.Skipped
@@ -600,13 +602,16 @@ class Evaluator private (
 
         }
 
-      newResults(task) = for (v <- res) yield {
-        (
-          v,
-          if (task.isInstanceOf[Worker[_]]) inputsHash
-          else v.##
-        )
-      }
+      newResults(task) = Evaluator.EvalResult(
+        for (v <- res) yield {
+          (
+            v,
+            if (task.isInstanceOf[Worker[_]]) inputsHash
+            else v.##
+          )
+        },
+        None
+      )
     }
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
@@ -764,20 +769,27 @@ object Evaluator {
     )
   }
 
+  case class EvalResult[T](result: Result[T],
+                           recalcOpt: Option[() => mill.api.Result[T]]){
+    def map[V](f: T => V) = EvalResult[V](
+      result.map(f),
+      recalcOpt.map(r => () => r().map(f))
+    )
+  }
   case class Results(
       rawValues: Seq[mill.api.Result[Any]],
       evaluated: Agg[Task[_]],
       transitive: Agg[Task[_]],
       failing: MultiBiMap[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]],
-      results: collection.Map[Task[_], mill.api.Result[Any]]
+      results: collection.Map[Task[_], EvalResult[_]]
   ) {
-    def values: Seq[Any] = rawValues.collect { case mill.api.Result.Success(v, _) => v }
+    def values: Seq[Any] = rawValues.collect { case mill.api.Result.Success(v) => v }
     private def copy(
         rawValues: Seq[Result[Any]] = rawValues,
         evaluated: Agg[Task[_]] = evaluated,
         transitive: Agg[Task[_]] = transitive,
         failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[_]] = failing,
-        results: collection.Map[Task[_], Result[Any]] = results
+        results: collection.Map[Task[_], EvalResult[_]]
     ): Results = new Results(
       rawValues,
       evaluated,
@@ -793,7 +805,7 @@ object Evaluator {
         Agg[Task[_]],
         Agg[Task[_]],
         MultiBiMap[Either[Task[_], Labelled[_]], Failing[_]],
-        collection.Map[Task[_], Result[Any]]
+          collection.Map[Task[_], EvalResult[_]]
     )] = Some((
       results.rawValues,
       results.evaluated,
@@ -844,12 +856,12 @@ object Evaluator {
   }
 
   case class Evaluated(
-      newResults: collection.Map[Task[_], Result[(Any, Int)]],
+      newResults: collection.Map[Task[_], EvalResult[(_, Int)]],
       newEvaluated: Seq[Task[_]],
       cached: Boolean
   ) {
     private[Evaluator] def copy(
-        newResults: collection.Map[Task[_], Result[(Any, Int)]] = newResults,
+        newResults: collection.Map[Task[_], EvalResult[(_, Int)]],
         newEvaluated: Seq[Task[_]] = newEvaluated,
         cached: Boolean = cached
     ): Evaluated = new Evaluated(newResults, newEvaluated, cached)
@@ -857,7 +869,7 @@ object Evaluator {
 
   object Evaluated {
     private[Evaluator] def unapply(evaluated: Evaluated)
-        : Option[(collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean)] =
+        : Option[(collection.Map[Task[_], EvalResult[(_, Int)]], Seq[Task[_]], Boolean)] =
       Some((evaluated.newResults, evaluated.newEvaluated, evaluated.cached))
   }
 

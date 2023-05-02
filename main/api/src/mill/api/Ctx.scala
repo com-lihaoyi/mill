@@ -111,7 +111,7 @@ object Ctx {
  * implementation of a `Task`.
  */
 class Ctx(
-    val args: IndexedSeq[Result.Success[_]],
+    val args: IndexedSeq[_],
     dest0: () => os.Path,
     val log: Logger,
     val home: os.Path,
@@ -127,8 +127,8 @@ class Ctx(
     with Ctx.Workspace {
 
   def dest: Path = dest0()
-  def arg[T](index: Int): Result.Success[T] = {
-    if (index >= 0 && index < args.length) args(index).asInstanceOf[Result.Success[T]]
+  def arg[T](index: Int): T = {
+    if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
     else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
   }
 }

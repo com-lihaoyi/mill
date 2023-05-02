@@ -56,7 +56,7 @@ object Task {
     val inputs = inputs0
     def evaluate(ctx: mill.api.Ctx) = {
       for (i <- 0 until ctx.args.length)
-        yield ctx.arg[T](i).value
+        yield ctx.arg[T](i)
     }
   }
   private[define] class TraverseCtx[+T, V](
@@ -67,21 +67,19 @@ object Task {
     def evaluate(ctx: mill.api.Ctx) = {
       f(
         for (i <- 0 until ctx.args.length)
-          yield ctx.arg[T](i).value,
+          yield ctx.arg[T](i),
         ctx
       )
     }
   }
 
   private[define] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
-    def evaluate(ctx: mill.api.Ctx) = ctx.arg(0).map(f)
+    def evaluate(ctx: mill.api.Ctx) = f(ctx.arg(0))
     val inputs = List(source)
   }
 
   private[define] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
-    def evaluate(ctx: mill.api.Ctx) = (ctx.arg[T](0), ctx.arg[V](1)) match{
-      case (Result.Success(a, _), Result.Success(b, _)) => (a, b)
-    }
+    def evaluate(ctx: mill.api.Ctx) = (ctx.arg[T](0), ctx.arg[V](1))
     val inputs = List(source1, source2)
   }
 }

@@ -95,7 +95,7 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
     val worker = BspWorker(ctx)
 
     worker match {
-      case Result.Success(worker, _) =>
+      case Result.Success(worker) =>
         worker.startBspServer(
           initialEvaluator,
           streams,
