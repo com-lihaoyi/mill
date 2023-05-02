@@ -170,7 +170,7 @@ class Evaluator private (
       evaluated = evaluated,
       transitive = transitive,
       failing = getFailing(sortedGroups, results),
-      results = results
+      results = results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
 
