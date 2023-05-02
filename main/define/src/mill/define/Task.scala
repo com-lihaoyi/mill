@@ -44,10 +44,8 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 }
 
 object Task {
-
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
-
     def filter(f: T => Boolean) = this
     def withFilter(f: T => Boolean) = this
     def zip[V](other: Task[V]): Task[(T, V)] = new Task.Zipped(this, other)
@@ -74,10 +72,12 @@ object Task {
       )
     }
   }
+
   private[define] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
     def evaluate(ctx: mill.api.Ctx) = f(ctx.arg(0))
     val inputs = List(source)
   }
+
   private[define] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
     def evaluate(ctx: mill.api.Ctx) = (ctx.arg(0), ctx.arg(1))
     val inputs = List(source1, source2)

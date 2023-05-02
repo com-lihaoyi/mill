@@ -1,7 +1,6 @@
 package mill.scalalib.scalafmt
 
-import mill.T
-import mill.define.Sources
+import mill._
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
 import mill.util.{TestEvaluator, TestUtil}

@@ -11,7 +11,6 @@ import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{JarManifest, PathRef, Result, internal}
-import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.modules.{Assembly, Jvm}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
@@ -706,25 +705,25 @@ trait JavaModule
    * since the code can dirty the parent Mill process and potentially leave it
    * in a bad state.
    */
-  def runLocal(args: String*): Command[Unit] = T.command {
+  def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
     Jvm.runLocal(
       finalMainClass(),
       runClasspath().map(_.path),
-      args
+      args().value
     )
   }
 
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def run(args: String*): Command[Unit] = T.command {
+  def run(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
     try Result.Success(
         Jvm.runSubprocess(
           finalMainClass(),
           runClasspath().map(_.path),
           forkArgs(),
           forkEnv(),
-          args,
+          args().value,
           workingDir = forkWorkingDir(),
           useCpPassingJar = runUseArgsFile()
         )
