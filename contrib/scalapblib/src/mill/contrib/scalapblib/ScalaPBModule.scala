@@ -3,7 +3,6 @@ package contrib.scalapblib
 
 import coursier.MavenRepository
 import coursier.core.Version
-import mill.define.Sources
 import mill.api.{IO, Loose, PathRef}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._

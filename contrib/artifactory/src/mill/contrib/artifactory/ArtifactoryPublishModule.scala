@@ -94,7 +94,5 @@ object ArtifactoryPublishModule extends ExternalModule {
     }
   }
 
-  import mill.main.TokenReaders._
-
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

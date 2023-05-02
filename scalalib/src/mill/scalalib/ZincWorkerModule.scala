@@ -4,14 +4,13 @@ import scala.annotation.nowarn
 import coursier.Repository
 import mainargs.Flag
 import mill.Agg
-import mill.T
+import mill._
 import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result}
-import mill.define.{Command, Discover, ExternalModule, Input, Target, Worker}
-import mill.modules.Util.millProjectModule
+import mill.define.{ExternalModule, Discover}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.scalalib.api.{Versions, ZincWorkerApi, ZincWorkerUtil}
-import os.Path
+import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
+import mill.modules.Util.millProjectModule
 
 /**
  * A default implementation of [[ZincWorkerModule]]

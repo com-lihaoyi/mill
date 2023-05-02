@@ -1,6 +1,5 @@
 package mill.eval
 
-import mill.define.{Discover, Input, Target, Task}
 import mill.modules.Jvm
 import mill.api.Ctx.Dest
 import mill.{Module, T}

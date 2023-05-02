@@ -120,9 +120,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  override def runLocal(args: String*): Command[Unit] = T.command { run(args: _*) }
+  override def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = T.command { run(args) }
 
-  override def run(args: String*): Command[Unit] = T.command {
+  override def run(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
     finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
       case Right(_) =>

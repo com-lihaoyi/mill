@@ -1,17 +1,16 @@
 package mill.testkit
 
-import mill.define._
+import mill._
+import mill.define.{Discover, TargetImpl, InputImpl}
 import mill.api.{DummyInputStream, Result, SystemStreams}
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
 
 import java.io.{InputStream, PrintStream}
-import mill.define.{Input, Task}
 import mill.eval.Evaluator
 import mill.util.PrintLogger
 
 import language.experimental.macros
-import scala.collection.mutable
 
 trait MillTestKit {
 

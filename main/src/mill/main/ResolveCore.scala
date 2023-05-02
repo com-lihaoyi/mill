@@ -242,11 +242,11 @@ object ResolveCore {
   } yield {
     mainargs.TokenGrouping.groupArgs(
       rest,
-      ep._2.argSigs0,
+      ep._2.flattenedArgSigs,
       allowPositional = true,
       allowRepeats = false,
-      allowLeftover = ep._2.leftoverArgSig.nonEmpty
-    ).flatMap { grouped =>
+      allowLeftover = ep._2.argSigs0.exists(_.reader.isLeftover)
+    ).flatMap { (grouped: TokenGrouping[_]) =>
       mainargs.Invoker.invoke(
         target,
         ep._2.asInstanceOf[MainData[_, Any]],
