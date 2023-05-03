@@ -46,7 +46,7 @@ class MillBuildRootModule()(implicit
 
   override def scalaVersion = "2.13.10"
 
-  def allBuildFiles = T.sources {
+  def scriptSources = T.sources {
     MillBuildRootModule
       .parseBuildFiles(millBuildRootModuleInfo)
       .seenScripts
@@ -56,7 +56,7 @@ class MillBuildRootModule()(implicit
   }
 
   def parseBuildFiles = T {
-    allBuildFiles()
+    scriptSources()
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
 
@@ -98,10 +98,6 @@ class MillBuildRootModule()(implicit
         )
     ) ++
       Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
-  }
-
-  def scriptSources: T[Seq[PathRef]] = T.sources {
-    for ((p, s) <- parseBuildFiles().seenScripts.toSeq) yield PathRef(p)
   }
 
   override def generatedSources: T[Seq[PathRef]] = T {

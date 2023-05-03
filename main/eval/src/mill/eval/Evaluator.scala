@@ -545,7 +545,7 @@ class Evaluator private (
 
       val tickerPrefix = maybeTargetLabel.map { targetLabel =>
         val prefix = s"[$counterMsg] $targetLabel "
-        if (logRun) logger.ticker(prefix)
+        if (logRun && enableTicker) logger.ticker(prefix)
         prefix + "| "
       }
 
