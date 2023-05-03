@@ -42,7 +42,7 @@ trait VisualizeModule extends mill.define.TaskModule {
     )
     val visualizeThread = new java.lang.Thread(() =>
       while (true) {
-        val res = Result.Success{
+        val res = Result.Success {
           val (targets, tasks, dest) = in.take()
           cl.loadClass("mill.main.graphviz.GraphvizTools")
             .getMethod("apply", classOf[Seq[_]], classOf[Seq[_]], classOf[os.Path])

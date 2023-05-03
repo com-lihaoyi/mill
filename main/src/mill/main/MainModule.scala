@@ -26,11 +26,12 @@ object MainModule {
     }
   }
 
-  private def show0(evaluator: Evaluator,
-                    targets: Seq[String],
-                    log: Logger,
-                    watch0: Watchable => Unit)
-                   (f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value) = {
+  private def show0(
+      evaluator: Evaluator,
+      targets: Seq[String],
+      log: Logger,
+      watch0: Watchable => Unit
+  )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value) = {
     RunScript.evaluateTasksNamed(
       evaluator.withBaseLogger(
         // When using `show`, redirect all stdout of the evaluated tasks so the
@@ -92,7 +93,6 @@ trait MainModule extends mill.Module {
       evalWatchedValues.append(w)
     }
   }
-
 
   implicit def millDiscover: mill.define.Discover[_]
 
@@ -279,8 +279,8 @@ trait MainModule extends mill.Module {
    * to integrate Mill into external scripts and tooling.
    */
   def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] = T.command {
-    MainModule.show0(evaluator, targets, T.log, interp.evalWatch0){ res =>
-      res.flatMap(_._2).map(_._2) match{
+    MainModule.show0(evaluator, targets, T.log, interp.evalWatch0) { res =>
+      res.flatMap(_._2).map(_._2) match {
         case Seq(single) => single
         case multiple => multiple
       }

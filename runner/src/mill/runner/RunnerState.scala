@@ -1,10 +1,11 @@
 package mill.runner
 
-import mill.api.{PathRef, internal}
+import mill.api.{PathRef, Val, internal}
 import mill.define.{BaseModule, Segments}
 import mill.util.Watchable
 import upickle.default.{ReadWriter, macroRW}
 import mill.api.JsonFormatters._
+import mill.eval.Evaluator
 import mill.main.RootModule
 
 /**
@@ -51,7 +52,7 @@ object RunnerState {
 
   @internal
   case class Frame(
-      workerCache: Map[Segments, (Int, Any)],
+      workerCache: Map[Segments, (Int, Val)],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],

@@ -33,7 +33,7 @@ abstract class IntegrationTestSuite extends TestSuite {
   def eval(s: Shellable*): Boolean = evalFork(os.Inherit, os.Inherit, s, -1)
 
   def evalStdout(s: Shellable*): IntegrationTestSuite.EvalResult = {
-    evalTimeoutStdout(-1, s:_*)
+    evalTimeoutStdout(-1, s: _*)
   }
 
   def evalTimeoutStdout(timeout: Long, s: Shellable*): IntegrationTestSuite.EvalResult = {

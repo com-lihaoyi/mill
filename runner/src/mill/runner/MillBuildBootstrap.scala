@@ -1,9 +1,8 @@
 package mill.runner
 import mill.util.{ColorLogger, PrefixLogger, Util, Watchable}
 import mill.{BuildInfo, T}
-import mill.api.{PathRef, internal}
+import mill.api.{PathRef, Val, internal}
 import mill.eval.Evaluator
-
 import mill.main.{RootModule, RunScript, SelectMode}
 import mill.main.TokenReaders._
 import mill.define.{Discover, Segments}
@@ -194,8 +193,8 @@ class MillBuildBootstrap(
 
       case (
             Right(Seq(
-              Evaluator.Val(runClasspath: Seq[PathRef]),
-              Evaluator.Val(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])])
+              Val(runClasspath: Seq[PathRef]),
+              Val(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])])
             )),
             evalWatches,
             moduleWatches
@@ -268,7 +267,7 @@ class MillBuildBootstrap(
   }
 
   def makeEvaluator(
-      workerCache: Map[Segments, (Int, Any)],
+      workerCache: Map[Segments, (Int, Val)],
       scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
       rootModule: RootModule,
       millClassloaderSigHash: Int,
@@ -334,7 +333,8 @@ object MillBuildBootstrap {
       targetsAndParams: Seq[String]
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
-    val evalTaskResult = RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
+    val evalTaskResult =
+      RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
     val moduleWatched = rootModule.watchedValues.toVector
     val addedEvalWatched = rootModule.evalWatchedValues.toVector
 
@@ -343,7 +343,8 @@ object MillBuildBootstrap {
       case Right((watched, evaluated)) =>
         evaluated match {
           case Left(msg) => (Left(msg), watched ++ addedEvalWatched, moduleWatched)
-          case Right(results) => (Right(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
+          case Right(results) =>
+            (Right(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
         }
     }
   }

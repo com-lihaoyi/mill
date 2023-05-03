@@ -14,7 +14,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * 3. `T.input`
  * 4. `interp.watchValue`
  * 5. Implicitly watched files, like `build.sc`
- *
  */
 object WatchSourceInputTests extends IntegrationTestSuite {
 
@@ -54,30 +53,30 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       awaitCompletionMarker("quxRan1")
       expectedPrints.append(
         "Running qux foo contents edited-foo1 initial-foo2",
-        "Running qux bar contents initial-bar",
+        "Running qux bar contents initial-bar"
       )
       expectedShows.append(
-        "Running qux foo contents edited-foo1 initial-foo2 Running qux bar contents initial-bar",
+        "Running qux foo contents edited-foo1 initial-foo2 Running qux bar contents initial-bar"
       )
 
       os.write.over(wsRoot / "foo2.txt", "edited-foo2")
       awaitCompletionMarker("quxRan2")
       expectedPrints.append(
         "Running qux foo contents edited-foo1 edited-foo2",
-        "Running qux bar contents initial-bar",
+        "Running qux bar contents initial-bar"
       )
       expectedShows.append(
-        "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents initial-bar",
+        "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents initial-bar"
       )
 
       os.write.over(wsRoot / "bar.txt", "edited-bar")
       awaitCompletionMarker("quxRan3")
       expectedPrints.append(
         "Running qux foo contents edited-foo1 edited-foo2",
-        "Running qux bar contents edited-bar",
+        "Running qux bar contents edited-bar"
       )
       expectedShows.append(
-        "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar",
+        "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
       )
 
       os.write.append(wsRoot / "build.sc", "\ndef unrelated = true")
@@ -85,7 +84,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       expectedPrints.append(
         "Setting up build.sc",
         "Running qux foo contents edited-foo1 edited-foo2",
-        "Running qux bar contents edited-bar",
+        "Running qux bar contents edited-bar"
       )
       expectedShows.append(
         "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
@@ -97,15 +96,13 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
       val res = Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
 
-
-
       val (shows, prints) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
 
       assert(prints == expectedPrints)
       if (show) assert(shows == expectedShows.map('"' + _ + '"'))
     }
 
-    test("sources"){
+    test("sources") {
 
       test("noshow") - testWatchSource(false)
       test("show") - testWatchSource(true)
@@ -114,7 +111,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
     def testWatchInput(show: Boolean) = {
       val showArgs = if (show) Seq("show") else Nil
 
-      val evalResult = Future{ evalTimeoutStdout(maxDuration, "--watch", showArgs, "lol") }
+      val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "lol") }
       val expectedPrints = collection.mutable.Buffer.empty[String]
       val expectedShows = collection.mutable.Buffer.empty[String]
 
@@ -122,7 +119,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       awaitCompletionMarker("lolRan0")
       expectedPrints.append(
         "Setting up build.sc",
-        "Running lol baz contents initial-baz",
+        "Running lol baz contents initial-baz"
       )
       expectedShows.append("Running lol baz contents initial-baz")
 
@@ -142,13 +139,12 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
       val res = Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
 
-
       val (shows, prints) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
       assert(prints == expectedPrints)
       if (show) assert(shows == expectedShows.map('"' + _ + '"'))
     }
 
-    test("input"){
+    test("input") {
 
       test("noshow") - testWatchInput(false)
       test("show") - testWatchInput(true)

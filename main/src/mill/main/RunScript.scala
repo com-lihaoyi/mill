@@ -3,7 +3,7 @@ package mill.main
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.Watchable
-import mill.api.{PathRef, Result}
+import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg
 import Evaluator._
 
@@ -15,9 +15,12 @@ object RunScript {
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
-  ): Either[String, (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] = {
+  ): Either[
+    String,
+    (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
+  ] = {
     for (targets <- ResolveTasks.resolve(evaluator, scriptArgs, selectMode))
-    yield evaluateNamed(evaluator, Agg.from(targets.distinct))
+      yield evaluateNamed(evaluator, Agg.from(targets.distinct))
   }
 
   /**
@@ -34,8 +37,10 @@ object RunScript {
     val watched = evaluated.results
       .iterator
       .collect {
-        case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) => ps.map(Watchable.Path(_))
-        case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) => Seq(Watchable.Path(p))
+        case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) =>
+          ps.map(Watchable.Path(_))
+        case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) =>
+          Seq(Watchable.Path(p))
         case (t: InputImpl[_], TaskResult(_, Some(recalc))) =>
           val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
           Seq(Watchable.Value(() => recalc().hashCode(), recalc().hashCode(), pretty))
