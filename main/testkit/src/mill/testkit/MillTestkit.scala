@@ -125,7 +125,8 @@ trait MillTestKit {
             .lookupKey(evaluated.failing.keys().next)
             .items
             .next()
-            .asInstanceOf[Result.Failing[Val]]
+            .asFailing
+            .get
             .map{(x: Val) =>
               x.value.asInstanceOf[T]
             }
