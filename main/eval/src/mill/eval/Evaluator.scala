@@ -179,15 +179,15 @@ class Evaluator private (
   def getFailing(
       sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]],
       results: collection.Map[Task[_], TaskResult[(Val, Int)]]
-  ): MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Failing[_]] = {
-    val failing = new MultiBiMap.Mutable[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]]
+  ): MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Failing[Val]] = {
+    val failing = new MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[Val]]
     for ((k, vs) <- sortedGroups.items()) {
       failing.addAll(
         k,
         Loose.Agg.from(
           vs.items.flatMap(results.get).collect {
-            case er @ TaskResult(f: mill.api.Result.Failing[_], _) =>
-              f
+            case er @ TaskResult(f: Result.Failing[(Val, Int)], _) =>
+              f.map(_._1)
           }
         )
       )
@@ -455,10 +455,10 @@ class Evaluator private (
               }
 
             newResults(labelledNamedTask.task) match {
-              case TaskResult(mill.api.Result.Failure(_, Some((v, _))), _) =>
+              case TaskResult(Result.Failure(_, Some((v, _))), _) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
-              case TaskResult(mill.api.Result.Success((v, _)), _) =>
+              case TaskResult(Result.Success((v, _)), _) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case _ =>
@@ -540,7 +540,7 @@ class Evaluator private (
           target <- nonEvaluatedTargets
           item <- target.inputs.filterNot(group.contains)
         } yield results(item).map(_._1)
-        inputResults.forall(_.result.isInstanceOf[mill.api.Result.Success[_]])
+        inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
       }
 
       val tickerPrefix = maybeTargetLabel.map { targetLabel =>
@@ -568,7 +568,7 @@ class Evaluator private (
           .collect { case Result.Success((v, _)) => v }
 
         val res = {
-          if (targetInputValues.length != task.inputs.length) mill.api.Result.Skipped
+          if (targetInputValues.length != task.inputs.length) Result.Skipped
           else {
             val args = new Ctx(
               args = targetInputValues.map(_.value).toIndexedSeq,
@@ -596,7 +596,7 @@ class Evaluator private (
               try task.evaluate(args).map(Val(_))
               catch {
                 case NonFatal(e) =>
-                  mill.api.Result.Exception(
+                  Result.Exception(
                     e,
                     new OuterStack(new Exception().getStackTrace.toIndexedSeq)
                   )
@@ -786,7 +786,7 @@ object Evaluator {
     )
   }
 
-  case class TaskResult[T](result: Result[T], recalcOpt: Option[() => mill.api.Result[T]]) {
+  case class TaskResult[T](result: Result[T], recalcOpt: Option[() => Result[T]]) {
     def map[V](f: T => V) = TaskResult[V](
       result.map(f),
       recalcOpt.map(r => () => r().map(f))
@@ -794,18 +794,18 @@ object Evaluator {
   }
 
   case class Results(
-      rawValues: Seq[mill.api.Result[Val]],
+      rawValues: Seq[Result[Val]],
       evaluated: Agg[Task[_]],
       transitive: Agg[Task[_]],
-      failing: MultiBiMap[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]],
+      failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[Val]],
       results: collection.Map[Task[_], TaskResult[Val]]
   ) {
-    def values: Seq[Any] = rawValues.collect { case mill.api.Result.Success(v) => v }
+    def values: Seq[Any] = rawValues.collect { case Result.Success(v) => v }
     private def copy(
         rawValues: Seq[Result[Val]] = rawValues,
         evaluated: Agg[Task[_]] = evaluated,
         transitive: Agg[Task[_]] = transitive,
-        failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[_]] = failing,
+        failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[Val]] = failing,
         results: collection.Map[Task[_], TaskResult[Val]]
     ): Results = new Results(
       rawValues,
@@ -821,7 +821,7 @@ object Evaluator {
         Seq[Result[Any]],
         Agg[Task[_]],
         Agg[Task[_]],
-        MultiBiMap[Either[Task[_], Labelled[_]], Failing[_]],
+        MultiBiMap[Either[Task[_], Labelled[_]], Failing[Val]],
         collection.Map[Task[_], TaskResult[_]]
     )] = Some((
       results.rawValues,

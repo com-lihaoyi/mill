@@ -34,10 +34,10 @@ def lineCount: T[Int] = T {
 
 > ./mill show lineCount
 Computing line count
-18
+16
 
 > ./mill show lineCount # line count already cached, doesn't need to be computed
-18
+16
 
 */
 

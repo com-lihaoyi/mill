@@ -120,8 +120,16 @@ trait MillTestKit {
         )
       } else {
         Left(
-          evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next()
-            .asInstanceOf[Result.Failing[T]]
+          evaluated
+            .failing
+            .lookupKey(evaluated.failing.keys().next)
+            .items
+            .next()
+            .asInstanceOf[Result.Failing[Val]]
+            .map{(x: Val) =>
+              x.value.asInstanceOf[T]
+            }
+
         )
       }
     }
