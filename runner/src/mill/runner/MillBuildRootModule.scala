@@ -27,7 +27,7 @@ import scala.util.Try
 @internal
 class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
-    millBuildRootModule: MillBuildRootModule.Info
+    millBuildRootModuleInfo: MillBuildRootModule.Info
 ) extends RootModule() with ScalaModule {
 
   override def millSourcePath = millBuildRootModule.projectRoot / os.up / "mill-build"
@@ -46,11 +46,18 @@ class MillBuildRootModule()(implicit
 
   override def scalaVersion = "2.13.10"
 
-  def parseBuildFiles: T[FileImportGraph] = T.input {
-    FileImportGraph.parseBuildFiles(
-      millBuildRootModule.topLevelProjectRoot,
-      millBuildRootModule.projectRoot / os.up
-    )
+  def allBuildFiles = T.sources {
+    MillBuildRootModule
+      .parseBuildFiles(millBuildRootModuleInfo)
+      .seenScripts
+      .keys
+      .map(PathRef(_))
+      .toSeq
+  }
+
+  def parseBuildFiles = T {
+    allBuildFiles()
+    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = {
@@ -132,7 +139,7 @@ class MillBuildRootModule()(implicit
   def enclosingClasspath = T.sources {
     millBuildRootModule.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
-  override def unmanagedClasspath: T[Agg[PathRef]] = T{
+  override def unmanagedClasspath: T[Agg[PathRef]] = T {
     enclosingClasspath() ++ lineNumberPluginClasspath()
   }
 
@@ -184,6 +191,13 @@ object MillBuildRootModule {
       projectRoot: os.Path,
       topLevelProjectRoot: os.Path
   )
+
+  def parseBuildFiles(millBuildRootModule: MillBuildRootModule.Info) = {
+    FileImportGraph.parseBuildFiles(
+      millBuildRootModule.topLevelProjectRoot,
+      millBuildRootModule.projectRoot / os.up
+    )
+  }
 
   def generateWrappedSources(
       base: os.Path,
