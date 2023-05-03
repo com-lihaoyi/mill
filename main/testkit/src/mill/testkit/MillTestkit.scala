@@ -1,8 +1,8 @@
 package mill.testkit
 
 import mill._
-import mill.define.{Discover, TargetImpl, InputImpl}
-import mill.api.{DummyInputStream, Result, SystemStreams}
+import mill.define.{Discover, InputImpl, TargetImpl}
+import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
 
@@ -109,7 +109,7 @@ trait MillTestKit {
       if (evaluated.failing.keyCount == 0) {
         Right(
           Tuple2(
-            evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
+            evaluated.rawValues.head.asInstanceOf[Result.Success[Val]].value.value.asInstanceOf[T],
             evaluated.evaluated.collect {
               case t: TargetImpl[_]
                   if module.millInternal.targets.contains(t)
