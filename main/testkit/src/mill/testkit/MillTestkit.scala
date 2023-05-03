@@ -140,7 +140,7 @@ trait MillTestKit {
 
       val cleaned = res.rawValues.map {
         case Result.Exception(ex, _) => Result.Exception(ex, new OuterStack(Nil))
-        case x => x
+        case x => x.map(_.value)
       }
 
       assert(

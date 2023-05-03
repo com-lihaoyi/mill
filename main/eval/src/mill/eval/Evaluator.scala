@@ -405,7 +405,7 @@ class Evaluator private (
           case (`inputsHash`, upToDate) =>
             // worker cached and up-to-date
             Some(upToDate)
-          case (_, obsolete: AutoCloseable) =>
+          case (_, Val(obsolete: AutoCloseable)) =>
             // worker cached but obsolete, needs to be closed
             try {
               logger.debug(s"Closing previous worker: ${labelledNamedTask.segments.render}")

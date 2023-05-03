@@ -43,7 +43,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         evaled.evaluated.indexed.partition(expEvaled.contains)
 
       assert(
-        evaled.values == Seq(expValue),
+        evaled.values.map(_.value) == Seq(expValue),
         matchingReturnedEvaled.toSet == expEvaled.toSet,
         extraEvaled == -1 || extra.length == extraEvaled
       )
@@ -53,7 +53,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         val evaled2 = evaluator.evaluate(Agg(target))
         val expecteSecondRunEvaluated = Agg()
         assert(
-          evaled2.values == evaled.values,
+          evaled2.values.map(_.value) == evaled.values.map(_.value),
           evaled2.evaluated == expecteSecondRunEvaluated
         )
       }
