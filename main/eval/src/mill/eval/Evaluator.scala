@@ -528,7 +528,7 @@ class Evaluator private (
       logger: mill.api.Logger
   ): (mutable.LinkedHashMap[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
-    def computeAll() = {
+    def computeAll(enableTicker: Boolean) = {
       val newEvaluated = mutable.Buffer.empty[Task[_]]
       val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Val, Int)]]
 
@@ -551,7 +551,8 @@ class Evaluator private (
 
       val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
         override def ticker(s: String): Unit = {
-          super.ticker(tickerPrefix.getOrElse("") + s)
+          if (enableTicker) super.ticker(tickerPrefix.getOrElse("") + s)
+          else () // do nothing
         }
       }
       // This is used to track the usage of `T.dest` in more than one Task
@@ -566,9 +567,9 @@ class Evaluator private (
           .map { x => newResults.getOrElse(x, results(x).result) }
           .collect { case Result.Success((v, _)) => v }
 
-        val compute = {
-          if (targetInputValues.length != task.inputs.length) () => mill.api.Result.Skipped
-          else { () =>
+        val res = {
+          if (targetInputValues.length != task.inputs.length) mill.api.Result.Skipped
+          else {
             val args = new Ctx(
               args = targetInputValues.map(_.value).toIndexedSeq,
               dest0 = () =>
@@ -604,7 +605,7 @@ class Evaluator private (
           }
         }
 
-        newResults(task) = for (v <- compute()) yield {
+        newResults(task) = for (v <- res) yield {
           (
             v,
             if (task.isInstanceOf[Worker[_]]) inputsHash
@@ -616,7 +617,7 @@ class Evaluator private (
       (newResults, newEvaluated)
     }
 
-    val (newResults, newEvaluated) = computeAll()
+    val (newResults, newEvaluated) = computeAll(enableTicker = true)
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
       val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[_]])
@@ -632,7 +633,7 @@ class Evaluator private (
           TaskResult(
             v,
             Some { () =>
-              val (recalced, _) = computeAll()
+              val (recalced, _) = computeAll(enableTicker = false)
               recalced.apply(k)
             }
           )

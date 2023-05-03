@@ -129,11 +129,11 @@ class MillBuildRootModule()(implicit
     Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
   }
 
-  override def unmanagedClasspath: T[Agg[PathRef]] = mill.define.Target.input {
-    mill.api.Loose.Agg.from(
-      millBuildRootModule.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
-    ) ++
-      lineNumberPluginClasspath()
+  def enclosingClasspath = T.sources {
+    millBuildRootModule.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
+  }
+  override def unmanagedClasspath: T[Agg[PathRef]] = T{
+    enclosingClasspath() ++ lineNumberPluginClasspath()
   }
 
   override def scalacPluginIvyDeps = Agg(

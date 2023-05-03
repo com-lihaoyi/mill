@@ -34,7 +34,7 @@ def lol = T{
 def writeCompletionMarker(name: String) = {
 
   Range(0, 10)
-    .map(i => os.pwd / s"$name$i")
+    .map(i => os.pwd / "out" / s"$name$i")
     .find(!os.exists(_))
     .foreach(os.write(_, ""))
 }

@@ -23,7 +23,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
     def awaitCompletionMarker(name: String) = {
       val maxTime = System.currentTimeMillis() + maxDuration
-      while (!os.exists(wsRoot / name)) {
+      while (!os.exists(wsRoot / "out" / name)) {
         if (System.currentTimeMillis() > maxTime) {
           sys.error(s"awaitCompletionMarker($name) timed out")
         }
