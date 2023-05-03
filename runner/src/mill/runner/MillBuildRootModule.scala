@@ -30,7 +30,7 @@ class MillBuildRootModule()(implicit
     millBuildRootModuleInfo: MillBuildRootModule.Info
 ) extends RootModule() with ScalaModule {
 
-  override def millSourcePath = millBuildRootModule.projectRoot / os.up / "mill-build"
+  override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
 
   override def resolveDeps(
       deps: Task[Agg[BoundDep]],
@@ -113,12 +113,12 @@ class MillBuildRootModule()(implicit
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
       MillBuildRootModule.generateWrappedSources(
-        millBuildRootModule.projectRoot / os.up,
+        millBuildRootModuleInfo.projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
         T.dest,
-        millBuildRootModule.enclosingClasspath,
-        millBuildRootModule.topLevelProjectRoot
+        millBuildRootModuleInfo.enclosingClasspath,
+        millBuildRootModuleInfo.topLevelProjectRoot
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -137,7 +137,7 @@ class MillBuildRootModule()(implicit
   }
 
   def enclosingClasspath = T.sources {
-    millBuildRootModule.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
+    millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
   override def unmanagedClasspath: T[Agg[PathRef]] = T {
     enclosingClasspath() ++ lineNumberPluginClasspath()
@@ -192,10 +192,10 @@ object MillBuildRootModule {
       topLevelProjectRoot: os.Path
   )
 
-  def parseBuildFiles(millBuildRootModule: MillBuildRootModule.Info) = {
+  def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info) = {
     FileImportGraph.parseBuildFiles(
-      millBuildRootModule.topLevelProjectRoot,
-      millBuildRootModule.projectRoot / os.up
+      millBuildRootModuleInfo.topLevelProjectRoot,
+      millBuildRootModuleInfo.projectRoot / os.up
     )
   }
 
