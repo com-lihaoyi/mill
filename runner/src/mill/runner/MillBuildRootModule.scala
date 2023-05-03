@@ -186,7 +186,7 @@ object MillBuildRootModule {
       baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
   }
 
-  private case class Info(
+  case class Info(
       enclosingClasspath: Seq[os.Path],
       projectRoot: os.Path,
       topLevelProjectRoot: os.Path,
