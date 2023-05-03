@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.define.Command
+import mill.define.Task
 import mill.{Module, PathRef, T}
 import os.SubPath
 
@@ -22,14 +22,14 @@ trait GenIdeaModule extends Module {
    * @param ideaConfigVersion The IDEA configuration version in use. Probably `4`.
    * @return
    */
-  def ideaJavaModuleFacets(ideaConfigVersion: Int): Command[Seq[JavaFacet]] =
-    T.command { Seq[JavaFacet]() }
+  def ideaJavaModuleFacets(ideaConfigVersion: Int): Task[Seq[JavaFacet]] =
+    T.task { Seq[JavaFacet]() }
 
   /**
    * Contribute components to idea config files.
    */
-  def ideaConfigFiles(ideaConfigVersion: Int): Command[Seq[IdeaConfigFile]] =
-    T.command { Seq[IdeaConfigFile]() }
+  def ideaConfigFiles(ideaConfigVersion: Int): Task[Seq[IdeaConfigFile]] =
+    T.task { Seq[IdeaConfigFile]() }
 
   def ideaCompileOutput: T[PathRef] = T.persistent {
     PathRef(T.dest / "classes")
@@ -62,24 +62,21 @@ object GenIdeaModule {
 
   /**
    * A Idea config file contribution
-   * @param name The target config file name (can be also a sub-path)
+   * @param subPath The sub-path of the config file, relative to the Idea config directory (`.idea`)
    * @param component The Idea component
    * @param config The actual (XML) configuration, encoded as [[Element]]s
    *
    * Note: the `name` fields is deprecated in favour of `subPath`, but kept for backward compatibility.
    */
   final case class IdeaConfigFile(
-      name: String,
-      component: String,
+      subPath: SubPath,
+      component: Option[String],
       config: Seq[Element]
   ) {
-    // This also works as requirement check
-    /** The sub-path of the config file, relative to the Idea config directory (`.idea`). */
-    val subPath: SubPath = SubPath(name)
     // An empty component name meas we contribute a whole file
     // If we have a fill file, we only accept a single root xml node.
     require(
-      component.nonEmpty || config.size == 1,
+      component.forall(_.nonEmpty) && (component.nonEmpty || config.size == 1),
       "Files contributions must have exactly one root element."
     )
 
@@ -90,12 +87,12 @@ object GenIdeaModule {
   }
   object IdeaConfigFile {
 
-    /** Alternative creator accepting a sub-path as config file name. */
+    /** Alternative creator accepting a component string. */
     def apply(
         subPath: SubPath,
-        component: Option[String],
+        component: String,
         config: Seq[Element]
-    ): IdeaConfigFile = IdeaConfigFile(subPath.toString(), component.getOrElse(""), config)
+    ): IdeaConfigFile = IdeaConfigFile(subPath, if (component == "") None else Option(component), config)
 
     implicit def rw: ReadWriter[IdeaConfigFile] = macroRW
   }
