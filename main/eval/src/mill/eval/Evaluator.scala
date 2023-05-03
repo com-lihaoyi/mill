@@ -800,7 +800,7 @@ object Evaluator {
       failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[Val]],
       results: collection.Map[Task[_], TaskResult[Val]]
   ) {
-    def values: Seq[Any] = rawValues.collect { case Result.Success(v) => v }
+    def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
     private def copy(
         rawValues: Seq[Result[Val]] = rawValues,
         evaluated: Agg[Task[_]] = evaluated,
@@ -914,14 +914,14 @@ object Evaluator {
           throw exceptionFactory(r)
         case r =>
           // Input is a single-item Agg, so we also expect a single-item result
-          val Seq(e: T) = r.values
+          val Seq(Val(e: T)) = r.values
           e
       }
     def apply[T: ClassTag](tasks: Seq[Task[T]]): Seq[T] =
       evaluator.evaluate(tasks) match {
         case r if r.failing.items().nonEmpty =>
           throw exceptionFactory(r)
-        case r => r.values.asInstanceOf[Seq[T]]
+        case r => r.values.map(_.value).asInstanceOf[Seq[T]]
       }
   }
 
