@@ -268,7 +268,7 @@ case class GenIdeaImpl(
         os.sub / wf._1 -> ideaConfigElementTemplate(wf._2)
       }
 
-    type FileComponent = (SubPath, String)
+    type FileComponent = (SubPath, Option[String])
 
     /** Ensure, the additional configs don't collide. */
     def collisionFreeExtraConfigs(
@@ -294,7 +294,7 @@ case class GenIdeaImpl(
               )
             }
             val msg =
-              s"Config collision in file `${conf.name}` and component `${conf.component}`: ${details(
+              s"Config collision in file `${conf.subPath}` and component `${conf.component}`: ${details(
                   conf.config
                 )} vs. ${details(existing)}"
             ctx.map(_.log.error(msg))
@@ -306,7 +306,7 @@ case class GenIdeaImpl(
     val fileComponentContributions: Seq[(SubPath, Elem)] =
       collisionFreeExtraConfigs(configFileContributions).toSeq.map {
         case (file, configs) =>
-          val map: Map[String, Seq[GenIdeaModule.Element]] =
+          val map: Map[Option[String], Seq[GenIdeaModule.Element]] =
             configs
               .groupBy(_.component)
               .view
@@ -658,12 +658,12 @@ case class GenIdeaImpl(
   }
 
   def ideaConfigFileTemplate(
-      components: Map[String, Seq[GenIdeaModule.Element]]
+      components: Map[Option[String], Seq[GenIdeaModule.Element]]
   ): Elem = {
     <project version={"" + ideaConfigVersion}>
       {
       components.toSeq.map { case (name, config) =>
-        <component name={name}>{config.map(ideaConfigElementTemplate)}</component>
+        <component name={name.getOrElse("")}>{config.map(ideaConfigElementTemplate)}</component>
       }
     }
     </project>

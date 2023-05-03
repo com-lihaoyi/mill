@@ -94,6 +94,7 @@ object GenIdeaModule {
         config: Seq[Element]
     ): IdeaConfigFile = IdeaConfigFile(subPath, if (component == "") None else Option(component), config)
 
+    implicit def subPathRw: ReadWriter[SubPath] = readwriter[String].bimap(_.toString(), SubPath(_))
     implicit def rw: ReadWriter[IdeaConfigFile] = macroRW
   }
 
