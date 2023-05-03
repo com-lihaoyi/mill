@@ -6,7 +6,7 @@ import mill.api.{Loose, PathRef, Result, internal}
 import mill.define.{Caller, Discover, Target, Task}
 import mill.modules.CoursierSupport
 import mill.modules.Util.millProjectModule
-import mill.scalalib.{BoundDep, DepSyntax, Lib, ScalaModule}
+import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.Versions
 import os.{Path, rel}
 import pprint.Util.literalize
@@ -44,7 +44,7 @@ class MillBuildRootModule()(implicit
       super.resolveDeps(deps, false)()
     }
 
-  override def scalaVersion = "2.13.10"
+  override def scalaVersion: T[String] = "2.13.10"
 
   def scriptSources = T.sources {
     MillBuildRootModule
@@ -141,7 +141,7 @@ class MillBuildRootModule()(implicit
     enclosingClasspath() ++ lineNumberPluginClasspath()
   }
 
-  override def scalacPluginIvyDeps = Agg(
+  override def scalacPluginIvyDeps: T[Agg[Dep]] = Agg(
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
   )
 
@@ -186,7 +186,7 @@ object MillBuildRootModule {
       baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
   }
 
-  case class Info(
+  private case class Info(
       enclosingClasspath: Seq[os.Path],
       projectRoot: os.Path,
       topLevelProjectRoot: os.Path,
@@ -208,7 +208,7 @@ object MillBuildRootModule {
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       cliImports: Seq[String]
-  ) = {
+  ): Unit = {
     for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
@@ -239,8 +239,7 @@ object MillBuildRootModule {
       millTopLevelProjectRoot: os.Path,
       originalFilePath: os.Path,
       cliImports: Seq[String]
-  ) = {
-
+  ): String = {
     val superClass =
       if (pkg.size <= 1 && name == "build") "_root_.mill.main.RootModule"
       else {

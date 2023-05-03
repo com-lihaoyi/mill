@@ -75,7 +75,7 @@ trait MillBuildModule
 //  }
 
   // We need to be careful here to not include the out/ directory
-  override def sources: Sources = T.sources {
+  override def sources: T[Seq[PathRef]] = T.sources {
     val sources = allSourceFiles()
     T.log.errorStream.println(s"sources: ${sources}")
     sources
@@ -91,8 +91,8 @@ trait MillBuildModule
     all
   }
 
-  override def compileResources: Sources = T.sources()
-  override def resources: Sources = T.sources()
+  override def compileResources: T[Seq[PathRef]] = T.sources()
+  override def resources: T[Seq[PathRef]] = T.sources()
 
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     displayName = Some("mill-build"),
@@ -117,7 +117,7 @@ trait MillBuildModule
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
-  def dummySources: Sources = T.sources(T.dest)
+  def dummySources: T[Seq[PathRef]] = T.sources(T.dest)
 }
 
 /**

@@ -52,7 +52,7 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBProtocPath: T[Option[String]] = T { None }
 
-  def scalaPBSources: Sources = T.sources {
+  def scalaPBSources: T[Seq[PathRef]] = T.sources {
     millSourcePath / "protobuf"
   }
 

@@ -25,7 +25,7 @@ trait ScalafmtModule extends JavaModule {
       )
   }
 
-  def scalafmtConfig: Sources = T.sources(T.workspace / ".scalafmt.conf")
+  def scalafmtConfig: T[Seq[PathRef]] = T.sources(T.workspace / ".scalafmt.conf")
 
   // TODO: Do we want provide some defaults or write a default file?
   private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = T.task {
