@@ -33,90 +33,29 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   def wd = workspacePath / buildPath / os.up
 
-  val stdIn = new ByteArrayInputStream(Array())
-  val disableTicker = false
   val debugLog = false
-  val keepGoing = false
-  val userSpecifiedProperties = Map[String, String]()
-  val threadCount = sys.props.get("MILL_THREAD_COUNT").map(_.toInt).orElse(Some(1))
 
   var runnerState = RunnerState.empty
 
-  private def runnerStdout(stdout: PrintStream, stderr: PrintStream, s: Seq[String]) = {
-    val streams = new SystemStreams(stdout, stderr, stdIn)
-    SystemStreams.withStreams(streams) {
-      val config = MillCliConfig(
-        debugLog = Flag(debugLog),
-        keepGoing = Flag(keepGoing),
-        disableTicker = Flag(disableTicker)
-      )
-      val logger = mill.runner.MillMain.getLogger(
-        streams,
-        config,
-        mainInteractive = false,
-        enableTicker = Some(false),
-        new PrintLogger.State()
-      )
-
-      val (isSuccess, newRunnerState) = Watching.watchLoop(
-        logger = logger,
-        ringBell = config.ringBell.value,
-        watch = config.watch.value,
-        streams = streams,
-        setIdle = _ => (),
-        evaluate = (prevStateOpt: Option[RunnerState]) => {
-          MillMain.adjustJvmProperties(userSpecifiedProperties, sys.props.toMap)
-          new MillBuildBootstrap(
-            projectRoot = wd,
-            config = config,
-            env = Map.empty,
-            threadCount = threadCount,
-            targetsAndParams = s.toList,
-            prevRunnerState = runnerState,
-            logger = logger
-          ).evaluate()
-        }
-      )
-
-      runnerState = newRunnerState
-      (isSuccess, newRunnerState)
-    }
-  }
-
-  def eval(s: String*): Boolean = {
-    if (integrationTestMode == "local") runnerStdout(System.out, System.err, s)._1
-    else evalFork(os.Inherit, os.Inherit, s)
-  }
-
-  class ByteArrayOutputPrintStreams() {
-    val byteArrayOutputStream = new ByteArrayOutputStream
-    val printStream = new PrintStream(byteArrayOutputStream)
-    def text() = byteArrayOutputStream.toString("UTF-8").linesIterator.mkString("\n")
-  }
+  def eval(s: String*): Boolean = evalFork(os.Inherit, os.Inherit, s)
 
   def evalStdout(s: String*): IntegrationTestSuite.EvalResult = {
-    if (integrationTestMode == "local") {
-      val outputStream = new ByteArrayOutputPrintStreams()
-      val errorStream = new ByteArrayOutputPrintStreams()
-      val result = runnerStdout(outputStream.printStream, errorStream.printStream, s.toList)
 
-      IntegrationTestSuite.EvalResult(result._1, outputStream.text(), errorStream.text())
-    } else {
-      val output = Seq.newBuilder[String]
-      val error = Seq.newBuilder[String]
-      val processOutput = os.ProcessOutput.Readlines(output += _)
-      val processError = os.ProcessOutput.Readlines(error += _)
+    val output = Seq.newBuilder[String]
+    val error = Seq.newBuilder[String]
+    val processOutput = os.ProcessOutput.Readlines(output += _)
+    val processError = os.ProcessOutput.Readlines(error += _)
 
-      val result = evalFork(processOutput, processError, s)
-      IntegrationTestSuite.EvalResult(
-        result,
-        output.result().mkString("\n"),
-        error.result().mkString("\n")
-      )
-    }
+    val result = evalFork(processOutput, processError, s)
+    IntegrationTestSuite.EvalResult(
+      result,
+      output.result().mkString("\n"),
+      error.result().mkString("\n")
+    )
   }
 
-  val millReleaseFileOpt = Option(System.getenv("MILL_TEST_RELEASE")).map(os.Path(_, os.pwd))
+  val millReleaseFileOpt = Option(System.getenv("MILL_TEST_LAUNCHER")).map(os.Path(_, os.pwd))
+
   val millTestSuiteEnv = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
   private def evalFork(
@@ -124,8 +63,12 @@ abstract class IntegrationTestSuite extends TestSuite {
       stderr: os.ProcessOutput,
       s: Seq[String]
   ): Boolean = {
-    val serverArgs = if (integrationTestMode == "server") Seq() else Seq("--no-server")
+    val serverArgs =
+      if (integrationTestMode == "server" || integrationTestMode == "local") Seq()
+      else Seq("--no-server")
+
     val debugArgs = if (debugLog) Seq("--debug") else Seq()
+
     try {
       os.proc(millReleaseFileOpt.get, serverArgs, debugArgs, s).call(
         cwd = wd,

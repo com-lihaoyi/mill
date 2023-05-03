@@ -1,6 +1,7 @@
 package mill.modules
 
 import coursier.cache.ArtifactError
+import coursier.parse.RepositoryParser
 import coursier.util.{Gather, Task}
 import coursier.{Dependency, Repository, Resolution}
 import mill.Agg
@@ -327,6 +328,33 @@ object CoursierSupport {
       finishedCount += 1
       downloads -= url
       updateTicker()
+    }
+  }
+
+  // Parse a list of repositories from their string representation
+  def repoFromString(str: String, origin: String): Result[Seq[Repository]] = {
+    val spaceSep = "\\s+".r
+
+    val repoList =
+      if (spaceSep.findFirstIn(str).isEmpty)
+        str
+          .split('|')
+          .toSeq
+          .filter(_.nonEmpty)
+      else
+        spaceSep
+          .split(str)
+          .toSeq
+          .filter(_.nonEmpty)
+
+    RepositoryParser.repositories(repoList).either match {
+      case Left(errs) =>
+        val msg =
+          s"Invalid repository string in $origin:" + System.lineSeparator() +
+            errs.map("  " + _ + System.lineSeparator()).mkString
+        Result.Failure(msg, Some(Seq()))
+      case Right(repos) =>
+        Result.Success(repos)
     }
   }
 

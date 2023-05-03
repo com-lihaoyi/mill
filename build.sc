@@ -1151,40 +1151,6 @@ object bsp extends MillModule with BuildInfo {
 val DefaultLocalMillReleasePath =
   s"target/mill-release${if (scala.util.Properties.isWin) ".bat" else ""}"
 
-/**
- * Build and install Mill locally.
- * @param binFile The location where the Mill binary should be installed
- * @param ivyRepo The local Ivy repository where Mill modules should be published to
- */
-def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String = null) =
-  T.command {
-    PathRef(installLocalTask(T.task(binFile), ivyRepo)())
-  }
-
-def installLocalCache() = T.command {
-  val path = installLocalTask(
-    T.task((os.home / ".cache" / "mill" / "download" / millVersion()).toString())
-  )()
-  T.log.outputStream.println(path.toString())
-  PathRef(path)
-}
-
-def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = {
-  val modules = build.millInternal.modules.collect {
-    case m: PublishModule => m
-  }
-
-  T.task {
-    T.traverse(modules)(m => m.publishLocal(ivyRepo))()
-    val millBin = assembly()
-    val targetFile = os.Path(binFile(), T.workspace)
-    if (os.exists(targetFile))
-      T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
-    os.copy.over(millBin.path, targetFile, createFolders = true)
-    T.log.info(s"Published ${modules.size} modules and installed ${targetFile}")
-    targetFile
-  }
-}
 
 // We compile the test code once and then offer multiple modes to
 // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
@@ -1223,8 +1189,12 @@ trait IntegrationTestModule extends MillScalaModule {
     }
 
     def testReleaseEnv =
-      if (mode == "local") T { Map.empty[String, String] }
-      else T { Map("MILL_TEST_RELEASE" -> integration.testMill().path.toString()) }
+      if (mode == "local") T {
+        Map("MILL_TEST_LAUNCHER" -> dev.launcher().path.toString())
+      }
+      else T {
+        Map("MILL_TEST_LAUNCHER" -> integration.testMill().path.toString())
+      }
 
     def compile = IntegrationTestModule.this.compile()
     def moduleDeps = Seq(IntegrationTestModule.this)
@@ -1232,14 +1202,7 @@ trait IntegrationTestModule extends MillScalaModule {
 }
 
 trait IntegrationTestCrossModule extends IntegrationTestModule {
-  object local extends ModeModule{
-    def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
-      runner.linenumbers.testDep(),
-      scalalib.backgroundwrapper.testDep(),
-      contrib.buildinfo.testDep(),
-      bsp.worker.testDep(),
-    )
-  }
+  object local extends ModeModule
   object fork extends ModeModule
   object server extends ModeModule
 }
@@ -1538,6 +1501,13 @@ object runner extends MillModule {
 object dev extends MillModule {
   override def moduleDeps = Seq(runner)
 
+  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
+    runner.linenumbers.testDep(),
+    scalalib.backgroundwrapper.testDep(),
+    contrib.buildinfo.testDep(),
+    bsp.worker.testDep(),
+  )
+
   def genTask(m: ScalaModule) = T.task {
     Seq(m.jar(), m.sourceJar()) ++ m.runClasspath()
   }
@@ -1594,11 +1564,36 @@ object dev extends MillModule {
     mill.modules.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
-  override def assembly = T {
-    val isWin = scala.util.Properties.isWin
-    val millPath = T.ctx.dest / (if (isWin) "mill.bat" else "mill")
-    os.copy(super.assembly().path, millPath)
-    PathRef(millPath)
+  lazy val allPublishModules = build.millInternal.modules.collect {
+    case m: PublishModule if m ne this => m
+  }
+
+  def assembly = T {
+    T.traverse(allPublishModules)(m => m.publishLocal())()
+    val version = millVersion()
+    val devRunClasspath = runClasspath().map(_.path)
+    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+    val commonArgs = Seq(
+      // Workaround for Zinc/JNA bug
+      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+      "-Djna.nosys=true"
+    )
+    val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
+    val cmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""") ++ commonArgs
+    os.move(
+      Jvm.createAssembly(
+        devRunClasspath,
+        prependShellScript = launcherScript(
+          shellArgs,
+          cmdArgs,
+          Agg("$0"),
+          Agg("%~dpnx0")
+        ),
+        assemblyRules = assemblyRules
+      ).path,
+      T.ctx.dest / filename
+    )
+    PathRef(T.ctx.dest / filename)
   }
 
   def prependShellScript = T {
@@ -1961,36 +1956,38 @@ object docs extends Module {
   }
 }
 
-def assembly = T {
-  val version = millVersion()
-  val devRunClasspath = dev.runClasspath().map(_.path)
-  val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-  val commonArgs = Seq(
-    // Workaround for Zinc/JNA bug
-    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-    "-Djna.nosys=true"
-  )
-  val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
-  val cmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""") ++ commonArgs
-  os.move(
-    Jvm.createAssembly(
-      devRunClasspath,
-      prependShellScript = launcherScript(
-        shellArgs,
-        cmdArgs,
-        Agg("$0"),
-        Agg("%~dpnx0")
-      ),
-      assemblyRules = dev.assemblyRules
-    ).path,
-    T.ctx.dest / filename
-  )
-  PathRef(T.ctx.dest / filename)
+/**
+ * Build and install Mill locally.
+ *
+ * @param binFile The location where the Mill binary should be installed
+ * @param ivyRepo The local Ivy repository where Mill modules should be published to
+ */
+def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String = null) =
+  T.command {
+    PathRef(installLocalTask(T.task(binFile), ivyRepo)())
+  }
+
+def installLocalCache() = T.command {
+  val path = installLocalTask(
+    T.task((os.home / ".cache" / "mill" / "download" / millVersion()).toString())
+  )()
+  T.log.outputStream.println(path.toString())
+  PathRef(path)
+}
+
+def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = T.task {
+  val millBin = dev.assembly()
+  val targetFile = os.Path(binFile(), T.workspace)
+  if (os.exists(targetFile))
+    T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+  os.copy.over(millBin.path, targetFile, createFolders = true)
+  T.log.info(s"Published ${dev.allPublishModules.size} modules and installed ${targetFile}")
+  targetFile
 }
 
 def millBootstrap = T.sources(T.workspace / "mill")
 
-def launcher = T {
+def bootstrapLauncher = T {
   val outputPath = T.ctx.dest / "mill"
   val millBootstrapGrepPrefix = "\nDEFAULT_MILL_VERSION="
   os.write(
@@ -2013,7 +2010,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
     val example = examplePath.subRelativeTo(T.workspace)
     val exampleStr = VcsVersion.vcsState().format() + "-" + example.segments.mkString("-")
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
-    os.copy(launcher().path, T.dest / exampleStr / "mill")
+    os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
     val zip = T.dest / s"$exampleStr.zip"
     os.proc("zip", "-r", zip, exampleStr).call(cwd = T.dest)
     PathRef(zip)
@@ -2048,8 +2045,8 @@ def uploadToGithub(authKey: String) = T.command {
   val examples = exampleZips().map(z => (z.path, z.path.last))
 
   val zips = examples ++ Seq(
-    (assembly().path, label + "-assembly"),
-    (launcher().path, label)
+    (dev.assembly().path, label + "-assembly"),
+    (bootstrapLauncher().path, label)
   )
 
   for ((zip, name) <- zips) {

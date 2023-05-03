@@ -51,8 +51,11 @@ object ExampleTestSuite extends IntegrationTestSuite {
         val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
         for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
+
+        if (integrationTestMode != "fork") evalStdout("shutdown")
       } finally {
-        os.remove.all(workspaceRoot / "out")
+        try os.remove.all(workspaceRoot / "out")
+        catch { case e: Throwable => /*do nothing*/ }
       }
     }
   }

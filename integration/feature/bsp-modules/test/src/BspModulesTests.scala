@@ -20,7 +20,7 @@ object BspModulesTests extends IntegrationTestSuite {
         assert(os.exists(file))
         val readModules = os.read.lines(file).sorted
         val expectedModules = Seq(
-          "", // the root module has no segemnts at all
+          "", // the root module has no segments at all
           "HelloBsp",
           "HelloBsp.test",
           "foreign-modules.proj1.build.proj1",

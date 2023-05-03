@@ -2,26 +2,20 @@
 
 set -eux
 
-# Starting from scratch...
-git stash -u
-git stash -a
-
 # Build Mill
-./mill -i -j 0 installLocal
+./mill -i dev.assembly
 
-# Clean up
-git stash -a -m "preserve mill-release" -- target/mill-release
-git stash -u
-git stash -a
-git stash pop "$(git stash list | grep "preserve mill-release" | head -n1 | sed -E 's/([^:]+):.*/\1/')"
+EXAMPLE=example/scalabuilds/10-scala-realistic
 
-rm -rf ~/.mill/ammonite
+rm -rf $EXAMPLE/out
 
-# Prepare local build
-ci/prepare-mill-bootstrap.sh
+test ! -d $EXAMPLE/out/foo/3.2.2/compile.dest
+test ! -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
 
-export MILL_TEST_RELEASE="$(pwd)/target/mill-release"
+(cd $EXAMPLE && ../../../out/dev/assembly.dest/mill -i "foo[3.2.2].run")
 
-# Run tests
-"$MILL_TEST_RELEASE" -i "example.basic[1-simple-scala].server.test"
-"$MILL_TEST_RELEASE" -i integration.thirdparty.__.fork.test
+test -d $EXAMPLE/out/foo/3.2.2/compile.dest
+
+(cd $EXAMPLE && ../../../out/dev/assembly.dest/mill show "bar[2.13.8].assembly")
+
+test -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
