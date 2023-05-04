@@ -7,15 +7,12 @@ import mill.api.Result.{Aborted, Failing, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.define._
 import mill.util._
-import upickle.default
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
-
-case class Labelled[T](task: NamedTask[T], segments: Segments)
 
 /**
  * Evaluate tasks.
@@ -104,33 +101,19 @@ class Evaluator private (
       logger,
       reporter,
       testReporter,
-      if (effectiveThreadCount > 1) {
-        new ExecutionContext with AutoCloseable {
-          val threadPool = java.util.concurrent.Executors.newFixedThreadPool(effectiveThreadCount)
-          def execute(runnable: Runnable): Unit = threadPool.submit(runnable)
-          def reportFailure(t: Throwable): Unit = {}
-          def close(): Unit = threadPool.shutdown()
-        }
-      } else {
-        new ExecutionContext with AutoCloseable{
-          def execute(runnable: Runnable): Unit = runnable.run()
-          def reportFailure(cause: Throwable): Unit = {}
-          def close(): Unit = () // do nothing
-        }
-      },
-      if (effectiveThreadCount > 1){
-        threadId => s"[#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId}] "
-      }else {
-        threadId => ""
-      }
+      if (effectiveThreadCount == 1) ExecutionContexts.RunNow
+      else new ExecutionContexts.ThreadPool(effectiveThreadCount),
+      threadId =>
+        if (effectiveThreadCount == 1) ""
+        else s"[#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId}] "
     )
   }
 
   def getFailing(
-      sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]],
+      sortedGroups: MultiBiMap[Terminal, Task[_]],
       results: collection.Map[Task[_], TaskResult[(Val, Int)]]
-  ): MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Failing[Val]] = {
-    val failing = new MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[Val]]
+  ): MultiBiMap.Mutable[Terminal, Failing[Val]] = {
+    val failing = new MultiBiMap.Mutable[Terminal, Result.Failing[Val]]
     for ((k, vs) <- sortedGroups.items()) {
       failing.addAll(
         k,
@@ -157,7 +140,7 @@ class Evaluator private (
 
     os.makeDir.all(outPath)
     val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
-    val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
+    val timings = mutable.ArrayBuffer.empty[(Terminal, Int, Boolean)]
     val (sortedGroups, transitive) = Evaluator.plan(goals)
 
     val interGroupDeps = findInterGroupDeps(sortedGroups)
@@ -302,7 +285,7 @@ class Evaluator private (
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
     terminal match {
-      case Left(task) =>
+      case Terminal.Task(task) =>
         val (newResults, newEvaluated) = evaluateGroup(
           group,
           results,
@@ -316,7 +299,7 @@ class Evaluator private (
         )
         Evaluated(newResults, newEvaluated.toSeq, false)
 
-      case lntRight @ Right(labelledNamedTask) =>
+      case labelledNamedTask: Terminal.Labelled[_] =>
         val out =
           if (!labelledNamedTask.task.ctx.external) outPath
           else externalOutPath
@@ -385,7 +368,7 @@ class Evaluator private (
             // uncached
             if (labelledNamedTask.task.flushDest) os.remove.all(paths.dest)
 
-            val targetLabel = printTerm(lntRight)
+            val targetLabel = printTerm(terminal)
 
             val (newResults, newEvaluated) =
               Evaluator.dynamicTickerPrefix.withValue(s"[$counterMsg] $targetLabel > ") {
@@ -422,13 +405,10 @@ class Evaluator private (
     }
   }
 
-  def destSegments(labelledTask: Labelled[_]): Segments = {
+  def destSegments(labelledTask: Terminal.Labelled[_]): Segments = {
     labelledTask.task.ctx.foreign match {
-      case Some(foreignSegments) =>
-        foreignSegments ++ labelledTask.segments
-
-      case None =>
-        labelledTask.segments
+      case Some(foreignSegments) => foreignSegments ++ labelledTask.segments
+      case None => labelledTask.segments
     }
   }
 
@@ -437,7 +417,7 @@ class Evaluator private (
       hashCode: Int,
       metaPath: os.Path,
       inputsHash: Int,
-      labelledNamedTask: Labelled[_]
+      labelledNamedTask: Terminal.Labelled[_]
   ): Unit = {
     labelledNamedTask.task.asWorker match {
       case Some(w) =>
@@ -622,8 +602,8 @@ class Evaluator private (
   }
 
   def printTerm(term: Terminal): String = term match {
-    case Left(task) => task.toString()
-    case Right(labelledNamedTask) =>
+    case Terminal.Task(task) => task.toString()
+    case labelledNamedTask: Terminal.Labelled[_] =>
       val Seq(first, rest @ _*) = destSegments(labelledNamedTask).value
       val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map {
         case Segment.Label(s) => "." + s
@@ -698,7 +678,17 @@ object Evaluator {
    * or was directly called by the user (Left[Task]).
    * It's a T, T.worker, T.input, T.source, T.sources, T.persistent
    */
-  type Terminal = Either[Task[_], Labelled[Any]]
+  sealed trait Terminal{
+    def render: String
+  }
+  object Terminal{
+    case class Labelled[T](task: NamedTask[T], segments: Segments) extends Terminal{
+      def render = segments.render
+    }
+    case class Task[T](task: mill.define.Task[_]) extends Terminal{
+      def render = task.toString
+    }
+  }
 
   case class Cached(value: ujson.Value, valueHash: Int, inputsHash: Int)
   object Cached {
@@ -720,14 +710,14 @@ object Evaluator {
   }
 
   def writeTimings(
-      timings: Seq[(Either[Task[_], Labelled[_]], Int, Boolean)],
+      timings: Seq[(Terminal, Int, Boolean)],
       outPath: os.Path
   ): Unit = {
     os.write.over(
       outPath / "mill-profile.json",
       upickle.default.stream(
         timings.map { case (k, v, b) =>
-          Evaluator.Timing(k.fold(_ => null, s => s.segments.render), v, b)
+          Evaluator.Timing(k.render, v, b)
         },
         indent = 4
       )
@@ -745,7 +735,7 @@ object Evaluator {
       rawValues: Seq[Result[Val]],
       evaluated: Agg[Task[_]],
       transitive: Agg[Task[_]],
-      failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[Val]],
+      failing: MultiBiMap[Terminal, Result.Failing[Val]],
       results: collection.Map[Task[_], TaskResult[Val]]
   ) {
     def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
@@ -753,7 +743,7 @@ object Evaluator {
         rawValues: Seq[Result[Val]] = rawValues,
         evaluated: Agg[Task[_]] = evaluated,
         transitive: Agg[Task[_]] = transitive,
-        failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[Val]] = failing,
+        failing: MultiBiMap[Terminal, Result.Failing[Val]] = failing,
         results: collection.Map[Task[_], TaskResult[Val]]
     ): Results = new Results(
       rawValues,
@@ -769,7 +759,7 @@ object Evaluator {
         Seq[Result[Any]],
         Agg[Task[_]],
         Agg[Task[_]],
-        MultiBiMap[Either[Task[_], Labelled[_]], Failing[Val]],
+        MultiBiMap[Terminal, Failing[Val]],
         collection.Map[Task[_], TaskResult[_]]
     )] = Some((
       results.rawValues,
@@ -796,25 +786,23 @@ object Evaluator {
       case _ => // donothing
     }
 
-    val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
+    val sortedGroups: MultiBiMap[Terminal, Task[_]] = Graph.groupAroundImportantTargets(topoSorted) {
       // important: all named tasks and those explicitly requested
       case t: NamedTask[Any] =>
         val segments = t.ctx.segments
-        Right(
-          Labelled(
-            t,
-            if (!overridden(t)) segments
-            else {
-              val Segment.Label(tName) = segments.value.last
-              Segments(
-                segments.value.init ++
-                  Seq(Segment.Label(tName + ".super")) ++
-                  t.ctx.enclosing.split("[.# ]").map(Segment.Label)
-              )
-            }
-          )
-        )
-      case t if goals.contains(t) => Left(t)
+        val augmentedSegments =
+          if (!overridden(t)) segments
+          else {
+            val Segment.Label(tName) = segments.value.last
+            Segments(
+              segments.value.init ++
+                Seq(Segment.Label(tName + ".super")) ++
+                t.ctx.enclosing.split("[.# ]").map(Segment.Label)
+            )
+          }
+        Terminal.Labelled(t, augmentedSegments)
+
+      case t if goals.contains(t) => Terminal.Task(t)
     }
 
     (sortedGroups, transitive)
@@ -885,15 +873,11 @@ object Evaluator {
   def formatFailing(evaluated: Evaluator.Results): String = {
     (for ((k, fs) <- evaluated.failing.items())
       yield {
-        val ks = k match {
-          case Left(t) => t.toString
-          case Right(t) => t.segments.render
-        }
         val fss = fs.map {
           case ex: Result.Exception => ex.toString
           case Result.Failure(t, _) => t
         }
-        s"$ks ${fss.iterator.mkString(", ")}"
+        s"${k.render} ${fss.iterator.mkString(", ")}"
       }).mkString("\n")
   }
 
