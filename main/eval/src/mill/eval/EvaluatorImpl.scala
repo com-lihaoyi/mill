@@ -530,10 +530,7 @@ private[mill] case class EvaluatorImpl(
     (
       newResults
         .map { case (k, v) =>
-          val recalc = { () =>
-            val (recalced, _) = computeAll(enableTicker = false)
-            recalced.apply(k)
-          }
+          val recalc = () => computeAll(enableTicker = false)._1.apply(k)
           val taskResult = TaskResult(v, recalc)
           (k, taskResult)
         }
