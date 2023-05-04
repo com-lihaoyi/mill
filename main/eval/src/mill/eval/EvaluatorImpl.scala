@@ -67,17 +67,16 @@ private[mill] case class EvaluatorImpl(
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
-      evaluate0(
-        goals,
-        logger,
-        reporter,
-        testReporter,
+      val ec =
         if (effectiveThreadCount == 1) ExecutionContexts.RunNow
-        else new ExecutionContexts.ThreadPool(effectiveThreadCount),
-        threadId =>
-          if (effectiveThreadCount == 1) ""
-          else s"[#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId}] "
-      )
+        else new ExecutionContexts.ThreadPool(effectiveThreadCount)
+
+      def contextLoggerMsg(threadId: Int) =
+        if (effectiveThreadCount == 1) ""
+        else s"[#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId}] "
+
+      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg)
+      finally ec.close()
     }
   }
 
@@ -103,100 +102,99 @@ private[mill] case class EvaluatorImpl(
       testReporter: TestReporter = DummyTestReporter,
       ec: ExecutionContext with AutoCloseable,
       contextLoggerMsg: Int => String
-  ): Evaluator.Results =
-    try {
-      implicit val implicitEc = ec
+  ): Evaluator.Results = {
+    implicit val implicitEc = ec
 
-      os.makeDir.all(outPath)
-      val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
-      val timings = mutable.ArrayBuffer.empty[(Terminal, Int, Boolean)]
-      val (sortedGroups, transitive) = EvaluatorImpl.plan(goals)
-      val interGroupDeps = findInterGroupDeps(sortedGroups)
-      val terminals = sortedGroups.keys().toVector
-      val failed = new AtomicBoolean(false)
-      val count = new AtomicInteger(1)
-      val futures = mutable.Map.empty[Terminal, Future[Option[TaskGroupResults]]]
+    os.makeDir.all(outPath)
+    val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
+    val timings = mutable.ArrayBuffer.empty[(Terminal, Int, Boolean)]
+    val (sortedGroups, transitive) = EvaluatorImpl.plan(goals)
+    val interGroupDeps = findInterGroupDeps(sortedGroups)
+    val terminals = sortedGroups.keys().toVector
+    val failed = new AtomicBoolean(false)
+    val count = new AtomicInteger(1)
+    val futures = mutable.Map.empty[Terminal, Future[Option[TaskGroupResults]]]
 
-      // We walk the task graph in topological order and schedule the futures
-      // to run asynchronously. During this walk, we store the scheduled futures
-      // in a dictionary. When scheduling each future, we are guaranteed that the
-      // necessary upstream futures will have already been scheduled and stored,
-      // due to the topological order of traversal.
-      for (terminal <- terminals) {
-        val deps = interGroupDeps(terminal)
-        futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
-          if (failed.get()) None
-          else {
-            val upstreamResults = upstreamValues
-              .iterator
-              .flatMap(_.iterator.flatMap(_.newResults))
-              .toMap
+    // We walk the task graph in topological order and schedule the futures
+    // to run asynchronously. During this walk, we store the scheduled futures
+    // in a dictionary. When scheduling each future, we are guaranteed that the
+    // necessary upstream futures will have already been scheduled and stored,
+    // due to the topological order of traversal.
+    for (terminal <- terminals) {
+      val deps = interGroupDeps(terminal)
+      futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
+        if (failed.get()) None
+        else {
+          val upstreamResults = upstreamValues
+            .iterator
+            .flatMap(_.iterator.flatMap(_.newResults))
+            .toMap
 
-            val startTime = System.currentTimeMillis()
-            val threadId = timeLog.getThreadId(Thread.currentThread().getName())
-            val counterMsg = s"${count.getAndIncrement()}/${terminals.size}"
-            val contextLogger = PrefixLogger(
-              out = logger,
-              context = contextLoggerMsg(threadId),
-              tickerContext = EvaluatorImpl.dynamicTickerPrefix.value
-            )
+          val startTime = System.currentTimeMillis()
+          val threadId = timeLog.getThreadId(Thread.currentThread().getName())
+          val counterMsg = s"${count.getAndIncrement()}/${terminals.size}"
+          val contextLogger = PrefixLogger(
+            out = logger,
+            context = contextLoggerMsg(threadId),
+            tickerContext = EvaluatorImpl.dynamicTickerPrefix.value
+          )
 
-            val res = evaluateGroupCached(
-              terminal = terminal,
-              group = sortedGroups.lookupKey(terminal),
-              results = upstreamResults,
-              counterMsg = counterMsg,
-              zincProblemReporter = reporter,
-              testReporter = testReporter,
-              logger = contextLogger
-            )
+          val res = evaluateGroupCached(
+            terminal = terminal,
+            group = sortedGroups.lookupKey(terminal),
+            results = upstreamResults,
+            counterMsg = counterMsg,
+            zincProblemReporter = reporter,
+            testReporter = testReporter,
+            logger = contextLogger
+          )
 
-            if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
-              failed.set(true)
+          if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
+            failed.set(true)
 
-            val endTime = System.currentTimeMillis()
-            timeLog.timeTrace(
-              task = printTerm(terminal),
-              cat = "job",
-              startTime = startTime,
-              endTime = endTime,
-              thread = Thread.currentThread().getName(),
-              cached = res.cached
-            )
-            timings.append((terminal, (endTime - startTime).toInt, res.cached))
-            Some(res)
+          val endTime = System.currentTimeMillis()
+          timeLog.timeTrace(
+            task = printTerm(terminal),
+            cat = "job",
+            startTime = startTime,
+            endTime = endTime,
+            thread = Thread.currentThread().getName(),
+            cached = res.cached
+          )
+          timings.append((terminal, (endTime - startTime).toInt, res.cached))
+          Some(res)
+        }
+      }
+    }
+
+    EvaluatorImpl.writeTimings(timings.toSeq, outPath)
+
+    val finishedOptsMap = terminals
+      .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
+      .toMap
+
+    val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals
+      .flatMap { t =>
+        sortedGroups.lookupKey(t).flatMap { t0 =>
+          finishedOptsMap(t) match {
+            case None => Some((t0, TaskResult(Aborted, () => Aborted)))
+            case Some(res) => res.newResults.get(t0).map(r => (t0, r))
           }
         }
       }
 
-      EvaluatorImpl.writeTimings(timings.toSeq, outPath)
+    val results: Map[Task[_], TaskResult[(Val, Int)]] = results0.toMap
 
-      val finishedOptsMap = terminals
-        .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
-        .toMap
+    timeLog.close()
 
-      val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals
-        .flatMap { t =>
-          sortedGroups.lookupKey(t).flatMap { t0 =>
-            finishedOptsMap(t) match {
-              case None => Some((t0, TaskResult(Aborted, () => Aborted)))
-              case Some(res) => res.newResults.get(t0).map(r => (t0, r))
-            }
-          }
-        }
-
-      val results: Map[Task[_], TaskResult[(Val, Int)]] = results0.toMap
-
-      timeLog.close()
-
-      EvaluatorImpl.Results(
-        goals.indexed.map(results(_).map(_._1).result),
-        finishedOptsMap.map(_._2).flatMap(_.toSeq.flatMap(_.newEvaluated)),
-        transitive,
-        getFailing(sortedGroups, results),
-        results.map { case (k, v) => (k, v.map(_._1)) }
-      )
-    } finally ec.close()
+    EvaluatorImpl.Results(
+      goals.indexed.map(results(_).map(_._1).result),
+      finishedOptsMap.map(_._2).flatMap(_.toSeq.flatMap(_.newEvaluated)),
+      transitive,
+      getFailing(sortedGroups, results),
+      results.map { case (k, v) => (k, v.map(_._1)) }
+    )
+  }
 
   // those result which are inputs but not contained in this terminal group
   def evaluateGroupCached(
