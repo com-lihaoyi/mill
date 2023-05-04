@@ -1,8 +1,8 @@
 package mill.testkit
 
 import mill._
-import mill.define.{Discover, TargetImpl, InputImpl}
-import mill.api.{DummyInputStream, Result, SystemStreams}
+import mill.define.{Discover, InputImpl, TargetImpl}
+import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
 
@@ -109,7 +109,7 @@ trait MillTestKit {
       if (evaluated.failing.keyCount == 0) {
         Right(
           Tuple2(
-            evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
+            evaluated.rawValues.head.asInstanceOf[Result.Success[Val]].value.value.asInstanceOf[T],
             evaluated.evaluated.collect {
               case t: TargetImpl[_]
                   if module.millInternal.targets.contains(t)
@@ -120,8 +120,16 @@ trait MillTestKit {
         )
       } else {
         Left(
-          evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next()
-            .asInstanceOf[Result.Failing[T]]
+          evaluated
+            .failing
+            .lookupKey(evaluated.failing.keys().next)
+            .items
+            .next()
+            .asFailing
+            .get
+            .map { (x: Val) =>
+              x.value.asInstanceOf[T]
+            }
         )
       }
     }
@@ -132,7 +140,7 @@ trait MillTestKit {
 
       val cleaned = res.rawValues.map {
         case Result.Exception(ex, _) => Result.Exception(ex, new OuterStack(Nil))
-        case x => x
+        case x => x.map(_.value)
       }
 
       assert(

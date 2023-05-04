@@ -243,7 +243,7 @@ case class GenIdeaImpl(
       evaluator.evaluate(resolveTasks) match {
         case r if r.failing.items().nonEmpty =>
           throw GenIdeaException(s"Failure during resolving modules: ${Evaluator.formatFailing(r)}")
-        case r => r.values.asInstanceOf[Seq[ResolvedModule]]
+        case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
       }
 
     val moduleLabels = modules.map(_.swap).toMap
@@ -537,6 +537,7 @@ case class GenIdeaImpl(
             )
           )
           .values
+          .map(_.value)
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
         val normalSourcePaths = (allSourcesPathRefs
@@ -550,6 +551,7 @@ case class GenIdeaImpl(
                 .evaluate(Agg(x.scalaVersion))
                 .values
                 .head
+                .value
                 .asInstanceOf[String]
             )
           case _ => None

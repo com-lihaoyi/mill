@@ -27,10 +27,10 @@ import scala.util.Try
 @internal
 class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
-    millBuildRootModule: MillBuildRootModule.Info
+    millBuildRootModuleInfo: MillBuildRootModule.Info
 ) extends RootModule() with ScalaModule {
 
-  override def millSourcePath = millBuildRootModule.projectRoot / os.up / "mill-build"
+  override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
 
   override def resolveDeps(
       deps: Task[Agg[BoundDep]],
@@ -46,11 +46,18 @@ class MillBuildRootModule()(implicit
 
   override def scalaVersion = "2.13.10"
 
-  def parseBuildFiles: T[FileImportGraph] = T.input {
-    FileImportGraph.parseBuildFiles(
-      millBuildRootModule.topLevelProjectRoot,
-      millBuildRootModule.projectRoot / os.up
-    )
+  def scriptSources = T.sources {
+    MillBuildRootModule
+      .parseBuildFiles(millBuildRootModuleInfo)
+      .seenScripts
+      .keys
+      .map(PathRef(_))
+      .toSeq
+  }
+
+  def parseBuildFiles = T {
+    scriptSources()
+    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = {
@@ -93,10 +100,6 @@ class MillBuildRootModule()(implicit
       Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
 
-  def scriptSources: T[Seq[PathRef]] = T.sources {
-    for ((p, s) <- parseBuildFiles().seenScripts.toSeq) yield PathRef(p)
-  }
-
   override def generatedSources: T[Seq[PathRef]] = T {
     generateScriptSources()
   }
@@ -106,12 +109,12 @@ class MillBuildRootModule()(implicit
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
       MillBuildRootModule.generateWrappedSources(
-        millBuildRootModule.projectRoot / os.up,
+        millBuildRootModuleInfo.projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
         T.dest,
-        millBuildRootModule.enclosingClasspath,
-        millBuildRootModule.topLevelProjectRoot
+        millBuildRootModuleInfo.enclosingClasspath,
+        millBuildRootModuleInfo.topLevelProjectRoot
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -129,11 +132,11 @@ class MillBuildRootModule()(implicit
     Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
   }
 
-  override def unmanagedClasspath: T[Agg[PathRef]] = mill.define.Target.input {
-    mill.api.Loose.Agg.from(
-      millBuildRootModule.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
-    ) ++
-      lineNumberPluginClasspath()
+  def enclosingClasspath = T.sources {
+    millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
+  }
+  override def unmanagedClasspath: T[Agg[PathRef]] = T {
+    enclosingClasspath() ++ lineNumberPluginClasspath()
   }
 
   override def scalacPluginIvyDeps = Agg(
@@ -184,6 +187,13 @@ object MillBuildRootModule {
       projectRoot: os.Path,
       topLevelProjectRoot: os.Path
   )
+
+  def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info) = {
+    FileImportGraph.parseBuildFiles(
+      millBuildRootModuleInfo.topLevelProjectRoot,
+      millBuildRootModuleInfo.projectRoot / os.up
+    )
+  }
 
   def generateWrappedSources(
       base: os.Path,

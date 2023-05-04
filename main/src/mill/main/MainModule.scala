@@ -2,10 +2,11 @@ package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
-import mill.api.{Ctx, PathRef, Result, internal}
-import mill.define.{Command, Segments, NamedTask, TargetImpl, Task}
+import mill.api.{Ctx, Logger, PathRef, Result, internal}
+import mill.define.{Command, NamedTask, Segments, TargetImpl, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.util.{PrintLogger, Watched}
+import mill.main.SelectMode.Separated
+import mill.util.{PrintLogger, Watchable}
 import pprint.{Renderer, Tree, Truncated}
 import ujson.Value
 
@@ -25,32 +26,34 @@ object MainModule {
     }
   }
 
-  def evaluateTasks[T](
+  private def show0(
       evaluator: Evaluator,
       targets: Seq[String],
-      selectMode: SelectMode
-  )(f: Seq[(Any, Option[ujson.Value])] => T): Result[Watched[Unit]] = {
-    RunScript.evaluateTasks(evaluator, targets, selectMode) match {
+      log: Logger,
+      watch0: Watchable => Unit
+  )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value) = {
+    RunScript.evaluateTasksNamed(
+      evaluator.withBaseLogger(
+        // When using `show`, redirect all stdout of the evaluated tasks so the
+        // printed JSON is the only thing printed to stdout.
+        evaluator.baseLogger match {
+          case p: PrintLogger => p.withOutStream(p.errorStream)
+          case l => l
+        }
+      ),
+      targets,
+      Separated
+    ) match {
       case Left(err) => Result.Failure(err)
-      case Right((watched, Left(err))) => Result.Failure(err, Some(Watched((), watched)))
-      case Right((watched, Right(res))) =>
-        f(res)
-        Result.Success(Watched((), watched))
-    }
-  }
+      case Right((watched, Left(err))) =>
+        watched.foreach(watch0)
+        Result.Failure(err)
 
-  @internal
-  def evaluateTasksNamed[T](
-      evaluator: Evaluator,
-      targets: Seq[String],
-      selectMode: SelectMode
-  )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => T): Result[Watched[Option[T]]] = {
-    RunScript.evaluateTasksNamed(evaluator, targets, selectMode) match {
-      case Left(err) => Result.Failure(err)
-      case Right((watched, Left(err))) => Result.Failure(err, Some(Watched(None, watched)))
       case Right((watched, Right(res))) =>
-        val fRes = f(res)
-        Result.Success(Watched(Some(fRes), watched))
+        val output = f(res)
+        watched.foreach(watch0)
+        log.outputStream.println(output.render(indent = 2))
+        Result.Success(output)
     }
   }
 }
@@ -60,6 +63,36 @@ object MainModule {
  * [[show]], [[inspect]], [[plan]], etc.
  */
 trait MainModule extends mill.Module {
+  protected[mill] val watchedValues = mutable.Buffer.empty[Watchable]
+  protected[mill] val evalWatchedValues = mutable.Buffer.empty[Watchable]
+
+  object interp {
+
+    def watchValue[T](v0: => T)(implicit fn: sourcecode.FileName, ln: sourcecode.Line): T = {
+      val v = v0
+      val watchable = Watchable.Value(
+        () => v0.hashCode,
+        v.hashCode(),
+        fn.value + ":" + ln.value
+      )
+      watchedValues.append(watchable)
+      v
+    }
+
+    def watch(p: os.Path): os.Path = {
+      val watchable = Watchable.Path(PathRef(p))
+      watchedValues.append(watchable)
+      p
+    }
+
+    def watch0(w: Watchable): Unit = {
+      watchedValues.append(w)
+    }
+
+    def evalWatch0(w: Watchable): Unit = {
+      evalWatchedValues.append(w)
+    }
+  }
 
   implicit def millDiscover: mill.define.Discover[_]
 
@@ -246,26 +279,11 @@ trait MainModule extends mill.Module {
    * to integrate Mill into external scripts and tooling.
    */
   def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] = T.command {
-    MainModule.evaluateTasksNamed(
-      evaluator.withBaseLogger(
-        // When using `show`, redirect all stdout of the evaluated tasks so the
-        // printed JSON is the only thing printed to stdout.
-        evaluator.baseLogger match {
-          case p: PrintLogger => p.withOutStream(p.errorStream)
-          case l => l
-        }
-      ),
-      targets,
-      SelectMode.Separated
-    ) { res: Seq[(Any, Option[(String, ujson.Value)])] =>
-      val jsons = res.flatMap(_._2).map(_._2)
-      val output: ujson.Value =
-        if (jsons.size == 1) jsons.head
-        else { ujson.Arr.from(jsons) }
-      T.log.outputStream.println(output.render(indent = 2))
-      output
-    }.map { res: Watched[Option[Value]] =>
-      res.value.getOrElse(ujson.Null)
+    MainModule.show0(evaluator, targets, T.log, interp.evalWatch0) { res =>
+      res.flatMap(_._2).map(_._2) match {
+        case Seq(single) => single
+        case multiple => multiple
+      }
     }
   }
 
@@ -274,24 +292,8 @@ trait MainModule extends mill.Module {
    * to integrate Mill into external scripts and tooling.
    */
   def showNamed(evaluator: Evaluator, targets: String*): Command[ujson.Value] = T.command {
-    MainModule.evaluateTasksNamed(
-      evaluator.withBaseLogger(
-        // When using `show`, redirect all stdout of the evaluated tasks so the
-        // printed JSON is the only thing printed to stdout.
-        evaluator.baseLogger match {
-          case p: PrintLogger => p.withOutStream(outStream = p.errorStream)
-          case l => l
-        }
-      ),
-      targets,
-      SelectMode.Separated
-    ) { res: Seq[(Any, Option[(String, ujson.Value)])] =>
-      val nameAndJson = res.flatMap(_._2)
-      val output: ujson.Value = ujson.Obj.from(nameAndJson)
-      T.log.outputStream.println(output.render(indent = 2))
-      output
-    }.map { res: Watched[Option[Value]] =>
-      res.value.getOrElse(ujson.Null)
+    MainModule.show0(evaluator, targets, T.log, interp.evalWatch0) { res =>
+      ujson.Obj.from(res.flatMap(_._2))
     }
   }
 
@@ -382,17 +384,19 @@ trait MainModule extends mill.Module {
   }
 
   /**
-   * The `init`` command generates a project based on a Giter8 template. It
+   * The `init` command generates a project based on a Giter8 template. It
    * prompts you to enter project name and creates a folder with that name.
    * You can use it to quickly generate a starter project. There are lots of
    * templates out there for many frameworks and tools!
    */
   def init(evaluator: Evaluator, args: String*): Command[Unit] = T.command {
-    MainModule.evaluateTasks(
+    RunScript.evaluateTasksNamed(
       evaluator,
       Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
-      selectMode = SelectMode.Single
-    )(identity).map(_.value)
+      SelectMode.Single
+    )
+
+    ()
   }
 
   private type VizWorker = (
