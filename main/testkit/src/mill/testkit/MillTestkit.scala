@@ -127,10 +127,9 @@ trait MillTestKit {
             .next()
             .asFailing
             .get
-            .map{(x: Val) =>
+            .map { (x: Val) =>
               x.value.asInstanceOf[T]
             }
-
         )
       }
     }
