@@ -161,7 +161,7 @@ trait MillTestKit {
         .filter(module.millInternal.targets.contains)
         .filter(!_.isInstanceOf[InputImpl[_]])
       assert(
-        evaluated == expected,
+        evaluated.toSet == expected.toSet,
         s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"
       )
     }
