@@ -416,7 +416,7 @@ private[mill] case class EvaluatorImpl(
     }
   }
 
-  protected def evaluateGroup(
+  def evaluateGroup(
       group: Agg[Task[_]],
       results: collection.Map[Task[_], TaskResult[(Val, Int)]],
       inputsHash: Int,
