@@ -2,7 +2,8 @@ package mill.eval
 
 import scala.concurrent.ExecutionContext
 
-private object ExecutionContexts{
+private object ExecutionContexts {
+
   /**
    * Execution context that runs code immediately when scheduled, without
    * spawning a separate thread or thread-pool. Used to turn parallel-async

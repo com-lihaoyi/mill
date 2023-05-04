@@ -18,10 +18,11 @@ trait Evaluator {
   def pathsResolver: EvaluatorPathsResolver
   def workerCache: collection.Map[Segments, (Int, Val)]
   def evaluate(
-                goals: Agg[Task[_]],
-                reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-                testReporter: TestReporter = DummyTestReporter,
-                logger: ColorLogger = baseLogger): Evaluator.Results
+      goals: Agg[Task[_]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = DummyTestReporter,
+      logger: ColorLogger = baseLogger
+  ): Evaluator.Results
 
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
   def withFailFast(newFailFast: Boolean): Evaluator
@@ -32,12 +33,12 @@ trait Evaluator {
    * Evaluate given task(s) and return the successful result(s), or throw an exception.
    */
   def evalOrThrow(exceptionFactory: Results => Throwable =
-                  r => new Exception(s"Failure during task evaluation: ${formatFailing(r)}")
-                 ): Evaluator.EvalOrThrow
+    r =>
+      new Exception(s"Failure during task evaluation: ${formatFailing(r)}")): Evaluator.EvalOrThrow
 
 }
 
-object Evaluator{
+object Evaluator {
 
   /**
    * A terminal or terminal target is some important work unit, that in most cases has a name (Right[Labelled])
@@ -58,7 +59,7 @@ object Evaluator{
     }
   }
 
-  trait Results{
+  trait Results {
     def rawValues: Seq[Result[Val]]
     def evaluated: Agg[Task[_]]
     def transitive: Agg[Task[_]]
@@ -74,7 +75,6 @@ object Evaluator{
       recalcOpt.map(r => () => r().map(f))
     )
   }
-
 
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
@@ -101,7 +101,7 @@ object Evaluator{
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
   }
 
-  trait EvalOrThrow{
+  trait EvalOrThrow {
     def apply[T: ClassTag](task: Task[T]): T
     def apply[T: ClassTag](tasks: Seq[Task[T]]): Seq[T]
   }
