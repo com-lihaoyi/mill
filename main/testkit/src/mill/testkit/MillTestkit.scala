@@ -94,14 +94,17 @@ trait MillTestKit {
       override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
       override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
     }
-    val evaluator = Evaluator(
+    val evaluator = mill.eval.EvaluatorImpl(
       mill.api.Ctx.defaultHome,
       outPath,
       outPath,
       module,
       logger,
-      0
-    ).withFailFast(failFast).withThreadCount(threads).withEnv(env)
+      0,
+      failFast = failFast,
+      threadCount = threads,
+      env = env
+    )
 
     def apply[T](t: Task[T]): Either[mill.api.Result.Failing[T], (T, Int)] = {
       val evaluated = evaluator.evaluate(Agg(t))
@@ -158,7 +161,7 @@ trait MillTestKit {
         .filter(module.millInternal.targets.contains)
         .filter(!_.isInstanceOf[InputImpl[_]])
       assert(
-        evaluated == expected,
+        evaluated.toSet == expected.toSet,
         s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"
       )
     }

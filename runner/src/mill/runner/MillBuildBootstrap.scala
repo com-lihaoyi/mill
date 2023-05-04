@@ -278,19 +278,19 @@ class MillBuildBootstrap(
       if (depth == 0) ""
       else "[" + (Seq.fill(depth - 1)("mill-build") ++ Seq("build.sc")).mkString("/") + "] "
 
-    Evaluator(
+    mill.eval.EvaluatorImpl(
       config.home,
       recOut(depth),
       recOut(depth),
       rootModule,
       PrefixLogger(logger, "", tickerContext = bootLogPrefix),
-      millClassloaderSigHash
+      millClassloaderSigHash,
+      workerCache = workerCache.to(collection.mutable.Map),
+      env = env,
+      failFast = !config.keepGoing.value,
+      threadCount = threadCount,
+      scriptImportGraph = scriptImportGraph
     )
-      .withWorkerCache(workerCache.to(collection.mutable.Map))
-      .withEnv(env)
-      .withFailFast(!config.keepGoing.value)
-      .withThreadCount(threadCount)
-      .withScriptImportGraph(scriptImportGraph)
   }
 
   def recRoot(depth: Int) = projectRoot / Seq.fill(depth)("mill-build")

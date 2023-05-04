@@ -41,7 +41,7 @@ object RunScript {
           ps.map(Watchable.Path(_))
         case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) =>
           Seq(Watchable.Path(p))
-        case (t: InputImpl[_], TaskResult(_, Some(recalc))) =>
+        case (t: InputImpl[_], TaskResult(_, recalc)) =>
           val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
           Seq(Watchable.Value(() => recalc().hashCode(), recalc().hashCode(), pretty))
       }
