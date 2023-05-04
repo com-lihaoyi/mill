@@ -69,10 +69,10 @@ object Evaluator {
     def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
   }
 
-  case class TaskResult[T](result: Result[T], recalcOpt: Option[() => Result[T]]) {
+  case class TaskResult[T](result: Result[T], recalc: () => Result[T]) {
     def map[V](f: T => V) = TaskResult[V](
       result.map(f),
-      recalcOpt.map(r => () => r().map(f))
+      () => recalc().map(f)
     )
   }
 

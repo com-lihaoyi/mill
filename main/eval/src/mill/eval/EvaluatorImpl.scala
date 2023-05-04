@@ -81,7 +81,7 @@ private[mill] case class EvaluatorImpl(
 
   def getFailing(
       sortedGroups: MultiBiMap[Terminal, Task[_]],
-      results: collection.Map[Task[_], TaskResult[(Val, Int)]]
+      results: Map[Task[_], TaskResult[(Val, Int)]]
   ): MultiBiMap.Mutable[Terminal, Failing[Val]] = {
     val failing = new MultiBiMap.Mutable[Terminal, Result.Failing[Val]]
     for ((k, vs) <- sortedGroups.items()) {
@@ -187,7 +187,7 @@ private[mill] case class EvaluatorImpl(
           .flatMap { t =>
             sortedGroups.lookupKey(t).flatMap { t0 =>
               finishedOptsMap(t) match {
-                case None => Some((t0, TaskResult(Aborted, None)))
+                case None => Some((t0, TaskResult(Aborted, () => Aborted)))
                 case Some(res) => res.newResults.get(t0).map(r => (t0, r))
               }
             }
@@ -331,8 +331,9 @@ private[mill] case class EvaluatorImpl(
 
         upToDateWorker.map((_, inputsHash)) orElse cached match {
           case Some((v, hashCode)) =>
-            val newResults = mutable.LinkedHashMap.empty[Task[_], TaskResult[(Val, Int)]]
-            newResults(labelledNamedTask.task) = TaskResult(Result.Success((v, hashCode)), None)
+            val res = Result.Success((v, hashCode))
+            val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
+              Map(labelledNamedTask.task ->  TaskResult(res, () => res))
 
             TaskGroupResults(newResults, Nil, cached = true)
 
@@ -418,7 +419,7 @@ private[mill] case class EvaluatorImpl(
 
   def evaluateGroup(
       group: Agg[Task[_]],
-      results: collection.Map[Task[_], TaskResult[(Val, Int)]],
+      results: Map[Task[_], TaskResult[(Val, Int)]],
       inputsHash: Int,
       paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
@@ -426,11 +427,11 @@ private[mill] case class EvaluatorImpl(
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger
-  ): (mutable.LinkedHashMap[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
+  ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll(enableTicker: Boolean) = {
       val newEvaluated = mutable.Buffer.empty[Task[_]]
-      val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Val, Int)]]
+      val newResults = mutable.Map.empty[Task[_], Result[(Val, Int)]]
 
       val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
@@ -527,18 +528,16 @@ private[mill] case class EvaluatorImpl(
     }
 
     (
-      newResults.map { case (k, v) =>
-        (
-          k,
-          TaskResult(
-            v,
-            Some { () =>
-              val (recalced, _) = computeAll(enableTicker = false)
-              recalced.apply(k)
-            }
-          )
-        )
-      },
+      newResults
+        .map { case (k, v) =>
+          val recalc = { () =>
+            val (recalced, _) = computeAll(enableTicker = false)
+            recalced.apply(k)
+          }
+          val taskResult = TaskResult(v, recalc)
+          (k, taskResult)
+        }
+        .toMap,
       newEvaluated
     )
   }
@@ -620,7 +619,7 @@ private[mill] object EvaluatorImpl {
       evaluated: Agg[Task[_]],
       transitive: Agg[Task[_]],
       failing: MultiBiMap[Terminal, Result.Failing[Val]],
-      results: collection.Map[Task[_], TaskResult[Val]]
+      results: Map[Task[_], TaskResult[Val]]
   ) extends Evaluator.Results
 
   case class Timing(label: String, millis: Int, cached: Boolean)
@@ -683,7 +682,7 @@ private[mill] object EvaluatorImpl {
   }
 
   case class TaskGroupResults(
-      newResults: collection.Map[Task[_], TaskResult[(Val, Int)]],
+      newResults: Map[Task[_], TaskResult[(Val, Int)]],
       newEvaluated: Seq[Task[_]],
       cached: Boolean
   )
