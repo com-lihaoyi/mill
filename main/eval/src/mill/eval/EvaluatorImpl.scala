@@ -268,10 +268,52 @@ private[mill] case class EvaluatorImpl(
           destSegments(labelled)
         )
 
-        val cachedJsonValue = loadCached(logger, inputsHash, labelled, paths)
-        val upToDateWorker = loadExistingWorker(inputsHash, logger, labelled)
+        val cached: Option[(Val, Int)] = for {
+          cached <-
+            try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
+            catch {
+              case NonFatal(_) => None
+            }
+          if cached.inputsHash == inputsHash
+          reader <- labelled.task.readWriterOpt
+          parsed <-
+            try Some(upickle.default.read(cached.value)(reader))
+            catch {
+              case e: PathRef.PathRefValidationException =>
+                logger.debug(
+                  s"${labelled.segments.render}: re-evaluating; ${e.getMessage}"
+                )
+                None
+              case NonFatal(_) => None
+            }
+        } yield (Val(parsed), cached.valueHash)
 
-        upToDateWorker.map((_, inputsHash)) orElse cachedJsonValue match {
+        val previousWorker = labelled.task.asWorker.flatMap { w =>
+          workerCache.synchronized { workerCache.get(w.ctx.segments) }
+        }
+        val upToDateWorker: Option[Val] = previousWorker.flatMap {
+          case (`inputsHash`, upToDate) => Some(upToDate) // worker cached and up-to-date
+          case (_, Val(obsolete: AutoCloseable)) =>
+            // worker cached but obsolete, needs to be closed
+            try {
+              logger.debug(s"Closing previous worker: ${labelled.segments.render}")
+              obsolete.close()
+            } catch {
+              case NonFatal(e) =>
+                logger.error(
+                  s"${labelled.segments.render}: Errors while closing obsolete worker: ${e.getMessage()}"
+                )
+            }
+            // make sure, we can no longer re-use a closed worker
+            labelled.task.asWorker.foreach { w =>
+              workerCache.synchronized { workerCache.remove(w.ctx.segments) }
+            }
+            None
+
+          case _ => None // worker not cached or obsolete
+        }
+
+        upToDateWorker.map((_, inputsHash)) orElse cached match {
           case Some((v, hashCode)) =>
             val res = Result.Success((v, hashCode))
             val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
@@ -318,63 +360,6 @@ private[mill] case class EvaluatorImpl(
             TaskGroupResults(newResults, newEvaluated.toSeq, cached = false)
         }
     }
-  }
-
-  def loadExistingWorker(inputsHash: Int, logger: ColorLogger, labelled: Terminal.Labelled[_]) = {
-    labelled.task.asWorker.flatMap { w =>
-      workerCache.synchronized {
-        workerCache.get(w.ctx.segments)
-      }
-    }.flatMap {
-      case (`inputsHash`, upToDate) => Some(upToDate) // worker cached and up-to-date
-      case (_, Val(obsolete: AutoCloseable)) =>
-        // worker cached but obsolete, needs to be closed
-        try {
-          logger.debug(s"Closing previous worker: ${labelled.segments.render}")
-          obsolete.close()
-        } catch {
-          case NonFatal(e) =>
-            logger.error(
-              s"${labelled.segments.render}: Errors while closing obsolete worker: ${e.getMessage()}"
-            )
-        }
-        // make sure, we can no longer re-use a closed worker
-        labelled.task.asWorker.foreach { w =>
-          workerCache.synchronized {
-            workerCache.remove(w.ctx.segments)
-          }
-        }
-        None
-
-      case _ => None // worker not cached or obsolete
-    }
-  }
-
-  def loadCached(
-      logger: ColorLogger,
-      inputsHash: Int,
-      labelled: Terminal.Labelled[_],
-      paths: EvaluatorPaths
-  ): Option[(Val, Int)] = {
-    for {
-      cached <-
-        try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
-        catch {
-          case NonFatal(_) => None
-        }
-      if cached.inputsHash == inputsHash
-      reader <- labelled.task.readWriterOpt
-      parsed <-
-        try Some(upickle.default.read(cached.value)(reader))
-        catch {
-          case e: PathRef.PathRefValidationException =>
-            logger.debug(
-              s"${labelled.segments.render}: re-evaluating; ${e.getMessage}"
-            )
-            None
-          case NonFatal(_) => None
-        }
-    } yield (Val(parsed), cached.valueHash)
   }
 
   def destSegments(labelledTask: Terminal.Labelled[_]): Segments = {
@@ -455,7 +440,12 @@ private[mill] case class EvaluatorImpl(
           else () // do nothing
         }
       }
-
+      // This is used to track the usage of `T.dest` in more than one Task
+      // But it's not really clear what issue we try to prevent here
+      // Vice versa, being able to use T.dest in multiple `T.task`
+      // is rather essential to split up larger tasks into small parts
+      // So I like to disable this detection for now
+      var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]
       for (task <- nonEvaluatedTargets) {
         newEvaluated.append(task)
         val targetInputValues = task.inputs
@@ -469,8 +459,13 @@ private[mill] case class EvaluatorImpl(
               args = targetInputValues.map(_.value).toIndexedSeq,
               dest0 = () =>
                 paths match {
-                  case Some(dest) => dest.dest
-                  case None => throw new Exception("No `dest` folder available here")
+                  case Some(dest) =>
+                    if (usedDest.isEmpty) os.makeDir.all(dest.dest)
+                    usedDest = Some((task, new Exception().getStackTrace))
+                    dest.dest
+                  case None =>
+                    throw new Exception("No `dest` folder available here")
+                  //                }
                 },
               log = multiLogger,
               home = home,
