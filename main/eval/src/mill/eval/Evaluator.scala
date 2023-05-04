@@ -123,14 +123,14 @@ class Evaluator private (
 
     val (sortedGroups, transitive) = Evaluator.plan(goals)
     val evaluated = new Agg.Mutable[Task[_]]
-    val results = mutable.LinkedHashMap.empty[Task[_], TaskResult[(Val, Int)]]
+    var results = Map.empty[Task[_], TaskResult[(Val, Int)]]
     var someTaskFailed: Boolean = false
 
     val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
     for (((terminal, group), i) <- sortedGroups.items().zipWithIndex) {
       if (failFast && someTaskFailed) {
         // we exit early and set aborted state for all left tasks
-        group.iterator.foreach { task => results.put(task, TaskResult(Aborted, None)) }
+        group.iterator.foreach { task => results += (task -> TaskResult(Aborted, None)) }
 
       } else {
 
@@ -143,7 +143,7 @@ class Evaluator private (
         val startTime = System.currentTimeMillis()
 
         // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
-        val counterMsg = s"${(i + 1)}/${sortedGroups.keyCount}"
+        val counterMsg = s"${i + 1}/${sortedGroups.keyCount}"
 
         val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
           terminal = terminal,
@@ -157,8 +157,8 @@ class Evaluator private (
         someTaskFailed =
           someTaskFailed || newResults.exists(task => !task._2.result.isInstanceOf[Success[_]])
 
-        for (ev <- newEvaluated) evaluated.append(ev)
-        for ((k, v) <- newResults) results.put(k, v)
+        evaluated.appendAll(newEvaluated)
+        results ++= newResults
         val endTime = System.currentTimeMillis()
 
         timings.append((terminal, (endTime - startTime).toInt, cached))
@@ -310,7 +310,7 @@ class Evaluator private (
   protected def evaluateGroupCached(
       terminal: Terminal,
       group: Agg[Task[_]],
-      results: collection.Map[Task[_], TaskResult[(Val, Int)]],
+      results: Map[Task[_], TaskResult[(Val, Int)]],
       counterMsg: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
@@ -357,7 +357,7 @@ class Evaluator private (
       case Left(task) =>
         val (newResults, newEvaluated) = evaluateGroup(
           group,
-          results.toMap,
+          results,
           inputsHash,
           paths = None,
           maybeTargetLabel = None,
