@@ -8,6 +8,7 @@ import mill.util.{ColorLogger, MultiBiMap}
 
 import scala.collection.JavaConverters.mapAsScalaMapConverter
 import scala.reflect.ClassTag
+import scala.util.DynamicVariable
 
 trait Evaluator {
   def baseLogger: ColorLogger
@@ -80,7 +81,7 @@ object Evaluator {
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
-  val currentEvaluator = new ThreadLocal[mill.eval.Evaluator]
+  val currentEvaluator = new DynamicVariable[mill.eval.Evaluator](null)
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 

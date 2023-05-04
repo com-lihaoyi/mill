@@ -11,7 +11,7 @@ object Tasks {
     def shortName = "<tasks>"
     def read(s: Seq[String]) = {
       ResolveTasks.resolve(
-        Evaluator.currentEvaluator.get,
+        Evaluator.currentEvaluator.value,
         s,
         SelectMode.Single
       ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]]))
@@ -22,7 +22,7 @@ object Tasks {
 }
 
 class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[mill.eval.Evaluator] {
-  def read() = Right(Evaluator.currentEvaluator.get.asInstanceOf[mill.eval.Evaluator])
+  def read() = Right(Evaluator.currentEvaluator.value)
 }
 
 /**
