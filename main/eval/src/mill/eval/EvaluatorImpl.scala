@@ -321,9 +321,13 @@ private[mill] case class EvaluatorImpl(
     }
   }
 
-  def loadUpToDateWorker(logger: ColorLogger, inputsHash: Int, labelled: Terminal.Labelled[_]): Option[Val] = {
+  def loadUpToDateWorker(
+      logger: ColorLogger,
+      inputsHash: Int,
+      labelled: Terminal.Labelled[_]
+  ): Option[Val] = {
     labelled.task.asWorker
-      .flatMap { w => workerCache.synchronized {workerCache.get(w.ctx.segments)}}
+      .flatMap { w => workerCache.synchronized { workerCache.get(w.ctx.segments) } }
       .flatMap {
         case (`inputsHash`, upToDate) => Some(upToDate) // worker cached and up-to-date
         case (_, Val(obsolete: AutoCloseable)) =>
@@ -349,7 +353,12 @@ private[mill] case class EvaluatorImpl(
       }
   }
 
-  def loadCachedJson(logger: ColorLogger, inputsHash: Int, labelled: Terminal.Labelled[_], paths: EvaluatorPaths): Option[(Val, Int)] = {
+  def loadCachedJson(
+      logger: ColorLogger,
+      inputsHash: Int,
+      labelled: Terminal.Labelled[_],
+      paths: EvaluatorPaths
+  ): Option[(Val, Int)] = {
     for {
       cached <-
         try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
@@ -472,9 +481,8 @@ private[mill] case class EvaluatorImpl(
                     if (usedDest.isEmpty) os.makeDir.all(dest.dest)
                     usedDest = Some((task, new Exception().getStackTrace))
                     dest.dest
-                  case None =>
-                    throw new Exception("No `dest` folder available here")
-                  //                }
+
+                  case None => throw new Exception("No `dest` folder available here")
                 },
               log = multiLogger,
               home = home,
