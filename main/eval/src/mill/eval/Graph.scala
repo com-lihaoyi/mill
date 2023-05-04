@@ -4,7 +4,7 @@ import mill.define.Task
 import mill.util.MultiBiMap
 import mill.api.Strict.Agg
 
-private object Graph {
+private[mill] object Graph {
 
   /**
    * The `values` [[Agg]] is guaranteed to be topological sorted and cycle free.
