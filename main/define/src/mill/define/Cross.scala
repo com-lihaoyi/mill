@@ -262,10 +262,12 @@ object Cross {
  * value of one or more "case" variables whose values are determined at runtime.
  * Used via:
  *
+ * {{{
  * object foo extends Cross[FooModule]("bar", "baz", "qux")
- * class FooModule extends Module{
+ * trait FooModule extends Cross.Module[String]{
  *   ... crossValue ...
  * }
+ * }}}
  */
 class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mill.define.Ctx)
     extends mill.define.Module()(ctx) {
