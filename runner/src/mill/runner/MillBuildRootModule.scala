@@ -84,22 +84,21 @@ class MillBuildRootModule()(implicit
     }
   }
 
+  def cliImports = T.input { millBuildRootModuleInfo.cliImports }
+
   override def ivyDeps = T {
     Agg.from(
-      MillIvy.processMillIvyDepSignature(
-        parseBuildFiles().ivyDeps ++ millBuildRootModuleInfo.cliImports
-      )
-        .map(str =>
-          mill.scalalib.Dep.parse(
-            str
-              .replace("$MILL_VERSION", mill.BuildInfo.millVersion)
-              .replace("${MILL_VERSION}", mill.BuildInfo.millVersion)
-              .replace("$MILL_BIN_PLATFORM", mill.BuildInfo.millBinPlatform)
-              .replace("${MILL_BIN_PLATFORM}", mill.BuildInfo.millBinPlatform)
-          )
-        )
+      MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
+        .map(mill.scalalib.Dep.parse)
     ) ++
       Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+  }
+
+  override def runIvyDeps = T {
+    Agg.from(
+      MillIvy.processMillIvyDepSignature(cliImports().toSet)
+        .map(mill.scalalib.Dep.parse)
+    )
   }
 
   override def generatedSources: T[Seq[PathRef]] = T {
