@@ -267,8 +267,7 @@ object ResolveCore {
           if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Target.task(null))
           else Some(_ => null)
         )
-      }
-      else a
+      } else a
     }
 
     val flattenedArgSigsWithDefaults = ep
