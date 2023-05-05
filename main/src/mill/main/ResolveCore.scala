@@ -260,8 +260,16 @@ object ResolveCore {
     ep <- entryPoints
     if ep._2.name == name
   } yield {
-    def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig =
-      if (nullCommandDefaults) a.copy(default = Some(_ => null)) else a
+    def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
+      if (a.default.nonEmpty) a
+      else if (nullCommandDefaults) {
+        a.copy(default =
+          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Target.task(null))
+          else Some(_ => null)
+        )
+      }
+      else a
+    }
 
     val flattenedArgSigsWithDefaults = ep
       ._2
