@@ -36,6 +36,8 @@ jobs:
             buildcmd: | 
               ./mill -i -k __.ivyDepsTree
               ./mill -i -k __.ivyDepsTree --withRuntime true
+          - java-version: 20
+            buildcmd: ci/test-mill-bootstrap-0.sh
 
     runs-on: ubuntu-latest
 
@@ -108,7 +110,6 @@ jobs:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.{local,forked,forked-server}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.{local,forked}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
-
 
     runs-on: windows-latest
 
