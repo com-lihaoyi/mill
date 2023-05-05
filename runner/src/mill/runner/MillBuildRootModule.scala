@@ -86,7 +86,9 @@ class MillBuildRootModule()(implicit
 
   override def ivyDeps = T {
     Agg.from(
-      MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps ++ millBuildRootModuleInfo.cliImports)
+      MillIvy.processMillIvyDepSignature(
+        parseBuildFiles().ivyDeps ++ millBuildRootModuleInfo.cliImports
+      )
         .map(str =>
           mill.scalalib.Dep.parse(
             str

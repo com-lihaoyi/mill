@@ -76,7 +76,7 @@ class MillBuildBootstrap(
               projectRoot,
               recRoot(depth),
               millBootClasspath,
-              config.imports.collect{ case s"ivy:$rest" => rest }
+              config.imports.collect { case s"ivy:$rest" => rest }
             )(
               mill.main.RootModule.Info(
                 recRoot(depth),
