@@ -16,7 +16,14 @@ object ResolveNonEmpty {
   ): Either[String, Set[Resolved]] = {
     val rootResolved = ResolveCore.Resolved.Module(current.millModuleSegments, Right(current))
 
-    ResolveCore.resolve(selector, rootResolved, discover, args, Segments(), nullCommandDefaults) match {
+    ResolveCore.resolve(
+      selector,
+      rootResolved,
+      discover,
+      args,
+      Segments(),
+      nullCommandDefaults
+    ) match {
       case ResolveCore.Success(value) => Right(value)
       case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
         val errorMsg = if (found.head.isInstanceOf[Resolved.Module]) {

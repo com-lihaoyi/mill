@@ -124,7 +124,13 @@ trait Resolve[T] {
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
     ResolveNonEmpty
-      .resolveNonEmpty(sel.value.toList, rootModule, rootModule.millDiscover, args, nullCommandDefaults)
+      .resolveNonEmpty(
+        sel.value.toList,
+        rootModule,
+        rootModule.millDiscover,
+        args,
+        nullCommandDefaults
+      )
       .map(_.toSeq.sortBy(_.segments.render))
       .flatMap(handleResolved(_, rootModule.millDiscover, args, sel, nullCommandDefaults))
   }

@@ -86,13 +86,27 @@ object ResolveCore {
                 ).map(
                   _.flatMap(m =>
                     Seq(Resolved.Module(m.millModuleSegments, Right(m))) ++
-                      resolveDirectChildren(m, None, discover, args, m.millModuleSegments, nullCommandDefaults)
+                      resolveDirectChildren(
+                        m,
+                        None,
+                        discover,
+                        args,
+                        m.millModuleSegments,
+                        nullCommandDefaults
+                      )
                   )
                 )
 
                 res
               case "_" =>
-                Right(resolveDirectChildren(obj, None, discover, args, current.segments, nullCommandDefaults))
+                Right(resolveDirectChildren(
+                  obj,
+                  None,
+                  discover,
+                  args,
+                  current.segments,
+                  nullCommandDefaults
+                ))
               case _ =>
                 Right(resolveDirectChildren(
                   obj,
@@ -252,7 +266,7 @@ object ResolveCore {
     val flattenedArgSigsWithDefaults = ep
       ._2
       .flattenedArgSigs
-      .map{case (arg, term) => (withNullDefault(arg), term)}
+      .map { case (arg, term) => (withNullDefault(arg), term) }
 
     mainargs.TokenGrouping.groupArgs(
       rest,
@@ -261,7 +275,6 @@ object ResolveCore {
       allowRepeats = false,
       allowLeftover = ep._2.argSigs0.exists(_.reader.isLeftover)
     ).flatMap { (grouped: TokenGrouping[_]) =>
-
       val mainData = ep._2.asInstanceOf[MainData[_, Any]]
       val mainDataWithDefaults = mainData
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
