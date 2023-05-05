@@ -72,7 +72,12 @@ class MillBuildBootstrap(
         } else {
 
           val bootstrapModule =
-            new MillBuildRootModule.BootstrapModule(projectRoot, recRoot(depth), millBootClasspath)(
+            new MillBuildRootModule.BootstrapModule(
+              projectRoot,
+              recRoot(depth),
+              millBootClasspath,
+              config.imports.collect{ case s"ivy:$rest" => rest }
+            )(
               mill.main.RootModule.Info(
                 recRoot(depth),
                 Discover[MillBuildRootModule.BootstrapModule]
