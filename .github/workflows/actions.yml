@@ -68,6 +68,10 @@ jobs:
           - java-version: 17
             buildcmd: ./mill -i docs.githubPages
 
+          # Have one job on latest JVM
+          - java-version: 20
+            buildcmd: ci/test-mill-bootstrap.sh
+
     uses: ./.github/workflows/run-mill-action.yml
     with:
       os: ubuntu-latest
