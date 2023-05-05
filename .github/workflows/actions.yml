@@ -102,7 +102,9 @@ jobs:
         include:
           # Limit some tests to Java 17 to limit CI times
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.local.test"
+            # just run a subset of examples/ on Windows, because for some reason running
+            # the whole suite can take hours on windows v.s. half an hour on linux
+            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.scalabuilds.local.test"
           - java-version: 17
             buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.fork.test"
           - java-version: 17
