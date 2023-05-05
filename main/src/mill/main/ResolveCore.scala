@@ -3,8 +3,9 @@ package mill.main
 import mainargs.{MainData, TokenGrouping}
 import mill.define._
 import mill.util.EitherOps
-import scala.reflect.NameTransformer.decode
 
+import java.lang.reflect.InvocationTargetException
+import scala.reflect.NameTransformer.decode
 import scala.collection.immutable
 
 /**
@@ -148,7 +149,9 @@ object ResolveCore {
 
   def catchReflectException[T](t: => T): Either[String, T] = {
     try Right(t)
-    catch { case e: Exception => makeResultException(e.getCause, new Exception()) }
+    catch { case e: InvocationTargetException =>
+      makeResultException(e.getCause, new Exception())
+    }
   }
 
   def catchNormalException[T](t: => T): Either[String, T] = {
