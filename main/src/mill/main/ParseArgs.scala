@@ -13,9 +13,6 @@ object SelectMode {
   /** All args are treated as targets or commands. If a `--` is detected, subsequent args are parameters to all commands. */
   object Multi extends SelectMode
 
-  /** Only the first arg is treated as target or command, subsequent args are parameters of the command. */
-  object Single extends SelectMode
-
   /** Like a combination of [[Single]] and [[Multi]], behaving like [[Single]] but using a special separator (`++`) to start parsing another target/command. */
   object Separated extends SelectMode
 }
