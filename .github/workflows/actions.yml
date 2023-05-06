@@ -42,7 +42,7 @@ jobs:
           - ./mill -i -k "integration.feature.__.server.test"
           - ./mill -i -k "integration.feature.__.fork.test"
 
-          # contrib tests
+          # contrib s
           - ./mill -i -k "contrib._.test"
 
         include:
@@ -129,7 +129,7 @@ jobs:
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
-    needs: [test, test-windows, format-check]
+    needs: [linux, windows, format-check]
 
     runs-on: ubuntu-latest
 
