@@ -65,7 +65,7 @@ jobs:
         java-version: [8, 17]
         millargs:
           # unit and module tests
-          - "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
+          - '"{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"'
           # integration tests
           - "integration.feature.__.server.test"
           - "integration.feature.__.fork.test"
@@ -110,15 +110,15 @@ jobs:
         java-version: [8, 17]
         millargs:
           # Run a stripped down build matrix on Windows, to avoid taking too long
-          - "{__.publishLocal,dev.assembly,__.compile}"
-          - "{main,scalalib,scalajslib,bsp}.__.test"
+          - '"{__.publishLocal,dev.assembly,__.compile}"'
+          - '"{main,scalalib,scalajslib,bsp}.__.test"'
 
         include:
           # Limit some tests to Java 17 to limit CI times
           - java-version: 17
             # just run a subset of examples/ on Windows, because for some reason running
             # the whole suite can take hours on windows v.s. half an hour on linux
-            millargs: "example.{scalabuilds,cross,tasks}.__.local.test"
+            millargs: '"example.{scalabuilds,cross,tasks}.__.local.test"'
           - java-version: 17
             millargs: "integration.feature.__.fork.test"
           - java-version: 17
