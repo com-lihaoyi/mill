@@ -11,7 +11,7 @@ object MainModuleTests extends TestSuite {
   object mainModule extends TestUtil.BaseModule with MainModule {
     def hello = T { Seq("hello", "world") }
     def hello2 = T { Map("1" -> "hello", "2" -> "world") }
-    def helloCommand(x: Int, y: Task[String]) = T.command{ (x, y(), hello()) }
+    def helloCommand(x: Int, y: Task[String]) = T.command { (x, y(), hello()) }
     override lazy val millDiscover = Discover[this.type]
   }
 
@@ -116,10 +116,11 @@ object MainModuleTests extends TestSuite {
         assert(
           failureMsg.contains("Expected Signature: helloCommand"),
           failureMsg.contains("-x <int>"),
-          failureMsg.contains("-y <str>"),
+          failureMsg.contains("-y <str>")
         )
-        val Right((Seq(res), _)) = evaluator.evalTokens("show", "helloCommand", "-x", "1337", "-y", "lol")
-        
+        val Right((Seq(res), _)) =
+          evaluator.evalTokens("show", "helloCommand", "-x", "1337", "-y", "lol")
+
         assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
       }
     }

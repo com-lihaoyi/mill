@@ -149,8 +149,9 @@ object ResolveCore {
 
   def catchReflectException[T](t: => T): Either[String, T] = {
     try Right(t)
-    catch { case e: InvocationTargetException =>
-      makeResultException(e.getCause, new Exception())
+    catch {
+      case e: InvocationTargetException =>
+        makeResultException(e.getCause, new Exception())
     }
   }
 
