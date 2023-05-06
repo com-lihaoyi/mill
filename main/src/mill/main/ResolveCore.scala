@@ -3,8 +3,9 @@ package mill.main
 import mainargs.{MainData, TokenGrouping}
 import mill.define._
 import mill.util.EitherOps
-import scala.reflect.NameTransformer.decode
 
+import java.lang.reflect.InvocationTargetException
+import scala.reflect.NameTransformer.decode
 import scala.collection.immutable
 
 /**
@@ -51,13 +52,14 @@ object ResolveCore {
       current: Resolved,
       discover: Discover[_],
       args: Seq[String],
-      querySoFar: Segments
+      querySoFar: Segments,
+      nullCommandDefaults: Boolean
   ): Result = remainingQuery match {
     case Nil => Success(Set(current))
     case head :: tail =>
       def recurse(searchModules: Set[Resolved]): Result = {
         val (failures, successesLists) = searchModules
-          .map(r => resolve(tail, r, discover, args, querySoFar ++ Seq(head)))
+          .map(r => resolve(tail, r, discover, args, querySoFar ++ Seq(head), nullCommandDefaults))
           .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
 
         val (errors, notFounds) = failures.partitionMap {
@@ -69,7 +71,7 @@ object ResolveCore {
         else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
         else notFounds.size match {
           case 1 => notFounds.head
-          case _ => notFoundResult(querySoFar, current, head, discover, args)
+          case _ => notFoundResult(querySoFar, current, head, discover, args, nullCommandDefaults)
         }
       }
 
@@ -85,20 +87,35 @@ object ResolveCore {
                 ).map(
                   _.flatMap(m =>
                     Seq(Resolved.Module(m.millModuleSegments, Right(m))) ++
-                      resolveDirectChildren(m, None, discover, args, m.millModuleSegments)
+                      resolveDirectChildren(
+                        m,
+                        None,
+                        discover,
+                        args,
+                        m.millModuleSegments,
+                        nullCommandDefaults
+                      )
                   )
                 )
 
                 res
               case "_" =>
-                Right(resolveDirectChildren(obj, None, discover, args, current.segments))
+                Right(resolveDirectChildren(
+                  obj,
+                  None,
+                  discover,
+                  args,
+                  current.segments,
+                  nullCommandDefaults
+                ))
               case _ =>
                 Right(resolveDirectChildren(
                   obj,
                   Some(singleLabel),
                   discover,
                   args,
-                  current.segments
+                  current.segments,
+                  nullCommandDefaults
                 ))
             }
           }
@@ -126,13 +143,15 @@ object ResolveCore {
               recurse(searchModules.map(m => Resolved.Module(m.millModuleSegments, Right(m))).toSet)
           }
 
-        case _ => notFoundResult(querySoFar, current, head, discover, args)
+        case _ => notFoundResult(querySoFar, current, head, discover, args, nullCommandDefaults)
       }
   }
 
   def catchReflectException[T](t: => T): Either[String, T] = {
     try Right(t)
-    catch { case e: Exception => makeResultException(e.getCause, new Exception()) }
+    catch { case e: InvocationTargetException =>
+      makeResultException(e.getCause, new Exception())
+    }
   }
 
   def catchNormalException[T](t: => T): Either[String, T] = {
@@ -150,7 +169,8 @@ object ResolveCore {
       nameOpt: Option[String] = None,
       discover: Discover[_],
       args: Seq[String],
-      segments: Segments
+      segments: Segments,
+      nullCommandDefaults: Boolean
   ): Set[Resolved] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
 
@@ -197,7 +217,8 @@ object ResolveCore {
               obj,
               name,
               discover.asInstanceOf[Discover[Module]],
-              args
+              args,
+              nullCommandDefaults
             ).head
           ).flatten
         )
@@ -211,12 +232,13 @@ object ResolveCore {
       current: Resolved,
       next: Segment,
       discover: Discover[_],
-      args: Seq[String]
+      args: Seq[String],
+      nullCommandDefaults: Boolean
   ) = {
     val possibleNextsOrErr = current match {
       case m: Resolved.Module =>
         m.valueOrErr.map(obj =>
-          resolveDirectChildren(obj, None, discover, args, querySoFar)
+          resolveDirectChildren(obj, None, discover, args, querySoFar, nullCommandDefaults)
             .map(_.segments.value.last)
         )
 
@@ -233,23 +255,43 @@ object ResolveCore {
       target: Module,
       name: String,
       discover: Discover[Module],
-      rest: Seq[String]
+      rest: Seq[String],
+      nullCommandDefaults: Boolean
   ): immutable.Iterable[Either[String, Command[_]]] = for {
     (cls, entryPoints) <- discover.value
     if cls.isAssignableFrom(target.getClass)
     ep <- entryPoints
     if ep._2.name == name
   } yield {
+    def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
+      if (a.default.nonEmpty) a
+      else if (nullCommandDefaults) {
+        a.copy(default =
+          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Target.task(null))
+          else Some(_ => null)
+        )
+      } else a
+    }
+
+    val flattenedArgSigsWithDefaults = ep
+      ._2
+      .flattenedArgSigs
+      .map { case (arg, term) => (withNullDefault(arg), term) }
+
     mainargs.TokenGrouping.groupArgs(
       rest,
-      ep._2.flattenedArgSigs,
+      flattenedArgSigsWithDefaults,
       allowPositional = true,
       allowRepeats = false,
       allowLeftover = ep._2.argSigs0.exists(_.reader.isLeftover)
     ).flatMap { (grouped: TokenGrouping[_]) =>
+      val mainData = ep._2.asInstanceOf[MainData[_, Any]]
+      val mainDataWithDefaults = mainData
+        .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
+
       mainargs.Invoker.invoke(
         target,
-        ep._2.asInstanceOf[MainData[_, Any]],
+        mainDataWithDefaults,
         grouped.asInstanceOf[TokenGrouping[Any]]
       )
     } match {

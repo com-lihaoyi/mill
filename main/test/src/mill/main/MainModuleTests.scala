@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api.{PathRef, Result, Val}
 import mill.{Agg, T}
-import mill.define.{Cross, Module}
+import mill.define.{Cross, Discover, Module, Task}
 import mill.util.{TestEvaluator, TestUtil}
 import utest.{TestSuite, Tests, assert, test}
 
@@ -11,6 +11,8 @@ object MainModuleTests extends TestSuite {
   object mainModule extends TestUtil.BaseModule with MainModule {
     def hello = T { Seq("hello", "world") }
     def hello2 = T { Map("1" -> "hello", "2" -> "world") }
+    def helloCommand(x: Int, y: Task[String]) = T.command{ (x, y(), hello()) }
+    override lazy val millDiscover = Discover[this.type]
   }
 
   object cleanModule extends TestUtil.BaseModule with MainModule {
@@ -67,6 +69,15 @@ object MainModuleTests extends TestSuite {
           value.contains("\n\nhello2(")
         )
       }
+      test("command") {
+        val Right((Seq(res: String), _)) = eval.evalTokens("inspect", "helloCommand")
+
+        assert(
+          res.startsWith("helloCommand("),
+          res.contains("MainModuleTests.scala:"),
+          res.contains("hello")
+        )
+      }
     }
 
     test("show") {
@@ -98,6 +109,18 @@ object MainModuleTests extends TestSuite {
           ujson.Arr.from(Seq("hello", "world")),
           ujson.Obj.from(Map("1" -> "hello", "2" -> "world"))
         )))
+      }
+
+      test("command") {
+        val Left(Result.Failure(failureMsg, _)) = evaluator.evalTokens("show", "helloCommand")
+        assert(
+          failureMsg.contains("Expected Signature: helloCommand"),
+          failureMsg.contains("-x <int>"),
+          failureMsg.contains("-y <str>"),
+        )
+        val Right((Seq(res), _)) = evaluator.evalTokens("show", "helloCommand", "-x", "1337", "-y", "lol")
+        
+        assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
       }
     }
 

@@ -8,6 +8,7 @@ import mill.api.Strict.Agg
 
 import java.io.{InputStream, PrintStream}
 import mill.eval.Evaluator
+import mill.main.{ResolveTasks, SelectMode}
 import mill.util.PrintLogger
 
 import language.experimental.macros
@@ -106,13 +107,27 @@ trait MillTestKit {
       env = env
     )
 
-    def apply[T](t: Task[T]): Either[mill.api.Result.Failing[T], (T, Int)] = {
-      val evaluated = evaluator.evaluate(Agg(t))
+    def evalTokens(args: String*): Either[Result.Failing[_], (Seq[_], Int)] = {
+      ResolveTasks.resolve(evaluator, args, SelectMode.Separated) match{
+        case Left(err) => Left(Result.Failure(err))
+        case Right(resolved) => apply(resolved)
+      }
+    }
+
+    def apply[T](task: Task[T]): Either[Result.Failing[T], (T, Int)] = {
+      apply(Seq(task)) match{
+        case Left(f) => Left(f.asInstanceOf[Result.Failing[T]])
+        case Right((Seq(v), i)) => Right((v.asInstanceOf[T], i))
+      }
+    }
+
+    def apply(tasks: Seq[Task[_]]): Either[Result.Failing[_], (Seq[_], Int)] = {
+      val evaluated = evaluator.evaluate(tasks)
 
       if (evaluated.failing.keyCount == 0) {
         Right(
           Tuple2(
-            evaluated.rawValues.head.asInstanceOf[Result.Success[Val]].value.value.asInstanceOf[T],
+            evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
             evaluated.evaluated.collect {
               case t: TargetImpl[_]
                   if module.millInternal.targets.contains(t)
@@ -130,9 +145,7 @@ trait MillTestKit {
             .next()
             .asFailing
             .get
-            .map { (x: Val) =>
-              x.value.asInstanceOf[T]
-            }
+            .map(_.value)
         )
       }
     }
