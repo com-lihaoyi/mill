@@ -55,7 +55,6 @@ jobs:
 
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      os: ubuntu-latest
       java-version: ${{ matrix.java-version }}
       buildcmd: ${{ matrix.buildcmd }}
 
@@ -88,21 +87,18 @@ jobs:
 
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      os: ubuntu-latest
       java-version: ${{ matrix.java-version }}
       buildcmd: ${{ matrix.buildcmd }}
 
   format-check:
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      os: ubuntu-latest
       java-version: '8'
       millargs: mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
 
   bincompat-check:
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      os: ubuntu-latest
       java-version: '8'
       millargs: __.mimaReportBinaryIssues
       continue-on-error: true
