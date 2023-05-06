@@ -108,14 +108,14 @@ trait MillTestKit {
     )
 
     def evalTokens(args: String*): Either[Result.Failing[_], (Seq[_], Int)] = {
-      ResolveTasks.resolve(evaluator, args, SelectMode.Separated) match{
+      ResolveTasks.resolve(evaluator, args, SelectMode.Separated) match {
         case Left(err) => Left(Result.Failure(err))
         case Right(resolved) => apply(resolved)
       }
     }
 
     def apply[T](task: Task[T]): Either[Result.Failing[T], (T, Int)] = {
-      apply(Seq(task)) match{
+      apply(Seq(task)) match {
         case Left(f) => Left(f.asInstanceOf[Result.Failing[T]])
         case Right((Seq(v), i)) => Right((v.asInstanceOf[T], i))
       }
