@@ -393,7 +393,7 @@ trait MainModule extends mill.Module {
     RunScript.evaluateTasksNamed(
       evaluator,
       Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
-      SelectMode.Single
+      SelectMode.Separated
     )
 
     ()

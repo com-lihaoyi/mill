@@ -84,7 +84,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   def meta(s: String): String = {
     val Seq((List(selector), _)) =
-      mill.main.ParseArgs.apply(Seq(s), SelectMode.Single).getOrElse(???)
+      mill.main.ParseArgs.apply(Seq(s), SelectMode.Separated).getOrElse(???)
 
     val segments = selector._2.value.flatMap(_.pathSegments)
     os.read(wd / "out" / segments.init / s"${segments.last}.json")

@@ -13,7 +13,7 @@ object Tasks {
       ResolveTasks.resolve(
         Evaluator.currentEvaluator.value,
         s,
-        SelectMode.Single
+        SelectMode.Separated
       ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]]))
     }
     override def alwaysRepeatable = false
