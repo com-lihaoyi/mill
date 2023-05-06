@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
 
-  test:
+  linux:
     strategy:
       fail-fast: false
       matrix:
@@ -93,7 +93,7 @@ jobs:
       buildcmd: ./mill -i -k __.mimaReportBinaryIssues
       continue-on-error: true
 
-  test-windows:
+  windows:
     strategy:
       fail-fast: false
       matrix:
