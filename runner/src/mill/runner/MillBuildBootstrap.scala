@@ -1,12 +1,11 @@
 package mill.runner
-import mill.util.{ColorLogger, PrefixLogger, Util}
+import mill.util.{ColorLogger, PrefixLogger, Util, Watchable}
 import mill.{BuildInfo, T}
-import mill.api.{PathRef, internal}
+import mill.api.{PathRef, Val, internal}
 import mill.eval.Evaluator
-
 import mill.main.{RootModule, RunScript, SelectMode}
 import mill.main.TokenReaders._
-import mill.define.{Discover, Segments, Watchable}
+import mill.define.{Discover, Segments}
 
 import java.net.URLClassLoader
 
@@ -50,7 +49,7 @@ class MillBuildBootstrap(
     }
 
     Watching.Result(
-      watched = runnerState.frames.flatMap(_.evalWatched),
+      watched = runnerState.frames.flatMap(f => f.evalWatched ++ f.moduleWatched),
       error = runnerState.errorOpt,
       result = runnerState
     )
@@ -73,7 +72,12 @@ class MillBuildBootstrap(
         } else {
 
           val bootstrapModule =
-            new MillBuildRootModule.BootstrapModule(projectRoot, recRoot(depth), millBootClasspath)(
+            new MillBuildRootModule.BootstrapModule(
+              projectRoot,
+              recRoot(depth),
+              millBootClasspath,
+              config.imports.collect { case s"ivy:$rest" => rest }
+            )(
               mill.main.RootModule.Info(
                 recRoot(depth),
                 Discover[MillBuildRootModule.BootstrapModule]
@@ -194,8 +198,8 @@ class MillBuildBootstrap(
 
       case (
             Right(Seq(
-              runClasspath: Seq[PathRef],
-              scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+              Val(runClasspath: Seq[PathRef]),
+              Val(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])])
             )),
             evalWatches,
             moduleWatches
@@ -268,7 +272,7 @@ class MillBuildBootstrap(
   }
 
   def makeEvaluator(
-      workerCache: Map[Segments, (Int, Any)],
+      workerCache: Map[Segments, (Int, Val)],
       scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
       rootModule: RootModule,
       millClassloaderSigHash: Int,
@@ -279,19 +283,19 @@ class MillBuildBootstrap(
       if (depth == 0) ""
       else "[" + (Seq.fill(depth - 1)("mill-build") ++ Seq("build.sc")).mkString("/") + "] "
 
-    Evaluator(
+    mill.eval.EvaluatorImpl(
       config.home,
       recOut(depth),
       recOut(depth),
       rootModule,
       PrefixLogger(logger, "", tickerContext = bootLogPrefix),
-      millClassloaderSigHash
+      millClassloaderSigHash,
+      workerCache = workerCache.to(collection.mutable.Map),
+      env = env,
+      failFast = !config.keepGoing.value,
+      threadCount = threadCount,
+      scriptImportGraph = scriptImportGraph
     )
-      .withWorkerCache(workerCache.to(collection.mutable.Map))
-      .withEnv(env)
-      .withFailFast(!config.keepGoing.value)
-      .withThreadCount(threadCount)
-      .withScriptImportGraph(scriptImportGraph)
   }
 
   def recRoot(depth: Int) = projectRoot / Seq.fill(depth)("mill-build")
@@ -333,17 +337,19 @@ object MillBuildBootstrap {
       evaluator: Evaluator,
       targetsAndParams: Seq[String]
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
-
-    val evalTaskResult = RunScript.evaluateTasks(evaluator, targetsAndParams, SelectMode.Separated)
+    rootModule.evalWatchedValues.clear()
+    val evalTaskResult =
+      RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
     val moduleWatched = rootModule.watchedValues.toVector
+    val addedEvalWatched = rootModule.evalWatchedValues.toVector
 
     evalTaskResult match {
       case Left(msg) => (Left(msg), Nil, moduleWatched)
-      case Right((watchedPaths, evaluated)) =>
-        val evalWatched = watchedPaths.map(Watchable.Path)
+      case Right((watched, evaluated)) =>
         evaluated match {
-          case Left(msg) => (Left(msg), evalWatched, moduleWatched)
-          case Right(results) => (Right(results.map(_._1)), evalWatched, moduleWatched)
+          case Left(msg) => (Left(msg), watched ++ addedEvalWatched, moduleWatched)
+          case Right(results) =>
+            (Right(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
         }
     }
   }

@@ -1,4 +1,4 @@
-package mill.define
+package mill.util
 
 import mill.api.internal
 
@@ -13,14 +13,16 @@ private[mill] trait Watchable {
   def poll(): Long
   def signature: Long
   def validate(): Boolean = poll() == signature
+  def pretty: String
 }
 @internal
 private[mill] object Watchable {
   case class Path(p: mill.api.PathRef) extends Watchable {
     def poll() = p.recomputeSig()
     def signature = p.sig
+    def pretty = p.toString
   }
-  case class Value(f: () => Long, signature: Long) extends Watchable {
+  case class Value(f: () => Long, signature: Long, pretty: String) extends Watchable {
     def poll() = f()
   }
 }

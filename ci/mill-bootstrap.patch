@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 0f664c99c3..7d8788e7a8 100644
+index 1eeefd4f6..293b15164 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -19,17 +19,18 @@ import com.github.lolgab.mill.mima.{
@@ -21,7 +21,7 @@ index 0f664c99c3..7d8788e7a8 100644
  import scala.util.control.NonFatal
  import mill.T
 -import mill.define.{Discover, ExternalModule, Input, Module, Task}
-+import mill.define.{Discover, ExternalModule}
++import mill.define.{Cross, Discover, ExternalModule}
  import mill.api.{Logger, Result}
  import os.{CommandResult, SubprocessException}
  
@@ -325,19 +325,18 @@ index 0f664c99c3..7d8788e7a8 100644
  }
  
  /** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-@@ -852,7 +616,10 @@ object scalajslib extends MillModule with BuildInfo {
+@@ -852,7 +616,9 @@ object scalajslib extends MillModule with BuildInfo {
      override def ivyDeps = Agg(Deps.sbtTestInterface)
    }
    object worker extends Cross[WorkerModule]("1")
 -  class WorkerModule(scalajsWorkerVersion: String) extends MillInternalModule {
-+
 +  trait WorkerModule extends MillInternalModule with Cross.Module[String] {
 +    def scalajsWorkerVersion = crossValue
 +    override def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
-     def testDepPaths = T{ Seq(compile().classes) }
+     def testDepPaths = T { Seq(compile().classes) }
      override def moduleDeps = Seq(scalajslib.`worker-api`, main.client, main.api)
      override def ivyDeps = Agg(
-@@ -917,8 +684,10 @@ object contrib extends MillModule {
+@@ -916,8 +682,10 @@ object contrib extends MillModule {
  
      object api extends MillPublishModule
  
@@ -350,19 +349,20 @@ index 0f664c99c3..7d8788e7a8 100644
        override def sources = T.sources {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-@@ -1080,8 +849,9 @@ object scalanativelib extends MillModule {
+@@ -1080,8 +848,10 @@ object scalanativelib extends MillModule {
      override def ivyDeps = Agg(Deps.sbtTestInterface)
    }
    object worker extends Cross[WorkerModule]("0.4")
 -  class WorkerModule(scalaNativeWorkerVersion: String)
 -      extends MillInternalModule {
++
 +  trait WorkerModule extends MillInternalModule with Cross.Module[String] {
 +    def scalaNativeWorkerVersion = crossValue
 +    override def millSourcePath: os.Path = super.millSourcePath / scalaNativeWorkerVersion
-     def testDepPaths = T{ Seq(compile().classes) }
+     def testDepPaths = T { Seq(compile().classes) }
      override def moduleDeps = Seq(scalanativelib.`worker-api`)
      override def ivyDeps = scalaNativeWorkerVersion match {
-@@ -1201,7 +971,10 @@ trait IntegrationTestModule extends MillScalaModule {
+@@ -1200,7 +970,10 @@ trait IntegrationTestModule extends MillScalaModule {
    }
  }
  
@@ -374,7 +374,7 @@ index 0f664c99c3..7d8788e7a8 100644
    object local extends ModeModule
    object fork extends ModeModule
    object server extends ModeModule
-@@ -1215,15 +988,15 @@ object example extends MillScalaModule {
+@@ -1214,15 +987,15 @@ object example extends MillScalaModule {
  
    def moduleDeps = Seq(integration)
  
@@ -398,7 +398,7 @@ index 0f664c99c3..7d8788e7a8 100644
      def sources = T.sources()
      def testRepoRoot: T[PathRef] = T.source(millSourcePath)
      def compile = example.compile()
-@@ -1273,7 +1046,7 @@ object example extends MillScalaModule {
+@@ -1272,7 +1045,7 @@ object example extends MillScalaModule {
                val title =
                  if (seenCode) ""
                  else {
@@ -407,7 +407,7 @@ index 0f664c99c3..7d8788e7a8 100644
                    val exampleDashed = examplePath.segments.mkString("-")
                    val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
                    val browse = s"{mill-example-url}/$examplePath[browse]"
-@@ -1304,9 +1077,9 @@ object example extends MillScalaModule {
+@@ -1303,9 +1076,9 @@ object example extends MillScalaModule {
  }
  
  object integration extends MillScalaModule {
@@ -420,7 +420,7 @@ index 0f664c99c3..7d8788e7a8 100644
  
    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
  
-@@ -1635,8 +1408,8 @@ object dev extends MillModule {
+@@ -1633,8 +1406,8 @@ object dev extends MillModule {
      mill.modules.Jvm.createJar(Agg(), mill.modules.Jvm.JarManifest(manifestEntries))
    }
  
@@ -431,7 +431,7 @@ index 0f664c99c3..7d8788e7a8 100644
        case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dev.run")
        case wd0 +: rest =>
          val wd = os.Path(wd0, T.workspace)
-@@ -1663,67 +1436,11 @@ object docs extends Module {
+@@ -1661,67 +1434,11 @@ object docs extends Module {
      def moduleDeps = build.millInternal.modules.collect { case m: MillApiModule => m }
  
      def unidocSourceUrl = T {
@@ -500,7 +500,7 @@ index 0f664c99c3..7d8788e7a8 100644
    private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
    def npmBase: T[os.Path] = T.persistent { T.dest }
-@@ -1776,7 +1493,7 @@ object docs extends Module {
+@@ -1774,7 +1491,7 @@ object docs extends Module {
  
      val contribReadmes = T.traverse(contrib.contribModules)(m =>
        T.task {
@@ -509,7 +509,7 @@ index 0f664c99c3..7d8788e7a8 100644
        }
      )()
  
-@@ -2008,7 +1725,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
+@@ -2006,7 +1723,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
      examplePath = exampleMod.millSourcePath
    } yield {
      val example = examplePath.subRelativeTo(T.workspace)
@@ -518,7 +518,7 @@ index 0f664c99c3..7d8788e7a8 100644
      os.copy(examplePath, T.dest / exampleStr, createFolders = true)
      os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
      val zip = T.dest / s"$exampleStr.zip"
-@@ -2018,47 +1735,6 @@ def exampleZips: Target[Seq[PathRef]] = T {
+@@ -2016,51 +1733,10 @@ def exampleZips: Target[Seq[PathRef]] = T {
  }
  
  def uploadToGithub(authKey: String) = T.command {
@@ -566,3 +566,18 @@ index 0f664c99c3..7d8788e7a8 100644
  }
  
  def validate(ev: Evaluator): Command[Unit] = T.command {
+-  T.task(MainModule.evaluateTasks(
++  mill.main.RunScript.evaluateTasksNamed(
+     ev.withFailFast(false),
+     Seq(
+       "__.compile",
+@@ -2073,7 +1749,8 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
+       "docs.localPages"
+     ),
+     selectMode = SelectMode.Separated
+-  )(identity))()
++  )
++
+   ()
+ }
+ 

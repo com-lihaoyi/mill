@@ -401,7 +401,7 @@ class MillBuildServer(
           }
       }.toSeq
 
-      val ids = Evaluator.evalOrThrow(evaluator)(tasks).flatten
+      val ids = evaluator.evalOrThrow()(tasks).flatten
       new InverseSourcesResult(ids.asJava)
     }
   }
@@ -708,7 +708,7 @@ class MillBuildServer(
   )(f: (BuildTargetIdentifier, BspModule) => Task[T]): V = {
     import state._
     val tasks: Seq[Task[T]] = targetIds.distinct.map(id => f(id, bspModulesById(id)))
-    val res = Evaluator.evalOrThrow(evaluator)(tasks)
+    val res = evaluator.evalOrThrow()(tasks)
     agg(res)
   }
 
