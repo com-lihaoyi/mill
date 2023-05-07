@@ -9,21 +9,14 @@ import mill.resolve.ResolveCore.Resolved
 object ResolveNonEmpty {
   def resolveNonEmpty(
       selector: List[Segment],
-      current: BaseModule,
-      discover: Discover[_],
-      args: Seq[String],
-      nullCommandDefaults: Boolean
+      current: BaseModule
   ): Either[String, Set[Resolved]] = {
-    val rootResolved = ResolveCore.Resolved.Module(current.millModuleSegments, Right(current))
+    val rootResolved = ResolveCore.Resolved.Module(
+      current.millModuleSegments,
+      () => Right(current)
+    )
 
-    ResolveCore.resolve(
-      selector,
-      rootResolved,
-      discover,
-      args,
-      Segments(),
-      nullCommandDefaults
-    ) match {
+    ResolveCore.resolve(selector, rootResolved, Segments()) match {
       case ResolveCore.Success(value) => Right(value)
       case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
         val errorMsg = if (found.head.isInstanceOf[Resolved.Module]) {

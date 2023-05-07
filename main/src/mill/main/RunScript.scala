@@ -21,7 +21,7 @@ object RunScript {
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
   ] = {
     println("Setting up currentEvaluator")
-      val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
+    val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, scriptArgs, selectMode)
     }
     for (targets <- resolved)

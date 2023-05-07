@@ -1,58 +1,77 @@
 package mill.resolve
 
-import mill.define.{BaseModule, Discover, ExternalModule, NamedTask, Segments, TaskModule}
-import mill.resolve.ResolveCore.Resolved
+import mainargs.{MainData, TokenGrouping}
+import mill.define.{
+  BaseModule,
+  Command,
+  Discover,
+  ExternalModule,
+  NamedTask,
+  Segments,
+  Target,
+  TaskModule
+}
+import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
 object Resolve {
   object Segments extends Resolve[Segments] {
     def handleResolved(
-                        resolved: Seq[Resolved],
-                        discover: Discover[_],
-                        args: Seq[String],
-                        selector: Segments,
-                        nullCommandDefaults: Boolean
-                      ) = {
+        resolved: Seq[Resolved],
+        discover: Discover[_],
+        args: Seq[String],
+        selector: Segments,
+        nullCommandDefaults: Boolean
+    ) = {
       Right(resolved.map(_.segments))
     }
   }
 
   object Metadata extends Resolve[String] {
     def handleResolved(
-                        resolved: Seq[Resolved],
-                        discover: Discover[_],
-                        args: Seq[String],
-                        selector: Segments,
-                        nullCommandDefaults: Boolean
-                      ) = {
+        resolved: Seq[Resolved],
+        discover: Discover[_],
+        args: Seq[String],
+        selector: Segments,
+        nullCommandDefaults: Boolean
+    ) = {
       Right(resolved.map(_.segments.render))
     }
   }
 
   object Tasks extends Resolve[NamedTask[Any]] {
     def handleResolved(
-                        resolved: Seq[Resolved],
-                        discover: Discover[_],
-                        args: Seq[String],
-                        selector: Segments,
-                        nullCommandDefaults: Boolean
-                      ) = {
+        resolved: Seq[Resolved],
+        discover: Discover[_],
+        args: Seq[String],
+        selector: Segments,
+        nullCommandDefaults: Boolean
+    ) = {
 
       val taskList: Seq[Either[String, NamedTask[_]]] = resolved
         .flatMap {
-          case r: Resolved.Target => Some(r.valueOrErr)
-          case r: Resolved.Command => Some(r.valueOrErr)
+          case r: Resolved.Target => Some(r.valueOrErr())
+          case r: Resolved.Command => Some(invokeCommand(
+              r.parent,
+              r.segments.parts.last,
+              discover,
+              args,
+              nullCommandDefaults
+            ))
           case r: Resolved.Module =>
-            r.valueOrErr.toOption.collect { case value: TaskModule =>
+            r.valueOrErr().toOption.collect { case value: TaskModule =>
               ResolveCore.resolveDirectChildren(
                 value,
                 Some(value.defaultCommandName()),
-                discover,
-                args,
-                value.millModuleSegments,
-                nullCommandDefaults
+                value.millModuleSegments
               ).head match {
-                case r: Resolved.Target => r.valueOrErr
-                case r: Resolved.Command => r.valueOrErr
+                case r: Resolved.Target => r.valueOrErr()
+                case r: Resolved.Command => invokeCommand(
+                    r.parent,
+                    r.segments.parts.last,
+                    discover,
+                    args,
+                    nullCommandDefaults
+                  )
               }
             }
         }
@@ -61,6 +80,84 @@ object Resolve {
       else Left(s"Cannot find default task to evaluate for module ${selector.render}")
     }
   }
+
+  private def invokeCommand(
+      obj: mill.define.Module,
+      name: String,
+      discover: Discover[_],
+      args: Seq[String],
+      nullCommandDefaults: Boolean
+  ) = ResolveCore.catchReflectException(
+    invokeCommand0(
+      obj,
+      name,
+      discover.asInstanceOf[Discover[mill.define.Module]],
+      args,
+      nullCommandDefaults
+    ).head
+  ).flatten
+
+  private def invokeCommand0(
+      target: mill.define.Module,
+      name: String,
+      discover: Discover[mill.define.Module],
+      rest: Seq[String],
+      nullCommandDefaults: Boolean
+  ): Iterable[Either[String, Command[_]]] = for {
+    (cls, entryPoints) <- discover.value
+    if cls.isAssignableFrom(target.getClass)
+    ep <- entryPoints
+    if ep._2.name == name
+  } yield {
+    def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
+      if (a.default.nonEmpty) a
+      else if (nullCommandDefaults) {
+        a.copy(default =
+          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Target.task(null))
+          else Some(_ => null)
+        )
+      } else a
+    }
+
+    val flattenedArgSigsWithDefaults = ep
+      ._2
+      .flattenedArgSigs
+      .map { case (arg, term) => (withNullDefault(arg), term) }
+
+    mainargs.TokenGrouping.groupArgs(
+      rest,
+      flattenedArgSigsWithDefaults,
+      allowPositional = true,
+      allowRepeats = false,
+      allowLeftover = ep._2.argSigs0.exists(_.reader.isLeftover)
+    ).flatMap { (grouped: TokenGrouping[_]) =>
+      val mainData = ep._2.asInstanceOf[MainData[_, Any]]
+      val mainDataWithDefaults = mainData
+        .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
+
+      mainargs.Invoker.invoke(
+        target,
+        mainDataWithDefaults,
+        grouped.asInstanceOf[TokenGrouping[Any]]
+      )
+    } match {
+      case mainargs.Result.Success(v: Command[_]) => Right(v)
+      case mainargs.Result.Failure.Exception(e) => makeResultException(e, new Exception())
+      case f: mainargs.Result.Failure =>
+        Left(
+          mainargs.Renderer.renderResult(
+            ep._2,
+            f,
+            totalWidth = 100,
+            printHelpOnError = true,
+            docsOnNewLine = false,
+            customName = None,
+            customDoc = None
+          )
+        )
+    }
+  }
+
 }
 trait Resolve[T] {
   def handleResolved(
@@ -111,13 +208,7 @@ trait Resolve[T] {
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
     ResolveNonEmpty
-      .resolveNonEmpty(
-        sel.value.toList,
-        rootModule,
-        rootModule.millDiscover,
-        args,
-        nullCommandDefaults
-      )
+      .resolveNonEmpty(sel.value.toList, rootModule)
       .map(_.toSeq.sortBy(_.segments.render))
       .flatMap(handleResolved(_, rootModule.millDiscover, args, sel, nullCommandDefaults))
   }

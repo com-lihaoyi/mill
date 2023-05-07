@@ -18,48 +18,48 @@ import scala.collection.immutable
  * metadata about what it was looking for, or [[Error]] if something blew up.
  */
 object ResolveCore {
-
   sealed trait Resolved {
     def segments: Segments
   }
 
   object Resolved {
-    case class Module(segments: Segments, valueOrErr: Either[String, mill.define.Module])
+    case class Module(segments: Segments, valueOrErr: () => Either[String, mill.define.Module])
         extends Resolved
 
-    case class Target(segments: Segments, valueOrErr: Either[String, mill.define.Target[_]])
+    case class Target(segments: Segments, valueOrErr: () => Either[String, mill.define.Target[_]])
         extends Resolved
 
-    case class Command(segments: Segments, valueOrErr: Either[String, mill.define.Command[_]])
+    case class Command(segments: Segments, parent: mill.define.Module)
         extends Resolved
   }
 
   sealed trait Result
+
   case class Success(value: Set[Resolved]) extends Result {
     assert(value.nonEmpty)
   }
+
   sealed trait Failed extends Result
+
   case class NotFound(
       deepest: Segments,
       found: Set[Resolved],
       next: Segment,
       possibleNexts: Set[Segment]
   ) extends Failed
+
   case class Error(msg: String) extends Failed
 
   def resolve(
       remainingQuery: List[Segment],
       current: Resolved,
-      discover: Discover[_],
-      args: Seq[String],
-      querySoFar: Segments,
-      nullCommandDefaults: Boolean
+      querySoFar: Segments
   ): Result = remainingQuery match {
     case Nil => Success(Set(current))
     case head :: tail =>
       def recurse(searchModules: Set[Resolved]): Result = {
         val (failures, successesLists) = searchModules
-          .map(r => resolve(tail, r, discover, args, querySoFar ++ Seq(head), nullCommandDefaults))
+          .map(r => resolve(tail, r, querySoFar ++ Seq(head)))
           .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
 
         val (errors, notFounds) = failures.partitionMap {
@@ -71,52 +71,28 @@ object ResolveCore {
         else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
         else notFounds.size match {
           case 1 => notFounds.head
-          case _ => notFoundResult(querySoFar, current, head, discover, args, nullCommandDefaults)
+          case _ => notFoundResult(querySoFar, current, head)
         }
       }
 
       (head, current) match {
         case (Segment.Label(singleLabel), m: Resolved.Module) =>
-          val resOrErr = m.valueOrErr.flatMap { obj =>
+          val resOrErr = m.valueOrErr().flatMap { obj =>
             singleLabel match {
               case "__" =>
-                val res = catchReflectException(
-                  obj
-                    .millInternal
-                    .modules
-                ).map(
-                  _.flatMap(m =>
-                    Seq(Resolved.Module(m.millModuleSegments, Right(m))) ++
-                      resolveDirectChildren(
-                        m,
-                        None,
-                        discover,
-                        args,
-                        m.millModuleSegments,
-                        nullCommandDefaults
-                      )
+                val res = catchReflectException(obj.millInternal.modules)
+                  .map(
+                    _.flatMap(m =>
+                      Seq(Resolved.Module(m.millModuleSegments, () => Right(m))) ++
+                        resolveDirectChildren(m, None, m.millModuleSegments)
+                    )
                   )
-                )
 
                 res
               case "_" =>
-                Right(resolveDirectChildren(
-                  obj,
-                  None,
-                  discover,
-                  args,
-                  current.segments,
-                  nullCommandDefaults
-                ))
+                Right(resolveDirectChildren(obj, None, current.segments))
               case _ =>
-                Right(resolveDirectChildren(
-                  obj,
-                  Some(singleLabel),
-                  discover,
-                  args,
-                  current.segments,
-                  nullCommandDefaults
-                ))
+                Right(resolveDirectChildren(obj, Some(singleLabel), current.segments))
             }
           }
 
@@ -125,25 +101,34 @@ object ResolveCore {
             case Right(res) => recurse(res.toSet)
           }
 
-        case (Segment.Cross(cross), Resolved.Module(_, Right(c: Cross[_]))) =>
-          val searchModulesOrErr = catchNormalException(
-            if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
-            else if (cross.contains("_")) {
-              for {
-                (segments, v) <- c.segmentsToModules.toList
-                if segments.length == cross.length
-                if segments.zip(cross).forall { case (l, r) => l == r || r == "_" }
-              } yield v
-            } else c.segmentsToModules.get(cross.toList).toSeq
-          )
+        case (Segment.Cross(cross), m: Resolved.Module) =>
+          m.valueOrErr() match {
+            case Right(c: Cross[_]) =>
+              val searchModulesOrErr = catchNormalException(
+                if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
+                else if (cross.contains("_")) {
+                  for {
+                    (segments, v) <- c.segmentsToModules.toList
+                    if segments.length == cross.length
+                    if segments.zip(cross).forall { case (l, r) => l == r || r == "_" }
+                  } yield v
+                } else c.segmentsToModules.get(cross.toList).toSeq
+              )
 
-          searchModulesOrErr match {
-            case Left(err) => Error(err)
-            case Right(searchModules) =>
-              recurse(searchModules.map(m => Resolved.Module(m.millModuleSegments, Right(m))).toSet)
+              searchModulesOrErr match {
+                case Left(err) => Error(err)
+                case Right(searchModules) =>
+                  recurse(
+                    searchModules
+                      .map(m => Resolved.Module(m.millModuleSegments, () => Right(m)))
+                      .toSet
+                  )
+              }
+
+            case _ => notFoundResult(querySoFar, current, head)
           }
 
-        case _ => notFoundResult(querySoFar, current, head, discover, args, nullCommandDefaults)
+        case _ => notFoundResult(querySoFar, current, head)
       }
   }
 
@@ -167,11 +152,8 @@ object ResolveCore {
 
   def resolveDirectChildren(
       obj: Module,
-      nameOpt: Option[String] = None,
-      discover: Discover[_],
-      args: Seq[String],
-      segments: Segments,
-      nullCommandDefaults: Boolean
+      nameOpt: Option[String],
+      segments: Segments
   ): Set[Resolved] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
 
@@ -181,7 +163,7 @@ object ResolveCore {
       .map { case (name, f) =>
         Resolved.Module(
           segments ++ Segment.Label(decode(name)),
-          catchReflectException(f())
+          () => catchReflectException(f())
         )
       }
 
@@ -190,7 +172,7 @@ object ResolveCore {
         c.segmentsToModules.map { case (k, v) =>
           Resolved.Module(
             segments ++ Segment.Cross(k),
-            catchReflectException(v)
+            () => catchReflectException(v)
           )
         }
       case _ => Nil
@@ -202,7 +184,7 @@ object ResolveCore {
       .map { m =>
         Resolved.Target(
           segments ++ Segment.Label(decode(m.getName)),
-          catchReflectException(m.invoke(obj).asInstanceOf[Target[_]])
+          () => catchReflectException(m.invoke(obj).asInstanceOf[Target[_]])
         )
       }
 
@@ -211,35 +193,17 @@ object ResolveCore {
       .reflect(obj.getClass, classOf[Command[_]], namePred, noParams = false)
       .map(m => decode(m.getName))
       .map { name =>
-        Resolved.Command(
-          segments ++ Segment.Label(name),
-          catchReflectException(
-            invokeCommand(
-              obj,
-              name,
-              discover.asInstanceOf[Discover[Module]],
-              args,
-              nullCommandDefaults
-            ).head
-          ).flatten
-        )
+        Resolved.Command(segments ++ Segment.Label(name), obj)
       }
 
     (modules ++ crosses ++ targets ++ commands).toSet
   }
 
-  def notFoundResult(
-      querySoFar: Segments,
-      current: Resolved,
-      next: Segment,
-      discover: Discover[_],
-      args: Seq[String],
-      nullCommandDefaults: Boolean
-  ) = {
+  def notFoundResult(querySoFar: Segments, current: Resolved, next: Segment) = {
     val possibleNextsOrErr = current match {
       case m: Resolved.Module =>
-        m.valueOrErr.map(obj =>
-          resolveDirectChildren(obj, None, discover, args, querySoFar, nullCommandDefaults)
+        m.valueOrErr().map(obj =>
+          resolveDirectChildren(obj, None, querySoFar)
             .map(_.segments.value.last)
         )
 
@@ -249,67 +213,6 @@ object ResolveCore {
     possibleNextsOrErr match {
       case Right(nexts) => NotFound(querySoFar, Set(current), next, nexts)
       case Left(err) => Error(err)
-    }
-  }
-
-  def invokeCommand(
-      target: Module,
-      name: String,
-      discover: Discover[Module],
-      rest: Seq[String],
-      nullCommandDefaults: Boolean
-  ): immutable.Iterable[Either[String, Command[_]]] = for {
-    (cls, entryPoints) <- discover.value
-    if cls.isAssignableFrom(target.getClass)
-    ep <- entryPoints
-    if ep._2.name == name
-  } yield {
-    def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
-      if (a.default.nonEmpty) a
-      else if (nullCommandDefaults) {
-        a.copy(default =
-          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Target.task(null))
-          else Some(_ => null)
-        )
-      } else a
-    }
-
-    val flattenedArgSigsWithDefaults = ep
-      ._2
-      .flattenedArgSigs
-      .map { case (arg, term) => (withNullDefault(arg), term) }
-
-    mainargs.TokenGrouping.groupArgs(
-      rest,
-      flattenedArgSigsWithDefaults,
-      allowPositional = true,
-      allowRepeats = false,
-      allowLeftover = ep._2.argSigs0.exists(_.reader.isLeftover)
-    ).flatMap { (grouped: TokenGrouping[_]) =>
-      val mainData = ep._2.asInstanceOf[MainData[_, Any]]
-      val mainDataWithDefaults = mainData
-        .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
-
-      mainargs.Invoker.invoke(
-        target,
-        mainDataWithDefaults,
-        grouped.asInstanceOf[TokenGrouping[Any]]
-      )
-    } match {
-      case mainargs.Result.Success(v: Command[_]) => Right(v)
-      case mainargs.Result.Failure.Exception(e) => makeResultException(e, new Exception())
-      case f: mainargs.Result.Failure =>
-        Left(
-          mainargs.Renderer.renderResult(
-            ep._2,
-            f,
-            totalWidth = 100,
-            printHelpOnError = true,
-            docsOnNewLine = false,
-            customName = None,
-            customDoc = None
-          )
-        )
     }
   }
 }
