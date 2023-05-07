@@ -111,7 +111,7 @@ object Deps {
   val ammoniteVersion = "3.0.0-M0-6-34034262"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
-  val coursier = ivy"io.get-coursier::coursier:2.1.2"
+  val coursier = ivy"io.get-coursier::coursier:2.1.3"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.16"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
@@ -151,7 +151,7 @@ object Deps {
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   // keep in sync with doc/antora/antory.yml
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.7"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.16"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.18"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:3.1.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
