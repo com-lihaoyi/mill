@@ -20,7 +20,10 @@ object RunScript {
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
   ] = {
-    for (targets <- Resolve.Tasks.resolve(evaluator.rootModule, scriptArgs, selectMode))
+    val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
+      Resolve.Tasks.resolve(evaluator.rootModule, scriptArgs, selectMode)
+    }
+    for (targets <- resolved)
       yield evaluateNamed(evaluator, Agg.from(targets.distinct))
   }
 
