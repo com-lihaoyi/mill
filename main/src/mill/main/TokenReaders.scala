@@ -3,7 +3,7 @@ package mill.main
 import mainargs.TokensReader
 import mill.eval.Evaluator
 import mill.define.{Args, Target, Task}
-import mill.resolve.{ResolveTasks, SelectMode}
+import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SimpleTaskTokenReader
 
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
@@ -12,7 +12,7 @@ object Tasks {
   class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
     def shortName = "<tasks>"
     def read(s: Seq[String]) = {
-      ResolveTasks.resolve(
+      Resolve.Tasks.resolve(
         Evaluator.currentEvaluator.value.rootModule,
         s,
         SelectMode.Separated

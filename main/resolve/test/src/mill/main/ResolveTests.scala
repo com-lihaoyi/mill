@@ -42,13 +42,13 @@ object ResolveTests extends TestSuite {
     }
 
     def resolveTasksAndMetadata(selectorStrings: Seq[String]) = {
-      val resolvedTasks = mill.resolve.ResolveTasks.resolve0(
+      val resolvedTasks = mill.resolve.Resolve.Tasks.resolve0(
         module,
         selectorStrings,
         SelectMode.Separated
       )
 
-      val resolvedMetadata = mill.resolve.ResolveMetadata.resolve0(
+      val resolvedMetadata = mill.resolve.Resolve.Metadata.resolve0(
         module,
         selectorStrings,
         SelectMode.Separated

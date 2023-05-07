@@ -3,65 +3,65 @@ package mill.resolve
 import mill.define.{BaseModule, Discover, ExternalModule, NamedTask, Segments, TaskModule}
 import mill.resolve.ResolveCore.Resolved
 import mill.util.EitherOps
-
-object ResolveSegments extends Resolve[Segments] {
-  def handleResolved(
-      resolved: Seq[Resolved],
-      discover: Discover[_],
-      args: Seq[String],
-      selector: Segments,
-      nullCommandDefaults: Boolean
-  ) = {
-    Right(resolved.map(_.segments))
+object Resolve {
+  object Segments extends Resolve[Segments] {
+    def handleResolved(
+                        resolved: Seq[Resolved],
+                        discover: Discover[_],
+                        args: Seq[String],
+                        selector: Segments,
+                        nullCommandDefaults: Boolean
+                      ) = {
+      Right(resolved.map(_.segments))
+    }
   }
-}
 
-object ResolveMetadata extends Resolve[String] {
-  def handleResolved(
-      resolved: Seq[Resolved],
-      discover: Discover[_],
-      args: Seq[String],
-      selector: Segments,
-      nullCommandDefaults: Boolean
-  ) = {
-    Right(resolved.map(_.segments.render))
+  object Metadata extends Resolve[String] {
+    def handleResolved(
+                        resolved: Seq[Resolved],
+                        discover: Discover[_],
+                        args: Seq[String],
+                        selector: Segments,
+                        nullCommandDefaults: Boolean
+                      ) = {
+      Right(resolved.map(_.segments.render))
+    }
   }
-}
 
-object ResolveTasks extends Resolve[NamedTask[Any]] {
-  def handleResolved(
-      resolved: Seq[Resolved],
-      discover: Discover[_],
-      args: Seq[String],
-      selector: Segments,
-      nullCommandDefaults: Boolean
-  ) = {
+  object Tasks extends Resolve[NamedTask[Any]] {
+    def handleResolved(
+                        resolved: Seq[Resolved],
+                        discover: Discover[_],
+                        args: Seq[String],
+                        selector: Segments,
+                        nullCommandDefaults: Boolean
+                      ) = {
 
-    val taskList: Seq[Either[String, NamedTask[_]]] = resolved
-      .flatMap {
-        case r: Resolved.Target => Some(r.valueOrErr)
-        case r: Resolved.Command => Some(r.valueOrErr)
-        case r: Resolved.Module =>
-          r.valueOrErr.toOption.collect { case value: TaskModule =>
-            ResolveCore.resolveDirectChildren(
-              value,
-              Some(value.defaultCommandName()),
-              discover,
-              args,
-              value.millModuleSegments,
-              nullCommandDefaults
-            ).head match {
-              case r: Resolved.Target => r.valueOrErr
-              case r: Resolved.Command => r.valueOrErr
+      val taskList: Seq[Either[String, NamedTask[_]]] = resolved
+        .flatMap {
+          case r: Resolved.Target => Some(r.valueOrErr)
+          case r: Resolved.Command => Some(r.valueOrErr)
+          case r: Resolved.Module =>
+            r.valueOrErr.toOption.collect { case value: TaskModule =>
+              ResolveCore.resolveDirectChildren(
+                value,
+                Some(value.defaultCommandName()),
+                discover,
+                args,
+                value.millModuleSegments,
+                nullCommandDefaults
+              ).head match {
+                case r: Resolved.Target => r.valueOrErr
+                case r: Resolved.Command => r.valueOrErr
+              }
             }
-          }
-      }
+        }
 
-    if (taskList.nonEmpty) EitherOps.sequence(taskList)
-    else Left(s"Cannot find default task to evaluate for module ${selector.render}")
+      if (taskList.nonEmpty) EitherOps.sequence(taskList)
+      else Left(s"Cannot find default task to evaluate for module ${selector.render}")
+    }
   }
 }
-
 trait Resolve[T] {
   def handleResolved(
       resolved: Seq[Resolved],

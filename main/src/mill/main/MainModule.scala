@@ -5,7 +5,7 @@ import mill.{BuildInfo, T}
 import mill.api.{Ctx, Logger, PathRef, Result, internal}
 import mill.define.{Command, NamedTask, Segments, TargetImpl, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.resolve.{ResolveMetadata, ResolveTasks, SelectMode}
+import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
 import mill.util.{PrintLogger, Watchable}
 import pprint.{Renderer, Tree, Truncated}
@@ -21,7 +21,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    ResolveTasks.resolve(evaluator.rootModule, targets, selectMode) match {
+    Resolve.Tasks.resolve(evaluator.rootModule, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -110,7 +110,7 @@ trait MainModule extends mill.Module {
    * Resolves a mill query string and prints out the tasks it resolves to.
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = T.command {
-    val resolved: Either[String, List[String]] = ResolveMetadata.resolve(
+    val resolved: Either[String, List[String]] = Resolve.Metadata.resolve(
       evaluator.rootModule,
       targets,
       SelectMode.Multi
@@ -140,7 +140,7 @@ trait MainModule extends mill.Module {
   }
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
-    ResolveTasks.resolve(
+    Resolve.Tasks.resolve(
       evaluator.rootModule,
       targets,
       SelectMode.Multi
@@ -159,7 +159,7 @@ trait MainModule extends mill.Module {
    * chosen is arbitrary.
    */
   def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] = T.command {
-    val resolved = ResolveTasks.resolve(
+    val resolved = Resolve.Tasks.resolve(
       evaluator.rootModule,
       List(src, dest),
       SelectMode.Multi
@@ -322,7 +322,7 @@ trait MainModule extends mill.Module {
       if (targets.isEmpty)
         Right(os.list(rootDir).filterNot(keepPath))
       else
-        mill.resolve.ResolveSegments.resolve(
+        mill.resolve.Resolve.Segments.resolve(
           evaluator.rootModule,
           targets,
           SelectMode.Multi
@@ -421,7 +421,7 @@ trait MainModule extends mill.Module {
       out.take()
     }
 
-    ResolveTasks.resolve(
+    Resolve.Tasks.resolve(
       evaluator.rootModule,
       targets,
       SelectMode.Multi
