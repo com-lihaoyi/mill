@@ -108,7 +108,9 @@ trait MillTestKit {
     )
 
     def evalTokens(args: String*): Either[Result.Failing[_], (Seq[_], Int)] = {
-      Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated) match {
+      mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
+        Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
+      } match {
         case Left(err) => Left(Result.Failure(err))
         case Right(resolved) => apply(resolved)
       }
