@@ -3,7 +3,7 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 // built against Mill 0.11.0-M8-24-7d871a
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.11.0-M8-24-7d871a:0.3.1-5-910047`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1-5-910047`
 import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.19`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
