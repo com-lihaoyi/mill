@@ -2,7 +2,9 @@ package mill.main
 
 import mainargs.TokensReader
 import mill.eval.Evaluator
-import mill.define.{Target, Task, Args}
+import mill.define.{Args, Target, Task}
+import mill.resolve.{ResolveTasks, SelectMode}
+import mill.resolve.SimpleTaskTokenReader
 
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
@@ -11,7 +13,7 @@ object Tasks {
     def shortName = "<tasks>"
     def read(s: Seq[String]) = {
       ResolveTasks.resolve(
-        Evaluator.currentEvaluator.value,
+        Evaluator.currentEvaluator.value.rootModule,
         s,
         SelectMode.Separated
       ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]]))
@@ -25,16 +27,6 @@ class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[mill.eval
   def read() = Right(Evaluator.currentEvaluator.value)
 }
 
-/**
- * Transparently handle `Task[T]` like simple `T` but lift the result into a T.task.
- */
-class SimpleTaskTokenReader[T](tokensReaderOfT: TokensReader.Simple[T])
-    extends mainargs.TokensReader.Simple[Task[T]] {
-  def shortName = tokensReaderOfT.shortName
-  def read(s: Seq[String]) = tokensReaderOfT.read(s).map(t => Target.task(t))
-  override def alwaysRepeatable = tokensReaderOfT.alwaysRepeatable
-  override def allowEmpty = tokensReaderOfT.allowEmpty
-}
 
 class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
     extends mainargs.TokensReader.Leftover[Task[T], T] {

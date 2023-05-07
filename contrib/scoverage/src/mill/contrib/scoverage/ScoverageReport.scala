@@ -3,7 +3,8 @@ package mill.contrib.scoverage
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.{Command, Module, Task}
 import mill.eval.Evaluator
-import mill.main.{ResolveTasks, RunScript, SelectMode}
+import mill.resolve.{ResolveTasks, SelectMode}
+import mill.main.RunScript
 import mill.{PathRef, T}
 import os.Path
 
@@ -81,7 +82,7 @@ trait ScoverageReport extends Module {
       dataTargets: String
   ): Task[PathRef] = {
     val sourcesTasks: Seq[Task[Seq[PathRef]]] = ResolveTasks.resolve(
-      evaluator,
+      evaluator.rootModule,
       Seq(sources),
       SelectMode.Separated
     ) match {
@@ -89,7 +90,7 @@ trait ScoverageReport extends Module {
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[Seq[PathRef]]]]
     }
     val dataTasks: Seq[Task[PathRef]] = ResolveTasks.resolve(
-      evaluator,
+      evaluator.rootModule,
       Seq(dataTargets),
       SelectMode.Separated
     ) match {

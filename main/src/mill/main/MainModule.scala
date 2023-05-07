@@ -5,7 +5,8 @@ import mill.{BuildInfo, T}
 import mill.api.{Ctx, Logger, PathRef, Result, internal}
 import mill.define.{Command, NamedTask, Segments, TargetImpl, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.main.SelectMode.Separated
+import mill.resolve.{ResolveMetadata, ResolveTasks, SelectMode}
+import mill.resolve.SelectMode.Separated
 import mill.util.{PrintLogger, Watchable}
 import pprint.{Renderer, Tree, Truncated}
 import ujson.Value
@@ -20,7 +21,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    ResolveTasks.resolve(evaluator, targets, selectMode) match {
+    ResolveTasks.resolve(evaluator.rootModule, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -110,7 +111,7 @@ trait MainModule extends mill.Module {
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = T.command {
     val resolved: Either[String, List[String]] = ResolveMetadata.resolve(
-      evaluator,
+      evaluator.rootModule,
       targets,
       SelectMode.Multi
     )
@@ -140,7 +141,7 @@ trait MainModule extends mill.Module {
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
     ResolveTasks.resolve(
-      evaluator,
+      evaluator.rootModule,
       targets,
       SelectMode.Multi
     ) match {
@@ -159,7 +160,7 @@ trait MainModule extends mill.Module {
    */
   def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] = T.command {
     val resolved = ResolveTasks.resolve(
-      evaluator,
+      evaluator.rootModule,
       List(src, dest),
       SelectMode.Multi
     )
@@ -321,8 +322,8 @@ trait MainModule extends mill.Module {
       if (targets.isEmpty)
         Right(os.list(rootDir).filterNot(keepPath))
       else
-        mill.main.ResolveSegments.resolve(
-          evaluator,
+        mill.resolve.ResolveSegments.resolve(
+          evaluator.rootModule,
           targets,
           SelectMode.Multi
         ).map { ts =>
@@ -421,7 +422,7 @@ trait MainModule extends mill.Module {
     }
 
     ResolveTasks.resolve(
-      evaluator,
+      evaluator.rootModule,
       targets,
       SelectMode.Multi
     ) match {

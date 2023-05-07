@@ -1,7 +1,7 @@
-package mill.main
+package mill.resolve
 
 import mill.define.{BaseModule, Discover, Segment, Segments}
-import mill.main.ResolveCore.Resolved
+import mill.resolve.ResolveCore.Resolved
 
 /**
  * Wraps [[ResolveCore]] to report error messages if nothing was resolved

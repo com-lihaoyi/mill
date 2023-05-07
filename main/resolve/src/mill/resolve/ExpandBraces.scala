@@ -1,4 +1,4 @@
-package mill.main
+package mill.resolve
 
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse._

@@ -1,8 +1,7 @@
-package mill.main
+package mill.resolve
 
 import mill.define.{BaseModule, Discover, ExternalModule, NamedTask, Segments, TaskModule}
-import mill.eval.Evaluator
-import mill.main.ResolveCore.Resolved
+import mill.resolve.ResolveCore.Resolved
 import mill.util.EitherOps
 
 object ResolveSegments extends Resolve[Segments] {
@@ -73,14 +72,13 @@ trait Resolve[T] {
   ): Either[String, Seq[T]]
 
   def resolve(
-      evaluator: Evaluator,
+      rootModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    resolve0(Some(evaluator), evaluator.rootModule, scriptArgs, selectMode)
+    resolve0(rootModule, scriptArgs, selectMode)
   }
   def resolve0(
-      evaluatorOpt: Option[Evaluator],
       baseModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode
@@ -90,18 +88,7 @@ trait Resolve[T] {
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
           resolveRootModule(baseModule, scopedSel).map { rootModule =>
-            evaluatorOpt match {
-              case None => resolveNonEmptyAndHandle(args, sel, rootModule, nullCommandDefaults)
-              case Some(eval) =>
-                // We inject the `evaluator.rootModule` into the TargetScopt, rather
-                // than the `rootModule`, because even if you are running an external
-                // module we still want you to be able to resolve targets from your
-                // main build. Resolving targets from external builds as CLI arguments
-                // is not currently supported
-                mill.eval.Evaluator.currentEvaluator.withValue(eval) {
-                  resolveNonEmptyAndHandle(args, sel, rootModule, nullCommandDefaults)
-                }
-            }
+            resolveNonEmptyAndHandle(args, sel, rootModule, nullCommandDefaults)
           }
         }
 

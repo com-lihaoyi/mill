@@ -1,4 +1,4 @@
-package mill.main
+package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
 import mill.define._

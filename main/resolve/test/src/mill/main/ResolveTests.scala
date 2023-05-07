@@ -1,4 +1,4 @@
-package mill.main
+package mill.resolve
 
 import mill.define.NamedTask
 import mill.util.TestGraphs._
@@ -42,15 +42,13 @@ object ResolveTests extends TestSuite {
     }
 
     def resolveTasksAndMetadata(selectorStrings: Seq[String]) = {
-      val resolvedTasks = mill.main.ResolveTasks.resolve0(
-        None,
+      val resolvedTasks = mill.resolve.ResolveTasks.resolve0(
         module,
         selectorStrings,
         SelectMode.Separated
       )
 
-      val resolvedMetadata = mill.main.ResolveMetadata.resolve0(
-        None,
+      val resolvedMetadata = mill.resolve.ResolveMetadata.resolve0(
         module,
         selectorStrings,
         SelectMode.Separated
