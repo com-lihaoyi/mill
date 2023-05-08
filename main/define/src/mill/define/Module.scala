@@ -14,7 +14,8 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher with Module.Trait { outer =>
+class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher with Module.Trait {
+  outer =>
 
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,

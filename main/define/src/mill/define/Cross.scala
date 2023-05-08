@@ -270,8 +270,9 @@ object Cross {
  * }
  * }}}
  */
-class Cross[M <: Cross.Module[_]: ClassTag](factories: Cross.Factory[M]*)(implicit ctx: mill.define.Ctx)
-    extends mill.define.Module()(ctx) {
+class Cross[M <: Cross.Module[_]: ClassTag](factories: Cross.Factory[M]*)(implicit
+    ctx: mill.define.Ctx
+) extends mill.define.Module()(ctx) {
 
   // We lazily initialize the instances of `Cross.Module` only when they are
   // requested, to avoid unexpected failures in one module initialization

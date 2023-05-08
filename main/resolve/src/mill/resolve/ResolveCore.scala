@@ -95,7 +95,8 @@ private object ResolveCore {
             val resOrErr = singleLabel match {
               case "__" =>
                 val self = Seq(Resolved.Module(m.segments, m.cls))
-                val transitiveOrErr = resolveTransitiveChildren(rootModule, m.cls, None, current.segments)
+                val transitiveOrErr =
+                  resolveTransitiveChildren(rootModule, m.cls, None, current.segments)
 
                 transitiveOrErr.map(transitive => self ++ transitive)
 
@@ -106,7 +107,7 @@ private object ResolveCore {
                 resolveDirectChildren(rootModule, m.cls, Some(singleLabel), current.segments)
             }
 
-            resOrErr match{
+            resOrErr match {
               case Left(err) => Error(err)
               case Right(res) => recurse(res.toSet)
             }
@@ -168,7 +169,7 @@ private object ResolveCore {
       nameOpt: Option[String],
       segments: Segments
   ): Either[String, Set[Resolved]] = {
-    for{
+    for {
       direct <- resolveDirectChildren(rootModule, cls, nameOpt, segments)
       indirect0 = direct
         .collect { case m: Resolved.Module =>
@@ -186,7 +187,7 @@ private object ResolveCore {
   ): Either[String, Set[Resolved]] = {
 
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
-      instantiateModule(rootModule: Module, segments).map{
+      instantiateModule(rootModule: Module, segments).map {
         case cross: Cross[_] =>
           cross
             .segments
@@ -198,7 +199,7 @@ private object ResolveCore {
       }
     } else Right(Nil)
 
-    crossesOrErr.map{crosses =>
+    crossesOrErr.map { crosses =>
       resolveDirectChildren0(cls, nameOpt)
         .map {
           case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
@@ -254,7 +255,9 @@ private object ResolveCore {
   def notFoundResult(rootModule: Module, querySoFar: Segments, current: Resolved, next: Segment) = {
     val possibleNexts = current match {
       case m: Resolved.Module =>
-        resolveDirectChildren(rootModule, m.cls, None, current.segments).right.get.map(_.segments.value.last)
+        resolveDirectChildren(rootModule, m.cls, None, current.segments).right.get.map(
+          _.segments.value.last
+        )
 
       case _ => Set[Segment]()
     }

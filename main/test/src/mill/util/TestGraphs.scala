@@ -205,7 +205,7 @@ class TestGraphs() {
   }
 
   object crossModuleParentInitError extends TestUtil.BaseModule {
-    object parent extends Module{
+    object parent extends Module {
       throw new Exception(s"Parent Boom")
       object myCross extends Cross[MyCross](1, 2, 3, 4)
       trait MyCross extends Cross.Module[Int] {
@@ -217,16 +217,16 @@ class TestGraphs() {
   }
 
   object overrideModule extends TestUtil.BaseModule {
-    trait Base extends Module{
+    trait Base extends Module {
       val inner: BaseInnerModule = new BaseInnerModule(implicitly)
       class BaseInnerModule(ctx: mill.define.Ctx) extends mill.define.Module {
-        def baseTarget = T{1}
+        def baseTarget = T { 1 }
       }
     }
-    object sub extends Base{
+    object sub extends Base {
       override val inner: SubInnerModule = new SubInnerModule(implicitly)
-      class SubInnerModule(ctx: mill.define.Ctx) extends BaseInnerModule(ctx){
-        def subTarget = T{2}
+      class SubInnerModule(ctx: mill.define.Ctx) extends BaseInnerModule(ctx) {
+        def subTarget = T { 2 }
       }
     }
 

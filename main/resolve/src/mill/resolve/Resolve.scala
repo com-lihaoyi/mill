@@ -53,8 +53,7 @@ object Resolve {
           instantiated.map(Some(_))
 
         case r: Resolved.Module =>
-
-          ResolveCore.instantiateModule(rootModule, r.segments).flatMap{
+          ResolveCore.instantiateModule(rootModule, r.segments).flatMap {
             case value: TaskModule =>
               val directChildrenOrErr = ResolveCore.resolveDirectChildren(
                 rootModule,

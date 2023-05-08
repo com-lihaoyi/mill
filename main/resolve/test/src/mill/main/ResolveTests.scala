@@ -46,7 +46,7 @@ object ResolveTests extends TestSuite {
       assert(checkMetadata(resolvedMetadata))
     }
 
-    def resolveTasks(selectorStrings: Seq[String]) =  {
+    def resolveTasks(selectorStrings: Seq[String]) = {
       Resolve.Tasks.resolve0(
         module,
         selectorStrings,
@@ -63,11 +63,11 @@ object ResolveTests extends TestSuite {
     }
   }
 
-  def isShortError(x: Either[String, _], s: String) = 
+  def isShortError(x: Either[String, _], s: String) =
     x.left.exists(_.contains(s)) &&
-    // Make sure the stack traces are truncated and short-ish, and do not
-    // contain the entire Mill internal call stack at point of failure
-    x.left.exists(_.linesIterator.size < 20)
+      // Make sure the stack traces are truncated and short-ish, and do not
+      // contain the entire Mill internal call stack at point of failure
+      x.left.exists(_.linesIterator.size < 20)
 
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
@@ -605,7 +605,7 @@ object ResolveTests extends TestSuite {
 
       "dependency" - {
         val check = new Checker(moduleDependencyInitError)
-      
+
         "fooTarget" - check.checkSeq0(
           Seq("foo.fooTarget"),
           isShortError(_, "Foo Boom"),
@@ -644,7 +644,7 @@ object ResolveTests extends TestSuite {
           check.checkSeq0(
             Seq("__.foo"),
             isShortError(_, "MyCross Boom"),
-            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
           )
           check.checkSeq0(
             Seq("__"),
@@ -666,7 +666,7 @@ object ResolveTests extends TestSuite {
           test - check.checkSeq0(
             Seq("myCross[3].foo"),
             isShortError(_, "MyCross Boom 3"),
-            isShortError(_, "MyCross Boom 3"),
+            isShortError(_, "MyCross Boom 3")
           )
           // Using wildcards forces evaluation of the myCross submodules,
           // causing failure if we try to instantiate the tasks, but just
@@ -680,7 +680,7 @@ object ResolveTests extends TestSuite {
           test - check.checkSeq0(
             Seq("myCross[_].foo"),
             isShortError(_, "MyCross Boom"),
-            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
           )
           test - check.checkSeq0(
             Seq("__.foo"),
@@ -715,13 +715,13 @@ object ResolveTests extends TestSuite {
           test - check.checkSeq0(
             Seq("myCross[3].foo"),
             isShortError(_, "MyCross Boom"),
-            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
           )
 
           test - check.checkSeq0(
             Seq("myCross._.foo"),
             isShortError(_, "MyCross Boom"),
-            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
           )
         }
 
@@ -734,19 +734,19 @@ object ResolveTests extends TestSuite {
           test - check.checkSeq0(
             Seq("parent.myCross[3].foo"),
             isShortError(_, "Parent Boom"),
-            isShortError(_, "Parent Boom"),
+            isShortError(_, "Parent Boom")
           )
 
           test - check.checkSeq0(
             Seq("parent.myCross._.foo"),
             isShortError(_, "Parent Boom"),
-            isShortError(_, "Parent Boom"),
+            isShortError(_, "Parent Boom")
           )
         }
       }
     }
 
-    test("overridenModule"){
+    test("overridenModule") {
       val check = new Checker(overrideModule)
       test - check(
         "sub.inner.subTarget",
