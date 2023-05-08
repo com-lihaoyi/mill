@@ -221,10 +221,7 @@ trait Resolve[T] {
       rootModule: BaseModule,
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
-    val rootResolved = ResolveCore.Resolved.Module(
-      rootModule.millModuleSegments,
-      rootModule.getClass
-    )
+    val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
 
     val resolved =
       ResolveCore.resolve(rootModule, sel.value.toList, rootResolved, Segments()) match {
