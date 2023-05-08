@@ -33,13 +33,13 @@ object ResolveNotFoundHandler {
 
   def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 
-  def hintList(revSelectorsSoFar: Seq[Segment]) = {
-    val search = Segments(revSelectorsSoFar).render
+  def hintList(revSelectorsSoFar: Segments) = {
+    val search = revSelectorsSoFar.render
     s" Try `mill resolve $search` to see what's available."
   }
 
-  def hintListLabel(revSelectorsSoFar: Seq[Segment]) = {
-    hintList(revSelectorsSoFar :+ Segment.Label("_"))
+  def hintListLabel(revSelectorsSoFar: Segments) = {
+    hintList(revSelectorsSoFar ++ Segment.Label("_"))
   }
 
   def findMostSimilar(given: String, options: Set[String]): Option[String] = {
@@ -57,7 +57,7 @@ object ResolveNotFoundHandler {
       fullSegments: Segments
   ) = {
     val suggestion = findMostSimilar(given, possibleMembers) match {
-      case None => hintListLabel(prefixSegments.value)
+      case None => hintListLabel(prefixSegments)
       case Some(similar) =>
         " Did you mean " +
           (prefixSegments ++ Segment.Label(similar)).render +
@@ -80,7 +80,7 @@ object ResolveNotFoundHandler {
       givenKeys.mkString(","),
       possibleCrossKeys.map(_.mkString(","))
     ) match {
-      case None => hintListLabel(prefixSegments.value)
+      case None => hintListLabel(prefixSegments)
       case Some(similar) =>
         " Did you mean " +
           (prefixSegments ++ Segment.Cross(similar.split(','))).render +

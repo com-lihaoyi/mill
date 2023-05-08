@@ -220,7 +220,7 @@ private object ResolveCore {
       .reflectNestedObjects0[Module](cls, namePred)
       .map { case (name, member) =>
         Resolved.Module(
-          Segments() ++ Segment.Label(decode(name)),
+          Segments.labels(decode(name)),
           member match {
             case f: java.lang.reflect.Field => f.getType
             case f: java.lang.reflect.Method => f.getReturnType
@@ -239,14 +239,14 @@ private object ResolveCore {
     val targets = Reflect
       .reflect(cls, classOf[Target[_]], namePred, noParams = true)
       .map { m =>
-        Resolved.Target(Segments() ++ Segment.Label(decode(m.getName))) ->
+        Resolved.Target(Segments.labels(decode(m.getName))) ->
           None
       }
 
     val commands = Reflect
       .reflect(cls, classOf[Command[_]], namePred, noParams = false)
       .map(m => decode(m.getName))
-      .map { name => Resolved.Command(Segments() ++ Segment.Label(name)) -> None }
+      .map { name => Resolved.Command(Segments.labels(name)) -> None }
 
     modules ++ targets ++ commands
   }
