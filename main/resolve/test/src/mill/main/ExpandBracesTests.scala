@@ -1,4 +1,4 @@
-package mill.main
+package mill.resolve
 
 import utest._
 

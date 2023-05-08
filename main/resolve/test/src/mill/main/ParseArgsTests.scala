@@ -1,8 +1,8 @@
-package mill.main
+package mill.resolve
 
 import mill.define.{Segment, Segments}
 import mill.define.Segment.{Cross, Label}
-import mill.main.ParseArgs.TargetSeparator
+import mill.resolve.ParseArgs.TargetSeparator
 import utest._
 
 object ParseArgsTests extends TestSuite {
@@ -95,7 +95,7 @@ object ParseArgsTests extends TestSuite {
           multiSelect: Boolean
       ) = {
         val Right((selectors0, args) :: _) =
-          ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Single)
+          ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Separated)
 
         val selectors = selectors0.map {
           case (Some(v1), v2) => (Some(v1.value), v2.value)
@@ -108,7 +108,7 @@ object ParseArgsTests extends TestSuite {
       }
 
       "rejectEmpty" - {
-        val parsed = ParseArgs(Seq.empty, selectMode = SelectMode.Single)
+        val parsed = ParseArgs(Seq.empty, selectMode = SelectMode.Separated)
         assert(
           parsed == Left("Selector cannot be empty")
         )
@@ -194,7 +194,7 @@ object ParseArgsTests extends TestSuite {
         multiSelect = true
       )
       "multiSelectorsBraceExpansionWithoutAll" - {
-        val res = ParseArgs(Seq("{core,application}.compile"), SelectMode.Single)
+        val res = ParseArgs(Seq("{core,application}.compile"), SelectMode.Separated)
         val expected = Right(
           List(
             (

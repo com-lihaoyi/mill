@@ -1,4 +1,4 @@
-package mill.main
+package mill.resolve
 
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse._
@@ -12,9 +12,6 @@ object SelectMode {
 
   /** All args are treated as targets or commands. If a `--` is detected, subsequent args are parameters to all commands. */
   object Multi extends SelectMode
-
-  /** Only the first arg is treated as target or command, subsequent args are parameters of the command. */
-  object Single extends SelectMode
 
   /** Like a combination of [[Single]] and [[Multi]], behaving like [[Single]] but using a special separator (`++`) to start parsing another target/command. */
   object Separated extends SelectMode
@@ -107,7 +104,7 @@ object ParseArgs {
 
   private def selector[_p: P]: P[(Option[Segments], Segments)] = {
     def ident2 = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def segment = P(mill.define.Module.Internal.ident).map(Segment.Label)
+    def segment = P(mill.define.Reflect.ident).map(Segment.Label)
     def crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
     def simpleQuery = P(segment ~ ("." ~ segment | crossSegment).rep).map {
       case (h, rest) => Segments(h +: rest)

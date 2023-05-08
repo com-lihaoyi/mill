@@ -90,8 +90,7 @@ case class GenIdeaImpl(
         Util.millProperty("MILL_BUILD_LIBRARIES") match {
           case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
           case None =>
-            val moduleRepos = Evaluator.evalOrThrow(
-              evaluator = evaluator,
+            val moduleRepos = evaluator.evalOrThrow(
               exceptionFactory = r =>
                 GenIdeaException(
                   s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"

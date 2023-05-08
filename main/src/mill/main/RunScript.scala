@@ -6,12 +6,13 @@ import mill.util.Watchable
 import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg
 import Evaluator._
+import mill.resolve.{Resolve, SelectMode}
 
 object RunScript {
 
   type TaskName = String
 
-  def evaluateTasksNamed[T](
+  def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
@@ -19,7 +20,10 @@ object RunScript {
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
   ] = {
-    for (targets <- ResolveTasks.resolve(evaluator, scriptArgs, selectMode))
+    val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
+      Resolve.Tasks.resolve(evaluator.rootModule, scriptArgs, selectMode)
+    }
+    for (targets <- resolved)
       yield evaluateNamed(evaluator, Agg.from(targets.distinct))
   }
 
@@ -41,7 +45,7 @@ object RunScript {
           ps.map(Watchable.Path(_))
         case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) =>
           Seq(Watchable.Path(p))
-        case (t: InputImpl[_], TaskResult(_, Some(recalc))) =>
+        case (t: InputImpl[_], TaskResult(_, recalc)) =>
           val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
           Seq(Watchable.Value(() => recalc().hashCode(), recalc().hashCode(), pretty))
       }

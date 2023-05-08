@@ -1,4 +1,4 @@
-package mill.main
+package mill.resolve
 
 /**
  * Compute the Levenshtein Distance.

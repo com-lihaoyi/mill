@@ -3,7 +3,8 @@ import mill.util.{ColorLogger, PrefixLogger, Util, Watchable}
 import mill.{BuildInfo, T}
 import mill.api.{PathRef, Val, internal}
 import mill.eval.Evaluator
-import mill.main.{RootModule, RunScript, SelectMode}
+import mill.main.{RootModule, RunScript}
+import mill.resolve.SelectMode
 import mill.main.TokenReaders._
 import mill.define.{Discover, Segments}
 
@@ -72,7 +73,12 @@ class MillBuildBootstrap(
         } else {
 
           val bootstrapModule =
-            new MillBuildRootModule.BootstrapModule(projectRoot, recRoot(depth), millBootClasspath)(
+            new MillBuildRootModule.BootstrapModule(
+              projectRoot,
+              recRoot(depth),
+              millBootClasspath,
+              config.imports.collect { case s"ivy:$rest" => rest }
+            )(
               mill.main.RootModule.Info(
                 recRoot(depth),
                 Discover[MillBuildRootModule.BootstrapModule]
@@ -278,19 +284,19 @@ class MillBuildBootstrap(
       if (depth == 0) ""
       else "[" + (Seq.fill(depth - 1)("mill-build") ++ Seq("build.sc")).mkString("/") + "] "
 
-    Evaluator(
+    mill.eval.EvaluatorImpl(
       config.home,
       recOut(depth),
       recOut(depth),
       rootModule,
       PrefixLogger(logger, "", tickerContext = bootLogPrefix),
-      millClassloaderSigHash
+      millClassloaderSigHash,
+      workerCache = workerCache.to(collection.mutable.Map),
+      env = env,
+      failFast = !config.keepGoing.value,
+      threadCount = threadCount,
+      scriptImportGraph = scriptImportGraph
     )
-      .withWorkerCache(workerCache.to(collection.mutable.Map))
-      .withEnv(env)
-      .withFailFast(!config.keepGoing.value)
-      .withThreadCount(threadCount)
-      .withScriptImportGraph(scriptImportGraph)
   }
 
   def recRoot(depth: Int) = projectRoot / Seq.fill(depth)("mill-build")
