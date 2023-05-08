@@ -652,7 +652,7 @@ trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompi
 
 object main extends MillModule {
 
-  override def moduleDeps = Seq(eval, client)
+  override def moduleDeps = Seq(eval, resolve, client)
   override def ivyDeps = Agg(
     Deps.windowsAnsi,
     Deps.mainargs,
@@ -725,6 +725,9 @@ object main extends MillModule {
   }
 
   object eval extends MillModule {
+    override def moduleDeps = Seq(define)
+  }
+  object resolve extends MillModule {
     override def moduleDeps = Seq(define)
   }
 
