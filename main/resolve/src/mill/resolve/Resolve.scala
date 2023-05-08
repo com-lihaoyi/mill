@@ -1,7 +1,18 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.define.{BaseModule, Command, Discover, ExternalModule, Module, NamedTask, Reflect, Segments, Target, TaskModule}
+import mill.define.{
+  BaseModule,
+  Command,
+  Discover,
+  ExternalModule,
+  Module,
+  NamedTask,
+  Reflect,
+  Segments,
+  Target,
+  TaskModule
+}
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
 
@@ -26,41 +37,49 @@ object Resolve {
         selector: Segments,
         nullCommandDefaults: Boolean
     ) = {
-
-      val taskList = resolved.flatMap {
+      val taskList = resolved.map {
         case r: Resolved.Target =>
           val instantiated = ResolveCore
             .instantiateModule(rootModule, r.segments.init)
             .flatMap(instantiateTarget(r, _))
 
-          Some(instantiated)
+          instantiated.map(Some(_))
 
         case r: Resolved.Command =>
           val instantiated = ResolveCore
             .instantiateModule(rootModule, r.segments.init)
             .flatMap(instantiateCommand(rootModule, r, _, args, nullCommandDefaults))
 
-          Some(instantiated)
+          instantiated.map(Some(_))
 
         case r: Resolved.Module =>
-          ResolveCore.instantiateModule(rootModule, r.segments).toOption.collect { case value: TaskModule =>
-            ResolveCore.resolveDirectChildren(
-              rootModule,
-              value.getClass,
-              Some(value.defaultCommandName()),
-              value.millModuleSegments
-            ).head match {
-              case r: Resolved.Target =>
-                instantiateTarget(r, value)
-              case r: Resolved.Command =>
-                instantiateCommand(rootModule, r, value, args, nullCommandDefaults)
 
-            }
+          ResolveCore.instantiateModule(rootModule, r.segments).flatMap{
+            case value: TaskModule =>
+              val directChildrenOrErr = ResolveCore.resolveDirectChildren(
+                rootModule,
+                value.getClass,
+                Some(value.defaultCommandName()),
+                value.millModuleSegments
+              )
+
+              directChildrenOrErr.flatMap(directChildren =>
+                directChildren.head match {
+                  case r: Resolved.Target => instantiateTarget(r, value).map(Some(_))
+                  case r: Resolved.Command =>
+                    instantiateCommand(rootModule, r, value, args, nullCommandDefaults).map(Some(_))
+                }
+              )
+            case _ => Right(None)
           }
       }
 
-      if (taskList.nonEmpty) EitherOps.sequence(taskList)
-      else Left(s"Cannot find default task to evaluate for module ${selector.render}")
+      val sequenced = EitherOps.sequence(taskList).map(_.flatten)
+
+      sequenced.flatMap(flattened =>
+        if (flattened.nonEmpty) Right(flattened)
+        else Left(s"Cannot find default task to evaluate for module ${selector.render}")
+      )
     }
   }
 
@@ -74,11 +93,13 @@ object Resolve {
     )
   }
 
-  private def instantiateCommand(rootModule: BaseModule,
-                         r: Resolved.Command,
-                         p: Module,
-                         args: Seq[String],
-                         nullCommandDefaults: Boolean) = {
+  private def instantiateCommand(
+      rootModule: BaseModule,
+      r: Resolved.Command,
+      p: Module,
+      args: Seq[String],
+      nullCommandDefaults: Boolean
+  ) = {
     ResolveCore.catchWrapException(
       invokeCommand0(
         p,
@@ -150,11 +171,11 @@ object Resolve {
         )
     }
   }
-
 }
+
 trait Resolve[T] {
   private[mill] def handleResolved(
-                      rootModule: BaseModule,
+      rootModule: BaseModule,
       resolved: Seq[Resolved],
       args: Seq[String],
       segments: Segments,
@@ -168,6 +189,7 @@ trait Resolve[T] {
   ): Either[String, List[T]] = {
     resolve0(rootModule, scriptArgs, selectMode)
   }
+
   private[mill] def resolve0(
       baseModule: BaseModule,
       scriptArgs: Seq[String],
@@ -205,12 +227,13 @@ trait Resolve[T] {
       rootModule.getClass
     )
 
-    val resolved = ResolveCore.resolve(rootModule, sel.value.toList, rootResolved, Segments()) match{
-      case ResolveCore.Success(value) => Right(value)
-      case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-        Left(ResolveNotFoundHandler(sel, segments, found, next, possibleNexts))
-      case ResolveCore.Error(value) => Left(value)
-    }
+    val resolved =
+      ResolveCore.resolve(rootModule, sel.value.toList, rootResolved, Segments()) match {
+        case ResolveCore.Success(value) => Right(value)
+        case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
+          Left(ResolveNotFoundHandler(sel, segments, found, next, possibleNexts))
+        case ResolveCore.Error(value) => Left(value)
+      }
 
     resolved
       .map(_.toSeq.sortBy(_.segments.render))

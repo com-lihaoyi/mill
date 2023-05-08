@@ -195,6 +195,25 @@ class TestGraphs() {
 
     override lazy val millDiscover = Discover[this.type]
   }
+  object crossModuleSelfInitError extends TestUtil.BaseModule {
+    object myCross extends Cross[MyCross](1, 2, 3, throw new Exception(s"MyCross Boom"))
+    trait MyCross extends Cross.Module[Int] {
+      def foo = T { crossValue }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+  object crossModuleParentInitError extends TestUtil.BaseModule {
+    object parent extends Module{
+      throw new Exception(s"Parent Boom")
+      object myCross extends Cross[MyCross](1, 2, 3, 4)
+      trait MyCross extends Cross.Module[Int] {
+        def foo = T { crossValue }
+      }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
 }
 
 object TestGraphs {

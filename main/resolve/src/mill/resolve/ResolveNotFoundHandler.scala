@@ -7,11 +7,13 @@ import mill.resolve.ResolveCore.Resolved
  * Reports errors in the case where nothing was resolved
  */
 object ResolveNotFoundHandler {
-  def apply(selector: Segments,
-            segments: Segments,
-            found: Set[Resolved],
-            next: Segment,
-            possibleNexts: Set[Segment]): String = {
+  def apply(
+      selector: Segments,
+      segments: Segments,
+      found: Set[Resolved],
+      next: Segment,
+      possibleNexts: Set[Segment]
+  ): String = {
 
     if (found.head.isInstanceOf[Resolved.Module]) {
       next match {
@@ -28,7 +30,6 @@ object ResolveNotFoundHandler {
         s" ${segments.render} resolves to a Task with no children."
     }
   }
-
 
   def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 

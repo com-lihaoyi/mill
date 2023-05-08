@@ -68,32 +68,11 @@ object Module {
 
     def reflectAll[T: ClassTag]: Seq[T] = reflect[T](Function.const(true))
 
-    // For some reason, this fails to pick up concrete `object`s nested directly within
-    // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
-    // script/REPL runner always wraps user code in a wrapper object/trait
     def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true)) = {
-      reflectNestedObjects0(filter).map(_._2())
-    }
-
-    def reflectNestedObjects0[T: ClassTag](filter: String => Boolean = Function.const(true))
-        : Seq[(String, () => T)] = {
-      Reflect.reflectNestedObjects0(outer.getClass, filter).map{
-        case (name, m: java.lang.reflect.Method) => (name, () => m.invoke(outer).asInstanceOf[T])
-        case (name, m: java.lang.reflect.Field) => (name, () =>m.get(outer).asInstanceOf[T])
+      Reflect.reflectNestedObjects0(outer.getClass, filter).map {
+        case (name, m: java.lang.reflect.Method) => m.invoke(outer).asInstanceOf[T]
+        case (name, m: java.lang.reflect.Field) => m.get(outer).asInstanceOf[T]
       }
     }
   }
-}
-
-/**
- * A [[Module]] that has a [[defaultCommandName]] that will be automatically
- * executed if the module name is provide at the Mill command line
- */
-trait TaskModule extends Module {
-
-  /**
-   * The name of the default command, which will be automatically excecuted if
-   * the module name is provided at the Mill command line
-   */
-  def defaultCommandName(): String
 }
