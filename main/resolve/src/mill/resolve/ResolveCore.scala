@@ -92,23 +92,20 @@ object ResolveCore {
         case (Segment.Label(singleLabel), m: Resolved.Module) =>
           val resOrErr = singleLabel match {
             case "__" =>
-              instantiateModule(rootModule, current.segments).flatMap{obj =>
-                catchWrapException(obj.millInternal.modules)
-                  .map(
-                    _.flatMap(m =>
-                      Seq(Resolved.Module(m.millModuleSegments, m.getClass)) ++
-                        resolveDirectChildren(rootModule, m.getClass, None, m.millModuleSegments)
-                    )
-                  )
-              }
+              val self = Seq(Resolved.Module(m.segments, m.cls))
+              val transitive = resolveTransitiveChildren(rootModule, m.cls, None, current.segments)
+
+              Right(self ++ transitive)
+
             case "_" =>
               Right(resolveDirectChildren(rootModule, m.cls, None, current.segments))
+
             case _ =>
               Right(resolveDirectChildren(rootModule, m.cls, Some(singleLabel), current.segments))
           }
 
           resOrErr match {
-            case Left(err) => Error(err)
+//            case Left(err) => Error(err)
             case Right(res) => recurse(res.toSet)
           }
 
@@ -159,6 +156,22 @@ object ResolveCore {
     }
   }
 
+  def resolveTransitiveChildren(
+      rootModule: Module,
+      cls: Class[_],
+      nameOpt: Option[String],
+      segments: Segments
+  ): Set[Resolved] = {
+    val direct = resolveDirectChildren(rootModule, cls, nameOpt, segments)
+    val indirect = direct
+      .collect { case m: Resolved.Module =>
+        resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments)
+      }
+      .flatten
+
+    direct ++ indirect
+  }
+
   def resolveDirectChildren(
       rootModule: Module,
       cls: Class[_],
@@ -192,7 +205,7 @@ object ResolveCore {
   ): Seq[(Resolved, Option[Module => Either[String, Module]])] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
 
-    val modules = Module.Internal
+    val modules = Reflect
       .reflectNestedObjects0[Module](cls, namePred)
       .map { case (name, member) =>
         Resolved.Module(
@@ -212,16 +225,14 @@ object ResolveCore {
         )
       }
 
-    val targets = Module
-      .Internal
+    val targets = Reflect
       .reflect(cls, classOf[Target[_]], namePred, noParams = true)
       .map { m =>
         Resolved.Target(Segments() ++ Segment.Label(decode(m.getName))) ->
         None
       }
 
-    val commands = Module
-      .Internal
+    val commands = Reflect
       .reflect(cls, classOf[Command[_]], namePred, noParams = false)
       .map(m => decode(m.getName))
       .map { name => Resolved.Command(Segments() ++ Segment.Label(name)) -> None }

@@ -1,17 +1,7 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.define.{
-  BaseModule,
-  Command,
-  Discover,
-  ExternalModule,
-  NamedTask,
-  Segments,
-  Target,
-  TaskModule,
-  Module
-}
+import mill.define.{BaseModule, Command, Discover, ExternalModule, Module, NamedTask, Reflect, Segments, Target, TaskModule}
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
 
@@ -75,7 +65,7 @@ object Resolve {
   }
 
   private def instantiateTarget(r: Resolved.Target, p: Module) = {
-    val definition = Module.Internal
+    val definition = Reflect
       .reflect(p.getClass, classOf[Target[_]], _ == r.segments.parts.last, true)
       .head
 
