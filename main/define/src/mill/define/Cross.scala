@@ -191,6 +191,11 @@ object Cross {
           q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4) ++ $segments($v1._5)"
       }
 
+      // We need to create a `class $concreteCls` here, rather than just
+      // creating an anonymous sub-type of $tpe, because our task resolution
+      // logic needs to use java reflection to identify sub-modules and java
+      // reflect can only properly identify nested `object`s inside Scala
+      // `object` and `class`es.
       val tree = q"""
         new mill.define.Cross.Factory[$tpe](
           makeList = $wrappedT.map{($v1: ${tq""}) =>
