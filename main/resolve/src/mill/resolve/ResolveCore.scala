@@ -189,11 +189,9 @@ private object ResolveCore {
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
       instantiateModule(rootModule: Module, segments).map {
         case cross: Cross[_] =>
-          cross
-            .segments
-            .map { k =>
-              Resolved.Module(segments ++ Segment.Cross(k), cross.classTag.runtimeClass)
-            }
+          for (item <- cross.items) yield {
+            Resolved.Module(segments ++ Segment.Cross(item.crossSegments), item.cls)
+          }
 
         case _ => Nil
       }
