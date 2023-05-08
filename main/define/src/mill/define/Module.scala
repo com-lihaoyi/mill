@@ -14,7 +14,7 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher { outer =>
+class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher with Module.Trait { outer =>
 
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,
@@ -42,7 +42,7 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
 }
 
 object Module {
-
+  trait Trait
   @internal
   class Internal(outer: Module) {
     def traverse[T](f: Module => Seq[T]): Seq[T] = {

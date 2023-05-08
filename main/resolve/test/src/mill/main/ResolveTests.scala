@@ -745,5 +745,19 @@ object ResolveTests extends TestSuite {
         }
       }
     }
+
+    test("overridenModule"){
+      val check = new Checker(overrideModule)
+      test - check(
+        "sub.inner.subTarget",
+        Right(Set(_.sub.inner.subTarget)),
+        Set("sub.inner.subTarget")
+      )
+      test - check(
+        "sub.inner.baseTarget",
+        Right(Set(_.sub.inner.baseTarget)),
+        Set("sub.inner.baseTarget")
+      )
+    }
   }
 }

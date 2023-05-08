@@ -22,8 +22,8 @@ private[mill] object Reflect {
       filter: String => Boolean,
       noParams: Boolean
   ): Seq[java.lang.reflect.Method] = {
-    for {
-      m <- outer.getMethods.sortBy(_.getName)
+    val res = for {
+      m <- outer.getMethods
       n = decode(m.getName)
       if filter(n) &&
         isLegalIdentifier(n) &&
@@ -32,6 +32,17 @@ private[mill] object Reflect {
         (m.getModifiers & Modifier.ABSTRACT) == 0 &&
         inner.isAssignableFrom(m.getReturnType)
     } yield m
+
+    // There can be multiple methods of the same name on a class if a sub-class
+    // overrides a super-class method and narrows the return type. Make sure we
+    // sort the methods by their declaring class from lowest to highest in the
+    // the type hierarchy, and use `distinctBy` to only keep the lowest
+    // version, before we finally sort them by name
+    res
+      .sortWith((m1, m2) => m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass))
+      .reverse
+      .distinctBy(_.getName)
+      .sortBy(_.getName)
   }
 
   // For some reason, this fails to pick up concrete `object`s nested directly within
