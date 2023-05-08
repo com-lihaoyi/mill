@@ -2,6 +2,7 @@ package mill.define
 
 import language.experimental.macros
 import scala.collection.SeqView
+import scala.reflect.ClassTag
 import scala.reflect.macros.blackbox
 
 object Cross {
@@ -117,11 +118,11 @@ object Cross {
     )
   }
 
-  case class Factory[T](
-      makeList: Seq[mill.define.Ctx => T],
-      crossValuesListLists: Seq[Seq[Any]],
-      crossSegmentsList: Seq[Seq[String]],
-      crossValuesRaw: Seq[Any]
+  class Factory[T: ClassTag](
+      val makeList: Seq[mill.define.Ctx => T],
+      val crossValuesListLists: Seq[Seq[Any]],
+      val crossSegmentsList: Seq[Seq[String]],
+      val crossValuesRaw: Seq[Any]
   )
 
   object Factory {
@@ -189,7 +190,7 @@ object Cross {
       }
 
       val tree = q"""
-        mill.define.Cross.Factory[$tpe](
+        new mill.define.Cross.Factory[$tpe](
           makeList = $wrappedT.map(($v1: ${tq""}) =>
             ($ctx0: ${tq""}) => {
               implicit val $implicitCtx = $ctx0
@@ -269,7 +270,7 @@ object Cross {
  * }
  * }}}
  */
-class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mill.define.Ctx)
+class Cross[M <: Cross.Module[_]: ClassTag](factories: Cross.Factory[M]*)(implicit ctx: mill.define.Ctx)
     extends mill.define.Module()(ctx) {
 
   // We lazily initialize the instances of `Cross.Module` only when they are
@@ -297,6 +298,8 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mi
 
     (crossValues.toList, crossSegments.toList, sub)
   }
+
+  private[mill] def classTag = implicitly[ClassTag[M]]
 
   override lazy val millModuleDirectChildren: Seq[Module] =
     super.millModuleDirectChildren ++ crossModules
@@ -326,6 +329,14 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mi
     .to(collection.mutable.LinkedHashMap)
     .view
     .mapValues(_.value)
+
+  /**
+   * The stringified string segments to the cross modules. Necessary as a
+   * separate API from [[segmentsToModules]], because `MapView#keys`
+   * unnecessarily evaluates its values
+   */
+  val segments: List[List[String]] = items
+    .map { case (values, segments, subs) => segments }
 
   /**
    * Fetch the cross module corresponding to the given cross values

@@ -63,7 +63,11 @@ object ResolveTests extends TestSuite {
     }
   }
 
-  def isLeftContains(x: Either[String, _], s: String) = x.left.exists(_.contains(s))
+  def isShortError(x: Either[String, _], s: String) = 
+    x.left.exists(_.contains(s)) &&
+    // Make sure the stack traces are truncated and short-ish, and do not
+    // contain the entire Mill internal call stack at point of failure
+    x.left.exists(_.linesIterator.size < 20)
 
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
@@ -564,12 +568,12 @@ object ResolveTests extends TestSuite {
         // caught and reported in the Either result
         "fooTarget" - check.checkSeq0(
           Seq("foo.fooTarget"),
-          isLeftContains(_, "Foo Boom"),
+          isShortError(_, "Foo Boom"),
           _ == Right(List("foo.fooTarget"))
         )
         "fooCommand" - check.checkSeq0(
           Seq("foo.fooCommand", "hello"),
-          isLeftContains(_, "Foo Boom"),
+          isShortError(_, "Foo Boom"),
           _ == Right(List("foo.fooCommand"))
         )
 
@@ -589,32 +593,27 @@ object ResolveTests extends TestSuite {
         // Nested sub-modules that fail to initialize are properly handled
         "quxTarget" - check.checkSeq0(
           Seq("bar.qux.quxTarget"),
-          isLeftContains(_, "Qux Boom"),
+          isShortError(_, "Qux Boom"),
           _ == Right(List("bar.qux.quxTarget"))
         )
         "quxCommand" - check.checkSeq0(
           Seq("bar.qux.quxCommand", "hello"),
-          isLeftContains(_, "Qux Boom"),
+          isShortError(_, "Qux Boom"),
           _ == Right(List("bar.qux.quxCommand"))
         )
       }
 
       "dependency" - {
         val check = new Checker(moduleDependencyInitError)
-        def isShortFooTrace(res: Either[String, List[NamedTask[_]]]) = {
-          res.left.exists(_.contains("Foo Boom") &&
-            // Make sure the stack traces are truncated and short-ish, and do not
-            // contain the entire Mill internal call stack at point of failure
-            res.left.exists(_.linesIterator.size < 20))
-        }
+      
         "fooTarget" - check.checkSeq0(
           Seq("foo.fooTarget"),
-          isShortFooTrace,
+          isShortError(_, "Foo Boom"),
           _ == Right(List("foo.fooTarget"))
         )
         "fooCommand" - check.checkSeq0(
           Seq("foo.fooCommand", "hello"),
-          isShortFooTrace,
+          isShortError(_, "Foo Boom"),
           _ == Right(List("foo.fooCommand"))
         )
         // Even though the `bar` module doesn't throw, `barTarget` and
@@ -623,12 +622,12 @@ object ResolveTests extends TestSuite {
         // a stack trace when we try to resolve bar
         "barTarget" - check.checkSeq0(
           Seq("bar.barTarget"),
-          isShortFooTrace,
+          isShortError(_, "Foo Boom"),
           _ == Right(List("bar.barTarget"))
         )
         "barCommand" - check.checkSeq0(
           Seq("bar.barCommand", "hello"),
-          isShortFooTrace,
+          isShortError(_, "Foo Boom"),
           _ == Right(List("bar.barCommand"))
         )
       }
@@ -639,18 +638,18 @@ object ResolveTests extends TestSuite {
           val check = new Checker(crossModuleSimpleInitError)
           check.checkSeq0(
             Seq("myCross[1].foo"),
-            isLeftContains(_, "MyCross Boom"),
-            isLeftContains(_, "MyCross Boom")
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
           )
           check.checkSeq0(
             Seq("__.foo"),
-            isLeftContains(_, "MyCross Boom"),
-            isLeftContains(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
           )
           check.checkSeq0(
             Seq("__"),
-            isLeftContains(_, "MyCross Boom"),
-            isLeftContains(_, "MyCross Boom")
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
           )
         }
         "partial" - {
@@ -666,47 +665,63 @@ object ResolveTests extends TestSuite {
           )
           test - check.checkSeq0(
             Seq("myCross[3].foo"),
-            isLeftContains(_, "MyCross Boom 3"),
-            isLeftContains(_, "MyCross Boom 3"),
+            isShortError(_, "MyCross Boom 3"),
+            isShortError(_, "MyCross Boom 3"),
           )
-          // Using wildcards forces evaluation of the myCross submodules, causing
-          // failure
+          // Using wildcards forces evaluation of the myCross submodules,
+          // causing failure if we try to instantiate the tasks, but just
+          // resolving the tasks is fine since we don't need to instantiate
+          // the sub-modules to resolve their paths
           test - check.checkSeq0(
             Seq("myCross._.foo"),
-            isLeftContains(_, "MyCross Boom"),
-            isLeftContains(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
+            _ == Right(List("myCross[1].foo", "myCross[2].foo", "myCross[3].foo", "myCross[4].foo"))
           )
           test - check.checkSeq0(
             Seq("myCross[_].foo"),
-            isLeftContains(_, "MyCross Boom"),
-            isLeftContains(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
           )
           test - check.checkSeq0(
             Seq("__.foo"),
-            isLeftContains(_, "MyCross Boom"),
-            isLeftContains(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
+            _ == Right(List("myCross[1].foo", "myCross[2].foo", "myCross[3].foo", "myCross[4].foo"))
           )
           test - check.checkSeq0(
             Seq("__"),
-            isLeftContains(_, "MyCross Boom"),
-            isLeftContains(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
+            _ == Right(List(
+              "",
+              "myCross",
+              "myCross[1]",
+              "myCross[1].foo",
+              "myCross[2]",
+              "myCross[2].foo",
+              "myCross[3]",
+              "myCross[3].foo",
+              "myCross[4]",
+              "myCross[4].foo"
+            ))
           )
         }
         "self" - {
           val check = new Checker(crossModuleSelfInitError)
 
           // When the cross module itself fails to initialize, even before its
-          // children get a chance to init, ensure we handle the error properly
+          // children get a chance to init. Instantiating the tasks fails, but
+          // resolving the task paths fails too, since finding the valid cross
+          // values requires instantiating the cross module. Make sure both
+          // fail as expected, and that their exception is properly wrapped.
           test - check.checkSeq0(
             Seq("myCross[3].foo"),
-            isLeftContains(_, "MyCross Boom"),
-            isLeftContains(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
           )
 
           test - check.checkSeq0(
             Seq("myCross._.foo"),
-            isLeftContains(_, "MyCross Boom"),
-            isLeftContains(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom"),
           )
         }
 
@@ -718,14 +733,14 @@ object ResolveTests extends TestSuite {
           // ensure we handle the error properly
           test - check.checkSeq0(
             Seq("parent.myCross[3].foo"),
-            isLeftContains(_, "Parent Boom"),
-            isLeftContains(_, "Parent Boom"),
+            isShortError(_, "Parent Boom"),
+            isShortError(_, "Parent Boom"),
           )
 
           test - check.checkSeq0(
             Seq("parent.myCross._.foo"),
-            isLeftContains(_, "Parent Boom"),
-            isLeftContains(_, "Parent Boom"),
+            isShortError(_, "Parent Boom"),
+            isShortError(_, "Parent Boom"),
           )
         }
       }

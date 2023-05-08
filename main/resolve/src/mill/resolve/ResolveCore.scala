@@ -151,7 +151,7 @@ private object ResolveCore {
       case (Right(current), Segment.Cross(vs)) =>
         assert(!vs.contains("_"), vs)
 
-        Right(
+        catchWrapException(
           current
             .asInstanceOf[Cross[_]]
             .segmentsToModules(vs.toList)
@@ -186,18 +186,15 @@ private object ResolveCore {
   ): Either[String, Set[Resolved]] = {
 
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
-      instantiateModule(rootModule: Module, segments).flatMap{
+      instantiateModule(rootModule: Module, segments).map{
         case cross: Cross[_] =>
-          catchWrapException(
-            cross
-              .segmentsToModules
-              .map { case (k, v) =>
-                Resolved.Module(segments ++ Segment.Cross(k), v.getClass)
-              }
-              .toList
-          )
+          cross
+            .segments
+            .map { k =>
+              Resolved.Module(segments ++ Segment.Cross(k), cross.classTag.runtimeClass)
+            }
 
-        case _ => Right(Nil)
+        case _ => Nil
       }
     } else Right(Nil)
 
