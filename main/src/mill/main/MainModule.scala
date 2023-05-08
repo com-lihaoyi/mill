@@ -110,7 +110,7 @@ trait MainModule extends mill.Module {
    * Resolves a mill query string and prints out the tasks it resolves to.
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = T.command {
-    val resolved: Either[String, List[String]] = Resolve.Metadata.resolve(
+    val resolved = Resolve.Segments.resolve(
       evaluator.rootModule,
       targets,
       SelectMode.Multi
@@ -119,7 +119,7 @@ trait MainModule extends mill.Module {
     resolved match {
       case Left(err) => Result.Failure(err)
       case Right(rs) =>
-        rs.sorted.foreach(T.log.outputStream.println)
+        rs.map(_.render).sorted.foreach(T.log.outputStream.println)
         Result.Success(rs)
     }
     List.empty[String]

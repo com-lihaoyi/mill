@@ -48,11 +48,11 @@ object ResolveTests extends TestSuite {
         SelectMode.Separated
       )
 
-      val resolvedMetadata = mill.resolve.Resolve.Metadata.resolve0(
+      val resolvedMetadata = mill.resolve.Resolve.Segments.resolve0(
         module,
         selectorStrings,
         SelectMode.Separated
-      )
+      ).map(_.map(_.render))
 
       (resolvedTasks, resolvedMetadata)
     }

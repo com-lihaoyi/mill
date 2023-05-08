@@ -4,41 +4,31 @@ import mill.define.{BaseModule, Discover, Segment, Segments}
 import mill.resolve.ResolveCore.Resolved
 
 /**
- * Wraps [[ResolveCore]] to report error messages if nothing was resolved
+ * Reports errors in the case where nothing was resolved
  */
-object ResolveNonEmpty {
-  def resolveNonEmpty(
-      selector: List[Segment],
-      current: BaseModule
-  ): Either[String, Set[Resolved]] = {
-    val rootResolved = ResolveCore.Resolved.Module(
-      current.millModuleSegments,
-      () => Right(current)
-    )
+object ResolveNotFoundHandler {
+  def apply(selector: Segments,
+            segments: Segments,
+            found: Set[Resolved],
+            next: Segment,
+            possibleNexts: Set[Segment]): String = {
 
-    ResolveCore.resolve(selector, rootResolved, Segments()) match {
-      case ResolveCore.Success(value) => Right(value)
-      case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-        val errorMsg = if (found.head.isInstanceOf[Resolved.Module]) {
-          next match {
-            case Segment.Label(s) =>
-              val possibleStrings = possibleNexts.collect { case Segment.Label(s) => s }
-              errorMsgLabel(s, possibleStrings, segments, Segments(selector))
+    if (found.head.isInstanceOf[Resolved.Module]) {
+      next match {
+        case Segment.Label(s) =>
+          val possibleStrings = possibleNexts.collect { case Segment.Label(s) => s }
+          errorMsgLabel(s, possibleStrings, segments, selector)
 
-            case Segment.Cross(keys) =>
-              val possibleCrossKeys = possibleNexts.collect { case Segment.Cross(keys) => keys }
-              errorMsgCross(keys, possibleCrossKeys, segments, Segments(selector))
-          }
-        } else {
-          unableToResolve((segments ++ Seq(next)).render) +
-            s" ${segments.render} resolves to a Task with no children."
-        }
-
-        Left(errorMsg)
-
-      case ResolveCore.Error(value) => Left(value)
+        case Segment.Cross(keys) =>
+          val possibleCrossKeys = possibleNexts.collect { case Segment.Cross(keys) => keys }
+          errorMsgCross(keys, possibleCrossKeys, segments, selector)
+      }
+    } else {
+      unableToResolve((segments ++ Seq(next)).render) +
+        s" ${segments.render} resolves to a Task with no children."
     }
   }
+
 
   def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 

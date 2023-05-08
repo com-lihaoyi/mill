@@ -89,6 +89,35 @@ object Module {
             c.getFields.find(_.getName == "MODULE$")
           ).distinct
     }
+
+    def reflectNestedObjects0[T: ClassTag](outerCls: Class[_], filter: String => Boolean = Function.const(true))
+    : Seq[(String, java.lang.reflect.Member)] = {
+
+      val first = Module.Internal
+        .reflect(
+          outerCls,
+          implicitly[ClassTag[T]].runtimeClass,
+          filter,
+          noParams = true
+        )
+        .map(m => (m.getName, m))
+
+      val second =
+        outerCls
+          .getClasses
+          .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
+          .flatMap { c =>
+            c.getName.stripPrefix(outerCls.getName) match {
+              case s"$name$$" if filter(name) =>
+                c.getFields.find(_.getName == "MODULE$").map(name -> _)
+              case _ => None
+            }
+
+          }
+          .distinct
+
+      first ++ second
+    }
   }
 
   @internal
@@ -137,34 +166,10 @@ object Module {
 
     def reflectNestedObjects0[T: ClassTag](filter: String => Boolean = Function.const(true))
         : Seq[(String, () => T)] = {
-
-      val first = Module.Internal
-        .reflect(
-          outer.getClass,
-          implicitly[ClassTag[T]].runtimeClass,
-          filter,
-          noParams = true
-        )
-        .map(m => (m.getName, () => m.invoke(outer).asInstanceOf[T]))
-
-      val second =
-        outer
-          .getClass
-          .getClasses
-          .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
-          .flatMap { c =>
-            c.getName.stripPrefix(outer.getClass.getName) match {
-              case s"$name$$" if filter(name) =>
-                c.getFields.find(_.getName == "MODULE$")
-                  .map(f => (name, () => f.get(c).asInstanceOf[T]))
-
-              case _ => None
-            }
-
-          }
-          .distinct
-
-      first ++ second
+      Internal.reflectNestedObjects0(outer.getClass).map{
+        case (name, m: java.lang.reflect.Method) => (name, () => m.invoke(outer).asInstanceOf[T])
+        case (name, m: java.lang.reflect.Field) => (name, () =>m.get(outer).asInstanceOf[T])
+      }
     }
   }
 }
