@@ -8,6 +8,24 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
   val tests = Tests {
     initWorkspace()
 
+    test("resolve") {
+      // Ensure that resolve works even of the modules containing the resolved
+      // tasks are broken
+      val res1 = evalStdout("resolve", "foo.fooTarget")
+      assert(res1.isSuccess == true)
+      assert(res1.out.contains("foo.fooTarget"))
+
+      val res2 = evalStdout("resolve", "_._")
+      assert(res2.isSuccess == true)
+      assert(
+        res2.out.contains("bar.barCommand"),
+        res2.out.contains("bar.barTarget"),
+        res2.out.contains("bar.qux"),
+        res2.out.contains("foo.fooTarget"),
+        res2.out.contains("foo.fooCommand")
+      )
+    }
+
     test("rootTarget") {
       // If we specify a target in the root module, we are not
       // affected by the sub-modules failing to initialize

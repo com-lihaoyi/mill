@@ -118,11 +118,11 @@ trait MainModule extends mill.Module {
 
     resolved match {
       case Left(err) => Result.Failure(err)
-      case Right(rs) =>
-        rs.map(_.render).sorted.foreach(T.log.outputStream.println)
-        Result.Success(rs)
+      case Right(resolvedSegmentsList) =>
+        val resolvedStrings = resolvedSegmentsList.map(_.render)
+        resolvedStrings.sorted.foreach(T.log.outputStream.println)
+        Result.Success(resolvedStrings)
     }
-    List.empty[String]
   }
 
   /**

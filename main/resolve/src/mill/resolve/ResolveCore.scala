@@ -92,7 +92,7 @@ object ResolveCore {
         case (Segment.Label(singleLabel), m: Resolved.Module) =>
           val resOrErr = singleLabel match {
             case "__" =>
-              instantiateModule(rootModule: Module,current.segments).flatMap{obj =>
+              instantiateModule(rootModule, current.segments).flatMap{obj =>
                 catchWrapException(obj.millInternal.modules)
                   .map(
                     _.flatMap(m =>
