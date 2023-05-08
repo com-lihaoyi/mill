@@ -146,16 +146,15 @@ private object ResolveCore {
     segments.value.foldLeft[Either[String, Module]](Right(rootModule)) {
       case (Right(current), Segment.Label(s)) =>
         assert(s != "_", s)
-        resolveDirectChildren0(current.getClass, Some(s)) match{
+        resolveDirectChildren0(current.getClass, Some(s)) match {
           case Seq((_, Some(f))) => f(current)
           case unknown =>
             sys.error(
               s"Unable to resolve single child " +
-              s"rootModule: $rootModule, segments: ${segments.render}," +
-              s"current: $current, s: ${s}, unknown: $unknown"
+                s"rootModule: $rootModule, segments: ${segments.render}," +
+                s"current: $current, s: ${s}, unknown: $unknown"
             )
         }
-
 
       case (Right(current), Segment.Cross(vs)) =>
         assert(!vs.contains("_"), vs)
