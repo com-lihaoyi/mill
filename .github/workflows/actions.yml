@@ -36,7 +36,42 @@ jobs:
         buildcmd:
           # bootstrap tests
           - ci/test-mill-release.sh
-        
+          # unit and module tests
+          - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
+
+          - ./mill -i -k "integration.feature.__.server.test"
+          - ./mill -i -k "integration.feature.__.fork.test"
+
+          # contrib s
+          - ./mill -i -k "contrib._.test"
+
+        include:
+          # Just some reporting to enable reasoning about library upgrades
+          - java-version: 8
+            buildcmd: | 
+              ./mill -i -k __.ivyDepsTree
+              ./mill -i -k __.ivyDepsTree --withRuntime true
+
+          # Limit some tests to Java 17 to limit CI times
+          - java-version: 17
+            buildcmd: ci/test-mill-dev.sh
+          - java-version: 17
+            buildcmd: ci/test-mill-bootstrap.sh
+          - java-version: 17
+            buildcmd: ./mill -i -k "example.__.local.test"
+          - java-version: 17
+            buildcmd: ./mill -i -k "integration.feature.__.local.test"
+          - java-version: 17
+            buildcmd: ./mill -i -k "integration.failure.__.test"
+          - java-version: 17
+            buildcmd: ./mill -i -k "integration.thirdparty.__.test"
+          - java-version: 17
+            buildcmd: ./mill -i docs.githubPages
+
+          # Have one job on latest JVM
+          - java-version: 20
+            buildcmd: ci/test-mill-bootstrap.sh
+
     uses: ./.github/workflows/run-mill-action.yml
     with:
       os: ubuntu-latest
@@ -65,14 +100,31 @@ jobs:
         java-version: [8, 17]
         buildcmd:
           # Run a stripped down build matrix on Windows, to avoid taking too long
-          - "main.resolve.test"
+          - "{__.publishLocal,dev.assembly,__.compile}"
+          - "{main,scalalib,scalajslib,bsp}.__.test"
 
+        include:
+          # Limit some tests to Java 17 to limit CI times
+          - java-version: 17
+            # just run a subset of examples/ on Windows, because for some reason running
+            # the whole suite can take hours on windows v.s. half an hour on linux
+            buildcmd: "example.{scalabuilds,cross,tasks}.__.local.test"
+          - java-version: 17
+            buildcmd: "integration.feature.__.fork.test"
+          - java-version: 17
+            buildcmd: "integration.feature.__.server.test"
+          - java-version: 17
+            buildcmd: "integration.failure.__.fork.test"
+          - java-version: 17
+            buildcmd: "integration.thirdparty.__.fork.test"
+          - java-version: 17
+            buildcmd: "contrib.__.test"
 
     uses: ./.github/workflows/run-mill-action.yml
     with:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
-      buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "${{ matrix.buildcmd }}" mill.resolve.ResolveTests.overridenModule.0
+      buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "${{ matrix.buildcmd }}"
 
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
