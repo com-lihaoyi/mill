@@ -1,8 +1,8 @@
 import $ivy.`org.scalameta::munit:0.7.29`
 
+import mill._
 import mill.api.PathRef
 import mill.scalalib
-import mill.define.Command
 import mill.scalalib.GenIdeaModule._
 import mill.scalalib.TestModule
 
@@ -18,8 +18,8 @@ trait HelloWorldModule extends scalalib.ScalaModule {
     override def scalaVersion = "3.0.2"
   }
 
-  def ideaJavaModuleFacets(ideaConfigVersion: Int): Command[Seq[JavaFacet]] =
-    T.command {
+  def ideaJavaModuleFacets(ideaConfigVersion: Int): Task[Seq[JavaFacet]] =
+    T.task {
       ideaConfigVersion match {
         case 4 =>
           Seq(
@@ -47,7 +47,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
 
   override def ideaConfigFiles(
       ideaConfigVersion: Int
-  ): Command[Seq[IdeaConfigFile]] = T.command {
+  ): Task[Seq[IdeaConfigFile]] = T.task {
     ideaConfigVersion match {
       case 4 =>
         Seq(
@@ -59,7 +59,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
           ),
           // components in project file
           IdeaConfigFile(
-            name = "compiler.xml",
+            os.sub / "compiler.xml",
             component = "AjcSettings",
             config = Seq(
               Element(
@@ -69,7 +69,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
             )
           ),
           IdeaConfigFile(
-            name = "compiler.xml",
+            os.sub / "compiler.xml",
             component = "CompilerConfiguration",
             config = Seq(
               Element(
