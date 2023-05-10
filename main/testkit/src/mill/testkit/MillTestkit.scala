@@ -8,7 +8,7 @@ import mill.api.Strict.Agg
 
 import java.io.{InputStream, PrintStream}
 import mill.eval.Evaluator
-import mill.main.{ResolveTasks, SelectMode}
+import mill.resolve.{Resolve, SelectMode}
 import mill.util.PrintLogger
 
 import language.experimental.macros
@@ -108,7 +108,9 @@ trait MillTestKit {
     )
 
     def evalTokens(args: String*): Either[Result.Failing[_], (Seq[_], Int)] = {
-      ResolveTasks.resolve(evaluator, args, SelectMode.Separated) match {
+      mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
+        Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
+      } match {
         case Left(err) => Left(Result.Failure(err))
         case Right(resolved) => apply(resolved)
       }

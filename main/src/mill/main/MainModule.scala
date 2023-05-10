@@ -5,7 +5,8 @@ import mill.{BuildInfo, T}
 import mill.api.{Ctx, Logger, PathRef, Result, internal}
 import mill.define.{Command, NamedTask, Segments, TargetImpl, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.main.SelectMode.Separated
+import mill.resolve.{Resolve, SelectMode}
+import mill.resolve.SelectMode.Separated
 import mill.util.{PrintLogger, Watchable}
 import pprint.{Renderer, Tree, Truncated}
 import ujson.Value
@@ -20,7 +21,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    ResolveTasks.resolve(evaluator, targets, selectMode) match {
+    Resolve.Tasks.resolve(evaluator.rootModule, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -109,19 +110,19 @@ trait MainModule extends mill.Module {
    * Resolves a mill query string and prints out the tasks it resolves to.
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = T.command {
-    val resolved: Either[String, List[String]] = ResolveMetadata.resolve(
-      evaluator,
+    val resolved = Resolve.Segments.resolve(
+      evaluator.rootModule,
       targets,
       SelectMode.Multi
     )
 
     resolved match {
       case Left(err) => Result.Failure(err)
-      case Right(rs) =>
-        rs.sorted.foreach(T.log.outputStream.println)
-        Result.Success(rs)
+      case Right(resolvedSegmentsList) =>
+        val resolvedStrings = resolvedSegmentsList.map(_.render)
+        resolvedStrings.sorted.foreach(T.log.outputStream.println)
+        Result.Success(resolvedStrings)
     }
-    List.empty[String]
   }
 
   /**
@@ -139,8 +140,8 @@ trait MainModule extends mill.Module {
   }
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
-    ResolveTasks.resolve(
-      evaluator,
+    Resolve.Tasks.resolve(
+      evaluator.rootModule,
       targets,
       SelectMode.Multi
     ) match {
@@ -158,8 +159,8 @@ trait MainModule extends mill.Module {
    * chosen is arbitrary.
    */
   def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] = T.command {
-    val resolved = ResolveTasks.resolve(
-      evaluator,
+    val resolved = Resolve.Tasks.resolve(
+      evaluator.rootModule,
       List(src, dest),
       SelectMode.Multi
     )
@@ -321,8 +322,8 @@ trait MainModule extends mill.Module {
       if (targets.isEmpty)
         Right(os.list(rootDir).filterNot(keepPath))
       else
-        mill.main.ResolveSegments.resolve(
-          evaluator,
+        mill.resolve.Resolve.Segments.resolve(
+          evaluator.rootModule,
           targets,
           SelectMode.Multi
         ).map { ts =>
@@ -420,8 +421,8 @@ trait MainModule extends mill.Module {
       out.take()
     }
 
-    ResolveTasks.resolve(
-      evaluator,
+    Resolve.Tasks.resolve(
+      evaluator.rootModule,
       targets,
       SelectMode.Multi
     ) match {

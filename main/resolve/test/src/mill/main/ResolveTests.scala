@@ -1,4 +1,4 @@
-package mill.main
+package mill.resolve
 
 import mill.define.NamedTask
 import mill.util.TestGraphs._
@@ -19,11 +19,14 @@ object ResolveTests extends TestSuite {
         expectedMetadata: Set[String] = Set()
     ) = {
       val expected = expected0.map(_.map(_(module)))
-      val (resolvedTasks, resolvedMetadata) = resolveTasksAndMetadata(selectorStrings)
+
+      val resolvedTasks = resolveTasks(selectorStrings)
       assert(
         resolvedTasks.map(_.map(_.toString).toSet[String]) ==
           expected.map(_.map(_.toString))
       )
+
+      val resolvedMetadata = resolveMetadata(selectorStrings)
       assert(
         expectedMetadata.isEmpty ||
           resolvedMetadata.map(_.toSet) == Right(expectedMetadata)
@@ -36,29 +39,35 @@ object ResolveTests extends TestSuite {
         checkMetadata: Either[String, List[String]] => Boolean = _ => true
     ) = {
 
-      val (resolvedTasks, resolvedMetadata) = resolveTasksAndMetadata(selectorStrings)
+      val resolvedTasks = resolveTasks(selectorStrings)
       assert(check(resolvedTasks))
+
+      val resolvedMetadata = resolveMetadata(selectorStrings)
       assert(checkMetadata(resolvedMetadata))
     }
 
-    def resolveTasksAndMetadata(selectorStrings: Seq[String]) = {
-      val resolvedTasks = mill.main.ResolveTasks.resolve0(
-        None,
+    def resolveTasks(selectorStrings: Seq[String]) = {
+      Resolve.Tasks.resolve0(
         module,
         selectorStrings,
         SelectMode.Separated
       )
+    }
 
-      val resolvedMetadata = mill.main.ResolveMetadata.resolve0(
-        None,
+    def resolveMetadata(selectorStrings: Seq[String]) = {
+      Resolve.Segments.resolve0(
         module,
         selectorStrings,
         SelectMode.Separated
-      )
-
-      (resolvedTasks, resolvedMetadata)
+      ).map(_.map(_.render))
     }
   }
+
+  def isShortError(x: Either[String, _], s: String) =
+    x.left.exists(_.contains(s)) &&
+      // Make sure the stack traces are truncated and short-ish, and do not
+      // contain the entire Mill internal call stack at point of failure
+      x.left.exists(_.linesIterator.size < 20)
 
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
@@ -543,62 +552,69 @@ object ResolveTests extends TestSuite {
         // sub-modules fail to initialize
         "rootTarget" - check.checkSeq(
           Seq("rootTarget"),
-          Right(Set(_.rootTarget))
+          Right(Set(_.rootTarget)),
+          // Even though instantiating the target fails due to the module
+          // failing, we can still resolve the task name, since resolving tasks
+          // does not require instantiating the module
+          Set("rootTarget")
         )
         "rootCommand" - check.checkSeq(
           Seq("rootCommand", "hello"),
-          Right(Set(_.rootCommand("hello")))
+          Right(Set(_.rootCommand("hello"))),
+          Set("rootCommand")
         )
 
         // Resolving tasks on a module that fails to initialize is properly
         // caught and reported in the Either result
         "fooTarget" - check.checkSeq0(
           Seq("foo.fooTarget"),
-          res => res.isLeft && res.left.exists(_.contains("Foo Boom"))
+          isShortError(_, "Foo Boom"),
+          _ == Right(List("foo.fooTarget"))
         )
         "fooCommand" - check.checkSeq0(
           Seq("foo.fooCommand", "hello"),
-          res => res.isLeft && res.left.exists(_.contains("Foo Boom"))
+          isShortError(_, "Foo Boom"),
+          _ == Right(List("foo.fooCommand"))
         )
 
         // Sub-modules that can initialize allow tasks to be resolved, even
         // if their siblings or children are broken
         "barTarget" - check.checkSeq(
           Seq("bar.barTarget"),
-          Right(Set(_.bar.barTarget))
+          Right(Set(_.bar.barTarget)),
+          Set("bar.barTarget")
         )
         "barCommand" - check.checkSeq(
           Seq("bar.barCommand", "hello"),
-          Right(Set(_.bar.barCommand("hello")))
+          Right(Set(_.bar.barCommand("hello"))),
+          Set("bar.barCommand")
         )
 
         // Nested sub-modules that fail to initialize are properly handled
         "quxTarget" - check.checkSeq0(
           Seq("bar.qux.quxTarget"),
-          res => res.isLeft && res.left.exists(_.contains("Qux Boom"))
+          isShortError(_, "Qux Boom"),
+          _ == Right(List("bar.qux.quxTarget"))
         )
         "quxCommand" - check.checkSeq0(
           Seq("bar.qux.quxCommand", "hello"),
-          res => res.isLeft && res.left.exists(_.contains("Qux Boom"))
+          isShortError(_, "Qux Boom"),
+          _ == Right(List("bar.qux.quxCommand"))
         )
       }
 
       "dependency" - {
         val check = new Checker(moduleDependencyInitError)
-        def isShortFooTrace(res: Either[String, List[NamedTask[_]]]) = {
-          res.isLeft &&
-          res.left.exists(_.contains("Foo Boom") &&
-            // Make sure the stack traces are truncated and short-ish, and do not
-            // contain the entire Mill internal call stack at point of failure
-            res.left.exists(_.linesIterator.size < 20))
-        }
+
         "fooTarget" - check.checkSeq0(
           Seq("foo.fooTarget"),
-          isShortFooTrace
+          isShortError(_, "Foo Boom"),
+          _ == Right(List("foo.fooTarget"))
         )
         "fooCommand" - check.checkSeq0(
           Seq("foo.fooCommand", "hello"),
-          isShortFooTrace
+          isShortError(_, "Foo Boom"),
+          _ == Right(List("foo.fooCommand"))
         )
         // Even though the `bar` module doesn't throw, `barTarget` and
         // `barCommand` depend on the `fooTarget` and `fooCommand` tasks on the
@@ -606,20 +622,34 @@ object ResolveTests extends TestSuite {
         // a stack trace when we try to resolve bar
         "barTarget" - check.checkSeq0(
           Seq("bar.barTarget"),
-          isShortFooTrace
+          isShortError(_, "Foo Boom"),
+          _ == Right(List("bar.barTarget"))
         )
         "barCommand" - check.checkSeq0(
           Seq("bar.barCommand", "hello"),
-          isShortFooTrace
+          isShortError(_, "Foo Boom"),
+          _ == Right(List("bar.barCommand"))
         )
       }
 
       "cross" - {
+
         "simple" - {
           val check = new Checker(crossModuleSimpleInitError)
           check.checkSeq0(
             Seq("myCross[1].foo"),
-            res => res.isLeft && res.left.exists(_.contains("MyCross Boom"))
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
+          )
+          check.checkSeq0(
+            Seq("__.foo"),
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
+          )
+          check.checkSeq0(
+            Seq("__"),
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
           )
         }
         "partial" - {
@@ -630,14 +660,104 @@ object ResolveTests extends TestSuite {
           // handle the error
           test - check.checkSeq(
             Seq("myCross[1].foo"),
-            Right(Set(_.myCross(1).foo))
+            Right(Set(_.myCross(1).foo)),
+            Set("myCross[1].foo")
           )
           test - check.checkSeq0(
             Seq("myCross[3].foo"),
-            res => res.isLeft && res.left.exists(_.contains("MyCross Boom 3"))
+            isShortError(_, "MyCross Boom 3"),
+            isShortError(_, "MyCross Boom 3")
+          )
+          // Using wildcards forces evaluation of the myCross submodules,
+          // causing failure if we try to instantiate the tasks, but just
+          // resolving the tasks is fine since we don't need to instantiate
+          // the sub-modules to resolve their paths
+          test - check.checkSeq0(
+            Seq("myCross._.foo"),
+            isShortError(_, "MyCross Boom"),
+            _ == Right(List("myCross[1].foo", "myCross[2].foo", "myCross[3].foo", "myCross[4].foo"))
+          )
+          test - check.checkSeq0(
+            Seq("myCross[_].foo"),
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
+          )
+          test - check.checkSeq0(
+            Seq("__.foo"),
+            isShortError(_, "MyCross Boom"),
+            _ == Right(List("myCross[1].foo", "myCross[2].foo", "myCross[3].foo", "myCross[4].foo"))
+          )
+          test - check.checkSeq0(
+            Seq("__"),
+            isShortError(_, "MyCross Boom"),
+            _ == Right(List(
+              "",
+              "myCross",
+              "myCross[1]",
+              "myCross[1].foo",
+              "myCross[2]",
+              "myCross[2].foo",
+              "myCross[3]",
+              "myCross[3].foo",
+              "myCross[4]",
+              "myCross[4].foo"
+            ))
+          )
+        }
+        "self" - {
+          val check = new Checker(crossModuleSelfInitError)
+
+          // When the cross module itself fails to initialize, even before its
+          // children get a chance to init. Instantiating the tasks fails, but
+          // resolving the task paths fails too, since finding the valid cross
+          // values requires instantiating the cross module. Make sure both
+          // fail as expected, and that their exception is properly wrapped.
+          test - check.checkSeq0(
+            Seq("myCross[3].foo"),
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
+          )
+
+          test - check.checkSeq0(
+            Seq("myCross._.foo"),
+            isShortError(_, "MyCross Boom"),
+            isShortError(_, "MyCross Boom")
+          )
+        }
+
+        "parent" - {
+          val check = new Checker(crossModuleParentInitError)
+
+          // When the parent of the cross module fails to initialize, even
+          // before the cross module or its children get a chance to init,
+          // ensure we handle the error properly
+          test - check.checkSeq0(
+            Seq("parent.myCross[3].foo"),
+            isShortError(_, "Parent Boom"),
+            isShortError(_, "Parent Boom")
+          )
+
+          test - check.checkSeq0(
+            Seq("parent.myCross._.foo"),
+            isShortError(_, "Parent Boom"),
+            isShortError(_, "Parent Boom")
           )
         }
       }
+    }
+
+    test("overridenModule") {
+      val check = new Checker(overrideModule)
+      test - check(
+        "sub.inner.subTarget",
+        Right(Set(_.sub.inner.subTarget)),
+        Set("sub.inner.subTarget")
+      )
+      test - check(
+        "sub.inner.baseTarget",
+        Right(Set(_.sub.inner.baseTarget)),
+        Set("sub.inner.baseTarget")
+      )
     }
   }
 }

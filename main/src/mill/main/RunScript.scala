@@ -6,12 +6,13 @@ import mill.util.Watchable
 import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg
 import Evaluator._
+import mill.resolve.{Resolve, SelectMode}
 
 object RunScript {
 
   type TaskName = String
 
-  def evaluateTasksNamed[T](
+  def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode
@@ -19,7 +20,10 @@ object RunScript {
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
   ] = {
-    for (targets <- ResolveTasks.resolve(evaluator, scriptArgs, selectMode))
+    val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
+      Resolve.Tasks.resolve(evaluator.rootModule, scriptArgs, selectMode)
+    }
+    for (targets <- resolved)
       yield evaluateNamed(evaluator, Agg.from(targets.distinct))
   }
 

@@ -1,4 +1,4 @@
-package mill.main
+package mill.resolve
 
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse._
@@ -104,7 +104,7 @@ object ParseArgs {
 
   private def selector[_p: P]: P[(Option[Segments], Segments)] = {
     def ident2 = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def segment = P(mill.define.Module.Internal.ident).map(Segment.Label)
+    def segment = P(mill.define.Reflect.ident).map(Segment.Label)
     def crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
     def simpleQuery = P(segment ~ ("." ~ segment | crossSegment).rep).map {
       case (h, rest) => Segments(h +: rest)
