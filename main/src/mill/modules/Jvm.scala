@@ -162,7 +162,7 @@ object Jvm extends CoursierSupport {
     // to the parent process's origin outputs even if we want to direct them
     // elsewhere
 
-    if (System.in.isInstanceOf[PipedInputStream]) {
+    if (!SystemStreams.isOriginal()) {
       val process = os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,

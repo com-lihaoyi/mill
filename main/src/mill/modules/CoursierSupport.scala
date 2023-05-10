@@ -1,6 +1,7 @@
 package mill.modules
 
 import coursier.cache.ArtifactError
+import coursier.parse.RepositoryParser
 import coursier.util.{Gather, Task}
 import coursier.{Dependency, Repository, Resolution}
 import mill.Agg
@@ -89,12 +90,34 @@ trait CoursierSupport {
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
+      ] = None,
+      resolveFilter: os.Path => Boolean = _ => true
   ): Result[Agg[PathRef]] = {
+
+    def isLocalTestDep(dep: coursier.Dependency): Option[Seq[PathRef]] = {
+      val org = dep.module.organization.value
+      val name = dep.module.name.value
+      val classpathKey = s"$org-${name.stripSuffix("_2.13").stripSuffix("_2.12")}"
+
+      val classpathResourceText =
+        try Some(os.read(
+            os.resource(getClass.getClassLoader) / "mill" / "local-test-overrides" / classpathKey
+          ))
+        catch { case e: os.ResourceNotFoundException => None }
+
+      classpathResourceText.map(_.linesIterator.map(s => PathRef(os.Path(s))).toSeq)
+    }
+
+    val (localTestDeps, remoteDeps) = deps.toSeq.partitionMap(d =>
+      isLocalTestDep(d) match {
+        case None => Right(d)
+        case Some(vs) => Left(vs)
+      }
+    )
 
     val (_, resolution) = resolveDependenciesMetadata(
       repositories,
-      deps,
+      remoteDeps,
       force,
       mapDependencies,
       customizer,
@@ -170,8 +193,10 @@ trait CoursierSupport {
       }
 
       if (errors.isEmpty) {
-        mill.Agg.from(
-          successes.map(os.Path(_)).filter(_.ext == "jar").map(PathRef(_, quick = true))
+        Result.Success(
+          mill.Agg.from(
+            successes.map(os.Path(_)).filter(_.ext == "jar").map(PathRef(_, quick = true))
+          ).filter(x => resolveFilter(x.path)) ++ localTestDeps.flatten
         )
       } else {
         val errorDetails = errors.map(e => s"${System.lineSeparator()}  ${e.describe}").mkString
@@ -303,6 +328,33 @@ object CoursierSupport {
       finishedCount += 1
       downloads -= url
       updateTicker()
+    }
+  }
+
+  // Parse a list of repositories from their string representation
+  def repoFromString(str: String, origin: String): Result[Seq[Repository]] = {
+    val spaceSep = "\\s+".r
+
+    val repoList =
+      if (spaceSep.findFirstIn(str).isEmpty)
+        str
+          .split('|')
+          .toSeq
+          .filter(_.nonEmpty)
+      else
+        spaceSep
+          .split(str)
+          .toSeq
+          .filter(_.nonEmpty)
+
+    RepositoryParser.repositories(repoList).either match {
+      case Left(errs) =>
+        val msg =
+          s"Invalid repository string in $origin:" + System.lineSeparator() +
+            errs.map("  " + _ + System.lineSeparator()).mkString
+        Result.Failure(msg, Some(Seq()))
+      case Right(repos) =>
+        Result.Success(repos)
     }
   }
 

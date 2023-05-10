@@ -1,8 +1,8 @@
 package mill.modules
 
 import coursier.Repository
-import mill.BuildInfo
-import mill.api.{Ctx, IO, Loose, PathRef}
+import mill.{Agg, BuildInfo}
+import mill.api.{Ctx, IO, Loose, PathRef, Result}
 
 object Util {
 
@@ -64,33 +64,27 @@ object Util {
    * This design has issues and will probably replaced.
    */
   def millProjectModule(
-      key: String,
       artifact: String,
       repositories: Seq[Repository],
       resolveFilter: os.Path => Boolean = _ => true,
       // this should correspond to the mill runtime Scala version
       artifactSuffix: String = "_2.13"
-  ) = {
-    millProperty(key) match {
-      case Some(localPath) =>
-        mill.api.Result.Success(
-          mill.api.Loose.Agg.from(localPath.split(',').map(p => PathRef(os.Path(p), quick = true)))
-        )
-      case None =>
-        mill.modules.Jvm.resolveDependencies(
-          repositories = repositories,
-          deps = Seq(
-            coursier.Dependency(
-              coursier.Module(
-                coursier.Organization("com.lihaoyi"),
-                coursier.ModuleName(artifact + artifactSuffix)
-              ),
-              BuildInfo.millVersion
-            )
+  ): Result[Agg[PathRef]] = {
+
+    mill.modules.Jvm.resolveDependencies(
+      repositories = repositories,
+      deps = Seq(
+        coursier.Dependency(
+          coursier.Module(
+            coursier.Organization("com.lihaoyi"),
+            coursier.ModuleName(artifact + artifactSuffix)
           ),
-          force = Nil
-        ).map(_.filter(x => resolveFilter(x.path)))
-    }
+          BuildInfo.millVersion
+        )
+      ),
+      force = Nil,
+      resolveFilter = resolveFilter
+    )
   }
 
   def millProperty(key: String): Option[String] =

@@ -4,10 +4,10 @@ import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
-import mill.define.{Command, Persistent, Sources, Target, Task}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 import mill.api.Result
+import mill.modules.Util.millProjectModule
 
 import scala.util.Try
 
@@ -160,16 +160,11 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   def scoverageReportWorkerClasspath: T[Agg[PathRef]] = T {
     val isScov2 = isScoverage2()
 
-    val workerKey =
-      if (isScov2) "MILL_SCOVERAGE2_REPORT_WORKER"
-      else "MILL_SCOVERAGE_REPORT_WORKER"
-
     val workerArtifact =
       if (isScov2) "mill-contrib-scoverage-worker2"
       else "mill-contrib-scoverage-worker"
 
-    mill.modules.Util.millProjectModule(
-      workerKey,
+    millProjectModule(
       workerArtifact,
       repositoriesTask(),
       resolveFilter = _.toString.contains(workerArtifact)

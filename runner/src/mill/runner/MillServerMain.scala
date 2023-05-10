@@ -66,11 +66,12 @@ object MillServerMain extends MillServerMain[RunnerState] {
       initialSystemProperties: Map[String, String]
   ): (Boolean, RunnerState) = {
     MillMain.main0(
-      args,
-      stateCache,
+      args = args,
+      stateCache = stateCache,
       mainInteractive = mainInteractive,
-      streams,
-      env,
+      streams0 = streams,
+      bspLog = None,
+      env = env,
       setIdle = setIdle,
       userSpecifiedProperties0 = userSpecifiedProperties,
       initialSystemProperties = initialSystemProperties
@@ -203,6 +204,8 @@ class Server[T](
     Thread.sleep(5)
     try t.stop()
     catch {
+      case e: UnsupportedOperationException =>
+      // nothing we can do about, removed in Java 20
       case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
       // ignore this error and do nothing; seems benign
     }

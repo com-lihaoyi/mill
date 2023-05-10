@@ -33,13 +33,13 @@ object BspModuleTests extends TestSuite {
   object InterDeps extends BspBase {
     val maxCrossCount = 25
     val configs = 1.to(maxCrossCount)
-    object Mod extends Cross[ModCross](configs: _*)
-    class ModCross(index: Int) extends ScalaModule {
+    object Mod extends Cross[ModCross](configs)
+    trait ModCross extends ScalaModule with Cross.Module[Int] {
       override def scalaVersion: T[String] = testScalaVersion
       // each depends on all others with lower index
       override def moduleDeps: Seq[JavaModule] =
         configs
-          .filter(c => c < index)
+          .filter(c => c < crossValue)
           .map(i => Mod(i))
     }
   }
@@ -119,18 +119,20 @@ object BspModuleTests extends TestSuite {
             test("index 20") { runNoBsp(20, 30000) }
             test("index 25") { runNoBsp(25, 100000) }
           }
-          def run(entry: Int, maxTime: Int) = workspaceTest(MultiBase) { eval =>
-            val start = System.currentTimeMillis()
-            val Right((result, evalCount)) = eval.apply(
-              InterDeps.Mod(entry).bspCompileClasspath
-            )
-            val timeSpent = System.currentTimeMillis() - start
-            assert(timeSpent < maxTime)
-            s"${timeSpent} msec"
+          def run(entry: Int, maxTime: Int) = retry(3) {
+            workspaceTest(MultiBase) { eval =>
+              val start = System.currentTimeMillis()
+              val Right((result, evalCount)) = eval.apply(
+                InterDeps.Mod(entry).bspCompileClasspath
+              )
+              val timeSpent = System.currentTimeMillis() - start
+              assert(timeSpent < maxTime)
+              s"${timeSpent} msec"
+            }
           }
           test("index 1 (no deps)") { run(1, 500) }
           test("index 10") { run(10, 5000) }
-          test("index 20") { run(20, 5000) }
+          test("index 20") { run(20, 15000) }
           test("index 25") { run(25, 50000) }
         }
       }

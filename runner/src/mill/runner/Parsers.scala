@@ -88,7 +88,7 @@ object Parsers {
     }
     hookedStmts.toSeq
   }
-  def formatFastparseError(fileName: String, rawCode: String, f: Parsed.Failure) = {
+  def formatFastparseError(fileName: String, rawCode: String, f: Parsed.Failure): String = {
 
     val lineColIndex = f.extra.input.prettyIndex(f.index)
     val expected = f.trace().failure.label

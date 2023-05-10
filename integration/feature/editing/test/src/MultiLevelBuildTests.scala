@@ -17,9 +17,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
     def runAssertSuccess(expected: String) = {
       val res = evalStdout("foo.run")
       assert(res.isSuccess == true)
-      // Don't check foo.run stdout in local mode, because it the subprocess
-      // println is not properly captured by the test harness
-      if (integrationTestMode != "local") assert(res.out.contains(expected))
+      assert(res.out.contains(expected))
     }
 
     val fooPaths = Seq(
@@ -60,7 +58,12 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
      */
     def checkWatchedFiles(expected0: Seq[os.Path]*) = {
       for ((expectedWatched0, (frame, path)) <- expected0.zip(loadFrames(expected0.length))) {
-        val frameWatched = frame.evalWatched.map(_.path).sorted
+        val frameWatched = frame
+          .evalWatched
+          .map(_.path)
+          .sorted.filter(_.startsWith(wsRoot))
+          .filter(!_.segments.contains("mill-launcher"))
+
         val expectedWatched = expectedWatched0.sorted
         assert(frameWatched == expectedWatched)
       }

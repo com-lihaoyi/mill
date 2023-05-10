@@ -4,7 +4,7 @@ import scala.collection.mutable
 
 // Adapted from
 // https://github.com/indy256/codelibrary/blob/c52247216258e84aac442a23273b7d8306ef757b/java/src/SCCTarjan.java
-object Tarjans {
+private[mill] object Tarjans {
   def apply(graph0: IterableOnce[IterableOnce[Int]]): Seq[Seq[Int]] = {
     val graph = graph0.iterator.map(_.iterator.toArray).toArray
     val n = graph.length

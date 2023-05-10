@@ -1,7 +1,6 @@
 package mill.scalalib.scalafmt
 
-import mill.T
-import mill.define.Sources
+import mill._
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
 import mill.util.{TestEvaluator, TestUtil}
@@ -10,7 +9,7 @@ import utest.framework.TestPath
 
 object ScalafmtTests extends TestSuite {
 
-  val scalafmtTestVersion = sys.props.getOrElse("TEST_SCALAFMT_VERSION", ???)
+  val scalafmtTestVersion = mill.scalalib.api.Versions.scalafmtVersion
 
   trait TestBase extends TestUtil.BaseModule {
     def millSourcePath =

@@ -28,21 +28,21 @@ concurrency:
 
 jobs:
 
-  test:
+  linux:
     strategy:
       fail-fast: false
       matrix:
         java-version: [8, 17]
         buildcmd:
           # bootstrap tests
-          - ci/test-mill-bootstrap-0.sh
+          - ci/test-mill-release.sh
           # unit and module tests
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
 
           - ./mill -i -k "integration.feature.__.server.test"
           - ./mill -i -k "integration.feature.__.fork.test"
 
-          # contrib tests
+          # contrib s
           - ./mill -i -k "contrib._.test"
 
         include:
@@ -54,13 +54,11 @@ jobs:
 
           # Limit some tests to Java 17 to limit CI times
           - java-version: 17
-            buildcmd: ci/test-mill-bootstrap-1.sh
-          - java-version: 17
-            buildcmd: ci/test-mill-release.sh
-          - java-version: 17
             buildcmd: ci/test-mill-dev.sh
           - java-version: 17
-            buildcmd: ./mill -i -k "example.__.test"
+            buildcmd: ci/test-mill-bootstrap.sh
+          - java-version: 17
+            buildcmd: ./mill -i -k "example.__.local.test"
           - java-version: 17
             buildcmd: ./mill -i -k "integration.feature.__.local.test"
           - java-version: 17
@@ -68,108 +66,70 @@ jobs:
           - java-version: 17
             buildcmd: ./mill -i -k "integration.thirdparty.__.test"
           - java-version: 17
-            buildcmd: ./mill -i docs.antora.githubPages
+            buildcmd: ./mill -i docs.githubPages
 
-    runs-on: ubuntu-latest
+          # Have one job on latest JVM
+          - java-version: 20
+            buildcmd: ci/test-mill-bootstrap.sh
 
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      os: ubuntu-latest
+      java-version: ${{ matrix.java-version }}
+      buildcmd: ${{ matrix.buildcmd }}
 
-      - uses: coursier/cache-action@v6
+  format-check:
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      os: ubuntu-latest
+      java-version: '8'
+      buildcmd: ./mill -i -k mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
 
-      - uses: actions/setup-java@v3
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: temurin
+  bincompat-check:
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      os: ubuntu-latest
+      java-version: '8'
+      buildcmd: ./mill -i -k __.mimaReportBinaryIssues
+      continue-on-error: true
 
-      - name: Prepare git config
-        run: |
-          git config --add user.name "Mill GithHub Actions"
-          git config --add user.email "mill-ci@localhost"
-
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ${{ matrix.buildcmd }}
-
-  checks:
-    strategy:
-      fail-fast: false
-      matrix:
-        java-version: [8]
-        buildcmd:
-          - ./mill -i -k mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues
-
-    runs-on: ubuntu-latest
-    # when doing milestone builds, this may be true
-    continue-on-error: true
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: temurin
-
-      - name: Prepare git config
-        run: |
-          git config --add user.name "Mill GithHub Actions"
-          git config --add user.email "mill-ci@localhost"
-
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ${{ matrix.buildcmd }}
-
-  test-windows:
+  windows:
     strategy:
       fail-fast: false
       matrix:
         java-version: [8, 17]
         buildcmd:
           # Run a stripped down build matrix on Windows, to avoid taking too long
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
+          - "{__.publishLocal,dev.assembly,__.compile}"
+          - "{main,scalalib,scalajslib,bsp}.__.test"
 
         include:
           # Limit some tests to Java 17 to limit CI times
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.fork.test"
+            # just run a subset of examples/ on Windows, because for some reason running
+            # the whole suite can take hours on windows v.s. half an hour on linux
+            buildcmd: "example.{scalabuilds,cross,tasks}.__.local.test"
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.fork.test"
+            buildcmd: "integration.feature.__.fork.test"
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.server.test"
+            buildcmd: "integration.feature.__.server.test"
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.failure.__.fork.test"
+            buildcmd: "integration.failure.__.fork.test"
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.__.fork.test"
+            buildcmd: "integration.thirdparty.__.fork.test"
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
+            buildcmd: "contrib.__.test"
 
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: temurin
-
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ${{ matrix.buildcmd }}
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      os: windows-latest
+      java-version: ${{ matrix.java-version }}
+      buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "${{ matrix.buildcmd }}"
 
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
-    needs: [test, test-windows]
+    needs: [linux, windows, format-check]
 
     runs-on: ubuntu-latest
 

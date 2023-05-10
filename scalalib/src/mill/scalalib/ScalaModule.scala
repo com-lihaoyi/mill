@@ -2,7 +2,6 @@ package mill
 package scalalib
 
 import scala.annotation.nowarn
-import mill.define.{Command, Sources, Target, Task}
 import mill.api.{DummyInputStream, JarManifest, PathRef, Result, internal}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar

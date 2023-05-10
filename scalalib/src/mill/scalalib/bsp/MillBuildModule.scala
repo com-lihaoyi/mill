@@ -1,11 +1,11 @@
 package mill.scalalib.bsp
 
 import mill.api.{Loose, PathRef, internal}
-import mill.define.{BaseModule, Discover, ExternalModule, Sources, Target, Task}
+import mill.define.{Discover, ExternalModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.BuildScAwareness.{IncludedDep, IncludedFile}
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
-import mill.{Agg, BuildInfo, T}
+import mill._
 import os.Path
 
 /**
@@ -38,7 +38,7 @@ trait MillBuildModule
   }
 
   override def compileIvyDeps: T[Agg[Dep]] = T {
-    val deps = Agg.from(BuildInfo.millEmbeddedDeps.map(d => ivy"${d}".forceVersion()))
+    val deps = Agg.from(BuildInfo.millEmbeddedDeps.split(",").map(d => ivy"${d}".forceVersion()))
     T.log.errorStream.println(s"compileIvyDeps: ${deps}")
     deps
   }

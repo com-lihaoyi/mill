@@ -29,7 +29,7 @@ private[dependency] object VersionsFinder {
   private def resolveDependencies(
       evaluator: Evaluator,
       javaModules: Seq[JavaModule]
-  ): Seq[(JavaModule, Seq[Dependency])] = Evaluator.evalOrThrow(evaluator) {
+  ): Seq[(JavaModule, Seq[Dependency])] = evaluator.evalOrThrow() {
     javaModules.map { javaModule =>
       T.task {
         val bindDependency = javaModule.bindDependency()
@@ -63,7 +63,7 @@ private[dependency] object VersionsFinder {
     resolvedDependencies.map {
       case (javaModule, dependencies) =>
         val metadataLoaders =
-          Evaluator.evalOrThrow(evaluator)(javaModule.repositoriesTask)
+          evaluator.evalOrThrow()(javaModule.repositoriesTask)
             .flatMap(MetadataLoaderFactory(_))
 
         val versions = dependencies.map { dependency =>

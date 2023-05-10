@@ -58,10 +58,9 @@ import com.google.gson.JsonObject
 import mill.T
 import mill.api.{DummyTestReporter, PathRef, Result, Strict, internal}
 import mill.define.Segment.Label
-import mill.define.{Discover, ExternalModule, Module, Segments, Task}
+import mill.define.{Args, Discover, ExternalModule, Module, Segments, Task}
 import mill.eval.Evaluator
 import mill.main.{BspServerResult, MainModule}
-import mill.main.TokenReaders._
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, MillBuildModule, ScalaBuildTarget}
 import mill.scalalib.internal.ModuleUtils
@@ -402,7 +401,7 @@ class MillBuildServer(
           }
       }.toSeq
 
-      val ids = Evaluator.evalOrThrow(evaluator)(tasks).flatten
+      val ids = evaluator.evalOrThrow()(tasks).flatten
       new InverseSourcesResult(ids.asJava)
     }
   }
@@ -538,7 +537,7 @@ class MillBuildServer(
         case m: JavaModule => m
       }.get
       val args = params.getArguments.getOrElse(Seq.empty[String])
-      val runTask = module.run(args: _*)
+      val runTask = module.run(T.task(Args(args)))
       val runResult = evaluator.evaluate(
         Strict.Agg(runTask),
         Utils.getBspLoggedReporterPool(runParams.getOriginId, bspIdByModule, client),
@@ -657,7 +656,7 @@ class MillBuildServer(
             val mainModule = new MainModule {
               override implicit def millDiscover: Discover[_] = Discover[this.type]
             }
-            val compileTargetName = (module.millModuleSegments ++ Segments(Label("compile"))).render
+            val compileTargetName = (module.millModuleSegments ++ Label("compile")).render
             log.debug(s"about to clean: ${compileTargetName}")
             val cleanTask = mainModule.clean(evaluator, Seq(compileTargetName): _*)
             val cleanResult = evaluator.evaluate(
@@ -674,7 +673,7 @@ class MillBuildServer(
             )
             else {
               val outPaths = evaluator.pathsResolver.resolveDest(
-                module.millModuleSegments ++ Seq(Label("compile"))
+                module.millModuleSegments ++ Label("compile")
               )
               val outPathSeq = Seq(outPaths.dest, outPaths.meta, outPaths.log)
 
@@ -709,7 +708,7 @@ class MillBuildServer(
   )(f: (BuildTargetIdentifier, BspModule) => Task[T]): V = {
     import state._
     val tasks: Seq[Task[T]] = targetIds.distinct.map(id => f(id, bspModulesById(id)))
-    val res = Evaluator.evalOrThrow(evaluator)(tasks)
+    val res = evaluator.evalOrThrow()(tasks)
     agg(res)
   }
 

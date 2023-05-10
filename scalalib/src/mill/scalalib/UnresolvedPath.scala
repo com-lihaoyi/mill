@@ -31,8 +31,8 @@ object UnresolvedPath {
   ) extends UnresolvedPath {
     override def resolve(pathResolver: EvaluatorPathsResolver): Path = {
       pathResolver.resolveDest(
-        Segments(segments.map(Segment.Label(_)): _*),
-        foreignSegments.map(o => Segments(o.map(Segment.Label(_)): _*))
+        Segments(segments.map(Segment.Label(_))),
+        foreignSegments.map(o => Segments(o.map(Segment.Label(_))))
       ).dest / os.SubPath(subPath)
     }
   }

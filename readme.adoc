@@ -47,11 +47,6 @@ If you use Mill and like it, you will probably enjoy the following book by the A
 
 * https://www.handsonscala.com/[_Hands-on Scala Programming_]
 
-_Hands-on Scala_ has a _Chapter 10: Static Build Pipelines_ dedicated to Mill,
-but rest of the book introduces other libraries and tools in a similar style.
-_Hands-on Scala_ is a great way to level up your skills in Scala in general
-and Mill in particular
-
 The remainder of this readme is developer-documentation targeted at people who
 wish to work on Mill's own codebase. The developer docs assume you have read
 through the user-facing documentation linked above. It's also worth spending a
@@ -66,14 +61,12 @@ Mill is profiled using the
 https://www.ej-technologies.com/products/jprofiler/overview.html[JProfiler Java Profiler], 
 by courtesy of EJ Technologies.
 
-== How to build and test
+Mill is built using Mill. To begin, you just need a JVM installed, and the
+`./mill` script will be sufficient to bootstrap the project.
 
-Mill is built using Mill. To begin, first download & install Mill as described
-in the documentation above. As Mill is under active development, stable releases
-may not be able to build the current development branch of Mill. It is
-recommended to install the latest unstable release manually.
 
-=== IntelliJ Setup
+
+== IntelliJ Setup
 
 If you are using IntelliJ IDEA to edit Mill's Scala code, you can create the
 IntelliJ project files via:
@@ -83,64 +76,120 @@ IntelliJ project files via:
 ./mill mill.scalalib.GenIdea/idea
 ----
 
-=== Automated Tests
+== Manual & Automated Testing
 
-To run test suites:
+The following table contains the main ways you can test the code in
+`com-lihaoyi/mill`, via manual testing or automated tests:
 
-[source,bash]
-----
-./mill main.test
-./mill scalalib.test
-./mill scalajslib.test
-./mill integration.test
-----
+|===
+| Config | Automated Testing | Manual Testing | Manual Testing CI
+| In-Process Tests | `main.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
+| Sub-Process w/o packaging/publishing| `example.\\__.local`, `integration.__.local` | `dev.run` | `test-mill-dev.sh`
+| Sub-Process w/ packaging/publishing | `example.\\__.server`, `integration.__.server` | `dev.assembly` | `test-mill-release.sh`
+| Bootstrapping: Building Mill with your current checkout of Mill |  | `installLocal` | `test-mill-bootstrap.sh`
+|===
 
-=== Manual Testing
+=== In-Process Tests
 
-To manually test Mill on a small build, you can use the `scratch` folder:
-
-[source,bash]
-----
-./mill -i dev.run scratch -w resolve _
-----
-
-This runs the task `resolve _` with your current checkout of Mill on the trivial build defined in
-`scratch/build.sc`. You can modify that build file to add additional modules,
-files, etc. and see how it behaves.
-
-More generally, you can use:
-
-[source,bash]
-----
-./mill -i dev.run [target-dir] [...args]
-----
-
-To create run your current checkout of Mill in the given `target-dir` with the
-given `args`. This is useful e.g. to test a modified version of Mill on some
-other project's Mill build.
-
-You can also create a launcher-script to let you run the current checkout of
-Mill without the bootstrap Mill process present:
-
-[source,bash]
-----
-./mill dev.launcher
-----
-
-This creates the `out/dev/launcher.dest/run` launcher script, which you can then
-use to run your current checkout of Mill where-ever you'd like. Note that this
-script relies on the compiled code already present in the Mill `out/` folder,
-and thus isn't suitable for testing on Mill's own Mill build since you would be
-over-writing the compiled code at the same time as the launcher script is using
+In-process tests live in the `.test` sub-modules of the various Mill modules.
+These range from tiny unit tests, to larger integration tests that instantiate
+a `TestUtil.BaseModule` in-process and a `TestEvaluator` to evaluate tasks on
 it.
 
-You can also run your current checkout of Mill on the build in your `scratch/`
-folder without the bootstrap Mill process being present via:
+Most "core" tests live in `main.__test`; these should run almost instantly, and
+cover most of Mill's functionality that is not specific to Scala/Scala.js/etc..
+Tests specific to Scala/Scala.js/Scala-Native live in
+`scalalib.test`/`scalajslib.test`/`scalanativelib.test` respectively, and take
+a lot longer to run because running them involves actually compiling Scala code.
+
+The various `contrib` modules also have tests in this style, e.g.
+`contrib.buildinfo.test`
+
+Note that the in-memory tests compile the `BaseModule` together with the test
+suite, and do not exercise the Mill script-file bootstrapping, transformation,
+and compilation process.
+
+=== Sub-Process Tests *without* Packaging/Publishing
+
+`example.\\__.local` and `integration.__.local` tests run Mill end-to-end in
+a subprocess, but *without* the expensive/slow steps of packaging the core
+packages into an assembly jar and publishing the remaining packages to
+`~/.ivy2/local`. You can reproduce these tests manually using
+`./mill dev.run <test-folder-path> <command>`.
+
+`example` tests are written in a single `build.sc` file, with the test
+commands written in a comment with a bash-like syntax together with the build
+code and comments that explain the example. These serve three purposes:
+
+1. Basic smoke-tests to make sure the functionality works at all, without
+   covering every edge case
+
+2. User-facing documentation, with the test cases, test commands, and
+   explanatory comments included in the Mill documentation site
+
+3. Example repositories, that Mill users can download to bootstrap their own
+   projects
+
+The `integration` tests are similar to `example` tests and share most of their
+test infrastructure, but with differences:
+
+1. `integration` tests are meant to test features more thoroughly then
+   `example` tests, covering more and deeper edge cases even at the expense
+   of readability
+
+2. `integration` tests are written using a Scala test suite extending
+   `IntegrationTestSuite`, giving more flexibility at the expense of readability
+
+You can reproduce any of the tests manually using `dev.run`, e.g.
+
+**Automated Test**
 
 [source,bash]
 ----
-./mill dev.launcher && (cd scratch && ../out/dev/launcher.dest/run -w show thingy)
+./mill "example.basic[1-simple-scala].local"
 ----
+
+**Manual Test**
+
+[source,bash]
+----
+./mill dev.run example/basic/1-simple-scala run --text hello
+----
+
+**Manual Test using Launcher Script**
+
+[source,bash]
+----
+./mill dev.launcher && (cd example/basic/1-simple-scala && ../../../out/dev/launcher.dest/run run --text hello)
+----
+
+=== Sub-Process Tests *with* Packaging/Publishing
+
+`example.\\__.server`, `integration.__.server`, `example.\\__.fork` and
+`integration.__.fork` cover the same test cases as the `.local` tests described
+above, but they perform packaging of the Mill core modules into an assembly
+jar, and publish the remaining modules to `~/.ivy2/local`. This results in a
+more realistic test environment, but at the cost of taking tens-of-seconds more
+to run a test after making a code change.
+
+You can reproduce these tests manually using `dev.assembly`:
+
+[source,bash]
+----
+./mill dev.assembly && (cd example/basic/1-simple-scala && ../../../out/dev/assembly.dest/mill run --text hello)
+----
+
+There are two flavors of these tests:
+
+1. `.server` test run the test cases with the default configuration, so
+   consecutive commands run in the same long-lived background server process
+
+2. `.fork` test run the test cases with `--no-server`, meaning each command
+   runs in a newly spawned Mill process
+
+In general you should spend most of your time working with the `.local` version
+of the `example` and `integration` tests to save time, and only run `.fork`
+or `.server` once `.local` is passing.
 
 === Bootstrapping: Building Mill with your current checkout of Mill
 
@@ -150,10 +199,14 @@ from your checkout, you can run
 [source,bash]
 ----
 ./mill installLocal
+ci/patch-mill-bootstrap.sh
 ----
 
 This creates a standalone assembly at `target/mill-release` you can use, which
-references jars published locally in your `~/.ivy2/local` cache. You can then
+references jars published locally in your `~/.ivy2/local` cache, and applies
+any necessary patches to `build.sc` to deal with changes in Mill between the
+version specified in `.config/mill-version` that is normally used to build Mill
+and the `HEAD` version your assembly was created from. You can then
 use this standalone assembly to build & re-build your current Mill checkout
 without worrying about stomping over compiled code that the assembly is using.
 
@@ -167,13 +220,6 @@ set it's optional parameters
 .Install into `/tmp`
 [source,bash]
 ----
-$ ./mill inspect installLocal
-[1/1] inspect
-installLocal(build.sc:865)
-    Build and install Mill locally.
-    @param binFile The location where the Mill binary should be installed
-    @param ivyRepo The local Ivy repository where Mill modules should be published to
-...
 $ ./mill installLocal --binFile /tmp/mill --ivyRepo /tmp/millRepo
 ...
 Published 44 modules and installed /tmp/mill
@@ -195,7 +241,7 @@ The Mill project is organized roughly as follows:
 
 === Core modules that are included in the main assembly
 
-* `core`, `main`, `main.client`, `scalalib`, `scalajslib`.
+* `runner`, `main.*`, `scalalib`, `scalajslib`, `scalanativelib`.
 
 These are general lightweight and dependency-free: mostly configuration & wiring
 of a Mill build and without the heavy lifting.
@@ -247,6 +293,52 @@ corresponding version of Mill.
 * If the message contains links to other issues or pull requests, you should use full URLs to reference them
 
 == Changelog
+
+
+[#0-11-0-M8]
+=== 0.11.0-M8 - 2023-04-24
+:version: 0.11.0-M8
+:milestone-name: 0.11.0-M8
+:milestone: 79
+:prev-version: 0.11.0-M7
+
+*This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
+
+* Added an https://github.com/com-lihaoyi/mill/tree/main/example[example/]
+  folder in the Mill repo, containing common build setups demonstrating Mill
+  features with explanations of how each feature works
+
+* Pre-compiled Scala incremental compiler interface
+  https://github.com/com-lihaoyi/mill/pull/2424[#2424], to speed up clean builds
+
+* Add some helpers to simplify cross-version/cross-platform modules {#2406}[https://github.com/com-lihaoyi/mill/pull/2406]
+
+* You can now override `T{...}` ``Target``s with `T.source` or `T.sources`, and
+  vice versa https://github.com/com-lihaoyi/mill/pull/2402[#2402]
+
+* Removed the Ammonite script runner dependency used to evaluate `build.sc`
+  files and instead compile them using Mill https://github.com/com-lihaoyi/mill/pull/2377[#2377]
+
+* Add `TestModule.ZioTest` {#2432}[https://github.com/com-lihaoyi/mill/pull/2432]
+
+* Caching fixes for external modules https://github.com/com-lihaoyi/mill/issues/2419[#2419]
+
+* Overhaul of the Mill `BuildInfo` plugin, moving the key-value into resources
+  to avoid needing to re-compile your module when the values change, adding
+  `JavaModule` support, and allowing Javadoc/Scaladoc comments to be associated
+  with the generated `BuildInfo` constants https://github.com/com-lihaoyi/mill/pull/2425[#2425]
+
+* Global Configuration via `~/.mill/ammonite/predefScript.sc` is no longer supported in this version. If that breaks your workflow, please report and tell us your use case so we can provide sufficient replacement or support for your use case before Mill 0.11.
+
+* Overhaul of the documentation. Created many executable example projects which are included in the documentation and run/tested on CI
+
+* Change cross module definitions to be traits instead of classes, for greater regularity and less builerplate at call sites. _This change requires slight modification to existing build scripts that define cross modules._
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-0-M7]
@@ -932,7 +1024,7 @@ _Changes since {prev-version}:_
 * `ScalaModule`: Support for Scala 3
 * `CoursierModule`: Support customized dependency resolution (needed to work with ScalaFX)
 * `TestModule`: Added new `testFramework` target and only support one test framework. Deprecated `testFrameworks` targets.
-* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit4`, `TestModule.ScalaTest`, `TestModule.Utest`, and many more
+* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit4`, `TestModule.ScalaTest`, `TestModule.Utest` and many more
 * `Bloop`: Added support for foreign modules
 * Better support for Windows environments
 * Various internal improvements, cleanups, and deprecations

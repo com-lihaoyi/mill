@@ -1,13 +1,13 @@
 package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
-
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
 import mill.T
 import mill.define.{Discover, ExternalModule}
 import mill.api.{PathRef, Result}
+import mill.modules.Util.millProjectModule
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
   def repositories = Seq(
@@ -16,14 +16,13 @@ object VisualizeModule extends ExternalModule with VisualizeModule {
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
 
-  import mill.main.TokenReaders._
   lazy val millDiscover = Discover[this.type]
 }
 trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
   def classpath = T {
-    mill.modules.Util.millProjectModule("MILL_GRAPHVIZ", "mill-main-graphviz", repositories)
+    millProjectModule("mill-main-graphviz", repositories)
   }
 
   /**
@@ -43,7 +42,7 @@ trait VisualizeModule extends mill.define.TaskModule {
     )
     val visualizeThread = new java.lang.Thread(() =>
       while (true) {
-        val res = Result.create {
+        val res = Result.Success {
           val (targets, tasks, dest) = in.take()
           cl.loadClass("mill.main.graphviz.GraphvizTools")
             .getMethod("apply", classOf[Seq[_]], classOf[Seq[_]], classOf[os.Path])

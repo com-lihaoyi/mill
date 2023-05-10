@@ -24,6 +24,5 @@ object GenIdea extends ExternalModule {
     }
   }
 
-  import mill.main.TokenReaders._
   override lazy val millDiscover = Discover[this.type]
 }

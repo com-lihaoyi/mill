@@ -7,7 +7,7 @@ import scala.util.{Properties, Using}
 import scala.xml.NodeSeq
 import mill._
 import mill.api.Result
-import mill.define.{Input, NamedTask, Target}
+import mill.define.NamedTask
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.modules.Assembly
 import mill.scalalib.api.ZincWorkerUtil
@@ -57,7 +57,7 @@ object HelloWorldTests extends TestSuite {
           scala212Version,
           scala213Version
         )
-    class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
+    trait HelloWorldCross extends CrossScalaModule
   }
 
   object HelloWorldDefaultMain extends HelloBase {
@@ -688,7 +688,7 @@ object HelloWorldTests extends TestSuite {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.core.run(runResult.toString)
+          HelloWorldWithMain.core.run(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -710,7 +710,7 @@ object HelloWorldTests extends TestSuite {
         // discovered by Zinc and used
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithoutMain.core.run(runResult.toString)
+          HelloWorldWithoutMain.core.run(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -726,7 +726,7 @@ object HelloWorldTests extends TestSuite {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.core.runLocal(runResult.toString)
+          HelloWorldWithMain.core.runLocal(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -739,7 +739,7 @@ object HelloWorldTests extends TestSuite {
       "runWithDefaultMain" - workspaceTest(HelloWorldDefaultMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldDefaultMain.core.runLocal(runResult.toString)
+          HelloWorldDefaultMain.core.runLocal(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
