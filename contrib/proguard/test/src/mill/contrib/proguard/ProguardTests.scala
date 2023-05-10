@@ -3,7 +3,7 @@ package mill.contrib.proguard
 import scala.util.control.NonFatal
 import mill._
 import mill.define.Target
-import mill.modules.Util.millProjectModule
+import mill.util.Util.millProjectModule
 import mill.scalalib.ScalaModule
 import mill.util.TestEvaluator
 import mill.util.TestUtil
