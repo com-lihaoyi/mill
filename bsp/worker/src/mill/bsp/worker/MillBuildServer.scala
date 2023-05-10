@@ -113,7 +113,8 @@ class MillBuildServer(
                 }
                 (id, m)
               case m: BspModule =>
-                val uri = sanitizeUri(millBuildRootModules.head.millSourcePath / m.millModuleSegments.parts)
+                val uri =
+                  sanitizeUri(millBuildRootModules.head.millSourcePath / m.millModuleSegments.parts)
                 val id = new BuildTargetIdentifier(uri)
                 (id, m)
             }.toMap
@@ -151,13 +152,12 @@ class MillBuildServer(
                 f.classLoaderOpt
                   .flatMap(
                     mill.runner.MillBuildBootstrap
-                      .getRootModule0(_, i, evaluator.rootModule.millSourcePath)
+                      .getRootModule(_, i, evaluator.rootModule.millSourcePath)
                       .toOption
-
                   )
             }
 
-      allModules.collect{case m: mill.runner.MillBuildRootModule => m}
+      allModules.collect { case m: mill.runner.MillBuildRootModule => m }
     }
     def bspModulesById: Map[BuildTargetIdentifier, BspModule] = {
       internal.init()

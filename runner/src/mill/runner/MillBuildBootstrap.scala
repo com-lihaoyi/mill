@@ -60,7 +60,7 @@ class MillBuildBootstrap(
   }
 
   def evaluateRec(depth: Int): RunnerState = {
-    // println(s"+evaluateRec($depth) " + recRoot(depth))
+    // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
@@ -92,9 +92,15 @@ class MillBuildBootstrap(
       nestedRunnerState.add(errorOpt = nestedRunnerState.errorOpt)
     } else {
       val validatedRootModuleOrErr = nestedRunnerState.frames.headOption match {
-        case None => Right(nestedRunnerState.bootstrapModuleOpt.get)
+        case None =>
+          getChildRootModule(
+            nestedRunnerState.bootstrapModuleOpt.get,
+            depth,
+            projectRoot
+          )
+
         case Some(nestedFrame) =>
-          MillBuildBootstrap.getRootModule0(
+          getRootModule(
             nestedFrame.classLoaderOpt.get,
             depth,
             projectRoot
@@ -132,7 +138,7 @@ class MillBuildBootstrap(
           else processFinalTargets(nestedRunnerState, rootModule, evaluator)
       }
     }
-    // println(s"-evaluateRec($depth) " + recRoot(depth))
+    // println(s"-evaluateRec($depth) " + recRoot(projectRoot, depth))
     res
   }
 
@@ -153,7 +159,6 @@ class MillBuildBootstrap(
       prevFrameOpt: Option[RunnerState.Frame],
       prevOuterFrameOpt: Option[RunnerState.Frame]
   ): RunnerState = {
-
     evaluateWithWatches(
       rootModule,
       evaluator,
@@ -273,8 +278,6 @@ class MillBuildBootstrap(
     )
   }
 
-
-
 }
 
 @internal
@@ -328,16 +331,17 @@ object MillBuildBootstrap {
     }
   }
 
-//  def getRootModule0(runClassLoader: URLClassLoader): RootModule = {
-//    val cls = runClassLoader.loadClass("millbuild.build$")
-//    cls.getField("MODULE$").get(cls).asInstanceOf[RootModule]
-//  }
-
-  def getRootModule0(runClassLoader: URLClassLoader,
-                     depth: Int,
-                     projectRoot: os.Path): Either[String, RootModule] = {
+  def getRootModule(
+      runClassLoader: URLClassLoader,
+      depth: Int,
+      projectRoot: os.Path
+  ): Either[String, RootModule] = {
     val cls = runClassLoader.loadClass("millbuild.build$")
     val rootModule0 = cls.getField("MODULE$").get(cls).asInstanceOf[RootModule]
+    getChildRootModule(rootModule0, depth, projectRoot)
+  }
+
+  def getChildRootModule(rootModule0: RootModule, depth: Int, projectRoot: os.Path) = {
 
     val childRootModules: Seq[RootModule] = rootModule0
       .millModuleDirectChildren
