@@ -246,9 +246,23 @@ private[mill] case class EvaluatorImpl(
       .flatMap(t => Iterator(t) ++ t.inputs)
       .collect {
         case namedTask: NamedTask[_] =>
-          val cls = namedTask.ctx.enclosingCls.getName
+          def resolveParents(c: Class[_]): Seq[Class[_]] = {
+            Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
+              resolveParents
+            )
+          }
+
+          val transitiveParents = resolveParents(namedTask.ctx.enclosingCls)
+          val methods = for {
+            c <- transitiveParents
+            m <- c.getDeclaredMethods
+            if m.getName == namedTask.ctx.segment.pathSegments.head
+          } yield m
+
+
+          val cls = methods.head.getDeclaringClass.getName
           val name = namedTask.ctx.segment.pathSegments.last
-          val expectedPrefix = cls.stripSuffix("$") + "#" + name + "()"
+          val expectedPrefix = cls + "#" + name + "()"
           methodCodeHashSignatures.collectFirst { case (k, v) if k.startsWith(expectedPrefix) => v }
       }
       .flatten
