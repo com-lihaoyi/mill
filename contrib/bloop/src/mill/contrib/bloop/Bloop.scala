@@ -1,4 +1,4 @@
-package mill.contrib.bloop
+package mill.contrib
 
 import mill.eval.Evaluator
 

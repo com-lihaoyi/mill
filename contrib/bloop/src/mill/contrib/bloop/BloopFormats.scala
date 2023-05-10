@@ -1,6 +1,6 @@
-package mill.contrib.bloop
+package mill.contrib
 
-import bloop.config.{Config => BloopConfig}
+import _root_.bloop.config.{Config => BloopConfig}
 import upickle.default.{ReadWriter, macroRW, readwriter}
 
 object BloopFormats {

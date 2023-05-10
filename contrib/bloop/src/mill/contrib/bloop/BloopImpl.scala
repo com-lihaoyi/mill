@@ -1,6 +1,6 @@
-package mill.contrib.bloop
+package mill.contrib
 
-import bloop.config.{Config => BloopConfig, Tag => BloopTag}
+import _root_.bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
 import mill.api.Result
 import mill.define.{Module => MillModule, ExternalModule, Discover}
@@ -144,7 +144,10 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
     Result.Success(sources.toMap)
   }
 
-  protected def name(m: JavaModule) = ModuleUtils.moduleDisplayName(m)
+  protected def name(m: JavaModule) = ModuleUtils.moduleDisplayName(m) match{
+    case "" => "root-module"
+    case n => n
+  }
 
   protected def bloopConfigPath(module: JavaModule): os.Path =
     bloopDir / s"${name(module)}.json"
