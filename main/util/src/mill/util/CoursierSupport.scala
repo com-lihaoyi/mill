@@ -1,6 +1,5 @@
 package mill.util
 
-
 import coursier.cache.ArtifactError
 import coursier.parse.RepositoryParser
 import coursier.util.{Gather, Task}

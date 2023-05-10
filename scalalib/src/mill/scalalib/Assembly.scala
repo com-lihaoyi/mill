@@ -176,8 +176,10 @@ object Assembly {
   private[scalalib] object AppendEntry {
     val empty: AppendEntry = AppendEntry(Nil, defaultSeparator)
   }
-  private[scalalib] case class AppendEntry(inputStreams: Seq[UnopenedInputStream], separator: String)
-      extends GroupedEntry {
+  private[scalalib] case class AppendEntry(
+      inputStreams: Seq[UnopenedInputStream],
+      separator: String
+  ) extends GroupedEntry {
     def append(inputStream: UnopenedInputStream): GroupedEntry =
       copy(inputStreams = inputStreams :+ inputStream)
   }
@@ -187,12 +189,12 @@ object Assembly {
   }
 
   def createAssembly(
-                      inputPaths: Agg[os.Path],
-                      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
-                      prependShellScript: String = "",
-                      base: Option[os.Path] = None,
-                      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
-                    )(implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
+      inputPaths: Agg[os.Path],
+      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
+      prependShellScript: String = "",
+      base: Option[os.Path] = None,
+      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
+  )(implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
     val tmp = ctx.dest / "out-tmp.jar"
 
     val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
@@ -256,9 +258,7 @@ object Assembly {
     PathRef(output)
   }
 
-  private def writeEntry(p: java.nio.file.Path,
-                         inputStream: InputStream,
-                         append: Boolean): Unit = {
+  private def writeEntry(p: java.nio.file.Path, inputStream: InputStream, append: Boolean): Unit = {
     if (p.getParent != null) Files.createDirectories(p.getParent)
     val options =
       if (append) Seq(StandardOpenOption.APPEND, StandardOpenOption.CREATE)

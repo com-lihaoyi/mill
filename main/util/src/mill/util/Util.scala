@@ -1,6 +1,5 @@
 package mill.util
 
-
 import coursier.Repository
 import mill.api.Loose.Agg
 import mill.api.{BuildInfo, Ctx, IO, Loose, PathRef, Result}
@@ -14,7 +13,6 @@ object Util {
   val windowsPlatform = System.getProperty("os.name").startsWith("Windows")
 
   val java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
-
 
   private val LongMillProps = new java.util.Properties()
 
@@ -41,7 +39,7 @@ object Util {
   }
 
   def download(url: String, dest: os.RelPath = os.rel / "download")(implicit
-                                                                    ctx: Ctx.Dest
+      ctx: Ctx.Dest
   ): PathRef = {
     val out = ctx.dest / dest
 
@@ -61,7 +59,7 @@ object Util {
   }
 
   def downloadUnpackZip(url: String, dest: os.RelPath = os.rel / "unpacked")(implicit
-                                                                             ctx: Ctx.Dest
+      ctx: Ctx.Dest
   ) = {
 
     val tmpName = if (dest == os.rel / "tmp.zip") "tmp2.zip" else "tmp.zip"
@@ -74,12 +72,12 @@ object Util {
    * This design has issues and will probably replaced.
    */
   def millProjectModule(
-                         artifact: String,
-                         repositories: Seq[Repository],
-                         resolveFilter: os.Path => Boolean = _ => true,
-                         // this should correspond to the mill runtime Scala version
-                         artifactSuffix: String = "_2.13"
-                       ): Result[Agg[PathRef]] = {
+      artifact: String,
+      repositories: Seq[Repository],
+      resolveFilter: os.Path => Boolean = _ => true,
+      // this should correspond to the mill runtime Scala version
+      artifactSuffix: String = "_2.13"
+  ): Result[Agg[PathRef]] = {
 
     mill.util.Jvm.resolveDependencies(
       repositories = repositories,
