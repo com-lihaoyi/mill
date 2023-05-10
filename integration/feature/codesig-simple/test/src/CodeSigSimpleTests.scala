@@ -35,8 +35,7 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
           |running qux
           |running helperQux""".stripMargin
       )
-      // Changing the body of a T{...} block directly invalidates that target
-      // and any downstream targets
+
       mangleFile(wsRoot / "build.sc", _.replace("running qux", "running qux2"))
       val mangledQux = evalStdout("qux")
       assert(
