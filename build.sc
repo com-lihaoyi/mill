@@ -1130,7 +1130,7 @@ object bsp extends MillModule with BuildInfo {
   }
 
   object worker extends MillInternalModule with BuildInfo {
-    override def compileModuleDeps = Seq(bsp, scalalib, testrunner)
+    override def compileModuleDeps = Seq(bsp, scalalib, testrunner, runner)
     override def ivyDeps = Agg(
       Deps.bsp4j,
       Deps.sbtTestInterface

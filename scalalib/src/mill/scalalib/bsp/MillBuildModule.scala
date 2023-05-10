@@ -12,7 +12,7 @@ import os.Path
  * Synthetic module representing the mill-build project itself in a BSP context.
  */
 @internal
-trait MillBuildModule
+trait MillBuildModuleOld
     extends ScalaModule {
   protected def projectPath: os.Path
 
@@ -124,7 +124,7 @@ trait MillBuildModule
  * Just for testing purposes.
  */
 @internal
-object MillBuildModule extends ExternalModule with MillBuildModule {
+object MillBuildModuleOld extends ExternalModule with MillBuildModuleOld {
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
   override protected def projectPath: Path = super[ExternalModule].millSourcePath

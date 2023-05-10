@@ -163,6 +163,9 @@ class MillBuildRootModule()(implicit
   def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
     millProjectModule("mill-runner-linenumbers", repositoriesTask())
   }
+
+  /** Used in BSP IntelliJ, which can only work with directories */
+  def dummySources: Sources = T.sources(T.dest)
 }
 
 object MillBuildRootModule {

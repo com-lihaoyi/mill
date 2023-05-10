@@ -62,8 +62,9 @@ import mill.define.{Args, Discover, ExternalModule, Module, Segments, Task}
 import mill.eval.Evaluator
 import mill.main.{BspServerResult, MainModule}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
-import mill.scalalib.bsp.{BspModule, JvmBuildTarget, MillBuildModule, ScalaBuildTarget}
+import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.scalalib.internal.ModuleUtils
+import mill.runner.MillBuildRootModule
 import os.Path
 
 import java.io.PrintStream
@@ -102,15 +103,17 @@ class MillBuildServer(
         idToModule match {
           case None =>
             val modules: Seq[Module] =
-              ModuleUtils.transitiveModules(evaluator.rootModule) ++ Seq(`mill-build`)
+              ModuleUtils.transitiveModules(evaluator.rootModule)
             val map = modules.collect {
-              case m: MillBuildModule =>
+              case m: MillBuildRootModule =>
                 val uri = sanitizeUri(m.millSourcePath)
                 val id = new BuildTargetIdentifier(uri)
-                log.debug(s"mill-build segments: ${`mill-build`.millModuleSegments.render}")
+                for (millBuild <- millBuildRootModules) {
+                  log.debug(s"mill-build segments: ${millBuild.millModuleSegments.render}")
+                }
                 (id, m)
               case m: BspModule =>
-                val uri = sanitizeUri(`mill-build`.millSourcePath / m.millModuleSegments.parts)
+                val uri = sanitizeUri(millBuildRootModules.head.millSourcePath / m.millModuleSegments.parts)
                 val id = new BuildTargetIdentifier(uri)
                 (id, m)
             }.toMap
@@ -124,13 +127,38 @@ class MillBuildServer(
       private[MillBuildServer] var modulesToId: Option[Map[BspModule, BuildTargetIdentifier]] = None
     }
 
-    lazy val `mill-build`: MillBuildModule = {
-      object `mill-build` extends MillBuildModule {
-        override protected def projectPath: Path = evaluator.rootModule.millSourcePath
-      }
-      `mill-build`
-    }
+    lazy val millBuildRootModules: Seq[mill.runner.MillBuildRootModule] = {
+      val evaluated = new mill.runner.MillBuildBootstrap(
+        projectRoot = evaluator.rootModule.millSourcePath,
+        home = os.home,
+        keepGoing = false,
+        imports = Nil,
+        env = Map.empty,
+        threadCount = None,
+        targetsAndParams = Seq("resolve", "_"),
+        prevRunnerState = mill.runner.RunnerState.empty,
+        logger = evaluator.baseLogger
+      ).evaluate()
 
+      val allModules =
+        evaluated.result.bootstrapModuleOpt.toSeq ++
+          evaluated.result.frames
+            .zipWithIndex
+            // The depth=0 frame is for running user code, not for the build
+            .drop(1)
+            .flatMap {
+              case (f, i) =>
+                f.classLoaderOpt
+                  .flatMap(
+                    mill.runner.MillBuildBootstrap
+                      .getRootModule0(_, i, evaluator.rootModule.millSourcePath)
+                      .toOption
+
+                  )
+            }
+
+      allModules.collect{case m: mill.runner.MillBuildRootModule => m}
+    }
     def bspModulesById: Map[BuildTargetIdentifier, BspModule] = {
       internal.init()
       internal.idToModule.get
@@ -366,7 +394,7 @@ class MillBuildServer(
         targetIds = sourcesParams.getTargets.asScala.toSeq,
         agg = (items: Seq[SourcesItem]) => new SourcesResult(items.asJava)
       ) {
-        case (id, module: MillBuildModule) if clientIsIntelliJ =>
+        case (id, module: MillBuildRootModule) if clientIsIntelliJ =>
           T.task {
             val sources = new SourcesItem(
               id,
@@ -560,7 +588,7 @@ class MillBuildServer(
       import state._
 
       val modules = bspModulesById.values.toSeq.collect { case m: JavaModule => m }
-      val millBuildTargetId = bspIdByModule(`mill-build`)
+      val millBuildTargetIds = millBuildRootModules.map(bspIdByModule(_)).toSet
 
       val params = TaskParameters.fromTestParams(testParams)
       val argsMap =
@@ -580,7 +608,7 @@ class MillBuildServer(
         }
 
       val overallStatusCode = testParams.getTargets.asScala
-        .filter(_ != millBuildTargetId)
+        .filter(millBuildTargetIds.contains)
         .foldLeft(StatusCode.OK) { (overallStatusCode, targetId) =>
           bspModulesById(targetId) match {
             case testModule: TestModule =>
@@ -646,8 +674,9 @@ class MillBuildServer(
     completable(s"buildTargetCleanCache ${cleanCacheParams}") { state =>
       import state._
 
+      val targetIds = millBuildRootModules.map(_.buildTargetId)
       val (msg, cleaned) =
-        cleanCacheParams.getTargets.asScala.filter(_ != `mill-build`.buildTargetId).foldLeft((
+        cleanCacheParams.getTargets.asScala.filter(targetIds.contains).foldLeft((
           "",
           true
         )) {

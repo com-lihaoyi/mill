@@ -208,7 +208,9 @@ object MillMain {
 
                     new MillBuildBootstrap(
                       projectRoot = os.pwd,
-                      config = config,
+                      home = config.home,
+                      keepGoing = config.keepGoing.value,
+                      imports = config.imports,
                       env = env,
                       threadCount = threadCount,
                       targetsAndParams = targetsAndParams,
