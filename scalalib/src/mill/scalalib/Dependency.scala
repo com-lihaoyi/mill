@@ -10,7 +10,10 @@ import mill.scalalib.dependency.updates.ModuleDependenciesUpdates
 object Dependency extends ExternalModule {
 
   /** Calculate possible dependency updates. */
-  def updates(ev: Evaluator, allowPreRelease: Boolean = false): Command[Seq[ModuleDependenciesUpdates]] =
+  def updates(
+      ev: Evaluator,
+      allowPreRelease: Boolean = false
+  ): Command[Seq[ModuleDependenciesUpdates]] =
     T.command {
       DependencyUpdatesImpl(
         ev,
