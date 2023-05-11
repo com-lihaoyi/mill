@@ -1,4 +1,4 @@
-package mill.contrib
+package mill.contrib.bloop
 
 import _root_.bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
