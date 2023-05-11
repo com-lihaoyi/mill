@@ -232,7 +232,7 @@ trait MainModule extends mill.Module {
 
       val allDocs =
         for (a <- annots.distinct)
-          yield mill.modules.Util.cleanupScaladoc(a.value).map("\n    " + _).mkString
+          yield mill.util.Util.cleanupScaladoc(a.value).map("\n    " + _).mkString
 
       pprint.Tree.Lazy(ctx =>
         Iterator(

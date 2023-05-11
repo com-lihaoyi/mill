@@ -15,7 +15,7 @@ import ch.epfl.scala.bsp4j.{
 }
 import mill.{Agg, T}
 import mill.api.internal
-import mill.modules.Jvm
+import mill.util.Jvm
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule, TestModule}
 import mill.testrunner.TestRunner
 import sbt.testing.Fingerprint

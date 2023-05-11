@@ -120,6 +120,7 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
+  val jline = ivy"org.jline:jline:3.21.0"
   val jna = ivy"net.java.dev.jna:jna:5.13.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.13.0"
 
@@ -665,7 +666,10 @@ object main extends MillModule {
 
   object api extends MillApiModule with BuildInfo with MillAutoTestSetup {
     def buildInfoPackageName = "mill.api"
-    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("millVersion", millVersion(), "Mill version."),
+      BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
+    )
     override def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
@@ -675,9 +679,10 @@ object main extends MillModule {
     )
   }
   object util extends MillApiModule with MillAutoTestSetup {
-    override def moduleDeps = Seq(api)
+    override def moduleDeps = Seq(api, client)
     override def ivyDeps = Agg(
-      Deps.fansi
+      Deps.coursier,
+      Deps.jline
     )
   }
   object define extends MillModule with BuildInfo {
@@ -687,9 +692,8 @@ object main extends MillModule {
     )
     override def ivyDeps = Agg(
       Deps.millModuledefs,
-      Deps.millModuledefsPlugin,
+//      Deps.millModuledefsPlugin,
       Deps.scalametaTrees,
-      Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
@@ -719,8 +723,7 @@ object main extends MillModule {
         "millScalacPluginDeps",
         Deps.millModuledefsString,
         "Scalac compiler plugin dependencies to compile the build script."
-      ),
-      BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
+      )
     )
   }
 

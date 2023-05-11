@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.{Agg, T}
 import mill.define.{Command, Task, TaskModule}
 import mill.api.{Ctx, Result}
-import mill.modules.Jvm
+import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.TestRunner
 

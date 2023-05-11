@@ -4,8 +4,8 @@ import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.define.{Caller, Discover, Target, Task}
-import mill.modules.CoursierSupport
-import mill.modules.Util.millProjectModule
+import mill.util.CoursierSupport
+import mill.util.Util.millProjectModule
 import mill.scalalib.{BoundDep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.Versions
 import os.{Path, rel}
