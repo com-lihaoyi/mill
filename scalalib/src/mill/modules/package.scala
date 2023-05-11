@@ -1,6 +1,6 @@
 package mill
 
-package object main {
+package object modules {
   @deprecated("use mill.util.Jvm")
   val Jvm = mill.util.Jvm
 
