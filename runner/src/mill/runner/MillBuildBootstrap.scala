@@ -344,8 +344,8 @@ object MillBuildBootstrap {
   def getChildRootModule(rootModule0: RootModule, depth: Int, projectRoot: os.Path) = {
 
     val childRootModules: Seq[RootModule] = rootModule0
-      .millModuleDirectChildren
-      .collect { case b: RootModule => b }
+      .millInternal
+      .reflectNestedObjects[RootModule]()
 
     val rootModuleOrErr = childRootModules match {
       case Seq() => Right(rootModule0)
