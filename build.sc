@@ -106,7 +106,10 @@ object Deps {
   object Play_2_8 extends Play {
     val playVersion = "2.8.19"
   }
-  val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
+  object Play_2_9 extends Play {
+    val playVersion = "2.9.0-M4"
+  }
+  val play = Seq(Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   val ammoniteVersion = "3.0.0-M0-6-34034262"
@@ -915,7 +918,8 @@ object contrib extends MillModule {
         Seq(
           s"-DTEST_PLAY_VERSION_2_6=${Deps.Play_2_6.playVersion}",
           s"-DTEST_PLAY_VERSION_2_7=${Deps.Play_2_7.playVersion}",
-          s"-DTEST_PLAY_VERSION_2_8=${Deps.Play_2_8.playVersion}"
+          s"-DTEST_PLAY_VERSION_2_8=${Deps.Play_2_8.playVersion}",
+          s"-DTEST_PLAY_VERSION_2_9=${Deps.Play_2_9.playVersion}"
         )
 
     }
