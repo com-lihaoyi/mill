@@ -144,7 +144,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
     Result.Success(sources.toMap)
   }
 
-  protected def name(m: JavaModule) = ModuleUtils.moduleDisplayName(m) match{
+  protected def name(m: JavaModule) = ModuleUtils.moduleDisplayName(m) match {
     case "" => "root-module"
     case n => n
   }
