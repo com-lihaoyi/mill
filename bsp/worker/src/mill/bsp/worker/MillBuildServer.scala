@@ -103,14 +103,14 @@ class MillBuildServer(
         idToModule match {
           case None =>
             val modules: Seq[Module] =
-              ModuleUtils.transitiveModules(evaluator.rootModule)
+              ModuleUtils.transitiveModules(evaluator.rootModule) ++
+              millBuildRootModules
+
+            throw new Exception("modules " + modules.mkString("\n"))
             val map = modules.collect {
               case m: MillBuildRootModule =>
                 val uri = sanitizeUri(m.millSourcePath)
                 val id = new BuildTargetIdentifier(uri)
-                for (millBuild <- millBuildRootModules) {
-                  log.debug(s"mill-build segments: ${millBuild.millModuleSegments.render}")
-                }
                 (id, m)
               case m: BspModule =>
                 val uri =
@@ -161,10 +161,12 @@ class MillBuildServer(
     }
     def bspModulesById: Map[BuildTargetIdentifier, BspModule] = {
       internal.init()
+      ???
       internal.idToModule.get
     }
     def bspIdByModule: Map[BspModule, BuildTargetIdentifier] = {
       internal.init()
+      ???
       internal.modulesToId.get
     }
 
@@ -402,6 +404,14 @@ class MillBuildServer(
             )
             sources.setRoots(Seq(sanitizeUri(evaluator.rootModule.millSourcePath)).asJava)
             sources
+          }
+        case (id, module: MillBuildRootModule) =>
+          T.task {
+            val items =
+              module.scriptSources().map(p => sourceItem(p.path, false)) ++
+              module.sources().map(p => sourceItem(p.path, false)) ++
+              module.generatedSources().map(p => sourceItem(p.path, true))
+            new SourcesItem(id, items.asJava)
           }
         case (id, module: JavaModule) =>
           T.task {
