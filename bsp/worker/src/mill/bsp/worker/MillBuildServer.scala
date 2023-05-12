@@ -446,7 +446,7 @@ class MillBuildServer(
         case (id, m: JavaModule) =>
           val buildSources =
             if (!m.isInstanceOf[MillBuildRootModule]) Nil
-            else GenIdeaImpl
+            else mill.scalalib.Lib
               .resolveMillBuildDeps(Nil, None, useSources = true)
               .map(sanitizeUri(_))
 

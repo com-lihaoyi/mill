@@ -94,7 +94,7 @@ case class GenIdeaImpl(
             )
         )(modules.map(_._2.repositoriesTask))
 
-        GenIdeaImpl.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = false)
+        Lib.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = false)
       }
 
     val buildDepsPaths = Classpath
@@ -931,45 +931,4 @@ object GenIdeaImpl {
 
   case class GenIdeaException(msg: String) extends RuntimeException
 
-  def resolveMillBuildDeps(
-      repos0: Seq[Repository],
-      ctx: Option[mill.api.Ctx.Log],
-      useSources: Boolean
-  ): Seq[os.Path] = {
-    Util.millProperty("MILL_BUILD_LIBRARIES") match {
-      case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
-      case None =>
-        val repos = repos0 ++ Set(
-          LocalRepositories.ivy2Local,
-          Repositories.central
-        )
-        val millDeps = BuildInfo.millEmbeddedDeps.split(",").map(d => ivy"$d").map(dep =>
-          BoundDep(Lib.depToDependency(dep, BuildInfo.scalaVersion, ""), dep.force)
-        )
-        val Result.Success(res) = scalalib.Lib.resolveDependencies(
-          repositories = repos.toList,
-          deps = millDeps,
-          sources = useSources,
-          mapDependencies = None,
-          customizer = None,
-          coursierCacheCustomizer = None,
-          ctx = ctx
-        )
-
-        // Also trigger resolve sources, but don't use them (will happen implicitly by Idea)
-        if (!useSources) {
-          scalalib.Lib.resolveDependencies(
-            repositories = repos.toList,
-            deps = millDeps,
-            sources = true,
-            mapDependencies = None,
-            customizer = None,
-            coursierCacheCustomizer = None,
-            ctx = ctx
-          )
-        }
-
-        res.items.toList.map(_.path)
-    }
-  }
 }
