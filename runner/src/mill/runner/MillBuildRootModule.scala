@@ -43,11 +43,13 @@ class MillBuildRootModule()(implicit
       sources: Boolean = false
   ): Task[Agg[PathRef]] =
     T.task {
-      // We need to resolve the sources to make GenIdeaExtendedTests pass for
-      // some reason, but we don't need to actually return them (???)
-      val unused = super.resolveDeps(deps, true)()
-
-      super.resolveDeps(deps, false)()
+      if (sources == true) super.resolveDeps(deps, true)()
+      else {
+        // We need to resolve the sources to make GenIdeaExtendedTests pass for
+        // some reason, but we don't need to actually return them (???)
+        val unused = super.resolveDeps(deps, true)()
+        super.resolveDeps(deps, false)()
+      }
     }
 
   override def scalaVersion = "2.13.10"

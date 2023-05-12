@@ -447,7 +447,7 @@ class MillBuildServer(
           val buildSources =
             if (!m.isInstanceOf[MillBuildRootModule]) Nil
             else GenIdeaImpl
-              .resolveMillBuildSources(Nil, None, useSources = true)
+              .resolveMillBuildDeps(Nil, None, useSources = true)
               .map(sanitizeUri(_))
 
           T.task {
@@ -455,8 +455,9 @@ class MillBuildServer(
               T.task(m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps()),
               sources = true
             )()
+
             val unmanaged = m.unmanagedClasspath()
-            val cp = (sources ++ unmanaged).map(sanitizeUri.apply).iterator.toSeq ++ buildSources
+            val cp = (sources ++ unmanaged).map(sanitizeUri.apply).toSeq ++ buildSources
             new DependencySourcesItem(id, cp.asJava)
           }
       }

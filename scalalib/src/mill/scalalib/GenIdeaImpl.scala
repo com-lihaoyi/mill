@@ -94,7 +94,7 @@ case class GenIdeaImpl(
             )
         )(modules.map(_._2.repositoriesTask))
 
-        GenIdeaImpl.resolveMillBuildSources(moduleRepos.flatten, ctx, useSources = false)
+        GenIdeaImpl.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = false)
       }
 
     val buildDepsPaths = Classpath
@@ -931,7 +931,7 @@ object GenIdeaImpl {
 
   case class GenIdeaException(msg: String) extends RuntimeException
 
-  def resolveMillBuildSources(
+  def resolveMillBuildDeps(
       repos0: Seq[Repository],
       ctx: Option[mill.api.Ctx.Log],
       useSources: Boolean

@@ -92,7 +92,6 @@ trait CoursierSupport {
       ] = None,
       resolveFilter: os.Path => Boolean = _ => true
   ): Result[Agg[PathRef]] = {
-
     def isLocalTestDep(dep: coursier.Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
       val name = dep.module.name.value
