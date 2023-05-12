@@ -69,8 +69,8 @@ class MillBuildServer(
               }
               .toMap
             idToModule = Some(map)
-            modulesToId = Some(map.map(_.swap).toMap)
-            log.debug(s"BspModules: ${map}")
+            modulesToId = Some(map.map(_.swap))
+            log.debug(s"BspModules: ${map.mapValues(_.bspDisplayName)}")
           case _ => // already init
         }
       }

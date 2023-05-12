@@ -29,6 +29,12 @@ class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
     millBuildRootModuleInfo: MillBuildRootModule.Info
 ) extends RootModule() with ScalaModule {
+  override def bspDisplayName0: String = millBuildRootModuleInfo
+    .projectRoot
+    .relativeTo(millBuildRootModuleInfo.topLevelProjectRoot)
+    .segments
+    .++(super.bspDisplayName0.split("/"))
+    .mkString("/")
 
   override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
 
