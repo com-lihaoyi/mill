@@ -1,7 +1,7 @@
 import mill._
 import mill.scalalib._
 import coursier.MavenRepository
-import mill.modules.Jvm
+import mill.util.Jvm
 import $file.deps
 import deps.{
   benchmarkLibraries,

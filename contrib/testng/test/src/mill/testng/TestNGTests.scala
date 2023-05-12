@@ -3,7 +3,7 @@ package testng
 
 import mill.api.Result.Exception
 import mill.define.Target
-import mill.modules.Util.millProjectModule
+import mill.util.Util.millProjectModule
 import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath

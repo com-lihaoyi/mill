@@ -2,7 +2,7 @@ package mill.scalalib.giter8
 
 import mill.T
 import mill.define.{Command, Discover, ExternalModule}
-import mill.modules.Jvm
+import mill.util.Jvm
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib._
 import mill.BuildInfo

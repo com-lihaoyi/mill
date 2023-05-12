@@ -13,7 +13,7 @@ import mill.api.Ctx.{Home, Log}
 import mill.api.{PathRef, Result, Strict}
 import mill.define._
 import mill.eval.Evaluator
-import mill.modules.Util
+import mill.util.Util
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.util.Classpath
 import mill.{BuildInfo, T, scalalib}

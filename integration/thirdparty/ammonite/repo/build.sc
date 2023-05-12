@@ -58,7 +58,7 @@ trait AmmDependenciesResourceFileModule extends JavaModule {
     val deps0 = T.task {
       compileIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
     }()
-    val (_, res) = mill.modules.Jvm.resolveDependenciesMetadata(
+    val (_, res) = mill.util.Jvm.resolveDependenciesMetadata(
       repositoriesTask(),
       deps0.map(_.dep),
       deps0.filter(_.force).map(_.dep),
@@ -206,7 +206,7 @@ class MainModule(val crossScalaVersion: String) extends AmmModule
       externalSources()
 
   def prependShellScript = T {
-    mill.modules.Jvm.launcherUniversalScript(
+    mill.scalalib.Jvm.launcherUniversalScript(
       mainClass().get,
       Agg("$0"),
       Agg("%~dpnx0"),
