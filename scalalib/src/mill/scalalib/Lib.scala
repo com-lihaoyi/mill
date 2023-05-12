@@ -33,7 +33,7 @@ object Lib {
       ] = None
   ): (Seq[Dependency], Resolution) = {
     val depSeq = deps.iterator.toSeq
-    mill.modules.Jvm.resolveDependenciesMetadata(
+    mill.util.Jvm.resolveDependenciesMetadata(
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
@@ -63,7 +63,7 @@ object Lib {
       ] = None
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
-    mill.modules.Jvm.resolveDependencies(
+    mill.util.Jvm.resolveDependencies(
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),

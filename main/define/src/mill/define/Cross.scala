@@ -1,7 +1,10 @@
 package mill.define
 
+import mill.api.Lazy
+
 import language.experimental.macros
 import scala.collection.SeqView
+import scala.reflect.ClassTag
 import scala.reflect.macros.blackbox
 
 object Cross {
@@ -117,11 +120,11 @@ object Cross {
     )
   }
 
-  case class Factory[T](
-      makeList: Seq[mill.define.Ctx => T],
-      crossValuesListLists: Seq[Seq[Any]],
-      crossSegmentsList: Seq[Seq[String]],
-      crossValuesRaw: Seq[Any]
+  class Factory[T: ClassTag](
+      val makeList: Seq[(Class[_], mill.define.Ctx => T)],
+      val crossValuesListLists: Seq[Seq[Any]],
+      val crossSegmentsList: Seq[Seq[String]],
+      val crossValuesRaw: Seq[Any]
   )
 
   object Factory {
@@ -145,7 +148,7 @@ object Cross {
       val wrappedT = if (t.tree.tpe <:< typeOf[Seq[_]]) t.tree else q"_root_.scala.Seq($t)"
       val v1 = c.freshName(TermName("v1"))
       val ctx0 = c.freshName(TermName("ctx0"))
-      val implicitCtx = c.freshName(TermName("implicitCtx"))
+      val concreteCls = c.freshName(TypeName(tpe.typeSymbol.name.toString))
 
       val newTrees = collection.mutable.Buffer.empty[Tree]
       var valuesTree: Tree = null
@@ -188,14 +191,17 @@ object Cross {
           q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4) ++ $segments($v1._5)"
       }
 
+      // We need to create a `class $concreteCls` here, rather than just
+      // creating an anonymous sub-type of $tpe, because our task resolution
+      // logic needs to use java reflection to identify sub-modules and java
+      // reflect can only properly identify nested `object`s inside Scala
+      // `object` and `class`es.
       val tree = q"""
-        mill.define.Cross.Factory[$tpe](
-          makeList = $wrappedT.map(($v1: ${tq""}) =>
-            ($ctx0: ${tq""}) => {
-              implicit val $implicitCtx = $ctx0
-              new $tpe{..$newTrees}
-            }
-          ),
+        new mill.define.Cross.Factory[$tpe](
+          makeList = $wrappedT.map{($v1: ${tq""}) =>
+            class $concreteCls()(implicit ctx: mill.define.Ctx) extends $tpe{..$newTrees}
+            (classOf[$concreteCls], ($ctx0: ${tq""}) => new $concreteCls()($ctx0))
+          },
           crossSegmentsList = $wrappedT.map(($v1: ${tq""}) => $pathSegmentsTree ),
           crossValuesListLists = $valuesTree,
           crossValuesRaw = $wrappedT
@@ -262,38 +268,46 @@ object Cross {
  * value of one or more "case" variables whose values are determined at runtime.
  * Used via:
  *
+ * {{{
  * object foo extends Cross[FooModule]("bar", "baz", "qux")
- * class FooModule extends Module{
+ * trait FooModule extends Cross.Module[String]{
  *   ... crossValue ...
  * }
+ * }}}
  */
-class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mill.define.Ctx)
-    extends mill.define.Module()(ctx) {
+class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
+    ctx: mill.define.Ctx
+) extends mill.define.Module()(ctx) {
 
-  // We lazily initialize the instances of `Cross.Module` only when they are
-  // requested, to avoid unexpected failures in one module initialization
-  // causing problems using others.
-  private class Lazy[T](t: () => T) {
-    lazy val value = t()
+  trait Item {
+    def crossValues: List[Any]
+    def crossSegments: List[String]
+    def module: Lazy[M]
+    def cls: Class[_]
   }
 
-  private val items: List[(List[Any], List[String], Lazy[M])] = for {
+  val items: List[Item] = for {
     factory <- factories.toList
-    (crossSegments, (crossValues, make)) <-
+    (crossSegments0, (crossValues0, (cls0, make))) <-
       factory.crossSegmentsList.zip(factory.crossValuesListLists.zip(factory.makeList))
   } yield {
     val relPath = ctx.segment.pathSegments
-    val sub = new Lazy(() =>
+    val module0 = new Lazy(() =>
       make(
         ctx
           .withSegments(ctx.segments ++ Seq(ctx.segment))
           .withMillSourcePath(ctx.millSourcePath / relPath)
-          .withSegment(Segment.Cross(crossSegments))
+          .withSegment(Segment.Cross(crossSegments0))
           .withCrossValues(factories.flatMap(_.crossValuesRaw))
       )
     )
 
-    (crossValues.toList, crossSegments.toList, sub)
+    new Item {
+      def crossValues = crossValues0.toList
+      def crossSegments = crossSegments0.toList
+      def module = module0
+      def cls = cls0
+    }
   }
 
   override lazy val millModuleDirectChildren: Seq[Module] =
@@ -303,14 +317,14 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mi
    * A list of the cross modules, in
    * the order the original cross values were given in
    */
-  lazy val crossModules: Seq[M] = items.map { case (_, _, v) => v.value }
+  lazy val crossModules: Seq[M] = items.map(_.module.value)
 
   /**
    * A mapping of the raw cross values to the cross modules, in
    * the order the original cross values were given in
    */
   val valuesToModules: collection.MapView[List[Any], M] = items
-    .map { case (values, segments, subs) => (values, subs) }
+    .map { i => (i.crossValues, i.module) }
     .to(collection.mutable.LinkedHashMap)
     .view
     .mapValues(_.value)
@@ -320,7 +334,7 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit ctx: mi
    * the order the original cross values were given in
    */
   val segmentsToModules: collection.MapView[List[String], M] = items
-    .map { case (values, segments, subs) => (segments, subs) }
+    .map { i => (i.crossSegments, i.module) }
     .to(collection.mutable.LinkedHashMap)
     .view
     .mapValues(_.value)

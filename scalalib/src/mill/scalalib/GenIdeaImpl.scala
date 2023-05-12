@@ -13,7 +13,7 @@ import mill.api.Ctx.{Home, Log}
 import mill.api.{PathRef, Result, Strict}
 import mill.define._
 import mill.eval.Evaluator
-import mill.modules.Util
+import mill.util.Util
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.util.Classpath
 import mill.{BuildInfo, T, scalalib}
@@ -90,8 +90,7 @@ case class GenIdeaImpl(
         Util.millProperty("MILL_BUILD_LIBRARIES") match {
           case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
           case None =>
-            val moduleRepos = Evaluator.evalOrThrow(
-              evaluator = evaluator,
+            val moduleRepos = evaluator.evalOrThrow(
               exceptionFactory = r =>
                 GenIdeaException(
                   s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
@@ -243,7 +242,7 @@ case class GenIdeaImpl(
       evaluator.evaluate(resolveTasks) match {
         case r if r.failing.items().nonEmpty =>
           throw GenIdeaException(s"Failure during resolving modules: ${Evaluator.formatFailing(r)}")
-        case r => r.values.asInstanceOf[Seq[ResolvedModule]]
+        case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
       }
 
     val moduleLabels = modules.map(_.swap).toMap
@@ -537,6 +536,7 @@ case class GenIdeaImpl(
             )
           )
           .values
+          .map(_.value)
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
         val normalSourcePaths = (allSourcesPathRefs
@@ -550,6 +550,7 @@ case class GenIdeaImpl(
                 .evaluate(Agg(x.scalaVersion))
                 .values
                 .head
+                .value
                 .asInstanceOf[String]
             )
           case _ => None

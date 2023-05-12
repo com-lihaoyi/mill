@@ -13,6 +13,4 @@ public class Foo{
             System.out.println("foo.txt resource: " + br.readLine());
         }
     }
-
-
 }

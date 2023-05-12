@@ -1,13 +1,14 @@
 package mill.testkit
 
 import mill._
-import mill.define.{Discover, TargetImpl, InputImpl}
-import mill.api.{DummyInputStream, Result, SystemStreams}
+import mill.define.{Discover, InputImpl, TargetImpl}
+import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
 
 import java.io.{InputStream, PrintStream}
 import mill.eval.Evaluator
+import mill.resolve.{Resolve, SelectMode}
 import mill.util.PrintLogger
 
 import language.experimental.macros
@@ -94,22 +95,41 @@ trait MillTestKit {
       override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
       override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
     }
-    val evaluator = Evaluator(
+    val evaluator = mill.eval.EvaluatorImpl(
       mill.api.Ctx.defaultHome,
       outPath,
       outPath,
       module,
       logger,
-      0
-    ).withFailFast(failFast).withThreadCount(threads).withEnv(env)
+      0,
+      failFast = failFast,
+      threadCount = threads,
+      env = env
+    )
 
-    def apply[T](t: Task[T]): Either[mill.api.Result.Failing[T], (T, Int)] = {
-      val evaluated = evaluator.evaluate(Agg(t))
+    def evalTokens(args: String*): Either[Result.Failing[_], (Seq[_], Int)] = {
+      mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
+        Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
+      } match {
+        case Left(err) => Left(Result.Failure(err))
+        case Right(resolved) => apply(resolved)
+      }
+    }
+
+    def apply[T](task: Task[T]): Either[Result.Failing[T], (T, Int)] = {
+      apply(Seq(task)) match {
+        case Left(f) => Left(f.asInstanceOf[Result.Failing[T]])
+        case Right((Seq(v), i)) => Right((v.asInstanceOf[T], i))
+      }
+    }
+
+    def apply(tasks: Seq[Task[_]]): Either[Result.Failing[_], (Seq[_], Int)] = {
+      val evaluated = evaluator.evaluate(tasks)
 
       if (evaluated.failing.keyCount == 0) {
         Right(
           Tuple2(
-            evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
+            evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
             evaluated.evaluated.collect {
               case t: TargetImpl[_]
                   if module.millInternal.targets.contains(t)
@@ -120,8 +140,14 @@ trait MillTestKit {
         )
       } else {
         Left(
-          evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next()
-            .asInstanceOf[Result.Failing[T]]
+          evaluated
+            .failing
+            .lookupKey(evaluated.failing.keys().next)
+            .items
+            .next()
+            .asFailing
+            .get
+            .map(_.value)
         )
       }
     }
@@ -132,7 +158,7 @@ trait MillTestKit {
 
       val cleaned = res.rawValues.map {
         case Result.Exception(ex, _) => Result.Exception(ex, new OuterStack(Nil))
-        case x => x
+        case x => x.map(_.value)
       }
 
       assert(
@@ -150,7 +176,7 @@ trait MillTestKit {
         .filter(module.millInternal.targets.contains)
         .filter(!_.isInstanceOf[InputImpl[_]])
       assert(
-        evaluated == expected,
+        evaluated.toSet == expected.toSet,
         s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"
       )
     }

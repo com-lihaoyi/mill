@@ -4,8 +4,8 @@ import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.define.{Caller, Discover, Target, Task}
-import mill.modules.CoursierSupport
-import mill.modules.Util.millProjectModule
+import mill.util.CoursierSupport
+import mill.util.Util.millProjectModule
 import mill.scalalib.{BoundDep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.Versions
 import os.{Path, rel}
@@ -27,10 +27,10 @@ import scala.util.Try
 @internal
 class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
-    millBuildRootModule: MillBuildRootModule.Info
+    millBuildRootModuleInfo: MillBuildRootModule.Info
 ) extends RootModule() with ScalaModule {
 
-  override def millSourcePath = millBuildRootModule.projectRoot / os.up / "mill-build"
+  override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
 
   override def resolveDeps(
       deps: Task[Agg[BoundDep]],
@@ -46,11 +46,18 @@ class MillBuildRootModule()(implicit
 
   override def scalaVersion = "2.13.10"
 
-  def parseBuildFiles: T[FileImportGraph] = T.input {
-    FileImportGraph.parseBuildFiles(
-      millBuildRootModule.topLevelProjectRoot,
-      millBuildRootModule.projectRoot / os.up
-    )
+  def scriptSources = T.sources {
+    MillBuildRootModule
+      .parseBuildFiles(millBuildRootModuleInfo)
+      .seenScripts
+      .keys
+      .map(PathRef(_))
+      .toSeq
+  }
+
+  def parseBuildFiles = T {
+    scriptSources()
+    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = {
@@ -77,24 +84,21 @@ class MillBuildRootModule()(implicit
     }
   }
 
+  def cliImports = T.input { millBuildRootModuleInfo.cliImports }
+
   override def ivyDeps = T {
     Agg.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
-        .map(str =>
-          mill.scalalib.Dep.parse(
-            str
-              .replace("$MILL_VERSION", mill.BuildInfo.millVersion)
-              .replace("${MILL_VERSION}", mill.BuildInfo.millVersion)
-              .replace("$MILL_BIN_PLATFORM", mill.BuildInfo.millBinPlatform)
-              .replace("${MILL_BIN_PLATFORM}", mill.BuildInfo.millBinPlatform)
-          )
-        )
+        .map(mill.scalalib.Dep.parse)
     ) ++
       Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
 
-  def scriptSources: T[Seq[PathRef]] = T.sources {
-    for ((p, s) <- parseBuildFiles().seenScripts.toSeq) yield PathRef(p)
+  override def runIvyDeps = T {
+    Agg.from(
+      MillIvy.processMillIvyDepSignature(cliImports().toSet)
+        .map(mill.scalalib.Dep.parse)
+    )
   }
 
   override def generatedSources: T[Seq[PathRef]] = T {
@@ -106,12 +110,13 @@ class MillBuildRootModule()(implicit
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
       MillBuildRootModule.generateWrappedSources(
-        millBuildRootModule.projectRoot / os.up,
+        millBuildRootModuleInfo.projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
         T.dest,
-        millBuildRootModule.enclosingClasspath,
-        millBuildRootModule.topLevelProjectRoot
+        millBuildRootModuleInfo.enclosingClasspath,
+        millBuildRootModuleInfo.topLevelProjectRoot,
+        millBuildRootModuleInfo.cliImports
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -129,11 +134,11 @@ class MillBuildRootModule()(implicit
     Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
   }
 
-  override def unmanagedClasspath: T[Agg[PathRef]] = mill.define.Target.input {
-    mill.api.Loose.Agg.from(
-      millBuildRootModule.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
-    ) ++
-      lineNumberPluginClasspath()
+  def enclosingClasspath = T.sources {
+    millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
+  }
+  override def unmanagedClasspath: T[Agg[PathRef]] = T {
+    enclosingClasspath() ++ lineNumberPluginClasspath()
   }
 
   override def scalacPluginIvyDeps = Agg(
@@ -158,6 +163,9 @@ class MillBuildRootModule()(implicit
   def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
     millProjectModule("mill-runner-linenumbers", repositoriesTask())
   }
+
+  /** Used in BSP IntelliJ, which can only work with directories */
+  def dummySources: Sources = T.sources(T.dest)
 }
 
 object MillBuildRootModule {
@@ -165,13 +173,15 @@ object MillBuildRootModule {
   class BootstrapModule(
       topLevelProjectRoot0: os.Path,
       projectRoot: os.Path,
-      enclosingClasspath: Seq[os.Path]
+      enclosingClasspath: Seq[os.Path],
+      cliImports: Seq[String]
   )(implicit baseModuleInfo: RootModule.Info) extends RootModule {
 
     implicit private def millBuildRootModuleInfo = MillBuildRootModule.Info(
       enclosingClasspath,
       projectRoot,
-      topLevelProjectRoot0
+      topLevelProjectRoot0,
+      cliImports
     )
     object build extends MillBuildRootModule
 
@@ -182,8 +192,16 @@ object MillBuildRootModule {
   case class Info(
       enclosingClasspath: Seq[os.Path],
       projectRoot: os.Path,
-      topLevelProjectRoot: os.Path
+      topLevelProjectRoot: os.Path,
+      cliImports: Seq[String]
   )
+
+  def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info) = {
+    FileImportGraph.parseBuildFiles(
+      millBuildRootModuleInfo.topLevelProjectRoot,
+      millBuildRootModuleInfo.projectRoot / os.up
+    )
+  }
 
   def generateWrappedSources(
       base: os.Path,
@@ -191,7 +209,8 @@ object MillBuildRootModule {
       scriptCode: Map[os.Path, String],
       targetDest: os.Path,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path
+      millTopLevelProjectRoot: os.Path,
+      cliImports: Seq[String]
   ) = {
     for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
@@ -204,7 +223,8 @@ object MillBuildRootModule {
         scriptSource.path.baseName,
         enclosingClasspath,
         millTopLevelProjectRoot,
-        scriptSource.path
+        scriptSource.path,
+        cliImports
       ) +
         scriptCode(scriptSource.path) +
         MillBuildRootModule.bottom
@@ -220,7 +240,8 @@ object MillBuildRootModule {
       name: String,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
-      originalFilePath: os.Path
+      originalFilePath: os.Path,
+      cliImports: Seq[String]
   ) = {
 
     val superClass =
@@ -249,7 +270,8 @@ object MillBuildRootModule {
        |  implicit val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
        |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
        |    _root_.os.Path(${literalize(base.toString)}),
-       |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)})
+       |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)}),
+       |    _root_.scala.Seq(${cliImports.map(literalize(_)).mkString(", ")})
        |  )
        |  implicit val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
        |    millBuildRootModuleInfo.projectRoot,
