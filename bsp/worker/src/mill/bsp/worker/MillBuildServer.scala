@@ -61,7 +61,7 @@ import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, Module, Segments, Task}
 import mill.eval.Evaluator
 import mill.main.{BspServerResult, MainModule}
-import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
+import mill.scalalib.{GenIdeaImpl, JavaModule, SemanticDbJavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.scalalib.internal.ModuleUtils
 import mill.runner.{MillBuildBootstrap, MillBuildRootModule}
@@ -393,15 +393,6 @@ class MillBuildServer(
         targetIds = sourcesParams.getTargets.asScala.toSeq,
         agg = (items: Seq[SourcesItem]) => new SourcesResult(items.asJava)
       ) {
-        case (id, module: MillBuildRootModule) if clientIsIntelliJ =>
-          T.task {
-            val sources = new SourcesItem(
-              id,
-              module.dummySources().map(p => sourceItem(p.path, true)).asJava
-            )
-            sources.setRoots(Seq(sanitizeUri(evaluator.rootModule.millSourcePath)).asJava)
-            sources
-          }
         case (id, module: MillBuildRootModule) =>
           T.task {
             val items =
@@ -453,13 +444,19 @@ class MillBuildServer(
         agg = (items: Seq[DependencySourcesItem]) => new DependencySourcesResult(items.asJava)
       ) {
         case (id, m: JavaModule) =>
+          val buildSources =
+            if (!m.isInstanceOf[MillBuildRootModule]) Nil
+            else GenIdeaImpl
+              .resolveMillBuildSources(Nil, None, useSources = true)
+              .map(sanitizeUri(_))
+
           T.task {
             val sources = m.resolveDeps(
               T.task(m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps()),
               sources = true
             )()
             val unmanaged = m.unmanagedClasspath()
-            val cp = (sources ++ unmanaged).map(sanitizeUri.apply).iterator.toSeq
+            val cp = (sources ++ unmanaged).map(sanitizeUri.apply).iterator.toSeq ++ buildSources
             new DependencySourcesItem(id, cp.asJava)
           }
       }
