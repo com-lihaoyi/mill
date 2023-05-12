@@ -1,6 +1,58 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{BuildClient, BuildServer, BuildServerCapabilities, BuildTarget, BuildTargetCapabilities, BuildTargetIdentifier, CleanCacheParams, CleanCacheResult, CompileParams, CompileProvider, CompileResult, DebugProvider, DebugSessionAddress, DebugSessionParams, DependencyModule, DependencyModulesItem, DependencyModulesParams, DependencyModulesResult, DependencySourcesItem, DependencySourcesParams, DependencySourcesResult, InitializeBuildParams, InitializeBuildResult, InverseSourcesParams, InverseSourcesResult, OutputPathItem, OutputPathItemKind, OutputPathsItem, OutputPathsParams, OutputPathsResult, ResourcesItem, ResourcesParams, ResourcesResult, RunParams, RunProvider, RunResult, SourceItem, SourceItemKind, SourcesItem, SourcesParams, SourcesResult, StatusCode, TaskDataKind, TaskFinishParams, TaskId, TaskStartParams, TestParams, TestProvider, TestResult, TestTask, WorkspaceBuildTargetsResult}
+import ch.epfl.scala.bsp4j.{
+  BuildClient,
+  BuildServer,
+  BuildServerCapabilities,
+  BuildTarget,
+  BuildTargetCapabilities,
+  BuildTargetIdentifier,
+  CleanCacheParams,
+  CleanCacheResult,
+  CompileParams,
+  CompileProvider,
+  CompileResult,
+  DebugProvider,
+  DebugSessionAddress,
+  DebugSessionParams,
+  DependencyModule,
+  DependencyModulesItem,
+  DependencyModulesParams,
+  DependencyModulesResult,
+  DependencySourcesItem,
+  DependencySourcesParams,
+  DependencySourcesResult,
+  InitializeBuildParams,
+  InitializeBuildResult,
+  InverseSourcesParams,
+  InverseSourcesResult,
+  OutputPathItem,
+  OutputPathItemKind,
+  OutputPathsItem,
+  OutputPathsParams,
+  OutputPathsResult,
+  ResourcesItem,
+  ResourcesParams,
+  ResourcesResult,
+  RunParams,
+  RunProvider,
+  RunResult,
+  SourceItem,
+  SourceItemKind,
+  SourcesItem,
+  SourcesParams,
+  SourcesResult,
+  StatusCode,
+  TaskDataKind,
+  TaskFinishParams,
+  TaskId,
+  TaskStartParams,
+  TestParams,
+  TestProvider,
+  TestResult,
+  TestTask,
+  WorkspaceBuildTargetsResult
+}
 import ch.epfl.scala.bsp4j
 import com.google.gson.JsonObject
 import mill.T
@@ -50,7 +102,6 @@ class MillBuildServer(
       def init(): Unit = synchronized {
         idToModule match {
           case None =>
-
             val modules: Seq[(Module, Seq[Module])] = rootModules
               .map(rootModule => (rootModule, ModuleUtils.transitiveModules(rootModule)))
 
@@ -94,15 +145,19 @@ class MillBuildServer(
       val rootModules0 = evaluated.result.frames
         .flatMap(_.classLoaderOpt)
         .zipWithIndex
-        .map{case (c, i) =>
+        .map { case (c, i) =>
           MillBuildBootstrap
             .getRootModule(c, i, evaluator.rootModule.millSourcePath)
-              .fold(sys.error(_), identity(_))
+            .fold(sys.error(_), identity(_))
         }
 
       val bootstrapModule = evaluated.result.bootstrapModuleOpt.map(m =>
         MillBuildBootstrap
-          .getChildRootModule(m, evaluated.result.frames.length, evaluator.rootModule.millSourcePath)
+          .getChildRootModule(
+            m,
+            evaluated.result.frames.length,
+            evaluator.rootModule.millSourcePath
+          )
           .fold(sys.error(_), identity(_))
       )
 
@@ -351,8 +406,8 @@ class MillBuildServer(
           T.task {
             val items =
               module.scriptSources().map(p => sourceItem(p.path, false)) ++
-              module.sources().map(p => sourceItem(p.path, false)) ++
-              module.generatedSources().map(p => sourceItem(p.path, true))
+                module.sources().map(p => sourceItem(p.path, false)) ++
+                module.generatedSources().map(p => sourceItem(p.path, true))
             new SourcesItem(id, items.asJava)
           }
         case (id, module: JavaModule) =>
@@ -540,7 +595,7 @@ class MillBuildServer(
       import state._
 
       val modules = bspModulesById.values.toSeq.collect { case m: JavaModule => m }
-      val millBuildTargetIds = rootModules.map{case m: BspModule => bspIdByModule(m)}.toSet
+      val millBuildTargetIds = rootModules.map { case m: BspModule => bspIdByModule(m) }.toSet
 
       val params = TaskParameters.fromTestParams(testParams)
       val argsMap =
@@ -626,7 +681,7 @@ class MillBuildServer(
     completable(s"buildTargetCleanCache ${cleanCacheParams}") { state =>
       import state._
 
-      val targetIds = rootModules.map{case b: BspModule => bspIdByModule(b)}
+      val targetIds = rootModules.map { case b: BspModule => bspIdByModule(b) }
       val (msg, cleaned) =
         cleanCacheParams.getTargets.asScala.filter(targetIds.contains).foldLeft((
           "",
