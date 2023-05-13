@@ -15,43 +15,52 @@ import scala.util.chaining.scalaUtilChainingOps
 @internal
 trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
   override def jvmRunEnvironment(params: JvmRunEnvironmentParams)
-      : CompletableFuture[JvmRunEnvironmentResult] =
-    completable(s"jvmRunEnvironment ${params}") { state =>
-      targetTasks(
-        state,
-        targetIds = params.getTargets.asScala.toSeq,
-        agg = (items: Seq[JvmEnvironmentItem]) => new JvmRunEnvironmentResult(items.asJava)
-      )(taskToJvmEnvironmentItem)
-    }
+      : CompletableFuture[JvmRunEnvironmentResult] = {
+    jvmRunTestEnvironment(
+      s"jvmRunEnvironment ${params}",
+      params.getTargets.asScala.toSeq,
+      (items: Seq[JvmEnvironmentItem]) => new JvmRunEnvironmentResult(items.asJava)
+    )
+  }
 
   override def jvmTestEnvironment(params: JvmTestEnvironmentParams)
-      : CompletableFuture[JvmTestEnvironmentResult] =
-    completable(s"jvmTestEnvironment ${params}") { state =>
-      targetTasks(
-        state,
-        targetIds = params.getTargets.asScala.toSeq,
-        agg = (items: Seq[JvmEnvironmentItem]) => new JvmTestEnvironmentResult(items.asJava)
-      )(taskToJvmEnvironmentItem)
-    }
+      : CompletableFuture[JvmTestEnvironmentResult] = {
+    jvmRunTestEnvironment(
+      s"jvmTestEnvironment ${params}",
+      params.getTargets.asScala.toSeq,
+      (items: Seq[JvmEnvironmentItem]) => new JvmTestEnvironmentResult(items.asJava)
+    )
+  }
 
-  private val taskToJvmEnvironmentItem
-      : (BuildTargetIdentifier, BspModule) => Task[JvmEnvironmentItem] = {
-    case (id, m: JavaModule) =>
-      T.task {
-        val classpath = m.runClasspath().map(_.path).map(sanitizeUri)
+  def jvmRunTestEnvironment[V](name: String,
+                            targetIds: Seq[BuildTargetIdentifier],
+                            agg: Seq[JvmEnvironmentItem] => V) = {
+    completableTasks(
+      name,
+      targetIds = _ => targetIds,
+      agg = agg,
+      tasks = {
+        case m: JavaModule =>
+          T.task {
+            (m.runClasspath(), m.forkArgs(), m.forkWorkingDir(), m.forkEnv(), m.mainClass(), m.zincWorker.worker(), m.compile())
+          }
+      }
+    ) {
+      case (state, id, m: JavaModule, (runClasspath, forkArgs, forkWorkingDir, forkEnv, mainClass, zincWorker, compile)) =>
+        val classpath = runClasspath.map(_.path).map(sanitizeUri)
         new JvmEnvironmentItem(
           id,
           classpath.iterator.toSeq.asJava,
-          m.forkArgs().asJava,
-          m.forkWorkingDir().toString(),
-          m.forkEnv().asJava
+          forkArgs.asJava,
+          forkWorkingDir.toString(),
+          forkEnv.asJava
         ).tap { item =>
           val classes =
-            m.mainClass().toList ++ m.zincWorker.worker().discoverMainClasses(m.compile())
+            mainClass.toList ++ zincWorker.discoverMainClasses(compile)
           item.setMainClasses(
             classes.map(new JvmMainClass(_, Nil.asJava)).asJava
           )
         }
-      }
+    }
   }
 }

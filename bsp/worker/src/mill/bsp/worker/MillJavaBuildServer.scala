@@ -14,31 +14,30 @@ trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
-    completable(s"buildTargetJavacOptions ${javacOptionsParams}") { state =>
-      targetTasks(
-        state,
-        targetIds = javacOptionsParams.getTargets.asScala.toSeq,
-        agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava)
-      ) {
-        case (id, m: JavaModule) =>
-          val classesPathTask = m match {
-            case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
-              sem.bspCompiledClassesAndSemanticDbFiles
-            case _ => m.bspCompileClassesPath
-          }
-
-          val pathResolver = evaluator.pathsResolver
-          T.task {
-            val options = m.javacOptions()
-            val classpath =
-              m.bspCompileClasspath().map(_.resolve(pathResolver)).map(sanitizeUri)
-            new JavacOptionsItem(
-              id,
-              options.asJava,
-              classpath.iterator.toSeq.asJava,
-              sanitizeUri(classesPathTask().resolve(pathResolver))
-            )
-          }
+    completableTasks(
+      s"buildTargetJavacOptions ${javacOptionsParams}",
+      targetIds = _ => javacOptionsParams.getTargets.asScala.toSeq,
+      agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava),
+      tasks = {case m: JavaModule =>
+        val classesPathTask = m match {
+          case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+            sem.bspCompiledClassesAndSemanticDbFiles
+          case _ => m.bspCompileClassesPath
+        }
+        T.task{(classesPathTask(),m.javacOptions(), m.bspCompileClasspath())}
       }
+    ) {
+      case (state, id, m: JavaModule, (classesPath, javacOptions, bspCompileClasspath)) =>
+        val pathResolver = evaluator.pathsResolver
+          val options = javacOptions
+          val classpath =
+            bspCompileClasspath.map(_.resolve(pathResolver)).map(sanitizeUri)
+          new JavacOptionsItem(
+            id,
+            options.asJava,
+            classpath.iterator.toSeq.asJava,
+            sanitizeUri(classesPath.resolve(pathResolver))
+          )
+
     }
 }

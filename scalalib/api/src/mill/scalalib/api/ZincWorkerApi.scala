@@ -33,9 +33,7 @@ trait ZincWorkerApi {
       reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
-  def discoverMainClasses(compilationResult: CompilationResult)(implicit
-      ctx: ZincWorkerApi.Ctx
-  ): Seq[String]
+  def discoverMainClasses(compilationResult: CompilationResult): Seq[String]
 
   def docJar(
       scalaVersion: String,
