@@ -499,10 +499,10 @@ private class MillBuildServer(
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] =
     completable(s"buildTargetTest ${testParams}") { state =>
-      val modules = state.bspModulesById.values.toSeq.collect { case m: JavaModule => m }
-      val millBuildTargetIds = state.rootModules.map { case m: BspModule =>
-        state.bspIdByModule(m)
-      }.toSet
+      val millBuildTargetIds = state
+        .rootModules
+        .map { case m: BspModule => state.bspIdByModule(m)}
+        .toSet
 
       val params = TaskParameters.fromTestParams(testParams)
       val argsMap =
@@ -645,10 +645,7 @@ private class MillBuildServer(
       : CompletableFuture[V] =
     completable(hint) { state: State =>
       val ids = targetIds(state)
-      val tasksSeq = ids
-        .map(state.bspModulesById)
-        .map(m => tasks(m))
-
+      val tasksSeq = ids.map(m => tasks(state.bspModulesById(m)))
       val evaluated = evaluator.evalOrThrow()(tasksSeq)
       val res = evaluated.zip(ids).map { case (v, i) => f(state, i, state.bspModulesById(i), v) }
       agg(res.asJava)
