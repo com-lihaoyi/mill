@@ -103,7 +103,7 @@ class MillBuildServer(
       // replace the promise
       statePromise = Promise[State]()
     }
-    evaluatorOpt = evaluatorOpt
+    evaluatorOpt = evaluator
     evaluator.foreach(e =>
       statePromise.success(new State(e.rootModule.millSourcePath, e.baseLogger, debug))
     )
