@@ -61,10 +61,9 @@ import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, Module, Segments, Task}
 import mill.eval.Evaluator
 import mill.main.{BspServerResult, MainModule}
-import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
+import mill.scalalib.{GenIdeaImpl, JavaModule, SemanticDbJavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.runner.MillBuildRootModule
-import scala.util.chaining._
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import scala.concurrent.Promise
