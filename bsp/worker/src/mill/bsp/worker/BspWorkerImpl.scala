@@ -101,7 +101,7 @@ private class BspWorkerImpl() extends BspWorker {
              |Cause: ${e.getCause}
              |Message: ${e.getMessage}
              |Exception class: ${e.getClass}
-             |Stack Trace: ${e.getStackTrace}""".stripMargin
+             |Stack Trace: ${e.getStackTrace.mkString("\n")}""".stripMargin
         )
     }
   }
