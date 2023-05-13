@@ -1,8 +1,6 @@
-package mill.runner
+package mill.bsp
 
-import mill.api.internal
-import mill.api.SystemStreams
-import mill.bsp.{BspServerHandle, BspServerResult}
+import mill.api.{SystemStreams, internal}
 
 import java.io.PrintStream
 import java.util.concurrent.{Executors, TimeUnit}

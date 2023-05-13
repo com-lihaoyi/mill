@@ -8,7 +8,7 @@ import scala.util.Properties
 import mill.java9rtexport.Export
 import mill.api.{DummyInputStream, internal}
 import mill.api.SystemStreams
-import mill.bsp.BspServerResult
+import mill.bsp.{BspContext, BspServerResult}
 import mill.util.{PrintLogger, Util}
 
 @internal
