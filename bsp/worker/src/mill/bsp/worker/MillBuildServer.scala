@@ -501,7 +501,7 @@ private class MillBuildServer(
     completable(s"buildTargetTest ${testParams}") { state =>
       val millBuildTargetIds = state
         .rootModules
-        .map { case m: BspModule => state.bspIdByModule(m)}
+        .map { case m: BspModule => state.bspIdByModule(m) }
         .toSet
 
       val params = TaskParameters.fromTestParams(testParams)
