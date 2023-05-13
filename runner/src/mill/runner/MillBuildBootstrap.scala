@@ -369,7 +369,9 @@ object MillBuildBootstrap {
     rootModuleOrErr.filterOrElse(
       rootModule =>
         depth == 0 || rootModule.isInstanceOf[mill.runner.MillBuildRootModule],
-      s"Root module in ${recRoot(projectRoot, depth).relativeTo(projectRoot)}/build.sc must be of ${classOf[MillBuildRootModule]}"
+      s"Root module in ${recRoot(projectRoot, depth).relativeTo(projectRoot)}/build.sc must be of ${classOf[
+          MillBuildRootModule
+        ]}, not ${rootModuleOrErr.map(_.getClass)}"
     )
   }
 
