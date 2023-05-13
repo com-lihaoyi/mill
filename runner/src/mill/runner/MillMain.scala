@@ -189,8 +189,12 @@ object MillMain {
 
               val bspContext =
                 if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
+
+              val bspCmd = "mill.bsp.BSP/startSession"
               val targetsAndParams =
-                bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
+                bspContext
+                  .map(_ => Seq(bspCmd))
+                  .getOrElse(config.leftoverArgs.value.toList)
 
               var repeatForBsp = true
               var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
@@ -223,7 +227,7 @@ object MillMain {
                 bspContext.foreach { ctx =>
                   repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)
                   logger.error(
-                    s"`${ctx.millArgs.mkString(" ")}` returned with ${ctx.handle.lastResult}"
+                    s"`$bspCmd` returned with ${ctx.handle.lastResult}"
                   )
                 }
                 loopRes = (isSuccess, evalStateOpt)

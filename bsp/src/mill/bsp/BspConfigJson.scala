@@ -1,6 +1,5 @@
-package mill.bsp.worker
+package mill.bsp
 
-import ch.epfl.scala.bsp4j.BspConnectionDetails
 import upickle.default._
 
 import scala.jdk.CollectionConverters._
@@ -11,7 +10,7 @@ private case class BspConfigJson(
     millVersion: String,
     bspVersion: String,
     languages: Seq[String]
-) extends BspConnectionDetails(name, argv.asJava, millVersion, bspVersion, languages.asJava)
+)
 
 private object BspConfigJson {
   implicit val rw: ReadWriter[BspConfigJson] = macroRW
