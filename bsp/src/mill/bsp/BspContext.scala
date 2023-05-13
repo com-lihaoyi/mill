@@ -59,6 +59,7 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
     }
 
     BspWorker(os.pwd, home, log).flatMap{worker =>
+      os.makeDir.all(home / Constants.bspDir)
       worker.startBspServer(
         initialEvaluator,
         streams,
