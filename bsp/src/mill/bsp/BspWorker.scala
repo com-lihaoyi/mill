@@ -4,7 +4,6 @@ import mill.Agg
 import mill.api.{Ctx, PathRef, Result, internal}
 import mill.define.Task
 import mill.eval.Evaluator
-import mill.main.{BspServerHandle, BspServerResult}
 import mill.api.SystemStreams
 
 import java.io.PrintStream

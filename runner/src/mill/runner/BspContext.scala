@@ -1,8 +1,8 @@
 package mill.runner
 
 import mill.api.internal
-import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
 import mill.api.SystemStreams
+import mill.bsp.{BspServerHandle, BspServerResult}
 
 import java.io.PrintStream
 import java.util.concurrent.{Executors, TimeUnit}
@@ -28,7 +28,7 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
   streams.err.println("Trying to load BSP server...")
   val bspServerFuture = Future {
     try {
-      BspServerStarter().startBspServer(
+      mill.bsp.BSP.startBspServer(
         initialEvaluator = None,
         streams = streams,
         logStream = bspLogStream,

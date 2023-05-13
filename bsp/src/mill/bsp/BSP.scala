@@ -7,13 +7,12 @@ import mill.api.{Ctx, DummyInputStream, Logger, PathRef, Result, SystemStreams}
 import mill.{Agg, T, BuildInfo => MillBuildInfo}
 import mill.define.{Command, Discover, ExternalModule, Task}
 import mill.eval.Evaluator
-import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
 import mill.util.Util.millProjectModule
 import mill.scalalib.{CoursierModule, Dep}
 import mill.util.PrintLogger
 import os.Path
 
-object BSP extends ExternalModule with CoursierModule with BspServerStarter {
+object BSP extends ExternalModule with CoursierModule {
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
@@ -64,7 +63,7 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
     res
   }
 
-  override def startBspServer(
+  def startBspServer(
       initialEvaluator: Option[Evaluator],
       streams: SystemStreams,
       logStream: Option[PrintStream],

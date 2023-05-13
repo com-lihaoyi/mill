@@ -60,10 +60,11 @@ import mill.api.{DummyTestReporter, PathRef, Result, Strict, internal}
 import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, Module, Segments, Task}
 import mill.eval.Evaluator
-import mill.main.{BspServerResult, MainModule}
+import mill.main.MainModule
 import mill.scalalib.{GenIdeaImpl, JavaModule, SemanticDbJavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.runner.MillBuildRootModule
+
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import scala.concurrent.Promise
@@ -71,6 +72,7 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import Utils.sanitizeUri
+import mill.bsp.BspServerResult
 private class MillBuildServer(
     initialEvaluator: Option[Evaluator],
     bspVersion: String,

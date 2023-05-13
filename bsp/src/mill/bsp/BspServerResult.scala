@@ -1,4 +1,4 @@
-package mill.main
+package mill.bsp
 
 import mill.api.internal
 
