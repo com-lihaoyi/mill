@@ -58,19 +58,14 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
       override def debugEnabled: Boolean = true
     }
 
-    val worker = BspWorker(os.pwd, home, log)
-
-    worker match {
-      case f: Result.Failure[_] => Left("Failed to start the BSP worker. " + f.msg)
-      case f: Result.Exception => Left("Failed to start the BSP worker. " + f.throwable)
-      case Result.Success(worker) =>
-        worker.startBspServer(
-          initialEvaluator,
-          streams,
-          logStream.getOrElse(streams.err),
-          home / Constants.bspDir,
-          canReload,
-        )
+    BspWorker(os.pwd, home, log).flatMap{worker =>
+      worker.startBspServer(
+        initialEvaluator,
+        streams,
+        logStream.getOrElse(streams.err),
+        home / Constants.bspDir,
+        canReload,
+      )
     }
   }
 }

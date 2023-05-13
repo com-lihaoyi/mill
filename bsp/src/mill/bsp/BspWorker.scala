@@ -29,9 +29,9 @@ object BspWorker {
       home0: os.Path,
       log: Logger,
       workerLibs: Option[Seq[URL]] = None
-  ): Result[BspWorker] = {
+  ): Either[String, BspWorker] = {
     worker match {
-      case Some(x) => Result.Success(x)
+      case Some(x) => Right(x)
       case None =>
         val urls = workerLibs.map { urls =>
           log.debug("Using direct submitted worker libs")
@@ -40,7 +40,7 @@ object BspWorker {
           // load extra classpath entries from file
           val cpFile =
             workspace / Constants.bspDir / s"${Constants.serverName}-${mill.BuildInfo.millVersion}.resources"
-          if (!os.exists(cpFile)) return Result.Failure(
+          if (!os.exists(cpFile)) return Left(
             "You need to run `mill mill.bsp.BSP/install` before you can use the BSP server"
           )
 
@@ -79,7 +79,7 @@ object BspWorker {
         val ctr = workerCls.getConstructor()
         val workerImpl = ctr.newInstance().asInstanceOf[BspWorker]
         worker = Some(workerImpl)
-        Result.Success(workerImpl)
+        Right(workerImpl)
     }
   }
 
