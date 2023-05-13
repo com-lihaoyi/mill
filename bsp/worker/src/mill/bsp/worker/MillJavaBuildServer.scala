@@ -1,13 +1,9 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{
-  JavaBuildServer,
-  JavacOptionsItem,
-  JavacOptionsParams,
-  JavacOptionsResult
-}
+import ch.epfl.scala.bsp4j.{JavaBuildServer, JavacOptionsItem, JavacOptionsParams, JavacOptionsResult}
 import mill.T
 import mill.api.internal
+import mill.bsp.worker.Utils.sanitizeUri
 import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 
 import java.util.concurrent.CompletableFuture
@@ -31,11 +27,11 @@ trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
             case _ => m.bspCompileClassesPath
           }
 
-          val pathResolver = state.evaluator.pathsResolver
+          val pathResolver = evaluator.pathsResolver
           T.task {
             val options = m.javacOptions()
             val classpath =
-              m.bspCompileClasspath().map(_.resolve(pathResolver)).map(sanitizeUri.apply)
+              m.bspCompileClasspath().map(_.resolve(pathResolver)).map(sanitizeUri)
             new JavacOptionsItem(
               id,
               options.asJava,

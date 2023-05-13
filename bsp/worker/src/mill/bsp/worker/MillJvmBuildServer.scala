@@ -1,17 +1,9 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{
-  BuildTargetIdentifier,
-  JvmBuildServer,
-  JvmEnvironmentItem,
-  JvmMainClass,
-  JvmRunEnvironmentParams,
-  JvmRunEnvironmentResult,
-  JvmTestEnvironmentParams,
-  JvmTestEnvironmentResult
-}
+import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, JvmBuildServer, JvmEnvironmentItem, JvmMainClass, JvmRunEnvironmentParams, JvmRunEnvironmentResult, JvmTestEnvironmentParams, JvmTestEnvironmentResult}
 import mill.T
 import mill.api.internal
+import mill.bsp.worker.Utils.sanitizeUri
 import mill.define.Task
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.BspModule
@@ -46,7 +38,7 @@ trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
       : (BuildTargetIdentifier, BspModule) => Task[JvmEnvironmentItem] = {
     case (id, m: JavaModule) =>
       T.task {
-        val classpath = m.runClasspath().map(_.path).map(sanitizeUri.apply)
+        val classpath = m.runClasspath().map(_.path).map(sanitizeUri)
         new JvmEnvironmentItem(
           id,
           classpath.iterator.toSeq.asJava,

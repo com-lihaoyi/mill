@@ -1,20 +1,9 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{
-  ScalaBuildServer,
-  ScalaMainClass,
-  ScalaMainClassesItem,
-  ScalaMainClassesParams,
-  ScalaMainClassesResult,
-  ScalaTestClassesItem,
-  ScalaTestClassesParams,
-  ScalaTestClassesResult,
-  ScalacOptionsItem,
-  ScalacOptionsParams,
-  ScalacOptionsResult
-}
+import ch.epfl.scala.bsp4j.{ScalaBuildServer, ScalaMainClass, ScalaMainClassesItem, ScalaMainClassesParams, ScalaMainClassesResult, ScalaTestClassesItem, ScalaTestClassesParams, ScalaTestClassesResult, ScalacOptionsItem, ScalacOptionsParams, ScalacOptionsResult}
 import mill.{Agg, T}
 import mill.api.internal
+import mill.bsp.worker.Utils.sanitizeUri
 import mill.util.Jvm
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule, TestModule}
 import mill.testrunner.TestRunner
@@ -46,7 +35,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
             case _ => m.bspCompileClassesPath
           }
 
-          val pathResolver = state.evaluator.pathsResolver
+          val pathResolver = evaluator.pathsResolver
           T.task {
             new ScalacOptionsItem(
               id,
@@ -54,7 +43,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
               m.bspCompileClasspath()
                 .iterator
                 .map(_.resolve(pathResolver))
-                .map(sanitizeUri.apply).toSeq.asJava,
+                .map(sanitizeUri).toSeq.asJava,
               sanitizeUri(classesPathTask().resolve(pathResolver))
             )
           }
