@@ -1,6 +1,15 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, JvmBuildServer, JvmEnvironmentItem, JvmMainClass, JvmRunEnvironmentParams, JvmRunEnvironmentResult, JvmTestEnvironmentParams, JvmTestEnvironmentResult}
+import ch.epfl.scala.bsp4j.{
+  BuildTargetIdentifier,
+  JvmBuildServer,
+  JvmEnvironmentItem,
+  JvmMainClass,
+  JvmRunEnvironmentParams,
+  JvmRunEnvironmentResult,
+  JvmTestEnvironmentParams,
+  JvmTestEnvironmentResult
+}
 import mill.T
 import mill.api.internal
 import mill.bsp.worker.Utils.sanitizeUri
@@ -32,9 +41,11 @@ trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
     )
   }
 
-  def jvmRunTestEnvironment[V](name: String,
-                            targetIds: Seq[BuildTargetIdentifier],
-                            agg: Seq[JvmEnvironmentItem] => V) = {
+  def jvmRunTestEnvironment[V](
+      name: String,
+      targetIds: Seq[BuildTargetIdentifier],
+      agg: Seq[JvmEnvironmentItem] => V
+  ) = {
     completableTasks(
       name,
       targetIds = _ => targetIds,
@@ -42,11 +53,24 @@ trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
       tasks = {
         case m: JavaModule =>
           T.task {
-            (m.runClasspath(), m.forkArgs(), m.forkWorkingDir(), m.forkEnv(), m.mainClass(), m.zincWorker.worker(), m.compile())
+            (
+              m.runClasspath(),
+              m.forkArgs(),
+              m.forkWorkingDir(),
+              m.forkEnv(),
+              m.mainClass(),
+              m.zincWorker.worker(),
+              m.compile()
+            )
           }
       }
     ) {
-      case (state, id, m: JavaModule, (runClasspath, forkArgs, forkWorkingDir, forkEnv, mainClass, zincWorker, compile)) =>
+      case (
+            state,
+            id,
+            m: JavaModule,
+            (runClasspath, forkArgs, forkWorkingDir, forkEnv, mainClass, zincWorker, compile)
+          ) =>
         val classpath = runClasspath.map(_.path).map(sanitizeUri)
         new JvmEnvironmentItem(
           id,

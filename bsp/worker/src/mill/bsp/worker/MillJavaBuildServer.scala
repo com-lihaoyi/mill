@@ -1,6 +1,11 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{JavaBuildServer, JavacOptionsItem, JavacOptionsParams, JavacOptionsResult}
+import ch.epfl.scala.bsp4j.{
+  JavaBuildServer,
+  JavacOptionsItem,
+  JavacOptionsParams,
+  JavacOptionsResult
+}
 import mill.T
 import mill.api.internal
 import mill.bsp.worker.Utils.sanitizeUri
@@ -18,26 +23,26 @@ trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
       s"buildTargetJavacOptions ${javacOptionsParams}",
       targetIds = _ => javacOptionsParams.getTargets.asScala.toSeq,
       agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava),
-      tasks = {case m: JavaModule =>
+      tasks = { case m: JavaModule =>
         val classesPathTask = m match {
           case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
             sem.bspCompiledClassesAndSemanticDbFiles
           case _ => m.bspCompileClassesPath
         }
-        T.task{(classesPathTask(),m.javacOptions(), m.bspCompileClasspath())}
+        T.task { (classesPathTask(), m.javacOptions(), m.bspCompileClasspath()) }
       }
     ) {
       case (state, id, m: JavaModule, (classesPath, javacOptions, bspCompileClasspath)) =>
         val pathResolver = evaluator.pathsResolver
-          val options = javacOptions
-          val classpath =
-            bspCompileClasspath.map(_.resolve(pathResolver)).map(sanitizeUri)
-          new JavacOptionsItem(
-            id,
-            options.asJava,
-            classpath.iterator.toSeq.asJava,
-            sanitizeUri(classesPath.resolve(pathResolver))
-          )
+        val options = javacOptions
+        val classpath =
+          bspCompileClasspath.map(_.resolve(pathResolver)).map(sanitizeUri)
+        new JavacOptionsItem(
+          id,
+          options.asJava,
+          classpath.iterator.toSeq.asJava,
+          sanitizeUri(classesPath.resolve(pathResolver))
+        )
 
     }
 }

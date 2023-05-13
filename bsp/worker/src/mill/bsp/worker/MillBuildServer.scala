@@ -104,11 +104,12 @@ class MillBuildServer(
       statePromise = Promise[State]()
     }
     evaluatorOpt = evaluatorOpt
-    evaluator.foreach(e => statePromise.success(new State(e.rootModule.millSourcePath, e.baseLogger, debug)))
+    evaluator.foreach(e =>
+      statePromise.success(new State(e.rootModule.millSourcePath, e.baseLogger, debug))
+    )
   }
 
   def debug(msg: String) = logStream.println(msg)
-
 
   override def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
 
@@ -220,54 +221,53 @@ class MillBuildServer(
       "workspaceBuildTargets",
       targetIds = _.bspModulesById.keySet.toSeq,
       agg = (items: Seq[BuildTarget]) => new WorkspaceBuildTargetsResult(items.asJava),
-      tasks = {case m: JavaModule  => T.task{m.bspBuildTargetData()}}
+      tasks = { case m: JavaModule => T.task { m.bspBuildTargetData() } }
     ) { (state, id, m, bspBuildTargetData) =>
-        val s = m.bspBuildTarget
-        val deps = m match {
-          case jm: JavaModule =>
-            jm.recursiveModuleDeps.collect { case bm: BspModule => state.bspIdByModule(bm)}
-          case _ => Seq()
-        }
-        val data = bspBuildTargetData match {
-          case Some((dataKind, d: ScalaBuildTarget)) =>
-            val target = new bsp4j.ScalaBuildTarget(
-              d.scalaOrganization,
-              d.scalaVersion,
-              d.scalaBinaryVersion,
-              bsp4j.ScalaPlatform.forValue(d.platform.number),
-              d.jars.asJava
-            )
-            Some((dataKind, target))
+      val s = m.bspBuildTarget
+      val deps = m match {
+        case jm: JavaModule =>
+          jm.recursiveModuleDeps.collect { case bm: BspModule => state.bspIdByModule(bm) }
+        case _ => Seq()
+      }
+      val data = bspBuildTargetData match {
+        case Some((dataKind, d: ScalaBuildTarget)) =>
+          val target = new bsp4j.ScalaBuildTarget(
+            d.scalaOrganization,
+            d.scalaVersion,
+            d.scalaBinaryVersion,
+            bsp4j.ScalaPlatform.forValue(d.platform.number),
+            d.jars.asJava
+          )
+          Some((dataKind, target))
 
-          case Some((dataKind, d: JvmBuildTarget)) =>
-            val target = new bsp4j.JvmBuildTarget(
-              d.javaHome.map(_.uri).getOrElse(null),
-              d.javaVersion.getOrElse(null)
-            )
-            Some((dataKind, target))
+        case Some((dataKind, d: JvmBuildTarget)) =>
+          val target = new bsp4j.JvmBuildTarget(
+            d.javaHome.map(_.uri).getOrElse(null),
+            d.javaVersion.getOrElse(null)
+          )
+          Some((dataKind, target))
 
-          case Some((dataKind, d)) => None // unsupported data kind
-          case None => None
-        }
+        case Some((dataKind, d)) => None // unsupported data kind
+        case None => None
+      }
 
-        val buildTarget = new BuildTarget(
-          id,
-          s.tags.asJava,
-          s.languageIds.asJava,
-          deps.asJava,
-          new BuildTargetCapabilities(s.canCompile, s.canTest, s.canRun, s.canDebug)
-        )
+      val buildTarget = new BuildTarget(
+        id,
+        s.tags.asJava,
+        s.languageIds.asJava,
+        deps.asJava,
+        new BuildTargetCapabilities(s.canCompile, s.canTest, s.canRun, s.canDebug)
+      )
 
-        s.displayName.foreach(buildTarget.setDisplayName)
-        s.baseDirectory.foreach(p => buildTarget.setBaseDirectory(sanitizeUri(p)))
+      s.displayName.foreach(buildTarget.setDisplayName)
+      s.baseDirectory.foreach(p => buildTarget.setBaseDirectory(sanitizeUri(p)))
 
-        for((dataKind, data) <- data) {
-          buildTarget.setDataKind(dataKind)
-          buildTarget.setData(data)
-        }
+      for ((dataKind, data) <- data) {
+        buildTarget.setDataKind(dataKind)
+        buildTarget.setData(data)
+      }
 
-        buildTarget
-
+      buildTarget
 
     }
 
@@ -306,9 +306,9 @@ class MillBuildServer(
               module.generatedSources().map(p => sourceItem(p.path, true))
           }
         case module: JavaModule =>
-          T.task{
+          T.task {
             module.sources().map(p => sourceItem(p.path, false)) ++
-            module.generatedSources().map(p => sourceItem(p.path, true))
+              module.generatedSources().map(p => sourceItem(p.path, true))
           }
       }
     ) {
@@ -345,12 +345,13 @@ class MillBuildServer(
       hint = s"buildTargetDependencySources ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       agg = (items: Seq[DependencySourcesItem]) => new DependencySourcesResult(items.asJava),
-      tasks = {case m: JavaModule =>
+      tasks = { case m: JavaModule =>
         T.task {
-          (m.resolveDeps(
-            T.task(m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps()),
-            sources = true
-          )(),
+          (
+            m.resolveDeps(
+              T.task(m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps()),
+              sources = true
+            )(),
             m.unmanagedClasspath()
           )
         }
@@ -367,7 +368,6 @@ class MillBuildServer(
         new DependencySourcesItem(id, cp.asJava)
     }
 
-
   /**
    * External dependencies per module (e.g. ivy deps)
    */
@@ -375,13 +375,18 @@ class MillBuildServer(
       : CompletableFuture[DependencyModulesResult] =
     completableTasks(
       hint = "buildTargetDependencyModules",
-      targetIds = _ =>params.getTargets.asScala.toSeq,
+      targetIds = _ => params.getTargets.asScala.toSeq,
       agg = (items: Seq[DependencyModulesItem]) => new DependencyModulesResult(items.asJava),
-      tasks = {case m: JavaModule =>
-        T.task {(m.transitiveCompileIvyDeps(), m.transitiveIvyDeps(), m.unmanagedClasspath())}
+      tasks = { case m: JavaModule =>
+        T.task { (m.transitiveCompileIvyDeps(), m.transitiveIvyDeps(), m.unmanagedClasspath()) }
       }
     ) {
-      case (state, id, m: JavaModule, (transitiveCompileIvyDeps, transitiveIvyDeps, unmanagedClasspath)) =>
+      case (
+            state,
+            id,
+            m: JavaModule,
+            (transitiveCompileIvyDeps, transitiveIvyDeps, unmanagedClasspath)
+          ) =>
         val ivy = transitiveCompileIvyDeps ++ transitiveIvyDeps
         val deps = ivy.map { dep =>
           new DependencyModule(dep.dep.module.repr, dep.dep.version)
@@ -398,8 +403,8 @@ class MillBuildServer(
       targetIds = _ => p.getTargets.asScala.toSeq,
       agg = (items: Seq[ResourcesItem]) => new ResourcesResult(items.asJava),
       tasks = {
-        case m: JavaModule => T.task{ m.resources() }
-        case _ => T.task{ Nil }
+        case m: JavaModule => T.task { m.resources() }
+        case _ => T.task { Nil }
       }
     ) {
       case (state, id, m, resources) =>
@@ -412,7 +417,6 @@ class MillBuildServer(
   // already has some from the build file, what to do?
   override def buildTargetCompile(p: CompileParams): CompletableFuture[CompileResult] =
     completable(s"buildTargetCompile ${p}") { state =>
-
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
       val compileTasks = params.getTargets.distinct.map(state.bspModulesById).map {
@@ -491,9 +495,10 @@ class MillBuildServer(
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] =
     completable(s"buildTargetTest ${testParams}") { state =>
-
       val modules = state.bspModulesById.values.toSeq.collect { case m: JavaModule => m }
-      val millBuildTargetIds = state.rootModules.map { case m: BspModule => state.bspIdByModule(m) }.toSet
+      val millBuildTargetIds = state.rootModules.map { case m: BspModule =>
+        state.bspIdByModule(m)
+      }.toSet
 
       val params = TaskParameters.fromTestParams(testParams)
       val argsMap =
@@ -581,7 +586,6 @@ class MillBuildServer(
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams)
       : CompletableFuture[CleanCacheResult] =
     completable(s"buildTargetCleanCache ${cleanCacheParams}") { state =>
-
       val targetIds = state.rootModules.map { case b: BspModule => state.bspIdByModule(b) }
       val (msg, cleaned) =
         cleanCacheParams.getTargets.asScala.filter(targetIds.contains).foldLeft((
@@ -642,7 +646,7 @@ class MillBuildServer(
         .map(m => tasks(m))
 
       val evaluated = evaluator.evalOrThrow()(tasksSeq)
-      val res = evaluated.zip(ids).map{case (v, i) => f(state, i, state.bspModulesById(i), v)}
+      val res = evaluated.zip(ids).map { case (v, i) => f(state, i, state.bspModulesById(i), v) }
       agg(res)
     }
 

@@ -1,6 +1,18 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{ScalaBuildServer, ScalaMainClass, ScalaMainClassesItem, ScalaMainClassesParams, ScalaMainClassesResult, ScalaTestClassesItem, ScalaTestClassesParams, ScalaTestClassesResult, ScalacOptionsItem, ScalacOptionsParams, ScalacOptionsResult}
+import ch.epfl.scala.bsp4j.{
+  ScalaBuildServer,
+  ScalaMainClass,
+  ScalaMainClassesItem,
+  ScalaMainClassesParams,
+  ScalaMainClassesResult,
+  ScalaTestClassesItem,
+  ScalaTestClassesParams,
+  ScalaTestClassesResult,
+  ScalacOptionsItem,
+  ScalacOptionsParams,
+  ScalacOptionsResult
+}
 import mill.{Agg, T}
 import mill.api.internal
 import mill.bsp.worker.Utils.sanitizeUri
@@ -38,12 +50,10 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
               sem.bspCompiledClassesAndSemanticDbFiles
             case _ => m.bspCompileClassesPath
           }
-          T.task{(Nil, Nil, classesPathTask())}
+          T.task { (Nil, Nil, classesPathTask()) }
       }
     ) {
       case (state, id, m: JavaModule, (allScalacOptions, bspCompileClsaspath, classesPathTask)) =>
-
-
         val pathResolver = evaluator.pathsResolver
         new ScalacOptionsItem(
           id,
@@ -54,7 +64,6 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
           sanitizeUri(classesPathTask.resolve(pathResolver))
         )
 
-
     }
 
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
@@ -63,7 +72,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
       hint = "buildTargetScalaMainClasses",
       targetIds = _ => p.getTargets.asScala.toSeq,
       agg = (items: Seq[ScalaMainClassesItem]) => new ScalaMainClassesResult(items.asJava),
-      tasks = {case m: JavaModule =>
+      tasks = { case m: JavaModule =>
         T.task((m.zincWorker.worker(), m.compile(), m.forkArgs(), m.forkEnv()))
       }
     ) {
@@ -88,7 +97,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
       s"buildTargetScalaTestClasses ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       agg = (items: Seq[ScalaTestClassesItem]) => new ScalaTestClassesResult(items.asJava),
-      tasks = {case m: TestModule =>
+      tasks = { case m: TestModule =>
         T.task((m.runClasspath(), m.testFramework(), m.compile()))
       }
     ) {
@@ -108,7 +117,7 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
               )
               (framework.name(), discoveredTests)
             }
-          )(new mill.api.Ctx.Home{def home = os.home})
+          )(new mill.api.Ctx.Home { def home = os.home })
         val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
         new ScalaTestClassesItem(id, classes.asJava, frameworkName)
       case (state, id, _, _) =>

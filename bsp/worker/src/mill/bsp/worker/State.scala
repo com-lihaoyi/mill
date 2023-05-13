@@ -20,7 +20,6 @@ class State(projectRoot: os.Path, baseLogger: ColorLogger, debug: String => Unit
               rootModule.millSourcePath / m.millModuleSegments.parts
             )
 
-
             (new BuildTargetIdentifier(uri), m)
         }
       }

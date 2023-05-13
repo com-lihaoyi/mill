@@ -16,7 +16,6 @@ object Utils {
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
-
   // define the function that spawns compilation reporter for each module based on the
   // module's hash code TODO: find something more reliable than the hash code
   def getBspLoggedReporterPool(
