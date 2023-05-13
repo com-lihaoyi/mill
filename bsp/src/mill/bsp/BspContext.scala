@@ -7,7 +7,7 @@ import java.io.PrintStream
 import scala.util.control.NonFatal
 
 object BspContext {
-  var bspServerHandle: BspServerHandle = null
+  @volatile var bspServerHandle: BspServerHandle = null
 }
 
 @internal
