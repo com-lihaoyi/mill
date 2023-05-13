@@ -1,16 +1,13 @@
 package mill.bsp
 
-import mill.api.{Ctx, DummyInputStream, Logger, Result, SystemStreams, internal}
+import mill.api.{DummyInputStream, Logger, Result, SystemStreams, internal}
 import mill.eval.Evaluator
 
 import java.io.PrintStream
-import java.util.concurrent.{Executors, TimeUnit}
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 
 object BspContext {
-  val bspServerHandle = Promise[BspServerHandle]()
+  var bspServerHandle: BspServerHandle = null
 }
 
 @internal
@@ -19,33 +16,24 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
   // The command returns when the server exists or the workspace should be reloaded
   // if the `lastResult` is `ReloadWorkspace` we re-run the script in a loop
 
-  //              import scala.concurrent.ExecutionContext.Implicits._
-  val serverThreadContext =
-    ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
-
   streams.err.println("Running in BSP mode with hardcoded startSession command")
 
   streams.err.println("Trying to load BSP server...")
-  val bspServerFuture = Future {
-    try {
-      startBspServer(
-        initialEvaluator = None,
-        streams = streams,
-        logStream = bspLogStream,
-        canReload = true
-      )
-    } catch {
-      case NonFatal(e) =>
-        streams.err.println(s"Could not start BSP server. ${e.getMessage}")
-        e.printStackTrace(streams.err)
-        BspServerResult.Failure
+  BspContext.bspServerHandle = try {
+    startBspServer(
+      initialEvaluator = None,
+      streams = streams,
+      logStream = bspLogStream,
+      canReload = true
+    ) match{
+      case Left(err) => sys.error(err)
+      case Right(res) => res
     }
-  }(serverThreadContext)
-
-  val handle = Await.result(
-    BspContext.bspServerHandle.future,
-    Duration(10, TimeUnit.SECONDS)
-  )
+  } catch {
+    case NonFatal(e) =>
+      streams.err.println(s"Could not start BSP server. ${e.getMessage}")
+      throw e
+  }
 
   streams.err.println("BSP server started")
 
@@ -54,7 +42,7 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
       streams: SystemStreams,
       logStream: Option[PrintStream],
       canReload: Boolean
-  ): BspServerResult = {
+  ): Either[String, BspServerHandle] = {
     val log: Logger = new Logger {
       override def colored: Boolean = false
       override def systemStreams: SystemStreams = new SystemStreams(
@@ -73,6 +61,9 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
     val worker = BspWorker(os.pwd, home, log)
 
     worker match {
+      case f: Result.Failure[_] => Left("Failed to start the BSP worker. " + f.msg)
+      case f: Result.Exception => Left("Failed to start the BSP worker. " + f.throwable)
+      case f => Left("Failed to start the BSP worker. " + f)
       case Result.Success(worker) =>
         worker.startBspServer(
           initialEvaluator,
@@ -80,17 +71,7 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
           logStream.getOrElse(streams.err),
           home / Constants.bspDir,
           canReload,
-          Seq(BspContext.bspServerHandle)
         )
-      case f: Result.Failure[_] =>
-        streams.err.println("Failed to start the BSP worker. " + f.msg)
-        BspServerResult.Failure
-      case f: Result.Exception =>
-        streams.err.println("Failed to start the BSP worker. " + f.throwable)
-        BspServerResult.Failure
-      case f =>
-        streams.err.println("Failed to start the BSP worker. " + f)
-        BspServerResult.Failure
     }
   }
 }

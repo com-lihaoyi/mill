@@ -100,12 +100,9 @@ private class MillBuildServer(
   updateEvaluator(initialEvaluator)
   def updateEvaluator(evaluator: Option[Evaluator]): Unit = {
     debug(s"Updating Evaluator: $evaluator")
-    if (statePromise.isCompleted) {
-      // replace the promise
-      statePromise = Promise[State]()
-    }
+    if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
     evaluatorOpt = evaluator
-    evaluator.foreach(e =>
+    evaluatorOpt.foreach(e =>
       statePromise.success(new State(e.rootModule.millSourcePath, e.baseLogger, debug))
     )
   }
@@ -119,24 +116,6 @@ private class MillBuildServer(
     completableNoState(s"buildInitialize ${request}", checkInitialized = false) {
 
       // TODO: scan BspModules and infer their capabilities
-
-      val clientCaps = request.getCapabilities().getLanguageIds().asScala
-
-//      val compileLangs = moduleBspInfo.filter(_.canCompile).flatMap(_.languageIds).distinct.filter(
-//        clientCaps.contains
-//      )
-//      val runLangs =
-//        moduleBspInfo.filter(_.canRun).flatMap(
-//          _.languageIds
-//        ).distinct // .filter(clientCaps.contains)
-//      val testLangs =
-//        moduleBspInfo.filter(_.canTest).flatMap(
-//          _.languageIds
-//        ).distinct //.filter(clientCaps.contains)
-//      val debugLangs =
-//        moduleBspInfo.filter(_.canDebug).flatMap(
-//          _.languageIds
-//        ).distinct //.filter(clientCaps.contains)
 
       val supportedLangs = Seq("java", "scala").asJava
       val capabilities = new BuildServerCapabilities

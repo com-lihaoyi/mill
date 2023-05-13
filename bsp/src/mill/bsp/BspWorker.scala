@@ -1,33 +1,22 @@
 package mill.bsp
 
-import mill.Agg
 import mill.api.{Ctx, Logger, PathRef, Result, SystemStreams, internal}
-import mill.define.Task
 import mill.eval.Evaluator
 import os.Path
 
 import java.io.PrintStream
 import java.net.URL
-import scala.concurrent.Promise
 import scala.util.{Failure, Success, Try}
 
 @internal
 trait BspWorker {
-
-  def createBspConnection(
-      jobs: Int,
-      serverName: String
-  )(implicit ctx: Ctx): (PathRef, ujson.Value)
-
   def startBspServer(
       initialEvaluator: Option[Evaluator],
       streams: SystemStreams,
       logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean,
-      serverHandles: Seq[Promise[BspServerHandle]]
-  ): BspServerResult
-
+  ): Either[String, BspServerHandle]
 }
 
 @internal

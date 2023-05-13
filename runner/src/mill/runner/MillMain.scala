@@ -225,18 +225,18 @@ object MillMain {
                 )
 
                 bspContext.foreach { ctx =>
-                  repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)
+                  repeatForBsp = BspContext.bspServerHandle.lastResult == Some(BspServerResult.ReloadWorkspace)
                   logger.error(
-                    s"`$bspCmd` returned with ${ctx.handle.lastResult}"
+                    s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
                   )
                 }
                 loopRes = (isSuccess, evalStateOpt)
               } // while repeatForBsp
               bspContext.foreach { ctx =>
                 logger.error(
-                  s"Exiting BSP runner loop. Stopping BSP server. Last result: ${ctx.handle.lastResult}"
+                  s"Exiting BSP runner loop. Stopping BSP server. Last result: ${BspContext.bspServerHandle.lastResult}"
                 )
-                ctx.handle.stop()
+                BspContext.bspServerHandle.stop()
               }
               loopRes
 

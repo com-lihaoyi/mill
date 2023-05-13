@@ -14,7 +14,6 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsResult
 }
 import mill.{Agg, T}
-import mill.api.internal
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.util.Jvm
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule, TestModule}
@@ -23,7 +22,6 @@ import sbt.testing.Fingerprint
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
-import scala.util.chaining.scalaUtilChainingOps
 
 private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 
@@ -79,11 +77,11 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
         // We find all main classes, although we could also find only the configured one
         val mainClasses = worker.discoverMainClasses(compile)
         // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
-        val items = mainClasses.map(mc =>
-          new ScalaMainClass(mc, Seq().asJava, forkArgs.asJava).tap {
-            _.setEnvironmentVariables(forkEnv.map(e => s"${e._1}=${e._2}").toSeq.asJava)
-          }
-        )
+        val items = mainClasses.map { mc =>
+          val scalaMc = new ScalaMainClass(mc, Seq().asJava, forkArgs.asJava)
+          scalaMc.setEnvironmentVariables(forkEnv.map(e => s"${e._1}=${e._2}").toSeq.asJava)
+          scalaMc
+        }
         new ScalaMainClassesItem(id, items.asJava)
 
       case (state, id, _, _) => // no Java module, so no main classes

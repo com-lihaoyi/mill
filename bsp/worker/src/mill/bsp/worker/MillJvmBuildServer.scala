@@ -11,15 +11,11 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentResult
 }
 import mill.T
-import mill.api.internal
 import mill.bsp.worker.Utils.sanitizeUri
-import mill.define.Task
 import mill.scalalib.JavaModule
-import mill.scalalib.bsp.BspModule
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
-import scala.util.chaining.scalaUtilChainingOps
 
 private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
   override def jvmRunEnvironment(params: JvmRunEnvironmentParams)
@@ -70,19 +66,17 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             (runClasspath, forkArgs, forkWorkingDir, forkEnv, mainClass, zincWorker, compile)
           ) =>
         val classpath = runClasspath.map(_.path).map(sanitizeUri)
-        new JvmEnvironmentItem(
+        val item = new JvmEnvironmentItem(
           id,
           classpath.iterator.toSeq.asJava,
           forkArgs.asJava,
           forkWorkingDir.toString(),
           forkEnv.asJava
-        ).tap { item =>
-          val classes =
-            mainClass.toList ++ zincWorker.discoverMainClasses(compile)
-          item.setMainClasses(
-            classes.map(new JvmMainClass(_, Nil.asJava)).asJava
-          )
-        }
+        )
+
+        val classes = mainClass.toList ++ zincWorker.discoverMainClasses(compile)
+        item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
+        item
     } {
       agg
     }

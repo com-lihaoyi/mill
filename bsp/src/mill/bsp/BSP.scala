@@ -44,8 +44,7 @@ object BSP extends ExternalModule with CoursierModule {
       libUrls.mkString("\n"),
       createFolders = true
     )
-    BspWorker(T.workspace, T.home, T.log, Some(libUrls))
-      .map(_.createBspConnection(jobs, Constants.serverName))
+    createBspConnection(jobs, Constants.serverName)
   }
 
   /**
@@ -56,13 +55,12 @@ object BSP extends ExternalModule with CoursierModule {
    */
   def startSession(ev: Evaluator): Command[BspServerResult] = T.command {
     T.log.errorStream.println("BSP/startSession: Starting BSP session")
-    val serverHandle: BspServerHandle =
-      Await.result(BspContext.bspServerHandle.future, Duration.Inf)
-    val res = serverHandle.runSession(ev)
+    val res = BspContext.bspServerHandle.runSession(ev)
     T.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
     res
   }
-  def createBspConnection(
+
+  private def createBspConnection(
                            jobs: Int,
                            serverName: String
                          )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
@@ -79,7 +77,7 @@ object BSP extends ExternalModule with CoursierModule {
     (PathRef(bspFile), upickle.default.read[ujson.Value](connectionContent))
   }
 
-  def bspConnectionJson(jobs: Int, debug: Boolean): String = {
+  private def bspConnectionJson(jobs: Int, debug: Boolean): String = {
     val props = sys.props
     val millPath = props
       .get("mill.main.cli")
