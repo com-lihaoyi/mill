@@ -62,7 +62,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           sanitizeUri(classesPathTask.resolve(pathResolver))
         )
 
-    }{
+    } {
       new ScalacOptionsResult(_)
     }
 
@@ -88,7 +88,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
 
       case (state, id, _, _) => // no Java module, so no main classes
         new ScalaMainClassesItem(id, Seq.empty[ScalaMainClass].asJava)
-    }{
+    } {
       new ScalaMainClassesResult(_)
     }
 
@@ -123,7 +123,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       case (state, id, _, _) =>
         // Not a test module, so no test classes
         new ScalaTestClassesItem(id, Seq.empty[String].asJava)
-    }{
+    } {
       new ScalaTestClassesResult(_)
     }
 

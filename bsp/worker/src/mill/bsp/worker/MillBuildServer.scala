@@ -310,7 +310,7 @@ private class MillBuildServer(
       }
     ) {
       case (state, id, module, items) => new SourcesItem(id, items.asJava)
-    }{
+    } {
       new SourcesResult(_)
     }
 
@@ -364,7 +364,7 @@ private class MillBuildServer(
 
         val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
         new DependencySourcesItem(id, cp.asJava)
-    }{
+    } {
       new DependencySourcesResult(_)
     }
 
@@ -394,7 +394,7 @@ private class MillBuildServer(
           new DependencyModule(s"unmanaged-${dep.path.last}", "")
         }
         new DependencyModulesItem(id, (deps ++ unmanged).iterator.toSeq.asJava)
-    }{
+    } {
       new DependencyModulesResult(_)
     }
 
@@ -411,7 +411,7 @@ private class MillBuildServer(
         val resourcesUrls = resources.map(_.path).filter(os.exists).map(sanitizeUri)
         new ResourcesItem(id, resourcesUrls.asJava)
 
-    }{
+    } {
       new ResourcesResult(_)
     }
 
@@ -639,8 +639,8 @@ private class MillBuildServer(
       hint: String,
       targetIds: State => Seq[BuildTargetIdentifier],
       tasks: BspModule => Task[W]
-  )(f: (State, BuildTargetIdentifier, BspModule, W) => T)
-   (agg: java.util.List[T] => V): CompletableFuture[V] =
+  )(f: (State, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
+      : CompletableFuture[V] =
     completable(hint) { state: State =>
       val ids = targetIds(state)
       val tasksSeq = ids
