@@ -16,8 +16,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, CancellationException, Promise}
 import scala.util.chaining.scalaUtilChainingOps
 
-@internal
-class BspWorkerImpl() extends BspWorker {
+private class BspWorkerImpl() extends BspWorker {
 
   def bspConnectionJson(jobs: Int, debug: Boolean): String = {
     val props = sys.props

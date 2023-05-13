@@ -71,8 +71,7 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import Utils.sanitizeUri
-@internal
-class MillBuildServer(
+private class MillBuildServer(
     initialEvaluator: Option[Evaluator],
     bspVersion: String,
     serverVersion: String,
@@ -220,7 +219,6 @@ class MillBuildServer(
     completableTasks(
       "workspaceBuildTargets",
       targetIds = _.bspModulesById.keySet.toSeq,
-      agg = (items: Seq[BuildTarget]) => new WorkspaceBuildTargetsResult(items.asJava),
       tasks = { case m: JavaModule => T.task { m.bspBuildTargetData() } }
     ) { (state, id, m, bspBuildTargetData) =>
       val s = m.bspBuildTarget
@@ -269,7 +267,7 @@ class MillBuildServer(
 
       buildTarget
 
-    }
+    }(new WorkspaceBuildTargetsResult(_))
 
   override def workspaceReload(): CompletableFuture[Object] =
     completableNoState("workspaceReload", false) {
@@ -297,7 +295,6 @@ class MillBuildServer(
     completableTasks(
       hint = s"buildTargetSources ${sourcesParams}",
       targetIds = _ => sourcesParams.getTargets.asScala.toSeq,
-      agg = (items: Seq[SourcesItem]) => new SourcesResult(items.asJava),
       tasks = {
         case module: MillBuildRootModule =>
           T.task {
@@ -313,6 +310,8 @@ class MillBuildServer(
       }
     ) {
       case (state, id, module, items) => new SourcesItem(id, items.asJava)
+    }{
+      new SourcesResult(_)
     }
 
   }
@@ -344,7 +343,6 @@ class MillBuildServer(
     completableTasks(
       hint = s"buildTargetDependencySources ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      agg = (items: Seq[DependencySourcesItem]) => new DependencySourcesResult(items.asJava),
       tasks = { case m: JavaModule =>
         T.task {
           (
@@ -366,6 +364,8 @@ class MillBuildServer(
 
         val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
         new DependencySourcesItem(id, cp.asJava)
+    }{
+      new DependencySourcesResult(_)
     }
 
   /**
@@ -376,7 +376,6 @@ class MillBuildServer(
     completableTasks(
       hint = "buildTargetDependencyModules",
       targetIds = _ => params.getTargets.asScala.toSeq,
-      agg = (items: Seq[DependencyModulesItem]) => new DependencyModulesResult(items.asJava),
       tasks = { case m: JavaModule =>
         T.task { (m.transitiveCompileIvyDeps(), m.transitiveIvyDeps(), m.unmanagedClasspath()) }
       }
@@ -395,13 +394,14 @@ class MillBuildServer(
           new DependencyModule(s"unmanaged-${dep.path.last}", "")
         }
         new DependencyModulesItem(id, (deps ++ unmanged).iterator.toSeq.asJava)
+    }{
+      new DependencyModulesResult(_)
     }
 
   override def buildTargetResources(p: ResourcesParams): CompletableFuture[ResourcesResult] =
     completableTasks(
       s"buildTargetResources ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      agg = (items: Seq[ResourcesItem]) => new ResourcesResult(items.asJava),
       tasks = {
         case m: JavaModule => T.task { m.resources() }
         case _ => T.task { Nil }
@@ -411,6 +411,8 @@ class MillBuildServer(
         val resourcesUrls = resources.map(_.path).filter(os.exists).map(sanitizeUri)
         new ResourcesItem(id, resourcesUrls.asJava)
 
+    }{
+      new ResourcesResult(_)
     }
 
   // TODO: if the client wants to give compilation arguments and the module
@@ -636,9 +638,9 @@ class MillBuildServer(
   def completableTasks[T, V, W: ClassTag](
       hint: String,
       targetIds: State => Seq[BuildTargetIdentifier],
-      agg: Seq[T] => V,
       tasks: BspModule => Task[W]
-  )(f: (State, BuildTargetIdentifier, BspModule, W) => T): CompletableFuture[V] =
+  )(f: (State, BuildTargetIdentifier, BspModule, W) => T)
+   (agg: java.util.List[T] => V): CompletableFuture[V] =
     completable(hint) { state: State =>
       val ids = targetIds(state)
       val tasksSeq = ids
@@ -647,7 +649,7 @@ class MillBuildServer(
 
       val evaluated = evaluator.evalOrThrow()(tasksSeq)
       val res = evaluated.zip(ids).map { case (v, i) => f(state, i, state.bspModulesById(i), v) }
-      agg(res)
+      agg(res.asJava)
     }
 
   /**

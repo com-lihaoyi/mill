@@ -21,14 +21,13 @@ import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 import scala.util.chaining.scalaUtilChainingOps
 
-@internal
-trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
+private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
   override def jvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] = {
     jvmRunTestEnvironment(
       s"jvmRunEnvironment ${params}",
       params.getTargets.asScala.toSeq,
-      (items: Seq[JvmEnvironmentItem]) => new JvmRunEnvironmentResult(items.asJava)
+      new JvmRunEnvironmentResult(_)
     )
   }
 
@@ -37,19 +36,18 @@ trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
     jvmRunTestEnvironment(
       s"jvmTestEnvironment ${params}",
       params.getTargets.asScala.toSeq,
-      (items: Seq[JvmEnvironmentItem]) => new JvmTestEnvironmentResult(items.asJava)
+      new JvmTestEnvironmentResult(_)
     )
   }
 
   def jvmRunTestEnvironment[V](
       name: String,
       targetIds: Seq[BuildTargetIdentifier],
-      agg: Seq[JvmEnvironmentItem] => V
+      agg: java.util.List[JvmEnvironmentItem] => V
   ) = {
     completableTasks(
       name,
       targetIds = _ => targetIds,
-      agg = agg,
       tasks = {
         case m: JavaModule =>
           T.task {
@@ -85,6 +83,8 @@ trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
             classes.map(new JvmMainClass(_, Nil.asJava)).asJava
           )
         }
+    }{
+      agg
     }
   }
 }

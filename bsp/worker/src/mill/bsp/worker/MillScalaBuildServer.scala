@@ -25,15 +25,13 @@ import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 import scala.util.chaining.scalaUtilChainingOps
 
-@internal
-trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
+private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =
     completableTasks(
       hint = s"buildTargetScalacOptions ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      agg = (items: Seq[ScalacOptionsItem]) => new ScalacOptionsResult(items.asJava),
       tasks = {
         case m: ScalaModule =>
           val classesPathTask = m match {
@@ -64,6 +62,8 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
           sanitizeUri(classesPathTask.resolve(pathResolver))
         )
 
+    }{
+      new ScalacOptionsResult(_)
     }
 
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
@@ -71,7 +71,6 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
     completableTasks(
       hint = "buildTargetScalaMainClasses",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      agg = (items: Seq[ScalaMainClassesItem]) => new ScalaMainClassesResult(items.asJava),
       tasks = { case m: JavaModule =>
         T.task((m.zincWorker.worker(), m.compile(), m.forkArgs(), m.forkEnv()))
       }
@@ -89,6 +88,8 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 
       case (state, id, _, _) => // no Java module, so no main classes
         new ScalaMainClassesItem(id, Seq.empty[ScalaMainClass].asJava)
+    }{
+      new ScalaMainClassesResult(_)
     }
 
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
@@ -96,7 +97,6 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
     completableTasks(
       s"buildTargetScalaTestClasses ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      agg = (items: Seq[ScalaTestClassesItem]) => new ScalaTestClassesResult(items.asJava),
       tasks = { case m: TestModule =>
         T.task((m.runClasspath(), m.testFramework(), m.compile()))
       }
@@ -123,6 +123,8 @@ trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
       case (state, id, _, _) =>
         // Not a test module, so no test classes
         new ScalaTestClassesItem(id, Seq.empty[String].asJava)
+    }{
+      new ScalaTestClassesResult(_)
     }
 
 }

@@ -7,7 +7,7 @@ import mill.scalalib.internal.ModuleUtils
 import mill.define.Module
 import mill.util.ColorLogger
 
-class State(projectRoot: os.Path, baseLogger: ColorLogger, debug: String => Unit) {
+private class State(projectRoot: os.Path, baseLogger: ColorLogger, debug: String => Unit) {
   lazy val bspModulesById: Map[BuildTargetIdentifier, BspModule] = {
     val modules: Seq[(Module, Seq[Module])] = rootModules
       .map(rootModule => (rootModule, ModuleUtils.transitiveModules(rootModule)))

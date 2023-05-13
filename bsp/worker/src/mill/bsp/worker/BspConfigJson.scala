@@ -5,7 +5,7 @@ import upickle.default._
 
 import scala.jdk.CollectionConverters._
 
-case class BspConfigJson(
+private case class BspConfigJson(
     name: String,
     argv: Seq[String],
     millVersion: String,
@@ -13,6 +13,6 @@ case class BspConfigJson(
     languages: Seq[String]
 ) extends BspConnectionDetails(name, argv.asJava, millVersion, bspVersion, languages.asJava)
 
-object BspConfigJson {
+private object BspConfigJson {
   implicit val rw: ReadWriter[BspConfigJson] = macroRW
 }

@@ -14,15 +14,13 @@ import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 
-@internal
-trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
+private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
     completableTasks(
       s"buildTargetJavacOptions ${javacOptionsParams}",
       targetIds = _ => javacOptionsParams.getTargets.asScala.toSeq,
-      agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava),
       tasks = { case m: JavaModule =>
         val classesPathTask = m match {
           case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
@@ -43,6 +41,7 @@ trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
           classpath.iterator.toSeq.asJava,
           sanitizeUri(classesPath.resolve(pathResolver))
         )
-
+    }{
+      new JavacOptionsResult(_)
     }
 }

@@ -7,7 +7,7 @@ import mill.eval.Evaluator
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.BspModule
 
-object Utils {
+private object Utils {
 
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
