@@ -63,7 +63,6 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
     worker match {
       case f: Result.Failure[_] => Left("Failed to start the BSP worker. " + f.msg)
       case f: Result.Exception => Left("Failed to start the BSP worker. " + f.throwable)
-      case f => Left("Failed to start the BSP worker. " + f)
       case Result.Success(worker) =>
         worker.startBspServer(
           initialEvaluator,
