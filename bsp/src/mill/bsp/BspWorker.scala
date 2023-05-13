@@ -15,7 +15,7 @@ trait BspWorker {
       streams: SystemStreams,
       logStream: PrintStream,
       logDir: os.Path,
-      canReload: Boolean,
+      canReload: Boolean
   ): Either[String, BspServerHandle]
 }
 

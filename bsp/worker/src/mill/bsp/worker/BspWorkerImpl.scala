@@ -19,7 +19,7 @@ private class BspWorkerImpl() extends BspWorker {
       streams: SystemStreams,
       logStream: PrintStream,
       logDir: os.Path,
-      canReload: Boolean,
+      canReload: Boolean
   ): Either[String, BspServerHandle] = {
     val evaluator = initialEvaluator.map(_.withFailFast(false))
 

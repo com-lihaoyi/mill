@@ -225,7 +225,8 @@ object MillMain {
                 )
 
                 bspContext.foreach { ctx =>
-                  repeatForBsp = BspContext.bspServerHandle.lastResult == Some(BspServerResult.ReloadWorkspace)
+                  repeatForBsp =
+                    BspContext.bspServerHandle.lastResult == Some(BspServerResult.ReloadWorkspace)
                   logger.error(
                     s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
                   )

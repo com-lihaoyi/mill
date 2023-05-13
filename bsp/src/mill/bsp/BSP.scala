@@ -61,9 +61,9 @@ object BSP extends ExternalModule with CoursierModule {
   }
 
   private def createBspConnection(
-                           jobs: Int,
-                           serverName: String
-                         )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
+      jobs: Int,
+      serverName: String
+  )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
     // we create a json connection file
     val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
     if (os.exists(bspFile)) ctx.log.info(s"Overwriting BSP connection file: ${bspFile}")
