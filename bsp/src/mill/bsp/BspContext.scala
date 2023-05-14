@@ -1,6 +1,6 @@
 package mill.bsp
 
-import mill.api.{DummyInputStream, Logger, Result, SystemStreams, internal}
+import mill.api.{DummyInputStream, Logger, SystemStreams, internal}
 import mill.eval.Evaluator
 
 import java.io.PrintStream

@@ -2,8 +2,6 @@ package mill.bsp
 
 import upickle.default._
 
-import scala.jdk.CollectionConverters._
-
 private case class BspConfigJson(
     name: String,
     argv: Seq[String],

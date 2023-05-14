@@ -1,6 +1,6 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{BuildTarget, BuildTargetIdentifier}
+import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import mill.runner.MillBuildBootstrap
 import mill.scalalib.bsp.BspModule
 import mill.scalalib.internal.ModuleUtils

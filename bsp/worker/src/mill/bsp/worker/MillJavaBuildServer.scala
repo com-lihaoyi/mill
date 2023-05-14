@@ -7,7 +7,6 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsResult
 }
 import mill.T
-import mill.api.internal
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 

@@ -56,12 +56,12 @@ import ch.epfl.scala.bsp4j.{
 import ch.epfl.scala.bsp4j
 import com.google.gson.JsonObject
 import mill.T
-import mill.api.{DummyTestReporter, PathRef, Result, Strict, internal}
+import mill.api.{DummyTestReporter, Result, Strict}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, ExternalModule, Module, Segments, Task}
+import mill.define.{Args, Discover, ExternalModule, Task}
 import mill.eval.Evaluator
 import mill.main.MainModule
-import mill.scalalib.{GenIdeaImpl, JavaModule, SemanticDbJavaModule, TestModule}
+import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.runner.MillBuildRootModule
 

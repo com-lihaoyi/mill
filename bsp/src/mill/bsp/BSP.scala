@@ -1,16 +1,11 @@
 package mill.bsp
 
-import java.io.{InputStream, PrintStream}
-import scala.concurrent.{Await, Promise}
-import scala.concurrent.duration.Duration
-import mill.api.{Ctx, DummyInputStream, Logger, PathRef, Result, SystemStreams}
+import mill.api.{Ctx, PathRef}
 import mill.{Agg, T, BuildInfo => MillBuildInfo}
-import mill.define.{Command, Discover, ExternalModule, Task}
+import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 import mill.util.Util.millProjectModule
-import mill.scalalib.{CoursierModule, Dep}
-import mill.util.PrintLogger
-import os.Path
+import mill.scalalib.CoursierModule
 
 object BSP extends ExternalModule with CoursierModule {
 

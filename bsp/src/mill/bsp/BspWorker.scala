@@ -1,12 +1,11 @@
 package mill.bsp
 
-import mill.api.{Ctx, Logger, PathRef, Result, SystemStreams, internal}
+import mill.api.{Ctx, Logger, SystemStreams, internal}
 import mill.eval.Evaluator
 import os.Path
 
 import java.io.PrintStream
 import java.net.URL
-import scala.util.{Failure, Success, Try}
 
 @internal
 trait BspWorker {
