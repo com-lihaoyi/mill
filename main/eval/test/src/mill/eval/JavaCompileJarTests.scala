@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.modules.Jvm
+import mill.util.Jvm
 import mill.api.Ctx.Dest
 import mill.{Module, T}
 import mill.util.{DummyLogger, TestEvaluator, TestUtil}

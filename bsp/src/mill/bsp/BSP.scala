@@ -8,7 +8,7 @@ import mill.{Agg, T, BuildInfo => MillBuildInfo}
 import mill.define.{Command, Discover, ExternalModule, Task}
 import mill.eval.Evaluator
 import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
-import mill.modules.Util.millProjectModule
+import mill.util.Util.millProjectModule
 import mill.scalalib.{CoursierModule, Dep}
 import mill.util.PrintLogger
 import os.Path

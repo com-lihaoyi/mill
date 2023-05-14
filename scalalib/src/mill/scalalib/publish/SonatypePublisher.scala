@@ -4,7 +4,7 @@ import java.math.BigInteger
 import java.security.MessageDigest
 
 import mill.api.Logger
-import mill.modules.Jvm
+import mill.util.Jvm
 import os.Shellable
 
 class SonatypePublisher(

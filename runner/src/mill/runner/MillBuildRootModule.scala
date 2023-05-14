@@ -4,8 +4,8 @@ import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.define.{Caller, Discover, Target, Task}
-import mill.modules.CoursierSupport
-import mill.modules.Util.millProjectModule
+import mill.util.CoursierSupport
+import mill.util.Util.millProjectModule
 import mill.scalalib.{BoundDep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.Versions
 import os.{Path, rel}
@@ -29,6 +29,12 @@ class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
     millBuildRootModuleInfo: MillBuildRootModule.Info
 ) extends RootModule() with ScalaModule {
+  override def bspDisplayName0: String = millBuildRootModuleInfo
+    .projectRoot
+    .relativeTo(millBuildRootModuleInfo.topLevelProjectRoot)
+    .segments
+    .++(super.bspDisplayName0.split("/"))
+    .mkString("/")
 
   override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
 
@@ -37,11 +43,13 @@ class MillBuildRootModule()(implicit
       sources: Boolean = false
   ): Task[Agg[PathRef]] =
     T.task {
-      // We need to resolve the sources to make GenIdeaExtendedTests pass for
-      // some reason, but we don't need to actually return them (???)
-      val unused = super.resolveDeps(deps, true)()
-
-      super.resolveDeps(deps, false)()
+      if (sources == true) super.resolveDeps(deps, true)()
+      else {
+        // We need to resolve the sources to make GenIdeaExtendedTests pass for
+        // some reason, but we don't need to actually return them (???)
+        val unused = super.resolveDeps(deps, true)()
+        super.resolveDeps(deps, false)()
+      }
     }
 
   override def scalaVersion = "2.13.10"
@@ -174,6 +182,9 @@ class MillBuildRootModule()(implicit
   def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
     millProjectModule("mill-runner-linenumbers", repositoriesTask())
   }
+
+  /** Used in BSP IntelliJ, which can only work with directories */
+  def dummySources: Sources = T.sources(T.dest)
 }
 
 object MillBuildRootModule {

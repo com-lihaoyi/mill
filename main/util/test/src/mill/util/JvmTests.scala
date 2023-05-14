@@ -1,9 +1,9 @@
-package mill.modules
-
-import java.util.jar.{Attributes, JarFile}
+package mill.util
 
 import mill.Agg
 import utest.{TestSuite, Tests, test}
+
+import java.util.jar.{Attributes, JarFile}
 
 object JvmTests extends TestSuite {
 

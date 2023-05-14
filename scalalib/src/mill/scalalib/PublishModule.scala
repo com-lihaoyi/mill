@@ -4,7 +4,7 @@ package scalalib
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.main.Tasks
-import mill.modules.Jvm
+import mill.util.Jvm
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.{Artifact, SonatypePublisher, VersionScheme}
 
