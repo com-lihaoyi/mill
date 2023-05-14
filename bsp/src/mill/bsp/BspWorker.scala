@@ -56,25 +56,6 @@ object BspWorker {
           new Ctx.Home { override def home: Path = home0 }
         )
 
-        // check the worker version
-        Try {
-          val workerBuildInfo = cl.loadClass(Constants.bspWorkerBuildInfoClass)
-          workerBuildInfo.getMethod("millBspWorkerVersion").invoke(null)
-        } match {
-          case Success(mill.BuildInfo.millVersion) => // same as Mill, everything is good
-          case Success(workerVersion) =>
-            log.error(
-              s"""BSP worker version ($workerVersion) does not match Mill version (${mill.BuildInfo.millVersion}).
-                 |You need to run `mill mill.bsp.BSP/install` again.""".stripMargin
-            )
-          case Failure(e) =>
-            log.error(
-              s"""Could not validate worker version number.
-                 |Error message: ${e.getMessage}
-                 |""".stripMargin
-            )
-        }
-
         val workerCls = cl.loadClass(Constants.bspWorkerImplClass)
         val ctr = workerCls.getConstructor()
         val workerImpl = ctr.newInstance().asInstanceOf[BspWorker]
