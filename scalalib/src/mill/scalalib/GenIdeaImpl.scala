@@ -94,6 +94,7 @@ case class GenIdeaImpl(
             )
         )(modules.map(_._2.repositoriesTask))
 
+        Lib.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = true)
         Lib.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = false)
       }
 

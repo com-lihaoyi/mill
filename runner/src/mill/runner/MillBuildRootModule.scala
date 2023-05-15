@@ -45,8 +45,11 @@ class MillBuildRootModule()(implicit
     T.task {
       if (sources == true) super.resolveDeps(deps, true)()
       else {
-        // We need to resolve the sources to make GenIdeaExtendedTests pass for
-        // some reason, but we don't need to actually return them (???)
+        // We need to resolve the sources to make GenIdeaExtendedTests pass,
+        // because those do not call `resolveDeps` explicitly for build file
+        // `import $ivy`s but instead rely on the deps that are resolved as
+        // part of the bootstrapping process. We thus need to make sure
+        // bootstrapping the rootModule ends up putting the sources on disk
         val unused = super.resolveDeps(deps, true)()
         super.resolveDeps(deps, false)()
       }

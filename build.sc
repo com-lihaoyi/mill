@@ -1133,25 +1133,12 @@ object bsp extends MillModule with BuildInfo {
     )
   }
 
-  object worker extends MillInternalModule with BuildInfo {
+  object worker extends MillInternalModule {
     override def compileModuleDeps = Seq(bsp, scalalib, testrunner, runner)
     override def ivyDeps = Agg(
       Deps.bsp4j,
       Deps.sbtTestInterface
     )
-
-    def buildInfoPackageName = "mill.bsp.worker"
-    def buildInfoMembers = T {
-      val workerDep = worker.publishSelfDependency()
-      Seq(
-        BuildInfo.Value(
-          "bsp4jVersion",
-          Deps.bsp4j.dep.version,
-          "BSP4j version (BSP Protocol version)."
-        ),
-        BuildInfo.Value("millBspWorkerVersion", workerDep.version, "BSP worker dependency.")
-      )
-    }
   }
 }
 

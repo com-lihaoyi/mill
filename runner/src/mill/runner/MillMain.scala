@@ -7,8 +7,8 @@ import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import mill.java9rtexport.Export
 import mill.api.{DummyInputStream, internal}
-import mill.main.BspServerResult
 import mill.api.SystemStreams
+import mill.bsp.{BspContext, BspServerResult}
 import mill.util.{PrintLogger, Util}
 
 @internal
@@ -189,8 +189,12 @@ object MillMain {
 
               val bspContext =
                 if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
+
+              val bspCmd = "mill.bsp.BSP/startSession"
               val targetsAndParams =
-                bspContext.map(_.millArgs).getOrElse(config.leftoverArgs.value.toList)
+                bspContext
+                  .map(_ => Seq(bspCmd))
+                  .getOrElse(config.leftoverArgs.value.toList)
 
               var repeatForBsp = true
               var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
@@ -221,18 +225,19 @@ object MillMain {
                 )
 
                 bspContext.foreach { ctx =>
-                  repeatForBsp = ctx.handle.lastResult == Some(BspServerResult.ReloadWorkspace)
+                  repeatForBsp =
+                    BspContext.bspServerHandle.lastResult == Some(BspServerResult.ReloadWorkspace)
                   logger.error(
-                    s"`${ctx.millArgs.mkString(" ")}` returned with ${ctx.handle.lastResult}"
+                    s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
                   )
                 }
                 loopRes = (isSuccess, evalStateOpt)
               } // while repeatForBsp
               bspContext.foreach { ctx =>
                 logger.error(
-                  s"Exiting BSP runner loop. Stopping BSP server. Last result: ${ctx.handle.lastResult}"
+                  s"Exiting BSP runner loop. Stopping BSP server. Last result: ${BspContext.bspServerHandle.lastResult}"
                 )
-                ctx.handle.stop()
+                BspContext.bspServerHandle.stop()
               }
               loopRes
 
