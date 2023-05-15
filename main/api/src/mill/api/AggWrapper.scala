@@ -1,6 +1,6 @@
 package mill.api
 
-import scala.collection.{AbstractSeq, IndexedSeqOps, IterableFactory, IterableFactoryDefaults, IterableOps, SeqFactory, StrictOptimizedSeqOps, mutable}
+import scala.collection.{IterableFactory, IterableOps, mutable}
 import scala.language.implicitConversions
 
 object Strict extends AggWrapper(true)
