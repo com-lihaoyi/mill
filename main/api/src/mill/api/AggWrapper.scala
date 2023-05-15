@@ -135,17 +135,6 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
             filtered.withFilter0(f)
         }
 
-      protected def collect0[T](f: PartialFunction[V, T]): Mutable[T] =
-        this.filter(f.isDefinedAt).map(x => f(x))
-
-      protected def zipWithIndex0: Mutable[(V, Int)] = {
-        var i = 0
-        this.map { x =>
-          i += 1
-          (x, i - 1)
-        }
-      }
-
       override def reverse: Mutable[V] = Mutable.from(indexed.reverseIterator)
 
       def zip[T](other: Agg[T]): Mutable[(V, T)] = Mutable.from(items.zip(other.items))
