@@ -4,13 +4,16 @@ on:
   workflow_call:
     inputs:
       buildcmd:
-        required: true
+        default: ''
+        type: string
+      millargs:
+        default: ''
         type: string
       java-version:
         required: true
         type: string
       os:
-        required: true
+        default: 'ubuntu-latest'
         type: string
       continue-on-error:
         default: false
@@ -41,3 +44,12 @@ jobs:
 
       - name: Run '${{ inputs.buildcmd }}'
         run: ${{ inputs.buildcmd }}
+        if: inputs.buildcmd != ''
+
+      - name: Run Mill '${{ inputs.millargs }}'
+        run:  ./mill -i -k ${{ inputs.millargs }}
+        if: inputs.millargs != '' && !startsWith(inputs.os, 'windows')
+
+      - name: Run Mill (on Windows) '${{ inputs.millargs }}'
+        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k ${{ inputs.millargs }}
+        if: inputs.millargs != '' && startsWith(inputs.os, 'windows')
