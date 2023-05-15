@@ -14,15 +14,16 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
    * `toSeq.distinct` if you explicitly want to make it swallow duplicates
    */
   trait Agg[V]
-    extends IterableOnce[V]
-    with IterableOps[V, Agg, Agg[V]]{
+      extends IterableOnce[V]
+      with IterableOps[V, Agg, Agg[V]] {
 
     override def iterableFactory: IterableFactory[Agg]
 
     override def fromSpecific(coll: IterableOnce[V]): Agg[V] = fromSpecific0(coll)
     protected def fromSpecific0(coll: IterableOnce[V]): Agg[V]
 
-    override def newSpecificBuilder: scala.collection.mutable.Builder[V, Agg[V]] = newSpecificBuilder0
+    override def newSpecificBuilder: scala.collection.mutable.Builder[V, Agg[V]] =
+      newSpecificBuilder0
     protected def newSpecificBuilder0: scala.collection.mutable.Builder[V, Agg[V]]
 
     def contains(v: V): Boolean
@@ -42,7 +43,7 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
     def foreach[U](f: V => U): Unit
   }
 
-  object Agg extends IterableFactory[Agg]{
+  object Agg extends IterableFactory[Agg] {
     def empty[V]: Agg[V] = new Agg.Mutable[V]
     implicit def jsonFormat[T: upickle.default.ReadWriter]: upickle.default.ReadWriter[Agg[T]] =
       upickle.default
@@ -53,7 +54,7 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
         )
 
     implicit def from[V](items: IterableOnce[V]): Agg[V] = Mutable.from(items)
-    object Mutable{
+    object Mutable {
       implicit def from[V](items: IterableOnce[V]): Mutable[V] = {
         val set = new Agg.Mutable[V]()
         items.iterator.foreach(set.append)
@@ -121,17 +122,18 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
         output
       }
 
-      protected def withFilter0(f: V => Boolean): collection.WithFilter[V, Mutable] = new collection.WithFilter[V, Mutable]{
-        lazy val filtered = filter(f)
-        override def map[B](f: V => B): Mutable[B] = filtered.map(f)
+      protected def withFilter0(f: V => Boolean): collection.WithFilter[V, Mutable] =
+        new collection.WithFilter[V, Mutable] {
+          lazy val filtered = filter(f)
+          override def map[B](f: V => B): Mutable[B] = filtered.map(f)
 
-        override def flatMap[B](f: V => IterableOnce[B]): Mutable[B] = filtered.flatMap(f)
+          override def flatMap[B](f: V => IterableOnce[B]): Mutable[B] = filtered.flatMap(f)
 
-        override def foreach[U](f: V => U): Unit = filtered.foreach(f)
+          override def foreach[U](f: V => U): Unit = filtered.foreach(f)
 
-        override def withFilter(q: V => Boolean): collection.WithFilter[V, Mutable] =
-          filtered.withFilter0(f)
-      }
+          override def withFilter(q: V => Boolean): collection.WithFilter[V, Mutable] =
+            filtered.withFilter0(f)
+        }
 
       protected def collect0[T](f: PartialFunction[V, T]): Mutable[T] =
         this.filter(f.isDefinedAt).map(x => f(x))
