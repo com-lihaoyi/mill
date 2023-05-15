@@ -70,6 +70,7 @@ object Deps {
   val testScala30Version = "3.0.2"
   val testScala31Version = "3.1.3"
   val testScala32Version = "3.2.0"
+  val testScala33Version = "3.3.0-RC6"
 
   object Scalajs_1 {
     val scalaJsVersion = "1.13.1"
@@ -629,6 +630,7 @@ trait BaseMillTestsModule extends TestModule {
       s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
       s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
       s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
+      s"-DTEST_SCALA_3_3_VERSION=${Deps.testScala33Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"

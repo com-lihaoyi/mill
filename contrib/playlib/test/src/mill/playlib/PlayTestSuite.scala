@@ -7,7 +7,7 @@ trait PlayTestSuite {
 
   val testScala212 = sys.props.getOrElse("MILL_SCALA_2_12_VERSION", ???)
   val testScala213 = sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???)
-  val testScala3 = sys.props.getOrElse("TEST_SCALA_3_2_VERSION", ???)
+  val testScala3 = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
 
   val testPlay26 = sys.props.getOrElse("TEST_PLAY_VERSION_2_6", ???)
   val testPlay27 = sys.props.getOrElse("TEST_PLAY_VERSION_2_7", ???)
