@@ -18,7 +18,7 @@ import mill.api.Strict.Agg
 import mill.define._
 import mill.eval.Evaluator.{TaskResult, Terminal}
 import mill.util._
-
+import scala.reflect.NameTransformer.decode
 import scala.collection.mutable
 import scala.concurrent._
 import scala.reflect.ClassTag
@@ -256,7 +256,7 @@ private[mill] case class EvaluatorImpl(
           val methods = for {
             c <- transitiveParents
             m <- c.getDeclaredMethods
-            if m.getName == namedTask.ctx.segment.pathSegments.head
+            if decode(m.getName) == namedTask.ctx.segment.pathSegments.head
           } yield m
 
 

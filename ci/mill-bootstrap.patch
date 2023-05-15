@@ -328,7 +328,7 @@ index f9b7030028..1339a4281f 100644
 -      class CaseModule(caseName: String) extends ScalaModule {
 -
 +      object cases extends Cross[CaseModule](caseKeys)
-+      trait CaseModule extends ScalaModule with CrossModule[String]{
++      trait CaseModule extends ScalaModule with Cross.Module[String]{
 +        def caseName = crossValue
          object external extends ScalaModule{
            def scalaVersion = "2.13.10"
