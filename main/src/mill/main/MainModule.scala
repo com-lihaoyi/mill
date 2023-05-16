@@ -243,7 +243,7 @@ trait MainModule extends mill.Module {
               .get(t.ctx.enclosingCls)
               .flatMap(_.find(_.name == t.ctx.segments.parts.last))
 
-            mainDataOpt match{
+            mainDataOpt match {
               case Some(mainData) if mainData.renderedArgSigs.nonEmpty =>
                 val rendered = mainargs.Renderer.formatMainMethodSignature(
                   mainDataOpt.get,
