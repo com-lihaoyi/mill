@@ -120,7 +120,7 @@ object Resolve {
     (cls, entryPoints) <- discover.value
     if cls.isAssignableFrom(target.getClass)
     ep <- entryPoints
-    if ep._2.name == name
+    if ep.name == name
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
@@ -133,7 +133,6 @@ object Resolve {
     }
 
     val flattenedArgSigsWithDefaults = ep
-      ._2
       .flattenedArgSigs
       .map { case (arg, term) => (withNullDefault(arg), term) }
 
@@ -142,9 +141,9 @@ object Resolve {
       flattenedArgSigsWithDefaults,
       allowPositional = true,
       allowRepeats = false,
-      allowLeftover = ep._2.argSigs0.exists(_.reader.isLeftover)
+      allowLeftover = ep.argSigs0.exists(_.reader.isLeftover)
     ).flatMap { (grouped: TokenGrouping[_]) =>
-      val mainData = ep._2.asInstanceOf[MainData[_, Any]]
+      val mainData = ep.asInstanceOf[MainData[_, Any]]
       val mainDataWithDefaults = mainData
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
 
@@ -159,7 +158,7 @@ object Resolve {
       case f: mainargs.Result.Failure =>
         Left(
           mainargs.Renderer.renderResult(
-            ep._2,
+            ep,
             f,
             totalWidth = 100,
             printHelpOnError = true,
