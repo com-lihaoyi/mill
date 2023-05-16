@@ -4,7 +4,13 @@ import utest._
 
 object DocAnnotationsTests extends IntegrationTestSuite {
   def globMatches(glob: String, input: String) = {
-    StringContext.glob(glob.stripMargin.split("\\.\\.\\."), input).isDefined
+    StringContext
+      .glob(
+        // Normalize the line separator to be `\n` for comparisons
+        glob.stripMargin.linesIterator.mkString("\n").split("\\.\\.\\."),
+        input.linesIterator.mkString("\n")
+      )
+      .isDefined
   }
   val tests = Tests {
     initWorkspace()
