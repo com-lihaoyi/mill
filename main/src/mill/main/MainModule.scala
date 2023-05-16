@@ -236,33 +236,35 @@ trait MainModule extends mill.Module {
         val mainMethodSig =
           if (t.asCommand.isEmpty) List()
           else {
-            val mainData = evaluator
+            val mainDataOpt = evaluator
               .rootModule
               .millDiscover
-              .value(t.ctx.enclosingCls)
-              .find(_.name == t.ctx.segments.parts.last)
-              .get
+              .value
+              .get(t.ctx.enclosingCls)
+              .flatMap(_.find(_.name == t.ctx.segments.parts.last))
 
-            if (mainData.renderedArgSigs.isEmpty) List()
-            else {
-              val rendered = mainargs.Renderer.formatMainMethodSignature(
-                mainData,
-                leftIndent = 2,
-                totalWidth = 100,
-                leftColWidth = mainargs.Renderer.getLeftColWidth(mainData.renderedArgSigs),
-                docsOnNewLine = false,
-                customName = None,
-                customDoc = None
-              )
+            mainDataOpt match{
+              case Some(mainData) if mainData.renderedArgSigs.nonEmpty =>
+                val rendered = mainargs.Renderer.formatMainMethodSignature(
+                  mainDataOpt.get,
+                  leftIndent = 2,
+                  totalWidth = 100,
+                  leftColWidth = mainargs.Renderer.getLeftColWidth(mainData.renderedArgSigs),
+                  docsOnNewLine = false,
+                  customName = None,
+                  customDoc = None
+                )
 
-              // trim first line containing command name, since we already render
-              // the command name below with the filename and line num
-              val trimmedRendered = rendered
-                .linesIterator
-                .drop(1)
-                .mkString("\n")
+                // trim first line containing command name, since we already render
+                // the command name below with the filename and line num
+                val trimmedRendered = rendered
+                  .linesIterator
+                  .drop(1)
+                  .mkString("\n")
 
-              List("\n", trimmedRendered, "\n")
+                List("\n", trimmedRendered, "\n")
+
+              case _ => List()
             }
           }
 
