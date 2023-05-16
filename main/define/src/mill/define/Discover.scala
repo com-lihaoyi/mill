@@ -16,18 +16,18 @@ import scala.reflect.macros.blackbox
  * the `T.command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-case class Discover[T] private (value: Map[Class[_], Seq[(Int, mainargs.MainData[_, _])]]) {
-  private[mill] def copy(value: Map[Class[_], Seq[(Int, mainargs.MainData[_, _])]] = value)
+case class Discover[T] private (value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) {
+  private[mill] def copy(value: Map[Class[_], Seq[mainargs.MainData[_, _]]] = value)
       : Discover[T] =
     new Discover[T](value)
 }
 object Discover {
-  def apply[T](value: Map[Class[_], Seq[(Int, mainargs.MainData[_, _])]]): Discover[T] =
+  def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover[T] =
     new Discover[T](value)
   def apply[T]: Discover[T] = macro Router.applyImpl[T]
 
   private def unapply[T](discover: Discover[T])
-      : Option[Map[Class[_], Seq[(Int, mainargs.MainData[_, _])]]] = Some(discover.value)
+      : Option[Map[Class[_], Seq[mainargs.MainData[_, _]]]] = Some(discover.value)
 
   private class Router(val ctx: blackbox.Context) extends mainargs.Macros(ctx) {
     import c.universe._
@@ -90,18 +90,14 @@ object Discover {
           for {
             m <- methods.toList
             if m.returnType <:< weakTypeOf[mill.define.Command[_]]
-          } yield (
-            m.overrides.length,
-            extractMethod(
-              m.name,
-              m.paramLists.flatten,
-              m.pos,
-              m.annotations.find(_.tree.tpe =:= typeOf[mainargs.main]),
-              curCls,
-              weakTypeOf[Any]
-            )
+          } yield extractMethod(
+            m.name,
+            m.paramLists.flatten,
+            m.pos,
+            m.annotations.find(_.tree.tpe =:= typeOf[mainargs.main]),
+            curCls,
+            weakTypeOf[Any]
           )
-
         }
         if overridesRoutes.nonEmpty
       } yield {

@@ -2,17 +2,15 @@ package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
 import mill.{BuildInfo, T}
-import mill.api.{Ctx, Logger, PathRef, Result, internal}
-import mill.define.{Command, NamedTask, Segments, TargetImpl, Task}
+import mill.api.{Ctx, Logger, PathRef, Result}
+import mill.define.{Command, NamedTask, Segments, Task}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
 import mill.util.{PrintLogger, Watchable}
 import pprint.{Renderer, Tree, Truncated}
-import ujson.Value
 
 import scala.collection.mutable
-import scala.util.chaining.scalaUtilChainingOps
 
 object MainModule {
 
@@ -234,7 +232,40 @@ trait MainModule extends mill.Module {
         for (a <- annots.distinct)
           yield mill.util.Util.cleanupScaladoc(a.value).map("\n    " + _).mkString
 
-      pprint.Tree.Lazy(ctx =>
+      pprint.Tree.Lazy { ctx =>
+        val mainMethodSig =
+          if (t.asCommand.isEmpty) List()
+          else {
+            val mainData = evaluator
+              .rootModule
+              .millDiscover
+              .value(t.ctx.enclosingCls)
+              .find(_.name == t.ctx.segments.parts.last)
+              .get
+
+            if (mainData.renderedArgSigs.isEmpty) List()
+            else {
+              val rendered = mainargs.Renderer.formatMainMethodSignature(
+                mainData,
+                leftIndent = 2,
+                totalWidth = 100,
+                leftColWidth = mainargs.Renderer.getLeftColWidth(mainData.renderedArgSigs),
+                docsOnNewLine = false,
+                customName = None,
+                customDoc = None
+              )
+
+              // trim first line containing command name, since we already render
+              // the command name below with the filename and line num
+              val trimmedRendered = rendered
+                .linesIterator
+                .drop(1)
+                .mkString("\n")
+
+              List("\n", trimmedRendered, "\n")
+            }
+          }
+
         Iterator(
           ctx.applyPrefixColor(t.toString).toString,
           "(",
@@ -244,12 +275,15 @@ trait MainModule extends mill.Module {
           t.ctx.lineNum.toString,
           ")",
           allDocs.mkString("\n"),
-          "\n",
+          "\n"
+        ) ++
+          mainMethodSig.iterator ++
+        Iterator(
           "\n",
           ctx.applyPrefixColor("Inputs").toString,
           ":"
         ) ++ t.inputs.distinct.iterator.flatMap(rec).map("\n    " + _.render)
-      )
+      }
     }
 
     MainModule.resolveTasks(evaluator, targets, SelectMode.Multi) { tasks =>
@@ -266,9 +300,9 @@ trait MainModule extends mill.Module {
         rendered = renderer.rec(tree, 0, 0).iter
         truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
       } yield {
-        new StringBuilder().tap { sb =>
-          for { str <- truncated ++ Iterator("\n") } sb.append(str)
-        }.toString()
+        val sb = new StringBuilder()
+        for { str <- truncated ++ Iterator("\n") } sb.append(str)
+        sb.toString()
       }).mkString("\n")
       T.log.outputStream.println(output)
       fansi.Str(output).plainText
