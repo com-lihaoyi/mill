@@ -22,7 +22,6 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
   BspContext.bspServerHandle =
     try {
       startBspServer(
-        initialEvaluator = None,
         streams = streams,
         logStream = bspLogStream,
         canReload = true
@@ -39,7 +38,6 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
   streams.err.println("BSP server started")
 
   def startBspServer(
-      initialEvaluator: Option[Evaluator],
       streams: SystemStreams,
       logStream: Option[PrintStream],
       canReload: Boolean
@@ -62,7 +60,6 @@ class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home
     BspWorker(os.pwd, home, log).flatMap { worker =>
       os.makeDir.all(home / Constants.bspDir)
       worker.startBspServer(
-        initialEvaluator,
         streams,
         logStream.getOrElse(streams.err),
         home / Constants.bspDir,

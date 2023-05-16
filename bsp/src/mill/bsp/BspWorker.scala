@@ -10,7 +10,6 @@ import java.net.URL
 @internal
 trait BspWorker {
   def startBspServer(
-      initialEvaluator: Option[Evaluator],
       streams: SystemStreams,
       logStream: PrintStream,
       logDir: os.Path,
