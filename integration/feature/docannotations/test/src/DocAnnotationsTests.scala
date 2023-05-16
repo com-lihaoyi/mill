@@ -12,6 +12,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
       )
       .isDefined
   }
+
   val tests = Tests {
     initWorkspace()
     test("test") - {
