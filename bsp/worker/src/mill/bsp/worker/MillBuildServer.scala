@@ -74,7 +74,6 @@ import scala.util.{Failure, Success, Try}
 import Utils.sanitizeUri
 import mill.bsp.BspServerResult
 private class MillBuildServer(
-    initialEvaluator: Option[Evaluator],
     bspVersion: String,
     serverVersion: String,
     serverName: String,
@@ -97,7 +96,7 @@ private class MillBuildServer(
   private[this] var statePromise: Promise[State] = Promise[State]()
   var evaluatorOpt: Option[Evaluator] = None
   def evaluator = evaluatorOpt.get
-  updateEvaluator(initialEvaluator)
+
   def updateEvaluator(evaluator: Option[Evaluator]): Unit = {
     debug(s"Updating Evaluator: $evaluator")
     if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
