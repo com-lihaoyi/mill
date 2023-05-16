@@ -17,8 +17,7 @@ import scala.reflect.macros.blackbox
  * can then be used later to look up the `MainData` for any module.
  */
 case class Discover[T] private (value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) {
-  private[mill] def copy(value: Map[Class[_], Seq[mainargs.MainData[_, _]]] = value)
-      : Discover[T] =
+  private[mill] def copy(value: Map[Class[_], Seq[mainargs.MainData[_, _]]] = value): Discover[T] =
     new Discover[T](value)
 }
 object Discover {

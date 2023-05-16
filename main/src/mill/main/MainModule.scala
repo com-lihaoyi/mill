@@ -278,11 +278,11 @@ trait MainModule extends mill.Module {
           "\n"
         ) ++
           mainMethodSig.iterator ++
-        Iterator(
-          "\n",
-          ctx.applyPrefixColor("Inputs").toString,
-          ":"
-        ) ++ t.inputs.distinct.iterator.flatMap(rec).map("\n    " + _.render)
+          Iterator(
+            "\n",
+            ctx.applyPrefixColor("Inputs").toString,
+            ":"
+          ) ++ t.inputs.distinct.iterator.flatMap(rec).map("\n    " + _.render)
       }
     }
 
