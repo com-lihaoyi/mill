@@ -10,7 +10,7 @@ import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.api.Loose.Agg
-import mill.api.{JarManifest, Loose, PathRef, Result, internal}
+import mill.api.{JarManifest, PathRef, Result, internal}
 import mill.util.Jvm
 import mill.scalalib.Assembly
 import mill.scalalib.api.CompilationResult
