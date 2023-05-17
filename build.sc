@@ -628,7 +628,8 @@ trait BaseMillTestsModule extends TestModule {
       s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
-      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
+      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
+      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
     )
   }
   override def testFramework = "mill.UTestFramework"
