@@ -1,5 +1,5 @@
 import mill._, scalalib._
-import mill.modules.Assembly._
+import mill.scalalib.Assembly._
 
 object foo extends ScalaModule {
   def moduleDeps = Seq(bar)

@@ -17,7 +17,7 @@ import mill.util.{ColorLogger, ProxyLogger}
  * @param logger the logger to which the messages received by this
  *               MillBspLogger are being redirected
  */
-class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
+private class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
     extends ProxyLogger(logger)
     with ColorLogger {
   def infoColor = fansi.Color.Blue

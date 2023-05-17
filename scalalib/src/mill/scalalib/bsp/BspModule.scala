@@ -8,10 +8,17 @@ import mill._
 trait BspModule extends Module {
   import BspModule._
 
+  def bspDisplayName0: String = ModuleUtils.moduleDisplayName(this)
+
+  def bspDisplayName = bspDisplayName0 match {
+    case "" => "root-module"
+    case n => n
+  }
+
   /** Use to fill most fields of `BuildTarget`. */
   @internal
   def bspBuildTarget: BspBuildTarget = BspBuildTarget(
-    displayName = Some(ModuleUtils.moduleDisplayName(this)),
+    displayName = Some(bspDisplayName),
     baseDirectory = Some(millSourcePath),
     tags = Seq(Tag.Library, Tag.Application),
     languageIds = Seq(),

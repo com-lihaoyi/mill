@@ -24,7 +24,7 @@ object Tasks {
 }
 
 class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[mill.eval.Evaluator] {
-  def read() = Right(Evaluator.currentEvaluator.value)
+  def read(): Either[String, Evaluator] = Right(Evaluator.currentEvaluator.value)
 }
 
 class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])

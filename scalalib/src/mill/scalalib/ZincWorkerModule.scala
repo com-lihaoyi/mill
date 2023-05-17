@@ -10,7 +10,7 @@ import mill.define.{ExternalModule, Discover}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
-import mill.modules.Util.millProjectModule
+import mill.util.Util.millProjectModule
 
 /**
  * A default implementation of [[ZincWorkerModule]]

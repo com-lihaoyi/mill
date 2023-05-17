@@ -11,7 +11,8 @@ import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{JarManifest, Loose, PathRef, Result, internal}
-import mill.modules.{Assembly, Jvm}
+import mill.util.Jvm
+import mill.scalalib.Assembly
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
@@ -251,7 +252,7 @@ trait JavaModule
     finalMainClassOpt().toOption match {
       case None => ""
       case Some(cls) =>
-        mill.modules.Jvm.launcherUniversalScript(
+        mill.util.Jvm.launcherUniversalScript(
           mainClass = cls,
           shellClassPath = Agg("$0"),
           cmdClassPath = Agg("%~dpnx0"),
@@ -438,7 +439,7 @@ trait JavaModule
    * upstream dependencies do not change
    */
   def upstreamAssembly: T[PathRef] = T {
-    Jvm.createAssembly(
+    Assembly.createAssembly(
       upstreamAssemblyClasspath().map(_.path),
       manifest(),
       assemblyRules = assemblyRules
@@ -450,7 +451,7 @@ trait JavaModule
    * classfiles from this module and all it's upstream modules and dependencies
    */
   def assembly: T[PathRef] = T {
-    Jvm.createAssembly(
+    Assembly.createAssembly(
       Agg.from(localClasspath().map(_.path)),
       manifest(),
       prependShellScript(),

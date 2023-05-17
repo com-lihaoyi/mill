@@ -3,8 +3,8 @@ package scalalib
 
 import scala.annotation.nowarn
 import mill.api.{DummyInputStream, JarManifest, PathRef, Result, internal}
-import mill.modules.Jvm
-import mill.modules.Jvm.createJar
+import mill.util.Jvm
+import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, ZincWorkerUtil, Versions}
 

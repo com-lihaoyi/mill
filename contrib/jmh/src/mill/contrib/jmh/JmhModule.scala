@@ -1,6 +1,7 @@
 package mill.contrib.jmh
 
-import mill._, scalalib._, modules._
+import mill._, scalalib._
+import mill.util.Jvm
 
 /**
  * This module provides an easy way to integrate <a href="https://openjdk.org/projects/code-tools/jmh/">JMH</a> benchmarking with Mill.

@@ -1,12 +1,11 @@
-package mill.modules
+package mill.util
 
 import coursier.cache.ArtifactError
 import coursier.parse.RepositoryParser
 import coursier.util.{Gather, Task}
 import coursier.{Dependency, Repository, Resolution}
-import mill.Agg
 import mill.api.{Ctx, PathRef, Result}
-
+import mill.api.Loose.Agg
 import java.io.File
 import java.nio.file.NoSuchFileException
 import scala.annotation.tailrec
@@ -93,7 +92,6 @@ trait CoursierSupport {
       ] = None,
       resolveFilter: os.Path => Boolean = _ => true
   ): Result[Agg[PathRef]] = {
-
     def isLocalTestDep(dep: coursier.Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
       val name = dep.module.name.value
@@ -138,7 +136,7 @@ trait CoursierSupport {
             |--------------------------------------------
             |
             |For additional information on library dependencies, see the docs at
-            |${mill.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
+            |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
 
       val errLines = errs.map {
         case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
@@ -194,7 +192,7 @@ trait CoursierSupport {
 
       if (errors.isEmpty) {
         Result.Success(
-          mill.Agg.from(
+          Agg.from(
             successes.map(os.Path(_)).filter(_.ext == "jar").map(PathRef(_, quick = true))
           ).filter(x => resolveFilter(x.path)) ++ localTestDeps.flatten
         )

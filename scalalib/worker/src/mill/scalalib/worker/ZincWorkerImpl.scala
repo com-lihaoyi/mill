@@ -270,9 +270,7 @@ class ZincWorkerImpl(
 
   }
 
-  def discoverMainClasses(compilationResult: CompilationResult)(implicit
-      ctx: ZincWorkerApi.Ctx
-  ): Seq[String] = {
+  def discoverMainClasses(compilationResult: CompilationResult): Seq[String] = {
     def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
 
     toScala(FileAnalysisStore.binary(compilationResult.analysisFile.toIO).get())

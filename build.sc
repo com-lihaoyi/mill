@@ -2,7 +2,8 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10:0.3.1`
+// built against Mill 0.11.0-M8-24-7d871a
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1-5-910047`
 import $ivy.`com.github.lolgab::mill-mima_mill0.10:0.0.19`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
@@ -120,6 +121,7 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
+  val jline = ivy"org.jline:jline:3.21.0"
   val jna = ivy"net.java.dev.jna:jna:5.13.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.13.0"
 
@@ -156,7 +158,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:3.1.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.8.0"
+  val zinc = ivy"org.scala-sbt::zinc:1.8.1"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M4"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
@@ -626,7 +628,8 @@ trait BaseMillTestsModule extends TestModule {
       s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
-      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
+      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
+      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
     )
   }
   override def testFramework = "mill.UTestFramework"
@@ -665,7 +668,10 @@ object main extends MillModule {
 
   object api extends MillApiModule with BuildInfo with MillAutoTestSetup {
     def buildInfoPackageName = "mill.api"
-    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("millVersion", millVersion(), "Mill version."),
+      BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
+    )
     override def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
@@ -675,9 +681,10 @@ object main extends MillModule {
     )
   }
   object util extends MillApiModule with MillAutoTestSetup {
-    override def moduleDeps = Seq(api)
+    override def moduleDeps = Seq(api, client)
     override def ivyDeps = Agg(
-      Deps.fansi
+      Deps.coursier,
+      Deps.jline
     )
   }
   object define extends MillModule with BuildInfo {
@@ -687,9 +694,8 @@ object main extends MillModule {
     )
     override def ivyDeps = Agg(
       Deps.millModuledefs,
-      Deps.millModuledefsPlugin,
+//      Deps.millModuledefsPlugin,
       Deps.scalametaTrees,
-      Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
@@ -719,8 +725,7 @@ object main extends MillModule {
         "millScalacPluginDeps",
         Deps.millModuledefsString,
         "Scalac compiler plugin dependencies to compile the build script."
-      ),
-      BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
+      )
     )
   }
 
@@ -1129,25 +1134,12 @@ object bsp extends MillModule with BuildInfo {
     )
   }
 
-  object worker extends MillInternalModule with BuildInfo {
-    override def compileModuleDeps = Seq(bsp, scalalib, testrunner)
+  object worker extends MillInternalModule {
+    override def compileModuleDeps = Seq(bsp, scalalib, testrunner, runner)
     override def ivyDeps = Agg(
       Deps.bsp4j,
       Deps.sbtTestInterface
     )
-
-    def buildInfoPackageName = "mill.bsp.worker"
-    def buildInfoMembers = T {
-      val workerDep = worker.publishSelfDependency()
-      Seq(
-        BuildInfo.Value(
-          "bsp4jVersion",
-          Deps.bsp4j.dep.version,
-          "BSP4j version (BSP Protocol version)."
-        ),
-        BuildInfo.Value("millBspWorkerVersion", workerDep.version, "BSP worker dependency.")
-      )
-    }
   }
 }
 
