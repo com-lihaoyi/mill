@@ -158,7 +158,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:3.1.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.8.0"
+  val zinc = ivy"org.scala-sbt::zinc:1.8.1"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M4"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
@@ -628,7 +628,8 @@ trait BaseMillTestsModule extends TestModule {
       s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
-      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}"
+      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
+      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
     )
   }
   override def testFramework = "mill.UTestFramework"
