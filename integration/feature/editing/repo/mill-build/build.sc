@@ -1,3 +1,4 @@
+import $mill.build
 import mill._, scalalib._
 
 object millbuild extends MillBuildRootModule{

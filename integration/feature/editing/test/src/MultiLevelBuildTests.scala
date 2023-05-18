@@ -69,14 +69,14 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       }
     }
 
-    def evalCheckErr(expected: String*) = {
+    def evalCheckErr(expectedSnippets: String*) = {
       val res = evalStdout("foo.run")
       assert(res.isSuccess == false)
       // Prepend a "\n" to allow callsites to use "\n" to test for start of
       // line, even though the first line doesn't have a "\n" at the start
       val err = "\n" + res.err
-      for (e <- expected) {
-        assert(err.contains(e))
+      for (expected <- expectedSnippets) {
+        assert(err.contains(expected))
       }
     }
 
@@ -192,6 +192,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, false, false)
 
+      fixParseError(wsRoot / "build.sc")
       causeParseError(wsRoot / "mill-build" / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
@@ -200,6 +201,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, null, false)
 
+      fixParseError(wsRoot / "mill-build" / "build.sc")
       causeParseError(wsRoot / "mill-build" / "mill-build" / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
@@ -209,25 +211,31 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "mill-build" / "mill-build" / "build.sc")
+      causeParseError(wsRoot / "mill-build" / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
         "\ngenerateScriptSources mill-build/build.sc"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
-      checkChangedClassloaders(null, null, null, true)
+      // When one of the meta-builds still has parse errors, all classloaders
+      // remain null, because none of the meta-builds can evaluate. Only once
+      // all of them parse successfully do we get a new set of classloaders for
+      // every level of the meta-build
+      checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "mill-build" / "build.sc")
+      causeParseError(wsRoot / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
         "\ngenerateScriptSources build.sc"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
-      checkChangedClassloaders(null, null, true, false)
+      checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "build.sc")
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
-      checkChangedClassloaders(null, true, false, false)
+      checkChangedClassloaders(null, true, true, true)
     }
 
     test("compileErrorEdits") {

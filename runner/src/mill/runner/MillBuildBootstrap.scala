@@ -65,11 +65,20 @@ class MillBuildBootstrap(
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
     val nestedRunnerState =
-      if (!os.exists(recRoot(projectRoot, depth) / "build.sc")) {
-        if (depth == 0) {
-          RunnerState(None, Nil, Some("build.sc file not found. Are you in a Mill project folder?"))
-        } else {
+      if (depth == 0) {
+        if (os.exists(recRoot(projectRoot, depth) / "build.sc")) evaluateRec(depth + 1)
+        else {
+          val msg = "build.sc file not found. Are you in a Mill project folder?"
+          RunnerState(None, Nil, Some(msg))
+        }
+      } else {
+        val parsedScriptFiles = FileImportGraph.parseBuildFiles(
+          projectRoot,
+          recRoot(projectRoot, depth) / os.up
+        )
 
+        if (parsedScriptFiles.millImport) evaluateRec(depth + 1)
+        else {
           val bootstrapModule =
             new MillBuildRootModule.BootstrapModule(
               projectRoot,
@@ -84,8 +93,6 @@ class MillBuildBootstrap(
             )
           RunnerState(Some(bootstrapModule), Nil, None)
         }
-      } else {
-        evaluateRec(depth + 1)
       }
 
     val res = if (nestedRunnerState.errorOpt.isDefined) {
