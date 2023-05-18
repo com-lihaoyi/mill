@@ -21,7 +21,7 @@ object foo extends RootModule with ScalaModule {
 // file and it's `import $file` and `$ivy` are a shorthand syntax for defining
 // a Mill `ScalaModule`, with sources and `ivyDeps` and so on, which is
 // compiled and executed to perform your build. This module lives in
-// `mill-build/`.
+// `mill-build/`, and can be enabled via the `import $mill.build` statement above.
 
 /** See Also: mill-build/build.sc */
 
