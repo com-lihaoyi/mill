@@ -48,7 +48,8 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       for (depth <- Range(0, n))
         yield {
           val path = wsRoot / "out" / Seq.fill(depth)("mill-build") / "mill-runner-state.json"
-          upickle.default.read[RunnerState.Frame.Logged](os.read(path)) -> path
+          if (os.exists(path)) upickle.default.read[RunnerState.Frame.Logged](os.read(path)) -> path
+          else RunnerState.Frame.Logged(Map(), Seq(), Seq(), Map(), None, Seq(), 0) -> path
         }
     }
 
@@ -70,6 +71,10 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
     }
 
     def evalCheckErr(expectedSnippets: String*) = {
+      // Wipe out stale state files to make sure they don't get picked up when
+      // Mill aborts early and fails to generate a new one
+      os.walk(wsRoot / "out").filter(_.last == "mill-runner-state.json").foreach(os.remove(_))
+
       val res = evalStdout("foo.run")
       assert(res.isSuccess == false)
       // Prepend a "\n" to allow callsites to use "\n" to test for start of
@@ -189,8 +194,12 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
         "\n1 targets failed",
         "\ngenerateScriptSources build.sc"
       )
-      checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
-      checkChangedClassloaders(null, null, false, false)
+      checkWatchedFiles(Nil, buildPaths, Nil, Nil)
+      // When one of the meta-builds still has parse errors, all classloaders
+      // remain null, because none of the meta-builds can evaluate. Only once
+      // all of them parse successfully do we get a new set of classloaders for
+      // every level of the meta-build
+      checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "build.sc")
       causeParseError(wsRoot / "mill-build" / "build.sc")
@@ -198,8 +207,8 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
         "\n1 targets failed",
         "\ngenerateScriptSources mill-build/build.sc"
       )
-      checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
-      checkChangedClassloaders(null, null, null, false)
+      checkWatchedFiles(Nil, Nil, buildPaths2, Nil)
+      checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "mill-build" / "build.sc")
       causeParseError(wsRoot / "mill-build" / "mill-build" / "build.sc")
@@ -216,11 +225,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
         "\n1 targets failed",
         "\ngenerateScriptSources mill-build/build.sc"
       )
-      checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
-      // When one of the meta-builds still has parse errors, all classloaders
-      // remain null, because none of the meta-builds can evaluate. Only once
-      // all of them parse successfully do we get a new set of classloaders for
-      // every level of the meta-build
+      checkWatchedFiles(Nil, Nil, buildPaths2, Nil)
       checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "mill-build" / "build.sc")
@@ -229,7 +234,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
         "\n1 targets failed",
         "\ngenerateScriptSources build.sc"
       )
-      checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
+      checkWatchedFiles(Nil, buildPaths, Nil, Nil)
       checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "build.sc")
