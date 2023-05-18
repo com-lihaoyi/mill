@@ -86,7 +86,7 @@ object FileImportGraph {
           case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
             seenIvy.addAll(mapping.map(_._1))
             (start, "_root_._", end)
-          case ImportTree(Seq(("$mill", _), rest @ _*), mapping, start, end) =>
+          case ImportTree(Seq(("$meta", _), rest @ _*), mapping, start, end) =>
             millImport = true
             (start, "_root_._", end)
           case ImportTree(Seq(("$file", _), rest @ _*), mapping, start, end) =>

@@ -1,4 +1,4 @@
-import $mill.build
+import $meta._
 import mill._, scalalib._
 import scalatags.Text.all._
 
