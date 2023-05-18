@@ -10,7 +10,8 @@ case class FileImportGraph(
     repos: Seq[(String, os.Path)],
     ivyDeps: Set[String],
     importGraphEdges: Map[os.Path, Seq[os.Path]],
-    errors: Seq[String]
+    errors: Seq[String],
+    millImport: Boolean
 )
 
 /**
@@ -33,6 +34,7 @@ object FileImportGraph {
     val seenRepo = mutable.ListBuffer.empty[(String, os.Path)]
     val importGraphEdges = mutable.Map.empty[os.Path, Seq[os.Path]]
     val errors = mutable.Buffer.empty[String]
+    var millImport = false
 
     def walkScripts(s: os.Path): Unit = {
       importGraphEdges(s) = Nil
@@ -84,6 +86,9 @@ object FileImportGraph {
           case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
             seenIvy.addAll(mapping.map(_._1))
             (start, "_root_._", end)
+          case ImportTree(Seq(("$meta", _), rest @ _*), mapping, start, end) =>
+            millImport = true
+            (start, "_root_._", end)
           case ImportTree(Seq(("$file", _), rest @ _*), mapping, start, end) =>
             val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
 
@@ -113,7 +118,8 @@ object FileImportGraph {
       seenRepo.toSeq,
       seenIvy.toSet,
       importGraphEdges.toMap,
-      errors.toSeq
+      errors.toSeq,
+      millImport
     )
   }
 
