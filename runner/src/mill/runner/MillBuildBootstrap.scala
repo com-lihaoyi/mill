@@ -5,7 +5,6 @@ import mill.api.{PathRef, Val, internal}
 import mill.eval.Evaluator
 import mill.main.{RootModule, RunScript}
 import mill.resolve.SelectMode
-import mill.main.TokenReaders._
 import mill.define.{Discover, Segments}
 
 import java.net.URLClassLoader
@@ -292,7 +291,7 @@ object MillBuildBootstrap {
     // Copy the current location of the enclosing classes to `mill-launcher.jar`
     // if it has the wrong file extension, because the Zinc incremental compiler
     // doesn't recognize classpath entries without the proper file extension
-    val millLauncherOpt =
+    val millLauncherOpt: Option[os.Path] =
       if (
         os.isFile(selfClassLocation) &&
         !Set("zip", "jar", "class").contains(selfClassLocation.ext)

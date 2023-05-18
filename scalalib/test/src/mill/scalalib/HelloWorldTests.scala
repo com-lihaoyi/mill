@@ -32,7 +32,7 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
-    override def semanticDbVersion: Input[String] = T.input {
+    override def semanticDbVersion: T[String] = T {
       // The latest semanticDB release for Scala 2.12.6
       "4.1.9"
     }

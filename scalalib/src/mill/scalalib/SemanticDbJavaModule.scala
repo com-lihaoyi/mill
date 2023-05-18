@@ -4,14 +4,14 @@ import mill.api.{PathRef, Result, experimental}
 import mill.define.{Target, Task}
 import mill.scalalib.api.{Versions, ZincWorkerUtil}
 import mill.util.Version
-import mill.{Agg, BuildInfo, Input, T}
+import mill.{Agg, BuildInfo, T}
 
 import scala.util.Properties
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
-  def semanticDbVersion: Input[String] = T.input {
+  def semanticDbVersion: T[String] = T.input {
     val builtin = SemanticDbJavaModule.buildTimeSemanticDbVersion
     val requested = T.env.getOrElse[String](
       "SEMANTICDB_VERSION",
@@ -20,7 +20,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
     Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
   }
 
-  def semanticDbJavaVersion: Input[String] = T.input {
+  def semanticDbJavaVersion: T[String] = T.input {
     val builtin = SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
     val requested = T.env.getOrElse[String](
       "JAVASEMANTICDB_VERSION",
@@ -29,12 +29,12 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
     Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
   }
 
-  def semanticDbScalaVersion = hostModule match {
+  def semanticDbScalaVersion: T[String] = hostModule match {
     case m: ScalaModule => T { m.scalaVersion }
     case _ => T { BuildInfo.scalaVersion }
   }
 
-  private def semanticDbPluginIvyDeps: Target[Agg[Dep]] = T {
+  private def semanticDbPluginIvyDeps: T[Agg[Dep]] = T {
     val sv = semanticDbScalaVersion()
     val semDbVersion = semanticDbVersion()
     if (!ZincWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
@@ -54,7 +54,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
     }
   }
 
-  private def semanticDbJavaPluginIvyDeps: Target[Agg[Dep]] = T {
+  private def semanticDbJavaPluginIvyDeps: T[Agg[Dep]] = T {
     val sv = semanticDbJavaVersion()
     if (sv.isEmpty) {
       val msg =
@@ -74,7 +74,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
   /**
    * Scalac options to activate the compiler plugins.
    */
-  private def semanticDbEnablePluginScalacOptions: Target[Seq[String]] = T {
+  private def semanticDbEnablePluginScalacOptions: T[Seq[String]] = T {
     val resolvedJars = resolveDeps(T.task {
       val bind = bindDependency()
       semanticDbPluginIvyDeps().map(_.exclude("*" -> "*")).map(bind)
@@ -97,7 +97,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
       }
   }
 
-  private def resolvedSemanticDbJavaPluginIvyDeps: Target[Agg[PathRef]] = T {
+  private def resolvedSemanticDbJavaPluginIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task { semanticDbJavaPluginIvyDeps().map(bindDependency()) })()
   }
 

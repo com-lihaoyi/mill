@@ -1,5 +1,6 @@
 package mill.contrib.versionfile
 
+import mill.T
 import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
 import utest.{TestSuite, Tests, assert, assertMatch, intercept, test}
@@ -114,7 +115,7 @@ object VersionFileModuleTests extends TestSuite {
 
       test("setReleaseVersion") - workspaceTest(versions: _*) { eval =>
         val expected = eval(TestModule.versionFile.releaseVersion)
-        val write = eval(TestModule.versionFile.setReleaseVersion)
+        val write = eval(TestModule.versionFile.setReleaseVersion())
         val actual = eval(TestModule.versionFile.currentVersion)
         assert(expected.value == actual.value)
       }
@@ -129,7 +130,7 @@ object VersionFileModuleTests extends TestSuite {
 
       test("setVersion") - workspaceTest(versions: _*) { eval =>
         val expected = Version.Release(1, 2, 4)
-        val write = eval(TestModule.versionFile.setVersion(expected))
+        val write = eval(TestModule.versionFile.setVersion(T.task(expected)))
         val actual = eval(TestModule.versionFile.currentVersion)
         assert(actual.value == Right(expected))
       }

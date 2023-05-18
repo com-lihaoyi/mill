@@ -251,7 +251,7 @@ trait ScalaModule extends JavaModule { outer =>
       }
     }
 
-  override def docSources: Sources = T.sources {
+  override def docSources: T[Seq[PathRef]] = T.sources {
     if (
       ZincWorkerUtil.isScala3(scalaVersion()) && !ZincWorkerUtil.isScala3Milestone(scalaVersion())
     ) Seq(compile().classes)

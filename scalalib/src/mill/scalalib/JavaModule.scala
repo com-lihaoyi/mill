@@ -44,7 +44,7 @@ trait JavaModule
   }
   trait Tests extends JavaModuleTests
 
-  def defaultCommandName() = "run"
+  def defaultCommandName(): String = "run"
   def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task {
     Artifact.fromDepJava(_: Dep)
   }
@@ -103,7 +103,7 @@ trait JavaModule
    * macro-related dependencies like `scala-reflect` that doesn't need to be
    * present at runtime
    */
-  def compileIvyDeps = T { Agg.empty[Dep] }
+  def compileIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
 
   /**
    * Additional dependencies, only present at runtime. Useful for e.g.
@@ -270,20 +270,20 @@ trait JavaModule
   /**
    * The folders where the source files for this module live
    */
-  def sources = T.sources { millSourcePath / "src" }
+  def sources: T[Seq[PathRef]] = T.sources { millSourcePath / "src" }
 
   /**
    * The folders where the resource files for this module live.
    * If you need resources to be seen by the compiler, use [[compileResources]].
    */
-  def resources: Sources = T.sources { millSourcePath / "resources" }
+  def resources: T[Seq[PathRef]] = T.sources { millSourcePath / "resources" }
 
   /**
    * The folders where the compile time resource files for this module live.
    * If your resources files do not necessarily need to be seen by the compiler,
    * you should use [[resources]] instead.
    */
-  def compileResources: Sources = T.sources { millSourcePath / "compile-resources" }
+  def compileResources: T[Seq[PathRef]] = T.sources { millSourcePath / "compile-resources" }
 
   /**
    * Folders containing source files that are generated rather than
@@ -484,7 +484,7 @@ trait JavaModule
    * Typically includes the source files to generate documentation from.
    * @see [[docResources]]
    */
-  def docSources: Sources = T.sources(allSources())
+  def docSources: T[Seq[PathRef]] = T.sources(allSources())
 
   /**
    * Extra directories to be copied into the documentation.
@@ -493,7 +493,7 @@ trait JavaModule
    * on the doc tool that is actually used.
    * @see [[docSources]]
    */
-  def docResources: Sources = T.sources(millSourcePath / "docs")
+  def docResources: T[Seq[PathRef]] = T.sources(millSourcePath / "docs")
 
   /**
    * Control whether `docJar`-target should use a file to pass command line arguments to the javadoc tool.

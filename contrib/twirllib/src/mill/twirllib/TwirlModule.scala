@@ -19,7 +19,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    */
   def twirlScalaVersion: T[String]
 
-  def twirlSources: Sources = T.sources {
+  def twirlSources: T[Seq[PathRef]] = T.sources {
     millSourcePath / "views"
   }
 
