@@ -295,6 +295,43 @@ corresponding version of Mill.
 == Changelog
 
 
+[#0-11-0-M9]
+=== 0.11.0-M9 - 2023-05-18
+:version: 0.11.0-M9
+:milestone-name: 0.11.0-M9
+:milestone: 80
+:prev-version: 0.11.0-M8
+
+* Overhauled target resolution logic. It is now significantly lazier, resulting
+  in less of the module tree being un-necessarily instantiated, and also more
+  precise and predictable https://github.com/com-lihaoyi/mill/pull/2453[#2453]
+https://github.com/com-lihaoyi/mill/pull/2511[#2511]
+
+* Allow tasks to be passed as the CLI parameters of the `run` command, allowing
+  `run` to be easily used in the implementation of other tasks
+  https://github.com/com-lihaoyi/mill/pull/2452[#2452]
+
+* `T.input`s are now watched properly with `--watch`, and trigger re-evaluations
+  when the watched value changes https://github.com/com-lihaoyi/mill/pull/2489[#2489]
+
+* Support for Java 20 https://github.com/com-lihaoyi/mill/pull/2501[#2501]
+
+* Broke up `mill.modules` package https://github.com/com-lihaoyi/mill/pull/2513[#2513],
+  with functionality re-distributed to `mill.util` and `mill.scalalib`
+
+* Overhaul BSP-related code, for improved fidelity and correctness
+  https://github.com/com-lihaoyi/mill/pull/2415[#2415]
+  https://github.com/com-lihaoyi/mill/pull/2414[#2414]
+  https://github.com/com-lihaoyi/mill/pull/2518[#2518]
+  https://github.com/com-lihaoyi/mill/pull/2521[#2521]
+
+* Enabled compilation warnings in `build.sc`
+https://github.com/com-lihaoyi/mill/pull/2519[#2519]
+
+* Print out the CLI flags when inspecting ``T.command``s
+  https://github.com/com-lihaoyi/mill/pull/2522[#2522]
+
+
 [#0-11-0-M8]
 === 0.11.0-M8 - 2023-04-24
 :version: 0.11.0-M8

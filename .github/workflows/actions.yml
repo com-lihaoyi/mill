@@ -118,7 +118,7 @@ jobs:
           - java-version: 17
             # just run a subset of examples/ on Windows, because for some reason running
             # the whole suite can take hours on windows v.s. half an hour on linux
-            millargs: '"example.{scalabuilds,cross,tasks}.__.local.test"'
+            millargs: '"example.{scalabuilds,tasks}.__.local.test"'
           - java-version: 17
             millargs: "integration.feature.__.fork.test"
           - java-version: 17
