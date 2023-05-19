@@ -4,7 +4,7 @@
 :idprefix:
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
-:link-current-doc-site: http://com-lihaoyi.github.io/mill
+:link-current-doc-site: https://mill-build.com
 :link-milestone: https://github.com/com-lihaoyi/mill/milestone
 :link-compare: https://github.com/com-lihaoyi/mill/compare
 :link-pr: {link-github}/pull
