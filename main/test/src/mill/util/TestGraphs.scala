@@ -224,7 +224,7 @@ class TestGraphs() {
       }
     }
     object sub extends Base {
-      override val inner: SubInnerModule = new SubInnerModule{}
+      override val inner: SubInnerModule = new SubInnerModule {}
       trait SubInnerModule extends BaseInnerModule {
         def subTarget = T { 2 }
       }

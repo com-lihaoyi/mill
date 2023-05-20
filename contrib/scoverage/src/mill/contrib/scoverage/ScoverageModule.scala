@@ -171,7 +171,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     )
   }
 
-  val scoverage: ScoverageData = new ScoverageData{}
+  val scoverage: ScoverageData = new ScoverageData {}
 
   trait ScoverageData extends ScalaModule {
 

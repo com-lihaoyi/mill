@@ -14,7 +14,8 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-trait Module extends Module.BaseClass{
+trait Module extends Module.BaseClass {
+
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,
    * that should not be needed by normal users of Mill
@@ -46,13 +47,14 @@ trait Module extends Module.BaseClass{
 }
 
 object Module {
+
   /**
    * Base class of the [[Module]] trait, allowing us to take implicit arguments
    * (traits cannot). Cannot be used directly, because traits inheriting from
    * classes results in the class being invisible to java reflection, which
    * messes up the module discovery process
    */
-  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher{
+  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher {
     def millOuterCtx = outerCtx0
   }
 
