@@ -41,8 +41,8 @@ trait JavaModule
     override def zincWorker: ZincWorkerModule = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: Target[Boolean] = T { outer.runUseArgsFile() }
-    override def sources = T.sources{
-      for(src <- outer.sources()) yield{
+    override def sources = T.sources {
+      for (src <- outer.sources()) yield {
         PathRef(this.millSourcePath / src.path.relativeTo(outer.millSourcePath))
       }
     }
