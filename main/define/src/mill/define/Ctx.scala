@@ -93,7 +93,12 @@ object Ctx {
     Ctx(
       millModuleEnclosing0.value,
       millModuleLine0.value,
-      Segment.Label(millModuleEnclosing0.value.split(' ').head.split("\\.|#").last),
+      Segment.Label(
+        // Manually break apart `sourcecode.Enclosing` instead of using
+        // `sourcecode.Name` to work around bug with anonymous classes
+        // returning `$anon` names
+        millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
+      ),
       millModuleBasePath0.value,
       segments0,
       external0.value,
