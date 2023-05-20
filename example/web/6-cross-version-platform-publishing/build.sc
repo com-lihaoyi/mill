@@ -16,7 +16,7 @@ trait FooModule extends Cross.Module[String] {
 
     def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.12.0")
 
-    object test extends Tests {
+    trait FooTestModule extends Tests {
       def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
       def testFramework = "utest.runner.Framework"
     }
@@ -27,18 +27,26 @@ trait FooModule extends Cross.Module[String] {
   }
 
   object bar extends Module {
-    object jvm extends Shared
-    object js extends SharedJS
+    object jvm extends Shared{
+      object test extends Tests with FooTestModule
+    }
+    object js extends SharedJS{
+      object test extends Tests with FooTestModule
+    }
   }
 
   object qux extends Module{
     object jvm extends Shared{
       def moduleDeps = Seq(bar.jvm)
       def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
+
+      object test extends Tests with FooTestModule
     }
 
     object js extends SharedJS {
       def moduleDeps = Seq(bar.js)
+
+      object test extends Tests with FooTestModule
     }
   }
 }
@@ -83,6 +91,10 @@ Bar.value: <p>world Specific code for Scala 3.x</p>
 Parsing JSON with js.JSON.parse
 Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
+> ./mill foo[3.2.2].__.js.test
++ bar.BarTests.test ...  <p>world Specific code for Scala 3.x</p>
++ qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
+
 > ./mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo-bar_sjs1_2.13,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,foo-bar_2.13,0.0.1) to ivy repo...
@@ -92,4 +104,5 @@ Publishing Artifact(com.lihaoyi,foo-bar_sjs1_3,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,foo-bar_3,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,foo-qux_sjs1_3,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,foo-qux_3,0.0.1) to ivy repo...
+
 */

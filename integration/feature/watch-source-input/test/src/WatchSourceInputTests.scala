@@ -104,8 +104,9 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
     test("sources") {
 
-      test("noshow") - retry(3) { testWatchSource(false) }
-      test("show") - retry(3) { testWatchSource(true) }
+      // Make sure we clean up the workspace between retries
+      test("noshow") - retry(3) { initWorkspace(); testWatchSource(false) }
+      test("show") - retry(3) { initWorkspace(); testWatchSource(true) }
     }
 
     def testWatchInput(show: Boolean) = {
@@ -146,8 +147,9 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
     test("input") {
 
-      test("noshow") - retry(3) { testWatchInput(false) }
-      test("show") - retry(3) { testWatchInput(true) }
+      // Make sure we clean up the workspace between retries
+      test("noshow") - retry(3) { initWorkspace(); testWatchInput(false) }
+      test("show") - retry(3) { initWorkspace(); testWatchInput(true) }
     }
   }
 }
