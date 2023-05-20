@@ -318,7 +318,7 @@ trait MainModule extends mill.Module {
   def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] = T.command {
     MainModule.show0(evaluator, targets, T.log, interp.evalWatch0) { res =>
       res.flatMap(_._2) match {
-        case Seq((k, singlev)) => k
+        case Seq((k, singleValue)) => singleValue
         case multiple => ujson.Obj.from(multiple)
       }
     }
