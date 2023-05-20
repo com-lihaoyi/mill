@@ -188,10 +188,16 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   override def mandatoryScalacOptions = T {
-    super.mandatoryScalacOptions() ++ {
-      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("-scalajs")
+    // Don't add flag twice, e.g. if a test suite inherits it both directly
+    // ScalaJSModule as well as from the enclosing non-test ScalaJSModule
+    val scalajsFlag =
+      if (
+        ZincWorkerUtil.isScala3(scalaVersion()) &&
+        !super.mandatoryScalacOptions().contains("-scalajs")
+      ) Seq("-scalajs")
       else Seq.empty
-    }
+
+    super.mandatoryScalacOptions() ++ scalajsFlag
   }
 
   override def scalacPluginIvyDeps = T {
