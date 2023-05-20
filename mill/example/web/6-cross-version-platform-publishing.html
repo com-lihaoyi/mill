@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: Mill</title>
-    <link rel="canonical" href="https://mill-build.com/mill/example/cross/7-inner-cross-module.html" />
+    <link rel="canonical" href="https://mill-build.com/mill/example/web/6-cross-version-platform-publishing.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script>var uiRootPath = '../../../_'</script>
@@ -295,14 +295,14 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M9-6-73437c</button>
   <div class="version-menu">
-    <a class="version is-current" href="7-inner-cross-module.html">0.11.0-M9-6-73437c</a>
+    <a class="version is-current" href="6-cross-version-platform-publishing.html">0.11.0-M9-6-73437c</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="../../0.10.0/index.html">0.10.0</a>
     <a class="version is-missing" href="../../0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/example/cross/7-inner-cross-module.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/example/web/6-cross-version-platform-publishing.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -310,52 +310,116 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M9-6-73437c-example-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/7-inner-cross-module">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M9-6-73437c-example-web-6-cross-version-platform-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/web/6-cross-version-platform-publishing">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalajslib._, publish._
 
-trait MyModule extends Module{
-  def crossValue: String
-  def name: T[String]
-  def param = T { name() + &quot; Param Value: &quot; + crossValue }
-}
-
-object foo extends Cross[FooModule](&quot;a&quot;, &quot;b&quot;)
+object foo extends Cross[FooModule](&quot;2.13.8&quot;, &quot;3.2.2&quot;)
 trait FooModule extends Cross.Module[String] {
-  object bar extends MyModule with InnerCrossModule{
-    def name = &quot;Bar&quot;
-  }
-  object qux extends MyModule with InnerCrossModule{
-    def name = &quot;Qux&quot;
-  }
-}
+  trait Shared extends CrossScalaModule with InnerCrossModule with PlatformScalaModule with PublishModule {
+    def publishVersion = &quot;0.0.1&quot;
 
-def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
+    def pomSettings = PomSettings(
+      description = &quot;Hello&quot;,
+      organization = &quot;com.lihaoyi&quot;,
+      url = &quot;https://github.com/lihaoyi/example&quot;,
+      licenses = Seq(License.MIT),
+      versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+      developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+    )
+
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags::0.12.0&quot;)
+
+    trait FooTestModule extends Tests {
+      def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.7.11&quot;)
+      def testFramework = &quot;utest.runner.Framework&quot;
+    }
+  }
+
+  trait SharedJS extends Shared with ScalaJSModule {
+    def scalaJSVersion = &quot;1.13.0&quot;
+  }
+
+  object bar extends Module {
+    object jvm extends Shared{
+      object test extends Tests with FooTestModule
+    }
+    object js extends SharedJS{
+      object test extends Tests with FooTestModule
+    }
+  }
+
+  object qux extends Module{
+    object jvm extends Shared{
+      def moduleDeps = Seq(bar.jvm)
+      def ivyDeps = super.ivyDeps() ++ Agg(ivy&quot;com.lihaoyi::upickle::3.0.0&quot;)
+
+      object test extends Tests with FooTestModule
+    }
+
+    object js extends SharedJS {
+      def moduleDeps = Seq(bar.js)
+
+      object test extends Tests with FooTestModule
+    }
+  }
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can use the <code>InnerCrossModule</code> trait within any <code>Cross.Module</code> to
-propagate the <code>crossValue</code> defined by an enclosing <code>Cross.Module</code> to some
-nested module. In this case, we use it to bind <code>crossValue</code> so it can be
-used in <code>def param</code>. This lets you reduce verbosity by defining the <code>Cross</code>
-once for a group of modules rather than once for every single module  in
-that group. There are corresponding <code>InnerCrossModuleN</code> traits for cross
-modules that take multiple inputs.</p>
-</div>
-<div class="paragraph">
-<p>You can reference the modules and tasks defined within such a
-<code>InnerCrossModule</code> as is done in <code>def qux</code> above</p>
+<p>This example demonstrates how to publish Scala modules which are both
+cross-version and cross-platform: running on both Scala 2.13.8/3.2.2 as
+well as Scala-JVM/JS.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[a].bar.param
-&quot;Bar Param Value: a&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.13.8].bar.jvm.sources
+[
+  &quot;.../foo/bar/src&quot;,
+  &quot;.../foo/bar/src-jvm&quot;,
+  &quot;.../foo/bar/src-2.13.8&quot;,
+  &quot;.../foo/bar/src-2.13.8-jvm&quot;,
+  &quot;.../foo/bar/src-2.13&quot;,
+  &quot;.../foo/bar/src-2.13-jvm&quot;,
+  &quot;.../foo/bar/src-2&quot;,
+  &quot;.../foo/bar/src-2-jvm&quot;
+]
 
-&gt; ./mill show foo[b].qux.param
-&quot;Qux Param Value: b&quot;
+&gt; ./mill show foo[3.2.2].qux.js.sources
+[
+  &quot;.../foo/qux/src&quot;,
+  &quot;.../foo/qux/src-js&quot;,
+  &quot;.../foo/qux/src-3.2.2&quot;,
+  &quot;.../foo/qux/src-3.2.2-js&quot;,
+  &quot;.../foo/qux/src-3.2&quot;,
+  &quot;.../foo/qux/src-3.2-js&quot;,
+  &quot;.../foo/qux/src-3&quot;,
+  &quot;.../foo/qux/src-3-js&quot;
+]
 
-&gt; ./mill show baz
-&quot;hello Bar Param Value: a&quot;</code></pre>
+&gt; ./mill foo[2.13.8].qux.jvm.run
+Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
+Parsing JSON with ujson.read
+Qux.main: Set(&lt;p&gt;i&lt;/p&gt;, &lt;p&gt;cow&lt;/p&gt;, &lt;p&gt;me&lt;/p&gt;)
+
+&gt; ./mill foo[3.2.2].qux.js.run
+Bar.value: &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
+Parsing JSON with js.JSON.parse
+Qux.main: Set(&lt;p&gt;i&lt;/p&gt;, &lt;p&gt;cow&lt;/p&gt;, &lt;p&gt;me&lt;/p&gt;)
+
+&gt; ./mill foo[3.2.2].__.js.test
++ bar.BarTests.test ...  &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
++ qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
+
+&gt; ./mill __.publishLocal
+Publishing Artifact(com.lihaoyi,foo-bar_sjs1_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-bar_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-qux_sjs1_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-qux_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-bar_sjs1_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-bar_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-qux_sjs1_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo-qux_3,0.0.1) to ivy repo...</code></pre>
 </div>
 </div>
 </article>

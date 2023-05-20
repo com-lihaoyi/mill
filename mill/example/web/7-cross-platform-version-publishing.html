@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: Mill</title>
-    <link rel="canonical" href="https://mill-build.com/mill/example/web/6-cross-platform-publishing.html" />
+    <link rel="canonical" href="https://mill-build.com/mill/example/web/7-cross-platform-version-publishing.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script>var uiRootPath = '../../../_'</script>
@@ -258,14 +258,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M9-5-38f3b4</span>
+    <span class="version">0.11.0-M9-6-73437c</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="../../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../../index.html">0.11.0-M9-5-38f3b4</a>
+          <a href="../../index.html">0.11.0-M9-6-73437c</a>
         </li>
         <li class="version">
           <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -293,16 +293,16 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M9-5-38f3b4</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M9-6-73437c</button>
   <div class="version-menu">
-    <a class="version is-current" href="6-cross-platform-publishing.html">0.11.0-M9-5-38f3b4</a>
+    <a class="version is-current" href="7-cross-platform-version-publishing.html">0.11.0-M9-6-73437c</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="../../0.10.0/index.html">0.10.0</a>
     <a class="version is-missing" href="../../0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/example/web/6-cross-platform-publishing.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/source.dest/modules/ROOT/pages/example/web/7-cross-platform-version-publishing.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -310,104 +310,120 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M9-5-38f3b4-example-web-6-cross-platform-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/web/6-cross-platform-publishing">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M9-6-73437c-example-web-7-cross-platform-version-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/web/7-cross-platform-version-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalajslib._, publish._
 
-object foo extends Cross[FooModule](&quot;2.13.8&quot;, &quot;3.2.2&quot;)
-trait FooModule extends Cross.Module[String] {
-  trait Shared extends CrossScalaModule with InnerCrossModule with PlatformScalaModule with PublishModule {
-    def publishVersion = &quot;0.0.1&quot;
+trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModule {
+  def publishVersion = &quot;0.0.1&quot;
 
-    def pomSettings = PomSettings(
-      description = &quot;Hello&quot;,
-      organization = &quot;com.lihaoyi&quot;,
-      url = &quot;https://github.com/lihaoyi/example&quot;,
-      licenses = Seq(License.MIT),
-      versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
-      developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
-    )
+  def pomSettings = PomSettings(
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+  )
 
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags::0.12.0&quot;)
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags::0.12.0&quot;)
 
-    object test extends Tests {
-      def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.7.11&quot;)
-      def testFramework = &quot;utest.runner.Framework&quot;
-    }
+  trait SharedTestModule extends Tests {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.7.11&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+  }
+}
+
+trait SharedJS extends Shared with ScalaJSModule {
+  def scalaJSVersion = &quot;1.13.0&quot;
+}
+
+val scalaVersions = Seq(&quot;2.13.8&quot;, &quot;3.2.2&quot;)
+
+object bar extends Module {
+  object jvm extends Cross[JvmModule](scalaVersions)
+  trait JvmModule extends Shared{
+    object test extends Tests with SharedTestModule
   }
 
-  trait SharedJS extends Shared with ScalaJSModule {
-    def scalaJSVersion = &quot;1.13.0&quot;
+  object js extends Cross[JsModule](scalaVersions)
+  trait JsModule extends SharedJS{
+    object test extends Tests with SharedTestModule
+  }
+}
+
+object qux extends Module{
+  object jvm extends Cross[JvmModule](scalaVersions)
+  trait JvmModule extends Shared{
+    def moduleDeps = Seq(bar.jvm())
+    def ivyDeps = super.ivyDeps() ++ Agg(ivy&quot;com.lihaoyi::upickle::3.0.0&quot;)
+
+    object test extends Tests with SharedTestModule
   }
 
-  object bar extends Module {
-    object jvm extends Shared
-    object js extends SharedJS
-  }
+  object js extends Cross[JsModule](scalaVersions)
+  trait JsModule extends SharedJS {
+    def moduleDeps = Seq(bar.js())
 
-  object qux extends Module{
-    object jvm extends Shared{
-      def moduleDeps = Seq(bar.jvm)
-      def ivyDeps = super.ivyDeps() ++ Agg(ivy&quot;com.lihaoyi::upickle::3.0.0&quot;)
-    }
-
-    object js extends SharedJS {
-      def moduleDeps = Seq(bar.js)
-    }
+    object test extends Tests with SharedTestModule
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This example demonstrates how to publish Scala modules which are both
-cross-version and cross-platform: running on both Scala 2.13.8/3.2.2 as
-well as Scala-JVM/JS.</p>
+<p>This example demonstrates an alternative way of defining your cross-platform
+cross-version modules: rather than wrapping them all in a <code>foo</code>
+cross-module to provide the different versions, we instead give each module
+<code>bar.jvm</code>, <code>bar.js</code>, <code>qux.jvm</code>, <code>qux.js</code> its own <code>Cross</code> module. This
+approach can be useful if the different cross modules need to support
+different sets of Scala versions, as it allows you to specify the
+<code>scalaVersions</code> passed to each individual cross module separately.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.13.8].bar.jvm.sources
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show qux.js[3.2.2].sources
 [
-  &quot;.../foo/bar/src&quot;,
-  &quot;.../foo/bar/src-jvm&quot;,
-  &quot;.../foo/bar/src-2.13.8&quot;,
-  &quot;.../foo/bar/src-2.13.8-jvm&quot;,
-  &quot;.../foo/bar/src-2.13&quot;,
-  &quot;.../foo/bar/src-2.13-jvm&quot;,
-  &quot;.../foo/bar/src-2&quot;,
-  &quot;.../foo/bar/src-2-jvm&quot;
+  &quot;.../qux/src&quot;,
+  &quot;.../qux/src-js&quot;,
+  &quot;.../qux/src-3.2.2&quot;,
+  &quot;.../qux/src-3.2.2-js&quot;,
+  &quot;.../qux/src-3.2&quot;,
+  &quot;.../qux/src-3.2-js&quot;,
+  &quot;.../qux/src-3&quot;,
+  &quot;.../qux/src-3-js&quot;
 ]
 
-&gt; ./mill show foo[3.2.2].qux.js.sources
+&gt; ./mill show qux.js[3.2.2].test.sources
 [
-  &quot;.../foo/qux/src&quot;,
-  &quot;.../foo/qux/src-js&quot;,
-  &quot;.../foo/qux/src-3.2.2&quot;,
-  &quot;.../foo/qux/src-3.2.2-js&quot;,
-  &quot;.../foo/qux/src-3.2&quot;,
-  &quot;.../foo/qux/src-3.2-js&quot;,
-  &quot;.../foo/qux/src-3&quot;,
-  &quot;.../foo/qux/src-3-js&quot;
+  &quot;.../qux/test/src&quot;,
+  &quot;.../qux/test/src-js&quot;,
+  &quot;.../qux/test/src-3.2.2&quot;,
+  &quot;.../qux/test/src-3.2.2-js&quot;,
+  &quot;.../qux/test/src-3.2&quot;,
+  &quot;.../qux/test/src-3.2-js&quot;,
+  &quot;.../qux/test/src-3&quot;,
+  &quot;.../qux/test/src-3-js&quot;
 ]
 
-&gt; ./mill foo[2.13.8].qux.jvm.run
+&gt; ./mill qux.jvm[2.13.8].run
 Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
 Parsing JSON with ujson.read
 Qux.main: Set(&lt;p&gt;i&lt;/p&gt;, &lt;p&gt;cow&lt;/p&gt;, &lt;p&gt;me&lt;/p&gt;)
 
-&gt; ./mill foo[3.2.2].qux.js.run
-Bar.value: &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
-Parsing JSON with js.JSON.parse
-Qux.main: Set(&lt;p&gt;i&lt;/p&gt;, &lt;p&gt;cow&lt;/p&gt;, &lt;p&gt;me&lt;/p&gt;)
+&gt; ./mill __.js[3.2.2].test
++ bar.BarTests.test ...  &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
++ qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
 
 &gt; ./mill __.publishLocal
-Publishing Artifact(com.lihaoyi,foo-bar_sjs1_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-bar_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-qux_sjs1_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-qux_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-bar_sjs1_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-bar_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-qux_sjs1_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-qux_3,0.0.1) to ivy repo...</code></pre>
+...
+Publishing Artifact(com.lihaoyi,bar_sjs1_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,qux_sjs1_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,qux_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar_sjs1_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,qux_sjs1_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,qux_3,0.0.1) to ivy repo...</code></pre>
 </div>
 </div>
 </article>
