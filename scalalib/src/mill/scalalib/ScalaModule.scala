@@ -481,7 +481,11 @@ trait ScalaModule extends JavaModule { outer =>
       if (all.value) Seq(
         resolvedAmmoniteReplIvyDeps,
         T.task {
-          zincWorker().scalaCompilerBridgeJar(scalaVersion(), scalaOrganization(), repositoriesTask())
+          zincWorker().scalaCompilerBridgeJar(
+            scalaVersion(),
+            scalaOrganization(),
+            repositoriesTask()
+          )
         }
       )
       else Seq()
