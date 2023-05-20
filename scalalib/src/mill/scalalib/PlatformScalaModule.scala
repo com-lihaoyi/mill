@@ -16,7 +16,7 @@ trait PlatformScalaModule extends ScalaModule {
   override def millSourcePath = super.millSourcePath / os.up
 
   /**
-   * The platform suffix of this [[PlatformScalaModule]]. Useful if you want to 
+   * The platform suffix of this [[PlatformScalaModule]]. Useful if you want to
    * further customize the source paths or artifact names.
    */
   def platformScalaSuffix = millModuleSegments
@@ -26,7 +26,8 @@ trait PlatformScalaModule extends ScalaModule {
 
   override def sources = T.sources {
     super.sources().flatMap { source =>
-      val platformPath = PathRef(source.path / _root_.os.up / s"${source.path.last}-${platformScalaSuffix}")
+      val platformPath =
+        PathRef(source.path / _root_.os.up / s"${source.path.last}-${platformScalaSuffix}")
       Seq(source, platformPath)
     }
   }
