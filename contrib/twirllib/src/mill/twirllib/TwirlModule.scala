@@ -60,7 +60,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   /**
    * @since Mill after 0.10.5
    */
-  object twirlCoursierResolver extends TwirlResolver
+  lazy val twirlCoursierResolver = new TwirlResolver {}
 
   def twirlClasspath: T[Loose.Agg[PathRef]] = T {
     twirlCoursierResolver.resolveDeps(T.task {

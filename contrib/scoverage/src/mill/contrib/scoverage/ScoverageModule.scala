@@ -171,7 +171,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     )
   }
 
-  object scoverage extends ScoverageData
+  lazy val scoverage = new ScoverageData{}
 
   trait ScoverageData extends ScalaModule {
 

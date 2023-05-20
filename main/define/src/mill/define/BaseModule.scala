@@ -11,12 +11,10 @@ abstract class BaseModule(
 )(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
-    millName0: sourcecode.Name,
     millFile0: sourcecode.File,
     caller: Caller
 ) extends Module.BaseClass()(
       mill.define.Ctx.make(
-        implicitly,
         implicitly,
         implicitly,
         Ctx.BasePath(millSourcePath0),
@@ -41,9 +39,7 @@ abstract class BaseModule(
 abstract class ExternalModule(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
-    millName0: sourcecode.Name
 ) extends BaseModule(os.pwd, external0 = true, foreign0 = None)(
-      implicitly,
       implicitly,
       implicitly,
       implicitly,
