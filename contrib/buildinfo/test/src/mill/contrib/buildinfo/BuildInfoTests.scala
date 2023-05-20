@@ -1,6 +1,6 @@
 package mill.contrib.buildinfo
 
-import mill.{BuildInfo => _, _}
+import mill._
 import mill.util.TestEvaluator
 import mill.util.TestUtil
 import os.Path

@@ -2,9 +2,10 @@ package mill.scalalib
 
 import mill.api.{PathRef, Result, experimental}
 import mill.define.{Target, Task}
+import mill.main.BuildInfo
 import mill.scalalib.api.{Versions, ZincWorkerUtil}
 import mill.util.Version
-import mill.{Agg, BuildInfo, T}
+import mill.{Agg, T}
 
 import scala.util.Properties
 

@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
-import mill.BuildInfo
+import mill.main.BuildInfo
 import requests.BaseSession
 import ujson.ParseException
 

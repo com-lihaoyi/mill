@@ -1,6 +1,7 @@
 package mill.runner
 import mill.util.{ColorLogger, PrefixLogger, Util, Watchable}
-import mill.{BuildInfo, T}
+import mill.T
+import mill.main.BuildInfo
 import mill.api.{PathRef, Val, internal}
 import mill.eval.Evaluator
 import mill.main.{RootModule, RunScript}
