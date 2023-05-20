@@ -38,7 +38,7 @@ abstract class BaseModule(
 
 abstract class ExternalModule(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
-    millModuleLine0: sourcecode.Line,
+    millModuleLine0: sourcecode.Line
 ) extends BaseModule(os.pwd, external0 = true, foreign0 = None)(
       implicitly,
       implicitly,
