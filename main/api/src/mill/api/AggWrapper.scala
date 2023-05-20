@@ -155,5 +155,9 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
     }
 
     override def newBuilder[A]: mutable.Builder[A, Agg[A]] = Mutable.newBuilder[A]
+
+    def when[A](cond: Boolean)(items: A*): Agg[A] = {
+      if (cond) Agg.from(items) else Agg.empty
+    }
   }
 }
