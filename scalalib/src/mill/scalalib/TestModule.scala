@@ -115,7 +115,7 @@ trait TestModule extends JavaModule with TaskModule {
 
       Jvm.runSubprocess(
         mainClass = "mill.testrunner.TestRunner",
-        classPath = zincWorker.scalalibClasspath().map(_.path),
+        classPath = zincWorker().scalalibClasspath().map(_.path),
         jvmArgs = jvmArgs,
         envArgs = forkEnv(),
         mainArgs = mainArgs,

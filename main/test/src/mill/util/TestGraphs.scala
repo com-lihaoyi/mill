@@ -1,6 +1,6 @@
 package mill.util
 import TestUtil.test
-import mill.api.SystemStreams
+import mill.api.{ModuleRef, SystemStreams}
 import mill.define.{Command, Cross, Discover, TaskModule}
 import mill.{Module, T}
 
@@ -219,12 +219,14 @@ class TestGraphs() {
   object overrideModule extends TestUtil.BaseModule {
     trait Base extends Module {
       lazy val inner: BaseInnerModule = new BaseInnerModule {}
+      lazy val ignored: ModuleRef[BaseInnerModule] = ModuleRef(new BaseInnerModule {})
       trait BaseInnerModule extends mill.define.Module {
         def baseTarget = T { 1 }
       }
     }
     object sub extends Base {
       override lazy val inner: SubInnerModule = new SubInnerModule {}
+      override lazy val ignored: ModuleRef[SubInnerModule] = ModuleRef(new SubInnerModule {})
       trait SubInnerModule extends BaseInnerModule {
         def subTarget = T { 2 }
       }
