@@ -1,7 +1,6 @@
 package mill.util
 import TestUtil.test
-import mill.api.{ModuleRef, SystemStreams}
-import mill.define.{Command, Cross, Discover, TaskModule}
+import mill.define.{ModuleRef, Command, Cross, Discover, TaskModule}
 import mill.{Module, T}
 
 /**
