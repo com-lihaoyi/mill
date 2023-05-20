@@ -3,6 +3,7 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1-6-e80da7`
+
 import $ivy.`com.github.lolgab::mill-mima::0.0.20`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
@@ -51,7 +52,7 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq()
-  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M8")
+  val mimaBaseVersions: Seq[String] = Seq("0.11.0-M9")
 }
 
 object Deps {
