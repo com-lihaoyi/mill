@@ -1,0 +1,17 @@
+diff --git a/build.sc b/build.sc
+index 1e5a27c468..8b93f3ddc9 100644
+--- a/build.sc
++++ b/build.sc
+@@ -405,10 +405,9 @@ trait BaseMillTestsModule extends TestModule {
+ 
+ /** A MillScalaModule with default set up test module. */
+ trait MillAutoTestSetup extends MillScalaModule {
+-  // instead of `object test` which can't be overridden, we hand-made a val+class singleton
+   /** Default tests module. */
+-  val test = new Tests(implicitly)
+-  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.MillScalaModuleTests
++  lazy val test = new Tests {}
++  trait Tests extends super.MillScalaModuleTests
+ }
+ 
+ /** Published module which does not contain strictly handled API. */
