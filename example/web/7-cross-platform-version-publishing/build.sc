@@ -69,6 +69,18 @@ object qux extends Module{
   ".../qux/src-3-js"
 ]
 
+> ./mill show qux.js[3.2.2].test.sources
+[
+  ".../qux/test/src",
+  ".../qux/test/src-js",
+  ".../qux/test/src-3.2.2",
+  ".../qux/test/src-3.2.2-js",
+  ".../qux/test/src-3.2",
+  ".../qux/test/src-3.2-js",
+  ".../qux/test/src-3",
+  ".../qux/test/src-3-js"
+]
+
 > ./mill qux.jvm[2.13.8].run
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Parsing JSON with ujson.read
