@@ -104,6 +104,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
     test("sources") {
 
+      // Make sure we clean up the workspace between retries
       test("noshow") - retry(3) { initWorkspace(); testWatchSource(false) }
       test("show") - retry(3) { initWorkspace(); testWatchSource(true) }
     }
@@ -146,6 +147,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
     test("input") {
 
+      // Make sure we clean up the workspace between retries
       test("noshow") - retry(3) { initWorkspace(); testWatchInput(false) }
       test("show") - retry(3) { initWorkspace(); testWatchInput(true) }
     }
