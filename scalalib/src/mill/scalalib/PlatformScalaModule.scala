@@ -16,13 +16,15 @@ trait PlatformScalaModule extends ScalaModule {
   override def millSourcePath = super.millSourcePath / os.up
 
   override def sources = T.sources {
-    val platform = millModuleSegments.parts.last
-    super.sources().flatMap(source =>
-      Seq(
-        source,
-        PathRef(source.path / os.up / s"${source.path.last}-${platform}")
-      )
-    )
+    val platform = millModuleSegments
+      .value
+      .collect { case l: mill.define.Segment.Label => l.value }
+      .last
+
+    super.sources().flatMap { source =>
+      val platformPath = PathRef(source.path / _root_.os.up / s"${source.path.last}-${platform}")
+      Seq(source, platformPath)
+    }
   }
 
   override def artifactNameParts = super.artifactNameParts().dropRight(1)
