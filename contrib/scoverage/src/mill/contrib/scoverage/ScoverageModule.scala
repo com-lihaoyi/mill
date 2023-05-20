@@ -171,9 +171,9 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     )
   }
 
-  val scoverage: ScoverageData = new ScoverageData(implicitly)
+  val scoverage: ScoverageData = new ScoverageData{}
 
-  class ScoverageData(ctx0: mill.define.Ctx) extends Module()(ctx0) with ScalaModule {
+  trait ScoverageData extends ScalaModule {
 
     def doReport(reportType: ReportType): Task[Unit] = T.task {
       ScoverageReportWorker

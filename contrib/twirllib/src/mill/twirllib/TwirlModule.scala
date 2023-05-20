@@ -46,8 +46,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * Class instead of an object, to allow re-configuration.
    * @since Mill after 0.10.5
    */
-  class TwirlResolver()(implicit ctx0: mill.define.Ctx) extends mill.Module()(ctx0)
-      with CoursierModule {
+  trait TwirlResolver extends CoursierModule {
     override def resolveCoursierDependency: Task[Dep => Dependency] = T.task { d: Dep =>
       Lib.depToDependency(d, twirlScalaVersion())
     }
@@ -61,7 +60,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   /**
    * @since Mill after 0.10.5
    */
-  val twirlCoursierResolver = new TwirlResolver()
+  val twirlCoursierResolver = new TwirlResolver{}
 
   def twirlClasspath: T[Loose.Agg[PathRef]] = T {
     twirlCoursierResolver.resolveDeps(T.task {

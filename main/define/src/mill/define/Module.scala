@@ -14,9 +14,7 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher with Module.Trait {
-  outer =>
-
+trait Module extends Module.BaseClass{
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,
    * that should not be needed by normal users of Mill
@@ -24,26 +22,40 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
   object millInternal extends Module.Internal(this)
 
   def millModuleDirectChildren: Seq[Module] = millModuleDirectChildrenImpl
+
   // We keep a private `lazy val` and a public `def` so
   // subclasses can call `super.millModuleDirectChildren`
   private lazy val millModuleDirectChildrenImpl: Seq[Module] =
     millInternal.reflectNestedObjects[Module]().toSeq
-  def millOuterCtx: Ctx = outerCtx0
+
+  def millOuterCtx: Ctx
+
   def millSourcePath: os.Path = millOuterCtx.millSourcePath / (millOuterCtx.segment match {
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(_) => Seq.empty[String] // drop cross segments
   })
+
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
   implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
   implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
   }
+
   override def toString = millModuleSegments.render
 }
 
 object Module {
-  trait Trait
+  /**
+   * Base class of the [[Module]] trait, allowing us to take implicit arguments
+   * (traits cannot). Cannot be used directly, because traits inheriting from
+   * classes results in the class being invisible to java reflection, which
+   * messes up the module discovery process
+   */
+  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher{
+    def millOuterCtx = outerCtx0
+  }
+
   @internal
   class Internal(outer: Module) {
     def traverse[T](f: Module => Seq[T]): Seq[T] = {

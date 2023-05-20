@@ -14,7 +14,7 @@ abstract class BaseModule(
     millName0: sourcecode.Name,
     millFile0: sourcecode.File,
     caller: Caller
-) extends Module()(
+) extends Module.BaseClass()(
       mill.define.Ctx.make(
         implicitly,
         implicitly,
@@ -26,7 +26,7 @@ abstract class BaseModule(
         millFile0,
         caller
       )
-    ) {
+    ) with Module{
   // A BaseModule should provide an empty Segments list to it's children, since
   // it is the root of the module tree, and thus must not include it's own
   // sourcecode.Name as part of the list,

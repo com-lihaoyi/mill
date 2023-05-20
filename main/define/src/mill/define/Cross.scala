@@ -277,7 +277,7 @@ object Cross {
  */
 class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
     ctx: mill.define.Ctx
-) extends mill.define.Module()(ctx) {
+) extends mill.define.Module {
 
   trait Item {
     def crossValues: List[Any]

@@ -218,14 +218,14 @@ class TestGraphs() {
 
   object overrideModule extends TestUtil.BaseModule {
     trait Base extends Module {
-      val inner: BaseInnerModule = new BaseInnerModule()(implicitly)
-      class BaseInnerModule()(implicit ctx: mill.define.Ctx) extends mill.define.Module {
+      val inner: BaseInnerModule = new BaseInnerModule {}
+      trait BaseInnerModule extends mill.define.Module {
         def baseTarget = T { 1 }
       }
     }
     object sub extends Base {
-      override val inner: SubInnerModule = new SubInnerModule()(implicitly)
-      class SubInnerModule()(implicit ctx: mill.define.Ctx) extends BaseInnerModule() {
+      override val inner: SubInnerModule = new SubInnerModule{}
+      trait SubInnerModule extends BaseInnerModule {
         def subTarget = T { 2 }
       }
     }
