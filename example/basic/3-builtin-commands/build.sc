@@ -145,25 +145,23 @@ Inputs:
 /** Usage
 
 > ./mill show "foo.{sources,compileClasspath}"
-[
-  [
+{
+  "foo.sources": [
     ".../foo/src"
   ],
-  [
+  "foo.compileClasspath": [
     ".../foo/compile-resources",
     ".../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
     ...
   ]
-]
+}
 
 */
 
 // == showNamed
 
 // Same as `show`, but the output will always be structured in a JSON
-// dictionary, with the task names as key and the task results as JSON values.
-// When you are running `show` on multiple tasks, `showNamed` is probably what
-// you want.
+// dictionary, whether there is one or more targets in the selection
 
 /** Usage
 

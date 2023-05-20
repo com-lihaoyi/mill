@@ -105,10 +105,10 @@ object MainModuleTests extends TestSuite {
 
         val Result.Success(Val(value)) = results.rawValues.head
 
-        assert(value == ujson.Arr.from(Seq(
-          ujson.Arr.from(Seq("hello", "world")),
-          ujson.Obj.from(Map("1" -> "hello", "2" -> "world"))
-        )))
+        assert(value == ujson.Obj(
+          "hello" -> ujson.Arr("hello", "world"),
+          "hello2" -> ujson.Obj("1" -> "hello", "2" -> "world")
+        ))
       }
 
       test("command") {
