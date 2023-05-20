@@ -258,14 +258,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M9-3-e60300</span>
+    <span class="version">0.11.0-M9-4-f36972</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="../../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../../index.html">0.11.0-M9-3-e60300</a>
+          <a href="../../index.html">0.11.0-M9-4-f36972</a>
         </li>
         <li class="version">
           <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -293,9 +293,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M9-3-e60300</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M9-4-f36972</button>
   <div class="version-menu">
-    <a class="version is-current" href="3-builtin-commands.html">0.11.0-M9-3-e60300</a>
+    <a class="version is-current" href="3-builtin-commands.html">0.11.0-M9-4-f36972</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="../../0.10.0/index.html">0.10.0</a>
@@ -313,7 +313,7 @@
 <p>The following examples will be assuming the <code>build.sc</code> file given below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M9-3-e60300-example-basic-3-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/basic/3-builtin-commands">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M9-4-f36972-example-basic-3-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/basic/3-builtin-commands">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -467,16 +467,16 @@ JSON array, containing all the results of the given targets.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show &quot;foo.{sources,compileClasspath}&quot;
-[
-  [
+{
+  &quot;foo.sources&quot;: [
     &quot;.../foo/src&quot;
   ],
-  [
+  &quot;foo.compileClasspath&quot;: [
     &quot;.../foo/compile-resources&quot;,
     &quot;.../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar&quot;,
     ...
   ]
-]</code></pre>
+}</code></pre>
 </div>
 </div>
 </div>
@@ -486,9 +486,7 @@ JSON array, containing all the results of the given targets.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Same as <code>show</code>, but the output will always be structured in a JSON
-dictionary, with the task names as key and the task results as JSON values.
-When you are running <code>show</code> on multiple tasks, <code>showNamed</code> is probably what
-you want.</p>
+dictionary, whether there is one or more targets in the selection</p>
 </div>
 <div class="listingblock">
 <div class="content">
