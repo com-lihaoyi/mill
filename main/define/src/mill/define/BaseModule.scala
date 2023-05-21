@@ -47,9 +47,9 @@ abstract class ExternalModule(implicit
     ) {
 
   @deprecated
-  def this()(implicit millModuleEnclosing0: sourcecode.Enclosing,
-             millModuleLine0: sourcecode.Line,
-             millName0: sourcecode.Name) = this()(millModuleEnclosing0, millModuleLine0)
+  def this(millModuleEnclosing0: sourcecode.Enclosing,
+           millModuleLine0: sourcecode.Line,
+           millName0: sourcecode.Name) = this()(millModuleEnclosing0, millModuleLine0)
 
   implicit def millDiscoverImplicit: Discover[_] = millDiscover
   assert(
