@@ -17,7 +17,11 @@ object TestNGTests extends TestSuite {
 
     object test extends super.Tests {
       def testngClasspath = T {
-        millProjectModule("mill-contrib-testng", repositoriesTask())
+        millProjectModule(
+          "mill-contrib-testng",
+          repositoriesTask(),
+          artifactSuffix = ""
+        )
       }
 
       override def runClasspath: Target[Seq[PathRef]] =
