@@ -288,7 +288,7 @@ trait MillJavaModule extends JavaModule {
 
   // Test setup
 //  def artifactName: T[String]
-  def testDep = T { (s"com.lihaoyi-${artifactName()}", testDepPaths().map(_.path).mkString("\n")) }
+  def testDep = T { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
   def testArgs: T[Seq[String]] = T { Seq("-Djna.nosys=true") }
   def testDepPaths = T { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
