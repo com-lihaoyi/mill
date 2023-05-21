@@ -319,7 +319,26 @@ trait MillJavaModule extends JavaModule {
   )
 }
 
-trait MillMimaConfig extends Module {
+trait MillMimaConfig extends mima.Mima {
+  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
+  override def mimaPreviousArtifacts: T[Agg[Dep]] = T {
+    Agg.from(
+      Settings.mimaBaseVersions
+        .filter(v => !skipPreviousVersions().contains(v))
+        .map(version =>
+          ivy"${pomSettings().organization}:${artifactId()}:${version}"
+        )
+    )
+  }
+  override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
+    "mill.api.internal",
+    "mill.api.experimental"
+  )
+  override def mimaCheckDirection: Target[CheckDirection] = T { CheckDirection.Backward }
+  override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
+    issueFilterByModule.getOrElse(this, Seq())
+  }
+  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
   def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 }
 
