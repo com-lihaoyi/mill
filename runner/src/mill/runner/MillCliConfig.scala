@@ -212,7 +212,7 @@ import mainargs.ParserForClass
 // see https://github.com/com-lihaoyi/mill/issues/2315
 object MillCliConfigParser {
 
-  val customName = s"Mill Build Tool, version ${mill.BuildInfo.millVersion}"
+  val customName = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
   val customDoc = "usage: mill [options] [[target [target-options]] [+ [target ...]]]"
 
   /**

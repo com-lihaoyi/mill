@@ -7,7 +7,7 @@ import java.net.Socket
 import scala.jdk.CollectionConverters._
 import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
-import mill.BuildInfo
+import mill.main.BuildInfo
 import mill.main.client._
 import mill.api.internal
 import mill.main.client.lock.{Lock, Locks}

@@ -3,6 +3,7 @@ package mill.contrib.scoverage
 import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef}
+import mill.main.BuildInfo
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}

@@ -3,6 +3,7 @@ package scalalib
 
 import scala.annotation.nowarn
 import mill.api.{DummyInputStream, JarManifest, PathRef, Result, internal}
+import mill.main.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
 import mill.api.Loose.Agg

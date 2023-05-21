@@ -95,7 +95,7 @@ trait CoursierSupport {
     def isLocalTestDep(dep: coursier.Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
       val name = dep.module.name.value
-      val classpathKey = s"$org-${name.stripSuffix("_2.13").stripSuffix("_2.12")}"
+      val classpathKey = s"$org-$name"
 
       val classpathResourceText =
         try Some(os.read(

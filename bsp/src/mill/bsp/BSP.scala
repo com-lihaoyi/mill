@@ -1,8 +1,9 @@
 package mill.bsp
 
 import mill.api.{Ctx, PathRef}
-import mill.{Agg, T, BuildInfo => MillBuildInfo}
+import mill.{Agg, T}
 import mill.define.{Command, Discover, ExternalModule}
+import mill.main.BuildInfo
 import mill.eval.Evaluator
 import mill.util.Util.millProjectModule
 import mill.scalalib.CoursierModule
@@ -33,7 +34,7 @@ object BSP extends ExternalModule with CoursierModule {
     // we create a file containing the additional jars to load
     val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
     val cpFile =
-      T.workspace / Constants.bspDir / s"${Constants.serverName}-${mill.BuildInfo.millVersion}.resources"
+      T.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
     os.write.over(
       cpFile,
       libUrls.mkString("\n"),
@@ -92,7 +93,7 @@ object BSP extends ExternalModule with CoursierModule {
           "--jobs",
           s"${jobs}"
         ) ++ (if (debug) Seq("--debug") else Seq()),
-        millVersion = MillBuildInfo.millVersion,
+        millVersion = BuildInfo.millVersion,
         bspVersion = Constants.bspProtocolVersion,
         languages = Constants.languages
       )

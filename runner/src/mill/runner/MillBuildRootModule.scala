@@ -10,7 +10,7 @@ import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
 import os.{Path, rel}
 import pprint.Util.literalize
-
+import FileImportGraph.backtickWrap
 import scala.util.Try
 
 /**
@@ -272,11 +272,13 @@ object MillBuildRootModule {
         s"_root_.mill.main.RootModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
       }
 
+    val miscInfoName = s"MiscInfo_$name"
+
     s"""
-       |package ${pkg.mkString(".")}
+       |package ${pkg.map(backtickWrap).mkString(".")}
        |import _root_.mill._
        |import mill.runner.MillBuildRootModule
-       |object `MiscInfo_${name}`{
+       |object ${backtickWrap(miscInfoName)}{
        |  implicit val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
        |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
        |    _root_.os.Path(${literalize(base.toString)}),
@@ -285,12 +287,12 @@ object MillBuildRootModule {
        |  )
        |  implicit val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
        |    millBuildRootModuleInfo.projectRoot,
-       |    _root_.mill.define.Discover[$name]
+       |    _root_.mill.define.Discover[${backtickWrap(name)}]
        |  )
        |}
-       |import `MiscInfo_${name}`.{millBuildRootModuleInfo, millBaseModuleInfo}
-       |object $name extends $name
-       |class $name extends $superClass{
+       |import ${backtickWrap(miscInfoName)}.{millBuildRootModuleInfo, millBaseModuleInfo}
+       |object ${backtickWrap(name)} extends ${backtickWrap(name)}
+       |class ${backtickWrap(name)} extends $superClass{
        |
        |//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
        |//MILL_USER_CODE_START_MARKER
@@ -298,5 +300,4 @@ object MillBuildRootModule {
   }
 
   val bottom = "\n}"
-
 }
