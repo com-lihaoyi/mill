@@ -1,7 +1,7 @@
 package mill.runner
 
 import mill.api.internal
-
+import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
 
 @internal
@@ -20,6 +20,8 @@ case class FileImportGraph(
  */
 @internal
 object FileImportGraph {
+  def backtickWrap(s: String) = if (encode(s) == s) s else "`" + s + "`"
+
   import mill.api.JsonFormatters.pathReadWrite
   implicit val readWriter: upickle.default.ReadWriter[FileImportGraph] = upickle.default.macroRW
 
@@ -100,7 +102,9 @@ object FileImportGraph {
               val end = rest.last._2
               (
                 start,
-                fileImportToSegments(projectRoot, nextPaths(0) / os.up, false).mkString("."),
+                fileImportToSegments(projectRoot, nextPaths(0) / os.up, false)
+                  .map(backtickWrap)
+                  .mkString("."),
                 end
               )
             }
