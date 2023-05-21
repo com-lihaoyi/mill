@@ -284,7 +284,14 @@ trait MillPublishModule extends PublishModule {
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
 
-trait MillCoursierModule extends CoursierModule {
+trait MillJavaModule extends JavaModule {
+
+  // Test setup
+//  def artifactName: T[String]
+  def testDep = T { (s"com.lihaoyi-${artifactName()}", testDepPaths().map(_.path).mkString("\n")) }
+  def testArgs: T[Seq[String]] = T { Seq("-Djna.nosys=true") }
+  def testDepPaths = T { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
+
   override def repositoriesTask = T.task {
     super.repositoriesTask() ++ Seq(
       MavenRepository(
@@ -335,16 +342,11 @@ trait AcyclicConfig extends ScalaModule {
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
   def scalaVersion = Deps.scalaVersion
   override def scalacOptions = T {
     super.scalacOptions() ++ Seq("-deprecation")
   }
-
-  // Test setup
-  def testDepPaths = T { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
-  def testDep = T { (s"com.lihaoyi-${artifactName()}", testDepPaths().map(_.path).mkString("\n")) }
-  def testArgs: T[Seq[String]] = T { Seq("-Djna.nosys=true") }
 
   def testTransitiveDeps: T[Map[String, String]] = T {
     val upstream = T.traverse(outer.moduleDeps ++ outer.compileModuleDeps) {
@@ -369,7 +371,7 @@ trait MillScalaModule extends ScalaModule with MillCoursierModule { outer =>
 
   def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
 
-  trait MillScalaModuleTests extends ScalaModuleTests with MillCoursierModule
+  trait MillScalaModuleTests extends ScalaModuleTests with MillJavaModule
       with WithMillCompiler with BaseMillTestsModule {
 
     def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
@@ -547,7 +549,7 @@ object scalalib extends MillModule {
     super.testTransitiveDeps() ++ Seq(worker.testDep())
   }
 
-  object backgroundwrapper extends MillPublishModule with MillScalaModule {
+  object backgroundwrapper extends MillPublishModule with MillJavaModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 
