@@ -46,6 +46,11 @@ abstract class ExternalModule(implicit
       Caller(())
     ) {
 
+  @deprecated
+  def this()(implicit millModuleEnclosing0: sourcecode.Enclosing,
+             millModuleLine0: sourcecode.Line,
+             millName0: sourcecode.Name) = this()(millModuleEnclosing0, millModuleLine0)
+
   implicit def millDiscoverImplicit: Discover[_] = millDiscover
   assert(
     !" #".exists(millModuleEnclosing0.value.contains(_)),
