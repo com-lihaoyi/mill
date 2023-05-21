@@ -5,5 +5,5 @@ package mill.define
  * module as a child-module of the first.
  */
 case class ModuleRef[+T <: mill.define.Module](t: T) {
-  def apply() = t
+  def apply(): T = t
 }
