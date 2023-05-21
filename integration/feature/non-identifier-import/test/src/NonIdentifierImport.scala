@@ -2,7 +2,7 @@ package mill.integration
 
 import utest._
 
-object ImportNonIdentifierFile extends IntegrationTestSuite {
+object NonIdentifierImport extends IntegrationTestSuite {
   val tests = Tests {
     initWorkspace()
     test("test") - {
