@@ -2,6 +2,7 @@
 // your own resolvers by overriding the `repositoriesTask` task in the module:
 
 import mill._, scalalib._
+import mill.define.ModuleRef
 import coursier.maven.MavenRepository
 
 val sonatypeReleases = Seq(
@@ -26,7 +27,7 @@ object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
-  def zincWorker = CustomZincWorkerModule
+  def zincWorker = ModuleRef(CustomZincWorkerModule)
   // ... rest of your build definitions
 
   def repositoriesTask = T.task {super.repositoriesTask() ++ sonatypeReleases}
