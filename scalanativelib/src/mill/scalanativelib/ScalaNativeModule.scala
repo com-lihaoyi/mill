@@ -100,7 +100,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def bridgeFullClassPath: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       repositoriesTask(),
-      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.BuildInfo.scalaVersion, "")),
+      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     ).map(t => (scalaNativeWorkerClasspath() ++ t))
   }

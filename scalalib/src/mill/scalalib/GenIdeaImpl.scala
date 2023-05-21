@@ -5,18 +5,16 @@ import scala.util.Try
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
-import coursier.{LocalRepositories, Repositories, Repository}
 
-import java.nio.file.Paths
 import mill.Agg
 import mill.api.Ctx.{Home, Log}
 import mill.api.{PathRef, Result, Strict}
 import mill.define._
 import mill.eval.Evaluator
-import mill.util.Util
+import mill.main.BuildInfo
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.util.Classpath
-import mill.{BuildInfo, T, scalalib}
+import mill.{T, scalalib}
 import os.{Path, SubPath}
 
 case class GenIdeaImpl(

@@ -1,7 +1,7 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
-import mill.{BuildInfo => MillBuildInfo}
+import mill.main.BuildInfo
 import mill.bsp.{BspServerHandle, BspServerResult, BspWorker, Constants}
 import mill.eval.Evaluator
 import mill.api.SystemStreams
@@ -24,7 +24,7 @@ private class BspWorkerImpl() extends BspWorker {
     val millServer =
       new MillBuildServer(
         bspVersion = Constants.bspProtocolVersion,
-        serverVersion = MillBuildInfo.millVersion,
+        serverVersion = BuildInfo.millVersion,
         serverName = Constants.serverName,
         logStream = logStream,
         canReload = canReload

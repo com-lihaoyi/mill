@@ -422,7 +422,7 @@ trait MillApiModule extends MillScalaModule with MillPublishModule with MillMima
 trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompiler
     with AcyclicConfig
 
-object main extends MillModule {
+object main extends MillModule with BuildInfo{
 
   override def moduleDeps = Seq(eval, resolve, client)
   override def ivyDeps = Agg(
@@ -431,8 +431,34 @@ object main extends MillModule {
     Deps.coursierInterface,
     Deps.requests
   )
+
   override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
+  )
+
+  def buildInfoPackageName = "mill.main"
+
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
+    BuildInfo.Value(
+      "workerScalaVersion212",
+      Deps.workerScalaVersion212,
+      "Scala 2.12 version used by some workers."
+    ),
+    BuildInfo.Value("millVersion", millVersion(), "Mill version."),
+    BuildInfo.Value("millBinPlatform", millBinPlatform(), "Mill binary platform version."),
+    BuildInfo.Value(
+      "millEmbeddedDeps",
+      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
+        .mkString(","),
+      "Dependency artifacts embedded in mill assembly by default."
+    ),
+    BuildInfo.Value(
+      "millScalacPluginDeps",
+      Deps.millModuledefsString,
+      "Scalac compiler plugin dependencies to compile the build script."
+    )
   )
 
   object api extends MillApiModule with BuildInfo with MillAutoTestSetup {
@@ -456,7 +482,7 @@ object main extends MillModule {
       Deps.jline
     )
   }
-  object define extends MillModule with BuildInfo {
+  object define extends MillModule {
     override def moduleDeps = Seq(api, util)
     override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
@@ -471,30 +497,6 @@ object main extends MillModule {
       Deps.jarjarabrams,
       Deps.mainargs,
       Deps.scalaparse
-    )
-
-    def buildInfoPackageName = "mill"
-    def buildInfoMembers = Seq(
-      BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
-      BuildInfo.Value(
-        "workerScalaVersion212",
-        Deps.workerScalaVersion212,
-        "Scala 2.12 version used by some workers."
-      ),
-      BuildInfo.Value("millVersion", millVersion(), "Mill version."),
-      BuildInfo.Value("millBinPlatform", millBinPlatform(), "Mill binary platform version."),
-      BuildInfo.Value(
-        "millEmbeddedDeps",
-        T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
-          .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
-          .mkString(","),
-        "Dependency artifacts embedded in mill assembly by default."
-      ),
-      BuildInfo.Value(
-        "millScalacPluginDeps",
-        Deps.millModuledefsString,
-        "Scalac compiler plugin dependencies to compile the build script."
-      )
     )
   }
 
