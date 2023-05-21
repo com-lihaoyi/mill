@@ -1,5 +1,5 @@
 diff --git a/build.sc b/build.sc
-index 1e5a27c468..eb655931ab 100644
+index 1e5a27c468..0688a7d0f2 100644
 --- a/build.sc
 +++ b/build.sc
 @@ -405,10 +405,9 @@ trait BaseMillTestsModule extends TestModule {
@@ -10,7 +10,7 @@ index 1e5a27c468..eb655931ab 100644
    /** Default tests module. */
 -  val test = new Tests(implicitly)
 -  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.MillScalaModuleTests
-+  lazy val test = new Tests {}
++  lazy val test: Tests = new Tests {}
 +  trait Tests extends super.MillScalaModuleTests
  }
  
