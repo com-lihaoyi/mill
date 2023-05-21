@@ -1,8 +1,55 @@
 diff --git a/build.sc b/build.sc
-index 1e5a27c468..0688a7d0f2 100644
+index 20fe84f7e4..a971bda34d 100644
 --- a/build.sc
 +++ b/build.sc
-@@ -405,10 +405,9 @@ trait BaseMillTestsModule extends TestModule {
+@@ -319,26 +319,26 @@ trait MillJavaModule extends JavaModule {
+   )
+ }
+ 
+-trait MillMimaConfig extends mima.Mima {
+-  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
+-  override def mimaPreviousArtifacts: T[Agg[Dep]] = T {
+-    Agg.from(
+-      Settings.mimaBaseVersions
+-        .filter(v => !skipPreviousVersions().contains(v))
+-        .map(version =>
+-          ivy"${pomSettings().organization}:${artifactId()}:${version}"
+-        )
+-    )
+-  }
+-  override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
+-    "mill.api.internal",
+-    "mill.api.experimental"
+-  )
+-  override def mimaCheckDirection: Target[CheckDirection] = T { CheckDirection.Backward }
+-  override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
+-    issueFilterByModule.getOrElse(this, Seq())
+-  }
+-  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
++trait MillMimaConfig extends Module/*mima.Mima*/ {
++//  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
++//  override def mimaPreviousArtifacts: T[Agg[Dep]] = T {
++//    Agg.from(
++//      Settings.mimaBaseVersions
++//        .filter(v => !skipPreviousVersions().contains(v))
++//        .map(version =>
++//          ivy"${pomSettings().organization}:${artifactId()}:${version}"
++//        )
++//    )
++//  }
++//  override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
++//    "mill.api.internal",
++//    "mill.api.experimental"
++//  )
++//  override def mimaCheckDirection: Target[CheckDirection] = T { CheckDirection.Backward }
++//  override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
++//    issueFilterByModule.getOrElse(this, Seq())
++//  }
++//  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
+   def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
+ }
+ 
+@@ -425,10 +425,9 @@ trait BaseMillTestsModule extends TestModule {
  
  /** A MillScalaModule with default set up test module. */
  trait MillAutoTestSetup extends MillScalaModule {
@@ -15,7 +62,7 @@ index 1e5a27c468..0688a7d0f2 100644
  }
  
  /** Published module which does not contain strictly handled API. */
-@@ -895,8 +894,8 @@ object bsp extends MillModule with BuildInfo {
+@@ -917,8 +916,8 @@ object bsp extends MillModule with BuildInfo {
      )
    }
  
