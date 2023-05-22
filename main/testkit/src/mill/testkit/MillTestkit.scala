@@ -43,10 +43,8 @@ trait MillTestKit {
 
   class BaseModule(implicit
       millModuleEnclosing0: sourcecode.Enclosing,
-      millModuleLine0: sourcecode.Line,
-      millName0: sourcecode.Name
+      millModuleLine0: sourcecode.Line
   ) extends mill.define.BaseModule(getSrcPathBase() / millModuleEnclosing0.value.split("\\.| |#"))(
-        implicitly,
         implicitly,
         implicitly,
         implicitly,

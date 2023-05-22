@@ -216,7 +216,7 @@ trait ScalaModule extends JavaModule { outer =>
         |You may want to select another version. Upgrading to a more recent Scala version is recommended.
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
-    zincWorker
+    zincWorker()
       .worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -272,7 +272,7 @@ trait ScalaModule extends JavaModule { outer =>
     def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
       if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(T.dest))
       else {
-        zincWorker
+        zincWorker()
           .worker()
           .docJar(
             scalaVersion(),
@@ -482,7 +482,11 @@ trait ScalaModule extends JavaModule { outer =>
       if (all.value) Seq(
         resolvedAmmoniteReplIvyDeps,
         T.task {
-          zincWorker.scalaCompilerBridgeJar(scalaVersion(), scalaOrganization(), repositoriesTask())
+          zincWorker().scalaCompilerBridgeJar(
+            scalaVersion(),
+            scalaOrganization(),
+            repositoriesTask()
+          )
         }
       )
       else Seq()

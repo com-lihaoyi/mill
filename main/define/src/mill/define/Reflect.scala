@@ -36,12 +36,19 @@ private[mill] object Reflect {
     if (outer.toString.contains("BarModule")) pprint.log(inner)
     if (outer.toString.contains("BarModule")) pprint.log(res)
     // There can be multiple methods of the same name on a class if a sub-class
-    // overrides a super-class method and narrows the return type. Make sure we
-    // sort the methods by their declaring class from lowest to highest in the
-    // the type hierarchy, and use `distinctBy` to only keep the lowest
-    // version, before we finally sort them by name
+    // overrides a super-class method and narrows the return type.
+    //
+    // 1. Make sure we sort the methods by their declaring class from lowest to
+    //    highest in the the type hierarchy, and use `distinctBy` to only keep
+    //    the lowest version, before we finally sort them by name
+    //
+    // 2. Sometimes traits also generate synthetic forwarders for overrides,
+    //    which messes up the the comparison since all forwarders will have the
+    //    same `getDeclaringClass`. To handle these scenarios, also sort by
+    //    return type, so we can identify the most specific override
     res
       .sortWith((m1, m2) => m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass))
+      .sortWith((m1, m2) => m1.getReturnType.isAssignableFrom(m2.getReturnType))
       .reverse
       .distinctBy(_.getName)
       .sortBy(_.getName)

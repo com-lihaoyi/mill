@@ -70,7 +70,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       hint = "buildTargetScalaMainClasses",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
-        T.task((m.zincWorker.worker(), m.compile(), m.forkArgs(), m.forkEnv()))
+        T.task((m.zincWorker().worker(), m.compile(), m.forkArgs(), m.forkEnv()))
       }
     ) {
       case (state, id, m: JavaModule, (worker, compile, forkArgs, forkEnv)) =>

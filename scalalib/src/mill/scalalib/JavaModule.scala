@@ -10,9 +10,9 @@ import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.api.Loose.Agg
+import mill.define.ModuleRef
 import mill.api.{JarManifest, PathRef, Result, internal}
 import mill.util.Jvm
-import mill.scalalib.Assembly
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
@@ -30,7 +30,7 @@ trait JavaModule
     with BspModule
     with SemanticDbJavaModule { outer =>
 
-  def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
+  def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(mill.scalalib.ZincWorkerModule)
 
   trait JavaModuleTests extends TestModule {
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
@@ -38,7 +38,7 @@ trait JavaModule
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
     override def javacOptions: Target[Seq[String]] = T { outer.javacOptions() }
-    override def zincWorker: ZincWorkerModule = outer.zincWorker
+    override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: Target[Boolean] = T { outer.runUseArgsFile() }
     override def sources = T.sources {
@@ -66,7 +66,7 @@ trait JavaModule
     mainClass() match {
       case Some(m) => Right(m)
       case None =>
-        zincWorker.worker().discoverMainClasses(compile()) match {
+        zincWorker().worker().discoverMainClasses(compile()) match {
           case Seq() => Left("No main class specified or found")
           case Seq(main) => Right(main)
           case mains =>
@@ -323,7 +323,7 @@ trait JavaModule
    */
   // Keep in sync with [[bspCompileClassesPath]]
   def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
-    zincWorker
+    zincWorker()
       .worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -790,7 +790,7 @@ trait JavaModule
     try Result.Success(
         Jvm.runSubprocess(
           "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-          (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
+          (runClasspath() ++ zincWorker().backgroundWrapperClasspath()).map(_.path),
           forkArgs(),
           forkEnv(),
           Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
@@ -814,7 +814,7 @@ trait JavaModule
       try Result.Success(
           Jvm.runSubprocess(
             "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-            (runClasspath() ++ zincWorker.backgroundWrapperClasspath())
+            (runClasspath() ++ zincWorker().backgroundWrapperClasspath())
               .map(_.path),
             forkArgs(),
             forkEnv(),
@@ -912,7 +912,7 @@ trait JavaModule
     T.command {
       super.prepareOffline(all)()
       resolvedIvyDeps()
-      zincWorker.prepareOffline(all)()
+      zincWorker().prepareOffline(all)()
       resolvedRunIvyDeps()
       T.sequence(tasks)()
       ()

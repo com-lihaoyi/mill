@@ -19,7 +19,7 @@ trait PlatformScalaModule extends ScalaModule {
    * The platform suffix of this [[PlatformScalaModule]]. Useful if you want to
    * further customize the source paths or artifact names.
    */
-  def platformScalaSuffix = millModuleSegments
+  def platformScalaSuffix: String = millModuleSegments
     .value
     .collect { case l: mill.define.Segment.Label => l.value }
     .last

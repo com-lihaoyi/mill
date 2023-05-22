@@ -188,7 +188,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
           T.log.debug(s"effective scalac options: ${scalacOptions}")
           T.log.debug(s"effective javac options: ${javacOpts}")
 
-          zincWorker.worker()
+          zincWorker().worker()
             .compileMixed(
               upstreamCompileOutput = upstreamCompileOutput(),
               sources = m.allSourceFiles().map(_.path),
@@ -213,7 +213,7 @@ trait SemanticDbJavaModule extends CoursierModule { hostModule: JavaModule =>
 
           T.log.debug(s"effective javac options: ${javacOpts}")
 
-          zincWorker.worker()
+          zincWorker().worker()
             .compileJava(
               upstreamCompileOutput = upstreamCompileOutput(),
               sources = allSourceFiles().map(_.path),

@@ -83,7 +83,6 @@ object Ctx {
   implicit def make(implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
-      millName0: sourcecode.Name,
       millModuleBasePath0: BasePath,
       segments0: Segments,
       external0: External,
@@ -94,7 +93,12 @@ object Ctx {
     Ctx(
       millModuleEnclosing0.value,
       millModuleLine0.value,
-      Segment.Label(millName0.value),
+      Segment.Label(
+        // Manually break apart `sourcecode.Enclosing` instead of using
+        // `sourcecode.Name` to work around bug with anonymous classes
+        // returning `$anon` names
+        millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
+      ),
       millModuleBasePath0.value,
       segments0,
       external0.value,

@@ -53,7 +53,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               m.forkWorkingDir(),
               m.forkEnv(),
               m.mainClass(),
-              m.zincWorker.worker(),
+              m.zincWorker().worker(),
               m.compile()
             )
           }

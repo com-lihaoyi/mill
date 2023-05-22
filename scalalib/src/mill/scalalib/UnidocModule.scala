@@ -34,7 +34,7 @@ trait UnidocModule extends ScalaModule {
       unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
       unidocSourceUrl().toSeq.flatMap(_ => Seq("-doc-source-url", "file://€{FILE_PATH}.scala"))
 
-    zincWorker.worker().docJar(
+    zincWorker().worker().docJar(
       scalaVersion(),
       scalaOrganization(),
       scalaDocClasspath(),
