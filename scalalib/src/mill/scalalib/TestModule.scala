@@ -160,13 +160,13 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase{
     TestModule.handleResults(doneMsg, results, Some(T.ctx()))
   }
 
-//  override def bspBuildTarget: BspBuildTarget = {
-//    val parent = super.bspBuildTarget
-//    parent.copy(
-//      canTest = true,
-//      tags = Seq(BspModule.Tag.Test)
-//    )
-//  }
+  override def bspBuildTarget: BspBuildTarget = {
+    val parent = super.bspBuildTarget
+    parent.copy(
+      canTest = true,
+      tags = Seq(BspModule.Tag.Test)
+    )
+  }
 }
 
 object TestModule {
@@ -292,11 +292,11 @@ object TestModule {
     }
   }
 
-  trait JavaModuleBase extends mill.Module{
+  trait JavaModuleBase extends BspModule{
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
   }
+
   trait ScalaModuleBase extends mill.Module{
     def scalacOptions: T[Seq[String]] = Seq.empty[String]
   }
-
 }
