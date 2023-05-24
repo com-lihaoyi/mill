@@ -5,7 +5,7 @@ import mill.T
 import mill.main.BuildInfo
 import mill.api.{Ctx, Logger, PathRef, Result}
 import mill.define.{Command, NamedTask, Segments, Task}
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
 import mill.util.{PrintLogger, Watchable}
@@ -147,7 +147,7 @@ trait MainModule extends mill.Module {
       case Left(err) => Left(err)
       case Right(rs) =>
         val (sortedGroups, _) = evaluator.plan(rs)
-        Right(sortedGroups.keys().collect { case r: Evaluator.Terminal.Labelled[_] => r }.toArray)
+        Right(sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
     }
   }
 

@@ -28,7 +28,7 @@ trait Evaluator {
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
   def withFailFast(newFailFast: Boolean): Evaluator
 
-  def plan(goals: Agg[Task[_]]): (MultiBiMap[Evaluator.Terminal, Task[_]], Agg[Task[_]])
+  def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Agg[Task[_]])
 
   /**
    * Evaluate given task(s) and return the successful result(s), or throw an exception.
@@ -40,26 +40,6 @@ trait Evaluator {
 }
 
 object Evaluator {
-
-  /**
-   * A terminal or terminal target is some important work unit, that in most cases has a name (Right[Labelled])
-   * or was directly called by the user (Left[Task]).
-   * It's a T, T.worker, T.input, T.source, T.sources, T.persistent
-   */
-  sealed trait Terminal {
-    def render: String
-  }
-
-  object Terminal {
-    case class Labelled[T](task: NamedTask[T], segments: Segments) extends Terminal {
-      def render = segments.render
-    }
-
-    case class Task[T](task: mill.define.Task[_]) extends Terminal {
-      def render = task.toString
-    }
-  }
-
   trait Results {
     def rawValues: Seq[Result[Val]]
     def evaluated: Agg[Task[_]]
