@@ -10,6 +10,9 @@ import scala.collection.JavaConverters.mapAsScalaMapConverter
 import scala.reflect.ClassTag
 import scala.util.DynamicVariable
 
+/**
+ * Public facing API of the Mill evaluation logic.
+ */
 trait Evaluator {
   def baseLogger: ColorLogger
   def rootModule: BaseModule
