@@ -71,7 +71,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     implicit val implicitEc = ec
 
     os.makeDir.all(outPath)
-    val chromeProfileLogger = new ChromeProfileLogger(outPath / "mill-par-profile.json")
+    val chromeProfileLogger = new ChromeProfileLogger(outPath / "mill-chrome-profile.json")
     val profileLogger = new ProfileLogger(outPath / "mill-profile.json")
     val threadNumberer = new ThreadNumberer()
     val (sortedGroups, transitive) = Plan.plan(goals)
