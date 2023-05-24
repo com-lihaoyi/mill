@@ -28,19 +28,20 @@ trait JavaModule
     with CoursierModule
     with OfflineSupportModule
     with BspModule
-    with SemanticDbJavaModule { outer =>
+    with SemanticDbJavaModule
+    with TestModule.JavaModuleBase { outer =>
 
   def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(mill.scalalib.ZincWorkerModule)
 
-  trait JavaModuleTests extends TestModule {
+  trait JavaModuleTests extends JavaModule with TestModule {
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
-    override def javacOptions: Target[Seq[String]] = T { outer.javacOptions() }
+    override def javacOptions: T[Seq[String]] = T { outer.javacOptions() }
     override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
-    override def runUseArgsFile: Target[Boolean] = T { outer.runUseArgsFile() }
+    override def runUseArgsFile: T[Boolean] = T { outer.runUseArgsFile() }
     override def sources = T.sources {
       for (src <- outer.sources()) yield {
         PathRef(this.millSourcePath / src.path.relativeTo(outer.millSourcePath))
@@ -210,7 +211,7 @@ trait JavaModule
    */
   // Keep in sync with [[transitiveLocalClasspath]]
   @internal
-  def bspTransitiveLocalClasspath: Target[Agg[UnresolvedPath]] = T {
+  def bspTransitiveLocalClasspath: T[Agg[UnresolvedPath]] = T {
     T.traverse(
       (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
     )(m => m.bspLocalClasspath)()
@@ -232,7 +233,7 @@ trait JavaModule
    */
   // Keep in sync with [[transitiveCompileClasspath]]
   @internal
-  def bspTransitiveCompileClasspath: Target[Agg[UnresolvedPath]] = T {
+  def bspTransitiveCompileClasspath: T[Agg[UnresolvedPath]] = T {
     T.traverse(
       (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
     )(m =>
@@ -338,7 +339,7 @@ trait JavaModule
   /** The path to the compiled classes without forcing to actually run the target. */
   // Keep in sync with [[compile]]
   @internal
-  def bspCompileClassesPath: Target[UnresolvedPath] =
+  def bspCompileClassesPath: T[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
       T {
         T.log.debug(
@@ -368,7 +369,7 @@ trait JavaModule
    * Keep in sync with [[compile]]
    */
   @internal
-  def bspLocalClasspath: Target[Agg[UnresolvedPath]] = T {
+  def bspLocalClasspath: T[Agg[UnresolvedPath]] = T {
     (compileResources() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++ Agg(
       bspCompileClassesPath()
     )
@@ -389,7 +390,7 @@ trait JavaModule
   /** Same as [[compileClasspath]], but does not trigger compilation targets, if possible. */
   // Keep in sync with [[compileClasspath]]
   @internal
-  def bspCompileClasspath: Target[Agg[UnresolvedPath]] = T {
+  def bspCompileClasspath: T[Agg[UnresolvedPath]] = T {
     bspTransitiveCompileClasspath() ++
       (compileResources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
         .map(p => UnresolvedPath.ResolvedPath(p.path))
@@ -569,7 +570,7 @@ trait JavaModule
   /**
    * The source jar, containing only source code for publishing to Maven Central
    */
-  def sourceJar: Target[PathRef] = T {
+  def sourceJar: T[PathRef] = T {
     Jvm.createJar(
       (allSources() ++ resources() ++ compileResources()).map(_.path).filter(os.exists),
       manifest()
@@ -580,13 +581,13 @@ trait JavaModule
    * Any command-line parameters you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkArgs: Target[Seq[String]] = T { Seq.empty[String] }
+  def forkArgs: T[Seq[String]] = T { Seq.empty[String] }
 
   /**
    * Any environment variables you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkEnv: Target[Map[String, String]] = T.input { T.env }
+  def forkEnv: T[Map[String, String]] = T.input { T.env }
 
   /**
    * Builds a command-line "launcher" file that can be used to run this module's
@@ -884,7 +885,7 @@ trait JavaModule
    */
   def artifactSuffix: T[String] = platformSuffix()
 
-  def forkWorkingDir: Target[Path] = T { T.workspace }
+  def forkWorkingDir: T[Path] = T { T.workspace }
 
   /**
    * @param all If `true` fetches also source dependencies

@@ -7,7 +7,7 @@ import mill.main.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
-import mill.scalalib.api.{CompilationResult, ZincWorkerUtil, Versions}
+import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 
 import scala.jdk.CollectionConverters._
 import mainargs.Flag
@@ -17,7 +17,7 @@ import mill.scalalib.dependency.versions.{ValidVersion, Version}
 /**
  * Core configuration required to compile a single Scala compilation target
  */
-trait ScalaModule extends JavaModule { outer =>
+trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: Target[String] = outer.scalaOrganization()
@@ -128,7 +128,7 @@ trait ScalaModule extends JavaModule { outer =>
    * Command-line options to pass to the Scala compiler defined by the user.
    * Consumers should use `allScalacOptions` to read them.
    */
-  def scalacOptions: Target[Seq[String]] = T { Seq.empty[String] }
+  override def scalacOptions: Target[Seq[String]] = T { Seq.empty[String] }
 
   /**
    * Aggregation of all the options passed to the Scala compiler.
@@ -532,4 +532,53 @@ trait ScalaModule extends JavaModule { outer =>
     ))
   }
 
+  override def semanticDbScalaVersion = scalaVersion()
+
+  override protected def semanticDbPluginClasspath = T {
+    resolveDeps(T.task {
+      val bind = bindDependency()
+      (scalacPluginIvyDeps() ++ semanticDbPluginIvyDeps()).map(bind)
+    })()
+  }
+
+  def semanticDbData: T[PathRef] = T.persistent {
+    val sv = scalaVersion()
+
+    val scalacOptions = (
+      allScalacOptions() ++
+        semanticDbEnablePluginScalacOptions() ++ {
+        if (ZincWorkerUtil.isScala3(sv)) {
+          Seq("-Xsemanticdb")
+        } else {
+          Seq(
+            "-Yrangepos",
+            s"-P:semanticdb:sourceroot:${T.workspace}",
+            "-Ystop-after:semanticdb-typer"
+          )
+        }
+      }
+      )
+      .filterNot(_ == "-Xfatal-warnings")
+
+    val javacOpts = SemanticDbJavaModule.javacOptionsTask(javacOptions(), semanticDbJavaVersion())
+
+    T.log.debug(s"effective scalac options: ${scalacOptions}")
+    T.log.debug(s"effective javac options: ${javacOpts}")
+
+    zincWorker().worker()
+      .compileMixed(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath = (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
+        javacOptions = javacOpts,
+        scalaVersion = sv,
+        scalaOrganization = scalaOrganization(),
+        scalacOptions = scalacOptions,
+        compilerClasspath = scalaCompilerClasspath(),
+        scalacPluginClasspath = semanticDbPluginClasspath(),
+        reporter = T.reporter.apply(hashCode),
+        reportCachedProblems = zincReportCachedProblems()
+      )
+      .map(r => SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data"))
+  }
 }

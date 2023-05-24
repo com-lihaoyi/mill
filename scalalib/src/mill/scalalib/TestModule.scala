@@ -1,13 +1,22 @@
 package mill.scalalib
 
 import mill.{Agg, T}
-import mill.define.{Command, Task, TaskModule}
-import mill.api.{Ctx, Result}
+import mill.define.{Command, ModuleRef, Task, TaskModule}
+import mill.api.{Ctx, PathRef, Result}
 import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.TestRunner
 
-trait TestModule extends JavaModule with TaskModule {
+trait TestModule extends TaskModule with TestModule.JavaModuleBase{
+
+  def forkArgs: T[Seq[String]]
+  def runClasspath: T[Seq[PathRef]]
+  def forkEnv: T[Map[String, String]]
+  def compile: T[mill.scalalib.api.CompilationResult]
+  def forkWorkingDir: T[os.Path]
+  def zincWorker: ModuleRef[ZincWorkerModule]
+  def runUseArgsFile: T[Boolean]
+
   override def defaultCommandName() = "test"
 
   /**
@@ -151,13 +160,13 @@ trait TestModule extends JavaModule with TaskModule {
     TestModule.handleResults(doneMsg, results, Some(T.ctx()))
   }
 
-  override def bspBuildTarget: BspBuildTarget = {
-    val parent = super.bspBuildTarget
-    parent.copy(
-      canTest = true,
-      tags = Seq(BspModule.Tag.Test)
-    )
-  }
+//  override def bspBuildTarget: BspBuildTarget = {
+//    val parent = super.bspBuildTarget
+//    parent.copy(
+//      canTest = true,
+//      tags = Seq(BspModule.Tag.Test)
+//    )
+//  }
 }
 
 object TestModule {
@@ -210,7 +219,7 @@ object TestModule {
    * TestModule that uses Specs2 Framework to run tests.
    * You need to provide the specs2 dependencies yourself.
    */
-  trait Specs2 extends ScalaModule with TestModule {
+  trait Specs2 extends ScalaModuleBase with TestModule {
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
     override def scalacOptions = T {
       super.scalacOptions() ++ Seq("-Yrangepos")
@@ -282,4 +291,12 @@ object TestModule {
       Result.Failure(msg, Some((doneMsg, results)))
     }
   }
+
+  trait JavaModuleBase extends mill.Module{
+    def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
+  }
+  trait ScalaModuleBase extends mill.Module{
+    def scalacOptions: T[Seq[String]] = Seq.empty[String]
+  }
+
 }

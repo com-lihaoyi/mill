@@ -1,7 +1,6 @@
 package mill.main
 
 import mill.api.{PathRef, internal}
-import mill.util.Watchable
 import mill.define.{Caller, Discover, Segments}
 import TokenReaders._
 
