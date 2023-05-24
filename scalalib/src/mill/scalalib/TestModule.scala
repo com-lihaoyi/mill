@@ -7,7 +7,7 @@ import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.TestRunner
 
-trait TestModule extends TaskModule with TestModule.JavaModuleBase{
+trait TestModule extends TaskModule with TestModule.JavaModuleBase {
 
   def forkArgs: T[Seq[String]]
   def runClasspath: T[Seq[PathRef]]
@@ -292,11 +292,11 @@ object TestModule {
     }
   }
 
-  trait JavaModuleBase extends BspModule{
+  trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
   }
 
-  trait ScalaModuleBase extends mill.Module{
+  trait ScalaModuleBase extends mill.Module {
     def scalacOptions: T[Seq[String]] = Seq.empty[String]
   }
 }

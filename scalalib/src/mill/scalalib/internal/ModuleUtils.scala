@@ -5,7 +5,6 @@ import mill.define.{Module, Segments}
 @mill.api.internal
 object ModuleUtils {
 
-
   /**
    * Computes a display name for a module which is also disambiguates foreign modules.
    */

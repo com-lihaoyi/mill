@@ -112,11 +112,14 @@ trait SemanticDbJavaModule extends CoursierModule {
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
-        compileClasspath = (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
+        compileClasspath =
+          (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
         javacOptions = javacOpts,
         reporter = T.reporter.apply(hashCode()),
         reportCachedProblems = zincReportCachedProblems()
-      ).map(r => SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data"))
+      ).map(r =>
+        SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")
+      )
   }
 
   // keep in sync with bspCompiledClassesAndSemanticDbFiles
@@ -175,9 +178,9 @@ object SemanticDbJavaModule {
     contextSemanticDbVersion.set(None)
   }
 
-  def javacOptionsTask(javacOptions: Seq[String],
-                       semanticDbJavaVersion: String)
-                      (implicit ctx: mill.api.Ctx): Seq[String] = {
+  def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(implicit
+      ctx: mill.api.Ctx
+  ): Seq[String] = {
     // these are only needed for Java 17+
     val extracJavacExports =
       if (Properties.isJavaAtLeast(17)) List(
@@ -205,10 +208,10 @@ object SemanticDbJavaModule {
 
   // The semanticdb-javac plugin has issues with the -sourceroot setting, so we correct this on the fly
   def copySemanticdbFiles(
-                           classesDir: os.Path,
-                           sourceroot: os.Path,
-                           targetDir: os.Path
-                         ): PathRef = {
+      classesDir: os.Path,
+      sourceroot: os.Path,
+      targetDir: os.Path
+  ): PathRef = {
     os.remove.all(targetDir)
     os.makeDir.all(targetDir)
 

@@ -1,6 +1,5 @@
 package mill.scalalib
 
-
 import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
 import mill.scalalib.api.ZincWorkerUtil
@@ -190,9 +189,9 @@ object CrossVersion {
  * Same as [[Dep]] but with already bound cross and platform settings.
  */
 case class BoundDep(
-                     dep: coursier.Dependency,
-                     force: Boolean
-                   ) {
+    dep: coursier.Dependency,
+    force: Boolean
+) {
   def organization = dep.module.organization.value
   def name = dep.module.name.value
   def version = dep.version

@@ -157,45 +157,46 @@ trait MainModule extends mill.define.Module {
    * If there are multiple dependency paths between `src` and `dest`, the path
    * chosen is arbitrary.
    */
-  def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] = Target.command {
-    val resolved = Resolve.Tasks.resolve(
-      evaluator.rootModule,
-      List(src, dest),
-      SelectMode.Multi
-    )
+  def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] =
+    Target.command {
+      val resolved = Resolve.Tasks.resolve(
+        evaluator.rootModule,
+        List(src, dest),
+        SelectMode.Multi
+      )
 
-    resolved match {
-      case Left(err) => Result.Failure(err)
-      case Right(Seq(src1, dest1)) =>
-        val queue = collection.mutable.Queue[List[Task[_]]](List(src1))
-        var found = Option.empty[List[Task[_]]]
-        val seen = collection.mutable.Set.empty[Task[_]]
-        while (queue.nonEmpty && found.isEmpty) {
-          val current = queue.dequeue()
-          if (current.head == dest1) found = Some(current)
-          else {
-            for {
-              next <- current.head.inputs
-              if !seen.contains(next)
-            } {
-              seen.add(next)
-              queue.enqueue(next :: current)
+      resolved match {
+        case Left(err) => Result.Failure(err)
+        case Right(Seq(src1, dest1)) =>
+          val queue = collection.mutable.Queue[List[Task[_]]](List(src1))
+          var found = Option.empty[List[Task[_]]]
+          val seen = collection.mutable.Set.empty[Task[_]]
+          while (queue.nonEmpty && found.isEmpty) {
+            val current = queue.dequeue()
+            if (current.head == dest1) found = Some(current)
+            else {
+              for {
+                next <- current.head.inputs
+                if !seen.contains(next)
+              } {
+                seen.add(next)
+                queue.enqueue(next :: current)
+              }
             }
           }
-        }
-        found match {
-          case None =>
-            Result.Failure(s"No path found between $src and $dest")
-          case Some(list) =>
-            val labels = list
-              .collect { case n: NamedTask[_] => n.ctx.segments.render }
+          found match {
+            case None =>
+              Result.Failure(s"No path found between $src and $dest")
+            case Some(list) =>
+              val labels = list
+                .collect { case n: NamedTask[_] => n.ctx.segments.render }
 
-            labels.foreach(Target.log.outputStream.println(_))
+              labels.foreach(Target.log.outputStream.println(_))
 
-            Result.Success(labels)
-        }
+              Result.Success(labels)
+          }
+      }
     }
-  }
 
   /**
    * Displays metadata about the given task without actually running it.
@@ -400,18 +401,19 @@ trait MainModule extends mill.define.Module {
   /**
    * Renders the dependencies between the given tasks, and all their dependencies, as a SVG
    */
-  def visualizePlan(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] = Target.command {
-    plan0(evaluator, targets) match {
-      case Left(err) => Result.Failure(err)
-      case Right(planResults) => visualize0(
-          evaluator,
-          targets,
-          Target.ctx(),
-          mill.main.VisualizeModule.worker(),
-          Some(planResults.toList.map(_.task))
-        )
+  def visualizePlan(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
+    Target.command {
+      plan0(evaluator, targets) match {
+        case Left(err) => Result.Failure(err)
+        case Right(planResults) => visualize0(
+            evaluator,
+            targets,
+            Target.ctx(),
+            mill.main.VisualizeModule.worker(),
+            Some(planResults.toList.map(_.task))
+          )
+      }
     }
-  }
 
   /**
    * Shuts down mill's background server

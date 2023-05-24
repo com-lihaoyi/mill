@@ -547,17 +547,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     val scalacOptions = (
       allScalacOptions() ++
         semanticDbEnablePluginScalacOptions() ++ {
-        if (ZincWorkerUtil.isScala3(sv)) {
-          Seq("-Xsemanticdb")
-        } else {
-          Seq(
-            "-Yrangepos",
-            s"-P:semanticdb:sourceroot:${T.workspace}",
-            "-Ystop-after:semanticdb-typer"
-          )
+          if (ZincWorkerUtil.isScala3(sv)) {
+            Seq("-Xsemanticdb")
+          } else {
+            Seq(
+              "-Yrangepos",
+              s"-P:semanticdb:sourceroot:${T.workspace}",
+              "-Ystop-after:semanticdb-typer"
+            )
+          }
         }
-      }
-      )
+    )
       .filterNot(_ == "-Xfatal-warnings")
 
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(javacOptions(), semanticDbJavaVersion())
@@ -569,7 +569,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
-        compileClasspath = (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
+        compileClasspath =
+          (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
         javacOptions = javacOpts,
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),
@@ -579,6 +580,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems()
       )
-      .map(r => SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data"))
+      .map(r =>
+        SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")
+      )
   }
 }
