@@ -6,8 +6,8 @@ index 20fe84f7e4..869c3ba31e 100644
  import $file.ci.shared
  import $file.ci.upload
  import $ivy.`org.scalaj::scalaj-http:2.4.2`
--import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1-6-e80da7`
-+//import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1-6-e80da7`
+-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1-7-33d3b5`
++//import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1-7-33d3b5`
  
 -import $ivy.`com.github.lolgab::mill-mima::0.0.20`
 +//import $ivy.`com.github.lolgab::mill-mima::0.0.20`
