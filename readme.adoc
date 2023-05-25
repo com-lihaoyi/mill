@@ -299,7 +299,7 @@ corresponding version of Mill.
 === 0.11.0-M10 - 2023-05-24
 :version: 0.11.0-M10
 :milestone-name: 0.11.0-M10
-:milestone: 81
+:milestone: 82
 :prev-version: 0.11.0-M9
 
 *This release is binary incompatible to {prev-version}.*
