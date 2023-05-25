@@ -295,6 +295,38 @@ corresponding version of Mill.
 == Changelog
 
 
+[#0-11-0-M10]
+=== 0.11.0-M10 - 2023-05-24
+:version: 0.11.0-M10
+:milestone-name: 0.11.0-M10
+:milestone: 81
+:prev-version: 0.11.0-M9
+
+*This release is binary incompatible to {prev-version}.*
+
+* Make `mill.define.Module` a `trait` to allow abstract/virtual modules
+  to be `trait`s rather than ``class``es
+  https://github.com/com-lihaoyi/mill/pull/2536[#2536]
+
+* Move `mill.BuildInfo` to `mill.main.BuildInfo` to avoid name conflicts with
+  `mill.contrib.buildinfo.BuildInfo`
+  https://github.com/com-lihaoyi/mill/pull/2537[#2537]
+
+* `PlatformScalModule` now exposes `platformScalaSuffix` for user code to use
+  https://github.com/com-lihaoyi/mill/pull/2534[#2534]
+
+* Add `Agg.when` operator to simplify common workflow of adding optional flags
+  or command line parameters https://github.com/com-lihaoyi/mill/pull/2535[#2353]
+
+* Generalize handling of test module source folder layout, such that they always
+  match the folder layout of the enclosing module
+  https://github.com/com-lihaoyi/mill/pull/2531[#2531]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 [#0-11-0-M9]
 === 0.11.0-M9 - 2023-05-18
 :version: 0.11.0-M9
@@ -313,7 +345,7 @@ https://github.com/com-lihaoyi/mill/pull/2511[#2511]
   `run` to be easily used in the implementation of other tasks
   https://github.com/com-lihaoyi/mill/pull/2452[#2452]
 
-* `T.input`s are now watched properly with `--watch`, and trigger re-evaluations
+* ``T.input``s are now watched properly with `--watch`, and trigger re-evaluations
   when the watched value changes https://github.com/com-lihaoyi/mill/pull/2489[#2489]
 
 * Support for Java 20 https://github.com/com-lihaoyi/mill/pull/2501[#2501]
