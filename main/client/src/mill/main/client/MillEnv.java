@@ -21,6 +21,10 @@ public class MillEnv {
         return propAppliedProp != null && propAppliedProp.equals("true");
     }
 
+    static String millServerTimeout() {
+        return System.getenv("MILL_SERVER_TIMEOUT_MILLIS");
+    }
+
     static boolean isWin() {
         return System.getProperty("os.name", "").startsWith("Windows");
     }
@@ -94,6 +98,9 @@ public class MillEnv {
                 vmOptions.add("-D" + k + "=" + sysProps.getProperty(k));
             }
         }
+
+        String serverTimeout = millServerTimeout();
+        if (serverTimeout != null ) vmOptions.add("-D" + "mill.server_timeout" + "=" + serverTimeout);
 
         // extra opts
         File millJvmOptsFile = millJvmOptsFile();
