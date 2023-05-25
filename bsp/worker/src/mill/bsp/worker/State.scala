@@ -3,14 +3,14 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import mill.runner.MillBuildBootstrap
 import mill.scalalib.bsp.BspModule
-import mill.scalalib.internal.ModuleUtils
+import mill.scalalib.internal.{JavaModuleUtils, ModuleUtils}
 import mill.define.Module
 import mill.util.ColorLogger
 
 private class State(projectRoot: os.Path, baseLogger: ColorLogger, debug: String => Unit) {
   lazy val bspModulesById: Map[BuildTargetIdentifier, BspModule] = {
     val modules: Seq[(Module, Seq[Module])] = rootModules
-      .map(rootModule => (rootModule, ModuleUtils.transitiveModules(rootModule)))
+      .map(rootModule => (rootModule, JavaModuleUtils.transitiveModules(rootModule)))
 
     val map = modules
       .flatMap { case (rootModule, otherModules) =>

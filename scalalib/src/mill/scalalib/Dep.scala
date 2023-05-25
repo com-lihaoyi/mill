@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import mill.scalalib.JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
 import mill.scalalib.api.ZincWorkerUtil
@@ -136,6 +135,7 @@ object Dep {
       force
     )
   }
+  private implicit val depFormat = mill.scalalib.JsonFormatters.depFormat
   implicit def rw: RW[Dep] = macroRW
 }
 
@@ -183,4 +183,30 @@ object CrossVersion {
   def empty(platformed: Boolean) = Constant(value = "", platformed)
 
   implicit def rw: RW[CrossVersion] = RW.merge(Constant.rw, Binary.rw, Full.rw)
+}
+
+/**
+ * Same as [[Dep]] but with already bound cross and platform settings.
+ */
+case class BoundDep(
+    dep: coursier.Dependency,
+    force: Boolean
+) {
+  def organization = dep.module.organization.value
+  def name = dep.module.name.value
+  def version = dep.version
+
+  def toDep: Dep = Dep(dep = dep, cross = CrossVersion.empty(false), force = force)
+
+  def exclude(exclusions: (String, String)*) = copy(
+    dep = dep.withExclusions(
+      dep.exclusions ++
+        exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
+    )
+  )
+}
+
+object BoundDep {
+  private implicit val depFormat = mill.scalalib.JsonFormatters.depFormat
+  implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
 }

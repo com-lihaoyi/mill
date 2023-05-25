@@ -354,7 +354,7 @@ trait AcyclicConfig extends ScalaModule {
     super.scalacPluginIvyDeps() ++ Agg(Deps.acyclic)
   }
   override def scalacOptions: Target[Seq[String]] =
-    super.scalacOptions() ++ Seq("-P:acyclic:force", "-P:acyclic:warn")
+    super.scalacOptions() ++ Seq("-P:acyclic:force")
 }
 
 /**

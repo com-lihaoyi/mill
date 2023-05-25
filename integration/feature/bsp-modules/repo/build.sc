@@ -22,7 +22,7 @@ object HelloBsp extends HelloBspModule {
 }
 
 def validate() = T.command {
-  val transitiveModules = mill.scalalib.internal.ModuleUtils.transitiveModules(build)
+  val transitiveModules = mill.scalalib.internal.JavaModuleUtils.transitiveModules(build)
   val file = T.dest / "transitive-modules.json"
   val moduleNames = transitiveModules.map(m =>
     mill.scalalib.internal.ModuleUtils.moduleDisplayName(m)
