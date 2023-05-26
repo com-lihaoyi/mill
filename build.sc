@@ -2,9 +2,9 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1-7-33d3b5`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1-8-37c08a`
 
-import $ivy.`com.github.lolgab::mill-mima::0.0.20`
+import $ivy.`com.github.lolgab::mill-mima::0.0.21`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
 // imports
@@ -425,10 +425,9 @@ trait BaseMillTestsModule extends TestModule {
 
 /** A MillScalaModule with default set up test module. */
 trait MillAutoTestSetup extends MillScalaModule {
-  // instead of `object test` which can't be overridden, we hand-made a val+class singleton
   /** Default tests module. */
-  val test = new Tests(implicitly)
-  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.MillScalaModuleTests
+  lazy val test: Tests = new Tests {}
+  trait Tests extends super.MillScalaModuleTests
 }
 
 /** Published module which does not contain strictly handled API. */
@@ -917,8 +916,8 @@ object bsp extends MillModule with BuildInfo {
     )
   }
 
-  override val test = new Test(implicitly)
-  class Test(ctx0: mill.define.Ctx) extends Tests(ctx0) {
+  override lazy val test: Test = new Test {}
+  trait Test extends Tests{
     override def forkEnv: Target[Map[String, String]] = T {
       // We try to fetch this dependency with coursier in the tests
       bsp.worker.publishLocal()()
@@ -1066,7 +1065,7 @@ object example extends MillScalaModule {
               val title =
                 if (seenCode) ""
                 else {
-                  val label = VcsVersion.vcsState().format()
+                  val label = millVersion()
                   val exampleDashed = examplePath.segments.mkString("-")
                   val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
                   val browse = s"{mill-example-url}/$examplePath[browse]"
@@ -1744,7 +1743,7 @@ def exampleZips: Target[Seq[PathRef]] = T {
     examplePath = exampleMod.millSourcePath
   } yield {
     val example = examplePath.subRelativeTo(T.workspace)
-    val exampleStr = VcsVersion.vcsState().format() + "-" + example.segments.mkString("-")
+    val exampleStr = millVersion() + "-" + example.segments.mkString("-")
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
     os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
     val zip = T.dest / s"$exampleStr.zip"
@@ -1754,47 +1753,47 @@ def exampleZips: Target[Seq[PathRef]] = T {
 }
 
 def uploadToGithub(authKey: String) = T.command {
-  val vcsState = VcsVersion.vcsState()
-  val label = vcsState.format()
-  if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
-  val releaseTag = vcsState.lastTag.getOrElse(sys.error(
-    "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
-  ))
-
-  if (releaseTag == label) {
-    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
-    scalaj.http.Http(
-      s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
-    )
-      .postData(
-        ujson.write(
-          ujson.Obj(
-            "tag_name" -> releaseTag,
-            "name" -> releaseTag
-          )
-        )
-      )
-      .header("Authorization", "token " + authKey)
-      .asString
-  }
-
-  val examples = exampleZips().map(z => (z.path, z.path.last))
-
-  val zips = examples ++ Seq(
-    (dev.assembly().path, label + "-assembly"),
-    (bootstrapLauncher().path, label)
-  )
-
-  for ((zip, name) <- zips) {
-    upload.apply(
-      zip,
-      releaseTag,
-      name,
-      authKey,
-      Settings.githubOrg,
-      Settings.githubRepo
-    )
-  }
+//  val vcsState = VcsVersion.vcsState()
+//  val label = vcsState.format()
+//  if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
+//  val releaseTag = vcsState.lastTag.getOrElse(sys.error(
+//    "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
+//  ))
+//
+//  if (releaseTag == label) {
+//    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
+//    scalaj.http.Http(
+//      s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
+//    )
+//      .postData(
+//        ujson.write(
+//          ujson.Obj(
+//            "tag_name" -> releaseTag,
+//            "name" -> releaseTag
+//          )
+//        )
+//      )
+//      .header("Authorization", "token " + authKey)
+//      .asString
+//  }
+//
+//  val examples = exampleZips().map(z => (z.path, z.path.last))
+//
+//  val zips = examples ++ Seq(
+//    (dev.assembly().path, label + "-assembly"),
+//    (bootstrapLauncher().path, label)
+//  )
+//
+//  for ((zip, name) <- zips) {
+//    upload.apply(
+//      zip,
+//      releaseTag,
+//      name,
+//      authKey,
+//      Settings.githubOrg,
+//      Settings.githubRepo
+//    )
+//  }
 }
 
 def validate(ev: Evaluator): Command[Unit] = T.command {
