@@ -130,7 +130,7 @@ object ClientServerTests extends TestSuite {
         err2 == s"HELLO WORLD${ENDL}"
       )
 
-      if (!Util.isWindows) {
+      if (!Util.isWindowss) {
         // Make sure the server times out of not used for a while
         Thread.sleep(2000)
         assert(

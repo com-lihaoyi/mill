@@ -212,6 +212,9 @@ trait MillJavaModule extends JavaModule {
 
   // Test setup
   def testDep = T { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
+
+  // Workaround for Zinc/JNA bug
+  // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
   def testArgs: T[Seq[String]] = T { Seq("-Djna.nosys=true") }
   def testDepPaths = T { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
@@ -263,32 +266,6 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   )
   def pomSettings = commonPomSettings(artifactName())
   def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
-}
-
-trait MillPublicJavaModule extends MillPublishJavaModule with Mima{
-  def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
-
-  def mimaPreviousArtifacts: T[Agg[Dep]] = T {
-    Agg.from(
-      Settings.mimaBaseVersions
-        .filter(v => !skipPreviousVersions().contains(v))
-        .map(version =>
-          ivy"${pomSettings().organization}:${artifactId()}:${version}"
-        )
-    )
-  }
-
-  def mimaExcludeAnnotations = Seq("mill.api.internal", "mill.api.experimental")
-
-  def mimaCheckDirection = CheckDirection.Backward
-
-  def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = T {
-    issueFilterByModule.getOrElse(this, Seq())
-  }
-
-  lazy val issueFilterByModule: Map[MillPublicJavaModule, Seq[ProblemFilter]] = Map()
-
-  def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 }
 
 /**
@@ -366,7 +343,29 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
 trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 
 /** Publishable module which contains strictly handled API. */
-trait MillPublicScalaModule extends MillPublishScalaModule with Mima
+trait MillPublicScalaModule extends MillPublishScalaModule with Mima{
+  def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
+
+  def mimaPreviousArtifacts: T[Agg[Dep]] = T {
+    Agg.from(
+      Settings.mimaBaseVersions
+        .filter(v => !skipPreviousVersions().contains(v))
+        .map(version =>
+          ivy"${pomSettings().organization}:${artifactId()}:${version}"
+        )
+    )
+  }
+
+  def mimaExcludeAnnotations = Seq("mill.api.internal", "mill.api.experimental")
+
+  def mimaCheckDirection = CheckDirection.Backward
+
+  def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = issueFilterByModule.getOrElse(this, Seq())
+
+  lazy val issueFilterByModule: Map[MillPublicScalaModule, Seq[ProblemFilter]] = Map()
+
+  def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
+}
 
 object bridge extends Cross[BridgeModule](buildBridgeScalaVersions)
 trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
@@ -462,16 +461,11 @@ object main extends MillPublicScalaModule with BuildInfo{
   }
   object util extends MillPublicScalaModule {
     def moduleDeps = Seq(api, client)
-    def ivyDeps = Agg(
-      Deps.coursier,
-      Deps.jline
-    )
+    def ivyDeps = Agg(Deps.coursier, Deps.jline)
   }
   object define extends MillPublicScalaModule {
     def moduleDeps = Seq(api, util)
-    def compileIvyDeps = Agg(
-      Deps.scalaReflect(scalaVersion())
-    )
+    def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
     def ivyDeps = Agg(
       Deps.millModuledefs,
       //      Deps.millModuledefsPlugin,
@@ -505,10 +499,7 @@ object main extends MillPublicScalaModule with BuildInfo{
   object graphviz extends MillPublicScalaModule {
     def moduleDeps = Seq(main, scalalib)
 
-    def ivyDeps = Agg(
-      Deps.graphvizJava,
-      Deps.jgraphtCore
-    )
+    def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
   }
 
   object testkit extends MillPublishScalaModule {
@@ -787,9 +778,7 @@ object contrib extends Module {
 
   object bloop extends ContribModule with BuildInfo {
     def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
-    def ivyDeps = Agg(
-      Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13")
-    )
+    def ivyDeps = Agg(Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
       scalalib,
       scalajslib,
@@ -845,6 +834,7 @@ object scalanativelib extends MillPublicScalaModule {
   object `worker-api` extends MillPublishScalaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
+
   object worker extends Cross[WorkerModule]("0.4")
 
   trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
@@ -914,7 +904,6 @@ trait IntegrationTestModule extends MillScalaModule {
 
   trait ModeModule extends ScalaModule with MillBaseTestsModule {
     def mode: String = millModuleSegments.parts.last
-
     def scalaVersion = integration.scalaVersion()
 
     def forkEnv =
@@ -933,8 +922,8 @@ trait IntegrationTestModule extends MillScalaModule {
 
     def forkArgs: T[Seq[String]] = T {
       super.forkArgs() ++
-        dev.forkArgs() ++
-        Seq(s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}")
+      dev.forkArgs() ++
+      Seq(s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}")
     }
 
     def testReleaseEnv =
@@ -1128,12 +1117,11 @@ object integration extends MillScalaModule {
   }
 }
 
-def launcherScript(
-                    shellJvmArgs: Seq[String],
-                    cmdJvmArgs: Seq[String],
-                    shellClassPath: Agg[String],
-                    cmdClassPath: Agg[String]
-                  ) = {
+def launcherScript(shellJvmArgs: Seq[String],
+                   cmdJvmArgs: Seq[String],
+                   shellClassPath: Agg[String],
+                   cmdClassPath: Agg[String]) = {
+
   val millMainClass = "mill.main.client.MillClientMain"
   val millClientMainClass = "mill.main.client.MillClientMain"
 
@@ -1260,37 +1248,23 @@ object dev extends MillPublishScalaModule {
     bsp.worker.testDep()
   )
 
-  def genTask(m: ScalaModule) = T.task {
-    Seq(m.jar(), m.sourceJar()) ++ m.runClasspath()
-  }
+  def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
 
   def forkArgs: T[Seq[String]] = T {
-
     val genIdeaArgs =
-    //      genTask(main.moduledefs)() ++
       genTask(main.define)() ++
-        genTask(main.eval)() ++
-        genTask(main)() ++
-        genTask(scalalib)() ++
-        genTask(scalajslib)() ++
-        genTask(scalanativelib)()
+      genTask(main.eval)() ++
+      genTask(main)() ++
+      genTask(scalalib)() ++
+      genTask(scalajslib)() ++
+      genTask(scalanativelib)()
 
-    main.graphviz.testArgs() ++
-      contrib.buildinfo.testArgs() ++
-      scalalib.testArgs() ++
-      scalajslib.testArgs() ++
-      scalalib.worker.testArgs() ++
-      scalanativelib.testArgs() ++
-      scalalib.backgroundwrapper.testArgs() ++
-      runner.linenumbers.testArgs() ++
-      // Workaround for Zinc/JNA bug
-      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-      Seq(
-        "-Djna.nosys=true",
-        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
-        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-        s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}"
-      )
+    testArgs() ++
+    Seq(
+      "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
+      "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
+      s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}"
+    )
   }
 
   def launcher = T {
@@ -1306,9 +1280,7 @@ object dev extends MillPublishScalaModule {
   }
 
   def extraPublish: T[Seq[PublishInfo]] = T {
-    Seq(
-      PublishInfo(file = assembly(), classifier = Some("assembly"), ivyConfig = "compile")
-    )
+    Seq(PublishInfo(file = assembly(), classifier = Some("assembly"), ivyConfig = "compile"))
   }
 
   def assemblyRules = super.assemblyRules ++ Seq(
@@ -1334,12 +1306,7 @@ object dev extends MillPublishScalaModule {
     os.move(
       mill.scalalib.Assembly.createAssembly(
         devRunClasspath,
-        prependShellScript = launcherScript(
-          shellArgs,
-          cmdArgs,
-          Agg("$0"),
-          Agg("%~dpnx0")
-        ),
+        prependShellScript = launcherScript(shellArgs, cmdArgs, Agg("$0"), Agg("%~dpnx0")),
         assemblyRules = assemblyRules
       ).path,
       T.ctx.dest / filename
@@ -1400,7 +1367,6 @@ object dev extends MillPublishScalaModule {
         catch { case e => () /*ignore to avoid confusing stacktrace and error messages*/ }
         mill.api.Result.Success(())
     }
-
   }
 }
 
@@ -1436,9 +1402,10 @@ object docs extends Module {
       workingDir = npmDir
     )
   }
-  def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
-                                                                      ctx: mill.api.Ctx.Log
-  ) = {
+
+  def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])
+               (implicit ctx: mill.api.Ctx.Log) = {
+
     prepareAntora(npmDir)
     val cmdArgs =
       Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
@@ -1450,6 +1417,7 @@ object docs extends Module {
     )
     PathRef(workDir / "build" / "site")
   }
+
   def source0: Source = T.source(millSourcePath)
   def source = T {
     os.copy(source0().path, T.dest, mergeFolders = true)
@@ -1487,7 +1455,7 @@ object docs extends Module {
   def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
   def devAntoraSources: T[PathRef] = T {
     val dest = T.dest
-    shared.mycopy(source().path, dest, mergeFolders = true)
+    os.copy(source().path, dest, mergeFolders = true)
     val lines = os.read(dest / "antora.yml").linesIterator.map {
       case l if l.startsWith("version:") =>
         s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
@@ -1549,6 +1517,7 @@ object docs extends Module {
   def githubPages: T[PathRef] = T {
     generatePages(authorMode = false)()
   }
+
   def localPages = T {
     val pages = generatePages(authorMode = true)()
     T.log.outputStream.println(
@@ -1609,7 +1578,7 @@ object docs extends Module {
 
     PathRef(siteDir)
   }
-  //    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}
+
   def sanitizeDevUrls(
                        dir: os.Path,
                        sourceDir: os.Path,
@@ -1713,47 +1682,47 @@ def exampleZips: T[Seq[PathRef]] = T {
 }
 
 def uploadToGithub(authKey: String) = T.command {
-  //  val vcsState = VcsVersion.vcsState()
-  //  val label = vcsState.format()
-  //  if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
-  //  val releaseTag = vcsState.lastTag.getOrElse(sys.error(
-  //    "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
-  //  ))
-  //
-  //  if (releaseTag == label) {
-  //    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
-  //    scalaj.http.Http(
-  //      s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
-  //    )
-  //      .postData(
-  //        ujson.write(
-  //          ujson.Obj(
-  //            "tag_name" -> releaseTag,
-  //            "name" -> releaseTag
-  //          )
-  //        )
-  //      )
-  //      .header("Authorization", "token " + authKey)
-  //      .asString
-  //  }
-  //
-  //  val examples = exampleZips().map(z => (z.path, z.path.last))
-  //
-  //  val zips = examples ++ Seq(
-  //    (dev.assembly().path, label + "-assembly"),
-  //    (bootstrapLauncher().path, label)
-  //  )
-  //
-  //  for ((zip, name) <- zips) {
-  //    upload.apply(
-  //      zip,
-  //      releaseTag,
-  //      name,
-  //      authKey,
-  //      Settings.githubOrg,
-  //      Settings.githubRepo
-  //    )
-  //  }
+  val vcsState = VcsVersion.vcsState()
+  val label = vcsState.format()
+  if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
+  val releaseTag = vcsState.lastTag.getOrElse(sys.error(
+    "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
+  ))
+
+  if (releaseTag == label) {
+    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
+    scalaj.http.Http(
+      s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
+    )
+      .postData(
+        ujson.write(
+          ujson.Obj(
+            "tag_name" -> releaseTag,
+            "name" -> releaseTag
+          )
+        )
+      )
+      .header("Authorization", "token " + authKey)
+      .asString
+  }
+
+  val examples = exampleZips().map(z => (z.path, z.path.last))
+
+  val zips = examples ++ Seq(
+    (dev.assembly().path, label + "-assembly"),
+    (bootstrapLauncher().path, label)
+  )
+
+  for ((zip, name) <- zips) {
+    upload.apply(
+      zip,
+      releaseTag,
+      name,
+      authKey,
+      Settings.githubOrg,
+      Settings.githubRepo
+    )
+  }
 }
 
 def validate(ev: Evaluator): Command[Unit] = T.command {
@@ -1777,8 +1746,5 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
 
 object DependencyFetchDummy extends ScalaModule {
   def scalaVersion = Deps.scalaVersion
-  def compileIvyDeps = Agg(
-    Deps.semanticDbJava,
-    Deps.semanticDB
-  )
+  def compileIvyDeps = Agg(Deps.semanticDbJava, Deps.semanticDB)
 }
