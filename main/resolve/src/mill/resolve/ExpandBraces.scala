@@ -3,7 +3,7 @@ package mill.resolve
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse._
 
-object ExpandBraces {
+private object ExpandBraces {
   private sealed trait Fragment
   private object Fragment {
     case class Keep(value: String) extends Fragment

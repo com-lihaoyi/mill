@@ -7,8 +7,8 @@ import os.Path
 import java.io.PrintStream
 import java.net.URL
 
-@internal
-trait BspWorker {
+
+private trait BspWorker {
   def startBspServer(
       streams: SystemStreams,
       logStream: PrintStream,
@@ -17,8 +17,7 @@ trait BspWorker {
   ): Either[String, BspServerHandle]
 }
 
-@internal
-object BspWorker {
+private object BspWorker {
 
   private[this] var worker: Option[BspWorker] = None
 

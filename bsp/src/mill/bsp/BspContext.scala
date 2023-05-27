@@ -6,12 +6,11 @@ import mill.eval.Evaluator
 import java.io.PrintStream
 import scala.util.control.NonFatal
 
-object BspContext {
+private[mill] object BspContext {
   @volatile var bspServerHandle: BspServerHandle = null
 }
 
-@internal
-class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home: os.Path) {
+private[mill] class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream], home: os.Path) {
   // BSP mode, run with a simple evaluator command to inject the evaluator
   // The command returns when the server exists or the workspace should be reloaded
   // if the `lastResult` is `ReloadWorkspace` we re-run the script in a loop
