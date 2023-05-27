@@ -9,9 +9,9 @@ object ImportIvyWorkerInvalidation extends IntegrationTestSuite {
   val tests = Tests {
     test {
       val wsRoot = initWorkspace()
-      assert(evalStdout("app.compile").isSuccess)
+      assert(eval("app.compile"))
       mangleFile(wsRoot / "build.sc", _.replace("object app", "println(\"hello\"); object app"))
-      assert(evalStdout("app.compile").isSuccess)
+      assert(eval("app.compile"))
     }
   }
 }
