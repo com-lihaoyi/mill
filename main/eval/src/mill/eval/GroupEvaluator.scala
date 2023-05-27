@@ -380,7 +380,7 @@ private[mill] trait GroupEvaluator {
       }
       .flatMap {
         case (cachedHash, upToDate)
-          if cachedHash == workerCacheHash(inputsHash) =>
+            if cachedHash == workerCacheHash(inputsHash) =>
           Some(upToDate) // worker cached and up-to-date
 
         case (_, Val(obsolete: AutoCloseable)) =>
