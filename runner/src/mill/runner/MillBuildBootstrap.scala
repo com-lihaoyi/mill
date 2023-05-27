@@ -100,18 +100,10 @@ class MillBuildBootstrap(
       else {
         val validatedRootModuleOrErr = nestedState.frames.headOption match {
           case None =>
-            getChildRootModule(
-              nestedState.bootstrapModuleOpt.get,
-              depth,
-              projectRoot
-            )
+            getChildRootModule(nestedState.bootstrapModuleOpt.get, depth, projectRoot)
 
           case Some(nestedFrame) =>
-            getRootModule(
-              nestedFrame.classLoaderOpt.get,
-              depth,
-              projectRoot
-            )
+            getRootModule(nestedFrame.classLoaderOpt.get, depth, projectRoot)
         }
 
         validatedRootModuleOrErr match {
