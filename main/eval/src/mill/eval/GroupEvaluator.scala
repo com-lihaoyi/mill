@@ -292,7 +292,7 @@ private[mill] trait GroupEvaluator {
   // read from disk and re-instantiated every time, so whether the
   // classloader/class is the same or different doesn't matter.
   def workerCacheHash(inputHash: Int) = {
-    inputHash + classLoaderIdentityHash
+    inputHash // + classLoaderIdentityHash
   }
 
   private def handleTaskResult(

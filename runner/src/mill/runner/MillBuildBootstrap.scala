@@ -64,7 +64,7 @@ class MillBuildBootstrap(
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
-    val nested =
+    val nestedState =
       if (depth == 0) {
         if (os.exists(recRoot(projectRoot, depth) / "build.sc")) evaluateRec(depth + 1)
         else {
@@ -96,12 +96,12 @@ class MillBuildBootstrap(
       }
 
     val res =
-      if (nested.errorOpt.isDefined) nested.add(errorOpt = nested.errorOpt)
+      if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
       else {
-        val validatedRootModuleOrErr = nested.frames.headOption match {
+        val validatedRootModuleOrErr = nestedState.frames.headOption match {
           case None =>
             getChildRootModule(
-              nested.bootstrapModuleOpt.get,
+              nestedState.bootstrapModuleOpt.get,
               depth,
               projectRoot
             )
@@ -115,26 +115,26 @@ class MillBuildBootstrap(
         }
 
         validatedRootModuleOrErr match {
-          case Left(err) => nested.add(errorOpt = Some(err))
+          case Left(err) => nestedState.add(errorOpt = Some(err))
           case Right(rootModule) =>
             val evaluator = makeEvaluator(
               prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
-              nested.frames.lastOption.map(_.scriptImportGraph).getOrElse(Map.empty),
+              nestedState.frames.headOption.map(_.scriptImportGraph).getOrElse(Map.empty),
               rootModule,
               // We want to use the grandparent buildHash, rather than the parent
               // buildHash, because the parent build changes are instead detected
               // by analyzing the scriptImportGraph in a more fine-grained manner.
-              nested
+              nestedState
                 .frames
                 .dropRight(1)
-                .lastOption
+                .headOption
                 .map(_.runClasspath)
                 .getOrElse(millBootClasspath.map(PathRef(_)))
                 .map(p => (p.path, p.sig))
                 .hashCode(),
-              nested
+              nestedState
                 .frames
-                .lastOption
+                .headOption
                 .flatMap(_.classLoaderOpt)
                 .map(_.hashCode())
                 .getOrElse(0),
@@ -142,13 +142,13 @@ class MillBuildBootstrap(
             )
 
             if (depth != 0) processRunClasspath(
-              nested,
+              nestedState,
               rootModule,
               evaluator,
               prevFrameOpt,
               prevOuterFrameOpt
             )
-            else processFinalTargets(nested, rootModule, evaluator)
+            else processFinalTargets(nestedState, rootModule, evaluator)
         }
       }
     // println(s"-evaluateRec($depth) " + recRoot(projectRoot, depth))
@@ -166,7 +166,7 @@ class MillBuildBootstrap(
    * inside to be re-JITed
    */
   def processRunClasspath(
-      nestedRunnerState: RunnerState,
+      nestedState: RunnerState,
       rootModule: RootModule,
       evaluator: Evaluator,
       prevFrameOpt: Option[RunnerState.Frame],
@@ -187,7 +187,7 @@ class MillBuildBootstrap(
           Nil
         )
 
-        nestedRunnerState.add(frame = evalState, errorOpt = Some(error))
+        nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
             Right(Seq(
@@ -234,7 +234,7 @@ class MillBuildBootstrap(
           runClasspath
         )
 
-        nestedRunnerState.add(frame = evalState)
+        nestedState.add(frame = evalState)
     }
   }
 
@@ -244,7 +244,7 @@ class MillBuildBootstrap(
    * classloader, or runClasspath.
    */
   def processFinalTargets(
-      nestedRunnerState: RunnerState,
+      nestedState: RunnerState,
       rootModule: RootModule,
       evaluator: Evaluator
   ): RunnerState = {
@@ -261,7 +261,7 @@ class MillBuildBootstrap(
       Nil
     )
 
-    nestedRunnerState.add(frame = evalState, errorOpt = evaled.left.toOption)
+    nestedState.add(frame = evalState, errorOpt = evaled.left.toOption)
   }
 
   def makeEvaluator(
