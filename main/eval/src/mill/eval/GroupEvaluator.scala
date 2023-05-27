@@ -287,7 +287,21 @@ private[mill] trait GroupEvaluator {
     labelled.task.asWorker match {
       case Some(w) =>
         workerCache.synchronized {
-          workerCache.update(w.ctx.segments, (inputsHash, v))
+          // Include the worker class hash as part of the worker hash. This is
+          // because unlike other targets, workers are long-lived in memory
+          // objects, and are not re-instantiated every run. Thus we need to
+          // make sure we invalidate workers in the scenario where a the worker
+          // classloader is re-created - so the worker *class* changes - but
+          // the *value* inputs to the worker does not change. This typically
+          // happens when the worker class is brought in via `import $ivy`,
+          // since the class then comes from the non-bootstrap classloader
+          // which can be re-created when the `build.sc` file changes.
+          //
+          // We do not want to do this for normal targets, because those are
+          // always read from disk and re-instantiated every time, so whether
+          // the classloader/class is the same or different doesn't matter.
+          val workerHash = inputsHash + v.value.getClass.hashCode()
+          workerCache.update(w.ctx.segments, (workerHash, v))
         }
       case None =>
         val terminalResult = labelled

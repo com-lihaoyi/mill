@@ -1297,6 +1297,8 @@ object dev extends MillModule {
     runner.linenumbers.testDep(),
     scalalib.backgroundwrapper.testDep(),
     contrib.buildinfo.testDep(),
+    contrib.playlib.testDep(),
+    contrib.playlib.worker("2.8").testDep(),
     bsp.worker.testDep()
   )
 
