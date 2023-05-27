@@ -156,11 +156,13 @@ object Deps {
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
+
 def millLastTag: T[String] = T {
   VcsVersion.vcsState().lastTag.getOrElse(
     sys.error("No (last) git tag found. Your git history seems incomplete!")
   )
 }
+
 def millBinPlatform: T[String] = T {
   val tag = millLastTag()
   if (tag.contains("-M")) tag
@@ -169,6 +171,7 @@ def millBinPlatform: T[String] = T {
     tag.split("[.]", pos + 1).take(pos).mkString(".")
   }
 }
+
 def baseDir = build.millSourcePath
 
 // We limit the number of compiler bridges to compile and publish for local
@@ -177,6 +180,7 @@ def baseDir = build.millSourcePath
 // on the fly anyway. For publishing, we publish everything.
 val buildAllCompilerBridges = interp.watchValue(sys.env.contains("MILL_BUILD_COMPILER_BRIDGES"))
 val bridgeVersion = "0.0.1"
+
 val bridgeScalaVersions = Seq(
   // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
   // bridges. We skip 2.12.1 because it's so old not to matter, and we need a
