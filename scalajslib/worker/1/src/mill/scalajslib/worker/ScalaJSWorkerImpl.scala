@@ -205,7 +205,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
           val jsFile = new File(dest, jsFileName).toPath()
           var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
-          val sourceMapNameOpt = Option.when(sourceMap)(jsFile.getFileName + ".map")
+          val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
           sourceMapNameOpt.foreach { sourceMapName =>
             val sourceMapFile = jsFile.resolveSibling(sourceMapName)
             linkerOutput = linkerOutput

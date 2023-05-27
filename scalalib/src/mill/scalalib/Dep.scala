@@ -200,7 +200,7 @@ case class BoundDep(
 
   def exclude(exclusions: (String, String)*) = copy(
     dep = dep.withExclusions(
-      dep.exclusions ++
+      dep.exclusions() ++
         exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
     )
   )
