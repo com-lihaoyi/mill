@@ -1336,7 +1336,7 @@ object dev extends MillModule {
 
   override def launcher = T {
     val isWin = scala.util.Properties.isWin
-    val outputPath = T.ctx.dest / (if (isWin) "run.bat" else "run")
+    val outputPath = T.dest / (if (isWin) "run.bat" else "run")
 
     os.write(outputPath, prependShellScript())
 
@@ -1383,16 +1383,16 @@ object dev extends MillModule {
         ),
         assemblyRules = assemblyRules
       ).path,
-      T.ctx.dest / filename
+      T.dest / filename
     )
-    PathRef(T.ctx.dest / filename)
+    PathRef(T.dest / filename)
   }
 
   def prependShellScript = T {
     val (millArgs, otherArgs) =
       forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
     // Pass Mill options via file, due to small max args limit in Windows
-    val vmOptionsFile = T.ctx.dest / "mill.properties"
+    val vmOptionsFile = T.dest / "mill.properties"
     val millOptionsContent =
       millArgs.map(_.drop(2).replace("\\", "/")).mkString(
         "\r\n"
@@ -1724,7 +1724,7 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 def millBootstrap = T.sources(T.workspace / "mill")
 
 def bootstrapLauncher = T {
-  val outputPath = T.ctx.dest / "mill"
+  val outputPath = T.dest / "mill"
   val millBootstrapGrepPrefix = "\nDEFAULT_MILL_VERSION="
   os.write(
     outputPath,
