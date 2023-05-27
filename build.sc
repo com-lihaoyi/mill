@@ -362,8 +362,9 @@ trait AcyclicConfig extends ScalaModule {
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
   def scalaVersion = Deps.scalaVersion
+  override def zincReportCachedProblems = T(true)
   override def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-deprecation")
+    super.scalacOptions() ++ Seq("-deprecation", "-Xsource:3")
   }
 
   def testTransitiveDeps: T[Map[String, String]] = T {
