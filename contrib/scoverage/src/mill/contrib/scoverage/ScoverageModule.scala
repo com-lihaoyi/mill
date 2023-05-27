@@ -231,7 +231,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def skipIdea = outer.skipIdea
   }
 
-  trait ScoverageTests extends outer.Tests {
+  trait ScoverageTests extends ScalaModuleTests {
     override def upstreamAssemblyClasspath = T {
       super.upstreamAssemblyClasspath() ++
         resolveDeps(T.task {
