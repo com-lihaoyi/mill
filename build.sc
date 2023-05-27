@@ -1579,12 +1579,11 @@ object docs extends Module {
     PathRef(siteDir)
   }
 
-  def sanitizeDevUrls(
-                       dir: os.Path,
-                       sourceDir: os.Path,
-                       newSourceDir: os.Path,
-                       baseDir: os.Path
-                     ): Unit = {
+  def sanitizeDevUrls(dir: os.Path,
+                      sourceDir: os.Path,
+                      newSourceDir: os.Path,
+                      baseDir: os.Path): Unit = {
+
     val pathToRemove = sourceDir.relativeTo(baseDir).toString()
     val replacePath = newSourceDir.relativeTo(baseDir).toString()
     //      println(s"Cleaning relative path '${pathToRemove}' ...")
