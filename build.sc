@@ -8,20 +8,11 @@ import $ivy.`com.github.lolgab::mill-mima::0.0.21`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
 // imports
-import com.github.lolgab.mill.mima
-import com.github.lolgab.mill.mima.{
-  CheckDirection,
-  DirectMissingMethodProblem,
-  IncompatibleMethTypeProblem,
-  IncompatibleSignatureProblem,
-  ProblemFilter,
-  ReversedMissingMethodProblem
-}
+import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
 import mill.eval.Evaluator
-import mill.main.MainModule
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.util.Jvm
@@ -29,11 +20,8 @@ import mill.resolve.SelectMode
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.api.Versions
-import scala.util.control.NonFatal
 import mill.T
-import mill.define.{Cross, Discover, ExternalModule}
-import mill.api.{Logger, Result}
-import os.{CommandResult, SubprocessException}
+import mill.define.Cross
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -98,7 +86,7 @@ object Deps {
     def scalaVersion: String = Deps.scalaVersion
   }
   object Play_2_6 extends Play {
-    val playVersion = "2.6.25"
+    def playVersion = "2.6.25"
     override def scalaVersion: String = Deps.workerScalaVersion212
   }
   object Play_2_7 extends Play {
@@ -217,12 +205,171 @@ val bridgeScalaVersions = Seq(
   "2.13.9",
   "2.13.10"
 )
-val buildBridgeScalaVersions =
-  if (!buildAllCompilerBridges) Seq()
-  else bridgeScalaVersions
+
+val buildBridgeScalaVersions = if (!buildAllCompilerBridges) Seq() else bridgeScalaVersions
+
+trait MillJavaModule extends JavaModule {
+
+  // Test setup
+  def testDep = T { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
+  def testArgs: T[Seq[String]] = T { Seq("-Djna.nosys=true") }
+  def testDepPaths = T { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
+
+  def repositoriesTask = T.task {
+    super.repositoriesTask() ++
+    Seq(MavenRepository("https://oss.sonatype.org/content/repositories/releases"))
+  }
+
+  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
+    super.mapDependencies().andThen { dep =>
+      forcedVersions.find(t =>
+        t._1 == dep.module.organization.value && t._2 == dep.module.name.value
+      ).map { forced =>
+        val newDep = dep.withVersion(forced._3)
+        T.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
+        newDep
+      }.getOrElse(dep)
+    }
+  }
+  val forcedVersions: Seq[(String, String, String)] = Seq(
+    ("org.apache.ant", "ant", "1.10.12"),
+    ("commons-io", "commons-io", "2.11.0"),
+    ("com.google.code.gson", "gson", "2.10.1"),
+    ("com.google.protobuf", "protobuf-java", "3.21.8"),
+    ("com.google.guava", "guava", "31.1-jre"),
+    ("org.yaml", "snakeyaml", "1.33")
+  )
+}
+
+trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+  def commonPomSettings(artifactName: String) = {
+    PomSettings(
+      description = artifactName,
+      organization = Settings.pomOrg,
+      url = Settings.projectUrl,
+      licenses = Seq(License.MIT),
+      versionControl = VersionControl.github(Settings.githubOrg, Settings.githubRepo),
+      developers = Seq(
+        Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"),
+        Developer("lefou", "Tobias Roeser", "https://github.com/lefou")
+      )
+    )
+  }
+
+  def artifactName = "mill-" + super.artifactName()
+  def publishVersion = millVersion()
+  def publishProperties = super.publishProperties() ++ Map(
+    "info.releaseNotesURL" -> Settings.changelogUrl
+  )
+  def pomSettings = commonPomSettings(artifactName())
+  def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
+}
+
+trait MillPublicJavaModule extends MillPublishJavaModule with Mima{
+  def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
+
+  def mimaPreviousArtifacts: T[Agg[Dep]] = T {
+    Agg.from(
+      Settings.mimaBaseVersions
+        .filter(v => !skipPreviousVersions().contains(v))
+        .map(version =>
+          ivy"${pomSettings().organization}:${artifactId()}:${version}"
+        )
+    )
+  }
+
+  def mimaExcludeAnnotations = Seq("mill.api.internal", "mill.api.experimental")
+
+  def mimaCheckDirection = CheckDirection.Backward
+
+  def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = T {
+    issueFilterByModule.getOrElse(this, Seq())
+  }
+
+  lazy val issueFilterByModule: Map[MillPublicJavaModule, Seq[ProblemFilter]] = Map()
+
+  def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
+}
+
+/**
+ * Some custom scala settings and test convenience
+ */
+trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
+  def scalaVersion = Deps.scalaVersion
+  def scalacOptions = super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force")
+
+  def testTransitiveDeps: T[Map[String, String]] = T {
+    val upstream = T.traverse(outer.moduleDeps ++ outer.compileModuleDeps) {
+      case m: MillScalaModule => m.testTransitiveDeps.map(Some(_))
+      case _ => T.task(None)
+    }().flatten.flatten
+    val current = Seq(outer.testDep())
+    upstream.toMap ++ current
+  }
+
+  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
+  def testModuleDeps: Seq[JavaModule] =
+    if (this == main) Seq(main)
+    else Seq(this, main.test)
+
+  def writeLocalTestOverrides = T.task {
+    for ((k, v) <- testTransitiveDeps()) {
+      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
+    }
+    Seq(PathRef(T.dest))
+  }
+
+  def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+
+  def scalacPluginIvyDeps =
+    super.scalacPluginIvyDeps() ++
+    Agg(Deps.acyclic) ++
+    Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefsPlugin)
+
+  def mandatoryIvyDeps =
+    super.mandatoryIvyDeps() ++
+    Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefs)
+
+  /** Default tests module. */
+  lazy val test: MillScalaModuleTests = new MillScalaModuleTests {}
+  trait MillScalaModuleTests extends ScalaModuleTests with MillBaseTestsModule {
+    def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+    def forkArgs = super.forkArgs() ++ outer.testArgs()
+    def moduleDeps = outer.testModuleDeps
+    def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
+  }
+}
+
+trait MillBaseTestsModule extends MillJavaModule with TestModule {
+  def forkArgs = T {
+    Seq(
+      s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
+      s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
+      s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
+      s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
+      s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
+      s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
+      s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
+      s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
+      s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
+      s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
+      s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
+      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
+      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
+    )
+  }
+
+  def testFramework = "mill.UTestFramework"
+}
+
+/** Published module which does not contain strictly handled API. */
+trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
+
+/** Publishable module which contains strictly handled API. */
+trait MillPublicScalaModule extends MillPublishScalaModule with Mima
 
 object bridge extends Cross[BridgeModule](buildBridgeScalaVersions)
-trait BridgeModule extends PublishModule with CrossScalaModule {
+trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def scalaVersion = crossScalaVersion
   def publishVersion = bridgeVersion
   def artifactName = T { "mill-scala-compiler-bridge" }
@@ -260,197 +407,17 @@ trait BridgeModule extends PublishModule with CrossScalaModule {
   }
 }
 
-def commonPomSettings(artifactName: String) = {
-  PomSettings(
-    description = artifactName,
-    organization = Settings.pomOrg,
-    url = Settings.projectUrl,
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(Settings.githubOrg, Settings.githubRepo),
-    developers = Seq(
-      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"),
-      Developer("lefou", "Tobias Roeser", "https://github.com/lefou")
-    )
-  )
-}
+object main extends MillPublicScalaModule with BuildInfo{
 
-trait MillPublishModule extends PublishModule {
-  override def artifactName = "mill-" + super.artifactName()
-  def publishVersion = millVersion()
-  override def publishProperties: Target[Map[String, String]] = super.publishProperties() ++ Map(
-    "info.releaseNotesURL" -> Settings.changelogUrl
-  )
-  def pomSettings = commonPomSettings(artifactName())
-  override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
-}
-
-trait MillJavaModule extends JavaModule {
-
-  // Test setup
-  def testDep = T { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
-  def testArgs: T[Seq[String]] = T { Seq("-Djna.nosys=true") }
-  def testDepPaths = T { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
-
-  override def repositoriesTask = T.task {
-    super.repositoriesTask() ++ Seq(
-      MavenRepository(
-        "https://oss.sonatype.org/content/repositories/releases"
-      )
-    )
-  }
-  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
-    super.mapDependencies().andThen { dep =>
-      forcedVersions.find(t =>
-        t._1 == dep.module.organization.value && t._2 == dep.module.name.value
-      ).map { forced =>
-        val newDep = dep.withVersion(forced._3)
-        T.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
-        newDep
-      }.getOrElse(dep)
-    }
-  }
-  val forcedVersions: Seq[(String, String, String)] = Seq(
-    ("org.apache.ant", "ant", "1.10.12"),
-    ("commons-io", "commons-io", "2.11.0"),
-    ("com.google.code.gson", "gson", "2.10.1"),
-    ("com.google.protobuf", "protobuf-java", "3.21.8"),
-    ("com.google.guava", "guava", "31.1-jre"),
-    ("org.yaml", "snakeyaml", "1.33")
-  )
-}
-
-trait MillMimaConfig extends mima.Mima {
-  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
-  override def mimaPreviousArtifacts: T[Agg[Dep]] = T {
-    Agg.from(
-      Settings.mimaBaseVersions
-        .filter(v => !skipPreviousVersions().contains(v))
-        .map(version =>
-          ivy"${pomSettings().organization}:${artifactId()}:${version}"
-        )
-    )
-  }
-  override def mimaExcludeAnnotations: T[Seq[String]] = Seq(
-    "mill.api.internal",
-    "mill.api.experimental"
-  )
-  override def mimaCheckDirection: Target[CheckDirection] = T { CheckDirection.Backward }
-  override def mimaBinaryIssueFilters: Target[Seq[ProblemFilter]] = T {
-    issueFilterByModule.getOrElse(this, Seq())
-  }
-  lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map()
-  def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
-}
-
-/** A Module compiled with applied Mill-specific compiler plugins: mill-moduledefs. */
-trait WithMillCompiler extends ScalaModule {
-  override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(Deps.millModuledefs)
-  override def scalacPluginIvyDeps: Target[Agg[Dep]] =
-    super.scalacPluginIvyDeps() ++ Agg(Deps.millModuledefsPlugin)
-}
-
-trait AcyclicConfig extends ScalaModule {
-  override def scalacPluginIvyDeps: Target[Agg[Dep]] = {
-    super.scalacPluginIvyDeps() ++ Agg(Deps.acyclic)
-  }
-  override def scalacOptions: Target[Seq[String]] =
-    super.scalacOptions() ++ Seq("-P:acyclic:force")
-}
-
-/**
- * Some custom scala settings and test convenience
- */
-trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
-  def scalaVersion = Deps.scalaVersion
-  override def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-deprecation")
-  }
-
-  def testTransitiveDeps: T[Map[String, String]] = T {
-    val upstream = T.traverse(outer.moduleDeps ++ outer.compileModuleDeps) {
-      case m: MillScalaModule => m.testTransitiveDeps.map(Some(_))
-      case _ => T.task(None)
-    }().flatten.flatten
-    val current = Seq(outer.testDep())
-    upstream.toMap ++ current
-  }
-
-  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
-  def testModuleDeps: Seq[JavaModule] =
-    if (this == main) Seq(main)
-    else Seq(this, main.test)
-
-  def writeLocalTestOverrides = T.task {
-    for ((k, v) <- testTransitiveDeps()) {
-      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
-    }
-    Seq(PathRef(T.dest))
-  }
-
-  def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
-
-  trait MillScalaModuleTests extends ScalaModuleTests with MillJavaModule
-      with WithMillCompiler with BaseMillTestsModule {
-
-    def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
-
-    override def forkArgs = super.forkArgs() ++ outer.testArgs()
-    override def moduleDeps = outer.testModuleDeps
-    override def ivyDeps: T[Agg[Dep]] = T { super.ivyDeps() ++ outer.testIvyDeps() }
-
-  }
-  trait Tests extends MillScalaModuleTests
-}
-
-trait BaseMillTestsModule extends TestModule {
-  override def forkArgs = T {
-    Seq(
-      s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
-      s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
-      s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
-      s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
-      s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
-      s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
-      s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
-      s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
-      s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
-      s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
-      s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
-      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
-      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
-    )
-  }
-  override def testFramework = "mill.UTestFramework"
-}
-
-/** A MillScalaModule with default set up test module. */
-trait MillAutoTestSetup extends MillScalaModule {
-  /** Default tests module. */
-  lazy val test: Tests = new Tests {}
-  trait Tests extends super.MillScalaModuleTests
-}
-
-/** Published module which does not contain strictly handled API. */
-trait MillInternalModule extends MillScalaModule with MillPublishModule
-
-/** Publishable module which contains strictly handled API. */
-trait MillApiModule extends MillScalaModule with MillPublishModule with MillMimaConfig
-
-/** Publishable module with tests. */
-trait MillModule extends MillApiModule with MillAutoTestSetup with WithMillCompiler
-    with AcyclicConfig
-
-object main extends MillModule with BuildInfo{
-
-  override def moduleDeps = Seq(eval, resolve, client)
-  override def ivyDeps = Agg(
+  def moduleDeps = Seq(eval, resolve, client)
+  def ivyDeps = Agg(
     Deps.windowsAnsi,
     Deps.mainargs,
     Deps.coursierInterface,
     Deps.requests
   )
 
-  override def compileIvyDeps = Agg(
+  def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
   )
 
@@ -479,13 +446,13 @@ object main extends MillModule with BuildInfo{
     )
   )
 
-  object api extends MillApiModule with BuildInfo with MillAutoTestSetup {
+  object api extends MillPublicScalaModule with BuildInfo {
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Seq(
       BuildInfo.Value("millVersion", millVersion(), "Mill version."),
       BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
     )
-    override def ivyDeps = Agg(
+    def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
       Deps.pprint,
@@ -493,21 +460,21 @@ object main extends MillModule with BuildInfo{
       Deps.sbtTestInterface
     )
   }
-  object util extends MillApiModule with MillAutoTestSetup {
-    override def moduleDeps = Seq(api, client)
-    override def ivyDeps = Agg(
+  object util extends MillPublicScalaModule {
+    def moduleDeps = Seq(api, client)
+    def ivyDeps = Agg(
       Deps.coursier,
       Deps.jline
     )
   }
-  object define extends MillModule {
-    override def moduleDeps = Seq(api, util)
-    override def compileIvyDeps = Agg(
+  object define extends MillPublicScalaModule {
+    def moduleDeps = Seq(api, util)
+    def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
     )
-    override def ivyDeps = Agg(
+    def ivyDeps = Agg(
       Deps.millModuledefs,
-//      Deps.millModuledefsPlugin,
+      //      Deps.millModuledefsPlugin,
       Deps.scalametaTrees,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
@@ -518,62 +485,62 @@ object main extends MillModule with BuildInfo{
     )
   }
 
-  object eval extends MillModule {
-    override def moduleDeps = Seq(define)
+  object eval extends MillPublicScalaModule {
+    def moduleDeps = Seq(define)
   }
-  object resolve extends MillModule {
-    override def moduleDeps = Seq(define)
+  object resolve extends MillPublicScalaModule {
+    def moduleDeps = Seq(define)
   }
 
-  object client extends MillPublishModule with BuildInfo {
+  object client extends MillPublishJavaModule with BuildInfo {
     def buildInfoPackageName = "mill.main.client"
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
-    override def ivyDeps = Agg(Deps.junixsocket)
+    def ivyDeps = Agg(Deps.junixsocket)
 
     object test extends Tests with TestModule.Junit4 {
-      override def ivyDeps = Agg(Deps.junitInterface, Deps.lambdaTest)
+      def ivyDeps = Agg(Deps.junitInterface, Deps.lambdaTest)
     }
   }
 
-  object graphviz extends MillModule {
-    override def moduleDeps = Seq(main, scalalib)
+  object graphviz extends MillPublicScalaModule {
+    def moduleDeps = Seq(main, scalalib)
 
-    override def ivyDeps = Agg(
+    def ivyDeps = Agg(
       Deps.graphvizJava,
       Deps.jgraphtCore
     )
   }
 
-  object testkit extends MillInternalModule with MillAutoTestSetup {
+  object testkit extends MillPublishScalaModule {
     def moduleDeps = Seq(eval, util, main)
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
 }
 
-object testrunner extends MillModule {
-  override def moduleDeps = Seq(scalalib.api, main.util)
+object testrunner extends MillPublishScalaModule {
+  def moduleDeps = Seq(scalalib.api, main.util)
 }
 
-object scalalib extends MillModule {
-  override def moduleDeps = Seq(main, scalalib.api, testrunner)
+object scalalib extends MillPublicScalaModule {
+  def moduleDeps = Seq(main, scalalib.api, testrunner)
 
-  override def ivyDeps = Agg(
+  def ivyDeps = Agg(
     Deps.scalafmtDynamic
   )
 
-  override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
+  def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
 
-  override def testTransitiveDeps = T {
+  def testTransitiveDeps = T {
     super.testTransitiveDeps() ++ Seq(worker.testDep())
   }
 
-  object backgroundwrapper extends MillPublishModule with MillJavaModule {
-    override def ivyDeps = Agg(Deps.sbtTestInterface)
+  object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
+    def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 
-  object api extends MillApiModule with BuildInfo {
-    override def moduleDeps = Seq(main.api)
+  object api extends MillPublicScalaModule with BuildInfo {
+    def moduleDeps = Seq(main.api)
 
     def buildInfoPackageName = "mill.scalalib.api"
 
@@ -600,11 +567,11 @@ object scalalib extends MillModule {
     )
   }
 
-  object worker extends MillInternalModule with BuildInfo {
+  object worker extends MillPublishScalaModule with BuildInfo {
 
-    override def moduleDeps = Seq(scalalib.api)
+    def moduleDeps = Seq(scalalib.api)
 
-    override def ivyDeps = Agg(
+    def ivyDeps = Agg(
       Deps.zinc,
       Deps.log4j2Core
     )
@@ -614,11 +581,11 @@ object scalalib extends MillModule {
   }
 }
 
-object scalajslib extends MillModule with BuildInfo {
+object scalajslib extends MillPublicScalaModule with BuildInfo {
 
-  override def moduleDeps = Seq(scalalib, scalajslib.`worker-api`)
+  def moduleDeps = Seq(scalalib, scalajslib.`worker-api`)
 
-  override def testTransitiveDeps = T {
+  def testTransitiveDeps = T {
     super.testTransitiveDeps() ++ Seq(worker("1").testDep())
   }
 
@@ -645,16 +612,16 @@ object scalajslib extends MillModule with BuildInfo {
     )
   }
 
-  object `worker-api` extends MillInternalModule {
-    override def ivyDeps = Agg(Deps.sbtTestInterface)
+  object `worker-api` extends MillPublishScalaModule {
+    def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("1")
-  trait WorkerModule extends MillInternalModule with Cross.Module[String] {
+  trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
     def scalajsWorkerVersion = crossValue
-    override def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
+    def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
     def testDepPaths = T { Seq(compile().classes) }
-    override def moduleDeps = Seq(scalajslib.`worker-api`, main.client, main.api)
-    override def ivyDeps = Agg(
+    def moduleDeps = Seq(scalajslib.`worker-api`, main.client, main.api)
+    def ivyDeps = Agg(
       Deps.Scalajs_1.scalajsLinker,
       Deps.Scalajs_1.scalajsSbtTestAdapter,
       Deps.Scalajs_1.scalajsEnvNodejs,
@@ -666,43 +633,41 @@ object scalajslib extends MillModule with BuildInfo {
   }
 }
 
-object contrib extends MillModule {
-  def contribModules: Seq[ContribModule] = millInternal.modules.collect { case m: ContribModule =>
-    m
-  }
-  trait ContribModule extends MillModule {
+object contrib extends Module {
+  def contribModules: Seq[ContribModule] =
+    millInternal.modules.collect { case m: ContribModule => m}
+
+  trait ContribModule extends MillPublicScalaModule {
     def readme = T.source(millSourcePath / "readme.adoc")
   }
   object testng extends JavaModule with ContribModule {
 
-    override def testTransitiveDeps =
+    def testTransitiveDeps =
       super.testTransitiveDeps() ++ Seq(scalalib.testDep(), scalalib.worker.testDep())
 
     // pure Java implementation
-    override def artifactSuffix: T[String] = ""
-    override def scalaLibraryIvyDeps: Target[Agg[Dep]] = T { Agg.empty[Dep] }
-    override def ivyDeps = Agg(Deps.sbtTestInterface)
-    override def compileIvyDeps = Agg(Deps.testng)
-    override def runIvyDeps = Agg(Deps.testng)
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
-      scalalib
-    )
-    override def docJar: T[PathRef] = super[JavaModule].docJar
+    def artifactSuffix: T[String] = ""
+    def scalaLibraryIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
+    def ivyDeps = Agg(Deps.sbtTestInterface)
+    def compileIvyDeps = Agg(Deps.testng)
+    def runIvyDeps = Agg(Deps.testng)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+    def docJar: T[PathRef] = super[JavaModule].docJar
   }
 
   object twirllib extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object playlib extends ContribModule {
-    override def moduleDeps = Seq(twirllib, playlib.api)
-    override def compileModuleDeps = Seq(scalalib)
+    def moduleDeps = Seq(twirllib, playlib.api)
+    def compileModuleDeps = Seq(scalalib)
 
-    override def testTransitiveDeps =
+    def testTransitiveDeps =
       super.testTransitiveDeps() ++ T.traverse(Deps.play.keys.toSeq)(worker(_).testDep)()
 
-    override def testArgs = T {
+    def testArgs = T {
       super.testArgs() ++
         Seq(
           s"-DTEST_PLAY_VERSION_2_6=${Deps.Play_2_6.playVersion}",
@@ -711,23 +676,23 @@ object contrib extends MillModule {
         )
 
     }
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
 
-    object api extends MillPublishModule
+    object api extends MillPublishJavaModule
 
     object worker extends Cross[WorkerModule](Deps.play.keys.toSeq)
-    trait WorkerModule extends MillInternalModule with Cross.Module[String] {
+    trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
       def playBinary = crossValue
-      override def millSourcePath: os.Path = super.millSourcePath / playBinary
-      override def sources = T.sources {
+      def millSourcePath: os.Path = super.millSourcePath / playBinary
+      def sources = T.sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
         // just remove the shared source dir for that worker and implement directly.
         Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
       }
-      override def scalaVersion = Deps.play(playBinary).scalaVersion
-      override def moduleDeps = Seq(playlib.api)
-      override def ivyDeps = Agg(
+      def scalaVersion = Deps.play(playBinary).scalaVersion
+      def moduleDeps = Seq(playlib.api)
+      def ivyDeps = Agg(
         Deps.osLib,
         Deps.play(playBinary).routesCompiler
       )
@@ -735,21 +700,21 @@ object contrib extends MillModule {
   }
 
   object scalapblib extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object scoverage extends ContribModule {
-    object api extends MillApiModule {
-      override def compileModuleDeps = Seq(main.api)
+    object api extends MillPublicScalaModule {
+      def compileModuleDeps = Seq(main.api)
     }
-    override def moduleDeps = Seq(scoverage.api)
-    override def compileModuleDeps = Seq(scalalib)
+    def moduleDeps = Seq(scoverage.api)
+    def compileModuleDeps = Seq(scalalib)
 
-    override def testTransitiveDeps =
+    def testTransitiveDeps =
       super.testTransitiveDeps() ++ Seq(worker.testDep(), worker2.testDep())
 
-    override def testArgs = T {
+    def testArgs = T {
       super.testArgs() ++
         Seq(
           s"-DMILL_SCOVERAGE_VERSION=${Deps.scalacScoveragePlugin.dep.version}",
@@ -759,17 +724,17 @@ object contrib extends MillModule {
     }
 
     // So we can test with buildinfo in the classpath
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
       scalalib,
       contrib.buildinfo
     )
 
     // Worker for Scoverage 1.x
-    object worker extends MillInternalModule {
-      override def compileModuleDeps = Seq(main.api)
-      override def moduleDeps = Seq(scoverage.api)
+    object worker extends MillPublishScalaModule {
+      def compileModuleDeps = Seq(main.api)
+      def moduleDeps = Seq(scoverage.api)
       def testDepPaths = T { Seq(compile().classes) }
-      override def compileIvyDeps = T {
+      def compileIvyDeps = T {
         Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
           Deps.scalacScoveragePlugin,
@@ -777,15 +742,15 @@ object contrib extends MillModule {
           Deps.osLib
         )
       }
-      override def scalaVersion: Target[String] = Deps.scalaVersionForScoverageWorker1
+      def scalaVersion: T[String] = Deps.scalaVersionForScoverageWorker1
     }
 
     // Worker for Scoverage 2.0
-    object worker2 extends MillInternalModule {
-      override def compileModuleDeps = Seq(main.api)
-      override def moduleDeps = Seq(scoverage.api)
+    object worker2 extends MillPublishScalaModule {
+      def compileModuleDeps = Seq(main.api)
+      def moduleDeps = Seq(scoverage.api)
       def testDepPaths = T { Seq(compile().classes) }
-      override def compileIvyDeps = T {
+      def compileIvyDeps = T {
         Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
           Deps.scalacScoverage2Plugin,
@@ -800,32 +765,32 @@ object contrib extends MillModule {
   }
 
   object buildinfo extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object proguard extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object flyway extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def ivyDeps = Agg(Deps.flywayCore)
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
+    def ivyDeps = Agg(Deps.flywayCore)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object docker extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 
   object bloop extends ContribModule with BuildInfo {
-    override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
-    override def ivyDeps = Agg(
+    def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
+    def ivyDeps = Agg(
       Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13")
     )
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
       scalalib,
       scalajslib,
       scalanativelib
@@ -837,57 +802,57 @@ object contrib extends MillModule {
   }
 
   object artifactory extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def ivyDeps = T { Agg(Deps.requests) }
+    def compileModuleDeps = Seq(scalalib)
+    def ivyDeps = T { Agg(Deps.requests) }
   }
 
   object codeartifact extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def ivyDeps = T { Agg(Deps.requests) }
+    def compileModuleDeps = Seq(scalalib)
+    def ivyDeps = T { Agg(Deps.requests) }
   }
 
   object versionfile extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
   }
 
   object bintray extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def ivyDeps = T { Agg(Deps.requests) }
+    def compileModuleDeps = Seq(scalalib)
+    def ivyDeps = T { Agg(Deps.requests) }
   }
 
   object gitlab extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def ivyDeps = T { Agg(Deps.requests, Deps.osLib) }
+    def compileModuleDeps = Seq(scalalib)
+    def ivyDeps = T { Agg(Deps.requests, Deps.osLib) }
 
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(
       scalalib
     )
   }
 
   object jmh extends ContribModule {
-    override def compileModuleDeps = Seq(scalalib)
-    override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(scalalib)
   }
 }
 
-object scalanativelib extends MillModule {
-  override def moduleDeps = Seq(scalalib, scalanativelib.`worker-api`)
+object scalanativelib extends MillPublicScalaModule {
+  def moduleDeps = Seq(scalalib, scalanativelib.`worker-api`)
 
-  override def testTransitiveDeps = T {
+  def testTransitiveDeps = T {
     super.testTransitiveDeps() ++ Seq(worker("0.4").testDep())
   }
 
-  object `worker-api` extends MillInternalModule {
-    override def ivyDeps = Agg(Deps.sbtTestInterface)
+  object `worker-api` extends MillPublishScalaModule {
+    def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.4")
 
-  trait WorkerModule extends MillInternalModule with Cross.Module[String] {
+  trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
     def scalaNativeWorkerVersion = crossValue
-    override def millSourcePath: os.Path = super.millSourcePath / scalaNativeWorkerVersion
+    def millSourcePath: os.Path = super.millSourcePath / scalaNativeWorkerVersion
     def testDepPaths = T { Seq(compile().classes) }
-    override def moduleDeps = Seq(scalanativelib.`worker-api`)
-    override def ivyDeps = scalaNativeWorkerVersion match {
+    def moduleDeps = Seq(scalanativelib.`worker-api`)
+    def ivyDeps = scalaNativeWorkerVersion match {
       case "0.4" =>
         Agg(
           Deps.osLib,
@@ -900,9 +865,9 @@ object scalanativelib extends MillModule {
   }
 }
 
-object bsp extends MillModule with BuildInfo {
-  override def compileModuleDeps = Seq(scalalib)
-  override def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ compileModuleDeps
+object bsp extends MillPublicScalaModule with BuildInfo {
+  def compileModuleDeps = Seq(scalalib)
+  def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ compileModuleDeps
 
   def buildInfoPackageName = "mill.bsp"
   def buildInfoMembers = T {
@@ -916,25 +881,20 @@ object bsp extends MillModule with BuildInfo {
     )
   }
 
-  override lazy val test: Test = new Test {}
-  trait Test extends Tests{
-    override def forkEnv: Target[Map[String, String]] = T {
+  override lazy val test: MillScalaModuleTests = new Test {}
+  trait Test extends MillScalaModuleTests {
+    def forkEnv: T[Map[String, String]] = T {
       // We try to fetch this dependency with coursier in the tests
       bsp.worker.publishLocal()()
       super.forkEnv()
     }
 
-    override def forkArgs: Target[Seq[String]] = super.forkArgs() ++ Seq(
-      s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}"
-    )
+    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}")
   }
 
-  object worker extends MillInternalModule {
-    override def compileModuleDeps = Seq(bsp, scalalib, testrunner, runner)
-    override def ivyDeps = Agg(
-      Deps.bsp4j,
-      Deps.sbtTestInterface
-    )
+  object worker extends MillPublishScalaModule {
+    def compileModuleDeps = Seq(bsp, scalalib, testrunner, runner)
+    def ivyDeps = Agg(Deps.bsp4j, Deps.sbtTestInterface)
   }
 }
 
@@ -952,12 +912,12 @@ trait IntegrationTestModule extends MillScalaModule {
   def sources = T.sources(millSourcePath / "test" / "src")
   def testRepoRoot: T[PathRef] = T.source(millSourcePath / "repo")
 
-  trait ModeModule extends MillScalaModule with BaseMillTestsModule {
+  trait ModeModule extends ScalaModule with MillBaseTestsModule {
     def mode: String = millModuleSegments.parts.last
 
     def scalaVersion = integration.scalaVersion()
 
-    override def forkEnv =
+    def forkEnv =
       super.forkEnv() ++
         IntegrationTestModule.this.forkEnv() ++
         Map(
@@ -971,7 +931,7 @@ trait IntegrationTestModule extends MillScalaModule {
       PathRef(T.dest)
     }
 
-    def forkArgs: Target[Seq[String]] = T {
+    def forkArgs: T[Seq[String]] = T {
       super.forkArgs() ++
         dev.forkArgs() ++
         Seq(s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}")
@@ -992,7 +952,7 @@ trait IntegrationTestModule extends MillScalaModule {
 
 trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module[String] {
   def repoSlug = crossValue
-  override def millSourcePath = super.millSourcePath / repoSlug
+  def millSourcePath = super.millSourcePath / repoSlug
 
   object local extends ModeModule
   object fork extends ModeModule
@@ -1103,7 +1063,7 @@ object integration extends MillScalaModule {
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
 
   /** Deploy freshly build mill for use in tests */
-  def testMill: Target[PathRef] = {
+  def testMill: T[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     T { PathRef(installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
   }
@@ -1169,11 +1129,11 @@ object integration extends MillScalaModule {
 }
 
 def launcherScript(
-    shellJvmArgs: Seq[String],
-    cmdJvmArgs: Seq[String],
-    shellClassPath: Agg[String],
-    cmdClassPath: Agg[String]
-) = {
+                    shellJvmArgs: Seq[String],
+                    cmdJvmArgs: Seq[String],
+                    shellClassPath: Agg[String],
+                    cmdClassPath: Agg[String]
+                  ) = {
   val millMainClass = "mill.main.client.MillClientMain"
   val millClientMainClass = "mill.main.client.MillClientMain"
 
@@ -1183,8 +1143,8 @@ def launcherScript(
       def java(mainClass: String, passMillJvmOpts: Boolean) = {
         val millJvmOpts = if (passMillJvmOpts) "$mill_jvm_opts" else ""
         s"""exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(
-            ":"
-          )}" $mainClass "$$@""""
+          ":"
+        )}" $mainClass "$$@""""
       }
 
       s"""if [ -z "$$JAVA_HOME" ] ; then
@@ -1246,8 +1206,8 @@ def launcherScript(
       def java(mainClass: String, passMillJvmOpts: Boolean) = {
         val millJvmOpts = if (passMillJvmOpts) "!mill_jvm_opts!" else ""
         s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% $millJvmOpts -cp "${cmdClassPath.mkString(
-            ";"
-          )}" $mainClass %*"""
+          ";"
+        )}" $mainClass %*"""
       }
 
       s"""setlocal EnableDelayedExpansion
@@ -1280,18 +1240,18 @@ def launcherScript(
   )
 }
 
-object runner extends MillModule {
-  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers)
-  override def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
+object runner extends MillPublicScalaModule {
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers)
+  def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
-  object linenumbers extends MillPublishModule with MillInternalModule {
+  object linenumbers extends MillPublishScalaModule {
     def scalaVersion = Deps.scalaVersion
-    override def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
+    def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
   }
 }
 
-object dev extends MillModule {
-  override def moduleDeps = Seq(runner)
+object dev extends MillPublishScalaModule {
+  def moduleDeps = Seq(runner)
 
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
     runner.linenumbers.testDep(),
@@ -1307,7 +1267,7 @@ object dev extends MillModule {
   def forkArgs: T[Seq[String]] = T {
 
     val genIdeaArgs =
-      //      genTask(main.moduledefs)() ++
+    //      genTask(main.moduledefs)() ++
       genTask(main.define)() ++
         genTask(main.eval)() ++
         genTask(main)() ++
@@ -1333,7 +1293,7 @@ object dev extends MillModule {
       )
   }
 
-  override def launcher = T {
+  def launcher = T {
     val isWin = scala.util.Properties.isWin
     val outputPath = T.ctx.dest / (if (isWin) "run.bat" else "run")
 
@@ -1345,13 +1305,13 @@ object dev extends MillModule {
     PathRef(outputPath)
   }
 
-  override def extraPublish: T[Seq[PublishInfo]] = T {
+  def extraPublish: T[Seq[PublishInfo]] = T {
     Seq(
       PublishInfo(file = assembly(), classifier = Some("assembly"), ivyConfig = "compile")
     )
   }
 
-  override def assemblyRules = super.assemblyRules ++ Seq(
+  def assemblyRules = super.assemblyRules ++ Seq(
     mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
@@ -1433,10 +1393,10 @@ object dev extends MillModule {
         val wd = os.Path(wd0, T.workspace)
         os.makeDir.all(wd)
         try Jvm.runSubprocess(
-            Seq(launcher().path.toString) ++ rest,
-            forkEnv(),
-            workingDir = wd
-          )
+          Seq(launcher().path.toString) ++ rest,
+          forkEnv(),
+          workingDir = wd
+        )
         catch { case e => () /*ignore to avoid confusing stacktrace and error messages*/ }
         mill.api.Result.Success(())
     }
@@ -1451,7 +1411,7 @@ object docs extends Module {
   object site extends UnidocModule {
     def scalaVersion = Deps.scalaVersion
 
-    def moduleDeps = build.millInternal.modules.collect { case m: MillApiModule => m }
+    def moduleDeps = build.millInternal.modules.collect { case m: MillPublicScalaModule => m }
 
     def unidocSourceUrl = T {
       val sha = "xxx"
@@ -1477,7 +1437,7 @@ object docs extends Module {
     )
   }
   def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
-      ctx: mill.api.Ctx.Log
+                                                                      ctx: mill.api.Ctx.Log
   ) = {
     prepareAntora(npmDir)
     val cmdArgs =
@@ -1525,7 +1485,7 @@ object docs extends Module {
   }
 
   def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
-  def devAntoraSources: Target[PathRef] = T {
+  def devAntoraSources: T[PathRef] = T {
     val dest = T.dest
     shared.mycopy(source().path, dest, mergeFolders = true)
     val lines = os.read(dest / "antora.yml").linesIterator.map {
@@ -1572,9 +1532,9 @@ object docs extends Module {
        |    mill-github-url: ${Settings.projectUrl}
        |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else Settings.docUrl}
        |    mill-download-url: ${if (authorMode) s"file://${exampleZips().head.path / os.up}"
-      else s"${Settings.projectUrl}/releases/latest"}
+    else s"${Settings.projectUrl}/releases/latest"}
        |    mill-example-url: ${if (authorMode) s"file://${T.workspace}"
-      else s"${Settings.projectUrl}/blob/main/"}
+    else s"${Settings.projectUrl}/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |
@@ -1586,7 +1546,7 @@ object docs extends Module {
        |""".stripMargin
   }
 
-  def githubPages: Target[PathRef] = T {
+  def githubPages: T[PathRef] = T {
     generatePages(authorMode = false)()
   }
   def localPages = T {
@@ -1649,16 +1609,16 @@ object docs extends Module {
 
     PathRef(siteDir)
   }
-//    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}
+  //    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}
   def sanitizeDevUrls(
-      dir: os.Path,
-      sourceDir: os.Path,
-      newSourceDir: os.Path,
-      baseDir: os.Path
-  ): Unit = {
+                       dir: os.Path,
+                       sourceDir: os.Path,
+                       newSourceDir: os.Path,
+                       baseDir: os.Path
+                     ): Unit = {
     val pathToRemove = sourceDir.relativeTo(baseDir).toString()
     val replacePath = newSourceDir.relativeTo(baseDir).toString()
-//      println(s"Cleaning relative path '${pathToRemove}' ...")
+    //      println(s"Cleaning relative path '${pathToRemove}' ...")
     import org.htmlcleaner._
     val cleaner = new HtmlCleaner()
     var changed = false
@@ -1737,7 +1697,7 @@ def bootstrapLauncher = T {
   PathRef(outputPath)
 }
 
-def exampleZips: Target[Seq[PathRef]] = T {
+def exampleZips: T[Seq[PathRef]] = T {
   for {
     exampleMod <- example.exampleModules
     examplePath = exampleMod.millSourcePath
@@ -1753,47 +1713,47 @@ def exampleZips: Target[Seq[PathRef]] = T {
 }
 
 def uploadToGithub(authKey: String) = T.command {
-//  val vcsState = VcsVersion.vcsState()
-//  val label = vcsState.format()
-//  if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
-//  val releaseTag = vcsState.lastTag.getOrElse(sys.error(
-//    "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
-//  ))
-//
-//  if (releaseTag == label) {
-//    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
-//    scalaj.http.Http(
-//      s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
-//    )
-//      .postData(
-//        ujson.write(
-//          ujson.Obj(
-//            "tag_name" -> releaseTag,
-//            "name" -> releaseTag
-//          )
-//        )
-//      )
-//      .header("Authorization", "token " + authKey)
-//      .asString
-//  }
-//
-//  val examples = exampleZips().map(z => (z.path, z.path.last))
-//
-//  val zips = examples ++ Seq(
-//    (dev.assembly().path, label + "-assembly"),
-//    (bootstrapLauncher().path, label)
-//  )
-//
-//  for ((zip, name) <- zips) {
-//    upload.apply(
-//      zip,
-//      releaseTag,
-//      name,
-//      authKey,
-//      Settings.githubOrg,
-//      Settings.githubRepo
-//    )
-//  }
+  //  val vcsState = VcsVersion.vcsState()
+  //  val label = vcsState.format()
+  //  if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
+  //  val releaseTag = vcsState.lastTag.getOrElse(sys.error(
+  //    "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
+  //  ))
+  //
+  //  if (releaseTag == label) {
+  //    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
+  //    scalaj.http.Http(
+  //      s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
+  //    )
+  //      .postData(
+  //        ujson.write(
+  //          ujson.Obj(
+  //            "tag_name" -> releaseTag,
+  //            "name" -> releaseTag
+  //          )
+  //        )
+  //      )
+  //      .header("Authorization", "token " + authKey)
+  //      .asString
+  //  }
+  //
+  //  val examples = exampleZips().map(z => (z.path, z.path.last))
+  //
+  //  val zips = examples ++ Seq(
+  //    (dev.assembly().path, label + "-assembly"),
+  //    (bootstrapLauncher().path, label)
+  //  )
+  //
+  //  for ((zip, name) <- zips) {
+  //    upload.apply(
+  //      zip,
+  //      releaseTag,
+  //      name,
+  //      authKey,
+  //      Settings.githubOrg,
+  //      Settings.githubRepo
+  //    )
+  //  }
 }
 
 def validate(ev: Evaluator): Command[Unit] = T.command {
@@ -1816,8 +1776,8 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
 }
 
 object DependencyFetchDummy extends ScalaModule {
-  override def scalaVersion = Deps.scalaVersion
-  override def compileIvyDeps = Agg(
+  def scalaVersion = Deps.scalaVersion
+  def compileIvyDeps = Agg(
     Deps.semanticDbJava,
     Deps.semanticDB
   )
