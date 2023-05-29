@@ -26,16 +26,14 @@ object foo extends RootModule with ScalaModule {
 ...
 Line Count: 11
 
-> ./mill show foo.lineCount
+> ./mill show lineCount
 11
 
-> ./mill inspect foo.lineCount
-[1/1] inspect
-foo.lineCount(build.sc:6)
+> ./mill inspect lineCount
+lineCount(build.sc:7)
     Total number of lines in module's source files
-
 Inputs:
-    foo.allSourceFiles
+    allSourceFiles
 */
 
 // Above, `def lineCount` is a new build target we define, which makes use of
