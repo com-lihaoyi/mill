@@ -1258,6 +1258,8 @@ object dev extends MillPublishScalaModule {
     mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
+  // All modules that we want to aggregate as part of this `dev` assembly.
+  // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.millInternal.modules.collect {
     case m: PublishModule if (m ne this) && (m ne dist) => m
   }
