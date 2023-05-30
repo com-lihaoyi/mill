@@ -22,7 +22,7 @@ trait AcyclicModule extends CrossSbtModule with PublishModule {
   def ivyDeps = Agg(
     ivy"${scalaOrganization()}:scala-compiler:${scalaVersion()}"
   )
-  object test extends ScalaModuleTests with TestModule.Utest {
+  object test extends CrossSbtModuleTests with TestModule.Utest {
     def forkWorkingDir = os.pwd / "target" / "workspace" / "acyclic"
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest:0.6.0"

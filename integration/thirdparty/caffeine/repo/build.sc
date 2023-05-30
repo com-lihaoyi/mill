@@ -25,7 +25,7 @@ trait CaffeineModule extends MavenModule {
       MavenRepository("http://repo.spring.io/plugins-release")
     )
   }
-  trait Tests extends super.Tests with TestModule.Junit4 {
+  trait CaffeineModuleTests extends JavaModuleTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       libraries.guava,
       testLibraries.mockito,
@@ -96,7 +96,7 @@ object caffeine extends CaffeineModule {
 object guava extends CaffeineModule {
   def moduleDeps = Seq(caffeine)
   def ivyDeps = Agg(libraries.guava)
-  object test extends JavaModuleTests {
+  object test extends CaffeineModuleTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       testLibraries.junit,
       testLibraries.truth,
@@ -116,7 +116,7 @@ object guava extends CaffeineModule {
 object jcache extends CaffeineModule {
   def moduleDeps = Seq(caffeine)
   def ivyDeps = Agg(libraries.jcache, libraries.config, libraries.jsr330)
-  object test extends JavaModuleTests {
+  object test extends CaffeineModuleTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       testLibraries.junit,
       testLibraries.jcacheTck,
@@ -150,7 +150,7 @@ object simulator extends CaffeineModule {
     benchmarkLibraries.expiringMap,
     benchmarkLibraries.elasticSearch
   )
-  object test extends JavaModuleTests {
+  object test extends CaffeineModuleTests {
 
     def ivyDeps = super.ivyDeps() ++ testLibraries.testng
   }
