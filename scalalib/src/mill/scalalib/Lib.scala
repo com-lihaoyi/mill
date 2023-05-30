@@ -5,7 +5,7 @@ import coursier.util.Task
 import coursier.{Dependency, LocalRepositories, Repositories, Repository, Resolution}
 import mill.api.{Ctx, Loose, PathRef, Result}
 import mill.main.BuildInfo
-import mill.modules.Util
+import mill.util.Util
 import mill.scalalib.api.ZincWorkerUtil
 
 object Lib {
