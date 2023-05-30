@@ -18,5 +18,4 @@ trait SbtModule extends ScalaModule with MavenModule {
       millSourcePath / "src" / "test" / "java"
     )
   }
-  trait Tests extends SbtModuleTests
 }

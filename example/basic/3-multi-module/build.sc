@@ -1,6 +1,6 @@
 import mill._, scalalib._
 
-trait MyModule extends ScalaModule{
+trait MyModule extends ScalaModule {
   def scalaVersion = "2.13.8"
 }
 
@@ -9,7 +9,7 @@ object foo extends MyModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 }
 
-object bar extends MyModule{
+object bar extends MyModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 }
 

@@ -49,8 +49,6 @@ trait JavaModule
     }
   }
 
-  trait Tests extends JavaModuleTests
-
   def defaultCommandName(): String = "run"
   def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task {
     Artifact.fromDepJava(_: Dep)
