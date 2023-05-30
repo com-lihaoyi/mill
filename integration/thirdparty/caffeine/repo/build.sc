@@ -77,7 +77,7 @@ object caffeine extends CaffeineModule {
     )
   }
 
-  object test extends Tests with TestModule.TestNg {
+  object test extends ScalaModuleTests with TestModule.TestNg {
     def ivyDeps = super.ivyDeps() ++ Agg(
       libraries.ycsb,
       libraries.fastutil,
@@ -96,7 +96,7 @@ object caffeine extends CaffeineModule {
 object guava extends CaffeineModule {
   def moduleDeps = Seq(caffeine)
   def ivyDeps = Agg(libraries.guava)
-  object test extends Tests {
+  object test extends JavaModuleTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       testLibraries.junit,
       testLibraries.truth,
@@ -116,7 +116,7 @@ object guava extends CaffeineModule {
 object jcache extends CaffeineModule {
   def moduleDeps = Seq(caffeine)
   def ivyDeps = Agg(libraries.jcache, libraries.config, libraries.jsr330)
-  object test extends Tests {
+  object test extends JavaModuleTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       testLibraries.junit,
       testLibraries.jcacheTck,
@@ -150,7 +150,7 @@ object simulator extends CaffeineModule {
     benchmarkLibraries.expiringMap,
     benchmarkLibraries.elasticSearch
   )
-  object test extends Tests {
+  object test extends JavaModuleTests {
 
     def ivyDeps = super.ivyDeps() ++ testLibraries.testng
   }

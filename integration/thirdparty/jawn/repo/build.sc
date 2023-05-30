@@ -17,7 +17,7 @@ class JawnModule(crossVersion: String) extends mill.Module {
       "-unchecked"
     )
     def testModuleDeps: Seq[TestModule] = Nil
-    object test extends Tests with TestModule.ScalaTest {
+    object test extends ScalaModuleTests with TestModule.ScalaTest {
       def moduleDeps = super.moduleDeps ++ testModuleDeps
       def ivyDeps = Agg(
         ivy"org.scalatest::scalatest:3.0.3",

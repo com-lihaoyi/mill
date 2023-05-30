@@ -13,11 +13,11 @@ trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModul
   )
 
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.12.0")
+}
 
-  trait SharedTestModule extends Tests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
-    def testFramework = "utest.runner.Framework"
-  }
+trait SharedTestModule extends TestModule {
+  def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
+  def testFramework = "utest.runner.Framework"
 }
 
 trait SharedJS extends Shared with ScalaJSModule {
@@ -29,12 +29,12 @@ val scalaVersions = Seq("2.13.8", "3.2.2")
 object bar extends Module {
   object jvm extends Cross[JvmModule](scalaVersions)
   trait JvmModule extends Shared{
-    object test extends Tests with SharedTestModule
+    object test extends ScalaModuleTests with SharedTestModule
   }
 
   object js extends Cross[JsModule](scalaVersions)
   trait JsModule extends SharedJS{
-    object test extends Tests with SharedTestModule
+    object test extends ScalaJSModuleTests with SharedTestModule
   }
 }
 
@@ -44,14 +44,14 @@ object qux extends Module{
     def moduleDeps = Seq(bar.jvm())
     def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
 
-    object test extends Tests with SharedTestModule
+    object test extends ScalaModuleTests with SharedTestModule
   }
 
   object js extends Cross[JsModule](scalaVersions)
   trait JsModule extends SharedJS {
     def moduleDeps = Seq(bar.js())
 
-    object test extends Tests with SharedTestModule
+    object test extends ScalaJSModuleTests with SharedTestModule
   }
 }
 

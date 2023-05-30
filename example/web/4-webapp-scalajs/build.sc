@@ -18,7 +18,7 @@ object app extends RootModule with ScalaModule{
     super.resources() ++ Seq(PathRef(T.dest))
   }
 
-  object test extends Tests{
+  object test extends ScalaModuleTests{
     def testFramework = "utest.runner.Framework"
 
     def ivyDeps = Agg(

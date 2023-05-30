@@ -16,7 +16,7 @@ trait JUnitTests extends TestModule.Junit4 {
  * The Core Module Docz!
  */
 object core extends JavaModule {
-  object test extends Tests with JUnitTests
+  object test extends ScalaModuleTests with JUnitTests
 
   /**
    * Core Target Docz!
