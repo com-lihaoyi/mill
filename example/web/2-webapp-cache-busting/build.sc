@@ -3,7 +3,7 @@
 import mill._, scalalib._
 import java.util.Arrays
 
-object app extends RootModule with ScalaModule{
+object app extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::cask:0.9.1",
@@ -26,7 +26,7 @@ object app extends RootModule with ScalaModule{
     Seq(PathRef(T.dest))
   }
 
-  object test extends ScalaModuleTests{
+  object test extends ScalaModuleTests {
     def testFramework = "utest.runner.Framework"
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest::0.7.10",

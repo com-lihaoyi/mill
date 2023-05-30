@@ -1,6 +1,6 @@
 import mill._, scalalib._, scalajslib._
 
-object app extends RootModule with ScalaModule{
+object app extends RootModule with ScalaModule {
 
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
@@ -8,7 +8,7 @@ object app extends RootModule with ScalaModule{
     ivy"com.lihaoyi::scalatags:0.12.0"
   )
 
-  def resources = T{
+  def resources = T {
     os.makeDir(T.dest / "webapp")
     val jsPath = client.fastLinkJS().dest.path
     // Move main.js[.map]into the proper filesystem position
@@ -18,7 +18,7 @@ object app extends RootModule with ScalaModule{
     super.resources() ++ Seq(PathRef(T.dest))
   }
 
-  object test extends ScalaModuleTests{
+  object test extends ScalaModuleTests {
     def testFramework = "utest.runner.Framework"
 
     def ivyDeps = Agg(

@@ -115,7 +115,7 @@ class UpickleJvmModule(val crossScalaVersion: String) extends UpickleModule {
   def ivyDeps = T {
     super.ivyDeps() ++ Seq(ivy"org.spire-math::jawn-parser:0.11.0")
   }
-  object test extends ScalaModuleTests with UpickleTestModule {
+  object test extends CrossSbtModuleTests with UpickleTestModule {
     def platformSegment = "js"
     def millSourcePath = build.millSourcePath / "upickle"
   }
