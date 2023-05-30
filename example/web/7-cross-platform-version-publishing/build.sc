@@ -29,7 +29,7 @@ val scalaVersions = Seq("2.13.8", "3.2.2")
 object bar extends Module {
   object jvm extends Cross[JvmModule](scalaVersions)
   trait JvmModule extends Shared {
-    object test extends CrossScalaModuleTests with SharedTestModule
+    object test extends ScalaModuleTests with SharedTestModule
   }
 
   object js extends Cross[JsModule](scalaVersions)
@@ -44,7 +44,7 @@ object qux extends Module {
     def moduleDeps = Seq(bar.jvm())
     def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
 
-    object test extends CrossScalaModuleTests with SharedTestModule
+    object test extends ScalaModuleTests with SharedTestModule
   }
 
   object js extends Cross[JsModule](scalaVersions)
