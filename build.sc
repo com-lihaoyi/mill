@@ -1204,6 +1204,11 @@ object runner extends MillPublicScalaModule {
   }
 }
 
+object dist extends MillPublishJavaModule{
+  def jar = dev.assembly()
+  def moduleDeps = Seq(runner)
+}
+
 object dev extends MillPublishScalaModule {
   def moduleDeps = Seq(runner)
 
@@ -1254,7 +1259,7 @@ object dev extends MillPublishScalaModule {
   )
 
   lazy val allPublishModules = build.millInternal.modules.collect {
-    case m: PublishModule if m ne this => m
+    case m: PublishModule if (m ne this) && (m ne dist) => m
   }
 
   def assembly = T {
@@ -1617,13 +1622,18 @@ def millBootstrap = T.sources(T.workspace / "mill")
 
 def bootstrapLauncher = T {
   val outputPath = T.ctx.dest / "mill"
-  val millBootstrapGrepPrefix = "\nDEFAULT_MILL_VERSION="
+  val millBootstrapGrepPrefix = "DEFAULT_MILL_VERSION="
+  val millDownloadUrlPrefix = "MILL_DOWNLOAD_URL="
   os.write(
     outputPath,
     os.read(millBootstrap().head.path)
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
         millBootstrapGrepPrefix + millVersion()
+      )
+      .replaceAll(
+        millDownloadUrlPrefix + "[^\\n]+",
+        millDownloadUrlPrefix + "\"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/\\$MILL_VERSION/mill-dist-\\$MILL_VERSION.jar\""
       )
   )
   os.perms.set(outputPath, "rwxrwxrwx")
