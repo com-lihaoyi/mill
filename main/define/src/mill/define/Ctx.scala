@@ -21,48 +21,42 @@ import scala.annotation.implicitNotFound
  * @param crossValues
  */
 @implicitNotFound("Modules, Targets and Commands can only be defined within a mill Module")
-case class Ctx private (
-    enclosing: String,
-    lineNum: Int,
-    segment: Segment,
-    millSourcePath: os.Path,
-    segments: Segments,
-    external: Boolean,
-    foreign: Option[Segments],
-    fileName: String,
-    enclosingCls: Class[_],
-    crossValues: Seq[Any]
-) {
-  private def copy(
-      enclosing: String = enclosing,
-      lineNum: Int = lineNum,
-      segment: Segment = segment,
-      millSourcePath: os.Path = millSourcePath,
-      segments: Segments = segments,
-      external: Boolean = external,
-      foreign: Option[Segments] = foreign,
-      fileName: String = fileName,
-      enclosingCls: Class[_] = enclosingCls,
-      crossValues: Seq[Any] = crossValues
-  ): Ctx = new Ctx(
-    enclosing,
-    lineNum,
-    segment,
-    millSourcePath,
-    segments,
-    external,
-    foreign,
-    fileName,
-    enclosingCls,
-    crossValues
-  )
-  def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
-  def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
-  def withSegment(segment: Segment): Ctx = copy(segment = segment)
-  def withSegments(segments: Segments): Ctx = copy(segments = segments)
+trait Ctx {
+  def enclosing: String
+  def lineNum: Int
+  def segment: Segment
+  def millSourcePath: os.Path
+  def segments: Segments
+  def external: Boolean
+  def foreign: Option[Segments]
+  def fileName: String
+  def enclosingCls: Class[_]
+  def crossValues: Seq[Any]
+
+  private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
+  private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
+  private[mill] def withSegment(segment: Segment): Ctx
+  private[mill] def withSegments(segments: Segments): Ctx
 }
 
 object Ctx {
+  private case class Impl(
+      enclosing: String,
+      lineNum: Int,
+      segment: Segment,
+      millSourcePath: os.Path,
+      segments: Segments,
+      external: Boolean,
+      foreign: Option[Segments],
+      fileName: String,
+      enclosingCls: Class[_],
+      crossValues: Seq[Any]
+  ) extends Ctx {
+    def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
+    def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
+    def withSegment(segment: Segment): Ctx = copy(segment = segment)
+    def withSegments(segments: Segments): Ctx = copy(segments = segments)
+  }
 
   /**
    * Marker for a base path to be used implicitly by [[Ctx]].
@@ -90,7 +84,7 @@ object Ctx {
       fileName: sourcecode.File,
       enclosing: Caller
   ): Ctx = {
-    Ctx(
+    Impl(
       millModuleEnclosing0.value,
       millModuleLine0.value,
       Segment.Label(
@@ -108,51 +102,4 @@ object Ctx {
       Seq()
     )
   }
-
-  def apply(
-      enclosing: String,
-      lineNum: Int,
-      segment: Segment,
-      millSourcePath: os.Path,
-      segments: Segments,
-      external: Boolean,
-      foreign: Option[Segments],
-      fileName: String,
-      enclosingCls: Class[_],
-      crossValues: Seq[Any]
-  ): Ctx = new Ctx(
-    enclosing,
-    lineNum,
-    segment,
-    millSourcePath,
-    segments,
-    external,
-    foreign,
-    fileName,
-    enclosingCls,
-    crossValues
-  )
-  private def unapply(ctx: Ctx): Option[(
-      String,
-      Int,
-      Segment,
-      Path,
-      Segments,
-      Boolean,
-      Option[Segments],
-      String,
-      Class[_],
-      Seq[Any]
-  )] = Some((
-    ctx.enclosing,
-    ctx.lineNum,
-    ctx.segment,
-    ctx.millSourcePath,
-    ctx.segments,
-    ctx.external,
-    ctx.foreign,
-    ctx.fileName,
-    ctx.enclosingCls,
-    ctx.crossValues
-  ))
 }
