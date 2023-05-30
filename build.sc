@@ -12,6 +12,7 @@ import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
+import mill.api.JarManifest
 import mill.eval.Evaluator
 import mill.scalalib._
 import mill.scalalib.publish._
@@ -1316,7 +1317,7 @@ object dev extends MillPublishScalaModule {
       "Created-By" -> "Scala mill",
       "Class-Path" -> classpath
     )
-    Jvm.createJar(Agg(), Jvm.JarManifest(manifestEntries))
+    Jvm.createJar(Agg(), JarManifest(manifestEntries))
   }
 
   def run(args: Task[Args] = T.task(Args())) = T.command {

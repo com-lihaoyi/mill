@@ -184,7 +184,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     ))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
-    val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))
+    val irContainersPairs = PathIRContainer.fromClasspath(libraries.toIndexedSeq.map(_.toPath()))
     val libraryIRsFuture = irContainersPairs.flatMap(pair => cache.cached(pair._1))
     val logger = new ScalaConsoleLogger
     val mainInitializer = Option(main).map { cls =>
