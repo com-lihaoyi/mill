@@ -77,7 +77,7 @@ object caffeine extends CaffeineModule {
     )
   }
 
-  object test extends ScalaModuleTests with TestModule.TestNg {
+  object test extends CaffeineModuleTests with TestModule.TestNg {
     def ivyDeps = super.ivyDeps() ++ Agg(
       libraries.ycsb,
       libraries.fastutil,
