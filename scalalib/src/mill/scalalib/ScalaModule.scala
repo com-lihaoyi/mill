@@ -28,7 +28,6 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     override def mandatoryScalacOptions: Target[Seq[String]] = outer.mandatoryScalacOptions()
   }
 
-
   /**
    * What Scala organization to use
    *
