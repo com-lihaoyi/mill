@@ -1,23 +1,23 @@
 import mill.scalalib
 import mill.Cross
 import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
+import mill.scalalib.{Dep, DepSyntax, TestModule}
 
 val scala212Version = "2.12.3"
 
 object jawn extends Cross[JawnModule]("2.10.6", "2.11.11", scala212Version)
-class JawnModule(crossVersion: String) extends mill.Module {
+trait JawnModule extends cross.Module[String] {
   override def millSourcePath = super.millSourcePath / os.up
 
   trait JawnModule extends scalalib.SbtModule {
-    def scalaVersion = crossVersion
+    def scalaVersion = crossValue
     def scalacOptions = Seq(
       "-deprecation",
       "-optimize",
       "-unchecked"
     )
     def testModuleDeps: Seq[TestModule] = Nil
-    object test extends Tests with TestModule.ScalaTest {
+    object test extends SbtModuleTests with TestModule.ScalaTest {
       def moduleDeps = super.moduleDeps ++ testModuleDeps
       def ivyDeps = Agg(
         ivy"org.scalatest::scalatest:3.0.3",

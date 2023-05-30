@@ -487,7 +487,7 @@ object main extends MillPublicScalaModule with BuildInfo{
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
     def ivyDeps = Agg(Deps.junixsocket)
 
-    object test extends Tests with TestModule.Junit4 {
+    object test extends JavaModuleTests with TestModule.Junit4 {
       def ivyDeps = Agg(Deps.junitInterface, Deps.lambdaTest)
     }
   }

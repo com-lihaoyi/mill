@@ -61,7 +61,7 @@ object HelloNativeWorldTests extends TestSuite {
     }
     object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
-      object test extends super.Tests with TestModule.Utest {
+      object test extends ScalaNativeModuleTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest::0.7.6"
@@ -74,7 +74,7 @@ object HelloNativeWorldTests extends TestSuite {
       def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaNativeVersion = scalaNative
-      object test extends Tests with TestModule.Utest
+      object test extends ScalaNativeModuleTests with TestModule.Utest
     }
 
     override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]

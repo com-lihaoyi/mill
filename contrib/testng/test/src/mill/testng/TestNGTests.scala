@@ -15,7 +15,7 @@ object TestNGTests extends TestSuite {
     override def millSourcePath: os.Path =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
-    object test extends super.Tests {
+    object test extends JavaModuleTests {
       def testngClasspath = T {
         millProjectModule(
           "mill-contrib-testng",

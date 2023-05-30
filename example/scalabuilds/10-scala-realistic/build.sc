@@ -13,9 +13,9 @@ trait MyModule extends PublishModule {
   )
 }
 
-trait MyScalaModule extends  MyModule with CrossScalaModule{
+trait MyScalaModule extends MyModule with CrossScalaModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.12.0")
-  object test extends Tests {
+  object test extends ScalaModuleTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
     def testFramework = "utest.runner.Framework"
   }
@@ -27,7 +27,7 @@ object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends MyScalaModule {
   def moduleDeps = Seq(bar(), qux)
 
-  def generatedSources = T{
+  def generatedSources = T {
     os.write(
       T.dest / "Version.scala",
       s"""package foo
