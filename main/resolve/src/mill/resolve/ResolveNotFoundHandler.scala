@@ -42,9 +42,9 @@ object ResolveNotFoundHandler {
     hintList(revSelectorsSoFar ++ Segment.Label("_"))
   }
 
-  def findMostSimilar(given: String, options: Set[String]): Option[String] = {
+  def findMostSimilar(`given`: String, options: Set[String]): Option[String] = {
     options
-      .map { option => (option, LevenshteinDistance.editDistance(given, option)) }
+      .map { option => (option, LevenshteinDistance.editDistance(`given`, option)) }
       .filter(_._2 < 3)
       .minByOption(_._2)
       .map(_._1)

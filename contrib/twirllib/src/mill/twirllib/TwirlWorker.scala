@@ -85,7 +85,8 @@ class TwirlWorker {
 
             // val twirlConstructorAnnotations = new ArrayList()
             // constructorAnnotations.foreach(twirlConstructorAnnotations.add)
-            val twirlConstructorAnnotations = arrayListClass.getConstructor().newInstance().asInstanceOf[Object]
+            val twirlConstructorAnnotations =
+              arrayListClass.getConstructor().newInstance().asInstanceOf[Object]
             val arrayListAddMethod =
               twirlConstructorAnnotations.getClass.getMethod("add", classOf[Object])
             constructorAnnotations.foreach(arrayListAddMethod.invoke(
