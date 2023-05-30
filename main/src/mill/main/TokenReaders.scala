@@ -35,7 +35,8 @@ private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[
 }
 
 object TokenReaders {
-  implicit def millEvaluatorTokenReader[T]: mainargs.TokensReader[Evaluator] = new mill.main.EvaluatorTokenReader[T]()
+  implicit def millEvaluatorTokenReader[T]: mainargs.TokensReader[Evaluator] =
+    new mill.main.EvaluatorTokenReader[T]()
 
   implicit def millTasksTokenReader[T]: mainargs.TokensReader[Tasks[T]] =
     new mill.main.Tasks.TokenReader[T]()

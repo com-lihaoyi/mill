@@ -7,7 +7,6 @@ import os.Path
 import java.io.PrintStream
 import java.net.URL
 
-
 private trait BspWorker {
   def startBspServer(
       streams: SystemStreams,
