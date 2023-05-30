@@ -1622,18 +1622,18 @@ def millBootstrap = T.sources(T.workspace / "mill")
 
 def bootstrapLauncher = T {
   val outputPath = T.ctx.dest / "mill"
-  val millBootstrapGrepPrefix = "DEFAULT_MILL_VERSION="
-  val millDownloadUrlPrefix = "MILL_DOWNLOAD_URL="
+  val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
+  val millDownloadUrlPrefix = "(\n *MILL_DOWNLOAD_URL=)"
   os.write(
     outputPath,
     os.read(millBootstrap().head.path)
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
-        millBootstrapGrepPrefix + millVersion()
+        "$1" + millVersion()
       )
       .replaceAll(
         millDownloadUrlPrefix + "[^\\n]+",
-        millDownloadUrlPrefix + "\"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/\\$MILL_VERSION/mill-dist-\\$MILL_VERSION.jar\""
+        "$1" + "\"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/\\$MILL_VERSION/mill-dist-\\$MILL_VERSION.jar\""
       )
   )
   os.perms.set(outputPath, "rwxrwxrwx")
