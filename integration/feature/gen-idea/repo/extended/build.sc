@@ -8,7 +8,7 @@ import mill.scalalib.TestModule
 
 trait HelloWorldModule extends scalalib.ScalaModule {
   override def scalaVersion = "2.13.6"
-  object test extends super.Tests with TestModule.Utest
+  object test extends ScalaModuleTests with TestModule.Utest
 
   override def generatedSources = T {
     Seq(PathRef(T.dest / "classes"))

@@ -44,7 +44,7 @@ object BloopTests extends TestSuite {
         ivy"org.postgresql:postgresql:42.3.3"
       )
 
-      object test extends super.Tests with TestModule.Utest
+      object test extends ScalaModuleTests with TestModule.Utest
     }
 
     object scalaModule2 extends scalalib.ScalaModule {

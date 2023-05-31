@@ -2,7 +2,7 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
-  object test extends Tests {
+  object test extends ScalaModuleTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
     def testFramework = "utest.runner.Framework"
   }
@@ -47,7 +47,7 @@ compiling 1 Scala source...
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  object test extends Tests with TestModule.Utest {
+  object test extends ScalaModuleTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
   }
 }
@@ -87,10 +87,10 @@ object bar extends ScalaModule {
 object qux extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  object test extends Tests with TestModule.Utest {
+  object test extends ScalaModuleTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
   }
-  object integration extends Tests with TestModule.Utest {
+  object integration extends ScalaModuleTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
   }
 }

@@ -487,7 +487,7 @@ object main extends MillStableScalaModule with BuildInfo{
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", millVersion(), "Mill version."))
     def ivyDeps = Agg(Deps.junixsocket)
 
-    object test extends Tests with TestModule.Junit4 {
+    object test extends JavaModuleTests with TestModule.Junit4 {
       def ivyDeps = Agg(Deps.junitInterface, Deps.lambdaTest)
     }
   }
@@ -1211,6 +1211,8 @@ object dev extends MillPublishScalaModule {
     runner.linenumbers.testDep(),
     scalalib.backgroundwrapper.testDep(),
     contrib.buildinfo.testDep(),
+    contrib.playlib.testDep(),
+    contrib.playlib.worker("2.8").testDep(),
     bsp.worker.testDep()
   )
 

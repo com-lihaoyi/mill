@@ -21,6 +21,7 @@ private[mill] trait GroupEvaluator {
   def externalOutPath: os.Path
   def rootModule: mill.define.BaseModule
   def classLoaderSigHash: Int
+  def classLoaderIdentityHash: Int
   def workerCache: mutable.Map[Segments, (Int, Val)]
   def env: Map[String, String]
   def failFast: Boolean
@@ -277,6 +278,21 @@ private[mill] trait GroupEvaluator {
     )
   }
 
+  // Include the classloader identity hash as part of the worker hash. This is
+  // because unlike other targets, workers are long-lived in memory objects,
+  // and are not re-instantiated every run. Thus we need to make sure we
+  // invalidate workers in the scenario where a the worker classloader is
+  // re-created - so the worker *class* changes - but the *value* inputs to the
+  // worker does not change. This typically happens when the worker class is
+  // brought in via `import $ivy`, since the class then comes from the
+  // non-bootstrap classloader which can be re-created when the `build.sc` file
+  // changes.
+  //
+  // We do not want to do this for normal targets, because those are always
+  // read from disk and re-instantiated every time, so whether the
+  // classloader/class is the same or different doesn't matter.
+  def workerCacheHash(inputHash: Int) = inputHash + classLoaderIdentityHash
+
   private def handleTaskResult(
       v: Val,
       hashCode: Int,
@@ -287,7 +303,7 @@ private[mill] trait GroupEvaluator {
     labelled.task.asWorker match {
       case Some(w) =>
         workerCache.synchronized {
-          workerCache.update(w.ctx.segments, (inputsHash, v))
+          workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
         }
       case None =>
         val terminalResult = labelled
@@ -361,7 +377,10 @@ private[mill] trait GroupEvaluator {
         }
       }
       .flatMap {
-        case (`inputsHash`, upToDate) => Some(upToDate) // worker cached and up-to-date
+        case (cachedHash, upToDate)
+            if cachedHash == workerCacheHash(inputsHash) =>
+          Some(upToDate) // worker cached and up-to-date
+
         case (_, Val(obsolete: AutoCloseable)) =>
           // worker cached but obsolete, needs to be closed
           try {

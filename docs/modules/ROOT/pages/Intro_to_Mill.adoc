@@ -46,9 +46,13 @@ Mill build tool works.
 
 include::example/basic/1-simple-scala.adoc[]
 
+== Custom Build Logic
+
+include::example/basic/2-custom-build-logic.adoc[]
+
 == Multi-Module Project
 
-include::example/basic/2-multi-module.adoc[]
+include::example/basic/3-multi-module.adoc[]
 
 
 == Watch and Re-evaluate

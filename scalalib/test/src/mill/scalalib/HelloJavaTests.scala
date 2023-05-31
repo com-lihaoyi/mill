@@ -14,13 +14,13 @@ object HelloJavaTests extends TestSuite {
 
     object core extends JavaModule {
       override def docJarUseArgsFile = false
-      object test extends Tests with TestModule.Junit4
+      object test extends JavaModuleTests with TestModule.Junit4
     }
     object app extends JavaModule {
       override def docJarUseArgsFile = true
       override def moduleDeps = Seq(core)
-      object test extends Tests with TestModule.Junit4
-      object testJunit5 extends Tests with TestModule.Junit5 {
+      object test extends JavaModuleTests with TestModule.Junit4
+      object testJunit5 extends JavaModuleTests with TestModule.Junit5 {
         override def ivyDeps: T[Agg[Dep]] = T {
           super.ivyDeps() ++ Agg(ivy"org.junit.jupiter:junit-jupiter-params:5.7.0")
         }

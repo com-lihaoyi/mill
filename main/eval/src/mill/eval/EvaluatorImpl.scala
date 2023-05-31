@@ -21,6 +21,7 @@ private[mill] case class EvaluatorImpl(
     rootModule: mill.define.BaseModule,
     baseLogger: ColorLogger,
     classLoaderSigHash: Int,
+    classLoaderIdentityHash: Int,
     workerCache: mutable.Map[Segments, (Int, Val)] = mutable.Map.empty,
     env: Map[String, String] = Evaluator.defaultEnv,
     failFast: Boolean = true,

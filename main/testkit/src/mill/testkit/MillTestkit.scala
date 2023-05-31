@@ -100,6 +100,7 @@ trait MillTestKit {
       module,
       logger,
       0,
+      0,
       failFast = failFast,
       threadCount = threads,
       env = env

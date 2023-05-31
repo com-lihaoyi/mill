@@ -29,7 +29,7 @@ trait AmmInternalModule extends mill.scalalib.CrossSbtModule {
   def scalacOptions = Seq("-P:acyclic:force", "-target:jvm-1.7")
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
-  trait Tests extends super.Tests with TestModule.Utest {
+  trait AmmModuleTests extends CrossSbtModuleTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
     def forkArgs = Seq("-XX:MaxPermSize=2g", "-Xmx4g", "-Dfile.encoding=UTF8")
   }
@@ -78,7 +78,7 @@ object ops extends Cross[OpsModule](binCrossScalaVersions: _*)
 trait OpsModule extends AmmModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.2.0")
   def scalacOptions = super.scalacOptions().filter(!_.contains("acyclic"))
-  object test extends Tests
+  object test extends AmmModuleTests
 }
 
 object terminal extends Cross[TerminalModule](binCrossScalaVersions: _*)
@@ -91,7 +91,7 @@ trait TerminalModule extends AmmModule {
     ivy"org.scala-lang:scala-reflect:$crossScalaVersion"
   )
 
-  object test extends Tests
+  object test extends AmmModuleTests
 }
 
 object amm extends Cross[MainModule](fullCrossScalaVersions: _*) {
@@ -153,7 +153,7 @@ object amm extends Cross[MainModule](fullCrossScalaVersions: _*) {
       ivy"com.github.scopt::scopt:3.5.0"
     )
 
-    object test extends Tests with AmmDependenciesResourceFileModule {
+    object test extends AmmModuleTests with AmmDependenciesResourceFileModule {
       def crossScalaVersion = ReplModule.this.crossScalaVersion
       def dependencyResourceFileName = "amm-test-dependencies.txt"
       def resources = T.sources {
@@ -217,7 +217,7 @@ class MainModule(val crossScalaVersion: String) extends AmmModule
 
   def dependencyResourceFileName = "amm-dependencies.txt"
 
-  object test extends Tests {
+  object test extends AmmModuleTests {
     def moduleDeps = super.moduleDeps ++ Seq(amm.repl().test)
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.chuusai::shapeless:2.3.2"
@@ -241,7 +241,7 @@ object shell extends Cross[ShellModule](fullCrossScalaVersions: _*)
 trait ShellModule extends AmmModule {
   def moduleDeps = Seq(ops(), amm())
   def crossFullScalaVersion = true
-  object test extends Tests {
+  object test extends AmmModuleTests {
     def moduleDeps = super.moduleDeps ++ Seq(amm.repl().test)
     def forkEnv = super.forkEnv() ++ Seq(
       "AMMONITE_SHELL" -> shell().jar().path.toString,
@@ -252,7 +252,7 @@ trait ShellModule extends AmmModule {
 object integration extends Cross[IntegrationModule](fullCrossScalaVersions: _*)
 trait IntegrationModule extends AmmInternalModule {
   def moduleDeps = Seq(ops(), amm())
-  object test extends Tests {
+  object test extends AmmModuleTests {
     def forkEnv = super.forkEnv() ++ Seq(
       "AMMONITE_SHELL" -> shell().jar().path.toString,
       "AMMONITE_ASSEMBLY" -> amm().assembly().path.toString
@@ -269,7 +269,7 @@ trait SshdModule extends AmmModule {
     ivy"org.apache.sshd:sshd-core:1.2.0",
     ivy"org.bouncycastle:bcprov-jdk15on:1.56"
   )
-  object test extends Tests {
+  object test extends AmmModuleTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       // slf4j-nop makes sshd server use logger that writes into the void
       ivy"org.slf4j:slf4j-nop:1.7.12",

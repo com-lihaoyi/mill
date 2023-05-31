@@ -31,6 +31,9 @@ object Util {
         .stripSuffix("**/")
         .stripSuffix("*/")
         .dropWhile(_.isWhitespace)
+        .reverse
+        .dropWhile(_.isWhitespace)
+        .reverse
     ).toArray
       .dropWhile(_.isEmpty)
       .reverse
