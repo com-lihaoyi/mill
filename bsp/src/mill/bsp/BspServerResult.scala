@@ -5,6 +5,7 @@ import mill.api.internal
 @internal
 sealed trait BspServerResult
 
+@internal
 object BspServerResult {
 
   /** The session was to give mill a change to restart a new BSP session, which is required to load changes to the build setup. */

@@ -275,6 +275,28 @@ These are maintained as part of the primary Mill Github repo for easy testing/up
 APIs evolve, ensuring that they are always tested and passing against the
 corresponding version of Mill.
 
+== Compatibility & Stability
+
+Mill maintains backward binary compatibility for each major version
+(`major.minor.point`), enforced with Mima, for the following packages:
+
+- `mill.api`
+- `mill.util`
+- `mill.define`
+- `mill.eval`
+- `mill.resolve`
+- `mill.scalalib`
+- `mill.scalajslib`
+- `mill.scalanativelib`
+
+Other package slike `mill.runner`, `mill.bsp`, etc. are on the classpath but
+offer no compatibility guarantees.
+
+Currently, Mill does not offer compatibility guarantees for `mill.contrib`
+packages, although they tend to evolve slowly. This may change over time as
+these packages mature over time.
+
+
 == Project Maintenance
 
 === Pull Requests

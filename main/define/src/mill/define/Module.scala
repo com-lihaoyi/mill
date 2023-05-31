@@ -20,6 +20,7 @@ trait Module extends Module.BaseClass {
    * Miscellaneous machinery around traversing & querying the build hierarchy,
    * that should not be needed by normal users of Mill
    */
+  @internal
   object millInternal extends Module.Internal(this)
 
   def millModuleDirectChildren: Seq[Module] = millModuleDirectChildrenImpl
@@ -54,6 +55,7 @@ object Module {
    * classes results in the class being invisible to java reflection, which
    * messes up the module discovery process
    */
+  @internal
   class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher {
     def millOuterCtx = outerCtx0
   }
