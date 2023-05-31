@@ -904,8 +904,6 @@ trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module
   def millSourcePath = super.millSourcePath / repoSlug
 
   object local extends ModeModule
-  object fork extends ModeModule
-  object server extends ModeModule
 }
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
@@ -925,7 +923,6 @@ object example extends MillScalaModule {
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
 
   trait ExampleCrossModule extends IntegrationTestCrossModule {
-    def sources = T.sources()
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
@@ -1002,12 +999,39 @@ object example extends MillScalaModule {
       PathRef(T.dest / "example.adoc")
     }
   }
+
+  def repoInfo = Map(
+    "acyclic" -> ("com-lihaoyi/acyclic", "1ec221f377794db39e8ff9b43415f81c703c202f"),
+    "fansi" -> ("com-lihaoyi/fansi", "169ac96d7c6761a72590d312a433cf12c572573c"),
+    "jimfs" -> ("google/jimfs", "5b60a42eb9d3cd7a2073d549bd0cb833f5a7e7e9")
+  )
+  object thirdparty extends Cross[ThirdPartyModule](listIn(millSourcePath / "thirdparty"))
+  trait ThirdPartyModule extends ExampleCrossModule {
+    val (repoPath, repoHash) = repoInfo(crossValue)
+    def repoSlug = repoPath.split("/").last
+
+    def testRepoRoot = T {
+      shared.downloadTestRepo(repoPath, repoHash, T.dest)
+      val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
+
+      os.makeDir(T.dest / "merged")
+      os.copy(wrapperFolder, T.dest / "merged", mergeFolders = true)
+      os.remove.all(wrapperFolder)
+      os.copy(super.testRepoRoot().path, T.dest / "merged", mergeFolders = true, replaceExisting = true)
+      os.remove.all(T.dest / "merged" / ".mill-version")
+
+      PathRef(T.dest / "merged")
+    }
+  }
 }
 
 object integration extends MillScalaModule {
   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"))
   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"))
-  trait IntegrationCrossModule extends IntegrationTestCrossModule
+  trait IntegrationCrossModule extends IntegrationTestCrossModule{
+    object fork extends ModeModule
+    object server extends ModeModule
+  }
 
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
 
@@ -1015,71 +1039,6 @@ object integration extends MillScalaModule {
   def testMill: T[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     T { PathRef(installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
-  }
-
-  // Test of various third-party repositories
-  object thirdparty extends MillScalaModule {
-    def moduleDeps = Seq(integration)
-
-    object acyclic extends ThirdPartyModule {
-      def repoPath = "lihaoyi/acyclic"
-      def repoHash = "bc41cd09a287e2c270271e27ccdb3066173a8598"
-    }
-
-    object jawn extends ThirdPartyModule {
-      def repoPath = "non/jawn"
-      def repoHash = "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb"
-    }
-
-    object ammonite extends ThirdPartyModule {
-      def repoPath = "lihaoyi/Ammonite"
-      def repoHash = "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e"
-    }
-
-    object upickle extends ThirdPartyModule {
-      def repoPath = "lihaoyi/upickle"
-      def repoHash = "7f33085c890db7550a226c349832eabc3cd18769"
-    }
-
-    object caffeine extends ThirdPartyModule {
-      def repoPath = "ben-manes/caffeine"
-      def repoHash = "c02c623aedded8174030596989769c2fecb82fe4"
-
-      def runClasspath: T[Seq[PathRef]] = T {
-        // we need to trigger installation of testng-contrib for Caffeine
-        contrib.testng.publishLocal()()
-        super.runClasspath()
-      }
-    }
-
-    trait ThirdPartyModule extends IntegrationTestModule {
-      def moduleDeps = super.moduleDeps ++ Seq(thirdparty)
-      def repoPath: String
-      def repoHash: String
-      def repoSlug = repoPath.split("/").last
-
-      def testRepoRoot = T {
-        shared.downloadTestRepo(repoPath, repoHash, T.dest)
-        val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
-        os.list(wrapperFolder).foreach(os.move.into(_, T.dest))
-        os.remove(wrapperFolder)
-
-        os.list(super.testRepoRoot().path)
-          .foreach(os.copy.into(_, T.dest, replaceExisting = true))
-
-        PathRef(T.dest)
-      }
-
-      object local extends ModeModule {
-        def runClasspath: T[Seq[PathRef]] = T {
-          // we need to trigger installation of testng-contrib for Caffeine
-          contrib.testng.publishLocal()()
-          super.runClasspath()
-        }
-      }
-      object fork extends ModeModule
-      object server extends ModeModule
-    }
   }
 }
 

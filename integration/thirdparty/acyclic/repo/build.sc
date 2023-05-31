@@ -1,31 +1,39 @@
-import mill.Cross
-import mill.scalalib.{CrossSbtModule, Dep, DepSyntax, PublishModule, SbtModule, TestModule}
-import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
+import mill._, scalalib._, publish._
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 
-object acyclic extends Cross[AcyclicModule]("2.10.6", "2.11.8", "2.12.3", "2.12.5")
-trait AcyclicModule extends CrossSbtModule with PublishModule {
-  def millSourcePath = super.millSourcePath / os.up
+object Deps {
+  def acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
+  def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:$scalaVersion"
+  val utest = ivy"com.lihaoyi::utest:0.8.1"
+}
+
+val crosses =
+  Seq("2.11.12") ++
+  Range(8, 17).map("2.12." + _) ++
+  Range(0, 10).map("2.13." + _)
+
+object acyclic extends Cross[AcyclicModule](crosses)
+trait AcyclicModule extends CrossScalaModule with PublishModule {
+  def crossFullScalaVersion = true
   def artifactName = "acyclic"
-  def publishVersion = "0.1.7"
+  def publishVersion = VcsVersion.vcsState().format()
 
   def pomSettings = PomSettings(
     description = artifactName(),
     organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/acyclic",
+    url = "https://github.com/com-lihaoyi/acyclic",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "acyclic"),
+    versionControl = VersionControl.github(owner = "com-lihaoyi", repo = "acyclic"),
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
     )
   )
+  def compileIvyDeps = Agg(Deps.scalaCompiler(crossScalaVersion), Deps.acyclic)
 
-  def ivyDeps = Agg(
-    ivy"${scalaOrganization()}:scala-compiler:${scalaVersion()}"
-  )
-  object test extends Tests with TestModule.Utest {
-    def forkWorkingDir = os.pwd / "target" / "workspace" / "acyclic"
-    def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest:0.6.0"
-    )
+  def scalacPluginIvyDeps = Agg(Deps.acyclic)
+
+  object test extends ScalaModuleTests with TestModule.Utest {
+    def sources = T.sources(millSourcePath / "src", millSourcePath / "resources")
+    def ivyDeps = Agg(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
 }
