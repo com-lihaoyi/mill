@@ -505,30 +505,9 @@ object main extends MillStableScalaModule with BuildInfo{
 }
 
 object testrunner extends MillPublishScalaModule {
-  object entrypoint extends MillPublishJavaModule{
-//    def shadedAssemblyPath = T { T.dest / "shaded-testrunner.jar" }
-//
-//    def assembly = T {
-//      jarjar.run(
-//        T.task {
-//          Args(
-//            "process",
-//            os.temp("rule mill.testrunner.launcher.** mill_shaded.@0"),
-//            super.assembly().path,
-//            shadedAssemblyPath()
-//          )
-//        }
-//      )()
-//      PathRef(shadedAssemblyPath())
-//    }
-  }
+  object entrypoint extends MillPublishJavaModule
 
   def moduleDeps = Seq(scalalib.api, main.util, entrypoint)
-
-//  object jarjar extends JavaModule {
-//    def ivyDeps = Agg(ivy"com.eed3si9n.jarjar:jarjar:1.8.2")
-//    def mainClass = Some("com.eed3si9n.jarjar.Main")
-//  }
 }
 
 object scalalib extends MillStableScalaModule {
