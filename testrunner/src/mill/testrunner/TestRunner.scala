@@ -229,7 +229,7 @@ object TestRunner {
         args = testArgs.arguments,
         classFilter = filter,
         cl = classLoader,
-        testReporter = DummyTestReporter,
+        testReporter = DummyTestReporter
       )(ctx)
 
       // Clear interrupted state in case some badly-behaved test suite
@@ -273,13 +273,14 @@ object TestRunner {
     )
   }
 
-  def runTestFramework0(frameworkInstances: ClassLoader => Framework,
-                        testClassfilePath: Loose.Agg[Path],
-                        args: Seq[String],
-                        classFilter: Class[_] => Boolean,
-                        cl: ClassLoader,
-                        testReporter: TestReporter)
-                       (implicit ctx: Ctx.Log with Ctx.Home)= {
+  def runTestFramework0(
+      frameworkInstances: ClassLoader => Framework,
+      testClassfilePath: Loose.Agg[Path],
+      args: Seq[String],
+      classFilter: Class[_] => Boolean,
+      cl: ClassLoader,
+      testReporter: TestReporter
+  )(implicit ctx: Ctx.Log with Ctx.Home) = {
 
     val framework = frameworkInstances(cl)
     val events = new ConcurrentLinkedQueue[Event]()
@@ -292,7 +293,7 @@ object TestRunner {
         // so makes the jimfs test suite fail
         //
         // https://stackoverflow.com/a/17468590
-        .filter{case (c, f) => !c.isMemberClass}
+        .filter { case (c, f) => !c.isMemberClass }
 
       val tasks = runner.tasks(
         for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
