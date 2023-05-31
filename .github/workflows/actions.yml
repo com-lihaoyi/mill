@@ -36,8 +36,6 @@ jobs:
             buildcmd: | 
               ./mill -i -k __.ivyDepsTree
               ./mill -i -k __.ivyDepsTree --withRuntime true
-          - java-version: 20
-            buildcmd: ci/test-mill-bootstrap-0.sh
 
     runs-on: ubuntu-latest
 
