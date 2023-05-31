@@ -1204,6 +1204,11 @@ object runner extends MillPublishScalaModule {
   }
 }
 
+object dist extends MillPublishJavaModule{
+  def jar = dev.assembly()
+  def moduleDeps = Seq(runner)
+}
+
 object dev extends MillPublishScalaModule {
   def moduleDeps = Seq(runner)
 
@@ -1253,8 +1258,10 @@ object dev extends MillPublishScalaModule {
     mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
+  // All modules that we want to aggregate as part of this `dev` assembly.
+  // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.millInternal.modules.collect {
-    case m: PublishModule if m ne this => m
+    case m: PublishModule if (m ne this) && (m ne dist) => m
   }
 
   def assembly = T {
@@ -1617,13 +1624,18 @@ def millBootstrap = T.sources(T.workspace / "mill")
 
 def bootstrapLauncher = T {
   val outputPath = T.ctx.dest / "mill"
-  val millBootstrapGrepPrefix = "\nDEFAULT_MILL_VERSION="
+  val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
+  val millDownloadUrlPrefix = "(\n *MILL_DOWNLOAD_URL=)"
   os.write(
     outputPath,
     os.read(millBootstrap().head.path)
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
-        millBootstrapGrepPrefix + millVersion()
+        "$1" + millVersion()
+      )
+      .replaceAll(
+        millDownloadUrlPrefix + "[^\\n]+",
+        "$1" + "\"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/\\$MILL_VERSION/mill-dist-\\$MILL_VERSION.jar\""
       )
   )
   os.perms.set(outputPath, "rwxrwxrwx")
