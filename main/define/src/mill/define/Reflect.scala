@@ -33,8 +33,6 @@ private[mill] object Reflect {
         inner.isAssignableFrom(m.getReturnType)
     } yield m
 
-    if (outer.toString.contains("BarModule")) pprint.log(inner)
-    if (outer.toString.contains("BarModule")) pprint.log(res)
     // There can be multiple methods of the same name on a class if a sub-class
     // overrides a super-class method and narrows the return type.
     //
@@ -62,7 +60,6 @@ private[mill] object Reflect {
       filter: String => Boolean = Function.const(true)
   ): Seq[(String, java.lang.reflect.Member)] = {
 
-    if (outerCls.toString.contains("BarModule")) pprint.log(outerCls)
     val first = reflect(
       outerCls,
       implicitly[ClassTag[T]].runtimeClass,
@@ -71,8 +68,6 @@ private[mill] object Reflect {
     )
       .map(m => (m.getName, m))
 
-    if (outerCls.toString.contains("BarModule")) pprint.log(first)
-    if (outerCls.toString.contains("BarModule")) pprint.log(outerCls.getClasses)
     val second =
       outerCls
         .getClasses
@@ -87,7 +82,6 @@ private[mill] object Reflect {
         }
         .distinct
 
-    if (outerCls.toString.contains("BarModule")) pprint.log(second)
     first ++ second
   }
 }

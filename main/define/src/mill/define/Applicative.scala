@@ -1,5 +1,7 @@
 package mill.define
 
+import mill.api.internal
+
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.higherKinds
 import scala.reflect.macros.blackbox.Context
@@ -13,6 +15,7 @@ import scala.reflect.macros.blackbox.Context
  *
  * Applier.zipMap(applyable1, applyable2){ (a1, a2, ctx) => ... a1 ... a2 ... }
  */
+@internal
 object Applicative {
   trait ApplyHandler[M[+_]] {
 
