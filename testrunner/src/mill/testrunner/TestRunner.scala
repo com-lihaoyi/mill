@@ -199,7 +199,7 @@ object TestRunner {
 
   }
 
-  def main0(args0: Array[String]): Unit = {
+  def main0(args0: Array[String], classLoader: ClassLoader): Unit = {
     val args = args0.drop(1)
     try {
       val testArgs = TestArgs.parseArgs(args).get
@@ -228,7 +228,7 @@ object TestRunner {
         testClassfilePath = Agg(os.Path(testArgs.testCp)),
         args = testArgs.arguments,
         classFilter = filter,
-        cl = getClass.getClassLoader,
+        cl = classLoader,
         testReporter = DummyTestReporter,
       )(ctx)
 

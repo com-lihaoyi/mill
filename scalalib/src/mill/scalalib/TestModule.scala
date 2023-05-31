@@ -114,7 +114,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
         globSelectors = globSelectors()
       )
 
-      val testRunnerClasspathArg = (runClasspath() ++ zincWorker().scalalibClasspath())
+      val testRunnerClasspathArg = zincWorker().scalalibClasspath()
         .map(_.path.toNIO.toUri.toURL)
         .mkString(",")
 
@@ -128,7 +128,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
 
       Jvm.runSubprocess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath = zincWorker().testrunnerEntrypointClasspath().map(_.path),
+        classPath = (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(_.path),
         jvmArgs = jvmArgs,
         envArgs = forkEnv(),
         mainArgs = mainArgs,
