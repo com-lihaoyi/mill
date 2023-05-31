@@ -348,7 +348,7 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
 trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 
 /** Publishable module which contains strictly handled API. */
-trait MillPublicScalaModule extends MillPublishScalaModule with Mima{
+trait MillStableScalaModule extends MillPublishScalaModule with Mima{
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
   def mimaPreviousArtifacts: T[Agg[Dep]] = T {
@@ -405,7 +405,7 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   }
 }
 
-object main extends MillPublicScalaModule with BuildInfo{
+object main extends MillStableScalaModule with BuildInfo{
 
   def moduleDeps = Seq(eval, resolve, client)
   def ivyDeps = Agg(
@@ -442,7 +442,7 @@ object main extends MillPublicScalaModule with BuildInfo{
     )
   )
 
-  object api extends MillPublicScalaModule with BuildInfo {
+  object api extends MillStableScalaModule with BuildInfo {
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Seq(
       BuildInfo.Value("millVersion", millVersion(), "Mill version."),
@@ -456,11 +456,11 @@ object main extends MillPublicScalaModule with BuildInfo{
       Deps.sbtTestInterface
     )
   }
-  object util extends MillPublicScalaModule {
+  object util extends MillStableScalaModule {
     def moduleDeps = Seq(api, client)
     def ivyDeps = Agg(Deps.coursier, Deps.jline)
   }
-  object define extends MillPublicScalaModule {
+  object define extends MillStableScalaModule {
     def moduleDeps = Seq(api, util)
     def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
     def ivyDeps = Agg(
@@ -475,11 +475,11 @@ object main extends MillPublicScalaModule with BuildInfo{
     )
   }
 
-  object eval extends MillPublicScalaModule {
+  object eval extends MillStableScalaModule {
     def moduleDeps = Seq(define)
   }
 
-  object resolve extends MillPublicScalaModule {
+  object resolve extends MillStableScalaModule {
     def moduleDeps = Seq(define)
   }
 
@@ -493,7 +493,7 @@ object main extends MillPublicScalaModule with BuildInfo{
     }
   }
 
-  object graphviz extends MillPublicScalaModule {
+  object graphviz extends MillPublishScalaModule {
     def moduleDeps = Seq(main, scalalib)
     def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
   }
@@ -509,7 +509,7 @@ object testrunner extends MillPublishScalaModule {
   def moduleDeps = Seq(scalalib.api, main.util)
 }
 
-object scalalib extends MillPublicScalaModule {
+object scalalib extends MillStableScalaModule {
   def moduleDeps = Seq(main, scalalib.api, testrunner)
   def ivyDeps = Agg(Deps.scalafmtDynamic)
   def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
@@ -519,7 +519,7 @@ object scalalib extends MillPublicScalaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 
-  object api extends MillPublicScalaModule with BuildInfo {
+  object api extends MillStableScalaModule with BuildInfo {
     def moduleDeps = Seq(main.api)
     def buildInfoPackageName = "mill.scalalib.api"
     def buildInfoObjectName = "Versions"
@@ -556,7 +556,7 @@ object scalalib extends MillPublicScalaModule {
   }
 }
 
-object scalajslib extends MillPublicScalaModule with BuildInfo {
+object scalajslib extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(scalalib, scalajslib.`worker-api`)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker("1").testDep())
   def buildInfoPackageName = "mill.scalajslib"
@@ -608,7 +608,7 @@ object contrib extends Module {
   def contribModules: Seq[ContribModule] =
     millInternal.modules.collect { case m: ContribModule => m}
 
-  trait ContribModule extends MillPublicScalaModule {
+  trait ContribModule extends MillPublishScalaModule {
     def readme = T.source(millSourcePath / "readme.adoc")
   }
 
@@ -676,7 +676,7 @@ object contrib extends Module {
   }
 
   object scoverage extends ContribModule {
-    object api extends MillPublicScalaModule {
+    object api extends MillPublishScalaModule {
       def compileModuleDeps = Seq(main.api)
     }
 
@@ -794,7 +794,7 @@ object contrib extends Module {
   }
 }
 
-object scalanativelib extends MillPublicScalaModule {
+object scalanativelib extends MillStableScalaModule {
   def moduleDeps = Seq(scalalib, scalanativelib.`worker-api`)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker("0.4").testDep())
 
@@ -822,7 +822,7 @@ object scalanativelib extends MillPublicScalaModule {
   }
 }
 
-object bsp extends MillPublicScalaModule with BuildInfo {
+object bsp extends MillPublishScalaModule with BuildInfo {
   def compileModuleDeps = Seq(scalalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
@@ -1195,7 +1195,7 @@ def launcherScript(shellJvmArgs: Seq[String],
   )
 }
 
-object runner extends MillPublicScalaModule {
+object runner extends MillPublishScalaModule {
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers)
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
@@ -1203,6 +1203,11 @@ object runner extends MillPublicScalaModule {
     def scalaVersion = Deps.scalaVersion
     def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
   }
+}
+
+object dist extends MillPublishJavaModule{
+  def jar = dev.assembly()
+  def moduleDeps = Seq(runner)
 }
 
 object dev extends MillPublishScalaModule {
@@ -1254,8 +1259,10 @@ object dev extends MillPublishScalaModule {
     mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
+  // All modules that we want to aggregate as part of this `dev` assembly.
+  // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.millInternal.modules.collect {
-    case m: PublishModule if m ne this => m
+    case m: PublishModule if (m ne this) && (m ne dist) => m
   }
 
   def assembly = T {
@@ -1343,7 +1350,7 @@ object docs extends Module {
   // consolidated documentation using the Scaladoc tool.
   object site extends UnidocModule {
     def scalaVersion = Deps.scalaVersion
-    def moduleDeps = build.millInternal.modules.collect { case m: MillPublicScalaModule => m }
+    def moduleDeps = build.millInternal.modules.collect { case m: MillStableScalaModule => m }
     def unidocSourceUrl = T {
       val sha = VcsVersion.vcsState().currentRevision
       Some(s"${Settings.projectUrl}/blob/$sha")
@@ -1618,13 +1625,19 @@ def millBootstrap = T.sources(T.workspace / "mill")
 
 def bootstrapLauncher = T {
   val outputPath = T.dest / "mill"
-  val millBootstrapGrepPrefix = "\nDEFAULT_MILL_VERSION="
+  val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
+  val millDownloadUrlPrefix = "(\n *MILL_DOWNLOAD_URL=)"
+
   os.write(
     outputPath,
     os.read(millBootstrap().head.path)
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
-        millBootstrapGrepPrefix + millVersion()
+        "$1" + millVersion()
+      )
+      .replaceAll(
+        millDownloadUrlPrefix + "[^\\n]+",
+        "$1" + "\"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/\\$MILL_VERSION/mill-dist-\\$MILL_VERSION.jar\""
       )
   )
   os.perms.set(outputPath, "rwxrwxrwx")

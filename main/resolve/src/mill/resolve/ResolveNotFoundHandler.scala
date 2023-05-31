@@ -1,12 +1,13 @@
 package mill.resolve
 
+import mill.api.internal
 import mill.define.{BaseModule, Discover, Segment, Segments}
 import mill.resolve.ResolveCore.Resolved
 
 /**
  * Reports errors in the case where nothing was resolved
  */
-object ResolveNotFoundHandler {
+private object ResolveNotFoundHandler {
   def apply(
       selector: Segments,
       segments: Segments,
