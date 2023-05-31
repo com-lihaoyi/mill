@@ -222,6 +222,15 @@ trait MillJavaModule extends JavaModule {
   def testArgs: T[Seq[String]] = T { Seq("-Djna.nosys=true") }
   def testDepPaths = T { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
+  def testTransitiveDeps: T[Map[String, String]] = T {
+    val upstream = T.traverse(moduleDeps ++ compileModuleDeps) {
+      case m: MillJavaModule => m.testTransitiveDeps.map(Some(_))
+      case _ => T.task(None)
+    }().flatten.flatten
+    val current = Seq(testDep())
+    upstream.toMap ++ current
+  }
+
   def repositoriesTask = T.task {
     super.repositoriesTask() ++
     Seq(MavenRepository("https://oss.sonatype.org/content/repositories/releases"))
@@ -278,15 +287,6 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
   def scalaVersion = Deps.scalaVersion
   def scalacOptions = super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force")
-
-  def testTransitiveDeps: T[Map[String, String]] = T {
-    val upstream = T.traverse(outer.moduleDeps ++ outer.compileModuleDeps) {
-      case m: MillScalaModule => m.testTransitiveDeps.map(Some(_))
-      case _ => T.task(None)
-    }().flatten.flatten
-    val current = Seq(outer.testDep())
-    upstream.toMap ++ current
-  }
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
   def testModuleDeps: Seq[JavaModule] =
@@ -505,8 +505,32 @@ object main extends MillPublicScalaModule with BuildInfo{
 }
 
 object testrunner extends MillPublishScalaModule {
-  def moduleDeps = Seq(scalalib.api, main.util)
+  object entrypoint extends MillPublishJavaModule{
+//    def shadedAssemblyPath = T { T.dest / "shaded-testrunner.jar" }
+//
+//    def assembly = T {
+//      jarjar.run(
+//        T.task {
+//          Args(
+//            "process",
+//            os.temp("rule mill.testrunner.launcher.** mill_shaded.@0"),
+//            super.assembly().path,
+//            shadedAssemblyPath()
+//          )
+//        }
+//      )()
+//      PathRef(shadedAssemblyPath())
+//    }
+  }
+
+  def moduleDeps = Seq(scalalib.api, main.util, entrypoint)
+
+//  object jarjar extends JavaModule {
+//    def ivyDeps = Agg(ivy"com.eed3si9n.jarjar:jarjar:1.8.2")
+//    def mainClass = Some("com.eed3si9n.jarjar.Main")
+//  }
 }
+
 
 object scalalib extends MillPublicScalaModule {
   def moduleDeps = Seq(main, scalalib.api, testrunner)

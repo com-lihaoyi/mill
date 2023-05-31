@@ -114,17 +114,21 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
         globSelectors = globSelectors()
       )
 
+      val testRunnerClasspathArg = (runClasspath() ++ zincWorker().scalalibClasspath())
+        .map(_.path.toNIO.toUri.toURL)
+        .mkString(",")
+
       val mainArgs =
         if (useArgsFile) {
           val argsFile = T.dest / "testargs"
-          Seq(testArgs.writeArgsFile(argsFile))
+          Seq(testRunnerClasspathArg, testArgs.writeArgsFile(argsFile))
         } else {
-          testArgs.toArgsSeq
+          Seq(testRunnerClasspathArg) ++ testArgs.toArgsSeq
         }
 
       Jvm.runSubprocess(
-        mainClass = "mill.testrunner.TestRunner",
-        classPath = zincWorker().scalalibClasspath().map(_.path),
+        mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
+        classPath = zincWorker().testrunnerEntrypointClasspath().map(_.path),
         jvmArgs = jvmArgs,
         envArgs = forkEnv(),
         mainArgs = mainArgs,

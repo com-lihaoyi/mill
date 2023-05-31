@@ -32,6 +32,10 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     millProjectModule("mill-scalalib", repositoriesTask())
   }
 
+  def testrunnerEntrypointClasspath: T[Agg[PathRef]] = T {
+    millProjectModule("mill-testrunner-entrypoint", repositoriesTask(), artifactSuffix = "")
+  }
+
   def backgroundWrapperClasspath: T[Agg[PathRef]] = T {
     millProjectModule(
       "mill-scalalib-backgroundwrapper",

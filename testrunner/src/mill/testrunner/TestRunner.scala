@@ -4,6 +4,7 @@ import mill.api.Loose.Agg
 import mill.api.{Ctx, DummyTestReporter, Loose, SystemStreams, TestReporter}
 import mill.util.{Jvm, PrintLogger}
 import mill.api.JsonFormatters._
+import os.Path
 import sbt.testing._
 
 import java.io.FileInputStream
@@ -107,7 +108,7 @@ object TestRunner {
     }.map { f => (cls, f) }
   }
 
-  case class TestArgs private (
+  case class TestArgs(
       framework: String,
       classpath: Seq[String],
       arguments: Seq[String],
@@ -140,28 +141,6 @@ object TestRunner {
       )
       s"@${argsFile.toString()}"
     }
-    private def copy(
-        framework: String = framework,
-        classpath: Seq[String] = classpath,
-        arguments: Seq[String] = arguments,
-        sysProps: Map[String, String] = sysProps,
-        outputPath: String = outputPath,
-        colored: Boolean = colored,
-        testCp: String = testCp,
-        homeStr: String = homeStr,
-        globSelectors: Seq[String] = globSelectors
-    ): TestArgs = new TestArgs(
-      framework,
-      classpath,
-      arguments,
-      sysProps,
-      outputPath,
-      colored,
-      testCp,
-      homeStr,
-      globSelectors
-    )
-
   }
 
   object TestArgs {
@@ -218,54 +197,10 @@ object TestRunner {
       )
     }
 
-    def apply(
-        framework: String,
-        classpath: Seq[String],
-        arguments: Seq[String],
-        sysProps: Map[String, String],
-        outputPath: String,
-        colored: Boolean,
-        testCp: String,
-        homeStr: String,
-        globSelectors: Seq[String]
-    ): TestArgs = new TestArgs(
-      framework,
-      classpath,
-      arguments,
-      sysProps,
-      outputPath,
-      colored,
-      testCp,
-      homeStr,
-      globSelectors
-    )
-
-    private def unapply(testArgs: TestArgs): Option[(
-        String,
-        Seq[String],
-        Seq[String],
-        Map[String, String],
-        String,
-        Boolean,
-        String,
-        String,
-        Seq[String]
-    )] =
-      Some((
-        testArgs.framework,
-        testArgs.classpath,
-        testArgs.arguments,
-        testArgs.sysProps,
-        testArgs.outputPath,
-        testArgs.colored,
-        testArgs.testCp,
-        testArgs.homeStr,
-        testArgs.globSelectors
-      ))
-
   }
 
-  def main(args: Array[String]): Unit = {
+  def main0(args0: Array[String]): Unit = {
+    val args = args0.drop(1)
     try {
       val testArgs = TestArgs.parseArgs(args).get
       val ctx = new Ctx.Log with Ctx.Home {
@@ -288,13 +223,13 @@ object TestRunner {
 
       val filter = globFilter(testArgs.globSelectors)
 
-      val result = runTestFramework(
+      val result = runTestFramework0(
         frameworkInstances = TestRunner.framework(testArgs.framework),
-        entireClasspath = Agg.from(testArgs.classpath.map(os.Path(_))),
         testClassfilePath = Agg(os.Path(testArgs.testCp)),
         args = testArgs.arguments,
-        DummyTestReporter,
-        filter
+        classFilter = filter,
+        cl = getClass.getClassLoader,
+        testReporter = DummyTestReporter,
       )(ctx)
 
       // Clear interrupted state in case some badly-behaved test suite
@@ -318,25 +253,8 @@ object TestRunner {
       entireClasspath: Agg[os.Path],
       testClassfilePath: Agg[os.Path],
       args: Seq[String],
-      testReporter: TestReporter
-  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.testrunner.TestRunner.Result]) = {
-    runTestFramework(
-      frameworkInstances,
-      entireClasspath,
-      testClassfilePath,
-      args,
-      testReporter,
-      _ => true
-    )
-  }
-
-  def runTestFramework(
-      frameworkInstances: ClassLoader => sbt.testing.Framework,
-      entireClasspath: Agg[os.Path],
-      testClassfilePath: Agg[os.Path],
-      args: Seq[String],
       testReporter: TestReporter,
-      classFilter: Class[_] => Boolean
+      classFilter: Class[_] => Boolean = _ => true
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.testrunner.TestRunner.Result]) = {
     // Leave the context class loader set and open so that shutdown hooks can access it
     Jvm.inprocess(
@@ -344,81 +262,94 @@ object TestRunner {
       classLoaderOverrideSbtTesting = true,
       isolated = true,
       closeContextClassLoaderWhenDone = false,
-      cl => {
-        val framework = frameworkInstances(cl)
-
-        val events = new ConcurrentLinkedQueue[Event]()
-
-        val doneMessage = {
-          val runner = framework.runner(args.toArray, Array[String](), cl)
-
-          val testClasses = discoverTests(cl, framework, testClassfilePath)
-
-          val tasks = runner.tasks(
-            for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-              yield new TaskDef(
-                cls.getName.stripSuffix("$"),
-                fingerprint,
-                true,
-                Array(new SuiteSelector)
-              )
-          )
-
-          val taskQueue = tasks.to(mutable.Queue)
-          while (taskQueue.nonEmpty) {
-            val next = taskQueue
-              .dequeue()
-              .execute(
-                new EventHandler {
-                  def handle(event: Event) = {
-                    testReporter.logStart(event)
-                    events.add(event)
-                    testReporter.logFinish(event)
-                  }
-                },
-                Array(new Logger {
-                  def debug(msg: String) = ctx.log.outputStream.println(msg)
-
-                  def error(msg: String) = ctx.log.outputStream.println(msg)
-
-                  def ansiCodesSupported() = true
-
-                  def warn(msg: String) = ctx.log.outputStream.println(msg)
-
-                  def trace(t: Throwable) =
-                    t.printStackTrace(ctx.log.outputStream)
-
-                  def info(msg: String) = ctx.log.outputStream.println(msg)
-                })
-              )
-            taskQueue.enqueueAll(next)
-          }
-          runner.done()
-        }
-
-        val results = for (e <- events.iterator().asScala) yield {
-          val ex =
-            if (e.throwable().isDefined) Some(e.throwable().get) else None
-          mill.testrunner.TestRunner.Result(
-            e.fullyQualifiedName(),
-            e.selector() match {
-              case s: NestedSuiteSelector => s.suiteId()
-              case s: NestedTestSelector => s.suiteId() + "." + s.testName()
-              case s: SuiteSelector => s.toString
-              case s: TestSelector => s.testName()
-              case s: TestWildcardSelector => s.testWildcard()
-            },
-            e.duration(),
-            e.status().toString,
-            ex.map(_.getClass.getName),
-            ex.map(_.getMessage),
-            ex.map(_.getStackTrace.toIndexedSeq)
-          )
-        }
-
-        (doneMessage, results.toSeq)
-      }
+      runTestFramework0(
+        frameworkInstances,
+        testClassfilePath,
+        args,
+        classFilter,
+        _,
+        testReporter
+      )
     )
+  }
+
+  def runTestFramework0(frameworkInstances: ClassLoader => Framework,
+                        testClassfilePath: Loose.Agg[Path],
+                        args: Seq[String],
+                        classFilter: Class[_] => Boolean,
+                        cl: ClassLoader,
+                        testReporter: TestReporter)
+                       (implicit ctx: Ctx.Log with Ctx.Home)= {
+
+    val framework = frameworkInstances(cl)
+    val events = new ConcurrentLinkedQueue[Event]()
+
+    val doneMessage = {
+      val runner = framework.runner(args.toArray, Array[String](), cl)
+      val testClasses = discoverTests(cl, framework, testClassfilePath)
+        // I think this is a bug in sbt-junit-interface. AFAICT, JUnit is not
+        // meant to pick up non-static inner classes as test suites, and doing
+        // so makes the jimfs test suite fail
+        //
+        // https://stackoverflow.com/a/17468590
+        .filter{case (c, f) => !c.isMemberClass}
+
+      val tasks = runner.tasks(
+        for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
+          yield new TaskDef(
+            cls.getName.stripSuffix("$"),
+            fingerprint,
+            true,
+            Array(new SuiteSelector)
+          )
+      )
+
+      val taskQueue = tasks.to(mutable.Queue)
+      while (taskQueue.nonEmpty) {
+        val next = taskQueue.dequeue().execute(
+          new EventHandler {
+            def handle(event: Event) = {
+              testReporter.logStart(event)
+              events.add(event)
+              testReporter.logFinish(event)
+            }
+          },
+          Array(new Logger {
+            def debug(msg: String) = ctx.log.outputStream.println(msg)
+            def error(msg: String) = ctx.log.outputStream.println(msg)
+            def ansiCodesSupported() = true
+            def warn(msg: String) = ctx.log.outputStream.println(msg)
+            def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
+            def info(msg: String) = ctx.log.outputStream.println(msg)
+          })
+        )
+
+        taskQueue.enqueueAll(next)
+      }
+      runner.done()
+    }
+
+    val results = for (e <- events.iterator().asScala) yield {
+      val ex =
+        if (e.throwable().isDefined) Some(e.throwable().get) else None
+      mill.testrunner.TestRunner.Result(
+        e.fullyQualifiedName(),
+        e.selector() match {
+          case s: NestedSuiteSelector => s.suiteId()
+          case s: NestedTestSelector => s.suiteId() + "." + s.testName()
+          case s: SuiteSelector => s.toString
+          case s: TestSelector => s.testName()
+          case s: TestWildcardSelector => s.testWildcard()
+        },
+        e.duration(),
+        e.status().toString,
+        ex.map(_.getClass.getName),
+        ex.map(_.getMessage),
+        ex.map(_.getStackTrace.toIndexedSeq)
+      )
+    }
+
+    (doneMessage, results.toSeq)
   }
 
   def framework(frameworkName: String)(
