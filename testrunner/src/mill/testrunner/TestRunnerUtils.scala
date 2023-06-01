@@ -64,8 +64,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
               }
             }
           }
-          .toSeq
-          .flatten
+            .toSeq
+            .flatten
         )
       }
 
