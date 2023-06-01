@@ -12,7 +12,7 @@ object MainModuleTests extends TestSuite {
     def hello = T { Seq("hello", "world") }
     def hello2 = T { Map("1" -> "hello", "2" -> "world") }
     def helloCommand(x: Int, y: Task[String]) = T.command { (x, y(), hello()) }
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object cleanModule extends TestUtil.BaseModule with MainModule {

@@ -338,7 +338,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         for {
           resolved <- unresolved.process.run(fetch)
           resolvedSources <- source(resolved).process.run(fetch)
-          all = resolved.dependencyArtifacts ++ resolvedSources.dependencyArtifacts
+          all = resolved.dependencyArtifacts() ++ resolvedSources.dependencyArtifacts()
           gathered <- Gather[Task].gather(all.distinct.map {
             case (dep, pub, art) =>
               coursier.cache.Cache.default.file(art).run.map(dep -> _)

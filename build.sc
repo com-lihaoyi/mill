@@ -12,6 +12,7 @@ import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
+import mill.api.JarManifest
 import mill.eval.Evaluator
 import mill.scalalib._
 import mill.scalalib.publish._
@@ -1203,7 +1204,7 @@ object dev extends MillPublishScalaModule {
 
   def launcher = T {
     val isWin = scala.util.Properties.isWin
-    val outputPath = T.ctx.dest / (if (isWin) "run.bat" else "run")
+    val outputPath = T.dest / (if (isWin) "run.bat" else "run")
 
     os.write(outputPath, prependShellScript())
     if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
@@ -1243,16 +1244,16 @@ object dev extends MillPublishScalaModule {
         prependShellScript = launcherScript(shellArgs, cmdArgs, Agg("$0"), Agg("%~dpnx0")),
         assemblyRules = assemblyRules
       ).path,
-      T.ctx.dest / filename
+      T.dest / filename
     )
-    PathRef(T.ctx.dest / filename)
+    PathRef(T.dest / filename)
   }
 
   def prependShellScript = T {
     val (millArgs, otherArgs) =
       forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
     // Pass Mill options via file, due to small max args limit in Windows
-    val vmOptionsFile = T.ctx.dest / "mill.properties"
+    val vmOptionsFile = T.dest / "mill.properties"
     val millOptionsContent =
       millArgs.map(_.drop(2).replace("\\", "/")).mkString(
         "\r\n"
@@ -1284,7 +1285,7 @@ object dev extends MillPublishScalaModule {
       "Created-By" -> "Scala mill",
       "Class-Path" -> classpath
     )
-    Jvm.createJar(Agg(), Jvm.JarManifest(manifestEntries))
+    Jvm.createJar(Agg(), JarManifest(manifestEntries))
   }
 
   def run(args: Task[Args] = T.task(Args())) = T.command {
@@ -1584,9 +1585,10 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 def millBootstrap = T.sources(T.workspace / "mill")
 
 def bootstrapLauncher = T {
-  val outputPath = T.ctx.dest / "mill"
+  val outputPath = T.dest / "mill"
   val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
   val millDownloadUrlPrefix = "(\n *MILL_DOWNLOAD_URL=)"
+
   os.write(
     outputPath,
     os.read(millBootstrap().head.path)

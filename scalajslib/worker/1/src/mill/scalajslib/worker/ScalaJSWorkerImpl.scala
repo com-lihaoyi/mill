@@ -184,7 +184,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     ))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
-    val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))
+    val irContainersPairs = PathIRContainer.fromClasspath(libraries.toIndexedSeq.map(_.toPath()))
     val libraryIRsFuture = irContainersPairs.flatMap(pair => cache.cached(pair._1))
     val logger = new ScalaConsoleLogger
     val mainInitializer = Option(main).map { cls =>
@@ -205,7 +205,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
           val jsFile = new File(dest, jsFileName).toPath()
           var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
-          val sourceMapNameOpt = Option.when(sourceMap)(jsFile.getFileName + ".map")
+          val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
           sourceMapNameOpt.foreach { sourceMapName =>
             val sourceMapFile = jsFile.resolveSibling(sourceMapName)
             linkerOutput = linkerOutput

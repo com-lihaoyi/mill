@@ -33,7 +33,7 @@ object Artifact {
       Scope.Compile,
       dep.dep.optional,
       if (dep.dep.configuration.isEmpty) None else Some(dep.dep.configuration.value),
-      dep.dep.exclusions.toList.map { case (a, b) => (a.value, b.value) }
+      dep.dep.exclusions().toList.map { case (a, b) => (a.value, b.value) }
     )
   }
 }
