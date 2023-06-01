@@ -12,32 +12,21 @@ import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
-import scala.util.Using
 
 @internal object TestRunnerUtils {
 
-  object CloseableIterator {
-    def apply[T](it: Iterator[T], onClose: () => Unit = () => {}): Iterator[T] with AutoCloseable =
-      new Iterator[T] with AutoCloseable {
-        override def hasNext: Boolean = it.hasNext
-        override def next(): T = it.next()
-        override def close(): Unit = onClose()
-      }
-  }
-
-  def listClassFiles(base: os.Path): Iterator[String] with AutoCloseable = {
+  def listClassFiles(base: os.Path): geny.Generator[String] = {
     if (os.isDir(base)) {
-      val it = os.walk(base).iterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
-      CloseableIterator(it)
+      os.walk.stream(base).filter(_.ext == "class").map(_.relativeTo(base).toString)
     } else {
       val zip = new ZipInputStream(new FileInputStream(base.toIO))
-      val it = Iterator.continually(zip.getNextEntry)
-        .takeWhile(_ != null)
-        .map(_.getName)
-        .filter(_.endsWith(
-          ".class"
-        ))
-      CloseableIterator(it, () => zip.close())
+      geny.Generator.selfClosing(
+        Iterator.continually(zip.getNextEntry)
+          .takeWhile(_ != null)
+          .map(_.getName)
+          .filter(_.endsWith(".class")),
+        () => zip.close()
+      )
     }
   }
 
@@ -49,33 +38,36 @@ import scala.util.Using
 
     val fingerprints = framework.fingerprints()
 
-    val testClasses = classpath.flatMap { base =>
+    val testClasses = classpath
       // Don't blow up if there are no classfiles representing
       // the tests to run Instead just don't run anything
-      if (!os.exists(base)) Nil
-      else Using.resource(listClassFiles(base)) { classfiles =>
-        classfiles.flatMap { path =>
-          val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
-          val publicConstructorCount =
-            cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
+      .filter(os.exists(_))
+      .flatMap { base =>
+        Loose.Agg.from[(Class[_], Fingerprint)](
+          listClassFiles(base).map { path =>
+            val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
+            val publicConstructorCount =
+              cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
 
-          if (framework.name() == "Jupiter") {
-            // sbt-jupiter-interface ignores fingerprinting since JUnit5 has its own resolving mechanism
-            Some((cls, fingerprints.head))
-          } else if (
-            Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
-          ) {
-            None
-          } else {
-            (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
-              case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
-              case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
-              case _ => None
+            if (framework.name() == "Jupiter") {
+              // sbt-jupiter-interface ignores fingerprinting since JUnit5 has its own resolving mechanism
+              Some((cls, fingerprints.head))
+            } else if (
+              Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
+            ) {
+              None
+            } else {
+              (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
+                case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
+                case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
+                case _ => None
+              }
             }
           }
-        }
+          .toSeq
+          .flatten
+        )
       }
-    }
 
     testClasses
   }
