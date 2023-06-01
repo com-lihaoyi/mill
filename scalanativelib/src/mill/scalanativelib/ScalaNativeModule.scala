@@ -19,7 +19,7 @@ import mill.scalalib.{
   ScalaModule,
   TestModule
 }
-import mill.testrunner.TestRunner
+import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalanativelib.api._
 import mill.scalanativelib.worker.{ScalaNativeWorkerExternalModule, api => workerApi}
 
@@ -328,7 +328,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override protected def testTask(
       args: Task[Seq[String]],
       globSeletors: Task[Seq[String]]
-  ): Task[(String, Seq[TestRunner.Result])] = T.task {
+  ): Task[(String, Seq[TestResult])] = T.task {
 
     val (close, framework) = scalaNativeBridge().getFramework(
       nativeLink().toIO,
@@ -343,7 +343,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       Agg(compile().classes.path),
       args(),
       T.testReporter,
-      TestRunner.globFilter(globSeletors())
+      TestRunnerUtils.globFilter(globSeletors())
     )
     val res = TestModule.handleResults(doneMsg, results, Some(T.ctx()))
     // Hack to try and let the Scala Native subprocess finish streaming it's stdout

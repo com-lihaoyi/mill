@@ -6,7 +6,7 @@ import mill.api.{Loose, PathRef, Result, internal}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
-import mill.testrunner.TestRunner
+import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.define.{Command, Target, Task}
 import mill.scalajslib.api._
 import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
@@ -302,13 +302,13 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  override def testLocal(args: String*): Command[(String, Seq[TestRunner.Result])] =
+  override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
     T.command { test(args: _*) }
 
   override protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestRunner.Result])] = T.task {
+  ): Task[(String, Seq[TestResult])] = T.task {
 
     val (close, framework) = ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
       scalaJSToolsClasspath(),
@@ -323,7 +323,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       Agg(compile().classes.path),
       args(),
       T.testReporter,
-      TestRunner.globFilter(globSelectors())
+      TestRunnerUtils.globFilter(globSelectors())
     )
     val res = TestModule.handleResults(doneMsg, results, Some(T.ctx()))
     // Hack to try and let the Node.js subprocess finish streaming it's stdout

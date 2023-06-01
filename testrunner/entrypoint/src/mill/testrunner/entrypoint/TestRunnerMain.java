@@ -6,6 +6,13 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.stream.Stream;
 
+/**
+ * Bootstrap main method to take the actual testrunner classpath as a CLI arg
+ * to load into a classloader and instantiate using reflection. This allows us
+ * to run user code in the top-level classloader, without worrying about
+ * conflict with the testrunner classpath or issues due to user code running in
+ * nested classloaders.
+ */
 public class TestRunnerMain{
     public static void main(String[] args) throws Exception{
         URL[] testRunnerClasspath =
@@ -27,7 +34,7 @@ public class TestRunnerMain{
             }
         };
 
-        Class<?> testRunnerCls = cl.loadClass("mill.testrunner.TestRunner");
+        Class<?> testRunnerCls = cl.loadClass("mill.testrunner.TestRunnerMain0");
         Method mainMethod = testRunnerCls.getMethod("main0", String[].class, ClassLoader.class);
 
         // Wrap in String[][] to counter varargs expansion
