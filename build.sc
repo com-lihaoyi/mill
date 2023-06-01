@@ -616,7 +616,8 @@ object contrib extends Module {
   object testng extends JavaModule with ContribModule {
 
     def testTransitiveDeps =
-      super.testTransitiveDeps() ++ Seq(scalalib.testDep(), scalalib.worker.testDep())
+      super.testTransitiveDeps() ++
+      Seq(scalalib.testDep(), scalalib.worker.testDep(), testrunner.entrypoint.testDep())
 
     // pure Java implementation
     def artifactSuffix: T[String] = ""
@@ -906,6 +907,8 @@ trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module
   def millSourcePath = super.millSourcePath / repoSlug
 
   object local extends ModeModule
+  object fork extends ModeModule
+  object server extends ModeModule
 }
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
@@ -1030,10 +1033,7 @@ object example extends MillScalaModule {
 object integration extends MillScalaModule {
   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"))
   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"))
-  trait IntegrationCrossModule extends IntegrationTestCrossModule{
-    object fork extends ModeModule
-    object server extends ModeModule
-  }
+  trait IntegrationCrossModule extends IntegrationTestCrossModule
 
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
 
