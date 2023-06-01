@@ -109,7 +109,6 @@ jobs:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.{local,forked}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
 
-
     runs-on: windows-latest
 
     steps:
