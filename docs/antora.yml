@@ -8,6 +8,6 @@ asciidoc:
     mill-version: '0.11.0-M9'
     mill-last-tag: '0.11-0-M9'
     bsp-version: '2.1.0-M4'
-    example-semanticdb-version: '4.7.7'
+    example-semanticdb-version: '4.7.8'
     example-scala-2-13-version: '2.13.10'
     example-utest-version: '0.8.1'
