@@ -83,8 +83,6 @@ jobs:
           - java-version: 17
             millargs: "integration.failure.__.test"
           - java-version: 17
-            millargs: "integration.thirdparty.__.test"
-          - java-version: 17
             millargs: docs.githubPages
 
     uses: ./.github/workflows/run-mill-action.yml
@@ -128,8 +126,6 @@ jobs:
             millargs: "integration.feature.__.server.test"
           - java-version: 17
             millargs: "integration.failure.__.fork.test"
-          - java-version: 17
-            millargs: "integration.thirdparty.__.fork.test"
           - java-version: 17
             millargs: "contrib.__.test"
 
