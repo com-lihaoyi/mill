@@ -50,6 +50,7 @@ private[mill] object Reflect {
       .reverse
       .distinctBy(_.getName)
       .sortBy(_.getName)
+      .toIndexedSeq
   }
 
   // For some reason, this fails to pick up concrete `object`s nested directly within

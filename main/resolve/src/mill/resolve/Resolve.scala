@@ -164,7 +164,8 @@ object Resolve {
             printHelpOnError = true,
             docsOnNewLine = false,
             customName = None,
-            customDoc = None
+            customDoc = None,
+            sorted = true
           )
         )
     }

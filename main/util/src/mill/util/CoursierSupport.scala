@@ -106,7 +106,7 @@ trait CoursierSupport {
       classpathResourceText.map(_.linesIterator.map(s => PathRef(os.Path(s))).toSeq)
     }
 
-    val (localTestDeps, remoteDeps) = deps.toSeq.partitionMap(d =>
+    val (localTestDeps, remoteDeps) = deps.iterator.toSeq.partitionMap(d =>
       isLocalTestDep(d) match {
         case None => Right(d)
         case Some(vs) => Left(vs)

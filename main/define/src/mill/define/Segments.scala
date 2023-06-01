@@ -47,6 +47,6 @@ case class Segments private (value: Seq[Segment]) {
 
 object Segments {
   def apply(): Segments = new Segments(Nil)
-  def apply(items: List[Segment]): Segments = new Segments(items)
+  def apply(items: Seq[Segment]): Segments = new Segments(items)
   def labels(values: String*): Segments = Segments(values.map(Segment.Label))
 }

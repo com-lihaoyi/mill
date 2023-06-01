@@ -33,7 +33,8 @@ abstract class RootModule()(implicit
   // well as any user-defined BaseModule that may be present, so the
   // user-defined BaseModule can have a complete Discover[_] instance without
   // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
-  override lazy val millDiscover = baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
+  override lazy val millDiscover: Discover[this.type] =
+    baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
 }
 
 @internal
@@ -52,6 +53,6 @@ object RootModule {
         Caller(())
       ) with mill.main.MainModule {
 
-    override implicit lazy val millDiscover = Discover[this.type]
+    override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 }
