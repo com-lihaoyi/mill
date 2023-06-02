@@ -131,7 +131,7 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.3"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.4"
   val scalametaVersion = "4.7.8"
   val scalametaTrees = ivy"org.scalameta::trees:${scalametaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
