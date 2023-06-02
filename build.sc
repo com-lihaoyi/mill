@@ -102,7 +102,7 @@ object Deps {
   val ammoniteVersion = "3.0.0-M0-6-34034262"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
-  val coursier = ivy"io.get-coursier::coursier:2.1.3"
+  val coursier = ivy"io.get-coursier::coursier:2.1.4"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.16"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
@@ -132,7 +132,8 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.4"
-  val scalametaTrees = ivy"org.scalameta::trees:4.7.7"
+  val scalametaVersion = "4.7.8"
+  val scalametaTrees = ivy"org.scalameta::trees:${scalametaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.8"
@@ -142,7 +143,7 @@ object Deps {
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.7"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:${scalametaVersion}"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.18"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:3.1.0"
