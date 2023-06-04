@@ -17,7 +17,7 @@ import mill.{Agg, T}
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.util.Jvm
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule, TestModule}
-import mill.testrunner.TestRunner
+import mill.testrunner.{Framework, TestRunner, TestRunnerUtils}
 import sbt.testing.Fingerprint
 
 import java.util.concurrent.CompletableFuture
@@ -107,8 +107,8 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             isolated = true,
             closeContextClassLoaderWhenDone = false,
             cl => {
-              val framework = TestRunner.framework(testFramework)(cl)
-              val discoveredTests = TestRunner.discoverTests(
+              val framework = Framework.framework(testFramework)(cl)
+              val discoveredTests = TestRunnerUtils.discoverTests(
                 cl,
                 framework,
                 Agg(compResult.classes.path)

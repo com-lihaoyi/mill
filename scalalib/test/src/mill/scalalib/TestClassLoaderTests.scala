@@ -2,10 +2,7 @@ package mill.scalalib
 
 import mill.{Agg, T}
 
-import scala.util.Success
-import mill.testrunner.TestRunner.TestArgs
 import mill.util.{TestEvaluator, TestUtil}
-import org.scalacheck.Prop.forAll
 import utest._
 import utest.framework.TestPath
 

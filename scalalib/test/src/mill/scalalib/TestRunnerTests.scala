@@ -2,10 +2,7 @@ package mill.scalalib
 
 import mill.{Agg, T}
 
-import scala.util.Success
-import mill.testrunner.TestRunner.TestArgs
 import mill.util.{TestEvaluator, TestUtil}
-import org.scalacheck.Prop.forAll
 import utest._
 import utest.framework.TestPath
 
@@ -41,40 +38,10 @@ object TestRunnerTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    "TestArgs" - {
-      test("args serialization") {
-        forAll { (globSelectors: Seq[String]) =>
-          forAll {
-            (
-                framework: String,
-                classpath: Seq[String],
-                arguments: Seq[String],
-                sysProps: Map[String, String],
-                outputPath: String,
-                colored: Boolean,
-                testCp: String,
-                homeStr: String
-            ) =>
-              val testArgs = TestArgs(
-                framework,
-                classpath,
-                arguments,
-                sysProps,
-                outputPath,
-                colored,
-                testCp,
-                homeStr,
-                globSelectors
-              )
-              TestArgs.parseArgs(testArgs.toArgsSeq.toArray) == Success(testArgs)
-          }
-        }.check()
-      }
-    }
     "TestRunner" - {
       "test case lookup" - workspaceTest(testrunner) { eval =>
         val Right((result, _)) = eval.apply(testrunner.test.test())
-        val test = result.asInstanceOf[(String, Seq[mill.testrunner.TestRunner.Result])]
+        val test = result.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
         assert(
           test._2.size == 3
         )
@@ -82,7 +49,7 @@ object TestRunnerTests extends TestSuite {
       "testOnly" - {
         def testOnly(eval: TestEvaluator, args: Seq[String], size: Int) = {
           val Right((result1, _)) = eval.apply(testrunner.test.testOnly(args: _*))
-          val testOnly = result1.asInstanceOf[(String, Seq[mill.testrunner.TestRunner.Result])]
+          val testOnly = result1.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
           assert(
             testOnly._2.size == size
           )
