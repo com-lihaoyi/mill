@@ -702,7 +702,7 @@ object contrib extends Module {
     // So we can test with buildinfo in the classpath
     def testModuleDeps =
       super.testModuleDeps ++
-      Seq(scalalib, contrib.buildinfo)
+      Seq(scalalib, scalajslib, scalanativelib, contrib.buildinfo)
 
     // Worker for Scoverage 1.x
     object worker extends MillPublishScalaModule {
@@ -733,7 +733,8 @@ object contrib extends Module {
   }
 
   object buildinfo extends ContribModule {
-    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
+    def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
+    def testModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
   }
 
   object proguard extends ContribModule {
