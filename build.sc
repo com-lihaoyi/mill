@@ -729,8 +729,8 @@ object contrib extends Module {
   }
 
   object buildinfo extends ContribModule {
-    def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(scalalib, scalajslib, scalanativelib)
+    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
+    def testModuleDeps = super.testModuleDeps 
   }
 
   object proguard extends ContribModule {
