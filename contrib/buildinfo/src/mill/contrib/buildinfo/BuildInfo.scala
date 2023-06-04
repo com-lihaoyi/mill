@@ -2,6 +2,8 @@ package mill.contrib.buildinfo
 
 import mill.{PathRef, T}
 import mill.scalalib.{JavaModule, ScalaModule}
+import mill.scalanativelib.ScalaNativeModule
+import mill.scalajslib.ScalaJSModule
 
 trait BuildInfo extends JavaModule {
 
@@ -20,7 +22,11 @@ trait BuildInfo extends JavaModule {
    * rather than the default behavior of storing them as a JVM resource. Needed
    * to use BuildInfo on Scala.js which does not support JVM resources
    */
-  def buildInfoStaticCompiled: Boolean = false
+  def buildInfoStaticCompiled: Boolean = this match {
+    case _: ScalaJSModule => true
+    case _: ScalaNativeModule => true
+    case _ => false
+  }
 
   /**
    * A mapping of key-value pairs to pass from the Build script to the
