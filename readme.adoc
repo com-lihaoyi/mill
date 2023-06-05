@@ -317,6 +317,36 @@ these packages mature over time.
 == Changelog
 
 
+[#0-11-0-M11]
+=== 0.11.0-M11 - 2023-06-04
+:version: 0.11.0-M11
+:milestone-name: 0.11.0-M11
+:milestone: 82
+:prev-version: 0.11.0-M10
+
+*This release is binary incompatible to {prev-version}.*
+
+* Make `foo.test` command run tests with user code in the boot classloader,
+  rather than in a sub-classloader
+  https://github.com/com-lihaoyi/mill/pull/2561[#2561]
+
+* Mill backend server timeout is now configurable
+  https://github.com/com-lihaoyi/mill/pull/2550[#2550]
+
+* Mill assembly is now distributed via Maven Central, rather than Github
+  release assets, to remove an unnecessary single point of failure
+  https://github.com/com-lihaoyi/mill/pull/2560[#2560]
+
+* `Tests` inner trait was removed, to avoid trait shadowing which will be
+  removed in Scala 3. Please use `ScalaModuleTests`, `ScalaJSModuleTests`, or
+  `ScalaNativeModuleTests` instead
+  https://github.com/com-lihaoyi/mill/pull/2558[#2558]
+
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 [#0-11-0-M10]
 === 0.11.0-M10 - 2023-05-24
 :version: 0.11.0-M10
@@ -334,7 +364,7 @@ these packages mature over time.
   `mill.contrib.buildinfo.BuildInfo`
   https://github.com/com-lihaoyi/mill/pull/2537[#2537]
 
-* `PlatformScalModule` now exposes `platformScalaSuffix` for user code to use
+* `PlatformScalaModule` now exposes `platformScalaSuffix` for user code to use
   https://github.com/com-lihaoyi/mill/pull/2534[#2534]
 
 * Add `Agg.when` operator to simplify common workflow of adding optional flags
