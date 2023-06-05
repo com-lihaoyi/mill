@@ -1008,9 +1008,7 @@ object Evaluator {
   /**
    * Evaluate given task(s) and return the successful result(s), or throw an exception.
    */
-  @deprecated(
-    "Evaluator.evalOrThrow was removed in Mill 0.11. Call evalOrThrow on the Evaluator instance instead."
-  )
+  @deprecated("Call evalOrThrow on the Evaluator instance instead.", since = "mill 0.11.13")
   def evalOrThrow(
       evaluator: Evaluator,
       exceptionFactory: Results => Throwable =
