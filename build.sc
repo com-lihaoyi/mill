@@ -2,9 +2,9 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1-8-37c08a`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.11.0-M10:0.3.1-8-37c08a`
 
-import $ivy.`com.github.lolgab::mill-mima::0.0.21`
+import $ivy.`com.github.lolgab::mill-mima_mill0.11.0-M10:0.0.21`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
 // imports
