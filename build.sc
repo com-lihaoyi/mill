@@ -701,8 +701,7 @@ object contrib extends Module {
 
     // So we can test with buildinfo in the classpath
     def testModuleDeps =
-      super.testModuleDeps ++
-      Seq(scalalib, scalajslib, scalanativelib, contrib.buildinfo)
+      super.testModuleDeps ++ Seq(scalalib, contrib.buildinfo)
 
     // Worker for Scoverage 1.x
     object worker extends MillPublishScalaModule {
@@ -726,15 +725,19 @@ object contrib extends Module {
           Deps.scalacScoverage2Plugin,
           Deps.scalacScoverage2Reporter,
           Deps.scalacScoverage2Domain,
-          Deps.scalacScoverage2Serializer,
+          Deps.scalacScoverage2Serializer
         )
       }
     }
   }
 
   object buildinfo extends ContribModule {
-    def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
+    def compileModuleDeps = Seq(scalalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(scalalib, scalajslib, scalanativelib)
+    def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
+      scalajslib.worker("1").testDep(),
+      scalanativelib.worker("0.4").testDep()
+    )
   }
 
   object proguard extends ContribModule {
