@@ -7,7 +7,7 @@ import $file.proj3.{build => proj3}
 
 trait HelloBspModule extends ScalaModule {
   def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-  object test extends ScalaModuleTests with TestModule.Utest
+  object test extends ScalaTests with TestModule.Utest
 }
 
 object HelloBsp extends HelloBspModule {

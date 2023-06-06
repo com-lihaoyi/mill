@@ -31,7 +31,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 
-  trait ScalaNativeModuleTests extends ScalaModuleTests with TestScalaNativeModule {
+  @deprecated("use ScalaNativeTests", "0.11.0")
+  type ScalaNativeModuleTests = ScalaNativeTests
+  trait ScalaNativeTests extends ScalaTests with TestScalaNativeModule {
     override def scalaNativeVersion = outer.scalaNativeVersion()
     override def releaseMode = T { outer.releaseMode() }
     override def logLevel = outer.logLevel()

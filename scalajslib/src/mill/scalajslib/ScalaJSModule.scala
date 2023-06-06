@@ -19,7 +19,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
 
-  trait ScalaJSModuleTests extends ScalaModuleTests with TestScalaJSModule {
+  @deprecated("use ScalaJSTests", "0.11.0")
+  type ScalaJSModuleTests = ScalaJSTests
+  trait ScalaJSTests extends ScalaTests with TestScalaJSModule {
     override def scalaJSVersion = outer.scalaJSVersion()
     override def moduleKind = outer.moduleKind()
     override def moduleSplitStyle = outer.moduleSplitStyle()

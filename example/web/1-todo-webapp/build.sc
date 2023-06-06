@@ -7,7 +7,7 @@ object app extends RootModule with ScalaModule {
     ivy"com.lihaoyi::scalatags:0.12.0"
   )
 
-  object test extends ScalaModuleTests {
+  object test extends ScalaTests {
     def testFramework = "utest.runner.Framework"
 
     def ivyDeps = Agg(

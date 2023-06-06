@@ -14,7 +14,7 @@ object ScalaVersionsRangesTests extends TestSuite {
     object core extends Cross[CoreCrossModule]("2.11.12", "2.12.13", "2.13.5", "3.0.0-RC2")
     trait CoreCrossModule extends CrossScalaModule
         with CrossScalaVersionRanges {
-      object test extends ScalaModuleTests with TestModule.Utest {
+      object test extends ScalaTests with TestModule.Utest {
         def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.8")
       }
     }
