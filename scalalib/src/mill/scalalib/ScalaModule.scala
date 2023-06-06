@@ -18,6 +18,8 @@ import mill.scalalib.dependency.versions.{ValidVersion, Version}
  * Core configuration required to compile a single Scala compilation target
  */
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
+  @deprecated("use ScalaTests", "0.11.0")
+  type ScalaModuleTests = ScalaTests
 
   trait ScalaTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: Target[String] = outer.scalaOrganization()
