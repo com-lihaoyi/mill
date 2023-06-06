@@ -236,14 +236,14 @@ class TestGraphs() {
 
   object dynamicModule extends TestUtil.BaseModule {
     object normal extends DynamicModule {
-      object inner extends Module{
-        def target = T{ 1 }
+      object inner extends Module {
+        def target = T { 1 }
       }
     }
     object niled extends DynamicModule {
       override def millModuleDirectChildren: Seq[Module] = Nil
       object inner extends Module {
-        def target = T{ 1 }
+        def target = T { 1 }
       }
     }
 

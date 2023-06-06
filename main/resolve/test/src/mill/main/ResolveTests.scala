@@ -773,7 +773,9 @@ object ResolveTests extends TestSuite {
       )
       test - check(
         "niled.inner.target",
-        Left("Cannot resolve niled.inner.target. Try `mill resolve niled._` to see what's available."),
+        Left(
+          "Cannot resolve niled.inner.target. Try `mill resolve niled._` to see what's available."
+        ),
         Set()
       )
       test - check(
