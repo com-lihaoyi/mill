@@ -1,6 +1,6 @@
 package mill.util
 import TestUtil.test
-import mill.define.{ModuleRef, Command, Cross, Discover, TaskModule}
+import mill.define.{Command, Cross, Discover, DynamicModule, ModuleRef, TaskModule}
 import mill.{Module, T}
 
 /**
@@ -228,6 +228,22 @@ class TestGraphs() {
       override lazy val ignored: ModuleRef[SubInnerModule] = ModuleRef(new SubInnerModule {})
       trait SubInnerModule extends BaseInnerModule {
         def subTarget = T { 2 }
+      }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  object dynamicModule extends TestUtil.BaseModule {
+    object normal extends DynamicModule {
+      object inner extends Module{
+        def target = T{ 1 }
+      }
+    }
+    object niled extends DynamicModule {
+      override def millModuleDirectChildren: Seq[Module] = Nil
+      object inner extends Module {
+        def target = T{ 1 }
       }
     }
 
