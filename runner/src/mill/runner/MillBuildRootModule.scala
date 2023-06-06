@@ -276,6 +276,8 @@ object MillBuildRootModule {
 
     s"""package ${pkg.map(backtickWrap).mkString(".")}
        |
+       |import mill.runner.MillBuildRootModule
+       |
        |object ${backtickWrap(miscInfoName)} {
        |  implicit val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
        |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
