@@ -21,7 +21,7 @@ object MultiModuleTests extends TestSuite {
       override def millSourcePath = workspacePath / "client"
       override def moduleDeps = Seq(shared)
       override def mainClass = Some("Main")
-      object test extends ScalaJSModuleTests with TestModule.Utest {
+      object test extends ScalaJSTests with TestModule.Utest {
         override def ivyDeps =
           Agg(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
       }

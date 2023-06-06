@@ -28,10 +28,10 @@ trait FooModule extends Cross.Module[String] {
 
   object bar extends Module {
     object jvm extends Shared{
-      object test extends ScalaModuleTests with FooTestModule
+      object test extends ScalaTests with FooTestModule
     }
     object js extends SharedJS {
-      object test extends ScalaJSModuleTests with FooTestModule
+      object test extends ScalaJSTests with FooTestModule
     }
   }
 
@@ -40,13 +40,13 @@ trait FooModule extends Cross.Module[String] {
       def moduleDeps = Seq(bar.jvm)
       def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
 
-      object test extends ScalaModuleTests with FooTestModule
+      object test extends ScalaTests with FooTestModule
     }
 
     object js extends SharedJS {
       def moduleDeps = Seq(bar.js)
 
-      object test extends ScalaJSModuleTests with FooTestModule
+      object test extends ScalaJSTests with FooTestModule
     }
   }
 }

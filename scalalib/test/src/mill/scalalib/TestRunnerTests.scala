@@ -12,7 +12,7 @@ object TestRunnerTests extends TestSuite {
 
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-    object test extends ScalaModuleTests with TestModule.Utest {
+    object test extends ScalaTests with TestModule.Utest {
       override def ivyDeps = T {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"

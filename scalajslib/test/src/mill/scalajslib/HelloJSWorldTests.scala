@@ -53,7 +53,7 @@ object HelloJSWorldTests extends TestSuite {
 
     object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
-      object test extends ScalaJSModuleTests with TestModule.Utest {
+      object test extends ScalaJSTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
         override def ivyDeps = Agg(
@@ -64,7 +64,7 @@ object HelloJSWorldTests extends TestSuite {
 
     object buildScalaTest extends Cross[BuildModuleScalaTest](matrix)
     trait BuildModuleScalaTest extends RootModule {
-      object test extends ScalaJSModuleTests with TestModule.ScalaTest {
+      object test extends ScalaJSTests with TestModule.ScalaTest {
         override def sources = T.sources { millSourcePath / "src" / "scalatest" }
         override def ivyDeps = Agg(
           ivy"org.scalatest::scalatest::3.1.2"
@@ -79,7 +79,7 @@ object HelloJSWorldTests extends TestSuite {
       def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaJSVersion = scalaJS
-      object test extends ScalaJSModuleTests with TestModule.Utest
+      object test extends ScalaJSTests with TestModule.Utest
     }
 
     override lazy val millDiscover = Discover[this.type]

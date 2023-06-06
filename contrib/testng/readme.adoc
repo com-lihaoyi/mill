@@ -12,7 +12,7 @@ To use TestNG as test framework, you need to add it to the `TestModule.testFrame
 import mill.scalalib._
 
 object project extends ScalaModule {
-  object test extends ScalaModuleTests {
+  object test extends ScalaTests {
     def testFramework = "mill.testng.TestNGFramework"
     def ivyDeps = super.ivyDeps ++ Agg(
       ivy"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}"
@@ -29,6 +29,6 @@ You can also use the more convenient `TestModule.TestNg` trait.
 import mill.scalalib._
 
 object project extends ScalaModule {
-  object test extends ScalaModuleTests with TestModule.TestNg
+  object test extends ScalaTests with TestModule.TestNg
 }
 ----

@@ -338,8 +338,8 @@ these packages mature over time.
   https://github.com/com-lihaoyi/mill/pull/2560[#2560]
 
 * `Tests` inner trait was removed, to avoid trait shadowing which will be
-  removed in Scala 3. Please use `ScalaModuleTests`, `ScalaJSModuleTests`, or
-  `ScalaNativeModuleTests` instead
+  removed in Scala 3. Please use `ScalaTests`, `ScalaJSTests`, or
+  `ScalaNativeTests` instead
   https://github.com/com-lihaoyi/mill/pull/2558[#2558]
 
 
@@ -583,8 +583,8 @@ _Changes since {prev-version}:_
 * Fixed the caching for private targets with same name but defined in different super traits.
 * Fixed non-functional `clean` command when used with arguments denoting modules.
 * `scalalib`: Fixed `GenIdea` issues on Windows, when the build uses plugins or additional libraries.
-* `scalajslib`: `ScalaJSModule.ScalaJSModuleTests` now extends `ScalaModule.ScalaModuleTests` which improves consistency, better default values and compatibility with other modules like `ScoverageModule`.
-* `scalanativelib`: `ScalaNativeModule.ScalaNativeModuleTests` now extends `ScalaModule.ScalaModuleTests` which improves consistency, better default values and compatibility with other modules.
+* `scalajslib`: `ScalaJSModule.ScalaJSTests` now extends `ScalaModule.ScalaTests` which improves consistency, better default values and compatibility with other modules like `ScoverageModule`.
+* `scalanativelib`: `ScalaNativeModule.ScalaNativeTests` now extends `ScalaModule.ScalaTests` which improves consistency, better default values and compatibility with other modules.
 * `contrib.gitlab`: Improved error handling for token lookup and documentation.
 * Updated dependencies: coursier 2.1.0-RC5, jna 5.13.0, semanticdb-scala 4.7.3, trees 4.7.3
 * Documentation improvements
@@ -1188,7 +1188,7 @@ and the {link-compare}/0.9.5\...0.9.6[list of commits]._
 * Support for Scala Native 0.4.0
 * Support for Scala.js ESModule (including Bloop support)
 * Inner `Tests` traits in modules like `JavaModule`, `ScalaModule` and others now have unique
- names (`JavaModuleTests`, `ScalaModuleTests`, etc), to allow for easier customization
+ names (`JavaModuleTests`, `ScalaTests`, etc), to allow for easier customization
 * Various version bumps of dependencies
 * CI now runs all tests, it did miss some before
 
