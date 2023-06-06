@@ -1,7 +1,7 @@
 package mill.define
 
 /**
- * A module which you can dynamically disable at runtime
+ * A module which you can override [[millModuleDirectChildren]] to dynamically
+ * enable or disable child modules at runtime
  */
-trait DynamicModule extends Module{
-}
+trait DynamicModule extends Module
