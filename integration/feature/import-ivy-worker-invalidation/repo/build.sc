@@ -6,7 +6,9 @@
 // In this test case, `mill.playlib.RouteCompilerWorker` is the relevant worker
 // class, instantiated in `RouterModule.routeCompilerWorker`
 
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`
+import mill._
+import mill.playlib._
 
 object app extends PlayApiModule {
   def scalaVersion = "2.13.10"

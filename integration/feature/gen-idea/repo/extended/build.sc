@@ -2,7 +2,6 @@ import $ivy.`org.scalameta::munit:0.7.29`
 
 import mill._
 import mill.api.PathRef
-import mill.scalalib
 import mill.scalalib.GenIdeaModule._
 import mill.scalalib.TestModule
 
