@@ -411,11 +411,11 @@ object TestGraphs {
   object innerCrossModule extends TestUtil.BaseModule {
     object myCross extends Cross[MyCrossModule]("a", "b")
     trait MyCrossModule extends Cross.Module[String] {
-      object foo extends InnerCrossModule {
+      object foo extends CrossValue {
         def bar = T { "foo " + crossValue }
       }
 
-      object baz extends InnerCrossModule {
+      object baz extends CrossValue {
         def bar = T { "baz " + crossValue }
       }
     }

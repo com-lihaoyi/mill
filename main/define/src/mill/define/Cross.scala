@@ -21,7 +21,7 @@ object Cross {
      * trait that can be mixed into any sub-modules within the body of a
      * [[Cross.Module]], to automatically inherit the [[crossValue]]
      */
-    trait InnerCrossModule extends Module[T1] {
+    trait CrossValue extends Module[T1] {
       def crossValue: T1 = Module.this.crossValue
       override def crossWrapperSegments: List[String] = Module.this.millModuleSegments.parts
     }
@@ -38,7 +38,7 @@ object Cross {
      * trait that can be mixed into any sub-modules within the body of a
      * [[Cross.Arg2]], to automatically inherit the [[crossValue2]]
      */
-    trait InnerCrossModule2 extends InnerCrossModule with Module2[T1, T2] {
+    trait InnerCrossModule2 extends CrossValue with Module2[T1, T2] {
       def crossValue2: T2 = Module2.this.crossValue2
     }
   }
