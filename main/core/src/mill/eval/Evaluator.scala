@@ -812,6 +812,14 @@ class Evaluator private[Evaluator] (
     case _ => throw new IndexOutOfBoundsException(n.toString)
   }
 
+  /**
+   * Evaluate given task(s) and return the successful result(s), or throw an exception.
+   */
+  def evalOrThrow(
+      exceptionFactory: Evaluator.Results => Throwable =
+        r => new Exception(s"Failure during task evaluation: ${Evaluator.formatFailing(r)}")
+  ): Evaluator.EvalOrThrow = new Evaluator.EvalOrThrow(this, exceptionFactory)
+
 }
 
 object Evaluator {
@@ -1000,6 +1008,7 @@ object Evaluator {
   /**
    * Evaluate given task(s) and return the successful result(s), or throw an exception.
    */
+  @deprecated("Call evalOrThrow on the Evaluator instance instead.", since = "mill 0.11.13")
   def evalOrThrow(
       evaluator: Evaluator,
       exceptionFactory: Results => Throwable =

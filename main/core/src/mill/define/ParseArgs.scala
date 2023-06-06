@@ -14,6 +14,7 @@ object SelectMode {
   object Multi extends SelectMode
 
   /** Only the first arg is treated as target or command, subsequent args are parameters of the command. */
+  @deprecated("Use SelectMode.Separated instead.", since = "mill 0.10.13")
   object Single extends SelectMode
 
   /** Like a combination of [[Single]] and [[Multi]], behaving like [[Single]] but using a special separator (`++`) to start parsing another target/command. */
