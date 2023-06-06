@@ -7,11 +7,13 @@ import java.net.Socket
 import scala.jdk.CollectionConverters._
 import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
-import mill.BuildInfo
+import mill.main.BuildInfo
 import mill.main.client._
 import mill.api.internal
 import mill.main.client.lock.{Lock, Locks}
 import mill.api.SystemStreams
+
+import scala.util.Try
 
 @internal
 trait MillServerMain[T] {
@@ -46,11 +48,15 @@ object MillServerMain extends MillServerMain[RunnerState] {
         def handle(sig: Signal) = {} // do nothing
       }
     )
+
+    val acceptTimeoutMillis =
+      Try(System.getProperty("mill.server_timeout").toInt).getOrElse(5 * 60 * 1000) // 5 minutes
+
     new Server(
       lockBase = args0(0),
       this,
       () => System.exit(MillClientMain.ExitServerCodeWhenIdle()),
-      acceptTimeoutMillis = 5 * 60 * 1000, // 5 minutes
+      acceptTimeoutMillis = acceptTimeoutMillis,
       Locks.files(args0(0))
     ).run()
   }
@@ -66,11 +72,12 @@ object MillServerMain extends MillServerMain[RunnerState] {
       initialSystemProperties: Map[String, String]
   ): (Boolean, RunnerState) = {
     MillMain.main0(
-      args,
-      stateCache,
+      args = args,
+      stateCache = stateCache,
       mainInteractive = mainInteractive,
-      streams,
-      env,
+      streams0 = streams,
+      bspLog = None,
+      env = env,
       setIdle = setIdle,
       userSpecifiedProperties0 = userSpecifiedProperties,
       initialSystemProperties = initialSystemProperties
@@ -203,6 +210,8 @@ class Server[T](
     Thread.sleep(5)
     try t.stop()
     catch {
+      case e: UnsupportedOperationException =>
+      // nothing we can do about, removed in Java 20
       case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
       // ignore this error and do nothing; seems benign
     }

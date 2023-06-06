@@ -4,7 +4,7 @@ package scalalib
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.main.Tasks
-import mill.modules.Jvm
+import mill.util.Jvm
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.{Artifact, SonatypePublisher, VersionScheme}
 
@@ -22,7 +22,14 @@ trait PublishModule extends JavaModule { outer =>
       )
   }
 
+  /**
+   * Configuration for the `pom.xml` metadata file published with this module
+   */
   def pomSettings: T[PomSettings]
+
+  /**
+   * The artifact version that this module would be published as
+   */
   def publishVersion: T[String]
 
   /**
@@ -285,8 +292,6 @@ object PublishModule extends ExternalModule {
       Result.Success(sonatypeCreds)
     }
   }
-
-  import mill.main.TokenReaders._
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

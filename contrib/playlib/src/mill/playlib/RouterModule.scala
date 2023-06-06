@@ -1,6 +1,7 @@
 package mill.playlib
 
 import mill.api.PathRef
+import mill.util.Util.millProjectModule
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
 import mill.scalalib.api._
@@ -68,11 +69,7 @@ trait RouterModule extends ScalaModule with Version {
   }
 
   def playRouteCompilerWorkerClasspath = T {
-    val workerKey =
-      "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_" + playMinorVersion().replace(".", "_")
-
-    mill.modules.Util.millProjectModule(
-      workerKey,
+    millProjectModule(
       s"mill-contrib-playlib-worker-${playMinorVersion()}",
       repositoriesTask(),
       artifactSuffix = playMinorVersion() match {

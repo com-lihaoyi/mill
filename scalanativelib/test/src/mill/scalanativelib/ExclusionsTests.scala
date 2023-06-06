@@ -11,7 +11,7 @@ object ExclusionsTests extends TestSuite {
   object Exclusions extends TestUtil.BaseModule {
     object scala213 extends ScalaNativeModule {
       def scalaNativeVersion = "0.4.3"
-      def scalaVersion = "2.13.8"
+      def scalaVersion = "2.13.10"
       override def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"com.github.scopt:scopt_native0.4_3:4.0.1"
       )

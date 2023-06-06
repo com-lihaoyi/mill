@@ -17,9 +17,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
     def runAssertSuccess(expected: String) = {
       val res = evalStdout("foo.run")
       assert(res.isSuccess == true)
-      // Don't check foo.run stdout in local mode, because it the subprocess
-      // println is not properly captured by the test harness
-      if (integrationTestMode != "local") assert(res.out.contains(expected))
+      assert(res.out.contains(expected))
     }
 
     val fooPaths = Seq(
@@ -50,7 +48,8 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       for (depth <- Range(0, n))
         yield {
           val path = wsRoot / "out" / Seq.fill(depth)("mill-build") / "mill-runner-state.json"
-          upickle.default.read[RunnerState.Frame.Logged](os.read(path)) -> path
+          if (os.exists(path)) upickle.default.read[RunnerState.Frame.Logged](os.read(path)) -> path
+          else RunnerState.Frame.Logged(Map(), Seq(), Seq(), Map(), None, Seq(), 0) -> path
         }
     }
 
@@ -60,20 +59,29 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
      */
     def checkWatchedFiles(expected0: Seq[os.Path]*) = {
       for ((expectedWatched0, (frame, path)) <- expected0.zip(loadFrames(expected0.length))) {
-        val frameWatched = frame.evalWatched.map(_.path).sorted
+        val frameWatched = frame
+          .evalWatched
+          .map(_.path)
+          .sorted.filter(_.startsWith(wsRoot))
+          .filter(!_.segments.contains("mill-launcher"))
+
         val expectedWatched = expectedWatched0.sorted
         assert(frameWatched == expectedWatched)
       }
     }
 
-    def evalCheckErr(expected: String*) = {
+    def evalCheckErr(expectedSnippets: String*) = {
+      // Wipe out stale state files to make sure they don't get picked up when
+      // Mill aborts early and fails to generate a new one
+      os.walk(wsRoot / "out").filter(_.last == "mill-runner-state.json").foreach(os.remove(_))
+
       val res = evalStdout("foo.run")
       assert(res.isSuccess == false)
       // Prepend a "\n" to allow callsites to use "\n" to test for start of
       // line, even though the first line doesn't have a "\n" at the start
       val err = "\n" + res.err
-      for (e <- expected) {
-        assert(err.contains(e))
+      for (expected <- expectedSnippets) {
+        assert(err.contains(expected))
       }
     }
 
@@ -186,17 +194,23 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
         "\n1 targets failed",
         "\ngenerateScriptSources build.sc"
       )
-      checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
-      checkChangedClassloaders(null, null, false, false)
+      checkWatchedFiles(Nil, buildPaths, Nil, Nil)
+      // When one of the meta-builds still has parse errors, all classloaders
+      // remain null, because none of the meta-builds can evaluate. Only once
+      // all of them parse successfully do we get a new set of classloaders for
+      // every level of the meta-build
+      checkChangedClassloaders(null, null, null, null)
 
+      fixParseError(wsRoot / "build.sc")
       causeParseError(wsRoot / "mill-build" / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
         "\ngenerateScriptSources mill-build/build.sc"
       )
-      checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
-      checkChangedClassloaders(null, null, null, false)
+      checkWatchedFiles(Nil, Nil, buildPaths2, Nil)
+      checkChangedClassloaders(null, null, null, null)
 
+      fixParseError(wsRoot / "mill-build" / "build.sc")
       causeParseError(wsRoot / "mill-build" / "mill-build" / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
@@ -206,25 +220,27 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "mill-build" / "mill-build" / "build.sc")
+      causeParseError(wsRoot / "mill-build" / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
         "\ngenerateScriptSources mill-build/build.sc"
       )
-      checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
-      checkChangedClassloaders(null, null, null, true)
+      checkWatchedFiles(Nil, Nil, buildPaths2, Nil)
+      checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "mill-build" / "build.sc")
+      causeParseError(wsRoot / "build.sc")
       evalCheckErr(
         "\n1 targets failed",
         "\ngenerateScriptSources build.sc"
       )
-      checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
-      checkChangedClassloaders(null, null, true, false)
+      checkWatchedFiles(Nil, buildPaths, Nil, Nil)
+      checkChangedClassloaders(null, null, null, null)
 
       fixParseError(wsRoot / "build.sc")
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
-      checkChangedClassloaders(null, true, false, false)
+      checkChangedClassloaders(null, true, true, true)
     }
 
     test("compileErrorEdits") {

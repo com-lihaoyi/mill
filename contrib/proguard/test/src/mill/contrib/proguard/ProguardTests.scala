@@ -1,9 +1,9 @@
 package mill.contrib.proguard
 
 import scala.util.control.NonFatal
-
 import mill._
 import mill.define.Target
+import mill.util.Util.millProjectModule
 import mill.scalalib.ScalaModule
 import mill.util.TestEvaluator
 import mill.util.TestUtil
@@ -22,11 +22,7 @@ object ProguardTests extends TestSuite {
     override def scalaVersion: T[String] = T(sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???))
 
     def proguardContribClasspath = T {
-      mill.modules.Util.millProjectModule(
-        "MILL_PROGUARD_LIB",
-        "mill-contrib-proguard",
-        repositoriesTask()
-      )
+      millProjectModule("mill-contrib-proguard", repositoriesTask())
     }
 
     override def runClasspath: Target[Seq[PathRef]] =

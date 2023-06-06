@@ -1,8 +1,7 @@
 package mill.contrib.scalapblib
 
-import mill.T
+import mill._
 import mill.api.{PathRef, Result}
-import mill.define.Sources
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
@@ -47,7 +46,7 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithSpecificSources extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBSources: Sources = T.sources {
+      override def scalaPBSources: T[Seq[PathRef]] = T.sources {
         millSourcePath / "protobuf" / "tutorial" / "Tutorial.proto"
       }
 

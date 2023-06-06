@@ -28,148 +28,117 @@ concurrency:
 
 jobs:
 
-  test:
+  itest:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [8, 17]
-        buildcmd:
-          # bootstrap tests
-          - ci/test-mill-bootstrap-0.sh
-          # unit and module tests
-          - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,testrunner,bsp}.__.test"
-
-          - ./mill -i -k "integration.feature.__.server.test"
-          - ./mill -i -k "integration.feature.__.fork.test"
-
-          # contrib tests
-          - ./mill -i -k "contrib._.test"
-
         include:
-          # Just some reporting to enable reasoning about library upgrades
+          # bootstrap tests
           - java-version: 8
-            buildcmd: | 
-              ./mill -i -k __.ivyDepsTree
-              ./mill -i -k __.ivyDepsTree --withRuntime true
-
-          # Limit some tests to Java 17 to limit CI times
-          - java-version: 17
-            buildcmd: ci/test-mill-bootstrap-1.sh
+            buildcmd: ci/test-mill-release.sh
           - java-version: 17
             buildcmd: ci/test-mill-release.sh
+          # Limit some tests to Java 17 to limit CI times
           - java-version: 17
             buildcmd: ci/test-mill-dev.sh
           - java-version: 17
-            buildcmd: ./mill -i -k "example.__.test"
-          - java-version: 17
-            buildcmd: ./mill -i -k "integration.feature.__.local.test"
-          - java-version: 17
-            buildcmd: ./mill -i -k "integration.failure.__.test"
-          - java-version: 17
-            buildcmd: ./mill -i -k "integration.thirdparty.__.test"
-          - java-version: 17
-            buildcmd: ./mill -i docs.antora.githubPages
+            buildcmd: ci/test-mill-bootstrap.sh
+          # Have one job on latest JVM
+          - java-version: 20
+            buildcmd: ci/test-mill-bootstrap.sh
+          # Just some reporting to enable reasoning about library upgrades
+          - java-version: 8
+            buildcmd: |
+              ./mill -i -k __.ivyDepsTree
+              ./mill -i -k __.ivyDepsTree --withRuntime
 
-    runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: ${{ matrix.java-version }}
+      buildcmd: ${{ matrix.buildcmd }}
 
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: temurin
-
-      - name: Prepare git config
-        run: |
-          git config --add user.name "Mill GithHub Actions"
-          git config --add user.email "mill-ci@localhost"
-
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ${{ matrix.buildcmd }}
-
-  checks:
-    strategy:
-      fail-fast: false
-      matrix:
-        java-version: [8]
-        buildcmd:
-          - ./mill -i -k mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues
-
-    runs-on: ubuntu-latest
-    # when doing milestone builds, this may be true
-    continue-on-error: true
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: temurin
-
-      - name: Prepare git config
-        run: |
-          git config --add user.name "Mill GithHub Actions"
-          git config --add user.email "mill-ci@localhost"
-
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ${{ matrix.buildcmd }}
-
-  test-windows:
+  linux:
     strategy:
       fail-fast: false
       matrix:
         java-version: [8, 17]
-        buildcmd:
-          # Run a stripped down build matrix on Windows, to avoid taking too long
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
+        millargs:
+          # unit and module tests
+          - '"{main,scalalib,testrunner,bsp}.__.test"'
+          - '"scalajslib.__.test"'
+          - '"scalanativelib.__.test"'
+          # integration tests
+          - "integration.feature.__.server.test"
+          - "integration.feature.__.fork.test"
+          # contrib tests
+          - "contrib._.test"
 
         include:
           # Limit some tests to Java 17 to limit CI times
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "example.__.fork.test"
+            millargs: "example.__.local.test"
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.fork.test"
+            millargs: "integration.feature.__.local.test"
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.feature.__.server.test"
+            millargs: "integration.failure.__.test"
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.failure.__.fork.test"
+            millargs: docs.githubPages
+
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: ${{ matrix.java-version }}
+      millargs: ${{ matrix.millargs }}
+
+  format-check:
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: '8'
+      millargs: mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
+
+  bincompat-check:
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: '8'
+      millargs: __.mimaReportBinaryIssues
+      continue-on-error: true
+
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [8, 17]
+        millargs:
+          # Run a stripped down build matrix on Windows, to avoid taking too long
+          - '"{__.publishLocal,dev.assembly,__.compile}"'
+          - '"{main,scalalib,bsp}.__.test"'
+          - '"scalajslib.__.test"'
+
+        include:
+          # Limit some tests to Java 17 to limit CI times
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "integration.thirdparty.__.fork.test"
+            # just run a subset of examples/ on Windows, because for some reason running
+            # the whole suite can take hours on windows v.s. half an hour on linux
+            millargs: '"example.basic.__.local.test"'
           - java-version: 17
-            buildcmd: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.test"
+            millargs: "integration.feature.__.fork.test"
+          - java-version: 17
+            millargs: "integration.feature.__.server.test"
+          - java-version: 17
+            millargs: "integration.failure.__.fork.test"
+          - java-version: 17
+            millargs: "contrib.__.test"
 
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: temurin
-
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ${{ matrix.buildcmd }}
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      os: windows-latest
+      java-version: ${{ matrix.java-version }}
+      millargs: ${{ matrix.millargs }}
 
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
-    needs: [test, test-windows]
+    needs: [linux, windows, format-check, itest]
 
     runs-on: ubuntu-latest
 

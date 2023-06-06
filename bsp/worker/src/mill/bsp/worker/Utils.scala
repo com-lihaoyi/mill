@@ -1,13 +1,20 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier, StatusCode, TaskId}
-import mill.api.CompileProblemReporter
+import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Result.{Skipped, Success}
 import mill.eval.Evaluator
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.BspModule
 
-object Utils {
+private object Utils {
+
+  def sanitizeUri(uri: String): String =
+    if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
+
+  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toNIO.toUri.toString)
+
+  def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
   // define the function that spawns compilation reporter for each module based on the
   // module's hash code TODO: find something more reliable than the hash code
@@ -45,7 +52,7 @@ object Utils {
       results: Evaluator.Results,
       task: mill.define.Task[_]
   ): StatusCode = {
-    results.results(task) match {
+    results.results(task).result match {
       case Success(_) => StatusCode.OK
       case Skipped => StatusCode.CANCELLED
       case _ => StatusCode.ERROR

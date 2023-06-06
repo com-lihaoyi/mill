@@ -2,20 +2,17 @@
 
 set -eux
 
-# Starting from scratch...
-git stash -u
-git stash -a
+EXAMPLE=example/scalabuilds/10-scala-realistic
 
-# Build Mill
-./mill -i dev.assembly
+rm -rf $EXAMPLE/out
 
-rm -rf ~/.mill/ammonite
+test ! -d $EXAMPLE/out/foo/3.2.2/compile.dest
+test ! -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
 
-# Prepare local build
-ci/prepare-mill-bootstrap.sh
+./mill -i dev.run $EXAMPLE -i "foo[3.2.2].run"
 
-# Second build & run tests
-out/dev/assembly.dest/mill -i -j 0 main.test.compile
-out/dev/assembly.dest/mill -i contrib.buildinfo.publishLocal
-out/dev/assembly.dest/mill -i "{main,scalalib,scalajslib,scalanativelib,bsp,contrib.twirllib,contrib.scalapblib}.test"
-out/dev/assembly.dest/mill -i "example.basic[1-hello-world].server.test"
+test -d $EXAMPLE/out/foo/3.2.2/compile.dest
+
+./mill -i dev.run $EXAMPLE show "bar[2.13.8].assembly"
+
+test -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar

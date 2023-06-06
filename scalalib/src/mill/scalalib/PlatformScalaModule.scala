@@ -15,14 +15,21 @@ import mill._
 trait PlatformScalaModule extends ScalaModule {
   override def millSourcePath = super.millSourcePath / os.up
 
+  /**
+   * The platform suffix of this [[PlatformScalaModule]]. Useful if you want to
+   * further customize the source paths or artifact names.
+   */
+  def platformScalaSuffix: String = millModuleSegments
+    .value
+    .collect { case l: mill.define.Segment.Label => l.value }
+    .last
+
   override def sources = T.sources {
-    val platform = millModuleSegments.parts.last
-    super.sources().flatMap(source =>
-      Seq(
-        source,
-        PathRef(source.path / os.up / s"${source.path.last}-${platform}")
-      )
-    )
+    super.sources().flatMap { source =>
+      val platformPath =
+        PathRef(source.path / _root_.os.up / s"${source.path.last}-${platformScalaSuffix}")
+      Seq(source, platformPath)
+    }
   }
 
   override def artifactNameParts = super.artifactNameParts().dropRight(1)

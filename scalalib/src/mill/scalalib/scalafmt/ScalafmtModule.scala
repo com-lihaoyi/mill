@@ -2,7 +2,7 @@ package mill.scalalib.scalafmt
 
 import mill._
 import mill.api.Result
-import mill.define._
+import mill.define.{ExternalModule, Discover}
 import mill.scalalib._
 
 trait ScalafmtModule extends JavaModule {
@@ -25,7 +25,7 @@ trait ScalafmtModule extends JavaModule {
       )
   }
 
-  def scalafmtConfig: Sources = T.sources(T.workspace / ".scalafmt.conf")
+  def scalafmtConfig: T[Seq[PathRef]] = T.sources(T.workspace / ".scalafmt.conf")
 
   // TODO: Do we want provide some defaults or write a default file?
   private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = T.task {
@@ -86,8 +86,6 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
           resolvedScalafmtConfig()
         )
     }
-
-  import mill.main.TokenReaders._
 
   lazy val millDiscover = Discover[this.type]
 }

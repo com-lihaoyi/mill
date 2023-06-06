@@ -1,21 +1,24 @@
 package mill.scalalib.bsp
 
-import mill.api.{Loose, PathRef, internal}
-import mill.define.{BaseModule, Segments, Sources, Task}
-import mill.eval.EvaluatorPathsResolver
-import mill.modules.Jvm
-import mill.scalalib.api.CompilationResult
+import mill.api.internal
+import mill.define.Task
 import mill.scalalib.internal.ModuleUtils
-import mill.scalalib.{Dep, DepSyntax, ScalaModule}
-import mill.{Agg, BuildInfo, Module, T}
+import mill._
 
 trait BspModule extends Module {
   import BspModule._
 
+  def bspDisplayName0: String = ModuleUtils.moduleDisplayName(this)
+
+  def bspDisplayName = bspDisplayName0 match {
+    case "" => "root-module"
+    case n => n
+  }
+
   /** Use to fill most fields of `BuildTarget`. */
   @internal
   def bspBuildTarget: BspBuildTarget = BspBuildTarget(
-    displayName = Some(ModuleUtils.moduleDisplayName(this)),
+    displayName = Some(bspDisplayName),
     baseDirectory = Some(millSourcePath),
     tags = Seq(Tag.Library, Tag.Application),
     languageIds = Seq(),

@@ -1,0 +1,34 @@
+= Web Build Examples
+
+This page contains examples of using Mill as a build tool for web-applications.
+It covers setting up a basic backend server, Todo-MVC app, topics like cache
+busting, as well as usage of Scala.js both as standalone modules as well as
+integrated with your backend Scala-JVM web server.
+
+== TodoMVC Web App
+
+include::example/web/1-todo-webapp.adoc[]
+
+== Webapp Cache Busting
+
+include::example/web/2-webapp-cache-busting.adoc[]
+
+== Scala.js Modules
+
+include::example/web/3-scalajs-module.adoc[]
+
+== Scala.js Webserver Integration
+
+include::example/web/4-webapp-scalajs.adoc[]
+
+== Scala.js/Scala-JVM Code Sharing
+
+include::example/web/5-webapp-scalajs-shared.adoc[]
+
+== Publishing Cross-Platform Scala Modules
+
+include::example/web/6-cross-version-platform-publishing.adoc[]
+
+== Publishing Cross-Platform Scala Modules Alternative
+
+include::example/web/7-cross-platform-version-publishing.adoc[]

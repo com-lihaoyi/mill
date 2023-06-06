@@ -2,6 +2,8 @@ package mill.contrib.buildinfo
 
 import mill.{PathRef, T}
 import mill.scalalib.{JavaModule, ScalaModule}
+import mill.scalanativelib.ScalaNativeModule
+import mill.scalajslib.ScalaJSModule
 
 trait BuildInfo extends JavaModule {
 
@@ -20,7 +22,11 @@ trait BuildInfo extends JavaModule {
    * rather than the default behavior of storing them as a JVM resource. Needed
    * to use BuildInfo on Scala.js which does not support JVM resources
    */
-  def buildInfoStaticCompiled: Boolean = false
+  def buildInfoStaticCompiled: Boolean = this match {
+    case _: ScalaJSModule => true
+    case _: ScalaNativeModule => true
+    case _ => false
+  }
 
   /**
    * A mapping of key-value pairs to pass from the Build script to the
@@ -165,12 +171,16 @@ object BuildInfo {
          |package ${buildInfoPackageName}
          |
          |object $buildInfoObjectName {
-         |  private val buildInfoProperties = new java.util.Properties
+         |  private[this] val buildInfoProperties: java.util.Properties = new java.util.Properties()
          |
-         |  private val buildInfoInputStream = getClass
-         |    .getResourceAsStream("$buildInfoObjectName.buildinfo.properties")
+         |  private[this] val buildInfoInputStream = getClass
+         |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
          |
-         |  buildInfoProperties.load(buildInfoInputStream)
+         |  try {
+         |    buildInfoProperties.load(buildInfoInputStream)
+         |  } finally {
+         |    buildInfoInputStream.close()
+         |  }
          |
          |  $bindingsCode
          |}
@@ -180,21 +190,21 @@ object BuildInfo {
          |package ${buildInfoPackageName};
          |
          |public class $buildInfoObjectName {
-         |  private static java.util.Properties buildInfoProperties = new java.util.Properties();
+         |  private static final java.util.Properties buildInfoProperties = new java.util.Properties();
          |
          |  static {
-         |    java.io.InputStream buildInfoInputStream = $buildInfoObjectName
+         |    java.io.InputStream buildInfoInputStream = ${buildInfoObjectName}
          |      .class
-         |      .getResourceAsStream("$buildInfoObjectName.buildinfo.properties");
+         |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties");
          |
-         |    try{
+         |    try {
          |      buildInfoProperties.load(buildInfoInputStream);
-         |    }catch(java.io.IOException e){
+         |    } catch (java.io.IOException e) {
          |      throw new RuntimeException(e);
-         |    }finally{
-         |      try{
+         |    } finally {
+         |      try {
          |        buildInfoInputStream.close();
-         |      }catch(java.io.IOException e){
+         |      } catch (java.io.IOException e) {
          |        throw new RuntimeException(e);
          |      }
          |    }

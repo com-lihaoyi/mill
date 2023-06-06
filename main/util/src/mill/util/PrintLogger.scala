@@ -16,7 +16,6 @@ class PrintLogger(
     printLoggerState: PrintLogger.State
 ) extends ColorLogger {
 
-
   def info(s: String) = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
     systemStreams.err.println(infoColor(context + s))
@@ -54,14 +53,14 @@ class PrintLogger(
     copy(systemStreams = new SystemStreams(outStream, systemStreams.err, systemStreams.in))
 
   private def copy(
-                    colored: Boolean = colored,
-                    enableTicker: Boolean = enableTicker,
-                    infoColor: fansi.Attrs = infoColor,
-                    errorColor: fansi.Attrs = errorColor,
-                    systemStreams: SystemStreams = systemStreams,
-                    debugEnabled: Boolean = debugEnabled,
-                    context: String = context,
-                    printLoggerState: PrintLogger.State = printLoggerState,
+      colored: Boolean = colored,
+      enableTicker: Boolean = enableTicker,
+      infoColor: fansi.Attrs = infoColor,
+      errorColor: fansi.Attrs = errorColor,
+      systemStreams: SystemStreams = systemStreams,
+      debugEnabled: Boolean = debugEnabled,
+      context: String = context,
+      printLoggerState: PrintLogger.State = printLoggerState
   ): PrintLogger = new PrintLogger(
     colored,
     enableTicker,
@@ -81,7 +80,7 @@ class PrintLogger(
   }
 }
 
-object PrintLogger{
+object PrintLogger {
 
   def wrapSystemStreams(systemStreams0: SystemStreams, printLoggerState: State) = {
     new SystemStreams(
@@ -90,9 +89,8 @@ object PrintLogger{
       systemStreams0.in
     )
   }
-  class StateStream(wrapped: OutputStream,
-                    setprintLoggerState0: State.Value => Unit) extends OutputStream {
-
+  class StateStream(wrapped: OutputStream, setprintLoggerState0: State.Value => Unit)
+      extends OutputStream {
 
     private[this] def setprintLoggerState(c: Char) = setprintLoggerState0(
       c match {
@@ -133,4 +131,3 @@ object PrintLogger{
     case object Middle extends Value
   }
 }
-

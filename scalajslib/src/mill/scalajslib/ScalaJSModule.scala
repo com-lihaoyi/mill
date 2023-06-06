@@ -6,7 +6,7 @@ import mill.api.{Loose, PathRef, Result, internal}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
-import mill.testrunner.TestRunner
+import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.define.{Command, Target, Task}
 import mill.scalajslib.api._
 import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
@@ -18,8 +18,6 @@ import scala.jdk.CollectionConverters._
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
-
-  trait Tests extends ScalaJSModuleTests
 
   trait ScalaJSModuleTests extends ScalaModuleTests with TestScalaJSModule {
     override def scalaJSVersion = outer.scalaJSVersion()
@@ -35,9 +33,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSWorkerVersion = T { ZincWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
   def scalaJSWorkerClasspath = T {
-    val workerKey = "MILL_SCALAJS_WORKER_" + scalaJSWorkerVersion().replace('.', '_')
-    mill.modules.Util.millProjectModule(
-      key = workerKey,
+    mill.util.Util.millProjectModule(
       artifact = s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
       repositories = repositoriesTask(),
       resolveFilter = _.toString.contains("mill-scalajslib-worker")
@@ -79,7 +75,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // we need to use the scala-library of the currently running mill
     resolveDependencies(
       repositoriesTask(),
-      (commonDeps ++ envDeps).map(Lib.depToBoundDep(_, mill.BuildInfo.scalaVersion, "")),
+      (commonDeps ++ envDeps).map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     )
   }
@@ -122,9 +118,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  override def runLocal(args: String*): Command[Unit] = T.command { run(args: _*) }
+  override def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = T.command { run(args) }
 
-  override def run(args: String*): Command[Unit] = T.command {
+  override def run(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
     finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
       case Right(_) =>
@@ -190,10 +186,16 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   override def mandatoryScalacOptions = T {
-    super.mandatoryScalacOptions() ++ {
-      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("-scalajs")
+    // Don't add flag twice, e.g. if a test suite inherits it both directly
+    // ScalaJSModule as well as from the enclosing non-test ScalaJSModule
+    val scalajsFlag =
+      if (
+        ZincWorkerUtil.isScala3(scalaVersion()) &&
+        !super.mandatoryScalacOptions().contains("-scalajs")
+      ) Seq("-scalajs")
       else Seq.empty
-    }
+
+    super.mandatoryScalacOptions() ++ scalajsFlag
   }
 
   override def scalacPluginIvyDeps = T {
@@ -300,13 +302,13 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  override def testLocal(args: String*): Command[(String, Seq[TestRunner.Result])] =
+  override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
     T.command { test(args: _*) }
 
   override protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestRunner.Result])] = T.task {
+  ): Task[(String, Seq[TestResult])] = T.task {
 
     val (close, framework) = ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
       scalaJSToolsClasspath(),
@@ -321,7 +323,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       Agg(compile().classes.path),
       args(),
       T.testReporter,
-      TestRunner.globFilter(globSelectors())
+      TestRunnerUtils.globFilter(globSelectors())
     )
     val res = TestModule.handleResults(doneMsg, results, Some(T.ctx()))
     // Hack to try and let the Node.js subprocess finish streaming it's stdout

@@ -1,6 +1,6 @@
 package mill.util
 import TestUtil.test
-import mill.define.{Command, Cross, Discover, TaskModule}
+import mill.define.{ModuleRef, Command, Cross, Discover, TaskModule}
 import mill.{Module, T}
 
 /**
@@ -128,6 +128,111 @@ class TestGraphs() {
     def right = T { task1() + task2() + left() + 1 }
 
   }
+
+  object moduleInitError extends TestUtil.BaseModule {
+    def rootTarget = T { println("Running rootTarget"); "rootTarget Result" }
+    def rootCommand(s: String) = T.command { println(s"Running rootCommand $s") }
+
+    object foo extends Module {
+      def fooTarget = T { println(s"Running fooTarget"); 123 }
+      def fooCommand(s: String) = T.command { println(s"Running fooCommand $s") }
+      throw new Exception("Foo Boom")
+    }
+
+    object bar extends Module {
+      def barTarget = T { println(s"Running barTarget"); "barTarget Result" }
+      def barCommand(s: String) = T.command { println(s"Running barCommand $s") }
+
+      object qux extends Module {
+        def quxTarget = T { println(s"Running quxTarget"); "quxTarget Result" }
+        def quxCommand(s: String) = T.command { println(s"Running quxCommand $s") }
+        throw new Exception("Qux Boom")
+      }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  object moduleDependencyInitError extends TestUtil.BaseModule {
+
+    object foo extends Module {
+      def fooTarget = T { println(s"Running fooTarget"); 123 }
+      def fooCommand(s: String) = T.command { println(s"Running fooCommand $s") }
+      throw new Exception("Foo Boom")
+    }
+
+    object bar extends Module {
+      def barTarget = T {
+        println(s"Running barTarget")
+        foo.fooTarget() + " barTarget Result"
+      }
+      def barCommand(s: String) = T.command {
+        foo.fooCommand(s)()
+        println(s"Running barCommand $s")
+      }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  object crossModuleSimpleInitError extends TestUtil.BaseModule {
+    object myCross extends Cross[MyCross](1, 2, 3, 4) {
+      throw new Exception(s"MyCross Boom")
+    }
+    trait MyCross extends Cross.Module[Int] {
+      def foo = T { crossValue }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+  object crossModulePartialInitError extends TestUtil.BaseModule {
+    object myCross extends Cross[MyCross](1, 2, 3, 4)
+    trait MyCross extends Cross.Module[Int] {
+      if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")
+      def foo = T { crossValue }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+  object crossModuleSelfInitError extends TestUtil.BaseModule {
+    object myCross extends Cross[MyCross](1, 2, 3, throw new Exception(s"MyCross Boom"))
+    trait MyCross extends Cross.Module[Int] {
+      def foo = T { crossValue }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  object crossModuleParentInitError extends TestUtil.BaseModule {
+    object parent extends Module {
+      throw new Exception(s"Parent Boom")
+      object myCross extends Cross[MyCross](1, 2, 3, 4)
+      trait MyCross extends Cross.Module[Int] {
+        def foo = T { crossValue }
+      }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  object overrideModule extends TestUtil.BaseModule {
+    trait Base extends Module {
+      lazy val inner: BaseInnerModule = new BaseInnerModule {}
+      lazy val ignored: ModuleRef[BaseInnerModule] = ModuleRef(new BaseInnerModule {})
+      trait BaseInnerModule extends mill.define.Module {
+        def baseTarget = T { 1 }
+      }
+    }
+    object sub extends Base {
+      override lazy val inner: SubInnerModule = new SubInnerModule {}
+      override lazy val ignored: ModuleRef[SubInnerModule] = ModuleRef(new SubInnerModule {})
+      trait SubInnerModule extends BaseInnerModule {
+        def subTarget = T { 2 }
+      }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
 }
 
 object TestGraphs {
@@ -176,6 +281,16 @@ object TestGraphs {
     object classInstance extends CanNest
 
   }
+  object doubleNestedModule extends TestUtil.BaseModule {
+    def single = T { 5 }
+    object nested extends Module {
+      def single = T { 7 }
+
+      object inner extends Module {
+        def single = T { 9 }
+      }
+    }
+  }
 
   trait BaseModule extends Module {
     def foo = T { Seq("base") }
@@ -220,32 +335,44 @@ object TestGraphs {
 
   object singleCross extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
-    class Cross(scalaVersion: String) extends Module {
-      def suffix = T { scalaVersion }
+    trait Cross extends Cross.Module[String] {
+      def suffix = T { crossValue }
     }
+
     object cross2 extends mill.Cross[Cross2]("210", "211", "212")
-    class Cross2(scalaVersion: String) extends Module {
-      override def millSourcePath = super.millSourcePath / scalaVersion
-      def suffix = T {
-        scalaVersion
-      }
+    trait Cross2 extends Cross.Module[String] {
+      override def millSourcePath = super.millSourcePath / crossValue
+      def suffix = T { crossValue }
     }
   }
+
+  object nonStringCross extends TestUtil.BaseModule {
+    object cross extends mill.Cross[Cross](210, 211, 212)
+    trait Cross extends Cross.Module[Int] {
+      def suffix = T { crossValue }
+    }
+
+    object cross2 extends mill.Cross[Cross2](210L, 211L, 212L)
+    trait Cross2 extends Cross.Module[Long] {
+      override def millSourcePath = super.millSourcePath / crossValue.toString
+      def suffix = T { crossValue }
+    }
+  }
+
   object crossResolved extends TestUtil.BaseModule {
-    trait MyModule extends Module {
-      def crossVersion: String
+    trait MyModule extends Cross.Module[String] {
       implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
-        def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(crossVersion))
+        def resolve[V <: MyModule](c: Cross[V]): V = c.valuesToModules(List(crossValue))
       }
     }
 
     object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-    class FooModule(val crossVersion: String) extends MyModule {
-      def suffix = T { crossVersion }
+    trait FooModule extends MyModule {
+      def suffix = T { crossValue }
     }
 
     object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
-    class BarModule(val crossVersion: String) extends MyModule {
+    trait BarModule extends MyModule {
       def longSuffix = T { "_" + foo().suffix() }
     }
   }
@@ -255,17 +382,78 @@ object TestGraphs {
       platform <- Seq("jvm", "js", "native")
       if !(platform == "native" && scalaVersion != "212")
     } yield (scalaVersion, platform)
-    object cross extends mill.Cross[Cross](crossMatrix: _*)
-    class Cross(scalaVersion: String, platform: String) extends Module {
+    object cross extends mill.Cross[Cross](crossMatrix)
+    trait Cross extends Cross.Module2[String, String] {
+      val (scalaVersion, platform) = (crossValue, crossValue2)
       def suffix = T { scalaVersion + "_" + platform }
+    }
+  }
+
+  object crossExtension extends TestUtil.BaseModule {
+    object myCross extends Cross[MyCrossModule]("a", "b")
+    trait MyCrossModule extends Cross.Module[String] {
+      def param1 = T { "Param Value: " + crossValue }
+    }
+
+    object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1), ("b", 2))
+    trait MyCrossModuleExtended extends MyCrossModule with Cross.Module2[String, Int] {
+      def param2 = T { "Param Value: " + crossValue2 }
+    }
+
+    object myCrossExtendedAgain
+        extends Cross[MyCrossModuleExtendedAgain](("a", 1, true), ("b", 2, false))
+    trait MyCrossModuleExtendedAgain extends MyCrossModuleExtended
+        with Cross.Module3[String, Int, Boolean] {
+      def param3 = T { "Param Value: " + crossValue3 }
+    }
+  }
+
+  object innerCrossModule extends TestUtil.BaseModule {
+    object myCross extends Cross[MyCrossModule]("a", "b")
+    trait MyCrossModule extends Cross.Module[String] {
+      object foo extends InnerCrossModule {
+        def bar = T { "foo " + crossValue }
+      }
+
+      object baz extends InnerCrossModule {
+        def bar = T { "baz " + crossValue }
+      }
+    }
+
+    object myCross2 extends Cross[MyCrossModule2](("a", 1), ("b", 2))
+    trait MyCrossModule2 extends Cross.Module2[String, Int] {
+      object foo extends InnerCrossModule2 {
+        def bar = T { "foo " + crossValue }
+        def qux = T { "foo " + crossValue2 }
+      }
+      object baz extends InnerCrossModule2 {
+        def bar = T { "baz " + crossValue }
+        def qux = T { "baz " + crossValue2 }
+      }
+    }
+
+    object myCross3 extends Cross[MyCrossModule3](("a", 1, true), ("b", 2, false))
+    trait MyCrossModule3 extends Cross.Module3[String, Int, Boolean] {
+      object foo extends InnerCrossModule3 {
+        def bar = T { "foo " + crossValue }
+        def qux = T { "foo " + crossValue2 }
+        def lol = T { "foo " + crossValue3 }
+      }
+      object baz extends InnerCrossModule3 {
+        def bar = T { "baz " + crossValue }
+        def qux = T { "baz " + crossValue2 }
+        def lol = T { "baz " + crossValue3 }
+      }
     }
   }
 
   object nestedCrosses extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
-    class Cross(scalaVersion: String) extends mill.Module {
+    trait Cross extends Cross.Module[String] {
+      val scalaVersion = crossValue
       object cross2 extends mill.Cross[Cross]("jvm", "js", "native")
-      class Cross(platform: String) extends mill.Module {
+      trait Cross extends Cross.Module[String] {
+        val platform = crossValue
         def suffix = T { scalaVersion + "_" + platform }
       }
     }
@@ -276,12 +464,12 @@ object TestGraphs {
     // I expected, that the identical inherited `millDiscover` is enough, but it isn't
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
     object cross1 extends mill.Cross[Cross1]("210", "211", "212")
-
-    class Cross1(scalaVersion: String) extends mill.Module {
+    trait Cross1 extends mill.Cross.Module[String] {
+      def scalaVersion = crossValue
 
       object cross2 extends mill.Cross[Cross2]("jvm", "js", "native")
-
-      class Cross2(platform: String) extends mill.Module with TaskModule {
+      trait Cross2 extends mill.Cross.Module[String] with TaskModule {
+        def platform = crossValue
         override def defaultCommandName(): String = "suffixCmd"
         def suffixCmd(suffix: String = "default"): Command[String] = T.command {
           scalaVersion + "_" + platform + "_" + suffix

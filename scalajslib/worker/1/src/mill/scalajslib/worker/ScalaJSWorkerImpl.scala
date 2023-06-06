@@ -184,7 +184,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     ))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
-    val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))
+    val irContainersPairs = PathIRContainer.fromClasspath(libraries.toIndexedSeq.map(_.toPath()))
     val libraryIRsFuture = irContainersPairs.flatMap(pair => cache.cached(pair._1))
     val logger = new ScalaConsoleLogger
     val mainInitializer = Option(main).map { cls =>
@@ -205,7 +205,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
           val jsFile = new File(dest, jsFileName).toPath()
           var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
-          val sourceMapNameOpt = Option.when(sourceMap)(jsFile.getFileName + ".map")
+          val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
           sourceMapNameOpt.foreach { sourceMapName =>
             val sourceMapFile = jsFile.resolveSibling(sourceMapName)
             linkerOutput = linkerOutput
@@ -260,7 +260,27 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   def run(config: JsEnvConfig, report: Report): Unit = {
     val env = jsEnv(config)
     val input = jsEnvInput(report)
-    val runConfig = RunConfig().withLogger(new ScalaConsoleLogger)
+    val runConfig0 = RunConfig().withLogger(new ScalaConsoleLogger)
+    val runConfig =
+      if (mill.api.SystemStreams.isOriginal()) runConfig0
+      else runConfig0
+        .withInheritErr(false)
+        .withInheritOut(false)
+        .withOnOutputStream { case (Some(processOut), Some(processErr)) =>
+          val sources = Seq(
+            (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
+            (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
+          )
+
+          for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
+            val t = new Thread(
+              new mill.main.client.InputPumper(std, dest, checkAvailable, () => runningCheck()),
+              name
+            )
+            t.setDaemon(true)
+            t.start()
+          }
+        }
     Run.runInterruptible(env, input, runConfig)
   }
 

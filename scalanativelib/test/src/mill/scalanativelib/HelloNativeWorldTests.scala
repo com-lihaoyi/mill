@@ -6,8 +6,8 @@ import mill.api.Result
 import mill.define.Discover
 import mill.eval.EvaluatorPaths
 import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule}
-import mill.testrunner.TestRunner
+import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, ScalaModule, TestModule}
+import mill.testrunner.{TestResult, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
 import mill.util.{TestEvaluator, TestUtil}
@@ -18,7 +18,13 @@ import scala.jdk.CollectionConverters._
 object HelloNativeWorldTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "hello-native-world"
 
-  trait HelloNativeWorldModule extends CrossScalaModule with ScalaNativeModule with PublishModule {
+  trait HelloNativeWorldModule
+      extends ScalaModule
+      with ScalaNativeModule
+      with PublishModule
+      with Cross.Module3[String, String, ReleaseMode] {
+    val (crossScalaVersion, sNativeVersion, mode) = (crossValue, crossValue2, crossValue3)
+    def scalaVersion = crossScalaVersion
     override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("hello.Main")
@@ -28,6 +34,9 @@ object HelloNativeWorldTests extends TestSuite {
   val scalaNative04 = "0.4.2"
 
   object HelloNativeWorld extends TestUtil.BaseModule {
+    implicit object ReleaseModeToSegments
+        extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
+
     val matrix = for {
       scala <- Seq("3.2.1", "3.1.3", scala213, "2.12.13", "2.11.12")
       scalaNative <- Seq(scalaNative04, "0.4.9")
@@ -35,9 +44,8 @@ object HelloNativeWorldTests extends TestSuite {
       if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04)
     } yield (scala, scalaNative, mode)
 
-    object helloNativeWorld extends Cross[RootModule](matrix: _*)
-    class RootModule(val crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
-        extends HelloNativeWorldModule {
+    object helloNativeWorld extends Cross[RootModule](matrix)
+    trait RootModule extends HelloNativeWorldModule {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
       def releaseMode = T { mode }
@@ -51,10 +59,9 @@ object HelloNativeWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
-    object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
-    class BuildModuleUtest(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
-        extends RootModule(crossScalaVersion, sNativeVersion, mode) {
-      object test extends super.Tests with TestModule.Utest {
+    object buildUTest extends Cross[BuildModuleUtest](matrix)
+    trait BuildModuleUtest extends RootModule {
+      object test extends ScalaNativeModuleTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest::0.7.6"
@@ -67,7 +74,7 @@ object HelloNativeWorldTests extends TestSuite {
       def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaNativeVersion = scalaNative
-      object test extends Tests with TestModule.Utest
+      object test extends ScalaNativeModuleTests with TestModule.Utest
     }
 
     override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
@@ -154,8 +161,8 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])])
-        : Map[String, Map[String, TestRunner.Result]] = {
+    def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
+        : Map[String, Map[String, TestResult]] = {
       val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
 
       val (doneMsg, testResults) = res

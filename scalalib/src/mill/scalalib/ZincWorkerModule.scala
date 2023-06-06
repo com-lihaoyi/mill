@@ -4,46 +4,47 @@ import scala.annotation.nowarn
 import coursier.Repository
 import mainargs.Flag
 import mill.Agg
-import mill.T
+import mill._
 import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result}
-import mill.define.{Command, Discover, ExternalModule, Input, Target, Worker}
+import mill.define.{ExternalModule, Discover}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil}
-import os.Path
+import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
+import mill.util.Util.millProjectModule
 
+/**
+ * A default implementation of [[ZincWorkerModule]]
+ */
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
 }
 
+/**
+ * A module managing an in-memory Zinc Scala incremental compiler
+ */
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
 
-  def classpath: Target[Agg[PathRef]] = T {
-    mill.modules.Util.millProjectModule(
-      "MILL_SCALA_WORKER",
-      "mill-scalalib-worker",
-      repositoriesTask()
-    )
+  def classpath: T[Agg[PathRef]] = T {
+    millProjectModule("mill-scalalib-worker", repositoriesTask())
   }
 
-  def scalalibClasspath: Target[Agg[PathRef]] = T {
-    mill.modules.Util.millProjectModule(
-      "MILL_SCALA_LIB",
-      "mill-scalalib",
-      repositoriesTask()
-    )
+  def scalalibClasspath: T[Agg[PathRef]] = T {
+    millProjectModule("mill-scalalib", repositoriesTask())
   }
 
-  def backgroundWrapperClasspath: Target[Agg[PathRef]] = T {
-    mill.modules.Util.millProjectModule(
-      "MILL_BACKGROUNDWRAPPER",
+  def testrunnerEntrypointClasspath: T[Agg[PathRef]] = T {
+    millProjectModule("mill-testrunner-entrypoint", repositoriesTask(), artifactSuffix = "")
+  }
+
+  def backgroundWrapperClasspath: T[Agg[PathRef]] = T {
+    millProjectModule(
       "mill-scalalib-backgroundwrapper",
       repositoriesTask(),
       artifactSuffix = ""
     )
   }
 
-  def zincLogDebug: Input[Boolean] = T.input(T.ctx().log.debugEnabled)
+  def zincLogDebug: T[Boolean] = T.input(T.ctx().log.debugEnabled)
 
   def worker: Worker[ZincWorkerApi] = T.worker {
     val ctx = T.ctx()
@@ -55,6 +56,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       classpath().map(_.path.toNIO.toUri.toURL).iterator.to(Vector),
       getClass.getClassLoader
     )
+
     val cls = cl.loadClass("mill.scalalib.worker.ZincWorkerImpl")
     val instance = cls.getConstructor(
       classOf[
@@ -73,7 +75,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         Left((
           T.ctx(),
           (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, repositoriesTask()).asSuccess.get.value
+            scalaCompilerBridgeJar(x, y, repositoriesTask())
+              .asSuccess
+              .getOrElse(
+                throw new Exception(s"Failed to load compiler bridge for $x $y")
+              )
+              .value
         )),
         ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false),
         ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),
@@ -101,6 +108,11 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
           else "scala3-sbt-bridge"
         val version = scalaVersion
         (ivy"$org:$name:$version", name, version)
+      } else if (ZincWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
+        val org = "com.lihaoyi"
+        val name = s"mill-scala-compiler-bridge_$scalaVersion"
+        val version = Versions.millCompilerBridgeVersion
+        (ivy"$org:$name:$version", name, version)
       } else {
         val org = "org.scala-sbt"
         val name = "compiler-bridge"
@@ -111,6 +123,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
           version
         )
       }
+
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
     val bridgeJar = resolveDependencies(

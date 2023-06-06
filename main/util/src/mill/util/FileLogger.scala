@@ -5,11 +5,12 @@ import mill.api.{Logger, SystemStreams}
 import java.io.{OutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
 
-
-class FileLogger(override val colored: Boolean,
-                 file: os.Path,
-                 override val debugEnabled: Boolean,
-                 append: Boolean = false) extends Logger {
+class FileLogger(
+    override val colored: Boolean,
+    file: os.Path,
+    override val debugEnabled: Boolean,
+    append: Boolean = false
+) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val fileStream = {

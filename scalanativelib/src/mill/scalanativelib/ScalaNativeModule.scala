@@ -5,7 +5,8 @@ import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{Result, internal}
 import mill.define.{Command, Target, Task}
-import mill.modules.Jvm
+import mill.util.Jvm
+import mill.util.Util.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.{
@@ -18,7 +19,7 @@ import mill.scalalib.{
   ScalaModule,
   TestModule
 }
-import mill.testrunner.TestRunner
+import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalanativelib.api._
 import mill.scalanativelib.worker.{ScalaNativeWorkerExternalModule, api => workerApi}
 
@@ -29,8 +30,6 @@ import upickle.default.{macroRW, ReadWriter => RW}
 trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
-
-  trait Tests extends ScalaNativeModuleTests
 
   trait ScalaNativeModuleTests extends ScalaModuleTests with TestScalaNativeModule {
     override def scalaNativeVersion = outer.scalaNativeVersion()
@@ -45,11 +44,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     T { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath = T {
-    val workerKey =
-      s"MILL_SCALANATIVE_WORKER_${scalaNativeWorkerVersion()}"
-        .replace('.', '_')
-    mill.modules.Util.millProjectModule(
-      workerKey,
+    millProjectModule(
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
       repositoriesTask(),
       resolveFilter = _.toString.contains("mill-scalanativelib-worker")
@@ -103,7 +98,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def bridgeFullClassPath: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       repositoriesTask(),
-      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.BuildInfo.scalaVersion, "")),
+      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     ).map(t => (scalaNativeWorkerClasspath() ++ t))
   }
@@ -261,9 +256,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // Runs the native binary
-  override def run(args: String*) = T.command {
+  override def run(args: Task[Args] = T.task(Args())) = T.command {
     Jvm.runSubprocess(
-      commandArgs = Vector(nativeLink().toString) ++ args,
+      commandArgs = Vector(nativeLink().toString) ++ args().value,
       envArgs = forkEnv(),
       workingDir = forkWorkingDir()
     )
@@ -333,7 +328,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override protected def testTask(
       args: Task[Seq[String]],
       globSeletors: Task[Seq[String]]
-  ): Task[(String, Seq[TestRunner.Result])] = T.task {
+  ): Task[(String, Seq[TestResult])] = T.task {
 
     val (close, framework) = scalaNativeBridge().getFramework(
       nativeLink().toIO,
@@ -348,7 +343,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       Agg(compile().classes.path),
       args(),
       T.testReporter,
-      TestRunner.globFilter(globSeletors())
+      TestRunnerUtils.globFilter(globSeletors())
     )
     val res = TestModule.handleResults(doneMsg, results, Some(T.ctx()))
     // Hack to try and let the Scala Native subprocess finish streaming it's stdout

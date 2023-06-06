@@ -1,10 +1,10 @@
 import mill._, scalalib._, scalajslib._
 
 object foo extends ScalaJSModule {
-  def scalaVersion = "2.13.2"
+  def scalaVersion = "2.13.8"
   def scalaJSVersion = "1.13.0"
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.12.0")
-  object test extends Tests {
+  object test extends ScalaJSModuleTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
     def testFramework = "utest.runner.Framework"
   }
@@ -28,21 +28,27 @@ object foo extends ScalaJSModule {
 // that compile the module into a single Javascript file, which you can then
 // distribute or deploy with your web application
 
-/* Example Usage
+/** Usage
 
 > ./mill foo.run
 <h1>Hello World</h1>
 stringifiedJsObject: ["hello","world","!"]
 
 > ./mill foo.test
-+ foo.FooTests.hello
++ foo.FooTests.hello...
 
 > ./mill show foo.fullLinkJS # mac/linux
-out/foo/fullLinkJS.dest
-main.js
+{
+...
+..."jsFileName": "main.js",
+  "dest": ".../out/foo/fullLinkJS.dest"
+}
 
 > node out/foo/fullLinkJS.dest/main.js # mac/linux
 <h1>Hello World</h1>
 stringifiedJsObject: ["hello","world","!"]
 
 */
+
+// Note that running Scala.js modules locally requires the `node` Javascript
+// runtime to be installed on your machine.

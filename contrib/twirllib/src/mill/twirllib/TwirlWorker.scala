@@ -75,7 +75,7 @@ class TwirlWorker {
           ): Unit = {
             // val twirlImports = new HashSet()
             // imports.foreach(twirlImports.add)
-            val twirlImports = hashSetClass.newInstance().asInstanceOf[Object]
+            val twirlImports = hashSetClass.getConstructor().newInstance().asInstanceOf[Object]
             val hashSetAddMethod = twirlImports.getClass.getMethod("add", classOf[Object])
             imports.foreach(hashSetAddMethod.invoke(twirlImports, _))
 
@@ -85,7 +85,8 @@ class TwirlWorker {
 
             // val twirlConstructorAnnotations = new ArrayList()
             // constructorAnnotations.foreach(twirlConstructorAnnotations.add)
-            val twirlConstructorAnnotations = arrayListClass.newInstance().asInstanceOf[Object]
+            val twirlConstructorAnnotations =
+              arrayListClass.getConstructor().newInstance().asInstanceOf[Object]
             val arrayListAddMethod =
               twirlConstructorAnnotations.getClass.getMethod("add", classOf[Object])
             constructorAnnotations.foreach(arrayListAddMethod.invoke(

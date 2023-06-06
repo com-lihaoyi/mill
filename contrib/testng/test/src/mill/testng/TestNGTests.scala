@@ -3,6 +3,7 @@ package testng
 
 import mill.api.Result.Exception
 import mill.define.Target
+import mill.util.Util.millProjectModule
 import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
@@ -14,12 +15,12 @@ object TestNGTests extends TestSuite {
     override def millSourcePath: os.Path =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
-    object test extends super.Tests {
+    object test extends JavaModuleTests {
       def testngClasspath = T {
-        mill.modules.Util.millProjectModule(
-          "MILL_TESTNG_LIB",
+        millProjectModule(
           "mill-contrib-testng",
-          repositoriesTask()
+          repositoriesTask(),
+          artifactSuffix = ""
         )
       }
 
@@ -64,7 +65,7 @@ object TestNGTests extends TestSuite {
       }
       "Test case lookup from inherited annotations" - workspaceTest(demo) { eval =>
         val Right((result, evalCount)) = eval.apply(demo.test.test())
-        val tres = result.asInstanceOf[(String, Seq[mill.testrunner.TestRunner.Result])]
+        val tres = result.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
         assert(
           tres._2.size == 8
         )

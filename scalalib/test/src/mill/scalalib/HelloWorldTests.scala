@@ -7,9 +7,10 @@ import scala.util.{Properties, Using}
 import scala.xml.NodeSeq
 import mill._
 import mill.api.Result
-import mill.define.{Input, NamedTask, Target}
+import mill.define.NamedTask
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.modules.Assembly
+import mill.scalalib.Assembly
+import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -22,6 +23,7 @@ object HelloWorldTests extends TestSuite {
   val scala2123Version = "2.12.3"
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val scala213Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+  val zincVersion = sys.props.getOrElse("TEST_ZINC_VERSION", ???)
 
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath: os.Path =
@@ -30,7 +32,7 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
-    override def semanticDbVersion: Input[String] = T.input {
+    override def semanticDbVersion: T[String] = T {
       // The latest semanticDB release for Scala 2.12.6
       "4.1.9"
     }
@@ -43,6 +45,11 @@ object HelloWorldTests extends TestSuite {
   object HelloWorld extends HelloBase {
     object core extends HelloWorldModule
   }
+  object HelloWorldNonPrecompiledBridge extends HelloBase {
+    object core extends HelloWorldModule {
+      override def scalaVersion = "2.12.1"
+    }
+  }
   object CrossHelloWorld extends HelloBase {
     object core extends Cross[HelloWorldCross](
           scala210Version,
@@ -51,7 +58,7 @@ object HelloWorldTests extends TestSuite {
           scala212Version,
           scala213Version
         )
-    class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
+    trait HelloWorldCross extends CrossScalaModule
   }
 
   object HelloWorldDefaultMain extends HelloBase {
@@ -280,7 +287,7 @@ object HelloWorldTests extends TestSuite {
   object HelloScalacheck extends HelloBase {
     object foo extends ScalaModule {
       def scalaVersion = scala212Version
-      object test extends Tests {
+      object test extends ScalaModuleTests {
         override def ivyDeps = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
         override def testFramework = "org.scalacheck.ScalaCheckFramework"
       }
@@ -504,7 +511,42 @@ object HelloWorldTests extends TestSuite {
         val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.compile)
 
         assert(unchangedEvalCount == 0)
+
+        // Make sure we *do not* end up compiling the compiler bridge, since
+        // it's using a pre-compiled bridge value
+        assert(!os.exists(
+          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / s"zinc-${zincVersion}"
+        ))
       }
+
+      "nonPreCompiledBridge" - workspaceTest(HelloWorldNonPrecompiledBridge) { eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
+
+        val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
+
+        val analysisFile = result.analysisFile
+        val outputFiles = os.walk(result.classes.path)
+        val expectedClassfiles = compileClassfiles.map(classesPath / _)
+        assert(
+          result.classes.path == classesPath,
+          os.exists(analysisFile),
+          outputFiles.nonEmpty,
+          outputFiles.forall(expectedClassfiles.contains),
+          evalCount > 0
+        )
+
+        // don't recompile if nothing changed
+        val Right((_, unchangedEvalCount)) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
+
+        assert(unchangedEvalCount == 0)
+
+        // Make sure we *do* end up compiling the compiler bridge, since it's
+        // *not* using a pre-compiled bridge value
+        assert(os.exists(
+          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / s"zinc-${zincVersion}"
+        ))
+      }
+
       "recompileOnChange" - workspaceTest(HelloWorld) { eval =>
         val Right((_, freshCount)) = eval.apply(HelloWorld.core.compile)
         assert(freshCount > 0)
@@ -647,7 +689,7 @@ object HelloWorldTests extends TestSuite {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.core.run(runResult.toString)
+          HelloWorldWithMain.core.run(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -669,7 +711,7 @@ object HelloWorldTests extends TestSuite {
         // discovered by Zinc and used
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithoutMain.core.run(runResult.toString)
+          HelloWorldWithoutMain.core.run(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -685,7 +727,7 @@ object HelloWorldTests extends TestSuite {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.core.runLocal(runResult.toString)
+          HelloWorldWithMain.core.runLocal(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -698,7 +740,7 @@ object HelloWorldTests extends TestSuite {
       "runWithDefaultMain" - workspaceTest(HelloWorldDefaultMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldDefaultMain.core.runLocal(runResult.toString)
+          HelloWorldDefaultMain.core.runLocal(T.task(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)

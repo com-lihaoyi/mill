@@ -1,11 +1,12 @@
 package mill.playlib
 
+import mill.define.Task
 import mill.playlib.api.Versions
 import mill.scalalib._
-import mill.{Agg, T}
+import mill.{Agg, Args, T}
 
 trait PlayApiModule extends Dependencies with Router with Server {
-  trait PlayTests extends super.Tests with TestModule.ScalaTest {
+  trait PlayTests extends ScalaModuleTests with TestModule.ScalaTest {
     override def ivyDeps = T {
       val scalatestPlusPlayVersion = playMinorVersion() match {
         case Versions.PLAY_2_6 => "3.1.3"
@@ -17,7 +18,7 @@ trait PlayApiModule extends Dependencies with Router with Server {
     override def sources = T.sources { millSourcePath }
   }
 
-  def start(args: String*) = T.command { run(args: _*) }
+  def start(args: Task[Args] = T.task(Args())) = T.command { run(args) }
 
 }
 trait PlayModule extends PlayApiModule with Static with Twirl

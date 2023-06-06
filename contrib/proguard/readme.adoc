@@ -1,0 +1,32 @@
+= Proguard
+:page-aliases: Plugin_Proguard.adoc
+
+This module allows https://www.guardsquare.com/en/products/proguard/manual/introduction[Proguard] to be used in Mill builds.
+ProGuard is a Java class file shrinker, optimizer, obfuscator, and preverifier.
+
+By default, all four steps - shrink, optimize, obfuscate, verify - are run, but this can be configured through task options.
+Any additional options can be specified as a list of strings with `additionalOptions`. The full list of proguard options
+can be found https://www.guardsquare.com/en/products/proguard/manual/usage[here].
+
+The output of `assembly` is used as the input jar and the output is written to `out.jar` in the `dest` folder.
+
+The `stdout` and `stderr` from the proguard command can be found under the `dest` folder.
+
+The only default entrypoint is the main class (i.e. `finalMainClass` task). Additional entrypoints can be configured using `additionalOptions` as well.
+
+Here is a simple example:
+
+.`build.sc`
+[source,scala]
+----
+import $ivy.`com.lihaoyi::mill-contrib-proguard:`
+import contrib.proguard._
+
+object foo extends ScalaModule with Proguard {
+  def scalaVersion = "2.13.8"
+
+  override def shrink: T[Boolean] = T { true }
+  override def optimize: T[Boolean] = T { false }
+  override def obfuscate: T[Boolean] = T { false }
+}
+----

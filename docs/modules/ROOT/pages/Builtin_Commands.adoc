@@ -1,0 +1,103 @@
+= Built-in Commands
+
+Mill comes with a number of useful commands out of the box. These are listed
+in the Scaladoc:
+
+* {mill-doc-url}/api/latest/mill/main/MainModule.html[mill.main.MainModule]
+
+Mill's built-in commands are typically not directly related to building your
+application code, but instead are utilities that help you understand and work
+with your Mill build.
+
+== init
+
+[source,bash]
+----
+$ mill -i init com-lihaoyi/mill-scala-hello.g8
+....
+A minimal Scala project.
+
+name [Scala Seed Project]: hello
+
+Template applied in ./hello
+----
+
+The `init` command generates a project based on a Giter8 template.
+It prompts you to enter project name and creates a folder with that name.
+You can use it to quickly generate a starter project.
+There are lots of templates out there for many frameworks and tools!
+
+include::example/basic/4-builtin-commands.adoc[]
+
+== visualize
+
+[source,bash]
+----
+$ mill show visualize foo._
+[
+    ".../out/visualize.dest/out.txt",
+    ".../out/visualize.dest/out.dot",
+    ".../out/visualize.dest/out.json",
+    ".../out/visualize.dest/out.png",
+    ".../out/visualize.dest/out.svg"
+]
+----
+
+`mill show visualize` takes a subset of the Mill build graph (e.g. `+core._+`
+is every task directly under the `core` module) and draws out their
+relationships in `.svg` and `.png` form for you to inspect. It also generates
+`.txt`, `.dot` and `.json` for easy processing by downstream tools.
+
+The above command generates the following diagram:
+
+image::VisualizeFoo.svg[VisualizeFoo.svg]
+
+`visualize` can be very handy for trying to understand the dependency graph of
+tasks within your Mill build.
+
+== visualizePlan
+
+[source,bash]
+----
+$ mill show visualizePlan foo.compile
+[
+    ".../out/visualizePlan.dest/out.txt",
+    ".../out/visualizePlan.dest/out.dot",
+    ".../out/visualizePlan.dest/out.json",
+    ".../out/visualizePlan.dest/out.png",
+    ".../out/visualizePlan.dest/out.svg"
+]
+----
+
+`mill show visualizePlan` is similar to `mill show visualize` except that it
+shows a graph of the entire build plan, including tasks not directly resolved
+by the query. Tasks directly resolved are shown with a solid border, and
+dependencies are shown with a dotted border.
+
+The above command generates the following diagram:
+
+image::VisualizeCompile.svg[VisualizeCompile.svg]
+
+== Running Mill with custom JVM options
+
+It's possible to pass JVM options to the Mill launcher. To do this you need to
+create a `.mill-jvm-opts` file in your project's root. This file should contain
+JVM options, one per line.
+
+For example, if your build requires a lot of memory and bigger stack size, your
+`.mill-jvm-opts` could look like this:
+
+----
+-Xss10m
+-Xmx10G
+----
+
+The file name for passing JVM options to the Mill launcher is configurable. If
+for some reason you don't want to use `.mill-jvm-opts` file name, add
+`MILL_JVM_OPTS_PATH` environment variable with any other file name.
+
+
+---
+
+Come by our https://discord.com/channels/632150470000902164/940067748103487558[Discord Channel]
+if you want to ask questions or say hi!

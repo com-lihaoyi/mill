@@ -1,0 +1,157 @@
+// Author Notes:
+//
+// This is the first page a user is expected to land on when learning about
+// Mill. It is designed to be a quick, broad overview to get someone started:
+// what is Mill, why should they care, and what some simple Mill builds look
+// like and how to use them. We intentionally touch shallowly on a lot of
+// topics without giving them a proper discussion, since the other pages have
+// plenty of space to go in-depth.
+//
+// By the end of this page, a prospective Mill user should be familiar with
+// what Mill is, hopefully have downloaded an example to try out, and be
+// interested in learning more about the Mill build tool
+
+= Introduction to Mill
+:page-aliases: index.adoc
+
+{mill-github-url}[Mill] is your shiny new Scala/Java build tool! Mill aims for
+simplicity by reusing concepts you are already familiar with, borrowing ideas
+from modern tools like https://bazel.build/[Bazel] and
+https://www.scala-sbt.org/[SBT]. It lets you build your projects in a way
+that's simple, fast, and predictable.
+
+Mill automates dealing with a lot of common build-tool concerns: Caching,
+incremental re-computation, parallelism, discoverability, etc. This allows you
+to focus your effort on the business logic unique to your build, while letting
+Mill take care of all the rest.
+
+Mill has built-in support for the https://www.scala-lang.org/[Scala]
+programming language, and can serve as a replacement for
+http://www.scala-sbt.org/[SBT]. It can be xref:Extending_Mill.adoc[extended]
+to support any other language or platform via modules (written in Java
+or Scala) or through external subprocesses. Mill supports a rich ecosystem of
+xref:Contrib_Plugins.adoc[] and xref:Thirdparty_Plugins.adoc[].
+
+If you are using Mill, you will find the following book by the Author useful in
+using Mill and its supporting libraries to the fullest:
+
+* https://handsonscala.com/[Hands-on Scala Programming]
+
+The rest of this page contains a quick introduction to getting start with using
+Mill to build a simple Scala program. The other pages of this doc-site go into
+more depth, with more examples of how to use Mill and more details of how the
+Mill build tool works.
+
+== Simple Scala Module
+
+include::example/basic/1-simple-scala.adoc[]
+
+== Custom Build Logic
+
+include::example/basic/2-custom-build-logic.adoc[]
+
+== Multi-Module Project
+
+include::example/basic/3-multi-module.adoc[]
+
+
+== Watch and Re-evaluate
+
+You can use the `--watch` flag to make Mill watch a task's inputs,
+re-evaluating the task as necessary when the inputs
+change:
+
+[source,bash]
+----
+$ mill --watch foo.compile
+$ mill --watch foo.run
+$ mill -w foo.compile
+$ mill -w foo.run
+----
+
+Mill's `--watch` flag watches both the files you are building using Mill, as
+well as Mill's own `build.sc` file and anything it imports, so any changes to
+your `build.sc` will automatically get picked up.
+
+For long-running processes like web servers, you can use `runBackground` to make sure they recompile and restart when code changes,
+forcefully terminating the previous process even though it may be still alive:
+
+[source,bash]
+----
+$ mill -w foo.compile
+$ mill -w foo.runBackground
+----
+
+
+== Parallel Task Execution
+
+By default, mill will evaluate all tasks in sequence.
+But mill also supports processing tasks in parallel.
+This feature is currently experimental and we encourage you to report any issues
+you find on our bug tracker.
+
+To enable parallel task execution, use the `--jobs` (`-j`) option followed by a
+number of maximal parallel threads.
+
+Example: Use up to 4 parallel threads to compile all modules:
+
+[source,bash]
+----
+mill -j 4 __.compile
+----
+
+To use as many threads as your machine has (logical) processor cores use `--jobs 0`.
+To disable parallel execution use `--jobs 1`. This is currently the default.
+
+`mill -j` generates an output file in `out/mill-chrome-profile.json` that can be
+loaded into the Chrome browser's `chrome://tracing` page for visualization.
+This can make it much easier to analyze your parallel runs to find out what's
+taking the most time:
+
+image::ChromeTracing.png[ChromeTracing.png]
+
+Please note that the maximal possible parallelism depends on your project.
+Tasks that depend on each other can't be processed in parallel.
+
+== Command-line usage
+
+Mill is a command-line tool and supports various options.
+
+Run `mill --help` for a complete list of options
+
+.Output of `mill --help`
+----
+Mill Build Tool, version {mill-version}
+usage: mill [options] [[target [target-options]] [+ [target ...]]]
+  -D --define <k=v>    Define (or overwrite) a system property.
+  -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
+  --bsp                Enable BSP server mode.
+  --color <bool>       Enable or disable colored output; by default colors are enabled in both REPL
+                       and scripts mode if the console is interactive, and disabled otherwise.
+  -d --debug           Show debug output on STDOUT
+  --disable-ticker     Disable ticker log (e.g. short-lived prints of stages and progress bars).
+  -h --home <path>     (internal) The home directory of internally used Ammonite script engine;
+                       where it looks for config and caches.
+  --help               Print this help message and exit.
+  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. This implies --no-server and no mill server will be used. Must be the
+                       first argument.
+  --import <str>       Additional ivy dependencies to load into mill, e.g. plugins.
+  -j --jobs <int>      Allow processing N targets in parallel. Use 1 to disable parallel and 0 to
+                       use as much threads as available processors.
+  -k --keep-going      Continue build, even after build failures.
+  --no-default-predef  Disable the default predef and run Mill with the minimal predef possible.
+  --no-server          Run Mill in single-process mode. In this mode, no mill server will be started
+                       or used. Must be the first argument.
+  -p --predef <path>   Lets you load your predef from a custom location, rather than the "default
+                       location in your Ammonite home
+  -s --silent          Make ivy logs during script import resolution go silent instead of printing;
+                       though failures will still throw exception.
+  -v --version         Show mill version information and exit.
+  -w --watch           Watch and re-run your scripts when they change.
+  target <str>...      The name or a pattern of the target(s) you want to build, followed by any
+                       parameters you wish to pass to those targets. To specify multiple target
+                       names or patterns, use the `+` separator.
+----
+
+All _options_ must be given before the first target.

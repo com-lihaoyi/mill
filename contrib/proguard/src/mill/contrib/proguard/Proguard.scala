@@ -1,17 +1,12 @@
 package mill.contrib.proguard
 
-import scala.util.Properties
-
-import coursier.Repositories
-import io.github.retronym.java9rtexport.Export
+import mill.java9rtexport.Export
 import mill.T
 import mill.Agg
-import mill.api.{Logger, Loose, PathRef, Result}
-import mill.define.{Sources, Target}
-import mill.modules.Jvm
-import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
-import os.{Path, PathChunk, Shellable, proc}
+import mill.api.{Loose, PathRef}
+import mill.util.Jvm
+import mill.scalalib.{DepSyntax, ScalaModule}
+import os.{Path, Shellable}
 
 /**
  * Adds proguard capabilities when mixed-in to a module

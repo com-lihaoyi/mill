@@ -11,6 +11,8 @@ sealed trait Result[+T] {
   def map[V](f: T => V): Result[V]
   def flatMap[V](f: T => Result[V]): Result[V]
   def asSuccess: Option[Result.Success[T]] = None
+  def asFailing: Option[Result.Failing[T]] = None
+
 }
 
 object Result {
@@ -56,6 +58,8 @@ object Result {
   sealed trait Failing[+T] extends Result[T] {
     def map[V](f: T => V): Failing[V]
     def flatMap[V](f: T => Result[V]): Failing[V]
+    override def asFailing: Option[Result.Failing[T]] = Some(this)
+
   }
 
   /**
@@ -78,10 +82,25 @@ object Result {
   case class Exception(throwable: Throwable, outerStack: OuterStack) extends Failing[Nothing] {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => Result[V]): Exception = this
+
+    override def toString: String = {
+      var current = List(throwable)
+      while (current.head.getCause != null) {
+        current = current.head.getCause :: current
+      }
+      current.reverse
+        .flatMap(ex =>
+          Seq(ex.toString) ++
+            ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
+        )
+        .mkString("\n")
+    }
   }
 
   class OuterStack(val value: Seq[StackTraceElement]) {
-    override def hashCode() = value.hashCode()
+    def this(value: Array[StackTraceElement]) = this(value.toIndexedSeq)
+
+    override def hashCode(): Int = value.hashCode()
 
     override def equals(obj: scala.Any) = obj match {
       case o: OuterStack => value.equals(o.value)

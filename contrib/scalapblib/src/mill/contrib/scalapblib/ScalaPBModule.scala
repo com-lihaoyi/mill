@@ -3,7 +3,6 @@ package contrib.scalapblib
 
 import coursier.MavenRepository
 import coursier.core.Version
-import mill.define.Sources
 import mill.api.{IO, Loose, PathRef}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
@@ -53,7 +52,7 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBProtocPath: T[Option[String]] = T { None }
 
-  def scalaPBSources: Sources = T.sources {
+  def scalaPBSources: T[Seq[PathRef]] = T.sources {
     millSourcePath / "protobuf"
   }
 

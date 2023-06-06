@@ -7,7 +7,7 @@ import $file.proj3.{build => proj3}
 
 trait HelloBspModule extends ScalaModule {
   def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-  object test extends super.Tests with TestModule.Utest
+  object test extends ScalaModuleTests with TestModule.Utest
 }
 
 object HelloBsp extends HelloBspModule {
@@ -22,7 +22,7 @@ object HelloBsp extends HelloBspModule {
 }
 
 def validate() = T.command {
-  val transitiveModules = mill.scalalib.internal.ModuleUtils.transitiveModules(build)
+  val transitiveModules = mill.scalalib.internal.JavaModuleUtils.transitiveModules(build)
   val file = T.dest / "transitive-modules.json"
   val moduleNames = transitiveModules.map(m =>
     mill.scalalib.internal.ModuleUtils.moduleDisplayName(m)

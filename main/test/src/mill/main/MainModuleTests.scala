@@ -1,8 +1,8 @@
 package mill.main
 
-import mill.api.{PathRef, Result}
+import mill.api.{PathRef, Result, Val}
 import mill.{Agg, T}
-import mill.define.{Cross, Module}
+import mill.define.{Cross, Discover, Module, Task}
 import mill.util.{TestEvaluator, TestUtil}
 import utest.{TestSuite, Tests, assert, test}
 
@@ -11,6 +11,8 @@ object MainModuleTests extends TestSuite {
   object mainModule extends TestUtil.BaseModule with MainModule {
     def hello = T { Seq("hello", "world") }
     def hello2 = T { Map("1" -> "hello", "2" -> "world") }
+    def helloCommand(x: Int, y: Task[String]) = T.command { (x, y(), hello()) }
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object cleanModule extends TestUtil.BaseModule with MainModule {
@@ -32,7 +34,7 @@ object MainModuleTests extends TestSuite {
       }
     }
     object bazz extends Cross[Bazz]("1", "2", "3")
-    class Bazz(v: String) extends Cleanable
+    trait Bazz extends Cleanable with Cross.Module[String]
 
     def all = T {
       foo.target()
@@ -49,7 +51,7 @@ object MainModuleTests extends TestSuite {
       val eval = new TestEvaluator(mainModule)
       test("single") {
         val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
-        val Result.Success(value: String) = res.rawValues.head
+        val Result.Success(Val(value: String)) = res.rawValues.head
         assert(
           res.failing.keyCount == 0,
           value.startsWith("hello("),
@@ -59,12 +61,21 @@ object MainModuleTests extends TestSuite {
       test("multi") {
         val res =
           eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello", "hello2")))
-        val Result.Success(value: String) = res.rawValues.head
+        val Result.Success(Val(value: String)) = res.rawValues.head
         assert(
           res.failing.keyCount == 0,
           value.startsWith("hello("),
           value.contains("MainModuleTests.scala:"),
           value.contains("\n\nhello2(")
+        )
+      }
+      test("command") {
+        val Right((Seq(res: String), _)) = eval.evalTokens("inspect", "helloCommand")
+
+        assert(
+          res.startsWith("helloCommand("),
+          res.contains("MainModuleTests.scala:"),
+          res.contains("hello")
         )
       }
     }
@@ -77,7 +88,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head
 
         assert(value == ujson.Arr.from(Seq("hello", "world")))
       }
@@ -92,12 +103,25 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head
 
-        assert(value == ujson.Arr.from(Seq(
-          ujson.Arr.from(Seq("hello", "world")),
-          ujson.Obj.from(Map("1" -> "hello", "2" -> "world"))
-        )))
+        assert(value == ujson.Obj(
+          "hello" -> ujson.Arr("hello", "world"),
+          "hello2" -> ujson.Obj("1" -> "hello", "2" -> "world")
+        ))
+      }
+
+      test("command") {
+        val Left(Result.Failure(failureMsg, _)) = evaluator.evalTokens("show", "helloCommand")
+        assert(
+          failureMsg.contains("Expected Signature: helloCommand"),
+          failureMsg.contains("-x <int>"),
+          failureMsg.contains("-y <str>")
+        )
+        val Right((Seq(res), _)) =
+          evaluator.evalTokens("show", "helloCommand", "-x", "1337", "-y", "lol")
+
+        assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
       }
     }
 
@@ -109,7 +133,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world"))
@@ -126,7 +150,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world")),
