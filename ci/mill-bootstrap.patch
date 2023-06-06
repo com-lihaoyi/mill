@@ -1,0 +1,13 @@
+diff --git a/build.sc b/build.sc
+index 8a61eaa089..464d12d012 100644
+--- a/build.sc
++++ b/build.sc
+@@ -315,7 +315,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
+ 
+   /** Default tests module. */
+   lazy val test: MillScalaModuleTests = new MillScalaModuleTests {}
+-  trait MillScalaModuleTests extends ScalaModuleTests with MillBaseTestsModule {
++  trait MillScalaModuleTests extends ScalaTests with MillBaseTestsModule {
+     def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+     def forkArgs = super.forkArgs() ++ outer.testArgs()
+     def moduleDeps = outer.testModuleDeps
