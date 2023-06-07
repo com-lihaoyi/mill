@@ -210,7 +210,7 @@ val bridgeScalaVersions = Seq(
 //  "2.13.8",
 //  "2.13.9",
 //  "2.13.10",
-  "2.13.11",
+  "2.12.18",
 )
 
 val buildBridgeScalaVersions = if (!buildAllCompilerBridges) Seq() else bridgeScalaVersions
