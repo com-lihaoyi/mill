@@ -321,7 +321,7 @@ these packages mature over time.
 === 0.11.0 - 2023-06-06
 :version: 0.11.0
 :milestone-name: 0.11.0
-:milestone: 82
+:milestone: 84
 :prev-version: 0.11.0-M11
 
 *This release is binary incompatible to {prev-version}.*
@@ -330,11 +330,16 @@ these packages mature over time.
   number of improvements. See the changelog below for 0.11.0-M1 to 0.11.0-M11
   for a full list of user-facing changes.
 
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 [#0-11-0-M11]
 === 0.11.0-M11 - 2023-06-04
 :version: 0.11.0-M11
 :milestone-name: 0.11.0-M11
-:milestone: 82
+:milestone: 83
 :prev-version: 0.11.0-M10
 
 *This release is binary incompatible to {prev-version}.*
