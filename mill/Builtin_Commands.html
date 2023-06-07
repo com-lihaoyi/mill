@@ -260,14 +260,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-M11-2-05fb5e</span>
+    <span class="version">0.11.0-M11-3-580bc8</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-M11-2-05fb5e</a>
+          <a href="index.html">0.11.0-M11-3-580bc8</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -300,9 +300,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M11-2-05fb5e</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M11-3-580bc8</button>
   <div class="version-menu">
-    <a class="version is-current" href="Builtin_Commands.html">0.11.0-M11-2-05fb5e</a>
+    <a class="version is-current" href="Builtin_Commands.html">0.11.0-M11-3-580bc8</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="0.10.0/index.html">0.10.0</a>
@@ -361,12 +361,12 @@ There are lots of templates out there for many frameworks and tools!</p>
 <p>The following examples will be assuming the <code>build.sc</code> file given below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M11-2-05fb5e-example-basic-4-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/basic/4-builtin-commands">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-M11-3-580bc8-example-basic-4-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/basic/4-builtin-commands">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = &quot;2.13.11&quot;
 }
 
 object foo extends MyModule {
@@ -464,7 +464,7 @@ time.
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.scalaVersion
-&quot;2.13.8&quot;</code></pre>
+&quot;2.13.11&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -501,7 +501,7 @@ that can be shown with <code>show</code>. E.g. <code>compile</code> returns the 
 &gt; ./mill show foo.compileClasspath
 [
   &quot;.../foo/compile-resources&quot;,
-  &quot;.../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar&quot;,
+  &quot;.../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar&quot;,
   ...
 ]</code></pre>
 </div>
@@ -523,7 +523,7 @@ JSON array, containing all the results of the given targets.</p>
   ],
   &quot;foo.compileClasspath&quot;: [
     &quot;.../foo/compile-resources&quot;,
-    &quot;.../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar&quot;,
+    &quot;.../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar&quot;,
     ...
   ]
 }</code></pre>
@@ -547,7 +547,7 @@ dictionary, whether there is one or more targets in the selection</p>
   ],
   &quot;foo.compileClasspath&quot;: [
     &quot;.../foo/compile-resources&quot;,
-    &quot;.../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar&quot;,
+    &quot;.../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar&quot;,
     ...
   ]
 }</code></pre>
