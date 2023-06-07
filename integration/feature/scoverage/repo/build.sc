@@ -32,53 +32,14 @@ trait Deps {
   val scoverageRuntime = ivy"org.scoverage::scalac-scoverage-runtime:${scoverageVersion}"
 }
 
-class Deps_latest(override val millVersion: String) extends Deps {
-  override def millPlatform = millVersion
-  override def testWithMill = Seq(millVersion)
-  override def mimaPreviousVersions = Seq()
-}
 object Deps_0_11 extends Deps {
   override def millPlatform = "0.11"
   override def millVersion = "0.11.0" // scala-steward:off
   override def testWithMill = Seq(millVersion)
   override def mimaPreviousVersions = Seq()
 }
-object Deps_0_10 extends Deps {
-  override def millPlatform = "0.10"
-  override def millVersion = "0.10.0" // scala-steward:off
-  // 0.10.4 and 0.10.3 don't run in CI on Windows
-  override def testWithMill = Seq("0.10.12", "0.10.5", millVersion)
-}
-object Deps_0_9 extends Deps {
-  override def millPlatform = "0.9"
-  override def millVersion = "0.9.3" // scala-steward:off
-  override def testWithMill =
-    Seq("0.9.12", "0.9.11", "0.9.10", "0.9.9", "0.9.8", "0.9.7", "0.9.6", "0.9.5", "0.9.4", millVersion)
-}
-object Deps_0_7 extends Deps {
-  override def millPlatform = "0.7"
-  override def millVersion = "0.7.0" // scala-steward:off
-  override def testWithMill = Seq("0.8.0", "0.7.4", "0.7.3", "0.7.2", "0.7.1", millVersion)
-}
-object Deps_0_6 extends Deps {
-  override def millPlatform = "0.6"
-  override def millVersion = "0.6.0" // scala-steward:off
-  override def scalaVersion = "2.12.18"
-  override def testWithMill = Seq("0.6.3", "0.6.2", "0.6.1", millVersion)
-}
 
-val latestDeps: Seq[Deps] = {
-  val path = baseDir / "MILL_DEV_VERSION"
-  interp.watch(path)
-  println(s"Checking for file ${path}")
-  if (os.exists(path)) {
-    Try { Seq(new Deps_latest(os.read(path).trim())) }
-      .recover { _ => Seq() }
-  }.get
-  else Seq()
-}
-
-val crossDeps: Seq[Deps] = (Seq(Deps_0_11, Deps_0_10, Deps_0_9, Deps_0_7, Deps_0_6) ++ latestDeps).distinct
+val crossDeps: Seq[Deps] = Seq(Deps_0_11)
 val millApiVersions = crossDeps.map(x => x.millPlatform -> x)
 val millItestVersions = crossDeps.flatMap(x => x.testWithMill.map(_ -> x))
 
@@ -131,7 +92,6 @@ trait BaseModule extends CrossScalaModule with PublishModule with ScoverageModul
 
   override def scoverageVersion = deps.scoverageVersion
 
-  trait Tests extends ScoverageTests
 }
 
 /* The actual mill plugin compilied against different mill APIs. */
@@ -145,7 +105,7 @@ trait CoreCross extends BaseModule with Cross.Module[String] {
 
   override def compileIvyDeps = Agg(deps.millMain)
 
-  object test extends Tests with TestModule.ScalaTest {
+  object test extends ScoverageTests with TestModule.ScalaTest {
     override def ivyDeps = Agg(deps.scalaTest, deps.millMain)
   }
 }
@@ -208,19 +168,4 @@ trait ItestCross extends MillIntegrationTestModule with Cross.Module[String] {
     PathRef(T.dest)
   }
 
-}
-
-def findLatestMill(toFile: String = "") = T.command {
-  import coursier._
-  val versions =
-    Versions(cache.FileCache().withTtl(concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.MINUTES)))
-      .withModule(mod"com.lihaoyi:mill-main_2.13")
-      .run()
-  println(s"Latest Mill versions: ${versions.latest}")
-  if (toFile.nonEmpty) {
-    val path = os.Path.expandUser(toFile, os.pwd)
-    println(s"Writing file: ${path}")
-    os.write.over(path, versions.latest, createFolders = true)
-  }
-  versions.latest
 }
