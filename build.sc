@@ -1599,10 +1599,6 @@ def bootstrapLauncher = T {
         millBootstrapGrepPrefix + "[^\\n]+",
         "$1" + millVersion()
       )
-      .replaceAll(
-        millDownloadUrlPrefix + "[^\\n]+",
-        "$1" + "\"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/\\$MILL_VERSION/mill-dist-\\$MILL_VERSION.jar\""
-      )
   )
   os.perms.set(outputPath, "rwxrwxrwx")
   PathRef(outputPath)
