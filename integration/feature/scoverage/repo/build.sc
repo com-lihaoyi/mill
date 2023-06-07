@@ -1,3 +1,6 @@
+// Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2579
+// and issue https://github.com/com-lihaoyi/mill/issues/2582
+
 // mill plugins
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest::0.7.1`
