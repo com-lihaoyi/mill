@@ -47,7 +47,7 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.10"
+  val scalaVersion = "2.13.11"
   // Scoverage 1.x will not get releases for newer Scala versions
   val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
@@ -98,7 +98,7 @@ object Deps {
   }
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.8"
   val ammoniteVersion = "3.0.0-M0-6-34034262"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
@@ -136,7 +136,7 @@ object Deps {
   val scalametaTrees = ivy"org.scalameta::trees:${scalametaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val scoverage2Version = "2.0.8"
+  val scoverage2Version = "2.0.10"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -188,29 +188,30 @@ val bridgeScalaVersions = Seq(
   // bridges. We skip 2.12.1 because it's so old not to matter, and we need a
   // non-supported scala versionm for testing purposes. We skip 2.13.0-2 because
   // scaladoc fails on windows
-//  /*"2.12.0",*/ /*2.12.1",*/ "2.12.2",
-//  "2.12.3", /*"2.12.4",*/ "2.12.5",
-//  "2.12.6",
-//  "2.12.7",
-//  "2.12.8",
-//  "2.12.9",
-//  "2.12.10",
-//  "2.12.11",
-//  "2.12.12",
-//  "2.12.13",
-//  "2.12.14",
-//  "2.12.15",
-//  "2.12.16",
-//  "2.12.17",
-//  /*"2.13.0", "2.13.1", "2.13.2",*/ "2.13.3",
-//  "2.13.4",
-//  "2.13.5",
-//  "2.13.6",
-//  "2.13.7",
-//  "2.13.8",
-//  "2.13.9",
-//  "2.13.10",
+  /*"2.12.0",*/ /*2.12.1",*/ "2.12.2",
+  "2.12.3", /*"2.12.4",*/ "2.12.5",
+  "2.12.6",
+  "2.12.7",
+  "2.12.8",
+  "2.12.9",
+  "2.12.10",
+  "2.12.11",
+  "2.12.12",
+  "2.12.13",
+  "2.12.14",
+  "2.12.15",
+  "2.12.16",
+  "2.12.17",
   "2.12.18",
+  /*"2.13.0", "2.13.1", "2.13.2",*/ "2.13.3",
+  "2.13.4",
+  "2.13.5",
+  "2.13.6",
+  "2.13.7",
+  "2.13.8",
+  "2.13.9",
+  "2.13.10",
+  "2.13.11",
 )
 
 val buildBridgeScalaVersions = if (!buildAllCompilerBridges) Seq() else bridgeScalaVersions
