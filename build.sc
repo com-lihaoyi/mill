@@ -179,7 +179,7 @@ object Deps {
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.6.0"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.8"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.11"
