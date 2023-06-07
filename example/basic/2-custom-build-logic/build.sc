@@ -6,7 +6,7 @@
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.11"
 
   /** Total number of lines in module's source files */
   def lineCount = T{
