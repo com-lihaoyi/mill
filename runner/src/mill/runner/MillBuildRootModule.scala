@@ -274,11 +274,11 @@ object MillBuildRootModule {
 
     val miscInfoName = s"MiscInfo_$name"
 
-    s"""
-       |package ${pkg.map(backtickWrap).mkString(".")}
-       |import _root_.mill._
-       |import mill.runner.MillBuildRootModule
-       |object ${backtickWrap(miscInfoName)}{
+    s"""package ${pkg.map(backtickWrap).mkString(".")}
+       |
+       |import _root_.mill.runner.MillBuildRootModule
+       |
+       |object ${backtickWrap(miscInfoName)} {
        |  implicit val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
        |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
        |    _root_.os.Path(${literalize(base.toString)}),
@@ -292,7 +292,7 @@ object MillBuildRootModule {
        |}
        |import ${backtickWrap(miscInfoName)}.{millBuildRootModuleInfo, millBaseModuleInfo}
        |object ${backtickWrap(name)} extends ${backtickWrap(name)}
-       |class ${backtickWrap(name)} extends $superClass{
+       |class ${backtickWrap(name)} extends $superClass {
        |
        |//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
        |//MILL_USER_CODE_START_MARKER

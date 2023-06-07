@@ -1,3 +1,4 @@
+import mill._
 import $file.a.inputA
 import $file.b.{inputB => inputBRenamed}
 import $file.inputC

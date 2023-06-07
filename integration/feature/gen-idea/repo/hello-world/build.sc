@@ -1,6 +1,6 @@
 import mill.api.Loose.Agg
 import mill.define.Target
-import mill.scalalib
+import mill._
 import mill.scalalib.{Dep, DepSyntax, TestModule}
 
 trait HelloWorldModule extends scalalib.ScalaModule {
