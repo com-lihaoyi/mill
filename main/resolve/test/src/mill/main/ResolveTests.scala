@@ -759,5 +759,35 @@ object ResolveTests extends TestSuite {
         Set("sub.inner.baseTarget")
       )
     }
+    test("dynamicModule") {
+      val check = new Checker(dynamicModule)
+      test - check(
+        "normal.inner.target",
+        Right(Set(_.normal.inner.target)),
+        Set("normal.inner.target")
+      )
+      test - check(
+        "normal._.target",
+        Right(Set(_.normal.inner.target)),
+        Set("normal.inner.target")
+      )
+      test - check(
+        "niled.inner.target",
+        Left(
+          "Cannot resolve niled.inner.target. Try `mill resolve niled._` to see what's available."
+        ),
+        Set()
+      )
+      test - check(
+        "niled._.target",
+        Left("Cannot resolve niled._.target. Try `mill resolve niled._` to see what's available."),
+        Set()
+      )
+      test - check(
+        "__.target",
+        Right(Set(_.normal.inner.target)),
+        Set("normal.inner.target")
+      )
+    }
   }
 }
