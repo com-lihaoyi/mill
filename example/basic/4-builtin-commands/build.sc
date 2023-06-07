@@ -3,7 +3,7 @@
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.11"
 }
 
 object foo extends MyModule {
@@ -95,7 +95,7 @@ Inputs:
 /** Usage
 
 > ./mill show foo.scalaVersion
-"2.13.8"
+"2.13.11"
 
 */
 
@@ -130,7 +130,7 @@ Inputs:
 > ./mill show foo.compileClasspath
 [
   ".../foo/compile-resources",
-  ".../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+  ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
   ...
 ]
 
@@ -151,7 +151,7 @@ Inputs:
   ],
   "foo.compileClasspath": [
     ".../foo/compile-resources",
-    ".../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+    ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
     ...
   ]
 }
@@ -172,7 +172,7 @@ Inputs:
   ],
   "foo.compileClasspath": [
     ".../foo/compile-resources",
-    ".../org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+    ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
     ...
   ]
 }

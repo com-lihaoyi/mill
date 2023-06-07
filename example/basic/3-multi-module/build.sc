@@ -1,7 +1,7 @@
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.11"
 }
 
 object foo extends MyModule {
