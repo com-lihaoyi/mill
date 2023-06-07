@@ -138,7 +138,7 @@ jobs:
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
-    needs: [linux, windows, format-check, itest]
+    needs: [linux, windows, format-check, bin-compat-check, itest]
 
     runs-on: ubuntu-latest
 
