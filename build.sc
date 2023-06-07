@@ -78,11 +78,11 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.10"
+  val scalaVersion = "2.13.11"
   // Scoverage 1.x will not get releases for newer Scala versions
   val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.15"
+  val workerScalaVersion212 = "2.12.18"
 
   val testScala213Version = "2.13.8"
   val testScala212Version = "2.12.6"
