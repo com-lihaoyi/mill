@@ -149,7 +149,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:3.1.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.9.0"
+  val zinc = ivy"org.scala-sbt::zinc:1.8.1"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M4"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
@@ -188,28 +188,28 @@ val bridgeScalaVersions = Seq(
   // bridges. We skip 2.12.1 because it's so old not to matter, and we need a
   // non-supported scala versionm for testing purposes. We skip 2.13.0-2 because
   // scaladoc fails on windows
-  /*"2.12.0",*/ /*2.12.1",*/ "2.12.2",
-  "2.12.3", /*"2.12.4",*/ "2.12.5",
-  "2.12.6",
-  "2.12.7",
-  "2.12.8",
-  "2.12.9",
-  "2.12.10",
-  "2.12.11",
-  "2.12.12",
-  "2.12.13",
-  "2.12.14",
-  "2.12.15",
-  "2.12.16",
-  "2.12.17",
-  /*"2.13.0", "2.13.1", "2.13.2",*/ "2.13.3",
-  "2.13.4",
-  "2.13.5",
-  "2.13.6",
-  "2.13.7",
-  "2.13.8",
-  "2.13.9",
-  "2.13.10",
+//  /*"2.12.0",*/ /*2.12.1",*/ "2.12.2",
+//  "2.12.3", /*"2.12.4",*/ "2.12.5",
+//  "2.12.6",
+//  "2.12.7",
+//  "2.12.8",
+//  "2.12.9",
+//  "2.12.10",
+//  "2.12.11",
+//  "2.12.12",
+//  "2.12.13",
+//  "2.12.14",
+//  "2.12.15",
+//  "2.12.16",
+//  "2.12.17",
+//  /*"2.13.0", "2.13.1", "2.13.2",*/ "2.13.3",
+//  "2.13.4",
+//  "2.13.5",
+//  "2.13.6",
+//  "2.13.7",
+//  "2.13.8",
+//  "2.13.9",
+//  "2.13.10",
   "2.13.11",
 )
 
