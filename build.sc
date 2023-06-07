@@ -2,9 +2,9 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.11.0-M10:0.3.1-8-37c08a`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 
-import $ivy.`com.github.lolgab::mill-mima_mill0.11.0-M10:0.0.21`
+import $ivy.`com.github.lolgab::mill-mima::0.0.23`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
 // imports
@@ -316,8 +316,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
     Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefs)
 
   /** Default tests module. */
-  lazy val test: MillScalaModuleTests = new MillScalaModuleTests {}
-  trait MillScalaModuleTests extends ScalaModuleTests with MillBaseTestsModule {
+  lazy val test: MillScalaTests = new MillScalaTests {}
+  trait MillScalaTests extends ScalaTests with MillBaseTestsModule {
     def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
@@ -844,8 +844,8 @@ object bsp extends MillPublishScalaModule with BuildInfo {
     )
   }
 
-  override lazy val test: MillScalaModuleTests = new Test {}
-  trait Test extends MillScalaModuleTests {
+  override lazy val test: MillScalaTests = new Test {}
+  trait Test extends MillScalaTests {
     def forkEnv: T[Map[String, String]] = T {
       // We try to fetch this dependency with coursier in the tests
       bsp.worker.publishLocal()()
@@ -1598,10 +1598,6 @@ def bootstrapLauncher = T {
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
         "$1" + millVersion()
-      )
-      .replaceAll(
-        millDownloadUrlPrefix + "[^\\n]+",
-        "$1" + "\"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/\\$MILL_VERSION/mill-dist-\\$MILL_VERSION.jar\""
       )
   )
   os.perms.set(outputPath, "rwxrwxrwx")
