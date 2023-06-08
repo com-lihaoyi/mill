@@ -260,14 +260,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-2-c9f9b9</span>
+    <span class="version">0.11.0-3-dd8d96</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-2-c9f9b9</a>
+          <a href="index.html">0.11.0-3-dd8d96</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -300,9 +300,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-2-c9f9b9</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-3-dd8d96</button>
   <div class="version-menu">
-    <a class="version is-current" href="Extending_Mill.html">0.11.0-2-c9f9b9</a>
+    <a class="version is-current" href="Extending_Mill.html">0.11.0-3-dd8d96</a>
     <a class="version" href="0.11.0-M7/Extending_Mill.html">0.11.0-M7</a>
     <a class="version" href="0.10.12/Extending_Mill.html">0.10.12</a>
     <a class="version" href="0.10.0/Extending_Mill.html">0.10.0</a>
@@ -330,7 +330,7 @@ easiest/least-flexible to the hardest/most-flexible.</p>
 <h2 id="_import_file_and_import_ivy"><a class="anchor" href="#_import_file_and_import_ivy"></a>import $file and import $ivy</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-2-c9f9b9-example-misc-3-import-file-ivy.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/3-import-file-ivy">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-3-dd8d96-example-misc-3-import-file-ivy.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/3-import-file-ivy">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import $ivy.`com.lihaoyi::scalatags:0.8.2`, scalatags.Text.all._
@@ -398,7 +398,7 @@ generated snippet.txt resource: &lt;div&gt;&lt;h1&gt;hello&lt;/h1&gt;&lt;p&gt;wo
 <h2 id="_the_mill_meta_build"><a class="anchor" href="#_the_mill_meta_build"></a>The Mill Meta-Build</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-2-c9f9b9-example-misc-4-mill-build-folder.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/4-mill-build-folder">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-3-dd8d96-example-misc-4-mill-build-folder.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/4-mill-build-folder">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $meta._
 import mill._, scalalib._
@@ -501,6 +501,58 @@ scalatagsVersion: 0.8.2
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 scalatagsVersion: 0.8.2</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_scalamodule_run_as_a_task"><a class="anchor" href="#_using_scalamodule_run_as_a_task"></a>Using ScalaModule.run as a task</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-3-dd8d96-example-misc-5-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/5-module-run-task">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def moduleDeps = Seq(bar)
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+
+  def barWorkingDir = T{ T.dest }
+  def sources = T{
+    bar.run(T.task(Args(barWorkingDir(), super.sources().map(_.path))))()
+    Seq(PathRef(barWorkingDir()))
+  }
+}
+
+object bar extends ScalaModule{
+  def scalaVersion = &quot;2.13.8&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.9.1&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates using Mill <code>ScalaModule`s as build tasks: rather
+than defining the task logic in the `build.sc</code>, we instead put the build
+logic within the <code>bar</code> module as <code>bar/src/Bar.scala</code>. In this example, we use
+<code>Bar.scala</code> as a source-code pre-processor on the <code>foo</code> module source code:
+we override <code>foo.sources</code>, passing the <code>super.sources()</code> to <code>bar.run</code> along
+with a <code>barWorkingDir</code>, and returning a <code>PathRef(barWorkingDir())</code> as the
+new <code>foo.sources</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+...
+Foo.value: HELLO</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example does a trivial string-replace of &quot;hello&quot; with &quot;HELLO&quot;, but is
+enough to demonstrate how you can use Mill <code>ScalaModule`s to implement your
+own arbitrarily complex transformations. This is useful for build logic that
+may not fit nicely inside a `build.sc</code> file, whether due to the sheer lines
+of code or due to dependencies that may conflict with the Mill classpath
+present in <code>build.sc</code></p>
 </div>
 </div>
 </div>
