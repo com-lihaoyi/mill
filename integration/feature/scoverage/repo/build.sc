@@ -8,6 +8,9 @@ import mill._
 import mill.contrib.scoverage.ScoverageModule
 import mill.scalalib._
 
+// Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2582
+val baseDir = build.millSourcePath
+
 object Deps {
   val millVersion = "0.11.0"
   val millMain = ivy"com.lihaoyi::mill-main:${millVersion}"
