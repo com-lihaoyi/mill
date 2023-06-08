@@ -10,8 +10,6 @@ import mill._
 import mill.contrib.scoverage.ScoverageModule
 import mill.scalalib._
 
-val baseDir = build.millSourcePath
-
 object Deps {
   val millVersion = "0.11.0"
   val millMain = ivy"com.lihaoyi::mill-main:${millVersion}"
