@@ -13,6 +13,10 @@ include::example/misc/3-import-file-ivy.adoc[]
 
 include::example/misc/4-mill-build-folder.adoc[]
 
+== Using ScalaModule.run as a task
+
+include::example/misc/5-module-run-task.adoc[]
+
 == Evaluator Commands (experimental)
 
 _Evaluator Command are experimental and suspected to change.
