@@ -207,7 +207,8 @@ trait HelloWorldTests extends utest.TestSuite {
             }
           }
           "compileClasspath" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage().compileClasspath)
+            val Right((result, evalCount)) =
+              eval.apply(HelloWorld.core.scoverage().compileClasspath)
 
             val runtimeExistsOnClasspath =
               result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
@@ -258,7 +259,8 @@ trait HelloWorldTests extends utest.TestSuite {
         }
         "console" - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
           val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
-          val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage().consoleReport())
+          val Right((result, evalCount)) =
+            eval.apply(HelloWorldSbt.core.scoverage().consoleReport())
           assert(evalCount > 0)
         }
       }
