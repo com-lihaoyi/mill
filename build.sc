@@ -1182,6 +1182,7 @@ object dev extends MillPublishScalaModule {
     scalalib.backgroundwrapper.testDep(),
     contrib.buildinfo.testDep(),
     contrib.scoverage.testDep(),
+    contrib.scoverage.worker2.testDep(),
     contrib.playlib.testDep(),
     contrib.playlib.worker("2.8").testDep(),
     bsp.worker.testDep()

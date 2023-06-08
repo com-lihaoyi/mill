@@ -7,6 +7,7 @@ object ScoverageTests extends IntegrationTestSuite {
     initWorkspace()
     test("test") - {
       assert(eval("__.compile"))
+      assert(eval("core[2.13.11].scoverage.xmlReport"))
     }
   }
 }

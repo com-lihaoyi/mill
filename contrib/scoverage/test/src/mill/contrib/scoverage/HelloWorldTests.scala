@@ -93,7 +93,7 @@ trait HelloWorldTests extends utest.TestSuite {
         "scoverage" - {
           "unmanagedClasspath" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) =
-              eval.apply(HelloWorld.core.scoverage().unmanagedClasspath)
+              eval.apply(HelloWorld.core.scoverage.unmanagedClasspath)
 
             assert(
               result.map(_.toString).iterator.exists(_.contains("unmanaged.xml")),
@@ -102,7 +102,7 @@ trait HelloWorldTests extends utest.TestSuite {
           }
           "ivyDeps" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) =
-              eval.apply(HelloWorld.core.scoverage().ivyDeps)
+              eval.apply(HelloWorld.core.scoverage.ivyDeps)
 
             val expected = if (isScala3) Agg.empty
             else Agg(
@@ -116,7 +116,7 @@ trait HelloWorldTests extends utest.TestSuite {
           }
           "scalacPluginIvyDeps" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) =
-              eval.apply(HelloWorld.core.scoverage().scalacPluginIvyDeps)
+              eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps)
 
             val expected = (isScov3, isScala3) match {
               case (true, true) => Agg.empty
@@ -138,7 +138,7 @@ trait HelloWorldTests extends utest.TestSuite {
             )
           }
           "data" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage().data)
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.data)
 
             val resultPath = result.path.toIO.getPath.replace("""\""", "/")
             val expectedEnd =
@@ -151,7 +151,7 @@ trait HelloWorldTests extends utest.TestSuite {
           }
           "htmlReport" - workspaceTest(HelloWorld) { eval =>
             val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
-            val res = eval.apply(HelloWorld.core.scoverage().htmlReport())
+            val res = eval.apply(HelloWorld.core.scoverage.htmlReport())
             if (
               res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith(
                 "2."
@@ -167,7 +167,7 @@ trait HelloWorldTests extends utest.TestSuite {
           }
           "xmlReport" - workspaceTest(HelloWorld) { eval =>
             val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
-            val res = eval.apply(HelloWorld.core.scoverage().xmlReport())
+            val res = eval.apply(HelloWorld.core.scoverage.xmlReport())
             if (
               res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith(
                 "2."
@@ -183,14 +183,14 @@ trait HelloWorldTests extends utest.TestSuite {
           }
           "console" - workspaceTest(HelloWorld) { eval =>
             val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
-            val Right((_, evalCount)) = eval.apply(HelloWorld.core.scoverage().consoleReport())
+            val Right((_, evalCount)) = eval.apply(HelloWorld.core.scoverage.consoleReport())
             assert(evalCount > 0)
           }
         }
         test("test") - {
           "upstreamAssemblyClasspath" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) =
-              eval.apply(HelloWorld.core.scoverage().upstreamAssemblyClasspath)
+              eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
 
             val runtimeExistsOnClasspath =
               result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
@@ -208,7 +208,7 @@ trait HelloWorldTests extends utest.TestSuite {
           }
           "compileClasspath" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) =
-              eval.apply(HelloWorld.core.scoverage().compileClasspath)
+              eval.apply(HelloWorld.core.scoverage.compileClasspath)
 
             val runtimeExistsOnClasspath =
               result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
@@ -225,7 +225,7 @@ trait HelloWorldTests extends utest.TestSuite {
             }
           }
           "runClasspath" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage().runClasspath)
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.runClasspath)
 
             val runtimeExistsOnClasspath =
               result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
@@ -249,18 +249,18 @@ trait HelloWorldTests extends utest.TestSuite {
       "scoverage" - {
         "htmlReport" - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
           val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
-          val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage().htmlReport())
+          val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage.htmlReport())
           assert(evalCount > 0)
         }
         "xmlReport" - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
           val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
-          val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage().xmlReport())
+          val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage.xmlReport())
           assert(evalCount > 0)
         }
         "console" - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
           val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
           val Right((result, evalCount)) =
-            eval.apply(HelloWorldSbt.core.scoverage().consoleReport())
+            eval.apply(HelloWorldSbt.core.scoverage.consoleReport())
           assert(evalCount > 0)
         }
       }
@@ -281,7 +281,7 @@ trait FailedWorldTests extends HelloWorldTests {
           assert(msg == errorMsg)
         }
         "other" - workspaceTest(mod) { eval =>
-          val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage().xmlReport())
+          val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport())
           assert(msg == errorMsg)
         }
       }
@@ -297,7 +297,7 @@ trait FailedWorldTests extends HelloWorldTests {
           assert(msg == errorMsg)
         }
         "other" - workspaceTest(mod) { eval =>
-          val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage().xmlReport())
+          val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport())
           assert(msg == errorMsg)
         }
       }
