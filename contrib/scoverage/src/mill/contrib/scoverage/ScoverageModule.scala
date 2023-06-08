@@ -173,13 +173,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     )
   }
 
-  private[scoverage] lazy val scoverageData: ScoverageData = new ScoverageData {}
-
-  /**
-   * Inner worker. It's a `def` instead of an `object` or `val` to give users a chance to properly override and customize it.
-   * When overridden, the value should not change, once initialized. You may want to use a `private[package] lazy val` to hold the actual value.
-   */
-  def scoverage: ModuleRef[ScoverageData] = ModuleRef(scoverageData)
+  /** Inner worker module. This is not an `object` to allow users to override and customize it. */
+  lazy val scoverage: ScoverageData = new ScoverageData {}
 
   trait ScoverageData extends ScalaModule {
 
@@ -259,6 +254,6 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
 
     // Need the sources compiled with scoverage instrumentation to run.
-    override def moduleDeps: Seq[JavaModule] = Seq(outer.scoverage())
+    override def moduleDeps: Seq[JavaModule] = Seq(outer.scoverage)
   }
 }

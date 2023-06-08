@@ -1,9 +1,7 @@
 // Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2579
-// and issue https://github.com/com-lihaoyi/mill/issues/2582
 
 // mill plugins
 import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
-import $ivy.`com.github.lolgab::mill-mima::0.0.23`
 
 // imports
 import mill._
@@ -24,3 +22,11 @@ trait CoreCross extends CrossScalaModule with ScoverageModule {
   }
 }
 
+object extra extends ScalaModule with ScoverageModule {
+  override def scoverageVersion = "2.0.10"
+  override def scalaVersion = "2.13.11"
+  // customized scoverage data
+  override lazy val scoverage: ScoverageData = new ScoverageData {
+    // some customizations
+  }
+}
