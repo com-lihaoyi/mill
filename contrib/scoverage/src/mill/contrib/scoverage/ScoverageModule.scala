@@ -173,8 +173,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     )
   }
 
-  /** Inner worker module. This is a `val` to allow users to override and customize it. */
-  val scoverage: ScoverageData = new ScoverageData {}
+  /** Inner worker module. This is not an `object` to allow users to override and customize it. */
+  lazy val scoverage: ScoverageData = new ScoverageData {}
 
   trait ScoverageData extends ScalaModule {
 

@@ -26,7 +26,7 @@ object extra extends ScalaModule with ScoverageModule {
   override def scoverageVersion = "2.0.10"
   override def scalaVersion = "2.13.11"
   // customized scoverage data
-  override val scoverage: ScoverageData = new ScoverageData {
+  override lazy val scoverage: ScoverageData = new ScoverageData {
     // some customizations
   }
 }
