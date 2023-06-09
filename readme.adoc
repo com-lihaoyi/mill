@@ -215,7 +215,7 @@ If you have another default shell like zsh or fish, you probably need to invoke 
 with `sh ~/mill-release` or prepend the file with a proper shebang. 
 
 If you want to install into a different location or a different Ivy repository, you can
-set it's optional parameters
+set its optional parameters.
 
 .Install into `/tmp`
 [source,bash]
@@ -289,7 +289,7 @@ Mill maintains backward binary compatibility for each major version
 - `mill.scalajslib`
 - `mill.scalanativelib`
 
-Other package slike `mill.runner`, `mill.bsp`, etc. are on the classpath but
+Other packages like `mill.runner`, `mill.bsp`, etc. are on the classpath but
 offer no compatibility guarantees.
 
 Currently, Mill does not offer compatibility guarantees for `mill.contrib`
@@ -375,7 +375,7 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 *This release is binary incompatible to {prev-version}.*
 
 * Make `mill.define.Module` a `trait` to allow abstract/virtual modules
-  to be `trait`s rather than ``class``es
+  to be ``trait``s rather than ``class``es
   https://github.com/com-lihaoyi/mill/pull/2536[#2536]
 
 * Move `mill.BuildInfo` to `mill.main.BuildInfo` to avoid name conflicts with
