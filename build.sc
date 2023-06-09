@@ -134,7 +134,7 @@ object Deps {
   }
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.8"
   val ammoniteVersion = "2.5.5"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
