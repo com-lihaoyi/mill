@@ -1525,7 +1525,7 @@ object docs extends Module {
 
     val pathToRemove = sourceDir.relativeTo(baseDir).toString()
     val replacePath = newSourceDir.relativeTo(baseDir).toString()
-         println(s"Cleaning relative path '${pathToRemove}' ...")
+    //      println(s"Cleaning relative path '${pathToRemove}' ...")
     import org.htmlcleaner._
     val cleaner = new HtmlCleaner()
     var changed = false
