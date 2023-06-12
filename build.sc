@@ -1508,7 +1508,7 @@ object docs extends Module {
 
     // sanitize devAntora source URLs
     T.log.errorStream.println("Sanitizing links ...")
-    sanitizeDevUrls(siteDir, devAntoraSources().path, source().path, baseDir)
+    sanitizeDevUrls(siteDir, devAntoraSources().path, baseDir / "docs", baseDir)
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
     val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
