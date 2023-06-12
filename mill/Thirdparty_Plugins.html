@@ -260,14 +260,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.0-9-abb05a</span>
+    <span class="version">0.11.0-10-9ed1ce</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.0-9-abb05a</a>
+          <a href="index.html">0.11.0-10-9ed1ce</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -300,9 +300,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-9-abb05a</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.0-10-9ed1ce</button>
   <div class="version-menu">
-    <a class="version is-current" href="Thirdparty_Plugins.html">0.11.0-9-abb05a</a>
+    <a class="version is-current" href="Thirdparty_Plugins.html">0.11.0-10-9ed1ce</a>
     <a class="version" href="0.11.0-M7/Thirdparty_Plugins.html">0.11.0-M7</a>
     <a class="version" href="0.10.12/Thirdparty_Plugins.html">0.10.12</a>
     <a class="version" href="0.10.0/Thirdparty_Plugins.html">0.10.0</a>
@@ -487,6 +487,66 @@ Snapshots or to the normal releases if it’s a new tag.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">sh&gt; mill plugin.dgraph.browseDeps(proj)()</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_docker_native_image_packager"><a class="anchor" href="#_docker_native_image_packager"></a>Docker Native-Image Packager</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This plugin allows building Docker container images with GraalVM Native-Image
+binaries for cloud-native and fast-startup applications.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/carlosedp/mill-docker-nativeimage" class="bare">https://github.com/carlosedp/mill-docker-nativeimage</a></p>
+</div>
+<div class="paragraph">
+<p>Import the plugin, extend your module with <code>DockerNative</code> and configure the
+parameters for your application using the <code>DockerNativeConfig</code> trait in the
+<code>dockerNative</code> object.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, mill.scalalib._, mill.scalalib.scalafmt._
+import $ivy.`com.carlosedp::mill-docker-nativeimage::0.6.0`
+import com.carlosedp.milldockernative.DockerNative
+
+object hello extends ScalaModule with DockerNative {
+  def scalaVersion = &quot;3.3.0&quot;
+  object dockerNative extends DockerNativeConfig {
+    // Native Image parameters
+    def nativeImageName         = &quot;hello&quot;
+    def nativeImageGraalVmJvmId = T(&quot;graalvm-java17:22.3.2&quot;)
+    def nativeImageClassPath    = runClasspath()
+    def nativeImageMainClass    = &quot;com.domain.Hello.Hello&quot;
+    // GraalVM parameters depending on your application needs
+    def nativeImageOptions = Seq(
+      &quot;--no-fallback&quot;,
+      &quot;--enable-url-protocols=http,https&quot;,
+      &quot;-Djdk.http.auth.tunneling.disabledSchemes=&quot;,
+    ) ++ (if (sys.props.get(&quot;os.name&quot;).contains(&quot;Linux&quot;)) Seq(&quot;--static&quot;) else Seq.empty)
+
+    // Generated Docker image parameters
+    def baseImage    = &quot;ubuntu:22.04&quot;
+    def tags         = List(&quot;docker.io/myuser/helloapp&quot;)
+    def exposedPorts = Seq(8080)
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill hello.dockerNative.build()
+# Test run
+docker run -it --rm docker.io/myuser/helloapp
+
+# Push to a registry
+./mill hello.dockerNative.push</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more details and configuration options, please refer to the project readme
+and also check the provided example code.</p>
 </div>
 </div>
 </div>
@@ -1028,6 +1088,63 @@ object main extends ScalaModule with Mima {
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill main.mimaReportBinaryIssues
 Binary compatibility check passed.</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_native_image"><a class="anchor" href="#_native_image"></a>Native-Image</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Build GraalVM Native-Image binaries with mill.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/alexarchambault/mill-native-image" class="bare">https://github.com/alexarchambault/mill-native-image</a></p>
+</div>
+<div class="paragraph">
+<p>Import the plugin and add the <code>NativeImage</code> trait to your module and set some
+configuration options:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.25`
+import io.github.alexarchambault.millnativeimage.NativeImage
+
+object hello extends ScalaModule with NativeImage {
+  def scalaVersion = &quot;3.3.0&quot;
+  def ivyDeps = ... // Your deps here
+
+  def nativeImageName         = &quot;hello&quot;
+  def nativeImageMainClass    = &quot;Main&quot;
+  def nativeImageGraalVmJvmId = &quot;graalvm-java17:22.3.2&quot;
+  def nativeImageOptions = Seq(
+    &quot;--no-fallback&quot;,
+    &quot;--enable-url-protocols=http,https&quot;,
+    &quot;-Djdk.http.auth.tunneling.disabledSchemes=&quot;,
+  ) ++ (if (sys.props.get(&quot;os.name&quot;).contains(&quot;Linux&quot;)) Seq(&quot;--static&quot;) else Seq.empty)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then run the <code>nativeImage</code> task to build the native-image binary.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill hello.nativeImage
+...
+------------------------------------------------------------------------------------------------------------------------
+                        5.9s (4.9% of total time) in 32 GCs | Peak RSS: 5.71GB | CPU load: 5.84
+------------------------------------------------------------------------------------------------------------------------
+Produced artifacts:
+ /Users/myuser/repos/scala/mill-native-image/example/out/hello/nativeImage.dest/hello (executable
+)
+ /Users/myuser/repos/scala/mill-native-image/example/out/hello/nativeImage.dest/hello.build_artifacts.txt (txt)
+========================================================================================================================
+Finished generating 'hello' in 2m 0s.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more configuration options, building binaries inside Docker, a sample project
+and more, check the project readme.</p>
 </div>
 </div>
 </div>
