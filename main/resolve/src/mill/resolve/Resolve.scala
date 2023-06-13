@@ -27,6 +27,8 @@ object Resolve {
     ) = {
       Right(resolved.map(_.segments))
     }
+
+    private[mill] def deduplicate(items: List[Segments]) = items.distinct
   }
 
   object Tasks extends Resolve[NamedTask[Any]] {
@@ -76,10 +78,12 @@ object Resolve {
       val sequenced = EitherOps.sequence(taskList).map(_.flatten)
 
       sequenced.flatMap(flattened =>
-        if (flattened.nonEmpty) Right(flattened.distinctBy(_.ctx.segments))
+        if (flattened.nonEmpty) Right(flattened)
         else Left(s"Cannot find default task to evaluate for module ${selector.render}")
       )
     }
+
+    private[mill] def deduplicate(items: List[NamedTask[Any]]) = items.distinctBy(_.ctx.segments)
   }
 
   private def instantiateTarget(r: Resolved.Target, p: Module) = {
@@ -212,7 +216,7 @@ trait Resolve[T] {
       EitherOps.sequence(resolved)
     }
 
-    resolvedGroups.map(_.flatten.toList)
+    resolvedGroups.map(_.flatten.toList).map(deduplicate)
   }
 
   private[mill] def resolveNonEmptyAndHandle(
@@ -235,6 +239,8 @@ trait Resolve[T] {
       .map(_.toSeq.sortBy(_.segments.render))
       .flatMap(handleResolved(rootModule, _, args, sel, nullCommandDefaults))
   }
+
+  private[mill] def deduplicate(items: List[T]): List[T]
 
   private[mill] def resolveRootModule(rootModule: BaseModule, scopedSel: Option[Segments]) = {
     scopedSel match {
