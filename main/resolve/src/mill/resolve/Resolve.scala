@@ -83,7 +83,8 @@ object Resolve {
       )
     }
 
-    private[mill] override def deduplicate(items: List[NamedTask[Any]]) = items.distinctBy(_.ctx.segments)
+    private[mill] override def deduplicate(items: List[NamedTask[Any]]) =
+      items.distinctBy(_.ctx.segments)
   }
 
   private def instantiateTarget(r: Resolved.Target, p: Module) = {
