@@ -76,7 +76,7 @@ object Resolve {
       val sequenced = EitherOps.sequence(taskList).map(_.flatten)
 
       sequenced.flatMap(flattened =>
-        if (flattened.nonEmpty) Right(flattened)
+        if (flattened.nonEmpty) Right(flattened.distinctBy(_.ctx.segments))
         else Left(s"Cannot find default task to evaluate for module ${selector.render}")
       )
     }

@@ -24,7 +24,7 @@ object RunScript {
       Resolve.Tasks.resolve(evaluator.rootModule, scriptArgs, selectMode)
     }
     for (targets <- resolved)
-      yield evaluateNamed(evaluator, Agg.from(targets.distinctBy(_.ctx.segments)))
+      yield evaluateNamed(evaluator, Agg.from(targets))
   }
 
   /**
