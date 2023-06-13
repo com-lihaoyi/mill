@@ -28,7 +28,7 @@ object Resolve {
       Right(resolved.map(_.segments))
     }
 
-    private[mill] def deduplicate(items: List[Segments]) = items.distinct
+    private[mill] override def deduplicate(items: List[Segments]) = items.distinct
   }
 
   object Tasks extends Resolve[NamedTask[Any]] {
@@ -83,7 +83,7 @@ object Resolve {
       )
     }
 
-    private[mill] def deduplicate(items: List[NamedTask[Any]]) = items.distinctBy(_.ctx.segments)
+    private[mill] override def deduplicate(items: List[NamedTask[Any]]) = items.distinctBy(_.ctx.segments)
   }
 
   private def instantiateTarget(r: Resolved.Target, p: Module) = {
@@ -240,7 +240,7 @@ trait Resolve[T] {
       .flatMap(handleResolved(rootModule, _, args, sel, nullCommandDefaults))
   }
 
-  private[mill] def deduplicate(items: List[T]): List[T]
+  private[mill] def deduplicate(items: List[T]): List[T] = items
 
   private[mill] def resolveRootModule(rootModule: BaseModule, scopedSel: Option[Segments]) = {
     scopedSel match {
