@@ -11,7 +11,9 @@ trait UnidocModule extends ScalaModule {
 
   def unidocVersion: T[Option[String]] = None
 
-  def unidocLocal = T {
+  def unidocCommon(local: Boolean) = T.task {
+    val sourceUrl = if (local) "file://" else unidocSourceUrl().get
+
     def unidocCompileClasspath =
       Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
 
@@ -29,10 +31,13 @@ trait UnidocModule extends ScalaModule {
       "-d",
       T.dest.toString,
       "-classpath",
-      unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator"))
+      unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator")),
+      "-doc-source-url",
+      sourceUrl + "€{FILE_PATH}.scala",
+      "-sourcepath",
+      T.workspace.toString
     ) ++
-      unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
-      unidocSourceUrl().toSeq.flatMap(_ => Seq("-doc-source-url", "file://€{FILE_PATH}.scala"))
+      unidocVersion().toSeq.flatMap(Seq("-doc-version", _))
 
     zincWorker().worker().docJar(
       scalaVersion(),
@@ -46,8 +51,13 @@ trait UnidocModule extends ScalaModule {
     }
   }
 
+  def unidocLocal = T {
+    unidocCommon(true)()
+    PathRef(T.dest)
+  }
+
   def unidocSite = T {
-    os.copy(unidocLocal().path, T.dest, mergeFolders = true)
+    unidocCommon(false)()
     for {
       sourceUrl <- unidocSourceUrl()
       p <- os.walk(T.dest) if p.ext == "scala"
