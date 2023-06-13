@@ -545,6 +545,67 @@ object ResolveTests extends TestSuite {
       }
     }
 
+    "duplicate" - {
+      val check = new Checker(duplicates)
+
+      def segments(
+          found: Either[String, List[NamedTask[_]]],
+          expected: Either[String, List[NamedTask[_]]]
+      ) = {
+        found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
+      }
+
+      "wildcard" - {
+        "wrapped" - {
+          "targets" - check.checkSeq0(
+            Seq("__.test1"),
+            _ == Right(List(duplicates.wrapper.test1.test1)),
+            _ == Right(List("wrapper.test1", "wrapper.test1.test1"))
+          )
+          "commands" - check.checkSeq0(
+            Seq("__.test2"),
+            segments(_, Right(List(duplicates.wrapper.test2.test2()))),
+            _ == Right(List("wrapper.test2", "wrapper.test2.test2"))
+          )
+        }
+        "targets" - check.checkSeq0(
+          Seq("__.test3"),
+          _ == Right(List(duplicates.test3.test3)),
+          _ == Right(List("test3", "test3.test3"))
+        )
+        "commands" - check.checkSeq0(
+          Seq("__.test4"),
+          segments(_, Right(List(duplicates.test4.test4()))),
+          _ == Right(List("test4", "test4.test4"))
+        )
+      }
+
+      "braces" - {
+        "targets" - check.checkSeq0(
+          Seq("{test3.test3,test3.test3}"),
+          _ == Right(List(duplicates.test3.test3)),
+          _ == Right(List("test3.test3"))
+        )
+        "commands" - check.checkSeq0(
+          Seq("{test4,test4}"),
+          segments(_, Right(List(duplicates.test4.test4()))),
+          _ == Right(List("test4"))
+        )
+      }
+      "plus" - {
+        "targets" - check.checkSeq0(
+          Seq("test3.test3", "+", "test3.test3"),
+          _ == Right(List(duplicates.test3.test3)),
+          _ == Right(List("test3.test3"))
+        )
+        "commands" - check.checkSeq0(
+          Seq("test4", "+", "test4"),
+          segments(_, Right(List(duplicates.test4.test4()))),
+          _ == Right(List("test4"))
+        )
+      }
+    }
+
     "moduleInitError" - {
       "simple" - {
         val check = new Checker(moduleInitError)
