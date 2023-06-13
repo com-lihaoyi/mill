@@ -12,8 +12,6 @@ trait UnidocModule extends ScalaModule {
   def unidocVersion: T[Option[String]] = None
 
   def unidocCommon(local: Boolean) = T.task {
-    val sourceUrl = if (local) "file://" else unidocSourceUrl().get
-
     def unidocCompileClasspath =
       Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
 
@@ -31,13 +29,18 @@ trait UnidocModule extends ScalaModule {
       "-d",
       T.dest.toString,
       "-classpath",
-      unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator")),
-      "-doc-source-url",
-      sourceUrl + "€{FILE_PATH}.scala",
-      "-sourcepath",
-      T.workspace.toString
+      unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator"))
     ) ++
-      unidocVersion().toSeq.flatMap(Seq("-doc-version", _))
+      unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
+      unidocSourceUrl().toSeq.flatMap { url =>
+        val prefix = if (local) "file://" else url
+        Seq(
+          "-doc-source-url",
+          prefix + "€{FILE_PATH}.scala",
+          "-sourcepath",
+          T.workspace.toString
+        )
+      }
 
     zincWorker().worker().docJar(
       scalaVersion(),
