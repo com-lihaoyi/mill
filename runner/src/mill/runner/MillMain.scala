@@ -83,7 +83,7 @@ object MillMain {
           streams.err.println(msg)
           (false, RunnerState.empty)
 
-        case Right(config) if config.help.value =>
+        case Right(config) if config.help.value || args.isEmpty =>
           streams.out.println(MillCliConfigParser.usageText)
           (true, RunnerState.empty)
 
