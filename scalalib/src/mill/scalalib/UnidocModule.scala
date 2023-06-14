@@ -33,10 +33,12 @@ trait UnidocModule extends ScalaModule {
     ) ++
       unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
       unidocSourceUrl().toSeq.flatMap { url =>
-        val prefix = if (local) "file://" else url
-        Seq(
+        if (local) Seq(
           "-doc-source-url",
-          prefix + "€{FILE_PATH}.scala",
+          "file://€{FILE_PATH}.scala"
+        ) else Seq(
+          "-doc-source-url",
+          url + "€{FILE_PATH}.scala",
           "-sourcepath",
           T.workspace.toString
         )
