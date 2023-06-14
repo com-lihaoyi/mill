@@ -213,6 +213,9 @@ object TestModule {
    */
   trait ScalaTest extends TestModule {
     override def testFramework: T[String] = "org.scalatest.tools.Framework"
+    override def ivyDeps: T[Agg[Dep]] = T {
+      super.ivyDeps() ++ Agg(ivy"org.scala-sbt:test-interface:1.0")
+    }
   }
 
   /**
@@ -257,6 +260,9 @@ object TestModule {
    */
   trait ZioTest extends TestModule {
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
+    override def ivyDeps: T[Agg[Dep]] = T {
+      super.ivyDeps() ++ Agg(ivy"org.scala-sbt:test-interface:1.0")
+    }
   }
 
   @deprecated("Use other overload instead", "Mill after 0.10.2")
