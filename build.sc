@@ -1311,7 +1311,7 @@ object dev extends MillPublishScalaModule {
             forkEnv(),
             workingDir = wd
           )
-        catch { case e => () /*ignore to avoid confusing stacktrace and error messages*/ }
+        catch { case e: Throwable => () /*ignore to avoid confusing stacktrace and error messages*/ }
         mill.api.Result.Success(())
     }
   }
