@@ -164,7 +164,7 @@ class TestGraphs() {
     object bar extends Module {
       def barTarget = T {
         println(s"Running barTarget")
-        foo.fooTarget() + " barTarget Result"
+        s"${foo.fooTarget()} barTarget Result"
       }
       def barCommand(s: String) = T.command {
         foo.fooCommand(s)()
