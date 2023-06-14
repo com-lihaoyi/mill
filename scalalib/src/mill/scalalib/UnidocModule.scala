@@ -36,7 +36,8 @@ trait UnidocModule extends ScalaModule {
         if (local) Seq(
           "-doc-source-url",
           "file://€{FILE_PATH}.scala"
-        ) else Seq(
+        )
+        else Seq(
           "-doc-source-url",
           url + "€{FILE_PATH}.scala",
           "-sourcepath",
