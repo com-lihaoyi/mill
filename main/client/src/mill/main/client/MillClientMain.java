@@ -64,10 +64,6 @@ public class MillClientMain {
                 IsolatedMillMainLoader.runMain(args);
                 return;
             }
-        } else if (args.length == 0) {
-            // start in no-server mode
-            IsolatedMillMainLoader.runMain(args);
-            return;
         }
 
         // start in client-server mode
