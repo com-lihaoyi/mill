@@ -16,14 +16,9 @@ class MillCliConfig private (
            This implies --no-server and no mill server will be used.
            Must be the first argument."""
     )
+    @deprecated("No longer supported.", "Mill 0.11.0-M8")
     val repl: Flag,
-    @arg(
-      name = "no-server",
-      doc =
-        """Run Mill in single-process mode.
-           In this mode, no mill server will be started or used.
-           Must be the first argument."""
-    )
+    @arg(name = "no-server", doc = """This flag is no longer supported.""")
     val noServer: Flag,
     @arg(doc = """Enable BSP server mode.""")
     val bsp: Flag,
@@ -160,6 +155,7 @@ object MillCliConfig {
    */
   def apply(
       home: os.Path = mill.api.Ctx.defaultHome,
+      @deprecated("No longer supported.", "Mill 0.11.0-M8")
       repl: Flag = Flag(),
       noServer: Flag = Flag(),
       bsp: Flag = Flag(),
