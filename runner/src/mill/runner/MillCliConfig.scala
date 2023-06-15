@@ -16,6 +16,8 @@ class MillCliConfig private (
            This implies --no-server and no mill server will be used.
            Must be the first argument."""
     )
+    // We need to keep it, otherwise, a given --repl would be silently parsed as target and result in misleading error messages.
+    // Instead we fail when this flag is set.
     @deprecated("No longer supported.", "Mill 0.11.0-M8")
     val repl: Flag,
     @arg(name = "no-server", doc = """This flag is no longer supported.""")
