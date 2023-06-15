@@ -82,7 +82,7 @@ object ParseArgs {
 
   private def validateSelectors(selectors: Seq[String]): Either[String, Unit] = {
     if (selectors.isEmpty || selectors.exists(_.isEmpty))
-      Left("Selector cannot be empty. Try `mill resolve _` to see what's available.")
+      Left("Target selector must not be empty. Try `mill resolve _` to see what's available.")
     else Right(())
   }
 
