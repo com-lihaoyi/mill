@@ -123,7 +123,7 @@ https://gitforwindows.org[Git-Bash],
 https://docs.microsoft.com/en-us/windows/wsl[WSL]); to get started, follow the instructions in the <<_manual>>
 section. Note that:
 
-* In some environments (such as WSL), Mill might have to be run without a server (using `-i`, `--interactive`, `--no-server`, or `--repl`.)
+* In some environments (such as WSL), Mill might have to be run without a server (using `-i`, `--interactive`, or `--no-server`.)
 
 * On Cygwin, run the following after downloading mill:
 
