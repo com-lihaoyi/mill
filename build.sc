@@ -1703,7 +1703,8 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
   ()
 }
 
+/** Dummy module to let Scala-Steward find and bump dependency versions we use at runtime */
 object DependencyFetchDummy extends ScalaModule {
   def scalaVersion = Deps.scalaVersion
-  def compileIvyDeps = Agg(Deps.semanticDbJava, Deps.semanticDB)
+  def compileIvyDeps = Agg(Deps.semanticDbJava, Deps.semanticDB, Deps.testScalaTest, Deps.testZioTest)
 }
