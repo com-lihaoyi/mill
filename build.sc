@@ -155,6 +155,9 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.2"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
+  // tests framework (test)
+  val testScalaTest = ivy"org.scalatest::scalatest:3.2.16"
+  val testZioTest = ivy"dev.zio::zio-test:2.0.15"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
@@ -340,6 +343,8 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
+      s"-DTEST_SCALATEST_VERSION=${Deps.testScalaTest.dep.version}",
+      s"-DTEST_ZIOTEST_VERSION=${Deps.testZioTest.dep.version}",
       s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
     )
   }
@@ -509,9 +514,11 @@ object main extends MillStableScalaModule with BuildInfo {
 }
 
 object testrunner extends MillPublishScalaModule {
-  object entrypoint extends MillPublishJavaModule
-
   def moduleDeps = Seq(scalalib.api, main.util, entrypoint)
+
+  object entrypoint extends MillPublishJavaModule {
+    override def runIvyDeps = Agg(Deps.sbtTestInterface)
+  }
 }
 
 object scalalib extends MillStableScalaModule {
@@ -1311,7 +1318,9 @@ object dev extends MillPublishScalaModule {
             forkEnv(),
             workingDir = wd
           )
-        catch { case e: Throwable => () /*ignore to avoid confusing stacktrace and error messages*/ }
+        catch {
+          case e: Throwable => () /*ignore to avoid confusing stacktrace and error messages*/
+        }
         mill.api.Result.Success(())
     }
   }
