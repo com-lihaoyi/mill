@@ -91,13 +91,6 @@ trait JavaModule
   def mandatoryIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
 
   /**
-   * Any ivy dependencies you want to add to this Module, in the format
-   * ivy"org::name:version" for Scala dependencies or ivy"org:name:version"
-   * for Java dependencies
-   */
-  def ivyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
-
-  /**
    * Aggregation of mandatoryIvyDeps and ivyDeps.
    * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
    */

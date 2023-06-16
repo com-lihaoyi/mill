@@ -293,6 +293,12 @@ object TestModule {
   }
 
   trait JavaModuleBase extends BspModule {
+
+    /**
+     * Any ivy dependencies you want to add to this Module, in the format
+     * ivy"org::name:version" for Scala dependencies or ivy"org:name:version"
+     * for Java dependencies
+     */
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
   }
 
