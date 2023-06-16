@@ -91,7 +91,10 @@ object ResolveTests extends TestSuite {
         "single.doesntExist",
         Left("Cannot resolve single.doesntExist. single resolves to a Task with no children.")
       )
-      "neg7" - check("", Left("Selector cannot be empty"))
+      "neg7" - check(
+        "",
+        Left("Target selector must not be empty. Try `mill resolve _` to see what's available.")
+      )
     }
     "backtickIdentifiers" - {
       val check = new Checker(bactickIdentifiers)
@@ -103,7 +106,10 @@ object ResolveTests extends TestSuite {
         "up-target.doesntExist",
         Left("Cannot resolve up-target.doesntExist. up-target resolves to a Task with no children.")
       )
-      "neg4" - check("", Left("Selector cannot be empty"))
+      "neg4" - check(
+        "",
+        Left("Target selector must not be empty. Try `mill resolve _` to see what's available.")
+      )
       "neg5" - check(
         "invisible",
         Left("Cannot resolve invisible. Try `mill resolve _` to see what's available.")
