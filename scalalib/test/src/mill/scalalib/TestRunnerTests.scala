@@ -31,7 +31,8 @@ object TestRunnerTests extends TestSuite {
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def ivyDeps = T {
         super.ivyDeps() ++ Agg(
-          ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
+          ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
+          ivy"dev.zio::zio-test-sbt:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
         )
       }
     }
