@@ -497,7 +497,7 @@ object main extends MillStableScalaModule with BuildInfo {
         def moduleDeps = Seq(external)
 
         val Array(prefix, suffix, rest) = caseName.split("-", 3)
-        def millSourcePath = super.millSourcePath / os.up / prefix / suffix / rest
+        def millSourcePath = super.millSourcePath / prefix / suffix / rest
         def scalaVersion = "2.13.10"
         def ivyDeps = T{
           if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
