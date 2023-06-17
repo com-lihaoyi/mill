@@ -514,7 +514,7 @@ object testrunner extends MillPublishScalaModule {
   def moduleDeps = Seq(scalalib.api, main.util, entrypoint)
 
   object entrypoint extends MillPublishJavaModule {
-    override def runIvyDeps = Agg(Deps.sbtTestInterface)
+    override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 }
 
