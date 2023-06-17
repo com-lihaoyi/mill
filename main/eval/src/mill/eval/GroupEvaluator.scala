@@ -8,6 +8,7 @@ import mill.eval.Evaluator.TaskResult
 import mill.util._
 
 import scala.collection.mutable
+import scala.reflect.NameTransformer.decode
 import scala.util.DynamicVariable
 import scala.util.control.NonFatal
 
@@ -27,6 +28,7 @@ private[mill] trait GroupEvaluator {
   def failFast: Boolean
   def threadCount: Option[Int]
   def scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+  def methodCodeHashSignatures: Map[String, Int]
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
@@ -51,30 +53,57 @@ private[mill] trait GroupEvaluator {
       group.iterator.map(_.sideHash)
     )
 
-    val scriptsHash = {
-      val possibleScripts = scriptImportGraph.keySet.map(_.toString)
-      val scripts = new Loose.Agg.Mutable[os.Path]()
-      group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
-        // Filter out the `fileName` as a string before we call `os.Path` on it, because
-        // otherwise linux paths on earlier-compiled artifacts can cause this to crash
-        // when running on Windows with a different file path format
-        case namedTask: NamedTask[_] if possibleScripts.contains(namedTask.ctx.fileName) =>
-          scripts.append(os.Path(namedTask.ctx.fileName))
-        case _ =>
+//    val scriptsHash = {
+//      val possibleScripts = scriptImportGraph.keySet.map(_.toString)
+//      val scripts = new Loose.Agg.Mutable[os.Path]()
+//      group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
+//        // Filter out the `fileName` as a string before we call `os.Path` on it, because
+//        // otherwise linux paths on earlier-compiled artifacts can cause this to crash
+//        // when running on Windows with a different file path format
+//        case namedTask: NamedTask[_] if possibleScripts.contains(namedTask.ctx.fileName) =>
+//          scripts.append(os.Path(namedTask.ctx.fileName))
+//        case _ =>
+//      }
+//
+//      val transitiveScripts = Graph.transitiveNodes(scripts)(t =>
+//        scriptImportGraph.get(t).map(_._2).getOrElse(Nil)
+//      )
+//
+//      transitiveScripts
+//        .iterator
+//        // Sometimes tasks are defined in external/upstreadm dependencies,
+//        // (e.g. a lot of tasks come from JavaModule.scala) and won't be
+//        // present in the scriptImportGraph
+//        .map(p => scriptImportGraph.get(p).fold(0)(_._1))
+//        .sum
+//    }
+val scriptsHash = group
+  .iterator
+  .flatMap(t => Iterator(t) ++ t.inputs)
+  .collect {
+    case namedTask: NamedTask[_] =>
+      def resolveParents(c: Class[_]): Seq[Class[_]] = {
+        Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
+          resolveParents
+        )
       }
 
-      val transitiveScripts = Graph.transitiveNodes(scripts)(t =>
-        scriptImportGraph.get(t).map(_._2).getOrElse(Nil)
-      )
+      val transitiveParents = resolveParents(namedTask.ctx.enclosingCls)
+      val methods = for {
+        c <- transitiveParents
+        m <- c.getDeclaredMethods
+        if decode(m.getName) == namedTask.ctx.segment.pathSegments.head
+      } yield m
 
-      transitiveScripts
-        .iterator
-        // Sometimes tasks are defined in external/upstreadm dependencies,
-        // (e.g. a lot of tasks come from JavaModule.scala) and won't be
-        // present in the scriptImportGraph
-        .map(p => scriptImportGraph.get(p).fold(0)(_._1))
-        .sum
-    }
+
+      val cls = methods.head.getDeclaringClass.getName
+      val name = namedTask.ctx.segment.pathSegments.last
+      val expectedPrefix = cls + "#" + name + "()"
+      methodCodeHashSignatures.collectFirst { case (k, v) if k.startsWith(expectedPrefix) => v }
+  }
+  .flatten
+  .sum
+
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
