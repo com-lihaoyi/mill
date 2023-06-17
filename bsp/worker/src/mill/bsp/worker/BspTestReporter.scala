@@ -39,7 +39,7 @@ import java.io.{PrintWriter, StringWriter}
  *                  in case special arguments need to be passed to
  *                  the compiler before running the test task.
  */
-class BspTestReporter(
+private class BspTestReporter(
     client: BuildClient,
     targetId: BuildTargetIdentifier,
     taskId: TaskId,

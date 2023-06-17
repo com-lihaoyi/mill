@@ -1,13 +1,13 @@
 import mill._, scalalib._
 
-object app extends RootModule with ScalaModule{
+object app extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::cask:0.9.1",
     ivy"com.lihaoyi::scalatags:0.12.0"
   )
 
-  object test extends Tests{
+  object test extends ScalaTests {
     def testFramework = "utest.runner.Framework"
 
     def ivyDeps = Agg(

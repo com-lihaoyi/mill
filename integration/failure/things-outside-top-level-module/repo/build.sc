@@ -1,3 +1,4 @@
+import mill._
 
 def invalidTarget = T{ "..." }
 

@@ -3,18 +3,29 @@ purposes but also tested and verified for correctness.
 
 The three sub-folders are:
 
-1. `basic/`: this contains examples that walk you through getting from a
+1. `basic/`: the basic getting-started hello-world examples of using Mill
+
+2. `scalabuilds/`: examples that walk you through getting from a
    minimal single-module Scala project to testing and publishing a
    multi-module multi-scala-version project
 
-2. `web/`: this contains examples of doing basic web development with Mill as
+3. `web/`: this contains examples of doing basic web development with Mill as
    the build tool: going from a simple static HTML server to a client-server
    application sharing code between Scala-JVM and Scala.js, and publishing
    cross-platform Scala modules built across Scala-JVM and Scala.js
 
-3. `misc/` contains a variety of examples that go deeper into the workings of
+4. `tasks/`: examples demonstrating how Mill's various `Task[T]` flavors work,
+   and in what kind of scenarios you would use each one
+
+5. `cross/`: examples of Mill's cross-build capability, as a generic feature, 
+   beyond its specific usage in `CrossScalaModule`
+
+6. `misc/` examples that go deeper into the workings of
    the Mill build tool: dynamic cross modules, `$file` and `$ivy` imports, and
    using the `mill-build/` folder.
+
+7. `thirdparty/`: some example `build.sc` files for real-world Java and Scala
+   codebases
 
 Within each sub-folder, examples are numbered in the order they are intended to
 be read. Each example illustrates one key concept or technique, with the code

@@ -4,13 +4,13 @@
 :idprefix:
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
-:link-current-doc-site: http://com-lihaoyi.github.io/mill
+:link-current-doc-site: https://mill-build.com
 :link-milestone: https://github.com/com-lihaoyi/mill/milestone
 :link-compare: https://github.com/com-lihaoyi/mill/compare
 :link-pr: {link-github}/pull
 :link-issue: {link-github}/issues
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
-:example-scala-version: 3.2.1
+:example-scala-version: 3.2.2
 
 {link-github}/actions/workflows/actions.yml[image:{link-github}/actions/workflows/actions.yml/badge.svg[Build and Release]]
 {link-gitter}?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge[image:https://badges.gitter.im/Join%20Chat.svg[Gitter Chat]]
@@ -215,7 +215,7 @@ If you have another default shell like zsh or fish, you probably need to invoke 
 with `sh ~/mill-release` or prepend the file with a proper shebang. 
 
 If you want to install into a different location or a different Ivy repository, you can
-set it's optional parameters
+set its optional parameters.
 
 .Install into `/tmp`
 [source,bash]
@@ -275,6 +275,28 @@ These are maintained as part of the primary Mill Github repo for easy testing/up
 APIs evolve, ensuring that they are always tested and passing against the
 corresponding version of Mill.
 
+== Compatibility & Stability
+
+Mill maintains backward binary compatibility for each major version
+(`major.minor.point`), enforced with Mima, for the following packages:
+
+- `mill.api`
+- `mill.util`
+- `mill.define`
+- `mill.eval`
+- `mill.resolve`
+- `mill.scalalib`
+- `mill.scalajslib`
+- `mill.scalanativelib`
+
+Other packages like `mill.runner`, `mill.bsp`, etc. are on the classpath but
+offer no compatibility guarantees.
+
+Currently, Mill does not offer compatibility guarantees for `mill.contrib`
+packages, although they tend to evolve slowly. This may change over time as
+these packages mature over time.
+
+
 == Project Maintenance
 
 === Pull Requests
@@ -293,6 +315,131 @@ corresponding version of Mill.
 * If the message contains links to other issues or pull requests, you should use full URLs to reference them
 
 == Changelog
+
+
+[#0-11-0]
+=== 0.11.0 - 2023-06-06
+:version: 0.11.0
+:milestone-name: 0.11.0
+:milestone: 84
+:prev-version: 0.11.0-M11
+
+*This release is binary incompatible to {prev-version}.*
+
+* 0.11.0 is the next breaking version after the 0.10.x series, with a large
+  number of improvements. See the changelog below for 0.11.0-M1 to 0.11.0-M11
+  for a full list of user-facing changes.
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+=== Older releases
+:leveloffset: +1
+
+[#0-11-0-M11]
+=== 0.11.0-M11 - 2023-06-04
+:version: 0.11.0-M11
+:milestone-name: 0.11.0-M11
+:milestone: 83
+:prev-version: 0.11.0-M10
+
+*This release is binary incompatible to {prev-version}.*
+
+* Make `foo.test` command run tests with user code in the boot classloader,
+  rather than in a sub-classloader
+  https://github.com/com-lihaoyi/mill/pull/2561[#2561]
+
+* Mill backend server timeout is now configurable
+  https://github.com/com-lihaoyi/mill/pull/2550[#2550]
+
+* Mill assembly is now distributed via Maven Central, rather than Github
+  release assets, to remove an unnecessary single point of failure
+  https://github.com/com-lihaoyi/mill/pull/2560[#2560]
+
+* `Tests` inner trait was removed, to avoid trait shadowing which will be
+  removed in Scala 3. Please use `ScalaTests`, `ScalaJSTests`, or
+  `ScalaNativeTests` instead
+  https://github.com/com-lihaoyi/mill/pull/2558[#2558]
+
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+[#0-11-0-M10]
+=== 0.11.0-M10 - 2023-05-24
+:version: 0.11.0-M10
+:milestone-name: 0.11.0-M10
+:milestone: 82
+:prev-version: 0.11.0-M9
+
+*This release is binary incompatible to {prev-version}.*
+
+* Make `mill.define.Module` a `trait` to allow abstract/virtual modules
+  to be ``trait``s rather than ``class``es
+  https://github.com/com-lihaoyi/mill/pull/2536[#2536]
+
+* Move `mill.BuildInfo` to `mill.main.BuildInfo` to avoid name conflicts with
+  `mill.contrib.buildinfo.BuildInfo`
+  https://github.com/com-lihaoyi/mill/pull/2537[#2537]
+
+* `PlatformScalaModule` now exposes `platformScalaSuffix` for user code to use
+  https://github.com/com-lihaoyi/mill/pull/2534[#2534]
+
+* Add `Agg.when` operator to simplify common workflow of adding optional flags
+  or command line parameters https://github.com/com-lihaoyi/mill/pull/2535[#2353]
+
+* Generalize handling of test module source folder layout, such that they always
+  match the folder layout of the enclosing module
+  https://github.com/com-lihaoyi/mill/pull/2531[#2531]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+[#0-11-0-M9]
+=== 0.11.0-M9 - 2023-05-18
+:version: 0.11.0-M9
+:milestone-name: 0.11.0-M9
+:milestone: 80
+:prev-version: 0.11.0-M8
+
+*This release is binary incompatible to {prev-version}.*
+
+* Overhauled target resolution logic. It is now significantly lazier, resulting
+  in less of the module tree being un-necessarily instantiated, and also more
+  precise and predictable https://github.com/com-lihaoyi/mill/pull/2453[#2453]
+https://github.com/com-lihaoyi/mill/pull/2511[#2511]
+
+* Allow tasks to be passed as the CLI parameters of the `run` command, allowing
+  `run` to be easily used in the implementation of other tasks
+  https://github.com/com-lihaoyi/mill/pull/2452[#2452]
+
+* ``T.input``s are now watched properly with `--watch`, and trigger re-evaluations
+  when the watched value changes https://github.com/com-lihaoyi/mill/pull/2489[#2489]
+
+* Support for Java 20 https://github.com/com-lihaoyi/mill/pull/2501[#2501]
+
+* Broke up `mill.modules` package https://github.com/com-lihaoyi/mill/pull/2513[#2513],
+  with functionality re-distributed to `mill.util` and `mill.scalalib`
+
+* Overhaul BSP-related code, for improved fidelity and correctness
+  https://github.com/com-lihaoyi/mill/pull/2415[#2415]
+  https://github.com/com-lihaoyi/mill/pull/2414[#2414]
+  https://github.com/com-lihaoyi/mill/pull/2518[#2518]
+  https://github.com/com-lihaoyi/mill/pull/2521[#2521]
+
+* Enabled compilation warnings in `build.sc`
+https://github.com/com-lihaoyi/mill/pull/2519[#2519]
+
+* Print out the CLI flags when inspecting ``T.command``s
+  https://github.com/com-lihaoyi/mill/pull/2522[#2522]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-0-M8]
@@ -456,8 +603,8 @@ _Changes since {prev-version}:_
 * Fixed the caching for private targets with same name but defined in different super traits.
 * Fixed non-functional `clean` command when used with arguments denoting modules.
 * `scalalib`: Fixed `GenIdea` issues on Windows, when the build uses plugins or additional libraries.
-* `scalajslib`: `ScalaJSModule.ScalaJSModuleTests` now extends `ScalaModule.ScalaModuleTests` which improves consistency, better default values and compatibility with other modules like `ScoverageModule`.
-* `scalanativelib`: `ScalaNativeModule.ScalaNativeModuleTests` now extends `ScalaModule.ScalaModuleTests` which improves consistency, better default values and compatibility with other modules.
+* `scalajslib`: `ScalaJSModule.ScalaJSTests` now extends `ScalaModule.ScalaTests` which improves consistency, better default values and compatibility with other modules like `ScoverageModule`.
+* `scalanativelib`: `ScalaNativeModule.ScalaNativeTests` now extends `ScalaModule.ScalaTests` which improves consistency, better default values and compatibility with other modules.
 * `contrib.gitlab`: Improved error handling for token lookup and documentation.
 * Updated dependencies: coursier 2.1.0-RC5, jna 5.13.0, semanticdb-scala 4.7.3, trees 4.7.3
 * Documentation improvements
@@ -1061,7 +1208,7 @@ and the {link-compare}/0.9.5\...0.9.6[list of commits]._
 * Support for Scala Native 0.4.0
 * Support for Scala.js ESModule (including Bloop support)
 * Inner `Tests` traits in modules like `JavaModule`, `ScalaModule` and others now have unique
- names (`JavaModuleTests`, `ScalaModuleTests`, etc), to allow for easier customization
+ names (`JavaModuleTests`, `ScalaTests`, etc), to allow for easier customization
 * Various version bumps of dependencies
 * CI now runs all tests, it did miss some before
 
@@ -1104,9 +1251,6 @@ _(We also tagged `0.9.0`, `0.9.1`, and `0.9.2`, but due to release difficulties,
 
 _For details refer to {link-milestone}/44?closed=1[milestone 0.9.3]
 and the {link-compare}/0.8.0\...0.9.3[list of commits]._
-
-=== Older releases
-:leveloffset: +1
 
 === 0.8.0 - 2020-07-20
 

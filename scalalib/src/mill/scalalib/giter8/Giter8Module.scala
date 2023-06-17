@@ -5,7 +5,7 @@ import mill.define.{Command, Discover, ExternalModule}
 import mill.util.Jvm
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib._
-import mill.BuildInfo
+import mill.main.BuildInfo
 import mill.api.Loose
 
 object Giter8Module extends ExternalModule with Giter8Module {

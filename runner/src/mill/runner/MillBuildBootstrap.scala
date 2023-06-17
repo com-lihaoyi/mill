@@ -1,11 +1,11 @@
 package mill.runner
 import mill.util.{ColorLogger, PrefixLogger, Util, Watchable}
-import mill.{BuildInfo, T}
+import mill.T
+import mill.main.BuildInfo
 import mill.api.{PathRef, Val, internal}
 import mill.eval.Evaluator
 import mill.main.{RootModule, RunScript}
 import mill.resolve.SelectMode
-import mill.main.TokenReaders._
 import mill.define.{Discover, Segments}
 
 import java.net.URLClassLoader
@@ -64,12 +64,21 @@ class MillBuildBootstrap(
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
-    val nestedRunnerState =
-      if (!os.exists(recRoot(projectRoot, depth) / "build.sc")) {
-        if (depth == 0) {
-          RunnerState(None, Nil, Some("build.sc file not found. Are you in a Mill project folder?"))
-        } else {
+    val nestedState =
+      if (depth == 0) {
+        if (os.exists(recRoot(projectRoot, depth) / "build.sc")) evaluateRec(depth + 1)
+        else {
+          val msg = "build.sc file not found. Are you in a Mill project folder?"
+          RunnerState(None, Nil, Some(msg))
+        }
+      } else {
+        val parsedScriptFiles = FileImportGraph.parseBuildFiles(
+          projectRoot,
+          recRoot(projectRoot, depth) / os.up
+        )
 
+        if (parsedScriptFiles.millImport) evaluateRec(depth + 1)
+        else {
           val bootstrapModule =
             new MillBuildRootModule.BootstrapModule(
               projectRoot,
@@ -84,61 +93,57 @@ class MillBuildBootstrap(
             )
           RunnerState(Some(bootstrapModule), Nil, None)
         }
-      } else {
-        evaluateRec(depth + 1)
       }
 
-    val res = if (nestedRunnerState.errorOpt.isDefined) {
-      nestedRunnerState.add(errorOpt = nestedRunnerState.errorOpt)
-    } else {
-      val validatedRootModuleOrErr = nestedRunnerState.frames.headOption match {
-        case None =>
-          getChildRootModule(
-            nestedRunnerState.bootstrapModuleOpt.get,
-            depth,
-            projectRoot
-          )
+    val res =
+      if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
+      else {
+        val validatedRootModuleOrErr = nestedState.frames.headOption match {
+          case None =>
+            getChildRootModule(nestedState.bootstrapModuleOpt.get, depth, projectRoot)
 
-        case Some(nestedFrame) =>
-          getRootModule(
-            nestedFrame.classLoaderOpt.get,
-            depth,
-            projectRoot
-          )
+          case Some(nestedFrame) =>
+            getRootModule(nestedFrame.classLoaderOpt.get, depth, projectRoot)
+        }
+
+        validatedRootModuleOrErr match {
+          case Left(err) => nestedState.add(errorOpt = Some(err))
+          case Right(rootModule) =>
+            val evaluator = makeEvaluator(
+              prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
+              nestedState.frames.headOption.map(_.scriptImportGraph).getOrElse(Map.empty),
+              nestedState.frames.headOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
+              rootModule,
+              // We want to use the grandparent buildHash, rather than the parent
+              // buildHash, because the parent build changes are instead detected
+              // by analyzing the scriptImportGraph in a more fine-grained manner.
+              nestedState
+                .frames
+                .dropRight(1)
+                .headOption
+                .map(_.runClasspath)
+                .getOrElse(millBootClasspath.map(PathRef(_)))
+                .map(p => (p.path, p.sig))
+                .hashCode(),
+              nestedState
+                .frames
+                .headOption
+                .flatMap(_.classLoaderOpt)
+                .map(_.hashCode())
+                .getOrElse(0),
+              depth
+            )
+
+            if (depth != 0) processRunClasspath(
+              nestedState,
+              rootModule,
+              evaluator,
+              prevFrameOpt,
+              prevOuterFrameOpt
+            )
+            else processFinalTargets(nestedState, rootModule, evaluator)
+        }
       }
-
-      validatedRootModuleOrErr match {
-        case Left(err) => nestedRunnerState.add(errorOpt = Some(err))
-        case Right(rootModule) =>
-          val evaluator = makeEvaluator(
-            prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
-            nestedRunnerState.frames.lastOption.map(_.scriptImportGraph).getOrElse(Map.empty),
-            nestedRunnerState.frames.lastOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
-            rootModule,
-            // We want to use the grandparent buildHash, rather than the parent
-            // buildHash, because the parent build changes are instead detected
-            // by analyzing the scriptImportGraph in a more fine-grained manner.
-            nestedRunnerState
-              .frames
-              .dropRight(1)
-              .headOption
-              .map(_.runClasspath)
-              .getOrElse(millBootClasspath.map(PathRef(_)))
-              .map(p => (p.path, p.sig))
-              .hashCode(),
-            depth
-          )
-
-          if (depth != 0) processRunClasspath(
-            nestedRunnerState,
-            rootModule,
-            evaluator,
-            prevFrameOpt,
-            prevOuterFrameOpt
-          )
-          else processFinalTargets(nestedRunnerState, rootModule, evaluator)
-      }
-    }
     // println(s"-evaluateRec($depth) " + recRoot(projectRoot, depth))
     res
   }
@@ -154,7 +159,7 @@ class MillBuildBootstrap(
    * inside to be re-JITed
    */
   def processRunClasspath(
-      nestedRunnerState: RunnerState,
+      nestedState: RunnerState,
       rootModule: RootModule,
       evaluator: Evaluator,
       prevFrameOpt: Option[RunnerState.Frame],
@@ -176,7 +181,7 @@ class MillBuildBootstrap(
           Nil
         )
 
-        nestedRunnerState.add(frame = evalState, errorOpt = Some(error))
+        nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
             Right(Seq(
@@ -227,7 +232,7 @@ class MillBuildBootstrap(
           runClasspath
         )
 
-        nestedRunnerState.add(frame = evalState)
+        nestedState.add(frame = evalState)
     }
   }
 
@@ -237,7 +242,7 @@ class MillBuildBootstrap(
    * classloader, or runClasspath.
    */
   def processFinalTargets(
-      nestedRunnerState: RunnerState,
+      nestedState: RunnerState,
       rootModule: RootModule,
       evaluator: Evaluator
   ): RunnerState = {
@@ -255,7 +260,7 @@ class MillBuildBootstrap(
       Nil
     )
 
-    nestedRunnerState.add(frame = evalState, errorOpt = evaled.left.toOption)
+    nestedState.add(frame = evalState, errorOpt = evaled.left.toOption)
   }
 
   def makeEvaluator(
@@ -264,6 +269,7 @@ class MillBuildBootstrap(
       methodCodeHashSignatures: Map[String, Int],
       rootModule: RootModule,
       millClassloaderSigHash: Int,
+      millClassloaderIdentityHash: Int,
       depth: Int
   ): Evaluator = {
 
@@ -277,7 +283,8 @@ class MillBuildBootstrap(
       recOut(projectRoot, depth),
       rootModule,
       PrefixLogger(logger, "", tickerContext = bootLogPrefix),
-      millClassloaderSigHash,
+      classLoaderSigHash = millClassloaderSigHash,
+      classLoaderIdentityHash = millClassloaderIdentityHash,
       workerCache = workerCache.to(collection.mutable.Map),
       env = env,
       failFast = !keepGoing,
@@ -301,7 +308,7 @@ object MillBuildBootstrap {
     // Copy the current location of the enclosing classes to `mill-launcher.jar`
     // if it has the wrong file extension, because the Zinc incremental compiler
     // doesn't recognize classpath entries without the proper file extension
-    val millLauncherOpt =
+    val millLauncherOpt: Option[os.Path] =
       if (
         os.isFile(selfClassLocation) &&
         !Set("zip", "jar", "class").contains(selfClassLocation.ext)

@@ -146,7 +146,12 @@ private object ResolveCore {
     segments.value.foldLeft[Either[String, Module]](Right(rootModule)) {
       case (Right(current), Segment.Label(s)) =>
         assert(s != "_", s)
-        resolveDirectChildren0(current.getClass, Some(s)) match {
+        resolveDirectChildren0(
+          rootModule,
+          current.millModuleSegments,
+          current.getClass,
+          Some(s)
+        ).flatMap {
           case Seq((_, Some(f))) => f(current)
           case unknown =>
             sys.error(
@@ -204,42 +209,64 @@ private object ResolveCore {
       }
     } else Right(Nil)
 
-    crossesOrErr.map { crosses =>
-      resolveDirectChildren0(cls, nameOpt)
-        .map {
-          case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
-          case (Resolved.Target(s), _) => Resolved.Target(segments ++ s)
-          case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
-        }
-        .toSet
-        .++(crosses)
+    crossesOrErr.flatMap { crosses =>
+      resolveDirectChildren0(rootModule, segments, cls, nameOpt)
+        .map(
+          _.map {
+            case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
+            case (Resolved.Target(s), _) => Resolved.Target(segments ++ s)
+            case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
+          }
+            .toSet
+            .++(crosses)
+        )
     }
   }
 
   def resolveDirectChildren0(
+      rootModule: Module,
+      segments: Segments,
       cls: Class[_],
       nameOpt: Option[String]
-  ): Seq[(Resolved, Option[Module => Either[String, Module]])] = {
+  ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
 
-    val modules = Reflect
-      .reflectNestedObjects0[Module](cls, namePred)
-      .map { case (name, member) =>
-        Resolved.Module(
-          Segments.labels(decode(name)),
-          member match {
-            case f: java.lang.reflect.Field => f.getType
-            case f: java.lang.reflect.Method => f.getReturnType
-          }
-        ) -> (
-          member match {
-            case f: java.lang.reflect.Field =>
-              Some((x: Module) => catchWrapException(f.get(x).asInstanceOf[Module]))
+    val modulesOrErr: Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] =
+      if (classOf[DynamicModule].isAssignableFrom(cls)) {
+        instantiateModule(rootModule, segments).map {
+          case m: DynamicModule =>
+            m.millModuleDirectChildren
+              .filter(c => namePred(c.millModuleSegments.parts.last))
+              .map(c =>
+                (
+                  Resolved.Module(
+                    Segments.labels(c.millModuleSegments.parts.last),
+                    c.getClass
+                  ),
+                  Some((x: Module) => Right(c))
+                )
+              )
+        }
+      } else Right {
+        Reflect
+          .reflectNestedObjects0[Module](cls, namePred)
+          .map { case (name, member) =>
+            Resolved.Module(
+              Segments.labels(decode(name)),
+              member match {
+                case f: java.lang.reflect.Field => f.getType
+                case f: java.lang.reflect.Method => f.getReturnType
+              }
+            ) -> (
+              member match {
+                case f: java.lang.reflect.Field =>
+                  Some((x: Module) => catchWrapException(f.get(x).asInstanceOf[Module]))
 
-            case f: java.lang.reflect.Method =>
-              Some((x: Module) => catchWrapException(f.invoke(x).asInstanceOf[Module]))
+                case f: java.lang.reflect.Method =>
+                  Some((x: Module) => catchWrapException(f.invoke(x).asInstanceOf[Module]))
+              }
+            )
           }
-        )
       }
 
     val targets = Reflect
@@ -254,7 +281,7 @@ private object ResolveCore {
       .map(m => decode(m.getName))
       .map { name => Resolved.Command(Segments.labels(name)) -> None }
 
-    modules ++ targets ++ commands
+    modulesOrErr.map(_ ++ targets ++ commands)
   }
 
   def notFoundResult(rootModule: Module, querySoFar: Segments, current: Resolved, next: Segment) = {

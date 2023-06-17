@@ -91,7 +91,10 @@ object ResolveTests extends TestSuite {
         "single.doesntExist",
         Left("Cannot resolve single.doesntExist. single resolves to a Task with no children.")
       )
-      "neg7" - check("", Left("Selector cannot be empty"))
+      "neg7" - check(
+        "",
+        Left("Target selector must not be empty. Try `mill resolve _` to see what's available.")
+      )
     }
     "backtickIdentifiers" - {
       val check = new Checker(bactickIdentifiers)
@@ -103,7 +106,10 @@ object ResolveTests extends TestSuite {
         "up-target.doesntExist",
         Left("Cannot resolve up-target.doesntExist. up-target resolves to a Task with no children.")
       )
-      "neg4" - check("", Left("Selector cannot be empty"))
+      "neg4" - check(
+        "",
+        Left("Target selector must not be empty. Try `mill resolve _` to see what's available.")
+      )
       "neg5" - check(
         "invisible",
         Left("Cannot resolve invisible. Try `mill resolve _` to see what's available.")
@@ -545,6 +551,67 @@ object ResolveTests extends TestSuite {
       }
     }
 
+    "duplicate" - {
+      val check = new Checker(duplicates)
+
+      def segments(
+          found: Either[String, List[NamedTask[_]]],
+          expected: Either[String, List[NamedTask[_]]]
+      ) = {
+        found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
+      }
+
+      "wildcard" - {
+        "wrapped" - {
+          "targets" - check.checkSeq0(
+            Seq("__.test1"),
+            _ == Right(List(duplicates.wrapper.test1.test1)),
+            _ == Right(List("wrapper.test1", "wrapper.test1.test1"))
+          )
+          "commands" - check.checkSeq0(
+            Seq("__.test2"),
+            segments(_, Right(List(duplicates.wrapper.test2.test2()))),
+            _ == Right(List("wrapper.test2", "wrapper.test2.test2"))
+          )
+        }
+        "targets" - check.checkSeq0(
+          Seq("__.test3"),
+          _ == Right(List(duplicates.test3.test3)),
+          _ == Right(List("test3", "test3.test3"))
+        )
+        "commands" - check.checkSeq0(
+          Seq("__.test4"),
+          segments(_, Right(List(duplicates.test4.test4()))),
+          _ == Right(List("test4", "test4.test4"))
+        )
+      }
+
+      "braces" - {
+        "targets" - check.checkSeq0(
+          Seq("{test3.test3,test3.test3}"),
+          _ == Right(List(duplicates.test3.test3)),
+          _ == Right(List("test3.test3"))
+        )
+        "commands" - check.checkSeq0(
+          Seq("{test4,test4}"),
+          segments(_, Right(List(duplicates.test4.test4()))),
+          _ == Right(List("test4"))
+        )
+      }
+      "plus" - {
+        "targets" - check.checkSeq0(
+          Seq("test3.test3", "+", "test3.test3"),
+          _ == Right(List(duplicates.test3.test3)),
+          _ == Right(List("test3.test3"))
+        )
+        "commands" - check.checkSeq0(
+          Seq("test4", "+", "test4"),
+          segments(_, Right(List(duplicates.test4.test4()))),
+          _ == Right(List("test4"))
+        )
+      }
+    }
+
     "moduleInitError" - {
       "simple" - {
         val check = new Checker(moduleInitError)
@@ -757,6 +824,36 @@ object ResolveTests extends TestSuite {
         "sub.inner.baseTarget",
         Right(Set(_.sub.inner.baseTarget)),
         Set("sub.inner.baseTarget")
+      )
+    }
+    test("dynamicModule") {
+      val check = new Checker(dynamicModule)
+      test - check(
+        "normal.inner.target",
+        Right(Set(_.normal.inner.target)),
+        Set("normal.inner.target")
+      )
+      test - check(
+        "normal._.target",
+        Right(Set(_.normal.inner.target)),
+        Set("normal.inner.target")
+      )
+      test - check(
+        "niled.inner.target",
+        Left(
+          "Cannot resolve niled.inner.target. Try `mill resolve niled._` to see what's available."
+        ),
+        Set()
+      )
+      test - check(
+        "niled._.target",
+        Left("Cannot resolve niled._.target. Try `mill resolve niled._` to see what's available."),
+        Set()
+      )
+      test - check(
+        "__.target",
+        Right(Set(_.normal.inner.target)),
+        Set("normal.inner.target")
       )
     }
   }

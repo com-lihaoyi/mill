@@ -8,17 +8,17 @@ trait MyModule extends Module{
 
 object foo extends Cross[FooModule]("a", "b")
 trait FooModule extends Cross.Module[String] {
-  object bar extends MyModule with InnerCrossModule{
+  object bar extends MyModule with CrossValue{
     def name = "Bar"
   }
-  object qux extends MyModule with InnerCrossModule{
+  object qux extends MyModule with CrossValue{
     def name = "Qux"
   }
 }
 
 def baz = T { s"hello ${foo("a").bar.param()}" }
 
-// You can use the `InnerCrossModule` trait within any `Cross.Module` to
+// You can use the `CrossValue` trait within any `Cross.Module` to
 // propagate the `crossValue` defined by an enclosing `Cross.Module` to some
 // nested module. In this case, we use it to bind `crossValue` so it can be
 // used in `def param`. This lets you reduce verbosity by defining the `Cross`
@@ -27,7 +27,7 @@ def baz = T { s"hello ${foo("a").bar.param()}" }
 // modules that take multiple inputs.
 //
 // You can reference the modules and tasks defined within such a
-// `InnerCrossModule` as is done in `def qux` above
+// `CrossValue` as is done in `def qux` above
 
 /** Usage
 

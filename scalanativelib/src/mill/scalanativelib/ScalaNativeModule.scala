@@ -19,7 +19,7 @@ import mill.scalalib.{
   ScalaModule,
   TestModule
 }
-import mill.testrunner.TestRunner
+import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalanativelib.api._
 import mill.scalanativelib.worker.{ScalaNativeWorkerExternalModule, api => workerApi}
 
@@ -31,9 +31,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 
-  trait Tests extends ScalaNativeModuleTests
-
-  trait ScalaNativeModuleTests extends ScalaModuleTests with TestScalaNativeModule {
+  @deprecated("use ScalaNativeTests", "0.11.0")
+  type ScalaNativeModuleTests = ScalaNativeTests
+  trait ScalaNativeTests extends ScalaTests with TestScalaNativeModule {
     override def scalaNativeVersion = outer.scalaNativeVersion()
     override def releaseMode = T { outer.releaseMode() }
     override def logLevel = outer.logLevel()
@@ -100,7 +100,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def bridgeFullClassPath: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       repositoriesTask(),
-      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.BuildInfo.scalaVersion, "")),
+      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     ).map(t => (scalaNativeWorkerClasspath() ++ t))
   }
@@ -330,7 +330,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override protected def testTask(
       args: Task[Seq[String]],
       globSeletors: Task[Seq[String]]
-  ): Task[(String, Seq[TestRunner.Result])] = T.task {
+  ): Task[(String, Seq[TestResult])] = T.task {
 
     val (close, framework) = scalaNativeBridge().getFramework(
       nativeLink().toIO,
@@ -345,7 +345,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       Agg(compile().classes.path),
       args(),
       T.testReporter,
-      TestRunner.globFilter(globSeletors())
+      TestRunnerUtils.globFilter(globSeletors())
     )
     val res = TestModule.handleResults(doneMsg, results, Some(T.ctx()))
     // Hack to try and let the Scala Native subprocess finish streaming it's stdout

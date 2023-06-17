@@ -7,7 +7,7 @@
 set -e
 
 if [ -z "${DEFAULT_MILL_VERSION}" ] ; then
-  DEFAULT_MILL_VERSION=0.10.11
+  DEFAULT_MILL_VERSION=0.11.0
 fi
 
 if [ -z "$MILL_VERSION" ] ; then
@@ -40,7 +40,7 @@ if [ ! -s "$MILL_EXEC_PATH" ] ; then
   fi
   DOWNLOAD_FILE=$MILL_EXEC_PATH-tmp-download
   MILL_VERSION_TAG=$(echo $MILL_VERSION | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
-  MILL_DOWNLOAD_URL="https://github.com/lihaoyi/mill/releases/download/${MILL_VERSION_TAG}/$MILL_VERSION${ASSEMBLY}"
+  MILL_DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/$MILL_VERSION/mill-dist-$MILL_VERSION.jar"
   curl --fail -L -o "$DOWNLOAD_FILE" "$MILL_DOWNLOAD_URL"
   chmod +x "$DOWNLOAD_FILE"
   mv "$DOWNLOAD_FILE" "$MILL_EXEC_PATH"

@@ -7,11 +7,13 @@ import java.net.Socket
 import scala.jdk.CollectionConverters._
 import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
-import mill.BuildInfo
+import mill.main.BuildInfo
 import mill.main.client._
 import mill.api.internal
 import mill.main.client.lock.{Lock, Locks}
 import mill.api.SystemStreams
+
+import scala.util.Try
 
 @internal
 trait MillServerMain[T] {
@@ -46,11 +48,15 @@ object MillServerMain extends MillServerMain[RunnerState] {
         def handle(sig: Signal) = {} // do nothing
       }
     )
+
+    val acceptTimeoutMillis =
+      Try(System.getProperty("mill.server_timeout").toInt).getOrElse(5 * 60 * 1000) // 5 minutes
+
     new Server(
       lockBase = args0(0),
       this,
       () => System.exit(MillClientMain.ExitServerCodeWhenIdle()),
-      acceptTimeoutMillis = 5 * 60 * 1000, // 5 minutes
+      acceptTimeoutMillis = acceptTimeoutMillis,
       Locks.files(args0(0))
     ).run()
   }

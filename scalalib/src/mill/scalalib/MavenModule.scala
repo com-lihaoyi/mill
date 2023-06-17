@@ -27,5 +27,4 @@ trait MavenModule extends JavaModule { outer =>
       millSourcePath / "src" / "test" / "resources"
     }
   }
-  trait Tests extends MavenModuleTests
 }

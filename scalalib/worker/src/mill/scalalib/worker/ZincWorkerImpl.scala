@@ -136,21 +136,26 @@ class ZincWorkerImpl(
         val dottydocClass =
           compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
         val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
-        val reporter = dottydocMethod.invoke(dottydocClass.newInstance(), args.toArray)
+        val reporter =
+          dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), args.toArray)
         val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
         !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
       } else if (ZincWorkerUtil.isScala3(scalaVersion)) {
         val scaladocClass =
           compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
         val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
-        val reporter = scaladocMethod.invoke(scaladocClass.newInstance(), args.toArray)
+        val reporter =
+          scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
         val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
         !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
       } else {
         val scaladocClass =
           compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
         val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
-        scaladocMethod.invoke(scaladocClass.newInstance(), args.toArray).asInstanceOf[Boolean]
+        scaladocMethod.invoke(
+          scaladocClass.getConstructor().newInstance(),
+          args.toArray
+        ).asInstanceOf[Boolean]
       }
     }
   }
@@ -270,9 +275,7 @@ class ZincWorkerImpl(
 
   }
 
-  def discoverMainClasses(compilationResult: CompilationResult)(implicit
-      ctx: ZincWorkerApi.Ctx
-  ): Seq[String] = {
+  def discoverMainClasses(compilationResult: CompilationResult): Seq[String] = {
     def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
 
     toScala(FileAnalysisStore.binary(compilationResult.analysisFile.toIO).get())
