@@ -7,7 +7,7 @@ asciidoc:
   attributes:
     mill-version: '0.11.0'
     mill-last-tag: '0.11-0'
-    bsp-version: '2.1.0-M4'
+    bsp-version: '2.1.0-M5'
     example-semanticdb-version: '4.7.8'
     example-scala-2-13-version: '2.13.11'
     example-utest-version: '0.8.1'
