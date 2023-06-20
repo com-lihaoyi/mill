@@ -541,6 +541,16 @@ object ResolveTests extends TestSuite {
               "cross[212].cross2[native].suffix"
             )
           )
+          // "212" is the defaultCrossSegments
+          "head" - check(
+              "cross[].cross2[jvm].suffix",
+              Right(Set(
+                _.cross("212").cross2("jvm").suffix
+              )),
+              Set(
+                "cross[212].cross2[jvm].suffix"
+              )
+          )
         }
       }
 
