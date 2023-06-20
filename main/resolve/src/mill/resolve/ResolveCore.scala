@@ -123,7 +123,13 @@ private object ResolveCore {
                       if segments.length == cross.length
                       if segments.zip(cross).forall { case (l, r) => l == r || r == "_" }
                     } yield v
-                  } else c.segmentsToModules.get(cross.toList).toSeq
+                  } else {
+                    val crossOrDefault = if (cross.isEmpty) {
+                      // We want to select the default (first) crossValue
+                      c.defaultCrossSegments
+                    } else cross
+                    c.segmentsToModules.get(crossOrDefault.toList).toSeq
+                  }
                 )
               } match {
                 case Left(err) => Error(err)
