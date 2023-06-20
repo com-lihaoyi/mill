@@ -293,7 +293,7 @@ private object ResolveCore {
   def notFoundResult(rootModule: Module, querySoFar: Segments, current: Resolved, next: Segment) = {
     val possibleNexts = current match {
       case m: Resolved.Module =>
-        resolveDirectChildren(rootModule, m.cls, None, current.segments).right.get.map(
+        resolveDirectChildren(rootModule, m.cls, None, current.segments).toOption.get.map(
           _.segments.value.last
         )
 

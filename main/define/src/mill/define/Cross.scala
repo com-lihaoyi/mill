@@ -128,6 +128,7 @@ object Cross {
   )
 
   object Factory {
+    import scala.language.implicitConversions
 
     /**
      * Implicitly constructs a Factory[M] for a target-typed `M`. Takes in an
