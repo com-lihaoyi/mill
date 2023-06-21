@@ -126,6 +126,7 @@ object Deps {
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
+  val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.4"
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
@@ -1458,6 +1459,7 @@ object docs extends Module {
       else s"${Settings.projectUrl}/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
+       |    mill-scip-version: ${Deps.millScip.dep.version}
        |
        |antora:
        |  extensions:
@@ -1703,5 +1705,6 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
 /** Dummy module to let Scala-Steward find and bump dependency versions we use at runtime */
 object DependencyFetchDummy extends ScalaModule {
   def scalaVersion = Deps.scalaVersion
-  def compileIvyDeps = Agg(Deps.semanticDbJava, Deps.semanticDB, Deps.testScalaTest, Deps.testZioTest)
+  def compileIvyDeps =
+    Agg(Deps.millScip, Deps.semanticDbJava, Deps.semanticDB, Deps.testScalaTest, Deps.testZioTest)
 }

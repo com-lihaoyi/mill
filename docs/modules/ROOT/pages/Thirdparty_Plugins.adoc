@@ -828,10 +828,10 @@ scip-java index
 
 You can also manually trigger this with Mill by doing the following:
 
-[source, shell script]
+[source, shell script, subs="attributes,verbatim"]
 ----
 
-mill --import ivy:io.chris-kipp::mill-scip::0.2.2 io.kipp.mill.scip.Scip/generate
+mill --import ivy:io.chris-kipp::mill-scip::{mill-scip-version} io.kipp.mill.scip.Scip/generate
 ----
 
 This will then generate your `index.scip` inside of
