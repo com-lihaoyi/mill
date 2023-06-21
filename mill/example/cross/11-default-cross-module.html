@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: Mill</title>
-    <link rel="canonical" href="https://mill-build.com/mill/example/scalabuilds/8-sbt-compat-modules.html" />
+    <link rel="canonical" href="https://mill-build.com/mill/example/cross/11-default-cross-module.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script>var uiRootPath = '../../../_'</script>
@@ -295,14 +295,14 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.0-25-727669</button>
   <div class="version-menu">
-    <a class="version is-current" href="8-sbt-compat-modules.html">0.11.0-25-727669</a>
+    <a class="version is-current" href="11-default-cross-module.html">0.11.0-25-727669</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="../../0.10.0/index.html">0.10.0</a>
     <a class="version is-missing" href="../../0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/scalabuilds/8-sbt-compat-modules.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/cross/11-default-cross-module.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -310,91 +310,35 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-25-727669-example-scalabuilds-8-sbt-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/8-sbt-compat-modules">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.0-25-727669-example-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/11-default-cross-module">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends SbtModule {
-  def scalaVersion = &quot;2.13.8&quot;
-  object test extends SbtModuleTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
-  }
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+
+trait FooModule extends Cross.Module[String] {
+  def suffix = T { &quot;_&quot; + crossValue }
 }
 
-
-object bar extends Cross[BarModule](&quot;2.12.17&quot;, &quot;2.13.8&quot;)
-trait BarModule extends CrossSbtModule {
-  object test extends CrossSbtModuleTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
-  }
+object bar extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;) {
+  def defaultCrossSegments = Seq(&quot;2.12&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>SbtModule</code>/<code>CrossSbtModule</code> are variants of <code>ScalaModule</code>/<code>CrossScalaModule</code>
-that use the more verbose folder layout of SBT, Maven, and other tools:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>foo/src/main/scala</code></p>
-</li>
-<li>
-<p><code>foo/src/main/scala-2.12</code></p>
-</li>
-<li>
-<p><code>foo/src/main/scala-2.13</code></p>
-</li>
-<li>
-<p><code>foo/src/test/scala</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Rather than Mill’s</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>foo/src</code></p>
-</li>
-<li>
-<p><code>foo/src-2.12</code></p>
-</li>
-<li>
-<p><code>foo/src-2.13</code></p>
-</li>
-<li>
-<p><code>foo/test/src</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>This is especially useful if you are migrating from SBT to Mill (or vice
-versa), during which a particular module may be built using both SBT and
-Mill at the same time</p>
+<p>For convenience, you can omit the selector for the default cross segment.
+By default, this is the first cross value specified.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.compile
-compiling 1 Scala source...
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.10].suffix
+&quot;_2.10&quot;
 
-&gt; ./mill foo.test.compile
-compiling 1 Scala source...
+&gt; ./mill show foo[].suffix
+&quot;_2.10&quot;
 
-&gt; ./mill foo.test.test
-+ foo.FooTests.hello ...
-
-&gt; ./mill foo.test
-+ foo.FooTests.hello ...
-
-&gt; ./mill bar[2.13.8].run
-Bar.value: Hello World Scala library version 2.13.8...
-
-&gt; ./mill bar[2.12.17].run
-Bar.value: Hello World Scala library version 2.12.17...</code></pre>
+&gt; ./mill show bar[].suffix
+&quot;_2.12&quot;</code></pre>
 </div>
 </div>
 </article>
