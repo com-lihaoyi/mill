@@ -128,6 +128,7 @@ object Cross {
   )
 
   object Factory {
+    import scala.language.implicitConversions
 
     /**
      * Implicitly constructs a Factory[M] for a target-typed `M`. Takes in an
@@ -338,6 +339,12 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
     .to(collection.mutable.LinkedHashMap)
     .view
     .mapValues(_.value)
+
+  /**
+   * The default cross segments to use, when no cross value is specified.
+   * Defaults to the first cross value per cross level.
+   */
+  def defaultCrossSegments: Seq[String] = items.head.crossSegments
 
   /**
    * Fetch the cross module corresponding to the given cross values
