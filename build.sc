@@ -126,7 +126,7 @@ object Deps {
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
-  val millScip = ivy"io.chris-kipp::mill-scip::0.3.4"
+  val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.4"
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
@@ -1706,5 +1706,5 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
 object DependencyFetchDummy extends ScalaModule {
   def scalaVersion = Deps.scalaVersion
   def compileIvyDeps =
-    Agg(Deps.semanticDbJava, Deps.semanticDB, Deps.testScalaTest, Deps.testZioTest)
+    Agg(Deps.millScip, Deps.semanticDbJava, Deps.semanticDB, Deps.testScalaTest, Deps.testZioTest)
 }
