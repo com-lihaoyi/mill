@@ -95,11 +95,14 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     completableTasks(
       s"buildTargetScalaTestClasses ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      tasks = { case m: TestModule =>
-        T.task((m.runClasspath(), m.testFramework(), m.compile()))
+      tasks = {
+        case m: TestModule =>
+          T.task(Some(m.runClasspath(), m.testFramework(), m.compile()))
+        case _ =>
+          T.task(None)
       }
     ) {
-      case (state, id, m: TestModule, (classpath, testFramework, compResult)) =>
+      case (state, id, m: TestModule, Some((classpath, testFramework, compResult))) =>
         val (frameworkName, classFingerprint): (String, Agg[(Class[_], Fingerprint)]) =
           Jvm.inprocess(
             classpath.map(_.path),
