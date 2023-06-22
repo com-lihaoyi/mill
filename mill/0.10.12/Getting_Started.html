@@ -1,26 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Getting Started :: Mill</title>
-    <link rel="canonical" href="https://mill-build.com/mill/0.11.0-M7/Getting_Started.html" />
-    <link rel="prev" href="Installation.html" />
-    <link rel="next" href="IDE_Support.html" />
-    <meta name="generator" content="Antora 3.0.1" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
+    <link rel="canonical" href="https://mill-build.com/mill/0.11.0-M7/Getting_Started.html">
+    <link rel="prev" href="Installation.html">
+    <link rel="next" href="IDE_Support.html">
+    <meta name="generator" content="Antora 3.0.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
     <script>var uiRootPath = '../../_'</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.com"><img src="../../_/logo-white.svg" height="20" /> Mill</a>
+      <a class="navbar-item" href="https://mill-build.com"><img src="../../_/logo-white.svg" height="20" />&nbsp;Mill</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -251,7 +250,7 @@
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-latest">
-          <a href="../index.html">0.11.0-27-d74d22</a>
+          <a href="../index.html">0.11.0-28-18a61d</a>
         </li>
         <li class="version">
           <a href="../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -285,7 +284,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.10.12</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../index.html">0.11.0-27-d74d22</a>
+    <a class="version is-missing" href="../index.html">0.11.0-28-18a61d</a>
     <a class="version" href="../0.11.0-M7/Getting_Started.html">0.11.0-M7</a>
     <a class="version is-current" href="Getting_Started.html">0.10.12</a>
     <a class="version is-missing" href="../0.10.0/index.html">0.10.0</a>
@@ -323,7 +322,7 @@ object foo extends JavaModule {}</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.10&quot;
+  def scalaVersion = "2.13.10"
 }</code></pre>
 </div>
 </div>
@@ -356,7 +355,7 @@ out/
 </div>
 <div class="paragraph">
 <p>The source code for this module would live in the <code>foo/src/</code> folder, matching the name you assigned to the module.
-Output for this module (compiled files, resolved dependency lists, &hellip;) would live in <code>out/foo/</code>.</p>
+Output for this module (compiled files, resolved dependency lists, …) would live in <code>out/foo/</code>.</p>
 </div>
 <div class="paragraph">
 <p>This can be run from the Bash shell via:</p>
@@ -375,14 +374,14 @@ $ mill foo.jar                     # bundle the classfiles into a jar
 
 $ mill foo.assembly                # bundle classfiles and all dependencies into a jar
 
-$ mill -i foo.console              # start a Scala console within your project (in interactive mode: &quot;-i&quot;)
+$ mill -i foo.console              # start a Scala console within your project (in interactive mode: "-i")
 
-$ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: &quot;-i&quot;)</code></pre>
+$ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: "-i")</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You can run <code>mill resolve __</code> to see a full list of the different tasks that are available, <code>mill resolve foo._</code> to see
-the tasks within <code>foo</code>, <code>mill inspect foo.compile</code> to inspect a task’s doc-comment documentation or what it depends on,
+the tasks within <code>foo</code>, <code>mill inspect foo.compile</code> to inspect a task&#8217;s doc-comment documentation or what it depends on,
 or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
 </div>
 <div class="paragraph">
@@ -418,13 +417,13 @@ object bar extends JavaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.10&quot;
+  def scalaVersion = "2.13.10"
 }
 
 object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
 
-  def scalaVersion = &quot;2.13.10&quot;
+  def scalaVersion = "2.13.10"
 }</code></pre>
 </div>
 </div>
@@ -472,7 +471,7 @@ $ mill bar.assembly</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s evaluator will ensure that the modules are compiled in the right order, and recompiled as necessary when source
+<p>Mill&#8217;s evaluator will ensure that the modules are compiled in the right order, and recompiled as necessary when source
 code in each module changes.</p>
 </div>
 <div class="paragraph">
@@ -484,12 +483,12 @@ code in each module changes.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.10&quot;
+  def scalaVersion = "2.13.10"
 
   object bar extends ScalaModule {
     def moduleDeps = Seq(foo)
 
-    def scalaVersion = &quot;2.13.10&quot;
+    def scalaVersion = "2.13.10"
   }
 }</code></pre>
 </div>
@@ -542,7 +541,7 @@ $ mill foo.bar.assembly</code></pre>
 <h2 id="_watch_and_re_evaluate"><a class="anchor" href="#_watch_and_re_evaluate"></a>Watch and Re-evaluate</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can use the <code>--watch</code> flag to make Mill watch a task’s inputs, re-evaluating the task as necessary when the inputs
+<p>You can use the <code>--watch</code> flag to make Mill watch a task&#8217;s inputs, re-evaluating the task as necessary when the inputs
 change:</p>
 </div>
 <div class="listingblock">
@@ -554,7 +553,7 @@ $ mill -w foo.run</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s <code>--watch</code> flag watches both the files you are building using Mill, as well as Mill’s own <code>build.sc</code> file and
+<p>Mill&#8217;s <code>--watch</code> flag watches both the files you are building using Mill, as well as Mill&#8217;s own <code>build.sc</code> file and
 anything it imports, so any changes to your <code>build.sc</code> will automatically get picked up.</p>
 </div>
 <div class="paragraph">
@@ -595,7 +594,7 @@ This is currently the default.</p>
 </div>
 <div class="paragraph">
 <p>Please note that the maximal possible parallelism depends on your project.
-Tasks that depend on each other can’t be processed in parallel.</p>
+Tasks that depend on each other can&#8217;t be processed in parallel.</p>
 </div>
 </div>
 </div>
@@ -620,7 +619,7 @@ usage: mill [options] [[target [target-options]] [+ [target ...]]]
   --bsp                Run a BSP server against the passed scripts
   -c --code &lt;str&gt;      Pass in code to be run immediately in the REPL
   -h --home &lt;path&gt;     The home directory of the REPL; where it looks for config and caches
-  -p --predef &lt;path&gt;   Lets you load your predef from a custom location, rather than the &quot;default
+  -p --predef &lt;path&gt;   Lets you load your predef from a custom location, rather than the "default
                        location in your Ammonite home
   --color &lt;bool&gt;       Enable or disable colored output; by default colors are enabled in both REPL
                        and scripts if the console is interactive, and disabled otherwise
@@ -658,8 +657,8 @@ If you provide optional target arguments and your wildcard or brace-expansion is
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. Wildcards and brace-expansion</caption>
 <colgroup>
-<col style="width: 50%;" />
-<col style="width: 50%;" />
+<col style="width: 50%;">
+<col style="width: 50%;">
 </colgroup>
 <tbody>
 <tr>
@@ -771,13 +770,13 @@ foo.artifactName
 </div>
 <div class="paragraph">
 <p><code>resolve</code> lists the tasks that match a particular query, without running them.
-This is useful for &quot;dry running&quot; an <code>mill</code> command to see what would be run before you run them, or to explore what modules or tasks are available
+This is useful for "dry running" an <code>mill</code> command to see what would be run before you run them, or to explore what modules or tasks are available
 from the command line using <code>resolve _</code>, <code>resolve foo._</code>, etc.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill resolve foo.{compile,run}
-mill resolve &quot;foo.{compile,run}&quot;
+mill resolve "foo.{compile,run}"
 mill resolve foo.compile foo.run
 mill resolve _.compile          # list the compile tasks for every top-level module
 mill resolve __.compile         # list the compile tasks for every module
@@ -817,7 +816,7 @@ exploring the structure of your build from the command line.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill inspect foo.compile
 mill inspect foo.{compile,run}
-mill inspect &quot;foo.{compile,run}&quot;
+mill inspect "foo.{compile,run}"
 mill inspect foo.compile foo.run
 mill inspect _.compile
 mill inspect __.compile
@@ -833,7 +832,7 @@ mill inspect __</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show foo.scalaVersion
 [1/1] show
-&quot;2.13.1&quot;</code></pre>
+"2.13.1"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -852,8 +851,8 @@ E.g. <code>compile</code> returns the paths to the <code>classes</code> folder a
 [1/1] show
 [10/25] foo.resources
 {
-    &quot;analysisFile&quot;: &quot;/Users/lihaoyi/Dropbox/Github/test//out/foo/compile.dest/zinc&quot;,
-    &quot;classes&quot;: &quot;ref:07960649:/Users/lihaoyi/Dropbox/Github/test//out/foo/compile.dest/classes&quot;
+    "analysisFile": "/Users/lihaoyi/Dropbox/Github/test//out/foo/compile.dest/zinc",
+    "classes": "ref:07960649:/Users/lihaoyi/Dropbox/Github/test//out/foo/compile.dest/classes"
 }</code></pre>
 </div>
 </div>
@@ -866,15 +865,15 @@ E.g. <code>compile</code> returns the paths to the <code>classes</code> folder a
 [1/1] show
 [1/1] foo.sources
 [
-    &quot;ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src&quot;
+    "ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src"
 ]
 
 $ mill show foo.compileClasspath
 [1/1] show
 [2/11] foo.resources
 [
-    &quot;ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources&quot;,
-    &quot;.../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar&quot;
+    "ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources",
+    ".../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar"
 ]</code></pre>
 </div>
 </div>
@@ -887,16 +886,16 @@ parsed and manipulated.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show &quot;foo.{sources,compileClasspath}&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show "foo.{sources,compileClasspath}"
 [1/1] show
 [2/11] foo.resources
 [
   [
-    &quot;ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src&quot;
+    "ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src"
   ],
   [
-    &quot;ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources&quot;,
-    &quot;.../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar&quot;
+    "ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources",
+    ".../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar"
   ]
 ]</code></pre>
 </div>
@@ -909,18 +908,18 @@ parsed and manipulated.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill showNamed &quot;foo.{sources,compileClasspath}&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill showNamed "foo.{sources,compileClasspath}"
 [1/1] show
 [2/11] foo.resources
 {
-  &quot;foo.sources&quot;:
+  "foo.sources":
   [
-    &quot;ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src&quot;
+    "ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src"
   ],
-  &quot;foo.compileClasspath&quot;:
+  "foo.compileClasspath":
   [
-    &quot;ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources&quot;,
-    &quot;.../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar&quot;
+    "ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources",
+    ".../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar"
   ]
 }</code></pre>
 </div>
@@ -968,7 +967,7 @@ foo.compileClasspath</code></pre>
 <div class="paragraph">
 <p><code>mill plan foo</code> shows which tasks would be evaluated, and in what order, if you ran <code>mill foo</code>, but without actually running them.
 This is a useful tool for debugging your build: e.g. if you suspect a task <code>foo</code> is running things that it
-shouldn’t be running, a quick <code>mill plan</code> will list out all the upstream tasks that <code>foo</code> needs to run, and you can then
+shouldn&#8217;t be running, a quick <code>mill plan</code> will list out all the upstream tasks that <code>foo</code> needs to run, and you can then
 follow up with <code>mill path</code> on any individual upstream task to see exactly how <code>foo</code> depends on it.</p>
 </div>
 </div>
@@ -980,11 +979,11 @@ follow up with <code>mill path</code> on any individual upstream task to see exa
 [1/1] show
 [3/3] visualize
 [
-    &quot;.../out/visualize.dest/out.txt&quot;,
-    &quot;.../out/visualize.dest/out.dot&quot;,
-    &quot;.../out/visualize.dest/out.json&quot;,
-    &quot;.../out/visualize.dest/out.png&quot;,
-    &quot;.../out/visualize.dest/out.svg&quot;
+    ".../out/visualize.dest/out.txt",
+    ".../out/visualize.dest/out.dot",
+    ".../out/visualize.dest/out.json",
+    ".../out/visualize.dest/out.png",
+    ".../out/visualize.dest/out.svg"
 ]</code></pre>
 </div>
 </div>
@@ -998,7 +997,7 @@ and <code>.json</code> for easy processing by downstream tools.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/VisualizeFoo.svg" alt="VisualizeFoo.svg" />
+<img src="_images/VisualizeFoo.svg" alt="VisualizeFoo.svg">
 </div>
 </div>
 </div>
@@ -1010,11 +1009,11 @@ and <code>.json</code> for easy processing by downstream tools.</p>
 [1/1] show
 [3/3] visualizePlan
 [
-    &quot;.../out/visualizePlan.dest/out.txt&quot;,
-    &quot;.../out/visualizePlan.dest/out.dot&quot;,
-    &quot;.../out/visualizePlan.dest/out.json&quot;,
-    &quot;.../out/visualizePlan.dest/out.png&quot;,
-    &quot;.../out/visualizePlan.dest/out.svg&quot;
+    ".../out/visualizePlan.dest/out.txt",
+    ".../out/visualizePlan.dest/out.dot",
+    ".../out/visualizePlan.dest/out.json",
+    ".../out/visualizePlan.dest/out.png",
+    ".../out/visualizePlan.dest/out.svg"
 ]</code></pre>
 </div>
 </div>
@@ -1028,7 +1027,7 @@ dependencies are shown with a dotted border.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/VisualizePlan.svg" alt="VisualizePlan.svg" />
+<img src="_images/VisualizePlan.svg" alt="VisualizePlan.svg">
 </div>
 </div>
 <div class="paragraph">
@@ -1040,23 +1039,23 @@ dependencies are shown with a dotted border.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.1&quot;
+  def scalaVersion = "2.13.1"
 }
 
 object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
 
-  def scalaVersion = &quot;2.13.1&quot;
+  def scalaVersion = "2.13.1"
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p><code>mill show visualizePlan _.compile</code> diagrams the relationships between the compile tasks of each module, which
-illustrates which module depends on which other module’s compilation output:</p>
+illustrates which module depends on which other module&#8217;s compilation output:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/VisualizeCompile.svg" alt="VisualizeCompile.svg" />
+<img src="_images/VisualizeCompile.svg" alt="VisualizeCompile.svg">
 </div>
 </div>
 </div>
@@ -1077,7 +1076,7 @@ or specific tasks.</p>
 mill clean foo                 # clean all outputs for module 'foo' (including nested modules)
 mill clean foo.compile         # only clean outputs for task 'compile' in module 'foo'
 mill clean foo.{compile,run}
-mill clean &quot;foo.{compile,run}&quot;
+mill clean "foo.{compile,run}"
 mill clean foo.compile foo.run
 mill clean _.compile
 mill clean __.compile</code></pre>
@@ -1092,7 +1091,7 @@ mill clean __.compile</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill can search for updated versions of your project’s dependencies, if available from your project’s configured
+<p>Mill can search for updated versions of your project&#8217;s dependencies, if available from your project&#8217;s configured
 repositories. Note that it uses heuristics based on common versioning schemes, so it may not work as expected for
 dependencies with particularly weird version numbers.</p>
 </div>
@@ -1109,7 +1108,7 @@ dependencies with particularly weird version numbers.</p>
 <p>Always applies to all modules in the build.</p>
 </li>
 <li>
-<p>Doesn’t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
+<p>Doesn&#8217;t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
 </li>
 </ul>
 </div>
@@ -1191,7 +1190,7 @@ publishing (e.g. to Maven Central). Mill comes with both capabilities built in.<
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.1&quot;
+  def scalaVersion = "2.13.1"
 }</code></pre>
 </div>
 </div>
@@ -1216,7 +1215,7 @@ Hello World!</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>To publish to Maven Central, you need to make <code>foo</code> also extend Mill’s
+<p>To publish to Maven Central, you need to make <code>foo</code> also extend Mill&#8217;s
 <code>PublishModule</code> trait:</p>
 </div>
 <div class="listingblock">
@@ -1225,18 +1224,18 @@ Hello World!</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {
-  def scalaVersion = &quot;2.13.1&quot;
+  def scalaVersion = "2.13.1"
 
-  def publishVersion = &quot;0.0.1&quot;
+  def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
-    description = &quot;Hello&quot;,
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/lihaoyi/example&quot;,
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    versionControl = VersionControl.github("lihaoyi", "example"),
     developers = Seq(
-      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
+      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
     )
   )
 }</code></pre>
@@ -1268,9 +1267,9 @@ Missing arguments: (--sonatypeCreds: String, --release: Boolean)
 Arguments provided did not match expected signature:
 
 publish
-  --sonatypeCreds   String (format: &quot;username:password&quot;)
+  --sonatypeCreds   String (format: "username:password")
   --signed          Boolean (default true)
-  --gpgArgs         Seq[String] (default Seq(&quot;--batch&quot;, &quot;--yes&quot;, &quot;-a&quot;, &quot;-b&quot;))
+  --gpgArgs         Seq[String] (default Seq("--batch", "--yes", "-a", "-b"))
   --readTimeout     Int (default 60000)
   --release         Boolean (default true)
   --connectTimeout  Int (default 5000)
@@ -1294,8 +1293,8 @@ on <code>oss.sonatype.org</code> or you want Mill to complete the release proces
 <h2 id="_running_mill_with_custom_jvm_options"><a class="anchor" href="#_running_mill_with_custom_jvm_options"></a>Running Mill with custom JVM options</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>It’s possible to pass JVM options to the Mill launcher. To do this you need to create a <code>.mill-jvm-opts</code> file in your
-project’s root. This file should contain JVM options, one per line.</p>
+<p>It&#8217;s possible to pass JVM options to the Mill launcher. To do this you need to create a <code>.mill-jvm-opts</code> file in your
+project&#8217;s root. This file should contain JVM options, one per line.</p>
 </div>
 <div class="paragraph">
 <p>For example, if your build requires a lot of memory and bigger stack size, your <code>.mill-jvm-opts</code> could look like this:</p>
@@ -1307,10 +1306,10 @@ project’s root. This file should contain JVM options, one per line.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The file name for passing JVM options to the Mill launcher is configurable. If for some reason you don’t want to
+<p>The file name for passing JVM options to the Mill launcher is configurable. If for some reason you don&#8217;t want to
 use <code>.mill-jvm-opts</code> file name, add <code>MILL_JVM_OPTS_PATH</code> environment variable with any other file name.</p>
 </div>
-<hr />
+<hr>
 <div class="paragraph">
 <p>Come by our <a href="https://gitter.im/lihaoyi/mill">Gitter Channel</a> if you want to ask questions or say hi!</p>
 </div>
@@ -1325,9 +1324,9 @@ use <code>.mill-jvm-opts</code> file name, add <code>MILL_JVM_OPTS_PATH</code> e
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>
