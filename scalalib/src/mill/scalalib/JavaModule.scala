@@ -90,6 +90,10 @@ trait JavaModule
    */
   def mandatoryIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
 
+  override def ivyDeps: T[Agg[Dep]] = T {
+    super.ivyDeps()
+  }
+
   /**
    * Aggregation of mandatoryIvyDeps and ivyDeps.
    * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
