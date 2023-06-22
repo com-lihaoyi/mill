@@ -8,7 +8,12 @@ import $ivy.`com.github.lolgab::mill-mima::0.0.23`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
 // imports
-import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
+import com.github.lolgab.mill.mima.{
+  CheckDirection,
+  ProblemFilter,
+  Mima,
+  ReversedMissingMethodProblem
+}
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -524,6 +529,14 @@ object scalalib extends MillStableScalaModule {
   def ivyDeps = Agg(Deps.scalafmtDynamic)
   def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
+
+  override def mimaBackwardIssueFilters: T[Map[String, Seq[ProblemFilter]]] = Map(
+    "0.11.0" -> Seq(
+      ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$ivyDeps"
+      )
+    )
+  )
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
