@@ -530,11 +530,10 @@ object scalalib extends MillStableScalaModule {
   def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
 
-  override def mimaBackwardIssueFilters: T[Map[String, Seq[ProblemFilter]]] = Map(
-    "0.11.0" -> Seq(
-      ProblemFilter.exclude[ReversedMissingMethodProblem](
-        "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$ivyDeps"
-      )
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
+    // See https://github.com/com-lihaoyi/mill/pull/2613
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$ivyDeps"
     )
   )
 
