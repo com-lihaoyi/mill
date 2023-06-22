@@ -1,5 +1,5 @@
-package mill.contrib
-import bloop._
+package mill.contrib.bloop
+
 import mill.eval.Evaluator
 
 /**
