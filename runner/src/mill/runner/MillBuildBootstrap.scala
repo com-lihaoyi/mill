@@ -193,7 +193,6 @@ class MillBuildBootstrap(
             moduleWatches
           ) =>
 
-//        pprint.err.log(methodCodeHashSignatures)
         val runClasspathChanged = !prevFrameOpt.exists(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )

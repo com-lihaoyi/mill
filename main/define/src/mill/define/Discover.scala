@@ -75,8 +75,9 @@ object Discover {
             }
         }
       }
+
       val mapping = for {
-        discoveredModuleType <- seen
+        discoveredModuleType <- seen.toSeq.sortBy(_.typeSymbol.name.toString)
         curCls = discoveredModuleType
         methods = getValsOrMeths(curCls)
         overridesRoutes = {
@@ -87,7 +88,7 @@ object Discover {
           )
 
           for {
-            m <- methods.toList
+            m <- methods.toList.sortBy(_.name.toString)
             if m.returnType <:< weakTypeOf[mill.define.Command[_]]
           } yield extractMethod(
             m.name,

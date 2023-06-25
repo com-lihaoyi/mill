@@ -60,7 +60,7 @@ class CodeSig(val directCallGraph: Map[ResolvedMethodDef, Set[ResolvedMethodDef]
     .flatMap{case (k, vs) =>
       vs.map{case (m, dests) => ResolvedMethodDef(k, m).toString -> dests }
     }
-//  pprint.log(prettyHashes)
+
   val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges).map(_.map(indexToMethod))
 
   val transitiveCallGraphHashes = Util.computeTransitive[ResolvedMethodDef, Int](
