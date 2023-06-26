@@ -11,18 +11,18 @@ object Util{
    * Component is processed together and assigned the same final value, since
    * they all have the exact same transitive closure
    */
-  def computeTransitive[T, V](topoSortedInputGroups: Seq[Seq[T]],
+  def computeTransitive[T, V](topoSortedInputGroups: Seq[Set[T]],
                               edges: Map[T, Set[T]],
                               computeOutputValue: T => V,
-                              reduce: Seq[V] => V) = {
+                              reduce: Set[V] => V) = {
     val seen = collection.mutable.Map.empty[T, V]
     for (inputGroup <- topoSortedInputGroups) {
       val groupUpstreamEdges = inputGroup
         .flatMap(edges)
         .filter(!inputGroup.contains(_))
 
-      val upstreamValues: Seq[V] = groupUpstreamEdges.map(seen)
-      val groupValues: Seq[V] = inputGroup.map(computeOutputValue)
+      val upstreamValues: Set[V] = groupUpstreamEdges.map(seen)
+      val groupValues: Set[V] = inputGroup.map(computeOutputValue)
       for (method <- inputGroup) {
         seen(method) = reduce(upstreamValues ++ groupValues)
       }

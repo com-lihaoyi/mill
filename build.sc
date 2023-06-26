@@ -1264,7 +1264,8 @@ object dev extends MillPublishScalaModule {
       Seq(
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
         "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-        s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}"
+        s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}",
+        "-Xss32m"
       )
   }
 
