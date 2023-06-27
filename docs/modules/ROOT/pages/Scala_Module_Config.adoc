@@ -95,9 +95,9 @@ for details.
 All ``ScalaModule``s have a `console` and a `repl` target, to start a Scala console or an Ammonite Repl.
 
 To use the latter, you can (and sometimes need to) customize the Ammonite version to work with your selected Scala version.
-The default Ammonite version is the one, which is used by Mill internally (Mill's `build.sc` is an Ammonite script, after all).
-But depending on the Scala version you are using, there is probably no matching Ammonite release available.
-In order to start the repl, you have to specify a different available Ammonite version.
+Mill provides a default Ammonite version,
+but depending on the Scala version you are using, there may be no matching Ammonite release available.
+In order to start the repl, you may have to specify a different available Ammonite version.
 
 .Example: Overriding `ammoniteVersion` to select a release compatible to the `scalaVersion`
 [source,scala,subs="attributes,verbatim"]
