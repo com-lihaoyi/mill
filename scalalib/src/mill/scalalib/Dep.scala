@@ -1,7 +1,7 @@
 package mill.scalalib
 
-import upickle.default.{macroRW, ReadWriter as RW}
-import CrossVersion.*
+import upickle.default.{macroRW, ReadWriter => RW}
+import mill.scalalib.CrossVersion._
 import coursier.core.Dependency
 import mill.scalalib.api.ZincWorkerUtil
 
