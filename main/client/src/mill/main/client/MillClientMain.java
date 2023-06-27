@@ -96,13 +96,13 @@ public class MillClientMain {
             System.setProperty("jna.nosys", "true");
         }
 
-        String jvmHomeEncoding = Util.sha1Hash(System.getProperty("java.home"));
-        int serverProcessesLimit = getServerProcessesLimit(jvmHomeEncoding);
+        String versionAndJvmHomeEncoding = Util.sha1Hash(BuildInfo.millVersion + System.getProperty("java.home"));
+        int serverProcessesLimit = getServerProcessesLimit(versionAndJvmHomeEncoding);
 
         int index = 0;
         while (index < serverProcessesLimit) {
             index += 1;
-            String lockBase = "out/mill-worker-" + jvmHomeEncoding + "-" + index;
+            String lockBase = "out/mill-worker-" + versionAndJvmHomeEncoding + "-" + index;
             new java.io.File(lockBase).mkdirs();
 
             File stdout = new java.io.File(lockBase + "/stdout");
