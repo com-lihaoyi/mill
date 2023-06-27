@@ -293,7 +293,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
   def scalaVersion = Deps.scalaVersion
-  def scalacOptions = super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature")
+  def scalacOptions = super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature", "-Xsource:3")
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
   def testModuleDeps: Seq[JavaModule] =
@@ -899,6 +899,10 @@ object scalanativelib extends MillStableScalaModule {
   }
 }
 
+object idea extends MillPublishScalaModule {
+  def compileModuleDeps = Seq(scalalib, runner)
+}
+
 object bsp extends MillPublishScalaModule with BuildInfo {
   def compileModuleDeps = Seq(scalalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
@@ -1249,11 +1253,11 @@ object runner extends MillPublishScalaModule {
 
 object dist extends MillPublishJavaModule {
   def jar = dev.assembly()
-  def moduleDeps = Seq(runner)
+  def moduleDeps = Seq(runner, idea)
 }
 
 object dev extends MillPublishScalaModule {
-  def moduleDeps = Seq(runner)
+  def moduleDeps = Seq(runner, idea)
 
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
     runner.linenumbers.testDep(),
@@ -1437,7 +1441,7 @@ object docs extends Module {
     PathRef(workDir / "build" / "site")
   }
 
-  def source0: Source = T.source(millSourcePath)
+  def source0 = T.source(millSourcePath)
   def source = T {
     os.copy(source0().path, T.dest, mergeFolders = true)
 

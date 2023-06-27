@@ -258,7 +258,7 @@ object MillBuildRootModule {
       cliImports: Seq[String]
   )(implicit baseModuleInfo: RootModule.Info) extends RootModule {
 
-    implicit private def millBuildRootModuleInfo = MillBuildRootModule.Info(
+    implicit private def millBuildRootModuleInfo: Info = MillBuildRootModule.Info(
       enclosingClasspath,
       projectRoot,
       topLevelProjectRoot0,
