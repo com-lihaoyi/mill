@@ -18,7 +18,7 @@ import mill.scalalib.internal.JavaModuleUtils
 import mill.util.{Classpath, DummyLogger}
 import mill.{T, scalalib}
 import os.{Path, SubPath}
-import mill.scalalib.{GenIdeaImpl => _ , _}
+import mill.scalalib.{GenIdeaImpl => _, _}
 
 case class GenIdeaImpl(
     evaluator: Evaluator,
