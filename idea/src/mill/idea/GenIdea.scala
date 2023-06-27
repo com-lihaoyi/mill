@@ -11,7 +11,7 @@ object GenIdea extends ExternalModule {
 
   def idea(ev: Evaluator): Command[Unit] = T.command {
     try {
-      Result.Success(mill.idea.GenIdeaImpl(
+      Result.Success(GenIdeaImpl(
         evaluator = ev,
         rootModule = ev.rootModule,
         discover = ev.rootModule.millDiscover

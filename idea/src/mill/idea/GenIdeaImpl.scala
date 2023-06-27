@@ -5,17 +5,16 @@ import scala.util.Try
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
-import fansi.Attrs
 import mill.Agg
 import mill.api.Ctx
-import mill.api.{Logger, PathRef, Result, Strict}
+import mill.api.{PathRef, Strict}
 import mill.define.{Ctx => _, _}
 import mill.eval.Evaluator
 import mill.main.BuildInfo
 import mill.runner.RootModuleFinder
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
-import mill.util.{Classpath, DummyLogger}
+import mill.util.{Classpath}
 import mill.{T, scalalib}
 import os.{Path, SubPath}
 import mill.scalalib.{GenIdeaImpl => _, _}
