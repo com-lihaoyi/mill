@@ -9,7 +9,7 @@ import fansi.Attrs
 import mill.Agg
 import mill.api.Ctx
 import mill.api.{Logger, PathRef, Result, Strict}
-import mill.define.{Ctx => _, *}
+import mill.define.{Ctx => _, _}
 import mill.eval.Evaluator
 import mill.main.BuildInfo
 import mill.runner.RootModuleFinder

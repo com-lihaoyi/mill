@@ -899,10 +899,6 @@ object scalanativelib extends MillStableScalaModule {
   }
 }
 
-object idea extends MillPublishScalaModule {
-  def compileModuleDeps = Seq(scalalib, runner)
-}
-
 object bsp extends MillPublishScalaModule with BuildInfo {
   def compileModuleDeps = Seq(scalalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
@@ -1249,6 +1245,10 @@ object runner extends MillPublishScalaModule {
     def scalaVersion = Deps.scalaVersion
     def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
   }
+}
+
+object idea extends MillPublishScalaModule {
+  def compileModuleDeps = Seq(scalalib, runner)
 }
 
 object dist extends MillPublishJavaModule {
