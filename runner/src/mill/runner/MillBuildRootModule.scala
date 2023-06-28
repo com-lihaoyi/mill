@@ -146,7 +146,7 @@ class MillBuildRootModule()(implicit
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
         upstreamClasspath = compileClasspath().toSeq.map(_.path),
-        logger = new mill.codesig.Logger(None)
+        logger = new mill.codesig.Logger(Some(os.pwd / "codesig-logs"))
       )
       .transitiveCallGraphHashes
       .map{case (k, v) => (k.toString, v)}

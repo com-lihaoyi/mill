@@ -117,14 +117,14 @@ object MethodCallResolver{
         .toSet
     }
 
-    val allCalls = logger{
-      localSummary.mapValuesOnly(_.methods).flatMap(_.values).flatMap(_.calls).toSet
-    }
-
-    val resolvedMap = logger {
-      allCalls
+    val callToResolved = logger {
+      localSummary
+        .mapValuesOnly(_.methods)
+        .iterator
+        .flatMap(_.values)
+        .flatMap(_.calls)
+        .distinct
         .map { call =>
-
           val (localCandidates, externalCandidates) =
             resolveLocalReceivers(call).partition(localSummary.contains)
 
@@ -142,17 +142,22 @@ object MethodCallResolver{
     }
 
     val result = logger {
-      for {
-        (cls, clsInfo) <- localSummary.items
-        (m0, methodInfo) <- clsInfo.methods
-      } yield {
-        val resolvedMethod = ResolvedMethodDef(cls, m0)
-        val resolved = methodInfo.calls
-          .flatMap(resolvedMap.getOrElse(_, Nil))
-          .filter { m => localSummary.get(m.cls, m.method).nonEmpty }
+      localSummary
+        .items
+        .iterator
+        .flatMap{case (cls, clsInfo) =>
+          clsInfo.methods.iterator.map{case (m0, methodInfo) =>
+            val resolvedMethod = ResolvedMethodDef(cls, m0)
+            val resolved = methodInfo.calls
+              .iterator
+              .flatMap(callToResolved.getOrElse(_, Nil))
+              .filter { m => localSummary.get(m.cls, m.method).nonEmpty }
+              .toSet
 
-        (resolvedMethod, resolved)
-      }
+            (resolvedMethod, resolved)
+          }
+        }
+        .toMap
     }
     result
   }
