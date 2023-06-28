@@ -74,7 +74,7 @@ IntelliJ project files via:
 
 [source,bash]
 ----
-./mill -j 0 mill.scalalib.GenIdea/idea
+./mill -j 0 mill.idea.GenIdea/idea
 ----
 
 == Manual & Automated Testing

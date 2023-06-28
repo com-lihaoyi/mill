@@ -1248,7 +1248,7 @@ object runner extends MillPublishScalaModule {
 }
 
 object idea extends MillPublishScalaModule {
-  def compileModuleDeps = Seq(scalalib, runner)
+  def moduleDeps = Seq(scalalib, runner)
 }
 
 object dist extends MillPublishJavaModule {
