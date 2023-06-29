@@ -14,7 +14,7 @@ object LocalSummarizer{
 
   case class ClassInfo(superClass: JCls,
                        directAncestors: Set[JCls],
-                       methods: Map[MethodDef, MethodInfo])
+                       methods: Map[MethodSig, MethodInfo])
   object ClassInfo{
     implicit def rw: ReadWriter[ClassInfo] = macroRW
   }
@@ -25,7 +25,7 @@ object LocalSummarizer{
     implicit def rw: ReadWriter[MethodInfo] = macroRW
   }
   case class Result(items: Map[JCls, ClassInfo]){
-    def get(cls: JCls, m: MethodDef): Option[MethodInfo] = items.get(cls).flatMap(_.methods.get(m))
+    def get(cls: JCls, m: MethodSig): Option[MethodInfo] = items.get(cls).flatMap(_.methods.get(m))
     def mapValues[T](f: ClassInfo => T): Map[JCls, T] = items.map{case (k, v) => (k, f(v))}
     def mapValuesOnly[T](f: ClassInfo => T): Seq[T] = items.map{case (k, v) => f(v)}.toSeq
     def contains(cls: JCls) = items.contains(cls)
@@ -64,9 +64,9 @@ object LocalSummarizer{
   }
 
   class MyClassVisitor extends ClassVisitor(Opcodes.ASM9) {
-    val classCallGraph = Map.newBuilder[MethodDef, Set[MethodCall]]
-    val classMethodHashes = Map.newBuilder[MethodDef, Int]
-    val classMethodPrivate = Map.newBuilder[MethodDef, Boolean]
+    val classCallGraph = Map.newBuilder[MethodSig, Set[MethodCall]]
+    val classMethodHashes = Map.newBuilder[MethodSig, Int]
+    val classMethodPrivate = Map.newBuilder[MethodSig, Boolean]
     var clsType: JCls = null
     var directSuperClass: Option[JCls] = None
     var directAncestors: Set[JCls] = Set()
@@ -103,7 +103,7 @@ object LocalSummarizer{
     val labelIndices = collection.mutable.Map.empty[Label, Int]
     val jumpList = collection.mutable.Buffer.empty[Label]
 
-    val methodSig = MethodDef(
+    val methodSig = MethodSig(
       (access & Opcodes.ACC_STATIC) != 0,
       name,
       Desc.read(descriptor),

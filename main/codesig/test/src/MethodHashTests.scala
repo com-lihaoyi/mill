@@ -39,12 +39,12 @@ object MethodHashTests extends TestSuite{
         if c1 != c2
       }{
 
-        val mainMethod = ResolvedMethodDef(
+        val mainMethod = MethodDef(
           JCls("hello.Hello"),
-          MethodDef(true, "main", Desc(Seq(JType.Arr(JCls("java.lang.String"))), JType.Prim.V))
+          MethodSig(true, "main", Desc(Seq(JType.Arr(JCls("java.lang.String"))), JType.Prim.V))
         )
-        val hash1 = sig1.transitiveCallGraphHashes(mainMethod)
-        val hash2 = sig2.transitiveCallGraphHashes(mainMethod)
+        val hash1 = sig1.transitiveCallGraphHashes(sig1.nodeToIndex(mainMethod))
+        val hash2 = sig2.transitiveCallGraphHashes(sig2.nodeToIndex(mainMethod))
         if (hash1 == hash2) throw new Exception(
           s"main methods for $c1 and $c2 have identical main method hash: $hash1"
         )

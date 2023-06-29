@@ -11,7 +11,7 @@ import JType.{Cls => JCls}
  */
 object ExternalSummarizer{
 
-  case class Result(directMethods: Map[JCls, Set[MethodDef]],
+  case class Result(directMethods: Map[JCls, Set[MethodSig]],
                     directAncestors: Map[JCls, Set[JCls]],
                     directSuperclasses: Map[JCls, JCls])
 
@@ -27,7 +27,7 @@ object ExternalSummarizer{
 }
 
 class ExternalSummarizer private(loadClassStream: JCls => java.io.InputStream){
-  val methodsPerCls = collection.mutable.Map.empty[JCls, Set[MethodDef]]
+  val methodsPerCls = collection.mutable.Map.empty[JCls, Set[MethodSig]]
   val ancestorsPerCls = collection.mutable.Map.empty[JCls, Set[JCls]]
   val directSuperclasses = collection.mutable.Map.empty[JCls, JCls]
 
@@ -44,7 +44,7 @@ class ExternalSummarizer private(loadClassStream: JCls => java.io.InputStream){
   }
 
   class MyClassVisitor extends ClassVisitor(Opcodes.ASM9) {
-    var methods: Set[MethodDef] = Set()
+    var methods: Set[MethodSig] = Set()
     var ancestors: Set[JCls] = null
     var superclass: JCls = null
     override def visit(version: Int,
@@ -67,7 +67,7 @@ class ExternalSummarizer private(loadClassStream: JCls => java.io.InputStream){
                              signature: String,
                              exceptions: Array[String]): MethodVisitor = {
 
-      methods += MethodDef((access & Opcodes.ACC_STATIC) != 0, name, Desc.read(descriptor))
+      methods += MethodSig((access & Opcodes.ACC_STATIC) != 0, name, Desc.read(descriptor))
 
       new MethodVisitor(Opcodes.ASM9) {}
     }

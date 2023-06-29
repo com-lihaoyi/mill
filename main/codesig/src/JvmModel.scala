@@ -7,26 +7,28 @@ import upickle.default.{ReadWriter, readwriter, stringKeyRW}
 // calls, etc. These are generally parsed from stringly-typed fields given to
 // us by ASM library
 
-case class ResolvedMethodDef(cls: JType.Cls, method: MethodDef){
+sealed trait CallGraphNode
+case class MethodDef(cls: JType.Cls, method: MethodSig) extends CallGraphNode{
   override def toString = cls.pretty + method.toString
 }
 
 
-object ResolvedMethodDef{
-  implicit val ordering: Ordering[ResolvedMethodDef] = Ordering.by(m => (m.cls, m.method))
-  implicit val rw: ReadWriter[ResolvedMethodDef] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
-}
-
-case class MethodDef(static: Boolean, name: String, desc: Desc){
-  override def toString = (if(static) "." else "#") + name + desc.pretty
-}
-
 object MethodDef{
-  implicit val ordering: Ordering[MethodDef] = Ordering.by(m => (m.static, m.name, m.desc))
+  implicit val ordering: Ordering[MethodDef] = Ordering.by(m => (m.cls, m.method))
   implicit val rw: ReadWriter[MethodDef] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
 }
 
-case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc){
+case class MethodSig(static: Boolean, name: String, desc: Desc){
+  override def toString = (if(static) "." else "#") + name + desc.pretty
+}
+
+object MethodSig{
+  implicit val ordering: Ordering[MethodSig] = Ordering.by(m => (m.static, m.name, m.desc))
+  implicit val rw: ReadWriter[MethodSig] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
+}
+
+case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc)
+extends CallGraphNode{
   override def toString = {
     val sep = invokeType match{
       case InvokeType.Static => '.'
@@ -36,7 +38,7 @@ case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc
     cls.name + sep + name + desc
   }
 
-  def toDirectMethodDef = MethodDef(invokeType == InvokeType.Static, name, desc)
+  def toDirectMethodDef = MethodSig(invokeType == InvokeType.Static, name, desc)
 }
 
 object MethodCall{
@@ -60,7 +62,7 @@ sealed trait JType{
   def pretty: String
 }
 object JType {
-  implicit val rw: ReadWriter[MethodDef] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
+  implicit val rw: ReadWriter[MethodSig] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
   sealed class Prim(val pretty: String) extends JType
 
   object Prim extends {

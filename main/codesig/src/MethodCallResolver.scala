@@ -11,7 +11,7 @@ import JType.{Cls => JCls}
 object MethodCallResolver{
   def resolveAllMethodCalls(localSummary: LocalSummarizer.Result,
                             externalSummary: ExternalSummarizer.Result,
-                            logger: Logger): Map[ResolvedMethodDef, Set[ResolvedMethodDef]]  = {
+                            logger: Logger): Map[MethodCall, Set[MethodDef]]  = {
 
     val allDirectAncestors = logger{
       localSummary.mapValues(_.directAncestors) ++
@@ -73,12 +73,12 @@ object MethodCallResolver{
   }
 
   def resolveAllMethodCalls0(localSummary: LocalSummarizer.Result,
-                             externalClsToLocalClsMethods: Map[JCls, Map[JCls, Set[MethodDef]]],
+                             externalClsToLocalClsMethods: Map[JCls, Map[JCls, Set[MethodSig]]],
                              allDirectAncestors: Map[JCls, Set[JCls]],
                              directSuperclasses: Map[JCls, JCls],
                              directDescendents: Map[JCls, Vector[JCls]],
-                             externalDirectMethods: Map[JCls, Set[MethodDef]],
-                             logger: Logger): Map[ResolvedMethodDef, Set[ResolvedMethodDef]] = {
+                             externalDirectMethods: Map[JCls, Set[MethodSig]],
+                             logger: Logger): Map[MethodCall, Set[MethodDef]] = {
 
     def methodExists(cls: JCls, call: MethodCall): Boolean = {
       localSummary.items.get(cls).exists(_.methods.keysIterator.exists(sigMatchesCall(_, call))) ||
@@ -106,14 +106,14 @@ object MethodCallResolver{
 
     def resolveExternalLocalReceivers(invokeType: InvokeType,
                                       callDesc: Desc,
-                                      called: Set[JCls]): Set[ResolvedMethodDef] = {
+                                      called: Set[JCls]): Set[MethodDef] = {
       val argTypes = callDesc.args.collect { case c: JCls => c }
       val thisTypes = if (invokeType == InvokeType.Static) Set.empty[JCls] else called
 
 
       (argTypes ++ thisTypes)
         .flatMap(externalClsToLocalClsMethods.getOrElse(_, Nil))
-        .flatMap { case (k, vs) => vs.map(m => ResolvedMethodDef(k, m)) }
+        .flatMap { case (k, vs) => vs.map(m => MethodDef(k, m)) }
         .toSet
     }
 
@@ -129,37 +129,18 @@ object MethodCallResolver{
             resolveLocalReceivers(call).partition(localSummary.contains)
 
           val externalLocalResolvedMethods =
-            if (externalCandidates.isEmpty) Set.empty[ResolvedMethodDef]
+            if (externalCandidates.isEmpty) Set.empty[MethodDef]
             else resolveExternalLocalReceivers(call.invokeType, call.desc, externalCandidates)
 
           val localResolvedMethods = localCandidates
-            .map(ResolvedMethodDef(_, call.toDirectMethodDef))
-
+            .map(MethodDef(_, call.toDirectMethodDef))
 
           (call, localResolvedMethods ++ externalLocalResolvedMethods)
         }
         .toMap
     }
 
-    val result = logger {
-      localSummary
-        .items
-        .iterator
-        .flatMap{case (cls, clsInfo) =>
-          clsInfo.methods.iterator.map{case (m0, methodInfo) =>
-            val resolvedMethod = ResolvedMethodDef(cls, m0)
-            val resolved = methodInfo.calls
-              .iterator
-              .flatMap(callToResolved.getOrElse(_, Nil))
-              .filter { m => localSummary.get(m.cls, m.method).nonEmpty }
-              .toSet
-
-            (resolvedMethod, resolved)
-          }
-        }
-        .toMap
-    }
-    result
+    callToResolved
   }
 
   def transitiveExternalAncestors(cls: JCls,
@@ -172,14 +153,14 @@ object MethodCallResolver{
 
   def transitiveExternalMethods(cls: JCls,
                                 allDirectAncestors: Map[JCls, Set[JCls]],
-                                externalDirectMethods: Map[JCls, Set[MethodDef]]): Map[JCls, Set[MethodDef]] = {
+                                externalDirectMethods: Map[JCls, Set[MethodSig]]): Map[JCls, Set[MethodSig]] = {
     allDirectAncestors(cls)
       .flatMap(transitiveExternalAncestors(_, allDirectAncestors))
       .map(cls => (cls, externalDirectMethods.getOrElse(cls, Set())))
       .toMap
   }
 
-  def sigMatchesCall(sig: MethodDef, call: MethodCall) = {
+  def sigMatchesCall(sig: MethodSig, call: MethodCall) = {
     sig.name == call.name && sig.desc == call.desc && (sig.static == (call.invokeType == InvokeType.Static))
   }
 

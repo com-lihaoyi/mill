@@ -35,41 +35,86 @@ object CodeSig{
       )
     }
 
-    val directCallGraph = MethodCallResolver.resolveAllMethodCalls(localSummary, externalSummary, logger)
+    val resolvedMethodCalls =
+      MethodCallResolver.resolveAllMethodCalls(localSummary, externalSummary, logger)
 
     new CodeSig(
-      directCallGraph,
+      localSummary,
+      resolvedMethodCalls,
       localSummary.mapValues(_.methods.map{case (k, v) => (k, v.codeHash)})
     )
   }
 }
 
-class CodeSig(val directCallGraph: Map[ResolvedMethodDef, Set[ResolvedMethodDef]],
-              methodHashes:  Map[JType.Cls, Map[MethodDef, Int]]){
+class CodeSig(localSummary: LocalSummarizer.Result,
+              val callToResolved: Map[MethodCall, Set[MethodDef]],
+              methodHashes:  Map[JType.Cls, Map[MethodSig, Int]]){
 //  pprint.log(directCallGraph.size)
 //  pprint.log(directCallGraph.values.map(_.size).sum)
-  val methodToIndex0 = directCallGraph.flatMap{case (k, vs) => Seq(k) ++ vs}.toVector.distinct.sorted.zipWithIndex
-  val methodToIndex = methodToIndex0.toMap
-  val indexToMethod = methodToIndex0.map(_.swap).toMap
+  val methodDefs = localSummary
+    .items
+    .flatMap{case (cls, cInfo) => cInfo.methods.map{case (m, mInfo) => MethodDef(cls, m)}}
+    .toArray
+    .distinct
+    .sorted
 
-  val indexGraphEdges = methodToIndex0
-    .map { case (m, i) => directCallGraph(m).map(methodToIndex)}
+  val methodCalls = callToResolved.keys
 
+  val indexToNodes: Array[CallGraphNode] = (methodDefs ++ methodCalls).map(x => x: CallGraphNode)
+
+  val nodeToIndex = indexToNodes.zipWithIndex.toMap
+
+  val indexGraphEdges = indexToNodes
+    .iterator
+    .map {
+      case methodCall: MethodCall => callToResolved(methodCall).flatMap(nodeToIndex.get(_))
+      case methodDef: MethodDef =>
+        localSummary
+          .get(methodDef.cls, methodDef.method)
+          .get
+          .calls
+          .map(nodeToIndex(_))
+    }
+    .toArray
+
+  lazy val directCallGraph = {
+    localSummary
+      .items
+      .iterator
+      .flatMap { case (cls, clsInfo) =>
+        clsInfo.methods.iterator.map { case (m0, methodInfo) =>
+          val resolvedMethod = MethodDef(cls, m0)
+          val resolved = methodInfo.calls
+            .iterator
+            .flatMap(callToResolved.getOrElse(_, Nil))
+            .filter { m => localSummary.get(m.cls, m.method).nonEmpty }
+            .toSet
+
+          (resolvedMethod, resolved)
+        }
+      }
+      .toMap
+  }
 //  pprint.log(indexToMethod.size)
 //  pprint.log(indexGraphEdges.size)
   lazy val prettyGraph = directCallGraph.map{case (k, vs) => (k.toString, vs.map(_.toString).to(collection.SortedSet))}.to(collection.SortedMap)
   lazy val prettyHashes = methodHashes
     .flatMap{case (k, vs) =>
-      vs.map{case (m, dests) => ResolvedMethodDef(k, m).toString -> dests }
+      vs.map{case (m, dests) => MethodDef(k, m).toString -> dests }
     }
 
-  val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges).map(_.map(indexToMethod).toSet)
+  val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges.map(x => x: Iterable[Int]))//.map(_.map(indexToMethod).toSet)
 //  pprint.log(topoSortedMethodGroups.size)
 
-  val transitiveCallGraphHashes = Util.computeTransitive[ResolvedMethodDef, Int](
-    topoSortedMethodGroups,
-    directCallGraph,
-    r => methodHashes(r.cls)(r.method),
+  val transitiveCallGraphHashes = Util.computeTransitive[Int, Int](
+    topoSortedMethodGroups.map(_.toSet),
+    indexGraphEdges(_).toSet,
+    methodIndex => {
+      indexToNodes(methodIndex) match{
+        case m: MethodCall => 0
+        case m: MethodDef => methodHashes(m.cls)(m.method)
+      }
+    },
     _.hashCode()
   ).toMap
 //  pprint.log(transitiveCallGraphHashes.size)

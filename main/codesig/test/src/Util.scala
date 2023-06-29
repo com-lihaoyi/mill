@@ -6,9 +6,9 @@ object TestUtil {
     val testLogFolder = os.Path(sys.env("MILL_TEST_LOGS")) / segments
     os.remove.all(testLogFolder)
     os.makeDir.all(testLogFolder)
-    println("testLogFolder: " + testLogFolder)
+//    println("testLogFolder: " + testLogFolder)
     val testClassFolder = os.Path(sys.env("MILL_TEST_CLASSES_" + segments.mkString("-")))
-    println("testClassFolder: " + testClassFolder)
+//    println("testClassFolder: " + testClassFolder)
     CodeSig.compute(
       os.walk(testClassFolder).filter(_.ext == "class"),
       sys.env("MILL_TEST_CLASSPATH_" + segments.mkString("-"))

@@ -12,7 +12,7 @@ object Util{
    * they all have the exact same transitive closure
    */
   def computeTransitive[T, V](topoSortedInputGroups: Seq[Set[T]],
-                              edges: Map[T, Set[T]],
+                              edges: T => Set[T],
                               computeOutputValue: T => V,
                               reduce: Set[V] => V) = {
     val seen = collection.mutable.Map.empty[T, V]
