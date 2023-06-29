@@ -33,8 +33,8 @@ object MethodCallResolver{
         .groupMap(_._1)(_._2)
     }
 
-    // Given a class, what are its upstream external classes and what methods
-    // do those methods define that may end up being called by external code
+    // Given an external class, what are the local classes that inherit from it,
+    // and what local methods may end up being called by the external class code
     val externalClsToLocalClsMethodsDirect = logger{
       localSummary
         .items
@@ -43,10 +43,12 @@ object MethodCallResolver{
           transitiveExternalAncestors(cls, allDirectAncestors)
             .map { externalCls =>
               // <init> methods are final and cannot be overriden
-              (
-                externalCls,
-                Map(cls -> externalSummary.directMethods.getOrElse(externalCls, Set()).filter(m => !m.static && m.name != "<init>"))
-              )
+              val methods = externalSummary
+                .directMethods
+                .getOrElse(externalCls, Set())
+                .filter(m => !m.static && m.name != "<init>")
+
+              (externalCls, Map(cls -> methods))
             }
             .toMap
         }
@@ -56,28 +58,24 @@ object MethodCallResolver{
     // Make sure that when doing an external method call, we look up all
     // methods both defined on and inherited by the type in question, since
     // any of those could potentially get called by the external method
-    val externalClsToLocalClsMethods = logger{
-      localSummary
-        .items
-        .keySet
-        .map{ cls =>
-          val all = clsAndAncestors(Seq(cls), _ => false, allDirectAncestors)
+    val externalClsToLocalClsMethodsAll = logger{
+      externalClsToLocalClsMethodsDirect
+        .map{case (externalCls, localClassesAndMethods) =>
+          val all = clsAndAncestors(Seq(externalCls), _ => false, allDirectAncestors)
             .toVector
             .map(externalClsToLocalClsMethodsDirect(_))
 
-          val allKeys = all
-            .flatMap(_.keys)
-            .map((key: JCls) => (key, all.flatMap(_.get(key)).flatten.toSet))
+          val allKeys = localClassesAndMethods.keys
+            .map(localClass => (localClass, all.flatMap(_.get(localClass)).flatten.toSet))
             .toMap
 
-          cls -> allKeys
+          externalCls -> allKeys
         }
-        .toMap
-    }
+      }
 
     val resolvedCalls = resolveAllMethodCalls0(
       localSummary,
-      externalClsToLocalClsMethods,
+      externalClsToLocalClsMethodsAll,
       allDirectAncestors,
       localSummary.mapValues(_.superClass) ++ externalSummary.directSuperclasses,
       directDescendents,
@@ -183,7 +181,9 @@ object MethodCallResolver{
   }
 
   def sigMatchesCall(sig: MethodSig, call: MethodCall) = {
-    sig.name == call.name && sig.desc == call.desc && (sig.static == (call.invokeType == InvokeType.Static))
+    sig.name == call.name &&
+    sig.desc == call.desc &&
+    (sig.static == (call.invokeType == InvokeType.Static))
   }
 
 
