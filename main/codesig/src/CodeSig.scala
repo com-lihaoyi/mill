@@ -52,8 +52,8 @@ object CodeSig{
    * the size of the program
    */
   sealed trait Node
-  case class LocalCall(call: MethodCall) extends Node
   case class LocalDef(call: MethodDef) extends Node
+  case class Call(call: MethodCall) extends Node
   case class ExternalClsCall(call: JType.Cls) extends Node
 }
 
@@ -75,7 +75,7 @@ class CodeSig(val localSummary: LocalSummarizer.Result,
 
   val indexToNodes: Vector[CodeSig.Node] =
     methodDefs.map(CodeSig.LocalDef(_)) ++
-    methodCalls.map(CodeSig.LocalCall(_)) ++
+    methodCalls.map(CodeSig.Call(_)) ++
     externalClasses.map(CodeSig.ExternalClsCall(_))
 
   val nodeToIndex = indexToNodes.zipWithIndex.toMap
@@ -83,7 +83,7 @@ class CodeSig(val localSummary: LocalSummarizer.Result,
   val indexGraphEdges = indexToNodes
     .iterator
     .map {
-      case CodeSig.LocalCall(methodCall) =>
+      case CodeSig.Call(methodCall) =>
         resolved.localCalls(methodCall).map(CodeSig.LocalDef) ++
         resolved.externalCalledClasses(methodCall).map(CodeSig.ExternalClsCall(_))
 
@@ -92,7 +92,7 @@ class CodeSig(val localSummary: LocalSummarizer.Result,
           .get(methodDef.cls, methodDef.method)
           .get
           .calls
-          .map(CodeSig.LocalCall)
+          .map(CodeSig.Call)
 
       case CodeSig.ExternalClsCall(cls) =>
         resolved.externalClassLocalDests(cls).map(CodeSig.LocalDef)
