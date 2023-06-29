@@ -98,8 +98,9 @@ class CodeSig(val localSummary: LocalSummarizer.Result,
     .iterator
     .map {
       case CodeSig.Call(methodCall) =>
-        val local = resolved.localCalls(methodCall).map(CodeSig.LocalDef)
-        val external = resolved.externalCalledClasses(methodCall).map(CodeSig.ExternalClsCall(_))
+        val callInfo = resolved.localCalls(methodCall)
+        val local = callInfo.localDests.map(CodeSig.LocalDef)
+        val external = callInfo.externalDests.map(CodeSig.ExternalClsCall)
         local ++ external
 
       case CodeSig.LocalDef(methodDef) =>
@@ -109,16 +110,24 @@ class CodeSig(val localSummary: LocalSummarizer.Result,
           .calls
           .map(CodeSig.Call)
 
-      case CodeSig.ExternalClsCall(cls) =>
-        val local = resolved.externalClassLocalDests.getOrElse(cls, Set()).map(CodeSig.LocalDef)
-        val parent = externalSummary.directAncestors(cls).map(CodeSig.ExternalClsCall)
+      case CodeSig.ExternalClsCall(externalCls) =>
+        val local = resolved
+          .externalClassLocalDests
+          .get(externalCls)
+          .iterator
+          .flatMap{ case (localClasses: Set[JType.Cls], localMethods: Set[MethodSig]) =>
+            for {
+              cls <- localClasses
+              m <- localMethods
+              if localSummary.get(cls, m).nonEmpty
+            } yield CodeSig.LocalDef(MethodDef(cls, m))
+          }
+          .toSet
+
+        val parent = externalSummary.directAncestors(externalCls).map(CodeSig.ExternalClsCall)
         local ++ parent
-
-
-//        pprint.log(res.map(_.toString))
-//        res
     }
-    .map(_.flatMap(nodeToIndex.get))
+    .map(_.map(nodeToIndex))
     .toVector
 
   logger{
@@ -128,15 +137,12 @@ class CodeSig(val localSummary: LocalSummarizer.Result,
       .toMap
   }(implicitly, "indexGraphPrettyEdges")
 
-//  pprint.log(indexToMethod.size)
-//  pprint.log(indexGraphEdges.size)
   lazy val prettyHashes = methodHashes
     .flatMap{case (k, vs) =>
       vs.map{case (m, dests) => MethodDef(k, m).toString -> dests }
     }
 
   val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges.map(x => x: Iterable[Int]))//.map(_.map(indexToMethod).toSet)
-//  pprint.log(topoSortedMethodGroups.size)
 
   val transitiveCallGraphHashes = Util.computeTransitive[Int, Int](
     topoSortedMethodGroups.map(_.toSet),
