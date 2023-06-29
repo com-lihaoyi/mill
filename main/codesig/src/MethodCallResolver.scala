@@ -177,8 +177,7 @@ object MethodCallResolver{
   def transitiveExternalMethods(cls: JCls,
                                 allDirectAncestors: Map[JCls, Set[JCls]],
                                 externalDirectMethods: Map[JCls, Set[MethodSig]]): Map[JCls, Set[MethodSig]] = {
-    allDirectAncestors(cls)
-      .flatMap(transitiveExternalAncestors(_, allDirectAncestors))
+    transitiveExternalAncestors(cls, allDirectAncestors)
       .map(cls => (cls, externalDirectMethods.getOrElse(cls, Set())))
       .toMap
   }
