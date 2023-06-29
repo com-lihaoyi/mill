@@ -9,9 +9,13 @@ import JType.{Cls => JCls}
  * call graph
  */
 object MethodCallResolver{
+  case class Result(localCalls: Map[MethodCall, Set[MethodDef]],
+                    externalCalledClasses: Map[MethodCall, Set[JCls]],
+                    externalClassLocalDests: Map[JCls, Set[MethodDef]])
+
   def resolveAllMethodCalls(localSummary: LocalSummarizer.Result,
                             externalSummary: ExternalSummarizer.Result,
-                            logger: Logger): Map[MethodCall, Set[MethodDef]]  = {
+                            logger: Logger): Result = {
 
     val allDirectAncestors = logger{
       localSummary.mapValues(_.directAncestors) ++
@@ -78,7 +82,7 @@ object MethodCallResolver{
                              directSuperclasses: Map[JCls, JCls],
                              directDescendents: Map[JCls, Vector[JCls]],
                              externalDirectMethods: Map[JCls, Set[MethodSig]],
-                             logger: Logger): Map[MethodCall, Set[MethodDef]] = {
+                             logger: Logger): Result = {
 
     def methodExists(cls: JCls, call: MethodCall): Boolean = {
       localSummary.items.get(cls).exists(_.methods.keysIterator.exists(sigMatchesCall(_, call))) ||
@@ -104,43 +108,58 @@ object MethodCallResolver{
         }
     }
 
-    def resolveExternalLocalReceivers(invokeType: InvokeType,
-                                      callDesc: Desc,
-                                      called: Set[JCls]): Set[MethodDef] = {
-      val argTypes = callDesc.args.collect { case c: JCls => c }
-      val thisTypes = if (invokeType == InvokeType.Static) Set.empty[JCls] else called
-
-
-      (argTypes ++ thisTypes)
-        .flatMap(externalClsToLocalClsMethods.getOrElse(_, Nil))
-        .flatMap { case (k, vs) => vs.map(m => MethodDef(k, m)) }
-        .toSet
-    }
+    val allCalls = localSummary
+      .mapValuesOnly(_.methods)
+      .iterator
+      .flatMap(_.values)
+      .flatMap(_.calls)
+      .toSet
 
     val callToResolved = logger {
-      localSummary
-        .mapValuesOnly(_.methods)
+      allCalls
         .iterator
-        .flatMap(_.values)
-        .flatMap(_.calls)
-        .distinct
         .map { call =>
-          val (localCandidates, externalCandidates) =
+          val (localReceivers, externalReceivers) =
             resolveLocalReceivers(call).partition(localSummary.contains)
 
-          val externalLocalResolvedMethods =
-            if (externalCandidates.isEmpty) Set.empty[MethodDef]
-            else resolveExternalLocalReceivers(call.invokeType, call.desc, externalCandidates)
+          val localMethodDefs = localReceivers.map(MethodDef(_, call.toDirectMethodDef))
 
-          val localResolvedMethods = localCandidates
-            .map(MethodDef(_, call.toDirectMethodDef))
+          // When a call to an external method call is made, we don't know what the
+          // implementation will do. We thus have to conservatively assume it can call
+          // any method on any of the argument types that get passed to it, including
+          // the `this` type if the method call is not static.
+          val methodParamClasses =
+            if (externalReceivers.isEmpty) Set.empty[JCls]
+            else {
+              val argTypes = call.desc.args.collect { case c: JCls => c }
+              val thisTypes =
+                if (call.invokeType == InvokeType.Static) Set.empty[JCls] else Set(call.cls)
 
-          (call, localResolvedMethods ++ externalLocalResolvedMethods)
+              (argTypes ++ thisTypes).toSet
+            }
+
+          (call, (localMethodDefs, methodParamClasses))
         }
         .toMap
     }
 
-    callToResolved
+    Result(
+      localCalls = callToResolved
+        .map{ case (call, (local, external)) => (call, local)},
+
+      externalCalledClasses = callToResolved
+        .map{ case (call, (local, external)) => (call, external)},
+
+      externalClassLocalDests = callToResolved
+        .flatMap { case (call, (_, external)) => external }
+        .map{cls =>
+          cls -> externalClsToLocalClsMethods.getOrElse(cls, Nil)
+            .flatMap { case (k, vs) => vs.map(m => MethodDef(k, m)) }
+            .toSet
+        }
+        .toMap
+    )
+
   }
 
   def transitiveExternalAncestors(cls: JCls,

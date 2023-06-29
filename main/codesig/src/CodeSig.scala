@@ -44,38 +44,53 @@ object CodeSig{
       localSummary.mapValues(_.methods.map{case (k, v) => (k, v.codeHash)})
     )
   }
+  sealed trait Node
+  case class LocalCall(call: MethodCall) extends Node
+  case class LocalDef(call: MethodDef) extends Node
+  case class ExternalClsCall(call: JType.Cls) extends Node
 }
 
 class CodeSig(localSummary: LocalSummarizer.Result,
-              val callToResolved: Map[MethodCall, Set[MethodDef]],
+              val resolved: MethodCallResolver.Result,
               methodHashes:  Map[JType.Cls, Map[MethodSig, Int]]){
 //  pprint.log(directCallGraph.size)
 //  pprint.log(directCallGraph.values.map(_.size).sum)
   val methodDefs = localSummary
     .items
     .flatMap{case (cls, cInfo) => cInfo.methods.map{case (m, mInfo) => MethodDef(cls, m)}}
-    .toArray
+    .toVector
     .distinct
     .sorted
 
-  val methodCalls = callToResolved.keys
 
-  val indexToNodes: Array[CallGraphNode] = (methodDefs ++ methodCalls).map(x => x: CallGraphNode)
+  val methodCalls = resolved.localCalls.keys
+  val externalClasses = resolved.externalClassLocalDests.keys
+
+  val indexToNodes: Vector[CodeSig.Node] =
+    methodDefs.map(CodeSig.LocalDef(_)) ++
+    methodCalls.map(CodeSig.LocalCall(_)) ++
+    externalClasses.map(CodeSig.ExternalClsCall(_))
 
   val nodeToIndex = indexToNodes.zipWithIndex.toMap
 
   val indexGraphEdges = indexToNodes
     .iterator
     .map {
-      case methodCall: MethodCall => callToResolved(methodCall).flatMap(nodeToIndex.get(_))
-      case methodDef: MethodDef =>
+      case CodeSig.LocalCall(methodCall) =>
+        resolved.localCalls(methodCall).map(CodeSig.LocalDef)
+
+      case CodeSig.LocalDef(methodDef) =>
         localSummary
           .get(methodDef.cls, methodDef.method)
           .get
           .calls
-          .map(nodeToIndex(_))
+          .map(CodeSig.LocalCall)
+
+      case CodeSig.ExternalClsCall(cls) =>
+        resolved.externalClassLocalDests(cls).map(CodeSig.LocalDef)
     }
-    .toArray
+    .map(_.flatMap(nodeToIndex.get))
+    .toVector
 
   lazy val directCallGraph = {
     localSummary
@@ -84,13 +99,13 @@ class CodeSig(localSummary: LocalSummarizer.Result,
       .flatMap { case (cls, clsInfo) =>
         clsInfo.methods.iterator.map { case (m0, methodInfo) =>
           val resolvedMethod = MethodDef(cls, m0)
-          val resolved = methodInfo.calls
+          val resolved2 = methodInfo.calls
             .iterator
-            .flatMap(callToResolved.getOrElse(_, Nil))
+            .flatMap(resolved.localCalls.getOrElse(_, Nil))
             .filter { m => localSummary.get(m.cls, m.method).nonEmpty }
             .toSet
 
-          (resolvedMethod, resolved)
+          (resolvedMethod, resolved2)
         }
       }
       .toMap
@@ -111,8 +126,8 @@ class CodeSig(localSummary: LocalSummarizer.Result,
     indexGraphEdges(_).toSet,
     methodIndex => {
       indexToNodes(methodIndex) match{
-        case m: MethodCall => 0
-        case m: MethodDef => methodHashes(m.cls)(m.method)
+        case CodeSig.LocalDef(m) => methodHashes(m.cls)(m.method)
+        case _ => 0
       }
     },
     _.hashCode()

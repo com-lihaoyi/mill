@@ -7,8 +7,8 @@ import upickle.default.{ReadWriter, readwriter, stringKeyRW}
 // calls, etc. These are generally parsed from stringly-typed fields given to
 // us by ASM library
 
-sealed trait CallGraphNode
-case class MethodDef(cls: JType.Cls, method: MethodSig) extends CallGraphNode{
+
+case class MethodDef(cls: JType.Cls, method: MethodSig){
   override def toString = cls.pretty + method.toString
 }
 
@@ -27,8 +27,7 @@ object MethodSig{
   implicit val rw: ReadWriter[MethodSig] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
 }
 
-case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc)
-extends CallGraphNode{
+case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc) {
   override def toString = {
     val sep = invokeType match{
       case InvokeType.Static => '.'
