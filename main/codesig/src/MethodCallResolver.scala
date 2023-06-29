@@ -133,7 +133,7 @@ object MethodCallResolver{
             else {
               val argTypes = call.desc.args.collect { case c: JCls => c }
               val thisTypes =
-                if (call.invokeType == InvokeType.Static) Set.empty[JCls] else Set(call.cls)
+                if (call.invokeType == InvokeType.Static) Set.empty[JCls] else externalReceivers
 
               (argTypes ++ thisTypes).toSet
             }

@@ -125,6 +125,9 @@ object CallGraphTests extends TestSuite{
    */
   def simplifyCallGraph(codeSig: CodeSig, skipped: Seq[String]) = {
 
+
+//    pprint.log(codeSig.simplifiedCallGraph(_.toString))
+
     codeSig
       .simplifiedCallGraph{
         case CodeSig.LocalDef(d) if !skipped.exists(d.toString.contains(_)) => d.toString
