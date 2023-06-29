@@ -83,11 +83,15 @@ object Hello{
     ],
     "hello.Hello$#main()void": [
         "hello.Base64Actor#<init>(castor.Actor,castor.Context)void",
+        "hello.Base64Actor#run(java.lang.Object)void",
         "hello.DiskActor#<init>(os.Path,int,castor.Context)void",
+        "hello.DiskActor#run(java.lang.Object)void",
         "hello.DiskActor$#$lessinit$greater$default$2()int",
         "hello.DiskActor$#<init>()void",
         "hello.SanitizeActor#<init>(castor.Actor,castor.Context)void",
-        "hello.UploadActor#<init>(java.lang.String,castor.Context)void"
+        "hello.SanitizeActor#run(java.lang.Object)void",
+        "hello.UploadActor#<init>(java.lang.String,castor.Context)void",
+        "hello.UploadActor#run(java.lang.Object)void"
     ],
     "hello.Hello.main()void": [
         "hello.Hello$#<init>()void",

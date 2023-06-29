@@ -1,6 +1,6 @@
 package mill.codesig
 import mill.util.Tarjans
-
+import upickle.default.{Writer, macroW, writer}
 import java.net.URLClassLoader
 
 object CodeSig{
@@ -42,7 +42,9 @@ object CodeSig{
     new CodeSig(
       localSummary,
       resolvedMethodCalls,
-      localSummary.mapValues(_.methods.map{case (k, v) => (k, v.codeHash)})
+      localSummary.mapValues(_.methods.map{case (k, v) => (k, v.codeHash)}),
+      externalSummary,
+      logger
     )
   }
 
@@ -53,6 +55,15 @@ object CodeSig{
    * the size of the program
    */
   sealed trait Node
+
+  implicit def nodeRw: Writer[Node] = upickle.default.stringKeyW(
+    writer[String].comap[Node] {
+      case LocalDef(call) => "def " + call.toString
+      case Call(call) => "call " + call.toString
+      case ExternalClsCall(call) => call.toString
+    }
+  )
+
   case class LocalDef(call: MethodDef) extends Node
   case class Call(call: MethodCall) extends Node
   case class ExternalClsCall(call: JType.Cls) extends Node
@@ -60,7 +71,9 @@ object CodeSig{
 
 class CodeSig(val localSummary: LocalSummarizer.Result,
               val resolved: MethodCallResolver.Result,
-              val methodHashes:  Map[JType.Cls, Map[MethodSig, Int]]){
+              val methodHashes:  Map[JType.Cls, Map[MethodSig, Int]],
+              val externalSummary: ExternalSummarizer.Result,
+              logger: Logger){
 //  pprint.log(directCallGraph.size)
 //  pprint.log(directCallGraph.values.map(_.size).sum)
   val methodDefs = localSummary
@@ -72,7 +85,7 @@ class CodeSig(val localSummary: LocalSummarizer.Result,
 
 
   val methodCalls = resolved.localCalls.keys
-  val externalClasses = resolved.externalClassLocalDests.keys
+  val externalClasses = externalSummary.directMethods.keys
 
   val indexToNodes: Vector[CodeSig.Node] =
     methodDefs.map(CodeSig.LocalDef(_)) ++
@@ -85,8 +98,9 @@ class CodeSig(val localSummary: LocalSummarizer.Result,
     .iterator
     .map {
       case CodeSig.Call(methodCall) =>
-        resolved.localCalls(methodCall).map(CodeSig.LocalDef) ++
-        resolved.externalCalledClasses(methodCall).map(CodeSig.ExternalClsCall(_))
+        val local = resolved.localCalls(methodCall).map(CodeSig.LocalDef)
+        val external = resolved.externalCalledClasses(methodCall).map(CodeSig.ExternalClsCall(_))
+        local ++ external
 
       case CodeSig.LocalDef(methodDef) =>
         localSummary
@@ -96,11 +110,23 @@ class CodeSig(val localSummary: LocalSummarizer.Result,
           .map(CodeSig.Call)
 
       case CodeSig.ExternalClsCall(cls) =>
-        resolved.externalClassLocalDests(cls).map(CodeSig.LocalDef)
+        val local = resolved.externalClassLocalDests.getOrElse(cls, Set()).map(CodeSig.LocalDef)
+        val parent = externalSummary.directAncestors(cls).map(CodeSig.ExternalClsCall)
+        local ++ parent
+
+
+//        pprint.log(res.map(_.toString))
+//        res
     }
     .map(_.flatMap(nodeToIndex.get))
     .toVector
 
+  logger{
+    indexGraphEdges
+      .zipWithIndex
+      .map{case (dests, src) => indexToNodes(src) -> dests.map(indexToNodes)}
+      .toMap
+  }(implicitly, "indexGraphPrettyEdges")
 
 //  pprint.log(indexToMethod.size)
 //  pprint.log(indexGraphEdges.size)

@@ -1,12 +1,9 @@
 package hello;
 
-import java.io.*;
-import java.util.*;
 import java.awt.*;
 import javax.swing.*;
-import java.awt.event.*;
-import java.awt.geom.*;
 import java.awt.image.*;
+
 class JCanvas extends JPanel{
     private BufferedImage Picture;
     Graphics2D Painter;

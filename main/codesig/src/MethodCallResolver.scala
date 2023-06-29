@@ -55,27 +55,9 @@ object MethodCallResolver{
         .groupMapReduce(_._1)(_._2)(_ ++ _)
     }
 
-    // Make sure that when doing an external method call, we look up all
-    // methods both defined on and inherited by the type in question, since
-    // any of those could potentially get called by the external method
-    val externalClsToLocalClsMethodsAll = logger{
-      externalClsToLocalClsMethodsDirect
-        .map{case (externalCls, localClassesAndMethods) =>
-          val all = clsAndAncestors(Seq(externalCls), _ => false, allDirectAncestors)
-            .toVector
-            .map(externalClsToLocalClsMethodsDirect(_))
-
-          val allKeys = localClassesAndMethods.keys
-            .map(localClass => (localClass, all.flatMap(_.get(localClass)).flatten.toSet))
-            .toMap
-
-          externalCls -> allKeys
-        }
-      }
-
     val resolvedCalls = resolveAllMethodCalls0(
       localSummary,
-      externalClsToLocalClsMethodsAll,
+      externalClsToLocalClsMethodsDirect,
       allDirectAncestors,
       localSummary.mapValues(_.superClass) ++ externalSummary.directSuperclasses,
       directDescendents,
@@ -160,8 +142,8 @@ object MethodCallResolver{
       externalCalledClasses = callToResolved
         .map{ case (call, (local, external)) => (call, external)},
 
-      externalClassLocalDests = callToResolved
-        .flatMap { case (call, (_, external)) => external }
+      externalClassLocalDests = externalDirectMethods
+        .keys
         .map{cls =>
           cls -> externalClsToLocalClsMethods.getOrElse(cls, Nil)
             .flatMap { case (k, vs) => vs.map(m => MethodDef(k, m)) }
