@@ -73,7 +73,7 @@ object CallGraphTests extends TestSuite{
     )
 
     val foundCallGraph = simplifyCallGraph(
-      callGraph0.directCallGraph,
+      callGraph0,
       skipped = Seq(
         "lambda$",
         "$deserializeLambda$",
@@ -123,24 +123,13 @@ object CallGraphTests extends TestSuite{
    * optimized further if necessary, but for testing purposes all the graphs
    * are small so it's probably fine.
    */
-  def simplifyCallGraph(callGraph0: Map[MethodDef, Set[MethodDef]],
-                        skipped: Seq[String]) = {
-    val stringCallGraph0 = callGraph0
-      .map { case (k, vs) => (k.toString, vs.map(_.toString)) }
-      .to(collection.mutable.Map)
+  def simplifyCallGraph(codeSig: CodeSig, skipped: Seq[String]) = {
 
-    for(k <- stringCallGraph0.keySet){
-      if (skipped.exists(k.contains(_))){
-        val removed = stringCallGraph0.remove(k).get
-        for(k2 <- stringCallGraph0.keySet){
-          stringCallGraph0.updateWith(k2){ case Some(vs) =>
-            Some(vs.flatMap(v => if (v == k) removed else Set(v)))
-          }
-        }
+    codeSig
+      .simplifiedCallGraph{
+        case CodeSig.LocalDef(d) if !skipped.exists(d.toString.contains(_)) => d.toString
       }
-    }
-
-    stringCallGraph0.to(SortedMap)
       .collect { case (k, vs) if vs.nonEmpty => (k, vs.to(SortedSet)) }
+      .to(SortedMap)
   }
 }

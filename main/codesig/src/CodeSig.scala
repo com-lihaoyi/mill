@@ -44,15 +44,22 @@ object CodeSig{
       localSummary.mapValues(_.methods.map{case (k, v) => (k, v.codeHash)})
     )
   }
+
+  /**
+   * Represents the three types of nodes in our call graph. These are kept heterogenous
+   * because flattening them out into a homogenous graph of MethodDef -> MethodDef edges
+   * results in a lot of duplication that bloats the size of the graph non-linearly with
+   * the size of the program
+   */
   sealed trait Node
   case class LocalCall(call: MethodCall) extends Node
   case class LocalDef(call: MethodDef) extends Node
   case class ExternalClsCall(call: JType.Cls) extends Node
 }
 
-class CodeSig(localSummary: LocalSummarizer.Result,
+class CodeSig(val localSummary: LocalSummarizer.Result,
               val resolved: MethodCallResolver.Result,
-              methodHashes:  Map[JType.Cls, Map[MethodSig, Int]]){
+              val methodHashes:  Map[JType.Cls, Map[MethodSig, Int]]){
 //  pprint.log(directCallGraph.size)
 //  pprint.log(directCallGraph.values.map(_.size).sum)
   val methodDefs = localSummary
@@ -77,7 +84,8 @@ class CodeSig(localSummary: LocalSummarizer.Result,
     .iterator
     .map {
       case CodeSig.LocalCall(methodCall) =>
-        resolved.localCalls(methodCall).map(CodeSig.LocalDef)
+        resolved.localCalls(methodCall).map(CodeSig.LocalDef) ++
+        resolved.externalCalledClasses(methodCall).map(CodeSig.ExternalClsCall(_))
 
       case CodeSig.LocalDef(methodDef) =>
         localSummary
@@ -92,27 +100,9 @@ class CodeSig(localSummary: LocalSummarizer.Result,
     .map(_.flatMap(nodeToIndex.get))
     .toVector
 
-  lazy val directCallGraph = {
-    localSummary
-      .items
-      .iterator
-      .flatMap { case (cls, clsInfo) =>
-        clsInfo.methods.iterator.map { case (m0, methodInfo) =>
-          val resolvedMethod = MethodDef(cls, m0)
-          val resolved2 = methodInfo.calls
-            .iterator
-            .flatMap(resolved.localCalls.getOrElse(_, Nil))
-            .filter { m => localSummary.get(m.cls, m.method).nonEmpty }
-            .toSet
 
-          (resolvedMethod, resolved2)
-        }
-      }
-      .toMap
-  }
 //  pprint.log(indexToMethod.size)
 //  pprint.log(indexGraphEdges.size)
-  lazy val prettyGraph = directCallGraph.map{case (k, vs) => (k.toString, vs.map(_.toString).to(collection.SortedSet))}.to(collection.SortedMap)
   lazy val prettyHashes = methodHashes
     .flatMap{case (k, vs) =>
       vs.map{case (m, dests) => MethodDef(k, m).toString -> dests }
@@ -132,13 +122,32 @@ class CodeSig(localSummary: LocalSummarizer.Result,
     },
     _.hashCode()
   ).toMap
-//  pprint.log(transitiveCallGraphHashes.size)
-//  val transitiveCallGraphMethods = Util.computeTransitive[Set[ResolvedMethodDef]](
-//    topoSortedMethodGroups,
-//    directCallGraph,
-//        Set(_),
-//        _.flatten.toSet
-//      ).map { case (k, vs) => (k, vs.filter(_ != k)) }
 
+  def simplifiedCallGraph[T](transform: PartialFunction[CodeSig.Node, T]): Map[T, Set[T]] = {
+
+    def flatten(ns: Set[CodeSig.Node]): Set[T] = {
+      if (ns.isEmpty) Set()
+      else {
+        val (notDefined, defined) = ns.partitionMap(n => transform.lift(n) match {
+          case None => Left(n)
+          case Some(v) => Right(v)
+        })
+
+        val downstream = flatten(
+          notDefined.flatMap(n => indexGraphEdges(nodeToIndex(n))).map(indexToNodes)
+        )
+
+        defined ++ downstream
+      }
+    }
+
+    indexGraphEdges
+      .zipWithIndex
+      .flatMap { case (destIndices, srcIndex) =>
+        transform.lift(indexToNodes(srcIndex))
+          .map((_, flatten(destIndices.map(destIndex => indexToNodes(destIndex)))))
+      }
+      .toMap
+  }
 
 }
