@@ -260,14 +260,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.1-4-c537f2</span>
+    <span class="version">0.11.1-5-bfa4f2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.1-4-c537f2</a>
+          <a href="index.html">0.11.1-5-bfa4f2</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -300,9 +300,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.1-4-c537f2</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.1-5-bfa4f2</button>
   <div class="version-menu">
-    <a class="version is-current" href="Thirdparty_Plugins.html">0.11.1-4-c537f2</a>
+    <a class="version is-current" href="Thirdparty_Plugins.html">0.11.1-5-bfa4f2</a>
     <a class="version" href="0.11.0-M7/Thirdparty_Plugins.html">0.11.0-M7</a>
     <a class="version" href="0.10.12/Thirdparty_Plugins.html">0.10.12</a>
     <a class="version" href="0.10.0/Thirdparty_Plugins.html">0.10.0</a>
@@ -342,6 +342,53 @@ The usage examples given here are most probably incomplete and sometimes outdate
 </div>
 <div class="paragraph">
 <p>Additional to this list, you can also search the <a href="https://github.com/topics/mill-plugin"><code>mill-plugin</code> topic on GitHub</a> for more plugins.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_aliases"><a class="anchor" href="#_aliases"></a>Aliases</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This plugin adds an opinionated way of defining aliases to Mill builds. Added aliases are global and applied to the whole build.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/carlosedp/mill-aliases" class="bare">https://github.com/carlosedp/mill-aliases</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+import $ivy.`com.carlosedp::mill-aliases::0.2.1`
+import com.carlosedp.aliases._
+
+object foo extends ScalaModule {
+  ...
+}
+
+object MyAliases extends Aliases {
+  def testall     = alias(&quot;__.test&quot;)
+  def compileall  = alias(&quot;__.compile&quot;)
+  def comptestall = alias(&quot;__.compile&quot;, &quot;__.test&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To show all the defined aliases:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill Alias/list</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run an alias:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill Alias/run testall</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When run, each aliased task is checked if valid.</p>
 </div>
 </div>
 </div>
