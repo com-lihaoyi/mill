@@ -1,6 +1,7 @@
 package mill.codesig
 
 import JType.{Cls => JCls}
+import upickle.default.{ReadWriter, macroRW}
 
 /**
  * Traverses the call graph and inheritance hierarchy summaries produced by
@@ -13,6 +14,9 @@ object MethodCallResolver{
                     externalCalledClasses: Map[MethodCall, Set[JCls]],
                     externalClassLocalDests: Map[JCls, Set[MethodDef]])
 
+  object Result {
+    implicit def rw: ReadWriter[Result] = macroRW
+  }
   def resolveAllMethodCalls(localSummary: LocalSummarizer.Result,
                             externalSummary: ExternalSummarizer.Result,
                             logger: Logger): Result = {

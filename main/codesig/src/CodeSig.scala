@@ -35,8 +35,9 @@ object CodeSig{
       )
     }
 
-    val resolvedMethodCalls =
+    val resolvedMethodCalls = logger {
       MethodCallResolver.resolveAllMethodCalls(localSummary, externalSummary, logger)
+    }
 
     new CodeSig(
       localSummary,
