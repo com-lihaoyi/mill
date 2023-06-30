@@ -236,7 +236,7 @@ trait JavaModule
       (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
     )(m =>
       T.task {
-        m.bspCompileClasspath() ++ Agg(UnresolvedPath.ResolvedPath(m.compile().classes.path))
+        m.bspCompileClasspath() ++ Agg(m.bspCompileClassesPath())
       }
     )()
       .flatten
