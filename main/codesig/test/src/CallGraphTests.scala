@@ -22,6 +22,7 @@ object CallGraphTests extends TestSuite{
       test("13-private-method-not-inherited") - testExpectedCallGraph()
       test("14-scala-static-method") - testExpectedCallGraph()
       test("15-scala-lambda") - testExpectedCallGraph()
+      test("16-scala-trait-constructor") - testExpectedCallGraph()
     }
     test("complicated") {
       test("1-statics") - testExpectedCallGraph()
