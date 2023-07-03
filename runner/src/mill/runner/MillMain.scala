@@ -146,7 +146,7 @@ object MillMain {
               logger.error("The --repl mode is no longer supported.")
               (false, stateCache)
 
-            } else if (config.leftoverArgs.value.isEmpty) {
+            } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
               logger.error("A target must be provided.")
               (false, stateCache)
 

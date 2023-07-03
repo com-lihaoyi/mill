@@ -231,7 +231,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def moduleKind: Target[ModuleKind] = T { ModuleKind.NoModule }
 
   def esFeatures: T[ESFeatures] = T {
-    ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
+    if (scalaJSVersion().startsWith("0."))
+      ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
+    else
+      ESFeatures.Defaults
   }
 
   def moduleSplitStyle: Target[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }

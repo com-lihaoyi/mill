@@ -488,7 +488,9 @@ object TestGraphs {
   }
 
   object nestedCrosses extends TestUtil.BaseModule {
-    object cross extends mill.Cross[Cross]("210", "211", "212")
+    object cross extends mill.Cross[Cross]("210", "211", "212") {
+      override def defaultCrossSegments: Seq[String] = Seq("212")
+    }
     trait Cross extends Cross.Module[String] {
       val scalaVersion = crossValue
       object cross2 extends mill.Cross[Cross]("jvm", "js", "native")

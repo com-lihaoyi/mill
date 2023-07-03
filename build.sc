@@ -41,7 +41,7 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq()
-  val mimaBaseVersions: Seq[String] = Seq("0.11.0")
+  val mimaBaseVersions: Seq[String] = Seq("0.11.0", "0.11.1")
 }
 
 object Deps {
@@ -99,7 +99,7 @@ object Deps {
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.8"
-  val ammoniteVersion = "3.0.0-M0-6-34034262"
+  val ammoniteVersion = "3.0.0-M0-32-96e851cb"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
   val coursier = ivy"io.get-coursier::coursier:2.1.4"
@@ -126,14 +126,13 @@ object Deps {
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
+  val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.4"
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.4"
-  val scalametaVersion = "4.7.8"
-  val scalametaTrees = ivy"org.scalameta::trees:${scalametaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.10"
@@ -143,18 +142,21 @@ object Deps {
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:${scalametaVersion}"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.8"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.18"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:3.1.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.9.0"
+  val zinc = ivy"org.scala-sbt::zinc:1.9.1"
   // keep in sync with doc/antora/antory.yml
-  val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M4"
+  val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.2"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
+  // tests framework (test)
+  val testScalaTest = ivy"org.scalatest::scalatest:3.2.16"
+  val testZioTest = ivy"dev.zio::zio-test:2.0.15"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
@@ -340,6 +342,8 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
+      s"-DTEST_SCALATEST_VERSION=${Deps.testScalaTest.dep.version}",
+      s"-DTEST_ZIOTEST_VERSION=${Deps.testZioTest.dep.version}",
       s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
     )
   }
@@ -522,7 +526,6 @@ object main extends MillStableScalaModule with BuildInfo {
     def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
     def ivyDeps = Agg(
       Deps.millModuledefs,
-      Deps.scalametaTrees,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
@@ -563,9 +566,11 @@ object main extends MillStableScalaModule with BuildInfo {
 }
 
 object testrunner extends MillPublishScalaModule {
-  object entrypoint extends MillPublishJavaModule
-
   def moduleDeps = Seq(scalalib.api, main.util, entrypoint)
+
+  object entrypoint extends MillPublishJavaModule {
+    override def ivyDeps = Agg(Deps.sbtTestInterface)
+  }
 }
 
 object scalalib extends MillStableScalaModule {
@@ -1366,7 +1371,9 @@ object dev extends MillPublishScalaModule {
             forkEnv(),
             workingDir = wd
           )
-        catch { case e: Throwable => () /*ignore to avoid confusing stacktrace and error messages*/ }
+        catch {
+          case e: Throwable => () /*ignore to avoid confusing stacktrace and error messages*/
+        }
         mill.api.Result.Success(())
     }
   }
@@ -1507,6 +1514,7 @@ object docs extends Module {
       else s"${Settings.projectUrl}/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
+       |    mill-scip-version: ${Deps.millScip.dep.version}
        |
        |antora:
        |  extensions:
@@ -1749,7 +1757,9 @@ def validate(ev: Evaluator): Command[Unit] = T.command {
   ()
 }
 
+/** Dummy module to let Scala-Steward find and bump dependency versions we use at runtime */
 object DependencyFetchDummy extends ScalaModule {
   def scalaVersion = Deps.scalaVersion
-  def compileIvyDeps = Agg(Deps.semanticDbJava, Deps.semanticDB)
+  def compileIvyDeps =
+    Agg(Deps.millScip, Deps.semanticDbJava, Deps.semanticDB, Deps.testScalaTest, Deps.testZioTest)
 }

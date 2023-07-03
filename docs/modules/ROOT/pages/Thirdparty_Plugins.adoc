@@ -13,6 +13,43 @@ The usage examples given here are most probably incomplete and sometimes outdate
 Additional to this list, you can also search the https://github.com/topics/mill-plugin[`mill-plugin` topic on GitHub] for more plugins.
 
 
+== Aliases
+
+This plugin adds an opinionated way of defining aliases to Mill builds. Added aliases are global and applied to the whole build.
+
+Project home: https://github.com/carlosedp/mill-aliases
+
+[source,scala]
+----
+import mill._, scalalib._
+import $ivy.`com.carlosedp::mill-aliases::0.2.1`
+import com.carlosedp.aliases._
+
+object foo extends ScalaModule {
+  ...
+}
+
+object MyAliases extends Aliases {
+  def testall     = alias("__.test")
+  def compileall  = alias("__.compile")
+  def comptestall = alias("__.compile", "__.test")
+}
+----
+
+To show all the defined aliases:
+
+```sh
+./mill Alias/list
+```
+
+Run an alias:
+
+```sh
+./mill Alias/run testall
+```
+
+When run, each aliased task is checked if valid.
+
 == Antlr
 
 https://www.antlr.org/[ANTLR parser generator] support for mill.
@@ -828,10 +865,10 @@ scip-java index
 
 You can also manually trigger this with Mill by doing the following:
 
-[source, shell script]
+[source, shell script, subs="attributes,verbatim"]
 ----
 
-mill --import ivy:io.chris-kipp::mill-scip::0.2.2 io.kipp.mill.scip.Scip/generate
+mill --import ivy:io.chris-kipp::mill-scip::{mill-scip-version} io.kipp.mill.scip.Scip/generate
 ----
 
 This will then generate your `index.scip` inside of

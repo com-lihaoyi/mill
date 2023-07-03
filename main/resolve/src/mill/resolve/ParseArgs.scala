@@ -41,7 +41,7 @@ object ParseArgs {
           r2.drop(1)
         )
     }
-    val parts: Seq[Seq[String]] = separated(Seq(), scriptArgs)
+    val parts: Seq[Seq[String]] = separated(Seq() /* start value */, scriptArgs)
     val parsed: Seq[Either[String, TargetsWithParams]] =
       parts.map(extractAndValidate(_, selectMode == SelectMode.Multi))
 
@@ -96,7 +96,8 @@ object ParseArgs {
     def ident2 = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
     def segment = P(mill.define.Reflect.ident).map(Segment.Label)
     def crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
-    def simpleQuery = P(segment ~ ("." ~ segment | crossSegment).rep).map {
+    def defaultCrossSegment = P("[]").map(_ => Segment.Cross(Seq()))
+    def simpleQuery = P(segment ~ ("." ~ segment | crossSegment | defaultCrossSegment).rep).map {
       case (h, rest) => Segments(h +: rest)
     }
 

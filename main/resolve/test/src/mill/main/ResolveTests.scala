@@ -315,6 +315,19 @@ object ResolveTests extends TestSuite {
           )),
           Set("cross[210].suffix", "cross[211].suffix", "cross[212].suffix")
         )
+        "head" - check(
+          "cross[].suffix",
+          Right(Set(
+            _.cross("210").suffix
+          )),
+          Set("cross[210].suffix")
+        )
+        "headNeg" - check(
+          "cross[].doesntExist",
+          Left(
+            "Cannot resolve cross[].doesntExist. Try `mill resolve cross[]._` to see what's available."
+          )
+        )
       }
       "double" - {
         val check = new Checker(doubleCross)
@@ -443,6 +456,21 @@ object ResolveTests extends TestSuite {
               "cross[212,native].suffix"
             )
           )
+          "head" - check(
+            "cross[].suffix",
+            Right(Set(
+              _.cross("210", "jvm").suffix
+            )),
+            Set(
+              "cross[210,jvm].suffix"
+            )
+          )
+          "headNeg" - check(
+            "cross[].doesntExist",
+            Left(
+              "Cannot resolve cross[].doesntExist. Try `mill resolve cross[]._` to see what's available."
+            )
+          )
         }
       }
       "nested" - {
@@ -511,6 +539,16 @@ object ResolveTests extends TestSuite {
               "cross[212].cross2[jvm].suffix",
               "cross[212].cross2[js].suffix",
               "cross[212].cross2[native].suffix"
+            )
+          )
+          // "212" is the defaultCrossSegments
+          "head" - check(
+            "cross[].cross2[jvm].suffix",
+            Right(Set(
+              _.cross("212").cross2("jvm").suffix
+            )),
+            Set(
+              "cross[212].cross2[jvm].suffix"
             )
           )
         }

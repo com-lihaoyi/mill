@@ -123,7 +123,13 @@ private object ResolveCore {
                       if segments.length == cross.length
                       if segments.zip(cross).forall { case (l, r) => l == r || r == "_" }
                     } yield v
-                  } else c.segmentsToModules.get(cross.toList).toSeq
+                  } else {
+                    val crossOrDefault = if (cross.isEmpty) {
+                      // We want to select the default (first) crossValue
+                      c.defaultCrossSegments
+                    } else cross
+                    c.segmentsToModules.get(crossOrDefault.toList).toSeq
+                  }
                 )
               } match {
                 case Left(err) => Error(err)
@@ -287,7 +293,7 @@ private object ResolveCore {
   def notFoundResult(rootModule: Module, querySoFar: Segments, current: Resolved, next: Segment) = {
     val possibleNexts = current match {
       case m: Resolved.Module =>
-        resolveDirectChildren(rootModule, m.cls, None, current.segments).right.get.map(
+        resolveDirectChildren(rootModule, m.cls, None, current.segments).toOption.get.map(
           _.segments.value.last
         )
 

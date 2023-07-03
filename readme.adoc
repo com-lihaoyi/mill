@@ -316,6 +316,31 @@ these packages mature over time.
 
 == Changelog
 
+[#0-11-1]
+=== 0.11.1 - 2023-06-23
+:version: 0.11.1
+:milestone-name: 0.11.1
+:milestone: 85
+:prev-version: 0.11.0
+
+_Changes since {prev-version}:_
+
+* `mill.define.Cross`: Introduced default cross segments and some CLI convenience
+* `mill.testrunner`: Fixed exception when running ScalaTest or ZIOTest frameworks
+* `mill.runner`: Removed some obsolete / defunct cli options
+* `mill.runner`: Properly distinct-ify commands when resolving wide matching target patterns
+* `mill.scalajslib`: Restored correct defaults for `esFeature`
+* `mill.bsp`: Fixed a `MatchError` in the `buildtarget/scalaTestClasses` request
+* `mill.contrib.bloop`: Corrected accidentally changed package name resulting in non-functional plugin
+* `mill.contrib.scoverage`: Fixed defunct plugin due to a missing type annotation
+* Various internal improvements
+* Dependency updates: Ammonite 3.3.0-M0-32-96e851cb, bsp4j 2.1.0-M5, zinc 1.9.1
+* Mill is now build with Mill 0.11
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#0-11-0]
 === 0.11.0 - 2023-06-06
@@ -325,6 +350,8 @@ these packages mature over time.
 :prev-version: 0.11.0-M11
 
 *This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
 
 * 0.11.0 is the next breaking version after the 0.10.x series, with a large
   number of improvements. See the changelog below for 0.11.0-M1 to 0.11.0-M11
@@ -345,6 +372,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 :prev-version: 0.11.0-M10
 
 *This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
 
 * Make `foo.test` command run tests with user code in the boot classloader,
   rather than in a sub-classloader
@@ -375,6 +404,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 :prev-version: 0.11.0-M9
 
 *This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
 
 * Make `mill.define.Module` a `trait` to allow abstract/virtual modules
   to be ``trait``s rather than ``class``es
@@ -407,6 +438,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 :prev-version: 0.11.0-M8
 
 *This release is binary incompatible to {prev-version}.*
+
+_Changes since {prev-version}:_
 
 * Overhauled target resolution logic. It is now significantly lazier, resulting
   in less of the module tree being un-necessarily instantiated, and also more

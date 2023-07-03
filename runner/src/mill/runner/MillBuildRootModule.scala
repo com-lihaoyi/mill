@@ -12,6 +12,7 @@ import os.{Path, rel}
 import pprint.Util.literalize
 import FileImportGraph.backtickWrap
 import mill.codesig.CodeSig
+import mill.main.BuildInfo
 
 import scala.util.Try
 
@@ -113,6 +114,8 @@ class MillBuildRootModule()(implicit
         .map(mill.scalalib.Dep.parse)
     )
   }
+
+  override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
 
   override def generatedSources: T[Seq[PathRef]] = T {
     generateScriptSources()
