@@ -120,7 +120,7 @@ val scriptsHash = group
           testReporter,
           logger
         )
-        GroupEvaluator.Results(newResults, newEvaluated.toSeq, false)
+        GroupEvaluator.Results(newResults, newEvaluated.toSeq, false, inputsHash, -1)
 
       case labelled: Terminal.Labelled[_] =>
         val out =
@@ -136,13 +136,19 @@ val scriptsHash = group
 
         val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled)
 
-        upToDateWorker.map((_, inputsHash)) orElse cached match {
+        upToDateWorker.map((_, inputsHash)) orElse cached.flatMap(_._2) match {
           case Some((v, hashCode)) =>
             val res = Result.Success((v, hashCode))
             val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
               Map(labelled.task -> TaskResult(res, () => res))
 
-            GroupEvaluator.Results(newResults, Nil, cached = true)
+            GroupEvaluator.Results(
+              newResults,
+              Nil,
+              cached = true,
+              inputsHash,
+              -1
+            )
 
           case _ =>
             // uncached
@@ -180,7 +186,12 @@ val scriptsHash = group
                 os.remove.all(paths.meta)
             }
 
-            GroupEvaluator.Results(newResults, newEvaluated.toSeq, cached = false)
+            GroupEvaluator.Results(
+              newResults,
+              newEvaluated.toSeq, cached = false,
+              inputsHash,
+              cached.map(_._1).getOrElse(-1)
+            )
         }
     }
 
@@ -372,26 +383,30 @@ val scriptsHash = group
       inputsHash: Int,
       labelled: Terminal.Labelled[_],
       paths: EvaluatorPaths
-  ): Option[(Val, Int)] = {
+  ): Option[(Int, Option[(Val, Int)])] = {
     for {
       cached <-
         try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
         catch {
           case NonFatal(_) => None
         }
-      if cached.inputsHash == inputsHash
-      reader <- labelled.task.readWriterOpt
-      parsed <-
-        try Some(upickle.default.read(cached.value)(reader))
-        catch {
-          case e: PathRef.PathRefValidationException =>
-            logger.debug(
-              s"${labelled.segments.render}: re-evaluating; ${e.getMessage}"
-            )
-            None
-          case NonFatal(_) => None
-        }
-    } yield (Val(parsed), cached.valueHash)
+    } yield (
+      cached.inputsHash,
+      for {
+        _ <- Option.when(cached.inputsHash == inputsHash)(())
+        reader <- labelled.task.readWriterOpt
+        parsed <-
+          try Some(upickle.default.read(cached.value)(reader))
+          catch {
+            case e: PathRef.PathRefValidationException =>
+              logger.debug(
+                s"${labelled.segments.render}: re-evaluating; ${e.getMessage}"
+              )
+              None
+            case NonFatal(_) => None
+          }
+      } yield (Val(parsed), cached.valueHash)
+    )
   }
 
   private def loadUpToDateWorker(
@@ -440,6 +455,8 @@ private[mill] object GroupEvaluator {
   case class Results(
       newResults: Map[Task[_], TaskResult[(Val, Int)]],
       newEvaluated: Seq[Task[_]],
-      cached: Boolean
+      cached: Boolean,
+      inputsHash: Int,
+      previousInputsHash: Int
   )
 }

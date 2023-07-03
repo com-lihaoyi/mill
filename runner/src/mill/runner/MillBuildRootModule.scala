@@ -11,6 +11,8 @@ import mill.scalalib.api.Versions
 import os.{Path, rel}
 import pprint.Util.literalize
 import FileImportGraph.backtickWrap
+import mill.codesig.CodeSig
+
 import scala.util.Try
 
 /**
@@ -142,14 +144,18 @@ class MillBuildRootModule()(implicit
   }
 
   def methodCodeHashSignatures: T[Map[String, Int]] = T {
-    mill.codesig.CodeSig
+    val codesig = mill.codesig.CodeSig
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
         upstreamClasspath = compileClasspath().toSeq.map(_.path),
-        logger = new mill.codesig.Logger(Some(os.pwd / "codesig-logs"))
+        logger = new mill.codesig.Logger(Some(T.dest))
       )
+
+
+    codesig
       .transitiveCallGraphHashes
-      .map{case (k, v) => (k.toString, v)}
+      .map{case (k, v) => (codesig.indexToNodes(k), v)}
+      .collect{case (CodeSig.LocalDef(d), v) => (d.toString, v)}
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {

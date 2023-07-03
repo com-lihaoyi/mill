@@ -38,7 +38,12 @@ private class ProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ProfileLogger.Timing](outPath, indent = 2)
 
 private object ProfileLogger {
-  case class Timing(label: String, millis: Int, cached: Boolean, dependencies: Seq[String] = Nil)
+  case class Timing(label: String,
+                    millis: Int,
+                    cached: Boolean,
+                    dependencies: Seq[String] = Nil,
+                    inputsHash: Int,
+                    previousInputsHash: Int)
 
   object Timing {
     implicit val readWrite: upickle.default.ReadWriter[Timing] = upickle.default.macroRW
