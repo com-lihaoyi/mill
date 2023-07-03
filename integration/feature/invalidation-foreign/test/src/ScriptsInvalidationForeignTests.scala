@@ -29,14 +29,13 @@ object ScriptsInvalidationForeignTests extends IntegrationTestSuite {
 
       test("second run modifying script") {
         val oldContent = os.read(scriptSourcePath / buildPath)
-        val newContent = s"""$oldContent
-                            |def newTask = T { }
-                            |""".stripMargin
+        val newContent =
+          oldContent.replace("""println("a")""", """println("a2")""")
         os.write.over(workspacePath / buildPath, newContent)
 
         val result = runTask("taskA")
 
-        val expected = Seq("a")
+        val expected = Seq("a2")
 
         assert(result == expected)
       }
@@ -54,9 +53,8 @@ object ScriptsInvalidationForeignTests extends IntegrationTestSuite {
 
       test("second run modifying script") {
         val oldContent = os.read(scriptSourcePath / buildPath)
-        val newContent = s"""$oldContent
-                            |def newTask = T { }
-                            |""".stripMargin
+        val newContent =
+          oldContent.replace("""println("a")""", """println("a2")""")
         os.write.over(workspacePath / buildPath, newContent)
 
         val result = runTask("taskD")
