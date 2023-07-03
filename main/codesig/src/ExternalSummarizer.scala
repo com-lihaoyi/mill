@@ -9,11 +9,13 @@ import JType.{Cls => JCls}
  * those external classes that have the potential to be over-ridden by
  * user-defined classes
  */
-object ExternalSummarizer{
+object ExternalSummarizer {
 
-  case class Result(directMethods: Map[JCls, Set[MethodSig]],
-                    directAncestors: Map[JCls, Set[JCls]],
-                    directSuperclasses: Map[JCls, JCls])
+  case class Result(
+      directMethods: Map[JCls, Set[MethodSig]],
+      directAncestors: Map[JCls, Set[JCls]],
+      directSuperclasses: Map[JCls, JCls]
+  )
 
   object Result {
     implicit def rw: upickle.default.ReadWriter[Result] = upickle.default.macroRW
@@ -26,7 +28,7 @@ object ExternalSummarizer{
   }
 }
 
-class ExternalSummarizer private(loadClassStream: JCls => java.io.InputStream){
+class ExternalSummarizer private (loadClassStream: JCls => java.io.InputStream) {
   val methodsPerCls = collection.mutable.Map.empty[JCls, Set[MethodSig]]
   val ancestorsPerCls = collection.mutable.Map.empty[JCls, Set[JCls]]
   val directSuperclasses = collection.mutable.Map.empty[JCls, JCls]
@@ -47,12 +49,14 @@ class ExternalSummarizer private(loadClassStream: JCls => java.io.InputStream){
     var methods: Set[MethodSig] = Set()
     var ancestors: Set[JCls] = null
     var superclass: JCls = null
-    override def visit(version: Int,
-                       access: Int,
-                       name: String,
-                       signature: String,
-                       superName: String,
-                       interfaces: Array[String]): Unit = {
+    override def visit(
+        version: Int,
+        access: Int,
+        name: String,
+        signature: String,
+        superName: String,
+        interfaces: Array[String]
+    ): Unit = {
 
       Option(superName).foreach(sup => superclass = JCls.fromSlashed(sup))
       ancestors =
@@ -61,11 +65,13 @@ class ExternalSummarizer private(loadClassStream: JCls => java.io.InputStream){
           .toSet
     }
 
-    override def visitMethod(access: Int,
-                             name: String,
-                             descriptor: String,
-                             signature: String,
-                             exceptions: Array[String]): MethodVisitor = {
+    override def visitMethod(
+        access: Int,
+        name: String,
+        descriptor: String,
+        signature: String,
+        exceptions: Array[String]
+    ): MethodVisitor = {
 
       methods += MethodSig((access & Opcodes.ACC_STATIC) != 0, name, Desc.read(descriptor))
 

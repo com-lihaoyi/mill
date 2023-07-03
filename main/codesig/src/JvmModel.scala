@@ -7,29 +7,29 @@ import upickle.default.{ReadWriter, readwriter, stringKeyRW}
 // calls, etc. These are generally parsed from stringly-typed fields given to
 // us by ASM library
 
-
-case class MethodDef(cls: JType.Cls, method: MethodSig){
+case class MethodDef(cls: JType.Cls, method: MethodSig) {
   override def toString = cls.pretty + method.toString
 }
 
-
-object MethodDef{
+object MethodDef {
   implicit val ordering: Ordering[MethodDef] = Ordering.by(m => (m.cls, m.method))
-  implicit val rw: ReadWriter[MethodDef] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
+  implicit val rw: ReadWriter[MethodDef] =
+    stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
 }
 
-case class MethodSig(static: Boolean, name: String, desc: Desc){
-  override def toString = (if(static) "." else "#") + name + desc.pretty
+case class MethodSig(static: Boolean, name: String, desc: Desc) {
+  override def toString = (if (static) "." else "#") + name + desc.pretty
 }
 
-object MethodSig{
+object MethodSig {
   implicit val ordering: Ordering[MethodSig] = Ordering.by(m => (m.static, m.name, m.desc))
-  implicit val rw: ReadWriter[MethodSig] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
+  implicit val rw: ReadWriter[MethodSig] =
+    stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
 }
 
 case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc) {
   override def toString = {
-    val sep = invokeType match{
+    val sep = invokeType match {
       case InvokeType.Static => '.'
       case InvokeType.Virtual => '#'
       case InvokeType.Special => '!'
@@ -40,18 +40,19 @@ case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc
   def toDirectMethodDef = MethodSig(invokeType == InvokeType.Static, name, desc)
 }
 
-object MethodCall{
-  implicit val rw: ReadWriter[MethodCall] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
+object MethodCall {
+  implicit val rw: ReadWriter[MethodCall] =
+    stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
 }
 
 sealed trait InvokeType
-object InvokeType{
+object InvokeType {
   case object Static extends InvokeType
   case object Virtual extends InvokeType
   case object Special extends InvokeType
 }
 
-sealed trait JType{
+sealed trait JType {
   override def toString = pretty
 
   /**
@@ -61,7 +62,8 @@ sealed trait JType{
   def pretty: String
 }
 object JType {
-  implicit val rw: ReadWriter[MethodSig] = stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
+  implicit val rw: ReadWriter[MethodSig] =
+    stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
   sealed class Prim(val pretty: String) extends JType
 
   object Prim extends {
@@ -90,10 +92,10 @@ object JType {
     case object D extends Prim("double")
   }
 
-  case class Arr(innerType: JType) extends JType{
+  case class Arr(innerType: JType) extends JType {
     def pretty = innerType.pretty + "[]"
   }
-  object Arr{
+  object Arr {
     def read(s: String) = Arr(JType.read(s.drop(1)))
   }
   case class Cls(name: String) extends JType {
@@ -121,20 +123,20 @@ object JType {
   implicit val ordering: Ordering[JType] = Ordering.by(_.pretty)
 }
 
-object Desc{
+object Desc {
   def read(s: String) = {
     val scala.Array(argString, ret) = s.drop(1).split(')')
     val args = collection.mutable.Buffer.empty[String]
     var index = 0
-    while(index < argString.length){
+    while (index < argString.length) {
       val firstChar = argString.indexWhere(x => "BCDFIJSZL".contains(x), index)
-      val split = argString(firstChar) match{
+      val split = argString(firstChar) match {
         case 'L' => argString.indexWhere(x => ";".contains(x), index)
         case _ => argString.indexWhere(x => "BCDFIJSZ".contains(x), index)
       }
 
-      args.append(argString.substring(index, split+1))
-      index = split +1
+      args.append(argString.substring(index, split + 1))
+      index = split + 1
     }
     Desc(args.map(JType.read).toSeq, JType.read(ret))
   }
@@ -145,7 +147,7 @@ object Desc{
 /**
  * Represents the signature of a method.
  */
-case class Desc(args: Seq[JType], ret: JType){
+case class Desc(args: Seq[JType], ret: JType) {
   def pretty = "(" + args.map(_.pretty).mkString(",") + ")" + ret.pretty
   override def toString = pretty
 }

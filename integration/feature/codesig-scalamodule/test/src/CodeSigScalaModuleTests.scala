@@ -15,21 +15,21 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(initial.out) ==
-        Seq(
-          "Generating Sources...",
-          "Compiling...",
-          "Hello World",
-          "Running..."
-        )
+          Seq(
+            "Generating Sources...",
+            "Compiling...",
+            "Hello World",
+            "Running..."
+          )
       )
 
       val cached = evalStdout("foo.run")
       assert(
         filterLines(cached.out) ==
-        Seq(
-          "Hello World",
-          "Running..."
-        )
+          Seq(
+            "Hello World",
+            "Running..."
+          )
       )
 
       // Changing the body of a T{...} block directly invalidates that target
@@ -51,11 +51,11 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(mangledFoo2.out) ==
-        Seq(
-          "COMPILING",
-          "Hello World",
-          "RUNNING"
-        )
+          Seq(
+            "COMPILING",
+            "Hello World",
+            "RUNNING"
+          )
       )
 
       mangleFile(wsRoot / "build.sc", _.replace("Generating Sources...", "GENERATING SOURCES"))
@@ -63,12 +63,12 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(mangledFoo3.out) ==
-        Seq(
-          "GENERATING SOURCES",
-          "COMPILING",
-          "Hello World",
-          "RUNNING"
-        )
+          Seq(
+            "GENERATING SOURCES",
+            "COMPILING",
+            "Hello World",
+            "RUNNING"
+          )
       )
 
       mangleFile(wsRoot / "build.sc", _.replace("2.13.8", "2.13.10"))
@@ -76,11 +76,11 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(mangledFoo4.out) ==
-        Seq(
-          "COMPILING",
-          "Hello World",
-          "RUNNING"
-        )
+          Seq(
+            "COMPILING",
+            "Hello World",
+            "RUNNING"
+          )
       )
 
       // Adding newlines in various places doesn't invalidate anything
@@ -88,18 +88,18 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
         wsRoot / "build.sc",
         s =>
           "\n\n\n" +
-          s.replace("def scalaVersion", "\ndef scalaVersion\n")
-           .replace("def sources", "\ndef sources\n")
-           .replace("def compile", "\ndef compile\n")
-           .replace("def run", "\ndef run\n")
+            s.replace("def scalaVersion", "\ndef scalaVersion\n")
+              .replace("def sources", "\ndef sources\n")
+              .replace("def compile", "\ndef compile\n")
+              .replace("def run", "\ndef run\n")
       )
       val mangledFoo5 = evalStdout("foo.run")
       assert(
         filterLines(mangledFoo5.out) ==
-        Seq(
-          "Hello World",
-          "RUNNING"
-        )
+          Seq(
+            "Hello World",
+            "RUNNING"
+          )
       )
     }
   }

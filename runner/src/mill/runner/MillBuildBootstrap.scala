@@ -192,7 +192,6 @@ class MillBuildBootstrap(
             evalWatches,
             moduleWatches
           ) =>
-
         val runClasspathChanged = !prevFrameOpt.exists(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )

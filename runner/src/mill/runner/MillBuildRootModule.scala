@@ -154,11 +154,10 @@ class MillBuildRootModule()(implicit
         logger = new mill.codesig.Logger(Some(T.dest))
       )
 
-
     codesig
       .transitiveCallGraphHashes
-      .map{case (k, v) => (codesig.indexToNodes(k), v)}
-      .collect{case (CodeSig.LocalDef(d), v) => (d.toString, v)}
+      .map { case (k, v) => (codesig.indexToNodes(k), v) }
+      .collect { case (CodeSig.LocalDef(d), v) => (d.toString, v) }
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {

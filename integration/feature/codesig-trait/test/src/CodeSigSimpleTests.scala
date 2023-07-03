@@ -12,8 +12,8 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       assert(
         initial.out ==
-        """running foo
-          |running helperFoo""".stripMargin
+          """running foo
+            |running helperFoo""".stripMargin
       )
 
       val cached = evalStdout("myObject.foo")

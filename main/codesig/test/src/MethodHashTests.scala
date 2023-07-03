@@ -2,14 +2,14 @@ package mill.codesig
 import JType.{Cls => JCls}
 import utest._
 
-object MethodHashTests extends TestSuite{
-  val tests = Tests{
-    test("unchanged"){
+object MethodHashTests extends TestSuite {
+  val tests = Tests {
+    test("unchanged") {
       test("simple-java") - testUnchanged()
       test("simple-scala") - testUnchanged()
       test("sourcecode-line") - testUnchanged()
     }
-    test("changed"){
+    test("changed") {
       val cases = Seq(
         "basic",
         "constant-large",
@@ -31,13 +31,14 @@ object MethodHashTests extends TestSuite{
         "two-calls"
       )
 
-      val computed = for(c <- cases) yield (c, TestUtil.computeCodeSig(Seq("methodhash", "changed", c)))
+      val computed = for (c <- cases)
+        yield (c, TestUtil.computeCodeSig(Seq("methodhash", "changed", c)))
 
-      for{
+      for {
         (c1, sig1) <- computed
         (c2, sig2) <- computed
         if c1 != c2
-      }{
+      } {
 
         val mainMethod = MethodDef(
           JCls("hello.Hello"),

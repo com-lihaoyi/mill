@@ -1,6 +1,7 @@
 package mill.codesig
 
-object Util{
+object Util {
+
   /**
    * Summarizes the transitive closure of the given topo-sorted graph, using the given
    * [[computeOutputValue]] and [[reduce]] functions to return a single value of [[T]].
@@ -11,10 +12,12 @@ object Util{
    * Component is processed together and assigned the same final value, since
    * they all have the exact same transitive closure
    */
-  def computeTransitive[T, V](topoSortedInputGroups: Seq[Set[T]],
-                              edges: T => Set[T],
-                              computeOutputValue: T => V,
-                              reduce: Set[V] => V) = {
+  def computeTransitive[T, V](
+      topoSortedInputGroups: Seq[Set[T]],
+      edges: T => Set[T],
+      computeOutputValue: T => V,
+      reduce: Set[V] => V
+  ) = {
     val seen = collection.mutable.Map.empty[T, V]
     for (inputGroup <- topoSortedInputGroups) {
       val groupUpstreamEdges = inputGroup

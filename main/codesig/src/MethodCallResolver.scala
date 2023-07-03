@@ -9,28 +9,32 @@ import upickle.default.{ReadWriter, macroRW}
  * their potential destinations and compute transitive properties of the
  * call graph
  */
-object MethodCallResolver{
+object MethodCallResolver {
   case class MethodCallInfo(localDests: Set[MethodDef], externalDests: Set[JCls])
   object MethodCallInfo {
     implicit def rw: ReadWriter[MethodCallInfo] = macroRW
   }
 
-  case class Result(localCalls: Map[MethodCall, MethodCallInfo],
-                    externalClassLocalDests: Map[JCls, (Set[JCls], Set[MethodSig])])
+  case class Result(
+      localCalls: Map[MethodCall, MethodCallInfo],
+      externalClassLocalDests: Map[JCls, (Set[JCls], Set[MethodSig])]
+  )
   object Result {
     implicit def rw: ReadWriter[Result] = macroRW
   }
 
-  def resolveAllMethodCalls(localSummary: LocalSummarizer.Result,
-                            externalSummary: ExternalSummarizer.Result,
-                            logger: Logger): Result = {
+  def resolveAllMethodCalls(
+      localSummary: LocalSummarizer.Result,
+      externalSummary: ExternalSummarizer.Result,
+      logger: Logger
+  ): Result = {
 
-    val allDirectAncestors = logger{
+    val allDirectAncestors = logger {
       localSummary.mapValues(_.directAncestors) ++
-      externalSummary.directAncestors
+        externalSummary.directAncestors
     }
 
-    val directDescendents = logger{
+    val directDescendents = logger {
       allDirectAncestors
         .toVector
         .flatMap { case (k, vs) => vs.map((_, k)) }
@@ -39,7 +43,7 @@ object MethodCallResolver{
 
     // Given an external class, what are the local classes that inherit from it,
     // and what local methods may end up being called by the external class code
-    val externalClsToLocalClsMethodsDirect = logger{
+    val externalClsToLocalClsMethodsDirect = logger {
       localSummary
         .items
         .keySet
@@ -52,7 +56,7 @@ object MethodCallResolver{
             .toMap
         }
         .groupMapReduce(_._1)(_._2)(_ ++ _)
-        .map{case (externalCls, localClasses) =>
+        .map { case (externalCls, localClasses) =>
           // <init> methods are final and cannot be overriden
           val methods = externalSummary
             .directMethods
@@ -76,13 +80,15 @@ object MethodCallResolver{
     resolvedCalls
   }
 
-  def resolveAllMethodCalls0(localSummary: LocalSummarizer.Result,
-                             externalClsToLocalClsMethods: Map[JCls, (Set[JCls], Set[MethodSig])],
-                             allDirectAncestors: Map[JCls, Set[JCls]],
-                             directSuperclasses: Map[JCls, JCls],
-                             directDescendents: Map[JCls, Vector[JCls]],
-                             externalDirectMethods: Map[JCls, Set[MethodSig]],
-                             logger: Logger): Result = {
+  def resolveAllMethodCalls0(
+      localSummary: LocalSummarizer.Result,
+      externalClsToLocalClsMethods: Map[JCls, (Set[JCls], Set[MethodSig])],
+      allDirectAncestors: Map[JCls, Set[JCls]],
+      directSuperclasses: Map[JCls, JCls],
+      directDescendents: Map[JCls, Vector[JCls]],
+      externalDirectMethods: Map[JCls, Set[MethodSig]],
+      logger: Logger
+  ): Result = {
 
     def methodExists(cls: JCls, call: MethodCall): Boolean = {
       localSummary.items.get(cls).exists(_.methods.keysIterator.exists(sigMatchesCall(_, call))) ||
@@ -145,18 +151,16 @@ object MethodCallResolver{
 
     Result(
       localCalls = callToResolved
-        .map{ case (call, (local, external)) => (call, MethodCallInfo(local, external))},
-
+        .map { case (call, (local, external)) => (call, MethodCallInfo(local, external)) },
       externalClassLocalDests = externalClsToLocalClsMethods
     )
   }
 
-  def transitiveAncestors(cls: JCls,
-                          allDirectAncestors: Map[JCls, Set[JCls]]): Set[JCls] = {
+  def transitiveAncestors(cls: JCls, allDirectAncestors: Map[JCls, Set[JCls]]): Set[JCls] = {
     Set(cls) ++
-    allDirectAncestors
-      .getOrElse(cls, Set.empty[JCls])
-      .flatMap(transitiveAncestors(_, allDirectAncestors))
+      allDirectAncestors
+        .getOrElse(cls, Set.empty[JCls])
+        .flatMap(transitiveAncestors(_, allDirectAncestors))
   }
 
   def sigMatchesCall(sig: MethodSig, call: MethodCall) = {
@@ -165,25 +169,27 @@ object MethodCallResolver{
     (sig.static == (call.invokeType == InvokeType.Static))
   }
 
-
-  def clsAndSupers(cls: JCls,
-                   skipEarly: JCls => Boolean,
-                   directSuperclasses: Map[JCls, JCls]): Seq[JCls] = {
+  def clsAndSupers(
+      cls: JCls,
+      skipEarly: JCls => Boolean,
+      directSuperclasses: Map[JCls, JCls]
+  ): Seq[JCls] = {
     Util.breadthFirst(Seq(cls))(cls =>
-      if(skipEarly(cls)) Nil else directSuperclasses.get(cls)
+      if (skipEarly(cls)) Nil else directSuperclasses.get(cls)
     )
   }
 
-  def clsAndAncestors(classes: IterableOnce[JCls],
-                      skipEarly: JCls => Boolean,
-                      allDirectAncestors: Map[JCls, Set[JCls]]): Set[JCls] = {
+  def clsAndAncestors(
+      classes: IterableOnce[JCls],
+      skipEarly: JCls => Boolean,
+      allDirectAncestors: Map[JCls, Set[JCls]]
+  ): Set[JCls] = {
     Util.breadthFirst(classes)(cls =>
-      if(skipEarly(cls)) Nil else allDirectAncestors.getOrElse(cls, Nil)
+      if (skipEarly(cls)) Nil else allDirectAncestors.getOrElse(cls, Nil)
     ).toSet
   }
 
-  def clsAndDescendents(cls: JCls,
-                        directDescendents: Map[JCls, Vector[JCls]]): Set[JCls] = {
+  def clsAndDescendents(cls: JCls, directDescendents: Map[JCls, Vector[JCls]]): Set[JCls] = {
     Util.breadthFirst(Seq(cls))(directDescendents.getOrElse(_, Nil)).toSet
   }
 

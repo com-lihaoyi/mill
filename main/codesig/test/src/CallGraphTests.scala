@@ -4,9 +4,9 @@ import os.Path
 import utest._
 import upickle.default.{read, write}
 import scala.collection.immutable.{SortedMap, SortedSet}
-object CallGraphTests extends TestSuite{
-  val tests = Tests{
-    test("basic"){
+object CallGraphTests extends TestSuite {
+  val tests = Tests {
+    test("basic") {
       test("1-static-method") - testExpectedCallGraph()
       test("2-instance-method") - testExpectedCallGraph()
       test("3-interface-method") - testExpectedCallGraph()
@@ -42,7 +42,7 @@ object CallGraphTests extends TestSuite{
 
     }
 
-    test("external"){
+    test("external") {
       test("1-interface-method") - testExpectedCallGraph()
       test("2-interface-never-instantiated") - testExpectedCallGraph()
       test("3-interface-never-called") - testExpectedCallGraph()
@@ -58,7 +58,7 @@ object CallGraphTests extends TestSuite{
       test("13-jcanvas") - testExpectedCallGraph()
       test("14-external-method-calls-parent-method") - testExpectedCallGraph()
     }
-    test("realistic"){
+    test("realistic") {
       test("1-tetris") - testExpectedCallGraph()
       test("2-ribbon") - testExpectedCallGraph()
       test("3-par-merge-sort") - testExpectedCallGraph()
@@ -83,7 +83,7 @@ object CallGraphTests extends TestSuite{
         "<clinit>",
         "$adapted",
         "$init$",
-        "$macro",
+        "$macro"
       )
     )
 
@@ -96,9 +96,9 @@ object CallGraphTests extends TestSuite{
 
   def parseExpectedJson(testCaseSourceFilesRoot: Path) = {
     val jsonText =
-      if (os.exists(testCaseSourceFilesRoot / "expected-call-graph.json")){
+      if (os.exists(testCaseSourceFilesRoot / "expected-call-graph.json")) {
         os.read(testCaseSourceFilesRoot / "expected-call-graph.json")
-      }else {
+      } else {
         val possibleSources = Seq("Hello.java", "Hello.scala")
         val sourceLines = possibleSources
           .map(testCaseSourceFilesRoot / _)
@@ -127,11 +127,10 @@ object CallGraphTests extends TestSuite{
    */
   def simplifyCallGraph(codeSig: CodeSig, skipped: Seq[String]) = {
 
-
 //    pprint.log(codeSig.simplifiedCallGraph(_.toString))
 
     codeSig
-      .simplifiedCallGraph{
+      .simplifiedCallGraph {
         case CodeSig.LocalDef(d) if !skipped.exists(d.toString.contains(_)) => d.toString
       }
       .collect { case (k, vs) if vs.nonEmpty => (k, vs.to(SortedSet)) }

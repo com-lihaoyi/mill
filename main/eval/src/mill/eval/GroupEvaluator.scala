@@ -77,33 +77,33 @@ private[mill] trait GroupEvaluator {
 //        .map(p => scriptImportGraph.get(p).fold(0)(_._1))
 //        .sum
 //    }
-val scriptsHash = group
-  .iterator
-  .flatMap(t => Iterator(t) ++ t.inputs)
-  .collect {
-    case namedTask: NamedTask[_] =>
-      def resolveParents(c: Class[_]): Seq[Class[_]] = {
-        Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
-          resolveParents
-        )
+    val scriptsHash = group
+      .iterator
+      .flatMap(t => Iterator(t) ++ t.inputs)
+      .collect {
+        case namedTask: NamedTask[_] =>
+          def resolveParents(c: Class[_]): Seq[Class[_]] = {
+            Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(
+              resolveParents
+            ) ++ c.getInterfaces.flatMap(
+              resolveParents
+            )
+          }
+
+          val transitiveParents = resolveParents(namedTask.ctx.enclosingCls)
+          val methods = for {
+            c <- transitiveParents
+            m <- c.getDeclaredMethods
+            if decode(m.getName) == namedTask.ctx.segment.pathSegments.head
+          } yield m
+
+          val cls = methods.head.getDeclaringClass.getName
+          val name = namedTask.ctx.segment.pathSegments.last
+          val expectedPrefix = cls + "#" + name + "()"
+          methodCodeHashSignatures.collectFirst { case (k, v) if k.startsWith(expectedPrefix) => v }
       }
-
-      val transitiveParents = resolveParents(namedTask.ctx.enclosingCls)
-      val methods = for {
-        c <- transitiveParents
-        m <- c.getDeclaredMethods
-        if decode(m.getName) == namedTask.ctx.segment.pathSegments.head
-      } yield m
-
-
-      val cls = methods.head.getDeclaringClass.getName
-      val name = namedTask.ctx.segment.pathSegments.last
-      val expectedPrefix = cls + "#" + name + "()"
-      methodCodeHashSignatures.collectFirst { case (k, v) if k.startsWith(expectedPrefix) => v }
-  }
-  .flatten
-  .sum
-
+      .flatten
+      .sum
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
@@ -188,7 +188,8 @@ val scriptsHash = group
 
             GroupEvaluator.Results(
               newResults,
-              newEvaluated.toSeq, cached = false,
+              newEvaluated.toSeq,
+              cached = false,
               inputsHash,
               cached.map(_._1).getOrElse(-1)
             )

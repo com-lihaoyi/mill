@@ -3,7 +3,9 @@ package mill.codesig
 class Logger(logFolder: Option[os.Path]) {
   logFolder.foreach(os.remove.all(_))
   private var count = 1
-  def apply[T: upickle.default.Writer](t: => T, prefix: String = "")(implicit s: sourcecode.Name): T = {
+  def apply[T: upickle.default.Writer](t: => T, prefix: String = "")(implicit
+      s: sourcecode.Name
+  ): T = {
     apply0(t, prefix, s.value)
   }
 

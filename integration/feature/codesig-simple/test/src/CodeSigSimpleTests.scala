@@ -55,12 +55,12 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       assert(
         initial.out ==
-        """running foo
-          |running helperFoo
-          |running bar
-          |running helperBar
-          |running qux
-          |running helperQux""".stripMargin
+          """running foo
+            |running helperFoo
+            |running bar
+            |running helperBar
+            |running qux
+            |running helperQux""".stripMargin
       )
 
       val cached = evalStdout("outer.inner.qux")
@@ -73,18 +73,18 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       assert(
         mangledFoo.out ==
-        """running foo2
-          |running helperFoo
-          |running qux
-          |running helperQux""".stripMargin
+          """running foo2
+            |running helperFoo
+            |running qux
+            |running helperQux""".stripMargin
       )
 
       mangleFile(wsRoot / "build.sc", _.replace("running qux", "running qux2"))
       val mangledQux = evalStdout("outer.inner.qux")
       assert(
         mangledQux.out ==
-        """running qux2
-          |running helperQux""".stripMargin
+          """running qux2
+            |running helperQux""".stripMargin
       )
 
       // Changing the body of some helper method that gets called by a T{...}
@@ -93,10 +93,10 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       val mangledHelperBar = evalStdout("outer.inner.qux")
       assert(
         mangledHelperBar.out ==
-        """running bar
-          |running helperBar2
-          |running qux2
-          |running helperQux""".stripMargin
+          """running bar
+            |running helperBar2
+            |running qux2
+            |running helperQux""".stripMargin
       )
 
       mangleFile(wsRoot / "build.sc", _.replace("running helperQux", "running helperQux2"))
@@ -104,8 +104,8 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       assert(
         mangledBar.out ==
-        """running qux2
-          |running helperQux2""".stripMargin
+          """running qux2
+            |running helperQux2""".stripMargin
       )
 
       // Adding a newline before one of the target definitions does not invalidate it
@@ -113,11 +113,9 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       val addedSingleNewline = evalStdout("outer.inner.qux")
       assert(addedSingleNewline.out == "")
 
-
       mangleFile(wsRoot / "build.sc", _.replace("def", "\ndef"))
       val addedManyNewlines = evalStdout("outer.inner.qux")
       assert(addedManyNewlines.out == "")
-
 
       // Reformatting the entire file, replacing `;`s with `\n`s and spacing out
       // the target bodies over multiple lines does not cause anything to invalidate
