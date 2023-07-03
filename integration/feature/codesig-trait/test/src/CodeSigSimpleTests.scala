@@ -11,9 +11,9 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       val initial = evalStdout("myObject.foo")
 
       assert(
-        initial.out ==
+        initial.out.linesIterator.toSeq ==
           """running foo
-            |running helperFoo""".stripMargin
+            |running helperFoo""".stripMargin.linesIterator.toSeq
       )
 
       val cached = evalStdout("myObject.foo")
@@ -26,9 +26,9 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       val changed = evalStdout("myObject.foo")
 
       assert(
-        changed.out ==
+        changed.out.linesIterator.toSeq ==
           """running foo
-            |running helperFoo2""".stripMargin
+            |running helperFoo2""".stripMargin.linesIterator.toSeq
       )
     }
   }
