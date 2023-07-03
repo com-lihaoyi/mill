@@ -54,12 +54,12 @@ object ScriptsInvalidationForeignTests extends IntegrationTestSuite {
       test("second run modifying script") {
         val oldContent = os.read(scriptSourcePath / buildPath)
         val newContent =
-          oldContent.replace("""println("a")""", """println("a2")""")
+          oldContent.replace("""println("d")""", """println("d2")""")
         os.write.over(workspacePath / buildPath, newContent)
 
         val result = runTask("taskD")
 
-        val expected = Seq("d")
+        val expected = Seq("d2")
 
         assert(result == expected)
       }
