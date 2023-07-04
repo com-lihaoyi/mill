@@ -1,15 +1,26 @@
 package mill.util
 
-import mill.api.SystemStreams
+import mill.api.{Logger, SystemStreams}
 
 import java.io.PrintStream
 
-class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "")
+class PrefixLogger(out: Logger, context: String, tickerContext: String = "")
     extends ColorLogger {
-  override def colored = out.colored
 
-  def infoColor = out.infoColor
-  def errorColor = out.errorColor
+  @deprecated("Binary compatibility shim", "Mill 0.11.2")
+  def this(out: ColorLogger, context: String, tickerContext: String) = {
+    this(out: Logger, context, tickerContext)
+  }
+
+  private val colorLogger = out match {
+    case c: ColorLogger => Some(c)
+    case _ => None
+  }
+
+  override def colored = colorLogger.fold(false)(_.colored)
+
+  def infoColor = colorLogger.fold(mill.util.Colors.BlackWhite.info)(_.infoColor)
+  def errorColor = colorLogger.fold(mill.util.Colors.BlackWhite.error)(_.infoColor)
 
   val systemStreams = new SystemStreams(
     new PrintStream(new LinePrefixOutputStream(
@@ -35,6 +46,10 @@ class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = ""
 }
 
 object PrefixLogger {
-  def apply(out: ColorLogger, context: String, tickerContext: String = ""): PrefixLogger =
+  def apply(out: Logger, context: String, tickerContext: String = ""): PrefixLogger =
     new PrefixLogger(out, context, tickerContext)
+
+  @deprecated("Binary compatibility shim", "Mill 0.11.2")
+  def apply(out: ColorLogger, context: String, tickerContext: String): PrefixLogger =
+    new PrefixLogger(out: Logger, context, tickerContext)
 }

@@ -1,10 +1,11 @@
 package mill.main
 
+import mainargs.Flag
+
 import java.util.concurrent.LinkedBlockingQueue
-import mill.define.Target
+import mill.define.{Args, Command, NamedTask, Segments, Target, Task}
 import mill.main.BuildInfo
 import mill.api.{Ctx, Logger, PathRef, Result}
-import mill.define.{Command, NamedTask, Segments, Task}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
@@ -105,21 +106,33 @@ trait MainModule extends mill.define.Module {
     res
   }
 
+  @deprecated("Binary compatibility shim. Use other overload instead.", "Mill 0.11.2")
+  private[main] def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] =
+    resolve(evaluator, Flag(false), Args(targets))
+
   /**
    * Resolves a mill query string and prints out the tasks it resolves to.
+   * @param quiet If true, do not print the resolved tasks
+   * @param targets The target patterns to resolve
    */
-  def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = Target.command {
+  def resolve(
+      evaluator: Evaluator,
+      quiet: Flag = Flag(false),
+      targets: Args = Args()
+  ): Command[List[String]] = Target.command {
     val resolved = Resolve.Segments.resolve(
       evaluator.rootModule,
-      targets,
+      targets.value,
       SelectMode.Multi
     )
 
     resolved match {
       case Left(err) => Result.Failure(err)
       case Right(resolvedSegmentsList) =>
-        val resolvedStrings = resolvedSegmentsList.map(_.render)
-        resolvedStrings.sorted.foreach(Target.log.outputStream.println)
+        val resolvedStrings = resolvedSegmentsList.map(_.render).sorted
+        if (!quiet.value) {
+          Target.log.outputStream.println(resolvedStrings.mkString("\n"))
+        }
         Result.Success(resolvedStrings)
     }
   }

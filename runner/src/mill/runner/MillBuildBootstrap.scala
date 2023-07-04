@@ -2,7 +2,7 @@ package mill.runner
 import mill.util.{ColorLogger, PrefixLogger, Util, Watchable}
 import mill.T
 import mill.main.BuildInfo
-import mill.api.{PathRef, Val, internal}
+import mill.api.{Logger, PathRef, Val, internal}
 import mill.eval.Evaluator
 import mill.main.{RootModule, RunScript}
 import mill.resolve.SelectMode
@@ -35,7 +35,7 @@ class MillBuildBootstrap(
     threadCount: Option[Int],
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
-    logger: ColorLogger
+    logger: Logger
 ) {
   import MillBuildBootstrap._
 
