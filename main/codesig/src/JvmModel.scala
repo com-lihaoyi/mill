@@ -2,6 +2,8 @@ package mill.codesig
 import scala.collection.mutable.LinkedHashMap
 import upickle.default.{ReadWriter, readwriter, stringKeyRW}
 
+import scala.annotation.switch
+
 // This file contains typed data structures representing the types and values
 // found in the JVM bytecode: various kinds of types, method signatures, method
 // calls, etc. These are generally parsed from stringly-typed fields given to
@@ -43,6 +45,11 @@ object JvmModel {
     object JCls extends Table[String, JType.Cls]{
       def create = new JType.Cls(_)
       def apply(name: String) = get(name)
+    }
+
+    object Desc extends Table[String, Desc]{
+      def create = s => JvmModel.this.Desc.read(s)(SymbolTable.this)
+      def read(name: String) = get(name)
     }
   }
   class MethodDef private[JvmModel] (val cls: JType.Cls, val method: MethodSig) {
@@ -162,8 +169,8 @@ object JvmModel {
 
     def read(s: String)(implicit st: SymbolTable): JType = s match {
       case x if Prim.all.contains(x(0)) => Prim.all(x(0))
-      case s if s.startsWith("L") && s.endsWith(";") => Cls.read(s.drop(1).dropRight(1))
-      case s if s.startsWith("[") => Arr.read(s)
+      case s if s.charAt(0) == 'L' && s.last == ';' => Cls.read(s.slice(1, s.length - 1))
+      case s if s.charAt(0) == '[' => Arr.read(s)
       case s => Cls.read(s)
     }
 
@@ -172,23 +179,26 @@ object JvmModel {
 
   object Desc {
 
-    private val charBitSet = collection.immutable.BitSet.fromSpecific("BCDFIJSZL".map(x => x: Int))
-    def read(s: String)(implicit st: SymbolTable) = {
-      val scala.Array(argString, ret) = s.drop(1).split(')')
+    private def isStartChar(c: Char) = (c: @switch) match{
+      case 'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 'L' => true
+      case _ => false
+    }
+    private[JvmModel] def read(s: String)(implicit st: SymbolTable): Desc = {
+      val closeParenIndex = s.indexOf(')'.toInt)
       val args = Array.newBuilder[JType]
-      var index = 0
-      val argStringLength = argString.length
-      while (index < argStringLength) {
-        val firstChar = argString.indexWhere(x => charBitSet.contains(x), index)
-        val split = argString(firstChar) match {
-          case 'L' => argString.indexWhere(x => ";".contains(x), index)
-          case _ => argString.indexWhere(x => charBitSet.contains(x), index)
+      var index = 1 // Skip index 0 which is the open paren '('
+      while (index < closeParenIndex) {
+        var firstChar = index
+        while(!isStartChar(s.charAt(firstChar))) firstChar += 1
+        var split = firstChar
+        if(s.charAt(firstChar) == 'L'){
+          while(s.charAt(split) != ';') split += 1
         }
 
-        args.addOne(JType.read(argString.substring(index, split + 1)))
+        args.addOne(JType.read(s.substring(index, split + 1)))
         index = split + 1
       }
-      Desc(args.result(), JType.read(ret))
+      new Desc(args.result(), JType.read(s.substring(closeParenIndex + 1)))
     }
 
     implicit val ordering: Ordering[Desc] = Ordering.by(_.pretty)
@@ -197,7 +207,7 @@ object JvmModel {
   /**
    * Represents the signature of a method.
    */
-  case class Desc(args: Seq[JType], ret: JType) {
+  class Desc private[JvmModel] (val args: Seq[JType], val ret: JType) {
     def pretty = "(" + args.map(_.pretty).mkString(",") + ")" + ret.pretty
 
     override def toString = pretty

@@ -112,7 +112,7 @@ object LocalSummarizer {
     val methodSig = st.MethodSig(
       (access & Opcodes.ACC_STATIC) != 0,
       name,
-      Desc.read(descriptor)
+      st.Desc.read(descriptor)
     )
 
     val insnSigs = collection.mutable.ArrayBuffer.empty[Int]
@@ -129,7 +129,7 @@ object LocalSummarizer {
     def clinitCall(desc: String) = JType.read(desc) match {
       case descCls: JType.Cls if descCls != currentCls =>
         storeCallEdge(
-          st.MethodCall(descCls, InvokeType.Static, "<clinit>", Desc.read("()V"))
+          st.MethodCall(descCls, InvokeType.Static, "<clinit>", st.Desc.read("()V"))
         )
       case _ => // donothing
     }
@@ -193,7 +193,7 @@ object LocalSummarizer {
                 JCls.fromSlashed(handle.getOwner),
                 invokeType,
                 name,
-                Desc.read(handle.getDesc)
+                st.Desc.read(handle.getDesc)
               )
             )
           case _ =>
@@ -255,7 +255,7 @@ object LocalSummarizer {
           case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
         },
         name,
-        Desc.read(descriptor)
+        st.Desc.read(descriptor)
       )
 
       // HACK: we skip any constants that get passed to `sourcecode.Line()`,
@@ -265,7 +265,7 @@ object LocalSummarizer {
         JCls.fromSlashed("sourcecode/Line"),
         InvokeType.Special,
         "<init>",
-        Desc.read("(I)V")
+        st.Desc.read("(I)V")
       )
       if (call == sourcecodeLineCall) discardPreviousInsn()
 

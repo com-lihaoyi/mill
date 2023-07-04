@@ -47,7 +47,7 @@ object MethodHashTests extends TestSuite {
           st.MethodSig(
             true,
             "main",
-            Desc(Seq(JType.Arr(st.JCls("java.lang.String"))), JType.Prim.V)
+            st.Desc.read("([Ljava/lang/String;)V")
           )
         )
         val hash1 = sig1.transitiveCallGraphHashes(mainMethod.toString)

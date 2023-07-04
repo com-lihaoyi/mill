@@ -40,7 +40,6 @@ class CallGraphAnalysis(
     .flatMap { case (cls, cInfo) => cInfo.methods.map { case (m, mInfo) => st.MethodDef(cls, m) } }
     .toArray
     .distinct
-    .sorted
 
   val methodCalls = resolved.localCalls.keys
   val externalClasses = externalSummary.directMethods.keys

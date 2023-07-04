@@ -78,7 +78,7 @@ class ExternalSummarizer private (loadClassStream: JCls => java.io.InputStream)(
         exceptions: Array[String]
     ): MethodVisitor = {
 
-      methods += st.MethodSig((access & Opcodes.ACC_STATIC) != 0, name, Desc.read(descriptor))
+      methods += st.MethodSig((access & Opcodes.ACC_STATIC) != 0, name, st.Desc.read(descriptor))
 
       new MethodVisitor(Opcodes.ASM9) {}
     }
