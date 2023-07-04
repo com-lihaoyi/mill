@@ -73,7 +73,7 @@ object MethodCallResolver {
     val externalDirectMethods = externalSummary.directMethods
 
     def methodExists(cls: JCls, call: MethodCall): Boolean = {
-      localSummary.items.get(cls).exists(_.methods.keysIterator.contains(call.toMethodSig)) ||
+      localSummary.items.get(cls).exists(_.methods.contains(call.toMethodSig)) ||
       externalDirectMethods.get(cls).exists(_.contains(call.toMethodSig))
     }
 
