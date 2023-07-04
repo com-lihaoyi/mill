@@ -24,7 +24,7 @@ private class State(projectRoot: os.Path, baseLogger: ColorLogger, debug: String
         }
       }
       .toMap
-    debug(s"BspModules: ${map.mapValues(_.bspDisplayName)}")
+    debug(s"BspModules: ${map.view.mapValues(_.bspDisplayName)}")
 
     map
   }
