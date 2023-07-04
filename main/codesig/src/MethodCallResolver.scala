@@ -104,7 +104,7 @@ object MethodCallResolver {
         val directDef = call.toMethodSig
         if (localSummary.get(call.cls, directDef).exists(_.isPrivate)) Set(call.cls)
         else {
-          val descendents = clsAndDescendents(call.cls, directDescendents)
+          val descendents = Util.breadthFirst(Seq(call.cls))(directDescendents.getOrElse(_, Nil)).toSet
 
           clsAndAncestors(descendents, methodExists(_, call), allDirectAncestors)
             .filter(methodExists(_, call))
@@ -186,8 +186,5 @@ object MethodCallResolver {
     ).toSet
   }
 
-  def clsAndDescendents(cls: JCls, directDescendents: Map[JCls, Vector[JCls]]): Set[JCls] = {
-    Util.breadthFirst(Seq(cls))(directDescendents.getOrElse(_, Nil)).toSet
-  }
 
 }
