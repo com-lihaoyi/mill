@@ -118,15 +118,6 @@ class CallGraphAnalysis(
     zero = 0
   )
 
-  val prettyGroupHashes = groupTransitiveHashes.zipWithIndex.map {
-    case (hash, index) => (
-        topoSortedMethodGroups(index).map(indexToNodes(_).toString),
-        topoSortedMethodGroups(index).map(indexGraphEdges(_).map(indexToNodes(_).toString)),
-        hash
-      )
-  }
-  logger.log(prettyGroupHashes)
-
   val transitiveCallGraphHashes = groupTransitiveHashes
     .zipWithIndex
     .flatMap { case (groupHash, groupIndex) =>
@@ -138,6 +129,17 @@ class CallGraphAnalysis(
     .toMap
 
   logger.log(transitiveCallGraphHashes)
+
+
+  //  val prettyGroupHashes = groupTransitiveHashes.zipWithIndex.map {
+  //    case (hash, index) => (
+  //        topoSortedMethodGroups(index).map(indexToNodes(_).toString),
+  //        topoSortedMethodGroups(index).map(indexGraphEdges(_).map(indexToNodes(_).toString)),
+  //        hash
+  //      )
+  //  }
+  //  logger.log(prettyGroupHashes)
+
 
   def simplifiedCallGraph[T](transform: PartialFunction[CallGraphAnalysis.Node, T])
       : Map[T, Set[T]] = {
