@@ -47,7 +47,8 @@ object MethodCallResolver {
         .items
         .keySet
         .flatMap { cls =>
-          transitiveAncestors(cls, allDirectAncestors)
+          Util
+            .breadthFirst(Seq(cls))(allDirectAncestors.getOrElse(_, Nil))
             .filter(!localSummary.items.contains(_))
             .map { externalCls =>
               (externalCls, Set(cls))
@@ -66,35 +67,22 @@ object MethodCallResolver {
         }
     }
 
-    val resolvedCalls = resolveAllMethodCalls0(
-      localSummary,
-      externalClsToLocalClsMethodsDirect,
-      allDirectAncestors,
-      localSummary.mapValues(_.superClass) ++ externalSummary.directSuperclasses,
-      directDescendents,
-      externalSummary.directMethods,
-    )
 
-    resolvedCalls
-  }
-
-  def resolveAllMethodCalls0(
-      localSummary: LocalSummarizer.Result,
-      externalClsToLocalClsMethods: Map[JCls, (Set[JCls], Set[MethodSig])],
-      allDirectAncestors: Map[JCls, Set[JCls]],
-      directSuperclasses: Map[JCls, JCls],
-      directDescendents: Map[JCls, Vector[JCls]],
-      externalDirectMethods: Map[JCls, Set[MethodSig]],
-  ): Result = {
+    val externalClsToLocalClsMethods = externalClsToLocalClsMethodsDirect
+    val directSuperclasses = localSummary.mapValues(_.superClass) ++ externalSummary.directSuperclasses
+    val externalDirectMethods = externalSummary.directMethods
 
     def methodExists(cls: JCls, call: MethodCall): Boolean = {
-      localSummary.items.get(cls).exists(_.methods.keysIterator.exists(sigMatchesCall(_, call))) ||
-      externalDirectMethods.get(cls).exists(_.exists(sigMatchesCall(_, call)))
+      localSummary.items.get(cls).exists(_.methods.keysIterator.contains(call.toMethodSig)) ||
+      externalDirectMethods.get(cls).exists(_.contains(call.toMethodSig))
     }
 
     def resolveLocalReceivers(call: MethodCall): Set[JCls] = call.invokeType match {
       case InvokeType.Static =>
-        clsAndSupers(call.cls, methodExists(_, call), directSuperclasses)
+        Util
+          .breadthFirst(Seq(call.cls))(cls =>
+            if (methodExists(call.cls, call)) Nil else directSuperclasses.get(cls)
+          )
           .find(methodExists(_, call))
           .toSet
 
@@ -106,7 +94,11 @@ object MethodCallResolver {
         else {
           val descendents = Util.breadthFirst(Seq(call.cls))(directDescendents.getOrElse(_, Nil)).toSet
 
-          clsAndAncestors(descendents, methodExists(_, call), allDirectAncestors)
+          Util
+            .breadthFirst(descendents)(cls =>
+              if (methodExists(cls, call)) Nil else allDirectAncestors.getOrElse(cls, Nil)
+            )
+            .toSet
             .filter(methodExists(_, call))
         }
     }
@@ -152,39 +144,4 @@ object MethodCallResolver {
       externalClassLocalDests = externalClsToLocalClsMethods
     )
   }
-
-  def transitiveAncestors(cls: JCls, allDirectAncestors: Map[JCls, Set[JCls]]): Set[JCls] = {
-    Set(cls) ++
-      allDirectAncestors
-        .getOrElse(cls, Set.empty[JCls])
-        .flatMap(transitiveAncestors(_, allDirectAncestors))
-  }
-
-  def sigMatchesCall(sig: MethodSig, call: MethodCall) = {
-    sig.name == call.name &&
-    sig.desc == call.desc &&
-    (sig.static == (call.invokeType == InvokeType.Static))
-  }
-
-  def clsAndSupers(
-      cls: JCls,
-      skipEarly: JCls => Boolean,
-      directSuperclasses: Map[JCls, JCls]
-  ): Seq[JCls] = {
-    Util.breadthFirst(Seq(cls))(cls =>
-      if (skipEarly(cls)) Nil else directSuperclasses.get(cls)
-    )
-  }
-
-  def clsAndAncestors(
-      classes: IterableOnce[JCls],
-      skipEarly: JCls => Boolean,
-      allDirectAncestors: Map[JCls, Set[JCls]]
-  ): Set[JCls] = {
-    Util.breadthFirst(classes)(cls =>
-      if (skipEarly(cls)) Nil else allDirectAncestors.getOrElse(cls, Nil)
-    ).toSet
-  }
-
-
 }
