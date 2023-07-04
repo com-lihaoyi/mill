@@ -67,15 +67,9 @@ object MethodCallResolver {
         }
     }
 
-
     val externalClsToLocalClsMethods = externalClsToLocalClsMethodsDirect
     val directSuperclasses = localSummary.mapValues(_.superClass) ++ externalSummary.directSuperclasses
     val externalDirectMethods = externalSummary.directMethods
-
-    def methodExists(cls: JCls, call: MethodCall): Boolean = {
-      localSummary.items.get(cls).exists(_.methods.contains(call.toMethodSig)) ||
-      externalDirectMethods.get(cls).exists(_.contains(call.toMethodSig))
-    }
 
     val allCalls = localSummary
       .mapValuesOnly(_.methods)
@@ -86,7 +80,7 @@ object MethodCallResolver {
 
     val staticCallSupers = allCalls
       .collect{ case MethodCall(cls, InvokeType.Static, _, _) =>
-        (cls, Util.breadthFirst(Seq(cls))(cls => directSuperclasses.get(cls)))
+        (cls, Util.breadthFirst(Seq(cls))(directSuperclasses.get))
       }
       .toMap
 
@@ -96,31 +90,35 @@ object MethodCallResolver {
       }
       .toMap
 
-    def resolveLocalReceivers(call: MethodCall): Set[JCls] = call.invokeType match {
-      case InvokeType.Static => staticCallSupers(call.cls).find(methodExists(_, call)).toSet
-      case InvokeType.Special => Set(call.cls)
-
-      case InvokeType.Virtual =>
-        val directDef = call.toMethodSig
-        if (localSummary.get(call.cls, directDef).exists(_.isPrivate)) Set(call.cls)
-        else {
-          val descendents = virtualCallDescendents(call.cls)
-
-          Util
-            .breadthFirst(descendents)(cls =>
-              if (methodExists(cls, call)) Nil else allDirectAncestors.getOrElse(cls, Nil)
-            )
-            .toSet
-            .filter(methodExists(_, call))
-        }
-    }
-
-    val callToResolved = {
+    val localCalls = {
       allCalls
         .iterator
         .map { call =>
-          val (localReceivers, externalReceivers) =
-            resolveLocalReceivers(call).partition(localSummary.contains)
+          def methodExists(cls: JCls, call: MethodCall): Boolean = {
+            localSummary.items.get(cls).exists(_.methods.contains(call.toMethodSig)) ||
+              externalDirectMethods.get(cls).exists(_.contains(call.toMethodSig))
+          }
+
+          val allReceivers = call.invokeType match {
+            case InvokeType.Static => staticCallSupers(call.cls).find(methodExists(_, call)).toSet
+            case InvokeType.Special => Set(call.cls)
+
+            case InvokeType.Virtual =>
+              val directDef = call.toMethodSig
+              if (localSummary.get(call.cls, directDef).exists(_.isPrivate)) Set(call.cls)
+              else {
+                val descendents = virtualCallDescendents(call.cls)
+
+                Util
+                  .breadthFirst(descendents)(cls =>
+                    if (methodExists(cls, call)) Nil else allDirectAncestors.getOrElse(cls, Nil)
+                  )
+                  .toSet
+                  .filter(methodExists(_, call))
+              }
+          }
+
+          val (localReceivers, externalReceivers) = allReceivers.partition(localSummary.contains)
 
           val localMethodDefs = localReceivers.map(MethodDef(_, call.toMethodSig))
 
@@ -138,14 +136,13 @@ object MethodCallResolver {
               (argTypes ++ thisTypes).toSet
             }
 
-          (call, (localMethodDefs, methodParamClasses))
+          (call, MethodCallInfo(localMethodDefs, methodParamClasses))
         }
         .toMap
     }
 
     Result(
-      localCalls = callToResolved
-        .map { case (call, (local, external)) => (call, MethodCallInfo(local, external)) },
+      localCalls = localCalls,
       externalClassLocalDests = externalClsToLocalClsMethods
     )
   }
