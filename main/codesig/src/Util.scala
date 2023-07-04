@@ -13,24 +13,24 @@ object Util {
    * they all have the exact same transitive closure
    */
   def computeTransitive[V: scala.reflect.ClassTag](
-    topoSortedGroups: Array[Array[Int]],
-    nodeEdges: Array[Array[Int]],
-    nodeValue: Array[V],
-    reduce: (V, V) => V,
-    zero: V
+      topoSortedGroups: Array[Array[Int]],
+      nodeEdges: Array[Array[Int]],
+      nodeValue: Array[V],
+      reduce: (V, V) => V,
+      zero: V
   ) = {
     val nodeGroups = topoSortedGroups
       .iterator
       .zipWithIndex
-      .flatMap{case (group, groupIndex) => group.map((_, groupIndex))}
+      .flatMap { case (group, groupIndex) => group.map((_, groupIndex)) }
       .toMap
 
     val seen = new Array[V](topoSortedGroups.length)
-    for(groupIndex <- topoSortedGroups.indices){
+    for (groupIndex <- topoSortedGroups.indices) {
       var value: V = zero
-      for(node <- topoSortedGroups(groupIndex)){
+      for (node <- topoSortedGroups(groupIndex)) {
         value = reduce(value, nodeValue(node))
-        for(upstreamNode <- nodeEdges(node)){
+        for (upstreamNode <- nodeEdges(node)) {
           value = reduce(value, seen(nodeGroups(upstreamNode)))
         }
       }

@@ -1,9 +1,11 @@
 package mill.codesig
-
+import JvmModel._
 import java.net.URLClassLoader
 
 object CodeSig {
   def compute(classFiles: Seq[os.Path], upstreamClasspath: Seq[os.Path], logger: Logger) = {
+
+    implicit val st: SymbolTable = new SymbolTable()
 
     val upstreamClasspathClassloader = new URLClassLoader(
       upstreamClasspath.map(_.toNIO.toUri.toURL).toArray,

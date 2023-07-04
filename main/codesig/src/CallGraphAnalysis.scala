@@ -1,8 +1,10 @@
 package mill.codesig
 import mill.util.Tarjans
 import upickle.default.{Writer, macroW, writer}
+import JvmModel._
 
-object CallGraphAnalysis{
+object CallGraphAnalysis {
+
   /**
    * Represents the three types of nodes in our call graph. These are kept heterogenous
    * because flattening them out into a homogenous graph of MethodDef -> MethodDef edges
@@ -25,17 +27,17 @@ object CallGraphAnalysis{
 }
 
 class CallGraphAnalysis(
-                         val localSummary: LocalSummarizer.Result,
-                         val resolved: MethodCallResolver.Result,
-                         val methodHashes: Map[JType.Cls, Map[MethodSig, Int]],
-                         val externalSummary: ExternalSummarizer.Result,
-                         logger: Logger
-                       ) {
+    val localSummary: LocalSummarizer.Result,
+    val resolved: MethodCallResolver.Result,
+    val methodHashes: Map[JType.Cls, Map[MethodSig, Int]],
+    val externalSummary: ExternalSummarizer.Result,
+    logger: Logger
+)(implicit st: SymbolTable) {
   //  pprint.log(directCallGraph.size)
   //  pprint.log(directCallGraph.values.map(_.size).sum)
   val methodDefs = localSummary
     .items
-    .flatMap { case (cls, cInfo) => cInfo.methods.map { case (m, mInfo) => MethodDef(cls, m) } }
+    .flatMap { case (cls, cInfo) => cInfo.methods.map { case (m, mInfo) => st.MethodDef(cls, m) } }
     .toArray
     .distinct
     .sorted
@@ -56,7 +58,8 @@ class CallGraphAnalysis(
       case CallGraphAnalysis.Call(methodCall) =>
         val callInfo = resolved.localCalls(methodCall)
         val local = callInfo.localDests.toArray.map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
-        val external = callInfo.externalDests.toArray.map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
+        val external =
+          callInfo.externalDests.toArray.map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
         local ++ external
 
       case CallGraphAnalysis.LocalDef(methodDef) =>
@@ -77,7 +80,7 @@ class CallGraphAnalysis(
               cls <- localClasses
               m <- localMethods
               if localSummary.get(cls, m).nonEmpty
-            } yield nodeToIndex(CallGraphAnalysis.LocalDef(MethodDef(cls, m)))
+            } yield nodeToIndex(CallGraphAnalysis.LocalDef(st.MethodDef(cls, m)))
           }
           .toArray
 
@@ -89,7 +92,6 @@ class CallGraphAnalysis(
     }
     .toArray
 
-
   val indexGraphPrettyEdges = indexGraphEdges
     .zipWithIndex
     .map { case (dests, src) => indexToNodes(src) -> dests.map(indexToNodes) }
@@ -98,13 +100,13 @@ class CallGraphAnalysis(
 
   lazy val prettyHashes = methodHashes
     .flatMap { case (k, vs) =>
-      vs.map { case (m, dests) => MethodDef(k, m).toString -> dests }
+      vs.map { case (m, dests) => st.MethodDef(k, m).toString -> dests }
     }
 
   val topoSortedMethodGroups =
     Tarjans.apply(indexGraphEdges.map(x => x: Iterable[Int])) // .map(_.map(indexToMethod).toSet)
 
-  val nodeValues = indexToNodes.map{
+  val nodeValues = indexToNodes.map {
     case CallGraphAnalysis.LocalDef(m) => methodHashes(m.cls)(m.method)
     case _ => 0
   }
@@ -116,18 +118,18 @@ class CallGraphAnalysis(
     zero = 0
   )
 
-  val prettyGroupHashes = groupTransitiveHashes.zipWithIndex.map{
+  val prettyGroupHashes = groupTransitiveHashes.zipWithIndex.map {
     case (hash, index) => (
-      topoSortedMethodGroups(index).map(indexToNodes(_).toString),
-      topoSortedMethodGroups(index).map(indexGraphEdges(_).map(indexToNodes(_).toString)),
-      hash
-    )
+        topoSortedMethodGroups(index).map(indexToNodes(_).toString),
+        topoSortedMethodGroups(index).map(indexGraphEdges(_).map(indexToNodes(_).toString)),
+        hash
+      )
   }
   logger.log(prettyGroupHashes)
 
   val transitiveCallGraphHashes = groupTransitiveHashes
     .zipWithIndex
-    .flatMap{case (groupHash, groupIndex) =>
+    .flatMap { case (groupHash, groupIndex) =>
       topoSortedMethodGroups(groupIndex).map { nodeIndex =>
         (indexToNodes(nodeIndex), groupHash)
       }
@@ -137,7 +139,8 @@ class CallGraphAnalysis(
 
   logger.log(transitiveCallGraphHashes)
 
-  def simplifiedCallGraph[T](transform: PartialFunction[CallGraphAnalysis.Node, T]): Map[T, Set[T]] = {
+  def simplifiedCallGraph[T](transform: PartialFunction[CallGraphAnalysis.Node, T])
+      : Map[T, Set[T]] = {
 
     def flatten(ns: Set[CallGraphAnalysis.Node]): Set[T] = {
       if (ns.isEmpty) Set()

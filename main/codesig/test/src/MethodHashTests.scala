@@ -1,4 +1,5 @@
 package mill.codesig
+import JvmModel._
 import JType.{Cls => JCls}
 import utest._
 
@@ -10,6 +11,7 @@ object MethodHashTests extends TestSuite {
       test("sourcecode-line") - testUnchanged()
     }
     test("changed") {
+      val st = new SymbolTable
       val cases = Seq(
         "basic",
         "constant-large",
@@ -40,9 +42,13 @@ object MethodHashTests extends TestSuite {
         if c1 != c2
       } {
 
-        val mainMethod = MethodDef(
-          JCls("hello.Hello"),
-          MethodSig(true, "main", Desc(Seq(JType.Arr(JCls("java.lang.String"))), JType.Prim.V))
+        val mainMethod = st.MethodDef(
+          st.JCls("hello.Hello"),
+          st.MethodSig(
+            true,
+            "main",
+            Desc(Seq(JType.Arr(st.JCls("java.lang.String"))), JType.Prim.V)
+          )
         )
         val hash1 = sig1.transitiveCallGraphHashes(mainMethod.toString)
         val hash2 = sig2.transitiveCallGraphHashes(mainMethod.toString)

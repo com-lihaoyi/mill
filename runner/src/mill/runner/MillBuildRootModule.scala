@@ -147,12 +147,12 @@ class MillBuildRootModule()(implicit
   }
 
   def methodCodeHashSignatures: T[Map[String, Int]] = T {
-//    while(true) {
+//    while (true) {
       val codesig = mill.codesig.CodeSig
         .compute(
           classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
           upstreamClasspath = compileClasspath().toSeq.map(_.path),
-          logger = new mill.codesig.Logger(None /*Some(T.dest)*/)
+          logger = new mill.codesig.Logger(None /*Some(T.dest)*/ )
         )
 
       codesig.transitiveCallGraphHashes

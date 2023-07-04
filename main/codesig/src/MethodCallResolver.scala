@@ -1,5 +1,5 @@
 package mill.codesig
-
+import JvmModel._
 import JType.{Cls => JCls}
 import upickle.default.{ReadWriter, macroRW}
 
@@ -12,7 +12,7 @@ import upickle.default.{ReadWriter, macroRW}
 object MethodCallResolver {
   case class MethodCallInfo(localDests: Set[MethodDef], externalDests: Set[JCls])
   object MethodCallInfo {
-    implicit def rw: ReadWriter[MethodCallInfo] = macroRW
+    implicit def rw(implicit st: SymbolTable): ReadWriter[MethodCallInfo] = macroRW
   }
 
   case class Result(
@@ -20,13 +20,13 @@ object MethodCallResolver {
       externalClassLocalDests: Map[JCls, (Set[JCls], Set[MethodSig])]
   )
   object Result {
-    implicit def rw: ReadWriter[Result] = macroRW
+    implicit def rw(implicit st: SymbolTable): ReadWriter[Result] = macroRW
   }
 
   def resolveAllMethodCalls(
       localSummary: LocalSummarizer.Result,
-      externalSummary: ExternalSummarizer.Result,
-  ): Result = {
+      externalSummary: ExternalSummarizer.Result
+  )(implicit st: SymbolTable): Result = {
 
     val allDirectAncestors = {
       localSummary.mapValues(_.directAncestors) ++
@@ -68,7 +68,8 @@ object MethodCallResolver {
     }
 
     val externalClsToLocalClsMethods = externalClsToLocalClsMethodsDirect
-    val directSuperclasses = localSummary.mapValues(_.superClass) ++ externalSummary.directSuperclasses
+    val directSuperclasses =
+      localSummary.mapValues(_.superClass) ++ externalSummary.directSuperclasses
     val externalDirectMethods = externalSummary.directMethods
 
     val allCalls = localSummary
@@ -79,14 +80,16 @@ object MethodCallResolver {
       .toSet
 
     val staticCallSupers = allCalls
-      .collect{ case MethodCall(cls, InvokeType.Static, _, _) =>
-        (cls, Util.breadthFirst(Seq(cls))(directSuperclasses.get))
+      .collect {
+        case call: MethodCall if call.invokeType == InvokeType.Static =>
+          (call.cls, Util.breadthFirst(Seq(call.cls))(directSuperclasses.get))
       }
       .toMap
 
     val virtualCallDescendents = allCalls
-      .collect { case MethodCall(cls, InvokeType.Virtual, _, _) =>
-        (cls, Util.breadthFirst(Seq(cls))(directDescendents.getOrElse(_, Nil)).toSet)
+      .collect {
+        case call: MethodCall if call.invokeType == InvokeType.Virtual =>
+          (call.cls, Util.breadthFirst(Seq(call.cls))(directDescendents.getOrElse(_, Nil)).toSet)
       }
       .toMap
 
@@ -96,7 +99,7 @@ object MethodCallResolver {
         .map { call =>
           def methodExists(cls: JCls, call: MethodCall): Boolean = {
             localSummary.items.get(cls).exists(_.methods.contains(call.toMethodSig)) ||
-              externalDirectMethods.get(cls).exists(_.contains(call.toMethodSig))
+            externalDirectMethods.get(cls).exists(_.contains(call.toMethodSig))
           }
 
           val allReceivers = call.invokeType match {
@@ -120,7 +123,7 @@ object MethodCallResolver {
 
           val (localReceivers, externalReceivers) = allReceivers.partition(localSummary.contains)
 
-          val localMethodDefs = localReceivers.map(MethodDef(_, call.toMethodSig))
+          val localMethodDefs = localReceivers.map(st.MethodDef(_, call.toMethodSig))
 
           // When a call to an external method call is made, we don't know what the
           // implementation will do. We thus have to conservatively assume it can call

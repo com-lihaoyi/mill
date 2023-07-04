@@ -1,6 +1,7 @@
 package mill.codesig
 
 import org.objectweb.asm.{ClassReader, ClassVisitor, Handle, Label, MethodVisitor, Opcodes}
+import JvmModel._
 import JType.{Cls => JCls}
 import upickle.default.{ReadWriter, macroRW}
 
@@ -17,11 +18,11 @@ object LocalSummarizer {
       methods: Map[MethodSig, MethodInfo]
   )
   object ClassInfo {
-    implicit def rw: ReadWriter[ClassInfo] = macroRW
+    implicit def rw(implicit st: SymbolTable): ReadWriter[ClassInfo] = macroRW
   }
   case class MethodInfo(calls: Set[MethodCall], isPrivate: Boolean, codeHash: Int)
   object MethodInfo {
-    implicit def rw: ReadWriter[MethodInfo] = macroRW
+    implicit def rw(implicit st: SymbolTable): ReadWriter[MethodInfo] = macroRW
   }
   case class Result(items: Map[JCls, ClassInfo]) {
     def get(cls: JCls, m: MethodSig): Option[MethodInfo] = items.get(cls).flatMap(_.methods.get(m))
@@ -30,10 +31,10 @@ object LocalSummarizer {
     def contains(cls: JCls) = items.contains(cls)
   }
   object Result {
-    implicit def rw: ReadWriter[Result] = macroRW
+    implicit def rw(implicit st: SymbolTable): ReadWriter[Result] = macroRW
   }
 
-  def summarize(classStreams: Iterator[java.io.InputStream]) = {
+  def summarize(classStreams: Iterator[java.io.InputStream])(implicit st: SymbolTable) = {
     val visitors = classStreams
       .map { cs =>
         val visitor = new MyClassVisitor()
@@ -62,7 +63,7 @@ object LocalSummarizer {
     )
   }
 
-  class MyClassVisitor extends ClassVisitor(Opcodes.ASM9) {
+  class MyClassVisitor()(implicit st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
     val classCallGraph = Map.newBuilder[MethodSig, Set[MethodCall]]
     val classMethodHashes = Map.newBuilder[MethodSig, Int]
     val classMethodPrivate = Map.newBuilder[MethodSig, Boolean]
@@ -103,12 +104,12 @@ object LocalSummarizer {
       name: String,
       descriptor: String,
       access: Int
-  ) extends MethodVisitor(Opcodes.ASM9) {
+  )(implicit st: SymbolTable) extends MethodVisitor(Opcodes.ASM9) {
     val outboundCalls = collection.mutable.Set.empty[MethodCall]
     val labelIndices = collection.mutable.Map.empty[Label, Int]
     val jumpList = collection.mutable.Buffer.empty[Label]
 
-    val methodSig = MethodSig(
+    val methodSig = st.MethodSig(
       (access & Opcodes.ACC_STATIC) != 0,
       name,
       Desc.read(descriptor)
@@ -128,7 +129,7 @@ object LocalSummarizer {
     def clinitCall(desc: String) = JType.read(desc) match {
       case descCls: JType.Cls if descCls != currentCls =>
         storeCallEdge(
-          MethodCall(descCls, InvokeType.Static, "<clinit>", Desc.read("()V"))
+          st.MethodCall(descCls, InvokeType.Static, "<clinit>", Desc.read("()V"))
         )
       case _ => // donothing
     }
@@ -188,7 +189,7 @@ object LocalSummarizer {
               case _ => None
             }
             for ((invokeType, name) <- refOpt) storeCallEdge(
-              MethodCall(
+              st.MethodCall(
                 JCls.fromSlashed(handle.getOwner),
                 invokeType,
                 name,
@@ -245,7 +246,7 @@ object LocalSummarizer {
         descriptor: String,
         isInterface: Boolean
     ): Unit = {
-      val call = MethodCall(
+      val call = st.MethodCall(
         JCls.fromSlashed(owner),
         opcode match {
           case Opcodes.INVOKESTATIC => InvokeType.Static
@@ -260,7 +261,7 @@ object LocalSummarizer {
       // HACK: we skip any constants that get passed to `sourcecode.Line()`,
       // because we use that extensively in definig Mill targets but it is
       // generally not something we want to affect the output of a build
-      val sourcecodeLineCall = MethodCall(
+      val sourcecodeLineCall = st.MethodCall(
         JCls.fromSlashed("sourcecode/Line"),
         InvokeType.Special,
         "<init>",
