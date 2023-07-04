@@ -12,23 +12,29 @@ object Util {
    * Component is processed together and assigned the same final value, since
    * they all have the exact same transitive closure
    */
-  def computeTransitive[T, V](
-      topoSortedInputGroups: Seq[Set[T]],
-      edges: T => Set[T],
-      computeOutputValue: T => V,
-      reduce: Set[V] => V
+  def computeTransitive[V: scala.reflect.ClassTag](
+    topoSortedGroups: Array[Array[Int]],
+    nodeEdges: Array[Array[Int]],
+    nodeValue: Array[V],
+    reduce: (V, V) => V,
+    zero: V
   ) = {
-    val seen = collection.mutable.Map.empty[T, V]
-    for (inputGroup <- topoSortedInputGroups) {
-      val groupUpstreamEdges = inputGroup
-        .flatMap(edges)
-        .filter(!inputGroup.contains(_))
+    val nodeGroups = topoSortedGroups
+      .iterator
+      .zipWithIndex
+      .flatMap{case (group, groupIndex) => group.map((_, groupIndex))}
+      .toMap
 
-      val upstreamValues: Set[V] = groupUpstreamEdges.map(seen)
-      val groupValues: Set[V] = inputGroup.map(computeOutputValue)
-      for (method <- inputGroup) {
-        seen(method) = reduce(upstreamValues ++ groupValues)
+    val seen = new Array[V](topoSortedGroups.length)
+    for(groupIndex <- topoSortedGroups.indices){
+      var value: V = zero
+      for(node <- topoSortedGroups(groupIndex)){
+        value = reduce(value, nodeValue(node))
+        for(upstreamNode <- nodeEdges(node)){
+          value = reduce(value, seen(nodeGroups(upstreamNode)))
+        }
       }
+      seen(groupIndex) = value
     }
     seen
   }

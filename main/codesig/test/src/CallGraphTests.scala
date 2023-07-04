@@ -125,13 +125,13 @@ object CallGraphTests extends TestSuite {
    * optimized further if necessary, but for testing purposes all the graphs
    * are small so it's probably fine.
    */
-  def simplifyCallGraph(codeSig: CodeSig, skipped: Seq[String]) = {
+  def simplifyCallGraph(codeSig: CallGraphAnalysis, skipped: Seq[String]) = {
 
 //    pprint.log(codeSig.simplifiedCallGraph(_.toString))
 
     codeSig
       .simplifiedCallGraph {
-        case CodeSig.LocalDef(d) if !skipped.exists(d.toString.contains(_)) => d.toString
+        case CallGraphAnalysis.LocalDef(d) if !skipped.exists(d.toString.contains(_)) => d.toString
       }
       .collect { case (k, vs) if vs.nonEmpty => (k, vs.to(SortedSet)) }
       .to(SortedMap)

@@ -37,7 +37,7 @@ case class MethodCall(cls: JType.Cls, invokeType: InvokeType, name: String, desc
     cls.name + sep + name + desc
   }
 
-  def toDirectMethodDef = MethodSig(invokeType == InvokeType.Static, name, desc)
+  def toMethodSig = MethodSig(invokeType == InvokeType.Static, name, desc)
 }
 
 object MethodCall {

@@ -5,14 +5,14 @@ import scala.collection.mutable
 // Adapted from
 // https://github.com/indy256/codelibrary/blob/c52247216258e84aac442a23273b7d8306ef757b/java/src/SCCTarjan.java
 private[mill] object Tarjans {
-  def apply(graph0: IterableOnce[IterableOnce[Int]]): Seq[Seq[Int]] = {
+  def apply(graph0: IterableOnce[IterableOnce[Int]]): Array[Array[Int]] = {
     val graph = graph0.iterator.map(_.iterator.toArray).toArray
     val n = graph.length
     val visited = new Array[Boolean](n)
     val stack = mutable.ArrayBuffer.empty[Integer]
     var time = 0
     val lowlink = new Array[Int](n)
-    val components = mutable.ArrayBuffer.empty[Seq[Int]]
+    val components = Array.newBuilder[Array[Int]]
 
     for (u <- 0 until n) {
       if (!visited(u)) dfs(u)
@@ -32,19 +32,19 @@ private[mill] object Tarjans {
         }
       }
       if (isComponentRoot) {
-        val component = mutable.Buffer.empty[Int]
+        val component = Array.newBuilder[Int]
 
         var done = false
         while (!done) {
           val x = stack.last
           stack.remove(stack.length - 1)
-          component.append(x)
+          component.addOne(x)
           lowlink(x) = Integer.MAX_VALUE
           if (x == u) done = true
         }
-        components.append(component.toSeq)
+        components.addOne(component.result())
       }
     }
-    components.toSeq
+    components.result()
   }
 }

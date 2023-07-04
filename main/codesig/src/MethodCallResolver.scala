@@ -26,15 +26,14 @@ object MethodCallResolver {
   def resolveAllMethodCalls(
       localSummary: LocalSummarizer.Result,
       externalSummary: ExternalSummarizer.Result,
-      logger: Logger
   ): Result = {
 
-    val allDirectAncestors = logger {
+    val allDirectAncestors = {
       localSummary.mapValues(_.directAncestors) ++
         externalSummary.directAncestors
     }
 
-    val directDescendents = logger {
+    val directDescendents = {
       allDirectAncestors
         .toVector
         .flatMap { case (k, vs) => vs.map((_, k)) }
@@ -43,7 +42,7 @@ object MethodCallResolver {
 
     // Given an external class, what are the local classes that inherit from it,
     // and what local methods may end up being called by the external class code
-    val externalClsToLocalClsMethodsDirect = logger {
+    val externalClsToLocalClsMethodsDirect = {
       localSummary
         .items
         .keySet
@@ -74,7 +73,6 @@ object MethodCallResolver {
       localSummary.mapValues(_.superClass) ++ externalSummary.directSuperclasses,
       directDescendents,
       externalSummary.directMethods,
-      logger
     )
 
     resolvedCalls
@@ -87,7 +85,6 @@ object MethodCallResolver {
       directSuperclasses: Map[JCls, JCls],
       directDescendents: Map[JCls, Vector[JCls]],
       externalDirectMethods: Map[JCls, Set[MethodSig]],
-      logger: Logger
   ): Result = {
 
     def methodExists(cls: JCls, call: MethodCall): Boolean = {
@@ -104,7 +101,7 @@ object MethodCallResolver {
       case InvokeType.Special => Set(call.cls)
 
       case InvokeType.Virtual =>
-        val directDef = call.toDirectMethodDef
+        val directDef = call.toMethodSig
         if (localSummary.get(call.cls, directDef).exists(_.isPrivate)) Set(call.cls)
         else {
           val descendents = clsAndDescendents(call.cls, directDescendents)
@@ -121,14 +118,14 @@ object MethodCallResolver {
       .flatMap(_.calls)
       .toSet
 
-    val callToResolved = logger {
+    val callToResolved = {
       allCalls
         .iterator
         .map { call =>
           val (localReceivers, externalReceivers) =
             resolveLocalReceivers(call).partition(localSummary.contains)
 
-          val localMethodDefs = localReceivers.map(MethodDef(_, call.toDirectMethodDef))
+          val localMethodDefs = localReceivers.map(MethodDef(_, call.toMethodSig))
 
           // When a call to an external method call is made, we don't know what the
           // implementation will do. We thus have to conservatively assume it can call
