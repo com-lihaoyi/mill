@@ -3,30 +3,28 @@ import JvmModel._
 import JType.{Cls => JCls}
 import upickle.default.{ReadWriter, macroRW}
 
+case class ResolvedCalls(
+    localCalls: Map[MethodCall, ResolvedCalls.MethodCallInfo],
+    externalClassLocalDests: Map[JCls, (Set[JCls], Set[MethodSig])]
+)
+
 /**
  * Traverses the call graph and inheritance hierarchy summaries produced by
- * [[LocalSummarizer]] and [[ExternalSummarizer]] to resolve method calls to
+ * [[LocalSummary]] and [[ExternalSummary]] to resolve method calls to
  * their potential destinations and compute transitive properties of the
  * call graph
  */
-object MethodCallResolver {
+object ResolvedCalls {
+  implicit def rw(implicit st: SymbolTable): ReadWriter[ResolvedCalls] = macroRW
   case class MethodCallInfo(localDests: Set[MethodDef], externalDests: Set[JCls])
   object MethodCallInfo {
     implicit def rw(implicit st: SymbolTable): ReadWriter[MethodCallInfo] = macroRW
   }
 
-  case class Result(
-      localCalls: Map[MethodCall, MethodCallInfo],
-      externalClassLocalDests: Map[JCls, (Set[JCls], Set[MethodSig])]
-  )
-  object Result {
-    implicit def rw(implicit st: SymbolTable): ReadWriter[Result] = macroRW
-  }
-
   def apply(
-      localSummary: LocalSummarizer.Result,
-      externalSummary: ExternalSummarizer.Result
-  )(implicit st: SymbolTable): Result = {
+      localSummary: LocalSummary,
+      externalSummary: ExternalSummary
+  )(implicit st: SymbolTable): ResolvedCalls = {
 
     val allDirectAncestors = {
       localSummary.mapValues(_.directAncestors) ++
@@ -144,7 +142,7 @@ object MethodCallResolver {
         .toMap
     }
 
-    Result(
+    ResolvedCalls(
       localCalls = localCalls,
       externalClassLocalDests = externalClsToLocalClsMethods
     )

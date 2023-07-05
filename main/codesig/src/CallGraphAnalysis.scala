@@ -4,34 +4,27 @@ import upickle.default.{Writer, macroW, writer}
 import JvmModel._
 
 class CallGraphAnalysis(
-    localSummary: LocalSummarizer.Result,
-    resolved: MethodCallResolver.Result,
-    externalSummary: ExternalSummarizer.Result,
+    localSummary: LocalSummary,
+    resolved: ResolvedCalls,
+    externalSummary: ExternalSummary,
     logger: Logger
 )(implicit st: SymbolTable) {
 
-  val methodHashes = localSummary.items.flatMap { case (k, v) =>
-    v.methods.map { case (sig, m) => st.MethodDef(k, sig) -> m.codeHash }
-  }
-  val methodDefs = localSummary
-    .items
-    .flatMap { case (cls, cInfo) => cInfo.methods.map { case (m, mInfo) => st.MethodDef(cls, m) } }
-    .toArray
-    .distinct
-
-  val methodCalls = resolved.localCalls.keys
-  val externalClasses = externalSummary.directMethods.keys
+  val methods = for {
+    (k, v) <- localSummary.items
+    (sig, m) <- v.methods
+  } yield (st.MethodDef(k, sig), m)
 
   val indexToNodes: Array[CallGraphAnalysis.Node] =
-    methodDefs.map[CallGraphAnalysis.Node](CallGraphAnalysis.LocalDef(_)) ++
-      methodCalls.map(CallGraphAnalysis.Call(_)) ++
-      externalClasses.map(CallGraphAnalysis.ExternalClsCall(_))
+    methods.keys.toArray.map[CallGraphAnalysis.Node](CallGraphAnalysis.LocalDef(_)) ++
+      resolved.localCalls.keys.map(CallGraphAnalysis.Call(_)) ++
+      externalSummary.directMethods.keys.map(CallGraphAnalysis.ExternalClsCall(_))
 
   val nodeToIndex = indexToNodes.zipWithIndex.toMap
 
   val indexGraphEdges = CallGraphAnalysis.indexGraphEdges(
     indexToNodes,
-    localSummary,
+    methods,
     resolved,
     externalSummary,
     nodeToIndex
@@ -40,7 +33,7 @@ class CallGraphAnalysis(
   val transitiveCallGraphHashes = CallGraphAnalysis.transitiveCallGraphHashes(
     indexGraphEdges,
     indexToNodes,
-    methodHashes
+    methods
   )
 
   logger.log(transitiveCallGraphHashes)
@@ -49,9 +42,9 @@ class CallGraphAnalysis(
 object CallGraphAnalysis {
   def indexGraphEdges(
       indexToNodes: Array[Node],
-      localSummary: LocalSummarizer.Result,
-      resolved: MethodCallResolver.Result,
-      externalSummary: ExternalSummarizer.Result,
+      methods: Map[MethodDef, LocalSummary.MethodInfo],
+      resolved: ResolvedCalls,
+      externalSummary: ExternalSummary,
       nodeToIndex: Map[CallGraphAnalysis.Node, Int]
   )(implicit st: SymbolTable) = {
     indexToNodes
@@ -68,9 +61,7 @@ object CallGraphAnalysis {
           local ++ external
 
         case CallGraphAnalysis.LocalDef(methodDef) =>
-          localSummary
-            .get(methodDef.cls, methodDef.method)
-            .get
+          methods(methodDef)
             .calls
             .toArray
             .map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
@@ -84,7 +75,7 @@ object CallGraphAnalysis {
               for {
                 cls <- localClasses
                 m <- localMethods
-                if localSummary.get(cls, m).nonEmpty
+                if methods.contains(st.MethodDef(cls, m))
               } yield nodeToIndex(CallGraphAnalysis.LocalDef(st.MethodDef(cls, m)))
             }
             .toArray
@@ -100,13 +91,13 @@ object CallGraphAnalysis {
   def transitiveCallGraphHashes(
       indexGraphEdges: Array[Array[Int]],
       indexToNodes: Array[Node],
-      methodHashes: Map[MethodDef, Int]
+      methods: Map[MethodDef, LocalSummary.MethodInfo]
   ) = {
     val topoSortedMethodGroups =
       Tarjans.apply(indexGraphEdges.map(x => x: Iterable[Int])) // .map(_.map(indexToMethod).toSet)
 
     val nodeValues = indexToNodes.map {
-      case CallGraphAnalysis.LocalDef(m) => methodHashes(m)
+      case CallGraphAnalysis.LocalDef(m) => methods(m).codeHash
       case _ => 0
     }
     val groupTransitiveHashes: Array[Int] = Util.computeTransitive[Int](

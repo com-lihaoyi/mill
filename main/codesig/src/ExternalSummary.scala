@@ -6,28 +6,27 @@ import JType.{Cls => JCls}
 
 import java.net.URLClassLoader
 
+case class ExternalSummary(
+    directMethods: Map[JCls, Set[MethodSig]],
+    directAncestors: Map[JCls, Set[JCls]],
+    directSuperclasses: Map[JCls, JCls]
+)
+
 /**
  * Walks the inheritance hierarchy of all classes that we extend in user code
  * but are defined externally, in order to discover all methods defined on
  * those external classes that have the potential to be over-ridden by
  * user-defined classes
  */
-object ExternalSummarizer {
+object ExternalSummary {
 
-  case class Result(
-      directMethods: Map[JCls, Set[MethodSig]],
-      directAncestors: Map[JCls, Set[JCls]],
-      directSuperclasses: Map[JCls, JCls]
-  )
+  implicit def rw(implicit st: SymbolTable): upickle.default.ReadWriter[ExternalSummary] =
+    upickle.default.macroRW
 
-  object Result {
-    implicit def rw(implicit st: SymbolTable): upickle.default.ReadWriter[Result] =
-      upickle.default.macroRW
-  }
-
-  def apply(localSummary: LocalSummarizer.Result, upstreamClasspath: Seq[os.Path])(implicit
-      st: SymbolTable
-  ) = {
+  def apply(
+      localSummary: LocalSummary,
+      upstreamClasspath: Seq[os.Path]
+  )(implicit st: SymbolTable): ExternalSummary = {
     val upstreamClassloader = new URLClassLoader(
       upstreamClasspath.map(_.toNIO.toUri.toURL).toArray,
       getClass.getClassLoader
@@ -47,6 +46,7 @@ object ExternalSummarizer {
     val directSuperclasses = collection.mutable.Map.empty[JCls, JCls]
 
     def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
+
     def load0(cls: JCls): Unit = {
       val visitor = new MyClassVisitor()
       val resourcePath =
@@ -68,7 +68,7 @@ object ExternalSummarizer {
       .toSet
       .foreach(load)
 
-    Result(methodsPerCls.toMap, ancestorsPerCls.toMap, directSuperclasses.toMap)
+    ExternalSummary(methodsPerCls.toMap, ancestorsPerCls.toMap, directSuperclasses.toMap)
   }
 
   class MyClassVisitor(implicit st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {

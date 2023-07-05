@@ -68,8 +68,8 @@ object MethodHashTests extends TestSuite {
     val codeSig = computeCodeSig2("")
     val reformattedCodeSig = computeCodeSig2("-2")
 
-    val pretty1 = codeSig.methodHashes.map { case (k, v) => (k.toString, v) }
-    val pretty2 = reformattedCodeSig.methodHashes.map { case (k, v) => (k.toString, v) }
+    val pretty1 = codeSig.methods.map { case (k, v) => (k.toString, v.codeHash) }
+    val pretty2 = reformattedCodeSig.methods.map { case (k, v) => (k.toString, v.codeHash) }
     assert(pretty1 == pretty2)
   }
 }

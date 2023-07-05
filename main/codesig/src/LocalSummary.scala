@@ -3,14 +3,26 @@ package mill.codesig
 import org.objectweb.asm.{ClassReader, ClassVisitor, Handle, Label, MethodVisitor, Opcodes}
 import JvmModel._
 import JType.{Cls => JCls}
+import mill.codesig.LocalSummary.ClassInfo
 import upickle.default.{ReadWriter, macroRW}
+
+case class LocalSummary(items: Map[JCls, ClassInfo]) {
+  def get(cls: JCls, m: MethodSig): Option[LocalSummary.MethodInfo] =
+    items.get(cls).flatMap(_.methods.get(m))
+
+  def mapValues[T](f: ClassInfo => T): Map[JCls, T] = items.map { case (k, v) => (k, f(v)) }
+
+  def mapValuesOnly[T](f: ClassInfo => T): Seq[T] = items.map { case (k, v) => f(v) }.toSeq
+
+  def contains(cls: JCls) = items.contains(cls)
+}
 
 /**
  * Parses over the Java bytecode and creates a [[Summary]] object, which
  * contains the key information needed for call-graph analysis and method hash
  * computation.
  */
-object LocalSummarizer {
+object LocalSummary {
 
   case class ClassInfo(
       superClass: JCls,
@@ -24,17 +36,10 @@ object LocalSummarizer {
   object MethodInfo {
     implicit def rw(implicit st: SymbolTable): ReadWriter[MethodInfo] = macroRW
   }
-  case class Result(items: Map[JCls, ClassInfo]) {
-    def get(cls: JCls, m: MethodSig): Option[MethodInfo] = items.get(cls).flatMap(_.methods.get(m))
-    def mapValues[T](f: ClassInfo => T): Map[JCls, T] = items.map { case (k, v) => (k, f(v)) }
-    def mapValuesOnly[T](f: ClassInfo => T): Seq[T] = items.map { case (k, v) => f(v) }.toSeq
-    def contains(cls: JCls) = items.contains(cls)
-  }
-  object Result {
-    implicit def rw(implicit st: SymbolTable): ReadWriter[Result] = macroRW
-  }
 
-  def apply(classStreams: Iterator[java.io.InputStream])(implicit st: SymbolTable) = {
+  implicit def rw(implicit st: SymbolTable): ReadWriter[LocalSummary] = macroRW
+
+  def apply(classStreams: Iterator[java.io.InputStream])(implicit st: SymbolTable): LocalSummary = {
     val visitors = classStreams
       .map { cs =>
         val visitor = new MyClassVisitor()
@@ -43,7 +48,7 @@ object LocalSummarizer {
       }
       .toVector
 
-    Result(
+    LocalSummary(
       visitors
         .map { v =>
           val cls = v.clsType
