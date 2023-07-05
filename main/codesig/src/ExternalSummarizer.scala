@@ -43,7 +43,10 @@ class ExternalSummarizer private (loadClassStream: JCls => java.io.InputStream)(
 
   def load0(cls: JCls): Unit = {
     val visitor = new MyClassVisitor()
-    new ClassReader(loadClassStream(cls)).accept(visitor, 0)
+    new ClassReader(loadClassStream(cls)).accept(
+      visitor,
+      ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG
+    )
     directSuperclasses(cls) = visitor.superclass
     methodsPerCls(cls) = visitor.methods
     ancestorsPerCls(cls) = visitor.ancestors

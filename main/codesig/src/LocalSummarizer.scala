@@ -38,7 +38,7 @@ object LocalSummarizer {
     val visitors = classStreams
       .map { cs =>
         val visitor = new MyClassVisitor()
-        new ClassReader(cs).accept(visitor, 0)
+        new ClassReader(cs).accept(visitor, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG)
         visitor
       }
       .toVector
