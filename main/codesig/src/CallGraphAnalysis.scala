@@ -6,12 +6,11 @@ import JvmModel._
 class CallGraphAnalysis(
     localSummary: LocalSummarizer.Result,
     resolved: MethodCallResolver.Result,
-    methodHashes: Map[JType.Cls, Map[MethodSig, Int]],
     externalSummary: ExternalSummarizer.Result,
     logger: Logger
 )(implicit st: SymbolTable) {
-  //  pprint.log(directCallGraph.size)
-  //  pprint.log(directCallGraph.values.map(_.size).sum)
+
+  val methodHashes = localSummary.items.flatMap{case (k, v) => v.methods.map { case (sig, m) => st.MethodDef(k, sig) -> m.codeHash }}
   val methodDefs = localSummary
     .items
     .flatMap { case (cls, cInfo) => cInfo.methods.map { case (m, mInfo) => st.MethodDef(cls, m) } }
@@ -43,12 +42,6 @@ class CallGraphAnalysis(
   )
 
   logger.log(transitiveCallGraphHashes)
-
-
-  def prettyHashes = methodHashes
-    .flatMap { case (k, vs) =>
-      vs.map { case (m, dests) => st.MethodDef(k, m).toString -> dests }
-    }
 }
 
 object CallGraphAnalysis {
@@ -100,12 +93,12 @@ object CallGraphAnalysis {
   }
   def transitiveCallGraphHashes(indexGraphEdges: Array[Array[Int]],
                                 indexToNodes: Array[Node],
-                                methodHashes: Map[JType.Cls, Map[MethodSig, Int]]) = {
+                                methodHashes: Map[MethodDef, Int]) = {
     val topoSortedMethodGroups =
       Tarjans.apply(indexGraphEdges.map(x => x: Iterable[Int])) // .map(_.map(indexToMethod).toSet)
 
     val nodeValues = indexToNodes.map {
-      case CallGraphAnalysis.LocalDef(m) => methodHashes(m.cls)(m.method)
+      case CallGraphAnalysis.LocalDef(m) => methodHashes(m)
       case _ => 0
     }
     val groupTransitiveHashes: Array[Int] = Util.computeTransitive[Int](

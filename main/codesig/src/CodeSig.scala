@@ -45,7 +45,6 @@ object CodeSig {
     new CallGraphAnalysis(
       localSummary,
       resolvedMethodCalls,
-      localSummary.mapValues(_.methods.map { case (k, v) => (k, v.codeHash) }),
       externalSummary,
       logger
     )
