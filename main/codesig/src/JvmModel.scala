@@ -9,7 +9,6 @@ import scala.annotation.switch
 // calls, etc. These are generally parsed from stringly-typed fields given to
 // us by ASM library
 
-
 object JvmModel {
 
   /**
@@ -26,28 +25,28 @@ object JvmModel {
       def get(k: K): V = lookup.getOrElseUpdate(k, create(k))
     }
 
-    object MethodDef extends Table[(JType.Cls, MethodSig), MethodDef]{
+    object MethodDef extends Table[(JType.Cls, MethodSig), MethodDef] {
       def create = (new MethodDef(_, _)).tupled
       def apply(cls: JType.Cls, method: MethodSig) = get((cls, method))
     }
 
-    object MethodSig extends Table[(Boolean, String, Desc), MethodSig]{
+    object MethodSig extends Table[(Boolean, String, Desc), MethodSig] {
       def create = (new MethodSig(_, _, _)).tupled
       def apply(static: Boolean, name: String, desc: Desc) = get((static, name, desc))
     }
 
-    object MethodCall extends Table[(JType.Cls, InvokeType, String, Desc), MethodCall]{
+    object MethodCall extends Table[(JType.Cls, InvokeType, String, Desc), MethodCall] {
       def create = (new MethodCall(_, _, _, _)).tupled
       def apply(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc) =
         get((cls, invokeType, name, desc))
     }
 
-    object JCls extends Table[String, JType.Cls]{
+    object JCls extends Table[String, JType.Cls] {
       def create = new JType.Cls(_)
       def apply(name: String) = get(name)
     }
 
-    object Desc extends Table[String, Desc]{
+    object Desc extends Table[String, Desc] {
       def create = s => JvmModel.this.Desc.read(s)(SymbolTable.this)
       def read(name: String) = get(name)
     }
@@ -62,7 +61,7 @@ object JvmModel {
       stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
   }
 
-  class MethodSig private[JvmModel]  (val static: Boolean, val name: String, val desc: Desc) {
+  class MethodSig private[JvmModel] (val static: Boolean, val name: String, val desc: Desc) {
     override def toString = (if (static) "." else "#") + name + desc.pretty
   }
 
@@ -72,7 +71,12 @@ object JvmModel {
       stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
   }
 
-  class MethodCall private[JvmModel]  (val cls: JType.Cls, val invokeType: InvokeType, val name: String, val desc: Desc) {
+  class MethodCall private[JvmModel] (
+      val cls: JType.Cls,
+      val invokeType: InvokeType,
+      val name: String,
+      val desc: Desc
+  ) {
     override def toString = {
       val sep = invokeType match {
         case InvokeType.Static => '.'
@@ -179,7 +183,7 @@ object JvmModel {
 
   object Desc {
 
-    private def isStartChar(c: Char) = (c: @switch) match{
+    private def isStartChar(c: Char) = (c: @switch) match {
       case 'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 'L' => true
       case _ => false
     }
@@ -189,10 +193,10 @@ object JvmModel {
       var index = 1 // Skip index 0 which is the open paren '('
       while (index < closeParenIndex) {
         var firstChar = index
-        while(!isStartChar(s.charAt(firstChar))) firstChar += 1
+        while (!isStartChar(s.charAt(firstChar))) firstChar += 1
         var split = firstChar
-        if(s.charAt(firstChar) == 'L'){
-          while(s.charAt(split) != ';') split += 1
+        if (s.charAt(firstChar) == 'L') {
+          while (s.charAt(split) != ';') split += 1
         }
 
         args.addOne(JType.read(s.substring(index, split + 1)))

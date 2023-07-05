@@ -5,6 +5,7 @@ import JvmModel._
 import JType.{Cls => JCls}
 
 import java.net.URLClassLoader
+
 /**
  * Walks the inheritance hierarchy of all classes that we extend in user code
  * but are defined externally, in order to discover all methods defined on
@@ -24,10 +25,10 @@ object ExternalSummarizer {
       upickle.default.macroRW
   }
 
-  def apply(localSummary: LocalSummarizer.Result,
-            upstreamClasspath: Seq[os.Path])
-           (implicit st: SymbolTable) = {
-    val upstreamClasspathClassloader = new URLClassLoader(
+  def apply(localSummary: LocalSummarizer.Result, upstreamClasspath: Seq[os.Path])(implicit
+      st: SymbolTable
+  ) = {
+    val upstreamClassloader = new URLClassLoader(
       upstreamClasspath.map(_.toNIO.toUri.toURL).toArray,
       getClass.getClassLoader
     )
@@ -41,48 +42,40 @@ object ExternalSummarizer {
       .flatMap(call => Seq(call.cls) ++ call.desc.args)
       .collect { case c: JType.Cls => c }
 
-    val ext = new ExternalSummarizer(
-      externalType =>
-        os.read.inputStream(os.resource(upstreamClasspathClassloader) / os.SubPath(
-          externalType.name.replace('.', '/') + ".class"
-        ))
-    )
-    ext.loadAll(
-      (allDirectAncestors ++ allMethodCallParamClasses)
-        .filter(!localSummary.contains(_))
-        .toSet
-    )
+    val methodsPerCls = collection.mutable.Map.empty[JCls, Set[MethodSig]]
+    val ancestorsPerCls = collection.mutable.Map.empty[JCls, Set[JCls]]
+    val directSuperclasses = collection.mutable.Map.empty[JCls, JCls]
 
-    Result(ext.methodsPerCls.toMap, ext.ancestorsPerCls.toMap, ext.directSuperclasses.toMap)
-  }
-}
+    def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
+    def load0(cls: JCls): Unit = {
+      val visitor = new MyClassVisitor()
+      val resourcePath =
+        os.resource(upstreamClassloader) / os.SubPath(cls.name.replace('.', '/') + ".class")
 
-class ExternalSummarizer private (loadClassStream: JCls => java.io.InputStream)(implicit
-    st: SymbolTable
-) {
-  val methodsPerCls = collection.mutable.Map.empty[JCls, Set[MethodSig]]
-  val ancestorsPerCls = collection.mutable.Map.empty[JCls, Set[JCls]]
-  val directSuperclasses = collection.mutable.Map.empty[JCls, JCls]
+      new ClassReader(os.read.inputStream(resourcePath)).accept(
+        visitor,
+        ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG
+      )
 
-  def loadAll(externalTypes: Set[JCls]): Unit = externalTypes.foreach(load)
-  def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
+      directSuperclasses(cls) = visitor.superclass
+      methodsPerCls(cls) = visitor.methods
+      ancestorsPerCls(cls) = visitor.ancestors
+      ancestorsPerCls(cls).foreach(load)
+    }
 
-  def load0(cls: JCls): Unit = {
-    val visitor = new MyClassVisitor()
-    new ClassReader(loadClassStream(cls)).accept(
-      visitor,
-      ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG
-    )
-    directSuperclasses(cls) = visitor.superclass
-    methodsPerCls(cls) = visitor.methods
-    ancestorsPerCls(cls) = visitor.ancestors
-    ancestorsPerCls(cls).foreach(load)
+    (allDirectAncestors ++ allMethodCallParamClasses)
+      .filter(!localSummary.contains(_))
+      .toSet
+      .foreach(load)
+
+    Result(methodsPerCls.toMap, ancestorsPerCls.toMap, directSuperclasses.toMap)
   }
 
-  class MyClassVisitor extends ClassVisitor(Opcodes.ASM9) {
+  class MyClassVisitor(implicit st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
     var methods: Set[MethodSig] = Set()
     var ancestors: Set[JCls] = null
     var superclass: JCls = null
+
     override def visit(
         version: Int,
         access: Int,

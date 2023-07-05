@@ -10,7 +10,9 @@ class CallGraphAnalysis(
     logger: Logger
 )(implicit st: SymbolTable) {
 
-  val methodHashes = localSummary.items.flatMap{case (k, v) => v.methods.map { case (sig, m) => st.MethodDef(k, sig) -> m.codeHash }}
+  val methodHashes = localSummary.items.flatMap { case (k, v) =>
+    v.methods.map { case (sig, m) => st.MethodDef(k, sig) -> m.codeHash }
+  }
   val methodDefs = localSummary
     .items
     .flatMap { case (cls, cInfo) => cInfo.methods.map { case (m, mInfo) => st.MethodDef(cls, m) } }
@@ -22,8 +24,8 @@ class CallGraphAnalysis(
 
   val indexToNodes: Array[CallGraphAnalysis.Node] =
     methodDefs.map[CallGraphAnalysis.Node](CallGraphAnalysis.LocalDef(_)) ++
-    methodCalls.map(CallGraphAnalysis.Call(_)) ++
-    externalClasses.map(CallGraphAnalysis.ExternalClsCall(_))
+      methodCalls.map(CallGraphAnalysis.Call(_)) ++
+      externalClasses.map(CallGraphAnalysis.ExternalClsCall(_))
 
   val nodeToIndex = indexToNodes.zipWithIndex.toMap
 
@@ -45,20 +47,24 @@ class CallGraphAnalysis(
 }
 
 object CallGraphAnalysis {
-  def indexGraphEdges(indexToNodes: Array[Node],
-                      localSummary: LocalSummarizer.Result,
-                      resolved: MethodCallResolver.Result,
-                      externalSummary: ExternalSummarizer.Result,
-                      nodeToIndex: Map[CallGraphAnalysis.Node, Int])
-                     (implicit st: SymbolTable)= {
+  def indexGraphEdges(
+      indexToNodes: Array[Node],
+      localSummary: LocalSummarizer.Result,
+      resolved: MethodCallResolver.Result,
+      externalSummary: ExternalSummarizer.Result,
+      nodeToIndex: Map[CallGraphAnalysis.Node, Int]
+  )(implicit st: SymbolTable) = {
     indexToNodes
       .iterator
       .map {
         case CallGraphAnalysis.Call(methodCall) =>
           val callInfo = resolved.localCalls(methodCall)
-          val local = callInfo.localDests.toArray.map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
+          val local =
+            callInfo.localDests.toArray.map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
           val external =
-            callInfo.externalDests.toArray.map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
+            callInfo.externalDests.toArray.map(c =>
+              nodeToIndex(CallGraphAnalysis.ExternalClsCall(c))
+            )
           local ++ external
 
         case CallGraphAnalysis.LocalDef(methodDef) =>
@@ -91,9 +97,11 @@ object CallGraphAnalysis {
       }
       .toArray
   }
-  def transitiveCallGraphHashes(indexGraphEdges: Array[Array[Int]],
-                                indexToNodes: Array[Node],
-                                methodHashes: Map[MethodDef, Int]) = {
+  def transitiveCallGraphHashes(
+      indexGraphEdges: Array[Array[Int]],
+      indexToNodes: Array[Node],
+      methodHashes: Map[MethodDef, Int]
+  ) = {
     val topoSortedMethodGroups =
       Tarjans.apply(indexGraphEdges.map(x => x: Iterable[Int])) // .map(_.map(indexToMethod).toSet)
 
