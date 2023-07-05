@@ -126,11 +126,42 @@ object CallGraphTests extends TestSuite {
    * are small so it's probably fine.
    */
   def simplifyCallGraph(codeSig: CallGraphAnalysis, skipped: Seq[String]) = {
-
+    import codeSig._
 //    pprint.log(codeSig.simplifiedCallGraph(_.toString))
 
-    codeSig
-      .simplifiedCallGraph {
+
+
+    def simplifiedCallGraph0[T](transform: PartialFunction[CallGraphAnalysis.Node, T])
+    : Map[T, Set[T]] = {
+
+      def flatten(ns: Set[CallGraphAnalysis.Node]): Set[T] = {
+        if (ns.isEmpty) Set()
+        else {
+          val (notDefined, defined) = ns.partitionMap(n =>
+            transform.lift(n) match {
+              case None => Left(n)
+              case Some(v) => Right(v)
+            }
+          )
+
+          val downstream = flatten(
+            notDefined.flatMap(n => indexGraphEdges(nodeToIndex(n))).map(indexToNodes)
+          )
+
+          defined ++ downstream
+        }
+      }
+
+      indexGraphEdges
+        .zipWithIndex
+        .flatMap { case (destIndices, srcIndex) =>
+          transform.lift(indexToNodes(srcIndex))
+            .map((_, flatten(destIndices.map(destIndex => indexToNodes(destIndex)).toSet)))
+        }
+        .toMap
+    }
+
+      simplifiedCallGraph0 {
         case CallGraphAnalysis.LocalDef(d) if !skipped.exists(d.toString.contains(_)) => d.toString
       }
       .collect { case (k, vs) if vs.nonEmpty => (k, vs.to(SortedSet)) }
