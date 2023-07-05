@@ -40,7 +40,7 @@ object ResolvedCalls {
 
     // Given an external class, what are the local classes that inherit from it,
     // and what local methods may end up being called by the external class code
-    val externalClsToLocalClsMethodsDirect = {
+    val externalClsToLocalClsMethods = {
       localSummary
         .items
         .keySet
@@ -65,10 +65,8 @@ object ResolvedCalls {
         }
     }
 
-    val externalClsToLocalClsMethods = externalClsToLocalClsMethodsDirect
     val directSuperclasses =
       localSummary.mapValues(_.superClass) ++ externalSummary.directSuperclasses
-    val externalDirectMethods = externalSummary.directMethods
 
     val allCalls = localSummary
       .mapValuesOnly(_.methods)
@@ -97,7 +95,7 @@ object ResolvedCalls {
         .map { call =>
           def methodExists(cls: JCls, call: MethodCall): Boolean = {
             localSummary.items.get(cls).exists(_.methods.contains(call.toMethodSig)) ||
-            externalDirectMethods.get(cls).exists(_.contains(call.toMethodSig))
+            externalSummary.directMethods.get(cls).exists(_.contains(call.toMethodSig))
           }
 
           val allReceivers = call.invokeType match {
