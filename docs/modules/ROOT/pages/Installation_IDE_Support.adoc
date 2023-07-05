@@ -296,7 +296,7 @@ have choosen one of the <<_bootstrap_scripts,Boostrap script methods>>:
 echo "0.5.0" > .mill-version
 ----
 
-`.mill-version` takes precedence over `.config/mill-version` the version of Mill specified in the `./mill` script.
+`.mill-version` takes precedence over `.config/mill-version` or the version of Mill specified in the `./mill` script.
 
 * Pass in a `MILL_VERSION` environment variable, e.g.
 [source,bash]
