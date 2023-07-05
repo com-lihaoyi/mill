@@ -75,9 +75,9 @@ private[mill] object Graph {
 
     val numberedEdges =
       for (t <- transitiveTargets.items)
-        yield t.inputs.collect(targetIndices)
+        yield t.inputs.collect(targetIndices).toArray
 
-    val sortedClusters = mill.util.Tarjans(numberedEdges)
+    val sortedClusters = mill.util.Tarjans(numberedEdges.toArray)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)
     assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
     new TopoSorted(Agg.from(sortedClusters.flatten.map(indexed)))

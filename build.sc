@@ -455,6 +455,7 @@ object main extends MillStableScalaModule with BuildInfo {
       BuildInfo.Value("millVersion", millVersion(), "Mill version."),
       BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
     )
+
     def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
@@ -463,6 +464,7 @@ object main extends MillStableScalaModule with BuildInfo {
       Deps.sbtTestInterface
     )
   }
+
   object util extends MillStableScalaModule {
     def moduleDeps = Seq(api, client)
     def ivyDeps = Agg(Deps.coursier, Deps.jline)
@@ -479,6 +481,7 @@ object main extends MillStableScalaModule with BuildInfo {
           .map(_.subRelativeTo(millSourcePath / "cases").segments)
           .collect{case Seq(a, b, c) => s"$a-$b-$c"}
       )
+
       def testLogFolder = T{ T.dest }
 
       def caseEnvs[V](f1: CaseModule => Task[V])(s: String, f2: V => String) = {
@@ -518,7 +521,6 @@ object main extends MillStableScalaModule with BuildInfo {
         }
       }
     }
-
   }
 
   object define extends MillStableScalaModule {

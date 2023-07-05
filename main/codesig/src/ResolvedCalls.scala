@@ -45,8 +45,7 @@ object ResolvedCalls {
         .items
         .keySet
         .flatMap { cls =>
-          Util
-            .breadthFirst(Seq(cls))(allDirectAncestors.getOrElse(_, Nil))
+          breadthFirst(Seq(cls))(allDirectAncestors.getOrElse(_, Nil))
             .filter(!localSummary.items.contains(_))
             .map { externalCls =>
               (externalCls, Set(cls))
@@ -78,14 +77,14 @@ object ResolvedCalls {
     val staticCallSupers = allCalls
       .collect {
         case call: MethodCall if call.invokeType == InvokeType.Static =>
-          (call.cls, Util.breadthFirst(Seq(call.cls))(directSuperclasses.get))
+          (call.cls, breadthFirst(Seq(call.cls))(directSuperclasses.get))
       }
       .toMap
 
     val virtualCallDescendents = allCalls
       .collect {
         case call: MethodCall if call.invokeType == InvokeType.Virtual =>
-          (call.cls, Util.breadthFirst(Seq(call.cls))(directDescendents.getOrElse(_, Nil)).toSet)
+          (call.cls, breadthFirst(Seq(call.cls))(directDescendents.getOrElse(_, Nil)).toSet)
       }
       .toMap
 
@@ -108,12 +107,9 @@ object ResolvedCalls {
               else {
                 val descendents = virtualCallDescendents(call.cls)
 
-                Util
-                  .breadthFirst(descendents)(cls =>
-                    if (methodExists(cls, call)) Nil else allDirectAncestors.getOrElse(cls, Nil)
-                  )
-                  .toSet
-                  .filter(methodExists(_, call))
+                breadthFirst(descendents)(cls =>
+                  if (methodExists(cls, call)) Nil else allDirectAncestors.getOrElse(cls, Nil)
+                ).toSet.filter(methodExists(_, call))
               }
           }
 
@@ -144,5 +140,22 @@ object ResolvedCalls {
       localCalls = localCalls,
       externalClassLocalDests = externalClsToLocalClsMethods
     )
+  }
+
+  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
+    val seen = collection.mutable.Set.empty[T]
+    val seenList = collection.mutable.Buffer.empty[T]
+    val queued = collection.mutable.Queue.from(start)
+
+    while (queued.nonEmpty) {
+      val current = queued.dequeue()
+      seen.add(current)
+      seenList.append(current)
+
+      for (next <- edges(current)) {
+        if (!seen.contains(next)) queued.enqueue(next)
+      }
+    }
+    seenList.toSeq
   }
 }

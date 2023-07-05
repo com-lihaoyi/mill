@@ -10,18 +10,18 @@ those whose code was not modified.
 
 CodeSig works as follows:
 
-1. `LocalSummarizer` parses the bytecode of locally-defined classes, generating
+1. `LocalSummary` parses the bytecode of locally-defined classes, generating
    a hash-signature of every method, collecting all method calls it sees, and
    saving the class hierarchy
 
-2. `ExternalSummarizer` parses a limited set of external upstream classes -
+2. `ExternalSummary` parses a limited set of external upstream classes -
    those inherited by local classes or who appear in the argument types of a
    method call from local code into external code. We extract the
    inheritance hierarchy and methods defined by each upstream class without
    performing any analysis of method bytecode
 
-3. `Resolver` uses the two summaries above to resolve local method calls
-   collected by `LocalSummarizer` into possible local method definitions
+3. `ResolvedCalls` uses the two summaries above to resolve local method calls
+   collected by `LocalSummary` into possible local method definitions
 
     1. For all method calls, it is straightforward to use the class hierarchy to
        find the set of possible local implementations. We have class
