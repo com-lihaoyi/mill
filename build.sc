@@ -356,6 +356,12 @@ trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 
 /** Publishable module which contains strictly handled API. */
 trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+  import com.github.lolgab.mill.mima._
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
+    ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
+    ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
+    ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
+  )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
   def mimaPreviousArtifacts: T[Agg[Dep]] = T {
