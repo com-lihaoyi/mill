@@ -3,6 +3,8 @@ package mill.codesig
 import org.objectweb.asm.{ClassReader, ClassVisitor, MethodVisitor, Opcodes}
 import JvmModel._
 import JType.{Cls => JCls}
+
+import java.net.URLClassLoader
 /**
  * Walks the inheritance hierarchy of all classes that we extend in user code
  * but are defined externally, in order to discover all methods defined on
@@ -22,11 +24,35 @@ object ExternalSummarizer {
       upickle.default.macroRW
   }
 
-  def loadAll(externalTypes: Set[JCls], loadClassStream: JCls => java.io.InputStream)(implicit
-      st: SymbolTable
-  ): Result = {
-    val ext = new ExternalSummarizer(loadClassStream)
-    ext.loadAll(externalTypes)
+  def apply(localSummary: LocalSummarizer.Result,
+            upstreamClasspath: Seq[os.Path])
+           (implicit st: SymbolTable) = {
+    val upstreamClasspathClassloader = new URLClassLoader(
+      upstreamClasspath.map(_.toNIO.toUri.toURL).toArray,
+      getClass.getClassLoader
+    )
+
+    val allDirectAncestors = localSummary.mapValuesOnly(_.directAncestors).flatten
+
+    val allMethodCallParamClasses = localSummary
+      .mapValuesOnly(_.methods.values)
+      .flatten
+      .flatMap(_.calls)
+      .flatMap(call => Seq(call.cls) ++ call.desc.args)
+      .collect { case c: JType.Cls => c }
+
+    val ext = new ExternalSummarizer(
+      externalType =>
+        os.read.inputStream(os.resource(upstreamClasspathClassloader) / os.SubPath(
+          externalType.name.replace('.', '/') + ".class"
+        ))
+    )
+    ext.loadAll(
+      (allDirectAncestors ++ allMethodCallParamClasses)
+        .filter(!localSummary.contains(_))
+        .toSet
+    )
+
     Result(ext.methodsPerCls.toMap, ext.ancestorsPerCls.toMap, ext.directSuperclasses.toMap)
   }
 }

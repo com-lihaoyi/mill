@@ -23,7 +23,7 @@ object MethodCallResolver {
     implicit def rw(implicit st: SymbolTable): ReadWriter[Result] = macroRW
   }
 
-  def resolveAllMethodCalls(
+  def apply(
       localSummary: LocalSummarizer.Result,
       externalSummary: ExternalSummarizer.Result
   )(implicit st: SymbolTable): Result = {

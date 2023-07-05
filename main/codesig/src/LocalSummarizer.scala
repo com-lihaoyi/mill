@@ -34,7 +34,7 @@ object LocalSummarizer {
     implicit def rw(implicit st: SymbolTable): ReadWriter[Result] = macroRW
   }
 
-  def summarize(classStreams: Iterator[java.io.InputStream])(implicit st: SymbolTable) = {
+  def apply(classStreams: Iterator[java.io.InputStream])(implicit st: SymbolTable) = {
     val visitors = classStreams
       .map { cs =>
         val visitor = new MyClassVisitor()
