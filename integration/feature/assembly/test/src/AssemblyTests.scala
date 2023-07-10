@@ -99,10 +99,10 @@ object AssemblyTests extends IntegrationTestSuite {
       }
       test("exe") {
         test("small") {
-          checkAssembly(Seq("noExe", "small"), checkExe = true)
+          checkAssembly(Seq("exe", "small"), checkExe = true)
         }
         test("large") {
-          checkAssembly(Seq("noExe", "large"), checkExe = true)
+          checkAssembly(Seq("exe", "large"), checkExe = true)
         }
       }
     }
