@@ -5,7 +5,15 @@ import mill.Agg
 import mill.api.{Ctx, IO, PathRef}
 import os.Generator
 
-import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
+import java.io.{
+  BufferedInputStream,
+  BufferedOutputStream,
+  ByteArrayInputStream,
+  FileInputStream,
+  FileOutputStream,
+  InputStream,
+  SequenceInputStream
+}
 import java.net.URI
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{FileSystems, Files, StandardOpenOption}
@@ -195,13 +203,16 @@ object Assembly {
       base: Option[os.Path] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
   )(implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
-    val tmp = ctx.dest / "out-tmp.jar"
+    val rawJar = ctx.dest / "out-tmp.jar"
 
-    val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
+    // use the `base` (the upsteam assembly) as a start
+    val baseUri = "jar:" + rawJar.toIO.getCanonicalFile.toURI.toASCIIString
     val hm = base.fold(Map("create" -> "true")) { b =>
-      os.copy(b, tmp)
+      os.copy(b, rawJar)
       Map.empty
     }
+
+    // Add more files by copying files to a JAR file system
     Using.resource(FileSystems.newFileSystem(URI.create(baseUri), hm.asJava)) { zipFs =>
       val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
       Files.createDirectories(manifestPath.getParent)
@@ -236,18 +247,26 @@ object Assembly {
       }
     }
 
-    val output = ctx.dest / "out.jar"
+
+    val finalJar = ctx.dest / "out.jar"
     // Prepend shell script and make it executable
-    if (prependShellScript.isEmpty) os.move(tmp, output)
-    else {
+    if (prependShellScript.isEmpty) {
+      os.move(rawJar, finalJar)
+    } else {
       val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
-      os.write(output, prependShellScript + lineSep)
-      os.write.append(output, os.read.inputStream(tmp))
+      val prepend = prependShellScript + lineSep
+      // Write the prepend-part into the final jar file
+      // https://en.wikipedia.org/wiki/Zip_(file_format)#Combination_with_other_file_formats
+        os.write(finalJar, prepend)
+        // Append the actual JAR content
+        Using.resource(os.read.inputStream(rawJar)) { is =>
+          os.write.append(finalJar, is)
+        }
 
       if (!scala.util.Properties.isWin) {
         os.perms.set(
-          output,
-          os.perms(output)
+          finalJar,
+          os.perms(finalJar)
             + PosixFilePermission.GROUP_EXECUTE
             + PosixFilePermission.OWNER_EXECUTE
             + PosixFilePermission.OTHERS_EXECUTE
@@ -255,7 +274,7 @@ object Assembly {
       }
     }
 
-    PathRef(output)
+    PathRef(finalJar)
   }
 
   private def writeEntry(p: java.nio.file.Path, inputStream: InputStream, append: Boolean): Unit = {
