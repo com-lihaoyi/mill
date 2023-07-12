@@ -151,19 +151,23 @@ class MillBuildRootModule()(implicit
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
         upstreamClasspath = compileClasspath().toSeq.map(_.path),
-        ignoreCall = {  methodSig =>
+        ignoreCall = { (otherCallsOpt, calledSig) =>
           // We can ignore all methods that look like Targets when traversing
           // the call graph, because we assume `def` targets are pure, and so
           // any changes in their behavior will be picked up by the runtime build
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
-          def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
-            desc.ret.pretty == "mill.define.Target" && desc.args.isEmpty
+          val isSimpleTarget =
+            calledSig.desc.ret.pretty == "mill.define.Target" && calledSig.desc.args.isEmpty
 
-          isSimpleTarget(methodSig.desc)
-//          false
+          val isPossibleCaller =
+            otherCallsOpt.isEmpty ||
+            otherCallsOpt.get.exists(_.name == "codeSigIgnoreSimpleTargetCalls")
+
+          isPossibleCaller || isSimpleTarget
         },
-        logger = new mill.codesig.Logger(None /*Some(T.dest)*/ )
+//        logger = new mill.codesig.Logger(Some(T.dest))
+        logger = new mill.codesig.Logger(None)
       )
 
     codesig.transitiveCallGraphHashes

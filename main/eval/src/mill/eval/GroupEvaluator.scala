@@ -55,7 +55,6 @@ private[mill] trait GroupEvaluator {
 
     val scriptsHash = group
       .iterator
-      .flatMap(t => Iterator(t) ++ t.inputs)
       .collect {
         case namedTask: NamedTask[_] =>
           def resolveParents(c: Class[_]): Seq[Class[_]] = {

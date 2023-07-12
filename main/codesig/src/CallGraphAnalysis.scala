@@ -7,7 +7,7 @@ class CallGraphAnalysis(
     localSummary: LocalSummary,
     resolved: ResolvedCalls,
     externalSummary: ExternalSummary,
-    ignoreCall: MethodSig => Boolean,
+    ignoreCall: (Option[Set[MethodCall]], MethodSig) => Boolean,
     logger: Logger
 )(implicit st: SymbolTable) {
 
@@ -32,6 +32,12 @@ class CallGraphAnalysis(
     ignoreCall
   )
 
+  lazy val prettyGraph = {
+    indexGraphEdges.zip(indexToNodes).map{case (vs, k) => (k, vs.map(indexToNodes))}.toMap
+  }
+
+  logger.log(prettyGraph)
+
   val transitiveCallGraphHashes = CallGraphAnalysis.transitiveCallGraphHashes(
     indexGraphEdges,
     indexToNodes,
@@ -48,7 +54,7 @@ object CallGraphAnalysis {
       resolved: ResolvedCalls,
       externalSummary: ExternalSummary,
       nodeToIndex: Map[CallGraphAnalysis.Node, Int],
-      ignoreCall: MethodSig => Boolean,
+      ignoreCall: (Option[Set[MethodCall]], MethodSig) => Boolean,
   )(implicit st: SymbolTable) = {
     indexToNodes
       .iterator
@@ -67,7 +73,7 @@ object CallGraphAnalysis {
           methods(methodDef)
             .calls
             .toArray
-//            .filter(c => !ignoreCall(methodDef.method) || !ignoreCall(c.toMethodSig))
+            .filter(c => !ignoreCall(methods(methodDef).calls, c.toMethodSig))
             .map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
 
         case CallGraphAnalysis.ExternalClsCall(externalCls) =>
@@ -80,7 +86,7 @@ object CallGraphAnalysis {
                 cls <- localClasses
                 m <- localMethods
                 if methods.contains(st.MethodDef(cls, m))
-                if !ignoreCall(m)
+                if !ignoreCall(null, m)
               } yield nodeToIndex(CallGraphAnalysis.LocalDef(st.MethodDef(cls, m)))
             }
             .toArray

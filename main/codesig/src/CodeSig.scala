@@ -4,7 +4,7 @@ import JvmModel._
 object CodeSig {
   def compute(classFiles: Seq[os.Path],
               upstreamClasspath: Seq[os.Path],
-              ignoreCall: MethodSig => Boolean,
+              ignoreCall: (Option[Set[MethodCall]], MethodSig) => Boolean,
               logger: Logger) = {
     implicit val st: SymbolTable = new SymbolTable()
 
