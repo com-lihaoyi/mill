@@ -166,8 +166,7 @@ class MillBuildRootModule()(implicit
 
           isPossibleCaller && isSimpleTarget
         },
-//        logger = new mill.codesig.Logger(Some(T.dest))
-        logger = new mill.codesig.Logger(None)
+        logger = new mill.codesig.Logger(Option.when(T.log.debugEnabled)(T.dest))
       )
 
     codesig.transitiveCallGraphHashes
