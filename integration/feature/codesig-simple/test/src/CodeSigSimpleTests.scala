@@ -48,13 +48,12 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
           "running bar",
           "running helperBar",
           "running qux",
-          "running helperQux",
+          "running helperQux"
         )
       )
 
       val cached = evalStdout("outer.inner.qux")
       assert(cached.out == "")
-
 
       // Changing the body of a T{...} block directly invalidates that target,
       // but not downstream targets unless the return value changes
@@ -64,7 +63,7 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       assert(
         mangledFoo.out.linesIterator.toSeq == Seq(
           "running foo2",
-          "running helperFoo",
+          "running helperFoo"
           // The return value of foo did not change so qux is not invalidated
         )
       )
@@ -78,7 +77,7 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
           "running helperFoo",
           // The return value of foo changes from 1 to 1+4=5, so qux is invalidated
           "running qux",
-          "running helperQux",
+          "running helperQux"
         )
       )
 
@@ -86,8 +85,8 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       val mangledQux = evalStdout("outer.inner.qux")
       assert(
         mangledQux.out.linesIterator.toSeq ==
-        // qux itself was changed, and so it is invalidated
-        Seq("running qux2", "running helperQux")
+          // qux itself was changed, and so it is invalidated
+          Seq("running qux2", "running helperQux")
       )
 
       // Changing the body of some helper method that gets called by a T{...}
@@ -102,7 +101,7 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
           "running helperFoo",
           // Because the return value of helperFoo/foo changes from 1+4=5 to 6+5=11, qux is invalidated
           "running qux2",
-          "running helperQux",
+          "running helperQux"
         )
       )
 
@@ -112,7 +111,7 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       assert(
         mangledHelperBar.out.linesIterator.toSeq == Seq(
           "running bar",
-          "running helperBar2",
+          "running helperBar2"
           // We do not need to re-evaluate qux because the return value of bar did not change
         )
       )
@@ -126,7 +125,7 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
           "running helperBar2",
           // Because the return value of helperBar/bar changes from 20 to 70, qux is invalidated
           "running qux2",
-          "running helperQux",
+          "running helperQux"
         )
       )
 
@@ -135,8 +134,8 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       assert(
         mangledBar.out.linesIterator.toSeq ==
-        // helperQux was changed, so qux needs to invalidate
-        Seq("running qux2", "running helperQux2")
+          // helperQux was changed, so qux needs to invalidate
+          Seq("running qux2", "running helperQux2")
       )
 
       // Adding a newline before one of the target definitions does not invalidate it

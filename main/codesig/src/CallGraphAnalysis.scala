@@ -33,7 +33,7 @@ class CallGraphAnalysis(
   )
 
   lazy val prettyGraph = {
-    indexGraphEdges.zip(indexToNodes).map{case (vs, k) => (k, vs.map(indexToNodes))}.toMap
+    indexGraphEdges.zip(indexToNodes).map { case (vs, k) => (k, vs.map(indexToNodes)) }.toMap
   }
 
   logger.log(prettyGraph)
@@ -54,7 +54,7 @@ object CallGraphAnalysis {
       resolved: ResolvedCalls,
       externalSummary: ExternalSummary,
       nodeToIndex: Map[CallGraphAnalysis.Node, Int],
-      ignoreCall: (Option[Set[MethodCall]], MethodSig) => Boolean,
+      ignoreCall: (Option[Set[MethodCall]], MethodSig) => Boolean
   )(implicit st: SymbolTable) = {
     indexToNodes
       .iterator

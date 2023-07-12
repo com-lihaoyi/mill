@@ -54,7 +54,7 @@ private[mill] trait GroupEvaluator {
       group.iterator.map(_.sideHash)
     )
 
-    val scriptsHash = if (disableCallgraphInvalidation){
+    val scriptsHash = if (disableCallgraphInvalidation) {
       val possibleScripts = scriptImportGraph.keySet.map(_.toString)
       val scripts = new Loose.Agg.Mutable[os.Path]()
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
@@ -77,7 +77,7 @@ private[mill] trait GroupEvaluator {
         // present in the scriptImportGraph
         .map(p => scriptImportGraph.get(p).fold(0)(_._1))
         .sum
-    }else {
+    } else {
       group
         .iterator
         .collect {
@@ -100,7 +100,9 @@ private[mill] trait GroupEvaluator {
             val cls = methods.head.getDeclaringClass.getName
             val name = namedTask.ctx.segment.pathSegments.last
             val expectedPrefix = cls + "#" + name + "()"
-            methodCodeHashSignatures.collectFirst { case (k, v) if k.startsWith(expectedPrefix) => v }
+            methodCodeHashSignatures.collectFirst {
+              case (k, v) if k.startsWith(expectedPrefix) => v
+            }
         }
         .flatten
         .sum

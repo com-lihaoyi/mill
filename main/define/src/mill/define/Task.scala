@@ -129,6 +129,7 @@ trait Target[+T] extends NamedTask[T]
  * `T.`[[env]] provide the core APIs that are provided to a task implementation
  */
 object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
+
   /**
    * Marker method used to "annotate" the method body which constructs a task
    * relative to other tasks. This lets us ignore direct "task -> task" method calls

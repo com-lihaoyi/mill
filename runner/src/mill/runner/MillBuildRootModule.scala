@@ -162,7 +162,7 @@ class MillBuildRootModule()(implicit
 
           val isPossibleCaller =
             otherCallsOpt.isEmpty ||
-            otherCallsOpt.get.exists(_.name == "codeSigIgnoreSimpleTargetCalls")
+              otherCallsOpt.get.exists(_.name == "codeSigIgnoreSimpleTargetCalls")
 
           isPossibleCaller && isSimpleTarget
         },

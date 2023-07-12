@@ -62,10 +62,12 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
           )
       )
 
-
       // Changing the body `foo.generatedSources` invalidates `foo.generatedSources`,
       // but if the return value is not changed then `foo.compile` does not invalidate
-      mangleFile(wsRoot / "build.sc", _.replace("Foo generating sources...", "FOO GENERATING SOURCES"))
+      mangleFile(
+        wsRoot / "build.sc",
+        _.replace("Foo generating sources...", "FOO GENERATING SOURCES")
+      )
       val mangledFoo3 = evalStdout("foo.run")
 
       assert(
@@ -143,7 +145,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
             "Bar assembly...",
             "Qux generating sources...",
             "Qux compiling...",
-            "Qux assembly...",
+            "Qux assembly..."
           )
       )
 
@@ -162,14 +164,20 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       val mangledFoo2 = evalStdout("{foo,bar,qux}.assembly")
       assert(filterLines(mangledFoo2.out) == Seq("FOO COMPILING"))
 
-      mangleFile(wsRoot / "build.sc", _.replace("Foo generating sources...", "FOO generating sources"))
+      mangleFile(
+        wsRoot / "build.sc",
+        _.replace("Foo generating sources...", "FOO generating sources")
+      )
       val mangledFoo3 = evalStdout("{foo,bar,qux}.assembly")
       assert(filterLines(mangledFoo3.out) == Seq("FOO generating sources"))
 
       // Changing the implementation of foo.generatedSources in a way that changes
       // its return value does cause downstream targets in foo and bar to invalidate,
       // but unrelated targets (bar.generatedSources and qux.*) are not invalidated
-      mangleFile(wsRoot / "build.sc", _.replace("""fooMsg = "Hello World"""", """fooMsg = "HELLO WORLD""""))
+      mangleFile(
+        wsRoot / "build.sc",
+        _.replace("""fooMsg = "Hello World"""", """fooMsg = "HELLO WORLD"""")
+      )
       val mangledFoo4 = evalStdout("{foo,bar,qux}.assembly")
 
       assert(
