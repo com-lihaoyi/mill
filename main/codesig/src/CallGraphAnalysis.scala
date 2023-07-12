@@ -7,6 +7,7 @@ class CallGraphAnalysis(
     localSummary: LocalSummary,
     resolved: ResolvedCalls,
     externalSummary: ExternalSummary,
+    ignoreCall: MethodSig => Boolean,
     logger: Logger
 )(implicit st: SymbolTable) {
 
@@ -27,7 +28,8 @@ class CallGraphAnalysis(
     methods,
     resolved,
     externalSummary,
-    nodeToIndex
+    nodeToIndex,
+    ignoreCall
   )
 
   val transitiveCallGraphHashes = CallGraphAnalysis.transitiveCallGraphHashes(
@@ -45,20 +47,24 @@ object CallGraphAnalysis {
       methods: Map[MethodDef, LocalSummary.MethodInfo],
       resolved: ResolvedCalls,
       externalSummary: ExternalSummary,
-      nodeToIndex: Map[CallGraphAnalysis.Node, Int]
+      nodeToIndex: Map[CallGraphAnalysis.Node, Int],
+      ignoreCall: MethodSig => Boolean,
   )(implicit st: SymbolTable) = {
     indexToNodes
       .iterator
       .map {
         case CallGraphAnalysis.Call(methodCall) =>
-          val callInfo = resolved.localCalls(methodCall)
-          val local =
-            callInfo.localDests.toArray.map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
-          val external =
-            callInfo.externalDests.toArray.map(c =>
-              nodeToIndex(CallGraphAnalysis.ExternalClsCall(c))
-            )
-          local ++ external
+          if (ignoreCall(methodCall.toMethodSig)) Array.empty[Int]
+          else {
+            val callInfo = resolved.localCalls(methodCall)
+            val local =
+              callInfo.localDests.toArray.map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
+            val external =
+              callInfo.externalDests.toArray.map(c =>
+                nodeToIndex(CallGraphAnalysis.ExternalClsCall(c))
+              )
+            local ++ external
+          }
 
         case CallGraphAnalysis.LocalDef(methodDef) =>
           methods(methodDef)
@@ -76,6 +82,7 @@ object CallGraphAnalysis {
                 cls <- localClasses
                 m <- localMethods
                 if methods.contains(st.MethodDef(cls, m))
+                if !ignoreCall(m)
               } yield nodeToIndex(CallGraphAnalysis.LocalDef(st.MethodDef(cls, m)))
             }
             .toArray

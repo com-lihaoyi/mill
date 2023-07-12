@@ -2,7 +2,10 @@ package mill.codesig
 import JvmModel._
 
 object CodeSig {
-  def compute(classFiles: Seq[os.Path], upstreamClasspath: Seq[os.Path], logger: Logger) = {
+  def compute(classFiles: Seq[os.Path],
+              upstreamClasspath: Seq[os.Path],
+              ignoreCall: MethodSig => Boolean,
+              logger: Logger) = {
     implicit val st: SymbolTable = new SymbolTable()
 
     val localSummary = LocalSummary.apply(classFiles.iterator.map(os.read.inputStream(_)))
@@ -18,6 +21,7 @@ object CodeSig {
       localSummary,
       resolvedMethodCalls,
       externalSummary,
+      ignoreCall,
       logger
     )
   }

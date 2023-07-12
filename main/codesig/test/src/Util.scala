@@ -14,6 +14,7 @@ object TestUtil {
       sys.env("MILL_TEST_CLASSPATH_" + segments.mkString("-"))
         .split(",")
         .map(os.Path(_)),
+      _ => false,
       new Logger(Some(testLogFolder))
     )
   }
