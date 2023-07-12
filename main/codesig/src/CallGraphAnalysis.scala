@@ -54,22 +54,20 @@ object CallGraphAnalysis {
       .iterator
       .map {
         case CallGraphAnalysis.Call(methodCall) =>
-          if (ignoreCall(methodCall.toMethodSig)) Array.empty[Int]
-          else {
-            val callInfo = resolved.localCalls(methodCall)
-            val local =
-              callInfo.localDests.toArray.map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
-            val external =
-              callInfo.externalDests.toArray.map(c =>
-                nodeToIndex(CallGraphAnalysis.ExternalClsCall(c))
-              )
-            local ++ external
-          }
+          val callInfo = resolved.localCalls(methodCall)
+          val local =
+            callInfo.localDests.toArray.map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
+          val external =
+            callInfo.externalDests.toArray.map(c =>
+              nodeToIndex(CallGraphAnalysis.ExternalClsCall(c))
+            )
+          local ++ external
 
         case CallGraphAnalysis.LocalDef(methodDef) =>
           methods(methodDef)
             .calls
             .toArray
+//            .filter(c => !ignoreCall(methodDef.method) || !ignoreCall(c.toMethodSig))
             .map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
 
         case CallGraphAnalysis.ExternalClsCall(externalCls) =>

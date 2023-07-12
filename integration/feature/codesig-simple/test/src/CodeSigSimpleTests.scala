@@ -5,17 +5,13 @@ import utest._
 object CodeSigSimpleTests extends IntegrationTestSuite {
   val tests = Tests {
     val wsRoot = initWorkspace()
-    "target" - {
+    "simple" - {
       // Make sure the simplest case where we have a single target calling a single helper
       // method is properly invalidated when either the target body or the helper method's body
       // is changed
       val initial = evalStdout("foo")
 
-      assert(
-        initial.out.linesIterator.toSeq ==
-          """running foo
-            |running helperFoo""".stripMargin.linesIterator.toSeq
-      )
+      assert(initial.out.linesIterator.toSeq == Seq("running foo", "running helperFoo"))
 
       val cached = evalStdout("foo")
       assert(cached.out == "")
@@ -23,11 +19,7 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("running foo", "running foo2"))
       val mangledFoo = evalStdout("foo")
 
-      assert(
-        mangledFoo.out.linesIterator.toSeq ==
-          """running foo2
-            |running helperFoo""".stripMargin.linesIterator.toSeq
-      )
+      assert(mangledFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo"))
 
       val cached2 = evalStdout("foo")
       assert(cached2.out == "")
@@ -35,17 +27,13 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("running helperFoo", "running helperFoo2"))
       val mangledHelperFoo = evalStdout("foo")
 
-      assert(
-        mangledHelperFoo.out.linesIterator.toSeq ==
-          """running foo2
-            |running helperFoo2""".stripMargin.linesIterator.toSeq
-      )
+      assert(mangledHelperFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
 
       val cached3 = evalStdout("foo")
       assert(cached3.out == "")
     }
 
-    "traitsAndObjects" - {
+    "complicated" - {
       // Make sure the code-change invalidation works in more complex cases: multi-step
       // target graphs, targets inside module objects, targets inside module traits
 
@@ -54,17 +42,18 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       val initial = evalStdout("outer.inner.qux")
 
       assert(
-        initial.out.linesIterator.toSeq ==
-          """running foo
-            |running helperFoo
-            |running bar
-            |running helperBar
-            |running qux
-            |running helperQux""".stripMargin.linesIterator.toSeq
+        initial.out.linesIterator.toSeq == Seq(
+          "running foo",
+          "running helperFoo",
+          "running bar",
+          "running helperBar",
+          "running qux",
+          "running helperQux",
+        )
       )
 
       val cached = evalStdout("outer.inner.qux")
-//      assert(cached.out == "")
+      assert(cached.out == "")
 
       // Changing the body of a T{...} block directly invalidates that target
       // and any downstream targets
@@ -72,19 +61,19 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       val mangledFoo = evalStdout("outer.inner.qux")
 
       assert(
-        mangledFoo.out.linesIterator.toSeq ==
-          """running foo2
-            |running helperFoo
-            |running qux
-            |running helperQux""".stripMargin.linesIterator.toSeq
+        mangledFoo.out.linesIterator.toSeq == Seq(
+          "running foo2",
+          "running helperFoo",
+          "running qux",
+          "running helperQux",
+        )
       )
 
       mangleFile(wsRoot / "build.sc", _.replace("running qux", "running qux2"))
       val mangledQux = evalStdout("outer.inner.qux")
       assert(
         mangledQux.out.linesIterator.toSeq ==
-          """running qux2
-            |running helperQux""".stripMargin.linesIterator.toSeq
+        Seq("running qux2", "running helperQux")
       )
 
       // Changing the body of some helper method that gets called by a T{...}
@@ -92,11 +81,12 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("running helperBar", "running helperBar2"))
       val mangledHelperBar = evalStdout("outer.inner.qux")
       assert(
-        mangledHelperBar.out.linesIterator.toSeq ==
-          """running bar
-            |running helperBar2
-            |running qux2
-            |running helperQux""".stripMargin.linesIterator.toSeq
+        mangledHelperBar.out.linesIterator.toSeq == Seq(
+          "running bar",
+          "running helperBar2",
+          "running qux2",
+          "running helperQux",
+        )
       )
 
       mangleFile(wsRoot / "build.sc", _.replace("running helperQux", "running helperQux2"))
@@ -104,8 +94,7 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       assert(
         mangledBar.out.linesIterator.toSeq ==
-          """running qux2
-            |running helperQux2""".stripMargin.linesIterator.toSeq
+        Seq("running qux2", "running helperQux2")
       )
 
       // Adding a newline before one of the target definitions does not invalidate it
