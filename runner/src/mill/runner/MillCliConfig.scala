@@ -109,7 +109,15 @@ class MillCliConfig private (
           in both REPL and scripts mode if the console is interactive, and disabled
           otherwise."""
     )
-    val color: Option[Boolean]
+    val color: Option[Boolean],
+    @arg(
+      name = "disable-callgraph-invalidation",
+      doc =
+        """Disable the fine-grained callgraph-based target invalidation in response to
+           code changes, anjd instead fall back to the previous coarse-graiend implementation
+           relying on the script `import $file` graph"""
+    )
+    val disableCallgraphInvalidation: Flag
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -130,7 +138,8 @@ class MillCliConfig private (
     "watch" -> watch,
     "silent" -> silent,
     "leftoverArgs" -> leftoverArgs,
-    "color" -> color
+    "color" -> color,
+    "disableCallgraphInvalidation" -> disableCallgraphInvalidation
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
@@ -163,7 +172,8 @@ object MillCliConfig {
       watch: Flag = Flag(),
       silent: Flag = Flag(),
       leftoverArgs: Leftover[String] = Leftover(),
-      color: Option[Boolean] = None
+      color: Option[Boolean] = None,
+      disableCallgraphInvalidation: Flag = Flag()
   ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,
@@ -183,7 +193,8 @@ object MillCliConfig {
     watch = watch,
     silent = silent,
     leftoverArgs = leftoverArgs,
-    color = color
+    color = color,
+    disableCallgraphInvalidation
   )
 
   @deprecated("Bin-compat shim", "Mill after 0.11.0")

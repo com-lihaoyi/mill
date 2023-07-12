@@ -104,7 +104,8 @@ trait MillTestKit {
       failFast = failFast,
       threadCount = threads,
       env = env,
-      methodCodeHashSignatures = Map()
+      methodCodeHashSignatures = Map(),
+      disableCallgraphInvalidation = false
     )
 
     def evalTokens(args: String*): Either[Result.Failing[_], (Seq[_], Int)] = {

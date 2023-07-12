@@ -202,7 +202,8 @@ object MillMain {
                       threadCount = threadCount,
                       targetsAndParams = targetsAndParams,
                       prevRunnerState = prevState.getOrElse(stateCache),
-                      logger = logger
+                      logger = logger,
+                      disableCallgraphInvalidation = config.disableCallgraphInvalidation.value
                     ).evaluate()
                   }
                 )

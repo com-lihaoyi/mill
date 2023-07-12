@@ -35,7 +35,8 @@ class MillBuildBootstrap(
     threadCount: Option[Int],
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
-    logger: ColorLogger
+    logger: ColorLogger,
+    disableCallgraphInvalidation: Boolean
 ) {
   import MillBuildBootstrap._
 
@@ -288,7 +289,8 @@ class MillBuildBootstrap(
       failFast = !keepGoing,
       threadCount = threadCount,
       scriptImportGraph = scriptImportGraph,
-      methodCodeHashSignatures = methodCodeHashSignatures
+      methodCodeHashSignatures = methodCodeHashSignatures,
+      disableCallgraphInvalidation = disableCallgraphInvalidation
     )
   }
 

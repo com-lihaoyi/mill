@@ -39,7 +39,8 @@ private class State(projectRoot: os.Path, baseLogger: ColorLogger, debug: String
       threadCount = None,
       targetsAndParams = Seq("resolve", "_"),
       prevRunnerState = mill.runner.RunnerState.empty,
-      logger = baseLogger
+      logger = baseLogger,
+      disableCallgraphInvalidation = false
     ).evaluate()
 
     val rootModules0 = evaluated.result.frames

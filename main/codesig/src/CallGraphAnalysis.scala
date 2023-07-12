@@ -73,7 +73,7 @@ object CallGraphAnalysis {
           methods(methodDef)
             .calls
             .toArray
-            .filter(c => !ignoreCall(methods(methodDef).calls, c.toMethodSig))
+            .filter(c => !ignoreCall(Some(methods(methodDef).calls), c.toMethodSig))
             .map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
 
         case CallGraphAnalysis.ExternalClsCall(externalCls) =>
@@ -86,7 +86,7 @@ object CallGraphAnalysis {
                 cls <- localClasses
                 m <- localMethods
                 if methods.contains(st.MethodDef(cls, m))
-                if !ignoreCall(null, m)
+                if !ignoreCall(None, m)
               } yield nodeToIndex(CallGraphAnalysis.LocalDef(st.MethodDef(cls, m)))
             }
             .toArray

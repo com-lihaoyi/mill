@@ -25,7 +25,8 @@ private[mill] case class EvaluatorImpl(
     failFast: Boolean = true,
     threadCount: Option[Int] = Some(1),
     scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty,
-    methodCodeHashSignatures: Map[String, Int]
+    methodCodeHashSignatures: Map[String, Int],
+    disableCallgraphInvalidation: Boolean
 ) extends Evaluator with EvaluatorCore {
   import EvaluatorImpl._
 
