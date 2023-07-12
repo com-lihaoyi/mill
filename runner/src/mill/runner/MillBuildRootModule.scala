@@ -164,7 +164,7 @@ class MillBuildRootModule()(implicit
             otherCallsOpt.isEmpty ||
             otherCallsOpt.get.exists(_.name == "codeSigIgnoreSimpleTargetCalls")
 
-          isPossibleCaller || isSimpleTarget
+          isPossibleCaller && isSimpleTarget
         },
 //        logger = new mill.codesig.Logger(Some(T.dest))
         logger = new mill.codesig.Logger(None)
