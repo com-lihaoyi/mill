@@ -114,7 +114,7 @@ class MillCliConfig private (
       name = "disable-callgraph-invalidation",
       doc =
         """Disable the fine-grained callgraph-based target invalidation in response to
-           code changes, anjd instead fall back to the previous coarse-graiend implementation
+           code changes, and instead fall back to the previous coarse-grained implementation
            relying on the script `import $file` graph"""
     )
     val disableCallgraphInvalidation: Flag
