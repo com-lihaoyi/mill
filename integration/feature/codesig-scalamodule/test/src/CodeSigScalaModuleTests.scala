@@ -39,14 +39,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("Foo running...", "FOO RUNNING"))
       val mangledFoo = evalStdout("foo.run")
 
-      // Not sure why this fails :/ seems to pass when i run the steps manually
-//      assert(
-//        filterLines(mangledFoo.out) ==
-//        Seq(
-//          "Hello World",
-//          "RUNNING"
-//        )
-//      )
+      assert(filterLines(mangledFoo.out) == Seq("Foo Hello World", "FOO RUNNING"))
 
       // Changing the body `foo.compile` invalidates `foo.compile`, and downstream
       // `foo.run` runs regardless
