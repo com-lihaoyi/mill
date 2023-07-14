@@ -29,7 +29,8 @@ private class State(projectRoot: os.Path, baseLogger: ColorLogger, debug: String
     map
   }
 
-  lazy val rootModules: Seq[mill.main.RootModule] = RootModuleFinder.findRootModules(projectRoot, baseLogger)
+  lazy val rootModules: Seq[mill.main.RootModule] =
+    RootModuleFinder.findRootModules(projectRoot, baseLogger)
 
   lazy val bspIdByModule: Map[BspModule, BuildTargetIdentifier] = bspModulesById.map(_.swap)
 }
