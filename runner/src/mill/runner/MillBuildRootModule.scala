@@ -157,8 +157,9 @@ class MillBuildRootModule()(implicit
           // and so any changes in their behavior will be picked up by the runtime build
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
-          calledSig.desc.ret.pretty == "mill.define.Target" &&
-          calledSig.desc.args.isEmpty &&
+          def isSimpleTarget =
+            calledSig.desc.ret.pretty == "mill.define.Target" && calledSig.desc.args.isEmpty
+
           // We avoid ignoring method calls that are simple trait forwarders, because
           // we need the trait forwarders calls to be counted in order to wire up the
           // method definition that a Target is associated with during evaluation
@@ -166,10 +167,13 @@ class MillBuildRootModule()(implicit
           // somewhere else (e.g. `trait MyModuleTrait{ def myTarget }`). Only that one
           // step is necessary, after that the runtime build graph invalidation logic can
           // take over
-          callSiteOpt.nonEmpty &&
-          callSiteOpt.get.method.name == (calledSig.name + "$") &&
-          callSiteOpt.get.method.static &&
-          callSiteOpt.get.method.desc.args.size == 1
+          def isForwarderCallsite =
+            callSiteOpt.nonEmpty &&
+            callSiteOpt.get.method.name == (calledSig.name + "$") &&
+            callSiteOpt.get.method.static &&
+            callSiteOpt.get.method.desc.args.size == 1
+
+          !isForwarderCallsite && isSimpleTarget
         },
         logger = new mill.codesig.Logger(Option.when(T.log.debugEnabled)(T.dest))
       )
