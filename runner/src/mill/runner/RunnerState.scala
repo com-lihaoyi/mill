@@ -5,7 +5,6 @@ import mill.define.{BaseModule, Segments}
 import mill.util.Watchable
 import upickle.default.{ReadWriter, macroRW}
 import mill.api.JsonFormatters._
-import mill.eval.Evaluator
 import mill.main.RootModule
 
 /**
@@ -33,7 +32,7 @@ case class RunnerState(
     frames: Seq[RunnerState.Frame],
     errorOpt: Option[String]
 ) {
-  def add(frame: RunnerState.Frame = RunnerState.Frame.empty, errorOpt: Option[String] = None) = {
+  def add(frame: RunnerState.Frame = RunnerState.Frame.empty, errorOpt: Option[String] = None): RunnerState = {
     this.copy(frames = Seq(frame) ++ frames, errorOpt = errorOpt)
   }
 }

@@ -348,7 +348,11 @@ object MillBuildBootstrap {
     getChildRootModule(rootModule0, depth, projectRoot)
   }
 
-  def getChildRootModule(rootModule0: RootModule, depth: Int, projectRoot: os.Path) = {
+  def getChildRootModule(
+      rootModule0: RootModule,
+      depth: Int,
+      projectRoot: os.Path
+  ): Either[String, RootModule] = {
 
     val childRootModules: Seq[RootModule] = rootModule0
       .millInternal
@@ -382,11 +386,11 @@ object MillBuildBootstrap {
     )
   }
 
-  def recRoot(projectRoot: os.Path, depth: Int) = {
+  def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
     projectRoot / Seq.fill(depth)("mill-build")
   }
 
-  def recOut(projectRoot: os.Path, depth: Int) = {
+  def recOut(projectRoot: os.Path, depth: Int): os.Path = {
     projectRoot / "out" / Seq.fill(depth)("mill-build")
   }
 }
