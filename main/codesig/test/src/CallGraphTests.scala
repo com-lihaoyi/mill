@@ -29,6 +29,7 @@ object CallGraphTests extends TestSuite {
       test("15-scala-lambda") - testExpectedCallGraph()
       test("16-scala-trait-constructor") - testExpectedCallGraph()
     }
+
     test("complicated") {
       test("1-statics") - testExpectedCallGraph()
       test("2-sudoku") - testExpectedCallGraph()
@@ -44,7 +45,6 @@ object CallGraphTests extends TestSuite {
       test("12-iterator-inherit-external-scala") - testExpectedCallGraph()
       test("13-iterator-inherit-external-filter-scala") - testExpectedCallGraph()
       test("14-singleton-objects-scala") - testExpectedCallGraph()
-
     }
 
     test("external") {
@@ -74,7 +74,8 @@ object CallGraphTests extends TestSuite {
 
   def testExpectedCallGraph()(implicit tp: utest.framework.TestPath) = {
     val codeSig = TestUtil.computeCodeSig(Seq("callgraph") ++ tp.value)
-    val testCaseSourceFilesRoot = os.Path(sys.env("MILL_TEST_SOURCES_callgraph-" + tp.value.mkString("-")))
+    val testCaseSourceFilesRoot =
+      os.Path(sys.env("MILL_TEST_SOURCES_callgraph-" + tp.value.mkString("-")))
 
     val skipped = Seq(
       "lambda$",
@@ -96,8 +97,13 @@ object CallGraphTests extends TestSuite {
   /**
    * Make sure the direct call graph contains what we exxpect
    */
-  def testDirectCallGraph(testCaseSourceFilesRoot: os.Path, codeSig: CallGraphAnalysis, skipped: Seq[String]) = {
-    val expectedCallGraph = parseExpectedCallGraphJson(testCaseSourceFilesRoot)
+  def testDirectCallGraph(
+      testCaseSourceFilesRoot: os.Path,
+      codeSig: CallGraphAnalysis,
+      skipped: Seq[String]
+  ) = {
+    val expectedCallGraph = parseJson(testCaseSourceFilesRoot, "expected-direct-call-graph")
+      .getOrElse(sys.error(s"Cannot find json in path $testCaseSourceFilesRoot"))
 
     val foundCallGraph = simplifyCallGraph(codeSig, skipped)
 
@@ -109,11 +115,20 @@ object CallGraphTests extends TestSuite {
   }
 
   /**
-   * Exercise the code computing the transitive call graph from the direct call graph
+   * Exercise the code computing the transitive call graph summary from the direct call graph
+   *
+   * Computes a `SortedSet[String]` rather than a `Int` like we do for real usage because it's
+   * easier to read and make sense of the summary for each node that way, but shares most of
+   * the logic and so should hopefully catch most bugs in the transitive logic anyway
    */
-  def testTransitiveCallGraph(testCaseSourceFilesRoot: os.Path, codeSig: CallGraphAnalysis, skipped: Seq[String]) = {
+  def testTransitiveCallGraph(
+      testCaseSourceFilesRoot: os.Path,
+      codeSig: CallGraphAnalysis,
+      skipped: Seq[String]
+  ) = {
 
-    val expectedTransitiveGraphOpt = parseExpectedTransitiveClosureJson(testCaseSourceFilesRoot)
+    val expectedTransitiveGraphOpt =
+      parseJson(testCaseSourceFilesRoot, "expected-transitive-call-graph")
 
     val transitiveGraph0 = codeSig.transitiveCallGraphValues[SortedSet[String]](
       codeSig.indexToNodes.map(x => SortedSet(upickle.default.writeJs(x).str)),
@@ -122,7 +137,7 @@ object CallGraphTests extends TestSuite {
     )
 
     val transitiveGraph = transitiveGraph0
-      .map{case (k, vs) =>
+      .map { case (k, vs) =>
         (
           k,
           vs.filter(v => !skipped.exists(v.contains))
@@ -139,15 +154,7 @@ object CallGraphTests extends TestSuite {
     }
   }
 
-  def parseExpectedCallGraphJson(testCaseSourceFilesRoot: Path) = {
-    parseJson(testCaseSourceFilesRoot, "expected-direct-call-graph")
-      .getOrElse(sys.error(s"Cannot find json in path $testCaseSourceFilesRoot"))
-  }
-  def parseExpectedTransitiveClosureJson(testCaseSourceFilesRoot: Path) = {
-    parseJson(testCaseSourceFilesRoot, "expected-transitive-call-graph")
-  }
-  def parseJson(testCaseSourceFilesRoot: Path,
-                tag: String) = {
+  def parseJson(testCaseSourceFilesRoot: Path, tag: String) = {
     val jsonTextOpt =
       if (os.exists(testCaseSourceFilesRoot / s"$tag.json")) {
         Some(os.read(testCaseSourceFilesRoot / s"$tag.json"))
@@ -158,20 +165,22 @@ object CallGraphTests extends TestSuite {
           .find(os.exists(_))
           .map(os.read.lines(_))
 
-
-
+        val openTagLine = s"/* $tag"
         sourceLinesOpt.flatMap { sourceLines =>
-          if (!sourceLines.contains(s"/* $tag")) None
-          else {
-            val expectedLines = sourceLines
-              .dropWhile(_ != s"/* $tag")
-              .drop(1)
-              .takeWhile(_ != "*/")
+          sourceLines.count(_ == openTagLine) match {
+            case 0 => None
+            case 1 =>
+              val expectedLines = sourceLines
+                .dropWhile(_ != openTagLine)
+                .drop(1)
+                .takeWhile(_ != "*/")
 
-            Some(expectedLines.mkString("\n"))
+              Some(expectedLines.mkString("\n"))
+            case _ => sys.error(s"Only one occurence of line \"$openTagLine\" is expected in file")
           }
         }
       }
+
     jsonTextOpt.map(read[SortedMap[String, SortedSet[String]]](_))
   }
 
