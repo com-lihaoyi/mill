@@ -4,6 +4,11 @@ import os.Path
 import utest._
 import upickle.default.{read, write}
 import scala.collection.immutable.{SortedMap, SortedSet}
+
+/**
+ * Tests to make sure the direct call graph and transitive call graphs are what
+ * we expect for a variety of trivial and slightly-less-trivial examples.
+ */
 object CallGraphTests extends TestSuite {
   val tests = Tests {
     test("basic") {
@@ -68,24 +73,33 @@ object CallGraphTests extends TestSuite {
   }
 
   def testExpectedCallGraph()(implicit tp: utest.framework.TestPath) = {
-    val callGraph0 = TestUtil.computeCodeSig(Seq("callgraph") ++ tp.value)
+    val codeSig = TestUtil.computeCodeSig(Seq("callgraph") ++ tp.value)
+    val testCaseSourceFilesRoot = os.Path(sys.env("MILL_TEST_SOURCES_callgraph-" + tp.value.mkString("-")))
 
-    val expectedCallGraph = parseExpectedJson(
-      os.Path(sys.env("MILL_TEST_SOURCES_callgraph-" + tp.value.mkString("-")))
+    val skipped = Seq(
+      "lambda$",
+      "$deserializeLambda$",
+      "$anonfun$",
+      "<clinit>",
+      "$adapted",
+      "$init$",
+      "$macro"
     )
 
-    val foundCallGraph = simplifyCallGraph(
-      callGraph0,
-      skipped = Seq(
-        "lambda$",
-        "$deserializeLambda$",
-        "$anonfun$",
-        "<clinit>",
-        "$adapted",
-        "$init$",
-        "$macro"
-      )
-    )
+    val directCallGraph = testDirectCallGraph(testCaseSourceFilesRoot, codeSig, skipped)
+
+    testTransitiveCallGraph(testCaseSourceFilesRoot, codeSig, skipped)
+
+    directCallGraph
+  }
+
+  /**
+   * Make sure the direct call graph contains what we exxpect
+   */
+  def testDirectCallGraph(testCaseSourceFilesRoot: os.Path, codeSig: CallGraphAnalysis, skipped: Seq[String]) = {
+    val expectedCallGraph = parseExpectedCallGraphJson(testCaseSourceFilesRoot)
+
+    val foundCallGraph = simplifyCallGraph(codeSig, skipped)
 
     val expectedCallGraphJson = write(expectedCallGraph, indent = 4)
     val foundCallGraphJson = write(foundCallGraph, indent = 4)
@@ -94,26 +108,71 @@ object CallGraphTests extends TestSuite {
     foundCallGraphJson
   }
 
-  def parseExpectedJson(testCaseSourceFilesRoot: Path) = {
-    val jsonText =
-      if (os.exists(testCaseSourceFilesRoot / "expected-call-graph.json")) {
-        os.read(testCaseSourceFilesRoot / "expected-call-graph.json")
+  /**
+   * Exercise the code computing the transitive call graph from the direct call graph
+   */
+  def testTransitiveCallGraph(testCaseSourceFilesRoot: os.Path, codeSig: CallGraphAnalysis, skipped: Seq[String]) = {
+
+    val expectedTransitiveGraphOpt = parseExpectedTransitiveClosureJson(testCaseSourceFilesRoot)
+
+    val transitiveGraph0 = codeSig.transitiveCallGraphValues[SortedSet[String]](
+      codeSig.indexToNodes.map(x => SortedSet(upickle.default.writeJs(x).str)),
+      _ | _,
+      SortedSet.empty[String]
+    )
+
+    val transitiveGraph = transitiveGraph0
+      .map{case (k, vs) =>
+        (
+          k,
+          vs.filter(v => !skipped.exists(v.contains))
+            .collect { case s"def $rest" if rest != k => rest }
+        )
+      }
+      .filter { case (k, vs) => !skipped.exists(k.contains) && vs.nonEmpty }
+      .to(SortedMap)
+
+    for (expectedTransitiveGraph <- expectedTransitiveGraphOpt) {
+      val expectedTransitiveGraphJson = upickle.default.write(expectedTransitiveGraph, indent = 4)
+      val transitiveGraphJson = upickle.default.write(transitiveGraph, indent = 4)
+      assert(expectedTransitiveGraphJson == transitiveGraphJson)
+    }
+  }
+
+  def parseExpectedCallGraphJson(testCaseSourceFilesRoot: Path) = {
+    parseJson(testCaseSourceFilesRoot, "expected-direct-call-graph")
+      .getOrElse(sys.error(s"Cannot find json in path $testCaseSourceFilesRoot"))
+  }
+  def parseExpectedTransitiveClosureJson(testCaseSourceFilesRoot: Path) = {
+    parseJson(testCaseSourceFilesRoot, "expected-transitive-call-graph")
+  }
+  def parseJson(testCaseSourceFilesRoot: Path,
+                tag: String) = {
+    val jsonTextOpt =
+      if (os.exists(testCaseSourceFilesRoot / s"$tag.json")) {
+        Some(os.read(testCaseSourceFilesRoot / s"$tag.json"))
       } else {
         val possibleSources = Seq("Hello.java", "Hello.scala")
-        val sourceLines = possibleSources
+        val sourceLinesOpt = possibleSources
           .map(testCaseSourceFilesRoot / _)
           .find(os.exists(_))
           .map(os.read.lines(_))
-          .getOrElse(sys.error(s"Cannot find json in path $testCaseSourceFilesRoot"))
 
-        val expectedLines = sourceLines
-          .dropWhile(_ != "/* EXPECTED CALL GRAPH")
-          .drop(1)
-          .takeWhile(_ != "*/")
 
-        expectedLines.mkString("\n")
+
+        sourceLinesOpt.flatMap { sourceLines =>
+          if (!sourceLines.contains(s"/* $tag")) None
+          else {
+            val expectedLines = sourceLines
+              .dropWhile(_ != s"/* $tag")
+              .drop(1)
+              .takeWhile(_ != "*/")
+
+            Some(expectedLines.mkString("\n"))
+          }
+        }
       }
-    read[SortedMap[String, SortedSet[String]]](jsonText)
+    jsonTextOpt.map(read[SortedMap[String, SortedSet[String]]](_))
   }
 
   /**
@@ -127,7 +186,6 @@ object CallGraphTests extends TestSuite {
    */
   def simplifyCallGraph(codeSig: CallGraphAnalysis, skipped: Seq[String]) = {
     import codeSig._
-//    pprint.log(codeSig.simplifiedCallGraph(_.toString))
 
     def simplifiedCallGraph0[T](transform: PartialFunction[CallGraphAnalysis.Node, T])
         : Map[T, Set[T]] = {

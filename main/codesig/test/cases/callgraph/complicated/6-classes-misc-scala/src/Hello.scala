@@ -53,7 +53,7 @@ class LinkedList {
   class Inner(val value: Int, val next: Inner)
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Bull#<init>()void": [
         "hello.Cow#<init>()void"

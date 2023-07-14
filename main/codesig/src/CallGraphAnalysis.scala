@@ -38,10 +38,25 @@ class CallGraphAnalysis(
 
   logger.log(prettyGraph)
 
-  val transitiveCallGraphHashes = CallGraphAnalysis.transitiveCallGraphHashes(
+  def transitiveCallGraphValues[V: scala.reflect.ClassTag](
+      nodeValues: Array[V],
+      reduce: (V, V) => V,
+      zero: V
+  ) = CallGraphAnalysis.transitiveCallGraphValues[V](
     indexGraphEdges,
     indexToNodes,
-    methods
+    nodeValues,
+    reduce,
+    zero
+  )
+
+  val transitiveCallGraphHashes = transitiveCallGraphValues[Int](
+    nodeValues = indexToNodes.map {
+      case CallGraphAnalysis.LocalDef(m) => methods(m).codeHash
+      case _ => 0
+    },
+    reduce = _ + _,
+    zero = 0
   )
 
   logger.log(transitiveCallGraphHashes)
@@ -99,38 +114,9 @@ object CallGraphAnalysis {
       }
       .toArray
   }
-  def transitiveCallGraphHashes(
-      indexGraphEdges: Array[Array[Int]],
-      indexToNodes: Array[Node],
-      methods: Map[MethodDef, LocalSummary.MethodInfo]
-  ) = {
-    val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges)
-
-    val nodeValues = indexToNodes.map {
-      case CallGraphAnalysis.LocalDef(m) => methods(m).codeHash
-      case _ => 0
-    }
-    val groupTransitiveHashes: Array[Int] = computeTransitive[Int](
-      topoSortedMethodGroups,
-      indexGraphEdges,
-      nodeValues,
-      reduce = _ + _,
-      zero = 0
-    )
-
-    groupTransitiveHashes
-      .zipWithIndex
-      .flatMap { case (groupHash, groupIndex) =>
-        topoSortedMethodGroups(groupIndex).map { nodeIndex =>
-          (indexToNodes(nodeIndex), groupHash)
-        }
-      }
-      .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
-      .toMap
-  }
 
   /**
-   * Summarizes the transitive closure of the given topo-sorted graph, using the given
+   * Summarizes the transitive closure of the given graph, using the given
    * [[computeOutputValue]] and [[reduce]] functions to return a single value of [[T]].
    *
    * This is done in topological order, in order to allow us to memo-ize the
@@ -139,31 +125,42 @@ object CallGraphAnalysis {
    * Component is processed together and assigned the same final value, since
    * they all have the exact same transitive closure
    */
-  def computeTransitive[V: scala.reflect.ClassTag](
-      topoSortedGroups: Array[Array[Int]],
-      nodeEdges: Array[Array[Int]],
-      nodeValue: Array[V],
+  def transitiveCallGraphValues[V: scala.reflect.ClassTag](
+      indexGraphEdges: Array[Array[Int]],
+      indexToNodes: Array[Node],
+      nodeValues: Array[V],
       reduce: (V, V) => V,
       zero: V
   ) = {
-    val nodeGroups = topoSortedGroups
+    val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges)
+
+    val nodeGroups = topoSortedMethodGroups
       .iterator
       .zipWithIndex
       .flatMap { case (group, groupIndex) => group.map((_, groupIndex)) }
       .toMap
 
-    val seen = new Array[V](topoSortedGroups.length)
-    for (groupIndex <- topoSortedGroups.indices) {
+    val seen = Array.fill[V](topoSortedMethodGroups.length)(zero)
+    for (groupIndex <- topoSortedMethodGroups.indices) {
       var value: V = zero
-      for (node <- topoSortedGroups(groupIndex)) {
-        value = reduce(value, nodeValue(node))
-        for (upstreamNode <- nodeEdges(node)) {
+      for (node <- topoSortedMethodGroups(groupIndex)) {
+        value = reduce(value, nodeValues(node))
+        for (upstreamNode <- indexGraphEdges(node)) {
           value = reduce(value, seen(nodeGroups(upstreamNode)))
         }
       }
       seen(groupIndex) = value
     }
+
     seen
+      .zipWithIndex
+      .flatMap { case (groupHash, groupIndex) =>
+        topoSortedMethodGroups(groupIndex).map { nodeIndex =>
+          (indexToNodes(nodeIndex), groupHash)
+        }
+      }
+      .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
+      .toMap
   }
 
   /**

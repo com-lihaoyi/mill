@@ -6,7 +6,7 @@ object Hello{
   def unused(): Int = 1
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello$#main()int": [
         "hello.Hello$#used()int"
@@ -14,6 +14,27 @@ object Hello{
     "hello.Hello.main()int": [
         "hello.Hello$#<init>()void",
         "hello.Hello$#main()int"
+    ],
+    "hello.Hello.unused()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#unused()int"
+    ],
+    "hello.Hello.used()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#used()int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Hello$#main()int": [
+        "hello.Hello$#used()int"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#main()int",
+        "hello.Hello$#used()int"
     ],
     "hello.Hello.unused()int": [
         "hello.Hello$#<init>()void",

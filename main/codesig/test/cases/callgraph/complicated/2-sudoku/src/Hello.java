@@ -85,7 +85,7 @@ public class Hello {
     }
 
 }
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello.run()java.lang.String": [
         "hello.Hello.solve(int,int,int[][])boolean",

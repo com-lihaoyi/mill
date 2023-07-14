@@ -53,7 +53,7 @@ object Main{
   }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Main$#mergeSortParallel(scala.collection.immutable.IndexedSeq,scala.math.Ordering)scala.collection.immutable.IndexedSeq": [
         "hello.Main$#mergeSortParallel0(scala.collection.immutable.IndexedSeq,scala.math.Ordering)scala.concurrent.Future"

@@ -17,7 +17,7 @@ object Hello{
   def unused(): Int = 1
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello$#main()int": [
         "hello.Hello$#<init>()void",
@@ -45,6 +45,51 @@ object Hello{
         "hello.Hello$#used()int",
         "hello.MyObject$#<init>()void",
         "hello.MyObject$#used()int"
+    ],
+    "hello.MyTrait.used$(hello.MyTrait)int": [
+        "hello.MyTrait#used()int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Hello$#main()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#used()int",
+        "hello.MyObject$#<init>()void",
+        "hello.MyObject$#used()int",
+        "hello.MyTrait#used()int",
+        "hello.MyTrait.used$(hello.MyTrait)int"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#main()int",
+        "hello.Hello$#used()int",
+        "hello.MyObject$#<init>()void",
+        "hello.MyObject$#used()int",
+        "hello.MyTrait#used()int",
+        "hello.MyTrait.used$(hello.MyTrait)int"
+    ],
+    "hello.Hello.unused()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#unused()int"
+    ],
+    "hello.Hello.used()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#used()int"
+    ],
+    "hello.MyObject$#used()int": [
+        "hello.MyTrait#used()int",
+        "hello.MyTrait.used$(hello.MyTrait)int"
+    ],
+    "hello.MyObject.used()int": [
+        "hello.Hello$#<init>()void",
+        "hello.Hello$#used()int",
+        "hello.MyObject$#<init>()void",
+        "hello.MyObject$#used()int",
+        "hello.MyTrait#used()int",
+        "hello.MyTrait.used$(hello.MyTrait)int"
     ],
     "hello.MyTrait.used$(hello.MyTrait)int": [
         "hello.MyTrait#used()int"

@@ -26,7 +26,7 @@ public class Hello{
     }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello.bar(hello.Foo)int": [
         "hello.Foo#getAsInt()int"
@@ -34,6 +34,19 @@ public class Hello{
     "hello.Hello.main()int": [
         "hello.Foo#<init>()void",
         "hello.Hello.bar(hello.Foo)int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Hello.bar(hello.Foo)int": [
+        "hello.Foo#getAsInt()int"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Foo#<init>()void",
+        "hello.Hello.bar(hello.Foo)int",
+        "hello.Foo#getAsInt()int"
     ]
 }
 */

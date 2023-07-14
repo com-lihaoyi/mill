@@ -22,7 +22,7 @@ object Hello{
   }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello$#simpleArraySeqForeach()int[]": [
         "hello.Hello$TestArraySeq#<init>(java.lang.Object)void",

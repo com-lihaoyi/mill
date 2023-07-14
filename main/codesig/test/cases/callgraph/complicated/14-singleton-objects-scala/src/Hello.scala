@@ -14,7 +14,7 @@ object Bar extends MyModule{
 }
 
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Bar$#x()java.lang.String": [
         "hello.MyModule.x$(hello.MyModule)java.lang.String"

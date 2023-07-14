@@ -28,13 +28,26 @@ public class Hello{
 // as `uncalled` is a method on `Foo` and not `IntSupplier`, so `IntSupplier`
 // would have no way to call it
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello.bar(java.util.function.IntSupplier)int": [
         "hello.Foo#getAsInt()int"
     ],
     "hello.Hello.main()int": [
         "hello.Foo#<init>()void",
+        "hello.Hello.bar(java.util.function.IntSupplier)int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Hello.bar(java.util.function.IntSupplier)int": [
+        "hello.Foo#getAsInt()int"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Foo#<init>()void",
+        "hello.Foo#getAsInt()int",
         "hello.Hello.bar(java.util.function.IntSupplier)int"
     ]
 }

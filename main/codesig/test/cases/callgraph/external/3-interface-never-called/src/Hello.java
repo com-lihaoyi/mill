@@ -16,7 +16,12 @@ public class Hello{
     }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
+{
+}
+*/
+
+/* expected-transitive-call-graph
 {
 }
 */

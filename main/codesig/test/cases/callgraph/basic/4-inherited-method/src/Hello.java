@@ -8,7 +8,7 @@ public class Hello extends Parent{
 
     public int unused(){return 1;}
 }
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello#<init>()void": [
         "hello.Parent#<init>()void"
@@ -19,6 +19,23 @@ public class Hello extends Parent{
     "hello.Hello.main()int": [
         "hello.Hello#<init>()void",
         "hello.Hello#used()int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Hello#<init>()void": [
+        "hello.Parent#<init>()void"
+    ],
+    "hello.Hello#used()int": [
+        "hello.Parent#used()int"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Hello#<init>()void",
+        "hello.Hello#used()int",
+        "hello.Parent#used()int",
+        "hello.Parent#<init>()void"
     ]
 }
 */

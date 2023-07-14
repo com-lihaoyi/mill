@@ -20,7 +20,7 @@ object Hello{
   }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello$#minimizedIterator()int[]": [
         "hello.SubTestIter#<init>()void",

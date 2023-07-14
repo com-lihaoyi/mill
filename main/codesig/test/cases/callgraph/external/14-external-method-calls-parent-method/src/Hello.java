@@ -14,7 +14,7 @@ public class Hello{
 }
 // that it could call either of `doGrandThing` or `doParentThing`
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Foo#<init>()void": [
         "hello.Foo#doGrandThingAbstract()void"
@@ -25,6 +25,23 @@ public class Hello{
     "hello.Hello.main()void": [
         "hello.Foo#<init>()void",
         "hello.Foo#doGrandThingAbstract()void"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Foo#<init>()void": [
+        "hello.Foo#doGrandThingAbstract()void",
+        "hello.Foo#called()void"
+    ],
+    "hello.Foo#doGrandThingAbstract()void": [
+        "hello.Foo#called()void"
+    ],
+    "hello.Hello.main()void": [
+        "hello.Foo#<init>()void",
+        "hello.Foo#doGrandThingAbstract()void",
+        "hello.Foo#called()void"
     ]
 }
 */

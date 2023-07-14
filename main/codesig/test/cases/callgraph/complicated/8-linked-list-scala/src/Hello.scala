@@ -38,7 +38,7 @@ object Hello{
   }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello$#simpleLinkedListForeach()int[]": [
         "hello.Hello$TestCons#<init>(java.lang.Object,hello.Hello$TestList)void",

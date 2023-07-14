@@ -14,7 +14,7 @@ public class Hello{
     public static int usedDeepestStatic(){ return 3; }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello#unused()int": [
         "hello.Hello#usedTransitive()int"
@@ -28,6 +28,28 @@ public class Hello{
     "hello.Hello.main()int": [
         "hello.Hello#<init>()void",
         "hello.Hello#used()int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Hello#unused()int": [
+        "hello.Hello#usedTransitive()int",
+        "hello.Hello.usedDeepestStatic()int"
+    ],
+    "hello.Hello#used()int": [
+        "hello.Hello#usedTransitive()int",
+        "hello.Hello.usedDeepestStatic()int"
+    ],
+    "hello.Hello#usedTransitive()int": [
+        "hello.Hello.usedDeepestStatic()int"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Hello#<init>()void",
+        "hello.Hello#used()int",
+        "hello.Hello#usedTransitive()int",
+        "hello.Hello.usedDeepestStatic()int"
     ]
 }
 */

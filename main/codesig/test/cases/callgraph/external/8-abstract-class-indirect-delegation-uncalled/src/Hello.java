@@ -27,7 +27,19 @@ public class Hello{
     }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
+{
+    "hello.Bar#<init>()void": [
+        "hello.Bar#write(byte[],int,int)void"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Bar#<init>()void",
+        "hello.Bar#write(byte[],int,int)void"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
 {
     "hello.Bar#<init>()void": [
         "hello.Bar#write(byte[],int,int)void"

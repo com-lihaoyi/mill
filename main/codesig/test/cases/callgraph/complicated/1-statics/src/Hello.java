@@ -54,7 +54,7 @@ public class Hello {
     }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello.callAtPhiBoundary(int)int": [
         "hello.Hello.call(int)int"

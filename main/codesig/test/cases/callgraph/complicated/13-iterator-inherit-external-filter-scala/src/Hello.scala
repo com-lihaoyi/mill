@@ -44,7 +44,7 @@ object Hello{
     else n
   }
 }
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello$#manualIterator3(int)int": [
         "hello.Hello$BigTestIterator#hasNext()boolean",

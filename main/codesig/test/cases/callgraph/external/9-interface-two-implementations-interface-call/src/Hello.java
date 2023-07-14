@@ -26,7 +26,7 @@ public class Hello{
     }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello.bar(java.util.function.IntSupplier)int": [
         "hello.Bar#getAsInt()int",
@@ -35,6 +35,21 @@ public class Hello{
     "hello.Hello.main()int": [
         "hello.Foo#<init>()void",
         "hello.Hello.bar(java.util.function.IntSupplier)int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Hello.bar(java.util.function.IntSupplier)int": [
+        "hello.Bar#getAsInt()int",
+        "hello.Foo#getAsInt()int"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Foo#<init>()void",
+        "hello.Hello.bar(java.util.function.IntSupplier)int",
+        "hello.Bar#getAsInt()int",
+        "hello.Foo#getAsInt()int"
     ]
 }
 */

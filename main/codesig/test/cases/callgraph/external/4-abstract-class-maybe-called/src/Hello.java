@@ -38,7 +38,7 @@ public class Hello{
 // analyze the callgraph of external classes, we do a conservative estimate and
 // assume it does make such a call.
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Bar#<init>()void": [
         "hello.Bar#read()int"
@@ -51,6 +51,28 @@ public class Hello{
     ],
     "hello.Hello.main()int": [
         "hello.Bar#<init>()void",
+        "hello.Hello.bar(java.io.InputStream)int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Bar#<init>()void": [
+        "hello.Bar#called()int",
+        "hello.Bar#read()int"
+    ],
+    "hello.Bar#read()int": [
+        "hello.Bar#called()int"
+    ],
+    "hello.Hello.bar(java.io.InputStream)int": [
+        "hello.Bar#called()int",
+        "hello.Bar#read()int"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Bar#<init>()void",
+        "hello.Bar#called()int",
+        "hello.Bar#read()int",
         "hello.Hello.bar(java.io.InputStream)int"
     ]
 }

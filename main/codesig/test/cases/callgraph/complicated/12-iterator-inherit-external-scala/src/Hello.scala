@@ -38,7 +38,7 @@ object Hello{
 // `manualIterator2` can call `#next`, even though we never perform those calls
 // in our code
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello$#manualIterator(int)int": [
         "hello.Hello$#getInt()int",

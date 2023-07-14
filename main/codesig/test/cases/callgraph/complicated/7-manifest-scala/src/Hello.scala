@@ -16,7 +16,7 @@ object Hello{
   }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello$#testManifestFactory()java.lang.String": [
         "hello.Hello$TestManifestFactory$#<init>()void",

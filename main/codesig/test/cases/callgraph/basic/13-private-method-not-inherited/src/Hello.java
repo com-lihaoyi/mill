@@ -16,7 +16,7 @@ public class Hello extends Parent{
 
     private int foo(){ return 3; }
 }
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello#<init>()void": [
         "hello.Parent#<init>()void"
@@ -24,6 +24,28 @@ public class Hello extends Parent{
     "hello.Hello.main()int": [
         "hello.Hello#<init>()void",
         "hello.Parent#bar()int"
+    ],
+    "hello.Parent#<init>()void": [
+        "hello.Grandparent#<init>()void"
+    ],
+    "hello.Parent#bar()int": [
+        "hello.Parent#foo()int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Hello#<init>()void": [
+        "hello.Grandparent#<init>()void",
+        "hello.Parent#<init>()void"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Grandparent#<init>()void",
+        "hello.Hello#<init>()void",
+        "hello.Parent#<init>()void",
+        "hello.Parent#bar()int",
+        "hello.Parent#foo()int"
     ],
     "hello.Parent#<init>()void": [
         "hello.Grandparent#<init>()void"

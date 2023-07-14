@@ -21,7 +21,7 @@ public class Hello{
 // which includes `Foo#toString`. This is in addition to everyone's `<init>`
 // methods also calling `Foo#toString` via `Object#<init>`.
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Foo#<init>()void": [
         "hello.Foo#toString()java.lang.String"
@@ -35,6 +35,25 @@ public class Hello{
     "hello.Hello.main()void": [
         "hello.Foo#<init>()void",
         "hello.Hello.bar(hello.Foo)void"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Foo#<init>()void": [
+        "hello.Foo#toString()java.lang.String"
+    ],
+    "hello.Hello#<init>()void": [
+        "hello.Foo#toString()java.lang.String"
+    ],
+    "hello.Hello.bar(hello.Foo)void": [
+        "hello.Foo#toString()java.lang.String"
+    ],
+    "hello.Hello.main()void": [
+        "hello.Foo#<init>()void",
+        "hello.Hello.bar(hello.Foo)void",
+        "hello.Foo#toString()java.lang.String"
     ]
 }
 */

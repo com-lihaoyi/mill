@@ -9,7 +9,13 @@ public class Hello{
     public static int unused(){ return 1; }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
+{
+    "hello.Hello.main()int": ["hello.Hello.used()int"]
+}
+*/
+
+/* expected-transitive-call-graph
 {
     "hello.Hello.main()int": ["hello.Hello.used()int"]
 }

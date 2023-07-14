@@ -27,7 +27,7 @@ public class Hello{
     }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Foo#<init>()void": [
         "hello.Foo#read()int"
@@ -40,6 +40,28 @@ public class Hello{
     ],
     "hello.Hello.main()int": [
         "hello.Foo#<init>()void",
+        "hello.Hello.bar(java.io.InputStream)int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+      "hello.Foo#<init>()void": [
+        "hello.Foo#read()int",
+        "hello.Foo#readSpecial()int"
+    ],
+    "hello.Foo#read()int": [
+        "hello.Foo#readSpecial()int"
+    ],
+    "hello.Hello.bar(java.io.InputStream)int": [
+        "hello.Foo#read()int",
+        "hello.Foo#readSpecial()int"
+    ],
+    "hello.Hello.main()int": [
+        "hello.Foo#<init>()void",
+        "hello.Foo#read()int",
+        "hello.Foo#readSpecial()int",
         "hello.Hello.bar(java.io.InputStream)int"
     ]
 }

@@ -32,12 +32,20 @@ class JCanvas extends JPanel{
 // thus `JCanvas#paintComponent`, and so we record an edge from `JCanvas#<init>`
 // to `JCanvas#paintComponent` to account for that possibility
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.JCanvas#<init>()void": [
         "hello.JCanvas#paintComponent(java.awt.Graphics)void"
     ],
     "hello.JCanvas#paintComponent(java.awt.Graphics)void": [
+        "hello.JCanvas#paintComponent(java.awt.Graphics)void"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.JCanvas#<init>()void": [
         "hello.JCanvas#paintComponent(java.awt.Graphics)void"
     ]
 }

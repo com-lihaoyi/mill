@@ -18,7 +18,7 @@ object Hello{
   }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello$#staticSpecialInterfaceMethods()int": [
         "hello.Hello$TestCallbackImpl#<init>()void",

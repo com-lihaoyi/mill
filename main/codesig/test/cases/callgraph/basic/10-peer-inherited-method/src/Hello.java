@@ -16,9 +16,23 @@ public class Hello {
         return foo.used();
     }
 }
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello.main()int": [
+        "hello.Bar#used()int",
+        "hello.Foo#used()int",
+        "hello.Qux#<init>()void"
+    ],
+    "hello.Qux#<init>()void": [
+        "hello.Bar#<init>()void"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Hello.main()int": [
+        "hello.Bar#<init>()void",
         "hello.Bar#used()int",
         "hello.Foo#used()int",
         "hello.Qux#<init>()void"

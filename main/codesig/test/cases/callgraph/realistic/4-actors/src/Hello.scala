@@ -52,7 +52,7 @@ object Hello{
   }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Base64Actor#<init>(castor.Actor,castor.Context)void": [
         "hello.Base64Actor#run(java.lang.Object)void",

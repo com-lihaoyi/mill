@@ -30,7 +30,7 @@ public class Hello{
 // defined externally on `Parent` which inherits from `Grandparent`, meaning
 // that it could call either of `doGrandThing` or `doParentThing`
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Hello.bar(hello.Foo)void": [
         "hello.Foo#doGrandThing()void"
@@ -39,6 +39,25 @@ public class Hello{
         "hello.Foo#<init>()void",
         "hello.Hello.bar(hello.Foo)void",
         "hello.Hello.qux(hello.Foo)void"
+    ],
+    "hello.Hello.qux(hello.Foo)void": [
+        "hello.Foo#doGrandThing()void",
+        "hello.Foo#doParentThing()void"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
+{
+    "hello.Hello.bar(hello.Foo)void": [
+        "hello.Foo#doGrandThing()void"
+    ],
+    "hello.Hello.main()void": [
+        "hello.Foo#<init>()void",
+        "hello.Hello.bar(hello.Foo)void",
+        "hello.Hello.qux(hello.Foo)void",
+        "hello.Foo#doGrandThing()void",
+        "hello.Foo#doParentThing()void"
     ],
     "hello.Hello.qux(hello.Foo)void": [
         "hello.Foo#doGrandThing()void",

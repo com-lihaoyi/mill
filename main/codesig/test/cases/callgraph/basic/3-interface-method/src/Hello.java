@@ -20,7 +20,19 @@ public class Hello{
     }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
+{
+    "hello.Hello.main()int": [
+        "hello.Foo#used()int",
+        "hello.Bar#<init>()void",
+        "hello.Bar#used()int",
+        "hello.Qux#<init>()void",
+        "hello.Qux#used()int"
+    ]
+}
+*/
+
+/* expected-transitive-call-graph
 {
     "hello.Hello.main()int": [
         "hello.Foo#used()int",

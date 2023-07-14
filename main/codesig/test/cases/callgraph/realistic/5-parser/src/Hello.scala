@@ -19,7 +19,7 @@ object Parser{
   }
 }
 
-/* EXPECTED CALL GRAPH
+/* expected-direct-call-graph
 {
     "hello.Parser$#parened(fastparse.ParsingRun)fastparse.ParsingRun": [
         "hello.Parser$#parser(fastparse.ParsingRun)fastparse.ParsingRun"
