@@ -151,20 +151,29 @@ class MillBuildRootModule()(implicit
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
         upstreamClasspath = compileClasspath().toSeq.map(_.path),
-        ignoreCall = { (otherCallsOpt, calledSig) =>
-          // We can ignore all methods that look like Targets when traversing
-          // the call graph, because we assume `def` targets are pure, and so
-          // any changes in their behavior will be picked up by the runtime build
+        ignoreCall = { (callSiteOpt, calledSig) =>
+          // We can ignore all calls to methods that look like Targets when traversing
+          // the call graph. We can fo this because we assume `def` Targets are pure,
+          // and so any changes in their behavior will be picked up by the runtime build
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           val isSimpleTarget =
             calledSig.desc.ret.pretty == "mill.define.Target" && calledSig.desc.args.isEmpty
 
-          val isPossibleCaller =
-            otherCallsOpt.isEmpty ||
-              otherCallsOpt.get.exists(_.name == "codeSigIgnoreSimpleTargetCalls")
+          // We avoid ignoring method calls that are simple trait forwarders, because
+          // we need the trait forwarders calls to be counted in order to wire up the
+          // method definition that a Target is associated with during evaluation
+          // (e.g. `myModuleObject.myTarget`) with its implementation that may be defined
+          // somewhere else (e.g. `trait MyModuleTrait{ def myTarget }`). Only that one
+          // step is necessary, after that the runtime build graph invalidation logic can
+          // take over
+          val isForwarderCallsite =
+            callSiteOpt.nonEmpty &&
+            callSiteOpt.get.method.name == (calledSig.name + "$") &&
+            callSiteOpt.get.method.static &&
+            callSiteOpt.get.method.desc.args.size == 1
 
-          isPossibleCaller && isSimpleTarget
+          !isForwarderCallsite && isSimpleTarget
         },
         logger = new mill.codesig.Logger(Option.when(T.log.debugEnabled)(T.dest))
       )

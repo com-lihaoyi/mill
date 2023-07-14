@@ -7,7 +7,7 @@ class CallGraphAnalysis(
     localSummary: LocalSummary,
     resolved: ResolvedCalls,
     externalSummary: ExternalSummary,
-    ignoreCall: (Option[Set[MethodCall]], MethodSig) => Boolean,
+    ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
     logger: Logger
 )(implicit st: SymbolTable) {
 
@@ -69,7 +69,7 @@ object CallGraphAnalysis {
       resolved: ResolvedCalls,
       externalSummary: ExternalSummary,
       nodeToIndex: Map[CallGraphAnalysis.Node, Int],
-      ignoreCall: (Option[Set[MethodCall]], MethodSig) => Boolean
+      ignoreCall: (Option[MethodDef], MethodSig) => Boolean
   )(implicit st: SymbolTable) = {
     indexToNodes
       .iterator
@@ -88,7 +88,7 @@ object CallGraphAnalysis {
           methods(methodDef)
             .calls
             .toArray
-            .filter(c => !ignoreCall(Some(methods(methodDef).calls), c.toMethodSig))
+            .filter(c => !ignoreCall(Some(methodDef), c.toMethodSig))
             .map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
 
         case CallGraphAnalysis.ExternalClsCall(externalCls) =>

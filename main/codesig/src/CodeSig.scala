@@ -5,7 +5,7 @@ object CodeSig {
   def compute(
       classFiles: Seq[os.Path],
       upstreamClasspath: Seq[os.Path],
-      ignoreCall: (Option[Set[MethodCall]], MethodSig) => Boolean,
+      ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
       logger: Logger
   ) = {
     implicit val st: SymbolTable = new SymbolTable()
