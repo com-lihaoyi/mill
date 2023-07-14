@@ -129,6 +129,7 @@ trait Target[+T] extends NamedTask[T]
  * `T.`[[env]] provide the core APIs that are provided to a task implementation
  */
 object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
+
   /**
    * `T.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
    * that is assigned to every Target or Command. It is cleared before your
@@ -356,14 +357,14 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.Success(t.splice)).tree)
 
       mill.moduledefs.Cacher.impl0[Target[T]](c)(
-        reify {
+        reify(
           new TargetImpl[T](
             lhs.splice,
             ctx.splice,
             rw.splice,
             taskIsPrivate.splice
           )
-        }
+        )
       )
     }
 
@@ -376,14 +377,14 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[Target[T]](c)(
-        reify {
+        reify(
           new TargetImpl[T](
             Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice,
             ctx.splice,
             rw.splice,
             taskIsPrivate.splice
           )
-        }
+        )
       )
     }
 
@@ -396,14 +397,14 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[Target[T]](c)(
-        reify {
+        reify(
           new TargetImpl[T](
             t.splice,
             ctx.splice,
             rw.splice,
             taskIsPrivate.splice
           )
-        }
+        )
       )
     }
 
@@ -419,13 +420,13 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[SourcesImpl](c)(
-        reify {
+        reify(
           new SourcesImpl(
             Target.sequence(c.Expr[List[Task[PathRef]]](q"_root_.scala.List(..$wrapped)").splice),
             ctx.splice,
             taskIsPrivate.splice
           )
-        }
+        )
       )
     }
 
@@ -436,13 +437,13 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[SourcesImpl](c)(
-        reify {
+        reify(
           new SourcesImpl(
             Applicative.impl0[Task, Seq[PathRef], mill.api.Ctx](c)(values.tree).splice,
             ctx.splice,
             taskIsPrivate.splice
           )
-        }
+        )
       )
     }
 
@@ -458,13 +459,13 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
-        reify {
+        reify(
           new SourceImpl(
             wrapped.splice,
             ctx.splice,
             taskIsPrivate.splice
           )
-        }
+        )
       )
     }
 
@@ -475,13 +476,13 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
-        reify {
+        reify(
           new SourceImpl(
             Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(value.tree).splice,
             ctx.splice,
             taskIsPrivate.splice
           )
-        }
+        )
       )
     }
 
@@ -494,14 +495,14 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[InputImpl[T]](c)(
-        reify {
+        reify(
           new InputImpl[T](
             Applicative.impl[Task, T, mill.api.Ctx](c)(value).splice,
             ctx.splice,
             w.splice,
             taskIsPrivate.splice
           )
-        }
+        )
       )
     }
 
@@ -552,9 +553,9 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[Worker[T]](c)(
-        reify {
+        reify(
           new Worker[T](t.splice, ctx.splice, taskIsPrivate.splice)
-        }
+        )
       )
     }
 
@@ -565,13 +566,13 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[Worker[T]](c)(
-        reify {
+        reify(
           new Worker[T](
             Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
             ctx.splice,
             taskIsPrivate.splice
           )
-        }
+        )
       )
     }
 
@@ -584,14 +585,14 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       val taskIsPrivate = isPrivateTargetOption(c)
 
       mill.moduledefs.Cacher.impl0[PersistentImpl[T]](c)(
-        reify {
+        reify(
           new PersistentImpl[T](
             Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
             ctx.splice,
             rw.splice,
             taskIsPrivate.splice
           )
-        }
+        )
       )
     }
   }
