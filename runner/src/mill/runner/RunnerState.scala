@@ -32,7 +32,10 @@ case class RunnerState(
     frames: Seq[RunnerState.Frame],
     errorOpt: Option[String]
 ) {
-  def add(frame: RunnerState.Frame = RunnerState.Frame.empty, errorOpt: Option[String] = None): RunnerState = {
+  def add(
+      frame: RunnerState.Frame = RunnerState.Frame.empty,
+      errorOpt: Option[String] = None
+  ): RunnerState = {
     this.copy(frames = Seq(frame) ++ frames, errorOpt = errorOpt)
   }
 }
