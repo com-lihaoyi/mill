@@ -44,7 +44,7 @@ private object ProfileLogger {
       cached: Boolean,
       dependencies: Seq[String] = Nil,
       inputsHash: Int,
-      previousInputsHash: Int
+      previousInputsHash: Int = -1
   )
 
   object Timing {
