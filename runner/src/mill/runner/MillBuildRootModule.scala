@@ -169,9 +169,9 @@ class MillBuildRootModule()(implicit
           // take over
           def isForwarderCallsite =
             callSiteOpt.nonEmpty &&
-            callSiteOpt.get.method.name == (calledSig.name + "$") &&
-            callSiteOpt.get.method.static &&
-            callSiteOpt.get.method.desc.args.size == 1
+              callSiteOpt.get.method.name == (calledSig.name + "$") &&
+              callSiteOpt.get.method.static &&
+              callSiteOpt.get.method.desc.args.size == 1
 
           !isForwarderCallsite && isSimpleTarget
         },
