@@ -123,7 +123,7 @@ private[mill] trait GroupEvaluator {
           testReporter,
           logger
         )
-        GroupEvaluator.Results(newResults, newEvaluated.toSeq, false, inputsHash, -1)
+        GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
       case labelled: Terminal.Labelled[_] =>
         val out =
@@ -192,7 +192,7 @@ private[mill] trait GroupEvaluator {
             GroupEvaluator.Results(
               newResults,
               newEvaluated.toSeq,
-              cached = false,
+              cached = if (labelled.task.isInstanceOf[InputImpl[_]]) null else false,
               inputsHash,
               cached.map(_._1).getOrElse(-1)
             )
@@ -459,7 +459,7 @@ private[mill] object GroupEvaluator {
   case class Results(
       newResults: Map[Task[_], TaskResult[(Val, Int)]],
       newEvaluated: Seq[Task[_]],
-      cached: Boolean,
+      cached: java.lang.Boolean,
       inputsHash: Int,
       previousInputsHash: Int
   )

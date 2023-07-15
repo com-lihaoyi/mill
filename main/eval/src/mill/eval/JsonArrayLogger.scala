@@ -41,7 +41,7 @@ private object ProfileLogger {
   case class Timing(
       label: String,
       millis: Int,
-      cached: Boolean,
+      cached: java.lang.Boolean = null,
       dependencies: Seq[String] = Nil,
       inputsHash: Int,
       previousInputsHash: Int = -1
