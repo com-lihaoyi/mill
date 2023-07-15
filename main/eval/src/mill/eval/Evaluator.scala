@@ -21,7 +21,7 @@ trait Evaluator {
   def externalOutPath: os.Path
   def pathsResolver: EvaluatorPathsResolver
   def workerCache: collection.Map[Segments, (Int, Val)]
-  def disableCallgraphInvalidation: Boolean
+  def disableCallgraphInvalidation: Boolean = false
   def evaluate(
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
