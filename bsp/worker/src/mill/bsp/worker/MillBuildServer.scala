@@ -102,7 +102,14 @@ private class MillBuildServer(
     if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
     evaluatorOpt = evaluator
     evaluatorOpt.foreach(e =>
-      statePromise.success(new State(e.rootModule.millSourcePath, e.baseLogger, debug))
+      statePromise.success(
+        new State(
+          e.rootModule.millSourcePath,
+          e.baseLogger,
+          debug,
+          e.disableCallgraphInvalidation
+        )
+      )
     )
   }
 
