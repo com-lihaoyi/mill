@@ -7,8 +7,8 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
     val wsRoot = initWorkspace()
     "simple" - {
       // Make sure the simplest case where we have a single target calling a single helper
-      // method is properly invalidated when either the target body or the helper method's body
-      // is changed
+      // method is properly invalidated when either the target body, or the helper method's body
+      // is changed, or something changed in the constructor
       val initial = evalStdout("foo")
 
       assert(initial.out.linesIterator.toSeq == Seq("running foo", "running helperFoo"))
@@ -29,6 +29,12 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       assert(mangledHelperFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
 
+      // Make sure changing `val`s, which only affects the Module constructor and
+      // not the Target method itself, causes invalidation
+      mangleFile(wsRoot / "build.sc", _.replace("val valueFoo = 0", "val valueFoo = 10"))
+      val mangledValFoo = evalStdout("foo")
+      assert(mangledValFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
+
       val cached3 = evalStdout("foo")
       assert(cached3.out == "")
     }
@@ -40,7 +46,6 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       // Check normal behavior for initial run and subsequent fully-cached run
       // with no changes
       val initial = evalStdout("outer.inner.qux")
-
       assert(
         initial.out.linesIterator.toSeq == Seq(
           "running foo",
@@ -59,7 +64,6 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       // but not downstream targets unless the return value changes
       mangleFile(wsRoot / "build.sc", _.replace("running foo", "running foo2"))
       val mangledFoo = evalStdout("outer.inner.qux")
-
       assert(
         mangledFoo.out.linesIterator.toSeq == Seq(
           "running foo2",
@@ -70,7 +74,6 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       mangleFile(wsRoot / "build.sc", _.replace("; helperFoo }", "; helperFoo + 4 }"))
       val mangledHelperFooCall = evalStdout("outer.inner.qux")
-
       assert(
         mangledHelperFooCall.out.linesIterator.toSeq == Seq(
           "running foo2",
@@ -94,7 +97,6 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       mangleFile(wsRoot / "build.sc", _.replace(" 1 ", " 6 "))
       val mangledHelperFooValue = evalStdout("outer.inner.qux")
-
       assert(
         mangledHelperFooValue.out.linesIterator.toSeq == Seq(
           "running foo2",
@@ -107,7 +109,6 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       mangleFile(wsRoot / "build.sc", _.replace("running helperBar", "running helperBar2"))
       val mangledHelperBar = evalStdout("outer.inner.qux")
-
       assert(
         mangledHelperBar.out.linesIterator.toSeq == Seq(
           "running bar",
@@ -118,7 +119,6 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       mangleFile(wsRoot / "build.sc", _.replace("20", "70"))
       val mangledHelperBarValue = evalStdout("outer.inner.qux")
-
       assert(
         mangledHelperBarValue.out.linesIterator.toSeq == Seq(
           "running bar",
@@ -131,11 +131,69 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
 
       mangleFile(wsRoot / "build.sc", _.replace("running helperQux", "running helperQux2"))
       val mangledBar = evalStdout("outer.inner.qux")
-
       assert(
         mangledBar.out.linesIterator.toSeq ==
           // helperQux was changed, so qux needs to invalidate
           Seq("running qux2", "running helperQux2")
+      )
+
+      // Make sure changing `val`s in varying levels of nested modules conservatively invalidates
+      // all targets in inner modules, regardless of whether they are related or not
+      mangleFile(wsRoot / "build.sc", _.replace("val valueFoo = 0", "val valueFoo = 10"))
+      val mangledValFoo = evalStdout("outer.inner.qux")
+      assert(
+        mangledValFoo.out.linesIterator.toSeq == Seq(
+          "running foo2",
+          "running helperFoo",
+          "running bar",
+          "running helperBar2",
+          "running qux2",
+          "running helperQux2"
+        )
+      )
+
+      mangleFile(wsRoot / "build.sc", _.replace("val valueBar = 0", "val valueBar = 10"))
+      val mangledValBar = evalStdout("outer.inner.qux")
+      assert(
+        mangledValBar.out.linesIterator.toSeq == Seq(
+          "running bar",
+          "running helperBar2",
+          "running qux2",
+          "running helperQux2"
+        )
+      )
+
+      mangleFile(wsRoot / "build.sc", _.replace("val valueQux = 0", "val valueQux = 10"))
+      val mangledValQux = evalStdout("outer.inner.qux")
+      assert(
+        mangledValQux.out.linesIterator.toSeq == Seq(
+          "running qux2",
+          "running helperQux2"
+        )
+      )
+
+      mangleFile(wsRoot / "build.sc", _.replace("val valueFooUsedInBar = 0", "val valueFooUsedInBar = 10"))
+      val mangledValFooUsedInBar = evalStdout("outer.inner.qux")
+      assert(
+        mangledValFooUsedInBar.out.linesIterator.toSeq == Seq(
+          "running foo2",
+          "running helperFoo",
+          "running bar",
+          "running helperBar2",
+          "running qux2",
+          "running helperQux2"
+        )
+      )
+
+      mangleFile(wsRoot / "build.sc", _.replace("val valueBarUsedInQux = 0", "val valueBarUsedInQux = 10"))
+      val mangledValBarUsedInQux = evalStdout("outer.inner.qux")
+      assert(
+        mangledValBarUsedInQux.out.linesIterator.toSeq == Seq(
+          "running bar",
+          "running helperBar2",
+          "running qux2",
+          "running helperQux2"
+        )
       )
 
       // Adding a newline before one of the target definitions does not invalidate it
@@ -155,13 +213,6 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
       )
       val addedNewlinesInsideCurlies = evalStdout("outer.inner.qux")
       assert(addedNewlinesInsideCurlies.out == "")
-
-      mangleFile(
-        wsRoot / "build.sc",
-        _.replace("import mill._", "import mill.T; import java.util.Properties")
-      )
-      val mangledImports = evalStdout("outer.inner.qux")
-      assert(mangledImports.out == "")
     }
   }
 }

@@ -78,6 +78,9 @@ private[mill] trait GroupEvaluator {
         .map(p => scriptImportGraph.get(p).fold(0)(_._1))
         .sum
     } else {
+//      val constructorCodeHashSignatures = methodCodeHashSignatures
+//        .collect{ case (s"$cls#<init>($args)void", v) => (cls, v) }
+
       group
         .iterator
         .collect {
@@ -97,12 +100,30 @@ private[mill] trait GroupEvaluator {
               if decode(m.getName) == namedTask.ctx.segment.pathSegments.head
             } yield m
 
-            val cls = methods.head.getDeclaringClass.getName
+            val methodClass = methods.head.getDeclaringClass.getName
             val name = namedTask.ctx.segment.pathSegments.last
-            val expectedPrefix = cls + "#" + name + "()"
-            methodCodeHashSignatures.collectFirst {
-              case (k, v) if k.startsWith(expectedPrefix) => v
-            }
+            val expectedName = methodClass + "#" + name + "()mill.define.Target"
+
+            val moduleClass = namedTask.ctx.enclosingCls.getName
+
+            val expectedConstructorChain = moduleClass
+              .split('$')
+              .inits
+              .map{
+                case Array() => None
+                case Array(single) => Some(single)
+                case multiple => Some(multiple.mkString("$") + "$")
+              }
+              .sliding(2)
+              .map {
+                case Seq(Some(full), Some(prefix)) => s"$full#<init>($prefix)void"
+                case Seq(Some(full), None) => s"$full#<init>()void"
+              }
+              .toList
+
+            methodCodeHashSignatures.get(expectedName) ++
+            expectedConstructorChain.flatMap(methodCodeHashSignatures.get)
+
         }
         .flatten
         .sum
