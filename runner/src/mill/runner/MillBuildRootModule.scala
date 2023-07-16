@@ -158,7 +158,17 @@ class MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget =
-            calledSig.desc.ret.pretty == "mill.define.Target" && calledSig.desc.args.isEmpty
+            (calledSig.desc.ret.pretty == "mill.define.Target" ||
+              calledSig.desc.ret.pretty == "mill.define.Worker") &&
+              calledSig.desc.args.isEmpty
+
+          // We ignore Commands for the same reason as we ignore Targets, and also because
+          // their implementations get gathered up all the via the `Discover` macro, but this
+          // is primarily for use as external entrypoints and shouldn't really be counted as
+          // part of the `millbuild.build#<init>` transitive call graph they would normally
+          // be counted as
+          def isCommand =
+            calledSig.desc.ret.pretty == "mill.define.Command"
 
           // We avoid ignoring method calls that are simple trait forwarders, because
           // we need the trait forwarders calls to be counted in order to wire up the
@@ -173,9 +183,9 @@ class MillBuildRootModule()(implicit
               callSiteOpt.get.method.static &&
               callSiteOpt.get.method.desc.args.size == 1
 
-          !isForwarderCallsite && isSimpleTarget
+          (!isForwarderCallsite && isSimpleTarget) || isCommand
         },
-        logger = new mill.codesig.Logger(Option.when(true)(T.dest))
+        logger = new mill.codesig.Logger(Option.when(T.log.debugEnabled)(T.dest))
       )
 
     codesig.transitiveCallGraphHashes
@@ -319,13 +329,13 @@ object MillBuildRootModule {
        |import _root_.mill.runner.MillBuildRootModule
        |
        |object ${backtickWrap(miscInfoName)} {
-       |  implicit val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
+       |  implicit lazy val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
        |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
        |    _root_.os.Path(${literalize(base.toString)}),
        |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)}),
        |    _root_.scala.Seq(${cliImports.map(literalize(_)).mkString(", ")})
        |  )
-       |  implicit val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
+       |  implicit lazy val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
        |    millBuildRootModuleInfo.projectRoot,
        |    _root_.mill.define.Discover[${backtickWrap(name)}]
        |  )

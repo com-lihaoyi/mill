@@ -172,7 +172,10 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
         )
       )
 
-      mangleFile(wsRoot / "build.sc", _.replace("val valueFooUsedInBar = 0", "val valueFooUsedInBar = 10"))
+      mangleFile(
+        wsRoot / "build.sc",
+        _.replace("val valueFooUsedInBar = 0", "val valueFooUsedInBar = 10")
+      )
       val mangledValFooUsedInBar = evalStdout("outer.inner.qux")
       assert(
         mangledValFooUsedInBar.out.linesIterator.toSeq == Seq(
@@ -185,7 +188,10 @@ object CodeSigSimpleTests extends IntegrationTestSuite {
         )
       )
 
-      mangleFile(wsRoot / "build.sc", _.replace("val valueBarUsedInQux = 0", "val valueBarUsedInQux = 10"))
+      mangleFile(
+        wsRoot / "build.sc",
+        _.replace("val valueBarUsedInQux = 0", "val valueBarUsedInQux = 10")
+      )
       val mangledValBarUsedInQux = evalStdout("outer.inner.qux")
       assert(
         mangledValBarUsedInQux.out.linesIterator.toSeq == Seq(

@@ -3,6 +3,8 @@ import mill.util.Tarjans
 import upickle.default.{Writer, writer}
 import JvmModel._
 
+import scala.collection.immutable.SortedMap
+
 class CallGraphAnalysis(
     localSummary: LocalSummary,
     resolved: ResolvedCalls,
@@ -31,9 +33,14 @@ class CallGraphAnalysis(
     nodeToIndex,
     ignoreCall
   )
+  logger.log(indexGraphEdges)
+
+  lazy val prettyMethods = methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
+
+  logger.log(prettyMethods)
 
   lazy val prettyGraph = {
-    indexGraphEdges.zip(indexToNodes).map { case (vs, k) => (k, vs.map(indexToNodes)) }.toMap
+    indexGraphEdges.zip(indexToNodes).map { case (vs, k) => (k, vs.map(indexToNodes)) }
   }
 
   logger.log(prettyGraph)
@@ -50,16 +57,31 @@ class CallGraphAnalysis(
     zero
   )
 
+  val nodeValues = indexToNodes.map {
+    case CallGraphAnalysis.LocalDef(m) => methods(m).codeHash
+    case _ => 0
+  }
+
+  logger.log(nodeValues)
+
   val transitiveCallGraphHashes = transitiveCallGraphValues[Int](
-    nodeValues = indexToNodes.map {
-      case CallGraphAnalysis.LocalDef(m) => methods(m).codeHash
-      case _ => 0
-    },
+    nodeValues = nodeValues,
     reduce = _ + _,
     zero = 0
   )
 
   logger.log(transitiveCallGraphHashes)
+
+  lazy val transitiveCallgraph = transitiveCallGraphValues[SortedMap[String, Int]](
+    indexToNodes
+      .indices
+      .map(x => SortedMap(upickle.default.writeJs(indexToNodes(x)).str -> nodeValues(x)))
+      .toArray,
+    _ ++ _,
+    SortedMap.empty[String, Int]
+  )
+
+  logger.log(transitiveCallgraph)
 }
 
 object CallGraphAnalysis {
@@ -112,6 +134,7 @@ object CallGraphAnalysis {
 
           local ++ parent
       }
+      .map(_.sorted)
       .toArray
   }
 
@@ -140,19 +163,22 @@ object CallGraphAnalysis {
       .flatMap { case (group, groupIndex) => group.map((_, groupIndex)) }
       .toMap
 
-    val seen = Array.fill[V](topoSortedMethodGroups.length)(zero)
+    val seenGroupValues = new Array[V](topoSortedMethodGroups.length)
     for (groupIndex <- topoSortedMethodGroups.indices) {
       var value: V = zero
       for (node <- topoSortedMethodGroups(groupIndex)) {
         value = reduce(value, nodeValues(node))
         for (upstreamNode <- indexGraphEdges(node)) {
-          value = reduce(value, seen(nodeGroups(upstreamNode)))
+          val upstreamGroup = nodeGroups(upstreamNode)
+          if (upstreamGroup != groupIndex) {
+            value = reduce(value, seenGroupValues(upstreamGroup))
+          }
         }
       }
-      seen(groupIndex) = value
+      seenGroupValues(groupIndex) = value
     }
 
-    seen
+    seenGroupValues
       .zipWithIndex
       .flatMap { case (groupHash, groupIndex) =>
         topoSortedMethodGroups(groupIndex).map { nodeIndex =>
@@ -160,7 +186,7 @@ object CallGraphAnalysis {
         }
       }
       .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
-      .toMap
+      .to(SortedMap)
   }
 
   /**

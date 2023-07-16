@@ -93,6 +93,9 @@ object JvmModel {
   object MethodCall {
     implicit val rw: ReadWriter[MethodCall] =
       stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
+
+    implicit val ordering: Ordering[MethodCall] =
+      Ordering.by(c => (c.cls, c.name, c.desc, c.invokeType))
   }
 
   sealed trait InvokeType
@@ -101,6 +104,12 @@ object JvmModel {
     case object Static extends InvokeType
     case object Virtual extends InvokeType
     case object Special extends InvokeType
+
+    implicit val ordering: Ordering[InvokeType] = Ordering.by {
+      case Static => 0
+      case Virtual => 1
+      case Special => 2
+    }
   }
 
   sealed trait JType {

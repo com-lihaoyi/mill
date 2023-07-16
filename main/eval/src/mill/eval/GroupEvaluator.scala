@@ -109,7 +109,7 @@ private[mill] trait GroupEvaluator {
             val expectedConstructorChain = moduleClass
               .split('$')
               .inits
-              .map{
+              .map {
                 case Array() => None
                 case Array(single) => Some(single)
                 case multiple => Some(multiple.mkString("$") + "$")
@@ -121,9 +121,9 @@ private[mill] trait GroupEvaluator {
               }
               .toList
 
-            methodCodeHashSignatures.get(expectedName) ++
-            expectedConstructorChain.flatMap(methodCodeHashSignatures.get)
+            val constructorHashes = expectedConstructorChain.flatMap(methodCodeHashSignatures.get)
 
+            methodCodeHashSignatures.get(expectedName) ++ constructorHashes
         }
         .flatten
         .sum
