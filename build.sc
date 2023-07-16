@@ -1,4 +1,5 @@
 // plugins and dependencies
+
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
