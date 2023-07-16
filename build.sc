@@ -4,7 +4,6 @@ import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 
-
 import $ivy.`com.github.lolgab::mill-mima::0.0.23`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
@@ -216,8 +215,6 @@ val bridgeScalaVersions = Seq(
   "2.13.10",
   "2.13.11"
 )
-
-
 
 val buildBridgeScalaVersions = if (!buildAllCompilerBridges) Seq() else bridgeScalaVersions
 
@@ -737,8 +734,7 @@ object contrib extends Module {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
         // just remove the shared source dir for that worker and implement directly.
-        os.write(T.dest / "temp.scala", "object temp")
-        Seq(PathRef(T.dest), PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
+        Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
       }
 
       def scalaVersion = Deps.play(playBinary).scalaVersion
@@ -1281,8 +1277,7 @@ object dev extends MillPublishScalaModule {
       Seq(
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
         "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-        s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}",
-        "-Xss32m"
+        s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}"
       )
   }
 
