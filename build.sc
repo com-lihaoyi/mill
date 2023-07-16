@@ -143,13 +143,13 @@ object Deps {
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.8"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.1"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.18"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:3.1.0"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.9.1"
+  val zinc = ivy"org.scala-sbt::zinc:1.9.2"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"

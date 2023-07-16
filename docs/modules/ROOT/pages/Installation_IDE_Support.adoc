@@ -290,14 +290,13 @@ Apart from downloading and installing new versions of Mill globally, there are
 a few ways of selecting/updating your Mill version. This will only work, if you
 have choosen one of the <<_bootstrap_scripts,Boostrap script methods>>:
 
-* Create a `.mill-version` file to specify the version of Mill you wish to use:
+* Create a `.mill-version` or `.config/mill-version` file to specify the version of Mill you wish to use:
 [source,bash]
 ----
 echo "0.5.0" > .mill-version
 ----
 
-`.mill-version` takes precedence over the version of Mill specified in the
-`./mill` script.
+`.mill-version` takes precedence over `.config/mill-version` or the version of Mill specified in the `./mill` script.
 
 * Pass in a `MILL_VERSION` environment variable, e.g.
 [source,bash]
@@ -313,14 +312,14 @@ MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
 ----
 
 to override the Mill version manually. This takes precedence over the version
-specified in `./mill` or `.mill-version`
+specified in `./mill`, `.config/mill-version` or `.mill-version`
 
 === Automatic Mill updates
 
 If your project is hosted on GitHub, GitLab, or Bitbucket, you can use
 https://github.com/scala-steward-org/scala-steward[Scala Steward] to
 automatically open a pull request to update your Mill version (in
-`.mill-version` file), whenever there is a newer version available.
+`.mill-version` or `.config/mill-version` file), whenever there is a newer version available.
 
 TIP: Scala Steward can also
 xref:Configuration.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
@@ -336,6 +335,6 @@ https://github.com/com-lihaoyi/mill/releases[available] as binaries named
 
 The easiest way to use a development release is to use one of the
 <<_bootstrap_scripts>>, which support <<_overriding_mill_versions>> via an
-`MILL_VERSION` environment variable or a `.mill-version` file.
+`MILL_VERSION` environment variable or a `.mill-version` or `.config/mill-version` file.
 
 
