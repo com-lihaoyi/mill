@@ -103,9 +103,13 @@ private[mill] trait GroupEvaluator {
             val methodClass = methods.head.getDeclaringClass.getName
             val name = namedTask.ctx.segment.pathSegments.last
             val expectedName = methodClass + "#" + name + "()mill.define.Target"
-
             val moduleClass = namedTask.ctx.enclosingCls.getName
 
+            // We not only need to look up the code hash of the Target method being called,
+            // but also the code hash of the constructors required to instantiate the Module
+            // that the Target is being called on. This can be done by walking up the nested
+            // classes and looking for the `<init>` or `<init>($prefix)` methods for each
+            // nested class
             val expectedConstructorChain = moduleClass
               .split('$')
               .inits

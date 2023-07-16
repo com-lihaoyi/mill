@@ -4,6 +4,7 @@ import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 
+
 import $ivy.`com.github.lolgab::mill-mima::0.0.23`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
 
@@ -736,7 +737,8 @@ object contrib extends Module {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
         // just remove the shared source dir for that worker and implement directly.
-        Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
+        os.write(T.dest / "temp.scala", "object temp")
+        Seq(PathRef(T.dest), PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
       }
 
       def scalaVersion = Deps.play(playBinary).scalaVersion

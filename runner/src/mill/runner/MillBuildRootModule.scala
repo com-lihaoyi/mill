@@ -159,17 +159,9 @@ class MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget =
-            (calledSig.desc.ret.pretty == "mill.define.Target" ||
-              calledSig.desc.ret.pretty == "mill.define.Worker") &&
+            (calledSig.desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
+              calledSig.desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
               calledSig.desc.args.isEmpty
-
-          // We ignore Commands for the same reason as we ignore Targets, and also because
-          // their implementations get gathered up all the via the `Discover` macro, but this
-          // is primarily for use as external entrypoints and shouldn't really be counted as
-          // part of the `millbuild.build#<init>` transitive call graph they would normally
-          // be counted as
-          def isCommand =
-            calledSig.desc.ret.pretty == "mill.define.Command"
 
           // We avoid ignoring method calls that are simple trait forwarders, because
           // we need the trait forwarders calls to be counted in order to wire up the
@@ -184,7 +176,26 @@ class MillBuildRootModule()(implicit
               callSiteOpt.get.method.static &&
               callSiteOpt.get.method.desc.args.size == 1
 
-          (!isForwarderCallsite && isSimpleTarget) || isCommand
+          // We ignore Commands for the same reason as we ignore Targets, and also because
+          // their implementations get gathered up all the via the `Discover` macro, but this
+          // is primarily for use as external entrypoints and shouldn't really be counted as
+          // part of the `millbuild.build#<init>` transitive call graph they would normally
+          // be counted as
+          def isCommand =
+            calledSig.desc.ret.pretty == classOf[mill.define.Command[_]].getName
+
+          // We also want to skip calls to `millBaseModuleInfo` in general, because the
+          // output of the `Discover` macro appears to be pretty unstable even with just
+          // whitespace changes appended to the end of file. This info is also generally only
+          // used by the entrypoint routing logic, even though it's part of `RootModule#<init>`,
+          // and thus it should be safe to skip it when performing dependency analysis. This
+          // can probably be removed with some refactoring
+          def isBaseModuleInfoCall =
+            calledSig.name == "millBaseModuleInfo" &&
+              calledSig.desc.args.isEmpty &&
+              calledSig.desc.ret.pretty == classOf[mill.main.RootModule.Info].getName
+
+          (isSimpleTarget && !isForwarderCallsite) || isCommand || isBaseModuleInfoCall
         },
         logger = new mill.codesig.Logger(Option.when(T.log.debugEnabled)(T.dest / "current"))
       )

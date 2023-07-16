@@ -40,7 +40,10 @@ class CallGraphAnalysis(
   logger.log(prettyMethods)
 
   lazy val prettyGraph = {
-    indexGraphEdges.zip(indexToNodes).map { case (vs, k) => (k, vs.map(indexToNodes)) }
+    indexGraphEdges.zip(indexToNodes).map { case (vs, k) =>
+      (upickle.default.writeJs(k).str, vs.map(indexToNodes))
+    }
+      .to(SortedMap)
   }
 
   logger.log(prettyGraph)
@@ -72,16 +75,20 @@ class CallGraphAnalysis(
 
   logger.log(transitiveCallGraphHashes)
 
-  lazy val transitiveCallgraph = transitiveCallGraphValues[SortedMap[String, Int]](
-    indexToNodes
-      .indices
-      .map(x => SortedMap(upickle.default.writeJs(indexToNodes(x)).str -> nodeValues(x)))
-      .toArray,
-    _ ++ _,
-    SortedMap.empty[String, Int]
-  )
+  lazy val topoSortedGroupCallGraphHashes = {
+    val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges)
+    topoSortedMethodGroups.map(groupIndex =>
+      groupIndex
+        .flatMap(nodeIndex =>
+          Seq(indexToNodes(nodeIndex)).collect { case CallGraphAnalysis.LocalDef(d) =>
+            (d.toString, transitiveCallGraphHashes(d.toString))
+          }
+        )
+        .to(SortedMap)
+    )
+  }
 
-  logger.log(transitiveCallgraph)
+  logger.log(topoSortedGroupCallGraphHashes)
 }
 
 object CallGraphAnalysis {
