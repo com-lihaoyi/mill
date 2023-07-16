@@ -78,19 +78,14 @@ private[mill] trait GroupEvaluator {
         .map(p => scriptImportGraph.get(p).fold(0)(_._1))
         .sum
     } else {
-//      val constructorCodeHashSignatures = methodCodeHashSignatures
-//        .collect{ case (s"$cls#<init>($args)void", v) => (cls, v) }
-
       group
         .iterator
         .collect {
           case namedTask: NamedTask[_] =>
             def resolveParents(c: Class[_]): Seq[Class[_]] = {
-              Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(
-                resolveParents
-              ) ++ c.getInterfaces.flatMap(
-                resolveParents
-              )
+              Seq(c) ++
+              Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
+              c.getInterfaces.flatMap(resolveParents)
             }
 
             val transitiveParents = resolveParents(namedTask.ctx.enclosingCls)
