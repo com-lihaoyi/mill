@@ -146,7 +146,8 @@ class MillBuildRootModule()(implicit
       }
   }
 
-  def methodCodeHashSignatures: T[Map[String, Int]] = T {
+  def methodCodeHashSignatures: T[Map[String, Int]] = T.persistent {
+    if (os.exists(T.dest / "current")) os.move.over(T.dest / "current", T.dest / "previous")
     val codesig = mill.codesig.CodeSig
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
@@ -185,7 +186,7 @@ class MillBuildRootModule()(implicit
 
           (!isForwarderCallsite && isSimpleTarget) || isCommand
         },
-        logger = new mill.codesig.Logger(Option.when(T.log.debugEnabled)(T.dest))
+        logger = new mill.codesig.Logger(Option.when(T.log.debugEnabled)(T.dest / "current"))
       )
 
     codesig.transitiveCallGraphHashes

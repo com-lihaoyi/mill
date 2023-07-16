@@ -53,6 +53,9 @@ object JvmModel {
   }
   class MethodDef private[JvmModel] (val cls: JType.Cls, val method: MethodSig) {
     override def toString = cls.pretty + method.toString
+
+    val stableHashCode = (cls, method).hashCode
+    override def hashCode() = stableHashCode
   }
 
   object MethodDef {
@@ -63,6 +66,9 @@ object JvmModel {
 
   class MethodSig private[JvmModel] (val static: Boolean, val name: String, val desc: Desc) {
     override def toString = (if (static) "." else "#") + name + desc.pretty
+
+    val stableHashCode = (static, name, desc).hashCode
+    override def hashCode() = stableHashCode
   }
 
   object MethodSig {
@@ -85,6 +91,9 @@ object JvmModel {
       }
       cls.name + sep + name + desc
     }
+
+    val stableHashCode = (cls, invokeType, name, desc).hashCode
+    override def hashCode() = stableHashCode
 
     def toMethodSig(implicit st: SymbolTable) =
       st.MethodSig(invokeType == InvokeType.Static, name, desc)
@@ -167,6 +176,8 @@ object JvmModel {
       assert(!name.contains('['), s"JType $name contains invalid '[' characters")
 
       def pretty = name
+      val stableHashCode = name.hashCode
+      override def hashCode() = stableHashCode
     }
 
     object Cls {
@@ -224,5 +235,8 @@ object JvmModel {
     def pretty = "(" + args.map(_.pretty).mkString(",") + ")" + ret.pretty
 
     override def toString = pretty
+
+    val stableHashCode = (args, ret).hashCode
+    override def hashCode() = stableHashCode
   }
 }
