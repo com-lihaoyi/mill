@@ -20,7 +20,7 @@ case class FileImportGraph(
  */
 @internal
 object FileImportGraph {
-  def backtickWrap(s: String) = if (encode(s) == s) s else "`" + s + "`"
+  def backtickWrap(s: String): String = if (encode(s) == s) s else "`" + s + "`"
 
   import mill.api.JsonFormatters.pathReadWrite
   implicit val readWriter: upickle.default.ReadWriter[FileImportGraph] = upickle.default.macroRW
@@ -38,13 +38,14 @@ object FileImportGraph {
     val errors = mutable.Buffer.empty[String]
     var millImport = false
 
-    def walkScripts(s: os.Path): Unit = {
+    def walkScripts(s: os.Path, useDummy: Boolean = false): Unit = {
       importGraphEdges(s) = Nil
 
       if (!seenScripts.contains(s)) {
-        val readFileEither = scala.util.Try(
-          Parsers.splitScript(os.read(s), s.relativeTo(topLevelProjectRoot).toString)
-        ) match {
+        val readFileEither = scala.util.Try {
+          val content = if (useDummy) "" else os.read(s)
+          Parsers.splitScript(content, s.relativeTo(topLevelProjectRoot).toString)
+        } match {
           case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
           case scala.util.Success(value) => value
         }
@@ -63,7 +64,7 @@ object FileImportGraph {
               walkStmt(s, stmt0, importTrees, fileImports, transformedStmts)
             }
             seenScripts(s) = transformedStmts.mkString
-            fileImports.foreach(walkScripts)
+            fileImports.foreach(walkScripts(_))
         }
       }
     }
@@ -116,7 +117,7 @@ object FileImportGraph {
       transformedStmts.append(stmt)
     }
 
-    walkScripts(projectRoot / "build.sc")
+    walkScripts(projectRoot / "build.sc", !os.exists(projectRoot / "build.sc"))
     new FileImportGraph(
       seenScripts.toMap,
       seenRepo.toSeq,

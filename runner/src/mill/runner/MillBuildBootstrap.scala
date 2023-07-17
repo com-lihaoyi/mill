@@ -60,16 +60,24 @@ class MillBuildBootstrap(
   }
 
   def evaluateRec(depth: Int): RunnerState = {
-    // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
+    println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
     val nestedState =
       if (depth == 0) {
-        if (os.exists(recRoot(projectRoot, depth) / "build.sc")) evaluateRec(depth + 1)
+        // On this level we typically want assume a Mill project, which means we want to require an existing `build.sc`.
+        // Unfortunately, some targets also make sense without a `build.sc`, e.g. the `init` command.
+        // Hence we only report a missing `build.sc` as an problem if the command itself does not succeed.
+        val state = evaluateRec(depth + 1)
+        if (os.exists(recRoot(projectRoot, depth) / "build.sc")) state
         else {
-          val msg = "build.sc file not found. Are you in a Mill project folder?"
-          RunnerState(None, Nil, Some(msg))
+          state match {
+            case RunnerState(bootstrapModuleOpt, frames, Some(error)) =>
+              val msg = "build.sc file not found. Are you in a Mill project folder?\n"
+              RunnerState(bootstrapModuleOpt, frames, Some(msg + error))
+            case state => state
+          }
         }
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
