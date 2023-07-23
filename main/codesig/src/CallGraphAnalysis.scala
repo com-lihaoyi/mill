@@ -10,7 +10,8 @@ class CallGraphAnalysis(
     resolved: ResolvedCalls,
     externalSummary: ExternalSummary,
     ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
-    logger: Logger
+    logger: Logger,
+    prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
 )(implicit st: SymbolTable) {
 
   val methods = for {
@@ -67,31 +68,71 @@ class CallGraphAnalysis(
 
   logger.log(nodeValues)
 
-  val transitiveCallGraphHashes = transitiveCallGraphValues[Int](
+  val transitiveCallGraphHashes0 = transitiveCallGraphValues[Int](
     nodeValues = nodeValues,
     reduce = _ + _,
     zero = 0
   )
+  val transitiveCallGraphHashes = transitiveCallGraphHashes0
+    .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
+    .to(SortedMap)
 
   logger.log(transitiveCallGraphHashes)
 
-  lazy val topoSortedGroupCallGraphHashes = {
-    val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges)
-    topoSortedMethodGroups.map(groupIndex =>
-      groupIndex
-        .flatMap(nodeIndex =>
-          Seq(indexToNodes(nodeIndex)).collect { case CallGraphAnalysis.LocalDef(d) =>
-            (d.toString, transitiveCallGraphHashes(d.toString))
-          }
-        )
-        .to(SortedMap)
-    )
+  lazy val spanningInvalidationForest = prevTransitiveCallGraphHashesOpt() match{
+    case Some(prevTransitiveCallGraphHashes) =>
+      CallGraphAnalysis.spanningInvalidationForest(
+        prevTransitiveCallGraphHashes,
+        transitiveCallGraphHashes0,
+        indexToNodes,
+        indexGraphEdges
+      )
+    case None => ujson.Obj()
   }
 
-  logger.log(topoSortedGroupCallGraphHashes)
+  logger.log(spanningInvalidationForest)
 }
 
 object CallGraphAnalysis {
+  /**
+   * Computes the minimal spanning forest of the that covers the nodes in the
+   * call graph whose transitive call graph hashes has changed since the last
+   * run, rendered as a JSON dictionary tree. This provides a great "debug
+   * view" that lets you easily Cmd-F to find a particular node and then trace
+   * it up the JSON hierarchy to figure out what upstream node was the root
+   * cause of the change in the callgraph. If multiple upstream roots are
+   * present, the path to the upstream root with the fewest number of edges is
+   * chosen.
+   */
+  def spanningInvalidationForest(prevTransitiveCallGraphHashes: Map[String, Int],
+                                 transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)],
+                                 indexToNodes: Array[Node],
+                                 indexGraphEdges: Array[Array[Int]]): ujson.Obj = {
+    val transitiveCallGraphHashes0Map = transitiveCallGraphHashes0.toMap
+
+    val nodesWithChangedHashes = indexGraphEdges
+      .indices
+      .filter { nodeIndex =>
+        val currentValue = transitiveCallGraphHashes0Map(indexToNodes(nodeIndex))
+        val prevValue = prevTransitiveCallGraphHashes.get(indexToNodes(nodeIndex).toString)
+
+        !prevValue.contains(currentValue)
+      }
+      .toSet
+
+    def spanningTreeToJsonTree(node: DagMinimalSpanningForest.Node): ujson.Obj = {
+      ujson.Obj.from(
+        node.values.map{ case (k, v) =>
+          upickle.default.writeJs(indexToNodes(k)).str -> spanningTreeToJsonTree(v)
+        }
+      )
+    }
+
+    spanningTreeToJsonTree(
+      DagMinimalSpanningForest.apply(indexGraphEdges, nodesWithChangedHashes)
+    )
+  }
+
   def indexGraphEdges(
       indexToNodes: Array[Node],
       methods: Map[MethodDef, LocalSummary.MethodInfo],
@@ -192,8 +233,6 @@ object CallGraphAnalysis {
           (indexToNodes(nodeIndex), groupHash)
         }
       }
-      .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
-      .to(SortedMap)
   }
 
   /**

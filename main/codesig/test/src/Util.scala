@@ -15,7 +15,8 @@ object TestUtil {
         .split(",")
         .map(os.Path(_)),
       (_, _) => false,
-      new Logger(Some(testLogFolder))
+      new Logger(Some(testLogFolder)),
+      None
     )
   }
 

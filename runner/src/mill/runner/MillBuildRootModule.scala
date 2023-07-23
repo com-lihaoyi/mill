@@ -14,6 +14,7 @@ import FileImportGraph.backtickWrap
 import mill.codesig.CodeSig
 import mill.main.BuildInfo
 
+import scala.collection.immutable.SortedMap
 import scala.util.Try
 
 /**
@@ -147,6 +148,7 @@ class MillBuildRootModule()(implicit
   }
 
   def methodCodeHashSignatures: T[Map[String, Int]] = T.persistent {
+    os.remove.all(T.dest / "previous")
     if (os.exists(T.dest / "current")) os.move.over(T.dest / "current", T.dest / "previous")
     val codesig = mill.codesig.CodeSig
       .compute(
@@ -197,10 +199,23 @@ class MillBuildRootModule()(implicit
 
           (isSimpleTarget && !isForwarderCallsite) || isCommand || isBaseModuleInfoCall
         },
-        logger = new mill.codesig.Logger(Option.when(T.log.debugEnabled)(T.dest / "current"))
+        logger = new mill.codesig.Logger(Option.when(true)(T.dest / "current")),
+        prevTransitiveCallGraphHashesOpt = () => Option.when(os.exists(T.dest / "previous" / "result.json"))(
+          upickle.default.read[Map[String, Int]](os.read.stream(T.dest / "previous" / "result.json"))
+        )
       )
 
-    codesig.transitiveCallGraphHashes
+    val result = codesig.transitiveCallGraphHashes
+    if (true) {
+      os.write(
+        T.dest / "current" / "result.json",
+        upickle.default.stream(
+          SortedMap.from(codesig.transitiveCallGraphHashes0.map{case (k, v) => (k.toString, v)}),
+          indent = 4
+        )
+      )
+    }
+    result
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {

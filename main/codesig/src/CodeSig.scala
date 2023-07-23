@@ -6,7 +6,8 @@ object CodeSig {
       classFiles: Seq[os.Path],
       upstreamClasspath: Seq[os.Path],
       ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
-      logger: Logger
+      logger: Logger,
+      prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
   ) = {
     implicit val st: SymbolTable = new SymbolTable()
 
@@ -24,7 +25,8 @@ object CodeSig {
       resolvedMethodCalls,
       externalSummary,
       ignoreCall,
-      logger
+      logger,
+      prevTransitiveCallGraphHashesOpt
     )
   }
 }

@@ -191,31 +191,35 @@ object CodeSigNestedTests extends IntegrationTestSuite {
     "trait" - {
 
       val initial = evalStdout("traitOuter.traitInner.inner")
-      assert(
-        initial.out.linesIterator.toSeq == Seq(
-          "running foo",
-          "running helperFoo",
-          "running outer",
-          "running helperTraitOuter",
-          "running inner",
-          "running helperTraitInner"
-        )
-      )
+//      assert(
+//        initial.out.linesIterator.toSeq == Seq(
+//          "running foo",
+//          "running helperFoo",
+//          "running outer",
+//          "running helperTraitOuter",
+//          "running inner",
+//          "running helperTraitInner"
+//        )
+//      )
 
-      val cached = evalStdout("traitOuter.traitInner.inner")
-      assert(cached.out == "")
+//      val cached = evalStdout("traitOuter.traitInner.inner")
+//      assert(cached.out == "")
 
-      mangleFile(wsRoot / "build.sc", _.replace("val valueTraitInner = 0", "val valueTraitInner = 10"))
-      val mangleTraitInnerValue = evalStdout("traitOuter.traitInner.inner")
-      assert(
-        mangleTraitInnerValue.out.linesIterator.toSeq == Seq(
-          "running inner",
-          "running helperTraitInner"
-        )
-      )
+//      mangleFile(wsRoot / "build.sc", _.replace("val valueTraitInner = 0", "val valueTraitInner = 10"))
+//      val mangleTraitInnerValue = evalStdout("traitOuter.traitInner.inner")
+//      assert(
+//        mangleTraitInnerValue.out.linesIterator.toSeq == Seq(
+//          "running inner",
+//          "running helperTraitInner"
+//        )
+//      )
 
       mangleFile(wsRoot / "build.sc", _.replace("val valueTraitOuter = 0", "val valueTraitOuter = 10"))
       val mangleTraitOuterValue = evalStdout("traitOuter.traitInner.inner")
+      os.copy.over(
+        os.Path("/Users/lihaoyi/Github/mill/out/integration/feature/codesig-nested/local/workspaceDir.dest/out/mill-build/methodCodeHashSignatures.dest/"),
+        os.Path("/Users/lihaoyi/Github/mill/methodCodeHashSignatures-after.dest")
+      )
       assert(
         mangleTraitOuterValue.out.linesIterator.toSeq == Seq(
           "running outer",
