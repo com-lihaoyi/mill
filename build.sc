@@ -102,7 +102,7 @@ object Deps {
   val ammoniteVersion = "3.0.0-M0-32-96e851cb"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
-  val coursier = ivy"io.get-coursier::coursier:2.1.4"
+  val coursier = ivy"io.get-coursier::coursier:2.1.5"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.16"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
