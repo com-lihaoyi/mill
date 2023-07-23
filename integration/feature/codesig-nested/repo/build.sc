@@ -22,12 +22,12 @@ object outer extends Module{
 trait TraitOuter extends Module{
   val valueTraitOuter = 0
   def helperTraitOuter = { println("running helperTraitOuter"); 300 + valueTraitOuter }
-  def outer = T{ println("running qux"); foo() + helperTraitOuter }
+  def outer = T{ println("running outer"); foo() + helperTraitOuter }
 
   object traitInner extends Module{
     val valueTraitInner = 0
     def helperTraitInner = { println("running helperTraitInner"); 300 + valueTraitOuter + valueTraitInner }
-    def inner = T{ println("running qux"); foo() + outer() + helperTraitInner }
+    def inner = T{ println("running inner"); foo() + outer() + helperTraitInner }
   }
 }
 
