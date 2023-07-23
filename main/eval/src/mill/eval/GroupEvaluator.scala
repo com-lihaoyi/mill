@@ -31,6 +31,11 @@ private[mill] trait GroupEvaluator {
   def methodCodeHashSignatures: Map[String, Int]
   def disableCallgraphInvalidation: Boolean
 
+  lazy val constructorHashSignatures = methodCodeHashSignatures
+    .toSeq
+    .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
+    .groupMap(_._1)(t => (t._2, t._3))
+
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
@@ -84,8 +89,8 @@ private[mill] trait GroupEvaluator {
           case namedTask: NamedTask[_] =>
             def resolveParents(c: Class[_]): Seq[Class[_]] = {
               Seq(c) ++
-              Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
-              c.getInterfaces.flatMap(resolveParents)
+                Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
+                c.getInterfaces.flatMap(resolveParents)
             }
 
             val transitiveParents = resolveParents(namedTask.ctx.enclosingCls)
@@ -98,29 +103,32 @@ private[mill] trait GroupEvaluator {
             val methodClass = methods.head.getDeclaringClass.getName
             val name = namedTask.ctx.segment.pathSegments.last
             val expectedName = methodClass + "#" + name + "()mill.define.Target"
-            val moduleClass = namedTask.ctx.enclosingCls.getName
 
             // We not only need to look up the code hash of the Target method being called,
             // but also the code hash of the constructors required to instantiate the Module
             // that the Target is being called on. This can be done by walking up the nested
-            // classes and looking for the `<init>` or `<init>($prefix)` methods for each
-            // nested class
-            val expectedConstructorChain = moduleClass
-              .split('$')
-              .inits
-              .map {
-                case Array() => None
-                case Array(single) => Some(single)
-                case multiple => Some(multiple.mkString("$") + "$")
-              }
-              .sliding(2)
-              .map {
-                case Seq(Some(full), Some(prefix)) => s"$full#<init>($prefix)void"
-                case Seq(Some(full), None) => s"$full#<init>()void"
-              }
-              .toList
+            // modules and looking at their constructors (they're `object`s and should each
+            // have only one)
+            val allEnclosingModules = Vector.unfold(namedTask.ctx) {
+              case null => None
+              case ctx =>
+                ctx.enclosingModule match {
+                  case null => None
+                  case m: mill.define.Module => Some((m, m.millOuterCtx))
+                  case unknown => sys.error(s"Unknown ctx: $unknown")
+                }
+            }
 
-            val constructorHashes = expectedConstructorChain.flatMap(methodCodeHashSignatures.get)
+            val constructorHashes = allEnclosingModules
+              .map(m =>
+                constructorHashSignatures.get(m.getClass.getName) match {
+                  case Some(Seq((singleMethod, hash))) => hash
+                  case Some(multiple) => sys.error(
+                      s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
+                    )
+                  case None => 0
+                }
+              )
 
             methodCodeHashSignatures.get(expectedName) ++ constructorHashes
         }
