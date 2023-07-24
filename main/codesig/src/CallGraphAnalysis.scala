@@ -34,20 +34,19 @@ class CallGraphAnalysis(
     nodeToIndex,
     ignoreCall
   )
-  logger.log(indexGraphEdges)
 
-  lazy val prettyMethods = methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
+  lazy val methodCodeHashes = methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
 
-  logger.log(prettyMethods)
+  logger.log(methodCodeHashes)
 
-  lazy val prettyGraph = {
+  lazy val prettyCallGraph = {
     indexGraphEdges.zip(indexToNodes).map { case (vs, k) =>
-      (upickle.default.writeJs(k).str, vs.map(indexToNodes))
+      (k.toString, vs.map(indexToNodes))
     }
       .to(SortedMap)
   }
 
-  logger.log(prettyGraph)
+  logger.log(prettyCallGraph)
 
   def transitiveCallGraphValues[V: scala.reflect.ClassTag](
       nodeValues: Array[V],
@@ -65,8 +64,6 @@ class CallGraphAnalysis(
     case CallGraphAnalysis.LocalDef(m) => methods(m).codeHash
     case _ => 0
   }
-
-  logger.log(nodeValues)
 
   val transitiveCallGraphHashes0 = transitiveCallGraphValues[Int](
     nodeValues = nodeValues,
@@ -100,9 +97,12 @@ object CallGraphAnalysis {
    * run, rendered as a JSON dictionary tree. This provides a great "debug
    * view" that lets you easily Cmd-F to find a particular node and then trace
    * it up the JSON hierarchy to figure out what upstream node was the root
-   * cause of the change in the callgraph. If multiple upstream roots are
-   * present, the path to the upstream root with the fewest number of edges is
-   * chosen.
+   * cause of the change in the callgraph.
+   *
+   * There are typically multiple possible spanning forests for a given graph;
+   * one is chosen arbitrarily. This is usually fine, since when debugging you
+   * typically are investigating why there's a path to a node at all where none
+   * should exist, rather than trying to fully analyse all possible paths
    */
   def spanningInvalidationForest(prevTransitiveCallGraphHashes: Map[String, Int],
                                  transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)],
@@ -120,17 +120,15 @@ object CallGraphAnalysis {
       }
       .toSet
 
-    def spanningTreeToJsonTree(node: DagMinimalSpanningForest.Node): ujson.Obj = {
+    def spanningTreeToJsonTree(node: SpanningForest.Node): ujson.Obj = {
       ujson.Obj.from(
         node.values.map{ case (k, v) =>
-          upickle.default.writeJs(indexToNodes(k)).str -> spanningTreeToJsonTree(v)
+          indexToNodes(k).toString -> spanningTreeToJsonTree(v)
         }
       )
     }
 
-    spanningTreeToJsonTree(
-      DagMinimalSpanningForest.apply(indexGraphEdges, nodesWithChangedHashes)
-    )
+    spanningTreeToJsonTree(SpanningForest.apply(indexGraphEdges, nodesWithChangedHashes))
   }
 
   def indexGraphEdges(
@@ -244,14 +242,16 @@ object CallGraphAnalysis {
   sealed trait Node
 
   implicit def nodeRw: Writer[Node] = upickle.default.stringKeyW(
-    writer[String].comap[Node] {
-      case LocalDef(call) => "def " + call.toString
-      case Call(call) => "call " + call.toString
-      case ExternalClsCall(call) => call.toString
-    }
+    writer[String].comap[Node](_.toString)
   )
 
-  case class LocalDef(call: MethodDef) extends Node
-  case class Call(call: MethodCall) extends Node
-  case class ExternalClsCall(call: JType.Cls) extends Node
+  case class LocalDef(call: MethodDef) extends Node{
+    override def toString = "def " + call.toString
+  }
+  case class Call(call: MethodCall) extends Node{
+    override def toString = "call " + call.toString
+  }
+  case class ExternalClsCall(call: JType.Cls) extends Node{
+    override def toString = "external " + call.toString
+  }
 }
