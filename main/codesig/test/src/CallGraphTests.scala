@@ -23,11 +23,13 @@ object CallGraphTests extends TestSuite {
       test("9-overriden-static-method") - testExpectedCallGraph()
       test("10-peer-inherited-method") - testExpectedCallGraph()
       test("11-java-lambda") - testExpectedCallGraph()
-      test("12-clinit") - testExpectedCallGraph()
-      test("13-private-method-not-inherited") - testExpectedCallGraph()
-      test("14-scala-static-method") - testExpectedCallGraph()
-      test("15-scala-lambda") - testExpectedCallGraph()
-      test("16-scala-trait-constructor") - testExpectedCallGraph()
+      test("12-java-anon-class-lambda") - testExpectedCallGraph()
+      test("13-clinit") - testExpectedCallGraph()
+      test("14-private-method-not-inherited") - testExpectedCallGraph()
+      test("15-scala-static-method") - testExpectedCallGraph()
+      test("16-scala-lambda") - testExpectedCallGraph()
+      test("17-scala-anon-class-lambda") - testExpectedCallGraph()
+      test("18-scala-trait-constructor") - testExpectedCallGraph()
     }
 
     test("complicated") {
@@ -137,11 +139,11 @@ object CallGraphTests extends TestSuite {
     )
 
     val transitiveGraph = transitiveGraph0
-      .map { case (k, vs) =>
+      .collect { case (CallGraphAnalysis.LocalDef(d), vs) =>
         (
-          k,
+          d.toString,
           vs.filter(v => !skipped.exists(v.contains))
-            .collect { case s"def $rest" if rest != k => rest }
+            .collect { case s"def $rest" if rest != d.toString => rest }
         )
       }
       .filter { case (k, vs) => !skipped.exists(k.contains) && vs.nonEmpty }
