@@ -216,10 +216,6 @@ object CodeSigNestedTests extends IntegrationTestSuite {
 
       mangleFile(wsRoot / "build.sc", _.replace("val valueTraitOuter = 0", "val valueTraitOuter = 10"))
       val mangleTraitOuterValue = evalStdout("traitOuter.traitInner.inner")
-      os.copy.over(
-        os.Path("/Users/lihaoyi/Github/mill/out/integration/feature/codesig-nested/local/workspaceDir.dest/out/mill-build/methodCodeHashSignatures.dest/"),
-        os.Path("/Users/lihaoyi/Github/mill/methodCodeHashSignatures-after.dest")
-      )
       assert(
         mangleTraitOuterValue.out.linesIterator.toSeq == Seq(
           "running outer",
