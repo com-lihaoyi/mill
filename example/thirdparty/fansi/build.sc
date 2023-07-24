@@ -46,9 +46,12 @@ object fansi extends Module {
 
 // Fansi is an example of a small library that is cross built against every
 // minor version of Scala (including Scala 3.x) and every platform: JVM, JS,
-// and Native. Both the library and the test suite are duplicated across all
+// and Native.
+// Both the library and the test suite are duplicated across all
 // entries in the {version}x{platform} matrix, and you can select which one you
 // want to compile, test, or publish
+//
+// Project home: https://github.com/com-lihaoyi/fansi
 
 /** Usage
 

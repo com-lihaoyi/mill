@@ -103,7 +103,7 @@ object Deps {
   val ammoniteVersion = "3.0.0-M0-32-96e851cb"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
-  val coursier = ivy"io.get-coursier::coursier:2.1.4"
+  val coursier = ivy"io.get-coursier::coursier:2.1.5"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.16"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
@@ -133,7 +133,7 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.4"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.10"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.10"
@@ -149,7 +149,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:3.1.2"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.9.2"
+  val zinc = ivy"org.scala-sbt::zinc:1.9.3"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"

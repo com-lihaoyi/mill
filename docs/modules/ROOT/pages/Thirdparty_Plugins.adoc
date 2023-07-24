@@ -882,6 +882,31 @@ As Mill is a tool often used from the CLI (Command line interface), you may be a
 * <<_fish_completion>>
 * <<_zsh_completion>>
 
+
+== Spring Boot
+
+Support packaging Spring Boot Applications with Mill.
+
+Project home: https://github.com/lefou/mill-spring-boot
+
+[source,scala,subs="attributes,verbatim"]
+----
+import mill._
+import mill.scalalib._
+import de.tobiasroeser.mill.spring.boot.SpringBootModule
+
+object app extends MavenModule with SpringBootModule {
+  override def springBootToolsVersion = "2.7.13"
+}
+----
+
+[source,shell]
+----
+# Package as executable Spring-Boot Application
+$ mill app.springBootAssembly
+----
+
+
 == VCS Version
 
 Mill plugin to derive a version from (last) git tag and edit state. It may support other VCS as well.
