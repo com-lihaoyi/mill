@@ -8,7 +8,6 @@
     "Tetris#keyReleased(java.awt.event.KeyEvent)void",
     "Tetris#keyTyped(java.awt.event.KeyEvent)void",
     "Tetris$1#<init>(Tetris)void",
-    "Tetris$1#actionPerformed(java.awt.event.ActionEvent)void",
     "Tetris$Background#<init>(Tetris)void"
   ],
   "Tetris#actionPerformed(java.awt.event.ActionEvent)void": [
@@ -44,6 +43,9 @@
   ],
   "Tetris#printLine(int)void": [
     "Tetris#printSquare(int,int,java.awt.Color)void"
+  ],
+  "Tetris$1#<init>(Tetris)void": [
+    "Tetris$1#actionPerformed(java.awt.event.ActionEvent)void"
   ],
   "Tetris$1#actionPerformed(java.awt.event.ActionEvent)void": [
     "Tetris$Block#move(int,int,boolean)void"

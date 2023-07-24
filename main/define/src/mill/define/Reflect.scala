@@ -49,11 +49,11 @@ private[mill] object Reflect {
         // Try to compare both ways to avoid flaky failure
         // https://github.com/com-lihaoyi/mill/actions/runs/5633637756/job/15262758990
         m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass) &&
-        !m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
+          !m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
       )
       .sortWith((m1, m2) =>
         m1.getReturnType.isAssignableFrom(m2.getReturnType) &&
-        !m1.getReturnType.isAssignableFrom(m2.getReturnType)
+          !m1.getReturnType.isAssignableFrom(m2.getReturnType)
       )
       .reverse
       .distinctBy(_.getName)

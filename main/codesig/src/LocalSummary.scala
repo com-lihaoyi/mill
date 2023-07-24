@@ -32,7 +32,12 @@ object LocalSummary {
   object ClassInfo {
     implicit def rw(implicit st: SymbolTable): ReadWriter[ClassInfo] = macroRW
   }
-  case class MethodInfo(calls: Set[MethodCall], isPrivate: Boolean, codeHash: Int)
+  case class MethodInfo(
+      calls: Set[MethodCall],
+      isPrivate: Boolean,
+      codeHash: Int,
+      isAbstract: Boolean
+  )
   object MethodInfo {
     implicit def rw(implicit st: SymbolTable): ReadWriter[MethodInfo] = macroRW
   }
@@ -55,12 +60,20 @@ object LocalSummary {
           val methodCallGraphs = v.classCallGraph.result()
           val methodHashes = v.classMethodHashes.result()
           val methodPrivate = v.classMethodPrivate.result()
+          val methodAbstract = v.classMethodAbstract.result()
           cls -> ClassInfo(
             superClass = v.directSuperClass.get,
             directAncestors = v.directAncestors,
             methods = methodCallGraphs
               .keys
-              .map { m => m -> MethodInfo(methodCallGraphs(m), methodPrivate(m), methodHashes(m)) }
+              .map { m =>
+                m -> MethodInfo(
+                  methodCallGraphs(m),
+                  methodPrivate(m),
+                  methodHashes(m),
+                  methodAbstract(m)
+                )
+              }
               .toMap
           )
         }
@@ -72,6 +85,7 @@ object LocalSummary {
     val classCallGraph = Map.newBuilder[MethodSig, Set[MethodCall]]
     val classMethodHashes = Map.newBuilder[MethodSig, Int]
     val classMethodPrivate = Map.newBuilder[MethodSig, Boolean]
+    val classMethodAbstract = Map.newBuilder[MethodSig, Boolean]
     var clsType: JCls = null
     var directSuperClass: Option[JCls] = None
     var directAncestors: Set[JCls] = Set()
@@ -319,6 +333,8 @@ object LocalSummary {
         insnSigs.hashCode() + jumpList.map(labelIndices).hashCode()
       ))
       clsVisitor.classMethodPrivate.addOne((methodSig, (access & Opcodes.ACC_PRIVATE) != 0))
+      clsVisitor.classMethodAbstract.addOne((methodSig, (access & Opcodes.ACC_ABSTRACT) != 0))
+
     }
   }
 }

@@ -10,6 +10,8 @@ object Hello{
     def apply(x: T): void
   }
   class TestCallbackImpl extends TestCallback[Int, Int]{
+    // Because `TestCallbackImpl` is a SAM implementation,
+    // we treat `apply` as being called from `<init>`
     def apply(x: Int): Int = x + 1
   }
 
@@ -25,18 +27,18 @@ object Hello{
         "hello.Hello$TestElements#<init>()void",
         "hello.Hello$TestElements#run(hello.Hello$TestCallback)int"
     ],
+    "hello.Hello$TestCallback#<init>()void": [
+        "hello.Hello$TestCallback#apply(java.lang.Object)java.lang.Object"
+    ],
     "hello.Hello$TestCallbackImpl#<init>()void": [
-        "hello.Hello$TestCallback#<init>()void"
+        "hello.Hello$TestCallback#<init>()void",
+        "hello.Hello$TestCallbackImpl#apply(java.lang.Object)java.lang.Object"
     ],
     "hello.Hello$TestCallbackImpl#apply(java.lang.Object)java.lang.Object": [
         "hello.Hello$TestCallbackImpl#apply(int)int"
     ],
     "hello.Hello$TestElements#run(hello.Hello$TestCallback)int": [
         "hello.Hello$TestIterator.run$(hello.Hello$TestIterator,hello.Hello$TestCallback)int"
-    ],
-    "hello.Hello$TestIterator#run(hello.Hello$TestCallback)int": [
-        "hello.Hello$TestCallback#apply(java.lang.Object)java.lang.Object",
-        "hello.Hello$TestCallbackImpl#apply(java.lang.Object)java.lang.Object"
     ],
     "hello.Hello$TestIterator.run$(hello.Hello$TestIterator,hello.Hello$TestCallback)int": [
         "hello.Hello$TestIterator#run(hello.Hello$TestCallback)int"

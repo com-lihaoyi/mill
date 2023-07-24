@@ -189,32 +189,37 @@ object CodeSigNestedTests extends IntegrationTestSuite {
     }
 
     "trait" - {
-
       val initial = evalStdout("traitOuter.traitInner.inner")
-//      assert(
-//        initial.out.linesIterator.toSeq == Seq(
-//          "running foo",
-//          "running helperFoo",
-//          "running outer",
-//          "running helperTraitOuter",
-//          "running inner",
-//          "running helperTraitInner"
-//        )
-//      )
+      assert(
+        initial.out.linesIterator.toSeq == Seq(
+          "running foo",
+          "running helperFoo",
+          "running outer",
+          "running helperTraitOuter",
+          "running inner",
+          "running helperTraitInner"
+        )
+      )
 
-//      val cached = evalStdout("traitOuter.traitInner.inner")
-//      assert(cached.out == "")
+      val cached = evalStdout("traitOuter.traitInner.inner")
+      assert(cached.out == "")
 
-//      mangleFile(wsRoot / "build.sc", _.replace("val valueTraitInner = 0", "val valueTraitInner = 10"))
-//      val mangleTraitInnerValue = evalStdout("traitOuter.traitInner.inner")
-//      assert(
-//        mangleTraitInnerValue.out.linesIterator.toSeq == Seq(
-//          "running inner",
-//          "running helperTraitInner"
-//        )
-//      )
+      mangleFile(
+        wsRoot / "build.sc",
+        _.replace("val valueTraitInner = 0", "val valueTraitInner = 10")
+      )
+      val mangleTraitInnerValue = evalStdout("traitOuter.traitInner.inner")
+      assert(
+        mangleTraitInnerValue.out.linesIterator.toSeq == Seq(
+          "running inner",
+          "running helperTraitInner"
+        )
+      )
 
-      mangleFile(wsRoot / "build.sc", _.replace("val valueTraitOuter = 0", "val valueTraitOuter = 10"))
+      mangleFile(
+        wsRoot / "build.sc",
+        _.replace("val valueTraitOuter = 0", "val valueTraitOuter = 10")
+      )
       val mangleTraitOuterValue = evalStdout("traitOuter.traitInner.inner")
       assert(
         mangleTraitOuterValue.out.linesIterator.toSeq == Seq(

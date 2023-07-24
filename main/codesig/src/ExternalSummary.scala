@@ -7,7 +7,7 @@ import JType.{Cls => JCls}
 import java.net.URLClassLoader
 
 case class ExternalSummary(
-    directMethods: Map[JCls, Set[MethodSig]],
+    directMethods: Map[JCls, Map[MethodSig, Boolean]],
     directAncestors: Map[JCls, Set[JCls]],
     directSuperclasses: Map[JCls, JCls]
 )
@@ -41,7 +41,7 @@ object ExternalSummary {
       .flatMap(call => Seq(call.cls) ++ call.desc.args)
       .collect { case c: JType.Cls => c }
 
-    val methodsPerCls = collection.mutable.Map.empty[JCls, Set[MethodSig]]
+    val methodsPerCls = collection.mutable.Map.empty[JCls, Map[MethodSig, Boolean]]
     val ancestorsPerCls = collection.mutable.Map.empty[JCls, Set[JCls]]
     val directSuperclasses = collection.mutable.Map.empty[JCls, JCls]
 
@@ -72,7 +72,7 @@ object ExternalSummary {
   }
 
   class MyClassVisitor(implicit st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
-    var methods: Set[MethodSig] = Set()
+    var methods: Map[MethodSig, Boolean] = Map()
     var ancestors: Set[JCls] = null
     var superclass: JCls = null
 
@@ -100,7 +100,9 @@ object ExternalSummary {
         exceptions: Array[String]
     ): MethodVisitor = {
 
-      methods += st.MethodSig((access & Opcodes.ACC_STATIC) != 0, name, st.Desc.read(descriptor))
+      methods +=
+        st.MethodSig((access & Opcodes.ACC_STATIC) != 0, name, st.Desc.read(descriptor)) ->
+          ((access & Opcodes.ACC_ABSTRACT) != 0)
 
       new MethodVisitor(Opcodes.ASM9) {}
     }

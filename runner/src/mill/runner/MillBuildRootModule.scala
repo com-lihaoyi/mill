@@ -174,9 +174,9 @@ class MillBuildRootModule()(implicit
           // take over
           def isForwarderCallsite =
             callSiteOpt.nonEmpty &&
-              callSiteOpt.get.method.name == (calledSig.name + "$") &&
-              callSiteOpt.get.method.static &&
-              callSiteOpt.get.method.desc.args.size == 1
+              callSiteOpt.get.sig.name == (calledSig.name + "$") &&
+              callSiteOpt.get.sig.static &&
+              callSiteOpt.get.sig.desc.args.size == 1
 
           // We ignore Commands for the same reason as we ignore Targets, and also because
           // their implementations get gathered up all the via the `Discover` macro, but this
@@ -200,9 +200,12 @@ class MillBuildRootModule()(implicit
           (isSimpleTarget && !isForwarderCallsite) || isCommand || isBaseModuleInfoCall
         },
         logger = new mill.codesig.Logger(Option.when(true)(T.dest / "current")),
-        prevTransitiveCallGraphHashesOpt = () => Option.when(os.exists(T.dest / "previous" / "result.json"))(
-          upickle.default.read[Map[String, Int]](os.read.stream(T.dest / "previous" / "result.json"))
-        )
+        prevTransitiveCallGraphHashesOpt = () =>
+          Option.when(os.exists(T.dest / "previous" / "result.json"))(
+            upickle.default.read[Map[String, Int]](
+              os.read.stream(T.dest / "previous" / "result.json")
+            )
+          )
       )
 
     val result = codesig.transitiveCallGraphHashes
@@ -210,7 +213,7 @@ class MillBuildRootModule()(implicit
       os.write(
         T.dest / "current" / "result.json",
         upickle.default.stream(
-          SortedMap.from(codesig.transitiveCallGraphHashes0.map{case (k, v) => (k.toString, v)}),
+          SortedMap.from(codesig.transitiveCallGraphHashes0.map { case (k, v) => (k.toString, v) }),
           indent = 4
         )
       )

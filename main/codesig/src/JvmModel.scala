@@ -51,15 +51,15 @@ object JvmModel {
       def read(name: String) = get(name)
     }
   }
-  class MethodDef private[JvmModel] (val cls: JType.Cls, val method: MethodSig) {
-    override def toString = cls.pretty + method.toString
+  class MethodDef private[JvmModel] (val cls: JType.Cls, val sig: MethodSig) {
+    override def toString = cls.pretty + sig.toString
 
-    val stableHashCode = (cls, method).hashCode
+    val stableHashCode = (cls, sig).hashCode
     override def hashCode() = stableHashCode
   }
 
   object MethodDef {
-    implicit val ordering: Ordering[MethodDef] = Ordering.by(m => (m.cls, m.method))
+    implicit val ordering: Ordering[MethodDef] = Ordering.by(m => (m.cls, m.sig))
     implicit val rw: ReadWriter[MethodDef] =
       stringKeyRW(readwriter[String].bimap(_.toString, _ => ???))
   }

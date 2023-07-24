@@ -5,7 +5,8 @@ import upickle.default.{ReadWriter, macroRW}
 
 case class ResolvedCalls(
     localCalls: Map[MethodCall, ResolvedCalls.MethodCallInfo],
-    externalClassLocalDests: Map[JCls, (Set[JCls], Set[MethodSig])]
+    externalClassLocalDests: Map[JCls, (Set[JCls], Set[MethodSig])],
+    classSingleAbstractMethods: Map[JCls, Set[MethodSig]]
 )
 
 /**
@@ -26,7 +27,7 @@ object ResolvedCalls {
       externalSummary: ExternalSummary
   )(implicit st: SymbolTable): ResolvedCalls = {
 
-    val allDirectAncestors = 
+    val allDirectAncestors =
       localSummary.mapValues(_.directAncestors) ++ externalSummary.directAncestors
 
     val directDescendents = {
@@ -53,7 +54,8 @@ object ResolvedCalls {
           // <init> methods are final and cannot be overriden
           val methods = externalSummary
             .directMethods
-            .getOrElse(externalCls, Set())
+            .getOrElse(externalCls, Map())
+            .keySet
             .filter(m => !m.static && m.name != "<init>")
 
           (externalCls, (localClasses, methods))
@@ -83,6 +85,51 @@ object ResolvedCalls {
           (call.cls, breadthFirst(Seq(call.cls))(directDescendents.getOrElse(_, Nil)).toSet)
       }
       .toMap
+
+    // We identify all method defs that "look like" some kind of Single-Abstract-Method
+    // for special casing. These kinds of methods tend to have very different usage
+    // patterns than non-SAM methods, and so we use different conservative approximations
+    // for analyzing their calls: we assume they are "live" when they are *instantiated*,
+    // rather than when they are *invoked* (ideally we'd check both, but that's
+    // computationally expensive)
+    //
+    // This special casing is similar to how we treat InvokeDynamic lambdas, and helps
+    // because SAM methods are like lambdas in that they are *instantiated* in many
+    // different places throughout the codebase, but are almost always *invoked* very
+    // close to the point of instantiation. That means that checking that the SAM is
+    // instantiated is pretty precise, whereas checking that it is called is very
+    // im-precise since SAMs have so many implementations across the codebase it's
+    // almost guaranteed that one of them would be called.
+    val classSingleAbstractMethods: Map[JCls, Set[MethodSig]] = {
+      val localSamDefiners = localSummary
+        .items
+        .flatMap { case (cls, clsInfo) =>
+          clsInfo.methods.iterator.filter(_._2.isAbstract).toSeq match {
+            case Seq((k, v)) => Some((cls, k))
+            case _ => None
+          }
+        }
+
+      val externalSamDefiners = externalSummary
+        .directMethods
+        .map { case (k, v) => (k, v.collect { case (sig, true) => sig }) }
+        .collect { case (k, Seq(v)) => (k, v) }
+
+      val allSamDefiners = localSamDefiners ++ externalSamDefiners
+
+      val allSamImplementors0 = allSamDefiners
+        .toSeq
+        .flatMap { case (cls, sig) =>
+          breadthFirst(Seq(cls))(cls => directDescendents.getOrElse(cls, Nil)).map(_ -> sig)
+        }
+
+      val allSamImplementors = allSamImplementors0
+        .groupMap(_._1)(_._2)
+        .mapValues(_.toSet)
+        .toMap
+
+      allSamImplementors
+    }
 
     val localCalls = {
       allCalls
@@ -134,7 +181,8 @@ object ResolvedCalls {
 
     ResolvedCalls(
       localCalls = localCalls,
-      externalClassLocalDests = externalClsToLocalClsMethods
+      externalClassLocalDests = externalClsToLocalClsMethods,
+      classSingleAbstractMethods = classSingleAbstractMethods
     )
   }
 
