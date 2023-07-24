@@ -26,10 +26,8 @@ object ResolvedCalls {
       externalSummary: ExternalSummary
   )(implicit st: SymbolTable): ResolvedCalls = {
 
-    val allDirectAncestors = {
-      localSummary.mapValues(_.directAncestors) ++
-        externalSummary.directAncestors
-    }
+    val allDirectAncestors = 
+      localSummary.mapValues(_.directAncestors) ++ externalSummary.directAncestors
 
     val directDescendents = {
       allDirectAncestors
@@ -47,9 +45,7 @@ object ResolvedCalls {
         .flatMap { cls =>
           breadthFirst(Seq(cls))(allDirectAncestors.getOrElse(_, Nil))
             .filter(!localSummary.items.contains(_))
-            .map { externalCls =>
-              (externalCls, Set(cls))
-            }
+            .map((_, Set(cls)))
             .toMap
         }
         .groupMapReduce(_._1)(_._2)(_ ++ _)
