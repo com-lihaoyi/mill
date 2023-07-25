@@ -46,8 +46,6 @@ private[mill] object Reflect {
     //    return type, so we can identify the most specific override
     res
       .sortWith((m1, m2) =>
-        // Try to compare both ways to avoid flaky failure
-        // https://github.com/com-lihaoyi/mill/actions/runs/5633637756/job/15262758990
         m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
       )
       .sortWith((m1, m2) =>
