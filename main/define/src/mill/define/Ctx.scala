@@ -59,7 +59,8 @@ object Ctx {
     def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
     def withSegment(segment: Segment): Ctx = copy(segment = segment)
     def withSegments(segments: Segments): Ctx = copy(segments = segments)
-    override def withEnclosingModule(enclosingModule: Any): Ctx = copy(enclosingModule = enclosingModule)
+    override def withEnclosingModule(enclosingModule: Any): Ctx =
+      copy(enclosingModule = enclosingModule)
   }
 
   /**
