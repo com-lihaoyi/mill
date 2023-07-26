@@ -35,7 +35,8 @@ class MillBuildBootstrap(
     threadCount: Option[Int],
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
-    logger: ColorLogger
+    logger: ColorLogger,
+    needBuildSc: Boolean
 ) {
   import MillBuildBootstrap._
 
@@ -60,7 +61,7 @@ class MillBuildBootstrap(
   }
 
   def evaluateRec(depth: Int): RunnerState = {
-    println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
+//    println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
@@ -69,14 +70,19 @@ class MillBuildBootstrap(
         // On this level we typically want assume a Mill project, which means we want to require an existing `build.sc`.
         // Unfortunately, some targets also make sense without a `build.sc`, e.g. the `init` command.
         // Hence we only report a missing `build.sc` as an problem if the command itself does not succeed.
-        val state = evaluateRec(depth + 1)
+        lazy val state = evaluateRec(depth + 1)
         if (os.exists(recRoot(projectRoot, depth) / "build.sc")) state
         else {
-          state match {
-            case RunnerState(bootstrapModuleOpt, frames, Some(error)) =>
-              val msg = "build.sc file not found. Are you in a Mill project folder?\n"
-              RunnerState(bootstrapModuleOpt, frames, Some(msg + error))
-            case state => state
+          val msg = "build.sc file not found. Are you in a Mill project folder?"
+          if (needBuildSc) {
+            RunnerState(None, Nil, Some(msg))
+          } else {
+            state match {
+              case RunnerState(bootstrapModuleOpt, frames, Some(error)) =>
+                // Add a potential clue (missing build.sc) to the underlying error message
+                RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
+              case state => state
+            }
           }
         }
       } else {

@@ -202,7 +202,8 @@ object MillMain {
                       threadCount = threadCount,
                       targetsAndParams = targetsAndParams,
                       prevRunnerState = prevState.getOrElse(stateCache),
-                      logger = logger
+                      logger = logger,
+                      needBuildSc = needBuildSc(targetsAndParams)
                     ).evaluate()
                   }
                 )
@@ -260,6 +261,19 @@ object MillMain {
       printLoggerState
     )
     logger
+  }
+
+  private def needBuildSc(targetsAndParams: Seq[String]): Boolean = {
+    // Tasks, for which running Mill without an existing buildfile is allowed.
+    val noBuildFileTaskWhitelist = Seq(
+      "init",
+      "version",
+      "mill.scalalib.giter8.Giter8Module/init"
+    )
+    val whitelistMatch =
+      targetsAndParams.nonEmpty && noBuildFileTaskWhitelist.exists(targetsAndParams.head == _)
+
+    !whitelistMatch
   }
 
   def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream) = {
