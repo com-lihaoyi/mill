@@ -60,7 +60,7 @@ object FileImportGraph {
           case Right(stmts) =>
             val fileImports = mutable.Set.empty[os.Path]
             // we don't expect any new imports when using an empty dummy
-            if(useDummy) assert(fileImports.isEmpty)
+            if (useDummy) assert(fileImports.isEmpty)
             val transformedStmts = mutable.Buffer.empty[String]
             for ((stmt0, importTrees) <- Parsers.parseImportHooksWithIndices(stmts)) {
               walkStmt(s, stmt0, importTrees, fileImports, transformedStmts)
