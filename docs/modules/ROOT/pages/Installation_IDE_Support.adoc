@@ -1,80 +1,98 @@
 = Installation and IDE Support
 :page-aliases: Installation.adoc, IDE_Support.adoc
 
-The best method of installing Mill is to just install a bootstrap script.
+The best method of installing Mill is to just install a <<_bootstrap_scripts,bootstrap script>>.
 This script can determine the best version to be used by a project (e.g. by
-reading a `.mill-version` file) and will use this exact Mill version.
-If that version is not installed locally, it will be downloaded automatically.
+reading a `.mill-version` or `.config/mill-version` file or a `MILL_VERSION` environment variable) and will use this exact Mill version.
+If the determined Mill version is not installed locally, it will be downloaded automatically.
 
-== Bootstrap Scripts
+[#_bootstrap_scripts]
+== Bootstrap Scripts: `mill` or `millw`
 
-There are currently two bootstrap script available, one
-<<_mills_bootstrap_script_linuxos_x_only,in the Mill repository>>, which only
-work for Linux and Unix-like machines, and one <<_millw,external `millw` script>>,
-with more features and also Windows support.
+There are currently two bootstrap script available:
+
+* the rather simple `mill` script <<_mills_bootstrap_script_linuxos_x_only,in the root of th Mill repository>>, which only works on Linux and Unix-like machines, or
+* <<_millw,the `lefou/millw` script>>, an external project with more features and more supported platforms.
 
 Using `millw` is recommended.
-
 We plan to merge both script in the future.
 
-=== Mill's Bootstrap Script (Linux/OS-X Only)
+In general, bootstrap scripts are the recommended way of installing Mill,
+because they reduce the chance of errors due to the installed version of Mill
+being incompatible with the version expected by your build.
 
-If you are using Mill in a codebase, you can commit the bootstrap launcher as a
-`./mill` script in the project folder:
+All bootstrap scripts can be installed globally and/or per project.
+
+=== Global installation
+
+After installing the script in a global or user-wide location, you can use it everywhere.
+If it detects project-specific configuration of the Mill version, it will download and use this exact version.
+
+=== Project-specific installation
+
+You can also add the script to your project as `mill`.
+This makes it easier for new contributors to build your project, as they don't have to install Mill before they can start.
+Anyone who wants to work with the project can simply use the `./mill` script directly.
+
+[source,bash]
+----
+./mill --version
+./mill __.compile # double underscore
+----
+
+In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
+that your build server like Jenkins or Github Actions has the correct version of Mill present to build, compile or test your code.
+
+[#_mills_bootstrap_script_linuxos_x_only]
+=== Mill's in-repo Bootstrap Script (Linux/OS-X Only)
+
+You can find this script in the root of the Mill repository, or on each release page.
+To get the latest version run the following command:
 
 [source,bash,subs="verbatim,attributes"]
 ----
 curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-version} > mill && chmod +x mill
 ----
 
-Now, anyone who wants to work with the project can simply use the `./mill`
-script directly:
-
-[source,bash]
-----
-./mill version
-./mill __.compile # double underscore
-----
-
 The `mill` command will automatically use the version specified by the
-bootstrap script, even if you installed it via other means. The `./mill` file
-has a version number embedded within it, which you can update simply by editing
-the script. Bootstrap scripts are also useful for running Mill in CI, ensuring
-that your Jenkins/Travis/etc. box has the correct version of Mill present to
-build/compile/test your code.
+bootstrap script, even if you installed it via other means.
+The `./mill` file has a version number embedded within it, which you can update simply by editing the script.
 
-In general, bootstrap scripts are the recommended way of installing Mill
-because they reduce the chance of errors due to the installed version of Mill
-being incompatible with the version expected by your build.
+=== `millw`
 
-=== millw
+You can also use https://github.com/lefou/millw[lefou/millw] as a drop-in replacement for `mill`.
+This script is a bit more advanced, and supports running on all major platforms including MS Windows.
 
-Instead of installing Mill directly, you can also use
-https://github.com/lefou/millw[lefou/millw] as drop-in replacement for `mill`.
-It provides a small shell script and also a Windows batch file, that
-transparently downloads `mill` and executes it on your behalf. It respects
-various ways to configure the preferred Mill version (`MILL_VERSION` env var,
-`.mill-version` file, `--mill-version` option) and can also be used as a
-bootstrap script in your project.
+The script supports to following sources when determining the best Mill version to use:
+
+* `MILL_VERSION` environment variable
+* `.mill-version` file in the project directory
+* `.config/mill-version` file in the project directory
+* if non was defined so far, it can also check for the latest available version online
+* `DEFAULT_MILL_VERSION` environment variable
+
+Using a system-wide installed `millw` is probably the robustest way to use Mill on any operating system.
+It also preserves support of rather old Mill versions next to recent ones, so that updating it or switching to `millw` initially should be a no-brainer.
 
 
-== Installing Mill Globally
+== Other installation methods
 
-While the <<_bootstrap_scripts>> approach above is the recommended way of
-installing Mill for a project, you can also install Mill globally in your
-operating system using the commands shown below.
+Of course, you can also use the package manager of your operating system or distribution.
+Please keep in mind, that all those solutions listed below are maintained outside of Mill and may not have the same features as the <<_bootstrap_scripts>>.
 
-=== OS X
+CAUTION: Some of the installations via package managers install a fixed version of Mill and do not support project-specific selection of the preferred Mill version. If you want to use the `MILL_VERSION` environment variable or need support for `.mill-version` or `.config/mill-version` files to control the actual used Mill version, please use a <<_bootstrap_scripts,Bootstrap script>> instead.
+
+==== OS X
 
 Installation via https://github.com/Homebrew/homebrew-core/blob/master/Formula/mill.rb[homebrew]:
 
 [source,sh]
 ----
 brew install mill
-
 ----
 
-=== Arch Linux
+
+==== Arch Linux
 
 Arch Linux has a https://www.archlinux.org/packages/community/any/mill/[Community package for mill]:
 
@@ -84,7 +102,7 @@ pacman -S mill
 
 ----
 
-=== FreeBSD
+==== FreeBSD
 
 Installation via http://man.freebsd.org/pkg/8[pkg(8)]:
 
@@ -94,7 +112,7 @@ pkg install mill
 
 ----
 
-=== Gentoo Linux
+==== Gentoo Linux
 
 [source,sh]
 ----
@@ -102,7 +120,7 @@ emerge dev-java/mill-bin
 
 ----
 
-=== Windows
+==== Windows
 
 To get started, download Mill from
 {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-assembly[Github releases], and save it as `mill.bat`.
@@ -114,7 +132,7 @@ If you're using https://scoop.sh[Scoop] you can install Mill via
 scoop install mill
 ----
 
-=== WSL / MSYS2 / Cycgin / Git-Bash
+==== WSL / MSYS2 / Cycgin / Git-Bash
 
 Mill also works on "sh" environments on Windows (e.g.,
 https://www.msys2.org[MSYS2],
@@ -132,7 +150,7 @@ section. Note that:
 sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
 ----
 
-=== Docker
+==== Docker
 
 You can download and run
 a https://hub.docker.com/r/nightscape/scala-mill/["Docker image containing OpenJDK, Scala and Mill"] using
