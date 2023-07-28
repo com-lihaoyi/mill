@@ -7,7 +7,7 @@ reading a `.mill-version` or `.config/mill-version` file or a `MILL_VERSION` env
 If the determined Mill version is not installed locally, it will be downloaded automatically.
 
 [#_bootstrap_scripts]
-== Bootstrap Scripts: `mill` or `millw`
+== Bootstrap Scripts
 
 There are currently two bootstrap script available:
 
@@ -78,7 +78,7 @@ It also preserves support of rather old Mill versions next to recent ones, so th
 == Other installation methods
 
 Of course, you can also use the package manager of your operating system or distribution.
-Please keep in mind, that all those solutions listed below are maintained outside of Mill and may not have the same features as the <<_bootstrap_scripts>>.
+Please keep in mind, that all those solutions listed below are maintained outside of Mill and may not have the same features as the <<_bootstrap_scripts,bootstrap scripts>>.
 
 CAUTION: Some of the installations via package managers install a fixed version of Mill and do not support project-specific selection of the preferred Mill version. If you want to use the `MILL_VERSION` environment variable or need support for `.mill-version` or `.config/mill-version` files to control the actual used Mill version, please use a <<_bootstrap_scripts,Bootstrap script>> instead.
 
