@@ -259,14 +259,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.1-20-8172ca</span>
+    <span class="version">0.11.1-21-2c7fdf</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.1-20-8172ca</a>
+          <a href="index.html">0.11.1-21-2c7fdf</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -299,9 +299,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.1-20-8172ca</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.1-21-2c7fdf</button>
   <div class="version-menu">
-    <a class="version is-current" href="Installation_IDE_Support.html">0.11.1-20-8172ca</a>
+    <a class="version is-current" href="Installation_IDE_Support.html">0.11.1-21-2c7fdf</a>
     <a class="version" href="0.11.0-M7/Installation.html">0.11.0-M7</a>
     <a class="version" href="0.10.12/Installation.html">0.10.12</a>
     <a class="version is-missing" href="0.10.0/index.html">0.10.0</a>
@@ -319,10 +319,10 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The best method of installing Mill is to just install a bootstrap script.
+<p>The best method of installing Mill is to just install a <a href="#_bootstrap_scripts">bootstrap script</a>.
 This script can determine the best version to be used by a project (e.g. by
-reading a <code>.mill-version</code> file) and will use this exact Mill version.
-If that version is not installed locally, it will be downloaded automatically.</p>
+reading a <code>.mill-version</code> or <code>.config/mill-version</code> file or a <code>MILL_VERSION</code> environment variable) and will use this exact Mill version.
+If the determined Mill version is not installed locally, it will be downloaded automatically.</p>
 </div>
 </div>
 </div>
@@ -330,73 +330,125 @@ If that version is not installed locally, it will be downloaded automatically.</
 <h2 id="_bootstrap_scripts"><a class="anchor" href="#_bootstrap_scripts"></a>Bootstrap Scripts</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>There are currently two bootstrap script available, one
-<a href="#_mills_bootstrap_script_linuxos_x_only">in the Mill repository</a>, which only
-work for Linux and Unix-like machines, and one <a href="#_millw">external <code>millw</code> script</a>,
-with more features and also Windows support.</p>
+<p>There are currently two bootstrap script available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>the rather simple <code>mill</code> script <a href="#_mills_bootstrap_script_linuxos_x_only">in the root of th Mill repository</a>, which only works on Linux and Unix-like machines, or</p>
+</li>
+<li>
+<p><a href="#_millw">the <code>lefou/millw</code> script</a>, an external project with more features and more supported platforms.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>Using <code>millw</code> is recommended.</p>
+<p>Using <code>millw</code> is recommended.
+We plan to merge both script in the future.</p>
 </div>
 <div class="paragraph">
-<p>We plan to merge both script in the future.</p>
+<p>In general, bootstrap scripts are the recommended way of installing Mill,
+because they reduce the chance of errors due to the installed version of Mill
+being incompatible with the version expected by your build.</p>
+</div>
+<div class="paragraph">
+<p>All bootstrap scripts can be installed globally and/or per project.</p>
 </div>
 <div class="sect2">
-<h3 id="_mills_bootstrap_script_linuxos_x_only"><a class="anchor" href="#_mills_bootstrap_script_linuxos_x_only"></a>Mill’s Bootstrap Script (Linux/OS-X Only)</h3>
+<h3 id="_global_installation"><a class="anchor" href="#_global_installation"></a>Global installation</h3>
 <div class="paragraph">
-<p>If you are using Mill in a codebase, you can commit the bootstrap launcher as a
-<code>./mill</code> script in the project folder:</p>
+<p>After installing the script in a global or user-wide location, you can use it everywhere.
+If it detects project-specific configuration of the Mill version, it will download and use this exact version.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_project_specific_installation"><a class="anchor" href="#_project_specific_installation"></a>Project-specific installation</h3>
+<div class="paragraph">
+<p>You can also add the script to your project as <code>mill</code>.
+This makes it easier for new contributors to build your project, as they don’t have to install Mill before they can start.
+Anyone who wants to work with the project can simply use the <code>./mill</code> script directly.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -L https://github.com/com-lihaoyi/mill/releases/download/0.11.1/0.11.1-20-8172ca &gt; mill &amp;&amp; chmod +x mill</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now, anyone who wants to work with the project can simply use the <code>./mill</code>
-script directly:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill version
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill --version
 ./mill __.compile # double underscore</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>mill</code> command will automatically use the version specified by the
-bootstrap script, even if you installed it via other means. The <code>./mill</code> file
-has a version number embedded within it, which you can update simply by editing
-the script. Bootstrap scripts are also useful for running Mill in CI, ensuring
-that your Jenkins/Travis/etc. box has the correct version of Mill present to
-build/compile/test your code.</p>
-</div>
-<div class="paragraph">
-<p>In general, bootstrap scripts are the recommended way of installing Mill
-because they reduce the chance of errors due to the installed version of Mill
-being incompatible with the version expected by your build.</p>
+<p>In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
+that your build server like Jenkins or Github Actions has the correct version of Mill present to build, compile or test your code.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_millw"><a class="anchor" href="#_millw"></a>millw</h3>
+<h3 id="_mills_bootstrap_script_linuxos_x_only"><a class="anchor" href="#_mills_bootstrap_script_linuxos_x_only"></a>Mill’s in-repo Bootstrap Script (Linux/OS-X Only)</h3>
 <div class="paragraph">
-<p>Instead of installing Mill directly, you can also use
-<a href="https://github.com/lefou/millw">lefou/millw</a> as drop-in replacement for <code>mill</code>.
-It provides a small shell script and also a Windows batch file, that
-transparently downloads <code>mill</code> and executes it on your behalf. It respects
-various ways to configure the preferred Mill version (<code>MILL_VERSION</code> env var,
-<code>.mill-version</code> file, <code>--mill-version</code> option) and can also be used as a
-bootstrap script in your project.</p>
+<p>You can find this script in the root of the Mill repository, or on each release page.
+To get the latest version run the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -L https://github.com/com-lihaoyi/mill/releases/download/0.11.1/0.11.1-21-2c7fdf &gt; mill &amp;&amp; chmod +x mill</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>mill</code> command will automatically use the version specified by the
+bootstrap script, even if you installed it via other means.
+The <code>./mill</code> file has a version number embedded within it, which you can update simply by editing the script.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_millw"><a class="anchor" href="#_millw"></a><code>millw</code></h3>
+<div class="paragraph">
+<p>You can also use <a href="https://github.com/lefou/millw">lefou/millw</a> as a drop-in replacement for <code>mill</code>.
+This script is a bit more advanced, and supports running on all major platforms including MS Windows.</p>
+</div>
+<div class="paragraph">
+<p>The script supports to following sources when determining the best Mill version to use:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>MILL_VERSION</code> environment variable</p>
+</li>
+<li>
+<p><code>.mill-version</code> file in the project directory</p>
+</li>
+<li>
+<p><code>.config/mill-version</code> file in the project directory</p>
+</li>
+<li>
+<p>if non was defined so far, it can also check for the latest available version online</p>
+</li>
+<li>
+<p><code>DEFAULT_MILL_VERSION</code> environment variable</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Using a system-wide installed <code>millw</code> is probably the robustest way to use Mill on any operating system.
+It also preserves support of rather old Mill versions next to recent ones, so that updating it or switching to <code>millw</code> initially should be a no-brainer.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_installing_mill_globally"><a class="anchor" href="#_installing_mill_globally"></a>Installing Mill Globally</h2>
+<h2 id="_other_installation_methods"><a class="anchor" href="#_other_installation_methods"></a>Other installation methods</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>While the <a href="#_bootstrap_scripts">Bootstrap Scripts</a> approach above is the recommended way of
-installing Mill for a project, you can also install Mill globally in your
-operating system using the commands shown below.</p>
+<p>Of course, you can also use the package manager of your operating system or distribution.
+Please keep in mind, that all those solutions listed below are maintained outside of Mill and may not have the same features as the <a href="#_bootstrap_scripts">bootstrap scripts</a>.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Some of the installations via package managers install a fixed version of Mill and do not support project-specific selection of the preferred Mill version. If you want to use the <code>MILL_VERSION</code> environment variable or need support for <code>.mill-version</code> or <code>.config/mill-version</code> files to control the actual used Mill version, please use a <a href="#_bootstrap_scripts">Bootstrap script</a> instead.
+</td>
+</tr>
+</tbody></table>
 </div>
 <div class="sect2">
 <h3 id="_os_x"><a class="anchor" href="#_os_x"></a>OS X</h3>
@@ -479,9 +531,8 @@ section. Note that:</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sed -i '0,/-cp &quot;\$0&quot;/{s/-cp &quot;\$0&quot;/-cp `cygpath -w &quot;\$0&quot;`/}; 0,/-cp &quot;\$0&quot;/{s/-cp &quot;\$0&quot;/-cp `cygpath -w &quot;\$0&quot;`/}' /usr/local/bin/mill</code></pre>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_docker"><a class="anchor" href="#_docker"></a>Docker</h3>
+<div class="sect3">
+<h4 id="_docker"><a class="anchor" href="#_docker"></a>Docker</h4>
 <div class="paragraph">
 <p>You can download and run
 a <a href="https://hub.docker.com/r/nightscape/scala-mill/">&quot;Docker image containing OpenJDK, Scala and Mill&quot;</a> using</p>
@@ -490,6 +541,7 @@ a <a href="https://hub.docker.com/r/nightscape/scala-mill/">&quot;Docker image c
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker pull nightscape/scala-mill
 docker run -it nightscape/scala-mill</code></pre>
+</div>
 </div>
 </div>
 </div>
