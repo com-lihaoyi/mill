@@ -45,7 +45,8 @@ private class State(
       targetsAndParams = Seq("resolve", "_"),
       prevRunnerState = mill.runner.RunnerState.empty,
       logger = baseLogger,
-      disableCallgraphInvalidation = disableCallgraphInvalidation
+      disableCallgraphInvalidation = disableCallgraphInvalidation,
+      needBuildSc = true
     ).evaluate()
 
     val rootModules0 = evaluated.result.frames

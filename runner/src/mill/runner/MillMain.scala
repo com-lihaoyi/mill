@@ -203,7 +203,8 @@ object MillMain {
                       targetsAndParams = targetsAndParams,
                       prevRunnerState = prevState.getOrElse(stateCache),
                       logger = logger,
-                      disableCallgraphInvalidation = config.disableCallgraphInvalidation.value
+                      disableCallgraphInvalidation = config.disableCallgraphInvalidation.value,
+                      needBuildSc = needBuildSc(config)
                     ).evaluate()
                   }
                 )
@@ -261,6 +262,25 @@ object MillMain {
       printLoggerState
     )
     logger
+  }
+
+  /**
+   * Determine, whether we need a `build.sc` or not.
+   */
+  private def needBuildSc(config: MillCliConfig): Boolean = {
+    // Tasks, for which running Mill without an existing buildfile is allowed.
+    val noBuildFileTaskWhitelist = Seq(
+      "init",
+      "version",
+      "mill.scalalib.giter8.Giter8Module/init"
+    )
+    val targetsAndParams = config.leftoverArgs.value
+    val whitelistMatch =
+      targetsAndParams.nonEmpty && noBuildFileTaskWhitelist.exists(targetsAndParams.head == _)
+    // Has the user additional/extra imports
+    // (which could provide additional commands that could make sense without a build.sc)
+    val extraPlugins = config.imports.nonEmpty
+    !(whitelistMatch || extraPlugins)
   }
 
   def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream) = {
