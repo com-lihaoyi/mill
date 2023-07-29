@@ -82,7 +82,7 @@ Please keep in mind, that all those solutions listed below are maintained outsid
 
 CAUTION: Some of the installations via package managers install a fixed version of Mill and do not support project-specific selection of the preferred Mill version. If you want to use the `MILL_VERSION` environment variable or need support for `.mill-version` or `.config/mill-version` files to control the actual used Mill version, please use a <<_bootstrap_scripts,Bootstrap script>> instead.
 
-==== OS X
+=== OS X
 
 Installation via https://github.com/Homebrew/homebrew-core/blob/master/Formula/mill.rb[homebrew]:
 
@@ -92,7 +92,7 @@ brew install mill
 ----
 
 
-==== Arch Linux
+=== Arch Linux
 
 Arch Linux has a https://www.archlinux.org/packages/community/any/mill/[Community package for mill]:
 
@@ -102,7 +102,7 @@ pacman -S mill
 
 ----
 
-==== FreeBSD
+=== FreeBSD
 
 Installation via http://man.freebsd.org/pkg/8[pkg(8)]:
 
@@ -112,7 +112,7 @@ pkg install mill
 
 ----
 
-==== Gentoo Linux
+=== Gentoo Linux
 
 [source,sh]
 ----
@@ -120,7 +120,7 @@ emerge dev-java/mill-bin
 
 ----
 
-==== Windows
+=== Windows
 
 To get started, download Mill from
 {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-assembly[Github releases], and save it as `mill.bat`.
@@ -132,7 +132,7 @@ If you're using https://scoop.sh[Scoop] you can install Mill via
 scoop install mill
 ----
 
-==== WSL / MSYS2 / Cycgin / Git-Bash
+=== WSL / MSYS2 / Cycgin / Git-Bash
 
 Mill also works on "sh" environments on Windows (e.g.,
 https://www.msys2.org[MSYS2],
