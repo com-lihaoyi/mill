@@ -326,8 +326,8 @@ these packages mature over time.
 _Changes since {prev-version}:_
 
 * Target invalidation after making changes to `build.sc` is now done at a
-  fine-grained method-by-method granularity, via callgraph analysis to see
-  which targets depend on the code that was changed. See
+  fine-grained method-level granularity, using callgraph reachability
+  analysis to see which targets depend on the code that was changed. See
   https://github.com/com-lihaoyi/mill/pull/2417[#2417] for more details
 
 _For details refer to
