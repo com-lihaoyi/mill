@@ -150,6 +150,7 @@ class MillBuildRootModule()(implicit
   def methodCodeHashSignatures: T[Map[String, Int]] = T.persistent {
     os.remove.all(T.dest / "previous")
     if (os.exists(T.dest / "current")) os.move.over(T.dest / "current", T.dest / "previous")
+    val debugEnabled = T.log.debugEnabled
     val codesig = mill.codesig.CodeSig
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
@@ -186,20 +187,9 @@ class MillBuildRootModule()(implicit
           def isCommand =
             calledSig.desc.ret.pretty == classOf[mill.define.Command[_]].getName
 
-          // We also want to skip calls to `millBaseModuleInfo` in general, because the
-          // output of the `Discover` macro appears to be pretty unstable even with just
-          // whitespace changes appended to the end of file. This info is also generally only
-          // used by the entrypoint routing logic, even though it's part of `RootModule#<init>`,
-          // and thus it should be safe to skip it when performing dependency analysis. This
-          // can probably be removed with some refactoring
-          def isBaseModuleInfoCall =
-            calledSig.name == "millBaseModuleInfo" &&
-              calledSig.desc.args.isEmpty &&
-              calledSig.desc.ret.pretty == classOf[mill.main.RootModule.Info].getName
-
-          (isSimpleTarget && !isForwarderCallsite) || isCommand || isBaseModuleInfoCall
+          (isSimpleTarget && !isForwarderCallsite) || isCommand
         },
-        logger = new mill.codesig.Logger(Option.when(true)(T.dest / "current")),
+        logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
         prevTransitiveCallGraphHashesOpt = () =>
           Option.when(os.exists(T.dest / "previous" / "result.json"))(
             upickle.default.read[Map[String, Int]](
@@ -209,7 +199,7 @@ class MillBuildRootModule()(implicit
       )
 
     val result = codesig.transitiveCallGraphHashes
-    if (true) {
+    if (debugEnabled) {
       os.write(
         T.dest / "current" / "result.json",
         upickle.default.stream(
