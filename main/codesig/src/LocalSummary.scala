@@ -18,7 +18,7 @@ case class LocalSummary(items: Map[JCls, ClassInfo]) {
 }
 
 /**
- * Parses over the Java bytecode and creates a [[Summary]] object, which
+ * Parses over the Java bytecode and creates a [[LocalSummary]] object which
  * contains the key information needed for call-graph analysis and method hash
  * computation.
  */
