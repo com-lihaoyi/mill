@@ -36,6 +36,7 @@ class MillBuildBootstrap(
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
     logger: ColorLogger,
+    disableCallgraphInvalidation: Boolean,
     needBuildSc: Boolean
 ) {
   import MillBuildBootstrap._
@@ -126,6 +127,7 @@ class MillBuildBootstrap(
             val evaluator = makeEvaluator(
               prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
               nestedState.frames.headOption.map(_.scriptImportGraph).getOrElse(Map.empty),
+              nestedState.frames.headOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
               rootModule,
               // We want to use the grandparent buildHash, rather than the parent
               // buildHash, because the parent build changes are instead detected
@@ -181,13 +183,14 @@ class MillBuildBootstrap(
     evaluateWithWatches(
       rootModule,
       evaluator,
-      Seq("{runClasspath,scriptImportGraph}")
+      Seq("{runClasspath,scriptImportGraph,methodCodeHashSignatures}")
     ) match {
       case (Left(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           evalWatches,
           moduleWatches,
+          Map.empty,
           Map.empty,
           None,
           Nil
@@ -198,7 +201,8 @@ class MillBuildBootstrap(
       case (
             Right(Seq(
               Val(runClasspath: Seq[PathRef]),
-              Val(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])])
+              Val(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]),
+              Val(methodCodeHashSignatures: Map[String, Int])
             )),
             evalWatches,
             moduleWatches
@@ -236,6 +240,7 @@ class MillBuildBootstrap(
           evalWatches,
           moduleWatches,
           scriptImportGraph,
+          methodCodeHashSignatures,
           Some(classLoader),
           runClasspath
         )
@@ -263,6 +268,7 @@ class MillBuildBootstrap(
       evalWatched,
       moduleWatches,
       Map.empty,
+      Map.empty,
       None,
       Nil
     )
@@ -273,6 +279,7 @@ class MillBuildBootstrap(
   def makeEvaluator(
       workerCache: Map[Segments, (Int, Val)],
       scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
+      methodCodeHashSignatures: Map[String, Int],
       rootModule: RootModule,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
@@ -295,7 +302,9 @@ class MillBuildBootstrap(
       env = env,
       failFast = !keepGoing,
       threadCount = threadCount,
-      scriptImportGraph = scriptImportGraph
+      scriptImportGraph = scriptImportGraph,
+      methodCodeHashSignatures = methodCodeHashSignatures,
+      disableCallgraphInvalidation = disableCallgraphInvalidation
     )
   }
 

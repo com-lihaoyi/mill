@@ -43,7 +43,7 @@ abstract class ExternalModule(implicit
       implicitly,
       implicitly,
       implicitly,
-      Caller(())
+      Caller(null)
     ) {
 
   implicit def millDiscoverImplicit: Discover[_] = millDiscover

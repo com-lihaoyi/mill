@@ -37,7 +37,7 @@ object Discover {
         if (!seen(tpe)) {
           seen.add(tpe)
           for {
-            m <- tpe.members
+            m <- tpe.members.toList.sortBy(_.name.toString)
             memberTpe = m.typeSignature
             if memberTpe.resultType <:< typeOf[mill.define.Module] && memberTpe.paramLists.isEmpty
           } rec(memberTpe.resultType)
@@ -75,8 +75,13 @@ object Discover {
             }
         }
       }
+
+      // Make sure we sort the types and methods to keep the output deterministic;
+      // otherwise the compiler likes to give us stuff in random orders, which
+      // causes the code to be generated in random order resulting in code hashes
+      // changing unnecessarily
       val mapping = for {
-        discoveredModuleType <- seen
+        discoveredModuleType <- seen.toSeq.sortBy(_.typeSymbol.fullName)
         curCls = discoveredModuleType
         methods = getValsOrMeths(curCls)
         overridesRoutes = {
@@ -87,7 +92,7 @@ object Discover {
           )
 
           for {
-            m <- methods.toList
+            m <- methods.toList.sortBy(_.fullName)
             if m.returnType <:< weakTypeOf[mill.define.Command[_]]
           } yield extractMethod(
             m.name,

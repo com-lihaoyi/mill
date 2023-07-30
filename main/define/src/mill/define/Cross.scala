@@ -300,6 +300,7 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
           .withMillSourcePath(ctx.millSourcePath / relPath)
           .withSegment(Segment.Cross(crossSegments0))
           .withCrossValues(factories.flatMap(_.crossValuesRaw))
+          .withEnclosingModule(this)
       )
     )
 
