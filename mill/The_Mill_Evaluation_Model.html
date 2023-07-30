@@ -259,14 +259,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.1-21-2c7fdf</span>
+    <span class="version">0.11.1-22-2f4468</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.1-21-2c7fdf</a>
+          <a href="index.html">0.11.1-22-2f4468</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -299,9 +299,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.1-21-2c7fdf</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.1-22-2f4468</button>
   <div class="version-menu">
-    <a class="version is-current" href="The_Mill_Evaluation_Model.html">0.11.1-21-2c7fdf</a>
+    <a class="version is-current" href="The_Mill_Evaluation_Model.html">0.11.1-22-2f4468</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="0.10.0/index.html">0.10.0</a>
@@ -450,9 +450,9 @@ caching and invalidation</p>
 invalidated if their input <code>Task</code>s change as well.</p>
 </li>
 <li>
-<p><code>Task</code>s in general are invalidated if the code they depend on changes;
-e.g. if <code>build.sc</code> imports <code>helper.sc</code>, then a change in <code>build.sc</code> would
-invalidate all tasks in <code>build.sc</code>, but not those in <code>helper.sc</code></p>
+<p><code>Task</code>s in general are invalidated if the code they depend on changes,
+at a method-level granularity via callgraph reachability analysis. See
+<a href="https://github.com/com-lihaoyi/mill/pull/2417">#2417</a> for more details</p>
 </li>
 </ul>
 </div>
