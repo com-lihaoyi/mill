@@ -2,6 +2,7 @@
 :toc-placement: preamble
 :toc:
 :idprefix:
+:idseparator: -
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
 :link-current-doc-site: https://mill-build.com
