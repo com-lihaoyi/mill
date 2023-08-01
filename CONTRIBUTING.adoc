@@ -1,5 +1,6 @@
 = Contributing to Mill
 :link-github: https://github.com/com-lihaoyi/mill
+:link-gitter: https://gitter.im/lihaoyi/mill
 
 Thank you for considering contributing to Mill.
 
@@ -7,12 +8,12 @@ We have essential contributor information in the xref:readme.adoc[Project README
 
 Here are some direct links:
 
-* xref:readme.adoc#intellij_setup[IntelliJ Setup] - IntelliJ IDEA works great for Mill development; other IDEA may work as well
-* xref:readme.adoc#pull_requests[Project Layout] - The source code repository structure from a high level
+* xref:readme.adoc#intellij_setup[IntelliJ Setup] - IntelliJ IDEA works great for Mill development; other IDEs may work as well
+* xref:readme.adoc#pull_requests[Project Layout] - The source code repository structure from a high level view
 * xref:readme.adoc#manual_automated_testing[Manual and Automated Testing] - How we test Mill
 * xref:readme.adoc#project_maintenance[Project Maintenance] - Details about authoring pull request and commit messages
-* https://mill-build.com/mill/Intro_to_Mill.html[Mill Documentation] - Documentation for user and developers
+* https://mill-build.com/mill/Intro_to_Mill.html[Mill Documentation] - Documentation for users and developers
 * {link-github}/discussions[Discussion Forum on GitHub] - A place to ask question and discuss all kind of questions around Mill
 * {link-github}/issues[Issue Tracker on GitHub] - Our issue tracker for bugs and features
 * {link-github}/pulls[Pull Requests on GitHub] - All new features and bug fixes find their way into Mill via a pull request. You can also sketch new ideas by creating a draft pull requests.
-* :link-gitter: https://gitter.im/lihaoyi/mill - You can also join our chat room if you like more direct communication or to just say hello
+{link-gitter}[Gitter Chat (Element)] - You can also join our chat room if you like more direct communication or to just say hello
