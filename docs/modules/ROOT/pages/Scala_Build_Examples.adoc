@@ -9,14 +9,14 @@ realistic Scala codebases: cross-building, testing, and publishing them.
 
 Many of the APIs covered here are listed in the Scaladoc:
 
-* {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
-* {mill-doc-url}/api/latest/mill/main/RootModule.html[mill.scalalib.RootModule]
-* {mill-doc-url}/api/latest/mill/scalalib/TestModule$.html[mill.scalalib.TestModule]
-* {mill-doc-url}/api/latest/mill/scalalib/PublishModule.html[mill.scalalib.PublishModule]
-* {mill-doc-url}/api/latest/mill/scalalib/CrossScalaModule.html[mill.scalalib.CrossScalaModule]
-* {mill-doc-url}/api/latest/mill/scalalib/SbtModule.html[mill.scalalib.SbtModule]
-* {mill-doc-url}/api/latest/mill/scalalib/CrossSbtModule.html[mill.scalalib.CrossSbtModule]
-* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.scalalib.JavaModule]
+* {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[`mill.scalalib.ScalaModule`]
+* {mill-doc-url}/api/latest/mill/main/RootModule.html[`mill.scalalib.RootModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/TestModule$.html[`mill.scalalib.TestModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/PublishModule.html[`mill.scalalib.PublishModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/CrossScalaModule.html[`mill.scalalib.CrossScalaModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/SbtModule.html[`mill.scalalib.SbtModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/CrossSbtModule.html[`mill.scalalib.CrossSbtModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[`mill.scalalib.JavaModule`]
 
 == Common Configuration Overrides
 
@@ -66,31 +66,12 @@ integration tests and examples:
 
 === Acyclic
 
-* {mill-github-url}/blob/main/integration/thirdparty/local/resources/acyclic/build.sc#L1[Mill Build]
+include::example/thirdparty/acyclic.adoc[]
 
-A small single-module cross-build, with few sources, minimal dependencies, and
-wired up for publishing to Maven Central.
+=== Fansi
 
-=== Jawn
+include::example/thirdparty/fansi.adoc[]
 
-* {mill-github-url}/blob/main/integration/thirdparty/local/resources/jawn/build.sc#L1[Mill Build]
+=== JimFS
 
-A collection of relatively small modules, all cross-built across the same few
-versions of Scala.
-
-=== Upickle
-
-* {mill-github-url}/blob/main/integration/thirdparty/local/resources/upickle/build.sc#L1[Mill Build]
-
-A single cross-platform Scala.js/Scala-JVM module cross-built against multiple
-versions of Scala, including the setup necessary for publishing to Maven Central.
-
-=== Ammonite
-
-* {mill-github-url}/blob/main/integration/thirdparty/local/resources/ammonite/build.sc#L1[Mill Build]
-
-A relatively complex build with numerous submodules, some cross-built across
-Scala major versions while others are cross-built against Scala minor versions.
-
-Also demonstrates how to pass one module's compiled artifacts to the
-`run`/`test` commands of another, via their `forkEnv`.
+include::example/thirdparty/jimfs.adoc[]

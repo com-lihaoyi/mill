@@ -7,7 +7,12 @@ import mill.scalalib.internal.{JavaModuleUtils, ModuleUtils}
 import mill.define.Module
 import mill.util.ColorLogger
 
-private class State(projectRoot: os.Path, baseLogger: ColorLogger, debug: String => Unit) {
+private class State(
+    projectRoot: os.Path,
+    baseLogger: ColorLogger,
+    debug: String => Unit,
+    disableCallgraphInvalidation: Boolean
+) {
   lazy val bspModulesById: Map[BuildTargetIdentifier, BspModule] = {
     val modules: Seq[(Module, Seq[Module])] = rootModules
       .map(rootModule => (rootModule, JavaModuleUtils.transitiveModules(rootModule)))
@@ -39,7 +44,9 @@ private class State(projectRoot: os.Path, baseLogger: ColorLogger, debug: String
       threadCount = None,
       targetsAndParams = Seq("resolve", "_"),
       prevRunnerState = mill.runner.RunnerState.empty,
-      logger = baseLogger
+      logger = baseLogger,
+      disableCallgraphInvalidation = disableCallgraphInvalidation,
+      needBuildSc = true
     ).evaluate()
 
     val rootModules0 = evaluated.result.frames

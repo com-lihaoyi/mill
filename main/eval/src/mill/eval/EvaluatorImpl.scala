@@ -1,11 +1,9 @@
 package mill.eval
 
 import mill.api.Val
-
 import mill.api.Strict.Agg
 import mill.define._
 import mill.util._
-
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -26,7 +24,9 @@ private[mill] case class EvaluatorImpl(
     env: Map[String, String] = Evaluator.defaultEnv,
     failFast: Boolean = true,
     threadCount: Option[Int] = Some(1),
-    scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty
+    scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty,
+    methodCodeHashSignatures: Map[String, Int],
+    override val disableCallgraphInvalidation: Boolean
 ) extends Evaluator with EvaluatorCore {
   import EvaluatorImpl._
 

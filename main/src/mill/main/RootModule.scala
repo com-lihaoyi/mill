@@ -24,7 +24,7 @@ abstract class RootModule()(implicit
       millModuleEnclosing0,
       millModuleLine0,
       millFile0,
-      Caller(())
+      Caller(null)
     ) with mill.main.MainModule {
 
   // Make BaseModule take the `millDiscover` as an implicit param, rather than
@@ -50,7 +50,7 @@ object RootModule {
         millModuleEnclosing0,
         millModuleLine0,
         millFile0,
-        Caller(())
+        Caller(null)
       ) with mill.main.MainModule {
 
     override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]

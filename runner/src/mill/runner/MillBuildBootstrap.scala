@@ -35,7 +35,9 @@ class MillBuildBootstrap(
     threadCount: Option[Int],
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
-    logger: ColorLogger
+    logger: ColorLogger,
+    disableCallgraphInvalidation: Boolean,
+    needBuildSc: Boolean
 ) {
   import MillBuildBootstrap._
 
@@ -66,10 +68,23 @@ class MillBuildBootstrap(
 
     val nestedState =
       if (depth == 0) {
-        if (os.exists(recRoot(projectRoot, depth) / "build.sc")) evaluateRec(depth + 1)
+        // On this level we typically want assume a Mill project, which means we want to require an existing `build.sc`.
+        // Unfortunately, some targets also make sense without a `build.sc`, e.g. the `init` command.
+        // Hence we only report a missing `build.sc` as an problem if the command itself does not succeed.
+        lazy val state = evaluateRec(depth + 1)
+        if (os.exists(recRoot(projectRoot, depth) / "build.sc")) state
         else {
           val msg = "build.sc file not found. Are you in a Mill project folder?"
-          RunnerState(None, Nil, Some(msg))
+          if (needBuildSc) {
+            RunnerState(None, Nil, Some(msg))
+          } else {
+            state match {
+              case RunnerState(bootstrapModuleOpt, frames, Some(error)) =>
+                // Add a potential clue (missing build.sc) to the underlying error message
+                RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
+              case state => state
+            }
+          }
         }
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
@@ -112,6 +127,7 @@ class MillBuildBootstrap(
             val evaluator = makeEvaluator(
               prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
               nestedState.frames.headOption.map(_.scriptImportGraph).getOrElse(Map.empty),
+              nestedState.frames.headOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
               rootModule,
               // We want to use the grandparent buildHash, rather than the parent
               // buildHash, because the parent build changes are instead detected
@@ -167,13 +183,14 @@ class MillBuildBootstrap(
     evaluateWithWatches(
       rootModule,
       evaluator,
-      Seq("{runClasspath,scriptImportGraph}")
+      Seq("{runClasspath,scriptImportGraph,methodCodeHashSignatures}")
     ) match {
       case (Left(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           evalWatches,
           moduleWatches,
+          Map.empty,
           Map.empty,
           None,
           Nil
@@ -184,7 +201,8 @@ class MillBuildBootstrap(
       case (
             Right(Seq(
               Val(runClasspath: Seq[PathRef]),
-              Val(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])])
+              Val(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]),
+              Val(methodCodeHashSignatures: Map[String, Int])
             )),
             evalWatches,
             moduleWatches
@@ -222,6 +240,7 @@ class MillBuildBootstrap(
           evalWatches,
           moduleWatches,
           scriptImportGraph,
+          methodCodeHashSignatures,
           Some(classLoader),
           runClasspath
         )
@@ -249,6 +268,7 @@ class MillBuildBootstrap(
       evalWatched,
       moduleWatches,
       Map.empty,
+      Map.empty,
       None,
       Nil
     )
@@ -259,6 +279,7 @@ class MillBuildBootstrap(
   def makeEvaluator(
       workerCache: Map[Segments, (Int, Val)],
       scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
+      methodCodeHashSignatures: Map[String, Int],
       rootModule: RootModule,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
@@ -281,7 +302,9 @@ class MillBuildBootstrap(
       env = env,
       failFast = !keepGoing,
       threadCount = threadCount,
-      scriptImportGraph = scriptImportGraph
+      scriptImportGraph = scriptImportGraph,
+      methodCodeHashSignatures = methodCodeHashSignatures,
+      disableCallgraphInvalidation = disableCallgraphInvalidation
     )
   }
 

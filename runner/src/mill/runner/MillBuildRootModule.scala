@@ -11,6 +11,10 @@ import mill.scalalib.api.Versions
 import os.{Path, rel}
 import pprint.Util.literalize
 import FileImportGraph.backtickWrap
+import mill.codesig.CodeSig
+import mill.main.BuildInfo
+
+import scala.collection.immutable.SortedMap
 import scala.util.Try
 
 /**
@@ -112,6 +116,8 @@ class MillBuildRootModule()(implicit
     )
   }
 
+  override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
+
   override def generatedSources: T[Seq[PathRef]] = T {
     generateScriptSources()
   }
@@ -139,6 +145,70 @@ class MillBuildRootModule()(implicit
       .map { case (path, imports) =>
         (path, (PathRef(path).hashCode(), imports))
       }
+  }
+
+  def methodCodeHashSignatures: T[Map[String, Int]] = T.persistent {
+    os.remove.all(T.dest / "previous")
+    if (os.exists(T.dest / "current")) os.move.over(T.dest / "current", T.dest / "previous")
+    val debugEnabled = T.log.debugEnabled
+    val codesig = mill.codesig.CodeSig
+      .compute(
+        classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
+        upstreamClasspath = compileClasspath().toSeq.map(_.path),
+        ignoreCall = { (callSiteOpt, calledSig) =>
+          // We can ignore all calls to methods that look like Targets when traversing
+          // the call graph. We can fo this because we assume `def` Targets are pure,
+          // and so any changes in their behavior will be picked up by the runtime build
+          // graph evaluator without needing to be accounted for in the post-compile
+          // bytecode callgraph analysis.
+          def isSimpleTarget =
+            (calledSig.desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
+              calledSig.desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
+              calledSig.desc.args.isEmpty
+
+          // We avoid ignoring method calls that are simple trait forwarders, because
+          // we need the trait forwarders calls to be counted in order to wire up the
+          // method definition that a Target is associated with during evaluation
+          // (e.g. `myModuleObject.myTarget`) with its implementation that may be defined
+          // somewhere else (e.g. `trait MyModuleTrait{ def myTarget }`). Only that one
+          // step is necessary, after that the runtime build graph invalidation logic can
+          // take over
+          def isForwarderCallsite =
+            callSiteOpt.nonEmpty &&
+              callSiteOpt.get.sig.name == (calledSig.name + "$") &&
+              callSiteOpt.get.sig.static &&
+              callSiteOpt.get.sig.desc.args.size == 1
+
+          // We ignore Commands for the same reason as we ignore Targets, and also because
+          // their implementations get gathered up all the via the `Discover` macro, but this
+          // is primarily for use as external entrypoints and shouldn't really be counted as
+          // part of the `millbuild.build#<init>` transitive call graph they would normally
+          // be counted as
+          def isCommand =
+            calledSig.desc.ret.pretty == classOf[mill.define.Command[_]].getName
+
+          (isSimpleTarget && !isForwarderCallsite) || isCommand
+        },
+        logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
+        prevTransitiveCallGraphHashesOpt = () =>
+          Option.when(os.exists(T.dest / "previous" / "result.json"))(
+            upickle.default.read[Map[String, Int]](
+              os.read.stream(T.dest / "previous" / "result.json")
+            )
+          )
+      )
+
+    val result = codesig.transitiveCallGraphHashes
+    if (debugEnabled) {
+      os.write(
+        T.dest / "current" / "result.json",
+        upickle.default.stream(
+          SortedMap.from(codesig.transitiveCallGraphHashes0.map { case (k, v) => (k.toString, v) }),
+          indent = 4
+        )
+      )
+    }
+    result
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {
@@ -279,13 +349,13 @@ object MillBuildRootModule {
        |import _root_.mill.runner.MillBuildRootModule
        |
        |object ${backtickWrap(miscInfoName)} {
-       |  implicit val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
+       |  implicit lazy val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
        |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
        |    _root_.os.Path(${literalize(base.toString)}),
        |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)}),
        |    _root_.scala.Seq(${cliImports.map(literalize(_)).mkString(", ")})
        |  )
-       |  implicit val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
+       |  implicit lazy val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
        |    millBuildRootModuleInfo.projectRoot,
        |    _root_.mill.define.Discover[${backtickWrap(name)}]
        |  )

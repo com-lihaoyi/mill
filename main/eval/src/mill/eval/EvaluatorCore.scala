@@ -135,7 +135,9 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               terminal.render,
               (endTime - startTime).toInt,
               res.cached,
-              deps.map(_.render)
+              deps.map(_.render),
+              res.inputsHash,
+              res.previousInputsHash
             )
           )
 

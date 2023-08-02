@@ -1,4 +1,5 @@
 // plugins and dependencies
+
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
@@ -102,7 +103,7 @@ object Deps {
   val ammoniteVersion = "3.0.0-M0-32-96e851cb"
   val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
-  val coursier = ivy"io.get-coursier::coursier:2.1.4"
+  val coursier = ivy"io.get-coursier::coursier:2.1.5"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.16"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
@@ -132,7 +133,7 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.4"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.10"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.10"
@@ -142,13 +143,13 @@ object Deps {
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.7.8"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.1"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.8.18"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
-  val upickle = ivy"com.lihaoyi::upickle:3.1.0"
+  val upickle = ivy"com.lihaoyi::upickle:3.1.2"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.9.1"
+  val zinc = ivy"org.scala-sbt::zinc:1.9.3"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
@@ -356,6 +357,15 @@ trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 
 /** Publishable module which contains strictly handled API. */
 trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+  import com.github.lolgab.mill.mima._
+  // MIMA doesn't properly ignore things which are nested inside other private things
+  // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
+    ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
+    ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
+    ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
+    ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
+  )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
   def mimaPreviousArtifacts: T[Agg[Dep]] = T {
@@ -455,6 +465,7 @@ object main extends MillStableScalaModule with BuildInfo {
       BuildInfo.Value("millVersion", millVersion(), "Mill version."),
       BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
     )
+
     def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
@@ -463,10 +474,65 @@ object main extends MillStableScalaModule with BuildInfo {
       Deps.sbtTestInterface
     )
   }
+
   object util extends MillStableScalaModule {
     def moduleDeps = Seq(api, client)
     def ivyDeps = Agg(Deps.coursier, Deps.jline)
   }
+
+  object codesig extends MillPublishScalaModule {
+    override def ivyDeps = Agg(ivy"org.ow2.asm:asm-tree:9.5", Deps.osLib, ivy"com.lihaoyi::pprint:0.8.1")
+    def moduleDeps = Seq(util)
+
+    override lazy val test: CodeSigTests = new CodeSigTests{}
+    trait CodeSigTests extends MillScalaTests{
+      val caseKeys = interp.watchValue(
+        os.walk(millSourcePath / "cases", maxDepth = 3)
+          .map(_.subRelativeTo(millSourcePath / "cases").segments)
+          .collect{case Seq(a, b, c) => s"$a-$b-$c"}
+      )
+
+      def testLogFolder = T{ T.dest }
+
+      def caseEnvs[V](f1: CaseModule => Task[V])(s: String, f2: V => String) = {
+        T.traverse(caseKeys) { i => f1(cases(i)).map(v => s"MILL_TEST_${s}_$i" -> f2(v)) }
+      }
+      def forkEnv = T{
+        Map("MILL_TEST_LOGS" -> testLogFolder().toString) ++
+        caseEnvs(_.compile)("CLASSES", _.classes.path.toString)() ++
+        caseEnvs(_.compileClasspath)("CLASSPATH", _.map(_.path).mkString(","))() ++
+        caseEnvs(_.sources)("SOURCES", _.head.path.toString)()
+      }
+
+      object cases extends Cross[CaseModule](caseKeys)
+      trait CaseModule extends ScalaModule with Cross.Module[String]{
+        def caseName = crossValue
+        object external extends ScalaModule{
+          def scalaVersion = "2.13.10"
+        }
+
+        def moduleDeps = Seq(external)
+
+        val Array(prefix, suffix, rest) = caseName.split("-", 3)
+        def millSourcePath = super.millSourcePath / prefix / suffix / rest
+        def scalaVersion = "2.13.10"
+        def ivyDeps = T{
+          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
+          else Agg(
+            ivy"com.lihaoyi::fastparse:3.0.1",
+            ivy"com.lihaoyi::scalatags:0.12.0",
+            ivy"com.lihaoyi::cask:0.9.1",
+            ivy"com.lihaoyi::castor:0.1.7",
+            Deps.mainargs,
+            Deps.requests,
+            Deps.osLib,
+            Deps.upickle,
+          )
+        }
+      }
+    }
+  }
+
   object define extends MillStableScalaModule {
     def moduleDeps = Seq(api, util)
     def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
@@ -1172,7 +1238,7 @@ def launcherScript(
 }
 
 object runner extends MillPublishScalaModule {
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig)
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishScalaModule {

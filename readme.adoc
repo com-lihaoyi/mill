@@ -2,6 +2,7 @@
 :toc-placement: preamble
 :toc:
 :idprefix:
+:idseparator: -
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
 :link-current-doc-site: https://mill-build.com
@@ -315,6 +316,25 @@ these packages mature over time.
 * If the message contains links to other issues or pull requests, you should use full URLs to reference them
 
 == Changelog
+
+[#master]
+=== master
+:version: master
+:milestone-name: master
+:milestone: 86
+:prev-version: 0.11.1
+
+_Changes since {prev-version}:_
+
+* Target invalidation after making changes to `build.sc` is now done at a
+  fine-grained method-level granularity, using callgraph reachability
+  analysis to see which targets depend on the code that was changed. See
+  https://github.com/com-lihaoyi/mill/pull/2417[#2417] for more details
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#0-11-1]
 === 0.11.1 - 2023-06-23

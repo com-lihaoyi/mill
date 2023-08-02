@@ -82,9 +82,11 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       os.write.append(wsRoot / "build.sc", "\ndef unrelated = true")
       awaitCompletionMarker("initialized1")
       expectedPrints.append(
-        "Setting up build.sc",
-        "Running qux foo contents edited-foo1 edited-foo2",
-        "Running qux bar contents edited-bar"
+        "Setting up build.sc"
+        // These targets do not re-evaluate, because the change to the build
+        // file was unrelated to them and does not affect their transitive callgraph
+        //        "Running qux foo contents edited-foo1 edited-foo2",
+        //        "Running qux bar contents edited-bar"
       )
       expectedShows.append(
         "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
