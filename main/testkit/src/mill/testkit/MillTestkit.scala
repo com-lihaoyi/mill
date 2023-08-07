@@ -65,6 +65,7 @@ trait MillTestKit {
       failFast: Boolean = false,
       threads: Option[Int] = Some(1),
       outStream: PrintStream = System.out,
+      errStream: PrintStream = System.err,
       inStream: InputStream = DummyInputStream,
       debugEnabled: Boolean = false,
       extraPathEnd: Seq[String] = Seq.empty,
@@ -78,7 +79,7 @@ trait MillTestKit {
       enableTicker = true,
       mill.util.Colors.Default.info,
       mill.util.Colors.Default.error,
-      new SystemStreams(outStream, outStream, inStream),
+      new SystemStreams(out = outStream, err = errStream, in = inStream),
       debugEnabled = debugEnabled,
       context = "",
       new PrintLogger.State()

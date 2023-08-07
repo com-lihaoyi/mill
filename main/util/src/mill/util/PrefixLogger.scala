@@ -4,16 +4,16 @@ import mill.api.SystemStreams
 
 import java.io.PrintStream
 
-class PrefixLogger(val logger0: ColorLogger,
-                   context: String,
-                   tickerContext: String = "",
-                   outStream0: Option[PrintStream] = None,
-                   errStream0: Option[PrintStream] = None)
-    extends ColorLogger {
+class PrefixLogger(
+    val logger0: ColorLogger,
+    context: String,
+    tickerContext: String = "",
+    outStream0: Option[PrintStream] = None,
+    errStream0: Option[PrintStream] = None
+) extends ColorLogger {
 
-  def this(logger0: ColorLogger,
-           context: String,
-           tickerContext: String) = this(logger0, context, tickerContext, None, None)
+  def this(logger0: ColorLogger, context: String, tickerContext: String) =
+    this(logger0, context, tickerContext, None, None)
 
   override def colored = logger0.colored
 

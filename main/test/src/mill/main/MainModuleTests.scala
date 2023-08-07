@@ -6,11 +6,21 @@ import mill.define.{Cross, Discover, Module, Task}
 import mill.util.{TestEvaluator, TestUtil}
 import utest.{TestSuite, Tests, assert, test}
 
+import java.io.{ByteArrayOutputStream, PrintStream}
+
 object MainModuleTests extends TestSuite {
 
   object mainModule extends TestUtil.BaseModule with MainModule {
-    def hello = T { Seq("hello", "world") }
-    def hello2 = T { Map("1" -> "hello", "2" -> "world") }
+    def hello = T {
+      println("Hello Stdout")
+      println("Hello Stderr")
+      Seq("hello", "world")
+    }
+    def hello2 = T {
+      println("Hello2 Stdout")
+      println("Hello2 Stderr")
+      Map("1" -> "hello", "2" -> "world")
+    }
     def helloCommand(x: Int, y: Task[String]) = T.command { (x, y(), hello()) }
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
@@ -81,7 +91,13 @@ object MainModuleTests extends TestSuite {
     }
 
     test("show") {
-      val evaluator = new TestEvaluator(mainModule)
+      val outStream = new ByteArrayOutputStream()
+      val errStream = new ByteArrayOutputStream()
+      val evaluator = new TestEvaluator(
+        mainModule,
+        outStream = new PrintStream(outStream, true),
+        errStream = new PrintStream(errStream, true)
+      )
       test("single") {
         val results =
           evaluator.evaluator.evaluate(Agg(mainModule.show(evaluator.evaluator, "hello")))
@@ -90,7 +106,15 @@ object MainModuleTests extends TestSuite {
 
         val Result.Success(Val(value)) = results.rawValues.head
 
-        assert(value == ujson.Arr.from(Seq("hello", "world")))
+        val shown = ujson.read(outStream.toByteArray)
+        val expected = ujson.Arr.from(Seq("hello", "world"))
+        assert(value == expected)
+        assert(shown == expected)
+
+        // Make sure both stdout and stderr are redirected by `show`
+        // to stderr so that only the JSON file value goes to stdout
+        assert(errStream.toString.contains("Hello Stdout"))
+        assert(errStream.toString.contains("Hello Stderr"))
       }
       test("multi") {
         val results =
@@ -105,10 +129,21 @@ object MainModuleTests extends TestSuite {
 
         val Result.Success(Val(value)) = results.rawValues.head
 
-        assert(value == ujson.Obj(
+        val shown = ujson.read(outStream.toByteArray)
+
+        val expected = ujson.Obj(
           "hello" -> ujson.Arr("hello", "world"),
           "hello2" -> ujson.Obj("1" -> "hello", "2" -> "world")
-        ))
+        )
+        assert(value == expected)
+        assert(shown == expected)
+
+        // Make sure both stdout and stderr are redirected by `show`
+        // to stderr so that only the JSON file value goes to stdout
+        assert(errStream.toString.contains("Hello Stdout"))
+        assert(errStream.toString.contains("Hello Stderr"))
+        assert(errStream.toString.contains("Hello2 Stdout"))
+        assert(errStream.toString.contains("Hello2 Stderr"))
       }
 
       test("command") {
