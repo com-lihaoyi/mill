@@ -59,6 +59,7 @@ object RunnerState {
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
+      methodCodeHashSignatures: Map[String, Int],
       classLoaderOpt: Option[RunnerState.URLClassLoader],
       runClasspath: Seq[PathRef]
   ) {
@@ -100,7 +101,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil)
+    def empty = Frame(Map.empty, Nil, Nil, Map.empty, Map.empty, None, Nil)
   }
 
 }
