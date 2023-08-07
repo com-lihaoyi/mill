@@ -12,13 +12,17 @@ object MainModuleTests extends TestSuite {
 
   object mainModule extends TestUtil.BaseModule with MainModule {
     def hello = T {
-      println("Hello Stdout")
-      println("Hello Stderr")
+      System.out.println("Hello System Stdout")
+      System.err.println("Hello System Stderr")
+      Console.out.println("Hello Console Stdout")
+      Console.err.println("Hello Console Stderr")
       Seq("hello", "world")
     }
     def hello2 = T {
-      println("Hello2 Stdout")
-      println("Hello2 Stderr")
+      System.out.println("Hello2 System Stdout")
+      System.err.println("Hello2 System Stderr")
+      Console.out.println("Hello2 Console Stdout")
+      Console.err.println("Hello2 Console Stderr")
       Map("1" -> "hello", "2" -> "world")
     }
     def helloCommand(x: Int, y: Task[String]) = T.command { (x, y(), hello()) }
@@ -113,8 +117,13 @@ object MainModuleTests extends TestSuite {
 
         // Make sure both stdout and stderr are redirected by `show`
         // to stderr so that only the JSON file value goes to stdout
-        assert(errStream.toString.contains("Hello Stdout"))
-        assert(errStream.toString.contains("Hello Stderr"))
+        val strippedErr =
+          fansi.Str(errStream.toString, errorMode = fansi.ErrorMode.Sanitize).plainText
+
+        assert(strippedErr.contains("Hello System Stdout"))
+        assert(strippedErr.contains("Hello System Stderr"))
+        assert(strippedErr.contains("Hello Console Stdout"))
+        assert(strippedErr.contains("Hello Console Stderr"))
       }
       test("multi") {
         val results =
@@ -140,10 +149,13 @@ object MainModuleTests extends TestSuite {
 
         // Make sure both stdout and stderr are redirected by `show`
         // to stderr so that only the JSON file value goes to stdout
-        assert(errStream.toString.contains("Hello Stdout"))
-        assert(errStream.toString.contains("Hello Stderr"))
-        assert(errStream.toString.contains("Hello2 Stdout"))
-        assert(errStream.toString.contains("Hello2 Stderr"))
+        val strippedErr =
+          fansi.Str(errStream.toString, errorMode = fansi.ErrorMode.Sanitize).plainText
+
+        assert(strippedErr.contains("Hello2 System Stdout"))
+        assert(strippedErr.contains("Hello2 System Stderr"))
+        assert(strippedErr.contains("Hello2 Console Stdout"))
+        assert(strippedErr.contains("Hello2 Console Stderr"))
       }
 
       test("command") {
