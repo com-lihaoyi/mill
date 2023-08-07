@@ -32,14 +32,12 @@ object MainModule {
       log: Logger,
       watch0: Watchable => Unit
   )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value) = {
+
     RunScript.evaluateTasksNamed(
+      // When using `show`, redirect all stdout of the evaluated tasks so the
+      // printed JSON is the only thing printed to stdout.
       evaluator.withBaseLogger(
-        // When using `show`, redirect all stdout of the evaluated tasks so the
-        // printed JSON is the only thing printed to stdout.
-        evaluator.baseLogger match {
-          case p: PrintLogger => p.withOutStream(p.errorStream)
-          case l => l
-        }
+        evaluator.baseLogger.withOutStream(evaluator.baseLogger.errorStream)
       ),
       targets,
       Separated
