@@ -331,6 +331,9 @@ _Changes since {prev-version}:_
   analysis to see which targets depend on the code that was changed. See
   https://github.com/com-lihaoyi/mill/pull/2417[#2417] for more details
 
+* Fix redirection of stdout stream to stderr when using `show`
+  https://github.com/com-lihaoyi/mill/pull/2689[#2689]
+
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
