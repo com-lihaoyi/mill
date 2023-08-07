@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill._
-import mill.define.{Discover, InputImpl, TargetImpl}
+import mill.define.{Caller, Discover, InputImpl, TargetImpl}
 import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
@@ -48,7 +48,7 @@ trait MillTestKit {
         implicitly,
         implicitly,
         implicitly,
-        implicitly
+        Caller(null)
       ) {
     lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
@@ -103,7 +103,9 @@ trait MillTestKit {
       0,
       failFast = failFast,
       threadCount = threads,
-      env = env
+      env = env,
+      methodCodeHashSignatures = Map(),
+      disableCallgraphInvalidation = false
     )
 
     def evalTokens(args: String*): Either[Result.Failing[_], (Seq[_], Int)] = {

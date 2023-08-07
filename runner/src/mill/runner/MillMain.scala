@@ -203,6 +203,7 @@ object MillMain {
                       targetsAndParams = targetsAndParams,
                       prevRunnerState = prevState.getOrElse(stateCache),
                       logger = logger,
+                      disableCallgraphInvalidation = config.disableCallgraphInvalidation.value,
                       needBuildSc = needBuildSc(config)
                     ).evaluate()
                   }
