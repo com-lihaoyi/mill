@@ -59,17 +59,8 @@ object Parsers {
   def StatementBlock[$: P] =
     P(Semis.? ~ (TmplStat ~~ WS ~~ (Semis | &("}") | End)).!.repX)
 
-  def CompilationUnit[$: P] = P(HashBang.!.? ~ WL.! ~ StatementBlock ~ WL ~ End)
+  def CompilationUnit[$: P] = P(HashBang.!.? ~~ WL.! ~~ StatementBlock ~ WL ~ End)
 
-  def stringWrap(s: String): String = "\"" + pprint.Util.literalize(s) + "\""
-  def stringSymWrap(s: String): String = {
-    def idToEnd[$: P] = P(scalaparse.syntax.Identifiers.Id ~ End)
-    if (s == "") "'"
-    else parse(s, idToEnd(_)) match {
-      case Parsed.Success(v, _) => "'" + s
-      case f: Parsed.Failure => stringWrap(s)
-    }
-  }
   def parseImportHooksWithIndices(stmts: Seq[String]): Seq[(String, Seq[ImportTree])] = {
     val hookedStmts = mutable.Buffer.empty[(String, Seq[ImportTree])]
     for (stmt <- stmts) {
