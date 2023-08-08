@@ -17,3 +17,5 @@ Here are some direct links:
 * {link-github}/issues[Issue Tracker on GitHub] - Our issue tracker for bugs and features
 * {link-github}/pulls[Pull Requests on GitHub] - All new features and bug fixes find their way into Mill via a pull request. You can also sketch new ideas by creating a draft pull requests.
 {link-gitter}[Gitter Chat (Element)] - You can also join our chat room if you like more direct communication or to just say hello
+
+To build docs locally, `mill docs.localPages`. The last line of the command tells you where to browse the generated pages. From there you can follow the breadcrumbs.
