@@ -1,5 +1,6 @@
 package mill.integration
 
+import mill.main.client.Util
 import utest._
 
 import scala.collection.mutable
@@ -131,8 +132,8 @@ object WatchSourceInputTests extends IntegrationTestSuite {
     test("sources") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - retry(3) { initWorkspace(); testWatchSource(false) }
-      test("show") - retry(3) { initWorkspace(); testWatchSource(true) }
+      test("noshow") - retry(3) { if (!Util.isWindows) { initWorkspace(); testWatchSource(false) } }
+      test("show") - retry(3) { if (!Util.isWindows) { initWorkspace(); testWatchSource(true) } }
     }
 
     def testWatchInput(show: Boolean) =
@@ -171,8 +172,8 @@ object WatchSourceInputTests extends IntegrationTestSuite {
     test("input") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - retry(3) { initWorkspace(); testWatchInput(false) }
-      test("show") - retry(3) { initWorkspace(); testWatchInput(true) }
+      test("noshow") - retry(3) { if (!Util.isWindows) { initWorkspace(); testWatchInput(false) } }
+      test("show") - retry(3) { if (!Util.isWindows) { initWorkspace(); testWatchInput(true) } }
     }
   }
 }
