@@ -1,6 +1,8 @@
 package mill.integration
 
 import utest._
+
+import scala.collection.mutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.SECONDS
@@ -31,17 +33,39 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       }
     }
 
-    def testWatchSource(show: Boolean) = {
+    def testBase(show: Boolean)(f: (mutable.Buffer[String], mutable.Buffer[String], mutable.Buffer[String]) => IntegrationTestSuite.EvalResult): Unit = {
+      val expectedOut = mutable.Buffer.empty[String]
+      // Most of these are normal `println`s, so they go to `stdout` by
+      // default unless you use `show` in which case they go to `stderr`.
+      val expectedErr = if (show) mutable.Buffer.empty[String] else expectedOut
+      val expectedShows = mutable.Buffer.empty[String]
+      val res = f(expectedOut, expectedErr, expectedShows)
+      val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
+      val err = res.err.linesIterator.toVector
+        .filter(!_.contains("Watching for changes"))
+        .filter(!_.contains("[info] compiling"))
+        .filter(!_.contains("[info] done compiling"))
+
+      assert(out == expectedOut)
+
+      // If show is not enabled, we don't expect any of our custom prints to go to stderr
+      if (show) assert(err == expectedErr)
+      else assert(err.isEmpty)
+
+      if (show) assert(shows == expectedShows.map('"' + _ + '"'))
+    }
+
+    def testWatchSource(show: Boolean) = testBase(show){ (expectedOut, expectedErr, expectedShows) =>
       val showArgs = if (show) Seq("show") else Nil
 
       val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "qux") }
-      val expectedPrints = collection.mutable.Buffer.empty[String]
-      val expectedShows = collection.mutable.Buffer.empty[String]
 
       awaitCompletionMarker("initialized0")
       awaitCompletionMarker("quxRan0")
-      expectedPrints.append(
+      expectedOut.append(
         "Setting up build.sc",
+      )
+      expectedErr.append(
         "Running qux foo contents initial-foo1 initial-foo2",
         "Running qux bar contents initial-bar"
       )
@@ -51,7 +75,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
       os.write.over(wsRoot / "foo1.txt", "edited-foo1")
       awaitCompletionMarker("quxRan1")
-      expectedPrints.append(
+      expectedErr.append(
         "Running qux foo contents edited-foo1 initial-foo2",
         "Running qux bar contents initial-bar"
       )
@@ -61,7 +85,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
       os.write.over(wsRoot / "foo2.txt", "edited-foo2")
       awaitCompletionMarker("quxRan2")
-      expectedPrints.append(
+      expectedErr.append(
         "Running qux foo contents edited-foo1 edited-foo2",
         "Running qux bar contents initial-bar"
       )
@@ -71,7 +95,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
       os.write.over(wsRoot / "bar.txt", "edited-bar")
       awaitCompletionMarker("quxRan3")
-      expectedPrints.append(
+      expectedErr.append(
         "Running qux foo contents edited-foo1 edited-foo2",
         "Running qux bar contents edited-bar"
       )
@@ -81,7 +105,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
       os.write.append(wsRoot / "build.sc", "\ndef unrelated = true")
       awaitCompletionMarker("initialized1")
-      expectedPrints.append(
+      expectedOut.append(
         "Setting up build.sc"
         // These targets do not re-evaluate, because the change to the build
         // file was unrelated to them and does not affect their transitive callgraph
@@ -94,14 +118,9 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
       os.write.over(wsRoot / "watchValue.txt", "exit")
       awaitCompletionMarker("initialized2")
-      expectedPrints.append("Setting up build.sc")
+      expectedOut.append("Setting up build.sc")
 
-      val res = Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
-
-      val (shows, prints) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
-
-      assert(prints == expectedPrints)
-      if (show) assert(shows == expectedShows.map('"' + _ + '"'))
+      Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
     }
 
     test("sources") {
@@ -111,40 +130,36 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       test("show") - retry(3) { initWorkspace(); testWatchSource(true) }
     }
 
-    def testWatchInput(show: Boolean) = {
+    def testWatchInput(show: Boolean) = testBase(show){ (expectedOut, expectedErr, expectedShows) =>
       val showArgs = if (show) Seq("show") else Nil
 
       val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "lol") }
-      val expectedPrints = collection.mutable.Buffer.empty[String]
-      val expectedShows = collection.mutable.Buffer.empty[String]
 
       awaitCompletionMarker("initialized0")
       awaitCompletionMarker("lolRan0")
-      expectedPrints.append(
+      expectedOut.append(
         "Setting up build.sc",
+      )
+      expectedErr.append(
         "Running lol baz contents initial-baz"
       )
       expectedShows.append("Running lol baz contents initial-baz")
 
       os.write.over(wsRoot / "baz.txt", "edited-baz")
       awaitCompletionMarker("lolRan1")
-      expectedPrints.append("Running lol baz contents edited-baz")
+      expectedErr.append("Running lol baz contents edited-baz")
       expectedShows.append("Running lol baz contents edited-baz")
 
       os.write.over(wsRoot / "watchValue.txt", "edited-watchValue")
       awaitCompletionMarker("initialized1")
-      expectedPrints.append("Setting up build.sc")
+      expectedOut.append("Setting up build.sc")
       expectedShows.append("Running lol baz contents edited-baz")
 
       os.write.over(wsRoot / "watchValue.txt", "exit")
       awaitCompletionMarker("initialized2")
-      expectedPrints.append("Setting up build.sc")
+      expectedOut.append("Setting up build.sc")
 
-      val res = Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
-
-      val (shows, prints) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
-      assert(prints == expectedPrints)
-      if (show) assert(shows == expectedShows.map('"' + _ + '"'))
+      Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
     }
 
     test("input") {
