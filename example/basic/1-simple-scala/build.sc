@@ -8,11 +8,6 @@ object foo extends RootModule with ScalaModule {
     ivy"com.lihaoyi::mainargs:0.4.0"
   )
 
-  def compile = T{
-    println("COMPILING")
-    super.compile()
-  }
-
   object test extends ScalaTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
     def testFramework = "utest.runner.Framework"
