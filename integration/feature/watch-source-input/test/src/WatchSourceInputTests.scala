@@ -33,7 +33,11 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       }
     }
 
-    def testBase(show: Boolean)(f: (mutable.Buffer[String], mutable.Buffer[String], mutable.Buffer[String]) => IntegrationTestSuite.EvalResult): Unit = {
+    def testBase(show: Boolean)(f: (
+        mutable.Buffer[String],
+        mutable.Buffer[String],
+        mutable.Buffer[String]
+    ) => IntegrationTestSuite.EvalResult): Unit = {
       val expectedOut = mutable.Buffer.empty[String]
       // Most of these are normal `println`s, so they go to `stdout` by
       // default unless you use `show` in which case they go to `stderr`.
@@ -55,73 +59,74 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       if (show) assert(shows == expectedShows.map('"' + _ + '"'))
     }
 
-    def testWatchSource(show: Boolean) = testBase(show){ (expectedOut, expectedErr, expectedShows) =>
-      val showArgs = if (show) Seq("show") else Nil
+    def testWatchSource(show: Boolean) =
+      testBase(show) { (expectedOut, expectedErr, expectedShows) =>
+        val showArgs = if (show) Seq("show") else Nil
 
-      val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "qux") }
+        val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "qux") }
 
-      awaitCompletionMarker("initialized0")
-      awaitCompletionMarker("quxRan0")
-      expectedOut.append(
-        "Setting up build.sc",
-      )
-      expectedErr.append(
-        "Running qux foo contents initial-foo1 initial-foo2",
-        "Running qux bar contents initial-bar"
-      )
-      expectedShows.append(
-        "Running qux foo contents initial-foo1 initial-foo2 Running qux bar contents initial-bar"
-      )
+        awaitCompletionMarker("initialized0")
+        awaitCompletionMarker("quxRan0")
+        expectedOut.append(
+          "Setting up build.sc"
+        )
+        expectedErr.append(
+          "Running qux foo contents initial-foo1 initial-foo2",
+          "Running qux bar contents initial-bar"
+        )
+        expectedShows.append(
+          "Running qux foo contents initial-foo1 initial-foo2 Running qux bar contents initial-bar"
+        )
 
-      os.write.over(wsRoot / "foo1.txt", "edited-foo1")
-      awaitCompletionMarker("quxRan1")
-      expectedErr.append(
-        "Running qux foo contents edited-foo1 initial-foo2",
-        "Running qux bar contents initial-bar"
-      )
-      expectedShows.append(
-        "Running qux foo contents edited-foo1 initial-foo2 Running qux bar contents initial-bar"
-      )
+        os.write.over(wsRoot / "foo1.txt", "edited-foo1")
+        awaitCompletionMarker("quxRan1")
+        expectedErr.append(
+          "Running qux foo contents edited-foo1 initial-foo2",
+          "Running qux bar contents initial-bar"
+        )
+        expectedShows.append(
+          "Running qux foo contents edited-foo1 initial-foo2 Running qux bar contents initial-bar"
+        )
 
-      os.write.over(wsRoot / "foo2.txt", "edited-foo2")
-      awaitCompletionMarker("quxRan2")
-      expectedErr.append(
-        "Running qux foo contents edited-foo1 edited-foo2",
-        "Running qux bar contents initial-bar"
-      )
-      expectedShows.append(
-        "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents initial-bar"
-      )
+        os.write.over(wsRoot / "foo2.txt", "edited-foo2")
+        awaitCompletionMarker("quxRan2")
+        expectedErr.append(
+          "Running qux foo contents edited-foo1 edited-foo2",
+          "Running qux bar contents initial-bar"
+        )
+        expectedShows.append(
+          "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents initial-bar"
+        )
 
-      os.write.over(wsRoot / "bar.txt", "edited-bar")
-      awaitCompletionMarker("quxRan3")
-      expectedErr.append(
-        "Running qux foo contents edited-foo1 edited-foo2",
-        "Running qux bar contents edited-bar"
-      )
-      expectedShows.append(
-        "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
-      )
+        os.write.over(wsRoot / "bar.txt", "edited-bar")
+        awaitCompletionMarker("quxRan3")
+        expectedErr.append(
+          "Running qux foo contents edited-foo1 edited-foo2",
+          "Running qux bar contents edited-bar"
+        )
+        expectedShows.append(
+          "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
+        )
 
-      os.write.append(wsRoot / "build.sc", "\ndef unrelated = true")
-      awaitCompletionMarker("initialized1")
-      expectedOut.append(
-        "Setting up build.sc"
-        // These targets do not re-evaluate, because the change to the build
-        // file was unrelated to them and does not affect their transitive callgraph
-        //        "Running qux foo contents edited-foo1 edited-foo2",
-        //        "Running qux bar contents edited-bar"
-      )
-      expectedShows.append(
-        "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
-      )
+        os.write.append(wsRoot / "build.sc", "\ndef unrelated = true")
+        awaitCompletionMarker("initialized1")
+        expectedOut.append(
+          "Setting up build.sc"
+          // These targets do not re-evaluate, because the change to the build
+          // file was unrelated to them and does not affect their transitive callgraph
+          //        "Running qux foo contents edited-foo1 edited-foo2",
+          //        "Running qux bar contents edited-bar"
+        )
+        expectedShows.append(
+          "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
+        )
 
-      os.write.over(wsRoot / "watchValue.txt", "exit")
-      awaitCompletionMarker("initialized2")
-      expectedOut.append("Setting up build.sc")
+        os.write.over(wsRoot / "watchValue.txt", "exit")
+        awaitCompletionMarker("initialized2")
+        expectedOut.append("Setting up build.sc")
 
-      Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
-    }
+        Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
+      }
 
     test("sources") {
 
@@ -130,37 +135,38 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       test("show") - retry(3) { initWorkspace(); testWatchSource(true) }
     }
 
-    def testWatchInput(show: Boolean) = testBase(show){ (expectedOut, expectedErr, expectedShows) =>
-      val showArgs = if (show) Seq("show") else Nil
+    def testWatchInput(show: Boolean) =
+      testBase(show) { (expectedOut, expectedErr, expectedShows) =>
+        val showArgs = if (show) Seq("show") else Nil
 
-      val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "lol") }
+        val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "lol") }
 
-      awaitCompletionMarker("initialized0")
-      awaitCompletionMarker("lolRan0")
-      expectedOut.append(
-        "Setting up build.sc",
-      )
-      expectedErr.append(
-        "Running lol baz contents initial-baz"
-      )
-      expectedShows.append("Running lol baz contents initial-baz")
+        awaitCompletionMarker("initialized0")
+        awaitCompletionMarker("lolRan0")
+        expectedOut.append(
+          "Setting up build.sc"
+        )
+        expectedErr.append(
+          "Running lol baz contents initial-baz"
+        )
+        expectedShows.append("Running lol baz contents initial-baz")
 
-      os.write.over(wsRoot / "baz.txt", "edited-baz")
-      awaitCompletionMarker("lolRan1")
-      expectedErr.append("Running lol baz contents edited-baz")
-      expectedShows.append("Running lol baz contents edited-baz")
+        os.write.over(wsRoot / "baz.txt", "edited-baz")
+        awaitCompletionMarker("lolRan1")
+        expectedErr.append("Running lol baz contents edited-baz")
+        expectedShows.append("Running lol baz contents edited-baz")
 
-      os.write.over(wsRoot / "watchValue.txt", "edited-watchValue")
-      awaitCompletionMarker("initialized1")
-      expectedOut.append("Setting up build.sc")
-      expectedShows.append("Running lol baz contents edited-baz")
+        os.write.over(wsRoot / "watchValue.txt", "edited-watchValue")
+        awaitCompletionMarker("initialized1")
+        expectedOut.append("Setting up build.sc")
+        expectedShows.append("Running lol baz contents edited-baz")
 
-      os.write.over(wsRoot / "watchValue.txt", "exit")
-      awaitCompletionMarker("initialized2")
-      expectedOut.append("Setting up build.sc")
+        os.write.over(wsRoot / "watchValue.txt", "exit")
+        awaitCompletionMarker("initialized2")
+        expectedOut.append("Setting up build.sc")
 
-      Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
-    }
+        Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
+      }
 
     test("input") {
 
