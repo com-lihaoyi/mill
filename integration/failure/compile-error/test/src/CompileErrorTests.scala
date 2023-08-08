@@ -12,7 +12,7 @@ object CompileErrorTests extends IntegrationTestSuite {
       val res = evalStdout("foo.scalaVersion")
 
       assert(res.isSuccess == false)
-      assert(res.err.contains("""bar.sc:3:9: not found: value doesntExist"""))
+      assert(res.err.contains("""bar.sc:14:9: not found: value doesntExist"""))
       assert(res.err.contains("""println(doesntExist)"""))
       assert(res.err.contains("""qux.sc:3:34: type mismatch;"""))
       assert(res.err.contains(
