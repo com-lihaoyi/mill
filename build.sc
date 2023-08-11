@@ -1128,7 +1128,8 @@ def launcherScript(
     shellJvmArgs: Seq[String],
     cmdJvmArgs: Seq[String],
     shellClassPath: Agg[String],
-    cmdClassPath: Agg[String]
+    cmdClassPath: Agg[String],
+    millVersion: String,
 ) = {
 
   val millMainClass = "mill.main.client.MillClientMain"
@@ -1144,7 +1145,8 @@ def launcherScript(
           )}" $mainClass "$$@""""
       }
 
-      s"""if [ -z "$$JAVA_HOME" ] ; then
+      s"""# Marker for millw to detect mill version: -DMILL_VERSION=${millVersion} -
+         |if [ -z "$$JAVA_HOME" ] ; then
          |  JAVACMD="java"
          |else
          |  JAVACMD="$$JAVA_HOME/bin/java"
@@ -1324,7 +1326,7 @@ object dev extends MillPublishScalaModule {
     os.move(
       mill.scalalib.Assembly.createAssembly(
         devRunClasspath,
-        prependShellScript = launcherScript(shellArgs, cmdArgs, Agg("$0"), Agg("%~dpnx0")),
+        prependShellScript = launcherScript(shellArgs, cmdArgs, Agg("$0"), Agg("%~dpnx0"), millVersion()),
         assemblyRules = assemblyRules
       ).path,
       T.dest / filename
@@ -1348,7 +1350,8 @@ object dev extends MillPublishScalaModule {
       jvmArgs,
       jvmArgs,
       classpath,
-      Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
+      Agg(pathingJar().path.toString), // TODO not working yet on Windows! see #791
+      millVersion()
     )
   }
 
