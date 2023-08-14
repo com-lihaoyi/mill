@@ -262,8 +262,8 @@ class MillBuildBootstrap(
       evaluator: Evaluator
   ): RunnerState = {
 
-    val (evaled, evalWatched, moduleWatches) = Evaluator.allEvaluators.withValue(
-      Seq(evaluator) ++ nestedState.frames.map(_.evaluator)
+    val (evaled, evalWatched, moduleWatches) = Evaluator.allBootstrapEvaluators.withValue(
+      Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.map(_.evaluator))
     ) {
       evaluateWithWatches(rootModule, evaluator, targetsAndParams)
     }

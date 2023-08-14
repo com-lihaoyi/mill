@@ -49,9 +49,10 @@ object BSP extends ExternalModule with CoursierModule {
    * @param ev The Evaluator
    * @return The server result, indicating if mill should re-run this command or just exit.
    */
-  def startSession(allEvaluators: Seq[Evaluator]): Command[BspServerResult] = T.command {
+  def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
+      : Command[BspServerResult] = T.command {
     T.log.errorStream.println("BSP/startSession: Starting BSP session")
-    val res = BspContext.bspServerHandle.runSession(allEvaluators)
+    val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
     T.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
     res
   }
