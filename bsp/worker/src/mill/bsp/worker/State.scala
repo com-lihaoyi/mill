@@ -23,6 +23,9 @@ private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
         }
       }
       .toMap
+    debug(s"Reused Evaluators: ${evaluators}")
+    debug(s"Reused Evaluators outPaths: ${evaluators.map(_.outPath)}")
+    debug(s"Reused Evaluators rootModule.millSourcePath: ${evaluators.map(_.rootModule.millSourcePath)}")
     debug(s"BspModules: ${map.mapValues(_._1.bspDisplayName).toMap}")
 
     map
