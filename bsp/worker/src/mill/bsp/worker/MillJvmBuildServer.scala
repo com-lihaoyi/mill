@@ -60,6 +60,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       }
     ) {
       case (
+            ev,
             state,
             id,
             m: JavaModule,

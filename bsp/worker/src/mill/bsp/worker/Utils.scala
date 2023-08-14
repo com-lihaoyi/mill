@@ -38,14 +38,11 @@ private object Utils {
   }
 
   // Get the execution status code given the results from Evaluator.evaluate
-  def getStatusCode(results: Evaluator.Results): StatusCode = {
-    val statusCodes = results.results.keys.map(task => getStatusCodePerTask(results, task)).toSeq
-    if (statusCodes.contains(StatusCode.ERROR))
-      StatusCode.ERROR
-    else if (statusCodes.contains(StatusCode.CANCELLED))
-      StatusCode.CANCELLED
-    else
-      StatusCode.OK
+  def getStatusCode(resultsLists: Seq[Evaluator.Results]): StatusCode = {
+    val statusCodes = resultsLists.flatMap(r => r.results.keys.map(task => getStatusCodePerTask(r, task)).toSeq)
+    if (statusCodes.contains(StatusCode.ERROR)) StatusCode.ERROR
+    else if (statusCodes.contains(StatusCode.CANCELLED)) StatusCode.CANCELLED
+    else StatusCode.OK
   }
 
   private[this] def getStatusCodePerTask(

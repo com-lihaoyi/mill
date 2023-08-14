@@ -5,6 +5,7 @@ import mill.runner.MillBuildBootstrap
 import mill.scalalib.bsp.BspModule
 import mill.scalalib.internal.{JavaModuleUtils, ModuleUtils}
 import mill.define.Module
+import mill.eval.Evaluator
 import mill.util.ColorLogger
 
 private class State(
@@ -13,28 +14,28 @@ private class State(
     debug: String => Unit,
     disableCallgraphInvalidation: Boolean
 ) {
-  lazy val bspModulesById: Map[BuildTargetIdentifier, BspModule] = {
-    val modules: Seq[(Module, Seq[Module])] = rootModules
-      .map(rootModule => (rootModule, JavaModuleUtils.transitiveModules(rootModule)))
+  lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModule, Evaluator)] = {
+    val modules: Seq[(Module, Seq[Module], Evaluator)] = evaluators
+      .map(ev => (ev.rootModule, JavaModuleUtils.transitiveModules(ev.rootModule), ev))
 
     val map = modules
-      .flatMap { case (rootModule, otherModules) =>
+      .flatMap { case (rootModule, otherModules, eval) =>
         (Seq(rootModule) ++ otherModules).collect {
           case m: BspModule =>
             val uri = Utils.sanitizeUri(
               rootModule.millSourcePath / m.millModuleSegments.parts
             )
 
-            (new BuildTargetIdentifier(uri), m)
+            (new BuildTargetIdentifier(uri), (m, eval))
         }
       }
       .toMap
-    debug(s"BspModules: ${map.mapValues(_.bspDisplayName)}")
+    debug(s"BspModules: ${map.mapValues(_._1.bspDisplayName)}")
 
     map
   }
 
-  lazy val rootModules: Seq[mill.main.RootModule] = {
+  lazy val evaluators: Seq[mill.eval.Evaluator] = {
     val evaluated = new mill.runner.MillBuildBootstrap(
       projectRoot = projectRoot,
       home = os.home,
@@ -49,26 +50,11 @@ private class State(
       needBuildSc = true
     ).evaluate()
 
-    val rootModules0 = evaluated.result.frames
-      .flatMap(_.classLoaderOpt)
-      .zipWithIndex
-      .map { case (c, i) =>
-        MillBuildBootstrap
-          .getRootModule(c, i, projectRoot)
-          .fold(sys.error(_), identity(_))
-      }
-
-    val bootstrapModule = evaluated.result.bootstrapModuleOpt.map(m =>
-      MillBuildBootstrap
-        .getChildRootModule(
-          m,
-          evaluated.result.frames.length,
-          projectRoot
-        )
-        .fold(sys.error(_), identity(_))
-    )
-
-    rootModules0 ++ bootstrapModule
+    evaluated.result.frames.map(_.evaluator)
   }
-  lazy val bspIdByModule: Map[BspModule, BuildTargetIdentifier] = bspModulesById.map(_.swap)
+
+  lazy val rootModules = evaluators.map(_.rootModule)
+
+  lazy val bspIdByModule: Map[BspModule, BuildTargetIdentifier] =
+    bspModulesById.mapValues(_._1).map(_.swap).toMap
 }

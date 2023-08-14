@@ -193,7 +193,8 @@ class MillBuildBootstrap(
           Map.empty,
           Map.empty,
           None,
-          Nil
+          Nil,
+          evaluator
         )
 
         nestedState.add(frame = evalState, errorOpt = Some(error))
@@ -242,7 +243,8 @@ class MillBuildBootstrap(
           scriptImportGraph,
           methodCodeHashSignatures,
           Some(classLoader),
-          runClasspath
+          runClasspath,
+          evaluator
         )
 
         nestedState.add(frame = evalState)
@@ -270,7 +272,8 @@ class MillBuildBootstrap(
       Map.empty,
       Map.empty,
       None,
-      Nil
+      Nil,
+      evaluator
     )
 
     nestedState.add(frame = evalState, errorOpt = evaled.left.toOption)
