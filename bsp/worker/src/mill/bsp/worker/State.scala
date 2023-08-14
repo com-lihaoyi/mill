@@ -28,7 +28,7 @@ private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
     map
   }
 
-  lazy val rootModules = evaluators.map(_.rootModule)
+  lazy val rootModules: Seq[mill.main.RootModule] = evaluators.map(_.rootModule)
 
   lazy val bspIdByModule: Map[BspModule, BuildTargetIdentifier] =
     bspModulesById.mapValues(_._1).map(_.swap).toMap
