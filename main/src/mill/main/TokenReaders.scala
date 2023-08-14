@@ -26,7 +26,8 @@ object Tasks {
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
   def read(): Either[String, Evaluator] = Right(Evaluator.currentEvaluator.value)
 }
-private[mill] class AllEvaluatorsTokenReader[T]() extends mainargs.TokensReader.Constant[Seq[Evaluator]] {
+private[mill] class AllEvaluatorsTokenReader[T]()
+    extends mainargs.TokensReader.Constant[Seq[Evaluator]] {
   def read(): Either[String, Seq[Evaluator]] = Right(Evaluator.allEvaluators.value)
 }
 
