@@ -18,7 +18,7 @@ private class BspWorkerImpl() extends BspWorker {
       streams: SystemStreams,
       logStream: PrintStream,
       logDir: os.Path,
-      canReload: Boolean
+      canReload: Boolean,
   ): Either[String, BspServerHandle] = {
 
     val millServer =
@@ -56,9 +56,9 @@ private class BspWorkerImpl() extends BspWorker {
       val bspServerHandle = new BspServerHandle {
         private[this] var lastResult0: Option[BspServerResult] = None
 
-        override def runSession(evaluator: Evaluator): BspServerResult = {
+        override def runSession(evaluators: Seq[Evaluator]): BspServerResult = {
           lastResult0 = None
-          millServer.updateEvaluator(Option(evaluator))
+          millServer.updateEvaluator(Option(evaluators))
           val onReload = Promise[BspServerResult]()
           millServer.onSessionEnd = Some { serverResult =>
             if (!onReload.isCompleted) {

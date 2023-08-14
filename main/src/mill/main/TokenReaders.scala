@@ -26,6 +26,9 @@ object Tasks {
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
   def read(): Either[String, Evaluator] = Right(Evaluator.currentEvaluator.value)
 }
+private[mill] class AllEvaluatorsTokenReader[T]() extends mainargs.TokensReader.Constant[Seq[Evaluator]] {
+  def read(): Either[String, Seq[Evaluator]] = Right(Evaluator.allEvaluators.value)
+}
 
 private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
     extends mainargs.TokensReader.Leftover[Task[T], T] {
@@ -37,6 +40,9 @@ private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[
 object TokenReaders {
   implicit def millEvaluatorTokenReader[T]: mainargs.TokensReader[Evaluator] =
     new mill.main.EvaluatorTokenReader[T]()
+
+  implicit def millAllEvaluatorsTokenReader[T]: mainargs.TokensReader[Seq[Evaluator]] =
+    new mill.main.AllEvaluatorsTokenReader[T]()
 
   implicit def millTasksTokenReader[T]: mainargs.TokensReader[Tasks[T]] =
     new mill.main.Tasks.TokenReader[T]()

@@ -11,7 +11,7 @@ trait BspServerHandle {
    * Runs a new session with the given evaluator. This one blocks until the session ends.
    * @return The reason which the session ended, possibly indictating the wish for restart (e.g. in case of workspace reload).
    */
-  def runSession(evaluator: Evaluator): BspServerResult
+  def runSession(evaluators: Seq[Evaluator]): BspServerResult
 
   /**
    * The result of the latest started session. Once a new session was started but not finished, this may be [[None]].

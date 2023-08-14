@@ -8,6 +8,8 @@ import mill.api.JsonFormatters._
 import mill.eval.Evaluator
 import mill.main.RootModule
 
+import scala.util.DynamicVariable
+
 /**
  * This contains a list of frames each representing cached data from a single
  * level of `build.sc` evaluation:

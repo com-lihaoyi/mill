@@ -95,17 +95,12 @@ private class MillBuildServer(
 
   private[this] var statePromise: Promise[State] = Promise[State]()
 
-  def updateEvaluator(evaluator: Option[Evaluator]): Unit = {
-    debug(s"Updating Evaluator: $evaluator")
+  def updateEvaluator(evaluatorsOpt: Option[Seq[Evaluator]]): Unit = {
+    debug(s"Updating Evaluator: $evaluatorsOpt")
     if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
-    evaluator.foreach { e =>
+    evaluatorsOpt.foreach { evaluators =>
       statePromise.success(
-        new State(
-          e.rootModule.millSourcePath,
-          e.baseLogger,
-          debug,
-          e.disableCallgraphInvalidation
-        )
+        new State(evaluators, debug)
       )
     }
   }

@@ -66,6 +66,7 @@ object Evaluator {
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
   val currentEvaluator = new DynamicVariable[mill.eval.Evaluator](null)
+  val allEvaluators = new DynamicVariable[Seq[mill.eval.Evaluator]](null)
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
