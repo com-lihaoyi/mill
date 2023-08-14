@@ -30,7 +30,7 @@ private class State(
         }
       }
       .toMap
-    debug(s"BspModules: ${map.mapValues(_._1.bspDisplayName)}")
+    debug(s"BspModules: ${map.mapValues(_._1.bspDisplayName).toMap}")
 
     map
   }
