@@ -642,14 +642,14 @@ private class MillBuildServer(
       val ids = targetIds(state)
       val tasksSeq = ids.map { id =>
         val (m, ev) = state.bspModulesById(id)
-        (tasks(m), ev)
+        (tasks(m), (ev, id))
       }
 
       val evaluated = tasksSeq
         .groupMap(_._2)(_._1)
-        .map { case (ev, ts) => (ev, ev.evalOrThrow()(ts)) }
-        .map { case (ev, vs) =>
-          vs.zip(ids).map { case (v, i) => f(ev, state, i, state.bspModulesById(i)._1, v) }
+        .map { case ((ev, id), ts) =>
+          ev.evalOrThrow()(ts)
+            .map { v => f(ev, state, id, state.bspModulesById(id)._1, v) }
         }
 
       agg(evaluated.flatten.toSeq.asJava)
