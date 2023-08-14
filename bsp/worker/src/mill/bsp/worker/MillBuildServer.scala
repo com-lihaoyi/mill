@@ -1,6 +1,58 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{BuildClient, BuildServer, BuildServerCapabilities, BuildTarget, BuildTargetCapabilities, BuildTargetIdentifier, CleanCacheParams, CleanCacheResult, CompileParams, CompileProvider, CompileResult, DebugProvider, DebugSessionAddress, DebugSessionParams, DependencyModule, DependencyModulesItem, DependencyModulesParams, DependencyModulesResult, DependencySourcesItem, DependencySourcesParams, DependencySourcesResult, InitializeBuildParams, InitializeBuildResult, InverseSourcesParams, InverseSourcesResult, OutputPathItem, OutputPathItemKind, OutputPathsItem, OutputPathsParams, OutputPathsResult, ResourcesItem, ResourcesParams, ResourcesResult, RunParams, RunProvider, RunResult, SourceItem, SourceItemKind, SourcesItem, SourcesParams, SourcesResult, StatusCode, TaskDataKind, TaskFinishParams, TaskId, TaskStartParams, TestParams, TestProvider, TestResult, TestTask, WorkspaceBuildTargetsResult}
+import ch.epfl.scala.bsp4j.{
+  BuildClient,
+  BuildServer,
+  BuildServerCapabilities,
+  BuildTarget,
+  BuildTargetCapabilities,
+  BuildTargetIdentifier,
+  CleanCacheParams,
+  CleanCacheResult,
+  CompileParams,
+  CompileProvider,
+  CompileResult,
+  DebugProvider,
+  DebugSessionAddress,
+  DebugSessionParams,
+  DependencyModule,
+  DependencyModulesItem,
+  DependencyModulesParams,
+  DependencyModulesResult,
+  DependencySourcesItem,
+  DependencySourcesParams,
+  DependencySourcesResult,
+  InitializeBuildParams,
+  InitializeBuildResult,
+  InverseSourcesParams,
+  InverseSourcesResult,
+  OutputPathItem,
+  OutputPathItemKind,
+  OutputPathsItem,
+  OutputPathsParams,
+  OutputPathsResult,
+  ResourcesItem,
+  ResourcesParams,
+  ResourcesResult,
+  RunParams,
+  RunProvider,
+  RunResult,
+  SourceItem,
+  SourceItemKind,
+  SourcesItem,
+  SourcesParams,
+  SourcesResult,
+  StatusCode,
+  TaskDataKind,
+  TaskFinishParams,
+  TaskId,
+  TaskStartParams,
+  TestParams,
+  TestProvider,
+  TestResult,
+  TestTask,
+  WorkspaceBuildTargetsResult
+}
 import ch.epfl.scala.bsp4j
 import com.google.gson.JsonObject
 import mill.T
@@ -264,7 +316,7 @@ private class MillBuildServer(
 
       val ids = tasksEvaluators
         .groupMap(_._2)(_._1)
-        .flatMap{case (ev, ts) => ev.evalOrThrow()(ts)}
+        .flatMap { case (ev, ts) => ev.evalOrThrow()(ts) }
         .flatten
         .toSeq
 
@@ -360,7 +412,8 @@ private class MillBuildServer(
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
       val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).map {
-        case (m: SemanticDbJavaModule, ev) if clientWantsSemanticDb => (m.compiledClassesAndSemanticDbFiles, ev)
+        case (m: SemanticDbJavaModule, ev) if clientWantsSemanticDb =>
+          (m.compiledClassesAndSemanticDbFiles, ev)
         case (m: JavaModule, ev) => (m.compile, ev)
         case (m, ev) => T.task {
             Result.Failure(
@@ -594,8 +647,10 @@ private class MillBuildServer(
 
       val evaluated = tasksSeq
         .groupMap(_._2)(_._1)
-        .map{case (ev, ts) => (ev, ev.evalOrThrow()(ts))}
-        .map{case (ev, vs) => vs.zip(ids).map { case (v, i) => f(ev, state, i, state.bspModulesById(i)._1, v) }}
+        .map { case (ev, ts) => (ev, ev.evalOrThrow()(ts)) }
+        .map { case (ev, vs) =>
+          vs.zip(ids).map { case (v, i) => f(ev, state, i, state.bspModulesById(i)._1, v) }
+        }
 
       agg(evaluated.flatten.toSeq.asJava)
     }

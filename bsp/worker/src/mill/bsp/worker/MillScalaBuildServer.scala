@@ -49,7 +49,13 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           T.task { (Nil, Nil, classesPathTask()) }
       }
     ) {
-      case (ev, state, id, m: JavaModule, (allScalacOptions, bspCompileClsaspath, classesPathTask)) =>
+      case (
+            ev,
+            state,
+            id,
+            m: JavaModule,
+            (allScalacOptions, bspCompileClsaspath, classesPathTask)
+          ) =>
         val pathResolver = ev.pathsResolver
         new ScalacOptionsItem(
           id,
