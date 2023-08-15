@@ -9,12 +9,10 @@ import scala.util.control.NonFatal
 
 object GenIdea extends ExternalModule {
 
-  def idea(ev: Evaluator): Command[Unit] = T.command {
+  def idea(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators): Command[Unit] = T.command {
     try {
       Result.Success(GenIdeaImpl(
-        evaluator = ev,
-        rootModule = ev.rootModule,
-        discover = ev.rootModule.millDiscover
+        evaluators = Evaluator.allBootstrapEvaluators.value.value
       ).run())
     } catch {
       case GenIdeaImpl.GenIdeaException(m) => Result.Failure(m)

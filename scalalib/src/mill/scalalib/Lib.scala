@@ -145,10 +145,10 @@ object Lib {
     Util.millProperty("MILL_BUILD_LIBRARIES") match {
       case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
       case None =>
-        val repos = repos0 ++ Set(
+        val repos = (repos0 ++ Seq(
           LocalRepositories.ivy2Local,
           Repositories.central
-        )
+        )).distinct
         val millDeps = BuildInfo.millEmbeddedDeps.split(",").map(d => ivy"$d").map(dep =>
           BoundDep(Lib.depToDependency(dep, BuildInfo.scalaVersion, ""), dep.force)
         )

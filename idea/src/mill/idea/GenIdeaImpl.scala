@@ -11,22 +11,19 @@ import mill.api.{PathRef, Strict}
 import mill.define.{Ctx => _, _}
 import mill.eval.Evaluator
 import mill.main.BuildInfo
-import mill.runner.RootModuleFinder
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
-import mill.util.{Classpath}
+import mill.util.Classpath
 import mill.{T, scalalib}
 import os.{Path, SubPath}
 import mill.scalalib.{GenIdeaImpl => _, _}
 
 case class GenIdeaImpl(
-    evaluator: Evaluator,
-    rootModule: BaseModule,
-    discover: Discover[_]
+    private val evaluators: Seq[Evaluator]
 )(implicit ctx: Ctx) {
   import GenIdeaImpl._
 
-  val workDir: Path = rootModule.millSourcePath
+  val workDir: Path = evaluators.head.rootModule.millSourcePath
   val ideaDir: Path = workDir / ".idea"
 
   val ideaConfigVersion = 4
@@ -38,7 +35,7 @@ case class GenIdeaImpl(
 
     ctx.log.info("Analyzing modules ...")
     val layout: Seq[(SubPath, Node)] =
-      xmlFileLayout(evaluator, rootModule, jdkInfo)
+      xmlFileLayout(evaluators, jdkInfo)
 
     ctx.log.debug("Cleaning obsolete IDEA project files ...")
     os.remove.all(ideaDir / "libraries")
@@ -66,35 +63,37 @@ case class GenIdeaImpl(
   }
 
   def xmlFileLayout(
-      evaluator: Evaluator,
-      rootModule: mill.Module,
+      evaluators: Seq[Evaluator],
       jdkInfo: (String, String),
       fetchMillModules: Boolean = true
   ): Seq[(os.SubPath, scala.xml.Node)] = {
 
-    val rootModules = RootModuleFinder.findRootModules(
-      projectRoot = rootModule.millSourcePath,
-      logger = ctx.log
-    )
-    val transitive: Seq[(Module, Seq[Module])] = rootModules
-      .map(rootModule => (rootModule, JavaModuleUtils.transitiveModules(rootModule)))
+    val rootModules = evaluators.map { ev => (ev.rootModule, ev) }
+    val transitive: Seq[(BaseModule, Seq[Module], Evaluator)] = rootModules
+      .map { case (rootModule, ev) =>
+        (rootModule, JavaModuleUtils.transitiveModules(rootModule), ev)
+      }
 
-    val foundModules = transitive
-      .flatMap { case (rootModule0, otherModules) =>
+    val foundModules: Seq[(Segments, Module, Evaluator)] = transitive
+      .flatMap { case (rootModule0, otherModules, ev) =>
         (Seq(rootModule0) ++ otherModules).collect {
           case m: Module =>
             val segments: Seq[String] =
-              rootModule0.millSourcePath.relativeTo(rootModule.millSourcePath).segments ++
+              rootModule0.millSourcePath.relativeTo(workDir).segments ++
                 m.millModuleSegments.parts
 
-            (Segments(segments.map(Segment.Label)), m)
+            (Segments(segments.map(Segment.Label)), m, ev)
         }
       }
 
-    val modules = foundModules
-      .collect { case (s, x: scalalib.JavaModule) => (s, x) }
+    val modules: Seq[(Segments, JavaModule, Evaluator)] = foundModules
+      .collect { case (s, x: scalalib.JavaModule, ev) => (s, x, ev) }
       .filterNot(_._2.skipIdea)
       .distinct
+
+    lazy val modulesByEvaluator: Map[Evaluator, Seq[(Segments, JavaModule)]] = modules
+      .groupMap { case (_, _, ev) => ev } { case (s, m, _) => (s, m) }
+//      .toSeq
 
 //    val modules: Seq[(Segments, JavaModule)] =
 //      rootModule.millInternal.segmentsToModules.values
@@ -105,136 +104,154 @@ case class GenIdeaImpl(
 //        .toSeq
 //        .distinct
 
-    val buildLibraryPaths: immutable.Seq[Path] =
+    val buildLibraryPaths: immutable.Seq[Path] = {
       if (!fetchMillModules) Nil
       else {
-        val moduleRepos = evaluator.evalOrThrow(
-          exceptionFactory = r =>
-            GenIdeaException(
-              s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
-            )
-        )(modules.map(_._2.repositoriesTask))
-
+        val moduleRepos = modulesByEvaluator.toSeq.flatMap { case (ev, modules) =>
+          ev.evalOrThrow(
+            exceptionFactory = r =>
+              GenIdeaException(
+                s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
+              )
+          )(modules.map(_._2.repositoriesTask))
+        }
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = false)
       }
+    }
 
-    val buildDepsPaths = Classpath
-      .allJars(evaluator.rootModule.getClass.getClassLoader)
+    // is head the right one?
+    val buildDepsPaths = Classpath.allJars(evaluators.head.rootModule.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
-    def resolveTasks: Seq[Task[ResolvedModule]] = modules.map {
-      case (path, mod) => {
+    def resolveTasks: Map[Evaluator, Seq[Task[ResolvedModule]]] =
+      modulesByEvaluator.map { case (evaluator, m) =>
+        evaluator -> m.map {
+          case (path, mod) => {
 
-        // same as input of resolvedIvyDeps
-        val allIvyDeps = T.task {
-          mod.transitiveIvyDeps() ++ mod.transitiveCompileIvyDeps()
-        }
-
-        val scalaCompilerClasspath = mod match {
-          case x: ScalaModule => x.scalaCompilerClasspath
-          case _ =>
-            T.task {
-              Agg.empty[PathRef]
+            // same as input of resolvedIvyDeps
+            val allIvyDeps = T.task {
+              mod.transitiveIvyDeps() ++ mod.transitiveCompileIvyDeps()
             }
-        }
 
-        val externalLibraryDependencies = T.task {
-          mod.resolveDeps(T.task {
-            val bind = mod.bindDependency()
-            mod.mandatoryIvyDeps().map(bind)
-          })()
-        }
+            val scalaCompilerClasspath = mod match {
+              case x: ScalaModule => x.scalaCompilerClasspath
+              case _ =>
+                T.task {
+                  Agg.empty[PathRef]
+                }
+            }
 
-        val externalDependencies = T.task {
-          mod.resolvedIvyDeps() ++
-            T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
-        }
-        val extCompileIvyDeps =
-          mod.resolveDeps(T.task {
-            val bind = mod.bindDependency()
-            mod.compileIvyDeps().map(bind)
-          })
-        val extRunIvyDeps = mod.resolvedRunIvyDeps
+            val externalLibraryDependencies = T.task {
+              mod.resolveDeps(T.task {
+                val bind = mod.bindDependency()
+                mod.mandatoryIvyDeps().map(bind)
+              })()
+            }
 
-        val externalSources = T.task {
-          mod.resolveDeps(allIvyDeps, sources = true)()
-        }
+            val externalDependencies = T.task {
+              mod.resolvedIvyDeps() ++
+                T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
+            }
+            val extCompileIvyDeps =
+              mod.resolveDeps(T.task {
+                val bind = mod.bindDependency()
+                mod.compileIvyDeps().map(bind)
+              })
+            val extRunIvyDeps = mod.resolvedRunIvyDeps
 
-        val (scalacPluginsIvyDeps, allScalacOptions) = mod match {
-          case mod: ScalaModule => (
-              T.task(mod.scalacPluginIvyDeps()),
-              T.task(mod.allScalacOptions())
+            val externalSources = T.task {
+              mod.resolveDeps(allIvyDeps, sources = true)()
+            }
+
+            val (scalacPluginsIvyDeps, allScalacOptions) = mod match {
+              case mod: ScalaModule => (
+                  T.task(mod.scalacPluginIvyDeps()),
+                  T.task(mod.allScalacOptions())
+                )
+              case _ => (
+                  T.task {
+                    Agg[Dep]()
+                  },
+                  T.task {
+                    Seq()
+                  }
+                )
+            }
+
+            val scalacPluginDependencies = T.task {
+              mod.resolveDeps(T.task {
+                val bind = mod.bindDependency()
+                scalacPluginsIvyDeps().map(bind)
+              })()
+            }
+
+            val facets = T.task {
+              mod.ideaJavaModuleFacets(ideaConfigVersion)()
+            }
+
+            val configFileContributions = T.task {
+              mod.ideaConfigFiles(ideaConfigVersion)()
+            }
+
+            val compilerOutput = T.task {
+              mod.ideaCompileOutput()
+            }
+
+            T.task {
+              val resolvedCp: Agg[Scoped[Path]] =
+                externalDependencies().map(_.path).map(Scoped(_, None)) ++
+                  extCompileIvyDeps()
+                    .map(_.path)
+                    .map(Scoped(_, Some("PROVIDED"))) ++
+                  extRunIvyDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
+              // unused, but we want to trigger sources, to have them available (automatically)
+              // TODO: make this a separate eval to handle resolve errors
+              val resolvedSrcs: Agg[PathRef] = externalSources()
+              val resolvedSp: Agg[PathRef] = scalacPluginDependencies()
+              val resolvedCompilerCp: Agg[PathRef] =
+                scalaCompilerClasspath()
+              val resolvedLibraryCp: Agg[PathRef] =
+                externalLibraryDependencies()
+              val scalacOpts: Seq[String] = allScalacOptions()
+              val resolvedFacets: Seq[JavaFacet] = facets()
+              val resolvedConfigFileContributions: Seq[IdeaConfigFile] =
+                configFileContributions()
+              val resolvedCompilerOutput = compilerOutput()
+
+              ResolvedModule(
+                path = path,
+                // FIXME: why do we need to sources in the classpath?
+                // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
+                classpath = resolvedCp.filter(_.value.ext == "jar"),
+                module = mod,
+                pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar"),
+                scalaOptions = scalacOpts,
+                compilerClasspath = resolvedCompilerCp.map(_.path),
+                libraryClasspath = resolvedLibraryCp.map(_.path),
+                facets = resolvedFacets,
+                configFileContributions = resolvedConfigFileContributions,
+                compilerOutput = resolvedCompilerOutput.path,
+                evaluator = evaluator
+              )
+            }
+          }
+        }
+      }
+
+    val resolvedModules: Seq[ResolvedModule] = {
+      resolveTasks.toSeq.flatMap { case (evaluator, tasks) =>
+        evaluator.evaluate(tasks) match {
+          case r if r.failing.items().nonEmpty =>
+            throw GenIdeaException(
+              s"Failure during resolving modules: ${Evaluator.formatFailing(r)}"
             )
-          case _ => (T.task { Agg[Dep]() }, T.task { Seq() })
-        }
-
-        val scalacPluginDependencies = T.task {
-          mod.resolveDeps(T.task {
-            val bind = mod.bindDependency()
-            scalacPluginsIvyDeps().map(bind)
-          })()
-        }
-
-        val facets = T.task {
-          mod.ideaJavaModuleFacets(ideaConfigVersion)()
-        }
-
-        val configFileContributions = T.task {
-          mod.ideaConfigFiles(ideaConfigVersion)()
-        }
-
-        val compilerOutput = T.task {
-          mod.ideaCompileOutput()
-        }
-
-        T.task {
-          val resolvedCp: Agg[Scoped[Path]] =
-            externalDependencies().map(_.path).map(Scoped(_, None)) ++
-              extCompileIvyDeps()
-                .map(_.path)
-                .map(Scoped(_, Some("PROVIDED"))) ++
-              extRunIvyDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
-          // unused, but we want to trigger sources, to have them available (automatically)
-          // TODO: make this a separate eval to handle resolve errors
-          val resolvedSrcs: Agg[PathRef] = externalSources()
-          val resolvedSp: Agg[PathRef] = scalacPluginDependencies()
-          val resolvedCompilerCp: Agg[PathRef] =
-            scalaCompilerClasspath()
-          val resolvedLibraryCp: Agg[PathRef] =
-            externalLibraryDependencies()
-          val scalacOpts: Seq[String] = allScalacOptions()
-          val resolvedFacets: Seq[JavaFacet] = facets()
-          val resolvedConfigFileContributions: Seq[IdeaConfigFile] =
-            configFileContributions()
-          val resolvedCompilerOutput = compilerOutput()
-
-          ResolvedModule(
-            path = path,
-            // FIXME: why do we need to sources in the classpath?
-            // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
-            classpath = resolvedCp.filter(_.value.ext == "jar"),
-            module = mod,
-            pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar"),
-            scalaOptions = scalacOpts,
-            compilerClasspath = resolvedCompilerCp.map(_.path),
-            libraryClasspath = resolvedLibraryCp.map(_.path),
-            facets = resolvedFacets,
-            configFileContributions = resolvedConfigFileContributions,
-            compilerOutput = resolvedCompilerOutput.path
-          )
+          case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
         }
       }
     }
 
-    val resolvedModules: Seq[ResolvedModule] =
-      evaluator.evaluate(resolveTasks) match {
-        case r if r.failing.items().nonEmpty =>
-          throw GenIdeaException(s"Failure during resolving modules: ${Evaluator.formatFailing(r)}")
-        case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
-      }
-
-    val moduleLabels = modules.map(_.swap).toMap
+    val moduleLabels = modules.map { case (s, m, e) => (m, s) }.toMap
 
     val allResolved: Seq[Path] =
       (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildLibraryPaths ++ buildDepsPaths)
@@ -438,7 +455,7 @@ case class GenIdeaImpl(
       Tuple2(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
-          modules.map { case (segments, mod) => moduleName(segments) }.sorted
+          modules.map { case (segments, mod, _) => moduleName(segments) }.sorted
         )
       ),
       Tuple2(
@@ -508,7 +525,8 @@ case class GenIdeaImpl(
             _,
             facets,
             _,
-            compilerOutput
+            compilerOutput,
+            evaluator
           ) =>
         val Seq(
           resourcesPathRefs: Seq[PathRef],
@@ -948,7 +966,8 @@ object GenIdeaImpl {
       libraryClasspath: Agg[Path],
       facets: Seq[JavaFacet],
       configFileContributions: Seq[IdeaConfigFile],
-      compilerOutput: Path
+      compilerOutput: Path,
+      evaluator: Evaluator
   )
 
   case class GenIdeaException(msg: String) extends RuntimeException
