@@ -256,7 +256,13 @@ object MillMain {
       enableTicker = enableTicker.getOrElse(mainInteractive),
       infoColor = colors.info,
       errorColor = colors.error,
-      systemStreams = streams,
+      systemStreams =
+        if (config.silent.value) new SystemStreams(
+          new java.io.PrintStream(mill.api.DummyOutputStream),
+          new java.io.PrintStream(mill.api.DummyOutputStream),
+          streams.in
+        )
+        else streams,
       debugEnabled = config.debugLog.value,
       context = "",
       printLoggerState
