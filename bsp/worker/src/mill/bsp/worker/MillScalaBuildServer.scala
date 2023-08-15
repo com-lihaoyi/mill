@@ -49,8 +49,14 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           T.task { (Nil, Nil, classesPathTask()) }
       }
     ) {
-      case (state, id, m: JavaModule, (allScalacOptions, bspCompileClsaspath, classesPathTask)) =>
-        val pathResolver = evaluator.pathsResolver
+      case (
+            ev,
+            state,
+            id,
+            m: JavaModule,
+            (allScalacOptions, bspCompileClsaspath, classesPathTask)
+          ) =>
+        val pathResolver = ev.pathsResolver
         new ScalacOptionsItem(
           id,
           allScalacOptions.asJava,
@@ -73,7 +79,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
         T.task((m.zincWorker().worker(), m.compile(), m.forkArgs(), m.forkEnv()))
       }
     ) {
-      case (state, id, m: JavaModule, (worker, compile, forkArgs, forkEnv)) =>
+      case (ev, state, id, m: JavaModule, (worker, compile, forkArgs, forkEnv)) =>
         // We find all main classes, although we could also find only the configured one
         val mainClasses = worker.discoverMainClasses(compile)
         // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
@@ -84,7 +90,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
         }
         new ScalaMainClassesItem(id, items.asJava)
 
-      case (state, id, _, _) => // no Java module, so no main classes
+      case (ev, state, id, _, _) => // no Java module, so no main classes
         new ScalaMainClassesItem(id, Seq.empty[ScalaMainClass].asJava)
     } {
       new ScalaMainClassesResult(_)
@@ -102,7 +108,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           T.task(None)
       }
     ) {
-      case (state, id, m: TestModule, Some((classpath, testFramework, compResult))) =>
+      case (ev, state, id, m: TestModule, Some((classpath, testFramework, compResult))) =>
         val (frameworkName, classFingerprint): (String, Agg[(Class[_], Fingerprint)]) =
           Jvm.inprocess(
             classpath.map(_.path),
@@ -121,7 +127,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           )(new mill.api.Ctx.Home { def home = os.home })
         val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
         new ScalaTestClassesItem(id, classes.asJava, frameworkName)
-      case (state, id, _, _) =>
+      case (ev, state, id, _, _) =>
         // Not a test module, so no test classes
         new ScalaTestClassesItem(id, Seq.empty[String].asJava)
     } {

@@ -193,7 +193,8 @@ class MillBuildBootstrap(
           Map.empty,
           Map.empty,
           None,
-          Nil
+          Nil,
+          evaluator
         )
 
         nestedState.add(frame = evalState, errorOpt = Some(error))
@@ -242,7 +243,8 @@ class MillBuildBootstrap(
           scriptImportGraph,
           methodCodeHashSignatures,
           Some(classLoader),
-          runClasspath
+          runClasspath,
+          evaluator
         )
 
         nestedState.add(frame = evalState)
@@ -260,8 +262,11 @@ class MillBuildBootstrap(
       evaluator: Evaluator
   ): RunnerState = {
 
-    val (evaled, evalWatched, moduleWatches) =
+    val (evaled, evalWatched, moduleWatches) = Evaluator.allBootstrapEvaluators.withValue(
+      Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.map(_.evaluator))
+    ) {
       evaluateWithWatches(rootModule, evaluator, targetsAndParams)
+    }
 
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
@@ -270,7 +275,8 @@ class MillBuildBootstrap(
       Map.empty,
       Map.empty,
       None,
-      Nil
+      Nil,
+      evaluator
     )
 
     nestedState.add(frame = evalState, errorOpt = evaled.left.toOption)
