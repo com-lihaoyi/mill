@@ -68,20 +68,19 @@ case class GenIdeaImpl(
       fetchMillModules: Boolean = true
   ): Seq[(os.SubPath, scala.xml.Node)] = {
 
-    val rootModules = evaluators.map { ev => (ev.rootModule, ev) }
-    val transitive: Seq[(BaseModule, Seq[Module], Evaluator)] = rootModules
-      .map { case (rootModule, ev) =>
-        (rootModule, JavaModuleUtils.transitiveModules(rootModule), ev)
+    val rootModules = evaluators.zipWithIndex.map { case (ev, idx) => (ev.rootModule, ev, idx) }
+    val transitive: Seq[(BaseModule, Seq[Module], Evaluator, Int)] = rootModules
+      .map { case (rootModule, ev, idx) =>
+        (rootModule, JavaModuleUtils.transitiveModules(rootModule), ev, idx)
       }
 
     val foundModules: Seq[(Segments, Module, Evaluator)] = transitive
-      .flatMap { case (rootModule0, otherModules, ev) =>
-        (Seq(rootModule0) ++ otherModules).collect {
+      .flatMap { case (rootMod, transModules, ev, idx) =>
+        transModules.collect {
           case m: Module =>
-            val segments: Seq[String] =
-              rootModule0.millSourcePath.relativeTo(workDir).segments ++
-                m.millModuleSegments.parts
-
+            val rootSegs = rootMod.millSourcePath.relativeTo(workDir).segments
+            val modSegs = m.millModuleSegments.parts
+            val segments: Seq[String] = rootSegs ++ modSegs
             (Segments(segments.map(Segment.Label)), m, ev)
         }
       }
@@ -93,7 +92,6 @@ case class GenIdeaImpl(
 
     lazy val modulesByEvaluator: Map[Evaluator, Seq[(Segments, JavaModule)]] = modules
       .groupMap { case (_, _, ev) => ev } { case (s, m, _) => (s, m) }
-//      .toSeq
 
 //    val modules: Seq[(Segments, JavaModule)] =
 //      rootModule.millInternal.segmentsToModules.values
@@ -458,10 +456,10 @@ case class GenIdeaImpl(
           modules.map { case (segments, mod, _) => moduleName(segments) }.sorted
         )
       ),
-      Tuple2(
-        os.sub / "mill_modules" / "mill-build.iml",
-        rootXmlTemplate(allBuildLibraries.flatMap(lib => libraryNames(lib)))
-      ),
+//      Tuple2(
+//        os.sub / "mill_modules" / "mill-build.iml",
+//        rootXmlTemplate(allBuildLibraries.flatMap(lib => libraryNames(lib)))
+//      ),
       Tuple2(
         os.sub / "scala_compiler.xml",
         scalaCompilerTemplate(compilerSettings)
@@ -698,10 +696,11 @@ case class GenIdeaImpl(
     <project version={"" + ideaConfigVersion}>
       <component name="ProjectModuleManager">
         <modules>
-          <module
-            fileurl="file://$PROJECT_DIR$/.idea/mill_modules/mill-build.iml"
-            filepath="$PROJECT_DIR$/.idea/mill_modules/mill-build.iml"
-          />
+          {
+//            <module
+//          fileurl="file://$PROJECT_DIR$/.idea/mill_modules/mill-build.iml"
+//          filepath="$PROJECT_DIR$/.idea/mill_modules/mill-build.iml"/>
+    }
           {
       for (selector <- selectors)
         yield {

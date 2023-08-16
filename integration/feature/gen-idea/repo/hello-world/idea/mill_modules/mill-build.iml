@@ -5,11 +5,8 @@
         <content url="file://$MODULE_DIR$/../../out/mill-build/generateScriptSources.dest">
             <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/generateScriptSources.dest" isTestSource="false" generated="true"/>
         </content>
-        <content url="file://$MODULE_DIR$/../../mill-build/src">
-            <sourceFolder url="file://$MODULE_DIR$/../../mill-build/src" isTestSource="false"/>
-        </content>
-        <content url="file://$MODULE_DIR$/../../mill-build/resources">
-            <sourceFolder url="file://$MODULE_DIR$/../../mill-build/resources" type="java-resource"/>
+        <content url="file://$MODULE_DIR$/../../build.sc">
+            <sourceFolder url="file://$MODULE_DIR$/../../build.sc" isTestSource="false"/>
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>

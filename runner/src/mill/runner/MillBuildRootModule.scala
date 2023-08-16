@@ -7,11 +7,9 @@ import mill.define.{Caller, Discover, Target, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
-import mill.scalalib.api.Versions
-import os.{Path, rel}
+import mill.scalalib.api.{CompilationResult, Versions}
 import pprint.Util.literalize
 import FileImportGraph.backtickWrap
-import mill.codesig.CodeSig
 import mill.main.BuildInfo
 
 import scala.collection.immutable.SortedMap
@@ -61,19 +59,25 @@ class MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = "2.13.10"
 
-  def scriptSources = T.sources {
-    MillBuildRootModule
-      .parseBuildFiles(millBuildRootModuleInfo)
-      .seenScripts
-      .keys
-      .map(PathRef(_))
-      .toSeq
+  def scriptSources = T {
+//    MillBuildRootModule
+//      .parseBuildFiles(millBuildRootModuleInfo)
+//      .seenScripts
+//      .keys
+//      .map(PathRef(_))
+//      .toSeq
+    parseBuildFiles().seenScripts.keys.map(PathRef(_)).toSeq
   }
 
-  def parseBuildFiles = T {
-    scriptSources()
+  def parseBuildFiles: T[FileImportGraph] = T.input {
+//    scriptSources()
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
+
+//  override def compile: T[CompilationResult] = T {
+//    println("compile")
+//    super.compile()
+//  }
 
   override def repositoriesTask: Task[Seq[Repository]] = {
     val importedRepos = T.task {
@@ -139,7 +143,7 @@ class MillBuildRootModule()(implicit
     }
   }
 
-  def scriptImportGraph: T[Map[Path, (Int, Seq[Path])]] = T {
+  def scriptImportGraph: T[Map[os.Path, (Int, Seq[os.Path])]] = T {
     parseBuildFiles()
       .importGraphEdges
       .map { case (path, imports) =>
@@ -211,8 +215,26 @@ class MillBuildRootModule()(implicit
     result
   }
 
+  override def sources: T[Seq[PathRef]] = T {
+//    Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
+//    val files = parseBuildFiles().seenScripts.keys
+//    println(s"sources: ${files.map(_.relativeTo(T.workspace))}")
+//    files.map(PathRef(_)).toSeq
+    scriptSources() ++ {
+      if (parseBuildFiles().millImport) super.sources()
+      else Seq.empty[PathRef]
+    }
+  }
+
+  override def resources: T[Seq[PathRef]] = T {
+    if (parseBuildFiles().millImport) super.resources()
+    else Seq.empty[PathRef]
+  }
+
   override def allSourceFiles: T[Seq[PathRef]] = T {
-    Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
+    // We ignore the sc files, as we generate scala files for them
+    // Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
+    Lib.findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
   }
 
   def enclosingClasspath = T.sources {
@@ -277,7 +299,7 @@ object MillBuildRootModule {
       cliImports: Seq[String]
   )
 
-  def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info) = {
+  def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
       millBuildRootModuleInfo.topLevelProjectRoot,
       millBuildRootModuleInfo.projectRoot / os.up
@@ -295,7 +317,13 @@ object MillBuildRootModule {
   ): Unit = {
     for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
-      val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
+      val dest0 = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
+      val dest =
+        if (dest0.ext == "sc") {
+          dest0 / os.up / (dest0.baseName + ".scala")
+        } else {
+          dest0
+        }
 
       val newSource = MillBuildRootModule.top(
         relative,

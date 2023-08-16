@@ -4,6 +4,15 @@ import mill.api.internal
 import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
 
+/**
+ *
+ * @param seenScripts
+ * @param repos
+ * @param ivyDeps
+ * @param importGraphEdges
+ * @param errors
+ * @param millImport If `true`, a meta-build is enabled
+ */
 @internal
 case class FileImportGraph(
     seenScripts: Map[os.Path, String],
