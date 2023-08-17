@@ -5,7 +5,6 @@ import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
 
 /**
- *
  * @param seenScripts
  * @param repos
  * @param ivyDeps

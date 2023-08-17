@@ -10,11 +10,13 @@ object GenIdea extends ExternalModule {
 
   @deprecated("Use mill.idea.GenIdea/idea instead", "Mill 0.11.2")
   def idea(ev: Evaluator): Command[Unit] = T.command {
-    T.log.error("mill.scalalib.GenIdea/idea is deprecated. Please use mill.idea.GenIdea/idea instead.")
+    T.log.error(
+      "mill.scalalib.GenIdea/idea is deprecated. Please use mill.idea.GenIdea/idea instead."
+    )
     mill.main.RunScript.evaluateTasksNamed(
       ev,
       Seq(
-        "mill.idea.GenIdea/idea",
+        "mill.idea.GenIdea/idea"
       ),
       selectMode = SelectMode.Separated
     )
