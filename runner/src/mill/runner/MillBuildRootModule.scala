@@ -72,11 +72,6 @@ class MillBuildRootModule()(implicit
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
 
-//  override def compile: T[CompilationResult] = T {
-//    println("compile")
-//    super.compile()
-//  }
-
   override def repositoriesTask: Task[Seq[Repository]] = {
     val importedRepos = T.task {
       val repos = parseBuildFiles().repos.map { case (repo, srcFile) =>
