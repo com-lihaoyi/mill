@@ -62,8 +62,10 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
         val frameWatched = frame
           .evalWatched
           .map(_.path)
-          .sorted.filter(_.startsWith(wsRoot))
+          .filter(_.startsWith(wsRoot))
           .filter(!_.segments.contains("mill-launcher"))
+          .distinct
+          .sorted
 
         val expectedWatched = expectedWatched0.sorted
         assert(frameWatched == expectedWatched)

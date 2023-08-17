@@ -39,6 +39,7 @@ class MillBuildRootModule()(implicit
     .mkString("/")
 
   override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
+  override def intellijModulePath: os.Path = millSourcePath / os.up
 
   override def resolveDeps(
       deps: Task[Agg[BoundDep]],
@@ -215,7 +216,8 @@ class MillBuildRootModule()(implicit
     result
   }
 
-  override def sources: T[Seq[PathRef]] = T {
+  // TODO: T.sources is redundant
+  override def sources: T[Seq[PathRef]] = T.sources {
 //    Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
 //    val files = parseBuildFiles().seenScripts.keys
 //    println(s"sources: ${files.map(_.relativeTo(T.workspace))}")
