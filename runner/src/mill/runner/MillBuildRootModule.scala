@@ -2,12 +2,12 @@ package mill.runner
 
 import coursier.Repository
 import mill._
-import mill.api.{Loose, PathRef, Result, internal}
-import mill.define.{Caller, Discover, Target, Task}
+import mill.api.{PathRef, Result, internal}
+import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
-import mill.scalalib.api.{CompilationResult, Versions}
+import mill.scalalib.api.Versions
 import pprint.Util.literalize
 import FileImportGraph.backtickWrap
 import mill.main.BuildInfo
