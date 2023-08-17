@@ -8,7 +8,7 @@ import coursier.maven.Pom
 
 import mill.Agg
 import mill.api.Ctx.{Home, Log}
-import mill.api.{PathRef, Result, Strict}
+import mill.api.{PathRef, Strict}
 import mill.define._
 import mill.eval.Evaluator
 import mill.main.BuildInfo
@@ -17,6 +17,10 @@ import mill.util.Classpath
 import mill.{T, scalalib}
 import os.{Path, SubPath}
 
+/**
+ * This class is outdated and unmaintained. Please use [[mill.idea.GenIdeaImpl]] instead.
+ */
+@deprecated("Use mill.idea.GenIdeaImpl instead", "Mill 0.11.2")
 case class GenIdeaImpl(
     evaluator: Evaluator,
     ctx: Log with Home,
