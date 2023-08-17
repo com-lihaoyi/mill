@@ -60,18 +60,15 @@ class MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = "2.13.10"
 
+  /**
+   * All script files (that will get wrapped later)
+   * @see [[generateScriptSources]]
+   */
   def scriptSources = T {
-//    MillBuildRootModule
-//      .parseBuildFiles(millBuildRootModuleInfo)
-//      .seenScripts
-//      .keys
-//      .map(PathRef(_))
-//      .toSeq
     parseBuildFiles().seenScripts.keys.map(PathRef(_)).toSeq
   }
 
   def parseBuildFiles: T[FileImportGraph] = T.input {
-//    scriptSources()
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
 
@@ -216,12 +213,9 @@ class MillBuildRootModule()(implicit
     result
   }
 
-  // TODO: T.sources is redundant
+  // `T.sources` is redundant, but we keep it to explicit see files in the watch list.
+  // [[parseBuildFiles]] is already an input target, so these files are effectively watched twice though.
   override def sources: T[Seq[PathRef]] = T.sources {
-//    Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
-//    val files = parseBuildFiles().seenScripts.keys
-//    println(s"sources: ${files.map(_.relativeTo(T.workspace))}")
-//    files.map(PathRef(_)).toSeq
     scriptSources() ++ {
       if (parseBuildFiles().millImport) super.sources()
       else Seq.empty[PathRef]
@@ -234,9 +228,10 @@ class MillBuildRootModule()(implicit
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {
-    // We ignore the sc files, as we generate scala files for them
-    // Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
-    Lib.findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
+    val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc"))
+    // We need to unlist those files, which we replaced by generating wrapper scripts
+    val filesToExclude = Lib.findSourceFiles(scriptSources(), Seq("sc"))
+    candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
   def enclosingClasspath = T.sources {
@@ -321,11 +316,11 @@ object MillBuildRootModule {
       val relative = scriptSource.path.relativeTo(base)
       val dest0 = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
       val dest =
-        if (dest0.ext == "sc") {
-          dest0 / os.up / (dest0.baseName + ".scala")
-        } else {
+//        if (dest0.ext == "sc") {
+//          dest0 / os.up / (dest0.baseName + ".scala")
+//        } else {
           dest0
-        }
+//        }
 
       val newSource = MillBuildRootModule.top(
         relative,
