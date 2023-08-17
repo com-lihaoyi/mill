@@ -528,18 +528,15 @@ case class GenIdeaImpl(
           ) =>
         val Seq(
           resourcesPathRefs: Seq[PathRef],
-          sourcesPathRef: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
           allSourcesPathRefs: Seq[PathRef]
-        ) = evaluator
-          .evaluate(
-            Agg(
-              mod.resources,
-              mod.sources,
-              mod.generatedSources,
-              mod.allSources
-            )
+        ) = evaluator.evaluate(
+          Agg(
+            mod.resources,
+            mod.generatedSources,
+            mod.allSources
           )
+        )
           .values
           .map(_.value)
 
@@ -551,12 +548,12 @@ case class GenIdeaImpl(
         val scalaVersionOpt = mod match {
           case x: ScalaModule =>
             Some(
-              evaluator
-                .evaluate(Agg(x.scalaVersion))
-                .values
-                .head
-                .value
-                .asInstanceOf[String]
+              evaluator.evalOrThrow(
+                exceptionFactory = r =>
+                  GenIdeaException(
+                    s"Failure during evaluation of the scalaVersion: ${Evaluator.formatFailing(r)}"
+                  )
+              )(x.scalaVersion)
             )
           case _ => None
         }
