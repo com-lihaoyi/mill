@@ -64,11 +64,15 @@ class MillBuildRootModule()(implicit
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
-  def scriptSources = T {
-    parseBuildFiles().seenScripts.keys.map(PathRef(_)).toSeq
+  def scriptSources = T.sources {
+    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
+      .seenScripts
+      .keys.map(PathRef(_))
+      .toSeq
   }
 
-  def parseBuildFiles: T[FileImportGraph] = T.input {
+  def parseBuildFiles: T[FileImportGraph] = T {
+    scriptSources()
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
 
@@ -208,9 +212,7 @@ class MillBuildRootModule()(implicit
     result
   }
 
-  // `T.sources` is redundant, but we keep it to explicit see files in the watch list.
-  // [[parseBuildFiles]] is already an input target, so these files are effectively watched twice though.
-  override def sources: T[Seq[PathRef]] = T.sources {
+  override def sources: T[Seq[PathRef]] = T {
     scriptSources() ++ {
       if (parseBuildFiles().millImport) super.sources()
       else Seq.empty[PathRef]
