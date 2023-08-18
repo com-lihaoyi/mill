@@ -1,8 +1,8 @@
 package mill.main.graphviz
-import guru.nidi.graphviz.attribute.Style
+import guru.nidi.graphviz.attribute.Rank.RankDir
+import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
 import mill.define.NamedTask
 import mill.eval.Graph
-
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 object GraphvizTools {
   def apply(targets: Seq[NamedTask[Any]], rs: Seq[NamedTask[Any]], dest: os.Path) = {
@@ -42,19 +42,22 @@ object GraphvizTools {
     val nodes = indexToTask.map(t =>
       node(t.ctx.segments.render).`with` {
         if (targets.contains(t)) Style.SOLID
-        else Style.DOTTED
-      }
+        else Style.DASHED
+      }.`with`(Shape.BOX)
     )
 
     var g = graph("example1").directed
     for (i <- indexToTask.indices) {
-      val outgoing = for {
+      for {
         e <- edges(i)._2
         j = taskToIndex(e)
         if jgraph.containsEdge(i, j)
-      } yield nodes(j)
-      g = g.`with`(nodes(i).link(outgoing: _*))
+      } {
+        g = g.`with`(nodes(j).link(nodes(i)))
+      }
     }
+
+    g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
 
     val gv = Graphviz.fromGraph(g).totalMemory(100 * 1000 * 1000)
     val outputs = Seq(
