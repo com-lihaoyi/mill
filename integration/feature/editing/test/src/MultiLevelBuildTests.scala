@@ -64,7 +64,6 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
           .map(_.path)
           .filter(_.startsWith(wsRoot))
           .filter(!_.segments.contains("mill-launcher"))
-          .distinct
           .sorted
 
         val expectedWatched = expectedWatched0.sorted
