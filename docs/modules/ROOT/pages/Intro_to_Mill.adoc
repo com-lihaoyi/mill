@@ -120,6 +120,7 @@ Mill is a command-line tool and supports various options.
 Run `mill --help` for a complete list of options
 
 .Output of `mill --help`
+[source,subs="verbatim,attributes"]
 ----
 Mill Build Tool, version {mill-version}
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
