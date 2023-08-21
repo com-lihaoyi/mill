@@ -5,13 +5,10 @@
         <content url="file://$MODULE_DIR$/../../out/HelloWorld/generatedSources.dest/classes">
             <sourceFolder url="file://$MODULE_DIR$/../../out/HelloWorld/generatedSources.dest/classes" isTestSource="false" generated="true"/>
         </content>
-        <content url="file://$MODULE_DIR$/../../HelloWorld/src">
+        <content url="file://$MODULE_DIR$/../../HelloWorld">
             <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/src" isTestSource="false"/>
-        </content>
-        <content url="file://$MODULE_DIR$/../../HelloWorld/resources">
             <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/resources" type="java-resource"/>
         </content>
-        <content url="file://$MODULE_DIR$/../../HelloWorld"> </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-library-2.13.6.jar" level="project"/>

@@ -2,13 +2,10 @@
     <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../../out/HelloWorld/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../../HelloWorld/src">
+        <content url="file://$MODULE_DIR$/../../HelloWorld">
             <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/src" isTestSource="false"/>
-        </content>
-        <content url="file://$MODULE_DIR$/../../HelloWorld/resources">
             <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/resources" type="java-resource"/>
         </content>
-        <content url="file://$MODULE_DIR$/../../HelloWorld"> </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-library-2.12.5.jar" level="project"/>

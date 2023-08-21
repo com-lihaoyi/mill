@@ -801,7 +801,21 @@ case class GenIdeaImpl(
       isTest: Boolean,
       facets: Seq[GenIdeaModule.JavaFacet]
   ): Elem = {
+    val genSources = generatedSourcePaths.toSeq.distinct.sorted.partition(_.startsWith(basePath))
+    val normSources = normalSourcePaths.iterator.toSeq.sorted.partition(_.startsWith(basePath))
+    val resources = resourcePaths.iterator.toSeq.sorted.partition(_.startsWith(basePath))
+
     def relUrl(path: os.Path): String = "file://$MODULE_DIR$/" + relify(path)
+    def genSourceFolder(path: os.Path): Elem = {
+      <sourceFolder url={relUrl(path)} isTestSource={isTest.toString} generated="true"/>
+    }
+    def sourceFolder(path: os.Path): Elem = {
+      <sourceFolder url={relUrl(path)} isTestSource={isTest.toString}/>
+    }
+    def resourcesFolder(path: os.Path): Elem = {
+      val resourceType = if (isTest) "java-test-resource" else "java-resource"
+      <sourceFolder url={relUrl(path)} type={resourceType} />
+    }
 
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
@@ -814,32 +828,25 @@ case class GenIdeaImpl(
     }
         <exclude-output />
         {
-      for (generatedSourcePath <- generatedSourcePaths.toSeq.distinct.sorted) yield {
-        val rel = relify(generatedSourcePath)
-        <content url={"file://$MODULE_DIR$/" + rel}>
-                <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={
-          isTest.toString
-        } generated="true" />
-              </content>
+      for (generatedSourcePath <- genSources._2) yield {
+        <content url={relUrl(generatedSourcePath)}>
+          {genSourceFolder(generatedSourcePath)}
+        </content>
       }
     }
-
         {
       // keep the "real" base path as last content, to ensure, Idea picks it up as "main" module dir
-      for (normalSourcePath <- normalSourcePaths.iterator.toSeq.sorted) yield {
-        val rel = relify(normalSourcePath)
-        <content url={"file://$MODULE_DIR$/" + rel}>
-              <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={isTest.toString} />
-            </content>
+      for (normalSourcePath <- normSources._2) yield {
+        <content url={relUrl(normalSourcePath)}>
+            {sourceFolder(normalSourcePath)}
+          </content>
       }
     }
         {
-      val resourceType = if (isTest) "java-test-resource" else "java-resource"
-      for (resourcePath <- resourcePaths.iterator.toSeq.sorted) yield {
-        val rel = relify(resourcePath)
-        <content url={"file://$MODULE_DIR$/" + rel}>
-                <sourceFolder url={"file://$MODULE_DIR$/" + rel} type={resourceType} />
-              </content>
+      for (resourcePath <- resources._2) yield {
+        <content url={relUrl(resourcePath)}>
+          {resourcesFolder(resourcePath)}
+        </content>
       }
     }
         {
@@ -847,6 +854,21 @@ case class GenIdeaImpl(
       // this is to avoid some strange layout issues
       // see details at: https://github.com/com-lihaoyi/mill/pull/2638#issuecomment-1685229512
       <content url={relUrl(basePath)}>
+        {
+        for (generatedSourcePath <- genSources._1) yield {
+          genSourceFolder(generatedSourcePath)
+        }
+      }
+        {
+        for (normalSourcePath <- normSources._1) yield {
+          sourceFolder(normalSourcePath)
+        }
+      }
+        {
+        for (resourcePath <- resources._1) yield {
+          resourcesFolder(resourcePath)
+        }
+      }
         </content>
     }
         <orderEntry type="inheritedJdk" />
@@ -886,6 +908,7 @@ case class GenIdeaImpl(
     }
     </module>
   }
+
   def scalaCompilerTemplate(
       settings: Map[(Agg[os.Path], Seq[String]), Seq[JavaModule]]
   ) = {
