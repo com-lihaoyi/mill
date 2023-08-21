@@ -801,10 +801,12 @@ case class GenIdeaImpl(
       isTest: Boolean,
       facets: Seq[GenIdeaModule.JavaFacet]
   ): Elem = {
+    def relUrl(path: os.Path): String = "file://$MODULE_DIR$/" + relify(path)
+
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         {
-      val outputUrl = "file://$MODULE_DIR$/" + relify(compileOutputPath)
+      val outputUrl = relUrl(compileOutputPath)
       if (isTest)
         <output-test url={outputUrl} />
       else
@@ -839,6 +841,13 @@ case class GenIdeaImpl(
                 <sourceFolder url={"file://$MODULE_DIR$/" + rel} type={resourceType} />
               </content>
       }
+    }
+        {
+      // the (potentially empty) content root to denote where a module lives
+      // this is to avoid some strange layout issues
+      // see details at: https://github.com/com-lihaoyi/mill/pull/2638#issuecomment-1685229512
+      <content url={relUrl(basePath)}>
+        </content>
     }
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />

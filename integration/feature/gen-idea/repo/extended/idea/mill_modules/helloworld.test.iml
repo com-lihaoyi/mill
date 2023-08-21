@@ -8,6 +8,7 @@
         <content url="file://$MODULE_DIR$/../../HelloWorld/test/resources">
             <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/test/resources" type="java-test-resource"/>
         </content>
+        <content url="file://$MODULE_DIR$/../../HelloWorld/test"> </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="module" module-name="helloworld" exported=""/>
