@@ -291,7 +291,7 @@ To generate IntelliJ IDEA project files into `.idea/`, run:
 
 [source,bash]
 ----
-mill mill.scalalib.GenIdea/idea
+mill mill.idea.GenIdea/idea
 ----
 
 == Updating Mill

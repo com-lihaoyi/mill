@@ -1,7 +1,8 @@
 package mill.scalalib
 
 import upickle.default.{macroRW, ReadWriter => RW}
-import CrossVersion._
+import mill.scalalib.CrossVersion._
+import coursier.core.Dependency
 import mill.scalalib.api.ZincWorkerUtil
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
@@ -135,7 +136,7 @@ object Dep {
       force
     )
   }
-  private implicit val depFormat = mill.scalalib.JsonFormatters.depFormat
+  private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
   implicit def rw: RW[Dep] = macroRW
 }
 
@@ -207,6 +208,6 @@ case class BoundDep(
 }
 
 object BoundDep {
-  private implicit val depFormat = mill.scalalib.JsonFormatters.depFormat
+  private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
   implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
 }

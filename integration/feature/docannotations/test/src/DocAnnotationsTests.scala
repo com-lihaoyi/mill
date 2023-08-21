@@ -23,7 +23,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
       assert(
         globMatches(
           """core.test.ivyDeps(build.sc:...)
-            |    Overriden ivyDeps Docs!!!
+            |    Overridden ivyDeps Docs!!!
             |
             |    Any ivy dependencies you want to add to this Module, in the format
             |    ivy"org::name:version" for Scala dependencies or ivy"org:name:version"

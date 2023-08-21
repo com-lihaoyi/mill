@@ -67,6 +67,10 @@ object Evaluator {
   // in directly) we are forced to pass it in via a ThreadLocal
   val currentEvaluator = new DynamicVariable[mill.eval.Evaluator](null)
   val allBootstrapEvaluators = new DynamicVariable[AllBootstrapEvaluators](null)
+
+  /**
+   * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
+   */
   case class AllBootstrapEvaluators(value: Seq[Evaluator])
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap

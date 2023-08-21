@@ -4,7 +4,7 @@ import mill.scalalib._
 trait JUnitTests extends TestModule.Junit4 {
 
   /**
-   * Overriden ivyDeps Docs!!!
+   * Overridden ivyDeps Docs!!!
    */
   def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
   def task = T {

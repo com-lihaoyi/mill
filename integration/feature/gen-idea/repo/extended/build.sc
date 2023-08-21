@@ -1,4 +1,4 @@
-import $ivy.`org.scalameta::munit:0.7.29`
+import $meta._
 
 import mill._
 import mill.api.PathRef
