@@ -328,7 +328,7 @@ object MillBuildBootstrap {
     // Copy the current location of the enclosing classes to `mill-launcher.jar`
     // if it has the wrong file extension, because the Zinc incremental compiler
     // doesn't recognize classpath entries without the proper file extension
-    val millLauncherOpt: Option[os.Path] =
+    val millLauncherOpt: Option[(os.Path, os.Path)] =
       if (
         os.isFile(selfClassLocation) &&
         !Set("zip", "jar", "class").contains(selfClassLocation.ext)
@@ -340,9 +340,12 @@ object MillBuildBootstrap {
         if (!os.exists(millLauncher)) {
           os.copy(selfClassLocation, millLauncher, createFolders = true, replaceExisting = true)
         }
-        Some(millLauncher)
+        Some((selfClassLocation, millLauncher))
       } else None
-    enclosingClasspath ++ millLauncherOpt
+    enclosingClasspath
+      // avoid having the same file twice in the classpath
+      .filter(f => millLauncherOpt.isEmpty || f != millLauncherOpt.get._1) ++
+      millLauncherOpt.map(_._2)
   }
 
   def evaluateWithWatches(
