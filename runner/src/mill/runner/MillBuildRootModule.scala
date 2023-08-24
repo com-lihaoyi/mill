@@ -41,23 +41,6 @@ class MillBuildRootModule()(implicit
   override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
   override def intellijModulePath: os.Path = millSourcePath / os.up
 
-  override def resolveDeps(
-      deps: Task[Agg[BoundDep]],
-      sources: Boolean = false
-  ): Task[Agg[PathRef]] =
-    T.task {
-      if (sources == true) super.resolveDeps(deps, true)()
-      else {
-        // We need to resolve the sources to make GenIdeaExtendedTests pass,
-        // because those do not call `resolveDeps` explicitly for build file
-        // `import $ivy`s but instead rely on the deps that are resolved as
-        // part of the bootstrapping process. We thus need to make sure
-        // bootstrapping the rootModule ends up putting the sources on disk
-        val unused = super.resolveDeps(deps, true)()
-        super.resolveDeps(deps, false)()
-      }
-    }
-
   override def scalaVersion: T[String] = "2.13.10"
 
   /**
