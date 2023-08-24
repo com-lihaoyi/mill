@@ -329,16 +329,16 @@ private class MillBuildServer(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: JavaModule =>
-        T.task {
-          (
-            m.resolveDeps(
-              T.task(m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps()),
-              sources = true
-            )(),
-            m.unmanagedClasspath(),
-            m.repositoriesTask()
-          )
-        }
+          T.task {
+            (
+              m.resolveDeps(
+                T.task(m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps()),
+                sources = true
+              )(),
+              m.unmanagedClasspath(),
+              m.repositoriesTask()
+            )
+          }
       }
     ) {
       case (ev, state, id, m: JavaModule, (resolveDepsSources, unmanagedClasspath, repos)) =>
