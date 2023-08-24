@@ -327,23 +327,25 @@ private class MillBuildServer(
     completableTasks(
       hint = s"buildTargetDependencySources ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      tasks = { case m: JavaModule =>
+      tasks = {
+        case m: JavaModule =>
         T.task {
           (
             m.resolveDeps(
               T.task(m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps()),
               sources = true
             )(),
-            m.unmanagedClasspath()
+            m.unmanagedClasspath(),
+            m.repositoriesTask()
           )
         }
       }
     ) {
-      case (ev, state, id, m: JavaModule, (resolveDepsSources, unmanagedClasspath)) =>
+      case (ev, state, id, m: JavaModule, (resolveDepsSources, unmanagedClasspath, repos)) =>
         val buildSources =
           if (!m.isInstanceOf[MillBuildRootModule]) Nil
           else mill.scalalib.Lib
-            .resolveMillBuildDeps(Nil, None, useSources = true)
+            .resolveMillBuildDeps(repos, None, useSources = true)
             .map(sanitizeUri(_))
 
         val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
