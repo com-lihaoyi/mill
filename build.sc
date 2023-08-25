@@ -109,7 +109,7 @@ object Deps {
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.2"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.7.0"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
@@ -122,7 +122,7 @@ object Deps {
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.20.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.9.1"
   val pprint = ivy"com.lihaoyi::pprint:0.8.1"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.5.0"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.5.1"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -158,7 +158,7 @@ object Deps {
   val requests = ivy"com.lihaoyi::requests:0.8.0"
   // tests framework (test)
   val testScalaTest = ivy"org.scalatest::scalatest:3.2.16"
-  val testZioTest = ivy"dev.zio::zio-test:2.0.15"
+  val testZioTest = ivy"dev.zio::zio-test:2.0.16"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
