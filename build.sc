@@ -101,12 +101,14 @@ object Deps {
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.8"
   val ammoniteVersion = "3.0.0-M0-32-96e851cb"
-  val scalaparse = ivy"com.lihaoyi::scalaparse:3.0.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.6"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.18"
 
+  val cask = ivy"com.lihaoyi::cask:0.9.1"
+  val castor = ivy"com.lihaoyi::castor:0.1.7"
+  val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.7.0"
@@ -143,6 +145,8 @@ object Deps {
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
+  val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
+  val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.8"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.5"
@@ -486,7 +490,7 @@ object main extends MillStableScalaModule with BuildInfo {
     def moduleDeps = Seq(util)
 
     override lazy val test: CodeSigTests = new CodeSigTests{}
-    trait CodeSigTests extends MillScalaTests{
+    trait CodeSigTests extends MillScalaTests {
       val caseKeys = interp.watchValue(
         os.walk(millSourcePath / "cases", maxDepth = 3)
           .map(_.subRelativeTo(millSourcePath / "cases").segments)
@@ -520,10 +524,10 @@ object main extends MillStableScalaModule with BuildInfo {
         def ivyDeps = T{
           if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
           else Agg(
-            ivy"com.lihaoyi::fastparse:3.0.1",
-            ivy"com.lihaoyi::scalatags:0.12.0",
-            ivy"com.lihaoyi::cask:0.9.1",
-            ivy"com.lihaoyi::castor:0.1.7",
+            Deps.fastparse,
+            Deps.scalatags,
+            Deps.cask,
+            Deps.castor,
             Deps.mainargs,
             Deps.requests,
             Deps.osLib,
