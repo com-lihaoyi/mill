@@ -18,6 +18,7 @@ on:
     tags:
       - '**'
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 # cancel older runs of a pull request;
