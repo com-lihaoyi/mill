@@ -107,23 +107,22 @@ object MillMain {
 
         case Right(config)
             if (
-              config.interactive.value || config.repl.value || config.noServer.value || config.bsp.value
+              config.interactive.value || config.noServer.value || config.bsp.value
             ) && streams.in == DummyInputStream =>
           // because we have stdin as dummy, we assume we were already started in server process
           streams.err.println(
-            "-i/--interactive/--repl/--no-server/--bsp must be passed in as the first argument"
+            "-i/--interactive/--no-server/--bsp must be passed in as the first argument"
           )
           (false, RunnerState.empty)
 
         case Right(config)
             if Seq(
               config.interactive.value,
-              config.repl.value,
               config.noServer.value,
               config.bsp.value
             ).count(identity) > 1 =>
           streams.err.println(
-            "Only one of -i/--interactive, --repl, --no-server or --bsp may be given"
+            "Only one of -i/--interactive, --no-server or --bsp may be given"
           )
           (false, RunnerState.empty)
 
@@ -139,35 +138,19 @@ object MillMain {
             checkMillVersionFromFile(os.pwd, streams.err)
           }
 
-          val useRepl =
-            config.repl.value || (config.interactive.value && config.leftoverArgs.value.isEmpty)
-
           // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
           val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
 
-          val (success, nextStateCache) =
-            if (config.repl.value && config.leftoverArgs.value.nonEmpty) {
-              logger.error("No target may be provided with the --repl flag")
+          val (success, nextStateCache) = {
+            if (config.repl.value) {
+              logger.error("The --repl mode is no longer supported.")
               (false, stateCache)
-              //          } else if(config.bsp.value && config.leftoverArgs.value.nonEmpty) {
-              //            stderr.println("No target may be provided with the --bsp flag")
-              //            (false, stateCache)
-            } else if (config.leftoverArgs.value.isEmpty && config.noServer.value) {
-              logger.error(
-                "A target must be provided when not starting a build REPL"
-              )
+
+            } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
+              logger.error("A target must be provided.")
               (false, stateCache)
-            } else if (useRepl && streams.in == DummyInputStream) {
-              logger.error(
-                "Build REPL needs to be run with the -i/--interactive/--repl flag"
-              )
-              (false, stateCache)
+
             } else {
-              if (useRepl && config.interactive.value) {
-                logger.error(
-                  "WARNING: Starting a build REPL without --repl is deprecated"
-                )
-              }
               val userSpecifiedProperties =
                 userSpecifiedProperties0 ++ config.extraSystemProperties
 
@@ -219,7 +202,9 @@ object MillMain {
                       threadCount = threadCount,
                       targetsAndParams = targetsAndParams,
                       prevRunnerState = prevState.getOrElse(stateCache),
-                      logger = logger
+                      logger = logger,
+                      disableCallgraphInvalidation = config.disableCallgraphInvalidation.value,
+                      needBuildSc = needBuildSc(config)
                     ).evaluate()
                   }
                 )
@@ -242,6 +227,7 @@ object MillMain {
               loopRes
 
             }
+          }
           if (config.ringBell.value) {
             if (success) println("\u0007")
             else {
@@ -276,6 +262,25 @@ object MillMain {
       printLoggerState
     )
     logger
+  }
+
+  /**
+   * Determine, whether we need a `build.sc` or not.
+   */
+  private def needBuildSc(config: MillCliConfig): Boolean = {
+    // Tasks, for which running Mill without an existing buildfile is allowed.
+    val noBuildFileTaskWhitelist = Seq(
+      "init",
+      "version",
+      "mill.scalalib.giter8.Giter8Module/init"
+    )
+    val targetsAndParams = config.leftoverArgs.value
+    val whitelistMatch =
+      targetsAndParams.nonEmpty && noBuildFileTaskWhitelist.exists(targetsAndParams.head == _)
+    // Has the user additional/extra imports
+    // (which could provide additional commands that could make sense without a build.sc)
+    val extraPlugins = config.imports.nonEmpty
+    !(whitelistMatch || extraPlugins)
   }
 
   def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream) = {

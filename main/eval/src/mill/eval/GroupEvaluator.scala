@@ -8,6 +8,7 @@ import mill.eval.Evaluator.TaskResult
 import mill.util._
 
 import scala.collection.mutable
+import scala.reflect.NameTransformer.decode
 import scala.util.DynamicVariable
 import scala.util.control.NonFatal
 
@@ -27,6 +28,13 @@ private[mill] trait GroupEvaluator {
   def failFast: Boolean
   def threadCount: Option[Int]
   def scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
+  def methodCodeHashSignatures: Map[String, Int]
+  def disableCallgraphInvalidation: Boolean
+
+  lazy val constructorHashSignatures = methodCodeHashSignatures
+    .toSeq
+    .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
+    .groupMap(_._1)(t => (t._2, t._3))
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
@@ -51,7 +59,7 @@ private[mill] trait GroupEvaluator {
       group.iterator.map(_.sideHash)
     )
 
-    val scriptsHash = {
+    val scriptsHash = if (disableCallgraphInvalidation) {
       val possibleScripts = scriptImportGraph.keySet.map(_.toString)
       val scripts = new Loose.Agg.Mutable[os.Path]()
       group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
@@ -74,6 +82,58 @@ private[mill] trait GroupEvaluator {
         // present in the scriptImportGraph
         .map(p => scriptImportGraph.get(p).fold(0)(_._1))
         .sum
+    } else {
+      group
+        .iterator
+        .collect {
+          case namedTask: NamedTask[_] =>
+            def resolveParents(c: Class[_]): Seq[Class[_]] = {
+              Seq(c) ++
+                Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
+                c.getInterfaces.flatMap(resolveParents)
+            }
+
+            val transitiveParents = resolveParents(namedTask.ctx.enclosingCls)
+            val methods = for {
+              c <- transitiveParents
+              m <- c.getDeclaredMethods
+              if decode(m.getName) == namedTask.ctx.segment.pathSegments.head
+            } yield m
+
+            val methodClass = methods.head.getDeclaringClass.getName
+            val name = namedTask.ctx.segment.pathSegments.last
+            val expectedName = methodClass + "#" + name + "()mill.define.Target"
+
+            // We not only need to look up the code hash of the Target method being called,
+            // but also the code hash of the constructors required to instantiate the Module
+            // that the Target is being called on. This can be done by walking up the nested
+            // modules and looking at their constructors (they're `object`s and should each
+            // have only one)
+            val allEnclosingModules = Vector.unfold(namedTask.ctx) {
+              case null => None
+              case ctx =>
+                ctx.enclosingModule match {
+                  case null => None
+                  case m: mill.define.Module => Some((m, m.millOuterCtx))
+                  case unknown => sys.error(s"Unknown ctx: $unknown")
+                }
+            }
+
+            val constructorHashes = allEnclosingModules
+              .map(m =>
+                constructorHashSignatures.get(m.getClass.getName) match {
+                  case Some(Seq((singleMethod, hash))) => hash
+                  case Some(multiple) => sys.error(
+                      s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
+                    )
+                  case None => 0
+                }
+              )
+
+            methodCodeHashSignatures.get(expectedName) ++ constructorHashes
+        }
+        .flatten
+        .sum
     }
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
@@ -91,7 +151,7 @@ private[mill] trait GroupEvaluator {
           testReporter,
           logger
         )
-        GroupEvaluator.Results(newResults, newEvaluated.toSeq, false)
+        GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
       case labelled: Terminal.Labelled[_] =>
         val out =
@@ -107,13 +167,19 @@ private[mill] trait GroupEvaluator {
 
         val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled)
 
-        upToDateWorker.map((_, inputsHash)) orElse cached match {
+        upToDateWorker.map((_, inputsHash)) orElse cached.flatMap(_._2) match {
           case Some((v, hashCode)) =>
             val res = Result.Success((v, hashCode))
             val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
               Map(labelled.task -> TaskResult(res, () => res))
 
-            GroupEvaluator.Results(newResults, Nil, cached = true)
+            GroupEvaluator.Results(
+              newResults,
+              Nil,
+              cached = true,
+              inputsHash,
+              -1
+            )
 
           case _ =>
             // uncached
@@ -151,7 +217,13 @@ private[mill] trait GroupEvaluator {
                 os.remove.all(paths.meta)
             }
 
-            GroupEvaluator.Results(newResults, newEvaluated.toSeq, cached = false)
+            GroupEvaluator.Results(
+              newResults,
+              newEvaluated.toSeq,
+              cached = if (labelled.task.isInstanceOf[InputImpl[_]]) null else false,
+              inputsHash,
+              cached.map(_._1).getOrElse(-1)
+            )
         }
     }
 
@@ -343,26 +415,30 @@ private[mill] trait GroupEvaluator {
       inputsHash: Int,
       labelled: Terminal.Labelled[_],
       paths: EvaluatorPaths
-  ): Option[(Val, Int)] = {
+  ): Option[(Int, Option[(Val, Int)])] = {
     for {
       cached <-
         try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
         catch {
           case NonFatal(_) => None
         }
-      if cached.inputsHash == inputsHash
-      reader <- labelled.task.readWriterOpt
-      parsed <-
-        try Some(upickle.default.read(cached.value)(reader))
-        catch {
-          case e: PathRef.PathRefValidationException =>
-            logger.debug(
-              s"${labelled.segments.render}: re-evaluating; ${e.getMessage}"
-            )
-            None
-          case NonFatal(_) => None
-        }
-    } yield (Val(parsed), cached.valueHash)
+    } yield (
+      cached.inputsHash,
+      for {
+        _ <- Option.when(cached.inputsHash == inputsHash)(())
+        reader <- labelled.task.readWriterOpt
+        parsed <-
+          try Some(upickle.default.read(cached.value)(reader))
+          catch {
+            case e: PathRef.PathRefValidationException =>
+              logger.debug(
+                s"${labelled.segments.render}: re-evaluating; ${e.getMessage}"
+              )
+              None
+            case NonFatal(_) => None
+          }
+      } yield (Val(parsed), cached.valueHash)
+    )
   }
 
   private def loadUpToDateWorker(
@@ -411,6 +487,8 @@ private[mill] object GroupEvaluator {
   case class Results(
       newResults: Map[Task[_], TaskResult[(Val, Int)]],
       newEvaluated: Seq[Task[_]],
-      cached: Boolean
+      cached: java.lang.Boolean,
+      inputsHash: Int,
+      previousInputsHash: Int
   )
 }

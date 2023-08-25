@@ -39,6 +39,8 @@ object jimfs extends PublishModule with MavenModule{
 }
 
 // JimFS is a small Java library
+//
+// Project home: https://github.com/google/jimfs
 
 /** Usage
 

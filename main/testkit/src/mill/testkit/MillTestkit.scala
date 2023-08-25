@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill._
-import mill.define.{Discover, InputImpl, TargetImpl}
+import mill.define.{Caller, Discover, InputImpl, TargetImpl}
 import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
@@ -48,7 +48,7 @@ trait MillTestKit {
         implicitly,
         implicitly,
         implicitly,
-        implicitly
+        Caller(null)
       ) {
     lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
@@ -65,6 +65,7 @@ trait MillTestKit {
       failFast: Boolean = false,
       threads: Option[Int] = Some(1),
       outStream: PrintStream = System.out,
+      errStream: PrintStream = System.err,
       inStream: InputStream = DummyInputStream,
       debugEnabled: Boolean = false,
       extraPathEnd: Seq[String] = Seq.empty,
@@ -78,7 +79,7 @@ trait MillTestKit {
       enableTicker = true,
       mill.util.Colors.Default.info,
       mill.util.Colors.Default.error,
-      new SystemStreams(outStream, outStream, inStream),
+      new SystemStreams(out = outStream, err = errStream, in = inStream),
       debugEnabled = debugEnabled,
       context = "",
       new PrintLogger.State()
@@ -103,7 +104,9 @@ trait MillTestKit {
       0,
       failFast = failFast,
       threadCount = threads,
-      env = env
+      env = env,
+      methodCodeHashSignatures = Map(),
+      disableCallgraphInvalidation = false
     )
 
     def evalTokens(args: String*): Either[Result.Failing[_], (Seq[_], Int)] = {

@@ -53,6 +53,30 @@ include::example/scalamodule/10-assembly-config.adoc[]
 
 include::example/scalamodule/11-repository-config.adoc[]
 
+== Maven Central: Blocked!
+
+Under some circumstances (e.g. corporate firewalls), you may not have access maven central. The typical symptom will be error messages which look like this;
+
+----
+1 targets failed
+mill.scalalib.ZincWorkerModule.classpath
+Resolution failed for 1 modules:
+--------------------------------------------
+  com.lihaoyi:mill-scalalib-worker_2.13:0.11.1
+        not found: C:\Users\partens\.ivy2\local\com.lihaoyi\mill-scalalib-worker_2.13\0.11.1\ivys\ivy.xml
+        download error: Caught java.io.IOException (Server returned HTTP response code: 503 for URL: https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom) while downloading https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom
+----
+
+It is expected that basic commands (e.g. clean) will not work, as Mill saying it is unable to resolve it's own, fundamental, dependancies. Under such circumstances, you will normally have access to some proxy, or other corporate repository which resolves maven artefacts. The strategy is simply to tell mill to use that instead.
+
+The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier docs). The below command should set the environment variable for the current shell, and then run the mill command.
+
+----
+ COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _
+----
+
+If you are using millw, a more permanent solution could be to set the environment variable at the top of the millw script, or as a user environment variable etc.
+
 == Backticked Names
 
 include::example/scalamodule/12-backticked-names.adoc[]
@@ -95,9 +119,9 @@ for details.
 All ``ScalaModule``s have a `console` and a `repl` target, to start a Scala console or an Ammonite Repl.
 
 To use the latter, you can (and sometimes need to) customize the Ammonite version to work with your selected Scala version.
-The default Ammonite version is the one, which is used by Mill internally (Mill's `build.sc` is an Ammonite script, after all).
-But depending on the Scala version you are using, there is probably no matching Ammonite release available.
-In order to start the repl, you have to specify a different available Ammonite version.
+Mill provides a default Ammonite version,
+but depending on the Scala version you are using, there may be no matching Ammonite release available.
+In order to start the repl, you may have to specify a different available Ammonite version.
 
 .Example: Overriding `ammoniteVersion` to select a release compatible to the `scalaVersion`
 [source,scala,subs="attributes,verbatim"]

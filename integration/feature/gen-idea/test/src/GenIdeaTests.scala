@@ -1,10 +1,9 @@
-package mill.integration
-package local
+package mill.integration.local
 
-import os.Path
 import utest.{Tests, assert, _}
 
 import scala.util.Try
+import mill.integration.IntegrationTestSuite
 import GenIdeaUtils._
 
 object GenIdeaTests extends IntegrationTestSuite {
@@ -54,7 +53,7 @@ object GenIdeaTests extends IntegrationTestSuite {
 
     test("genIdeaTests") {
       val workspacePath = initWorkspace()
-      eval("mill.scalalib.GenIdea/idea")
+      eval("mill.idea.GenIdea/idea")
 
       val checks = Seq(
         os.sub / "mill_modules" / "helloworld.iml",

@@ -49,7 +49,7 @@ class PrintLogger(
     }
   }
 
-  def withOutStream(outStream: PrintStream): PrintLogger =
+  override def withOutStream(outStream: PrintStream): PrintLogger =
     copy(systemStreams = new SystemStreams(outStream, systemStreams.err, systemStreams.in))
 
   private def copy(

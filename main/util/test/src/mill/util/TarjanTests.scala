@@ -1,10 +1,10 @@
-package mill.eval
+package mill.util
 
 import utest._
 
 object TarjanTests extends TestSuite {
   def check(input: Seq[Seq[Int]], expected: Seq[Seq[Int]]) = {
-    val result = Tarjans(input).map(_.sorted)
+    val result = Tarjans(input.toArray.map(_.toArray)).map(_.sorted).toSeq.map(_.toSeq)
     val sortedExpected = expected.map(_.sorted)
     assert(result == sortedExpected)
   }

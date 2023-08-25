@@ -2,29 +2,25 @@
 
 import mill._
 
+def mainClass: T[Option[String]] = Some("foo.Foo")
+
 def sources = T.source(millSourcePath / "src")
 def resources = T.source(millSourcePath / "resources")
 
 def compile = T {
-  os.proc("javac", os.walk(sources().path), "-d", T.dest).call(cwd = T.dest)
+  val allSources = os.walk(sources().path)
+  os.proc("javac", allSources, "-d", T.dest).call()
   PathRef(T.dest)
 }
 
-def classPath = T{ Seq(compile(), resources()) }
+def assembly = T {
+  for(p <- Seq(compile(), resources())) os.copy(p.path, T.dest, mergeFolders = true)
 
-def jar = T {
-  for(cp <- classPath()) os.copy(cp.path, T.dest, mergeFolders = true)
-  os.proc("jar", "-cfe", T.dest / "foo.jar", "foo.Foo", ".").call(cwd = T.dest)
-  PathRef(T.dest / "foo.jar")
-}
+  val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
+  os.proc("jar", "-c", mainFlags, "-f", T.dest / s"assembly.jar", ".")
+    .call(cwd = T.dest)
 
-def run(args: String*) = T.command {
-  val classPathStr = classPath()
-    .map(_.path)
-    .mkString(sys.props("path.separator"))
-
-  os.proc("java", "-cp", classPathStr, "foo.Foo", args)
-    .call(stdout = os.Inherit)
+  PathRef(T.dest / s"assembly.jar")
 }
 
 // This example does not use any of Mill's builtin support for building Java or
@@ -34,30 +30,27 @@ def run(args: String*) = T.command {
 
 /** Usage
 
-> ./mill run hello # mac/linux
+> ./mill show assembly
+".../out/assembly.dest/assembly.jar"
 
-> ./mill show jar
-".../out/jar.dest/foo.jar"
-
-> java -jar out/jar.dest/foo.jar i am cow
+> java -jar out/assembly.dest/assembly.jar i am cow
 Foo.value: 31337
 args: i am cow
-foo.txt resource: My Example Text
 
-> unzip -p out/jar.dest/foo.jar foo.txt
+> unzip -p out/assembly.dest/assembly.jar foo.txt
 My Example Text
 
 */
 
-// When you first evaluate `jar` (e.g. via `mill jar` at the command line), it
-// will evaluate all the defined targets: `sources`, `allSources`,
-// `compile`, `resources` and `jar`.
+// When you first evaluate `assembly` (e.g. via `mill assembly` at the command
+// line), it will evaluate all the defined targets: `mainClass`, `sources`,
+// `compile`, and `assembly`.
 //
-// Subsequent invocations of `mill jar` will evaluate only as much as is
+// Subsequent invocations of `mill assembly` will evaluate only as much as is
 // necessary, depending on what input sources changed:
 //
-// * If the files in `sources` change, it will re-evaluate `allSources`,
-//   compiling to `compile`, and building the `jar`
+// * If the files in `sources` change, it will re-evaluate
+//  `compile`, and `assembly`
 //
-// * If the files in `resources` change, it will only re-evaluate `jar` and
-//   use the cached output of `allSources` and `compile`
+// * If the files in `resources` change, it will only re-evaluate `assembly`
+//   and use the cached output of `compile`

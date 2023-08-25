@@ -1,12 +1,13 @@
 <module type="JAVA_MODULE" version="4">
     <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../../out/ideaOutputDir-mill-build"/>
-        <content url="file://$MODULE_DIR$/../..">
-            <excludeFolder url="file://$MODULE_DIR$/../../project"/>
-            <excludeFolder url="file://$MODULE_DIR$/../../target"/>
-            <excludeFolder url="file://$MODULE_DIR$/../../out"/>
-        </content>
+        <output url="file://$MODULE_DIR$/../../out/mill-build/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
+        <content url="file://$MODULE_DIR$/../..">
+            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/generateScriptSources.dest" isTestSource="false" generated="true"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../build.sc" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../mill-build/src" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../mill-build/resources" type="java-resource"/>
+        </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
 <!-- IGNORE -->

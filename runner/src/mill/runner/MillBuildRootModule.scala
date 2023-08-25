@@ -2,15 +2,17 @@ package mill.runner
 
 import coursier.Repository
 import mill._
-import mill.api.{Loose, PathRef, Result, internal}
-import mill.define.{Caller, Discover, Target, Task}
+import mill.api.{PathRef, Result, internal}
+import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
-import os.{Path, rel}
 import pprint.Util.literalize
 import FileImportGraph.backtickWrap
+import mill.main.BuildInfo
+
+import scala.collection.immutable.SortedMap
 import scala.util.Try
 
 /**
@@ -37,36 +39,22 @@ class MillBuildRootModule()(implicit
     .mkString("/")
 
   override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
-
-  override def resolveDeps(
-      deps: Task[Agg[BoundDep]],
-      sources: Boolean = false
-  ): Task[Agg[PathRef]] =
-    T.task {
-      if (sources == true) super.resolveDeps(deps, true)()
-      else {
-        // We need to resolve the sources to make GenIdeaExtendedTests pass,
-        // because those do not call `resolveDeps` explicitly for build file
-        // `import $ivy`s but instead rely on the deps that are resolved as
-        // part of the bootstrapping process. We thus need to make sure
-        // bootstrapping the rootModule ends up putting the sources on disk
-        val unused = super.resolveDeps(deps, true)()
-        super.resolveDeps(deps, false)()
-      }
-    }
+  override def intellijModulePath: os.Path = millSourcePath / os.up
 
   override def scalaVersion: T[String] = "2.13.10"
 
+  /**
+   * All script files (that will get wrapped later)
+   * @see [[generateScriptSources]]
+   */
   def scriptSources = T.sources {
-    MillBuildRootModule
-      .parseBuildFiles(millBuildRootModuleInfo)
+    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
       .seenScripts
-      .keys
-      .map(PathRef(_))
+      .keys.map(PathRef(_))
       .toSeq
   }
 
-  def parseBuildFiles = T {
+  def parseBuildFiles: T[FileImportGraph] = T {
     scriptSources()
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
@@ -112,6 +100,8 @@ class MillBuildRootModule()(implicit
     )
   }
 
+  override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
+
   override def generatedSources: T[Seq[PathRef]] = T {
     generateScriptSources()
   }
@@ -133,7 +123,7 @@ class MillBuildRootModule()(implicit
     }
   }
 
-  def scriptImportGraph: T[Map[Path, (Int, Seq[Path])]] = T {
+  def scriptImportGraph: T[Map[os.Path, (Int, Seq[os.Path])]] = T {
     parseBuildFiles()
       .importGraphEdges
       .map { case (path, imports) =>
@@ -141,8 +131,87 @@ class MillBuildRootModule()(implicit
       }
   }
 
+  def methodCodeHashSignatures: T[Map[String, Int]] = T.persistent {
+    os.remove.all(T.dest / "previous")
+    if (os.exists(T.dest / "current")) os.move.over(T.dest / "current", T.dest / "previous")
+    val debugEnabled = T.log.debugEnabled
+    val codesig = mill.codesig.CodeSig
+      .compute(
+        classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
+        upstreamClasspath = compileClasspath().toSeq.map(_.path),
+        ignoreCall = { (callSiteOpt, calledSig) =>
+          // We can ignore all calls to methods that look like Targets when traversing
+          // the call graph. We can fo this because we assume `def` Targets are pure,
+          // and so any changes in their behavior will be picked up by the runtime build
+          // graph evaluator without needing to be accounted for in the post-compile
+          // bytecode callgraph analysis.
+          def isSimpleTarget =
+            (calledSig.desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
+              calledSig.desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
+              calledSig.desc.args.isEmpty
+
+          // We avoid ignoring method calls that are simple trait forwarders, because
+          // we need the trait forwarders calls to be counted in order to wire up the
+          // method definition that a Target is associated with during evaluation
+          // (e.g. `myModuleObject.myTarget`) with its implementation that may be defined
+          // somewhere else (e.g. `trait MyModuleTrait{ def myTarget }`). Only that one
+          // step is necessary, after that the runtime build graph invalidation logic can
+          // take over
+          def isForwarderCallsite =
+            callSiteOpt.nonEmpty &&
+              callSiteOpt.get.sig.name == (calledSig.name + "$") &&
+              callSiteOpt.get.sig.static &&
+              callSiteOpt.get.sig.desc.args.size == 1
+
+          // We ignore Commands for the same reason as we ignore Targets, and also because
+          // their implementations get gathered up all the via the `Discover` macro, but this
+          // is primarily for use as external entrypoints and shouldn't really be counted as
+          // part of the `millbuild.build#<init>` transitive call graph they would normally
+          // be counted as
+          def isCommand =
+            calledSig.desc.ret.pretty == classOf[mill.define.Command[_]].getName
+
+          (isSimpleTarget && !isForwarderCallsite) || isCommand
+        },
+        logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
+        prevTransitiveCallGraphHashesOpt = () =>
+          Option.when(os.exists(T.dest / "previous" / "result.json"))(
+            upickle.default.read[Map[String, Int]](
+              os.read.stream(T.dest / "previous" / "result.json")
+            )
+          )
+      )
+
+    val result = codesig.transitiveCallGraphHashes
+    if (debugEnabled) {
+      os.write(
+        T.dest / "current" / "result.json",
+        upickle.default.stream(
+          SortedMap.from(codesig.transitiveCallGraphHashes0.map { case (k, v) => (k.toString, v) }),
+          indent = 4
+        )
+      )
+    }
+    result
+  }
+
+  override def sources: T[Seq[PathRef]] = T {
+    scriptSources() ++ {
+      if (parseBuildFiles().millImport) super.sources()
+      else Seq.empty[PathRef]
+    }
+  }
+
+  override def resources: T[Seq[PathRef]] = T {
+    if (parseBuildFiles().millImport) super.resources()
+    else Seq.empty[PathRef]
+  }
+
   override def allSourceFiles: T[Seq[PathRef]] = T {
-    Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc")).map(PathRef(_))
+    val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc"))
+    // We need to unlist those files, which we replaced by generating wrapper scripts
+    val filesToExclude = Lib.findSourceFiles(scriptSources(), Seq("sc"))
+    candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
   def enclosingClasspath = T.sources {
@@ -188,7 +257,7 @@ object MillBuildRootModule {
       cliImports: Seq[String]
   )(implicit baseModuleInfo: RootModule.Info) extends RootModule {
 
-    implicit private def millBuildRootModuleInfo = MillBuildRootModule.Info(
+    implicit private def millBuildRootModuleInfo: Info = MillBuildRootModule.Info(
       enclosingClasspath,
       projectRoot,
       topLevelProjectRoot0,
@@ -207,7 +276,7 @@ object MillBuildRootModule {
       cliImports: Seq[String]
   )
 
-  def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info) = {
+  def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
       millBuildRootModuleInfo.topLevelProjectRoot,
       millBuildRootModuleInfo.projectRoot / os.up
@@ -279,13 +348,13 @@ object MillBuildRootModule {
        |import _root_.mill.runner.MillBuildRootModule
        |
        |object ${backtickWrap(miscInfoName)} {
-       |  implicit val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
+       |  implicit lazy val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
        |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
        |    _root_.os.Path(${literalize(base.toString)}),
        |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)}),
        |    _root_.scala.Seq(${cliImports.map(literalize(_)).mkString(", ")})
        |  )
-       |  implicit val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
+       |  implicit lazy val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
        |    millBuildRootModuleInfo.projectRoot,
        |    _root_.mill.define.Discover[${backtickWrap(name)}]
        |  )

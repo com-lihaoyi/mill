@@ -21,6 +21,7 @@ trait Evaluator {
   def externalOutPath: os.Path
   def pathsResolver: EvaluatorPathsResolver
   def workerCache: collection.Map[Segments, (Int, Val)]
+  def disableCallgraphInvalidation: Boolean = false
   def evaluate(
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
@@ -65,6 +66,12 @@ object Evaluator {
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
   val currentEvaluator = new DynamicVariable[mill.eval.Evaluator](null)
+  val allBootstrapEvaluators = new DynamicVariable[AllBootstrapEvaluators](null)
+
+  /**
+   * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
+   */
+  case class AllBootstrapEvaluators(value: Seq[Evaluator])
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 

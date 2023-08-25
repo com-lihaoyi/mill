@@ -19,7 +19,7 @@ trait FooModule extends Cross.Module[String] {
 // `"2.12"`, each of which has their own `suffix` target. You can then run
 // them as shown below. Note that by default, `sources` returns `foo` for every
 // cross module, assuming you want to build the same sources for each. This can
-// be overriden
+// be overridden.
 
 /** Usage
 

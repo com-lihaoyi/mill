@@ -30,7 +30,7 @@ Line Count: 11
 11
 
 > ./mill inspect lineCount
-lineCount(build.sc:7)
+lineCount(build.sc:12)
     Total number of lines in module's source files
 Inputs:
     allSourceFiles

@@ -33,7 +33,10 @@ case class RunnerState(
     frames: Seq[RunnerState.Frame],
     errorOpt: Option[String]
 ) {
-  def add(frame: RunnerState.Frame = RunnerState.Frame.empty, errorOpt: Option[String] = None) = {
+  def add(
+      frame: RunnerState.Frame = RunnerState.Frame.empty,
+      errorOpt: Option[String] = None
+  ): RunnerState = {
     this.copy(frames = Seq(frame) ++ frames, errorOpt = errorOpt)
   }
 }
@@ -56,8 +59,10 @@ object RunnerState {
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
+      methodCodeHashSignatures: Map[String, Int],
       classLoaderOpt: Option[RunnerState.URLClassLoader],
-      runClasspath: Seq[PathRef]
+      runClasspath: Seq[PathRef],
+      evaluator: Evaluator
   ) {
 
     def loggedData = {
@@ -97,7 +102,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil)
+    def empty = Frame(Map.empty, Nil, Nil, Map.empty, Map.empty, None, Nil, null)
   }
 
 }

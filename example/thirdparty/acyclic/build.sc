@@ -39,6 +39,8 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
 // Acyclic is an example of a very small project that is a Scala compiler
 // plugin. It is cross-built against all point versions of Scala from 2.11.12
 // to 2.13.10, and has a dependency on the `org.scala-lang:scala-compiler`
+//
+// Project home: https://github.com/com-lihaoyi/acyclic
 
 /** Usage
 

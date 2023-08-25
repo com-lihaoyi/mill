@@ -164,7 +164,7 @@ class TestGraphs() {
     object bar extends Module {
       def barTarget = T {
         println(s"Running barTarget")
-        foo.fooTarget() + " barTarget Result"
+        s"${foo.fooTarget()} barTarget Result"
       }
       def barCommand(s: String) = T.command {
         foo.fooCommand(s)()
@@ -349,6 +349,30 @@ object TestGraphs {
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
+  object duplicates extends TestUtil.BaseModule {
+    object wrapper extends Module {
+      object test1 extends Module {
+        def test1 = T {}
+      }
+
+      object test2 extends TaskModule {
+        override def defaultCommandName() = "test2"
+        def test2() = T.command {}
+      }
+    }
+
+    object test3 extends Module {
+      def test3 = T {}
+    }
+
+    object test4 extends TaskModule {
+      override def defaultCommandName() = "test4"
+
+      def test4() = T.command {}
+    }
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  }
+
   object singleCross extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
     trait Cross extends Cross.Module[String] {
@@ -464,7 +488,9 @@ object TestGraphs {
   }
 
   object nestedCrosses extends TestUtil.BaseModule {
-    object cross extends mill.Cross[Cross]("210", "211", "212")
+    object cross extends mill.Cross[Cross]("210", "211", "212") {
+      override def defaultCrossSegments: Seq[String] = Seq("212")
+    }
     trait Cross extends Cross.Module[String] {
       val scalaVersion = crossValue
       object cross2 extends mill.Cross[Cross]("jvm", "js", "native")

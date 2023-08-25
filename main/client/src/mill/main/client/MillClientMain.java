@@ -91,34 +91,34 @@ public class MillClientMain {
 
     public static int main0(String[] args) throws Exception {
 
-        boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
+        final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
         if (setJnaNoSys) {
             System.setProperty("jna.nosys", "true");
         }
 
-        String jvmHomeEncoding = Util.sha1Hash(System.getProperty("java.home"));
-        int serverProcessesLimit = getServerProcessesLimit(jvmHomeEncoding);
+        final String versionAndJvmHomeEncoding = Util.sha1Hash(BuildInfo.millVersion + System.getProperty("java.home"));
+        final int serverProcessesLimit = getServerProcessesLimit(versionAndJvmHomeEncoding);
 
         int index = 0;
         while (index < serverProcessesLimit) {
             index += 1;
-            String lockBase = "out/mill-worker-" + jvmHomeEncoding + "-" + index;
+            final String lockBase = "out/mill-worker-" + versionAndJvmHomeEncoding + "-" + index;
             new java.io.File(lockBase).mkdirs();
 
-            File stdout = new java.io.File(lockBase + "/stdout");
-            File stderr = new java.io.File(lockBase + "/stderr");
-            int refeshIntervalMillis = 2;
+            final File stdout = new java.io.File(lockBase + "/stdout");
+            final File stderr = new java.io.File(lockBase + "/stderr");
+            final int refeshIntervalMillis = 2;
 
             try (
                 Locks locks = Locks.files(lockBase);
-                FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMillis);
-                FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMillis);
+                final FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMillis);
+                final FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMillis);
             ) {
                 Locked clientLock = locks.clientLock.tryLock();
                 if (clientLock != null) {
                     stdoutTailer.start();
                     stderrTailer.start();
-                    int exitCode = run(
+                    final int exitCode = run(
                         lockBase,
                         () -> {
                             try {

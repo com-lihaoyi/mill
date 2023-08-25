@@ -29,8 +29,8 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
         T.task { (classesPathTask(), m.javacOptions(), m.bspCompileClasspath()) }
       }
     ) {
-      case (state, id, m: JavaModule, (classesPath, javacOptions, bspCompileClasspath)) =>
-        val pathResolver = evaluator.pathsResolver
+      case (ev, state, id, m: JavaModule, (classesPath, javacOptions, bspCompileClasspath)) =>
+        val pathResolver = ev.pathsResolver
         val options = javacOptions
         val classpath =
           bspCompileClasspath.map(_.resolve(pathResolver)).map(sanitizeUri)

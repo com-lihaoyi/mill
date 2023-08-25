@@ -1,7 +1,6 @@
-package mill.integration
-package local
+package mill.integration.local
 
-import os.Path
+import mill.integration.IntegrationTestSuite
 import utest._
 
 import scala.util.Try
@@ -15,13 +14,14 @@ object GenIdeaExtendedTests extends IntegrationTestSuite {
   def tests: Tests = Tests {
     "genIdeaTests" - {
       val workspacePath = initWorkspace()
-      eval("mill.scalalib.GenIdea/idea")
+      eval("mill.idea.GenIdea/idea")
 
       val checks = Seq(
         os.sub / "mill_modules" / "helloworld.iml",
-        os.sub / "mill_modules" / "helloworld.test.iml",
         os.sub / "mill_modules" / "helloworld.subscala3.iml",
+        os.sub / "mill_modules" / "helloworld.test.iml",
         os.sub / "mill_modules" / "mill-build.iml",
+        os.sub / "mill_modules" / "mill-build.mill-build.iml",
         os.sub / "libraries" / s"scala_library_${scalaVersionLibPart}_jar.xml",
         // NOTE: on IntelliJ Scala Plugin side there is a cosmetic issue: scala suffix is added even for Java libraries (notice `_2_13` suffix)
         // In future it might be fixed and `GenIdea` will need to be updated
