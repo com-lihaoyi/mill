@@ -6,10 +6,6 @@
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
 :link-current-doc-site: https://mill-build.com
-:link-milestone: https://github.com/com-lihaoyi/mill/milestone
-:link-compare: https://github.com/com-lihaoyi/mill/compare
-:link-pr: {link-github}/pull
-:link-issue: {link-github}/issues
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
 :example-scala-version: 3.2.2
 
@@ -271,7 +267,16 @@ Exceptions are preparation commits for releases, which are meant to be pushed wi
 * If the PR has multiple authors but is merged as merge commit, those authors should be included via a line for each co-author: `Co-authored-by: <author>`
 * If the message contains links to other issues or pull requests, you should use full URLs to reference them
 
+// tag::changelog[]
 == Changelog
+ifndef::link-github[]
+:link-github: https://github.com/com-lihaoyi/mill
+endif::[]
+:link-compare: {link-github}/compare
+:link-pr: {link-github}/pull
+:link-issue: {link-github}/issues
+:link-milestone: {link-github}/milestone
+
 
 // [#master]
 // === master
@@ -357,8 +362,12 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
+// end::changelog[]
+
 === Older releases
 :leveloffset: +1
+
+// tag::changelogOld[]
 
 [#0-11-0-M11]
 === 0.11.0-M11 - 2023-06-04
@@ -1732,3 +1741,5 @@ You can use `-i`/`--interactive` for interactive consoles/REPLs and for running 
 === 0.1.0
 
 * First public release
+
+// end::changelogOld[]

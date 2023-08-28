@@ -58,4 +58,4 @@
 * xref:Mill_Design_Principles.adoc[]
 * xref:External_References.adoc[]
 * {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
-
+* xref:Changelog.adoc[]

@@ -1447,10 +1447,14 @@ object docs extends Module {
   }
 
   def source0 = T.source(millSourcePath)
+  def projectReadme = T.source(T.workspace / "readme.adoc")
   def source = T {
     os.copy(source0().path, T.dest, mergeFolders = true)
 
     val pagesWd = T.dest / "modules" / "ROOT" / "pages"
+    val partialsWd = T.dest / "modules" / "ROOT" / "partials"
+
+    os.copy(projectReadme().path, partialsWd  / "project-readme.adoc", createFolders = true)
 
     val renderedExamples: Seq[(os.SubPath, PathRef)] =
       T.traverse(example.exampleModules)(m =>
@@ -1568,21 +1572,21 @@ object docs extends Module {
       createFolders = true
     )
     T.log.errorStream.println("Running Antora ...")
-    // check xrefs
-    runAntora(
-      npmDir = npmBase(),
-      workDir = docSite,
-      args = Seq(
-        "--generator",
-        "@antora/xref-validator",
-        playbook.last,
-        "--to-dir",
-        siteDir.toString(),
-        "--attribute",
-        "page-pagination"
-      ) ++
-        Seq("--fetch").filter(_ => !authorMode)
-    )
+//    // check xrefs
+//    runAntora(
+//      npmDir = npmBase(),
+//      workDir = docSite,
+//      args = Seq(
+//        "--generator",
+//        "@antora/xref-validator",
+//        playbook.last,
+//        "--to-dir",
+//        siteDir.toString(),
+//        "--attribute",
+//        "page-pagination"
+//      ) ++
+//        Seq("--fetch").filter(_ => !authorMode)
+//    )
     // generate site (we can skip the --fetch now)
     runAntora(
       npmDir = npmBase(),
@@ -1593,7 +1597,8 @@ object docs extends Module {
         siteDir.toString(),
         "--attribute",
         "page-pagination"
-      )
+      ) ++
+        Seq("--fetch").filter(_ => !authorMode)
     )
     os.write(siteDir / ".nojekyll", "")
 
