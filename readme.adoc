@@ -6,10 +6,6 @@
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
 :link-current-doc-site: https://mill-build.com
-:link-milestone: https://github.com/com-lihaoyi/mill/milestone
-:link-compare: https://github.com/com-lihaoyi/mill/compare
-:link-pr: {link-github}/pull
-:link-issue: {link-github}/issues
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
 :example-scala-version: 3.2.2
 
@@ -18,7 +14,10 @@
 https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
 https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
 
-Your shiny new Scala build tool! Confused by SBT? Frustrated by Maven? Perplexed by Gradle?
+Your shiny new Scala build tool!
+Confused by SBT?
+Frustrated by Maven?
+Perplexed by Gradle?
 Give Mill a try!
 
 == Documentation
@@ -41,36 +40,30 @@ object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
   def scalaVersion = "{example-scala-version}"
 }
-
 ----
 
 If you use Mill and like it, you will probably enjoy the following book by the Author:
 
 * https://www.handsonscala.com/[_Hands-on Scala Programming_]
 
-The remainder of this readme is developer-documentation targeted at people who
-wish to work on Mill's own codebase. The developer docs assume you have read
-through the user-facing documentation linked above. It's also worth spending a
-few minutes reading the following blog posts to get a sense of Mill's design &
-motivation:
+The remainder of this readme is developer-documentation targeted at people who wish to work on Mill's own codebase.
+The developer docs assume you have read through the user-facing documentation linked above.
+It's also worth spending a few minutes reading the following blog posts to get a sense of Mill's design & motivation:
 
 * http://www.lihaoyi.com/post/SowhatswrongwithSBT.html["So, what's wrong with SBT?"]
 * http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Build Tools as Pure Functional Programs]
 * http://www.lihaoyi.com/post/MillBetterScalaBuilds.html[Mill: Better Scala Builds]
 
-Mill is profiled using the 
-https://www.ej-technologies.com/products/jprofiler/overview.html[JProfiler Java Profiler], 
-by courtesy of EJ Technologies.
+Mill is profiled using the
+https://www.ej-technologies.com/products/jprofiler/overview.html[JProfiler Java Profiler], by courtesy of EJ Technologies.
 
-Mill is built using Mill. To begin, you just need a JVM installed, and the
+Mill is built using Mill.
+To begin, you just need a JVM installed, and the
 `./mill` script will be sufficient to bootstrap the project.
-
-
 
 == IntelliJ Setup
 
-If you are using IntelliJ IDEA to edit Mill's Scala code, you can create the
-IntelliJ project files via:
+If you are using IntelliJ IDEA to edit Mill's Scala code, you can create the IntelliJ project files via:
 
 [source,bash]
 ----
@@ -93,53 +86,40 @@ The following table contains the main ways you can test the code in
 === In-Process Tests
 
 In-process tests live in the `.test` sub-modules of the various Mill modules.
-These range from tiny unit tests, to larger integration tests that instantiate
-a `TestUtil.BaseModule` in-process and a `TestEvaluator` to evaluate tasks on
-it.
+These range from tiny unit tests, to larger integration tests that instantiate a `TestUtil.BaseModule` in-process and a `TestEvaluator` to evaluate tasks on it.
 
-Most "core" tests live in `main.__test`; these should run almost instantly, and
-cover most of Mill's functionality that is not specific to Scala/Scala.js/etc..
+Most "core" tests live in `main.__test`; these should run almost instantly, and cover most of Mill's functionality that is not specific to Scala/Scala.js/etc..
 Tests specific to Scala/Scala.js/Scala-Native live in
-`scalalib.test`/`scalajslib.test`/`scalanativelib.test` respectively, and take
-a lot longer to run because running them involves actually compiling Scala code.
+`scalalib.test`/`scalajslib.test`/`scalanativelib.test` respectively, and take a lot longer to run because running them involves actually compiling Scala code.
 
 The various `contrib` modules also have tests in this style, e.g.
 `contrib.buildinfo.test`
 
-Note that the in-memory tests compile the `BaseModule` together with the test
-suite, and do not exercise the Mill script-file bootstrapping, transformation,
-and compilation process.
+Note that the in-memory tests compile the `BaseModule` together with the test suite, and do not exercise the Mill script-file bootstrapping, transformation, and compilation process.
 
 === Sub-Process Tests *without* Packaging/Publishing
 
-`example.\\__.local` and `integration.__.local` tests run Mill end-to-end in
-a subprocess, but *without* the expensive/slow steps of packaging the core
-packages into an assembly jar and publishing the remaining packages to
-`~/.ivy2/local`. You can reproduce these tests manually using
+`example.\\__.local` and `integration.__.local` tests run Mill end-to-end in a subprocess, but *without* the expensive/slow steps of packaging the core packages into an assembly jar and publishing the remaining packages to
+`~/.ivy2/local`.
+You can reproduce these tests manually using
 `./mill dev.run <test-folder-path> <command>`.
 
-`example` tests are written in a single `build.sc` file, with the test
-commands written in a comment with a bash-like syntax together with the build
-code and comments that explain the example. These serve three purposes:
+`example` tests are written in a single `build.sc` file, with the test commands written in a comment with a bash-like syntax together with the build code and comments that explain the example.
+These serve three purposes:
 
-1. Basic smoke-tests to make sure the functionality works at all, without
-   covering every edge case
+1. Basic smoke-tests to make sure the functionality works at all, without covering every edge case
 
-2. User-facing documentation, with the test cases, test commands, and
-   explanatory comments included in the Mill documentation site
+2. User-facing documentation, with the test cases, test commands, and explanatory comments included in the Mill documentation site
 
-3. Example repositories, that Mill users can download to bootstrap their own
-   projects
+3. Example repositories, that Mill users can download to bootstrap their own projects
 
-The `integration` tests are similar to `example` tests and share most of their
-test infrastructure, but with differences:
+The `integration` tests are similar to `example` tests and share most of their test infrastructure, but with differences:
 
 1. `integration` tests are meant to test features more thoroughly then
-   `example` tests, covering more and deeper edge cases even at the expense
-   of readability
+`example` tests, covering more and deeper edge cases even at the expense of readability
 
 2. `integration` tests are written using a Scala test suite extending
-   `IntegrationTestSuite`, giving more flexibility at the expense of readability
+`IntegrationTestSuite`, giving more flexibility at the expense of readability
 
 You can reproduce any of the tests manually using `dev.run`, e.g.
 
@@ -167,11 +147,8 @@ You can reproduce any of the tests manually using `dev.run`, e.g.
 === Sub-Process Tests *with* Packaging/Publishing
 
 `example.\\__.server`, `integration.__.server`, `example.\\__.fork` and
-`integration.__.fork` cover the same test cases as the `.local` tests described
-above, but they perform packaging of the Mill core modules into an assembly
-jar, and publish the remaining modules to `~/.ivy2/local`. This results in a
-more realistic test environment, but at the cost of taking tens-of-seconds more
-to run a test after making a code change.
+`integration.__.fork` cover the same test cases as the `.local` tests described above, but they perform packaging of the Mill core modules into an assembly jar, and publish the remaining modules to `~/.ivy2/local`.
+This results in a more realistic test environment, but at the cost of taking tens-of-seconds more to run a test after making a code change.
 
 You can reproduce these tests manually using `dev.assembly`:
 
@@ -182,20 +159,16 @@ You can reproduce these tests manually using `dev.assembly`:
 
 There are two flavors of these tests:
 
-1. `.server` test run the test cases with the default configuration, so
-   consecutive commands run in the same long-lived background server process
+1. `.server` test run the test cases with the default configuration, so consecutive commands run in the same long-lived background server process
 
-2. `.fork` test run the test cases with `--no-server`, meaning each command
-   runs in a newly spawned Mill process
+2. `.fork` test run the test cases with `--no-server`, meaning each command runs in a newly spawned Mill process
 
-In general you should spend most of your time working with the `.local` version
-of the `example` and `integration` tests to save time, and only run `.fork`
+In general you should spend most of your time working with the `.local` version of the `example` and `integration` tests to save time, and only run `.fork`
 or `.server` once `.local` is passing.
 
 === Bootstrapping: Building Mill with your current checkout of Mill
 
-To test bootstrapping of Mill's own Mill build using a version of Mill built
-from your checkout, you can run
+To test bootstrapping of Mill's own Mill build using a version of Mill built from your checkout, you can run
 
 [source,bash]
 ----
@@ -203,20 +176,13 @@ from your checkout, you can run
 ci/patch-mill-bootstrap.sh
 ----
 
-This creates a standalone assembly at `target/mill-release` you can use, which
-references jars published locally in your `~/.ivy2/local` cache, and applies
-any necessary patches to `build.sc` to deal with changes in Mill between the
-version specified in `.config/mill-version` that is normally used to build Mill
-and the `HEAD` version your assembly was created from. You can then
-use this standalone assembly to build & re-build your current Mill checkout
-without worrying about stomping over compiled code that the assembly is using.
+This creates a standalone assembly at `target/mill-release` you can use, which references jars published locally in your `~/.ivy2/local` cache, and applies any necessary patches to `build.sc` to deal with changes in Mill between the version specified in `.config/mill-version` that is normally used to build Mill and the `HEAD` version your assembly was created from.
+You can then use this standalone assembly to build & re-build your current Mill checkout without worrying about stomping over compiled code that the assembly is using.
 
 This assembly is design to work on bash, bash-like shells and Windows Cmd.
-If you have another default shell like zsh or fish, you probably need to invoke it
-with `sh ~/mill-release` or prepend the file with a proper shebang. 
+If you have another default shell like zsh or fish, you probably need to invoke it with `sh ~/mill-release` or prepend the file with a proper shebang.
 
-If you want to install into a different location or a different Ivy repository, you can
-set its optional parameters.
+If you want to install into a different location or a different Ivy repository, you can set its optional parameters.
 
 .Install into `/tmp`
 [source,bash]
@@ -228,8 +194,7 @@ Published 44 modules and installed /tmp/mill
 
 === Troubleshooting
 
-In case of troubles with caching and/or incremental compilation, you can always
-restart from scratch removing the `out` directory:
+In case of troubles with caching and/or incremental compilation, you can always restart from scratch removing the `out` directory:
 
 [source,bash]
 ----
@@ -244,42 +209,30 @@ The Mill project is organized roughly as follows:
 
 * `runner`, `main.*`, `scalalib`, `scalajslib`, `scalanativelib`.
 
-These are general lightweight and dependency-free: mostly configuration & wiring
-of a Mill build and without the heavy lifting.
+These are general lightweight and dependency-free: mostly configuration & wiring of a Mill build and without the heavy lifting.
 
-Heavy lifting is delegated to the worker modules (described below), which the
-core modules resolve from Maven Central (or from the local filesystem in
-dev) and load into isolated classloaders.
+Heavy lifting is delegated to the worker modules (described below), which the core modules resolve from Maven Central (or from the local filesystem in dev) and load into isolated classloaders.
 
 === Worker modules that are resolved from Maven Central
 
 * `scalalib.worker`, `scalajslib.worker[0.6]`, `scalajslib.worker[1.0]`
 
-These modules are where the heavy-lifting happens, and include heavy
-dependencies like the Scala compiler, Scala.js optimizer, etc.. Rather than
-being bundled in the main assembly & classpath, these are resolved separately
-from Maven Central (or from the local filesystem in dev) and kept in isolated
-classloaders.
+These modules are where the heavy-lifting happens, and include heavy dependencies like the Scala compiler, Scala.js optimizer, etc.. Rather than being bundled in the main assembly & classpath, these are resolved separately from Maven Central (or from the local filesystem in dev) and kept in isolated classloaders.
 
-This allows a single Mill build to use multiple versions of e.g. the Scala.js
-optimizer without classpath conflicts.
+This allows a single Mill build to use multiple versions of e.g. the Scala.js optimizer without classpath conflicts.
 
 === Contrib modules
 
 * `contrib/bloop/`, `contrib/flyway/`, `contrib/scoverage/`, etc.
 
-These are modules that help integrate Mill with the wide variety of different
-tools and utilities available in the JVM ecosystem.
+These are modules that help integrate Mill with the wide variety of different tools and utilities available in the JVM ecosystem.
 
 These modules are not as stringently reviewed as the main Mill core/worker codebase, and are primarily maintained by their individual contributors.
-These are maintained as part of the primary Mill Github repo for easy testing/updating as the core Mill
-APIs evolve, ensuring that they are always tested and passing against the
-corresponding version of Mill.
+These are maintained as part of the primary Mill Github repo for easy testing/updating as the core Mill APIs evolve, ensuring that they are always tested and passing against the corresponding version of Mill.
 
 == Compatibility & Stability
 
-Mill maintains backward binary compatibility for each major version
-(`major.minor.point`), enforced with Mima, for the following packages:
+Mill maintains backward binary compatibility for each major version (`major.minor.point`), enforced with Mima, for the following packages:
 
 - `mill.api`
 - `mill.util`
@@ -290,19 +243,18 @@ Mill maintains backward binary compatibility for each major version
 - `mill.scalajslib`
 - `mill.scalanativelib`
 
-Other packages like `mill.runner`, `mill.bsp`, etc. are on the classpath but
-offer no compatibility guarantees.
+Other packages like `mill.runner`, `mill.bsp`, etc. are on the classpath but offer no compatibility guarantees.
 
 Currently, Mill does not offer compatibility guarantees for `mill.contrib`
-packages, although they tend to evolve slowly. This may change over time as
-these packages mature over time.
-
+packages, although they tend to evolve slowly.
+This may change over time as these packages mature over time.
 
 == Project Maintenance
 
 === Pull Requests
 
-* Changes to the main branch need a pull request. Exceptions are preparation commits for releases, which are meant to be pushed with tags in one go
+* Changes to the main branch need a pull request.
+Exceptions are preparation commits for releases, which are meant to be pushed with tags in one go
 * Merged pull request (and closed issues) need to be assigned to a Milestone
 * Pull requests are typically merged via "Squash and merge", so we get a linear and useful history
 * Larger pull request, where it makes sense to keep single commits, or with multiple authors may be committed via merge commits.
@@ -315,16 +267,25 @@ these packages mature over time.
 * If the PR has multiple authors but is merged as merge commit, those authors should be included via a line for each co-author: `Co-authored-by: <author>`
 * If the message contains links to other issues or pull requests, you should use full URLs to reference them
 
+// tag::changelog[]
 == Changelog
+ifndef::link-github[]
+:link-github: https://github.com/com-lihaoyi/mill
+endif::[]
+:link-compare: {link-github}/compare
+:link-pr: {link-github}/pull
+:link-issue: {link-github}/issues
+:link-milestone: {link-github}/milestone
 
-[#master]
-=== master
-:version: master
-:milestone-name: master
-:milestone: 87
-:prev-version: 0.11.2
 
-* TODO
+// [#master]
+// === master
+// :version: master
+// :milestone-name: master
+// :milestone: 87
+// :prev-version: 0.11.2
+//
+// * TODO
 
 [#0-11-2]
 === 0.11.2 - 2023-08-28
@@ -335,36 +296,28 @@ these packages mature over time.
 
 _Changes since {prev-version}:_
 
-* Target invalidation after making changes to `build.sc` is now done at a
-  fine-grained method-level granularity, using callgraph reachability
-  analysis to see which targets depend on the code that was changed. See
-  https://github.com/com-lihaoyi/mill/pull/2417[#2417] for more details
+* Target invalidation after making changes to `build.sc` is now done at a fine-grained method-level granularity, using callgraph reachability analysis to see which targets depend on the code that was changed.
+See {link-pr}/2417[#2417] for more details
 
 * Fix redirection of stdout stream to stderr when using `show`
-  https://github.com/com-lihaoyi/mill/pull/2689[#2689]
+{link-pr}/2689[#2689]
 
-* Fix line numbers in errors for scripts starting with leading comments or
-  whitespace https://github.com/com-lihaoyi/mill/pull/2686[#2686]
+* Fix line numbers in errors for scripts starting with leading comments or whitespace {link-pr}/2686[#2686]
 
 * Fix `init` command and support runnig Mill without existing `build.sc` file
-  https://github.com/com-lihaoyi/mill/pull/2662[#2662]
+{link-pr}/2662[#2662]
 
-* Fixes for BSP editor integration sometimes using the wrong output folder
-  for meta-build metadata, causing subsequent builds from the command line
-  to fail https://github.com/com-lihaoyi/mill/pull/2692[#2692]
+* Fixes for BSP editor integration sometimes using the wrong output folder for meta-build metadata, causing subsequent builds from the command line to fail {link-pr}/2692[#2692]
 
-* Added a new `mill.idea.GenIdea/idea` command to generate IntelliJ IDE
-  metadata, improving-upon and replacing the older `mill.scalalib.GenIdea/idea`
-  command which is now deprecated https://github.com/com-lihaoyi/mill/pull/2638[#2638]
+* Added a new `mill.idea.GenIdea/idea` command to generate IntelliJ IDE metadata, improving-upon and replacing the older `mill.scalalib.GenIdea/idea`
+command which is now deprecated {link-pr}/2638[#2638]
 
 * Update Coursier to 2.1.6 to mitigate CVE CVE-2022-46751
-  https://github.com/com-lihaoyi/mill/pull/2705[#2705]
-
+{link-pr}/2705[#2705]
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 [#0-11-1]
 === 0.11.1 - 2023-06-23
@@ -391,7 +344,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
 [#0-11-0]
 === 0.11.0 - 2023-06-06
 :version: 0.11.0
@@ -403,16 +355,19 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 _Changes since {prev-version}:_
 
-* 0.11.0 is the next breaking version after the 0.10.x series, with a large
-  number of improvements. See the changelog below for 0.11.0-M1 to 0.11.0-M11
-  for a full list of user-facing changes.
+* 0.11.0 is the next breaking version after the 0.10.x series, with a large number of improvements.
+See the changelog below for 0.11.0-M1 to 0.11.0-M11 for a full list of user-facing changes.
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
+// end::changelog[]
+
 === Older releases
 :leveloffset: +1
+
+// tag::changelogOld[]
 
 [#0-11-0-M11]
 === 0.11.0-M11 - 2023-06-04
@@ -425,22 +380,18 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 _Changes since {prev-version}:_
 
-* Make `foo.test` command run tests with user code in the boot classloader,
-  rather than in a sub-classloader
-  https://github.com/com-lihaoyi/mill/pull/2561[#2561]
+* Make `foo.test` command run tests with user code in the boot classloader, rather than in a sub-classloader
+{link-pr}/2561[#2561]
 
 * Mill backend server timeout is now configurable
-  https://github.com/com-lihaoyi/mill/pull/2550[#2550]
+{link-pr}/2550[#2550]
 
-* Mill assembly is now distributed via Maven Central, rather than Github
-  release assets, to remove an unnecessary single point of failure
-  https://github.com/com-lihaoyi/mill/pull/2560[#2560]
+* Mill assembly is now distributed via Maven Central, rather than Github release assets, to remove an unnecessary single point of failure
+{link-pr}/2560[#2560]
 
-* `Tests` inner trait was removed, to avoid trait shadowing which will be
-  removed in Scala 3. Please use `ScalaTests`, `ScalaJSTests`, or
-  `ScalaNativeTests` instead
-  https://github.com/com-lihaoyi/mill/pull/2558[#2558]
-
+* `Tests` inner trait was removed, to avoid trait shadowing which will be removed in Scala 3. Please use `ScalaTests`, `ScalaJSTests`, or
+`ScalaNativeTests` instead
+{link-pr}/2558[#2558]
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
@@ -457,28 +408,24 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 _Changes since {prev-version}:_
 
-* Make `mill.define.Module` a `trait` to allow abstract/virtual modules
-  to be ``trait``s rather than ``class``es
-  https://github.com/com-lihaoyi/mill/pull/2536[#2536]
+* Make `mill.define.Module` a `trait` to allow abstract/virtual modules to be ``trait``s rather than ``class``es
+{link-pr}/2536[#2536]
 
 * Move `mill.BuildInfo` to `mill.main.BuildInfo` to avoid name conflicts with
-  `mill.contrib.buildinfo.BuildInfo`
-  https://github.com/com-lihaoyi/mill/pull/2537[#2537]
+`mill.contrib.buildinfo.BuildInfo`
+{link-pr}/2537[#2537]
 
 * `PlatformScalaModule` now exposes `platformScalaSuffix` for user code to use
-  https://github.com/com-lihaoyi/mill/pull/2534[#2534]
+{link-pr}/2534[#2534]
 
-* Add `Agg.when` operator to simplify common workflow of adding optional flags
-  or command line parameters https://github.com/com-lihaoyi/mill/pull/2535[#2353]
+* Add `Agg.when` operator to simplify common workflow of adding optional flags or command line parameters {link-pr}/2535[#2353]
 
-* Generalize handling of test module source folder layout, such that they always
-  match the folder layout of the enclosing module
-  https://github.com/com-lihaoyi/mill/pull/2531[#2531]
+* Generalize handling of test module source folder layout, such that they always match the folder layout of the enclosing module
+{link-pr}/2531[#2531]
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 [#0-11-0-M9]
 === 0.11.0-M9 - 2023-05-18
@@ -491,39 +438,35 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 _Changes since {prev-version}:_
 
-* Overhauled target resolution logic. It is now significantly lazier, resulting
-  in less of the module tree being un-necessarily instantiated, and also more
-  precise and predictable https://github.com/com-lihaoyi/mill/pull/2453[#2453]
-https://github.com/com-lihaoyi/mill/pull/2511[#2511]
+* Overhauled target resolution logic.
+It is now significantly lazier, resulting in less of the module tree being un-necessarily instantiated, and also more precise and predictable {link-pr}/2453[#2453]
+{link-pr}/2511[#2511]
 
 * Allow tasks to be passed as the CLI parameters of the `run` command, allowing
-  `run` to be easily used in the implementation of other tasks
-  https://github.com/com-lihaoyi/mill/pull/2452[#2452]
+`run` to be easily used in the implementation of other tasks
+{link-pr}/2452[#2452]
 
-* ``T.input``s are now watched properly with `--watch`, and trigger re-evaluations
-  when the watched value changes https://github.com/com-lihaoyi/mill/pull/2489[#2489]
+* ``T.input``s are now watched properly with `--watch`, and trigger re-evaluations when the watched value changes {link-pr}/2489[#2489]
 
-* Support for Java 20 https://github.com/com-lihaoyi/mill/pull/2501[#2501]
+* Support for Java 20 {link-pr}/2501[#2501]
 
-* Broke up `mill.modules` package https://github.com/com-lihaoyi/mill/pull/2513[#2513],
-  with functionality re-distributed to `mill.util` and `mill.scalalib`
+* Broke up `mill.modules` package {link-pr}/2513[#2513], with functionality re-distributed to `mill.util` and `mill.scalalib`
 
 * Overhaul BSP-related code, for improved fidelity and correctness
-  https://github.com/com-lihaoyi/mill/pull/2415[#2415]
-  https://github.com/com-lihaoyi/mill/pull/2414[#2414]
-  https://github.com/com-lihaoyi/mill/pull/2518[#2518]
-  https://github.com/com-lihaoyi/mill/pull/2521[#2521]
+{link-pr}/2415[#2415]
+{link-pr}/2414[#2414]
+{link-pr}/2518[#2518]
+{link-pr}/2521[#2521]
 
 * Enabled compilation warnings in `build.sc`
-https://github.com/com-lihaoyi/mill/pull/2519[#2519]
+{link-pr}/2519[#2519]
 
 * Print out the CLI flags when inspecting ``T.command``s
-  https://github.com/com-lihaoyi/mill/pull/2522[#2522]
+{link-pr}/2522[#2522]
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 [#0-11-0-M8]
 === 0.11.0-M8 - 2023-04-24
@@ -537,39 +480,36 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 _Changes since {prev-version}:_
 
 * Added an https://github.com/com-lihaoyi/mill/tree/main/example[example/]
-  folder in the Mill repo, containing common build setups demonstrating Mill
-  features with explanations of how each feature works
+folder in the Mill repo, containing common build setups demonstrating Mill features with explanations of how each feature works
 
 * Pre-compiled Scala incremental compiler interface
-  https://github.com/com-lihaoyi/mill/pull/2424[#2424], to speed up clean builds
+{link-pr}/2424[#2424], to speed up clean builds
 
-* Add some helpers to simplify cross-version/cross-platform modules {#2406}[https://github.com/com-lihaoyi/mill/pull/2406]
+* Add some helpers to simplify cross-version/cross-platform modules {#2406}[{link-pr}/2406]
 
-* You can now override `T{...}` ``Target``s with `T.source` or `T.sources`, and
-  vice versa https://github.com/com-lihaoyi/mill/pull/2402[#2402]
+* You can now override `T{...}` ``Target``s with `T.source` or `T.sources`, and vice versa {link-pr}/2402[#2402]
 
 * Removed the Ammonite script runner dependency used to evaluate `build.sc`
-  files and instead compile them using Mill https://github.com/com-lihaoyi/mill/pull/2377[#2377]
+files and instead compile them using Mill {link-pr}/2377[#2377]
 
-* Add `TestModule.ZioTest` {#2432}[https://github.com/com-lihaoyi/mill/pull/2432]
+* Add `TestModule.ZioTest` {link-pr}/2432[#2432]
 
 * Caching fixes for external modules https://github.com/com-lihaoyi/mill/issues/2419[#2419]
 
-* Overhaul of the Mill `BuildInfo` plugin, moving the key-value into resources
-  to avoid needing to re-compile your module when the values change, adding
-  `JavaModule` support, and allowing Javadoc/Scaladoc comments to be associated
-  with the generated `BuildInfo` constants https://github.com/com-lihaoyi/mill/pull/2425[#2425]
+* Overhaul of the Mill `BuildInfo` plugin, moving the key-value into resources to avoid needing to re-compile your module when the values change, adding
+`JavaModule` support, and allowing Javadoc/Scaladoc comments to be associated with the generated `BuildInfo` constants {link-pr}/2425[#2425]
 
-* Global Configuration via `~/.mill/ammonite/predefScript.sc` is no longer supported in this version. If that breaks your workflow, please report and tell us your use case so we can provide sufficient replacement or support for your use case before Mill 0.11.
+* Global Configuration via `~/.mill/ammonite/predefScript.sc` is no longer supported in this version.
+If that breaks your workflow, please report and tell us your use case so we can provide sufficient replacement or support for your use case before Mill 0.11.
 
-* Overhaul of the documentation. Created many executable example projects which are included in the documentation and run/tested on CI
+* Overhaul of the documentation.
+Created many executable example projects which are included in the documentation and run/tested on CI
 
 * Change cross module definitions to be traits instead of classes, for greater regularity and less builerplate at call sites. _This change requires slight modification to existing build scripts that define cross modules._
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 [#0-11-0-M7]
 === 0.11.0-M7 - 2023-03-30
@@ -597,8 +537,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
-
 [#0-11-0-M6]
 === 0.11.0-M6 - 2023-03-09
 :version: 0.11.0-M6
@@ -615,7 +553,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 [#0-11-0-M5]
 === 0.11.0-M5 - 2023-03-09
@@ -644,7 +581,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
 [#0-11-0-M4]
 === 0.11.0-M4 - 2023-02-10
 :version: 0.11.0-M4
@@ -670,7 +606,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
 [#0-11-0-M3]
 === 0.11.0-M3 - 2023-01-23
 :version: 0.11.0-M3
@@ -682,7 +617,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 _Changes since {prev-version}:_
 
-* Slightly changed the `out/` folder layout for overridden and private tasks. Instead of `foo.overridden` we now use a `foo.super` path to hold the metadata and scratch files.
+* Slightly changed the `out/` folder layout for overridden and private tasks.
+Instead of `foo.overridden` we now use a `foo.super` path to hold the metadata and scratch files.
 * Fixed the caching for private targets with same name but defined in different super traits.
 * Fixed non-functional `clean` command when used with arguments denoting modules.
 * `scalalib`: Fixed `GenIdea` issues on Windows, when the build uses plugins or additional libraries.
@@ -695,7 +631,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 [#0-11-0-M2]
 === 0.11.0-M2 - 2023-01-13
@@ -720,7 +655,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 [#0-11-0-M1]
 === 0.11.0-M1 - 2022-12-17
@@ -766,8 +700,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
-
 === 0.10.11 - 2023-01-24
 :version: 0.10.11
 :milestone-name: 0.10.11
@@ -787,7 +719,6 @@ _If you have issues after the update (like `org.scalajs.jsenv.UnsupportedInputEx
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.10.10 - 2022-12-06
 :version: 0.10.10
@@ -814,12 +745,9 @@ _If you get some issues (like `connect ECONNREFUSED`, https://github.com/com-lih
 * `BSP`: implement `buildTarget/OutputPaths` request
 * Various version bumps and internal improvements
 
-
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
-
 
 === 0.10.9 - 2022-11-10
 :version: 0.10.9
@@ -840,7 +768,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.10.8 - 2022-10-10
 :version: 0.10.8
@@ -864,8 +791,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
-
 === 0.10.7 - 2022-08-24
 :version: 0.10.7
 :prev-version: 0.10.6
@@ -879,7 +804,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.10.6 - 2022-08-24
 :version: 0.10.6
@@ -903,7 +827,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
 === 0.10.5 - 2022-07-01
 :version: 0.10.5
 :prev-version: 0.10.4
@@ -913,7 +836,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 _Changes since {prev-version}:_
 
 * New `init` command, to create new Mill projects from Gitter8 (g8) templates
-* `PathRef` now gracefully ignores socket files. This also fixes an annoying issue when Mill was previously ran in a source directory.
+* `PathRef` now gracefully ignores socket files.
+This also fixes an annoying issue when Mill was previously ran in a source directory.
 * Fixed a bug with using `mill --repl` without any further arguments, which was introduced in Mill 0.10.2 and prevented proper no-server mode
 * Fixed the `visualize` command which wasn't working on some newer JREs
 * Improved Mill server support for Windows 11 and some Windows Server versions
@@ -931,7 +855,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
 === 0.10.4 - 2022-05-06
 :version: 0.10.4
 :prev-version: 0.10.3
@@ -941,7 +864,7 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 _Changes since {prev-version}:_
 
 * Switched from ipcsocket to junixsocket library to enhance the robustness of Mill client server communication.
-  This should greatly improve the user experience on Windows.
+This should greatly improve the user experience on Windows.
 * Internal improvements and better support of GraalVM
 * The Mill Documentation site has now built-in search functionality
 
@@ -958,7 +881,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
 === 0.10.3 - 2022-04-11
 :version: 0.10.3
 :prev-version: 0.10.2
@@ -972,8 +894,10 @@ _Changes since {prev-version}:_
 
 * Mill commands now support arguments of type `Task[T]`, which can improve writing re-usable commands, especially, they can be called from other tasks more easily
 
-* `JavaModule`: Improved correctness and performance of `compileClasspath` and `bspCompileClasspath` targets. This fixes an issue with BSP for large projects. Also, compile-time dependencies no longer sneak into the classpath transitively.
-* `JavaModule`:  Added `docJarUseArgsFile` target and fix issue with Windows command length restrictions in `docJar`
+* `JavaModule`: Improved correctness and performance of `compileClasspath` and `bspCompileClasspath` targets.
+This fixes an issue with BSP for large projects.
+Also, compile-time dependencies no longer sneak into the classpath transitively.
+* `JavaModule`: Added `docJarUseArgsFile` target and fix issue with Windows command length restrictions in `docJar`
 
 * `BSP` and `Bloop`: Better detect foreign modules
 
@@ -983,7 +907,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.10.2 - 2022-03-18
 :version: 0.10.2
@@ -1003,7 +926,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.10.1 - 2022-03-08
 :version: 0.10.1
@@ -1036,7 +958,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
 === 0.10.0 - 2022-01-14
 :version: 0.10.0
 :prev-version: 0.10.0-M5
@@ -1058,8 +979,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
-
 === 0.10.0-M5 - 2021-12-18
 :version: main
 :prev-version: 0.10.0-M4
@@ -1067,7 +986,6 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 :milestone-name: 0.10.0-M5
 
 *This release breaks binary compatibility for external plugins.*
-
 
 _Changes since {prev-version}:_
 
@@ -1086,7 +1004,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.10.0-M4 - 2021-11-08
 :version: 0.10.0-M4
@@ -1109,7 +1026,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
 === 0.10.0-M3 - 2021-09-29
 :version: 0.10.0-M3
 :prev-version: 0.10.0-M2
@@ -1128,13 +1044,11 @@ _Changes since {prev-version}:_
 * `import $ivy` support `$MILL_BIN_PLATFORM` variable and a new sort notations for external plugins
 * We fixed and enabled lots of tests to run on Windows
 * Some generic targets like `plan` or `path` now also return their output
-* `GenIdea`: improved support for Scala 3 projects
-*
+* `GenIdea`: improved support for Scala 3 projects *
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.10.0-M2 - 2021-09-17
 :version: 0.10.0-M2
@@ -1155,11 +1069,9 @@ _Changes since {prev-version}:_
 * Various fixes and improvements
 * Various dependency updates
 
-
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.9.12 - 2022-01-07
 :version: 0.9.12
@@ -1174,7 +1086,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
 === 0.9.11 - 2021-12-15
 :version: 0.9.11
 :prev-version: 0.9.10
@@ -1186,7 +1097,6 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.9.10 - 2021-11-13
 :version: 0.9.10
@@ -1202,7 +1112,6 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.9.9 - 2021-07-15
 :version: 0.9.9
@@ -1220,7 +1129,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.9.8 - 2021-05-27
 :version: 0.9.8
@@ -1242,7 +1150,6 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
-
 === 0.9.7 - 2021-05-14
 :version: 0.9.7
 :prev-version: 0.9.6
@@ -1253,7 +1160,8 @@ _Changes since {prev-version}:_
 
 * `ScalaModule`: Support for Scala 3
 * `CoursierModule`: Support customized dependency resolution (needed to work with ScalaFX)
-* `TestModule`: Added new `testFramework` target and only support one test framework. Deprecated `testFrameworks` targets.
+* `TestModule`: Added new `testFramework` target and only support one test framework.
+Deprecated `testFrameworks` targets.
 * `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit4`, `TestModule.ScalaTest`, `TestModule.Utest` and many more
 * `Bloop`: Added support for foreign modules
 * Better support for Windows environments
@@ -1264,7 +1172,6 @@ _Changes since {prev-version}:_
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
-
 
 === 0.9.6 - 2021-04-03
 
@@ -1284,14 +1191,12 @@ _For details refer to
 {link-milestone}/47?closed=1[milestone 0.9.6]
 and the {link-compare}/0.9.5\...0.9.6[list of commits]._
 
-
 === 0.9.5 - 2021-01-26
 
 * Updated zinc to 1.4.4
 * Support for Scala Native 0.4.0
 * Support for Scala.js ESModule (including Bloop support)
-* Inner `Tests` traits in modules like `JavaModule`, `ScalaModule` and others now have unique
- names (`JavaModuleTests`, `ScalaTests`, etc), to allow for easier customization
+* Inner `Tests` traits in modules like `JavaModule`, `ScalaModule` and others now have unique names (`JavaModuleTests`, `ScalaTests`, etc), to allow for easier customization
 * Various version bumps of dependencies
 * CI now runs all tests, it did miss some before
 
@@ -1313,11 +1218,9 @@ and the {link-compare}/0.9.3\...0.9.4[list of commits]._
 _(We also tagged `0.9.0`, `0.9.1`, and `0.9.2`, but due to release difficulties, we ask you not to use them.)_
 
 * Replace the built in `@main` method functionality with the
- https://github.com/lihaoyi/mainargs[MainArgs] library
-* Note that the MainArgs replacement has some backwards incompatibilities: Short
- flags like `-i` can no longer be passed via `--i`, the `@doc("")` is now
- `@arg(doc = "")`, `Seq[T]` parameters are now passed via repeated `--foo`
- flags rather than comma-separated.
+https://github.com/lihaoyi/mainargs[MainArgs] library
+* Note that the MainArgs replacement has some backwards incompatibilities: Short flags like `-i` can no longer be passed via `--i`, the `@doc("")` is now `@arg(doc = "")`, `Seq[T]` parameters are now passed via repeated `--foo`
+flags rather than comma-separated.
 * Add the ability to relocate/shade files in `.assembly` {link-pr}/947[#947]
 * Twirl enhancements {link-pr}/952[#952]
 * Add `scalacPluginClasspath` to Tests {link-pr}/956[#956]
@@ -1328,9 +1231,9 @@ _(We also tagged `0.9.0`, `0.9.1`, and `0.9.2`, but due to release difficulties,
 * Allow test classes with constructor parameters {link-pr}/982[#982]
 * Proguard contrib module {link-pr}/972[#972]
 * Support Scala.js useECMAScript2015 option and ModuleKind.ESModule
- {link-pr}/1004[#1004]
+{link-pr}/1004[#1004]
 * Support Scala.js incremental linking
- {link-pr}/1007[#1007]
+{link-pr}/1007[#1007]
 
 _For details refer to {link-milestone}/44?closed=1[milestone 0.9.3]
 and the {link-compare}/0.8.0\...0.9.3[list of commits]._
@@ -1372,8 +1275,7 @@ and the {link-compare}/0.7.0\...0.7.1[list of commits]._
 
 === 0.7.0 - 2020-05-15
 
-* Greatly improved parallel builds via `-j &lt;n&gt;`/`--jobs &lt;n&gt;`, with better scheduling
- and utilization of multiple cores
+* Greatly improved parallel builds via `-j &lt;n&gt;`/`--jobs &lt;n&gt;`, with better scheduling and utilization of multiple cores
 * `build.sc` files now uses Scala 2.13.2
 * Avoid duplicate target resolution with `mill resolve __`
 * Add ability to pass GPG arguments to publish via `--gpgArgs`
@@ -1396,7 +1298,7 @@ and the {link-compare}/0.6.2\...0.6.3[list of commits]._
 === 0.6.2 - 2020-04-22
 
 * Mill can now execute targets in parallel.
- This is experimental and need to be enabled with `--jobs &lt;n&gt;` option.
+This is experimental and need to be enabled with `--jobs &lt;n&gt;` option.
 * `PublishModule`: new `publishM2Local` to publish into local Maven repositories
 * `PublishModule`: enhanced `publishLocal` to specify to ivy repository location
 * Windows: Fixed windows launcher and more robust classpath handling
@@ -1438,8 +1340,7 @@ and the {link-compare}/0.5.9\...0.6.0[list of commits]._
 
 * Bump library versions again
 * Alias `T.ctx.*` functions to `T.*`: `T.dest`, `T.log`, etc.
-* Bump Mill's client-connect-to-server timeout, to reduce flakiness when the
- server is taking a moment to start up
+* Bump Mill's client-connect-to-server timeout, to reduce flakiness when the server is taking a moment to start up
 
 _For details refer to the {link-compare}/0.5.7\...0.5.9[list of commits]._
 
@@ -1447,8 +1348,7 @@ _For details refer to the {link-compare}/0.5.7\...0.5.9[list of commits]._
 
 === 0.5.7 - 2019-12-28
 
-* Bump library versions: Ammonite 2.0.1, uPickle 0.9.6, Scalatags 0.8.3, OS-Lib
- 0.6.2, Requests 0.4.7, Geny 0.4.2
+* Bump library versions: Ammonite 2.0.1, uPickle 0.9.6, Scalatags 0.8.3, OS-Lib 0.6.2, Requests 0.4.7, Geny 0.4.2
 
 _For details refer to {link-milestone}/33?closed=1[milestone 0.5.7]
 and the {link-compare}/0.5.5\...0.5.7[list of commits]._
@@ -1457,10 +1357,9 @@ and the {link-compare}/0.5.5\...0.5.7[list of commits]._
 
 _(we skipped version 0.5.4 as we had some publishing issues)_
 
-* Bump library versions: Ammonite 1.9.2, uPickle 0.9.0, Scalatags 0.8.2, OS-Lib
- 0.5.0, Requests 0.3.0, Geny 0.2.0, uTest 0.7.1
+* Bump library versions: Ammonite 1.9.2, uPickle 0.9.0, Scalatags 0.8.2, OS-Lib 0.5.0, Requests 0.3.0, Geny 0.2.0, uTest 0.7.1
 * Fixed a long standing issue that output of sub-processes are only shown when `-i` option was used.
- Now, you will always seen output of sub-process.
+Now, you will always seen output of sub-process.
 * Mill now properly restarts it's server after it's version has changed
 * `PublishModule`: added ability to publish into non-staging repositories
 * `ScalaPBModule`: added extra include path option
@@ -1516,13 +1415,10 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 === 0.5.0
 
 * Mill now supports a `./mill`
- {link-current-doc-site}/#bootstrap-scripts-linuxos-x-only[bootstrap script],
- allowing a project to pin the version of Mill it requires, as well as letting
- contributors use `./mill ...` to begin development without needing to install
- Mill beforehand.
+{link-current-doc-site}/#bootstrap-scripts-linuxos-x-only[bootstrap script], allowing a project to pin the version of Mill it requires, as well as letting contributors use `./mill ...` to begin development without needing to install Mill beforehand.
 
 * Support for a `.mill-version` file or `MILL_VERSION` environment variable for
- {link-current-doc-site}/#overriding-mill-versions[Overriding Mill Versions]
+{link-current-doc-site}/#overriding-mill-versions[Overriding Mill Versions]
 
 * Fix scoverage: inherit repositories from outer project {link-pr}/645[#645]
 
@@ -1542,21 +1438,18 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 === 0.4.0
 
-* Publish `compileIvyDeps` as provided scope
- ({link-issue}/535[535])
+* Publish `compileIvyDeps` as provided scope ({link-issue}/535[535])
 
 * Added contrib modules to integrate
- {link-current-doc-site}/page/contrib-modules.html#bloop[Bloop],
- {link-current-doc-site}/page/contrib-modules.html#flyway[Flyway],
- {link-current-doc-site}/page/contrib-modules.html#play-framework[Play Framework],
- {link-current-doc-site}/page/contrib-modules.html#scoverage[Scoverage]
+{link-current-doc-site}/page/contrib-modules.html#bloop[Bloop],
+{link-current-doc-site}/page/contrib-modules.html#flyway[Flyway],
+{link-current-doc-site}/page/contrib-modules.html#play-framework[Play Framework],
+{link-current-doc-site}/page/contrib-modules.html#scoverage[Scoverage]
 
-* Allow configuration of GPG key names when publishing
- ({link-pr}/530[530])
+* Allow configuration of GPG key names when publishing ({link-pr}/530[530])
 
 * Bump Ammonite version to 1.6.7, making
- https://github.com/lihaoyi/requests-scala[Requests-Scala] available to use
- in your `build.sc`
+https://github.com/lihaoyi/requests-scala[Requests-Scala] available to use in your `build.sc`
 
 * Support for Scala 2.13.0-RC2
 
@@ -1590,13 +1483,11 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 === 0.3.4
 
-* Mill is now bundled with https://github.com/lihaoyi/os-lib[OS-Lib],
- providing a simpler way of dealing with filesystem APIs and subprocesses
+* Mill is now bundled with https://github.com/lihaoyi/os-lib[OS-Lib], providing a simpler way of dealing with filesystem APIs and subprocesses
 
 === 0.3.3
 
-* Added new `debug` method to context logger, to log additional debug info into the
- task specific output dir (`out/&lt;task&gt;/log`)
+* Added new `debug` method to context logger, to log additional debug info into the task specific output dir (`out/&lt;task&gt;/log`)
 
 * Added `--debug` option to enable debug output to STDERR
 
@@ -1612,8 +1503,7 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 * Sped up `ScalaModule#docJar` task by about 10x, greatly speeding up publishing
 
-* Add a flag `JavaModule#skipIdea` you can override to disable Intellij project
- generation {link-pr}/458[#458]
+* Add a flag `JavaModule#skipIdea` you can override to disable Intellij project generation {link-pr}/458[#458]
 
 * Allow sub-domains when publishing {link-pr}/441[#441]
 
@@ -1638,13 +1528,13 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 * Fixes for Twirl support, now in `mill-contrib-twirllib`
 
 * Support for building Dotty projects
- {link-pr}/397[#397]
+{link-pr}/397[#397]
 
 * Allow customization of `run`/`runBackground` working directory via
- `forkWorkingDir`
+`forkWorkingDir`
 
 * Reduced executable size, improved incremental compilation in
- {link-pr}/414[#414]
+{link-pr}/414[#414]
 
 === 0.2.6
 
@@ -1652,19 +1542,16 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 * Speed up hot compilation performance by properly re-using classloaders
 
-* Speed up compilation time of `build.sc` files by removing duplicate macro
- generated routing code
+* Speed up compilation time of `build.sc` files by removing duplicate macro generated routing code
 
 === 0.2.5
 
-* Add `.runBackground` and `.runMainBackground` commands, to run something in
- the background without waiting for it to return. The process will keep running
- until it exits normally, or until the same `.runBackground` command is run a
- second time to spawn a new version of the process. Can be used with `-w` for
- auto-reloading of long-running servers.
+* Add `.runBackground` and `.runMainBackground` commands, to run something in the background without waiting for it to return.
+The process will keep running until it exits normally, or until the same `.runBackground` command is run a second time to spawn a new version of the process.
+Can be used with `-w` for auto-reloading of long-running servers.
 
 * {link-current-doc-site}/page/common-project-layouts.html#scala-native-modules[Scala-Native support].
- Try it out!
+Try it out!
 
 * Add `--disable-ticker` to reduce spam in CI
 
@@ -1683,71 +1570,54 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 === 0.2.3
 
 * Added the {link-current-doc-site}/#visualize[mill show visualize]
- command, making it easy to visualize the relationships between various tasks
- and modules in your Mill build.
+command, making it easy to visualize the relationships between various tasks and modules in your Mill build.
 
 * Improve Intellij support ({link-pr}/351[351]):
- better jump-to-definition for third-party libraries, no longer stomping over
- manual configuration, and better handling of `import $ivy` in your build file.
+better jump-to-definition for third-party libraries, no longer stomping over manual configuration, and better handling of `import $ivy` in your build file.
 
-* Support for un-signed publishing and cases where your GPG key has no
- passphrase ({link-pr}/346[346])
+* Support for un-signed publishing and cases where your GPG key has no passphrase ({link-pr}/346[346])
 
-* Basic support for Twirl, Play Framework's templating language
- ({link-pr}/271[271])
+* Basic support for Twirl, Play Framework's templating language ({link-pr}/271[271])
 
-* Better performance for streaming large amounts of stdout from Mill's daemon
- process.
+* Better performance for streaming large amounts of stdout from Mill's daemon process.
 
 * Allow configuration of append/exclude rules in `ScalaModule#assembly`
- ({link-pr}/309[309])
+({link-pr}/309[309])
 
 === 0.2.2
 
-* Preserve caches when transitioning between `-i`/`--interactive` and the
- fast client/server mode ({link-issue}/329[329])
+* Preserve caches when transitioning between `-i`/`--interactive` and the fast client/server mode ({link-issue}/329[329])
 
-* Keep Mill daemon running if you Ctrl-C during `-w`/`--watch` mode
- ({link-issue}/327[327])
+* Keep Mill daemon running if you Ctrl-C during `-w`/`--watch` mode ({link-issue}/327[327])
 
-* Allow `mill version` to run without a build file
- ({link-issue}/328[328])
+* Allow `mill version` to run without a build file ({link-issue}/328[328])
 
-* Make `docJar` (and thus publishing) robust against scratch files in the source
- directories ({link-issue}/334[334]) and work with
- Scala compiler options ({link-issue}/336[336])
+* Make `docJar` (and thus publishing) robust against scratch files in the source directories ({link-issue}/334[334]) and work with Scala compiler options ({link-issue}/336[336])
 
-* Allow passing Ammonite command-line options to the `foo.repl` command
- ({link-pr}/333[333])
+* Allow passing Ammonite command-line options to the `foo.repl` command ({link-pr}/333[333])
 
-* Add `mill clean` ({link-pr}/315[315]) to easily
- delete the Mill build caches for specific targets
+* Add `mill clean` ({link-pr}/315[315]) to easily delete the Mill build caches for specific targets
 
-* Improve IntelliJ integration of `MavenModule`s/`SbtModule`s' test folders
- ({link-pr}/298[298])
+* Improve IntelliJ integration of `MavenModule`s/`SbtModule`s' test folders ({link-pr}/298[298])
 
 * Avoid showing useless stack traces when `foo.test` result-reporting fails or
- `foo.run` fails
+`foo.run` fails
 
 * ScalaFmt support ({link-pr}/308[308])
 
-* Allow `ScalaModule#generatedSources` to allow single files (previous you could
- only pass in directories)
+* Allow `ScalaModule#generatedSources` to allow single files (previous you could only pass in directories)
 
 === 0.2.0
 
-* Universal (combined batch/sh) script generation for launcher, assembly, and
- release ({link-issue}/264[#264])
+* Universal (combined batch/sh) script generation for launcher, assembly, and release ({link-issue}/264[#264])
 
 * Windows client/server improvements ({link-issue}/262[#262])
 
-* Windows repl support (note: MSYS2 subsystem/shell will be supported when jline3
- v3.6.3 is released)
+* Windows repl support (note: MSYS2 subsystem/shell will be supported when jline3 v3.6.3 is released)
 
 * Fixed Java 9 support
 
-* Remove need for running `publishAll` using `--interactive` when on OSX and
- your GPG key has a passphrase
+* Remove need for running `publishAll` using `--interactive` when on OSX and your GPG key has a passphrase
 
 * First-class support for `JavaModule`s
 
@@ -1767,8 +1637,7 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 * Support for using Typelevel Scala ({link-issue}/275[#275])
 
-* If a module depends on multiple submodules with different versions of an
- ivy dependency, only one version is resolved ({link-issue}/273[#273])
+* If a module depends on multiple submodules with different versions of an ivy dependency, only one version is resolved ({link-issue}/273[#273])
 
 === 0.1.7
 
@@ -1776,24 +1645,20 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 * More fixes for Java 9
 
-* Bumped the Mill daemon timeout from 1 minute to 5 minutes of inactivity before
- it shuts down.
+* Bumped the Mill daemon timeout from 1 minute to 5 minutes of inactivity before it shuts down.
 
 * Avoid leaking Node.js subprocesses when running `ScalaJSModule` tests
 
-* Passing command-line arguments with spaces in them to tests no longer parses
- wrongly
+* Passing command-line arguments with spaces in them to tests no longer parses wrongly
 
 * `ScalaModule#repositories`, `scalacPluginIvyDeps`, `scalacOptions`,
- `javacOptions` are now automatically propagated to `Tests` modules
+`javacOptions` are now automatically propagated to `Tests` modules
 
 * `ScalaJSModule` linking errors no longer show a useless stack trace
 
-* `ScalaModule#docJar` now properly uses the compileClasspath rather than
- runClasspath
+* `ScalaModule#docJar` now properly uses the compileClasspath rather than runClasspath
 
-* Bumped underlying Ammonite version to http://ammonite.io/#1.1.0[1.1.0],
- which provides the improved Windows and Java 9 support
+* Bumped underlying Ammonite version to http://ammonite.io/#1.1.0[1.1.0], which provides the improved Windows and Java 9 support
 
 === 0.1.6
 
@@ -1803,11 +1668,9 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 === 0.1.5
 
-* Introduced the `mill plan foo.bar` command, which shows you what the execution
- plan of running the `foo.bar` task looks like without actually evaluating it.
+* Introduced the `mill plan foo.bar` command, which shows you what the execution plan of running the `foo.bar` task looks like without actually evaluating it.
 
-* Mill now generates an `out/mill-profile.json` file containing task-timings, to
- make it easier to see where your mill evaluation time is going
+* Mill now generates an `out/mill-profile.json` file containing task-timings, to make it easier to see where your mill evaluation time is going
 
 * Introduced `ScalaModule#ivyDepsTree` command to show dependencies tree
 
@@ -1839,13 +1702,11 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 * Speed up Mill client initialization by another 50-100ms
 
-* Speed up incremental `assembly`s in the common case where upstream
- dependencies do not change.
+* Speed up incremental `assembly`s in the common case where upstream dependencies do not change.
 
 * Make `ScalaJSModule#run` work with main-method discovery
 
-* Make `ScalaWorkerModule` user-defineable, so you can use your own custom
- coursier resolvers when resolving Mill's own jars
+* Make `ScalaWorkerModule` user-defineable, so you can use your own custom coursier resolvers when resolving Mill's own jars
 
 * Simplify definitions of `SCM` strings
 
@@ -1855,26 +1716,20 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 === 0.1.3
 
-* Greatly reduced the overhead of evaluating Mill tasks, with a warm
- already-cached `mill dev.launcher` now taking ~450ms instead of ~1000ms
+* Greatly reduced the overhead of evaluating Mill tasks, with a warm already-cached `mill dev.launcher` now taking ~450ms instead of ~1000ms
 
-* Mill now saves compiled build files in `~/.mill/ammonite`, which is
- configurable via the `--home` CLI arg.
+* Mill now saves compiled build files in `~/.mill/ammonite`, which is configurable via the `--home` CLI arg.
 
 * Fixed linking of multi-module Scala.js projects
 
 === 0.1.2
 
-* Mill now keeps a long-lived work-daemon around in between commands; this
- should improve performance of things like `compile` which benefit from the
- warm JVM. You can use `-i`/`--interactive` for interactive consoles/REPLs and
- for running commands without the daemon
+* Mill now keeps a long-lived work-daemon around in between commands; this should improve performance of things like `compile` which benefit from the warm JVM.
+You can use `-i`/`--interactive` for interactive consoles/REPLs and for running commands without the daemon
 
-* Implemented the `ScalaModule#launcher` target for easily creating command-line
- launchers you can run outside of Mill
+* Implemented the `ScalaModule#launcher` target for easily creating command-line launchers you can run outside of Mill
 
-* `ScalaModule#docJar` no longer fails if you don't have `scala-compiler` on
- classpath
+* `ScalaModule#docJar` no longer fails if you don't have `scala-compiler` on classpath
 
 * Support for multiple `testFrameworks` in a test module.
 
@@ -1886,3 +1741,5 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 === 0.1.0
 
 * First public release
+
+// end::changelogOld[]
