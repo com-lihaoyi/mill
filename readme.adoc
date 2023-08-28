@@ -321,6 +321,15 @@ these packages mature over time.
 === master
 :version: master
 :milestone-name: master
+:milestone: 87
+:prev-version: 0.11.2
+
+* TODO
+
+[#0-11-2]
+=== 0.11.2 2023-08-28
+:version: 0.11.2
+:milestone-name: 0.11.2
 :milestone: 86
 :prev-version: 0.11.1
 
@@ -331,12 +340,25 @@ _Changes since {prev-version}:_
   analysis to see which targets depend on the code that was changed. See
   https://github.com/com-lihaoyi/mill/pull/2417[#2417] for more details
 
-
 * Fix redirection of stdout stream to stderr when using `show`
   https://github.com/com-lihaoyi/mill/pull/2689[#2689]
 
 * Fix line numbers in errors for scripts starting with leading comments or
   whitespace https://github.com/com-lihaoyi/mill/pull/2686[#2686]
+
+* Fix `init` command and support runnig Mill without existing `build.sc` file
+  https://github.com/com-lihaoyi/mill/pull/2662[#2662]
+
+* Fixes for BSP editor integration sometimes using the wrong output folder
+  for meta-build metadata, causing subsequent builds from the command line
+  to fail https://github.com/com-lihaoyi/mill/pull/2692[#2692]
+
+* Added a new `mill.idea.GenIdea/idea` command to generate IntelliJ IDE
+  metadata, improving-upon and replacing the older `mill.scalalib.GenIdea/idea`
+  command which is now deprecated https://github.com/com-lihaoyi/mill/pull/2638[#2638]
+
+* Update Coursier to 2.1.6 to mitigate CVE CVE-2022-46751
+  https://github.com/com-lihaoyi/mill/pull/2705[#2705]
 
 
 _For details refer to
