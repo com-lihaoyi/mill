@@ -37,7 +37,8 @@ class MillBuildBootstrap(
     prevRunnerState: RunnerState,
     logger: ColorLogger,
     disableCallgraphInvalidation: Boolean,
-    needBuildSc: Boolean
+    needBuildSc: Boolean,
+    requestedFrame: Option[Int]
 ) {
   import MillBuildBootstrap._
 
@@ -65,6 +66,8 @@ class MillBuildBootstrap(
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
+
+    val requestedDepth = requestedFrame.filter(_ >= 0).getOrElse(0)
 
     val nestedState =
       if (depth == 0) {
@@ -112,7 +115,10 @@ class MillBuildBootstrap(
 
     val res =
       if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
-      else {
+      else if (depth == 0 && requestedDepth > nestedState.frames.size) {
+        // User has requested a frame depth, we actually don't have
+        nestedState.add(errorOpt = Some(s"The project has no meta-build frame ${requestedDepth}"))
+      } else {
         val validatedRootModuleOrErr = nestedState.frames.headOption match {
           case None =>
             getChildRootModule(nestedState.bootstrapModuleOpt.get, depth, projectRoot)
@@ -149,14 +155,40 @@ class MillBuildBootstrap(
               depth
             )
 
-            if (depth != 0) processRunClasspath(
-              nestedState,
-              rootModule,
-              evaluator,
-              prevFrameOpt,
-              prevOuterFrameOpt
-            )
-            else processFinalTargets(nestedState, rootModule, evaluator)
+            if (depth != 0) {
+              val retState = processRunClasspath(
+                nestedState,
+                rootModule,
+                evaluator,
+                prevFrameOpt,
+                prevOuterFrameOpt
+              )
+
+              if (retState.errorOpt.isEmpty && depth == requestedDepth) {
+                val evalRet = processFinalTargets(nestedState, rootModule, evaluator)
+                if (evalRet.errorOpt.isEmpty) retState
+                else evalRet
+              } else
+                retState
+
+            } else {
+              if (depth == requestedDepth) {
+                processFinalTargets(nestedState, rootModule, evaluator)
+              } else {
+                // TODO what now, we already evaluated some level below, so we can just return with Success?
+                val evalState = RunnerState.Frame(
+                  evaluator.workerCache.toMap,
+                  Seq.empty,
+                  Seq.empty,
+                  Map.empty,
+                  Map.empty,
+                  None,
+                  Nil,
+                  evaluator
+                )
+                nestedState.add(frame = evalState, errorOpt = None)
+              }
+            }
         }
       }
     // println(s"-evaluateRec($depth) " + recRoot(projectRoot, depth))
@@ -414,11 +446,11 @@ object MillBuildBootstrap {
     )
   }
 
-  def recRoot(projectRoot: os.Path, depth: Int) = {
+  def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
     projectRoot / Seq.fill(depth)("mill-build")
   }
 
-  def recOut(projectRoot: os.Path, depth: Int) = {
+  def recOut(projectRoot: os.Path, depth: Int): os.Path = {
     projectRoot / "out" / Seq.fill(depth)("mill-build")
   }
 }

@@ -117,7 +117,11 @@ class MillCliConfig private (
            code changes, and instead fall back to the previous coarse-grained implementation
            relying on the script `import $file` graph"""
     )
-    val disableCallgraphInvalidation: Flag
+    val disableCallgraphInvalidation: Flag,
+    @arg(
+      doc = """Experimental: Select a meta-build to run the given targets."""
+    )
+    val frame: Option[Int]
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -139,7 +143,8 @@ class MillCliConfig private (
     "silent" -> silent,
     "leftoverArgs" -> leftoverArgs,
     "color" -> color,
-    "disableCallgraphInvalidation" -> disableCallgraphInvalidation
+    "disableCallgraphInvalidation" -> disableCallgraphInvalidation,
+    "frame" -> frame
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
@@ -148,8 +153,8 @@ object MillCliConfig {
    * mainargs requires us to keep this apply method in sync with the private ctr of the class.
    * mainargs is designed to work with case classes,
    * but case classes can't be evolved in a binary compatible fashion.
-   * mainargs parses the class ctr for itss internal model,
-   * but used the companion's apply to actually create an instance of the config class,
+   * mainargs parses the class ctr for its internal model,
+   * but uses the companion's apply to actually create an instance of the config class,
    * hence we need both in sync.
    */
   def apply(
@@ -173,7 +178,8 @@ object MillCliConfig {
       silent: Flag = Flag(),
       leftoverArgs: Leftover[String] = Leftover(),
       color: Option[Boolean] = None,
-      disableCallgraphInvalidation: Flag = Flag()
+      disableCallgraphInvalidation: Flag = Flag(),
+      frame: Option[Int] = None
   ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,
@@ -194,7 +200,8 @@ object MillCliConfig {
     silent = silent,
     leftoverArgs = leftoverArgs,
     color = color,
-    disableCallgraphInvalidation
+    disableCallgraphInvalidation,
+    frame = frame
   )
 
   @deprecated("Bin-compat shim", "Mill after 0.11.0")
