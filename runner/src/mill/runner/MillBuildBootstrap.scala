@@ -117,7 +117,23 @@ class MillBuildBootstrap(
       if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
       else if (depth == 0 && requestedDepth > nestedState.frames.size) {
         // User has requested a frame depth, we actually don't have
-        nestedState.add(errorOpt = Some(s"The project has no meta-build frame ${requestedDepth}"))
+        nestedState.add(errorOpt = Some(s"Invalid selected frame ${requestedDepth}. Valid range: 0 .. ${nestedState.frames.size}"))
+      } else if (depth < requestedDepth) {
+        // We already evaluated, hence we just need to make sure, we return a proper structure with all already existing watch data
+        val evalState = RunnerState.Frame(
+          prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
+          Seq.empty,
+          Seq.empty,
+          Map.empty,
+          Map.empty,
+          None,
+          Nil,
+          // FIXME we don't want to evaluator anything in this depth, so we just skip creating an evaluator,
+          // mainly because we didn't even constructed (compiled) it's classpath
+          // TODO: Instead, introduce a skipped frame type, so we can better comunicate that state
+          null
+        )
+        nestedState.add(frame = evalState, errorOpt = None)
       } else {
         val validatedRootModuleOrErr = nestedState.frames.headOption match {
           case None =>
@@ -165,6 +181,7 @@ class MillBuildBootstrap(
               )
 
               if (retState.errorOpt.isEmpty && depth == requestedDepth) {
+                // TODO: print some message and indicate actual evaluated frame
                 val evalRet = processFinalTargets(nestedState, rootModule, evaluator)
                 if (evalRet.errorOpt.isEmpty) retState
                 else evalRet
@@ -172,22 +189,7 @@ class MillBuildBootstrap(
                 retState
 
             } else {
-              if (depth == requestedDepth) {
-                processFinalTargets(nestedState, rootModule, evaluator)
-              } else {
-                // TODO what now, we already evaluated some level below, so we can just return with Success?
-                val evalState = RunnerState.Frame(
-                  evaluator.workerCache.toMap,
-                  Seq.empty,
-                  Seq.empty,
-                  Map.empty,
-                  Map.empty,
-                  None,
-                  Nil,
-                  evaluator
-                )
-                nestedState.add(frame = evalState, errorOpt = None)
-              }
+              processFinalTargets(nestedState, rootModule, evaluator)
             }
         }
       }
