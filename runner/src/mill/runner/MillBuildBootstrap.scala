@@ -38,7 +38,7 @@ class MillBuildBootstrap(
     logger: ColorLogger,
     disableCallgraphInvalidation: Boolean,
     needBuildSc: Boolean,
-    requestedFrame: Option[Int]
+    requestedMetaLevel: Option[Int]
 ) {
   import MillBuildBootstrap._
 
@@ -67,7 +67,7 @@ class MillBuildBootstrap(
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
-    val requestedDepth = requestedFrame.filter(_ >= 0).getOrElse(0)
+    val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
     val nestedState =
       if (depth == 0) {
@@ -117,7 +117,11 @@ class MillBuildBootstrap(
       if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
       else if (depth == 0 && requestedDepth > nestedState.frames.size) {
         // User has requested a frame depth, we actually don't have
-        nestedState.add(errorOpt = Some(s"Invalid selected frame ${requestedDepth}. Valid range: 0 .. ${nestedState.frames.size}"))
+        nestedState.add(errorOpt =
+          Some(
+            s"Invalid selected frame ${requestedDepth}. Valid range: 0 .. ${nestedState.frames.size}"
+          )
+        )
       } else if (depth < requestedDepth) {
         // We already evaluated, hence we just need to make sure, we return a proper structure with all already existing watch data
         val evalState = RunnerState.Frame(

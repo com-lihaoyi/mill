@@ -127,7 +127,7 @@ object MillMain {
           (false, RunnerState.empty)
 
         // Check non-negative --frame option
-        case Right(config) if config.frame.exists(_ < 0) =>
+        case Right(config) if config.metaLevel.exists(_ < 0) =>
           streams.err.println("--frame cannot be negative")
           (false, RunnerState.empty)
 
@@ -210,7 +210,7 @@ object MillMain {
                       logger = logger,
                       disableCallgraphInvalidation = config.disableCallgraphInvalidation.value,
                       needBuildSc = needBuildSc(config),
-                      requestedFrame = config.frame
+                      requestedMetaLevel = config.metaLevel
                     ).evaluate()
                   }
                 )

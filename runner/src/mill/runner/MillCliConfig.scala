@@ -119,9 +119,13 @@ class MillCliConfig private (
     )
     val disableCallgraphInvalidation: Flag,
     @arg(
-      doc = """Experimental: Select a meta-build to run the given targets."""
+      name = "meta-level",
+      doc =
+        """Experimental: Select a meta-build level to run the given targets.
+           Level 0 is the normal project, level 1 the first meta-build, and so on.
+           The last level is the built-in synthetic meta-build which Mill uses to bootstrap the project."""
     )
-    val frame: Option[Int]
+    val metaLevel: Option[Int]
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -144,7 +148,7 @@ class MillCliConfig private (
     "leftoverArgs" -> leftoverArgs,
     "color" -> color,
     "disableCallgraphInvalidation" -> disableCallgraphInvalidation,
-    "frame" -> frame
+    "metaLevel" -> metaLevel
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
@@ -201,7 +205,7 @@ object MillCliConfig {
     leftoverArgs = leftoverArgs,
     color = color,
     disableCallgraphInvalidation,
-    frame = frame
+    metaLevel = frame
   )
 
   @deprecated("Bin-compat shim", "Mill after 0.11.0")
