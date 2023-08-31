@@ -6,6 +6,9 @@ import mill.eval.Evaluator.AllBootstrapEvaluators
 
 trait MillBuild extends Module {
 
+  /**
+   * Count of the nested build-levels, the main project and all its nested meta-builds.
+   */
   def levelCount(evaluators: AllBootstrapEvaluators): Command[Int] = T.command {
     val count = evaluators.value.size
     T.log.outputStream.println(s"${count}")
