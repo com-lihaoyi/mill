@@ -11,12 +11,12 @@ include::example/misc/3-import-file-ivy.adoc[]
 
 == The Mill Meta-Build
 
-The Meta-Build manages the compilation of the `build.sc`.
-If you don't configure it explicitly, the Meta-Build is built-in into Mill.
+The meta-build manages the compilation of the `build.sc`.
+If you don't configure it explicitly, a built-in synthetic meta-build is used.
 
 To customize it, you need to explicitly enable it with `import $meta._`.
-Once enabled, it lives in the `mill-build/` directory.
-A Meta-Build is required to contain a `MillBuildRootModule`.
+Once enabled, the meta-build lives in the `mill-build/` directory.
+It needs to contain a top-level module of type `MillBuildRootModule`.
 
 Meta-Builds are recursive, which means, a Meta-Build can itself have Meta-Builds, and so on.
 
