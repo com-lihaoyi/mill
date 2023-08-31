@@ -18,9 +18,9 @@ To customize it, you need to explicitly enable it with `import $meta._`.
 Once enabled, the meta-build lives in the `mill-build/` directory.
 It needs to contain a top-level module of type `MillBuildRootModule`.
 
-Meta-Builds are recursive, which means, a Meta-Build can itself have Meta-Builds, and so on.
+Meta-builds are recursive, which means, it can itself have a nested meta-builds, and so on.
 
-To run a task on a meta-build by specifying the `--meta-level` option to select the meta-build level.
+To run a task on a meta-build, you specifying the `--meta-level` option to select the meta-build level.
 
 === Example: Format the `build.sc`
 
