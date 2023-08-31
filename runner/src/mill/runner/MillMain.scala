@@ -126,9 +126,9 @@ object MillMain {
           )
           (false, RunnerState.empty)
 
-        // Check non-negative --frame option
+        // Check non-negative --meta-level option
         case Right(config) if config.metaLevel.exists(_ < 0) =>
-          streams.err.println("--frame cannot be negative")
+          streams.err.println("--meta-level cannot be negative")
           (false, RunnerState.empty)
 
         case Right(config) =>

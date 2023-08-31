@@ -119,7 +119,7 @@ class MillBuildBootstrap(
         // User has requested a frame depth, we actually don't have
         nestedState.add(errorOpt =
           Some(
-            s"Invalid selected frame ${requestedDepth}. Valid range: 0 .. ${nestedState.frames.size}"
+            s"Invalid selected meta-level ${requestedDepth}. Valid range: 0 .. ${nestedState.frames.size}"
           )
         )
       } else if (depth < requestedDepth) {
