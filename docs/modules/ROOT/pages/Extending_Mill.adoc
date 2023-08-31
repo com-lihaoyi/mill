@@ -45,6 +45,8 @@ Hence, you can easily search for updates with the external `mill.scalalib.Depend
 .Check for Mill Plugin updates
 ----
 $ mill --meta-level 1 mill.scalalib.Dependency/showUpdates
+Found 1 dependency update for
+  de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-> 0.4.0
 ----
 
 === Example: Customizing the Meta-Build
