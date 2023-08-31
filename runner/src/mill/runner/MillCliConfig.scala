@@ -183,7 +183,7 @@ object MillCliConfig {
       leftoverArgs: Leftover[String] = Leftover(),
       color: Option[Boolean] = None,
       disableCallgraphInvalidation: Flag = Flag(),
-      frame: Option[Int] = None
+      metaLevel: Option[Int] = None
   ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,
@@ -205,7 +205,7 @@ object MillCliConfig {
     leftoverArgs = leftoverArgs,
     color = color,
     disableCallgraphInvalidation,
-    metaLevel = frame
+    metaLevel = metaLevel
   )
 
   @deprecated("Bin-compat shim", "Mill after 0.11.0")
