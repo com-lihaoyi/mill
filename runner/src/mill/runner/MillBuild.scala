@@ -6,7 +6,7 @@ import mill.eval.Evaluator.AllBootstrapEvaluators
 
 trait MillBuild extends Module {
 
-  def frameCount(evaluators: AllBootstrapEvaluators): Command[Int] = T.command {
+  def levelCount(evaluators: AllBootstrapEvaluators): Command[Int] = T.command {
     val count = evaluators.value.size
     T.log.outputStream.println(s"${count}")
     count
