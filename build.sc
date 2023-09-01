@@ -4,9 +4,10 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
-
 import $ivy.`com.github.lolgab::mill-mima::0.0.23`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
+import mill.define.NamedTask
+import mill.main.Tasks
 
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
@@ -369,7 +370,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
     ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
     ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
-    ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
+    ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
@@ -486,33 +487,34 @@ object main extends MillStableScalaModule with BuildInfo {
   }
 
   object codesig extends MillPublishScalaModule {
-    override def ivyDeps = Agg(ivy"org.ow2.asm:asm-tree:9.5", Deps.osLib, ivy"com.lihaoyi::pprint:0.8.1")
+    override def ivyDeps =
+      Agg(ivy"org.ow2.asm:asm-tree:9.5", Deps.osLib, ivy"com.lihaoyi::pprint:0.8.1")
     def moduleDeps = Seq(util)
 
-    override lazy val test: CodeSigTests = new CodeSigTests{}
+    override lazy val test: CodeSigTests = new CodeSigTests {}
     trait CodeSigTests extends MillScalaTests {
       val caseKeys = interp.watchValue(
         os.walk(millSourcePath / "cases", maxDepth = 3)
           .map(_.subRelativeTo(millSourcePath / "cases").segments)
-          .collect{case Seq(a, b, c) => s"$a-$b-$c"}
+          .collect { case Seq(a, b, c) => s"$a-$b-$c" }
       )
 
-      def testLogFolder = T{ T.dest }
+      def testLogFolder = T { T.dest }
 
       def caseEnvs[V](f1: CaseModule => Task[V])(s: String, f2: V => String) = {
         T.traverse(caseKeys) { i => f1(cases(i)).map(v => s"MILL_TEST_${s}_$i" -> f2(v)) }
       }
-      def forkEnv = T{
+      def forkEnv = T {
         Map("MILL_TEST_LOGS" -> testLogFolder().toString) ++
-        caseEnvs(_.compile)("CLASSES", _.classes.path.toString)() ++
-        caseEnvs(_.compileClasspath)("CLASSPATH", _.map(_.path).mkString(","))() ++
-        caseEnvs(_.sources)("SOURCES", _.head.path.toString)()
+          caseEnvs(_.compile)("CLASSES", _.classes.path.toString)() ++
+          caseEnvs(_.compileClasspath)("CLASSPATH", _.map(_.path).mkString(","))() ++
+          caseEnvs(_.sources)("SOURCES", _.head.path.toString)()
       }
 
       object cases extends Cross[CaseModule](caseKeys)
-      trait CaseModule extends ScalaModule with Cross.Module[String]{
+      trait CaseModule extends ScalaModule with Cross.Module[String] {
         def caseName = crossValue
-        object external extends ScalaModule{
+        object external extends ScalaModule {
           def scalaVersion = "2.13.10"
         }
 
@@ -521,7 +523,7 @@ object main extends MillStableScalaModule with BuildInfo {
         val Array(prefix, suffix, rest) = caseName.split("-", 3)
         def millSourcePath = super.millSourcePath / prefix / suffix / rest
         def scalaVersion = "2.13.10"
-        def ivyDeps = T{
+        def ivyDeps = T {
           if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
           else Agg(
             Deps.fastparse,
@@ -531,7 +533,7 @@ object main extends MillStableScalaModule with BuildInfo {
             Deps.mainargs,
             Deps.requests,
             Deps.osLib,
-            Deps.upickle,
+            Deps.upickle
           )
         }
       }
@@ -1454,7 +1456,7 @@ object docs extends Module {
     val pagesWd = T.dest / "modules" / "ROOT" / "pages"
     val partialsWd = T.dest / "modules" / "ROOT" / "partials"
 
-    os.copy(projectReadme().path, partialsWd  / "project-readme.adoc", createFolders = true)
+    os.copy(projectReadme().path, partialsWd / "project-readme.adoc", createFolders = true)
 
     val renderedExamples: Seq[(os.SubPath, PathRef)] =
       T.traverse(example.exampleModules)(m =>
@@ -1763,23 +1765,24 @@ def uploadToGithub(authKey: String) = T.command {
   }
 }
 
-def validate(ev: Evaluator): Command[Unit] = T.command {
-  mill.main.RunScript.evaluateTasksNamed(
-    ev.withFailFast(false),
-    Seq(
-      "__.compile",
-      "+",
-      "__.mimaReportBinaryIssues",
-      "+",
-      "mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll",
-      "__.sources",
-      "+",
-      "docs.localPages"
-    ),
-    selectMode = SelectMode.Separated
-  )
+private def resolveTasks[T](taskNames: String*): Seq[NamedTask[T]] = {
+  mill.resolve.Resolve.Tasks.resolve(
+    build,
+    taskNames,
+    SelectMode.Separated
+  ).map(x => x.asInstanceOf[Seq[mill.define.NamedTask[T]]]).getOrElse(???)
+}
 
-  ()
+def validate(): Command[Unit] = {
+  val tasks = resolveTasks("__.compile", "__.minaReportBinaryIssues")
+  val sources = resolveTasks("__.sources")
+
+  T.command {
+    T.sequence(tasks)()
+    mill.scalalib.scalafmt.ScalafmtModule.checkFormatAll(Tasks(sources))()
+    docs.localPages()
+    ()
+  }
 }
 
 /** Dummy module to let Scala-Steward find and bump dependency versions we use at runtime */
