@@ -1,6 +1,5 @@
 package mill.runner
-import mill.util.{ColorLogger, PrefixLogger, Util, Watchable}
-import mill.T
+import mill.util.{ColorLogger, PrefixLogger, Watchable}
 import mill.main.BuildInfo
 import mill.api.{PathRef, Val, internal}
 import mill.eval.Evaluator
@@ -123,7 +122,8 @@ class MillBuildBootstrap(
           )
         )
       } else if (depth < requestedDepth) {
-        // We already evaluated, hence we just need to make sure, we return a proper structure with all already existing watch data
+        // We already evaluated on a deeper level, hence we just need to make sure,
+        // we return a proper structure with all already existing watch data
         val evalState = RunnerState.Frame(
           prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
           Seq.empty,
@@ -132,8 +132,7 @@ class MillBuildBootstrap(
           Map.empty,
           None,
           Nil,
-          // We set this to None here.
-          // We don't want to evaluate anything in this depth, so we just skip creating an evaluator,
+          // We don't want to evaluate anything in this depth (and above), so we just skip creating an evaluator,
           // mainly because we didn't even constructed (compiled) it's classpath
           None
         )
