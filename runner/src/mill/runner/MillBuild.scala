@@ -8,11 +8,10 @@ trait MillBuild extends Module {
 
   /**
    * Count of the nested build-levels, the main project and all its nested meta-builds.
+   * If you run this on a meta-build, the non-meta-builds are not included.
    */
   def levelCount(evaluators: AllBootstrapEvaluators): Command[Int] = T.command {
-    val count = evaluators.value.size
-    T.log.outputStream.println(s"${count}")
-    count
+    evaluators.value.size
   }
 
 }
