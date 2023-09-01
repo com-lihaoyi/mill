@@ -62,7 +62,7 @@ object RunnerState {
       methodCodeHashSignatures: Map[String, Int],
       classLoaderOpt: Option[RunnerState.URLClassLoader],
       runClasspath: Seq[PathRef],
-      evaluator: Evaluator
+      evaluator: Option[Evaluator]
   ) {
 
     def loggedData: Frame.Logged = {

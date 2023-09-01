@@ -132,10 +132,10 @@ class MillBuildBootstrap(
           Map.empty,
           None,
           Nil,
-          // FIXME we don't want to evaluator anything in this depth, so we just skip creating an evaluator,
+          // We set this to None here.
+          // We don't want to evaluate anything in this depth, so we just skip creating an evaluator,
           // mainly because we didn't even constructed (compiled) it's classpath
-          // TODO: Instead, introduce a skipped frame type, so we can better comunicate that state
-          null
+          None
         )
         nestedState.add(frame = evalState, errorOpt = None)
       } else {
@@ -232,7 +232,7 @@ class MillBuildBootstrap(
           Map.empty,
           None,
           Nil,
-          evaluator
+          Option(evaluator)
         )
 
         nestedState.add(frame = evalState, errorOpt = Some(error))
@@ -282,7 +282,7 @@ class MillBuildBootstrap(
           methodCodeHashSignatures,
           Some(classLoader),
           runClasspath,
-          evaluator
+          Option(evaluator)
         )
 
         nestedState.add(frame = evalState)
@@ -300,10 +300,10 @@ class MillBuildBootstrap(
       evaluator: Evaluator
   ): RunnerState = {
 
-    assert(nestedState.frames.forall(_.evaluator != null))
+    assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) = Evaluator.allBootstrapEvaluators.withValue(
-      Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.map(_.evaluator))
+      Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator))
     ) {
       evaluateWithWatches(rootModule, evaluator, targetsAndParams)
     }
@@ -316,7 +316,7 @@ class MillBuildBootstrap(
       Map.empty,
       None,
       Nil,
-      evaluator
+      Option(evaluator)
     )
 
     nestedState.add(frame = evalState, errorOpt = evaled.left.toOption)
