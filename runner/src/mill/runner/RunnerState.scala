@@ -65,7 +65,7 @@ object RunnerState {
       evaluator: Evaluator
   ) {
 
-    def loggedData = {
+    def loggedData: Frame.Logged = {
       Frame.Logged(
         workerCache.map { case (k, (i, v)) =>
           (k.render, Frame.WorkerInfo(System.identityHashCode(v), i))

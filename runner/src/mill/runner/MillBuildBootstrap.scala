@@ -300,6 +300,8 @@ class MillBuildBootstrap(
       evaluator: Evaluator
   ): RunnerState = {
 
+    assert(nestedState.frames.forall(_.evaluator != null))
+
     val (evaled, evalWatched, moduleWatches) = Evaluator.allBootstrapEvaluators.withValue(
       Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.map(_.evaluator))
     ) {
