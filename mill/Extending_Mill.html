@@ -263,14 +263,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.2-6-a2a8c8</span>
+    <span class="version">0.11.2-7-c0823d</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.2-6-a2a8c8</a>
+          <a href="index.html">0.11.2-7-c0823d</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -303,9 +303,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.2-6-a2a8c8</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.2-7-c0823d</button>
   <div class="version-menu">
-    <a class="version is-current" href="Extending_Mill.html">0.11.2-6-a2a8c8</a>
+    <a class="version is-current" href="Extending_Mill.html">0.11.2-7-c0823d</a>
     <a class="version" href="0.11.0-M7/Extending_Mill.html">0.11.0-M7</a>
     <a class="version" href="0.10.12/Extending_Mill.html">0.10.12</a>
     <a class="version" href="0.10.0/Extending_Mill.html">0.10.0</a>
@@ -333,7 +333,7 @@ easiest/least-flexible to the hardest/most-flexible.</p>
 <h2 id="_import_file_and_import_ivy"><a class="anchor" href="#_import_file_and_import_ivy"></a>import $file and import $ivy</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-6-a2a8c8-example-misc-3-import-file-ivy.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/3-import-file-ivy">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-7-c0823d-example-misc-3-import-file-ivy.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/3-import-file-ivy">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import $ivy.`com.lihaoyi::scalatags:0.8.2`, scalatags.Text.all._
@@ -400,8 +400,67 @@ generated snippet.txt resource: &lt;div&gt;&lt;h1&gt;hello&lt;/h1&gt;&lt;p&gt;wo
 <div class="sect1">
 <h2 id="_the_mill_meta_build"><a class="anchor" href="#_the_mill_meta_build"></a>The Mill Meta-Build</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>The meta-build manages the compilation of the <code>build.sc</code>.
+If you don’t configure it explicitly, a built-in synthetic meta-build is used.</p>
+</div>
+<div class="paragraph">
+<p>To customize it, you need to explicitly enable it with <code>import $meta._</code>.
+Once enabled, the meta-build lives in the <code>mill-build/</code> directory.
+It needs to contain a top-level module of type <code>MillBuildRootModule</code>.</p>
+</div>
+<div class="paragraph">
+<p>Meta-builds are recursive, which means, it can itself have a nested meta-builds, and so on.</p>
+</div>
+<div class="paragraph">
+<p>To run a task on a meta-build, you specifying the <code>--meta-level</code> option to select the meta-build level.</p>
+</div>
+<div class="sect2">
+<h3 id="_example_format_the_build_sc"><a class="anchor" href="#_example_format_the_build_sc"></a>Example: Format the <code>build.sc</code></h3>
+<div class="paragraph">
+<p>As an example of running a task on the meta-build, you can format the <code>build.sc</code> with Scalafmt.
+Everything is already provided by Mill.
+You only need a <code>.scalafmt.conf</code> config file which at least needs configure the Scalafmt version.</p>
+</div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-6-a2a8c8-example-misc-4-mill-build-folder.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/4-mill-build-folder">browse</a>)</div>
+<div class="title">Run Scalafmt on the <code>build.sc</code> (and potentially included files)</div>
+<div class="content">
+<pre>$ mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/reformatAll sources</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>--meta-level 1</code> selects the first meta-build. Without any customization, this is the only built-in meta-build.</p>
+</li>
+<li>
+<p><code>mill.scalalib.scalafmt.ScalafmtModule/reformatAll</code> is a generic task to format scala source files with Scalafmt. It requires the targets that refer to the source files as argument</p>
+</li>
+<li>
+<p><code>sources</code> this selects the <code>sources</code> targets of the meta-build, which at least contains the <code>build.sc</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_find_plugin_updates"><a class="anchor" href="#_example_find_plugin_updates"></a>Example: Find plugin updates</h3>
+<div class="paragraph">
+<p>Mill plugins are defined as <code>ivyDeps</code> in the meta-build.
+Hence, you can easily search for updates with the external <code>mill.scalalib.Dependency</code> module.</p>
+</div>
+<div class="listingblock">
+<div class="title">Check for Mill Plugin updates</div>
+<div class="content">
+<pre>$ mill --meta-level 1 mill.scalalib.Dependency/showUpdates
+Found 1 dependency update for
+  de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-&gt; 0.4.0</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_customizing_the_meta_build"><a class="anchor" href="#_example_customizing_the_meta_build"></a>Example: Customizing the Meta-Build</h3>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-7-c0823d-example-misc-4-mill-build-folder.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/4-mill-build-folder">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $meta._
 import mill._, scalalib._
@@ -505,13 +564,30 @@ Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 scalatagsVersion: 0.8.2</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>You can also run tasks on the meta-build by using the <code>--meta-level</code>
+cli option.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill --meta-level 1 show sources
+[
+.../build.sc&quot;,
+.../mill-build/src&quot;
+]
+
+&gt; ./mill --meta-level 2 show sources
+.../mill-build/build.sc&quot;</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_using_scalamodule_run_as_a_task"><a class="anchor" href="#_using_scalamodule_run_as_a_task"></a>Using ScalaModule.run as a task</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-6-a2a8c8-example-misc-5-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/5-module-run-task">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-7-c0823d-example-misc-5-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/5-module-run-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -534,8 +610,8 @@ object bar extends ScalaModule{
 </div>
 </div>
 <div class="paragraph">
-<p>This example demonstrates using Mill <code>ScalaModule`s as build tasks: rather
-than defining the task logic in the `build.sc</code>, we instead put the build
+<p>This example demonstrates using Mill <code>ScalaModule</code>s as build tasks: rather
+than defining the task logic in the <code>build.sc</code>, we instead put the build
 logic within the <code>bar</code> module as <code>bar/src/Bar.scala</code>. In this example, we use
 <code>Bar.scala</code> as a source-code pre-processor on the <code>foo</code> module source code:
 we override <code>foo.sources</code>, passing the <code>super.sources()</code> to <code>bar.run</code> along
@@ -551,9 +627,9 @@ Foo.value: HELLO</code></pre>
 </div>
 <div class="paragraph">
 <p>This example does a trivial string-replace of &quot;hello&quot; with &quot;HELLO&quot;, but is
-enough to demonstrate how you can use Mill <code>ScalaModule`s to implement your
+enough to demonstrate how you can use Mill <code>ScalaModule</code>s to implement your
 own arbitrarily complex transformations. This is useful for build logic that
-may not fit nicely inside a `build.sc</code> file, whether due to the sheer lines
+may not fit nicely inside a <code>build.sc</code> file, whether due to the sheer lines
 of code or due to dependencies that may conflict with the Mill classpath
 present in <code>build.sc</code></p>
 </div>
