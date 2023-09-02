@@ -117,7 +117,15 @@ class MillCliConfig private (
            code changes, and instead fall back to the previous coarse-grained implementation
            relying on the script `import $file` graph"""
     )
-    val disableCallgraphInvalidation: Flag
+    val disableCallgraphInvalidation: Flag,
+    @arg(
+      name = "meta-level",
+      doc =
+        """Experimental: Select a meta-build level to run the given targets.
+           Level 0 is the normal project, level 1 the first meta-build, and so on.
+           The last level is the built-in synthetic meta-build which Mill uses to bootstrap the project."""
+    )
+    val metaLevel: Option[Int]
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -139,7 +147,8 @@ class MillCliConfig private (
     "silent" -> silent,
     "leftoverArgs" -> leftoverArgs,
     "color" -> color,
-    "disableCallgraphInvalidation" -> disableCallgraphInvalidation
+    "disableCallgraphInvalidation" -> disableCallgraphInvalidation,
+    "metaLevel" -> metaLevel
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
@@ -148,8 +157,8 @@ object MillCliConfig {
    * mainargs requires us to keep this apply method in sync with the private ctr of the class.
    * mainargs is designed to work with case classes,
    * but case classes can't be evolved in a binary compatible fashion.
-   * mainargs parses the class ctr for itss internal model,
-   * but used the companion's apply to actually create an instance of the config class,
+   * mainargs parses the class ctr for its internal model,
+   * but uses the companion's apply to actually create an instance of the config class,
    * hence we need both in sync.
    */
   def apply(
@@ -173,7 +182,8 @@ object MillCliConfig {
       silent: Flag = Flag(),
       leftoverArgs: Leftover[String] = Leftover(),
       color: Option[Boolean] = None,
-      disableCallgraphInvalidation: Flag = Flag()
+      disableCallgraphInvalidation: Flag = Flag(),
+      metaLevel: Option[Int] = None
   ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,
@@ -194,7 +204,8 @@ object MillCliConfig {
     silent = silent,
     leftoverArgs = leftoverArgs,
     color = color,
-    disableCallgraphInvalidation
+    disableCallgraphInvalidation,
+    metaLevel = metaLevel
   )
 
   @deprecated("Bin-compat shim", "Mill after 0.11.0")

@@ -17,7 +17,7 @@ object bar extends ScalaModule{
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
 }
 
-// This example demonstrates using Mill `ScalaModule`s as build tasks: rather
+// This example demonstrates using Mill ``ScalaModule``s as build tasks: rather
 // than defining the task logic in the `build.sc`, we instead put the build
 // logic within the `bar` module as `bar/src/Bar.scala`. In this example, we use
 // `Bar.scala` as a source-code pre-processor on the `foo` module source code:
@@ -34,7 +34,7 @@ Foo.value: HELLO
 */
 
 // This example does a trivial string-replace of "hello" with "HELLO", but is
-// enough to demonstrate how you can use Mill `ScalaModule`s to implement your
+// enough to demonstrate how you can use Mill ``ScalaModule``s to implement your
 // own arbitrarily complex transformations. This is useful for build logic that
 // may not fit nicely inside a `build.sc` file, whether due to the sheer lines
 // of code or due to dependencies that may conflict with the Mill classpath

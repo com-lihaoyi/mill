@@ -1,6 +1,5 @@
 package mill.runner
-import mill.util.{ColorLogger, PrefixLogger, Util, Watchable}
-import mill.T
+import mill.util.{ColorLogger, PrefixLogger, Watchable}
 import mill.main.BuildInfo
 import mill.api.{PathRef, Val, internal}
 import mill.eval.Evaluator
@@ -37,7 +36,8 @@ class MillBuildBootstrap(
     prevRunnerState: RunnerState,
     logger: ColorLogger,
     disableCallgraphInvalidation: Boolean,
-    needBuildSc: Boolean
+    needBuildSc: Boolean,
+    requestedMetaLevel: Option[Int]
 ) {
   import MillBuildBootstrap._
 
@@ -65,6 +65,8 @@ class MillBuildBootstrap(
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
+
+    val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
     val nestedState =
       if (depth == 0) {
@@ -112,7 +114,30 @@ class MillBuildBootstrap(
 
     val res =
       if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
-      else {
+      else if (depth == 0 && requestedDepth > nestedState.frames.size) {
+        // User has requested a frame depth, we actually don't have
+        nestedState.add(errorOpt =
+          Some(
+            s"Invalid selected meta-level ${requestedDepth}. Valid range: 0 .. ${nestedState.frames.size}"
+          )
+        )
+      } else if (depth < requestedDepth) {
+        // We already evaluated on a deeper level, hence we just need to make sure,
+        // we return a proper structure with all already existing watch data
+        val evalState = RunnerState.Frame(
+          prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
+          Seq.empty,
+          Seq.empty,
+          Map.empty,
+          Map.empty,
+          None,
+          Nil,
+          // We don't want to evaluate anything in this depth (and above), so we just skip creating an evaluator,
+          // mainly because we didn't even constructed (compiled) it's classpath
+          None
+        )
+        nestedState.add(frame = evalState, errorOpt = None)
+      } else {
         val validatedRootModuleOrErr = nestedState.frames.headOption match {
           case None =>
             getChildRootModule(nestedState.bootstrapModuleOpt.get, depth, projectRoot)
@@ -149,14 +174,26 @@ class MillBuildBootstrap(
               depth
             )
 
-            if (depth != 0) processRunClasspath(
-              nestedState,
-              rootModule,
-              evaluator,
-              prevFrameOpt,
-              prevOuterFrameOpt
-            )
-            else processFinalTargets(nestedState, rootModule, evaluator)
+            if (depth != 0) {
+              val retState = processRunClasspath(
+                nestedState,
+                rootModule,
+                evaluator,
+                prevFrameOpt,
+                prevOuterFrameOpt
+              )
+
+              if (retState.errorOpt.isEmpty && depth == requestedDepth) {
+                // TODO: print some message and indicate actual evaluated frame
+                val evalRet = processFinalTargets(nestedState, rootModule, evaluator)
+                if (evalRet.errorOpt.isEmpty) retState
+                else evalRet
+              } else
+                retState
+
+            } else {
+              processFinalTargets(nestedState, rootModule, evaluator)
+            }
         }
       }
     // println(s"-evaluateRec($depth) " + recRoot(projectRoot, depth))
@@ -194,7 +231,7 @@ class MillBuildBootstrap(
           Map.empty,
           None,
           Nil,
-          evaluator
+          Option(evaluator)
         )
 
         nestedState.add(frame = evalState, errorOpt = Some(error))
@@ -244,7 +281,7 @@ class MillBuildBootstrap(
           methodCodeHashSignatures,
           Some(classLoader),
           runClasspath,
-          evaluator
+          Option(evaluator)
         )
 
         nestedState.add(frame = evalState)
@@ -262,8 +299,10 @@ class MillBuildBootstrap(
       evaluator: Evaluator
   ): RunnerState = {
 
+    assert(nestedState.frames.forall(_.evaluator.isDefined))
+
     val (evaled, evalWatched, moduleWatches) = Evaluator.allBootstrapEvaluators.withValue(
-      Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.map(_.evaluator))
+      Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator))
     ) {
       evaluateWithWatches(rootModule, evaluator, targetsAndParams)
     }
@@ -276,7 +315,7 @@ class MillBuildBootstrap(
       Map.empty,
       None,
       Nil,
-      evaluator
+      Option(evaluator)
     )
 
     nestedState.add(frame = evalState, errorOpt = evaled.left.toOption)
@@ -414,11 +453,11 @@ object MillBuildBootstrap {
     )
   }
 
-  def recRoot(projectRoot: os.Path, depth: Int) = {
+  def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
     projectRoot / Seq.fill(depth)("mill-build")
   }
 
-  def recOut(projectRoot: os.Path, depth: Int) = {
+  def recOut(projectRoot: os.Path, depth: Int): os.Path = {
     projectRoot / "out" / Seq.fill(depth)("mill-build")
   }
 }

@@ -126,6 +126,11 @@ object MillMain {
           )
           (false, RunnerState.empty)
 
+        // Check non-negative --meta-level option
+        case Right(config) if config.metaLevel.exists(_ < 0) =>
+          streams.err.println("--meta-level cannot be negative")
+          (false, RunnerState.empty)
+
         case Right(config) =>
           val logger = getLogger(
             streams,
@@ -204,7 +209,8 @@ object MillMain {
                       prevRunnerState = prevState.getOrElse(stateCache),
                       logger = logger,
                       disableCallgraphInvalidation = config.disableCallgraphInvalidation.value,
-                      needBuildSc = needBuildSc(config)
+                      needBuildSc = needBuildSc(config),
+                      requestedMetaLevel = config.metaLevel
                     ).evaluate()
                   }
                 )
@@ -224,8 +230,9 @@ object MillMain {
                 )
                 BspContext.bspServerHandle.stop()
               }
-              loopRes
 
+              // return with evaluation result
+              loopRes
             }
           }
           if (config.ringBell.value) {

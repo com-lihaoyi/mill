@@ -63,3 +63,19 @@ scalatagsVersion: 0.8.2
 
 */
 
+// You can also run tasks on the meta-build by using the `--meta-level`
+// cli option.
+
+/** Usage
+
+> ./mill --meta-level 1 show sources
+[
+.../build.sc",
+.../mill-build/src"
+]
+
+> ./mill --meta-level 2 show sources
+.../mill-build/build.sc"
+
+
+*/

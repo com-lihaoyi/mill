@@ -62,10 +62,10 @@ object RunnerState {
       methodCodeHashSignatures: Map[String, Int],
       classLoaderOpt: Option[RunnerState.URLClassLoader],
       runClasspath: Seq[PathRef],
-      evaluator: Evaluator
+      evaluator: Option[Evaluator]
   ) {
 
-    def loggedData = {
+    def loggedData: Frame.Logged = {
       Frame.Logged(
         workerCache.map { case (k, (i, v)) =>
           (k.render, Frame.WorkerInfo(System.identityHashCode(v), i))
