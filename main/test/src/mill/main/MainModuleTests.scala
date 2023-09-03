@@ -1,16 +1,32 @@
 package mill.main
 
-import mill.api.{PathRef, Result}
+import mill.api.{PathRef, Result, Val}
 import mill.{Agg, T}
-import mill.define.{Cross, Module}
+import mill.define.{Cross, Discover, Module, Task}
 import mill.util.{TestEvaluator, TestUtil}
 import utest.{TestSuite, Tests, assert, test}
+
+import java.io.{ByteArrayOutputStream, PrintStream}
 
 object MainModuleTests extends TestSuite {
 
   object mainModule extends TestUtil.BaseModule with MainModule {
-    def hello = T { Seq("hello", "world") }
-    def hello2 = T { Map("1" -> "hello", "2" -> "world") }
+    def hello = T {
+      System.out.println("Hello System Stdout")
+      System.err.println("Hello System Stderr")
+      Console.out.println("Hello Console Stdout")
+      Console.err.println("Hello Console Stderr")
+      Seq("hello", "world")
+    }
+    def hello2 = T {
+      System.out.println("Hello2 System Stdout")
+      System.err.println("Hello2 System Stderr")
+      Console.out.println("Hello2 Console Stdout")
+      Console.err.println("Hello2 Console Stderr")
+      Map("1" -> "hello", "2" -> "world")
+    }
+    def helloCommand(x: Int, y: Task[String]) = T.command { (x, y(), hello()) }
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object cleanModule extends TestUtil.BaseModule with MainModule {
@@ -49,7 +65,7 @@ object MainModuleTests extends TestSuite {
       val eval = new TestEvaluator(mainModule)
       test("single") {
         val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
-        val Result.Success(value: String) = res.rawValues.head
+        val Result.Success(Val(value: String)) = res.rawValues.head
         assert(
           res.failing.keyCount == 0,
           value.startsWith("hello("),
@@ -59,7 +75,7 @@ object MainModuleTests extends TestSuite {
       test("multi") {
         val res =
           eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello", "hello2")))
-        val Result.Success(value: String) = res.rawValues.head
+        val Result.Success(Val(value: String)) = res.rawValues.head
         assert(
           res.failing.keyCount == 0,
           value.startsWith("hello("),
@@ -67,19 +83,47 @@ object MainModuleTests extends TestSuite {
           value.contains("\n\nhello2(")
         )
       }
+      test("command") {
+        val Right((Seq(res: String), _)) = eval.evalTokens("inspect", "helloCommand")
+
+        assert(
+          res.startsWith("helloCommand("),
+          res.contains("MainModuleTests.scala:"),
+          res.contains("hello")
+        )
+      }
     }
 
     test("show") {
-      val evaluator = new TestEvaluator(mainModule)
+      val outStream = new ByteArrayOutputStream()
+      val errStream = new ByteArrayOutputStream()
+      val evaluator = new TestEvaluator(
+        mainModule,
+        outStream = new PrintStream(outStream, true),
+        errStream = new PrintStream(errStream, true)
+      )
       test("single") {
         val results =
           evaluator.evaluator.evaluate(Agg(mainModule.show(evaluator.evaluator, "hello")))
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head
 
-        assert(value == ujson.Arr.from(Seq("hello", "world")))
+        val shown = ujson.read(outStream.toByteArray)
+        val expected = ujson.Arr.from(Seq("hello", "world"))
+        assert(value == expected)
+        assert(shown == expected)
+
+        // Make sure both stdout and stderr are redirected by `show`
+        // to stderr so that only the JSON file value goes to stdout
+        val strippedErr =
+          fansi.Str(errStream.toString, errorMode = fansi.ErrorMode.Sanitize).plainText
+
+        assert(strippedErr.contains("Hello System Stdout"))
+        assert(strippedErr.contains("Hello System Stderr"))
+        assert(strippedErr.contains("Hello Console Stdout"))
+        assert(strippedErr.contains("Hello Console Stderr"))
       }
       test("multi") {
         val results =
@@ -92,12 +136,39 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head
 
-        assert(value == ujson.Arr.from(Seq(
-          ujson.Arr.from(Seq("hello", "world")),
-          ujson.Obj.from(Map("1" -> "hello", "2" -> "world"))
-        )))
+        val shown = ujson.read(outStream.toByteArray)
+
+        val expected = ujson.Obj(
+          "hello" -> ujson.Arr("hello", "world"),
+          "hello2" -> ujson.Obj("1" -> "hello", "2" -> "world")
+        )
+        assert(value == expected)
+        assert(shown == expected)
+
+        // Make sure both stdout and stderr are redirected by `show`
+        // to stderr so that only the JSON file value goes to stdout
+        val strippedErr =
+          fansi.Str(errStream.toString, errorMode = fansi.ErrorMode.Sanitize).plainText
+
+        assert(strippedErr.contains("Hello2 System Stdout"))
+        assert(strippedErr.contains("Hello2 System Stderr"))
+        assert(strippedErr.contains("Hello2 Console Stdout"))
+        assert(strippedErr.contains("Hello2 Console Stderr"))
+      }
+
+      test("command") {
+        val Left(Result.Failure(failureMsg, _)) = evaluator.evalTokens("show", "helloCommand")
+        assert(
+          failureMsg.contains("Expected Signature: helloCommand"),
+          failureMsg.contains("-x <int>"),
+          failureMsg.contains("-y <str>")
+        )
+        val Right((Seq(res), _)) =
+          evaluator.evalTokens("show", "helloCommand", "-x", "1337", "-y", "lol")
+
+        assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
       }
     }
 
@@ -109,7 +180,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world"))
@@ -126,7 +197,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(value) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world")),

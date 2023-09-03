@@ -2,10 +2,7 @@ package mill.scalalib
 
 import mill.{Agg, T}
 
-import scala.util.Success
-import mill.testrunner.TestRunner.TestArgs
 import mill.util.{TestEvaluator, TestUtil}
-import org.scalacheck.Prop.forAll
 import utest._
 import utest.framework.TestPath
 
@@ -15,7 +12,7 @@ object TestClassLoaderTests extends TestSuite {
 
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-    object test extends super.Tests with TestModule.Utest {
+    object test extends ScalaTests with TestModule.Utest {
       override def ivyDeps = T {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"

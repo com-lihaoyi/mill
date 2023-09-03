@@ -4,7 +4,7 @@ import mill.java9rtexport.Export
 import mill.T
 import mill.Agg
 import mill.api.{Loose, PathRef}
-import mill.modules.Jvm
+import mill.util.Jvm
 import mill.scalalib.{DepSyntax, ScalaModule}
 import os.{Path, Shellable}
 

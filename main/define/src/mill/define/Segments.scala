@@ -9,6 +9,7 @@ package mill.define
  */
 case class Segments private (value: Seq[Segment]) {
 
+  def init = Segments(value.init)
   def ++(other: Segment): Segments = Segments(value ++ Seq(other))
   def ++(other: Seq[Segment]): Segments = Segments(value ++ other)
   def ++(other: Segments): Segments = Segments(value ++ other.value)
@@ -46,6 +47,6 @@ case class Segments private (value: Seq[Segment]) {
 
 object Segments {
   def apply(): Segments = new Segments(Nil)
-  def apply(items: List[Segment]): Segments = new Segments(items)
+  def apply(items: Seq[Segment]): Segments = new Segments(items)
   def labels(values: String*): Segments = Segments(values.map(Segment.Label))
 }

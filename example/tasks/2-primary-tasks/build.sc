@@ -34,10 +34,10 @@ def lineCount: T[Int] = T {
 
 > ./mill show lineCount
 Computing line count
-18
+16
 
 > ./mill show lineCount # line count already cached, doesn't need to be computed
-18
+16
 
 */
 
@@ -111,7 +111,7 @@ def hugeFileName = T{
 /** Usage
 
 > ./mill show lineCount
-18
+16
 
 > ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() < 999`
 Finding Largest File

@@ -2,8 +2,10 @@ package mill
 package scalalib
 
 import coursier.util.Task
-import coursier.{Dependency, Repository, Resolution}
+import coursier.{Dependency, LocalRepositories, Repositories, Repository, Resolution}
 import mill.api.{Ctx, Loose, PathRef, Result}
+import mill.main.BuildInfo
+import mill.util.Util
 import mill.scalalib.api.ZincWorkerUtil
 
 object Lib {
@@ -33,7 +35,7 @@ object Lib {
       ] = None
   ): (Seq[Dependency], Resolution) = {
     val depSeq = deps.iterator.toSeq
-    mill.modules.Jvm.resolveDependenciesMetadata(
+    mill.util.Jvm.resolveDependenciesMetadata(
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
@@ -63,7 +65,7 @@ object Lib {
       ] = None
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
-    mill.modules.Jvm.resolveDependencies(
+    mill.util.Jvm.resolveDependencies(
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
@@ -133,6 +135,32 @@ object Lib {
       path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
       if os.isFile(path) && (extensions.exists(path.ext == _) && !isHiddenFile(path))
     } yield path
+  }
+
+  def resolveMillBuildDeps(
+      repos: Seq[Repository],
+      ctx: Option[mill.api.Ctx.Log],
+      useSources: Boolean
+  ): Seq[os.Path] = {
+    Util.millProperty("MILL_BUILD_LIBRARIES") match {
+      case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
+      case None =>
+        val millDeps = BuildInfo.millEmbeddedDeps
+          .split(",")
+          .map(d => ivy"$d")
+          .map(dep => Lib.depToBoundDep(dep, BuildInfo.scalaVersion))
+
+        val Result.Success(res) = scalalib.Lib.resolveDependencies(
+          repositories = repos.toList,
+          deps = millDeps,
+          sources = useSources,
+          mapDependencies = None,
+          customizer = None,
+          coursierCacheCustomizer = None,
+          ctx = ctx
+        )
+        res.items.toList.map(_.path)
+    }
   }
 
 }

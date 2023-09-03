@@ -13,6 +13,43 @@ The usage examples given here are most probably incomplete and sometimes outdate
 Additional to this list, you can also search the https://github.com/topics/mill-plugin[`mill-plugin` topic on GitHub] for more plugins.
 
 
+== Aliases
+
+This plugin adds an opinionated way of defining aliases to Mill builds. Added aliases are global and applied to the whole build.
+
+Project home: https://github.com/carlosedp/mill-aliases
+
+[source,scala]
+----
+import mill._, scalalib._
+import $ivy.`com.carlosedp::mill-aliases::0.2.1`
+import com.carlosedp.aliases._
+
+object foo extends ScalaModule {
+  ...
+}
+
+object MyAliases extends Aliases {
+  def testall     = alias("__.test")
+  def compileall  = alias("__.compile")
+  def comptestall = alias("__.compile", "__.test")
+}
+----
+
+To show all the defined aliases:
+
+```sh
+./mill Alias/list
+```
+
+Run an alias:
+
+```sh
+./mill Alias/run testall
+```
+
+When run, each aliased task is checked if valid.
+
 == Antlr
 
 https://www.antlr.org/[ANTLR parser generator] support for mill.
@@ -127,6 +164,59 @@ import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
 ----
 sh> mill plugin.dgraph.browseDeps(proj)()
 ----
+
+== Docker Native-Image Packager
+
+This plugin allows building Docker container images with GraalVM Native-Image
+binaries for cloud-native and fast-startup applications.
+
+Project home: https://github.com/carlosedp/mill-docker-nativeimage
+
+Import the plugin, extend your module with `DockerNative` and configure the
+parameters for your application using the `DockerNativeConfig` trait in the
+`dockerNative` object.
+
+[source,scala]
+----
+import mill._, mill.scalalib._, mill.scalalib.scalafmt._
+import $ivy.`com.carlosedp::mill-docker-nativeimage::0.6.0`
+import com.carlosedp.milldockernative.DockerNative
+
+object hello extends ScalaModule with DockerNative {
+  def scalaVersion = "3.3.0"
+  object dockerNative extends DockerNativeConfig {
+    // Native Image parameters
+    def nativeImageName         = "hello"
+    def nativeImageGraalVmJvmId = T("graalvm-java17:22.3.2")
+    def nativeImageClassPath    = runClasspath()
+    def nativeImageMainClass    = "com.domain.Hello.Hello"
+    // GraalVM parameters depending on your application needs
+    def nativeImageOptions = Seq(
+      "--no-fallback",
+      "--enable-url-protocols=http,https",
+      "-Djdk.http.auth.tunneling.disabledSchemes=",
+    ) ++ (if (sys.props.get("os.name").contains("Linux")) Seq("--static") else Seq.empty)
+
+    // Generated Docker image parameters
+    def baseImage    = "ubuntu:22.04"
+    def tags         = List("docker.io/myuser/helloapp")
+    def exposedPorts = Seq(8080)
+  }
+}
+----
+
+[source,sh]
+----
+./mill hello.dockerNative.build()
+# Test run
+docker run -it --rm docker.io/myuser/helloapp
+
+# Push to a registry
+./mill hello.dockerNative.push
+----
+
+For more details and configuration options, please refer to the project readme
+and also check the provided example code.
 
 == Docusaurus 2
 
@@ -261,8 +351,8 @@ object `jvm-project` extends JavaModule with GitVersionedPublishModule {
 [source,shell script]
 ----
 > mill show jvm-project.publishVersion
-[1/1] show 
-[2/2] com.goyeau.mill.git.GitVersionModule.version 
+[1/1] show
+[2/2] com.goyeau.mill.git.GitVersionModule.version
 "0.0.0-470-6d0b3d9"
 ----
 
@@ -564,6 +654,55 @@ You can then check the binary compatibility of the module with:
 Binary compatibility check passed.
 ----
 
+== Native-Image
+
+Build GraalVM Native-Image binaries with mill.
+
+Project home: https://github.com/alexarchambault/mill-native-image
+
+Import the plugin and add the `NativeImage` trait to your module and set some
+configuration options:
+
+[source,scala]
+----
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.25`
+import io.github.alexarchambault.millnativeimage.NativeImage
+
+object hello extends ScalaModule with NativeImage {
+  def scalaVersion = "3.3.0"
+  def ivyDeps = ... // Your deps here
+
+  def nativeImageName         = "hello"
+  def nativeImageMainClass    = "Main"
+  def nativeImageGraalVmJvmId = "graalvm-java17:22.3.2"
+  def nativeImageOptions = Seq(
+    "--no-fallback",
+    "--enable-url-protocols=http,https",
+    "-Djdk.http.auth.tunneling.disabledSchemes=",
+  ) ++ (if (sys.props.get("os.name").contains("Linux")) Seq("--static") else Seq.empty)
+}
+----
+
+Then run the `nativeImage` task to build the native-image binary.
+
+[source,bash]
+----
+> ./mill hello.nativeImage
+...
+------------------------------------------------------------------------------------------------------------------------
+                        5.9s (4.9% of total time) in 32 GCs | Peak RSS: 5.71GB | CPU load: 5.84
+------------------------------------------------------------------------------------------------------------------------
+Produced artifacts:
+ /Users/myuser/repos/scala/mill-native-image/example/out/hello/nativeImage.dest/hello (executable
+)
+ /Users/myuser/repos/scala/mill-native-image/example/out/hello/nativeImage.dest/hello.build_artifacts.txt (txt)
+========================================================================================================================
+Finished generating 'hello' in 2m 0s.
+----
+
+For more configuration options, building binaries inside Docker, a sample project
+and more, check the project readme.
+
 == OSGi
 
 Produce OSGi Bundles with mill.
@@ -726,10 +865,10 @@ scip-java index
 
 You can also manually trigger this with Mill by doing the following:
 
-[source, shell script]
+[source, shell script, subs="attributes,verbatim"]
 ----
 
-mill --import ivy:io.chris-kipp::mill-scip::0.2.2 io.kipp.mill.scip.Scip/generate
+mill --import ivy:io.chris-kipp::mill-scip::{mill-scip-version} io.kipp.mill.scip.Scip/generate
 ----
 
 This will then generate your `index.scip` inside of
@@ -742,6 +881,31 @@ As Mill is a tool often used from the CLI (Command line interface), you may be a
 * <<_bash_completion>>
 * <<_fish_completion>>
 * <<_zsh_completion>>
+
+
+== Spring Boot
+
+Support packaging Spring Boot Applications with Mill.
+
+Project home: https://github.com/lefou/mill-spring-boot
+
+[source,scala,subs="attributes,verbatim"]
+----
+import mill._
+import mill.scalalib._
+import de.tobiasroeser.mill.spring.boot.SpringBootModule
+
+object app extends MavenModule with SpringBootModule {
+  override def springBootToolsVersion = "2.7.13"
+}
+----
+
+[source,shell]
+----
+# Package as executable Spring-Boot Application
+$ mill app.springBootAssembly
+----
+
 
 == VCS Version
 

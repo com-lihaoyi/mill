@@ -10,6 +10,10 @@ config and building it across a variety of source folders.
 
 include::example/cross/1-simple.adoc[]
 
+== Default Cross Modules
+
+include::example/cross/11-default-cross-module.adoc[]
+
 == Cross Modules Source Paths
 
 include::example/cross/2-cross-source-path.adoc[]

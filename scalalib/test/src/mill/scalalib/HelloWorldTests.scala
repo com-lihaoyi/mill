@@ -9,7 +9,7 @@ import mill._
 import mill.api.Result
 import mill.define.NamedTask
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.modules.Assembly
+import mill.scalalib.Assembly
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
@@ -23,6 +23,7 @@ object HelloWorldTests extends TestSuite {
   val scala2123Version = "2.12.3"
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val scala213Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+  val zincVersion = sys.props.getOrElse("TEST_ZINC_VERSION", ???)
 
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath: os.Path =
@@ -31,7 +32,7 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
-    override def semanticDbVersion: Input[String] = T.input {
+    override def semanticDbVersion: T[String] = T {
       // The latest semanticDB release for Scala 2.12.6
       "4.1.9"
     }
@@ -286,7 +287,7 @@ object HelloWorldTests extends TestSuite {
   object HelloScalacheck extends HelloBase {
     object foo extends ScalaModule {
       def scalaVersion = scala212Version
-      object test extends Tests {
+      object test extends ScalaTests {
         override def ivyDeps = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
         override def testFramework = "org.scalacheck.ScalaCheckFramework"
       }
@@ -514,7 +515,7 @@ object HelloWorldTests extends TestSuite {
         // Make sure we *do not* end up compiling the compiler bridge, since
         // it's using a pre-compiled bridge value
         assert(!os.exists(
-          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / "zinc-1.8.0"
+          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / s"zinc-${zincVersion}"
         ))
       }
 
@@ -542,7 +543,7 @@ object HelloWorldTests extends TestSuite {
         // Make sure we *do* end up compiling the compiler bridge, since it's
         // *not* using a pre-compiled bridge value
         assert(os.exists(
-          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / "zinc-1.8.0"
+          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / s"zinc-${zincVersion}"
         ))
       }
 

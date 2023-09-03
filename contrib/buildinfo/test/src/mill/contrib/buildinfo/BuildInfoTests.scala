@@ -1,6 +1,6 @@
 package mill.contrib.buildinfo
 
-import mill.{BuildInfo => _, _}
+import mill._
 import mill.util.TestEvaluator
 import mill.util.TestUtil
 import os.Path
@@ -10,6 +10,7 @@ import utest.framework.TestPath
 object BuildInfoTests extends TestSuite {
 
   val scalaVersionString = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
+  val scalaJSVersionString = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
   trait BuildInfoModule extends TestUtil.BaseModule with BuildInfo {
     // override build root to test custom builds/modules
     override def millSourcePath: Path = TestUtil.getSrcPathStatic() / "scala"
@@ -23,6 +24,15 @@ object BuildInfoTests extends TestSuite {
 
   object BuildInfoPlain extends BuildInfoModule with scalalib.ScalaModule {
     def scalaVersion = scalaVersionString
+    def buildInfoPackageName = "foo"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("scalaVersion", scalaVersion())
+    )
+  }
+
+  object BuildInfoScalaJS extends BuildInfoModule with scalajslib.ScalaJSModule {
+    def scalaVersion = scalaVersionString
+    def scalaJSVersion = scalaJSVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", scalaVersion())
@@ -165,6 +175,11 @@ object BuildInfoTests extends TestSuite {
         os.exists(runResult),
         os.read(runResult) == scalaVersionString
       )
+    }
+
+    "scalajs" - workspaceTest(BuildInfoScalaJS, "scala-simple") { eval =>
+      val runResult = eval.outPath / "hello-mill"
+      assert(eval.apply(BuildInfoScalaJS.fastLinkJS).isRight)
     }
 
     "static" - workspaceTest(BuildInfoStatic, "scala") { eval =>

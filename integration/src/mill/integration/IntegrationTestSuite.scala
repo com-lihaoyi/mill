@@ -1,21 +1,14 @@
 package mill.integration
 
-import mainargs.Flag
-import mill.runner.MillCliConfig
-import mill.main.SelectMode
-import mill.runner.{MillBuildBootstrap, MillMain, RunnerState, Watching}
-import mill.api.SystemStreams
-import mill.util.PrintLogger
-import os.Path
+import mill.resolve.SelectMode
+import mill.runner.RunnerState
+import os.{Path, Shellable}
 import utest._
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
-import java.nio.file.NoSuchFileException
 import scala.util.control.NonFatal
 
 object IntegrationTestSuite {
   case class EvalResult(isSuccess: Boolean, out: String, err: String)
-
 }
 
 abstract class IntegrationTestSuite extends TestSuite {
@@ -37,16 +30,20 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   var runnerState = RunnerState.empty
 
-  def eval(s: String*): Boolean = evalFork(os.Inherit, os.Inherit, s)
+  def eval(s: Shellable*): Boolean = evalFork(os.Inherit, os.Inherit, s, -1)
 
-  def evalStdout(s: String*): IntegrationTestSuite.EvalResult = {
+  def evalStdout(s: Shellable*): IntegrationTestSuite.EvalResult = {
+    evalTimeoutStdout(-1, s: _*)
+  }
+
+  def evalTimeoutStdout(timeout: Long, s: Shellable*): IntegrationTestSuite.EvalResult = {
 
     val output = Seq.newBuilder[String]
     val error = Seq.newBuilder[String]
     val processOutput = os.ProcessOutput.Readlines(output += _)
     val processError = os.ProcessOutput.Readlines(error += _)
 
-    val result = evalFork(processOutput, processError, s)
+    val result = evalFork(processOutput, processError, s, timeout)
     IntegrationTestSuite.EvalResult(
       result,
       output.result().mkString("\n"),
@@ -61,7 +58,8 @@ abstract class IntegrationTestSuite extends TestSuite {
   private def evalFork(
       stdout: os.ProcessOutput,
       stderr: os.ProcessOutput,
-      s: Seq[String]
+      s: Seq[Shellable],
+      timeout: Long
   ): Boolean = {
     val serverArgs =
       if (integrationTestMode == "server" || integrationTestMode == "local") Seq()
@@ -75,7 +73,8 @@ abstract class IntegrationTestSuite extends TestSuite {
         stdin = os.Inherit,
         stdout = stdout,
         stderr = stderr,
-        env = millTestSuiteEnv
+        env = millTestSuiteEnv,
+        timeout = timeout
       )
       true
     } catch {
@@ -85,7 +84,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   def meta(s: String): String = {
     val Seq((List(selector), _)) =
-      mill.main.ParseArgs.apply(Seq(s), SelectMode.Single).getOrElse(???)
+      mill.resolve.ParseArgs.apply(Seq(s), SelectMode.Separated).getOrElse(???)
 
     val segments = selector._2.value.flatMap(_.pathSegments)
     os.read(wd / "out" / segments.init / s"${segments.last}.json")

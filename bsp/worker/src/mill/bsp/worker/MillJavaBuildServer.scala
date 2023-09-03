@@ -7,42 +7,40 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsResult
 }
 import mill.T
-import mill.api.internal
+import mill.bsp.worker.Utils.sanitizeUri
 import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 
-@internal
-trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
+private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
-    completable(s"buildTargetJavacOptions ${javacOptionsParams}") { state =>
-      targetTasks(
-        state,
-        targetIds = javacOptionsParams.getTargets.asScala.toSeq,
-        agg = (items: Seq[JavacOptionsItem]) => new JavacOptionsResult(items.asJava)
-      ) {
-        case (id, m: JavaModule) =>
-          val classesPathTask = m match {
-            case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
-              sem.bspCompiledClassesAndSemanticDbFiles
-            case _ => m.bspCompileClassesPath
-          }
-
-          val pathResolver = state.evaluator.pathsResolver
-          T.task {
-            val options = m.javacOptions()
-            val classpath =
-              m.bspCompileClasspath().map(_.resolve(pathResolver)).map(sanitizeUri.apply)
-            new JavacOptionsItem(
-              id,
-              options.asJava,
-              classpath.iterator.toSeq.asJava,
-              sanitizeUri(classesPathTask().resolve(pathResolver))
-            )
-          }
+    completableTasks(
+      s"buildTargetJavacOptions ${javacOptionsParams}",
+      targetIds = _ => javacOptionsParams.getTargets.asScala.toSeq,
+      tasks = { case m: JavaModule =>
+        val classesPathTask = m match {
+          case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+            sem.bspCompiledClassesAndSemanticDbFiles
+          case _ => m.bspCompileClassesPath
+        }
+        T.task { (classesPathTask(), m.javacOptions(), m.bspCompileClasspath()) }
       }
+    ) {
+      case (ev, state, id, m: JavaModule, (classesPath, javacOptions, bspCompileClasspath)) =>
+        val pathResolver = ev.pathsResolver
+        val options = javacOptions
+        val classpath =
+          bspCompileClasspath.map(_.resolve(pathResolver)).map(sanitizeUri)
+        new JavacOptionsItem(
+          id,
+          options.asJava,
+          classpath.iterator.toSeq.asJava,
+          sanitizeUri(classesPath.resolve(pathResolver))
+        )
+    } {
+      new JavacOptionsResult(_)
     }
 }

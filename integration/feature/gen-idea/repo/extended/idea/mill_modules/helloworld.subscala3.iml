@@ -2,10 +2,8 @@
     <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../../out/HelloWorld/subScala3/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../../HelloWorld/subScala3/src">
+        <content url="file://$MODULE_DIR$/../../HelloWorld/subScala3">
             <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/subScala3/src" isTestSource="false"/>
-        </content>
-        <content url="file://$MODULE_DIR$/../../HelloWorld/subScala3/resources">
             <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/subScala3/resources" type="java-resource"/>
         </content>
         <orderEntry type="inheritedJdk"/>

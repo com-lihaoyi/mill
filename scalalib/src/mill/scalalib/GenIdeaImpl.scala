@@ -5,20 +5,22 @@ import scala.util.Try
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
-import coursier.{LocalRepositories, Repositories, Repository}
 
-import java.nio.file.Paths
 import mill.Agg
 import mill.api.Ctx.{Home, Log}
-import mill.api.{PathRef, Result, Strict}
+import mill.api.{PathRef, Strict}
 import mill.define._
 import mill.eval.Evaluator
-import mill.modules.Util
+import mill.main.BuildInfo
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.util.Classpath
-import mill.{BuildInfo, T, scalalib}
+import mill.{T, scalalib}
 import os.{Path, SubPath}
 
+/**
+ * This class is outdated and unmaintained. Please use [[mill.idea.GenIdeaImpl]] instead.
+ */
+@deprecated("Use mill.idea.GenIdeaImpl instead", "Mill 0.11.2")
 case class GenIdeaImpl(
     evaluator: Evaluator,
     ctx: Log with Home,
@@ -86,50 +88,17 @@ case class GenIdeaImpl(
 
     val buildLibraryPaths: immutable.Seq[Path] =
       if (!fetchMillModules) Nil
-      else
-        Util.millProperty("MILL_BUILD_LIBRARIES") match {
-          case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
-          case None =>
-            val moduleRepos = Evaluator.evalOrThrow(
-              evaluator = evaluator,
-              exceptionFactory = r =>
-                GenIdeaException(
-                  s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
-                )
-            )(modules.map(_._2.repositoriesTask))
-
-            val repos = moduleRepos.foldLeft(Set.empty[Repository])(_ ++ _) ++ Set(
-              LocalRepositories.ivy2Local,
-              Repositories.central
+      else {
+        val moduleRepos = evaluator.evalOrThrow(
+          exceptionFactory = r =>
+            GenIdeaException(
+              s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
             )
-            val millDeps = BuildInfo.millEmbeddedDeps.split(",").map(d => ivy"$d").map(dep =>
-              BoundDep(Lib.depToDependency(dep, BuildInfo.scalaVersion, ""), dep.force)
-            )
-            val Result.Success(res) = scalalib.Lib.resolveDependencies(
-              repositories = repos.toList,
-              deps = millDeps,
-              sources = false,
-              mapDependencies = None,
-              customizer = None,
-              coursierCacheCustomizer = None,
-              ctx = ctx
-            )
+        )(modules.map(_._2.repositoriesTask))
 
-            // Also trigger resolve sources, but don't use them (will happen implicitly by Idea)
-            {
-              scalalib.Lib.resolveDependencies(
-                repositories = repos.toList,
-                deps = millDeps,
-                sources = true,
-                mapDependencies = None,
-                customizer = None,
-                coursierCacheCustomizer = None,
-                ctx = ctx
-              )
-            }
-
-            res.items.toList.map(_.path)
-        }
+        Lib.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = true)
+        Lib.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = false)
+      }
 
     val buildDepsPaths = Classpath
       .allJars(evaluator.rootModule.getClass.getClassLoader)
@@ -243,7 +212,7 @@ case class GenIdeaImpl(
       evaluator.evaluate(resolveTasks) match {
         case r if r.failing.items().nonEmpty =>
           throw GenIdeaException(s"Failure during resolving modules: ${Evaluator.formatFailing(r)}")
-        case r => r.values.asInstanceOf[Seq[ResolvedModule]]
+        case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
       }
 
     val moduleLabels = modules.map(_.swap).toMap
@@ -269,7 +238,7 @@ case class GenIdeaImpl(
         os.sub / wf._1 -> ideaConfigElementTemplate(wf._2)
       }
 
-    type FileComponent = (SubPath, String)
+    type FileComponent = (SubPath, Option[String])
 
     /** Ensure, the additional configs don't collide. */
     def collisionFreeExtraConfigs(
@@ -295,7 +264,7 @@ case class GenIdeaImpl(
               )
             }
             val msg =
-              s"Config collision in file `${conf.name}` and component `${conf.component}`: ${details(
+              s"Config collision in file `${conf.subPath}` and component `${conf.component}`: ${details(
                   conf.config
                 )} vs. ${details(existing)}"
             ctx.map(_.log.error(msg))
@@ -307,7 +276,7 @@ case class GenIdeaImpl(
     val fileComponentContributions: Seq[(SubPath, Elem)] =
       collisionFreeExtraConfigs(configFileContributions).toSeq.map {
         case (file, configs) =>
-          val map: Map[String, Seq[GenIdeaModule.Element]] =
+          val map: Map[Option[String], Seq[GenIdeaModule.Element]] =
             configs
               .groupBy(_.component)
               .view
@@ -537,6 +506,7 @@ case class GenIdeaImpl(
             )
           )
           .values
+          .map(_.value)
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
         val normalSourcePaths = (allSourcesPathRefs
@@ -550,6 +520,7 @@ case class GenIdeaImpl(
                 .evaluate(Agg(x.scalaVersion))
                 .values
                 .head
+                .value
                 .asInstanceOf[String]
             )
           case _ => None
@@ -657,12 +628,12 @@ case class GenIdeaImpl(
   }
 
   def ideaConfigFileTemplate(
-      components: Map[String, Seq[GenIdeaModule.Element]]
+      components: Map[Option[String], Seq[GenIdeaModule.Element]]
   ): Elem = {
     <project version={"" + ideaConfigVersion}>
       {
       components.toSeq.map { case (name, config) =>
-        <component name={name}>{config.map(ideaConfigElementTemplate)}</component>
+        <component name={name.getOrElse("")}>{config.map(ideaConfigElementTemplate)}</component>
       }
     }
     </project>

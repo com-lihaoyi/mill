@@ -4,7 +4,7 @@ import mill.define.Task
 import mill.util.MultiBiMap
 import mill.api.Strict.Agg
 
-object Graph {
+private[mill] object Graph {
 
   /**
    * The `values` [[Agg]] is guaranteed to be topological sorted and cycle free.
@@ -75,9 +75,9 @@ object Graph {
 
     val numberedEdges =
       for (t <- transitiveTargets.items)
-        yield t.inputs.collect(targetIndices)
+        yield t.inputs.collect(targetIndices).toArray
 
-    val sortedClusters = Tarjans(numberedEdges)
+    val sortedClusters = mill.util.Tarjans(numberedEdges.toArray)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)
     assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
     new TopoSorted(Agg.from(sortedClusters.flatten.map(indexed)))

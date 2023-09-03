@@ -1,8 +1,7 @@
 package mill.runner
 
 import mill.api.internal
-import mill.define.Watchable
-import mill.util.ColorLogger
+import mill.util.{ColorLogger, Watchable}
 import mill.api.SystemStreams
 import java.io.InputStream
 import scala.annotation.tailrec

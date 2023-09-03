@@ -106,7 +106,7 @@ There are also top-level build-related files in the `out/` folder, prefixed as `
  Probably the most useful file for you. It logs the tasks run and time taken for the last Mill command you executed.
 This is very useful if Mill is being unexpectedly slow, and you want to find out exactly what tasks are being run.
 
-`mill-par-profile.json`::
+`mill-chrome-profile.json`::
  This file is only written if you run Mill in parallel mode, e.g. `mill --jobs 4`. This file can be opened in Google Chrome with the built-in `tracing:` protocol even while Mill is still running, so you get a nice chart of what's going on in parallel.
 
 `mill-worker-*/`::

@@ -12,7 +12,7 @@ object ParseErrorTests extends IntegrationTestSuite {
 
       assert(res.isSuccess == false)
 
-      assert(res.err.contains("""bar.sc:4:20 expected ")""""))
+      assert(res.err.contains("""bar.sc:14:20 expected ")""""))
       assert(res.err.contains("""println(doesntExist})"""))
       assert(res.err.contains("""qux.sc:3:31 expected ")""""))
       assert(res.err.contains("""System.out.println(doesntExist"""))

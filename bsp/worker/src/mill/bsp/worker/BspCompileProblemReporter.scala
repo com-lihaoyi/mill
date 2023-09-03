@@ -27,7 +27,7 @@ import scala.language.implicitConversions
  *                            back as part of the published diagnostics
  *                            as well as compile report
  */
-class BspCompileProblemReporter(
+private class BspCompileProblemReporter(
     client: bsp.BuildClient,
     targetId: BuildTargetIdentifier,
     targetDisplayName: String,

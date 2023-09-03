@@ -8,35 +8,26 @@ trait DiyJavaModule extends Module{
   def moduleDeps: Seq[DiyJavaModule] = Nil
   def mainClass: T[Option[String]] = None
 
-  def upstreamClasses: T[Seq[PathRef]] = T{
-    T.traverse(moduleDeps)(_.classPath)().flatten
-  }
-
+  def upstream: T[Seq[PathRef]] = T{ T.traverse(moduleDeps)(_.classPath)().flatten }
   def sources = T.source(millSourcePath / "src")
-
-  def name = T{ millSourcePath.relativeTo(T.workspace).segments.mkString("-") }
-
-  def cpFlag(cp: Seq[PathRef]) =
-    Seq("-cp", cp.map(_.path).mkString(sys.props("path.separator")))
 
   def compile = T {
     val allSources = os.walk(sources().path)
-    os.proc("javac", cpFlag(upstreamClasses()), allSources, "-d", T.dest)
-      .call(stdout = os.Inherit, cwd = T.dest)
-
+    val cpFlag = Seq("-cp", upstream().map(_.path).mkString(":"))
+    os.proc("javac", cpFlag, allSources, "-d", T.dest).call()
     PathRef(T.dest)
   }
 
-  def classPath = T{ Seq(compile()) ++ upstreamClasses() }
+  def classPath = T{ Seq(compile()) ++ upstream() }
 
   def assembly = T {
     for(cp <- classPath()) os.copy(cp.path, T.dest, mergeFolders = true)
 
     val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-    os.proc("jar", "-c", mainFlags, "-f", T.dest / s"${name()}.jar", ".")
-      .call(stdout = os.Inherit, cwd = T.dest)
+    os.proc("jar", "-c", mainFlags, "-f", T.dest / s"assembly.jar", ".")
+      .call(cwd = T.dest)
 
-    PathRef(T.dest / s"${name()}.jar")
+    PathRef(T.dest / s"assembly.jar")
   }
 }
 
@@ -79,25 +70,18 @@ object qux extends DiyJavaModule {
   "qux.sources": ".../qux/src"
 }
 
-> ./mill showNamed __.name
-{
-  "foo.name": "foo",
-  "foo.bar.name": "foo-bar",
-  "qux.name": "qux"
-}
-
 > ./mill show qux.assembly
-".../out/qux/assembly.dest/qux.jar"
+".../out/qux/assembly.dest/assembly.jar"
 
-> java -jar out/qux/assembly.dest/qux.jar
+> java -jar out/qux/assembly.dest/assembly.jar
 Foo.value: 31337
 Bar.value: 271828
 Qux.value: 9000
 
 > ./mill show foo.assembly
-".../out/foo/assembly.dest/foo.jar"
+".../out/foo/assembly.dest/assembly.jar"
 
-> java -jar out/foo/assembly.dest/foo.jar
+> java -jar out/foo/assembly.dest/assembly.jar
 Foo.value: 31337
 Bar.value: 271828
 

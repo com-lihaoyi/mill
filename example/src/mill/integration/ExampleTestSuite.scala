@@ -88,7 +88,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
     BashTokenizer.tokenize(commandStr) match {
       case Seq(s"./$command", rest @ _*) =>
         val evalResult = command match {
-          case "mill" => evalStdout(rest: _*)
+          case "mill" => evalStdout(rest)
           case cmd =>
             val tokens = cmd +: rest
             val executable = workspaceRoot / os.RelPath(tokens.head)

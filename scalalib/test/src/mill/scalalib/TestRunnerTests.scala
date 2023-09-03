@@ -2,10 +2,7 @@ package mill.scalalib
 
 import mill.{Agg, T}
 
-import scala.util.Success
-import mill.testrunner.TestRunner.TestArgs
 import mill.util.{TestEvaluator, TestUtil}
-import org.scalacheck.Prop.forAll
 import utest._
 import utest.framework.TestPath
 
@@ -15,10 +12,27 @@ object TestRunnerTests extends TestSuite {
 
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-    object test extends super.Tests with TestModule.Utest {
+    object utest extends ScalaTests with TestModule.Utest {
       override def ivyDeps = T {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
+        )
+      }
+    }
+
+    object scalatest extends ScalaTests with TestModule.ScalaTest {
+      override def ivyDeps = T {
+        super.ivyDeps() ++ Agg(
+          ivy"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
+        )
+      }
+    }
+
+    object ziotest extends ScalaTests with TestModule.ZioTest {
+      override def ivyDeps = T {
+        super.ivyDeps() ++ Agg(
+          ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
+          ivy"dev.zio::zio-test-sbt:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
         )
       }
     }
@@ -41,63 +55,54 @@ object TestRunnerTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    "TestArgs" - {
-      test("args serialization") {
-        forAll { (globSelectors: Seq[String]) =>
-          forAll {
-            (
-                framework: String,
-                classpath: Seq[String],
-                arguments: Seq[String],
-                sysProps: Map[String, String],
-                outputPath: String,
-                colored: Boolean,
-                testCp: String,
-                homeStr: String
-            ) =>
-              val testArgs = TestArgs(
-                framework,
-                classpath,
-                arguments,
-                sysProps,
-                outputPath,
-                colored,
-                testCp,
-                homeStr,
-                globSelectors
-              )
-              TestArgs.parseArgs(testArgs.toArgsSeq.toArray) == Success(testArgs)
-          }
-        }.check
-      }
-    }
     "TestRunner" - {
-      "test case lookup" - workspaceTest(testrunner) { eval =>
-        val Right((result, _)) = eval.apply(testrunner.test.test())
-        val test = result.asInstanceOf[(String, Seq[mill.testrunner.TestRunner.Result])]
-        assert(
-          test._2.size == 3
-        )
-      }
-      "testOnly" - {
-        def testOnly(eval: TestEvaluator, args: Seq[String], size: Int) = {
-          val Right((result1, _)) = eval.apply(testrunner.test.testOnly(args: _*))
-          val testOnly = result1.asInstanceOf[(String, Seq[mill.testrunner.TestRunner.Result])]
+      "utest" - {
+        "test case lookup" - workspaceTest(testrunner) { eval =>
+          val Right((result, _)) = eval.apply(testrunner.utest.test())
+          val test = result.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
           assert(
-            testOnly._2.size == size
+            test._2.size == 3
           )
         }
-        "suffix" - workspaceTest(testrunner) { eval =>
-          testOnly(eval, Seq("*arTests"), 2)
+        "testOnly" - {
+          def testOnly(eval: TestEvaluator, args: Seq[String], size: Int) = {
+            val Right((result1, _)) = eval.apply(testrunner.utest.testOnly(args: _*))
+            val testOnly = result1.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
+            assert(
+              testOnly._2.size == size
+            )
+          }
+
+          "suffix" - workspaceTest(testrunner) { eval =>
+            testOnly(eval, Seq("*arTests"), 2)
+          }
+          "prefix" - workspaceTest(testrunner) { eval =>
+            testOnly(eval, Seq("mill.scalalib.FooT*"), 1)
+          }
+          "exactly" - workspaceTest(testrunner) { eval =>
+            testOnly(eval, Seq("mill.scalalib.FooTests"), 1)
+          }
+          "multi" - workspaceTest(testrunner) { eval =>
+            testOnly(eval, Seq("*Bar*", "*bar*"), 2)
+          }
         }
-        "prefix" - workspaceTest(testrunner) { eval =>
-          testOnly(eval, Seq("mill.scalalib.FooT*"), 1)
+      }
+
+      "ScalaTest" - {
+        test("scalatest.test") {
+          workspaceTest(testrunner) { eval =>
+            val Right((testRes, count)) = eval(testrunner.scalatest.test())
+            assert(testRes._2.size == 2)
+          }
         }
-        "exactly" - workspaceTest(testrunner) { eval =>
-          testOnly(eval, Seq("mill.scalalib.FooTests"), 1)
-        }
-        "multi" - workspaceTest(testrunner) { eval =>
-          testOnly(eval, Seq("*Bar*", "*bar*"), 2)
+      }
+
+      "ZioTest" - {
+        test("ziotest.test") {
+          workspaceTest(testrunner) { eval =>
+            val Right((testRes, count)) = eval(testrunner.ziotest.test())
+            assert(testRes._2.size == 1)
+          }
         }
       }
     }
