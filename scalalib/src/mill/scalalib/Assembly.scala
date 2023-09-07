@@ -124,7 +124,8 @@ object Assembly {
 
   def loadShadedClasspath(
       inputPaths: Agg[os.Path],
-      assemblyRules: Seq[Assembly.Rule]
+      assemblyRules: Seq[Assembly.Rule],
+      runtimeVersion: Option[Runtime.Version]
   ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
     val shadeRules = assemblyRules.collect {
       case Rule.Relocate(from, to) => ShadePattern.Rename(List(from -> to)).inAll
@@ -148,13 +149,20 @@ object Assembly {
       }
 
     val pathsWithResources = inputPaths.filter(os.exists).map { path =>
-      if (os.isFile(path)) path -> Some(new JarFile(path.toIO))
+      if (os.isFile(path)) path -> {
+        val file = path.toIO
+        val jarFile = runtimeVersion match {
+          case Some(version) => new JarFile(file, true, java.util.zip.ZipFile.OPEN_READ, version)
+          case None => new JarFile(file)
+        }
+        Some(jarFile)
+      }
       else path -> None
     }
 
     val generators = Generator.from(pathsWithResources).flatMap {
       case (path, Some(jarFile)) =>
-        Generator.from(jarFile.entries().asScala.filterNot(_.isDirectory))
+        Generator.from(jarFile.versionedStream().iterator().asScala.filterNot(_.isDirectory))
           .flatMap(entry => shader(entry.getName, () => jarFile.getInputStream(entry)))
       case (path, None) =>
         os.walk
@@ -193,7 +201,8 @@ object Assembly {
       manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
       prependShellScript: String = "",
       base: Option[os.Path] = None,
-      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
+      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules,
+      runtimeVersion: Option[Runtime.Version]
   )(implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
     val tmp = ctx.dest / "out-tmp.jar"
 
@@ -213,7 +222,8 @@ object Assembly {
       manifest.build.write(manifestOut)
       manifestOut.close()
 
-      val (mappings, resourceCleaner) = Assembly.loadShadedClasspath(inputPaths, assemblyRules)
+      val (mappings, resourceCleaner) =
+        Assembly.loadShadedClasspath(inputPaths, assemblyRules, runtimeVersion)
       try {
         Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
           case (mapping, entry) =>

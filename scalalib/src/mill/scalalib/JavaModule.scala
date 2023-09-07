@@ -122,6 +122,17 @@ trait JavaModule
    */
   def javacOptions: T[Seq[String]] = T { Seq.empty[String] }
 
+  private def extractRuntimeVersion(javacOptions: Seq[String]): Option[Runtime.Version] = {
+    val releaseOptIndex = javacOptions.indexOf("--release")
+    val releaseOptValueIndex = releaseOptIndex + 1
+    if (releaseOptIndex >= 0 && javacOptions.length >= releaseOptValueIndex) {
+      val runtimeVersionString = javacOptions(releaseOptValueIndex)
+      val runtimeVersion = Runtime.Version.parse(runtimeVersionString)
+      println(s"Extracted javac --release version $runtimeVersion")
+      Some(runtimeVersion)
+    } else None
+  }
+
   /** The direct dependencies of this module */
   def moduleDeps: Seq[JavaModule] = Seq.empty
 
@@ -447,7 +458,8 @@ trait JavaModule
     Assembly.createAssembly(
       upstreamAssemblyClasspath().map(_.path),
       manifest(),
-      assemblyRules = assemblyRules
+      assemblyRules = assemblyRules,
+      runtimeVersion = extractRuntimeVersion(javacOptions())
     )
   }
 
@@ -461,7 +473,8 @@ trait JavaModule
       manifest(),
       prependShellScript(),
       Some(upstreamAssembly().path),
-      assemblyRules
+      assemblyRules,
+      runtimeVersion = extractRuntimeVersion(javacOptions())
     )
   }
 
