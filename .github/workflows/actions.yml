@@ -8,8 +8,8 @@ name: CI
 #
 # To maximize bug-catching changes while keeping CI times reasonable, we run:
 # - All tests on Linux/Java17
-# - Fewer tests on Linux/Java8 and Windows/Java17
-# - Fewest tests on Windows/Java8
+# - Fewer tests on Linux/Java11 and Windows/Java17
+# - Fewest tests on Windows/Java11
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
       matrix:
         include:
           # bootstrap tests
-          - java-version: 8
+          - java-version: 11
             buildcmd: ci/test-mill-release.sh
           - java-version: 17
             buildcmd: ci/test-mill-release.sh
@@ -48,7 +48,7 @@ jobs:
           - java-version: 20
             buildcmd: ci/test-mill-bootstrap.sh
           # Just some reporting to enable reasoning about library upgrades
-          - java-version: 8
+          - java-version: 11
             buildcmd: |
               ./mill -i -k __.ivyDepsTree
               ./mill -i -k __.ivyDepsTree --withRuntime
@@ -63,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [8, 17]
+        java-version: [11, 17]
         millargs:
           # unit and module tests
           - '"{main,scalalib,testrunner,bsp}.__.test"'
@@ -94,13 +94,13 @@ jobs:
   format-check:
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      java-version: '8'
+      java-version: '11'
       millargs: mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
 
   bincompat-check:
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      java-version: '8'
+      java-version: '11'
       millargs: __.mimaReportBinaryIssues
       continue-on-error: true
 
@@ -108,7 +108,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [8, 17]
+        java-version: [11, 17]
         millargs:
           # Run a stripped down build matrix on Windows, to avoid taking too long
           - '"{__.publishLocal,dev.assembly,__.compile}"'
@@ -165,7 +165,7 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          java-version: 8
+          java-version: 11
           distribution: temurin
 
       - run: ci/release-maven.sh
@@ -188,7 +188,7 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          java-version: 8
+          java-version: 11
           distribution: temurin
 
       - run: ./mill -i uploadToGithub $REPO_ACCESS_TOKEN
