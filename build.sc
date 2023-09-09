@@ -104,7 +104,7 @@ object Deps {
   val ammoniteVersion = "3.0.0-M0-32-96e851cb"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursier = ivy"io.get-coursier::coursier:2.1.6"
+  val coursier = ivy"io.get-coursier::coursier:2.1.7"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.18"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
