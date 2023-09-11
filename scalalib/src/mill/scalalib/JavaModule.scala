@@ -216,9 +216,36 @@ trait JavaModule
       .flatten
   }
 
+  def transitiveCompiledClasses: T[Agg[PathRef]] = T {
+    T.traverse(
+      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+    )(m =>
+      T.task {
+        Agg.from(m.compileResources()) ++ Agg(m.compile().classes)
+      }
+    )()
+      .flatten
+  }
+
+  // Keep in sync with [[transitiveCompiledClasses]]
+  @internal
+  def bspTransitiveCompiledClasses: T[Agg[UnresolvedPath]] = T {
+    T.traverse(
+      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+    )(m =>
+      T.task {
+        Agg.from(m.compileResources().map(p => UnresolvedPath.ResolvedPath(p.path))) ++ Agg(
+          m.bspCompileClassesPath()
+        )
+      }
+    )()
+      .flatten
+  }
+
   /**
    * The transitive version of `compileClasspath`
    */
+  @deprecated("The logic of this method isn't correct", "Mill after 0.11.2")
   def transitiveCompileClasspath: T[Agg[PathRef]] = T {
     T.traverse(
       (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
@@ -231,6 +258,7 @@ trait JavaModule
    */
   // Keep in sync with [[transitiveCompileClasspath]]
   @internal
+  @deprecated("The logic of this method isn't correct", "Mill after 0.11.2")
   def bspTransitiveCompileClasspath: T[Agg[UnresolvedPath]] = T {
     T.traverse(
       (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
@@ -377,19 +405,19 @@ trait JavaModule
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module
    */
-  // Keep in sync with [[bspCompileClasspath]]
+  // Keep in sync with [[bspCompiledClasses]]
   def compileClasspath: T[Agg[PathRef]] = T {
-    transitiveCompileClasspath() ++
+    transitiveCompiledClasses() ++
       compileResources() ++
       unmanagedClasspath() ++
       resolvedIvyDeps()
   }
 
   /** Same as [[compileClasspath]], but does not trigger compilation targets, if possible. */
-  // Keep in sync with [[compileClasspath]]
+  // Keep in sync with [[compiledClasses]]
   @internal
   def bspCompileClasspath: T[Agg[UnresolvedPath]] = T {
-    bspTransitiveCompileClasspath() ++
+    bspTransitiveCompiledClasses() ++
       (compileResources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
         .map(p => UnresolvedPath.ResolvedPath(p.path))
   }
