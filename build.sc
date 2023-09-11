@@ -370,7 +370,8 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
     ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
     ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
-    ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*")
+    ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
+    ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
