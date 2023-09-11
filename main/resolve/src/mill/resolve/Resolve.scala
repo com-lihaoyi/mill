@@ -122,7 +122,7 @@ object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean
   ): Iterable[Either[String, Command[_]]] = for {
-    (cls, entryPoints) <- discover.value
+    (cls, (names, entryPoints)) <- discover.value
     if cls.isAssignableFrom(target.getClass)
     ep <- entryPoints
     if ep.name == name
@@ -227,12 +227,12 @@ trait Resolve[T] {
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
-
+    val allPossibleNames = rootModule.millDiscover.value.values.flatMap(_._1).toSet
     val resolved =
       ResolveCore.resolve(rootModule, sel.value.toList, rootResolved, Segments()) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          Left(ResolveNotFoundHandler(sel, segments, found, next, possibleNexts))
+          Left(ResolveNotFoundHandler(sel, segments, found, next, possibleNexts, allPossibleNames))
         case ResolveCore.Error(value) => Left(value)
       }
 

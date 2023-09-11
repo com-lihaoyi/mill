@@ -241,7 +241,7 @@ trait MainModule extends mill.define.Module {
               .millDiscover
               .value
               .get(t.ctx.enclosingCls)
-              .flatMap(_.find(_.name == t.ctx.segments.parts.last))
+              .flatMap(_._2.find(_.name == t.ctx.segments.parts.last))
 
             mainDataOpt match {
               case Some(mainData) if mainData.renderedArgSigs.nonEmpty =>
