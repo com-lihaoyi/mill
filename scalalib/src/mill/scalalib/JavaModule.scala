@@ -191,7 +191,7 @@ trait JavaModule
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = T {
     (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++
-    T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+      T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**
@@ -221,8 +221,8 @@ trait JavaModule
    * The transitive version of `compileClasspath`
    */
   def transitiveCompileClasspath: T[Agg[PathRef]] = T {
-    T.traverse(transitiveModuleCompileModuleDeps)(
-      m => T.task { m.localCompileClasspath() ++ Agg(m.compile().classes) }
+    T.traverse(transitiveModuleCompileModuleDeps)(m =>
+      T.task { m.localCompileClasspath() ++ Agg(m.compile().classes) }
     )().flatten
   }
 
@@ -377,7 +377,7 @@ trait JavaModule
    */
   // Keep in sync with [[bspCompileClasspath]]
   def compileClasspath: T[Agg[PathRef]] = T {
-    transitiveCompileClasspath() ++ localCompileClasspath()  ++ resolvedIvyDeps()
+    transitiveCompileClasspath() ++ localCompileClasspath() ++ resolvedIvyDeps()
   }
 
   /**
