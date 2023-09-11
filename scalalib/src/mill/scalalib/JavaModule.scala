@@ -154,9 +154,8 @@ trait JavaModule
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = T {
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    compileIvyDeps().map(bindDependency()) ++ T
-      .traverse(compileModuleDeps)(_.transitiveIvyDeps)()
-      .flatten
+    compileIvyDeps().map(bindDependency()) ++
+      T.traverse(compileModuleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**
@@ -380,7 +379,7 @@ trait JavaModule
    */
   // Keep in sync with [[bspCompileClasspath]]
   def compileClasspath: T[Agg[PathRef]] = T {
-    transitiveCompileClasspath() ++ localCompileClasspath() ++ resolvedIvyDeps()
+    resolvedIvyDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
   }
 
   /**
@@ -414,9 +413,7 @@ trait JavaModule
    * assembly, but without this module's contribution
    */
   def upstreamAssemblyClasspath: T[Agg[PathRef]] = T {
-    transitiveLocalClasspath() ++
-      unmanagedClasspath() ++
-      resolvedRunIvyDeps()
+    resolvedRunIvyDeps() ++ transitiveLocalClasspath() ++ unmanagedClasspath()
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
@@ -430,9 +427,7 @@ trait JavaModule
    * necessary to run this module's code after compilation
    */
   def runClasspath: T[Seq[PathRef]] = T {
-    transitiveLocalClasspath() ++
-      localClasspath() ++
-      resolvedRunIvyDeps()
+    resolvedRunIvyDeps() ++ transitiveLocalClasspath() ++ localClasspath()
   }
 
   /**
