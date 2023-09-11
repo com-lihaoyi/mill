@@ -143,6 +143,9 @@ trait JavaModule
    * All direct and indirect module dependencies of this module, including
    * compile-only dependencies: basically the modules whose classpath are needed
    * at compile-time.
+   *
+   * Note that `compileModuleDeps` are defined to be non-transitive, so we only
+   * look at the direct `compileModuleDeps` when assembling this list
    */
   def transitiveModuleCompileModuleDeps: Seq[JavaModule] = {
     (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
