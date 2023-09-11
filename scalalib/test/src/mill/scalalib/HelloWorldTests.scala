@@ -329,17 +329,55 @@ object HelloWorldTests extends TestSuite {
     def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile().withRevalidateOnce) }
   }
 
-  object ConflictingDependencies extends HelloBase {
 
-    object bar extends ScalaModule {
+  object MultiModuleClasspaths extends HelloBase {
+    object a extends ScalaModule {
       def scalaVersion = "2.13.12"
-      def moduleDeps = Seq(foo)
-      def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.typelevel::cats-core::2.9.0")
+
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.4")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.0")
+      def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
     }
 
-    object foo extends ScalaModule {
+    object b extends ScalaModule {
       def scalaVersion = "2.13.12"
-      def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.typelevel::cats-core::2.8.0")
+      def moduleDeps = Seq(a)
+
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.1")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.5")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
+      def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
+    }
+
+
+    object c extends ScalaModule {
+      def scalaVersion = "2.13.12"
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.6")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.2")
+      def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
+    }
+
+    object d extends ScalaModule {
+      def scalaVersion = "2.13.12"
+      def compileModuleDeps = Seq(c)
+
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.3")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.7")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.3")
+      def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
+    }
+
+    object e extends ScalaModule {
+      def scalaVersion = "2.13.12"
+      def moduleDeps = Seq(b)
+      def compileModuleDeps = Seq(d)
+
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.4")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.8")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.4")
+      def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
     }
   }
 
@@ -1356,11 +1394,61 @@ object HelloWorldTests extends TestSuite {
 
     }
 
-    "conflictingDependenciesDeduplicated" - workspaceTest(ConflictingDependencies) { eval =>
-      val Right((result, evalCount)) = eval.apply(ConflictingDependencies.bar.compileClasspath)
+    "multiModuleClasspaths" - workspaceTest(MultiModuleClasspaths) { eval =>
+      // Make sure that a bunch of modules dependent on each other has their various
+      // {classpaths,moduleDeps,ivyDeps}x{run,compile,normal} properly aggregated
+      val Right((runClasspath, _)) = eval.apply(MultiModuleClasspaths.e.runClasspath)
+      val Right((compileClasspath, _)) = eval.apply(MultiModuleClasspaths.e.compileClasspath)
+      val Right((upstreamAssemblyClasspath, _)) = eval.apply(MultiModuleClasspaths.e.upstreamAssemblyClasspath)
+      val Right((localClasspath, _)) = eval.apply(MultiModuleClasspaths.e.localClasspath)
 
-      assert(result.map(_.path).exists(_.endsWith(os.rel / "cats-core_2.13-2.9.0.jar")))
-      assert(!result.map(_.path).exists(_.endsWith(os.rel / "cats-core_2.13-2.8.0.jar")))
+      val expectedRunClasspath = Seq(
+        "/com/lihaoyi/utest_2.13/0.7.4/utest_2.13-0.7.4.jar",
+        "/com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+        "/org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+        "/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+        "/org/portable-scala/portable-scala-reflect_2.13/0.1.1/portable-scala-reflect_2.13-0.1.1.jar",
+        "/org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+        "/b/compile-resources",
+        "/b/unmanaged",
+        "/b/resources",
+        "/b/compile.dest/classes",
+        "/a/compile-resources",
+        "/a/unmanaged",
+        "/a/resources",
+        "/a/compile.dest/classes",
+        "/d/compile-resources",
+        "/d/unmanaged",
+        "/d/resources",
+        "/d/compile.dest/classes",
+        "/e/compile-resources",
+        "/e/unmanaged",
+        "/e/resources",
+        "/e/compile.dest/classes",
+      )
+      for(suffix <- expectedRunClasspath) assert(runClasspath.exists(_.path.endsWith(os.RelPath(suffix.drop(1)))))
+
+      val expectedCompileClasspath = List(
+        "/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/0.6.8/geny_2.13-0.6.8.jar",
+        "/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+        "/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+        "/b/compile-resources",
+        "/b/unmanaged",
+        "/b/compile.dest/classes",
+        "/a/compile-resources",
+        "/a/unmanaged",
+        "/a/compile.dest/classes",
+        "/d/compile-resources",
+        "/d/unmanaged",
+        "/d/compile.dest/classes",
+        "/e/compile-resources",
+        "/e/unmanaged",
+      )
+      for(suffix <- expectedCompileClasspath) assert(compileClasspath.exists(_.path.endsWith(os.RelPath(suffix.drop(1)))))
+      // invariant: the `upstreamAssemblyClasspath` used to make the `upstreamAssembly`
+      // and the `localClasspath` used to complete it to make the final `assembly` must
+      // have the same entries as the `runClasspath` used to execute things
+      assert(runClasspath == upstreamAssemblyClasspath.toSeq ++ localClasspath)
     }
   }
 }

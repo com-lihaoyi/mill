@@ -413,7 +413,7 @@ trait JavaModule
    * assembly, but without this module's contribution
    */
   def upstreamAssemblyClasspath: T[Agg[PathRef]] = T {
-    resolvedRunIvyDeps() ++ transitiveLocalClasspath() ++ unmanagedClasspath()
+    resolvedRunIvyDeps() ++ transitiveLocalClasspath()
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
