@@ -205,7 +205,7 @@ trait JavaModule
    * The transitive version of `localClasspath`
    */
   def transitiveLocalClasspath: T[Agg[PathRef]] = T {
-    T.traverse(transitiveModuleCompileModuleDeps)(m => m.localClasspath)().flatten
+    T.traverse(transitiveModuleCompileModuleDeps)(_.localClasspath)().flatten
   }
 
   /**
@@ -214,7 +214,7 @@ trait JavaModule
   // Keep in sync with [[transitiveLocalClasspath]]
   @internal
   def bspTransitiveLocalClasspath: T[Agg[UnresolvedPath]] = T {
-    T.traverse(transitiveModuleCompileModuleDeps)(m => m.bspLocalClasspath)().flatten
+    T.traverse(transitiveModuleCompileModuleDeps)(_.bspLocalClasspath)().flatten
   }
 
   /**
