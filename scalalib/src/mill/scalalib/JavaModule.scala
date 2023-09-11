@@ -430,8 +430,9 @@ trait JavaModule
    * necessary to run this module's code after compilation
    */
   def runClasspath: T[Seq[PathRef]] = T {
-    localClasspath() ++
-      upstreamAssemblyClasspath()
+    transitiveLocalClasspath() ++
+      localClasspath() ++
+      resolvedRunIvyDeps()
   }
 
   /**
