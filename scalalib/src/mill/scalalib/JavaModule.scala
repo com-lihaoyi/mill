@@ -128,6 +128,26 @@ trait JavaModule
   /** The compile-only direct dependencies of this module. */
   def compileModuleDeps: Seq[JavaModule] = Seq.empty
 
+  /** The direct and indirect dependencies of this module */
+  def recursiveModuleDeps: Seq[JavaModule] = {
+    moduleDeps.flatMap(_.transitiveModuleDeps).distinct
+  }
+
+  /**
+   * Like `recursiveModuleDeps` but also include the module itself,
+   * basically the modules whose classpath are needed at runtime
+   */
+  def transitiveModuleDeps: Seq[JavaModule] = Seq(this) ++ recursiveModuleDeps
+
+  /**
+   * All direct and indirect module dependencies of this module, including
+   * compile-only dependencies: basically the modules whose classpath are needed
+   * at compile-time.
+   */
+  def transitiveModuleCompileModuleDeps: Seq[JavaModule] = {
+    (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+  }
+
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = T {
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
@@ -158,16 +178,6 @@ trait JavaModule
     T.log.outputStream.println(asString)
   }
 
-  /** The direct and indirect dependencies of this module */
-  def recursiveModuleDeps: Seq[JavaModule] = {
-    moduleDeps.flatMap(_.transitiveModuleDeps).distinct
-  }
-
-  /** Like `recursiveModuleDeps` but also include the module itself */
-  def transitiveModuleDeps: Seq[JavaModule] = {
-    Seq(this) ++ recursiveModuleDeps
-  }
-
   /**
    * Additional jars, classfiles or resources to add to the classpath directly
    * from disk rather than being downloaded from Maven Central or other package
@@ -180,28 +190,22 @@ trait JavaModule
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = T {
-    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++ T.traverse(moduleDeps)(
-      _.transitiveIvyDeps
-    )().flatten
+    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++
+    T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**
    * The upstream compilation output of all this module's upstream modules
    */
   def upstreamCompileOutput: T[Seq[CompilationResult]] = T {
-    T.traverse((recursiveModuleDeps ++ compileModuleDeps.flatMap(
-      _.transitiveModuleDeps
-    )).distinct)(_.compile)
+    T.traverse(transitiveModuleCompileModuleDeps)(_.compile)
   }
 
   /**
    * The transitive version of `localClasspath`
    */
   def transitiveLocalClasspath: T[Agg[PathRef]] = T {
-    T.traverse(
-      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m => m.localClasspath)()
-      .flatten
+    T.traverse(transitiveModuleCompileModuleDeps)(m => m.localClasspath)().flatten
   }
 
   /**
@@ -210,17 +214,14 @@ trait JavaModule
   // Keep in sync with [[transitiveLocalClasspath]]
   @internal
   def bspTransitiveLocalClasspath: T[Agg[UnresolvedPath]] = T {
-    T.traverse(
-      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m => m.bspLocalClasspath)()
-      .flatten
+    T.traverse(transitiveModuleCompileModuleDeps)(m => m.bspLocalClasspath)().flatten
   }
 
   /**
    * The transitive version of `compileClasspath`
    */
   def transitiveCompileClasspath: T[Agg[PathRef]] = T {
-    T.traverse((moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct)(
+    T.traverse(transitiveModuleCompileModuleDeps)(
       m => T.task { m.localCompileClasspath() ++ Agg(m.compile().classes) }
     )().flatten
   }
@@ -231,9 +232,7 @@ trait JavaModule
   // Keep in sync with [[transitiveCompileClasspath]]
   @internal
   def bspTransitiveCompileClasspath: T[Agg[UnresolvedPath]] = T {
-    T.traverse(
-      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m =>
+    T.traverse(transitiveModuleCompileModuleDeps)(m =>
       T.task {
         m.bspCompileClasspath() ++ Agg(m.bspCompileClassesPath())
       }
@@ -354,11 +353,11 @@ trait JavaModule
     }
 
   /**
-   * The output classfiles/resources from this module, excluding upstream
-   * modules and third-party dependencies
+   * The *output* classfiles/resources from this module, used for execution,
+   * excluding upstream modules and third-party dependencies
    */
   def localClasspath: T[Seq[PathRef]] = T {
-    compileResources() ++ resources() ++ Agg(compile().classes)
+    localCompileClasspath().toSeq ++ resources() ++ Agg(compile().classes)
   }
 
   /**
@@ -382,8 +381,8 @@ trait JavaModule
   }
 
   /**
-   * Classfiles and resources necessary to compile this module that do not come
-   * from upstream module or external dependencies
+   * The *input* classfiles/resources from this module, used during compilation,
+   * excluding upstream modules and third-party dependencies
    */
   def localCompileClasspath: T[Agg[PathRef]] = T {
     compileResources() ++ unmanagedClasspath()
