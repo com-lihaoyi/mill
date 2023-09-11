@@ -49,6 +49,9 @@ private[mill] object Reflect {
         if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) false
         else m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
       )
+      .sortWith((m1, m2) =>
+        m1.getReturnType.isAssignableFrom(m2.getReturnType)
+      )
       .reverse
       .distinctBy(_.getName)
       .sortBy(_.getName)
