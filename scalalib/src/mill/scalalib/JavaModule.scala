@@ -220,10 +220,9 @@ trait JavaModule
    * The transitive version of `compileClasspath`
    */
   def transitiveCompileClasspath: T[Agg[PathRef]] = T {
-    T.traverse(
-      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m => T.task { m.compileClasspath() ++ Agg(m.compile().classes) })()
-      .flatten
+    T.traverse((moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct)(
+      m => T.task { m.localCompileClasspath() ++ Agg(m.compile().classes) }
+    )().flatten
   }
 
   /**
@@ -379,10 +378,15 @@ trait JavaModule
    */
   // Keep in sync with [[bspCompileClasspath]]
   def compileClasspath: T[Agg[PathRef]] = T {
-    transitiveCompileClasspath() ++
-      compileResources() ++
-      unmanagedClasspath() ++
-      resolvedIvyDeps()
+    transitiveCompileClasspath() ++ localCompileClasspath()  ++ resolvedIvyDeps()
+  }
+
+  /**
+   * Classfiles and resources necessary to compile this module that do not come
+   * from upstream module or external dependencies
+   */
+  def localCompileClasspath: T[Agg[PathRef]] = T {
+    compileResources() ++ unmanagedClasspath()
   }
 
   /** Same as [[compileClasspath]], but does not trigger compilation targets, if possible. */
@@ -390,7 +394,7 @@ trait JavaModule
   @internal
   def bspCompileClasspath: T[Agg[UnresolvedPath]] = T {
     bspTransitiveCompileClasspath() ++
-      (compileResources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
+      (localCompileClasspath() ++ resolvedIvyDeps())
         .map(p => UnresolvedPath.ResolvedPath(p.path))
   }
 

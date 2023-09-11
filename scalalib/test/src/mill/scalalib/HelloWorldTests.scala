@@ -329,6 +329,20 @@ object HelloWorldTests extends TestSuite {
     def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile().withRevalidateOnce) }
   }
 
+  object ConflictingDependencies extends HelloBase {
+
+    object bar extends ScalaModule {
+      def scalaVersion = "2.13.12"
+      def moduleDeps = Seq(foo)
+      def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.typelevel::cats-core::2.9.0")
+    }
+
+    object foo extends ScalaModule {
+      def scalaVersion = "2.13.12"
+      def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.typelevel::cats-core::2.8.0")
+    }
+  }
+
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -1340,6 +1354,13 @@ object HelloWorldTests extends TestSuite {
         "checked" - check(ValidatedTarget.checkedTuplePathRef, true)
       }
 
+    }
+
+    "conflictingDependenciesDeduplicated" - workspaceTest(ConflictingDependencies) { eval =>
+      val Right((result, evalCount)) = eval.apply(ConflictingDependencies.bar.compileClasspath)
+
+      assert(result.map(_.path).exists(_.endsWith(os.rel / "cats-core_2.13-2.9.0.jar")))
+      assert(!result.map(_.path).exists(_.endsWith(os.rel / "cats-core_2.13-2.8.0.jar")))
     }
   }
 }
