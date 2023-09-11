@@ -38,20 +38,24 @@ private object ResolveNotFoundHandler {
   def hintList(revSelectorsSoFar: Segments, lastSegment: Segment, allPossibleNames: Set[String]) = {
     val search = revSelectorsSoFar.render
 
-    val lastSearchOpt = for{
+    val lastSearchOpt = for {
       Segment.Label(s) <- Option(lastSegment)
       if s != "_" && s != "__"
       possibility <- findMostSimilar(s, allPossibleNames)
     } yield "__." + possibility
 
     val searchStr = (Seq(search) ++ lastSearchOpt)
-      .map{s => s"`mill resolve $s`"}
+      .map { s => s"`mill resolve $s`" }
       .mkString(" or ")
 
     s" Try $searchStr to see what's available."
   }
 
-  def hintListLabel(revSelectorsSoFar: Segments, lastSegment: Segment, allPossibleNames: Set[String]) = {
+  def hintListLabel(
+      revSelectorsSoFar: Segments,
+      lastSegment: Segment,
+      allPossibleNames: Set[String]
+  ) = {
     hintList(revSelectorsSoFar ++ Segment.Label("_"), lastSegment, allPossibleNames)
   }
 
