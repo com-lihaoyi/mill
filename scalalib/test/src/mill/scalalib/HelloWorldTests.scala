@@ -1403,7 +1403,8 @@ object HelloWorldTests extends TestSuite {
           eval: TestEvaluator,
           mod: ScalaModule,
           expectedRunClasspath: Seq[String],
-          expectedCompileClasspath: Seq[String]
+          expectedCompileClasspath: Seq[String],
+          expectedLocalClasspath: Seq[String]
       ) = {
         val Right((runClasspath, _)) = eval.apply(mod.runClasspath)
         val Right((compileClasspath, _)) = eval.apply(mod.compileClasspath)
@@ -1411,19 +1412,23 @@ object HelloWorldTests extends TestSuite {
         val Right((localClasspath, _)) = eval.apply(mod.localClasspath)
 
         val start = Set("org", "com", "MultiModuleClasspaths", "multiModuleClasspaths")
-        val simplerRunClasspath =
-          runClasspath.map(_.path.segments.dropWhile(!start.contains(_)).mkString("/")).toSeq
+        def simplify(cp: Seq[PathRef]) = {
+          cp.map(_.path.segments.dropWhile(!start.contains(_)).mkString("/"))
+        }
 
-        val simplerCompileClasspath =
-          compileClasspath.map(_.path.segments.dropWhile(!start.contains(_)).mkString("/")).toSeq
+        val simplerRunClasspath = simplify(runClasspath)
+        val simplerCompileClasspath = simplify(compileClasspath)
+        val simplerLocalClasspath = simplify(localClasspath)
 
         assert(expectedRunClasspath == simplerRunClasspath)
         assert(expectedCompileClasspath == simplerCompileClasspath)
+        assert(expectedLocalClasspath == simplerLocalClasspath)
         // invariant: the `upstreamAssemblyClasspath` used to make the `upstreamAssembly`
         // and the `localClasspath` used to complete it to make the final `assembly` must
         // have the same entries as the `runClasspath` used to execute things
         assert(runClasspath == upstreamAssemblyClasspath.toSeq ++ localClasspath)
       }
+
       "modMod" - workspaceTest(MultiModuleClasspaths) { eval =>
         // Make sure that `compileClasspath` has all the same things as `runClasspath`,
         // but without the `/resources`
@@ -1479,10 +1484,16 @@ object HelloWorldTests extends TestSuite {
             "MultiModuleClasspaths/ModMod/qux/unmanaged"
             // We do not include `qux/compile.dest/classes` here, because this is the input
             // that is required to compile `qux` in the first place
+          ),
+          expectedLocalClasspath = List(
+            "MultiModuleClasspaths/ModMod/qux/compile-resources",
+            "MultiModuleClasspaths/ModMod/qux/unmanaged",
+            "MultiModuleClasspaths/ModMod/qux/resources",
+            "multiModuleClasspaths/modMod/ModMod/qux/compile.dest/classes"
           )
         )
-
       }
+
       "modCompile" - workspaceTest(MultiModuleClasspaths) { eval =>
         // Mostly the same as `modMod` above, but with the dependency
         // from `qux` to `bar` being a `compileModuleDeps`
@@ -1537,10 +1548,16 @@ object HelloWorldTests extends TestSuite {
             //
             "MultiModuleClasspaths/ModCompile/qux/compile-resources",
             "MultiModuleClasspaths/ModCompile/qux/unmanaged"
+          ),
+          expectedLocalClasspath = List(
+            "MultiModuleClasspaths/ModCompile/qux/compile-resources",
+            "MultiModuleClasspaths/ModCompile/qux/unmanaged",
+            "MultiModuleClasspaths/ModCompile/qux/resources",
+            "multiModuleClasspaths/modCompile/ModCompile/qux/compile.dest/classes"
           )
         )
-
       }
+
       "compileMod" - workspaceTest(MultiModuleClasspaths) { eval =>
         // Both the `runClasspath` and `compileClasspath` should not have `foo` on the
         // classpath, nor should it have the versions of libraries pulled in by `foo`
@@ -1584,9 +1601,14 @@ object HelloWorldTests extends TestSuite {
             //
             "MultiModuleClasspaths/CompileMod/qux/compile-resources",
             "MultiModuleClasspaths/CompileMod/qux/unmanaged"
+          ),
+          expectedLocalClasspath = List(
+            "MultiModuleClasspaths/CompileMod/qux/compile-resources",
+            "MultiModuleClasspaths/CompileMod/qux/unmanaged",
+            "MultiModuleClasspaths/CompileMod/qux/resources",
+            "multiModuleClasspaths/compileMod/CompileMod/qux/compile.dest/classes"
           )
         )
-
       }
     }
   }
