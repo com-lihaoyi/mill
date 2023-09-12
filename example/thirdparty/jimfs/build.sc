@@ -1,7 +1,7 @@
 import mill._, scalalib._, publish._
 
-trait JimFsModule extends JavaModule{
-  def compileIvyDeps = Agg(
+def sharedCompileIvyDeps = T{
+  Agg(
     ivy"com.google.auto.service:auto-service:1.0.1",
     ivy"com.google.code.findbugs:jsr305:3.0.2",
     ivy"org.checkerframework:checker-compat-qual:2.5.5",
@@ -9,7 +9,8 @@ trait JimFsModule extends JavaModule{
   )
 }
 
-object jimfs extends PublishModule with MavenModule with JimFsModule{
+
+object jimfs extends PublishModule with MavenModule {
   def publishVersion = "1.3.3.7"
 
   def pomSettings = PomSettings(
@@ -21,14 +22,14 @@ object jimfs extends PublishModule with MavenModule with JimFsModule{
     developers = Nil
   )
 
-  def ivyDeps = super.ivyDeps() ++ Agg(
+  def ivyDeps = sharedCompileIvyDeps() ++ Agg(
     ivy"com.google.guava:guava:31.1-android",
   )
 
   def javacOptions = Seq("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
 
-  object test extends MavenModuleTests with JimFsModule{
-    def ivyDeps = super.ivyDeps() ++ Agg(
+  object test extends MavenModuleTests {
+    def ivyDeps = sharedCompileIvyDeps() ++ Agg(
       ivy"junit:junit:4.13.2",
       ivy"com.google.guava:guava-testlib:31.1-android",
       ivy"com.google.truth:truth:1.1.3",
