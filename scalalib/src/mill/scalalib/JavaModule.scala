@@ -404,7 +404,7 @@ trait JavaModule
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
-      transitiveCompileIvyDeps() ++ transitiveIvyDeps()
+      compileIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
     })()
   }
 
