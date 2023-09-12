@@ -369,7 +369,7 @@ trait JavaModule
   @internal
   def bspLocalClasspath: T[Agg[UnresolvedPath]] = T {
     (compileResources() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++
-    Agg(bspCompileClassesPath())
+      Agg(bspCompileClassesPath())
   }
 
   /**
@@ -402,7 +402,7 @@ trait JavaModule
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {transitiveCompileIvyDeps() ++ transitiveIvyDeps()})()
+    resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
   }
 
   /**
@@ -414,7 +414,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()})()
+    resolveDeps(T.task { runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps() })()
   }
 
   /**
