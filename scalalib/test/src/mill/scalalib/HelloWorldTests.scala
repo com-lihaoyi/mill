@@ -1447,10 +1447,12 @@ object HelloWorldTests extends TestSuite {
             "MultiModuleClasspaths/ModMod/bar/unmanaged",
             "MultiModuleClasspaths/ModMod/bar/resources",
             "multiModuleClasspaths/modMod/ModMod/bar/compile.dest/classes",
+            //
             "MultiModuleClasspaths/ModMod/foo/compile-resources",
             "MultiModuleClasspaths/ModMod/foo/unmanaged",
             "MultiModuleClasspaths/ModMod/foo/resources",
             "multiModuleClasspaths/modMod/ModMod/foo/compile.dest/classes",
+            //
             "MultiModuleClasspaths/ModMod/qux/compile-resources",
             "MultiModuleClasspaths/ModMod/qux/unmanaged",
             "MultiModuleClasspaths/ModMod/qux/resources",
@@ -1475,6 +1477,8 @@ object HelloWorldTests extends TestSuite {
             //
             "MultiModuleClasspaths/ModMod/qux/compile-resources",
             "MultiModuleClasspaths/ModMod/qux/unmanaged"
+            // We do not include `qux/compile.dest/classes` here, because this is the input
+            // that is required to compile `qux` in the first place
           )
         )
 
