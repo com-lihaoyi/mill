@@ -16,17 +16,16 @@ import scala.reflect.macros.blackbox
  * the `T.command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-case class Discover[T] private (value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) {
-  private[mill] def copy(value: Map[Class[_], Seq[mainargs.MainData[_, _]]] = value): Discover[T] =
-    new Discover[T](value)
-}
-object Discover {
-  def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover[T] =
-    new Discover[T](value)
-  def apply[T]: Discover[T] = macro Router.applyImpl[T]
+case class Discover[T] private (val value: Map[
+  Class[_],
+  (Seq[String], Seq[mainargs.MainData[_, _]])
+])
 
-  private def unapply[T](discover: Discover[T])
-      : Option[Map[Class[_], Seq[mainargs.MainData[_, _]]]] = Some(discover.value)
+object Discover {
+  def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover[T] =
+    new Discover[T](value)
+
+  def apply[T]: Discover[T] = macro Router.applyImpl[T]
 
   private class Router(val ctx: blackbox.Context) extends mainargs.Macros(ctx) {
     import c.universe._
@@ -91,19 +90,25 @@ object Discover {
             (weakTypeOf[mill.define.Target[_]], 0, "Target")
           )
 
-          for {
-            m <- methods.toList.sortBy(_.fullName)
-            if m.returnType <:< weakTypeOf[mill.define.Command[_]]
-          } yield extractMethod(
-            m.name,
-            m.paramLists.flatten,
-            m.pos,
-            m.annotations.find(_.tree.tpe =:= typeOf[mainargs.main]),
-            curCls,
-            weakTypeOf[Any]
+          Tuple2(
+            for {
+              m <- methods.toList.sortBy(_.fullName)
+              if m.returnType <:< weakTypeOf[mill.define.NamedTask[_]]
+            } yield m.name.decoded,
+            for {
+              m <- methods.toList.sortBy(_.fullName)
+              if m.returnType <:< weakTypeOf[mill.define.Command[_]]
+            } yield extractMethod(
+              m.name,
+              m.paramLists.flatten,
+              m.pos,
+              m.annotations.find(_.tree.tpe =:= typeOf[mainargs.main]),
+              curCls,
+              weakTypeOf[Any]
+            )
           )
         }
-        if overridesRoutes.nonEmpty
+        if overridesRoutes._1.nonEmpty || overridesRoutes._2.nonEmpty
       } yield {
         // by wrapping the `overridesRoutes` in a lambda function we kind of work around
         // the problem of generating a *huge* macro method body that finally exceeds the
@@ -114,9 +119,8 @@ object Discover {
       }
 
       c.Expr[Discover[T]](
-        q"import _root_.mill.main.TokenReaders._; _root_.mill.define.Discover(_root_.scala.collection.immutable.Map(..$mapping))"
+        q"import _root_.mill.main.TokenReaders._; _root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
       )
     }
   }
-
 }

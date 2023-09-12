@@ -46,7 +46,8 @@ private[mill] object Reflect {
     //    return type, so we can identify the most specific override
     res
       .sortWith((m1, m2) =>
-        m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
+        if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) false
+        else m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
       )
       .sortWith((m1, m2) =>
         m1.getReturnType.isAssignableFrom(m2.getReturnType)

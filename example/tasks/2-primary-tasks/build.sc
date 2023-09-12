@@ -8,15 +8,16 @@
 
 import mill._
 
-def allSources = T { os.walk(sources().path).map(PathRef(_)) }
+def allSources = T {
+  os.walk(sources().path)
+    .filter(_.ext == "java")
+    .map(PathRef(_))
+}
 
 def lineCount: T[Int] = T {
   println("Computing line count")
   allSources()
-    .map(_.path)
-    .filter(_.ext == "java")
-    .map(os.read.lines(_))
-    .map(_.size)
+    .map(p => os.read.lines(p.path).size)
     .sum
 }
 
@@ -57,7 +58,7 @@ Computing line count
 def classFiles = T {
   println("Generating classfiles")
 
-  os.proc("javac", allSources().map(_.path.toString()), "-d", T.dest)
+  os.proc("javac", allSources().map(_.path), "-d", T.dest)
     .call(cwd = T.dest)
 
   PathRef(T.dest)
