@@ -333,16 +333,16 @@ object HelloWorldTests extends TestSuite {
     trait FooModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.4")
-      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.8")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.4")
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.2")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.2")
       def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     trait BarModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
-      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.5")
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.1")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.1")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
       def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
@@ -350,7 +350,7 @@ object HelloWorldTests extends TestSuite {
       def scalaVersion = "2.13.12"
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
-      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.4")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.0")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.0")
       def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
@@ -1433,14 +1433,14 @@ object HelloWorldTests extends TestSuite {
           expectedRunClasspath = List(
             // We pick up the oldest version of utest 0.7.0 from the current module, because
             // utest is a `runIvyDeps` and not picked up transitively
-            "com/lihaoyi/utest_2.13/0.7.4/utest_2.13-0.7.0.jar",
+            "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
             // We pick up the newest version of sourcecode 0.2.4 from the upstream module, because
             // sourcecode is a `ivyDeps` and `runIvyDeps` and those are picked up transitively
-            "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-            "org/portable-scala/portable-scala-reflect_2.13/0.1.1/portable-scala-reflect_2.13-0.1.1.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
             //
             "MultiModuleClasspaths/ModMod/bar/compile-resources",
@@ -1460,17 +1460,19 @@ object HelloWorldTests extends TestSuite {
             // Make sure we only have geny 0.6.4 from the current module, and not newer
             // versions pulled in by the upstream modules, because as `compileIvyDeps` it
             // is not picked up transitively
-            "com/lihaoyi/geny_2.13/0.6.4/geny_2.13-0.6.4.jar",
-            "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+            "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             //
             "MultiModuleClasspaths/ModMod/bar/compile-resources",
             "MultiModuleClasspaths/ModMod/bar/unmanaged",
             "multiModuleClasspaths/modMod/ModMod/bar/compile.dest/classes",
+            //
             "MultiModuleClasspaths/ModMod/foo/compile-resources",
             "MultiModuleClasspaths/ModMod/foo/unmanaged",
             "multiModuleClasspaths/modMod/ModMod/foo/compile.dest/classes",
+            //
             "MultiModuleClasspaths/ModMod/qux/compile-resources",
             "MultiModuleClasspaths/ModMod/qux/unmanaged"
           )
@@ -1478,13 +1480,17 @@ object HelloWorldTests extends TestSuite {
 
       }
       "modCompile" - workspaceTest(MultiModuleClasspaths) { eval =>
-        // Mostly the same as `modMod` above, but with a different version
-        // of `sourcecode` (0.2.0) because ???
+        // Mostly the same as `modMod` above, but with the dependency
+        // from `qux` to `bar` being a `compileModuleDeps`
         check(
           eval,
           MultiModuleClasspaths.ModCompile.qux,
           expectedRunClasspath = List(
+            // `utest` is a `runIvyDeps` and not picked up transitively
             "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
+            // Because `sourcecode` comes from `ivyDeps`, and the dependency from
+            // `qux` to `bar` is a `compileModuleDeps`, we do not include its
+            // dependencies for `qux`'s `runClasspath`
             "com/lihaoyi/sourcecode_2.13/0.2.0/sourcecode_2.13-0.2.0.jar",
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
@@ -1508,8 +1514,9 @@ object HelloWorldTests extends TestSuite {
             "multiModuleClasspaths/modCompile/ModCompile/qux/compile.dest/classes"
           ),
           expectedCompileClasspath = List(
-            "com/lihaoyi/geny_2.13/0.6.4/geny_2.13-0.6.4.jar",
-            "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+            "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
+            // We aggregate upstream module `compileIvyDeps` during compilation
+            "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             //
@@ -1537,7 +1544,11 @@ object HelloWorldTests extends TestSuite {
           MultiModuleClasspaths.CompileMod.qux,
           expectedRunClasspath = List(
             "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
-            "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
+            // We pick up the version of `sourcecode` from `ivyDeps` from `bar` because
+            // we have a normal `moduleDeps` from `qux` to `bar`, but do not pick it up
+            // from `foo` because it's a `compileIvyDeps` from `bar` to `foo` and
+            // `compileIvyDeps` are not transitive
+            "com/lihaoyi/sourcecode_2.13/0.2.1/sourcecode_2.13-0.2.1.jar",
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
@@ -1555,8 +1566,8 @@ object HelloWorldTests extends TestSuite {
             "multiModuleClasspaths/compileMod/CompileMod/qux/compile.dest/classes"
           ),
           expectedCompileClasspath = List(
-            "com/lihaoyi/geny_2.13/0.6.4/geny_2.13-0.6.4.jar",
-            "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
+            "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.1/sourcecode_2.13-0.2.1.jar",
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             //
