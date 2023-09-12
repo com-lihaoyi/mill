@@ -368,9 +368,8 @@ trait JavaModule
    */
   @internal
   def bspLocalClasspath: T[Agg[UnresolvedPath]] = T {
-    (compileResources() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++ Agg(
-      bspCompileClassesPath()
-    )
+    (compileResources() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+    Agg(bspCompileClassesPath())
   }
 
   /**
@@ -403,9 +402,7 @@ trait JavaModule
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      compileIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
-    })()
+    resolveDeps(T.task {transitiveCompileIvyDeps() ++ transitiveIvyDeps()})()
   }
 
   /**
@@ -417,9 +414,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
-    })()
+    resolveDeps(T.task {runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()})()
   }
 
   /**
@@ -472,10 +467,7 @@ trait JavaModule
    * without those from upstream modules and dependencies
    */
   def jar: T[PathRef] = T {
-    Jvm.createJar(
-      localClasspath().map(_.path).filter(os.exists),
-      manifest()
-    )
+    Jvm.createJar(localClasspath().map(_.path).filter(os.exists), manifest())
   }
 
   /**

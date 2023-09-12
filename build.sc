@@ -907,7 +907,7 @@ object scalanativelib extends MillStableScalaModule {
 }
 
 object bsp extends MillPublishScalaModule with BuildInfo {
-  def compileModuleDeps = Seq(scalalib) ++ scalalib.compileModuleDeps
+  def compileModuleDeps = Seq(scalalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
 
