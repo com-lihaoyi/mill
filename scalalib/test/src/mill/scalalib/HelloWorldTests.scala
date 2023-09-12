@@ -1519,8 +1519,10 @@ object HelloWorldTests extends TestSuite {
           ),
           expectedCompileClasspath = List(
             "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
-            // `sourcecode` is a `compileIvyDeps`, which still get picked up
-            // transitively.
+            // `sourcecode` is a `ivyDeps` from a `compileModuleDeps, which still
+            // gets picked up transitively, but only for compilation. This is necessary
+            // in order to make sure that we can correctly compile against the upstream
+            // module's classes.
             "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
