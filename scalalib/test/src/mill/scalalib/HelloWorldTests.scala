@@ -329,31 +329,30 @@ object HelloWorldTests extends TestSuite {
     def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile().withRevalidateOnce) }
   }
 
-
   object MultiModuleClasspaths extends HelloBase {
-    trait FooModule extends ScalaModule{
+    trait FooModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.4")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.8")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.4")
-      def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
+      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
-    trait BarModule extends ScalaModule{
+    trait BarModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.5")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
-      def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
+      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
-    trait QuxModule extends ScalaModule{
+    trait QuxModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.4")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.0")
-      def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
+      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     object ModMod extends Module {
       object foo extends FooModule
@@ -1400,10 +1399,12 @@ object HelloWorldTests extends TestSuite {
     "multiModuleClasspaths" - {
       // Make sure that a bunch of modules dependent on each other has their various
       // {classpaths,moduleDeps,ivyDeps}x{run,compile,normal} properly aggregated
-      def check(eval: TestEvaluator,
-                mod: ScalaModule,
-                expectedRunClasspath: Seq[String],
-                expectedCompileClasspath: Seq[String]) = {
+      def check(
+          eval: TestEvaluator,
+          mod: ScalaModule,
+          expectedRunClasspath: Seq[String],
+          expectedCompileClasspath: Seq[String]
+      ) = {
         val Right((runClasspath, _)) = eval.apply(mod.runClasspath)
         val Right((compileClasspath, _)) = eval.apply(mod.compileClasspath)
         val Right((upstreamAssemblyClasspath, _)) = eval.apply(mod.upstreamAssemblyClasspath)
@@ -1436,10 +1437,12 @@ object HelloWorldTests extends TestSuite {
             // We pick up the newest version of sourcecode 0.2.4 from the upstream module, because
             // sourcecode is a `ivyDeps` and `runIvyDeps` and those are picked up transitively
             "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+            //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
             "org/portable-scala/portable-scala-reflect_2.13/0.1.1/portable-scala-reflect_2.13-0.1.1.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+            //
             "MultiModuleClasspaths/ModMod/bar/compile-resources",
             "MultiModuleClasspaths/ModMod/bar/unmanaged",
             "MultiModuleClasspaths/ModMod/bar/resources",
@@ -1459,7 +1462,9 @@ object HelloWorldTests extends TestSuite {
             // is not picked up transitively
             "com/lihaoyi/geny_2.13/0.6.4/geny_2.13-0.6.4.jar",
             "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+            //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            //
             "MultiModuleClasspaths/ModMod/bar/compile-resources",
             "MultiModuleClasspaths/ModMod/bar/unmanaged",
             "multiModuleClasspaths/modMod/ModMod/bar/compile.dest/classes",
@@ -1481,18 +1486,22 @@ object HelloWorldTests extends TestSuite {
           expectedRunClasspath = List(
             "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
             "com/lihaoyi/sourcecode_2.13/0.2.0/sourcecode_2.13-0.2.0.jar",
+            //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
             "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+            //
             "MultiModuleClasspaths/ModCompile/bar/compile-resources",
             "MultiModuleClasspaths/ModCompile/bar/unmanaged",
             "MultiModuleClasspaths/ModCompile/bar/resources",
             "multiModuleClasspaths/modCompile/ModCompile/bar/compile.dest/classes",
+            //
             "MultiModuleClasspaths/ModCompile/foo/compile-resources",
             "MultiModuleClasspaths/ModCompile/foo/unmanaged",
             "MultiModuleClasspaths/ModCompile/foo/resources",
             "multiModuleClasspaths/modCompile/ModCompile/foo/compile.dest/classes",
+            //
             "MultiModuleClasspaths/ModCompile/qux/compile-resources",
             "MultiModuleClasspaths/ModCompile/qux/unmanaged",
             "MultiModuleClasspaths/ModCompile/qux/resources",
@@ -1501,13 +1510,17 @@ object HelloWorldTests extends TestSuite {
           expectedCompileClasspath = List(
             "com/lihaoyi/geny_2.13/0.6.4/geny_2.13-0.6.4.jar",
             "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+            //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            //
             "MultiModuleClasspaths/ModCompile/bar/compile-resources",
             "MultiModuleClasspaths/ModCompile/bar/unmanaged",
             "multiModuleClasspaths/modCompile/ModCompile/bar/compile.dest/classes",
+            //
             "MultiModuleClasspaths/ModCompile/foo/compile-resources",
             "MultiModuleClasspaths/ModCompile/foo/unmanaged",
             "multiModuleClasspaths/modCompile/ModCompile/foo/compile.dest/classes",
+            //
             "MultiModuleClasspaths/ModCompile/qux/compile-resources",
             "MultiModuleClasspaths/ModCompile/qux/unmanaged"
           )
@@ -1525,14 +1538,17 @@ object HelloWorldTests extends TestSuite {
           expectedRunClasspath = List(
             "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
             "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
+            //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
             "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+            //
             "MultiModuleClasspaths/CompileMod/bar/compile-resources",
             "MultiModuleClasspaths/CompileMod/bar/unmanaged",
             "MultiModuleClasspaths/CompileMod/bar/resources",
             "multiModuleClasspaths/compileMod/CompileMod/bar/compile.dest/classes",
+            //
             "MultiModuleClasspaths/CompileMod/qux/compile-resources",
             "MultiModuleClasspaths/CompileMod/qux/unmanaged",
             "MultiModuleClasspaths/CompileMod/qux/resources",
@@ -1541,10 +1557,13 @@ object HelloWorldTests extends TestSuite {
           expectedCompileClasspath = List(
             "com/lihaoyi/geny_2.13/0.6.4/geny_2.13-0.6.4.jar",
             "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
+            //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            //
             "MultiModuleClasspaths/CompileMod/bar/compile-resources",
             "MultiModuleClasspaths/CompileMod/bar/unmanaged",
             "multiModuleClasspaths/compileMod/CompileMod/bar/compile.dest/classes",
+            //
             "MultiModuleClasspaths/CompileMod/qux/compile-resources",
             "MultiModuleClasspaths/CompileMod/qux/unmanaged"
           )
