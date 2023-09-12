@@ -335,8 +335,8 @@ object HelloWorldTests extends TestSuite {
       def scalaVersion = "2.13.12"
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.4")
-      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.4")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.0")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.8")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.4")
       def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     trait BarModule extends ScalaModule{
@@ -351,8 +351,8 @@ object HelloWorldTests extends TestSuite {
       def scalaVersion = "2.13.12"
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
-      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.8")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.4")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.4")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.0")
       def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     object ModMod extends Module {
@@ -1430,7 +1430,11 @@ object HelloWorldTests extends TestSuite {
           eval,
           MultiModuleClasspaths.ModMod.qux,
           expectedRunClasspath = List(
-            "com/lihaoyi/utest_2.13/0.7.4/utest_2.13-0.7.4.jar",
+            // We pick up the oldest version of utest 0.7.0 from the current module, because
+            // utest is a `runIvyDeps` and not picked up transitively
+            "com/lihaoyi/utest_2.13/0.7.4/utest_2.13-0.7.0.jar",
+            // We pick up the newest version of sourcecode 0.2.4 from the upstream module, because
+            // sourcecode is a `ivyDeps` and `runIvyDeps` and those are picked up transitively
             "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
@@ -1450,7 +1454,10 @@ object HelloWorldTests extends TestSuite {
             "multiModuleClasspaths/modMod/ModMod/qux/compile.dest/classes"
           ),
           expectedCompileClasspath = List(
-            "com/lihaoyi/geny_2.13/0.6.8/geny_2.13-0.6.8.jar",
+            // Make sure we only have geny 0.6.4 from the current module, and not newer
+            // versions pulled in by the upstream modules, because as `compileIvyDeps` it
+            // is not picked up transitively
+            "com/lihaoyi/geny_2.13/0.6.4/geny_2.13-0.6.4.jar",
             "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "MultiModuleClasspaths/ModMod/bar/compile-resources",
@@ -1472,11 +1479,11 @@ object HelloWorldTests extends TestSuite {
           eval,
           MultiModuleClasspaths.ModCompile.qux,
           expectedRunClasspath = List(
-            "com/lihaoyi/utest_2.13/0.7.4/utest_2.13-0.7.4.jar",
+            "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
             "com/lihaoyi/sourcecode_2.13/0.2.0/sourcecode_2.13-0.2.0.jar",
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-            "org/portable-scala/portable-scala-reflect_2.13/0.1.1/portable-scala-reflect_2.13-0.1.1.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
             "MultiModuleClasspaths/ModCompile/bar/compile-resources",
             "MultiModuleClasspaths/ModCompile/bar/unmanaged",
@@ -1492,7 +1499,7 @@ object HelloWorldTests extends TestSuite {
             "multiModuleClasspaths/modCompile/ModCompile/qux/compile.dest/classes"
           ),
           expectedCompileClasspath = List(
-            "com/lihaoyi/geny_2.13/0.6.8/geny_2.13-0.6.8.jar",
+            "com/lihaoyi/geny_2.13/0.6.4/geny_2.13-0.6.4.jar",
             "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "MultiModuleClasspaths/ModCompile/bar/compile-resources",
@@ -1516,11 +1523,11 @@ object HelloWorldTests extends TestSuite {
           eval,
           MultiModuleClasspaths.CompileMod.qux,
           expectedRunClasspath = List(
-            "com/lihaoyi/utest_2.13/0.7.4/utest_2.13-0.7.4.jar",
+            "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
             "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-            "org/portable-scala/portable-scala-reflect_2.13/0.1.1/portable-scala-reflect_2.13-0.1.1.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
             "MultiModuleClasspaths/CompileMod/bar/compile-resources",
             "MultiModuleClasspaths/CompileMod/bar/unmanaged",
@@ -1532,7 +1539,7 @@ object HelloWorldTests extends TestSuite {
             "multiModuleClasspaths/compileMod/CompileMod/qux/compile.dest/classes"
           ),
           expectedCompileClasspath = List(
-            "com/lihaoyi/geny_2.13/0.6.8/geny_2.13-0.6.8.jar",
+            "com/lihaoyi/geny_2.13/0.6.4/geny_2.13-0.6.4.jar",
             "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "MultiModuleClasspaths/CompileMod/bar/compile-resources",
