@@ -1519,7 +1519,6 @@ object HelloWorldTests extends TestSuite {
           ),
           expectedCompileClasspath = List(
             "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
-            // We aggregate upstream module `compileIvyDeps` during compilation
             "com/lihaoyi/sourcecode_2.13/0.2.0/sourcecode_2.13-0.2.0.jar",
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
