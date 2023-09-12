@@ -907,7 +907,7 @@ object scalanativelib extends MillStableScalaModule {
 }
 
 object bsp extends MillPublishScalaModule with BuildInfo {
-  def compileModuleDeps = Seq(scalalib)
+  def compileModuleDeps = Seq(scalalib) ++ scalalib.compileModuleDeps
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
 
@@ -934,7 +934,7 @@ object bsp extends MillPublishScalaModule with BuildInfo {
   }
 
   object worker extends MillPublishScalaModule {
-    def compileModuleDeps = Seq(bsp, scalalib, testrunner, runner)
+    def compileModuleDeps = Seq(bsp, scalalib, testrunner, runner) ++ scalalib.compileModuleDeps
     def ivyDeps = Agg(Deps.bsp4j, Deps.sbtTestInterface)
   }
 }
