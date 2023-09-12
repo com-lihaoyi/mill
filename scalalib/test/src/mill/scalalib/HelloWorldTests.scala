@@ -331,53 +331,56 @@ object HelloWorldTests extends TestSuite {
 
 
   object MultiModuleClasspaths extends HelloBase {
-    object a extends ScalaModule {
+    trait FooModule extends ScalaModule{
       def scalaVersion = "2.13.12"
 
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.4")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.4")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.0")
       def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
     }
-
-    object b extends ScalaModule {
+    trait BarModule extends ScalaModule{
       def scalaVersion = "2.13.12"
-      def moduleDeps = Seq(a)
 
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.1")
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.5")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
       def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
     }
-
-
-    object c extends ScalaModule {
+    trait QuxModule extends ScalaModule{
       def scalaVersion = "2.13.12"
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
-      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.6")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.2")
-      def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
-    }
 
-    object d extends ScalaModule {
-      def scalaVersion = "2.13.12"
-      def compileModuleDeps = Seq(c)
-
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.3")
-      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.7")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.3")
-      def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
-    }
-
-    object e extends ScalaModule {
-      def scalaVersion = "2.13.12"
-      def moduleDeps = Seq(b)
-      def compileModuleDeps = Seq(d)
-
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.4")
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.6.8")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.4")
       def unmanagedClasspath = T{ Agg(PathRef(millSourcePath / "unmanaged")) }
+    }
+    object ModMod extends Module {
+      object foo extends FooModule
+      object bar extends BarModule {
+        def moduleDeps = Seq(foo)
+      }
+      object qux extends QuxModule {
+        def moduleDeps = Seq(bar)
+      }
+    }
+    object ModCompile extends Module {
+      object foo extends FooModule
+      object bar extends BarModule {
+        def moduleDeps = Seq(foo)
+      }
+      object qux extends QuxModule {
+        def compileModuleDeps = Seq(bar)
+      }
+    }
+    object CompileMod extends Module {
+      object foo extends FooModule
+      object bar extends BarModule {
+        def compileModuleDeps = Seq(foo)
+      }
+      object qux extends QuxModule {
+        def moduleDeps = Seq(bar)
+      }
     }
   }
 
@@ -1394,61 +1397,153 @@ object HelloWorldTests extends TestSuite {
 
     }
 
-    "multiModuleClasspaths" - workspaceTest(MultiModuleClasspaths) { eval =>
+    "multiModuleClasspaths" - {
       // Make sure that a bunch of modules dependent on each other has their various
       // {classpaths,moduleDeps,ivyDeps}x{run,compile,normal} properly aggregated
-      val Right((runClasspath, _)) = eval.apply(MultiModuleClasspaths.e.runClasspath)
-      val Right((compileClasspath, _)) = eval.apply(MultiModuleClasspaths.e.compileClasspath)
-      val Right((upstreamAssemblyClasspath, _)) = eval.apply(MultiModuleClasspaths.e.upstreamAssemblyClasspath)
-      val Right((localClasspath, _)) = eval.apply(MultiModuleClasspaths.e.localClasspath)
+      def check(eval: TestEvaluator,
+                mod: ScalaModule,
+                expectedRunClasspath: Seq[String],
+                expectedCompileClasspath: Seq[String]) = {
+        val Right((runClasspath, _)) = eval.apply(mod.runClasspath)
+        val Right((compileClasspath, _)) = eval.apply(mod.compileClasspath)
+        val Right((upstreamAssemblyClasspath, _)) = eval.apply(mod.upstreamAssemblyClasspath)
+        val Right((localClasspath, _)) = eval.apply(mod.localClasspath)
 
-      val expectedRunClasspath = Seq(
-        "/com/lihaoyi/utest_2.13/0.7.4/utest_2.13-0.7.4.jar",
-        "/com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
-        "/org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
-        "/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-        "/org/portable-scala/portable-scala-reflect_2.13/0.1.1/portable-scala-reflect_2.13-0.1.1.jar",
-        "/org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
-        "/b/compile-resources",
-        "/b/unmanaged",
-        "/b/resources",
-        "/b/compile.dest/classes",
-        "/a/compile-resources",
-        "/a/unmanaged",
-        "/a/resources",
-        "/a/compile.dest/classes",
-        "/d/compile-resources",
-        "/d/unmanaged",
-        "/d/resources",
-        "/d/compile.dest/classes",
-        "/e/compile-resources",
-        "/e/unmanaged",
-        "/e/resources",
-        "/e/compile.dest/classes",
-      )
-      for(suffix <- expectedRunClasspath) assert(runClasspath.exists(_.path.endsWith(os.RelPath(suffix.drop(1)))))
+        val start = Set("org", "com", "MultiModuleClasspaths", "multiModuleClasspaths")
+        val simplerRunClasspath =
+          runClasspath.map(_.path.segments.dropWhile(!start.contains(_)).mkString("/")).toSeq
 
-      val expectedCompileClasspath = List(
-        "/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/0.6.8/geny_2.13-0.6.8.jar",
-        "/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
-        "/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
-        "/b/compile-resources",
-        "/b/unmanaged",
-        "/b/compile.dest/classes",
-        "/a/compile-resources",
-        "/a/unmanaged",
-        "/a/compile.dest/classes",
-        "/d/compile-resources",
-        "/d/unmanaged",
-        "/d/compile.dest/classes",
-        "/e/compile-resources",
-        "/e/unmanaged",
-      )
-      for(suffix <- expectedCompileClasspath) assert(compileClasspath.exists(_.path.endsWith(os.RelPath(suffix.drop(1)))))
-      // invariant: the `upstreamAssemblyClasspath` used to make the `upstreamAssembly`
-      // and the `localClasspath` used to complete it to make the final `assembly` must
-      // have the same entries as the `runClasspath` used to execute things
-      assert(runClasspath == upstreamAssemblyClasspath.toSeq ++ localClasspath)
+        val simplerCompileClasspath =
+          compileClasspath.map(_.path.segments.dropWhile(!start.contains(_)).mkString("/")).toSeq
+
+        assert(expectedRunClasspath == simplerRunClasspath)
+        assert(expectedCompileClasspath == simplerCompileClasspath)
+        // invariant: the `upstreamAssemblyClasspath` used to make the `upstreamAssembly`
+        // and the `localClasspath` used to complete it to make the final `assembly` must
+        // have the same entries as the `runClasspath` used to execute things
+        assert(runClasspath == upstreamAssemblyClasspath.toSeq ++ localClasspath)
+      }
+      "modMod" - workspaceTest(MultiModuleClasspaths) { eval =>
+        // Make sure that `compileClasspath` has all the same things as `runClasspath`,
+        // but without the `/resources`
+        check(
+          eval,
+          MultiModuleClasspaths.ModMod.qux,
+          expectedRunClasspath = List(
+            "com/lihaoyi/utest_2.13/0.7.4/utest_2.13-0.7.4.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/0.1.1/portable-scala-reflect_2.13-0.1.1.jar",
+            "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+            "MultiModuleClasspaths/ModMod/bar/compile-resources",
+            "MultiModuleClasspaths/ModMod/bar/unmanaged",
+            "MultiModuleClasspaths/ModMod/bar/resources",
+            "multiModuleClasspaths/modMod/ModMod/bar/compile.dest/classes",
+            "MultiModuleClasspaths/ModMod/foo/compile-resources",
+            "MultiModuleClasspaths/ModMod/foo/unmanaged",
+            "MultiModuleClasspaths/ModMod/foo/resources",
+            "multiModuleClasspaths/modMod/ModMod/foo/compile.dest/classes",
+            "MultiModuleClasspaths/ModMod/qux/compile-resources",
+            "MultiModuleClasspaths/ModMod/qux/unmanaged",
+            "MultiModuleClasspaths/ModMod/qux/resources",
+            "multiModuleClasspaths/modMod/ModMod/qux/compile.dest/classes"
+          ),
+          expectedCompileClasspath = List(
+            "com/lihaoyi/geny_2.13/0.6.8/geny_2.13-0.6.8.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            "MultiModuleClasspaths/ModMod/bar/compile-resources",
+            "MultiModuleClasspaths/ModMod/bar/unmanaged",
+            "multiModuleClasspaths/modMod/ModMod/bar/compile.dest/classes",
+            "MultiModuleClasspaths/ModMod/foo/compile-resources",
+            "MultiModuleClasspaths/ModMod/foo/unmanaged",
+            "multiModuleClasspaths/modMod/ModMod/foo/compile.dest/classes",
+            "MultiModuleClasspaths/ModMod/qux/compile-resources",
+            "MultiModuleClasspaths/ModMod/qux/unmanaged"
+          )
+        )
+
+      }
+      "modCompile" - workspaceTest(MultiModuleClasspaths) { eval =>
+        // Mostly the same as `modMod` above, but with a different version
+        // of `sourcecode` (0.2.0) because ???
+        check(
+          eval,
+          MultiModuleClasspaths.ModCompile.qux,
+          expectedRunClasspath = List(
+            "com/lihaoyi/utest_2.13/0.7.4/utest_2.13-0.7.4.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.0/sourcecode_2.13-0.2.0.jar",
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/0.1.1/portable-scala-reflect_2.13-0.1.1.jar",
+            "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+            "MultiModuleClasspaths/ModCompile/bar/compile-resources",
+            "MultiModuleClasspaths/ModCompile/bar/unmanaged",
+            "MultiModuleClasspaths/ModCompile/bar/resources",
+            "multiModuleClasspaths/modCompile/ModCompile/bar/compile.dest/classes",
+            "MultiModuleClasspaths/ModCompile/foo/compile-resources",
+            "MultiModuleClasspaths/ModCompile/foo/unmanaged",
+            "MultiModuleClasspaths/ModCompile/foo/resources",
+            "multiModuleClasspaths/modCompile/ModCompile/foo/compile.dest/classes",
+            "MultiModuleClasspaths/ModCompile/qux/compile-resources",
+            "MultiModuleClasspaths/ModCompile/qux/unmanaged",
+            "MultiModuleClasspaths/ModCompile/qux/resources",
+            "multiModuleClasspaths/modCompile/ModCompile/qux/compile.dest/classes"
+          ),
+          expectedCompileClasspath = List(
+            "com/lihaoyi/geny_2.13/0.6.8/geny_2.13-0.6.8.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.4/sourcecode_2.13-0.2.4.jar",
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            "MultiModuleClasspaths/ModCompile/bar/compile-resources",
+            "MultiModuleClasspaths/ModCompile/bar/unmanaged",
+            "multiModuleClasspaths/modCompile/ModCompile/bar/compile.dest/classes",
+            "MultiModuleClasspaths/ModCompile/foo/compile-resources",
+            "MultiModuleClasspaths/ModCompile/foo/unmanaged",
+            "multiModuleClasspaths/modCompile/ModCompile/foo/compile.dest/classes",
+            "MultiModuleClasspaths/ModCompile/qux/compile-resources",
+            "MultiModuleClasspaths/ModCompile/qux/unmanaged"
+          )
+        )
+
+      }
+      "compileMod" - workspaceTest(MultiModuleClasspaths) { eval =>
+        // Both the `runClasspath` and `compileClasspath` should not have `foo` on the
+        // classpath, nor should it have the versions of libraries pulled in by `foo`
+        // (e.g. `sourcecode-0.2.4`), because it is a `compileModuleDep` of an upstream
+        // module and thus it is not transitive
+        check(
+          eval,
+          MultiModuleClasspaths.CompileMod.qux,
+          expectedRunClasspath = List(
+            "com/lihaoyi/utest_2.13/0.7.4/utest_2.13-0.7.4.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/0.1.1/portable-scala-reflect_2.13-0.1.1.jar",
+            "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+            "MultiModuleClasspaths/CompileMod/bar/compile-resources",
+            "MultiModuleClasspaths/CompileMod/bar/unmanaged",
+            "MultiModuleClasspaths/CompileMod/bar/resources",
+            "multiModuleClasspaths/compileMod/CompileMod/bar/compile.dest/classes",
+            "MultiModuleClasspaths/CompileMod/qux/compile-resources",
+            "MultiModuleClasspaths/CompileMod/qux/unmanaged",
+            "MultiModuleClasspaths/CompileMod/qux/resources",
+            "multiModuleClasspaths/compileMod/CompileMod/qux/compile.dest/classes"
+          ),
+          expectedCompileClasspath = List(
+            "com/lihaoyi/geny_2.13/0.6.8/geny_2.13-0.6.8.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            "MultiModuleClasspaths/CompileMod/bar/compile-resources",
+            "MultiModuleClasspaths/CompileMod/bar/unmanaged",
+            "multiModuleClasspaths/compileMod/CompileMod/bar/compile.dest/classes",
+            "MultiModuleClasspaths/CompileMod/qux/compile-resources",
+            "MultiModuleClasspaths/CompileMod/qux/unmanaged"
+          )
+        )
+
+      }
     }
   }
 }
