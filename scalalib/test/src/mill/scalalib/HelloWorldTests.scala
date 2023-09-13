@@ -1417,7 +1417,7 @@ object HelloWorldTests extends TestSuite {
         }
 
         val simplerRunClasspath = simplify(runClasspath)
-        val simplerCompileClasspath = simplify(compileClasspath)
+        val simplerCompileClasspath = simplify(compileClasspath.toSeq)
         val simplerLocalClasspath = simplify(localClasspath)
 
         assert(expectedRunClasspath == simplerRunClasspath)
