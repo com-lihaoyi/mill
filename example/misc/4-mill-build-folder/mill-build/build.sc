@@ -1,7 +1,7 @@
 import mill._, scalalib._
 
 object millbuild extends MillBuildRootModule{
-  val scalatagsVersion = "0.8.2"
+  val scalatagsVersion = "0.12.0"
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:$scalatagsVersion")
 
   def generatedSources = T {

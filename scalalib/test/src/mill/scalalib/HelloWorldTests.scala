@@ -329,6 +329,60 @@ object HelloWorldTests extends TestSuite {
     def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile().withRevalidateOnce) }
   }
 
+  object MultiModuleClasspaths extends HelloBase {
+    trait FooModule extends ScalaModule {
+      def scalaVersion = "2.13.12"
+
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.2")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.2")
+      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
+    }
+    trait BarModule extends ScalaModule {
+      def scalaVersion = "2.13.12"
+
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.1")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.1")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
+      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
+    }
+    trait QuxModule extends ScalaModule {
+      def scalaVersion = "2.13.12"
+
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
+      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.0")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.7.0")
+      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
+    }
+    object ModMod extends Module {
+      object foo extends FooModule
+      object bar extends BarModule {
+        def moduleDeps = Seq(foo)
+      }
+      object qux extends QuxModule {
+        def moduleDeps = Seq(bar)
+      }
+    }
+    object ModCompile extends Module {
+      object foo extends FooModule
+      object bar extends BarModule {
+        def moduleDeps = Seq(foo)
+      }
+      object qux extends QuxModule {
+        def compileModuleDeps = Seq(bar)
+      }
+    }
+    object CompileMod extends Module {
+      object foo extends FooModule
+      object bar extends BarModule {
+        def compileModuleDeps = Seq(foo)
+      }
+      object qux extends QuxModule {
+        def moduleDeps = Seq(bar)
+      }
+    }
+  }
+
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -1340,6 +1394,224 @@ object HelloWorldTests extends TestSuite {
         "checked" - check(ValidatedTarget.checkedTuplePathRef, true)
       }
 
+    }
+
+    "multiModuleClasspaths" - {
+      // Make sure that a bunch of modules dependent on each other has their various
+      // {classpaths,moduleDeps,ivyDeps}x{run,compile,normal} properly aggregated
+      def check(
+          eval: TestEvaluator,
+          mod: ScalaModule,
+          expectedRunClasspath: Seq[String],
+          expectedCompileClasspath: Seq[String],
+          expectedLocalClasspath: Seq[String]
+      ) = {
+        val Right((runClasspath, _)) = eval.apply(mod.runClasspath)
+        val Right((compileClasspath, _)) = eval.apply(mod.compileClasspath)
+        val Right((upstreamAssemblyClasspath, _)) = eval.apply(mod.upstreamAssemblyClasspath)
+        val Right((localClasspath, _)) = eval.apply(mod.localClasspath)
+
+        val start = Set("org", "com", "MultiModuleClasspaths", "multiModuleClasspaths")
+        def simplify(cp: Seq[PathRef]) = {
+          cp.map(_.path.segments.dropWhile(!start.contains(_)).mkString("/"))
+        }
+
+        val simplerRunClasspath = simplify(runClasspath)
+        val simplerCompileClasspath = simplify(compileClasspath.toSeq)
+        val simplerLocalClasspath = simplify(localClasspath)
+
+        assert(expectedRunClasspath == simplerRunClasspath)
+        assert(expectedCompileClasspath == simplerCompileClasspath)
+        assert(expectedLocalClasspath == simplerLocalClasspath)
+        // invariant: the `upstreamAssemblyClasspath` used to make the `upstreamAssembly`
+        // and the `localClasspath` used to complete it to make the final `assembly` must
+        // have the same entries as the `runClasspath` used to execute things
+        assert(runClasspath == upstreamAssemblyClasspath.toSeq ++ localClasspath)
+      }
+
+      "modMod" - workspaceTest(MultiModuleClasspaths) { eval =>
+        // Make sure that `compileClasspath` has all the same things as `runClasspath`,
+        // but without the `/resources`
+        check(
+          eval,
+          MultiModuleClasspaths.ModMod.qux,
+          expectedRunClasspath = List(
+            // We pick up the oldest version of utest 0.7.0 from the current module, because
+            // utest is a `runIvyDeps` and not picked up transitively
+            "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
+            // We pick up the newest version of sourcecode 0.2.4 from the upstream module, because
+            // sourcecode is a `ivyDeps` and `runIvyDeps` and those are picked up transitively
+            "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
+            //
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
+            "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+            //
+            "MultiModuleClasspaths/ModMod/bar/compile-resources",
+            "MultiModuleClasspaths/ModMod/bar/unmanaged",
+            "MultiModuleClasspaths/ModMod/bar/resources",
+            "multiModuleClasspaths/modMod/ModMod/bar/compile.dest/classes",
+            //
+            "MultiModuleClasspaths/ModMod/foo/compile-resources",
+            "MultiModuleClasspaths/ModMod/foo/unmanaged",
+            "MultiModuleClasspaths/ModMod/foo/resources",
+            "multiModuleClasspaths/modMod/ModMod/foo/compile.dest/classes",
+            //
+            "MultiModuleClasspaths/ModMod/qux/compile-resources",
+            "MultiModuleClasspaths/ModMod/qux/unmanaged",
+            "MultiModuleClasspaths/ModMod/qux/resources",
+            "multiModuleClasspaths/modMod/ModMod/qux/compile.dest/classes"
+          ),
+          expectedCompileClasspath = List(
+            // Make sure we only have geny 0.6.4 from the current module, and not newer
+            // versions pulled in by the upstream modules, because as `compileIvyDeps` it
+            // is not picked up transitively
+            "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
+            //
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            //
+            "MultiModuleClasspaths/ModMod/bar/compile-resources",
+            "MultiModuleClasspaths/ModMod/bar/unmanaged",
+            "multiModuleClasspaths/modMod/ModMod/bar/compile.dest/classes",
+            //
+            "MultiModuleClasspaths/ModMod/foo/compile-resources",
+            "MultiModuleClasspaths/ModMod/foo/unmanaged",
+            "multiModuleClasspaths/modMod/ModMod/foo/compile.dest/classes",
+            //
+            "MultiModuleClasspaths/ModMod/qux/compile-resources",
+            "MultiModuleClasspaths/ModMod/qux/unmanaged"
+            // We do not include `qux/compile.dest/classes` here, because this is the input
+            // that is required to compile `qux` in the first place
+          ),
+          expectedLocalClasspath = List(
+            "MultiModuleClasspaths/ModMod/qux/compile-resources",
+            "MultiModuleClasspaths/ModMod/qux/unmanaged",
+            "MultiModuleClasspaths/ModMod/qux/resources",
+            "multiModuleClasspaths/modMod/ModMod/qux/compile.dest/classes"
+          )
+        )
+      }
+
+      "modCompile" - workspaceTest(MultiModuleClasspaths) { eval =>
+        // Mostly the same as `modMod` above, but with the dependency
+        // from `qux` to `bar` being a `compileModuleDeps`
+        check(
+          eval,
+          MultiModuleClasspaths.ModCompile.qux,
+          expectedRunClasspath = List(
+            // `utest` is a `runIvyDeps` and not picked up transitively
+            "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
+            // Because `sourcecode` comes from `ivyDeps`, and the dependency from
+            // `qux` to `bar` is a `compileModuleDeps`, we do not include its
+            // dependencies for `qux`'s `runClasspath`
+            "com/lihaoyi/sourcecode_2.13/0.2.0/sourcecode_2.13-0.2.0.jar",
+            //
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
+            "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+            //
+            "MultiModuleClasspaths/ModCompile/bar/compile-resources",
+            "MultiModuleClasspaths/ModCompile/bar/unmanaged",
+            "MultiModuleClasspaths/ModCompile/bar/resources",
+            "multiModuleClasspaths/modCompile/ModCompile/bar/compile.dest/classes",
+            //
+            "MultiModuleClasspaths/ModCompile/foo/compile-resources",
+            "MultiModuleClasspaths/ModCompile/foo/unmanaged",
+            "MultiModuleClasspaths/ModCompile/foo/resources",
+            "multiModuleClasspaths/modCompile/ModCompile/foo/compile.dest/classes",
+            //
+            "MultiModuleClasspaths/ModCompile/qux/compile-resources",
+            "MultiModuleClasspaths/ModCompile/qux/unmanaged",
+            "MultiModuleClasspaths/ModCompile/qux/resources",
+            "multiModuleClasspaths/modCompile/ModCompile/qux/compile.dest/classes"
+          ),
+          expectedCompileClasspath = List(
+            "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
+            // `sourcecode` is a `ivyDeps` from a `compileModuleDeps, which still
+            // gets picked up transitively, but only for compilation. This is necessary
+            // in order to make sure that we can correctly compile against the upstream
+            // module's classes.
+            "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
+            //
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            //
+            "MultiModuleClasspaths/ModCompile/bar/compile-resources",
+            "MultiModuleClasspaths/ModCompile/bar/unmanaged",
+            "multiModuleClasspaths/modCompile/ModCompile/bar/compile.dest/classes",
+            //
+            "MultiModuleClasspaths/ModCompile/foo/compile-resources",
+            "MultiModuleClasspaths/ModCompile/foo/unmanaged",
+            "multiModuleClasspaths/modCompile/ModCompile/foo/compile.dest/classes",
+            //
+            "MultiModuleClasspaths/ModCompile/qux/compile-resources",
+            "MultiModuleClasspaths/ModCompile/qux/unmanaged"
+          ),
+          expectedLocalClasspath = List(
+            "MultiModuleClasspaths/ModCompile/qux/compile-resources",
+            "MultiModuleClasspaths/ModCompile/qux/unmanaged",
+            "MultiModuleClasspaths/ModCompile/qux/resources",
+            "multiModuleClasspaths/modCompile/ModCompile/qux/compile.dest/classes"
+          )
+        )
+      }
+
+      "compileMod" - workspaceTest(MultiModuleClasspaths) { eval =>
+        // Both the `runClasspath` and `compileClasspath` should not have `foo` on the
+        // classpath, nor should it have the versions of libraries pulled in by `foo`
+        // (e.g. `sourcecode-0.2.4`), because it is a `compileModuleDep` of an upstream
+        // module and thus it is not transitive
+        check(
+          eval,
+          MultiModuleClasspaths.CompileMod.qux,
+          expectedRunClasspath = List(
+            "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
+            // We pick up the version of `sourcecode` from `ivyDeps` from `bar` because
+            // we have a normal `moduleDeps` from `qux` to `bar`, but do not pick it up
+            // from `foo` because it's a `compileIvyDeps` from `bar` to `foo` and
+            // `compileIvyDeps` are not transitive
+            "com/lihaoyi/sourcecode_2.13/0.2.1/sourcecode_2.13-0.2.1.jar",
+            //
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
+            "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+            //
+            "MultiModuleClasspaths/CompileMod/bar/compile-resources",
+            "MultiModuleClasspaths/CompileMod/bar/unmanaged",
+            "MultiModuleClasspaths/CompileMod/bar/resources",
+            "multiModuleClasspaths/compileMod/CompileMod/bar/compile.dest/classes",
+            //
+            "MultiModuleClasspaths/CompileMod/qux/compile-resources",
+            "MultiModuleClasspaths/CompileMod/qux/unmanaged",
+            "MultiModuleClasspaths/CompileMod/qux/resources",
+            "multiModuleClasspaths/compileMod/CompileMod/qux/compile.dest/classes"
+          ),
+          expectedCompileClasspath = List(
+            "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
+            "com/lihaoyi/sourcecode_2.13/0.2.1/sourcecode_2.13-0.2.1.jar",
+            //
+            "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            // We do not include `foo`s compile output here, because `foo` is a
+            // `compileModuleDep` of `bar`, and `compileModuleDep`s are non-transitive
+            //
+            "MultiModuleClasspaths/CompileMod/bar/compile-resources",
+            "MultiModuleClasspaths/CompileMod/bar/unmanaged",
+            "multiModuleClasspaths/compileMod/CompileMod/bar/compile.dest/classes",
+            //
+            "MultiModuleClasspaths/CompileMod/qux/compile-resources",
+            "MultiModuleClasspaths/CompileMod/qux/unmanaged"
+          ),
+          expectedLocalClasspath = List(
+            "MultiModuleClasspaths/CompileMod/qux/compile-resources",
+            "MultiModuleClasspaths/CompileMod/qux/unmanaged",
+            "MultiModuleClasspaths/CompileMod/qux/resources",
+            "multiModuleClasspaths/compileMod/CompileMod/qux/compile.dest/classes"
+          )
+        )
+      }
     }
   }
 }

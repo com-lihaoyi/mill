@@ -935,7 +935,7 @@ object bsp extends MillPublishScalaModule with BuildInfo {
   }
 
   object worker extends MillPublishScalaModule {
-    def compileModuleDeps = Seq(bsp, scalalib, testrunner, runner)
+    def compileModuleDeps = Seq(bsp, scalalib, testrunner, runner) ++ scalalib.compileModuleDeps
     def ivyDeps = Agg(Deps.bsp4j, Deps.sbtTestInterface)
   }
 }

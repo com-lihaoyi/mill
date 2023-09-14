@@ -52,14 +52,14 @@ compiling 1 Scala source...
 
 > ./mill run
 Foo.value: <h1>hello</h1>
-scalatagsVersion: 0.8.2
+scalatagsVersion: 0.12.0
 
 > ./mill show assembly
 ".../out/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
 Foo.value: <h1>hello</h1>
-scalatagsVersion: 0.8.2
+scalatagsVersion: 0.12.0
 
 */
 

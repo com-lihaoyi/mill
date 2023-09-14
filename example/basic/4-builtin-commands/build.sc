@@ -129,9 +129,9 @@ Inputs:
 
 > ./mill show foo.compileClasspath
 [
-  ".../foo/compile-resources",
   ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
   ...
+  ".../foo/compile-resources"
 ]
 
 */
@@ -150,9 +150,9 @@ Inputs:
     ".../foo/src"
   ],
   "foo.compileClasspath": [
-    ".../foo/compile-resources",
     ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
     ...
+    ".../foo/compile-resources"
   ]
 }
 
@@ -171,9 +171,9 @@ Inputs:
     ".../foo/src"
   ],
   "foo.compileClasspath": [
-    ".../foo/compile-resources",
     ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
     ...
+    ".../foo/compile-resources"
   ]
 }
 
