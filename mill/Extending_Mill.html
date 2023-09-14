@@ -263,14 +263,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.2-12-69954e</span>
+    <span class="version">0.11.2-13-9747a8</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.2-12-69954e</a>
+          <a href="index.html">0.11.2-13-9747a8</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -303,9 +303,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.2-12-69954e</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.2-13-9747a8</button>
   <div class="version-menu">
-    <a class="version is-current" href="Extending_Mill.html">0.11.2-12-69954e</a>
+    <a class="version is-current" href="Extending_Mill.html">0.11.2-13-9747a8</a>
     <a class="version" href="0.11.0-M7/Extending_Mill.html">0.11.0-M7</a>
     <a class="version" href="0.10.12/Extending_Mill.html">0.10.12</a>
     <a class="version" href="0.10.0/Extending_Mill.html">0.10.0</a>
@@ -333,10 +333,10 @@ easiest/least-flexible to the hardest/most-flexible.</p>
 <h2 id="_import_file_and_import_ivy"><a class="anchor" href="#_import_file_and_import_ivy"></a>import $file and import $ivy</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-12-69954e-example-misc-3-import-file-ivy.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/3-import-file-ivy">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-13-9747a8-example-misc-3-import-file-ivy.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/3-import-file-ivy">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-import $ivy.`com.lihaoyi::scalatags:0.8.2`, scalatags.Text.all._
+import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
 import $file.scalaversion, scalaversion.myScalaVersion
 
 object foo extends RootModule with ScalaModule {
@@ -460,7 +460,7 @@ Found 1 dependency update for
 <div class="sect2">
 <h3 id="_example_customizing_the_meta_build"><a class="anchor" href="#_example_customizing_the_meta_build"></a>Example: Customizing the Meta-Build</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-12-69954e-example-misc-4-mill-build-folder.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/4-mill-build-folder">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-13-9747a8-example-misc-4-mill-build-folder.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/4-mill-build-folder">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $meta._
 import mill._, scalalib._
@@ -495,7 +495,7 @@ compiled and executed to perform your build. This module lives in
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object millbuild extends MillBuildRootModule{
-  val scalatagsVersion = &quot;0.8.2&quot;
+  val scalatagsVersion = &quot;0.12.0&quot;
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
 
   def generatedSources = T {
@@ -554,14 +554,14 @@ compiling 1 Scala source...
 
 &gt; ./mill run
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
-scalatagsVersion: 0.8.2
+scalatagsVersion: 0.12.0
 
 &gt; ./mill show assembly
 &quot;.../out/assembly.dest/out.jar&quot;
 
 &gt; ./out/assembly.dest/out.jar # mac/linux
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
-scalatagsVersion: 0.8.2</code></pre>
+scalatagsVersion: 0.12.0</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -587,7 +587,7 @@ cli option.</p>
 <h2 id="_using_scalamodule_run_as_a_task"><a class="anchor" href="#_using_scalamodule_run_as_a_task"></a>Using ScalaModule.run as a task</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-12-69954e-example-misc-5-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/5-module-run-task">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.2-13-9747a8-example-misc-5-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/misc/5-module-run-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
