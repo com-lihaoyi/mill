@@ -155,7 +155,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:3.1.2"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.9.3"
+  val zinc = ivy"org.scala-sbt::zinc:1.9.4"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
