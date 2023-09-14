@@ -1594,6 +1594,8 @@ object HelloWorldTests extends TestSuite {
             "com/lihaoyi/sourcecode_2.13/0.2.1/sourcecode_2.13-0.2.1.jar",
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+            // We do not include `foo`s compile output here, because `foo` is a
+            // `compileModuleDep` of `bar`, and `compileModuleDep`s are non-transitive
             //
             "MultiModuleClasspaths/CompileMod/bar/compile-resources",
             "MultiModuleClasspaths/CompileMod/bar/unmanaged",
