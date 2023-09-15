@@ -364,14 +364,16 @@ trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 /** Publishable module which contains strictly handled API. */
 trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   import com.github.lolgab.mill.mima._
-  // MIMA doesn't properly ignore things which are nested inside other private things
-  // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
+    // MIMA doesn't properly ignore things which are nested inside other private things
+    // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
     ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
     ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
     ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
     ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
-    ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*")
+    ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*"),
+    // See https://github.com/com-lihaoyi/mill/pull/2739
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$scalaLibraryIvyDeps")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 

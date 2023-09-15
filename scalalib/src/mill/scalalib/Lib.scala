@@ -114,13 +114,11 @@ object Lib {
   def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion)) {
       Agg(
-        // note that dotty-library has a binary version suffix, hence the :: is necessary here
         ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
       )
     } else if (ZincWorkerUtil.isScala3(scalaVersion))
       Agg(
-        // note that dotty-library has a binary version suffix, hence the :: is necessary here
-        ivy"$scalaOrganization::scala3-library::$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
       )
     else
       Agg(

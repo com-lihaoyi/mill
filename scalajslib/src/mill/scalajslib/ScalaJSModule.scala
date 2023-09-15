@@ -5,7 +5,7 @@ import mainargs.Flag
 import mill.api.{Loose, PathRef, Result, internal}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
+import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.define.{Command, Target, Task}
 import mill.scalajslib.api._
@@ -33,6 +33,20 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSBinaryVersion = T { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 
   def scalaJSWorkerVersion = T { ZincWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
+
+  override def scalaLibraryIvyDeps = T {
+    val deps = super.scalaLibraryIvyDeps()
+    if (ZincWorkerUtil.isScala3(scalaVersion())) {
+      // Since Dotty/Scala3, Scala.JS is published with a platform suffix
+      deps.map(dep =>
+        dep.copy(cross = dep.cross match {
+          case c: CrossVersion.Constant => c.copy(platformed = true)
+          case c: CrossVersion.Binary => c.copy(platformed = true)
+          case c: CrossVersion.Full => c.copy(platformed = true)
+        })
+      )
+    } else deps
+  }
 
   def scalaJSWorkerClasspath = T {
     mill.util.Util.millProjectModule(

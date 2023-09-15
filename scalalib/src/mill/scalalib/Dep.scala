@@ -181,7 +181,7 @@ object CrossVersion {
     implicit def rw: RW[Full] = macroRW
   }
 
-  def empty(platformed: Boolean) = Constant(value = "", platformed)
+  def empty(platformed: Boolean): Constant = Constant(value = "", platformed)
 
   implicit def rw: RW[CrossVersion] = RW.merge(Constant.rw, Binary.rw, Full.rw)
 }
