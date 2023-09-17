@@ -296,9 +296,9 @@ endif::[]
 
 _Changes since {prev-version}:_
 
-* Allow Mill CLI to select the meta-build frame it operates on via `--meta-level <n>` {link-pr}/2419[#2419]
+* Allow Mill CLI to select the meta-build frame it operates on via `--meta-level <n>` {link-pr}/2719[#2719]
 
-* Improve the `mill resolve` suggestion when a user specifies a target in the wrong module {link-pr}/2431[#2431]
+* Improve the `mill resolve` suggestion when a user specifies a target in the wrong module {link-pr}/2731[#2731]
 
 * Fix conflicting dependencies between upstream JavaModules {link-pr}/2735[#2735]
 
