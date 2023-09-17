@@ -162,6 +162,8 @@ object Jvm extends CoursierSupport {
     // elsewhere
 
     if (!SystemStreams.isOriginal()) {
+      println("then")
+
       val process = os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,
@@ -187,6 +189,10 @@ object Jvm extends CoursierSupport {
 
       process
     } else {
+      println("else")
+      pprint.log(if (!background) os.Inherit else "")
+      pprint.log(if (!background) os.Inherit else workingDir / "stdout.log")
+      pprint.log(if (!background) os.Inherit else workingDir / "stderr.log")
       os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,

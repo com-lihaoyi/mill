@@ -16,7 +16,7 @@ class SystemStreams(
 
 object SystemStreams {
 
-  private val original = new SystemStreams(System.out, System.err, System.in)
+  val original = new SystemStreams(System.out, System.err, System.in)
 
   /**
    * Used to check whether the system streams are all "original", i,e. they
@@ -31,8 +31,14 @@ object SystemStreams {
     (System.err eq original.err) &&
     (System.in eq original.in) &&
     (Console.out eq original.out) &&
-    (Console.err eq original.err) &&
-    (Console.in eq original.in)
+    (Console.err eq original.err)
+
+    // We do not check `Console.in` for equality, because `Console.withIn` always wraps
+    // `Console.in` in a `new BufferedReader` each time, and so it is impossible to check
+    // whether it is original or not. We just have to assume that it is kept in sync with
+    // `System.in`, which `withStreams` does ensure.
+    //
+    //(Console.in eq original.consoleIn)
   }
 
   /**
