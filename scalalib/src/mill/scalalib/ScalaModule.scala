@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import scala.annotation.nowarn
-import mill.api.{DummyInputStream, JarManifest, PathRef, Result, internal}
+import mill.api.{DummyInputStream, JarManifest, PathRef, Result, SystemStreams, internal}
 import mill.main.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
@@ -371,20 +371,22 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     if (T.log.inStream == DummyInputStream) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
-      Jvm.runSubprocess(
-        mainClass =
-          if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
-            "dotty.tools.repl.Main"
-          else
-            "scala.tools.nsc.MainGenericRunner",
-        classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(
-          _.path
-        ),
-        jvmArgs = forkArgs(),
-        envArgs = forkEnv(),
-        mainArgs = Seq("-usejavacp"),
-        workingDir = forkWorkingDir()
-      )
+      SystemStreams.withStreams(SystemStreams.original) {
+        Jvm.runSubprocess(
+          mainClass =
+            if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
+              "dotty.tools.repl.Main"
+            else
+              "scala.tools.nsc.MainGenericRunner",
+          classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(
+            _.path
+          ),
+          jvmArgs = forkArgs(),
+          envArgs = forkEnv(),
+          mainArgs = Seq("-usejavacp"),
+          workingDir = forkWorkingDir()
+        )
+      }
       Result.Success(())
     }
   }
@@ -443,14 +445,16 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     } else {
       val mainClass = ammoniteMainClass()
       T.log.debug(s"Using ammonite main class: ${mainClass}")
-      Jvm.runSubprocess(
-        mainClass = mainClass,
-        classPath = ammoniteReplClasspath().map(_.path),
-        jvmArgs = forkArgs(),
-        envArgs = forkEnv(),
-        mainArgs = replOptions,
-        workingDir = forkWorkingDir()
-      )
+      SystemStreams.withStreams(SystemStreams.original) {
+        Jvm.runSubprocess(
+          mainClass = mainClass,
+          classPath = ammoniteReplClasspath().map(_.path),
+          jvmArgs = forkArgs(),
+          envArgs = forkEnv(),
+          mainArgs = replOptions,
+          workingDir = forkWorkingDir()
+        )
+      }
       Result.Success(())
     }
 
