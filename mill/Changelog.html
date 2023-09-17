@@ -262,14 +262,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.2-18-4e6de5</span>
+    <span class="version">0.11.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.2-18-4e6de5</a>
+          <a href="index.html">0.11.3</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -302,9 +302,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.2-18-4e6de5</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.3</button>
   <div class="version-menu">
-    <a class="version is-current" href="Changelog.html">0.11.2-18-4e6de5</a>
+    <a class="version is-current" href="Changelog.html">0.11.3</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="0.10.0/index.html">0.10.0</a>
@@ -319,6 +319,33 @@
 </aside>
 <article class="doc">
 <h1 class="page">Changelog</h1>
+<div class="sect1">
+<h2 id="0-11-3"><a class="anchor" href="#0-11-3"></a>0.11.3 - 2023-09-17</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Changes since 0.11.2:</em></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Allow Mill CLI to select the meta-build frame it operates on via <code>--meta-level &lt;n&gt;</code> <a href="https://github.com/com-lihaoyi/mill/pull/2419">#2419</a></p>
+</li>
+<li>
+<p>Improve the <code>mill resolve</code> suggestion when a user specifies a target in the wrong module <a href="https://github.com/com-lihaoyi/mill/pull/2431">#2431</a></p>
+</li>
+<li>
+<p>Fix conflicting dependencies between upstream JavaModules <a href="https://github.com/com-lihaoyi/mill/pull/2735">#2735</a></p>
+</li>
+<li>
+<p>Fix the scala-library dependency for (generic) platform modules <a href="https://github.com/com-lihaoyi/mill/pull/2739">#2739</a></p>
+</li>
+<li>
+<p>Fix terminal forwarding in <code>.console</code> and <code>.repl</code> commands <a href="https://github.com/com-lihaoyi/mill/pull/2743">#2743</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="0-11-2"><a class="anchor" href="#0-11-2"></a>0.11.2 - 2023-08-28</h2>
 <div class="sectionbody">
