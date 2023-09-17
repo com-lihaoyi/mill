@@ -38,7 +38,7 @@ object SystemStreams {
     // whether it is original or not. We just have to assume that it is kept in sync with
     // `System.in`, which `withStreams` does ensure.
     //
-    //(Console.in eq original.consoleIn)
+    // (Console.in eq original.consoleIn)
   }
 
   /**
