@@ -190,6 +190,9 @@ object Jvm extends CoursierSupport {
       process
     } else {
       println("else")
+      pprint.log(commandArgs)
+      pprint.log(workingDir)
+      pprint.log(envArgs)
       pprint.log(if (!background) os.Inherit else "")
       pprint.log(if (!background) os.Inherit else workingDir / "stdout.log")
       pprint.log(if (!background) os.Inherit else workingDir / "stderr.log")
