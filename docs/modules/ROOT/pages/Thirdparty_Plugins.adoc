@@ -675,6 +675,7 @@ object hello extends ScalaModule with NativeImage {
   def nativeImageName         = "hello"
   def nativeImageMainClass    = "Main"
   def nativeImageGraalVmJvmId = "graalvm-java17:22.3.2"
+  def nativeImageClassPath    = runClasspath()
   def nativeImageOptions = Seq(
     "--no-fallback",
     "--enable-url-protocols=http,https",
