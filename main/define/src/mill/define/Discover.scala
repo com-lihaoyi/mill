@@ -23,7 +23,7 @@ case class Discover[T] private (
     ],
     dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/
 ) {
-  @deprecated
+  @deprecated("Binary compatibility shim", "Mill 0.11.4")
   def this(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) =
     this(value.view.mapValues((Nil, _)).toMap)
 }
