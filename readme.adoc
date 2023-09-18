@@ -282,8 +282,8 @@ endif::[]
 // === master
 // :version: master
 // :milestone-name: master
-// :milestone: 87
-// :prev-version: 0.11.2
+// :milestone: 88
+// :prev-version: 0.11.3
 //
 // * TODO
 
@@ -305,6 +305,10 @@ _Changes since {prev-version}:_
 * Fix the scala-library dependency for (generic) platform modules {link-pr}/2739[#2739]
 
 * Fix terminal forwarding in `.console` and `.repl` commands {link-pr}/2743[#2743]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-2]
