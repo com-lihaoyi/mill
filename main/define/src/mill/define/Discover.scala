@@ -19,11 +19,14 @@ import scala.reflect.macros.blackbox
 case class Discover[T] private (val value: Map[
   Class[_],
   (Seq[String], Seq[mainargs.MainData[_, _]])
-])
+], dummy: Int = 0)
 
 object Discover {
   def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover[T] =
     new Discover[T](value)
+
+  def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover[T] =
+    new Discover[T](value.mapValues((Nil, _)).toMap)
 
   def apply[T]: Discover[T] = macro Router.applyImpl[T]
 
