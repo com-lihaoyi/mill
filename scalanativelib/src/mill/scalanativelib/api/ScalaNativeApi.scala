@@ -23,9 +23,11 @@ object ReleaseMode {
   case object Debug extends ReleaseMode("debug")
   case object ReleaseFast extends ReleaseMode("release-fast")
   case object ReleaseFull extends ReleaseMode("release-full")
-  /** Optimizes output binary size and still have relatively fast runtime performance. 
+
+  /**
+   * Optimizes output binary size and still have relatively fast runtime performance.
    *  Equivalent to `-Oz` switch of `clang`.
-   *  Since Scala Native 0.4.10 
+   *  Since Scala Native 0.4.10
    */
   case object ReleaseSize extends ReleaseMode("release-size")
 
