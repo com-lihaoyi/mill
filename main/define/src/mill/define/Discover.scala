@@ -19,7 +19,7 @@ import scala.reflect.macros.blackbox
 case class Discover[T] private (val value: Map[
   Class[_],
   (Seq[String], Seq[mainargs.MainData[_, _]])
-], dummy: Int = 0)
+], dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/)
 
 object Discover {
   def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover[T] =
