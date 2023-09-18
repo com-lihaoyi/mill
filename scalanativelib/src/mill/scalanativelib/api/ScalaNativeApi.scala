@@ -18,15 +18,17 @@ object LTO {
 
 sealed abstract class ReleaseMode(val value: String)
 object ReleaseMode {
-  val values = Seq(Debug, ReleaseFast, ReleaseFull)
+  val values = Seq(Debug, ReleaseFast, ReleaseFull, ReleaseSize)
 
   case object Debug extends ReleaseMode("debug")
   case object ReleaseFast extends ReleaseMode("release-fast")
   case object ReleaseFull extends ReleaseMode("release-full")
+  case object ReleaseSize extends ReleaseMode("release-size")
 
   implicit val rwDebug: ReadWriter[Debug.type] = macroRW[Debug.type]
   implicit val rwReleaseFast: ReadWriter[ReleaseFast.type] = macroRW[ReleaseFast.type]
   implicit val rwReleaseFull: ReadWriter[ReleaseFull.type] = macroRW[ReleaseFull.type]
+  implicit val rwReleaseSize: ReadWriter[ReleaseSize.type] = macroRW[ReleaseSize.type]
   implicit val rw: ReadWriter[ReleaseMode] = macroRW[ReleaseMode]
 }
 
