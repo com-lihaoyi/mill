@@ -5,7 +5,8 @@ import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`com.github.lolgab::mill-mima::0.0.23`
-import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.25`
+import $ivy.`com.github.lolgab::mill-mima::0.0.24`
+import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
 import mill.define.NamedTask
 import mill.main.Tasks
 
