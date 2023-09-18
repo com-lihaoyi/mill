@@ -56,7 +56,7 @@ object Jvm extends CoursierSupport {
 
   def javaExe: String = jdkTool("java")
 
-  private[this] def defaultBackgroundOutputs( outputDir : os.Path ) : Option[(ProcessOutput,ProcessOutput)]
+  def defaultBackgroundOutputs( outputDir : os.Path ) : Option[(ProcessOutput,ProcessOutput)]
     = Some( (outputDir / "stdout.log", outputDir / "stderr.log") )
 
   /**

@@ -17,7 +17,7 @@ import mill.util.Jvm
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
-import os.Path
+import os.{Path,ProcessOutput}
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -781,18 +781,19 @@ trait JavaModule
     forkEnv: Map[String,String],
     finalMainClass: String,
     forkWorkingDir: Path,
-    runUseArgsFile: Boolean
+    runUseArgsFile: Boolean,
+    backgroundOutputs : Option[Tuple2[ProcessOutput,ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = ctx => {
     val (procId, procTombstone, token) = backgroundSetup(taskDest)
     try Result.Success(
-        Jvm.runSubprocess(
+        Jvm.runSubprocessWithBackgroundOutputs(
           "mill.scalalib.backgroundwrapper.BackgroundWrapper",
           (runClasspath ++ zwBackgroundWrapperClasspath).map(_.path),
           forkArgs,
           forkEnv,
           Seq(procId.toString, procTombstone.toString, token, finalMainClass) ++ args,
           workingDir = forkWorkingDir,
-          background = true,
+          backgroundOutputs,
           useCpPassingJar = runUseArgsFile
         )( ctx )
       )
@@ -823,6 +824,7 @@ trait JavaModule
     val _forkWorkingDir               = forkWorkingDir()
     val _runUseArgsFile               = runUseArgsFile()
     val _ctx                          = implicitly[Ctx]
+    val _backgroundOutputs            = Jvm.defaultBackgroundOutputs( _taskDest )
     doRunBackground(
       _taskDest,
       _runClasspath,
@@ -831,7 +833,8 @@ trait JavaModule
       _forkEnv,
       _finalMainClass,
       _forkWorkingDir,
-      _runUseArgsFile
+      _runUseArgsFile,
+      _backgroundOutputs
     )(args : _*)( _ctx )
   }
 
@@ -844,10 +847,10 @@ trait JavaModule
     val _zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath()
     val _forkArgs                     = forkArgs()
     val _forkEnv                      = forkEnv()
-    val _finalMainClass               = finalMainClass()
     val _forkWorkingDir               = forkWorkingDir()
     val _runUseArgsFile               = runUseArgsFile()
     val _ctx                          = implicitly[Ctx]
+    val _backgroundOutputs            = Jvm.defaultBackgroundOutputs( _taskDest )
     doRunBackground(
       _taskDest,
       _runClasspath,
@@ -856,7 +859,58 @@ trait JavaModule
       _forkEnv,
       mainClass,
       _forkWorkingDir,
-      _runUseArgsFile
+      _runUseArgsFile,
+      _backgroundOutputs
+    )(args : _*)( _ctx )
+  }
+
+  def runBackgroundInherit(args: String*): Command[Unit] = T.command {
+    val _taskDest                     = T.dest
+    val _runClasspath                 = runClasspath()
+    val _zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath()
+    val _forkArgs                     = forkArgs()
+    val _forkEnv                      = forkEnv()
+    val _finalMainClass               = finalMainClass()
+    val _forkWorkingDir               = forkWorkingDir()
+    val _runUseArgsFile               = runUseArgsFile()
+    val _ctx                          = implicitly[Ctx]
+    val _backgroundOutputs            = Some( (os.Inherit, os.Inherit) )
+    doRunBackground(
+      _taskDest,
+      _runClasspath,
+      _zwBackgroundWrapperClasspath,
+      _forkArgs,
+      _forkEnv,
+      _finalMainClass,
+      _forkWorkingDir,
+      _runUseArgsFile,
+      _backgroundOutputs
+    )(args : _*)( _ctx )
+  }
+
+  /**
+   * Same as `runBackground`, but lets you specify a main class to run
+   */
+  def runMainBackgroundInherit(mainClass: String, args: String*): Command[Unit] = T.command {
+    val _taskDest                     = T.dest
+    val _runClasspath                 = runClasspath()
+    val _zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath()
+    val _forkArgs                     = forkArgs()
+    val _forkEnv                      = forkEnv()
+    val _forkWorkingDir               = forkWorkingDir()
+    val _runUseArgsFile               = runUseArgsFile()
+    val _ctx                          = implicitly[Ctx]
+    val _backgroundOutputs            = Some( (os.Inherit, os.Inherit) )
+    doRunBackground(
+      _taskDest,
+      _runClasspath,
+      _zwBackgroundWrapperClasspath,
+      _forkArgs,
+      _forkEnv,
+      mainClass,
+      _forkWorkingDir,
+      _runUseArgsFile,
+      _backgroundOutputs
     )(args : _*)( _ctx )
   }
 
