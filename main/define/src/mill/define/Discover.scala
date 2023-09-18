@@ -22,7 +22,10 @@ case class Discover[T] private (
       (Seq[String], Seq[mainargs.MainData[_, _]])
     ],
     dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/
-)
+) {
+  def this(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) =
+    this(value.mapValues((Nil, _)).toMap)
+}
 
 object Discover {
   def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover[T] =
