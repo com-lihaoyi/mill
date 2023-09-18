@@ -287,6 +287,21 @@ endif::[]
 //
 // * TODO
 
+[#0-11-4]
+=== 0.11.4 - 2023-09-19
+:version: 0.11.4
+:milestone-name: 0.11.4
+:milestone: 88
+:prev-version: 0.11.3
+
+_Changes since {prev-version}:_
+
+* Fix binary incompatibility issue with `Discover` macro's generated generic code {link-pr}/2749[#2749]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 [#0-11-3]
 === 0.11.3 - 2023-09-17
 :version: 0.11.3
