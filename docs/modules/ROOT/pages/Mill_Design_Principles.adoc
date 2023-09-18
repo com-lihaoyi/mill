@@ -5,6 +5,7 @@
 The following external resources give more of a flavor of the architecture behind
 Mill:
 
+* https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[So, What's So Special About The Mill Scala Build Tool?]
 * https://www.youtube.com/watch?v=j6uThGxx-18[Video: Mill a Build Tool based on Pure Functional Programming]
 * http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Blog Post: So, what's wrong with SBT?]
 * http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Blog Post: Build Tools as Pure Functional Programs]
