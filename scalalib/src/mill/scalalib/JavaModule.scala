@@ -9,6 +9,7 @@ import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
 import mainargs.Flag
+import mill.api.Ctx
 import mill.api.Loose.Agg
 import mill.define.ModuleRef
 import mill.api.{JarManifest, PathRef, Result, internal}
@@ -772,6 +773,35 @@ trait JavaModule
     (procId, procTombstone, token)
   }
 
+  private[this] def doRunBackground(
+    taskDest: Path,
+    runClasspath: Seq[PathRef],
+    zwBackgroundWrapperClasspath: Agg[PathRef],
+    forkArgs: Seq[String],
+    forkEnv: Map[String,String],
+    finalMainClass: String,
+    forkWorkingDir: Path,
+    runUseArgsFile: Boolean
+  )(args: String*): Ctx => Result[Unit] = ctx => {
+    val (procId, procTombstone, token) = backgroundSetup(taskDest)
+    try Result.Success(
+        Jvm.runSubprocess(
+          "mill.scalalib.backgroundwrapper.BackgroundWrapper",
+          (runClasspath ++ zwBackgroundWrapperClasspath).map(_.path),
+          forkArgs,
+          forkEnv,
+          Seq(procId.toString, procTombstone.toString, token, finalMainClass) ++ args,
+          workingDir = forkWorkingDir,
+          background = true,
+          useCpPassingJar = runUseArgsFile
+        )( ctx )
+      )
+    catch {
+      case e: Exception =>
+        Result.Failure("subprocess failed")
+    }
+  }
+
   /**
    * Runs this module's code in a background process, until it dies or
    * `runBackground` is used again. This lets you continue using Mill while
@@ -784,49 +814,51 @@ trait JavaModule
    * that would otherwise run forever
    */
   def runBackground(args: String*): Command[Unit] = T.command {
-    val (procId, procTombstone, token) = backgroundSetup(T.dest)
-    try Result.Success(
-        Jvm.runSubprocess(
-          "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-          (runClasspath() ++ zincWorker().backgroundWrapperClasspath()).map(_.path),
-          forkArgs(),
-          forkEnv(),
-          Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
-          workingDir = forkWorkingDir(),
-          background = true,
-          useCpPassingJar = runUseArgsFile()
-        )
-      )
-    catch {
-      case e: Exception =>
-        Result.Failure("subprocess failed")
-    }
+    val _taskDest                     = T.dest
+    val _runClasspath                 = runClasspath()
+    val _zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath()
+    val _forkArgs                     = forkArgs()
+    val _forkEnv                      = forkEnv()
+    val _finalMainClass               = finalMainClass()
+    val _forkWorkingDir               = forkWorkingDir()
+    val _runUseArgsFile               = runUseArgsFile()
+    val _ctx                          = implicitly[Ctx]
+    doRunBackground(
+      _taskDest,
+      _runClasspath,
+      _zwBackgroundWrapperClasspath,
+      _forkArgs,
+      _forkEnv,
+      _finalMainClass,
+      _forkWorkingDir,
+      _runUseArgsFile
+    )(args : _*)( _ctx )
   }
 
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
-  def runMainBackground(mainClass: String, args: String*): Command[Unit] =
-    T.command {
-      val (procId, procTombstone, token) = backgroundSetup(T.dest)
-      try Result.Success(
-          Jvm.runSubprocess(
-            "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-            (runClasspath() ++ zincWorker().backgroundWrapperClasspath())
-              .map(_.path),
-            forkArgs(),
-            forkEnv(),
-            Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
-            workingDir = forkWorkingDir(),
-            background = true,
-            useCpPassingJar = runUseArgsFile()
-          )
-        )
-      catch {
-        case e: Exception =>
-          Result.Failure("subprocess failed")
-      }
-    }
+  def runMainBackground(mainClass: String, args: String*): Command[Unit] = T.command {
+    val _taskDest                     = T.dest
+    val _runClasspath                 = runClasspath()
+    val _zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath()
+    val _forkArgs                     = forkArgs()
+    val _forkEnv                      = forkEnv()
+    val _finalMainClass               = finalMainClass()
+    val _forkWorkingDir               = forkWorkingDir()
+    val _runUseArgsFile               = runUseArgsFile()
+    val _ctx                          = implicitly[Ctx]
+    doRunBackground(
+      _taskDest,
+      _runClasspath,
+      _zwBackgroundWrapperClasspath,
+      _forkArgs,
+      _forkEnv,
+      mainClass,
+      _forkWorkingDir,
+      _runUseArgsFile
+    )(args : _*)( _ctx )
+  }
 
   /**
    * Same as `runLocal`, but lets you specify a main class to run
