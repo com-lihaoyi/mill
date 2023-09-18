@@ -248,6 +248,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
                 case ReleaseMode.Debug => BloopConfig.LinkerMode.Debug
                 case ReleaseMode.ReleaseFast => BloopConfig.LinkerMode.Release
                 case ReleaseMode.ReleaseFull => BloopConfig.LinkerMode.Release
+                case ReleaseMode.ReleaseSize => BloopConfig.LinkerMode.Release
               },
               gc = m.nativeGC(),
               targetTriple = m.nativeTarget(),
