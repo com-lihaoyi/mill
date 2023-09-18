@@ -34,7 +34,7 @@ object Discover {
 
   @deprecated
   def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover[T] =
-    new Discover[T](value.mapValues((Nil, _)).toMap)
+    new Discover[T](value.view.mapValues((Nil, _)).toMap)
 
   def apply[T]: Discover[T] = macro Router.applyImpl[T]
 
