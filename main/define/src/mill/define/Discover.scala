@@ -25,7 +25,7 @@ case class Discover[T] private (
 ) {
   @deprecated
   def this(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) =
-    this(value.mapValues((Nil, _)).toMap)
+    this(value.view.mapValues((Nil, _)).toMap)
 }
 
 object Discover {
