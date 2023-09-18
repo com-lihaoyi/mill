@@ -32,7 +32,7 @@ object Discover {
   def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover[T] =
     new Discover[T](value)
 
-  @deprecated
+  @deprecated("Binary compatibility shim", "Mill 0.11.4")
   def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover[T] =
     new Discover[T](value.view.mapValues((Nil, _)).toMap)
 
