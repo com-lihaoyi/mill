@@ -16,14 +16,37 @@ import scala.reflect.macros.blackbox
  * the `T.command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-case class Discover[T] private (val value: Map[
-  Class[_],
-  (Seq[String], Seq[mainargs.MainData[_, _]])
-])
+case class Discover[T] private (
+    value: Map[
+      Class[_],
+      (Seq[String], Seq[mainargs.MainData[_, _]])
+    ],
+    dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/
+) {
+  @deprecated("Binary compatibility shim", "Mill 0.11.4")
+  private[define] def this(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) =
+    this(value.view.mapValues((Nil, _)).toMap)
+  // Explicit copy, as we also need to provide an override for bin-compat reasons
+  def copy[T](
+      value: Map[
+        Class[_],
+        (Seq[String], Seq[mainargs.MainData[_, _]])
+      ] = value,
+      dummy: Int = dummy /* avoid conflict with Discover.apply(value: Map) below*/
+  ): Discover[T] = new Discover[T](value, dummy)
+  @deprecated("Binary compatibility shim", "Mill 0.11.4")
+  private[define] def copy[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover[T] = {
+    new Discover[T](value.view.mapValues((Nil, _)).toMap, dummy)
+  }
+}
 
 object Discover {
   def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover[T] =
     new Discover[T](value)
+
+  @deprecated("Binary compatibility shim", "Mill 0.11.4")
+  def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover[T] =
+    new Discover[T](value.view.mapValues((Nil, _)).toMap)
 
   def apply[T]: Discover[T] = macro Router.applyImpl[T]
 
