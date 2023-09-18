@@ -23,6 +23,7 @@ case class Discover[T] private (
     ],
     dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/
 ) {
+  @deprecated
   def this(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) =
     this(value.mapValues((Nil, _)).toMap)
 }
@@ -31,6 +32,7 @@ object Discover {
   def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover[T] =
     new Discover[T](value)
 
+  @deprecated
   def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover[T] =
     new Discover[T](value.mapValues((Nil, _)).toMap)
 
