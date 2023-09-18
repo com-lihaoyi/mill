@@ -16,10 +16,13 @@ import scala.reflect.macros.blackbox
  * the `T.command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-case class Discover[T] private (val value: Map[
-  Class[_],
-  (Seq[String], Seq[mainargs.MainData[_, _]])
-], dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/)
+case class Discover[T] private (
+    val value: Map[
+      Class[_],
+      (Seq[String], Seq[mainargs.MainData[_, _]])
+    ],
+    dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/
+)
 
 object Discover {
   def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover[T] =
