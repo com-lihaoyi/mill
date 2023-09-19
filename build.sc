@@ -519,14 +519,14 @@ object main extends MillStableScalaModule with BuildInfo {
       trait CaseModule extends ScalaModule with Cross.Module[String] {
         def caseName = crossValue
         object external extends ScalaModule {
-          def scalaVersion = "2.13.10"
+          def scalaVersion = Deps.scalaVersion
         }
 
         def moduleDeps = Seq(external)
 
         val Array(prefix, suffix, rest) = caseName.split("-", 3)
         def millSourcePath = super.millSourcePath / prefix / suffix / rest
-        def scalaVersion = "2.13.10"
+        def scalaVersion = Deps.scalaVersion
         def ivyDeps = T {
           if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
           else Agg(

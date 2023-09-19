@@ -41,7 +41,7 @@ class MillBuildRootModule()(implicit
   override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
   override def intellijModulePath: os.Path = millSourcePath / os.up
 
-  override def scalaVersion: T[String] = "2.13.10"
+  override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
   /**
    * All script files (that will get wrapped later)
