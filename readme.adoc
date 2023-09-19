@@ -278,15 +278,6 @@ endif::[]
 :link-milestone: {link-github}/milestone
 
 
-// [#master]
-// === master
-// :version: master
-// :milestone-name: master
-// :milestone: 88
-// :prev-version: 0.11.3
-//
-// * TODO
-
 [#0-11-4]
 === 0.11.4 - 2023-09-19
 :version: 0.11.4
@@ -297,6 +288,7 @@ endif::[]
 _Changes since {prev-version}:_
 
 * Fix binary incompatibility issue with `Discover` macro's generated generic code {link-pr}/2749[#2749]
+* Support the `release-size` mode in `ScalaNativeModule` {link-pr}/2754[#2754]
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
