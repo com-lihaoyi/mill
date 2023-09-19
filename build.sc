@@ -109,7 +109,7 @@ object Deps {
   val coursierInterface = ivy"io.get-coursier:interface:1.0.18"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
-  val castor = ivy"com.lihaoyi::castor:0.1.7"
+  val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
