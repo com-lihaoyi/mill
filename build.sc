@@ -49,7 +49,7 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.11"
+  val scalaVersion = "2.13.12"
   // Scoverage 1.x will not get releases for newer Scala versions
   val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
@@ -100,7 +100,7 @@ object Deps {
   }
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.8"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.9"
   val ammoniteVersion = "3.0.0-M0-53-084f7f4e"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.5"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
@@ -132,7 +132,7 @@ object Deps {
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
-  val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.5"
+  val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.6"
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
@@ -141,7 +141,7 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.10"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val scoverage2Version = "2.0.10"
+  val scoverage2Version = "2.0.11"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -163,8 +163,8 @@ object Deps {
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.9.0"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
   // tests framework (test)
-  val testScalaTest = ivy"org.scalatest::scalatest:3.2.16"
-  val testZioTest = ivy"dev.zio::zio-test:2.0.16"
+  val testScalaTest = ivy"org.scalatest::scalatest:3.2.17"
+  val testZioTest = ivy"dev.zio::zio-test:2.0.17"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
@@ -374,7 +374,9 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
     ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*"),
     // See https://github.com/com-lihaoyi/mill/pull/2739
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$scalaLibraryIvyDeps")
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$scalaLibraryIvyDeps"
+    )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
@@ -1793,5 +1795,13 @@ def validate(): Command[Unit] = {
 object DependencyFetchDummy extends ScalaModule {
   def scalaVersion = Deps.scalaVersion
   def compileIvyDeps =
-    Agg(Deps.millScip, Deps.semanticDbJava, Deps.semanticDB, Deps.testScalaTest, Deps.testZioTest)
+    Agg(
+      Deps.millScip,
+      Deps.semanticDbJava,
+      Deps.semanticDB,
+      Deps.testScalaTest,
+      Deps.testZioTest,
+      Deps.acyclic,
+      Deps.scalacScoverage2Plugin
+    )
 }
