@@ -815,103 +815,69 @@ trait JavaModule
    * that would otherwise run forever
    */
   def runBackground(args: String*): Command[Unit] = T.command {
-    val _taskDest                     = T.dest
-    val _runClasspath                 = runClasspath()
-    val _zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath()
-    val _forkArgs                     = forkArgs()
-    val _forkEnv                      = forkEnv()
-    val _finalMainClass               = finalMainClass()
-    val _forkWorkingDir               = forkWorkingDir()
-    val _runUseArgsFile               = runUseArgsFile()
-    val _ctx                          = implicitly[Ctx]
-    val _backgroundOutputs            = Jvm.defaultBackgroundOutputs( _taskDest )
+    val ctx = implicitly[Ctx]
     doRunBackground(
-      _taskDest,
-      _runClasspath,
-      _zwBackgroundWrapperClasspath,
-      _forkArgs,
-      _forkEnv,
-      _finalMainClass,
-      _forkWorkingDir,
-      _runUseArgsFile,
-      _backgroundOutputs
-    )(args : _*)( _ctx )
+      taskDest = T.dest,
+      runClasspath = runClasspath(),
+      zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
+      forkArgs = forkArgs(),
+      forkEnv = forkEnv(),
+      finalMainClass = finalMainClass(),
+      forkWorkingDir = forkWorkingDir(),
+      runUseArgsFile = runUseArgsFile(),
+      backgroundOutputs = Jvm.defaultBackgroundOutputs( T.dest )
+    )(args : _*)( ctx )
   }
 
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
   def runMainBackground(mainClass: String, args: String*): Command[Unit] = T.command {
-    val _taskDest                     = T.dest
-    val _runClasspath                 = runClasspath()
-    val _zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath()
-    val _forkArgs                     = forkArgs()
-    val _forkEnv                      = forkEnv()
-    val _forkWorkingDir               = forkWorkingDir()
-    val _runUseArgsFile               = runUseArgsFile()
-    val _ctx                          = implicitly[Ctx]
-    val _backgroundOutputs            = Jvm.defaultBackgroundOutputs( _taskDest )
+    val ctx = implicitly[Ctx]
     doRunBackground(
-      _taskDest,
-      _runClasspath,
-      _zwBackgroundWrapperClasspath,
-      _forkArgs,
-      _forkEnv,
-      mainClass,
-      _forkWorkingDir,
-      _runUseArgsFile,
-      _backgroundOutputs
-    )(args : _*)( _ctx )
+      taskDest = T.dest,
+      runClasspath = runClasspath(),
+      zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
+      forkArgs = forkArgs(),
+      forkEnv = forkEnv(),
+      finalMainClass = mainClass,
+      forkWorkingDir = forkWorkingDir(),
+      runUseArgsFile = runUseArgsFile(),
+      backgroundOutputs = Jvm.defaultBackgroundOutputs( T.dest )
+    )(args : _*)( ctx )
   }
 
   def runBackgroundInherit(args: String*): Command[Unit] = T.command {
-    val _taskDest                     = T.dest
-    val _runClasspath                 = runClasspath()
-    val _zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath()
-    val _forkArgs                     = forkArgs()
-    val _forkEnv                      = forkEnv()
-    val _finalMainClass               = finalMainClass()
-    val _forkWorkingDir               = forkWorkingDir()
-    val _runUseArgsFile               = runUseArgsFile()
-    val _ctx                          = implicitly[Ctx]
-    val _backgroundOutputs            = Some( (os.Inherit, os.Inherit) )
+    val ctx = implicitly[Ctx]
     doRunBackground(
-      _taskDest,
-      _runClasspath,
-      _zwBackgroundWrapperClasspath,
-      _forkArgs,
-      _forkEnv,
-      _finalMainClass,
-      _forkWorkingDir,
-      _runUseArgsFile,
-      _backgroundOutputs
-    )(args : _*)( _ctx )
+      taskDest = T.dest,
+      runClasspath = runClasspath(),
+      zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
+      forkArgs = forkArgs(),
+      forkEnv = forkEnv(),
+      finalMainClass = finalMainClass(),
+      forkWorkingDir = forkWorkingDir(),
+      runUseArgsFile = runUseArgsFile(),
+      backgroundOutputs = Some( (os.Inherit, os.Inherit) )
+    )(args : _*)( ctx )
   }
 
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
   def runMainBackgroundInherit(mainClass: String, args: String*): Command[Unit] = T.command {
-    val _taskDest                     = T.dest
-    val _runClasspath                 = runClasspath()
-    val _zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath()
-    val _forkArgs                     = forkArgs()
-    val _forkEnv                      = forkEnv()
-    val _forkWorkingDir               = forkWorkingDir()
-    val _runUseArgsFile               = runUseArgsFile()
-    val _ctx                          = implicitly[Ctx]
-    val _backgroundOutputs            = Some( (os.Inherit, os.Inherit) )
+    val ctx = implicitly[Ctx]
     doRunBackground(
-      _taskDest,
-      _runClasspath,
-      _zwBackgroundWrapperClasspath,
-      _forkArgs,
-      _forkEnv,
-      mainClass,
-      _forkWorkingDir,
-      _runUseArgsFile,
-      _backgroundOutputs
-    )(args : _*)( _ctx )
+      taskDest = T.dest,
+      runClasspath = runClasspath(),
+      zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
+      forkArgs = forkArgs(),
+      forkEnv = forkEnv(),
+      finalMainClass = mainClass,
+      forkWorkingDir = forkWorkingDir(),
+      runUseArgsFile = runUseArgsFile(),
+      backgroundOutputs = Some( (os.Inherit, os.Inherit) )
+    )(args : _*)( ctx )
   }
 
   /**
