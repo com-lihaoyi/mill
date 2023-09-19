@@ -6,8 +6,8 @@ import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`com.github.lolgab::mill-mima::0.0.24`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
-import mill.define.NamedTask
-import mill.main.Tasks
+import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
+
 
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
@@ -15,12 +15,12 @@ import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
 import mill.api.JarManifest
-import mill.eval.Evaluator
+import mill.define.NamedTask
+import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.resolve.SelectMode
-import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.api.Versions
 import mill.T
