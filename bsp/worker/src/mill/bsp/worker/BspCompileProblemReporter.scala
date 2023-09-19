@@ -164,7 +164,7 @@ private class BspCompileProblemReporter(
       val taskStartParams = new TaskStartParams(taskId)
       taskStartParams.setEventTime(System.currentTimeMillis())
       taskStartParams.setData(compileTask)
-      taskStartParams.setDataKind(TaskDataKind.COMPILE_TASK)
+      taskStartParams.setDataKind(TaskStartDataKind.COMPILE_TASK)
       taskStartParams.setMessage(s"Compiling target ${targetDisplayName}")
       client.onBuildTaskStart(taskStartParams)
       started.set(true)
@@ -176,7 +176,7 @@ private class BspCompileProblemReporter(
       val taskFinishParams = new TaskFinishParams(taskId, getStatusCode)
       taskFinishParams.setEventTime(System.currentTimeMillis())
       taskFinishParams.setMessage(s"Compiled ${targetDisplayName}")
-      taskFinishParams.setDataKind(TaskDataKind.COMPILE_REPORT)
+      taskFinishParams.setDataKind(TaskFinishDataKind.COMPILE_REPORT)
       val compileReport = new CompileReport(targetId, errors.get, warnings.get)
       compilationOriginId match {
         case Some(id) => compileReport.setOriginId(id)
