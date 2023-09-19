@@ -102,13 +102,14 @@ object Deps {
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.8"
   val ammoniteVersion = "3.0.0-M0-52-d2acc162"
+  val asmTree = ivy"org.ow2.asm:asm-tree:9.5"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.7"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.18"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
-  val castor = ivy"com.lihaoyi::castor:0.1.7"
+  val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -125,7 +126,7 @@ object Deps {
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.20.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.9.1"
   val pprint = ivy"com.lihaoyi::pprint:0.8.1"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.5.3"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.5.4"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -149,8 +150,8 @@ object Deps {
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.8"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.5"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.10"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.6"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:3.1.3"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
@@ -159,7 +160,7 @@ object Deps {
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.2"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.9.0"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
   // tests framework (test)
   val testScalaTest = ivy"org.scalatest::scalatest:3.2.16"
@@ -491,7 +492,7 @@ object main extends MillStableScalaModule with BuildInfo {
 
   object codesig extends MillPublishScalaModule {
     override def ivyDeps =
-      Agg(ivy"org.ow2.asm:asm-tree:9.5", Deps.osLib, ivy"com.lihaoyi::pprint:0.8.1")
+      Agg(Deps.asmTree, Deps.osLib, Deps.pprint)
     def moduleDeps = Seq(util)
 
     override lazy val test: CodeSigTests = new CodeSigTests {}
