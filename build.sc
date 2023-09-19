@@ -318,7 +318,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
 
   def scalacPluginIvyDeps =
     super.scalacPluginIvyDeps() ++
-      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefsPlugin, Deps.acyclic)
+      Agg(Deps.acyclic) ++
+      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefsPlugin)
 
   def mandatoryIvyDeps =
     super.mandatoryIvyDeps() ++
