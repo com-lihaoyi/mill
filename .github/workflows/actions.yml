@@ -47,6 +47,8 @@ jobs:
           # Have one job on latest JVM
           - java-version: 20
             buildcmd: ci/test-mill-bootstrap.sh
+          - java-version: 21
+            buildcmd: ci/test-mill-bootstrap.sh
           # Just some reporting to enable reasoning about library upgrades
           - java-version: 8
             buildcmd: |
