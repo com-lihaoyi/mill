@@ -18,6 +18,8 @@ import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
 import os.Path
 
+import scala.util.control.NonFatal
+
 /**
  * Core configuration required to compile a single Java compilation target
  */
@@ -734,8 +736,8 @@ trait JavaModule
         )
       )
     catch {
-      case e: Exception =>
-        Result.Failure("subprocess failed")
+      case NonFatal(e) =>
+        Result.Failure("Subprocess failed. " + e.getMessage())
     }
   }
 
