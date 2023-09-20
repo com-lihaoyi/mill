@@ -3,7 +3,7 @@ package mill.util
 import mill.api.Loose.Agg
 import mill.api._
 import mill.main.client.InputPumper
-import os.{ProcessOutput,SubProcess}
+import os.{ProcessOutput, SubProcess}
 
 import java.io._
 import java.lang.reflect.Modifier
@@ -56,8 +56,8 @@ object Jvm extends CoursierSupport {
 
   def javaExe: String = jdkTool("java")
 
-  def defaultBackgroundOutputs( outputDir : os.Path ) : Option[(ProcessOutput,ProcessOutput)]
-    = Some( (outputDir / "stdout.log", outputDir / "stderr.log") )
+  def defaultBackgroundOutputs(outputDir: os.Path): Option[(ProcessOutput, ProcessOutput)] =
+    Some((outputDir / "stdout.log", outputDir / "stderr.log"))
 
   /**
    * Runs a JVM subprocess with the given configuration and streams
@@ -92,7 +92,7 @@ object Jvm extends CoursierSupport {
       envArgs,
       mainArgs,
       workingDir,
-      if (background) defaultBackgroundOutputs( ctx.dest ) else None,
+      if (background) defaultBackgroundOutputs(ctx.dest) else None,
       useCpPassingJar
     )
   }
@@ -120,7 +120,7 @@ object Jvm extends CoursierSupport {
       envArgs: Map[String, String] = Map.empty,
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
-      backgroundOutputs: Option[Tuple2[ProcessOutput,ProcessOutput]] = None,
+      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None,
       useCpPassingJar: Boolean = false
   )(implicit ctx: Ctx): Unit = {
 
@@ -156,7 +156,12 @@ object Jvm extends CoursierSupport {
    * Runs a generic subprocess and waits for it to terminate.
    */
   def runSubprocess(commandArgs: Seq[String], envArgs: Map[String, String], workingDir: os.Path) = {
-    val process = spawnSubprocessWithBackgroundOutputs(commandArgs, envArgs, workingDir, backgroundOutputs = None)
+    val process = spawnSubprocessWithBackgroundOutputs(
+      commandArgs,
+      envArgs,
+      workingDir,
+      backgroundOutputs = None
+    )
     val shutdownHook = new Thread("subprocess-shutdown") {
       override def run(): Unit = {
         System.err.println("Host JVM shutdown. Forcefully destroying subprocess ...")
@@ -193,8 +198,8 @@ object Jvm extends CoursierSupport {
   ): SubProcess = {
     // XXX: workingDir is perhaps not the best choice for outputs, but absent a Ctx, we have
     //      no other place to choose.
-    val backgroundOutputs = if (background) defaultBackgroundOutputs( workingDir ) else None
-    spawnSubprocessWithBackgroundOutputs( commandArgs, envArgs, workingDir, backgroundOutputs )
+    val backgroundOutputs = if (background) defaultBackgroundOutputs(workingDir) else None
+    spawnSubprocessWithBackgroundOutputs(commandArgs, envArgs, workingDir, backgroundOutputs)
   }
 
   /**
@@ -211,7 +216,7 @@ object Jvm extends CoursierSupport {
       commandArgs: Seq[String],
       envArgs: Map[String, String],
       workingDir: os.Path,
-      backgroundOutputs: Option[Tuple2[ProcessOutput,ProcessOutput]] = None
+      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None
   ): SubProcess = {
     // If System.in is fake, then we pump output manually rather than relying
     // on `os.Inherit`. That is because `os.Inherit` does not follow changes
@@ -224,8 +229,8 @@ object Jvm extends CoursierSupport {
         cwd = workingDir,
         env = envArgs,
         stdin = if (backgroundOutputs.isEmpty) os.Pipe else "",
-        stdout = backgroundOutputs.map( _._1 ).getOrElse(os.Pipe),
-        stderr = backgroundOutputs.map( _._2 ).getOrElse(os.Pipe)
+        stdout = backgroundOutputs.map(_._1).getOrElse(os.Pipe),
+        stderr = backgroundOutputs.map(_._2).getOrElse(os.Pipe)
       )
 
       val sources = Seq(
@@ -249,8 +254,8 @@ object Jvm extends CoursierSupport {
         cwd = workingDir,
         env = envArgs,
         stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
-        stdout = backgroundOutputs.map( _._1 ).getOrElse(os.Inherit),
-        stderr = backgroundOutputs.map( _._2 ).getOrElse(os.Inherit)
+        stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
+        stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit)
       )
     }
   }

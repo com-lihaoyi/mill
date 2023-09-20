@@ -17,7 +17,7 @@ import mill.util.Jvm
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
-import os.{Path,ProcessOutput}
+import os.{Path, ProcessOutput}
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -774,15 +774,15 @@ trait JavaModule
   }
 
   private[this] def doRunBackground(
-    taskDest: Path,
-    runClasspath: Seq[PathRef],
-    zwBackgroundWrapperClasspath: Agg[PathRef],
-    forkArgs: Seq[String],
-    forkEnv: Map[String,String],
-    finalMainClass: String,
-    forkWorkingDir: Path,
-    runUseArgsFile: Boolean,
-    backgroundOutputs : Option[Tuple2[ProcessOutput,ProcessOutput]]
+      taskDest: Path,
+      runClasspath: Seq[PathRef],
+      zwBackgroundWrapperClasspath: Agg[PathRef],
+      forkArgs: Seq[String],
+      forkEnv: Map[String, String],
+      finalMainClass: String,
+      forkWorkingDir: Path,
+      runUseArgsFile: Boolean,
+      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = ctx => {
     val (procId, procTombstone, token) = backgroundSetup(taskDest)
     try Result.Success(
@@ -795,7 +795,7 @@ trait JavaModule
           workingDir = forkWorkingDir,
           backgroundOutputs,
           useCpPassingJar = runUseArgsFile
-        )( ctx )
+        )(ctx)
       )
     catch {
       case e: Exception =>
@@ -825,8 +825,8 @@ trait JavaModule
       finalMainClass = finalMainClass(),
       forkWorkingDir = forkWorkingDir(),
       runUseArgsFile = runUseArgsFile(),
-      backgroundOutputs = Jvm.defaultBackgroundOutputs( T.dest )
-    )(args : _*)( ctx )
+      backgroundOutputs = Jvm.defaultBackgroundOutputs(T.dest)
+    )(args: _*)(ctx)
   }
 
   /**
@@ -843,8 +843,8 @@ trait JavaModule
       finalMainClass = mainClass,
       forkWorkingDir = forkWorkingDir(),
       runUseArgsFile = runUseArgsFile(),
-      backgroundOutputs = Jvm.defaultBackgroundOutputs( T.dest )
-    )(args : _*)( ctx )
+      backgroundOutputs = Jvm.defaultBackgroundOutputs(T.dest)
+    )(args: _*)(ctx)
   }
 
   def runBackgroundInherit(args: String*): Command[Unit] = T.command {
@@ -858,8 +858,8 @@ trait JavaModule
       finalMainClass = finalMainClass(),
       forkWorkingDir = forkWorkingDir(),
       runUseArgsFile = runUseArgsFile(),
-      backgroundOutputs = Some( (os.Inherit, os.Inherit) )
-    )(args : _*)( ctx )
+      backgroundOutputs = Some((os.Inherit, os.Inherit))
+    )(args: _*)(ctx)
   }
 
   /**
@@ -876,8 +876,8 @@ trait JavaModule
       finalMainClass = mainClass,
       forkWorkingDir = forkWorkingDir(),
       runUseArgsFile = runUseArgsFile(),
-      backgroundOutputs = Some( (os.Inherit, os.Inherit) )
-    )(args : _*)( ctx )
+      backgroundOutputs = Some((os.Inherit, os.Inherit))
+    )(args: _*)(ctx)
   }
 
   /**
