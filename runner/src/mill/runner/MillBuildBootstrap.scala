@@ -37,7 +37,8 @@ class MillBuildBootstrap(
     logger: ColorLogger,
     disableCallgraphInvalidation: Boolean,
     needBuildSc: Boolean,
-    requestedMetaLevel: Option[Int]
+    requestedMetaLevel: Option[Int],
+    onlyDeps: Boolean
 ) {
   import MillBuildBootstrap._
 
@@ -221,7 +222,8 @@ class MillBuildBootstrap(
     evaluateWithWatches(
       rootModule,
       evaluator,
-      Seq("{runClasspath,scriptImportGraph,methodCodeHashSignatures}")
+      Seq("{runClasspath,scriptImportGraph,methodCodeHashSignatures}"),
+      onlyDeps
     ) match {
       case (Left(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
@@ -305,7 +307,7 @@ class MillBuildBootstrap(
     val (evaled, evalWatched, moduleWatches) = Evaluator.allBootstrapEvaluators.withValue(
       Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator))
     ) {
-      evaluateWithWatches(rootModule, evaluator, targetsAndParams)
+      evaluateWithWatches(rootModule, evaluator, targetsAndParams, onlyDeps)
     }
 
     val evalState = RunnerState.Frame(
@@ -391,11 +393,12 @@ object MillBuildBootstrap {
   def evaluateWithWatches(
       rootModule: RootModule,
       evaluator: Evaluator,
-      targetsAndParams: Seq[String]
+      targetsAndParams: Seq[String],
+      onlyDeps: Boolean
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
-      RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
+      RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated, onlyDeps)
     val moduleWatched = rootModule.watchedValues.toVector
     val addedEvalWatched = rootModule.evalWatchedValues.toVector
 

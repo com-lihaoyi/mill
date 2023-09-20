@@ -22,12 +22,14 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
    * @param testReporter Listener for test events like start, finish with success/error
+   * @param onlyDeps Evaluate only all dependencies of the given goals, but not the goals itself
    */
   def evaluate(
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger
+      logger: ColorLogger = baseLogger,
+      onlyDeps: Boolean = false
   ): Evaluator.Results = {
     os.makeDir.all(outPath)
 
@@ -40,7 +42,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         if (effectiveThreadCount == 1) ""
         else s"[#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId}] "
 
-      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg)
+      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg, onlyDeps)
       finally ec.close()
     }
   }
@@ -66,15 +68,54 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       ec: ExecutionContext with AutoCloseable,
-      contextLoggerMsg: Int => String
+      contextLoggerMsg: Int => String,
+      onlyDeps: Boolean
   ): Evaluator.Results = {
     implicit val implicitEc = ec
+
+    def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {
+      val plan = Plan.plan(goals)
+      if (!onlyDeps) plan
+      else {
+
+        val (sortedGroups0, transitive0) = plan
+        // we need to remove the source goals
+        val sortedGroups = new MultiBiMap.Mutable[Terminal, Task[_]]()
+        sortedGroups0.items().filter {
+          case (Terminal.Task(t), _) => !goals.contains(t)
+          case _ => true
+        }.foreach {
+          case (k, vs) => sortedGroups.addAll(k, vs)
+        }
+        val transitive = transitive0.filter(t => !goals.contains(t))
+//        println(s"cleaned transitive: ${transitive0.filter(t => goals.contains(t))}")
+
+        // and ensure they are not transitively needed
+        val selfDeps = transitive.toSeq.collect {
+          case t if t.inputs.exists(i => goals.contains(i)) =>
+            goals.find(g => t.inputs.contains(g)).head
+        }
+        if (selfDeps.nonEmpty) {
+//          println(s"self deps: ${selfDeps}")
+          val selfTerminals = selfDeps.map(selfDep => sortedGroups0.lookupValue(selfDep).render)
+//          println(s"self terminals: ${selfTerminals}")
+          // one of the requesed goals depends one other request goal,
+          // hence --onlydeps isn't possible
+//          val candidate = goals.find(g => selfDep.head.inputs.contains(g))
+          throw new RuntimeException(
+            s"Cannot evaluate only dependencies (--onlydeps), as at least one request target is also a dependency of the others. target: ${selfTerminals.head}"
+          )
+        }
+
+        (sortedGroups, transitive)
+      }
+    }
 
     os.makeDir.all(outPath)
     val chromeProfileLogger = new ChromeProfileLogger(outPath / "mill-chrome-profile.json")
     val profileLogger = new ProfileLogger(outPath / "mill-profile.json")
     val threadNumberer = new ThreadNumberer()
-    val (sortedGroups, transitive) = Plan.plan(goals)
+    val (sortedGroups, transitive) = plan(goals)
     val interGroupDeps = findInterGroupDeps(sortedGroups)
     val terminals = sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)

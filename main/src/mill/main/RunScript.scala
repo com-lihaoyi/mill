@@ -15,7 +15,8 @@ object RunScript {
   def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
-      selectMode: SelectMode
+      selectMode: SelectMode,
+      onlyDeps: Boolean
   ): Either[
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
@@ -23,7 +24,7 @@ object RunScript {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, scriptArgs, selectMode)
     }
-    for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets))
+    for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets), onlyDeps)
   }
 
   /**
@@ -33,9 +34,10 @@ object RunScript {
    */
   def evaluateNamed(
       evaluator: Evaluator,
-      targets: Agg[Task[Any]]
+      targets: Agg[Task[Any]],
+      onlyDeps: Boolean
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
-    val evaluated: Results = evaluator.evaluate(targets)
+    val evaluated: Results = evaluator.evaluate(targets, onlyDeps = onlyDeps)
 
     val watched = evaluated.results
       .iterator
