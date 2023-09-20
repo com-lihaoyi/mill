@@ -112,7 +112,11 @@ object Jvm extends CoursierSupport {
   /**
    * Runs a generic subprocess and waits for it to terminate.
    */
-  def runSubprocess(commandArgs: Seq[String], envArgs: Map[String, String], workingDir: os.Path): Unit = {
+  def runSubprocess(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path
+  ): Unit = {
     val process = spawnSubprocess(commandArgs, envArgs, workingDir, background = false)
     val shutdownHook = new Thread("subprocess-shutdown") {
       override def run(): Unit = {
