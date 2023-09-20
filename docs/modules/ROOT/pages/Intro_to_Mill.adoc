@@ -156,6 +156,9 @@ usage: mill [options] [[target [target-options]] [+ [target ...]]]
                                     meta-build which Mill uses to bootstrap the project.
   --no-server                       Run Mill in single-process mode. In this mode, no Mill server
                                     will be started or used. Must be the first argument.
+  --onlydeps                        Experimental: Evaluate only the dependencies of the given
+                                    targets. If you specify multiple targets or a pattern, ensure
+                                    they don't depend on each other, otherwise evaluation will fail.
   -s --silent                       Make ivy logs during script import resolution go silent instead
                                     of printing; though failures will still throw exception.
   -v --version                      Show mill version information and exit.
