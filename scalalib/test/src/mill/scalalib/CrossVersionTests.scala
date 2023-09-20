@@ -1,7 +1,6 @@
 package mill.scalalib
 
-import mill.{Agg, Module, T}
-import mill.api.{Loose, Result}
+import mill.Agg
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath

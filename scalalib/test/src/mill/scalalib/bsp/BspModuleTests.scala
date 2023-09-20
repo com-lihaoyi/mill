@@ -5,7 +5,7 @@ import mill.eval.EvaluatorPaths
 import mill.{Agg, T}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.util.{TestEvaluator, TestUtil}
-import os.{BasePathImpl, FilePath}
+import os.FilePath
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, test, _}
 

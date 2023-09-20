@@ -8,7 +8,6 @@ import $ivy.`com.github.lolgab::mill-mima::0.0.24`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 
-
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
 import coursier.maven.MavenRepository
@@ -300,7 +299,8 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
   def scalaVersion = Deps.scalaVersion
-  def scalacOptions = super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature")
+  def scalacOptions =
+    super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature", "-Xlint:unused")
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
   def testModuleDeps: Seq[JavaModule] =

@@ -2,7 +2,6 @@ package mill
 package scalalib
 
 import mill.api.Result
-import mill.scalalib.HelloWorldTests.{workspaceTest}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath

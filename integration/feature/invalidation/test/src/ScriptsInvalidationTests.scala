@@ -2,8 +2,6 @@ package mill.integration
 
 import utest._
 
-import scala.collection.mutable
-
 object ScriptsInvalidationTests extends IntegrationTestSuite {
 
   def runTask(task: String) = {

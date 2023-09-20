@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.concurrent
 import scala.jdk.CollectionConverters._
-import scala.language.implicitConversions
 
 /**
  * Specialized reporter that sends compilation diagnostics

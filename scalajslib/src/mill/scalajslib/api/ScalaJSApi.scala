@@ -1,7 +1,5 @@
 package mill.scalajslib.api
 
-import java.io.File
-import mill.api.Result
 import upickle.default.{ReadWriter => RW, macroRW}
 
 sealed trait ModuleKind

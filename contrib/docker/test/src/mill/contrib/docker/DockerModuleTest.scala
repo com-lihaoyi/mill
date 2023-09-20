@@ -1,7 +1,6 @@
 package mill
 package contrib.docker
 
-import mill.api.PathRef
 import mill.scalalib.JavaModule
 import mill.util.{TestEvaluator, TestUtil}
 import os.Path

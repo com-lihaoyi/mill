@@ -1,6 +1,6 @@
-package mill.integration
-package local
-import mill.bsp.Constants
+package mill.integration.local
+
+import mill.integration.IntegrationTestSuite
 import utest._
 
 object MillInitTests extends IntegrationTestSuite {
