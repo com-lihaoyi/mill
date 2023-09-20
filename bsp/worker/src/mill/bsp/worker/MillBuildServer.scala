@@ -478,7 +478,7 @@ private class MillBuildServer(
         logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
       )
       val response = runResult.results(runTask) match {
-        case _: Result.Success[Any] => new RunResult(StatusCode.OK)
+        case r if r.result.asSuccess.isDefined => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
       }
       params.getOriginId match {
