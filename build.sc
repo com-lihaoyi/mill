@@ -101,7 +101,7 @@ object Deps {
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.9"
-  val ammoniteVersion = "3.0.0-M0-32-96e851cb"
+  val ammoniteVersion = "3.0.0-M0-53-084f7f4e"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.5"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
