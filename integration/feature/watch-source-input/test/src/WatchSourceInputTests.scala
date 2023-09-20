@@ -47,6 +47,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       val res = f(expectedOut, expectedErr, expectedShows)
       val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
       val err = res.err.linesIterator.toVector
+        .filter(!_.contains("Compiling compiler interface..."))
         .filter(!_.contains("Watching for changes"))
         .filter(!_.contains("[info] compiling"))
         .filter(!_.contains("[info] done compiling"))
