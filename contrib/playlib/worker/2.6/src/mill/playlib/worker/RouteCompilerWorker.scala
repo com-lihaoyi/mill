@@ -1,10 +1,7 @@
 package mill.playlib.worker
 
 import mill.playlib.api.RouteCompilerType
-import play.routes.compiler.{
-  InjectedRoutesGenerator,
-  StaticRoutesGenerator
-}
+import play.routes.compiler.{InjectedRoutesGenerator, StaticRoutesGenerator}
 
 private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerBase {
 

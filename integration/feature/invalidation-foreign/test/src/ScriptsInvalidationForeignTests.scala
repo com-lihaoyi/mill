@@ -2,7 +2,6 @@ package mill.integration
 
 import utest._
 
-
 object ScriptsInvalidationForeignTests extends IntegrationTestSuite {
 
   override def buildPath = os.sub / "foreignA" / "build.sc"
