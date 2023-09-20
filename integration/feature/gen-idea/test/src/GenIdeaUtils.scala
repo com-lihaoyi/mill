@@ -1,7 +1,9 @@
-package mill.integration
+package mill.integration.local
+
 import java.util.regex.Pattern
 import scala.util.Try
 import utest.assert
+
 object GenIdeaUtils {
 
   /**

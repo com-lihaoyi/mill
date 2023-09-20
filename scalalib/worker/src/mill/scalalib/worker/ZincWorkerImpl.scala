@@ -136,21 +136,26 @@ class ZincWorkerImpl(
         val dottydocClass =
           compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
         val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
-        val reporter = dottydocMethod.invoke(dottydocClass.newInstance(), args.toArray)
+        val reporter =
+          dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), args.toArray)
         val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
         !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
       } else if (ZincWorkerUtil.isScala3(scalaVersion)) {
         val scaladocClass =
           compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
         val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
-        val reporter = scaladocMethod.invoke(scaladocClass.newInstance(), args.toArray)
+        val reporter =
+          scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
         val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
         !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
       } else {
         val scaladocClass =
           compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
         val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
-        scaladocMethod.invoke(scaladocClass.newInstance(), args.toArray).asInstanceOf[Boolean]
+        scaladocMethod.invoke(
+          scaladocClass.getConstructor().newInstance(),
+          args.toArray
+        ).asInstanceOf[Boolean]
       }
     }
   }
@@ -270,9 +275,7 @@ class ZincWorkerImpl(
 
   }
 
-  def discoverMainClasses(compilationResult: CompilationResult)(implicit
-      ctx: ZincWorkerApi.Ctx
-  ): Seq[String] = {
+  def discoverMainClasses(compilationResult: CompilationResult): Seq[String] = {
     def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
 
     toScala(FileAnalysisStore.binary(compilationResult.analysisFile.toIO).get())
@@ -294,26 +297,6 @@ class ZincWorkerImpl(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
-
-    for (
-      res <- compileJava0(
-        upstreamCompileOutput = upstreamCompileOutput.map(c => (c.analysisFile, c.classes.path)),
-        sources = sources,
-        compileClasspath = compileClasspath,
-        javacOptions = javacOptions,
-        reporter = reporter,
-        reportCachedProblems = reportCachedProblems
-      )
-    ) yield CompilationResult(res._1, PathRef(res._2))
-  }
-  def compileJava0(
-      upstreamCompileOutput: Seq[(os.Path, os.Path)],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
-      javacOptions: Seq[String],
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     compileInternal(
       upstreamCompileOutput = upstreamCompileOutput,
       sources = sources,
@@ -339,37 +322,6 @@ class ZincWorkerImpl(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
-
-    for (
-      res <- compileMixed0(
-        upstreamCompileOutput.map(c => (c.analysisFile, c.classes.path)),
-        sources,
-        compileClasspath,
-        javacOptions,
-        scalaVersion,
-        scalaOrganization,
-        scalacOptions,
-        compilerClasspath,
-        scalacPluginClasspath,
-        reporter,
-        reportCachedProblems
-      )
-    ) yield CompilationResult(res._1, PathRef(res._2))
-  }
-
-  def compileMixed0(
-      upstreamCompileOutput: Seq[(os.Path, os.Path)],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
-      javacOptions: Seq[String],
-      scalaVersion: String,
-      scalaOrganization: String,
-      scalacOptions: Seq[String],
-      compilerClasspath: Agg[PathRef],
-      scalacPluginClasspath: Agg[PathRef],
-      reporter: Option[CompileProblemReporter],
-      reportOldProblems: Boolean
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
     withCompilers(
       scalaVersion = scalaVersion,
       scalaOrganization = scalaOrganization,
@@ -385,7 +337,7 @@ class ZincWorkerImpl(
         scalacOptions = scalacOptions,
         compilers = compilers,
         reporter = reporter,
-        reportOldProblems: Boolean
+        reportCachedProblems: Boolean
       )
     }
   }
@@ -460,7 +412,7 @@ class ZincWorkerImpl(
   }
 
   private def compileInternal(
-      upstreamCompileOutput: Seq[(os.Path, os.Path)],
+      upstreamCompileOutput: Seq[CompilationResult],
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
@@ -468,7 +420,7 @@ class ZincWorkerImpl(
       compilers: Compilers,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[(os.Path, os.Path)] = {
+  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
     reporter.foreach(_.start())
@@ -509,7 +461,7 @@ class ZincWorkerImpl(
           }
         }
     }
-    val analysisMap0 = upstreamCompileOutput.map(_.swap).toMap
+    val analysisMap0 = upstreamCompileOutput.map(c => c.classes.path -> c.analysisFile).toMap
 
     def analysisMap(f: VirtualFile): Optional[CompileAnalysis] = {
       val analysisFile = f match {
@@ -612,7 +564,7 @@ class ZincWorkerImpl(
           newResult.setup()
         )
       )
-      Result.Success((zincFile, classesDir))
+      Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)

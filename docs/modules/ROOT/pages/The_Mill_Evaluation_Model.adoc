@@ -79,9 +79,9 @@ the overall workflow remains fast even for large projects:
     * xref:Tasks.adoc#_workers[T.worker]s are kept in-memory between runs where possible, and only
       invalidated if their input ``Task``s change as well.
 
-    * ``Task``s in general are invalidated if the code they depend on changes;
-      e.g. if `build.sc` imports `helper.sc`, then a change in `build.sc` would
-      invalidate all tasks in `build.sc`, but not those in `helper.sc`
+    * ``Task``s in general are invalidated if the code they depend on changes,
+      at a method-level granularity via callgraph reachability analysis. See
+      https://github.com/com-lihaoyi/mill/pull/2417[#2417] for more details
 
 This approach to caching does assume a certain programming style inside your
 `build.sc`: we may or may not re-instantiate the `RootModule` of your

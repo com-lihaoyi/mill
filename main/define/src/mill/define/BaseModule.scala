@@ -11,12 +11,10 @@ abstract class BaseModule(
 )(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
-    millName0: sourcecode.Name,
     millFile0: sourcecode.File,
     caller: Caller
-) extends Module()(
+) extends Module.BaseClass()(
       mill.define.Ctx.make(
-        implicitly,
         implicitly,
         implicitly,
         Ctx.BasePath(millSourcePath0),
@@ -26,7 +24,7 @@ abstract class BaseModule(
         millFile0,
         caller
       )
-    ) {
+    ) with Module {
   // A BaseModule should provide an empty Segments list to it's children, since
   // it is the root of the module tree, and thus must not include it's own
   // sourcecode.Name as part of the list,
@@ -40,14 +38,12 @@ abstract class BaseModule(
 
 abstract class ExternalModule(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
-    millModuleLine0: sourcecode.Line,
-    millName0: sourcecode.Name
+    millModuleLine0: sourcecode.Line
 ) extends BaseModule(os.pwd, external0 = true, foreign0 = None)(
       implicitly,
       implicitly,
       implicitly,
-      implicitly,
-      Caller(())
+      Caller(null)
     ) {
 
   implicit def millDiscoverImplicit: Discover[_] = millDiscover
@@ -55,7 +51,7 @@ abstract class ExternalModule(implicit
     !" #".exists(millModuleEnclosing0.value.contains(_)),
     "External modules must be at a top-level static path, not " + millModuleEnclosing0.value
   )
-  override implicit def millModuleSegments = {
+  override implicit def millModuleSegments: Segments = {
     Segments(millModuleEnclosing0.value.split('.').map(Segment.Label).toIndexedSeq)
   }
 }

@@ -1,13 +1,20 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier, StatusCode, TaskId}
-import mill.api.CompileProblemReporter
+import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Result.{Skipped, Success}
 import mill.eval.Evaluator
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.BspModule
 
-object Utils {
+private object Utils {
+
+  def sanitizeUri(uri: String): String =
+    if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
+
+  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toNIO.toUri.toString)
+
+  def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
   // define the function that spawns compilation reporter for each module based on the
   // module's hash code TODO: find something more reliable than the hash code
@@ -31,14 +38,12 @@ object Utils {
   }
 
   // Get the execution status code given the results from Evaluator.evaluate
-  def getStatusCode(results: Evaluator.Results): StatusCode = {
-    val statusCodes = results.results.keys.map(task => getStatusCodePerTask(results, task)).toSeq
-    if (statusCodes.contains(StatusCode.ERROR))
-      StatusCode.ERROR
-    else if (statusCodes.contains(StatusCode.CANCELLED))
-      StatusCode.CANCELLED
-    else
-      StatusCode.OK
+  def getStatusCode(resultsLists: Seq[Evaluator.Results]): StatusCode = {
+    val statusCodes =
+      resultsLists.flatMap(r => r.results.keys.map(task => getStatusCodePerTask(r, task)).toSeq)
+    if (statusCodes.contains(StatusCode.ERROR)) StatusCode.ERROR
+    else if (statusCodes.contains(StatusCode.CANCELLED)) StatusCode.CANCELLED
+    else StatusCode.OK
   }
 
   private[this] def getStatusCodePerTask(

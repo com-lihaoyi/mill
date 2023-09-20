@@ -5,33 +5,33 @@ import mill._, scalalib._
 trait VersionFileModule extends Module {
 
   /** The file containing the current version. */
-  def versionFile: Source = T.source(millSourcePath / "version")
+  def versionFile: T[PathRef] = T.source(millSourcePath / "version")
 
   /** The current version. */
   def currentVersion: T[Version] = T { Version.of(os.read(versionFile().path).trim) }
 
   /** The release version. */
-  def releaseVersion = T { currentVersion().asRelease }
+  def releaseVersion: T[Version] = T { currentVersion().asRelease }
 
   /** The next snapshot version. */
-  def nextVersion(bump: String) = T.command { currentVersion().asSnapshot.bump(bump) }
+  def nextVersion(bump: String): Task[Version] = T.task { currentVersion().asSnapshot.bump(bump) }
 
   /** Writes the release version to file. */
-  def setReleaseVersion = T {
+  def setReleaseVersion(): Command[Unit] = T.command {
     setVersionTask(releaseVersion)()
   }
 
   /** Writes the next snapshot version to file. */
-  def setNextVersion(bump: String) = T.command {
+  def setNextVersion(bump: String): Command[Unit] = T.command {
     setVersionTask(nextVersion(bump))()
   }
 
   /** Writes the given version to file. */
-  def setVersion(version: Version) = T.command {
-    setVersionTask(T.task { version })()
+  def setVersion(version: Task[Version]): Command[Unit] = T.command {
+    setVersionTask(version)()
   }
 
-  protected def setVersionTask(version: T[Version]) = T.task {
+  protected def setVersionTask(version: Task[Version]) = T.task {
     T.log.info(generateCommitMessage(version()))
     writeVersionToFile(versionFile(), version())
   }

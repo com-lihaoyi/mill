@@ -1,3 +1,4 @@
+import $meta._
 import mill._, scalalib._
 import scalatags.Text.all._
 
@@ -20,7 +21,7 @@ object foo extends RootModule with ScalaModule {
 // file and it's `import $file` and `$ivy` are a shorthand syntax for defining
 // a Mill `ScalaModule`, with sources and `ivyDeps` and so on, which is
 // compiled and executed to perform your build. This module lives in
-// `mill-build/`.
+// `mill-build/`, and can be enabled via the `import $meta._` statement above.
 
 /** See Also: mill-build/build.sc */
 
@@ -51,14 +52,30 @@ compiling 1 Scala source...
 
 > ./mill run
 Foo.value: <h1>hello</h1>
-scalatagsVersion: 0.8.2
+scalatagsVersion: 0.12.0
 
 > ./mill show assembly
 ".../out/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
 Foo.value: <h1>hello</h1>
-scalatagsVersion: 0.8.2
+scalatagsVersion: 0.12.0
 
 */
 
+// You can also run tasks on the meta-build by using the `--meta-level`
+// cli option.
+
+/** Usage
+
+> ./mill --meta-level 1 show sources
+[
+.../build.sc",
+.../mill-build/src"
+]
+
+> ./mill --meta-level 2 show sources
+.../mill-build/build.sc"
+
+
+*/

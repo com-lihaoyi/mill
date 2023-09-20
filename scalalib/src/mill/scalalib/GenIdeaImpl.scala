@@ -5,20 +5,22 @@ import scala.util.Try
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
-import coursier.{LocalRepositories, Repositories, Repository}
 
-import java.nio.file.Paths
 import mill.Agg
 import mill.api.Ctx.{Home, Log}
-import mill.api.{PathRef, Result, Strict}
+import mill.api.{PathRef, Strict}
 import mill.define._
 import mill.eval.Evaluator
-import mill.util.Util
+import mill.main.BuildInfo
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.util.Classpath
-import mill.{BuildInfo, T, scalalib}
+import mill.{T, scalalib}
 import os.{Path, SubPath}
 
+/**
+ * This class is outdated and unmaintained. Please use [[mill.idea.GenIdeaImpl]] instead.
+ */
+@deprecated("Use mill.idea.GenIdeaImpl instead", "Mill 0.11.2")
 case class GenIdeaImpl(
     evaluator: Evaluator,
     ctx: Log with Home,
@@ -94,6 +96,7 @@ case class GenIdeaImpl(
             )
         )(modules.map(_._2.repositoriesTask))
 
+        Lib.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = true)
         Lib.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = false)
       }
 
@@ -235,7 +238,7 @@ case class GenIdeaImpl(
         os.sub / wf._1 -> ideaConfigElementTemplate(wf._2)
       }
 
-    type FileComponent = (SubPath, String)
+    type FileComponent = (SubPath, Option[String])
 
     /** Ensure, the additional configs don't collide. */
     def collisionFreeExtraConfigs(
@@ -261,7 +264,7 @@ case class GenIdeaImpl(
               )
             }
             val msg =
-              s"Config collision in file `${conf.name}` and component `${conf.component}`: ${details(
+              s"Config collision in file `${conf.subPath}` and component `${conf.component}`: ${details(
                   conf.config
                 )} vs. ${details(existing)}"
             ctx.map(_.log.error(msg))
@@ -273,7 +276,7 @@ case class GenIdeaImpl(
     val fileComponentContributions: Seq[(SubPath, Elem)] =
       collisionFreeExtraConfigs(configFileContributions).toSeq.map {
         case (file, configs) =>
-          val map: Map[String, Seq[GenIdeaModule.Element]] =
+          val map: Map[Option[String], Seq[GenIdeaModule.Element]] =
             configs
               .groupBy(_.component)
               .view
@@ -625,12 +628,12 @@ case class GenIdeaImpl(
   }
 
   def ideaConfigFileTemplate(
-      components: Map[String, Seq[GenIdeaModule.Element]]
+      components: Map[Option[String], Seq[GenIdeaModule.Element]]
   ): Elem = {
     <project version={"" + ideaConfigVersion}>
       {
       components.toSeq.map { case (name, config) =>
-        <component name={name}>{config.map(ideaConfigElementTemplate)}</component>
+        <component name={name.getOrElse("")}>{config.map(ideaConfigElementTemplate)}</component>
       }
     }
     </project>

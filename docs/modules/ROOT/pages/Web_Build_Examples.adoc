@@ -27,4 +27,8 @@ include::example/web/5-webapp-scalajs-shared.adoc[]
 
 == Publishing Cross-Platform Scala Modules
 
-include::example/web/6-cross-platform-publishing.adoc[]
+include::example/web/6-cross-version-platform-publishing.adoc[]
+
+== Publishing Cross-Platform Scala Modules Alternative
+
+include::example/web/7-cross-platform-version-publishing.adoc[]

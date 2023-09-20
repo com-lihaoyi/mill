@@ -1,3 +1,4 @@
+import mill._
 import $file.^.foreignB.build
 import $file.^.build
 

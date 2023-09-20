@@ -9,7 +9,7 @@ import mill.resolve.SimpleTaskTokenReader
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
 object Tasks {
-  class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
+  private[main] class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
     def shortName = "<tasks>"
     def read(s: Seq[String]) = {
       Resolve.Tasks.resolve(
@@ -23,11 +23,16 @@ object Tasks {
   }
 }
 
-class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[mill.eval.Evaluator] {
+private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
   def read(): Either[String, Evaluator] = Right(Evaluator.currentEvaluator.value)
 }
+private[mill] class AllEvaluatorsTokenReader[T]()
+    extends mainargs.TokensReader.Constant[Evaluator.AllBootstrapEvaluators] {
+  def read(): Either[String, Evaluator.AllBootstrapEvaluators] =
+    Right(Evaluator.allBootstrapEvaluators.value)
+}
 
-class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
+private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
     extends mainargs.TokensReader.Leftover[Task[T], T] {
   def read(strs: Seq[String]): Either[String, Task[T]] =
     tokensReaderOfT.read(strs).map(t => Target.task(t))
@@ -35,7 +40,12 @@ class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
 }
 
 object TokenReaders {
-  implicit def millEvaluatorTokenReader[T] = new mill.main.EvaluatorTokenReader[T]()
+  implicit def millEvaluatorTokenReader[T]: mainargs.TokensReader[Evaluator] =
+    new mill.main.EvaluatorTokenReader[T]()
+
+  implicit def millAllEvaluatorsTokenReader[T]
+      : mainargs.TokensReader[Evaluator.AllBootstrapEvaluators] =
+    new mill.main.AllEvaluatorsTokenReader[T]()
 
   implicit def millTasksTokenReader[T]: mainargs.TokensReader[Tasks[T]] =
     new mill.main.Tasks.TokenReader[T]()
@@ -48,7 +58,7 @@ object TokenReaders {
 
   implicit def millTaskTokenReader[T](implicit
       tokensReaderOfT: TokensReader.ShortNamed[T]
-  ): TokensReader.ShortNamed[Task[T]] = tokensReaderOfT match {
+  ): TokensReader[Task[T]] = tokensReaderOfT match {
     case t: TokensReader.Simple[_] => new SimpleTaskTokenReader[T](t)
     case t: TokensReader.Leftover[_, _] => new LeftoverTaskTokenReader[T](t)
   }

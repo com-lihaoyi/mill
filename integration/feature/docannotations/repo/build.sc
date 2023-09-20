@@ -1,10 +1,10 @@
-import mill.Agg
+import mill._
 import mill.scalalib._
 
 trait JUnitTests extends TestModule.Junit4 {
 
   /**
-   * Overriden ivyDeps Docs!!!
+   * Overridden ivyDeps Docs!!!
    */
   def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
   def task = T {
@@ -16,12 +16,12 @@ trait JUnitTests extends TestModule.Junit4 {
  * The Core Module Docz!
  */
 object core extends JavaModule {
-  object test extends Tests with JUnitTests
+  object test extends JavaModuleTests with JUnitTests
 
   /**
-   * Core Task Docz!
+   * Core Target Docz!
    */
-  def task = T {
+  def target = T {
     import collection.JavaConverters._
     println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
     "Hello!"

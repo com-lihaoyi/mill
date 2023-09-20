@@ -17,12 +17,4 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase {
     super.sources() ++
       scalaVersionDirectoryNames.map(s => PathRef(millSourcePath / s"src-$s"))
   }
-
-  trait CrossScalaModuleTests extends ScalaModuleTests {
-    override def sources = T.sources {
-      super.sources() ++
-        scalaVersionDirectoryNames.map(s => PathRef(millSourcePath / s"src-$s"))
-    }
-  }
-  trait Tests extends CrossScalaModuleTests
 }

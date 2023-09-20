@@ -27,6 +27,8 @@ object Resolve {
     ) = {
       Right(resolved.map(_.segments))
     }
+
+    private[mill] override def deduplicate(items: List[Segments]) = items.distinct
   }
 
   object Tasks extends Resolve[NamedTask[Any]] {
@@ -80,6 +82,9 @@ object Resolve {
         else Left(s"Cannot find default task to evaluate for module ${selector.render}")
       )
     }
+
+    private[mill] override def deduplicate(items: List[NamedTask[Any]]) =
+      items.distinctBy(_.ctx.segments)
   }
 
   private def instantiateTarget(r: Resolved.Target, p: Module) = {
@@ -117,10 +122,10 @@ object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean
   ): Iterable[Either[String, Command[_]]] = for {
-    (cls, entryPoints) <- discover.value
+    (cls, (names, entryPoints)) <- discover.value
     if cls.isAssignableFrom(target.getClass)
     ep <- entryPoints
-    if ep._2.name == name
+    if ep.name == name
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
@@ -133,7 +138,6 @@ object Resolve {
     }
 
     val flattenedArgSigsWithDefaults = ep
-      ._2
       .flattenedArgSigs
       .map { case (arg, term) => (withNullDefault(arg), term) }
 
@@ -142,9 +146,9 @@ object Resolve {
       flattenedArgSigsWithDefaults,
       allowPositional = true,
       allowRepeats = false,
-      allowLeftover = ep._2.argSigs0.exists(_.reader.isLeftover)
+      allowLeftover = ep.argSigs0.exists(_.reader.isLeftover)
     ).flatMap { (grouped: TokenGrouping[_]) =>
-      val mainData = ep._2.asInstanceOf[MainData[_, Any]]
+      val mainData = ep.asInstanceOf[MainData[_, Any]]
       val mainDataWithDefaults = mainData
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
 
@@ -159,13 +163,14 @@ object Resolve {
       case f: mainargs.Result.Failure =>
         Left(
           mainargs.Renderer.renderResult(
-            ep._2,
+            ep,
             f,
             totalWidth = 100,
             printHelpOnError = true,
             docsOnNewLine = false,
             customName = None,
-            customDoc = None
+            customDoc = None,
+            sorted = true
           )
         )
     }
@@ -212,7 +217,7 @@ trait Resolve[T] {
       EitherOps.sequence(resolved)
     }
 
-    resolvedGroups.map(_.flatten.toList)
+    resolvedGroups.map(_.flatten.toList).map(deduplicate)
   }
 
   private[mill] def resolveNonEmptyAndHandle(
@@ -222,12 +227,12 @@ trait Resolve[T] {
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
-
     val resolved =
       ResolveCore.resolve(rootModule, sel.value.toList, rootResolved, Segments()) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          Left(ResolveNotFoundHandler(sel, segments, found, next, possibleNexts))
+          val allPossibleNames = rootModule.millDiscover.value.values.flatMap(_._1).toSet
+          Left(ResolveNotFoundHandler(sel, segments, found, next, possibleNexts, allPossibleNames))
         case ResolveCore.Error(value) => Left(value)
       }
 
@@ -235,6 +240,8 @@ trait Resolve[T] {
       .map(_.toSeq.sortBy(_.segments.render))
       .flatMap(handleResolved(rootModule, _, args, sel, nullCommandDefaults))
   }
+
+  private[mill] def deduplicate(items: List[T]): List[T] = items
 
   private[mill] def resolveRootModule(rootModule: BaseModule, scopedSel: Option[Segments]) = {
     scopedSel match {

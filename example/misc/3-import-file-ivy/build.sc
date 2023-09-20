@@ -1,5 +1,5 @@
 import mill._, scalalib._
-import $ivy.`com.lihaoyi::scalatags:0.8.2`, scalatags.Text.all._
+import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
 import $file.scalaversion, scalaversion.myScalaVersion
 
 object foo extends RootModule with ScalaModule {

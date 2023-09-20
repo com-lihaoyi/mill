@@ -1,0 +1,4 @@
+// = Changelog
+include::partial$project-readme.adoc[tag=changelog,leveloffset=-1]
+
+include::partial$project-readme.adoc[tag=changelogOld,leveloffset=-1]

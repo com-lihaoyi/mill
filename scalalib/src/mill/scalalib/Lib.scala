@@ -4,7 +4,8 @@ package scalalib
 import coursier.util.Task
 import coursier.{Dependency, LocalRepositories, Repositories, Repository, Resolution}
 import mill.api.{Ctx, Loose, PathRef, Result}
-import mill.modules.Util
+import mill.main.BuildInfo
+import mill.util.Util
 import mill.scalalib.api.ZincWorkerUtil
 
 object Lib {
@@ -113,13 +114,11 @@ object Lib {
   def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion)) {
       Agg(
-        // note that dotty-library has a binary version suffix, hence the :: is necessary here
         ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
       )
     } else if (ZincWorkerUtil.isScala3(scalaVersion))
       Agg(
-        // note that dotty-library has a binary version suffix, hence the :: is necessary here
-        ivy"$scalaOrganization::scala3-library::$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
       )
     else
       Agg(
@@ -137,20 +136,18 @@ object Lib {
   }
 
   def resolveMillBuildDeps(
-      repos0: Seq[Repository],
+      repos: Seq[Repository],
       ctx: Option[mill.api.Ctx.Log],
       useSources: Boolean
   ): Seq[os.Path] = {
     Util.millProperty("MILL_BUILD_LIBRARIES") match {
       case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
       case None =>
-        val repos = repos0 ++ Set(
-          LocalRepositories.ivy2Local,
-          Repositories.central
-        )
-        val millDeps = BuildInfo.millEmbeddedDeps.split(",").map(d => ivy"$d").map(dep =>
-          BoundDep(Lib.depToDependency(dep, BuildInfo.scalaVersion, ""), dep.force)
-        )
+        val millDeps = BuildInfo.millEmbeddedDeps
+          .split(",")
+          .map(d => ivy"$d")
+          .map(dep => Lib.depToBoundDep(dep, BuildInfo.scalaVersion))
+
         val Result.Success(res) = scalalib.Lib.resolveDependencies(
           repositories = repos.toList,
           deps = millDeps,
@@ -160,20 +157,6 @@ object Lib {
           coursierCacheCustomizer = None,
           ctx = ctx
         )
-
-        // Also trigger resolve sources, but don't use them (will happen implicitly by Idea)
-        if (!useSources) {
-          scalalib.Lib.resolveDependencies(
-            repositories = repos.toList,
-            deps = millDeps,
-            sources = true,
-            mapDependencies = None,
-            customizer = None,
-            coursierCacheCustomizer = None,
-            ctx = ctx
-          )
-        }
-
         res.items.toList.map(_.path)
     }
   }

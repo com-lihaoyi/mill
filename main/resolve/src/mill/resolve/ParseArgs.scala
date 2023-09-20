@@ -7,16 +7,6 @@ import mill.util.EitherOps
 
 import scala.annotation.tailrec
 
-sealed trait SelectMode
-object SelectMode {
-
-  /** All args are treated as targets or commands. If a `--` is detected, subsequent args are parameters to all commands. */
-  object Multi extends SelectMode
-
-  /** Like a combination of [[Single]] and [[Multi]], behaving like [[Single]] but using a special separator (`++`) to start parsing another target/command. */
-  object Separated extends SelectMode
-}
-
 object ParseArgs {
 
   type TargetsWithParams = (Seq[(Option[Segments], Segments)], Seq[String])
@@ -51,7 +41,7 @@ object ParseArgs {
           r2.drop(1)
         )
     }
-    val parts: Seq[Seq[String]] = separated(Seq(), scriptArgs)
+    val parts: Seq[Seq[String]] = separated(Seq() /* start value */, scriptArgs)
     val parsed: Seq[Either[String, TargetsWithParams]] =
       parts.map(extractAndValidate(_, selectMode == SelectMode.Multi))
 
@@ -92,7 +82,7 @@ object ParseArgs {
 
   private def validateSelectors(selectors: Seq[String]): Either[String, Unit] = {
     if (selectors.isEmpty || selectors.exists(_.isEmpty))
-      Left("Selector cannot be empty")
+      Left("Target selector must not be empty. Try `mill resolve _` to see what's available.")
     else Right(())
   }
 
@@ -106,7 +96,8 @@ object ParseArgs {
     def ident2 = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
     def segment = P(mill.define.Reflect.ident).map(Segment.Label)
     def crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
-    def simpleQuery = P(segment ~ ("." ~ segment | crossSegment).rep).map {
+    def defaultCrossSegment = P("[]").map(_ => Segment.Cross(Seq()))
+    def simpleQuery = P(segment ~ ("." ~ segment | crossSegment | defaultCrossSegment).rep).map {
       case (h, rest) => Segments(h +: rest)
     }
 

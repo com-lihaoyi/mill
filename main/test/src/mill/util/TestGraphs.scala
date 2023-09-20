@@ -1,7 +1,6 @@
 package mill.util
 import TestUtil.test
-import mill.api.SystemStreams
-import mill.define.{Command, Cross, Discover, TaskModule}
+import mill.define.{Command, Cross, Discover, DynamicModule, ModuleRef, TaskModule}
 import mill.{Module, T}
 
 /**
@@ -165,7 +164,7 @@ class TestGraphs() {
     object bar extends Module {
       def barTarget = T {
         println(s"Running barTarget")
-        foo.fooTarget() + " barTarget Result"
+        s"${foo.fooTarget()} barTarget Result"
       }
       def barCommand(s: String) = T.command {
         foo.fooCommand(s)()
@@ -218,15 +217,33 @@ class TestGraphs() {
 
   object overrideModule extends TestUtil.BaseModule {
     trait Base extends Module {
-      val inner: BaseInnerModule = new BaseInnerModule()(implicitly)
-      class BaseInnerModule()(implicit ctx: mill.define.Ctx) extends mill.define.Module {
+      lazy val inner: BaseInnerModule = new BaseInnerModule {}
+      lazy val ignored: ModuleRef[BaseInnerModule] = ModuleRef(new BaseInnerModule {})
+      trait BaseInnerModule extends mill.define.Module {
         def baseTarget = T { 1 }
       }
     }
     object sub extends Base {
-      override val inner: SubInnerModule = new SubInnerModule()(implicitly)
-      class SubInnerModule()(implicit ctx: mill.define.Ctx) extends BaseInnerModule() {
+      override lazy val inner: SubInnerModule = new SubInnerModule {}
+      override lazy val ignored: ModuleRef[SubInnerModule] = ModuleRef(new SubInnerModule {})
+      trait SubInnerModule extends BaseInnerModule {
         def subTarget = T { 2 }
+      }
+    }
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  object dynamicModule extends TestUtil.BaseModule {
+    object normal extends DynamicModule {
+      object inner extends Module {
+        def target = T { 1 }
+      }
+    }
+    object niled extends DynamicModule {
+      override def millModuleDirectChildren: Seq[Module] = Nil
+      object inner extends Module {
+        def target = T { 1 }
       }
     }
 
@@ -332,6 +349,30 @@ object TestGraphs {
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
+  object duplicates extends TestUtil.BaseModule {
+    object wrapper extends Module {
+      object test1 extends Module {
+        def test1 = T {}
+      }
+
+      object test2 extends TaskModule {
+        override def defaultCommandName() = "test2"
+        def test2() = T.command {}
+      }
+    }
+
+    object test3 extends Module {
+      def test3 = T {}
+    }
+
+    object test4 extends TaskModule {
+      override def defaultCommandName() = "test4"
+
+      def test4() = T.command {}
+    }
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  }
+
   object singleCross extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
     trait Cross extends Cross.Module[String] {
@@ -410,11 +451,11 @@ object TestGraphs {
   object innerCrossModule extends TestUtil.BaseModule {
     object myCross extends Cross[MyCrossModule]("a", "b")
     trait MyCrossModule extends Cross.Module[String] {
-      object foo extends InnerCrossModule {
+      object foo extends CrossValue {
         def bar = T { "foo " + crossValue }
       }
 
-      object baz extends InnerCrossModule {
+      object baz extends CrossValue {
         def bar = T { "baz " + crossValue }
       }
     }
@@ -447,7 +488,9 @@ object TestGraphs {
   }
 
   object nestedCrosses extends TestUtil.BaseModule {
-    object cross extends mill.Cross[Cross]("210", "211", "212")
+    object cross extends mill.Cross[Cross]("210", "211", "212") {
+      override def defaultCrossSegments: Seq[String] = Seq("212")
+    }
     trait Cross extends Cross.Module[String] {
       val scalaVersion = crossValue
       object cross2 extends mill.Cross[Cross]("jvm", "js", "native")

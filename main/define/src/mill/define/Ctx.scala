@@ -21,48 +21,47 @@ import scala.annotation.implicitNotFound
  * @param crossValues
  */
 @implicitNotFound("Modules, Targets and Commands can only be defined within a mill Module")
-case class Ctx private (
-    enclosing: String,
-    lineNum: Int,
-    segment: Segment,
-    millSourcePath: os.Path,
-    segments: Segments,
-    external: Boolean,
-    foreign: Option[Segments],
-    fileName: String,
-    enclosingCls: Class[_],
-    crossValues: Seq[Any]
-) {
-  private def copy(
-      enclosing: String = enclosing,
-      lineNum: Int = lineNum,
-      segment: Segment = segment,
-      millSourcePath: os.Path = millSourcePath,
-      segments: Segments = segments,
-      external: Boolean = external,
-      foreign: Option[Segments] = foreign,
-      fileName: String = fileName,
-      enclosingCls: Class[_] = enclosingCls,
-      crossValues: Seq[Any] = crossValues
-  ): Ctx = new Ctx(
-    enclosing,
-    lineNum,
-    segment,
-    millSourcePath,
-    segments,
-    external,
-    foreign,
-    fileName,
-    enclosingCls,
-    crossValues
-  )
-  def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
-  def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
-  def withSegment(segment: Segment): Ctx = copy(segment = segment)
-  def withSegments(segments: Segments): Ctx = copy(segments = segments)
+trait Ctx {
+  def enclosing: String
+  def lineNum: Int
+  def segment: Segment
+  def millSourcePath: os.Path
+  def segments: Segments
+  def external: Boolean
+  def foreign: Option[Segments]
+  def fileName: String
+  def enclosingCls: Class[_]
+  def enclosingModule: Any = null
+  def crossValues: Seq[Any]
+
+  private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
+  private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
+  private[mill] def withSegment(segment: Segment): Ctx
+  private[mill] def withSegments(segments: Segments): Ctx
+  private[mill] def withEnclosingModule(enclosingModule: Any): Ctx = this
 }
 
 object Ctx {
+  private case class Impl(
+      enclosing: String,
+      lineNum: Int,
+      segment: Segment,
+      millSourcePath: os.Path,
+      segments: Segments,
+      external: Boolean,
+      foreign: Option[Segments],
+      fileName: String,
+      override val enclosingModule: Any,
+      crossValues: Seq[Any]
+  ) extends Ctx {
+    def enclosingCls = enclosingModule.getClass
+    def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
+    def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
+    def withSegment(segment: Segment): Ctx = copy(segment = segment)
+    def withSegments(segments: Segments): Ctx = copy(segments = segments)
+    override def withEnclosingModule(enclosingModule: Any): Ctx =
+      copy(enclosingModule = enclosingModule)
+  }
 
   /**
    * Marker for a base path to be used implicitly by [[Ctx]].
@@ -83,7 +82,6 @@ object Ctx {
   implicit def make(implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
-      millName0: sourcecode.Name,
       millModuleBasePath0: BasePath,
       segments0: Segments,
       external0: External,
@@ -91,64 +89,22 @@ object Ctx {
       fileName: sourcecode.File,
       enclosing: Caller
   ): Ctx = {
-    Ctx(
+    Impl(
       millModuleEnclosing0.value,
       millModuleLine0.value,
-      Segment.Label(millName0.value),
+      Segment.Label(
+        // Manually break apart `sourcecode.Enclosing` instead of using
+        // `sourcecode.Name` to work around bug with anonymous classes
+        // returning `$anon` names
+        millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
+      ),
       millModuleBasePath0.value,
       segments0,
       external0.value,
       foreign0.value,
       fileName.value,
-      enclosing.value.getClass,
+      enclosing.value,
       Seq()
     )
   }
-
-  def apply(
-      enclosing: String,
-      lineNum: Int,
-      segment: Segment,
-      millSourcePath: os.Path,
-      segments: Segments,
-      external: Boolean,
-      foreign: Option[Segments],
-      fileName: String,
-      enclosingCls: Class[_],
-      crossValues: Seq[Any]
-  ): Ctx = new Ctx(
-    enclosing,
-    lineNum,
-    segment,
-    millSourcePath,
-    segments,
-    external,
-    foreign,
-    fileName,
-    enclosingCls,
-    crossValues
-  )
-  private def unapply(ctx: Ctx): Option[(
-      String,
-      Int,
-      Segment,
-      Path,
-      Segments,
-      Boolean,
-      Option[Segments],
-      String,
-      Class[_],
-      Seq[Any]
-  )] = Some((
-    ctx.enclosing,
-    ctx.lineNum,
-    ctx.segment,
-    ctx.millSourcePath,
-    ctx.segments,
-    ctx.external,
-    ctx.foreign,
-    ctx.fileName,
-    ctx.enclosingCls,
-    ctx.crossValues
-  ))
 }

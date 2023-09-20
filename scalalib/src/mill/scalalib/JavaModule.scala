@@ -10,9 +10,9 @@ import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.api.Loose.Agg
+import mill.define.ModuleRef
 import mill.api.{JarManifest, PathRef, Result, internal}
 import mill.util.Jvm
-import mill.scalalib.Assembly
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
@@ -28,23 +28,28 @@ trait JavaModule
     with CoursierModule
     with OfflineSupportModule
     with BspModule
-    with SemanticDbJavaModule { outer =>
+    with SemanticDbJavaModule
+    with TestModule.JavaModuleBase { outer =>
 
-  def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
+  def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(mill.scalalib.ZincWorkerModule)
 
-  trait JavaModuleTests extends TestModule {
+  trait JavaModuleTests extends JavaModule with TestModule {
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
-    override def javacOptions: Target[Seq[String]] = T { outer.javacOptions() }
-    override def zincWorker: ZincWorkerModule = outer.zincWorker
+    override def javacOptions: T[Seq[String]] = T { outer.javacOptions() }
+    override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
-    override def runUseArgsFile: Target[Boolean] = T { outer.runUseArgsFile() }
+    override def runUseArgsFile: T[Boolean] = T { outer.runUseArgsFile() }
+    override def sources = T.sources {
+      for (src <- outer.sources()) yield {
+        PathRef(this.millSourcePath / src.path.relativeTo(outer.millSourcePath))
+      }
+    }
   }
-  trait Tests extends JavaModuleTests
 
-  def defaultCommandName() = "run"
+  def defaultCommandName(): String = "run"
   def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task {
     Artifact.fromDepJava(_: Dep)
   }
@@ -60,7 +65,7 @@ trait JavaModule
     mainClass() match {
       case Some(m) => Right(m)
       case None =>
-        zincWorker.worker().discoverMainClasses(compile()) match {
+        zincWorker().worker().discoverMainClasses(compile()) match {
           case Seq() => Left("No main class specified or found")
           case Seq(main) => Right(main)
           case mains =>
@@ -103,7 +108,7 @@ trait JavaModule
    * macro-related dependencies like `scala-reflect` that doesn't need to be
    * present at runtime
    */
-  def compileIvyDeps = T { Agg.empty[Dep] }
+  def compileIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
 
   /**
    * Additional dependencies, only present at runtime. Useful for e.g.
@@ -123,12 +128,34 @@ trait JavaModule
   /** The compile-only direct dependencies of this module. */
   def compileModuleDeps: Seq[JavaModule] = Seq.empty
 
+  /** The direct and indirect dependencies of this module */
+  def recursiveModuleDeps: Seq[JavaModule] = {
+    moduleDeps.flatMap(_.transitiveModuleDeps).distinct
+  }
+
+  /**
+   * Like `recursiveModuleDeps` but also include the module itself,
+   * basically the modules whose classpath are needed at runtime
+   */
+  def transitiveModuleDeps: Seq[JavaModule] = Seq(this) ++ recursiveModuleDeps
+
+  /**
+   * All direct and indirect module dependencies of this module, including
+   * compile-only dependencies: basically the modules whose classpath are needed
+   * at compile-time.
+   *
+   * Note that `compileModuleDeps` are defined to be non-transitive, so we only
+   * look at the direct `compileModuleDeps` when assembling this list
+   */
+  def transitiveModuleCompileModuleDeps: Seq[JavaModule] = {
+    (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+  }
+
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = T {
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    compileIvyDeps().map(bindDependency()) ++ T
-      .traverse(compileModuleDeps)(_.transitiveIvyDeps)()
-      .flatten
+    compileIvyDeps().map(bindDependency()) ++
+      T.traverse(compileModuleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**
@@ -153,16 +180,6 @@ trait JavaModule
     T.log.outputStream.println(asString)
   }
 
-  /** The direct and indirect dependencies of this module */
-  def recursiveModuleDeps: Seq[JavaModule] = {
-    moduleDeps.flatMap(_.transitiveModuleDeps).distinct
-  }
-
-  /** Like `recursiveModuleDeps` but also include the module itself */
-  def transitiveModuleDeps: Seq[JavaModule] = {
-    Seq(this) ++ recursiveModuleDeps
-  }
-
   /**
    * Additional jars, classfiles or resources to add to the classpath directly
    * from disk rather than being downloaded from Maven Central or other package
@@ -175,28 +192,22 @@ trait JavaModule
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = T {
-    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++ T.traverse(moduleDeps)(
-      _.transitiveIvyDeps
-    )().flatten
+    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++
+      T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**
    * The upstream compilation output of all this module's upstream modules
    */
   def upstreamCompileOutput: T[Seq[CompilationResult]] = T {
-    T.traverse((recursiveModuleDeps ++ compileModuleDeps.flatMap(
-      _.transitiveModuleDeps
-    )).distinct)(_.compile)
+    T.traverse(transitiveModuleCompileModuleDeps)(_.compile)
   }
 
   /**
    * The transitive version of `localClasspath`
    */
   def transitiveLocalClasspath: T[Agg[PathRef]] = T {
-    T.traverse(
-      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m => m.localClasspath)()
-      .flatten
+    T.traverse(transitiveModuleCompileModuleDeps)(_.localClasspath)().flatten
   }
 
   /**
@@ -204,21 +215,17 @@ trait JavaModule
    */
   // Keep in sync with [[transitiveLocalClasspath]]
   @internal
-  def bspTransitiveLocalClasspath: Target[Agg[UnresolvedPath]] = T {
-    T.traverse(
-      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m => m.bspLocalClasspath)()
-      .flatten
+  def bspTransitiveLocalClasspath: T[Agg[UnresolvedPath]] = T {
+    T.traverse(transitiveModuleCompileModuleDeps)(_.bspLocalClasspath)().flatten
   }
 
   /**
    * The transitive version of `compileClasspath`
    */
   def transitiveCompileClasspath: T[Agg[PathRef]] = T {
-    T.traverse(
-      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m => T.task { m.compileClasspath() ++ Agg(m.compile().classes) })()
-      .flatten
+    T.traverse(transitiveModuleCompileModuleDeps)(m =>
+      T.task { m.localCompileClasspath() ++ Agg(m.compile().classes) }
+    )().flatten
   }
 
   /**
@@ -226,12 +233,10 @@ trait JavaModule
    */
   // Keep in sync with [[transitiveCompileClasspath]]
   @internal
-  def bspTransitiveCompileClasspath: Target[Agg[UnresolvedPath]] = T {
-    T.traverse(
-      (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
-    )(m =>
+  def bspTransitiveCompileClasspath: T[Agg[UnresolvedPath]] = T {
+    T.traverse(transitiveModuleCompileModuleDeps)(m =>
       T.task {
-        m.bspCompileClasspath() ++ Agg(UnresolvedPath.ResolvedPath(m.compile().classes.path))
+        m.bspCompileClasspath() ++ Agg(m.bspCompileClassesPath())
       }
     )()
       .flatten
@@ -270,20 +275,20 @@ trait JavaModule
   /**
    * The folders where the source files for this module live
    */
-  def sources = T.sources { millSourcePath / "src" }
+  def sources: T[Seq[PathRef]] = T.sources { millSourcePath / "src" }
 
   /**
    * The folders where the resource files for this module live.
    * If you need resources to be seen by the compiler, use [[compileResources]].
    */
-  def resources: Sources = T.sources { millSourcePath / "resources" }
+  def resources: T[Seq[PathRef]] = T.sources { millSourcePath / "resources" }
 
   /**
    * The folders where the compile time resource files for this module live.
    * If your resources files do not necessarily need to be seen by the compiler,
    * you should use [[resources]] instead.
    */
-  def compileResources: Sources = T.sources { millSourcePath / "compile-resources" }
+  def compileResources: T[Seq[PathRef]] = T.sources { millSourcePath / "compile-resources" }
 
   /**
    * Folders containing source files that are generated rather than
@@ -317,7 +322,7 @@ trait JavaModule
    */
   // Keep in sync with [[bspCompileClassesPath]]
   def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
-    zincWorker
+    zincWorker()
       .worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -332,7 +337,7 @@ trait JavaModule
   /** The path to the compiled classes without forcing to actually run the target. */
   // Keep in sync with [[compile]]
   @internal
-  def bspCompileClassesPath: Target[UnresolvedPath] =
+  def bspCompileClassesPath: T[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
       T {
         T.log.debug(
@@ -350,11 +355,11 @@ trait JavaModule
     }
 
   /**
-   * The output classfiles/resources from this module, excluding upstream
-   * modules and third-party dependencies
+   * The *output* classfiles/resources from this module, used for execution,
+   * excluding upstream modules and third-party dependencies
    */
   def localClasspath: T[Seq[PathRef]] = T {
-    compileResources() ++ resources() ++ Agg(compile().classes)
+    localCompileClasspath().toSeq ++ resources() ++ Agg(compile().classes)
   }
 
   /**
@@ -362,10 +367,9 @@ trait JavaModule
    * Keep in sync with [[compile]]
    */
   @internal
-  def bspLocalClasspath: Target[Agg[UnresolvedPath]] = T {
-    (compileResources() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++ Agg(
-      bspCompileClassesPath()
-    )
+  def bspLocalClasspath: T[Agg[UnresolvedPath]] = T {
+    (compileResources() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+      Agg(bspCompileClassesPath())
   }
 
   /**
@@ -374,18 +378,23 @@ trait JavaModule
    */
   // Keep in sync with [[bspCompileClasspath]]
   def compileClasspath: T[Agg[PathRef]] = T {
-    transitiveCompileClasspath() ++
-      compileResources() ++
-      unmanagedClasspath() ++
-      resolvedIvyDeps()
+    resolvedIvyDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
+  }
+
+  /**
+   * The *input* classfiles/resources from this module, used during compilation,
+   * excluding upstream modules and third-party dependencies
+   */
+  def localCompileClasspath: T[Agg[PathRef]] = T {
+    compileResources() ++ unmanagedClasspath()
   }
 
   /** Same as [[compileClasspath]], but does not trigger compilation targets, if possible. */
   // Keep in sync with [[compileClasspath]]
   @internal
-  def bspCompileClasspath: Target[Agg[UnresolvedPath]] = T {
+  def bspCompileClasspath: T[Agg[UnresolvedPath]] = T {
     bspTransitiveCompileClasspath() ++
-      (compileResources() ++ unmanagedClasspath() ++ resolvedIvyDeps())
+      (localCompileClasspath() ++ resolvedIvyDeps())
         .map(p => UnresolvedPath.ResolvedPath(p.path))
   }
 
@@ -393,9 +402,7 @@ trait JavaModule
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      transitiveCompileIvyDeps() ++ transitiveIvyDeps()
-    })()
+    resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
   }
 
   /**
@@ -403,15 +410,11 @@ trait JavaModule
    * assembly, but without this module's contribution
    */
   def upstreamAssemblyClasspath: T[Agg[PathRef]] = T {
-    transitiveLocalClasspath() ++
-      unmanagedClasspath() ++
-      resolvedRunIvyDeps()
+    resolvedRunIvyDeps() ++ transitiveLocalClasspath()
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
-    })()
+    resolveDeps(T.task { runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps() })()
   }
 
   /**
@@ -419,8 +422,7 @@ trait JavaModule
    * necessary to run this module's code after compilation
    */
   def runClasspath: T[Seq[PathRef]] = T {
-    localClasspath() ++
-      upstreamAssemblyClasspath()
+    resolvedRunIvyDeps().toSeq ++ transitiveLocalClasspath() ++ localClasspath()
   }
 
   /**
@@ -465,10 +467,7 @@ trait JavaModule
    * without those from upstream modules and dependencies
    */
   def jar: T[PathRef] = T {
-    Jvm.createJar(
-      localClasspath().map(_.path).filter(os.exists),
-      manifest()
-    )
+    Jvm.createJar(localClasspath().map(_.path).filter(os.exists), manifest())
   }
 
   /**
@@ -484,7 +483,7 @@ trait JavaModule
    * Typically includes the source files to generate documentation from.
    * @see [[docResources]]
    */
-  def docSources: Sources = T.sources(allSources())
+  def docSources: T[Seq[PathRef]] = T.sources(allSources())
 
   /**
    * Extra directories to be copied into the documentation.
@@ -493,7 +492,7 @@ trait JavaModule
    * on the doc tool that is actually used.
    * @see [[docSources]]
    */
-  def docResources: Sources = T.sources(millSourcePath / "docs")
+  def docResources: T[Seq[PathRef]] = T.sources(millSourcePath / "docs")
 
   /**
    * Control whether `docJar`-target should use a file to pass command line arguments to the javadoc tool.
@@ -563,7 +562,7 @@ trait JavaModule
   /**
    * The source jar, containing only source code for publishing to Maven Central
    */
-  def sourceJar: Target[PathRef] = T {
+  def sourceJar: T[PathRef] = T {
     Jvm.createJar(
       (allSources() ++ resources() ++ compileResources()).map(_.path).filter(os.exists),
       manifest()
@@ -574,13 +573,13 @@ trait JavaModule
    * Any command-line parameters you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkArgs: Target[Seq[String]] = T { Seq.empty[String] }
+  def forkArgs: T[Seq[String]] = T { Seq.empty[String] }
 
   /**
    * Any environment variables you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkEnv: Target[Map[String, String]] = T.input { T.env }
+  def forkEnv: T[Map[String, String]] = T.input { T.env }
 
   /**
    * Builds a command-line "launcher" file that can be used to run this module's
@@ -784,7 +783,7 @@ trait JavaModule
     try Result.Success(
         Jvm.runSubprocess(
           "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-          (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
+          (runClasspath() ++ zincWorker().backgroundWrapperClasspath()).map(_.path),
           forkArgs(),
           forkEnv(),
           Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
@@ -808,7 +807,7 @@ trait JavaModule
       try Result.Success(
           Jvm.runSubprocess(
             "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-            (runClasspath() ++ zincWorker.backgroundWrapperClasspath())
+            (runClasspath() ++ zincWorker().backgroundWrapperClasspath())
               .map(_.path),
             forkArgs(),
             forkEnv(),
@@ -878,7 +877,7 @@ trait JavaModule
    */
   def artifactSuffix: T[String] = platformSuffix()
 
-  def forkWorkingDir: Target[Path] = T { T.workspace }
+  def forkWorkingDir: T[Path] = T { T.workspace }
 
   /**
    * @param all If `true` fetches also source dependencies
@@ -906,7 +905,7 @@ trait JavaModule
     T.command {
       super.prepareOffline(all)()
       resolvedIvyDeps()
-      zincWorker.prepareOffline(all)()
+      zincWorker().prepareOffline(all)()
       resolvedRunIvyDeps()
       T.sequence(tasks)()
       ()

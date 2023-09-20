@@ -12,19 +12,19 @@ object ScalafmtTests extends TestSuite {
   val scalafmtTestVersion = mill.scalalib.api.Versions.scalafmtVersion
 
   trait TestBase extends TestUtil.BaseModule {
-    def millSourcePath =
+    override def millSourcePath: os.Path =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait BuildSrcModule {
-    def buildSources: Sources
+    def buildSources: T[Seq[PathRef]]
   }
 
   object ScalafmtTestModule extends TestBase {
     object core extends ScalaModule with ScalafmtModule with BuildSrcModule {
-      def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
+      def scalaVersion: T[String] = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
-      def buildSources: Sources = T.sources {
+      def buildSources: T[Seq[PathRef]] = T.sources {
         millSourcePath / "util.sc"
       }
 

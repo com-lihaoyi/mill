@@ -1,13 +1,22 @@
 package mill.scalalib
 
 import mill.{Agg, T}
-import mill.define.{Command, Task, TaskModule}
-import mill.api.{Ctx, Result}
+import mill.define.{Command, ModuleRef, Task, TaskModule}
+import mill.api.{Ctx, PathRef, Result}
 import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.testrunner.TestRunner
+import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 
-trait TestModule extends JavaModule with TaskModule {
+trait TestModule extends TaskModule with TestModule.JavaModuleBase {
+
+  def forkArgs: T[Seq[String]]
+  def runClasspath: T[Seq[PathRef]]
+  def forkEnv: T[Map[String, String]]
+  def compile: T[mill.scalalib.api.CompilationResult]
+  def forkWorkingDir: T[os.Path]
+  def zincWorker: ModuleRef[ZincWorkerModule]
+  def runUseArgsFile: T[Boolean]
+
   override def defaultCommandName() = "test"
 
   /**
@@ -20,7 +29,7 @@ trait TestModule extends JavaModule with TaskModule {
    * results to the console.
    * @see [[testCached]]
    */
-  def test(args: String*): Command[(String, Seq[TestRunner.Result])] =
+  def test(args: String*): Command[(String, Seq[TestResult])] =
     T.command {
       testTask(T.task { args }, T.task { Seq.empty[String] })()
     }
@@ -36,7 +45,7 @@ trait TestModule extends JavaModule with TaskModule {
    * If no input has changed since the last run, no test were executed.
    * @see [[test()]]
    */
-  def testCached: T[(String, Seq[TestRunner.Result])] = T {
+  def testCached: T[(String, Seq[TestResult])] = T {
     testTask(testCachedArgs, T.task { Seq.empty[String] })()
   }
 
@@ -49,7 +58,7 @@ trait TestModule extends JavaModule with TaskModule {
    * (includes package name) 1. end with "foo", 2. exactly "foobar", 3. start
    * with "bar", with "arguments" as arguments passing to test framework.
    */
-  def testOnly(args: String*): Command[(String, Seq[TestRunner.Result])] = {
+  def testOnly(args: String*): Command[(String, Seq[TestResult])] = {
     val splitAt = args.indexOf("--")
     val (selector, testArgs) =
       if (splitAt == -1) (args, Seq.empty)
@@ -71,7 +80,7 @@ trait TestModule extends JavaModule with TaskModule {
   protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestRunner.Result])] =
+  ): Task[(String, Seq[TestResult])] =
     T.task {
       val outputPath = T.dest / "out.json"
       val useArgsFile = testUseArgsFile()
@@ -93,29 +102,29 @@ trait TestModule extends JavaModule with TaskModule {
           forkArgs() -> Map()
         }
 
-      val testArgs = TestRunner.TestArgs(
+      val testArgs = TestArgs(
         framework = testFramework(),
-        classpath = runClasspath().map(_.path.toString()),
+        classpath = runClasspath().map(_.path),
         arguments = args(),
         sysProps = props,
-        outputPath = outputPath.toString(),
+        outputPath = outputPath,
         colored = T.log.colored,
-        testCp = compile().classes.path.toString(),
-        homeStr = T.home.toString(),
+        testCp = compile().classes.path,
+        home = T.home,
         globSelectors = globSelectors()
       )
 
-      val mainArgs =
-        if (useArgsFile) {
-          val argsFile = T.dest / "testargs"
-          Seq(testArgs.writeArgsFile(argsFile))
-        } else {
-          testArgs.toArgsSeq
-        }
+      val testRunnerClasspathArg = zincWorker().scalalibClasspath()
+        .map(_.path.toNIO.toUri.toURL)
+        .mkString(",")
+
+      val argsFile = T.dest / "testargs"
+      os.write(argsFile, upickle.default.write(testArgs))
+      val mainArgs = Seq(testRunnerClasspathArg, argsFile.toString)
 
       Jvm.runSubprocess(
-        mainClass = "mill.testrunner.TestRunner",
-        classPath = zincWorker.scalalibClasspath().map(_.path),
+        mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
+        classPath = (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(_.path),
         jvmArgs = jvmArgs,
         envArgs = forkEnv(),
         mainArgs = mainArgs,
@@ -128,7 +137,7 @@ trait TestModule extends JavaModule with TaskModule {
         try {
           val jsonOutput = ujson.read(outputPath.toIO)
           val (doneMsg, results) =
-            upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
+            upickle.default.read[(String, Seq[TestResult])](jsonOutput)
           TestModule.handleResults(doneMsg, results, Some(T.ctx()))
         } catch {
           case e: Throwable =>
@@ -140,9 +149,9 @@ trait TestModule extends JavaModule with TaskModule {
    * Discovers and runs the module's tests in-process in an isolated classloader,
    * reporting the results to the console
    */
-  def testLocal(args: String*): Command[(String, Seq[TestRunner.Result])] = T.command {
+  def testLocal(args: String*): Command[(String, Seq[TestResult])] = T.command {
     val (doneMsg, results) = TestRunner.runTestFramework(
-      TestRunner.framework(testFramework()),
+      Framework.framework(testFramework()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args,
@@ -171,7 +180,7 @@ object TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(
-        ivy"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}"
+        ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
       )
     }
   }
@@ -210,7 +219,7 @@ object TestModule {
    * TestModule that uses Specs2 Framework to run tests.
    * You need to provide the specs2 dependencies yourself.
    */
-  trait Specs2 extends ScalaModule with TestModule {
+  trait Specs2 extends ScalaModuleBase with TestModule {
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
     override def scalacOptions = T {
       super.scalacOptions() ++ Seq("-Yrangepos")
@@ -253,16 +262,16 @@ object TestModule {
   @deprecated("Use other overload instead", "Mill after 0.10.2")
   def handleResults(
       doneMsg: String,
-      results: Seq[TestRunner.Result]
-  ): Result[(String, Seq[TestRunner.Result])] = handleResults(doneMsg, results, None)
+      results: Seq[TestResult]
+  ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
 
   def handleResults(
       doneMsg: String,
-      results: Seq[TestRunner.Result],
+      results: Seq[TestResult],
       ctx: Option[Ctx.Env]
-  ): Result[(String, Seq[TestRunner.Result])] = {
+  ): Result[(String, Seq[TestResult])] = {
 
-    val badTests: Seq[TestRunner.Result] =
+    val badTests: Seq[TestResult] =
       results.filter(x => Set("Error", "Failure").contains(x.status))
     if (badTests.isEmpty) {
       Result.Success((doneMsg, results))
@@ -281,5 +290,13 @@ object TestModule {
 
       Result.Failure(msg, Some((doneMsg, results)))
     }
+  }
+
+  trait JavaModuleBase extends BspModule {
+    def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
+  }
+
+  trait ScalaModuleBase extends mill.Module {
+    def scalacOptions: T[Seq[String]] = Seq.empty[String]
   }
 }

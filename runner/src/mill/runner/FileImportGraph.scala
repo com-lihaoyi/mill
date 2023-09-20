@@ -1,16 +1,25 @@
 package mill.runner
 
 import mill.api.internal
-
+import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
 
+/**
+ * @param seenScripts
+ * @param repos
+ * @param ivyDeps
+ * @param importGraphEdges
+ * @param errors
+ * @param millImport If `true`, a meta-build is enabled
+ */
 @internal
 case class FileImportGraph(
     seenScripts: Map[os.Path, String],
     repos: Seq[(String, os.Path)],
     ivyDeps: Set[String],
     importGraphEdges: Map[os.Path, Seq[os.Path]],
-    errors: Seq[String]
+    errors: Seq[String],
+    millImport: Boolean
 )
 
 /**
@@ -19,6 +28,8 @@ case class FileImportGraph(
  */
 @internal
 object FileImportGraph {
+  def backtickWrap(s: String): String = if (encode(s) == s) s else "`" + s + "`"
+
   import mill.api.JsonFormatters.pathReadWrite
   implicit val readWriter: upickle.default.ReadWriter[FileImportGraph] = upickle.default.macroRW
 
@@ -33,14 +44,16 @@ object FileImportGraph {
     val seenRepo = mutable.ListBuffer.empty[(String, os.Path)]
     val importGraphEdges = mutable.Map.empty[os.Path, Seq[os.Path]]
     val errors = mutable.Buffer.empty[String]
+    var millImport = false
 
-    def walkScripts(s: os.Path): Unit = {
+    def walkScripts(s: os.Path, useDummy: Boolean = false): Unit = {
       importGraphEdges(s) = Nil
 
       if (!seenScripts.contains(s)) {
-        val readFileEither = scala.util.Try(
-          Parsers.splitScript(os.read(s), s.relativeTo(topLevelProjectRoot).toString)
-        ) match {
+        val readFileEither = scala.util.Try {
+          val content = if (useDummy) "" else os.read(s)
+          Parsers.splitScript(content, s.relativeTo(topLevelProjectRoot).toString)
+        } match {
           case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
           case scala.util.Success(value) => value
         }
@@ -54,12 +67,14 @@ object FileImportGraph {
 
           case Right(stmts) =>
             val fileImports = mutable.Set.empty[os.Path]
+            // we don't expect any new imports when using an empty dummy
+            if (useDummy) assert(fileImports.isEmpty)
             val transformedStmts = mutable.Buffer.empty[String]
             for ((stmt0, importTrees) <- Parsers.parseImportHooksWithIndices(stmts)) {
               walkStmt(s, stmt0, importTrees, fileImports, transformedStmts)
             }
             seenScripts(s) = transformedStmts.mkString
-            fileImports.foreach(walkScripts)
+            fileImports.foreach(walkScripts(_))
         }
       }
     }
@@ -84,6 +99,9 @@ object FileImportGraph {
           case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
             seenIvy.addAll(mapping.map(_._1))
             (start, "_root_._", end)
+          case ImportTree(Seq(("$meta", _), rest @ _*), mapping, start, end) =>
+            millImport = true
+            (start, "_root_._", end)
           case ImportTree(Seq(("$file", _), rest @ _*), mapping, start, end) =>
             val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
 
@@ -95,7 +113,9 @@ object FileImportGraph {
               val end = rest.last._2
               (
                 start,
-                fileImportToSegments(projectRoot, nextPaths(0) / os.up, false).mkString("."),
+                fileImportToSegments(projectRoot, nextPaths(0) / os.up, false)
+                  .map(backtickWrap)
+                  .mkString("."),
                 end
               )
             }
@@ -107,13 +127,15 @@ object FileImportGraph {
       transformedStmts.append(stmt)
     }
 
-    walkScripts(projectRoot / "build.sc")
+    val useDummy = !os.exists(projectRoot / "build.sc")
+    walkScripts(projectRoot / "build.sc", useDummy)
     new FileImportGraph(
       seenScripts.toMap,
       seenRepo.toSeq,
       seenIvy.toSet,
       importGraphEdges.toMap,
-      errors.toSeq
+      errors.toSeq,
+      millImport
     )
   }
 

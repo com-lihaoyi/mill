@@ -3,7 +3,7 @@
 // libraries - Commonmark and Scalatags - to deal with Markdown parsing and
 // HTML generation respectively:
 
-import $ivy.`com.lihaoyi::scalatags:0.9.1`, scalatags.Text.all._
+import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
 import $ivy.`com.atlassian.commonmark:commonmark:0.13.1`
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer

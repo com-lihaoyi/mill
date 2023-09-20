@@ -27,7 +27,7 @@ It prompts you to enter project name and creates a folder with that name.
 You can use it to quickly generate a starter project.
 There are lots of templates out there for many frameworks and tools!
 
-include::example/basic/3-builtin-commands.adoc[]
+include::example/basic/4-builtin-commands.adoc[]
 
 == visualize
 

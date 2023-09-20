@@ -6,10 +6,13 @@ import mill.define.{BaseModule, NamedTask, Segments, Task}
 import mill.eval.Evaluator.{Results, formatFailing}
 import mill.util.{ColorLogger, MultiBiMap}
 
-import scala.collection.JavaConverters.mapAsScalaMapConverter
+import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.DynamicVariable
 
+/**
+ * Public facing API of the Mill evaluation logic.
+ */
 trait Evaluator {
   def baseLogger: ColorLogger
   def rootModule: BaseModule
@@ -18,6 +21,7 @@ trait Evaluator {
   def externalOutPath: os.Path
   def pathsResolver: EvaluatorPathsResolver
   def workerCache: collection.Map[Segments, (Int, Val)]
+  def disableCallgraphInvalidation: Boolean = false
   def evaluate(
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
@@ -28,7 +32,7 @@ trait Evaluator {
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
   def withFailFast(newFailFast: Boolean): Evaluator
 
-  def plan(goals: Agg[Task[_]]): (MultiBiMap[Evaluator.Terminal, Task[_]], Agg[Task[_]])
+  def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Agg[Task[_]])
 
   /**
    * Evaluate given task(s) and return the successful result(s), or throw an exception.
@@ -40,26 +44,6 @@ trait Evaluator {
 }
 
 object Evaluator {
-
-  /**
-   * A terminal or terminal target is some important work unit, that in most cases has a name (Right[Labelled])
-   * or was directly called by the user (Left[Task]).
-   * It's a T, T.worker, T.input, T.source, T.sources, T.persistent
-   */
-  sealed trait Terminal {
-    def render: String
-  }
-
-  object Terminal {
-    case class Labelled[T](task: NamedTask[T], segments: Segments) extends Terminal {
-      def render = segments.render
-    }
-
-    case class Task[T](task: mill.define.Task[_]) extends Terminal {
-      def render = task.toString
-    }
-  }
-
   trait Results {
     def rawValues: Seq[Result[Val]]
     def evaluated: Agg[Task[_]]
@@ -82,6 +66,12 @@ object Evaluator {
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
   val currentEvaluator = new DynamicVariable[mill.eval.Evaluator](null)
+  val allBootstrapEvaluators = new DynamicVariable[AllBootstrapEvaluators](null)
+
+  /**
+   * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
+   */
+  case class AllBootstrapEvaluators(value: Seq[Evaluator])
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 

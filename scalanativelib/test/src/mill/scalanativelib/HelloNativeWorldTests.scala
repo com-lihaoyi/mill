@@ -7,7 +7,7 @@ import mill.define.Discover
 import mill.eval.EvaluatorPaths
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, ScalaModule, TestModule}
-import mill.testrunner.TestRunner
+import mill.testrunner.{TestResult, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
 import mill.util.{TestEvaluator, TestUtil}
@@ -61,7 +61,7 @@ object HelloNativeWorldTests extends TestSuite {
     }
     object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
-      object test extends super.Tests with TestModule.Utest {
+      object test extends ScalaNativeTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest::0.7.6"
@@ -74,7 +74,7 @@ object HelloNativeWorldTests extends TestSuite {
       def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaNativeVersion = scalaNative
-      object test extends Tests with TestModule.Utest
+      object test extends ScalaNativeTests with TestModule.Utest
     }
 
     override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
@@ -161,8 +161,8 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])])
-        : Map[String, Map[String, TestRunner.Result]] = {
+    def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
+        : Map[String, Map[String, TestResult]] = {
       val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
 
       val (doneMsg, testResults) = res

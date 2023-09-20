@@ -3,10 +3,12 @@ package mill.contrib.scoverage
 import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef}
+import mill.main.BuildInfo
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 import mill.api.Result
+import mill.define.ModuleRef
 import mill.util.Util.millProjectModule
 
 import scala.util.Try
@@ -171,9 +173,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     )
   }
 
-  val scoverage: ScoverageData = new ScoverageData(implicitly)
+  /** Inner worker module. This is not an `object` to allow users to override and customize it. */
+  lazy val scoverage: ScoverageData = new ScoverageData {}
 
-  class ScoverageData(ctx0: mill.define.Ctx) extends Module()(ctx0) with ScalaModule {
+  trait ScoverageData extends ScalaModule {
 
     def doReport(reportType: ReportType): Task[Unit] = T.task {
       ScoverageReportWorker
@@ -186,7 +189,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
      * The persistent data dir used to store scoverage coverage data.
      * Use to store coverage data at compile-time and by the various report targets.
      */
-    def data: Persistent[PathRef] = T.persistent {
+    def data: T[PathRef] = T.persistent {
       // via the persistent target, we ensure, the dest dir doesn't get cleared
       PathRef(T.dest)
     }
@@ -195,14 +198,14 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def allSources: Target[Seq[PathRef]] = T { outer.allSources() }
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
     override def compileModuleDeps: Seq[JavaModule] = outer.compileModuleDeps
-    override def sources: Sources = T.sources { outer.sources() }
-    override def resources: Sources = T.sources { outer.resources() }
+    override def sources: T[Seq[PathRef]] = T.sources { outer.sources() }
+    override def resources: T[Seq[PathRef]] = T.sources { outer.resources() }
     override def scalaVersion = T { outer.scalaVersion() }
     override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
-    override def compileIvyDeps: Target[Loose.Agg[Dep]] = T { outer.compileIvyDeps() }
-    override def ivyDeps: Target[Loose.Agg[Dep]] =
+    override def compileIvyDeps: Target[Agg[Dep]] = T { outer.compileIvyDeps() }
+    override def ivyDeps: Target[Agg[Dep]] =
       T { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
-    override def unmanagedClasspath: Target[Loose.Agg[PathRef]] = T { outer.unmanagedClasspath() }
+    override def unmanagedClasspath: Target[Agg[PathRef]] = T { outer.unmanagedClasspath() }
 
     /** Add the scoverage scalac plugin. */
     override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] =
@@ -230,7 +233,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def skipIdea = outer.skipIdea
   }
 
-  trait ScoverageTests extends outer.Tests {
+  trait ScoverageTests extends ScalaTests {
     override def upstreamAssemblyClasspath = T {
       super.upstreamAssemblyClasspath() ++
         resolveDeps(T.task {

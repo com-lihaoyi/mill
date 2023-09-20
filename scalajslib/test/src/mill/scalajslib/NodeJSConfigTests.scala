@@ -46,7 +46,7 @@ object NodeJSConfigTests extends TestSuite {
 
     object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
-      object test extends super.Tests with TestModule.Utest {
+      object test extends ScalaJSTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"

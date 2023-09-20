@@ -1,23 +1,16 @@
 package mill.bsp
 
-import java.io.{InputStream, PrintStream}
-import scala.concurrent.{Await, Promise}
-import scala.concurrent.duration.Duration
-import mill.api.{Ctx, DummyInputStream, Logger, PathRef, Result, SystemStreams}
-import mill.{Agg, T, BuildInfo => MillBuildInfo}
-import mill.define.{Command, Discover, ExternalModule, Task}
+import mill.api.{Ctx, PathRef}
+import mill.{Agg, T}
+import mill.define.{Command, Discover, ExternalModule}
+import mill.main.BuildInfo
 import mill.eval.Evaluator
-import mill.main.{BspServerHandle, BspServerResult, BspServerStarter}
 import mill.util.Util.millProjectModule
-import mill.scalalib.{CoursierModule, Dep}
-import mill.util.PrintLogger
-import os.Path
+import mill.scalalib.CoursierModule
 
-object BSP extends ExternalModule with CoursierModule with BspServerStarter {
+object BSP extends ExternalModule with CoursierModule {
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
-
-  private[this] val millServerHandle = Promise[BspServerHandle]()
 
   private def bspWorkerLibs: T[Agg[PathRef]] = T {
     millProjectModule("mill-bsp-worker", repositoriesTask())
@@ -41,13 +34,13 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
     // we create a file containing the additional jars to load
     val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
     val cpFile =
-      T.workspace / Constants.bspDir / s"${Constants.serverName}-${mill.BuildInfo.millVersion}.resources"
+      T.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
     os.write.over(
       cpFile,
       libUrls.mkString("\n"),
       createFolders = true
     )
-    BspWorker(T.ctx(), Some(libUrls)).map(_.createBspConnection(jobs, Constants.serverName))
+    createBspConnection(jobs, Constants.serverName)
   }
 
   /**
@@ -56,64 +49,56 @@ object BSP extends ExternalModule with CoursierModule with BspServerStarter {
    * @param ev The Evaluator
    * @return The server result, indicating if mill should re-run this command or just exit.
    */
-  def startSession(ev: Evaluator): Command[BspServerResult] = T.command {
+  def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
+      : Command[BspServerResult] = T.command {
     T.log.errorStream.println("BSP/startSession: Starting BSP session")
-    val serverHandle: BspServerHandle = Await.result(millServerHandle.future, Duration.Inf)
-    val res = serverHandle.runSession(ev)
+    val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
     T.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
     res
   }
 
-  override def startBspServer(
-      initialEvaluator: Option[Evaluator],
-      streams: SystemStreams,
-      logStream: Option[PrintStream],
-      workspaceDir: os.Path,
-      ammoniteHomeDir: os.Path,
-      canReload: Boolean,
-      serverHandle: Option[Promise[BspServerHandle]] = None
-  ): BspServerResult = {
-    val ctx = new Ctx.Workspace with Ctx.Home with Ctx.Log {
-      override def workspace: Path = workspaceDir
-      override def home: Path = ammoniteHomeDir
-      // This all goes to the BSP log file mill-bsp.stderr
-      override def log: Logger = new Logger {
-        override def colored: Boolean = false
-        override def systemStreams: SystemStreams = new SystemStreams(
-          out = streams.out,
-          err = streams.err,
-          in = DummyInputStream
-        )
-        override def info(s: String): Unit = streams.err.println(s)
-        override def error(s: String): Unit = streams.err.println(s)
-        override def ticker(s: String): Unit = streams.err.println(s)
-        override def debug(s: String): Unit = streams.err.println(s)
-        override def debugEnabled: Boolean = true
-      }
-    }
+  private def createBspConnection(
+      jobs: Int,
+      serverName: String
+  )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
+    // we create a json connection file
+    val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
+    if (os.exists(bspFile)) ctx.log.info(s"Overwriting BSP connection file: ${bspFile}")
+    else ctx.log.info(s"Creating BSP connection file: ${bspFile}")
+    val withDebug = ctx.log.debugEnabled
+    if (withDebug) ctx.log.debug(
+      "Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option."
+    )
+    val connectionContent = bspConnectionJson(jobs, withDebug)
+    os.write.over(bspFile, connectionContent, createFolders = true)
+    (PathRef(bspFile), upickle.default.read[ujson.Value](connectionContent))
+  }
 
-    val worker = BspWorker(ctx)
+  private def bspConnectionJson(jobs: Int, debug: Boolean): String = {
+    val props = sys.props
+    val millPath = props
+      .get("mill.main.cli")
+      // we assume, the classpath is an executable jar here
+      .orElse(props.get("java.class.path"))
+      .getOrElse(throw new IllegalStateException("System property 'java.class.path' not set"))
 
-    worker match {
-      case Result.Success(worker) =>
-        worker.startBspServer(
-          initialEvaluator,
-          streams,
-          logStream.getOrElse(streams.err),
-          workspaceDir / Constants.bspDir,
-          canReload,
-          Seq(millServerHandle) ++ serverHandle.toSeq
-        )
-      case f: Result.Failure[_] =>
-        streams.err.println("Failed to start the BSP worker. " + f.msg)
-        BspServerResult.Failure
-      case f: Result.Exception =>
-        streams.err.println("Failed to start the BSP worker. " + f.throwable)
-        BspServerResult.Failure
-      case f =>
-        streams.err.println("Failed to start the BSP worker. " + f)
-        BspServerResult.Failure
-    }
+    upickle.default.write(
+      BspConfigJson(
+        name = "mill-bsp",
+        argv = Seq(
+          millPath,
+          "--bsp",
+          "--disable-ticker",
+          "--color",
+          "false",
+          "--jobs",
+          s"${jobs}"
+        ) ++ (if (debug) Seq("--debug") else Seq()),
+        millVersion = BuildInfo.millVersion,
+        bspVersion = Constants.bspProtocolVersion,
+        languages = Constants.languages
+      )
+    )
   }
 
 }

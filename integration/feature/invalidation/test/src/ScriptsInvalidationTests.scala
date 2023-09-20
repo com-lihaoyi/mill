@@ -26,9 +26,9 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
 
       test("second run modifying script") {
         val oldContent = os.read(scriptSourcePath / buildPath)
-        val newContent = s"""$oldContent
-                            |def newTask = T { }
-                            |""".stripMargin
+        val newContent =
+          oldContent.replace("""println("task")""", """System.out.println("task2")""")
+
         os.write.over(workspacePath / buildPath, newContent)
 
         val stdout = runTask("task")
@@ -49,13 +49,11 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       test("second run modifying script") {
         val inputD = os.sub / "b" / "inputD.sc"
         val oldContent = os.read(scriptSourcePath / inputD)
-        val newContent = s"""$oldContent
-                            |def newTask = T { }
-                            |""".stripMargin
+        val newContent = oldContent.replace("""println("d")""", """System.out.println("d2")""")
         os.write.over(workspacePath / inputD, newContent)
 
         val result = runTask("task")
-        val expected = Seq("d", "b")
+        val expected = Seq("d2", "b")
 
         assert(result == expected)
       }
@@ -72,13 +70,12 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
 
       test("second run modifying script") {
         val oldContent = os.read(scriptSourcePath / buildPath)
-        val newContent = s"""$oldContent
-                            |def newTask = T { }
-                            |""".stripMargin
+        val newContent =
+          oldContent.replace("""println("task")""", """System.out.println("task2")""")
         os.write.over(workspacePath / buildPath, newContent)
 
         val result = runTask("module.task")
-        val expected = Seq("task")
+        val expected = Seq("task2")
 
         assert(result == expected)
       }
@@ -95,13 +92,12 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
 
       test("second run modifying script") {
         val oldContent = os.read(scriptSourcePath / buildPath)
-        val newContent = s"""$oldContent
-                            |def newTask = T { }
-                            |""".stripMargin
+        val newContent =
+          oldContent.replace("""println("taskE")""", """System.out.println("taskE2")""")
         os.write.over(workspacePath / buildPath, newContent)
 
         val result = runTask("taskE")
-        val expected = Seq("taskE")
+        val expected = Seq("taskE2")
 
         assert(result == expected)
       }

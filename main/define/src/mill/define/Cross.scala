@@ -21,7 +21,7 @@ object Cross {
      * trait that can be mixed into any sub-modules within the body of a
      * [[Cross.Module]], to automatically inherit the [[crossValue]]
      */
-    trait InnerCrossModule extends Module[T1] {
+    trait CrossValue extends Module[T1] {
       def crossValue: T1 = Module.this.crossValue
       override def crossWrapperSegments: List[String] = Module.this.millModuleSegments.parts
     }
@@ -38,7 +38,7 @@ object Cross {
      * trait that can be mixed into any sub-modules within the body of a
      * [[Cross.Arg2]], to automatically inherit the [[crossValue2]]
      */
-    trait InnerCrossModule2 extends InnerCrossModule with Module2[T1, T2] {
+    trait InnerCrossModule2 extends CrossValue with Module2[T1, T2] {
       def crossValue2: T2 = Module2.this.crossValue2
     }
   }
@@ -112,10 +112,10 @@ object Cross {
     implicit object ShortToPathSegment extends ToSegments[Short](v => List(v.toString))
     implicit object ByteToPathSegment extends ToSegments[Byte](v => List(v.toString))
     implicit object BooleanToPathSegment extends ToSegments[Boolean](v => List(v.toString))
-    implicit def SeqToPathSegment[T: ToSegments] = new ToSegments[Seq[T]](
+    implicit def SeqToPathSegment[T: ToSegments]: ToSegments[Seq[T]] = new ToSegments[Seq[T]](
       _.flatMap(implicitly[ToSegments[T]].convert).toList
     )
-    implicit def ListToPathSegment[T: ToSegments] = new ToSegments[List[T]](
+    implicit def ListToPathSegment[T: ToSegments]: ToSegments[List[T]] = new ToSegments[List[T]](
       _.flatMap(implicitly[ToSegments[T]].convert).toList
     )
   }
@@ -128,6 +128,7 @@ object Cross {
   )
 
   object Factory {
+    import scala.language.implicitConversions
 
     /**
      * Implicitly constructs a Factory[M] for a target-typed `M`. Takes in an
@@ -277,7 +278,7 @@ object Cross {
  */
 class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
     ctx: mill.define.Ctx
-) extends mill.define.Module()(ctx) {
+) extends mill.define.Module {
 
   trait Item {
     def crossValues: List[Any]
@@ -299,6 +300,7 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
           .withMillSourcePath(ctx.millSourcePath / relPath)
           .withSegment(Segment.Cross(crossSegments0))
           .withCrossValues(factories.flatMap(_.crossValuesRaw))
+          .withEnclosingModule(this)
       )
     )
 
@@ -338,6 +340,12 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
     .to(collection.mutable.LinkedHashMap)
     .view
     .mapValues(_.value)
+
+  /**
+   * The default cross segments to use, when no cross value is specified.
+   * Defaults to the first cross value per cross level.
+   */
+  def defaultCrossSegments: Seq[String] = items.head.crossSegments
 
   /**
    * Fetch the cross module corresponding to the given cross values

@@ -33,18 +33,29 @@ private[mill] object Reflect {
         inner.isAssignableFrom(m.getReturnType)
     } yield m
 
-    if (outer.toString.contains("BarModule")) pprint.log(inner)
-    if (outer.toString.contains("BarModule")) pprint.log(res)
     // There can be multiple methods of the same name on a class if a sub-class
-    // overrides a super-class method and narrows the return type. Make sure we
-    // sort the methods by their declaring class from lowest to highest in the
-    // the type hierarchy, and use `distinctBy` to only keep the lowest
-    // version, before we finally sort them by name
+    // overrides a super-class method and narrows the return type.
+    //
+    // 1. Make sure we sort the methods by their declaring class from lowest to
+    //    highest in the the type hierarchy, and use `distinctBy` to only keep
+    //    the lowest version, before we finally sort them by name
+    //
+    // 2. Sometimes traits also generate synthetic forwarders for overrides,
+    //    which messes up the the comparison since all forwarders will have the
+    //    same `getDeclaringClass`. To handle these scenarios, also sort by
+    //    return type, so we can identify the most specific override
     res
-      .sortWith((m1, m2) => m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass))
+      .sortWith((m1, m2) =>
+        if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) false
+        else m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
+      )
+      .sortWith((m1, m2) =>
+        m1.getReturnType.isAssignableFrom(m2.getReturnType)
+      )
       .reverse
       .distinctBy(_.getName)
       .sortBy(_.getName)
+      .toIndexedSeq
   }
 
   // For some reason, this fails to pick up concrete `object`s nested directly within
@@ -55,7 +66,6 @@ private[mill] object Reflect {
       filter: String => Boolean = Function.const(true)
   ): Seq[(String, java.lang.reflect.Member)] = {
 
-    if (outerCls.toString.contains("BarModule")) pprint.log(outerCls)
     val first = reflect(
       outerCls,
       implicitly[ClassTag[T]].runtimeClass,
@@ -64,8 +74,6 @@ private[mill] object Reflect {
     )
       .map(m => (m.getName, m))
 
-    if (outerCls.toString.contains("BarModule")) pprint.log(first)
-    if (outerCls.toString.contains("BarModule")) pprint.log(outerCls.getClasses)
     val second =
       outerCls
         .getClasses
@@ -80,7 +88,6 @@ private[mill] object Reflect {
         }
         .distinct
 
-    if (outerCls.toString.contains("BarModule")) pprint.log(second)
     first ++ second
   }
 }

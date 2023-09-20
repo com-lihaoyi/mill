@@ -3,9 +3,9 @@ package mill.contrib.bloop
 import _root_.bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
 import mill.api.Result
-import mill.define.{Module => MillModule, ExternalModule, Discover}
+import mill.define.{Discover, ExternalModule, Module => MillModule}
 import mill.eval.Evaluator
-import mill.scalalib.internal.ModuleUtils
+import mill.scalalib.internal.{JavaModuleUtils, ModuleUtils}
 import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import mill.scalalib._
@@ -107,18 +107,18 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   }
 
   // Compute all transitive modules from build children and via moduleDeps
-  @deprecated("Use mill.internal.ModuleUtils.transitiveModules instead", since = "mill 0.10.3")
+  @deprecated("Use mill.internal.JavaModuleUtils.transitiveModules instead", since = "mill 0.10.3")
   def transitiveModules(
       mod: define.Module,
       found: Seq[define.Module] = Seq.empty
   ): Seq[define.Module] = {
-    ModuleUtils.transitiveModules(mod, accept)
+    JavaModuleUtils.transitiveModules(mod, accept)
   }
 
   protected def computeModules: Seq[JavaModule] = {
     val eval = ev()
     if (eval != null)
-      ModuleUtils.transitiveModules(eval.rootModule, accept)
+      JavaModuleUtils.transitiveModules(eval.rootModule, accept)
         .collect { case jm: JavaModule => jm }
     else
       Seq.empty
@@ -248,6 +248,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
                 case ReleaseMode.Debug => BloopConfig.LinkerMode.Debug
                 case ReleaseMode.ReleaseFast => BloopConfig.LinkerMode.Release
                 case ReleaseMode.ReleaseFull => BloopConfig.LinkerMode.Release
+                case ReleaseMode.ReleaseSize => BloopConfig.LinkerMode.Release
               },
               gc = m.nativeGC(),
               targetTriple = m.nativeTarget(),
@@ -338,7 +339,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         for {
           resolved <- unresolved.process.run(fetch)
           resolvedSources <- source(resolved).process.run(fetch)
-          all = resolved.dependencyArtifacts ++ resolvedSources.dependencyArtifacts
+          all = resolved.dependencyArtifacts() ++ resolvedSources.dependencyArtifacts()
           gathered <- Gather[Task].gather(all.distinct.map {
             case (dep, pub, art) =>
               coursier.cache.Cache.default.file(art).run.map(dep -> _)

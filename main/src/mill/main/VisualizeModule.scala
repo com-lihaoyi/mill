@@ -4,8 +4,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.T
-import mill.define.{Discover, ExternalModule}
+import mill.define.{Discover, ExternalModule, Target}
 import mill.api.{PathRef, Result}
 import mill.util.Util.millProjectModule
 
@@ -21,7 +20,7 @@ object VisualizeModule extends ExternalModule with VisualizeModule {
 trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
-  def classpath = T {
+  def classpath = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 
@@ -32,7 +31,7 @@ trait VisualizeModule extends mill.define.TaskModule {
    * everyone can use to call into Graphviz, which the Mill execution threads
    * can communicate via in/out queues.
    */
-  def worker = T.worker {
+  def worker = Target.worker {
     val in = new LinkedBlockingQueue[(Seq[_], Seq[_], os.Path)]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
 
