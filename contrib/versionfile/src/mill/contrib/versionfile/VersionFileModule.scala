@@ -1,6 +1,6 @@
 package mill.contrib.versionfile
 
-import mill._, scalalib._
+import mill._
 
 trait VersionFileModule extends Module {
 

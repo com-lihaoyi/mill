@@ -17,7 +17,7 @@ import mill.{Agg, T}
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.util.Jvm
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule, TestModule}
-import mill.testrunner.{Framework, TestRunner, TestRunnerUtils}
+import mill.testrunner.{Framework, TestRunnerUtils}
 import sbt.testing.Fingerprint
 
 import java.util.concurrent.CompletableFuture

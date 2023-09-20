@@ -2,7 +2,7 @@ package mill.define
 
 import mill.util.{TestGraphs, TestUtil}
 import utest._
-import mill.{Module, T}
+
 object BasePathTests extends TestSuite {
   val testGraphs = new TestGraphs
   val tests = Tests {

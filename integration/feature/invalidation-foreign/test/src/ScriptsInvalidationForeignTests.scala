@@ -1,9 +1,7 @@
 package mill.integration
 
-import os.Path
 import utest._
 
-import scala.collection.mutable
 
 object ScriptsInvalidationForeignTests extends IntegrationTestSuite {
 

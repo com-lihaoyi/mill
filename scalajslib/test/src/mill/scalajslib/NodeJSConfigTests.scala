@@ -2,8 +2,8 @@ package mill.scalajslib
 
 import mill._
 import mill.define.Discover
-import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.scalalib.{CrossScalaModule, DepSyntax, ScalaModule, TestModule}
+import mill.eval.EvaluatorPaths
+import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import mill.scalajslib.api._

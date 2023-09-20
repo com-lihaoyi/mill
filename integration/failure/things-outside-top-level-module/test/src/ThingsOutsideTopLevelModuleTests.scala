@@ -2,8 +2,6 @@ package mill.integration
 
 import utest._
 
-import scala.util.matching.Regex
-
 object ThingsOutsideTopLevelModuleTests extends IntegrationTestSuite {
   val tests = Tests {
     val workspaceRoot = initWorkspace()

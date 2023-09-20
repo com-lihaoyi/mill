@@ -1,7 +1,6 @@
 package mill
 package testng
 
-import mill.api.Result.Exception
 import mill.define.Target
 import mill.util.Util.millProjectModule
 import mill.scalalib._

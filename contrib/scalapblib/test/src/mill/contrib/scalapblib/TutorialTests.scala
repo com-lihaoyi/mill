@@ -1,7 +1,7 @@
 package mill.contrib.scalapblib
 
 import mill._
-import mill.api.{PathRef, Result}
+import mill.api.PathRef
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}

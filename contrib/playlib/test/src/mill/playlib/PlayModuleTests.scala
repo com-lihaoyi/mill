@@ -1,13 +1,12 @@
 package mill
 package playlib
 
-import mill.util.{TestEvaluator, TestUtil}
-import utest.framework.TestPath
+import mill.util.TestUtil.{test => _, _}
 import utest.{TestSuite, Tests, assert, _}
 
 object PlayModuleTests extends TestSuite with PlayTestSuite {
 
-  object playmulti extends TestUtil.BaseModule {
+  object playmulti extends BaseModule {
     object core extends Cross[CoreCrossModule](matrix)
     trait CoreCrossModule extends PlayModule with Cross.Module2[String, String] {
       val (crossScalaVersion, crossPlayVersion) = (crossValue, crossValue2)

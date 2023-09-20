@@ -5,9 +5,6 @@ import utest._
 import utest.framework.TestPath
 import mill.util.{TestEvaluator, TestUtil}
 
-import scala.collection.JavaConverters._
-import scala.util.Properties.isJavaAtLeast
-
 object DottyDocTests extends TestSuite {
   trait TestBase extends TestUtil.BaseModule {
     def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')

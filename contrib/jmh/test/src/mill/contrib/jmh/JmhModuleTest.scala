@@ -1,7 +1,6 @@
 package mill
 package contrib.jmh
 
-import mill.api.PathRef
 import mill.eval.EvaluatorPaths
 import mill.scalalib.ScalaModule
 import mill.util.{TestEvaluator, TestUtil}

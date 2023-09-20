@@ -2,8 +2,8 @@ package mill.eval
 
 import mill.util.Jvm
 import mill.api.Ctx.Dest
-import mill.{Module, T}
-import mill.util.{DummyLogger, TestEvaluator, TestUtil}
+import mill.T
+import mill.util.{TestEvaluator, TestUtil}
 import mill.api.Strict.Agg
 import mill.api.{JarManifest, Loose}
 import utest._
