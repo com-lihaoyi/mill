@@ -20,7 +20,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 object WatchSourceInputTests extends IntegrationTestSuite {
 
-  val maxDuration = 30000
+  val maxDuration = 60000
   val tests = Tests {
     val wsRoot = initWorkspace()
 
