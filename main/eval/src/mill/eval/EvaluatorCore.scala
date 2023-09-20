@@ -88,22 +88,18 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           case (k, vs) => sortedGroups.addAll(k, vs)
         }
         val transitive = transitive0.filter(t => !goals.contains(t))
-//        println(s"cleaned transitive: ${transitive0.filter(t => goals.contains(t))}")
 
         // and ensure they are not transitively needed
-        val selfDeps = transitive.toSeq.collect {
-          case t if t.inputs.exists(i => goals.contains(i)) =>
-            goals.find(g => t.inputs.contains(g)).head
-        }
-        if (selfDeps.nonEmpty) {
-//          println(s"self deps: ${selfDeps}")
-          val selfTerminals = selfDeps.map(selfDep => sortedGroups0.lookupValue(selfDep).render)
-//          println(s"self terminals: ${selfTerminals}")
-          // one of the requesed goals depends one other request goal,
+        val goalSet = goals.toSet
+        val conflictDep = transitive.iterator.find(i => goalSet.contains(i))
+          .flatMap(t => goalSet.find(g => t.inputs.contains(g)))
+        if (conflictDep.nonEmpty) {
+          val selfTerminals =
+            conflictDep.flatMap(dep => sortedGroups0.lookupValueOpt(dep)).map(_.render)
+          // one of the requested goals depends one another requested goal,
           // hence --onlydeps isn't possible
-//          val candidate = goals.find(g => selfDep.head.inputs.contains(g))
           throw new RuntimeException(
-            s"Cannot evaluate only dependencies (--onlydeps), as at least one request target is also a dependency of the others. target: ${selfTerminals.head}"
+            s"Cannot limit evaluatation to dependencies only (--onlydeps), as at least one requested target is also a dependency of the others. Target: ${selfTerminals.head}"
           )
         }
 
