@@ -47,6 +47,14 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     }
   }
 
+  @deprecated("Binary compatibility shim", "Mill 0.11.5")
+  def evaluate(
+      goals: Agg[Task[_]],
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      logger: ColorLogger
+  ): Evaluator.Results = evaluate(goals, reporter, testReporter, logger, onlyDeps = false)
+
   private def getFailing(
       sortedGroups: MultiBiMap[Terminal, Task[_]],
       results: Map[Task[_], Evaluator.TaskResult[(Val, Int)]]

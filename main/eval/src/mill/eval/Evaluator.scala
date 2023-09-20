@@ -29,15 +29,15 @@ trait Evaluator {
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
       onlyDeps: Boolean = false
-  ): Evaluator.Results
+  ): Evaluator.Results = evaluate(goals, reporter, testReporter, logger)
 
   @deprecated("Binary compatibility shim", "Mill 0.11.5")
-  private[eval] def evaluate(
+  def evaluate(
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger
-  ): Evaluator.Results = evaluate(goals, reporter, testReporter, logger, false)
+  ): Evaluator.Results = evaluate(goals, reporter, testReporter, logger, onlyDeps = false)
 
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
   def withFailFast(newFailFast: Boolean): Evaluator

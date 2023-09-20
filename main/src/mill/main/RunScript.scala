@@ -27,6 +27,14 @@ object RunScript {
     for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets), onlyDeps)
   }
 
+  @deprecated("Binary compatibility shim", "Mill 0.11.5")
+  def evaluateTasksNamed(
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] =
+    evaluateTasksNamed(evaluator, scriptArgs, selectMode, onlyDeps = false)
+
   /**
    * @param evaluator
    * @param targets
@@ -72,5 +80,12 @@ object RunScript {
       case n => watched -> Left(s"$n targets failed\n$errorStr")
     }
   }
+
+  @deprecated("Binary compatibility shim", "Mill 0.11.5")
+  def evaluateNamed(
+      evaluator: Evaluator,
+      targets: Agg[Task[Any]]
+  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) =
+    evaluateNamed(evaluator, targets, onlyDeps = false)
 
 }
