@@ -90,16 +90,17 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         val transitive = transitive0.filter(t => !goals.contains(t))
 
         // and ensure they are not transitively needed
-        val goalSet = goals.toSet
-        val conflictDep = transitive.iterator.find(i => goalSet.contains(i))
-          .flatMap(t => goalSet.find(g => t.inputs.contains(g)))
+        val conflictDep = transitive.toSeq.collectFirst {
+          case t if t.inputs.exists(i => goals.contains(i)) =>
+            goals.find(g => t.inputs.contains(g)).head
+        }
         if (conflictDep.nonEmpty) {
           val selfTerminals =
-            conflictDep.flatMap(dep => sortedGroups0.lookupValueOpt(dep)).map(_.render)
+            conflictDep.map(dep => sortedGroups0.lookupValue(dep)).map(_.render)
           // one of the requested goals depends one another requested goal,
           // hence --onlydeps isn't possible
-          throw new RuntimeException(
-            s"Cannot limit evaluatation to dependencies only (--onlydeps), as at least one requested target is also a dependency of the others. Target: ${selfTerminals.head}"
+          throw new MillException(
+            s"Cannot limit evaluation to the dependencies of the given targets (--onlydeps). At least one requested target is also a dependency of the others: ${selfTerminals.head}"
           )
         }
 
