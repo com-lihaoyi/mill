@@ -296,7 +296,7 @@ object MillMain {
       projectDir / ".mill-version"
     ).collectFirst {
       case f if os.exists(f) =>
-        (f, os.read.lines(f).filter(l => l.trim().nonEmpty).headOption)
+        (f, os.read.lines(f).find(l => l.trim().nonEmpty))
     }.foreach { case (file, Some(version)) =>
       if (BuildInfo.millVersion != version) {
         val msg =
