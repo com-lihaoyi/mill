@@ -1,11 +1,8 @@
 package mill.scalanativelib.worker
 
-import java.io.File
-import java.net.URLClassLoader
 
 import mill.define.{Discover, Worker}
 import mill.{Agg, PathRef, T}
-import mill.scalanativelib.api
 import mill.scalanativelib.worker.{api => workerApi}
 
 private[scalanativelib] class ScalaNativeWorker extends AutoCloseable {

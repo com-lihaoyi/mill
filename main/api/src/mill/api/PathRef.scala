@@ -6,8 +6,6 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.util.{DynamicVariable, Using}
 import upickle.default.{ReadWriter => RW}
 
-import scala.runtime.ScalaRunTime
-
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
  * on the contents of the filesystem underneath it. Used to ensure filesystem

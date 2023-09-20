@@ -3,10 +3,8 @@ package scalalib
 
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
-import mill.main.Tasks
-import mill.util.Jvm
 import mill.scalalib.PublishModule.checkSonatypeCreds
-import mill.scalalib.publish.{Artifact, SonatypePublisher, VersionScheme}
+import mill.scalalib.publish.{Artifact, SonatypePublisher}
 
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar

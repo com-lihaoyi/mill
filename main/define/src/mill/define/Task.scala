@@ -2,7 +2,7 @@ package mill.define
 
 import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
 import mill.define.Applicative.Applyable
-import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
+import upickle.default.{ReadWriter => RW, Writer => W}
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context

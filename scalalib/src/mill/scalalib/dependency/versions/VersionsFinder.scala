@@ -1,12 +1,10 @@
 package mill.scalalib.dependency.versions
 
-import scala.reflect.ClassTag
-
 import coursier.Dependency
-import mill.define.{BaseModule, Task}
+import mill.define.{BaseModule}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.metadata.MetadataLoaderFactory
-import mill.scalalib.{Dep, JavaModule, Lib}
+import mill.scalalib.{JavaModule, Lib}
 import mill.api.Ctx.{Home, Log}
 import mill.T
 

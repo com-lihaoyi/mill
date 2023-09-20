@@ -1,22 +1,15 @@
 package mill.util
 
-import mill.api.BuildInfo
 import mill.api.Loose.Agg
 import mill.api._
 import mill.main.client.InputPumper
 import os.SubProcess
-import upickle.default.{ReadWriter => RW}
 
 import java.io._
 import java.lang.reflect.Modifier
-import java.net.URI
 import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{FileSystems, Files, StandardOpenOption}
-import java.util.Collections
-import java.util.jar.{Attributes, JarFile, Manifest}
-import scala.jdk.CollectionConverters._
+import java.nio.file.Files
 import scala.util.Properties.isWin
-import scala.util.Using
 
 object Jvm extends CoursierSupport {
 

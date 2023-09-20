@@ -9,7 +9,7 @@ import mill.java9rtexport.Export
 import mill.api.{DummyInputStream, internal}
 import mill.api.SystemStreams
 import mill.bsp.{BspContext, BspServerResult}
-import mill.util.{PrintLogger, Util}
+import mill.util.PrintLogger
 
 @internal
 object MillMain {
