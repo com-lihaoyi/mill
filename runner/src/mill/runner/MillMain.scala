@@ -1,18 +1,38 @@
 package mill.runner
-import mill.main.BuildInfo
 
 import java.io.{FileOutputStream, PrintStream}
 import java.util.Locale
 import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import mill.java9rtexport.Export
-import mill.api.{DummyInputStream, internal}
-import mill.api.SystemStreams
+import mill.api.{DummyInputStream, MillException, internal, SystemStreams}
 import mill.bsp.{BspContext, BspServerResult}
+import mill.main.BuildInfo
 import mill.util.PrintLogger
+
+import java.lang.reflect.InvocationTargetException
+import scala.util.control.NonFatal
 
 @internal
 object MillMain {
+
+  def handleMillException[T](
+      err: PrintStream,
+      onError: => T
+  ): PartialFunction[Throwable, (Boolean, T)] = {
+    case e: MillException =>
+      err.println(e.getMessage())
+      (false, onError)
+    case e: InvocationTargetException
+        if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
+      err.println(e.getCause.getMessage())
+      (false, onError)
+    case NonFatal(e) =>
+      err.println("An unexpected error occurred")
+      throw e
+      (false, onError)
+  }
+
   def main(args: Array[String]): Unit = {
     val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
     // setup streams
@@ -57,6 +77,7 @@ object MillMain {
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap
         )
+      catch handleMillException(runnerStreams.err, ())
       finally {
         cleanupStreams.foreach(_.close())
       }
