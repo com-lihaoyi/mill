@@ -1,6 +1,5 @@
 package mill.scalanativelib.worker
 
-
 import mill.define.{Discover, Worker}
 import mill.{Agg, PathRef, T}
 import mill.scalanativelib.worker.{api => workerApi}

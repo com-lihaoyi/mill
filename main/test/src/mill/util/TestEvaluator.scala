@@ -7,7 +7,9 @@ import utest.framework.TestPath
 import mill.api.DummyInputStream
 
 object TestEvaluator {
-  def static(module: => TestUtil.BaseModule)(implicit fullName: sourcecode.FullName): TestEvaluator = {
+  def static(module: => TestUtil.BaseModule)(implicit
+      fullName: sourcecode.FullName
+  ): TestEvaluator = {
     new TestEvaluator(module)(fullName, TestPath(Nil))
   }
 }
