@@ -1,6 +1,5 @@
 package mill.scalalib.dependency.updates
 
-import mill.scalalib.JavaModule
 import mill.scalalib.dependency.versions.Version
 
 import scala.collection.SortedSet

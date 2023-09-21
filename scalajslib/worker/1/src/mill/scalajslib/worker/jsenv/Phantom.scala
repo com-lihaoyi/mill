@@ -1,7 +1,6 @@
 package mill.scalajslib.worker.jsenv
 
 import mill.scalajslib.worker.api._
-import org.scalajs.jsenv.nodejs.NodeJSEnv.SourceMap
 
 object Phantom {
   def apply(config: JsEnvConfig.Phantom) =

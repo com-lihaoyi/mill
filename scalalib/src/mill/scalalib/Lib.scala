@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import coursier.util.Task
-import coursier.{Dependency, LocalRepositories, Repositories, Repository, Resolution}
+import coursier.{Dependency, Repository, Resolution}
 import mill.api.{Ctx, Loose, PathRef, Result}
 import mill.main.BuildInfo
 import mill.util.Util

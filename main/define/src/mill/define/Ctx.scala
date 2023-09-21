@@ -1,7 +1,5 @@
 package mill.define
 
-import os.Path
-
 import scala.annotation.implicitNotFound
 
 /**

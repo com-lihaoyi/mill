@@ -23,10 +23,6 @@ import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalanativelib.api._
 import mill.scalanativelib.worker.{ScalaNativeWorkerExternalModule, api => workerApi}
 
-import scala.jdk.CollectionConverters._
-import scala.jdk.OptionConverters._
-import upickle.default.{macroRW, ReadWriter => RW}
-
 trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"

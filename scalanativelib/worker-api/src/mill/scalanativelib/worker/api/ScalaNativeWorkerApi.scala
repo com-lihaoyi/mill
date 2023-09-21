@@ -1,7 +1,6 @@
 package mill.scalanativelib.worker.api
 
 import java.io.File
-import sbt.testing.Framework
 
 private[scalanativelib] trait ScalaNativeWorkerApi {
 

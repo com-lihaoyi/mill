@@ -3,7 +3,6 @@ package mill.define
 import mill.api.Lazy
 
 import language.experimental.macros
-import scala.collection.SeqView
 import scala.reflect.ClassTag
 import scala.reflect.macros.blackbox
 

@@ -1,7 +1,6 @@
 package mill.bsp
 
-import mill.api.{DummyInputStream, Logger, SystemStreams, internal}
-import mill.eval.Evaluator
+import mill.api.{DummyInputStream, Logger, SystemStreams}
 
 import java.io.PrintStream
 import scala.util.control.NonFatal

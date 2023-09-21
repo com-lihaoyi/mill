@@ -1,6 +1,5 @@
 package mill.eval
 
-import mill.define.Discover
 import mill.util.{TestEvaluator, TestGraphs}
 import mill.util.TestGraphs.{
   crossResolved,
@@ -12,6 +11,7 @@ import mill.util.TestGraphs.{
   crossExtension
 }
 import utest._
+
 object CrossTests extends TestSuite {
   val tests = Tests {
     "singleCross" - {
