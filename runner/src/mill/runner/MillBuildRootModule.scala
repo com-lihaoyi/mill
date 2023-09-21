@@ -29,16 +29,17 @@ import scala.util.Try
 @internal
 class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
-    millBuildRootModuleInfo: MillBuildRootModule.Info
+    millBuildRootModuleInfo0: MillBuildRootModule.Info
 ) extends RootModule() with ScalaModule {
-  override def bspDisplayName0: String = millBuildRootModuleInfo
+  def millBuildRootModuleInfo = T.input{ millBuildRootModuleInfo0 }
+  override def bspDisplayName0: String = millBuildRootModuleInfo0
     .projectRoot
-    .relativeTo(millBuildRootModuleInfo.topLevelProjectRoot)
+    .relativeTo(millBuildRootModuleInfo0.topLevelProjectRoot)
     .segments
     .++(super.bspDisplayName0.split("/"))
     .mkString("/")
 
-  override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
+  override def millSourcePath = millBuildRootModuleInfo0.projectRoot / os.up / "mill-build"
   override def intellijModulePath: os.Path = millSourcePath / os.up
 
   override def scalaVersion: T[String] = "2.13.10"
@@ -48,7 +49,7 @@ class MillBuildRootModule()(implicit
    * @see [[generateScriptSources]]
    */
   def scriptSources = T.sources {
-    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
+    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo())
       .seenScripts
       .keys.map(PathRef(_))
       .toSeq
@@ -56,7 +57,7 @@ class MillBuildRootModule()(implicit
 
   def parseBuildFiles: T[FileImportGraph] = T {
     scriptSources()
-    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
+    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo())
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = {
@@ -83,7 +84,7 @@ class MillBuildRootModule()(implicit
     }
   }
 
-  def cliImports = T.input { millBuildRootModuleInfo.cliImports }
+  def cliImports = T { millBuildRootModuleInfo().cliImports }
 
   override def ivyDeps = T {
     Agg.from(
@@ -111,13 +112,13 @@ class MillBuildRootModule()(implicit
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
       MillBuildRootModule.generateWrappedSources(
-        millBuildRootModuleInfo.projectRoot / os.up,
+        millBuildRootModuleInfo().projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
         T.dest,
-        millBuildRootModuleInfo.enclosingClasspath,
-        millBuildRootModuleInfo.topLevelProjectRoot,
-        millBuildRootModuleInfo.cliImports
+        millBuildRootModuleInfo().enclosingClasspath,
+        millBuildRootModuleInfo().topLevelProjectRoot,
+        millBuildRootModuleInfo().cliImports
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -215,7 +216,7 @@ class MillBuildRootModule()(implicit
   }
 
   def enclosingClasspath = T.sources {
-    millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
+    millBuildRootModuleInfo().enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
   override def unmanagedClasspath: T[Agg[PathRef]] = T {
     enclosingClasspath() ++ lineNumberPluginClasspath()
@@ -275,6 +276,9 @@ object MillBuildRootModule {
       topLevelProjectRoot: os.Path,
       cliImports: Seq[String]
   )
+  object Info{
+    implicit val rw: upickle.default.ReadWriter[Info] = upickle.default.macroRW
+  }
 
   def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
