@@ -439,7 +439,6 @@ object main extends MillStableScalaModule with BuildInfo {
     Deps.windowsAnsi,
     Deps.mainargs,
     Deps.coursierInterface,
-    Deps.requests
   )
 
   def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
@@ -560,6 +559,7 @@ object main extends MillStableScalaModule with BuildInfo {
 
   object eval extends MillStableScalaModule {
     def moduleDeps = Seq(define)
+    def ivyDeps = Agg(Deps.requests)
   }
 
   object resolve extends MillStableScalaModule {

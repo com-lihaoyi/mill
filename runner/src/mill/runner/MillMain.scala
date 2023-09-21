@@ -210,7 +210,10 @@ object MillMain {
                       logger = logger,
                       disableCallgraphInvalidation = config.disableCallgraphInvalidation.value,
                       needBuildSc = needBuildSc(config),
-                      requestedMetaLevel = config.metaLevel
+                      requestedMetaLevel = config.metaLevel,
+                      remoteCacheUrl = config.remoteCacheUrl,
+                      remoteCacheFilter = config.remoteCacheFilter,
+                      remoteCacheSalt = config.remoteCacheSalt
                     ).evaluate()
                   }
                 )

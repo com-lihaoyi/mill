@@ -30,6 +30,9 @@ private[mill] trait GroupEvaluator {
   def scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
   def methodCodeHashSignatures: Map[String, Int]
   def disableCallgraphInvalidation: Boolean
+  def remoteCacheUrl: Option[String]
+  def remoteCacheSalt: Option[String]
+  def remoteCacheFilter: Option[String]
 
   lazy val constructorHashSignatures = methodCodeHashSignatures
     .toSeq
@@ -138,6 +141,7 @@ private[mill] trait GroupEvaluator {
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
+
     terminal match {
       case Terminal.Task(task) =>
         val (newResults, newEvaluated) = evaluateGroup(
@@ -154,6 +158,12 @@ private[mill] trait GroupEvaluator {
         GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
       case labelled: Terminal.Labelled[_] =>
+        if (labelled.segments.render == "scalaVersion"){
+          pprint.log(externalInputsHash)
+          pprint.log(sideHashes)
+          pprint.log(classLoaderSigHash)
+          pprint.log(scriptsHash)
+        }
         val out =
           if (!labelled.task.ctx.external) outPath
           else externalOutPath
@@ -163,11 +173,10 @@ private[mill] trait GroupEvaluator {
           Terminal.destSegments(labelled)
         )
 
-        val cached = loadCachedJson(logger, inputsHash, labelled, paths)
+        val (finalCached, previousInputsHash) =
+          handCacheLoad(logger, inputsHash, labelled, paths)
 
-        val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled)
-
-        upToDateWorker.map((_, inputsHash)) orElse cached.flatMap(_._2) match {
+        finalCached match {
           case Some((v, hashCode)) =>
             val res = Result.Success((v, hashCode))
             val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
@@ -204,10 +213,10 @@ private[mill] trait GroupEvaluator {
 
             newResults(labelled.task) match {
               case TaskResult(Result.Failure(_, Some((v, _))), _) =>
-                handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
+                handleTaskResult(v, v.##, paths, inputsHash, labelled)
 
               case TaskResult(Result.Success((v, _)), _) =>
-                handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
+                handleTaskResult(v, v.##, paths, inputsHash, labelled)
 
               case _ =>
                 // Wipe out any cached meta.json file that exists, so
@@ -222,11 +231,10 @@ private[mill] trait GroupEvaluator {
               newEvaluated.toSeq,
               cached = if (labelled.task.isInstanceOf[InputImpl[_]]) null else false,
               inputsHash,
-              cached.map(_._1).getOrElse(-1)
+              previousInputsHash
             )
         }
     }
-
   }
 
   private def evaluateGroup(
@@ -368,7 +376,7 @@ private[mill] trait GroupEvaluator {
   private def handleTaskResult(
       v: Val,
       hashCode: Int,
-      metaPath: os.Path,
+      paths: EvaluatorPaths,
       inputsHash: Int,
       labelled: Terminal.Labelled[_]
   ): Unit = {
@@ -385,16 +393,60 @@ private[mill] trait GroupEvaluator {
           .map { w => upickle.default.writeJs(v.value)(w) }
 
         for (json <- terminalResult) {
+          val cached = Evaluator.Cached(json, hashCode, inputsHash)
           os.write.over(
-            metaPath,
-            upickle.default.stream(
-              Evaluator.Cached(json, hashCode, inputsHash),
-              indent = 4
-            ),
+            paths.meta,
+            upickle.default.stream(cached, indent = 4),
             createFolders = true
           )
+
+          for (url <- remoteCacheUrl) {
+            storeRemoteCachedData(paths, inputsHash, labelled, cached, url)
+          }
         }
     }
+  }
+
+
+  def storeRemoteCachedData(paths: EvaluatorPaths,
+                            inputsHash: Int,
+                            labelled: Terminal.Labelled[_],
+                            cached: Evaluator.Cached,
+                            url: String): requests.Response = {
+    requests.put(
+      s"$url/ac/${(inputsHash + labelled.segments.render.hashCode).toHexString.reverse.padTo(64, '0').reverse}",
+      data = upickle.default.streamBinary(
+        Evaluator.RemoteCached(
+          meta = cached,
+          log = if (os.exists(paths.log)) os.read.bytes(paths.log) else Array(),
+          dest =
+            if (!os.exists(paths.dest)) Map()
+            else os
+              .walk(paths.dest)
+              .collect { case p if os.isFile(p, followLinks = false) =>
+                (p.subRelativeTo(paths.dest), (os.perms(p).toString(), os.read.bytes(p)))
+              }
+              .toMap
+        )
+      )
+    )
+  }
+
+  def handCacheLoad(logger: ColorLogger, inputsHash: Int, labelled: Terminal.Labelled[_], paths: EvaluatorPaths): (Option[(Val, Int)], Int) = {
+    val cached = loadCachedJson(logger, inputsHash, labelled, paths.meta.toIO)
+    lazy val remoteCached = remoteCacheUrl.flatMap { url =>
+      loadRemoteCachedData(logger, inputsHash, labelled, paths, url)
+    }
+
+    val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled)
+
+    val finalCached =
+      upToDateWorker.map((_, inputsHash)) orElse
+      cached.flatMap(_._2) orElse
+      remoteCached.flatMap(_._2)
+
+    val previousInputsHash = cached.map(_._1).getOrElse(-1)
+    (finalCached, previousInputsHash)
   }
 
   def resolveLogger(logPath: Option[os.Path], logger: mill.api.Logger): mill.api.Logger =
@@ -410,19 +462,26 @@ private[mill] trait GroupEvaluator {
         )
     }
 
-  private def loadCachedJson(
+  def loadCachedJson(
       logger: ColorLogger,
       inputsHash: Int,
       labelled: Terminal.Labelled[_],
-      paths: EvaluatorPaths
+      readable: ujson.Readable
   ): Option[(Int, Option[(Val, Int)])] = {
-    for {
-      cached <-
-        try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
-        catch {
-          case NonFatal(_) => None
-        }
-    } yield (
+    val cachedOpt =
+      try Some(upickle.default.read[Evaluator.Cached](readable))
+      catch {case NonFatal(_) => None}
+
+    cachedOpt.map(loadCachedJson0(logger, inputsHash, labelled, _))
+  }
+
+  private def loadCachedJson0(
+      logger: ColorLogger,
+      inputsHash: Int,
+      labelled: Terminal.Labelled[_],
+      cached: Evaluator.Cached
+  ): (Int, Option[(Val, Int)]) = {
+    (
       cached.inputsHash,
       for {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
@@ -440,6 +499,35 @@ private[mill] trait GroupEvaluator {
       } yield (Val(parsed), cached.valueHash)
     )
   }
+
+  def loadRemoteCachedData(logger: ColorLogger,
+                           inputsHash: Int,
+                           labelled: Terminal.Labelled[_],
+                           paths: EvaluatorPaths,
+                           url: String) = {
+    val response = requests.get(
+      s"$url/ac/${(inputsHash + labelled.segments.render.hashCode).toHexString.reverse.padTo(64, '0').reverse}",
+      check = false
+    )
+
+    if (response.statusCode != 200) None
+    else {
+      val remoteCached = upickle.default.readBinary[Evaluator.RemoteCached](response)
+      os.write.over(
+        paths.meta, upickle.default.write(remoteCached.meta, indent = 4),
+        createFolders = true
+      )
+
+      for ((sub, (perms, data)) <- remoteCached.dest) {
+        val path = paths.dest / sub
+        os.write(path, data, createFolders = true)
+        os.perms.set(path, perms)
+      }
+
+      Some(loadCachedJson0(logger, inputsHash, labelled, remoteCached.meta))
+    }
+  }
+
 
   private def loadUpToDateWorker(
       logger: ColorLogger,

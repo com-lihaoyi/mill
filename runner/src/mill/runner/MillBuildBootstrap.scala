@@ -37,7 +37,10 @@ class MillBuildBootstrap(
     logger: ColorLogger,
     disableCallgraphInvalidation: Boolean,
     needBuildSc: Boolean,
-    requestedMetaLevel: Option[Int]
+    requestedMetaLevel: Option[Int],
+    remoteCacheUrl: Option[String],
+    remoteCacheFilter: Option[String],
+    remoteCacheSalt: Option[String],
 ) {
   import MillBuildBootstrap._
 
@@ -349,7 +352,10 @@ class MillBuildBootstrap(
       threadCount = threadCount,
       scriptImportGraph = scriptImportGraph,
       methodCodeHashSignatures = methodCodeHashSignatures,
-      disableCallgraphInvalidation = disableCallgraphInvalidation
+      disableCallgraphInvalidation = disableCallgraphInvalidation,
+      remoteCacheUrl = remoteCacheUrl,
+      remoteCacheSalt = remoteCacheSalt,
+      remoteCacheFilter = remoteCacheFilter,
     )
   }
 

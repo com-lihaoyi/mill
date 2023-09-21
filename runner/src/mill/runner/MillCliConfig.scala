@@ -125,7 +125,22 @@ class MillCliConfig private (
            Level 0 is the normal project, level 1 the first meta-build, and so on.
            The last level is the built-in synthetic meta-build which Mill uses to bootstrap the project."""
     )
-    val metaLevel: Option[Int]
+    val metaLevel: Option[Int],
+    @arg(
+      name = "remote-cache-url",
+      doc = ""
+    )
+    val remoteCacheUrl: Option[String],
+    @arg(
+      name = "remote-cache-salt",
+      doc = ""
+    )
+    val remoteCacheSalt: Option[String]
+    @arg(
+      name = "remote-cache-filter",
+      doc = ""
+    ),
+    val remoteCacheFilter: Option[String]
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -148,7 +163,10 @@ class MillCliConfig private (
     "leftoverArgs" -> leftoverArgs,
     "color" -> color,
     "disableCallgraphInvalidation" -> disableCallgraphInvalidation,
-    "metaLevel" -> metaLevel
+    "metaLevel" -> metaLevel,
+    "remoteCacheUrl" -> remoteCacheUrl,
+    "remoteCacheSalt" -> remoteCacheSalt,
+    "remoteCacheFilter" -> remoteCacheFilter,
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
@@ -183,7 +201,10 @@ object MillCliConfig {
       leftoverArgs: Leftover[String] = Leftover(),
       color: Option[Boolean] = None,
       disableCallgraphInvalidation: Flag = Flag(),
-      metaLevel: Option[Int] = None
+      metaLevel: Option[Int] = None,
+      remoteCacheUrl: Option[String] = None,
+      remoteCacheSalt: Option[String] = None,
+      remoteCacheFilter: Option[String] = None
   ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,
@@ -205,7 +226,10 @@ object MillCliConfig {
     leftoverArgs = leftoverArgs,
     color = color,
     disableCallgraphInvalidation,
-    metaLevel = metaLevel
+    metaLevel = metaLevel,
+    remoteCacheUrl = remoteCacheUrl,
+    remoteCacheSalt = remoteCacheSalt,
+    remoteCacheFilter = remoteCacheFilter,
   )
 
   @deprecated("Bin-compat shim", "Mill after 0.11.0")
