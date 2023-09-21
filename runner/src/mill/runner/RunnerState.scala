@@ -4,6 +4,7 @@ import mill.api.{PathRef, Val, internal}
 import mill.define.Segments
 import mill.util.Watchable
 import upickle.default.{ReadWriter, macroRW}
+import mill.api.JsonFormatters._
 import mill.eval.Evaluator
 import mill.main.RootModule
 
