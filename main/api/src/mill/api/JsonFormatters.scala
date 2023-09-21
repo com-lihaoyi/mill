@@ -11,11 +11,17 @@ object JsonFormatters extends JsonFormatters
  * Defines various default JSON formatters used in mill.
  */
 trait JsonFormatters {
+  def pathToString(path: os.Path) =
+    if (path.startsWith(os.pwd)) path.relativeTo(os.pwd).toString()
+    else path.toString()
+
+  def stringToPath(s: String) = os.FilePath(s) match {
+    case p: os.Path => p
+    case s: os.SubPath => os.pwd / s
+    case r: os.RelPath => os.pwd / r
+  }
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
-    .bimap[os.Path](
-      _.toString,
-      os.Path(_)
-    )
+    .bimap[os.Path](pathToString, stringToPath)
 
   implicit val regexReadWrite: RW[Regex] = upickle.default.readwriter[String]
     .bimap[Regex](

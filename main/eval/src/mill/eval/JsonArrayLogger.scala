@@ -44,7 +44,8 @@ private object ProfileLogger {
       cached: java.lang.Boolean = null,
       dependencies: Seq[String] = Nil,
       inputsHash: Int,
-      previousInputsHash: Int = -1
+      previousInputsHash: java.lang.Integer = null,
+      outputHash: java.lang.Integer = null
   )
 
   object Timing {

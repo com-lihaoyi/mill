@@ -137,7 +137,12 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               res.cached,
               deps.map(_.render),
               res.inputsHash,
-              res.previousInputsHash
+              res.previousInputsHash,
+              terminal match{
+                case t: Terminal.Labelled[_] => res.newResults(t.task).result.asSuccess.map(_.value._2: java.lang.Integer).getOrElse(null)
+                case _ => null
+              }
+
             )
           )
 

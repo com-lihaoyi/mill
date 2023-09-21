@@ -349,9 +349,9 @@ object MillBuildRootModule {
        |
        |object ${backtickWrap(miscInfoName)} {
        |  implicit lazy val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
-       |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
-       |    _root_.os.Path(${literalize(base.toString)}),
-       |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)}),
+       |    ${enclosingClasspath.map(p => s"_root_.sourcecode.File(${literalize(p.toString)}).value")}.map(_root_.os.Path(_)),
+       |    _root_.os.Path(_root_.sourcecode.File(${literalize(base.toString)}).value),
+       |    _root_.os.Path(_root_.sourcecode.File(${literalize(millTopLevelProjectRoot.toString)}).value),
        |    _root_.scala.Seq(${cliImports.map(literalize(_)).mkString(", ")})
        |  )
        |  implicit lazy val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(

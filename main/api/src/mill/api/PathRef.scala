@@ -6,8 +6,6 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.util.{DynamicVariable, Using}
 import upickle.default.{ReadWriter => RW}
 
-import scala.runtime.ScalaRunTime
-
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
  * on the contents of the filesystem underneath it. Used to ensure filesystem
@@ -42,8 +40,12 @@ case class PathRef private (
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
+
+
+    quick + valid + sig + ":" + JsonFormatters.pathToString(path)
   }
+
+  override def hashCode(): Int = toString.hashCode
 }
 
 object PathRef {
@@ -168,7 +170,7 @@ object PathRef {
     s => {
       val Array(prefix, valid0, hex, pathString) = s.split(":", 4)
 
-      val path = os.Path(pathString)
+      val path = JsonFormatters.stringToPath(pathString)
       val quick = prefix match {
         case "qref" => true
         case "ref" => false
