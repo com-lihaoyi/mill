@@ -31,7 +31,7 @@ class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
     millBuildRootModuleInfo0: MillBuildRootModule.Info
 ) extends RootModule() with ScalaModule {
-  def millBuildRootModuleInfo = T.input{ millBuildRootModuleInfo0 }
+  def millBuildRootModuleInfo = T.input { millBuildRootModuleInfo0 }
   override def bspDisplayName0: String = millBuildRootModuleInfo0
     .projectRoot
     .relativeTo(millBuildRootModuleInfo0.topLevelProjectRoot)
@@ -276,7 +276,7 @@ object MillBuildRootModule {
       topLevelProjectRoot: os.Path,
       cliImports: Seq[String]
   )
-  object Info{
+  object Info {
     implicit val rw: upickle.default.ReadWriter[Info] = upickle.default.macroRW
   }
 
@@ -353,9 +353,13 @@ object MillBuildRootModule {
        |
        |object ${backtickWrap(miscInfoName)} {
        |  implicit lazy val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
-       |    ${enclosingClasspath.map(p => s"_root_.sourcecode.File(${literalize(p.toString)}).value")}.map(_root_.os.Path(_)),
+       |    ${enclosingClasspath.map(p =>
+        s"_root_.sourcecode.File(${literalize(p.toString)}).value"
+      )}.map(_root_.os.Path(_)),
        |    _root_.os.Path(_root_.sourcecode.File(${literalize(base.toString)}).value),
-       |    _root_.os.Path(_root_.sourcecode.File(${literalize(millTopLevelProjectRoot.toString)}).value),
+       |    _root_.os.Path(_root_.sourcecode.File(${literalize(
+        millTopLevelProjectRoot.toString
+      )}).value),
        |    _root_.scala.Seq(${cliImports.map(literalize(_)).mkString(", ")})
        |  )
        |  implicit lazy val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(

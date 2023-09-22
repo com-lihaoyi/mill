@@ -39,8 +39,8 @@ class MillBuildBootstrap(
     needBuildSc: Boolean,
     requestedMetaLevel: Option[Int],
     remoteCacheUrl: Option[String],
-    remoteCacheFilter: Option[String],
-    remoteCacheSalt: Option[String],
+    remoteCacheFilter: Option[Segments],
+    remoteCacheSalt: Option[String]
 ) {
   import MillBuildBootstrap._
 
@@ -355,7 +355,7 @@ class MillBuildBootstrap(
       disableCallgraphInvalidation = disableCallgraphInvalidation,
       remoteCacheUrl = remoteCacheUrl,
       remoteCacheSalt = remoteCacheSalt,
-      remoteCacheFilter = remoteCacheFilter,
+      remoteCacheFilter = remoteCacheFilter
     )
   }
 

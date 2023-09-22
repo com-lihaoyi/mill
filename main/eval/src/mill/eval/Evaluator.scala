@@ -92,12 +92,15 @@ object Evaluator {
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
   }
 
-  case class RemoteCached(meta: Cached,
-                          log: Array[Byte],
-                          dest: Map[os.SubPath, (String, Array[Byte])])
+  case class RemoteCached(
+      meta: Cached,
+      log: Array[Byte],
+      dest: Map[os.SubPath, (String, Array[Byte])]
+  )
 
   object RemoteCached {
-    implicit val subpathRw = upickle.default.readwriter[String].bimap[os.SubPath](_.toString(), os.SubPath(_))
+    implicit val subpathRw =
+      upickle.default.readwriter[String].bimap[os.SubPath](_.toString(), os.SubPath(_))
     implicit val rw: upickle.default.ReadWriter[RemoteCached] = upickle.default.macroRW
   }
 

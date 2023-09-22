@@ -1,6 +1,8 @@
 package mill.runner
 
 import mainargs.{Flag, Leftover, arg}
+import mill.define.Segments
+import mill.resolve.ParseArgs
 
 class MillCliConfig private (
     @arg(
@@ -135,12 +137,12 @@ class MillCliConfig private (
       name = "remote-cache-salt",
       doc = ""
     )
-    val remoteCacheSalt: Option[String]
+    val remoteCacheSalt: Option[String],
     @arg(
       name = "remote-cache-filter",
       doc = ""
-    ),
-    val remoteCacheFilter: Option[String]
+    )
+    val remoteCacheFilter: Option[Segments]
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -166,7 +168,7 @@ class MillCliConfig private (
     "metaLevel" -> metaLevel,
     "remoteCacheUrl" -> remoteCacheUrl,
     "remoteCacheSalt" -> remoteCacheSalt,
-    "remoteCacheFilter" -> remoteCacheFilter,
+    "remoteCacheFilter" -> remoteCacheFilter
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
@@ -204,7 +206,7 @@ object MillCliConfig {
       metaLevel: Option[Int] = None,
       remoteCacheUrl: Option[String] = None,
       remoteCacheSalt: Option[String] = None,
-      remoteCacheFilter: Option[String] = None
+      remoteCacheFilter: Option[Segments] = None
   ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,
@@ -229,7 +231,7 @@ object MillCliConfig {
     metaLevel = metaLevel,
     remoteCacheUrl = remoteCacheUrl,
     remoteCacheSalt = remoteCacheSalt,
-    remoteCacheFilter = remoteCacheFilter,
+    remoteCacheFilter = remoteCacheFilter
   )
 
   @deprecated("Bin-compat shim", "Mill after 0.11.0")
@@ -295,6 +297,10 @@ object MillCliConfigParser {
   implicit object PathRead extends mainargs.TokensReader.Simple[os.Path] {
     def shortName = "path"
     def read(strs: Seq[String]) = Right(os.Path(strs.last, os.pwd))
+  }
+  implicit object SegmentsRead extends mainargs.TokensReader.Simple[Segments] {
+    def shortName = "segments"
+    def read(strs: Seq[String]) = ParseArgs.extractSegments(strs.last).map(_._2)
   }
 
   private[this] lazy val parser: ParserForClass[MillCliConfig] =

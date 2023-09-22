@@ -41,7 +41,6 @@ case class PathRef private (
     }
     val sig = String.format("%08x", this.sig: Integer)
 
-
     quick + valid + sig + ":" + JsonFormatters.pathToString(path)
   }
 
