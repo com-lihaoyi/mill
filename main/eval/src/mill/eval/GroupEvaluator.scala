@@ -429,7 +429,7 @@ private[mill] trait GroupEvaluator {
 
   def remoteCacheEnabled(labelled: Terminal.Labelled[_]) = {
     labelled.task.asTarget.nonEmpty &&
-    Segments.checkPatternMatch(remoteCacheFilter.get, labelled.segments)
+    remoteCacheFilter.fold(true)(Segments.checkPatternMatch(_, labelled.segments))
   }
 
   def handleCacheLoad(
