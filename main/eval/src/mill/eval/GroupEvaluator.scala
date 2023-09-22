@@ -508,7 +508,9 @@ private[mill] trait GroupEvaluator {
   }
 
   def remoteCacheTaskUrl(url: String, inputsHash: Int, labelled: Terminal.Labelled[_]) = {
-    s"$url/ac/${(inputsHash + labelled.segments.render.hashCode).toHexString.reverse.padTo(64, '0').reverse}"
+    val finalHash = inputsHash + labelled.segments.render.hashCode + remoteCacheSalt.hashCode()
+    val hashString = finalHash.toHexString.reverse.padTo(64, '0').reverse
+    s"$url/ac/$hashString"
   }
 
   def loadRemoteCachedData(
