@@ -31,6 +31,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       logger: ColorLogger = baseLogger,
       onlyDeps: Boolean = false
   ): Evaluator.Results = {
+    println(s"evaluate;goals=${goals};onlyDeps=${onlyDeps}")
+
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
@@ -83,19 +85,30 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {
       val plan = Plan.plan(goals)
+      println("goals:")
+      pprint.pprintln(goals)
       if (!onlyDeps) plan
       else {
 
         val (sortedGroups0, transitive0) = plan
         // we need to remove the source goals
         val sortedGroups = new MultiBiMap.Mutable[Terminal, Task[_]]()
-        sortedGroups0.items().filter {
+        val (groupsIn, groupsOut) = sortedGroups0.items().toSeq.partition {
           case (Terminal.Task(t), _) => !goals.contains(t)
+          case (Terminal.Labelled(t, _), _) => !goals.contains(t)
           case _ => true
-        }.foreach {
+        }
+        groupsIn.foreach {
           case (k, vs) => sortedGroups.addAll(k, vs)
         }
-        val transitive = transitive0.filter(t => !goals.contains(t))
+//        println("sortedGroups")
+//        pprint.pprintln(sortedGroups.items().toSeq)
+        println(s"removed groups: ${groupsOut.size}")
+        pprint.pprintln(groupsOut)
+
+        val (transitive, removedTransitive) = transitive0.toSeq.partition(t => !goals.contains(t))
+        println(s"removed transitive: ${removedTransitive.size}")
+        pprint.pprintln(removedTransitive)
 
         // and ensure they are not transitively needed
         val conflictDep = transitive.toSeq.collectFirst {
