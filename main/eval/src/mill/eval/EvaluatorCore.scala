@@ -2,10 +2,10 @@ package mill.eval
 
 import mill.api.Result.{Aborted, Failing}
 import mill.api.Strict.Agg
-import mill.api.{Ctx, _}
+import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
-import mill.util._
+import mill.util.{ColorLogger, MultiBiMap, PrefixLogger}
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
