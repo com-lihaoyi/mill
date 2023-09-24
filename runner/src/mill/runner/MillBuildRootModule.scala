@@ -347,19 +347,22 @@ object MillBuildRootModule {
 
     val miscInfoName = s"MiscInfo_$name"
 
+    def pathToString(p: os.Path) = {
+      if (p.startsWith(os.pwd)) s"_root_.os.pwd / _root_.os.RelPath(${literalize(p.subRelativeTo(os.pwd).toString())})"
+      else s"_root_.os.Path(${literalize(p.toString())})"
+    }
+
     s"""package ${pkg.map(backtickWrap).mkString(".")}
        |
        |import _root_.mill.runner.MillBuildRootModule
        |
        |object ${backtickWrap(miscInfoName)} {
        |  implicit lazy val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
-       |    ${enclosingClasspath.map(p =>
-        s"_root_.sourcecode.File(${literalize(p.toString)}).value"
-      )}.map(_root_.os.Path(_)),
-       |    _root_.os.Path(_root_.sourcecode.File(${literalize(base.toString)}).value),
-       |    _root_.os.Path(_root_.sourcecode.File(${literalize(
-        millTopLevelProjectRoot.toString
-      )}).value),
+       |    _root_.scala.Seq(
+       |      ${enclosingClasspath.map(pathToString(_)).mkString(",\n      ")}
+       |    ),
+       |    ${pathToString(base)},
+       |    ${pathToString(millTopLevelProjectRoot)},
        |    _root_.scala.Seq(${cliImports.map(literalize(_)).mkString(", ")})
        |  )
        |  implicit lazy val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(

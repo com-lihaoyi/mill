@@ -288,14 +288,6 @@ object LocalSummary {
       )
       if (call == sourcecodeLineCall) discardPreviousInsn()
 
-      val sourcecodeFileCall = st.MethodCall(
-        JCls.fromSlashed("sourcecode/File"),
-        InvokeType.Special,
-        "<init>",
-        st.Desc.read("(Ljava/lang/String;)V")
-      )
-      if (call == sourcecodeFileCall) discardPreviousInsn()
-
       hash(opcode)
       hash(name.hashCode)
       hash(owner.hashCode)
