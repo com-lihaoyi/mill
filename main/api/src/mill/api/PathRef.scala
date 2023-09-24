@@ -90,9 +90,7 @@ object PathRef {
 
   def gatherSerializedPathRefs[T](t: => T): (T, Set[PathRef]) = {
     val refs = mutable.Set[PathRef]()
-    val res = gatheredPathRefs.withValue(refs) {
-      t
-    }
+    val res = gatheredPathRefs.withValue(refs)(t)
     (res, refs.toSet)
   }
 

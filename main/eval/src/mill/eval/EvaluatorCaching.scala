@@ -10,26 +10,22 @@ import scala.util.control.NonFatal
 trait EvaluatorCaching {
 
   def remoteCacheUrl: Option[String]
-
   def remoteCacheSalt: Option[String]
-
   def remoteCacheFilter: Option[Segments]
-
   def workerCache: mutable.Map[Segments, (Int, Val)]
-
   def classLoaderIdentityHash: Int
 
   def remoteCacheEnabled(labelled: Terminal.Labelled[_]) = {
     labelled.task.asTarget.nonEmpty &&
-      remoteCacheFilter.fold(true)(Segments.checkPatternMatch(_, labelled.segments))
+    remoteCacheFilter.fold(true)(Segments.checkPatternMatch(_, labelled.segments))
   }
 
   def handleCacheLoad(
-                       logger: ColorLogger,
-                       inputsHash: Int,
-                       labelled: Terminal.Labelled[_],
-                       paths: EvaluatorPaths
-                     ): (Option[(Val, Int)], Int) = {
+      logger: ColorLogger,
+      inputsHash: Int,
+      labelled: Terminal.Labelled[_],
+      paths: EvaluatorPaths
+  ): (Option[(Val, Int)], Int) = {
     val cached = loadCachedJson(logger, inputsHash, labelled, paths.meta.toIO)
     lazy val remoteCached =
       if (remoteCacheEnabled(labelled)) {
@@ -53,13 +49,12 @@ trait EvaluatorCaching {
     (finalCached, previousInputsHash)
   }
 
-
   def loadCachedJson(
-                      logger: ColorLogger,
-                      inputsHash: Int,
-                      labelled: Terminal.Labelled[_],
-                      readable: ujson.Readable
-                    ): Option[(Int, Option[(Val, Int)])] = {
+      logger: ColorLogger,
+      inputsHash: Int,
+      labelled: Terminal.Labelled[_],
+      readable: ujson.Readable
+  ): Option[(Int, Option[(Val, Int)])] = {
     val cachedOpt =
       try Some(upickle.default.read[Evaluator.Cached](readable))
       catch {
@@ -70,11 +65,11 @@ trait EvaluatorCaching {
   }
 
   def loadCachedJson0(
-                               logger: ColorLogger,
-                               inputsHash: Int,
-                               labelled: Terminal.Labelled[_],
-                               cached: Evaluator.Cached
-                             ): (Int, Option[(Val, Int)]) = {
+      logger: ColorLogger,
+      inputsHash: Int,
+      labelled: Terminal.Labelled[_],
+      cached: Evaluator.Cached
+  ): (Int, Option[(Val, Int)]) = {
     (
       cached.inputsHash,
       for {
@@ -95,10 +90,10 @@ trait EvaluatorCaching {
   }
 
   private def loadUpToDateWorker(
-                                  logger: ColorLogger,
-                                  inputsHash: Int,
-                                  labelled: Terminal.Labelled[_]
-                                ): Option[Val] = {
+      logger: ColorLogger,
+      inputsHash: Int,
+      labelled: Terminal.Labelled[_]
+  ): Option[Val] = {
     labelled.task.asWorker
       .flatMap { w =>
         workerCache.synchronized {
@@ -107,7 +102,7 @@ trait EvaluatorCaching {
       }
       .flatMap {
         case (cachedHash, upToDate)
-          if cachedHash == workerCacheHash(inputsHash) =>
+            if cachedHash == workerCacheHash(inputsHash) =>
           Some(upToDate) // worker cached and up-to-date
 
         case (_, Val(obsolete: AutoCloseable)) =>
@@ -133,7 +128,6 @@ trait EvaluatorCaching {
       }
   }
 
-
   // Include the classloader identity hash as part of the worker hash. This is
   // because unlike other targets, workers are long-lived in memory objects,
   // and are not re-instantiated every run. Thus we need to make sure we
@@ -150,33 +144,33 @@ trait EvaluatorCaching {
   def workerCacheHash(inputHash: Int) = inputHash + classLoaderIdentityHash
 
   def handleTaskResult(
-                                v: Val,
-                                hashCode: Int,
-                                paths: EvaluatorPaths,
-                                inputsHash: Int,
-                                labelled: Terminal.Labelled[_]
-                              ): Unit = {
+      v: Val,
+      hashCode: Int,
+      paths: EvaluatorPaths,
+      inputsHash: Int,
+      labelled: Terminal.Labelled[_]
+  ): Unit = {
     labelled.task.asWorker match {
       case Some(w) =>
         workerCache.synchronized {
           workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
         }
       case None =>
-        val terminalResult = labelled
-          .task
-          .writerOpt
-          .asInstanceOf[Option[upickle.default.Writer[Any]]]
-          .map { w => upickle.default.writeJs(v.value)(w) }
+        val (terminalResult, pathRefs) = PathRef.gatherSerializedPathRefs {
+          labelled
+            .task
+            .writerOpt
+            .asInstanceOf[Option[upickle.default.Writer[Any]]]
+            .map { w => upickle.default.writeJs(v.value)(w) }
+        }
 
         for (json <- terminalResult) {
           val cached = Evaluator.Cached(json, hashCode, inputsHash)
-          val (_, pathRefs) = PathRef.gatherSerializedPathRefs {
-            os.write.over(
-              paths.meta,
-              upickle.default.stream(cached, indent = 4),
-              createFolders = true
-            )
-          }
+          os.write.over(
+            paths.meta,
+            upickle.default.stream(cached, indent = 4),
+            createFolders = true
+          )
 
           for (url <- remoteCacheUrl if remoteCacheEnabled(labelled)) {
             BazelRemoteCache.store(paths, inputsHash, labelled, url, remoteCacheSalt, pathRefs)

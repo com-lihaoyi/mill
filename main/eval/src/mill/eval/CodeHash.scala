@@ -13,7 +13,7 @@ trait EvaluatorCodeHashing {
 
   lazy val constructorHashSignatures = methodCodeHashSignatures
     .toSeq
-    .collect { case (method@s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
+    .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
     .groupMap(_._1)(t => (t._2, t._3))
 
   def computeScriptHash(group: Strict.Agg[Task[_]]) = {
@@ -89,8 +89,8 @@ trait EvaluatorCodeHashing {
               constructorHashSignatures.get(m.getClass.getName) match {
                 case Some(Seq((singleMethod, hash))) => hash
                 case Some(multiple) => sys.error(
-                  s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
-                )
+                    s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
+                  )
                 case None => 0
               }
             )

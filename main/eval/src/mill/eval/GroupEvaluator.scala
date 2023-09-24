@@ -15,7 +15,7 @@ import scala.util.control.NonFatal
  * Logic around evaluating a single group, which is a collection of [[Task]]s
  * with a single [[Terminal]].
  */
-private[mill] trait GroupEvaluator extends EvaluatorCodeHashing with EvaluatorCaching{
+private[mill] trait GroupEvaluator extends EvaluatorCodeHashing with EvaluatorCaching {
   def home: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path

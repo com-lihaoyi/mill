@@ -92,15 +92,20 @@ object BazelRemoteCache {
     }
 
     def writeBytesTo(out: OutputStream): Unit = {
-      val pathRefSubPaths = pathRefs.map(_.path.subRelativeTo(paths.dest).segments)
+      val pathRefSubPaths = pathRefs
+        .map(_.path.relativeTo(paths.dest))
+        .filter(_.ups == 0)
+        .map(_.segments)
+
       val outputFiles = mutable.Buffer.empty[OutputFile]
       val outputDirectories = mutable.Buffer.empty[OutputDirectory]
       val outputSymlinks = mutable.Buffer.empty[OutputSymlink]
+
       if (os.exists(paths.dest)) {
         for {
           p <- os.walk.stream(paths.dest)
           sub = p.subRelativeTo(paths.dest)
-          if (sub.segments.inits.exists(pathRefSubPaths.contains))
+          if sub.segments.inits.exists(pathRefSubPaths.contains)
         } {
           val pathString = s"dest/$sub"
           os.stat(p, followLinks = false).fileType match {
@@ -139,6 +144,7 @@ object BazelRemoteCache {
           .setContents(readByteString(paths.log))
           .build()
       )
+
       outputFiles.append(
         OutputFile.newBuilder()
           .setPath("json")
