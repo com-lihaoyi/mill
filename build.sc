@@ -7,6 +7,7 @@ import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`com.github.lolgab::mill-mima::0.0.23`
 import $ivy.`com.github.lolgab::mill-mima::0.0.24`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
+import mill.api.Loose
 import mill.define.NamedTask
 import mill.main.Tasks
 
@@ -393,6 +394,45 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 }
 
+object bazelRemoteApis extends MillPublishJavaModule{
+  def sourceZip = T{
+    os.write(
+      T.dest / "source.zip",
+      requests.get("https://github.com/bazelbuild/remote-apis/archive/refs/tags/v2.2.0.zip")
+    )
+    PathRef(T.dest / "source.zip")
+  }
+
+  def bazel = T{
+    os.write(
+      T.dest / "bazel",
+      requests.get("https://github.com/bazelbuild/bazel/releases/download/5.4.1/bazel-5.4.1-darwin-arm64")
+    )
+    os.perms.set(T.dest / "bazel", "rwxrwxrwx")
+    PathRef(T.dest / "bazel")
+  }
+
+  def unmanagedClasspath = T{
+    val javaBuildTarget = "build/bazel/remote/execution/v2:remote_execution_java_proto"
+    os.proc("unzip", sourceZip().path, "-d", T.dest).call(cwd = T.dest)
+    os.proc(bazel().path, "build", javaBuildTarget).call(cwd = T.dest / "remote-apis-2.2.0")
+
+    os.proc(bazel().path, "cquery", javaBuildTarget, "--output=files")
+      .call(cwd = T.dest / "remote-apis-2.2.0")
+      .out
+      .lines()
+      .map(line => PathRef(T.dest / "remote-apis-2.2.0" / os.SubPath(line)))
+  }
+
+  def jar = assembly()
+
+  def publishVersion = "0.0.1"
+
+  def artifactName = "mill-bazel-remote-cache-protos"
+
+  def pomSettings = commonPomSettings(artifactName())
+}
+
 object bridge extends Cross[BridgeModule](buildBridgeScalaVersions)
 trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def scalaVersion = crossScalaVersion
@@ -559,7 +599,27 @@ object main extends MillStableScalaModule with BuildInfo {
 
   object eval extends MillStableScalaModule {
     def moduleDeps = Seq(define)
-    def ivyDeps = Agg(Deps.requests)
+    def ivyDeps = Agg(
+      Deps.requests,
+      ivy"com.google.protobuf:protobuf-java:3.15.6",
+      ivy"org.apache.commons:commons-compress:1.21",
+    )
+
+    def unmanagedClasspath = Agg(
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/build/bazel/semver/libsemver_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libany_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libduration_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libtimestamp_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libwrappers_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/googleapis/libgoogle_api_http_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libdescriptor_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libempty_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar")),
+      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar")),
+    )
   }
 
   object resolve extends MillStableScalaModule {

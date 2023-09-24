@@ -374,7 +374,7 @@ object MillBuildRootModule {
        |object ${backtickWrap(name)} extends ${backtickWrap(name)}
        |class ${backtickWrap(name)} extends $superClass {
        |
-       |//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
+       |//MILL_ORIGINAL_FILE_PATH=${originalFilePath.relativeTo(os.pwd)}
        |//MILL_USER_CODE_START_MARKER
        |""".stripMargin
   }

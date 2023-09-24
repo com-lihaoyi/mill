@@ -1,12 +1,19 @@
 package mill.eval
 
+import geny.Writable
 import mill.api.Result.{OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.util._
+import build.bazel.remote.execution.v2.{ActionResult, Digest, ExecutedActionMetadata, OutputDirectory, OutputFile, OutputSymlink}
+import com.google.protobuf.ByteString
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 
+import collection.JavaConverters._
+import java.io.OutputStream
+import java.nio.file.attribute.PosixFilePermission
 import scala.collection.mutable
 import scala.reflect.NameTransformer.decode
 import scala.util.DynamicVariable
@@ -387,16 +394,77 @@ private[mill] trait GroupEvaluator {
 
         for (json <- terminalResult) {
           val cached = Evaluator.Cached(json, hashCode, inputsHash)
-          os.write.over(
-            paths.meta,
-            upickle.default.stream(cached, indent = 4),
-            createFolders = true
-          )
+          val (_, pathRefs) = PathRef.gatherSerializedPathRefs{
+            os.write.over(
+              paths.meta,
+              upickle.default.stream(cached, indent = 4),
+              createFolders = true
+            )
+          }
 
           for (url <- remoteCacheUrl if remoteCacheEnabled(labelled)) {
-            storeRemoteCachedData(paths, inputsHash, labelled, cached, url)
+            storeRemoteCachedData(paths, inputsHash, labelled, url, pathRefs)
           }
         }
+    }
+  }
+  import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+  import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+
+  def packTar(sourceFolderPath: os.Path): Writable = new Writable {
+    override def writeBytesTo(out: OutputStream): Unit = {
+      try {
+        val tarOutput = new TarArchiveOutputStream(out)
+
+        for (file <- os.walk(sourceFolderPath)) {
+          val entry = new TarArchiveEntry(file.subRelativeTo(sourceFolderPath).toString())
+          tarOutput.putArchiveEntry(entry)
+          val fis = os.read.inputStream(file)
+          try {
+            os.Internals.transfer(fis, tarOutput)
+            tarOutput.closeArchiveEntry()
+          } finally {
+            fis.close()
+          }
+        }
+
+        tarOutput.close()
+      }
+    }
+  }
+
+  def unpackTar(tarFile: geny.Readable, destFolderPath: os.Path): Unit = {
+    os.makeDir.all(destFolderPath)
+
+    tarFile.readBytesThrough { fis =>
+      var tarInput: TarArchiveInputStream = null
+      try {
+        tarInput = new TarArchiveInputStream(fis)
+        var entry: TarArchiveEntry = null
+        while ( {
+          val entry = tarInput.getNextTarEntry();
+          if (entry == null) false
+          else {
+            // Define the output file or directory
+            val outputFile = destFolderPath / os.SubPath(entry.getName)
+
+            if (entry.isDirectory) os.makeDir.all(outputFile)
+            else {
+              // Create parent directories if necessary
+              val parentDir = outputFile / os.up
+              os.makeDir.all(parentDir)
+
+              // Extract the file content
+              val fos = os.write.outputStream(outputFile)
+              try os.Internals.transfer(tarInput, fos)
+              finally fos.close()
+            }
+            true
+          }
+        }) ()
+      } finally {
+        if (tarInput != null) tarInput.close()
+      }
     }
   }
 
@@ -404,26 +472,86 @@ private[mill] trait GroupEvaluator {
       paths: EvaluatorPaths,
       inputsHash: Int,
       labelled: Terminal.Labelled[_],
-      cached: Evaluator.Cached,
-      url: String
+      url: String,
+      pathRefs: Set[PathRef]
   ): requests.Response = {
+
+    def readByteString(p: os.Path) = {
+      val stream = os.read.inputStream(p)
+      try ByteString.readFrom(stream)
+      finally stream.close()
+    }
+
     requests.put(
       remoteCacheTaskUrl(url, inputsHash, labelled),
-      data = upickle.default.streamBinary(
-        Evaluator.RemoteCached(
-          meta = cached,
-          log = if (os.exists(paths.log)) os.read.bytes(paths.log) else Array(),
-          dest =
-            if (!os.exists(paths.dest)) Map()
-            else os
-              .walk(paths.dest)
-              .collect {
-                case p if os.isFile(p, followLinks = false) =>
-                  (p.subRelativeTo(paths.dest), (os.perms(p).toString(), os.read.bytes(p)))
+      data = new Writable {
+        def writeBytesTo(out: OutputStream): Unit = {
+          val outputFiles = mutable.Buffer.empty[OutputFile]
+          val outputDirectories = mutable.Buffer.empty[OutputDirectory]
+          val outputSymlinks = mutable.Buffer.empty[OutputSymlink]
+          if (os.exists(paths.dest)) {
+            for(p <- os.walk.stream(paths.dest)){
+              val pathString = s"dest/${p.subRelativeTo(paths.dest)}"
+              os.stat(p, followLinks = false).fileType match{
+                case os.FileType.File =>
+                  outputFiles += OutputFile.newBuilder()
+                    .setPath(pathString)
+                    .setDigest(
+                      Digest.newBuilder()
+                        .setHash("a" * 64)
+                        .setSizeBytes(os.size(p))
+                    )
+                    .setContents(readByteString(p))
+                    .setIsExecutable(os.perms(p).contains(PosixFilePermission.OWNER_EXECUTE))
+                    .build()
+                case os.FileType.Dir =>
+                  outputDirectories += OutputDirectory.newBuilder()
+                    .setPath(pathString)
+                    .build()
+                case os.FileType.SymLink =>
+                  outputSymlinks += OutputSymlink.newBuilder()
+                    .setPath(pathString)
+                    .setTarget(os.readLink(p).toString)
+                    .build()
               }
-              .toMap
-        )
-      )
+            }
+          }
+
+          if (os.exists(paths.log)) outputFiles.append(
+            OutputFile.newBuilder()
+              .setPath("log")
+              .setDigest(
+                Digest.newBuilder()
+                  .setHash("a" * 64)
+                  .setSizeBytes(os.size(paths.log))
+              )
+              .setContents(readByteString(paths.log))
+              .build()
+          )
+          outputFiles.append(
+            OutputFile.newBuilder()
+              .setPath("json")
+              .setDigest(
+                Digest.newBuilder()
+                  .setHash("a" * 64)
+                  .setSizeBytes(os.size(paths.meta))
+              )
+              .setContents(readByteString(paths.meta))
+              .build()
+          )
+
+          ActionResult.newBuilder()
+            .addAllOutputFiles(outputFiles.asJava)
+//            .addAllOutputDirectories(outputDirectories.asJava)
+            .addAllOutputSymlinks(outputSymlinks.asJava)
+            .setExecutionMetadata(
+              ExecutedActionMetadata.newBuilder()
+                .setWorker("Mill")
+            )
+            .build()
+            .writeTo(out)
+        }
+      }
     )
   }
 
@@ -452,6 +580,7 @@ private[mill] trait GroupEvaluator {
       upToDateWorker.map((_, inputsHash)) orElse
         cached.flatMap(_._2) orElse
         remoteCached.flatMap(_._2)
+
     val previousInputsHash = cached.map(_._1).getOrElse(-1)
     (finalCached, previousInputsHash)
   }
@@ -519,26 +648,42 @@ private[mill] trait GroupEvaluator {
       labelled: Terminal.Labelled[_],
       paths: EvaluatorPaths,
       url: String
-  ) = {
-    val response = requests.get(remoteCacheTaskUrl(url, inputsHash, labelled), check = false)
+  ): Option[(Int, Option[(Val, Int)])] = {
 
-    if (response.statusCode != 200) None
-    else {
-      val remoteCached = upickle.default.readBinary[Evaluator.RemoteCached](response)
-      os.write.over(
-        paths.meta,
-        upickle.default.write(remoteCached.meta, indent = 4),
-        createFolders = true
-      )
+    val response = requests.get.stream(
+      remoteCacheTaskUrl(url, inputsHash, labelled),
+      check = false,
+      onHeadersReceived = headers => if (headers.statusCode != 200) return None
+    )
 
-      for ((sub, (perms, data)) <- remoteCached.dest) {
-        val path = paths.dest / sub
-        os.write(path, data, createFolders = true)
-        os.perms.set(path, perms)
+    val ar = response.readBytesThrough(ActionResult.parser().parseFrom(_))
+    val outputFiles = ar.getOutputFilesList.asScala
+
+    val (mutable.Seq(meta), rest) = outputFiles.partition(_.getPath == "json")
+
+    def writeOut(f: OutputFile, writePath: os.Path) = {
+      val writable = new Writable {
+        def writeBytesTo(out: OutputStream): Unit = f.getContents.writeTo(out)
+      }
+      os.write.over(writePath, writable, createFolders = true)
+    }
+
+    writeOut(meta, paths.meta)
+
+    val (cached, pathRefs) = PathRef.gatherSerializedPathRefs {
+      loadCachedJson(logger, inputsHash, labelled, paths.meta.toIO)
+    }
+
+    val pathRefMap = pathRefs.map(p => (p.sig, p.path))
+    for(f <- rest){
+      val writePath = f.getPath match {
+        case "log" => paths.log
+        case s"dest/$rest" => paths.dest / os.SubPath(rest)
       }
 
-      Some(loadCachedJson0(logger, inputsHash, labelled, remoteCached.meta))
+      writeOut(f, writePath)
     }
+    cached
   }
 
   private def loadUpToDateWorker(

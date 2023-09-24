@@ -6,6 +6,7 @@ import mill.define.{BaseModule, NamedTask, Segments, Task}
 import mill.eval.Evaluator.{Results, formatFailing}
 import mill.util.{ColorLogger, MultiBiMap}
 
+import java.io.ByteArrayInputStream
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.DynamicVariable
@@ -90,18 +91,6 @@ object Evaluator {
 
   object Cached {
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
-  }
-
-  case class RemoteCached(
-      meta: Cached,
-      log: Array[Byte],
-      dest: Map[os.SubPath, (String, Array[Byte])]
-  )
-
-  object RemoteCached {
-    implicit val subpathRw =
-      upickle.default.readwriter[String].bimap[os.SubPath](_.toString(), os.SubPath(_))
-    implicit val rw: upickle.default.ReadWriter[RemoteCached] = upickle.default.macroRW
   }
 
   trait EvalOrThrow {

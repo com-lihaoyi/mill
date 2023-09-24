@@ -420,6 +420,7 @@ object MillBuildBootstrap {
       depth: Int,
       projectRoot: os.Path
   ): Either[String, RootModule] = {
+
     val cls = runClassLoader.loadClass("millbuild.build$")
     val rootModule0 = cls.getField("MODULE$").get(cls).asInstanceOf[RootModule]
     getChildRootModule(rootModule0, depth, projectRoot)
