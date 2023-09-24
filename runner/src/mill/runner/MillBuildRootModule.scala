@@ -348,7 +348,8 @@ object MillBuildRootModule {
     val miscInfoName = s"MiscInfo_$name"
 
     def pathToString(p: os.Path) = {
-      if (p.startsWith(os.pwd)) s"_root_.os.pwd / _root_.os.RelPath(${literalize(p.subRelativeTo(os.pwd).toString())})"
+      if (p.startsWith(os.pwd))
+        s"_root_.os.pwd / _root_.os.RelPath(${literalize(p.subRelativeTo(os.pwd).toString())})"
       else s"_root_.os.Path(${literalize(p.toString())})"
     }
 

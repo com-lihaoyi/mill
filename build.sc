@@ -599,26 +599,12 @@ object main extends MillStableScalaModule with BuildInfo {
 
   object eval extends MillStableScalaModule {
     def moduleDeps = Seq(define)
+
     def ivyDeps = Agg(
       Deps.requests,
       ivy"com.google.protobuf:protobuf-java:3.15.6",
       ivy"org.apache.commons:commons-compress:1.21",
-    )
-
-    def unmanagedClasspath = Agg(
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/build/bazel/semver/libsemver_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libany_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libduration_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libtimestamp_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libwrappers_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/googleapis/libgoogle_api_http_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libdescriptor_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/com_google_protobuf/libempty_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar")),
-      PathRef(os.pwd / os.RelPath("../remote-apis/bazel-bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar")),
+      ivy"com.lihaoyi:mill-bazel-remote-cache-protos:0.0.1",
     )
   }
 

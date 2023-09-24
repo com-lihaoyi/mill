@@ -90,7 +90,7 @@ object PathRef {
 
   def gatherSerializedPathRefs[T](t: => T): (T, Set[PathRef]) = {
     val refs = mutable.Set[PathRef]()
-    val res = gatheredPathRefs.withValue(refs){
+    val res = gatheredPathRefs.withValue(refs) {
       t
     }
     (res, refs.toSet)
@@ -183,7 +183,6 @@ object PathRef {
     },
     s => {
       val Array(prefix, valid0, hex, pathString) = s.split(":", 4)
-
 
       val path = JsonFormatters.stringToPath(pathString)
       val quick = prefix match {
