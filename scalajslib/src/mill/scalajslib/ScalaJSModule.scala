@@ -89,7 +89,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // we need to use the scala-library of the currently running mill
     resolveDependencies(
       repositoriesTask(),
-      (commonDeps.iterator ++ envDeps).map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
+      (commonDeps.iterator ++ envDeps)
+        .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     )
   }
