@@ -6,7 +6,6 @@ import mill.define.{BaseModule, Segments, Task}
 import mill.eval.Evaluator.{Results, formatFailing}
 import mill.util.{ColorLogger, MultiBiMap}
 
-import java.io.ByteArrayInputStream
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.DynamicVariable

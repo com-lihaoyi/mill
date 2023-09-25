@@ -4,14 +4,21 @@ import mill.api.internal
 import mill.define.{NamedTask, Segment, Segments}
 
 case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path, tmp: os.Path) {
-  private def copy(dest: os.Path = dest, meta: os.Path = meta, log: os.Path = log, tmp: os.Path = tmp): EvaluatorPaths =
+  def this(dest: os.Path, meta: os.Path, log: os.Path) =
+    this(dest, meta, log, dest / os.up / s"${dest.baseName}.tmp")
+  private def copy(
+      dest: os.Path = dest,
+      meta: os.Path = meta,
+      log: os.Path = log,
+      tmp: os.Path = tmp
+  ): EvaluatorPaths =
     new EvaluatorPaths(dest, meta, log, tmp)
 }
 
 object EvaluatorPaths {
 
   def apply(dest: os.Path, meta: os.Path, log: os.Path): EvaluatorPaths =
-    new EvaluatorPaths(dest, meta, log, dest / os.up / s"${dest.baseName}.tmp")
+    new EvaluatorPaths(dest, meta, log)
 
   private def unapply(evaluatorPaths: EvaluatorPaths): Option[(os.Path, os.Path, os.Path)] =
     Option(evaluatorPaths.dest, evaluatorPaths.meta, evaluatorPaths.log)
