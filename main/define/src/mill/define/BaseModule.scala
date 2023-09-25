@@ -11,12 +11,12 @@ abstract class BaseModule(
 )(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
-    millFile0: sourcecode.File,
+    millFile0: sourcecode.FileName,
     caller: Caller
 ) extends Module.BaseClass()(
       mill.define.Ctx.make(
-        implicitly,
-        implicitly,
+        millModuleEnclosing0,
+        millModuleLine0,
         Ctx.BasePath(millSourcePath0),
         Segments(),
         Ctx.External(external0),
@@ -25,6 +25,27 @@ abstract class BaseModule(
         caller
       )
     ) with Module {
+
+  @deprecated("bincompat stub")
+  def this(
+      millSourcePath0: os.Path,
+      external0: Boolean,
+      foreign0: Option[Segments],
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millFile0: sourcecode.File,
+      caller: Caller
+  ) = this(
+    millSourcePath0,
+    external0,
+    foreign0
+  )(
+    millModuleEnclosing0,
+    millModuleLine0,
+    sourcecode.FileName(millFile0.value),
+    caller
+  )
+
   // A BaseModule should provide an empty Segments list to it's children, since
   // it is the root of the module tree, and thus must not include it's own
   // sourcecode.Name as part of the list,

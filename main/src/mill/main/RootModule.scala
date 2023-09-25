@@ -16,7 +16,7 @@ abstract class RootModule()(implicit
     baseModuleInfo: RootModule.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
-    millFile0: sourcecode.File
+    millFile0: sourcecode.FileName
 ) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0)(
       millModuleEnclosing0,
       millModuleLine0,
@@ -24,6 +24,20 @@ abstract class RootModule()(implicit
       Caller(null)
     ) with mill.main.MainModule {
 
+  @deprecated("bincompat stub")
+  def this(
+      baseModuleInfo: RootModule.Info,
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millFile0: sourcecode.File
+  ) = {
+    this()(
+      baseModuleInfo,
+      millModuleEnclosing0,
+      millModuleLine0,
+      sourcecode.FileName(millFile0.value)
+    )
+  }
   // Make BaseModule take the `millDiscover` as an implicit param, rather than
   // defining it itself. That is so we can define it externally in the wrapper
   // code and it have it automatically passed to both the wrapper BaseModule as
@@ -42,7 +56,7 @@ object RootModule {
       baseModuleInfo: RootModule.Info,
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
-      millFile0: sourcecode.File
+      millFile0: sourcecode.FileName
   ) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0, foreign0 = foreign0)(
         millModuleEnclosing0,
         millModuleLine0,
@@ -50,6 +64,21 @@ object RootModule {
         Caller(null)
       ) with mill.main.MainModule {
 
+    @deprecated("bincompat stub")
+    def this(
+        foreign0: Option[Segments],
+        baseModuleInfo: RootModule.Info,
+        millModuleEnclosing0: sourcecode.Enclosing,
+        millModuleLine0: sourcecode.Line,
+        millFile0: sourcecode.File
+    ) = {
+      this(foreign0)(
+        baseModuleInfo,
+        millModuleEnclosing0,
+        millModuleLine0,
+        sourcecode.FileName(millFile0.value)
+      )
+    }
     override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 }

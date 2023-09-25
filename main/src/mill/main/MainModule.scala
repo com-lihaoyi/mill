@@ -272,7 +272,7 @@ trait MainModule extends mill.define.Module {
           ctx.applyPrefixColor(t.toString).toString,
           "(",
           // handle both Windows or Unix separators
-          t.ctx.fileName.split('/').last.split('\\').last,
+          t.ctx.fileName,
           ":",
           t.ctx.lineNum.toString,
           ")",
