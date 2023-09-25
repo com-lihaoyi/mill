@@ -30,11 +30,15 @@ trait EvaluatorCaching {
     lazy val remoteCached =
       if (remoteCacheEnabled(labelled)) {
         remoteCacheUrl.flatMap { url =>
-          Option
-            .when(BazelRemoteCache.load(inputsHash, labelled, paths, url, remoteCacheSalt)) {
+          val remoteCacheLoaded = BazelRemoteCache.load(inputsHash, labelled, paths, url, remoteCacheSalt)
+          if (!remoteCacheLoaded) None
+          else {
+            val (res, pathRefs) = PathRef.gatherSerializedPathRefs {
               loadCachedJson(logger, inputsHash, labelled, paths.meta.toIO)
             }
-            .flatten
+            if (pathRefs.forall(pr => os.exists(pr.path))) res
+            else None
+          }
         }
       } else None
 

@@ -11,14 +11,18 @@ object JsonFormatters extends JsonFormatters
  * Defines various default JSON formatters used in mill.
  */
 trait JsonFormatters {
+  private lazy val coursierCache = os.Path(coursier.paths.CoursierPaths.cacheDirectory())
   def pathToString(path: os.Path) =
     if (path.startsWith(os.pwd)) path.relativeTo(os.pwd).toString()
+    else if (path.startsWith(coursierCache))
+      "$COURSIER_CACHE/" + path.relativeTo(coursierCache)
     else path.toString()
 
   def stringToPath(s: String) = os.FilePath(s) match {
     case p: os.Path => p
-    case s: os.SubPath => os.pwd / s
-    case r: os.RelPath => os.pwd / r
+    case s: os.SubPath =>
+      if (s.segments(0) == "$COURSIER_CACHE") coursierCache / s.segments.drop(1)
+      else os.pwd / s
   }
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
     .bimap[os.Path](pathToString, stringToPath)
