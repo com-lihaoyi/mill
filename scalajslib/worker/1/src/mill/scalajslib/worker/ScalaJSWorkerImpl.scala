@@ -1,24 +1,19 @@
 package mill.scalajslib.worker
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.io.File
+import java.nio.file.Path
 import mill.scalajslib.worker.api._
 import mill.scalajslib.worker.jsenv._
 import org.scalajs.ir.ScalaJSVersions
-import org.scalajs.linker.{
-  PathIRContainer,
-  PathIRFile,
-  PathOutputDirectory,
-  PathOutputFile,
-  StandardImpl
-}
+import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, PathOutputFile, StandardImpl}
 import org.scalajs.linker.interface.{
   ESFeatures => ScalaJSESFeatures,
   ESVersion => ScalaJSESVersion,
   ModuleKind => ScalaJSModuleKind,
   OutputPatterns => ScalaJSOutputPatterns,
-  Report => ScalaJSReport,
+  Report => _,
   ModuleSplitStyle => _,
   _
 }
@@ -46,15 +41,15 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     case _ => true
   }
   private object ScalaJSLinker {
-    private val cache = mutable.Map.empty[LinkerInput, SoftReference[Linker]]
-    def reuseOrCreate(input: LinkerInput): Linker = cache.get(input) match {
-      case Some(SoftReference(linker)) => linker
+    private val cache = mutable.Map.empty[LinkerInput, SoftReference[(Linker, IRFileCache.Cache)]]
+    def reuseOrCreate(input: LinkerInput): (Linker, IRFileCache.Cache) = cache.get(input) match {
+      case Some(SoftReference((linker, irFileCache))) => (linker, irFileCache)
       case _ =>
-        val newLinker = createLinker(input)
-        cache.update(input, SoftReference(newLinker))
-        newLinker
+        val newResult = createLinker(input)
+        cache.update(input, SoftReference(newResult))
+        newResult
     }
-    private def createLinker(input: LinkerInput): Linker = {
+    private def createLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
       val semantics = input.isFullLinkJS match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
@@ -101,7 +96,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         else withESVersion_1_5_minus(scalaJSESFeatures)
 
       val useClosure = input.isFullLinkJS && input.moduleKind != ModuleKind.ESModule
-      var partialConfig = StandardConfig()
+      val partialConfig = StandardConfig()
         .withOptimizer(input.optimizer)
         .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
@@ -150,14 +145,15 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
             )
         else withModuleSplitStyle
 
-      StandardImpl.clearableLinker(withOutputPatterns)
+      val linker = StandardImpl.clearableLinker(withOutputPatterns)
+      val irFileCache = StandardImpl.irFileCache().newCache
+      (linker, irFileCache)
     }
   }
   def link(
-      sources: Array[File],
-      libraries: Array[File],
+      runClasspath: Seq[Path],
       dest: File,
-      main: String,
+      main: Either[String, String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
@@ -172,7 +168,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     // the new mode is not supported and in tests we always use legacy = false
     val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
-    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(
+    val (linker, irFileCache) = ScalaJSLinker.reuseOrCreate(LinkerInput(
       isFullLinkJS = isFullLinkJS,
       optimizer = optimizer,
       sourceMap = sourceMap,
@@ -182,23 +178,23 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       outputPatterns = outputPatterns,
       dest = dest
     ))
-    val cache = StandardImpl.irFileCache().newCache
-    val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
-    val irContainersPairs = PathIRContainer.fromClasspath(libraries.toIndexedSeq.map(_.toPath()))
-    val libraryIRsFuture = irContainersPairs.flatMap(pair => cache.cached(pair._1))
+    val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
     val logger = new ScalaConsoleLogger
-    val mainInitializer = Option(main).map { cls =>
-      ModuleInitializer.mainMethodWithArgs(cls, "main")
-    }
     val testInitializer =
       if (testBridgeInit)
-        Some(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
-      else None
-    val moduleInitializers = mainInitializer.toList ::: testInitializer.toList
+        ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName) :: Nil
+      else Nil
+    val moduleInitializers = main match {
+      case Right(main) =>
+        ModuleInitializer.mainMethodWithArgs(main, "main") ::
+          testInitializer
+      case _ =>
+        testInitializer
+    }
 
     val resultFuture = (for {
-      sourceIRs <- sourceIRsFuture
-      libraryIRs <- libraryIRsFuture
+      (irContainers, _) <- irContainersAndPathsFuture
+      irFiles <- irFileCache.cached(irContainers)
       report <-
         if (useLegacy) {
           val jsFileName = "out.js"
@@ -212,7 +208,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
               .withSourceMap(PathOutputFile(sourceMapFile))
               .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
           }
-          linker.link(sourceIRs ++ libraryIRs, moduleInitializers, linkerOutput, logger).map {
+          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map {
             file =>
               Report(
                 publicModules = Seq(Report.Module(
@@ -227,7 +223,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         } else {
           val linkerOutput = PathOutputDirectory(dest.toPath())
           linker.link(
-            sourceIRs ++ libraryIRs,
+            irFiles,
             moduleInitializers,
             linkerOutput,
             logger

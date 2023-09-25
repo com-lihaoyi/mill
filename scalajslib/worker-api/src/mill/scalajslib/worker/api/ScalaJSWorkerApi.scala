@@ -1,13 +1,13 @@
 package mill.scalajslib.worker.api
 
 import java.io.File
+import java.nio.file.Path
 
 private[scalajslib] trait ScalaJSWorkerApi {
   def link(
-      sources: Array[File],
-      libraries: Array[File],
+      runClasspath: Seq[Path],
       dest: File,
-      main: String,
+      main: Either[String, String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
