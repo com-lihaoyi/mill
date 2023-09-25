@@ -4,6 +4,11 @@ import utest._
 
 import java.io.ByteArrayOutputStream
 
+/**
+ * Make sure we can write to a [[SpillToDiskOutputStream]] a variety of
+ * data sizes in a variety of ways, with the output size and bytes always
+ * equal to what we wrote it with it spilled to disk if necessary
+ */
 object SpillToDiskOutputStreamTests extends TestSuite {
   def check(totalSize: Int,
             spilled: Boolean,
@@ -13,14 +18,22 @@ object SpillToDiskOutputStreamTests extends TestSuite {
     val stdos = new SpillToDiskOutputStream(1024, tmp)
     write(data, stdos)
 
-    assert(stdos.spilled == spilled)
     assert(stdos.size == totalSize)
+    assert(stdos.spilled == spilled)
+
+    if (spilled) { // Make sure the on-disk file exists when spilled
+      val spilledData = os.read.bytes(tmp)
+      assert(java.util.Arrays.equals(spilledData, data))
+    }
 
     val boas = new ByteArrayOutputStream()
     stdos.writeBytesTo(boas)
     val bytes = boas.toByteArray
 
     assert(java.util.Arrays.equals(bytes, data))
+
+    stdos.close() // Make sure closing the stdos deletes the spill file
+    assert(!os.exists(tmp))
   }
 
   def writeAll(data: Array[Byte], stdos: SpillToDiskOutputStream) = stdos.write(data)
