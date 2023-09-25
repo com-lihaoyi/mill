@@ -405,9 +405,13 @@ object bazelRemoteApis extends MillPublishJavaModule{
   }
 
   def bazel = T{
+    val fileName =
+      if (System.getProperty("os.name") == "Mac OS X") "bazel-5.4.1-darwin-arm64"
+      else "bazel-5.4.1-linux-x86_64"
+
     os.write(
       T.dest / "bazel",
-      requests.get("https://github.com/bazelbuild/bazel/releases/download/5.4.1/bazel-5.4.1-darwin-arm64")
+      requests.get(s"https://github.com/bazelbuild/bazel/releases/download/5.4.1/$fileName")
     )
     os.perms.set(T.dest / "bazel", "rwxrwxrwx")
     PathRef(T.dest / "bazel")
