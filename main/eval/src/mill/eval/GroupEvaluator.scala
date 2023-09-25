@@ -53,6 +53,12 @@ private[mill] trait GroupEvaluator extends EvaluatorCodeHashing with EvaluatorCa
     )
 
     val scriptsHash = computeScriptHash(group)
+    if (terminal.toString.contains("lineCount")){
+      pprint.log(externalInputsHash)
+      pprint.log(sideHashes)
+      pprint.log(classLoaderSigHash)
+      pprint.log(scriptsHash)
+    }
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
     terminal match {

@@ -1,14 +1,9 @@
 package mill.eval
 
 import geny.Writable
-import build.bazel.remote.execution.v2.{ActionResult, Digest, OutputFile}
+import build.bazel.remote.execution.v2.{ActionResult, Digest, ExecutedActionMetadata, OutputDirectory, OutputFile}
 import mill.api.PathRef
-import org.apache.commons.compress.archivers.tar.{
-  TarArchiveEntry,
-  TarArchiveInputStream,
-  TarArchiveOutputStream,
-  TarConstants
-}
+import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveInputStream, TarArchiveOutputStream, TarConstants}
 
 import collection.JavaConverters._
 import java.io.{InputStream, OutputStream}
@@ -46,7 +41,7 @@ object BazelRemoteCache {
       url: String,
       remoteCacheSalt: Option[String],
       pathRefs: Set[PathRef]
-  ): requests.Response = {
+  ) = {
 
     readSpillToDisk(paths, new BlobWritable(paths, pathRefs)) { data =>
       val digest = MessageDigest.getInstance("SHA-256")
@@ -57,7 +52,9 @@ object BazelRemoteCache {
       })
 
       val shaDigestString = getHex(digest.digest())
+
       requests.put(s"$url/cas/$shaDigestString", data = data)
+
       requests.put(
         actionCacheUrl(url, inputsHash, labelled, remoteCacheSalt),
         data = new ActionResultWritable(data.size, shaDigestString)
@@ -98,11 +95,8 @@ object BazelRemoteCache {
           if sub.segments.inits.exists(pathRefSubPaths.contains)
         } {
           os.stat(p, followLinks = false).fileType match {
-            case os.FileType.File =>
-              putEntry("dest/" + sub.toString, TarConstants.LF_NORMAL, Some(p))
-
-            case os.FileType.Dir =>
-              putEntry("dest/" + sub.toString + "/", TarConstants.LF_DIR)
+            case os.FileType.File => putEntry(s"dest/$sub", TarConstants.LF_NORMAL, Some(p))
+            case os.FileType.Dir => putEntry(s"dest/$sub" + "/", TarConstants.LF_DIR)
           }
         }
       }
@@ -120,6 +114,11 @@ object BazelRemoteCache {
 
     def writeBytesTo(out: OutputStream): Unit = {
       ActionResult.newBuilder()
+        .setExitCode(0)
+        .setExecutionMetadata(
+          ExecutedActionMetadata.newBuilder()
+            .setWorker("Mill")
+        )
         .addOutputFiles(
           OutputFile.newBuilder()
             .setPath("blob")
@@ -187,9 +186,9 @@ object BazelRemoteCache {
 
             }
           )
+          true
         }
 
-        true
       }
     }
   }

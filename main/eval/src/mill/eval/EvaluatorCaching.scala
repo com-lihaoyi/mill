@@ -37,6 +37,9 @@ trait EvaluatorCaching {
             val (res, pathRefs) = PathRef.gatherSerializedPathRefs {
               loadCachedJson(logger, inputsHash, labelled, paths.meta.toIO)
             }
+            if (labelled.segments.render == "lineCount"){
+              pprint.log(res)
+            }
             if (true /*pathRefs.forall(pr => os.exists(pr.path))*/ ) res
             else None
           }
