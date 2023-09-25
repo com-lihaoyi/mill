@@ -6,6 +6,8 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.util.{DynamicVariable, Using}
 import upickle.default.{ReadWriter => RW}
 
+import scala.collection.mutable
+
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
  * on the contents of the filesystem underneath it. Used to ensure filesystem
@@ -40,8 +42,11 @@ case class PathRef private (
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
+
+    quick + valid + sig + ":" + JsonFormatters.pathToString(path)
   }
+
+  override def hashCode(): Int = toString.hashCode
 }
 
 object PathRef {
@@ -79,6 +84,15 @@ object PathRef {
 
   class PathRefValidationException(val pathRef: PathRef)
       extends RuntimeException(s"Invalid path signature detected: ${pathRef}")
+
+  private val gatheredPathRefs: DynamicVariable[mutable.Set[PathRef]] =
+    new DynamicVariable(null)
+
+  def gatherSerializedPathRefs[T](t: => T): (T, Set[PathRef]) = {
+    val refs = mutable.Set[PathRef]()
+    val res = gatheredPathRefs.withValue(refs)(t)
+    (res, refs.toSet)
+  }
 
   sealed trait Revalidate
   object Revalidate {
@@ -154,7 +168,6 @@ object PathRef {
 
       java.util.Arrays.hashCode(digest.digest())
     }
-
     new PathRef(path, quick, sig, revalidate)
   }
 
@@ -162,11 +175,14 @@ object PathRef {
    * Default JSON formatter for [[PathRef]].
    */
   implicit def jsonFormatter: RW[PathRef] = upickle.default.readwriter[String].bimap[PathRef](
-    p => p.toString(),
+    p => {
+      Option(gatheredPathRefs.value).foreach(_.add(p))
+      p.toString()
+    },
     s => {
       val Array(prefix, valid0, hex, pathString) = s.split(":", 4)
 
-      val path = os.Path(pathString)
+      val path = JsonFormatters.stringToPath(pathString)
       val quick = prefix match {
         case "qref" => true
         case "ref" => false
@@ -181,6 +197,7 @@ object PathRef {
       val sig = java.lang.Long.parseLong(hex, 16).toInt
       val pr = PathRef(path, quick, sig, validOrig)
       validatedPaths.value.revalidateIfNeededOrThrow(pr)
+      Option(gatheredPathRefs.value).foreach(_.add(pr))
       pr
     }
   )

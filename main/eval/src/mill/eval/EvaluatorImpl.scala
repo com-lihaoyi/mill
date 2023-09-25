@@ -26,10 +26,12 @@ private[mill] case class EvaluatorImpl(
     threadCount: Option[Int] = Some(1),
     scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty,
     methodCodeHashSignatures: Map[String, Int],
-    override val disableCallgraphInvalidation: Boolean
+    override val disableCallgraphInvalidation: Boolean,
+    remoteCacheFilter: Option[Segments],
+    remoteCacheSalt: Option[String],
+    remoteCacheUrl: Option[String]
 ) extends Evaluator with EvaluatorCore {
   import EvaluatorImpl._
-
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
   override def withBaseLogger(newBaseLogger: ColorLogger): Evaluator =

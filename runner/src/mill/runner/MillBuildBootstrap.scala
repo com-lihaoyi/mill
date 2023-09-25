@@ -37,7 +37,10 @@ class MillBuildBootstrap(
     logger: ColorLogger,
     disableCallgraphInvalidation: Boolean,
     needBuildSc: Boolean,
-    requestedMetaLevel: Option[Int]
+    requestedMetaLevel: Option[Int],
+    remoteCacheUrl: Option[String],
+    remoteCacheFilter: Option[Segments],
+    remoteCacheSalt: Option[String]
 ) {
   import MillBuildBootstrap._
 
@@ -349,7 +352,10 @@ class MillBuildBootstrap(
       threadCount = threadCount,
       scriptImportGraph = scriptImportGraph,
       methodCodeHashSignatures = methodCodeHashSignatures,
-      disableCallgraphInvalidation = disableCallgraphInvalidation
+      disableCallgraphInvalidation = disableCallgraphInvalidation,
+      remoteCacheUrl = remoteCacheUrl,
+      remoteCacheSalt = remoteCacheSalt,
+      remoteCacheFilter = remoteCacheFilter
     )
   }
 
@@ -414,6 +420,7 @@ object MillBuildBootstrap {
       depth: Int,
       projectRoot: os.Path
   ): Either[String, RootModule] = {
+
     val cls = runClassLoader.loadClass("millbuild.build$")
     val rootModule0 = cls.getField("MODULE$").get(cls).asInstanceOf[RootModule]
     getChildRootModule(rootModule0, depth, projectRoot)

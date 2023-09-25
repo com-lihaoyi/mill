@@ -105,6 +105,7 @@ object Deps {
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.7"
+  val coursierCache = ivy"io.get-coursier::coursier-cache:2.1.7"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.18"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
@@ -395,6 +396,49 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 }
 
+object bazelRemoteApis extends MillPublishJavaModule{
+  def sourceZip = T{
+    os.write(
+      T.dest / "source.zip",
+      requests.get("https://github.com/bazelbuild/remote-apis/archive/refs/tags/v2.2.0.zip")
+    )
+    PathRef(T.dest / "source.zip")
+  }
+
+  def bazel = T{
+    val fileName =
+      if (System.getProperty("os.name") == "Mac OS X") "bazel-5.4.1-darwin-arm64"
+      else "bazel-5.4.1-linux-x86_64"
+
+    os.write(
+      T.dest / "bazel",
+      requests.get(s"https://github.com/bazelbuild/bazel/releases/download/5.4.1/$fileName")
+    )
+    os.perms.set(T.dest / "bazel", "rwxrwxrwx")
+    PathRef(T.dest / "bazel")
+  }
+
+  def unmanagedClasspath = T{
+    val javaBuildTarget = "build/bazel/remote/execution/v2:remote_execution_java_proto"
+    os.proc("unzip", sourceZip().path, "-d", T.dest).call(cwd = T.dest)
+    os.proc(bazel().path, "build", javaBuildTarget).call(cwd = T.dest / "remote-apis-2.2.0")
+
+    os.proc(bazel().path, "cquery", javaBuildTarget, "--output=files")
+      .call(cwd = T.dest / "remote-apis-2.2.0")
+      .out
+      .lines()
+      .map(line => PathRef(T.dest / "remote-apis-2.2.0" / os.SubPath(line)))
+  }
+
+  def jar = assembly()
+
+  def publishVersion = "0.0.1"
+
+  def artifactName = "mill-bazel-remote-cache-protos"
+
+  def pomSettings = commonPomSettings(artifactName())
+}
+
 object bridge extends Cross[BridgeModule](buildBridgeScalaVersions)
 trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def scalaVersion = crossScalaVersion
@@ -441,7 +485,6 @@ object main extends MillStableScalaModule with BuildInfo {
     Deps.windowsAnsi,
     Deps.mainargs,
     Deps.coursierInterface,
-    Deps.requests
   )
 
   def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
@@ -483,7 +526,8 @@ object main extends MillStableScalaModule with BuildInfo {
       Deps.upickle,
       Deps.pprint,
       Deps.fansi,
-      Deps.sbtTestInterface
+      Deps.sbtTestInterface,
+      Deps.coursierCache
     )
   }
 
@@ -562,6 +606,13 @@ object main extends MillStableScalaModule with BuildInfo {
 
   object eval extends MillStableScalaModule {
     def moduleDeps = Seq(define)
+
+    def ivyDeps = Agg(
+      Deps.requests,
+      ivy"com.google.protobuf:protobuf-java:3.15.6",
+      ivy"org.apache.commons:commons-compress:1.21",
+      ivy"com.lihaoyi:mill-bazel-remote-cache-protos:0.0.1",
+    )
   }
 
   object resolve extends MillStableScalaModule {

@@ -84,7 +84,7 @@ object Ctx {
       segments0: Segments,
       external0: External,
       foreign0: Foreign,
-      fileName: sourcecode.File,
+      fileName: sourcecode.FileName,
       enclosing: Caller
   ): Ctx = {
     Impl(
@@ -103,6 +103,28 @@ object Ctx {
       fileName.value,
       enclosing.value,
       Seq()
+    )
+  }
+  @deprecated("bincompat stub")
+  def make(
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millModuleBasePath0: BasePath,
+      segments0: Segments,
+      external0: External,
+      foreign0: Foreign,
+      fileName: sourcecode.File,
+      enclosing: Caller
+  ): Ctx = {
+    make(
+      millModuleEnclosing0,
+      millModuleLine0,
+      millModuleBasePath0,
+      segments0,
+      external0,
+      foreign0,
+      sourcecode.FileName(fileName.value),
+      enclosing
     )
   }
 }

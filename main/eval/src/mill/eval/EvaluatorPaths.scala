@@ -3,9 +3,16 @@ package mill.eval
 import mill.api.internal
 import mill.define.{NamedTask, Segment, Segments}
 
-case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path) {
-  private def copy(dest: os.Path = dest, meta: os.Path = meta, log: os.Path = log): EvaluatorPaths =
-    new EvaluatorPaths(dest, meta, log)
+case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path, tmp: os.Path) {
+  def this(dest: os.Path, meta: os.Path, log: os.Path) =
+    this(dest, meta, log, dest / os.up / s"${dest.baseName}.tmp")
+  private def copy(
+      dest: os.Path = dest,
+      meta: os.Path = meta,
+      log: os.Path = log,
+      tmp: os.Path = tmp
+  ): EvaluatorPaths =
+    new EvaluatorPaths(dest, meta, log, tmp)
 }
 
 object EvaluatorPaths {
@@ -32,7 +39,8 @@ object EvaluatorPaths {
     EvaluatorPaths(
       targetPath / os.up / s"${targetPath.last}.dest",
       targetPath / os.up / s"${targetPath.last}.json",
-      targetPath / os.up / s"${targetPath.last}.log"
+      targetPath / os.up / s"${targetPath.last}.log",
+      targetPath / os.up / s"${targetPath.last}.tmp"
     )
   }
   def resolveDestPaths(
