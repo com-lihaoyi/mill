@@ -1,7 +1,6 @@
 package mill.resolve
 
-import mill.api.internal
-import mill.define.{BaseModule, Discover, Segment, Segments}
+import mill.define.{Segment, Segments}
 import mill.resolve.ResolveCore.Resolved
 
 /**

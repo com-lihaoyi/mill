@@ -4,12 +4,9 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
-import $ivy.`com.github.lolgab::mill-mima::0.0.23`
 import $ivy.`com.github.lolgab::mill-mima::0.0.24`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
-import mill.api.Loose
-import mill.define.NamedTask
-import mill.main.Tasks
+import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
@@ -17,12 +14,12 @@ import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
 import mill.api.JarManifest
-import mill.eval.Evaluator
+import mill.define.NamedTask
+import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.resolve.SelectMode
-import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.api.Versions
 import mill.T
@@ -45,13 +42,13 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq()
-  val mimaBaseVersions: Seq[String] = Seq("0.11.0", "0.11.1", "0.11.2", "0.11.3")
+  val mimaBaseVersions: Seq[String] = 0.to(4).map("0.11." + _)
 }
 
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.11"
+  val scalaVersion = "2.13.12"
   // Scoverage 1.x will not get releases for newer Scala versions
   val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
@@ -102,15 +99,16 @@ object Deps {
   }
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.8"
-  val ammoniteVersion = "3.0.0-M0-32-96e851cb"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.9"
+  val ammoniteVersion = "3.0.0-M0-53-084f7f4e"
+  val asmTree = ivy"org.ow2.asm:asm-tree:9.5"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.7"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.18"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
-  val castor = ivy"com.lihaoyi::castor:0.1.7"
+  val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
@@ -127,13 +125,13 @@ object Deps {
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.20.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.9.1"
   val pprint = ivy"com.lihaoyi::pprint:0.8.1"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.5.3"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.5.4"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
-  val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.5"
+  val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.6"
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
@@ -142,7 +140,7 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.10"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val scoverage2Version = "2.0.10"
+  val scoverage2Version = "2.0.11"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -151,9 +149,9 @@ object Deps {
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.8"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.5"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.10"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.6"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.1.3"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
@@ -161,11 +159,11 @@ object Deps {
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.2"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.9.0"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
   // tests framework (test)
-  val testScalaTest = ivy"org.scalatest::scalatest:3.2.16"
-  val testZioTest = ivy"dev.zio::zio-test:2.0.16"
+  val testScalaTest = ivy"org.scalatest::scalatest:3.2.17"
+  val testZioTest = ivy"dev.zio::zio-test:2.0.17"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
@@ -301,7 +299,8 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
   def scalaVersion = Deps.scalaVersion
-  def scalacOptions = super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature")
+  def scalacOptions =
+    super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature", "-Xlint:unused")
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
   def testModuleDeps: Seq[JavaModule] =
@@ -375,7 +374,9 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
     ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*"),
     // See https://github.com/com-lihaoyi/mill/pull/2739
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$scalaLibraryIvyDeps")
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$scalaLibraryIvyDeps"
+    )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
@@ -531,7 +532,7 @@ object main extends MillStableScalaModule with BuildInfo {
 
   object codesig extends MillPublishScalaModule {
     override def ivyDeps =
-      Agg(ivy"org.ow2.asm:asm-tree:9.5", Deps.osLib, ivy"com.lihaoyi::pprint:0.8.1")
+      Agg(Deps.asmTree, Deps.osLib, Deps.pprint)
     def moduleDeps = Seq(util)
 
     override lazy val test: CodeSigTests = new CodeSigTests {}
@@ -558,14 +559,14 @@ object main extends MillStableScalaModule with BuildInfo {
       trait CaseModule extends ScalaModule with Cross.Module[String] {
         def caseName = crossValue
         object external extends ScalaModule {
-          def scalaVersion = "2.13.10"
+          def scalaVersion = Deps.scalaVersion
         }
 
         def moduleDeps = Seq(external)
 
         val Array(prefix, suffix, rest) = caseName.split("-", 3)
         def millSourcePath = super.millSourcePath / prefix / suffix / rest
-        def scalaVersion = "2.13.10"
+        def scalaVersion = Deps.scalaVersion
         def ivyDeps = T {
           if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
           else Agg(
@@ -1839,5 +1840,13 @@ def validate(): Command[Unit] = {
 object DependencyFetchDummy extends ScalaModule {
   def scalaVersion = Deps.scalaVersion
   def compileIvyDeps =
-    Agg(Deps.millScip, Deps.semanticDbJava, Deps.semanticDB, Deps.testScalaTest, Deps.testZioTest)
+    Agg(
+      Deps.millScip,
+      Deps.semanticDbJava,
+      Deps.semanticDB,
+      Deps.testScalaTest,
+      Deps.testZioTest,
+      Deps.acyclic,
+      Deps.scalacScoverage2Plugin
+    )
 }

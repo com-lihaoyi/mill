@@ -1,6 +1,6 @@
 package mill.scalalib.internal
 
-import mill.define.{Module, Segments}
+import mill.define.Module
 import mill.scalalib.JavaModule
 
 @mill.api.internal

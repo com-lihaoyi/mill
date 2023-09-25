@@ -11,8 +11,6 @@ import mill.eval.Evaluator
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.PrintLogger
 
-import language.experimental.macros
-
 trait MillTestKit {
 
   def defaultTargetDir: os.Path =

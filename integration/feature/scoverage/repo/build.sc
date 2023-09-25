@@ -16,14 +16,14 @@ object Deps {
 
 object core extends Cross[CoreCross]("2.13.11")
 trait CoreCross extends CrossScalaModule with ScoverageModule {
-  override def scoverageVersion = "2.0.10"
+  override def scoverageVersion = "2.0.11"
   object test extends ScoverageTests with TestModule.ScalaTest {
     override def ivyDeps = Agg(Deps.scalaTest, Deps.millMain)
   }
 }
 
 object extra extends ScalaModule with ScoverageModule {
-  override def scoverageVersion = "2.0.10"
+  override def scoverageVersion = "2.0.11"
   override def scalaVersion = "2.13.11"
   // customized scoverage data
   override lazy val scoverage: ScoverageData = new ScoverageData {

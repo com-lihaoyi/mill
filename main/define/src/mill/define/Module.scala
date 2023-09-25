@@ -2,7 +2,6 @@ package mill.define
 
 import mill.api.internal
 
-import scala.language.experimental.macros
 import scala.reflect.ClassTag
 
 /**

@@ -1,7 +1,6 @@
 package mill.bsp
 
-import mill.api.{Ctx, Logger, SystemStreams, internal}
-import mill.eval.Evaluator
+import mill.api.{Ctx, Logger, SystemStreams}
 import os.Path
 
 import java.io.PrintStream

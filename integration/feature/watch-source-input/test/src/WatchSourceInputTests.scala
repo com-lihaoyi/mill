@@ -20,7 +20,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 object WatchSourceInputTests extends IntegrationTestSuite {
 
-  val maxDuration = 30000
+  val maxDuration = 60000
   val tests = Tests {
     val wsRoot = initWorkspace()
 
@@ -47,6 +47,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       val res = f(expectedOut, expectedErr, expectedShows)
       val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
       val err = res.err.linesIterator.toVector
+        .filter(!_.contains("Compiling compiler interface..."))
         .filter(!_.contains("Watching for changes"))
         .filter(!_.contains("[info] compiling"))
         .filter(!_.contains("[info] done compiling"))

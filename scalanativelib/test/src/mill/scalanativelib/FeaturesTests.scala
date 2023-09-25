@@ -1,12 +1,8 @@
 package mill.scalanativelib
 
-import mill.Agg
-import mill.scalalib._
 import mill.define.Discover
-import mill.scalanativelib.api._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
-import mill.define.Target
 
 object FeaturesTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "features"

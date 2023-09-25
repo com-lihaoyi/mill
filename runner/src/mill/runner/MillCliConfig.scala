@@ -13,9 +13,10 @@ class MillCliConfig private (
     )
     val home: os.Path,
     // We need to keep it, otherwise, a given --repl would be silently parsed as target and result in misleading error messages.
-    // Instead we fail when this flag is set.
+    // Instead we fail programmatically when this flag is set.
     @deprecated("No longer supported.", "Mill 0.11.0-M8")
     @arg(
+      hidden = true,
       doc = """This flag is no longer supported."""
     )
     val repl: Flag,

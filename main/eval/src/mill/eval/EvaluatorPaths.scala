@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.internal
-import mill.define.{NamedTask, Segment, Segments, Target}
+import mill.define.{NamedTask, Segment, Segments}
 
 case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path, tmp: os.Path) {
   private def copy(dest: os.Path = dest, meta: os.Path = meta, log: os.Path = log, tmp: os.Path = tmp): EvaluatorPaths =

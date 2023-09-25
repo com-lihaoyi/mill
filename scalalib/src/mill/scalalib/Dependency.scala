@@ -3,7 +3,6 @@ package mill.scalalib
 import mill.T
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
-import mill.main.EvaluatorTokenReader
 import mill.scalalib.dependency.DependencyUpdatesImpl
 import mill.scalalib.dependency.updates.ModuleDependenciesUpdates
 

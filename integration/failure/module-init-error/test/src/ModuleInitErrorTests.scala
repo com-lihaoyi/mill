@@ -1,6 +1,5 @@
 package mill.integration
 
-import mill.util.Util
 import utest._
 
 object ModuleInitErrorTests extends IntegrationTestSuite {

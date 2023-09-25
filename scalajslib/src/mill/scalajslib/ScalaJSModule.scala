@@ -13,8 +13,6 @@ import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 
-import scala.jdk.CollectionConverters._
-
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]

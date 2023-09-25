@@ -4,7 +4,6 @@ import java.util.Base64
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
-import scala.util.control.NonFatal
 
 import mill.main.BuildInfo
 import requests.BaseSession

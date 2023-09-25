@@ -58,7 +58,7 @@ import com.google.gson.JsonObject
 import mill.T
 import mill.api.{DummyTestReporter, Result, Strict}
 import mill.define.Segment.Label
-import mill.define.{Args, BaseModule, Discover, ExternalModule, Task}
+import mill.define.{Args, Discover, ExternalModule, Task}
 import mill.eval.Evaluator
 import mill.main.MainModule
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
@@ -478,7 +478,7 @@ private class MillBuildServer(
         logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
       )
       val response = runResult.results(runTask) match {
-        case _: Result.Success[Any] => new RunResult(StatusCode.OK)
+        case r if r.result.asSuccess.isDefined => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
       }
       params.getOriginId match {

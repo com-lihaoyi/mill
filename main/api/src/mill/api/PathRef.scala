@@ -89,7 +89,7 @@ object PathRef {
     new DynamicVariable(null)
 
   def gatherSerializedPathRefs[T](t: => T): (T, Set[PathRef]) = {
-    val refs = mutable.Set[PathRef]()
+    val refs =  Set[PathRef]()
     val res = gatheredPathRefs.withValue(refs)(t)
     (res, refs.toSet)
   }

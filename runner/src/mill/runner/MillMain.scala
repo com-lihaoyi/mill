@@ -9,7 +9,7 @@ import mill.java9rtexport.Export
 import mill.api.{DummyInputStream, internal}
 import mill.api.SystemStreams
 import mill.bsp.{BspContext, BspServerResult}
-import mill.util.{PrintLogger, Util}
+import mill.util.PrintLogger
 
 @internal
 object MillMain {
@@ -299,7 +299,7 @@ object MillMain {
       projectDir / ".mill-version"
     ).collectFirst {
       case f if os.exists(f) =>
-        (f, os.read.lines(f).filter(l => l.trim().nonEmpty).headOption)
+        (f, os.read.lines(f).find(l => l.trim().nonEmpty))
     }.foreach { case (file, Some(version)) =>
       if (BuildInfo.millVersion != version) {
         val msg =
