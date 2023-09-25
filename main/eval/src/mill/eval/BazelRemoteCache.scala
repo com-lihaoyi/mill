@@ -1,25 +1,24 @@
 package mill.eval
 
 import geny.Writable
-import build.bazel.remote.execution.v2.{
-  ActionResult,
-  Digest,
-  ExecutedActionMetadata,
-  OutputDirectory,
-  OutputFile,
-  OutputSymlink
-}
-import com.google.protobuf.ByteString
+import build.bazel.remote.execution.v2.{ActionResult, Digest, OutputFile}
 import mill.api.PathRef
+import org.apache.commons.compress.archivers.tar.{
+  TarArchiveEntry,
+  TarArchiveInputStream,
+  TarArchiveOutputStream,
+  TarConstants
+}
 
 import collection.JavaConverters._
-import java.io.OutputStream
+import java.io.{InputStream, OutputStream}
 import java.nio.file.attribute.PosixFilePermission
-import scala.collection.mutable
+import java.security.MessageDigest
+import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
 object BazelRemoteCache {
 
-  def remoteCacheTaskUrl(
+  def actionCacheUrl(
       url: String,
       inputsHash: Int,
       labelled: Terminal.Labelled[_],
@@ -30,6 +29,16 @@ object BazelRemoteCache {
     s"$url/ac/$hashString"
   }
 
+  def readSpillToDisk[T](
+      paths: EvaluatorPaths,
+      writable: geny.Writable
+  )(f: SpillToDiskOutputStream => T): T = {
+    val stdos = new SpillToDiskOutputStream(1024 * 1024, paths.tmp)
+    writable.writeBytesTo(stdos)
+    try f(stdos)
+    finally stdos.close()
+  }
+
   def store(
       paths: EvaluatorPaths,
       inputsHash: Int,
@@ -38,10 +47,103 @@ object BazelRemoteCache {
       remoteCacheSalt: Option[String],
       pathRefs: Set[PathRef]
   ): requests.Response = {
-    requests.put(
-      remoteCacheTaskUrl(url, inputsHash, labelled, remoteCacheSalt),
-      data = new ActionResultWritable(paths, pathRefs)
-    )
+
+    readSpillToDisk(paths, new BlobWritable(paths, pathRefs)) { data =>
+      val digest = MessageDigest.getInstance("SHA-256")
+      data.writeBytesTo(new OutputStream {
+        override def write(b: Int): Unit = digest.update(b.toByte)
+        override def write(b: Array[Byte]): Unit = digest.update(b)
+        override def write(b: Array[Byte], off: Int, len: Int): Unit = digest.update(b, off, len)
+      })
+
+      val shaDigestString = getHex(digest.digest())
+      requests.put(s"$url/cas/$shaDigestString", data = data)
+      requests.put(
+        actionCacheUrl(url, inputsHash, labelled, remoteCacheSalt),
+        data = new ActionResultWritable(data.size, shaDigestString)
+      )
+    }
+  }
+
+  class BlobWritable(paths: EvaluatorPaths, pathRefs: Set[PathRef]) extends Writable {
+    override def writeBytesTo(out: OutputStream): Unit = {
+      val gzOutput = new GZIPOutputStream(out)
+      val tarOutput = new TarArchiveOutputStream(gzOutput)
+
+      tarOutput.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX)
+
+      val pathRefSubPaths = pathRefs
+        .map(_.path.relativeTo(paths.dest))
+        .filter(_.ups == 0)
+        .map(_.segments)
+
+      def putEntry(name: String, fileType: Byte, data: Option[os.Path] = None) = {
+        val entry = new TarArchiveEntry(name, fileType)
+        for (d <- data) {
+          entry.setSize(os.size(d))
+          entry.setMode(os.perms(d).toInt())
+        }
+
+        tarOutput.putArchiveEntry(entry)
+
+        for (d <- data) {
+          os.read.stream(d).writeBytesTo(tarOutput)
+          tarOutput.closeArchiveEntry()
+        }
+      }
+      if (os.exists(paths.dest)) {
+        for {
+          p <- os.walk(paths.dest)
+          sub = p.subRelativeTo(paths.dest)
+          if sub.segments.inits.exists(pathRefSubPaths.contains)
+        } {
+          os.stat(p, followLinks = false).fileType match {
+            case os.FileType.File =>
+              putEntry("dest/" + sub.toString, TarConstants.LF_NORMAL, Some(p))
+
+            case os.FileType.Dir =>
+              putEntry("dest/" + sub.toString + "/", TarConstants.LF_DIR)
+          }
+        }
+      }
+      if (os.exists(paths.log)) {
+        putEntry("log", TarConstants.LF_NORMAL, Some(paths.log))
+      }
+
+      putEntry("json", TarConstants.LF_NORMAL, Some(paths.meta))
+
+      tarOutput.close()
+    }
+  }
+
+  class ActionResultWritable(size: Long, shaDigestString: String) extends Writable {
+
+    def writeBytesTo(out: OutputStream): Unit = {
+      ActionResult.newBuilder()
+        .addOutputFiles(
+          OutputFile.newBuilder()
+            .setPath("blob")
+            .setDigest(
+              Digest.newBuilder()
+                .setHash(shaDigestString)
+                .setSizeBytes(size)
+            )
+            .build()
+        )
+        .build()
+        .writeTo(out)
+    }
+  }
+
+  // from https://stackoverflow.com/a/9655224/871202
+  def getHex(raw: Array[Byte]): String = {
+    val HEXES = "0123456789abcdef"
+    val hex = new StringBuilder(2 * raw.length)
+    for (b <- raw) {
+      hex.append(HEXES.charAt((b & 0xf0) >> 4))
+        .append(HEXES.charAt(b & 0x0f))
+    }
+    hex.toString()
   }
 
   def load(
@@ -52,121 +154,93 @@ object BazelRemoteCache {
       remoteCacheSalt: Option[String]
   ): Boolean = {
 
-    val response = requests.get.stream(
-      remoteCacheTaskUrl(url, inputsHash, labelled, remoteCacheSalt),
-      check = false,
-      onHeadersReceived = headers => if (headers.statusCode != 200) return false
+    val response = requests.get(
+      actionCacheUrl(url, inputsHash, labelled, remoteCacheSalt),
+      check = false
     )
 
-    val ar = response.readBytesThrough(ActionResult.parser().parseFrom(_))
-    val outputFiles = ar.getOutputFilesList.asScala
+    if (response.statusCode != 200) false
+    else {
+      val ar = response.readBytesThrough(ActionResult.parser().parseFrom(_))
+      val outputFiles = ar.getOutputFilesList.asScala
 
-    val (mutable.Seq(meta), rest) = outputFiles.partition(_.getPath == "json")
+      val shaDigestString = outputFiles.head.getDigest.getHash
 
-    def writeOut(f: OutputFile, writePath: os.Path) = {
-      val writable = new Writable {
-        def writeBytesTo(out: OutputStream): Unit = f.getContents.writeTo(out)
-      }
-      os.write.over(writePath, writable, createFolders = true)
-    }
-
-    writeOut(meta, paths.meta)
-
-    for (f <- rest) {
-      val writePath = f.getPath match {
-        case "log" => paths.log
-        case s"dest/$rest" => paths.dest / os.SubPath(rest)
-      }
-
-      writeOut(f, writePath)
-    }
-
-    true
-  }
-
-  class ActionResultWritable(paths: EvaluatorPaths, pathRefs: Set[PathRef]) extends Writable {
-    def readByteString(p: os.Path) = {
-      val stream = os.read.inputStream(p)
-      try ByteString.readFrom(stream)
-      finally stream.close()
-    }
-
-    def writeBytesTo(out: OutputStream): Unit = {
-      val pathRefSubPaths = pathRefs
-        .map(_.path.relativeTo(paths.dest))
-        .filter(_.ups == 0)
-        .map(_.segments)
-
-      val outputFiles = mutable.Buffer.empty[OutputFile]
-      val outputDirectories = mutable.Buffer.empty[OutputDirectory]
-      val outputSymlinks = mutable.Buffer.empty[OutputSymlink]
-
-      if (os.exists(paths.dest)) {
-        for {
-          p <- os.walk.stream(paths.dest)
-          sub = p.subRelativeTo(paths.dest)
-          if sub.segments.inits.exists(pathRefSubPaths.contains)
-        } {
-          val pathString = s"dest/$sub"
-          os.stat(p, followLinks = false).fileType match {
-            case os.FileType.File =>
-              outputFiles += OutputFile.newBuilder()
-                .setPath(pathString)
-                .setDigest(
-                  Digest.newBuilder()
-                    .setHash("a" * 64)
-                    .setSizeBytes(os.size(p))
-                )
-                .setContents(readByteString(p))
-                .setIsExecutable(os.perms(p).contains(PosixFilePermission.OWNER_EXECUTE))
-                .build()
-            case os.FileType.Dir =>
-              outputDirectories += OutputDirectory.newBuilder()
-                .setPath(pathString)
-                .build()
-            case os.FileType.SymLink =>
-              outputSymlinks += OutputSymlink.newBuilder()
-                .setPath(pathString)
-                .setTarget(os.readLink(p).toString)
-                .build()
-          }
-        }
-      }
-
-      if (os.exists(paths.log)) outputFiles.append(
-        OutputFile.newBuilder()
-          .setPath("log")
-          .setDigest(
-            Digest.newBuilder()
-              .setHash("a" * 64)
-              .setSizeBytes(os.size(paths.log))
-          )
-          .setContents(readByteString(paths.log))
-          .build()
-      )
-
-      outputFiles.append(
-        OutputFile.newBuilder()
-          .setPath("json")
-          .setDigest(
-            Digest.newBuilder()
-              .setHash("a" * 64)
-              .setSizeBytes(os.size(paths.meta))
-          )
-          .setContents(readByteString(paths.meta))
-          .build()
-      )
-
-      ActionResult.newBuilder()
-        .addAllOutputFiles(outputFiles.asJava)
-        .addAllOutputSymlinks(outputSymlinks.asJava)
-        .setExecutionMetadata(
-          ExecutedActionMetadata.newBuilder()
-            .setWorker("Mill")
+      var statusCode = -1
+      readSpillToDisk(
+        paths,
+        requests.get.stream(
+          s"$url/cas/$shaDigestString",
+          onHeadersReceived = headers => { statusCode = headers.statusCode }
         )
-        .build()
-        .writeTo(out)
+      ) { data =>
+        if (statusCode != 200) false
+        else {
+          untar(
+            data,
+            name => {
+              os.SubPath(name).segments match {
+                case Seq("dest", rest @ _*) => paths.dest / rest
+                case Seq("log") => paths.log
+                case Seq("json") => paths.meta
+              }
+
+            }
+          )
+        }
+
+        true
+      }
     }
   }
 
+  def untar(readable: geny.Readable, destMapping: String => os.Path): Unit =
+    readable.readBytesThrough { is =>
+      val tarInput = new TarArchiveInputStream(new GZIPInputStream(is))
+      try {
+        while ({
+          tarInput.getNextTarEntry() match {
+            case null => false
+            case entry =>
+              val outputFile = destMapping(entry.getName)
+              val dirPerms =
+                os.PermSet(entry.getMode) +
+                  PosixFilePermission.OWNER_EXECUTE +
+                  PosixFilePermission.GROUP_EXECUTE +
+                  PosixFilePermission.OTHERS_EXECUTE
+
+              if (entry.isDirectory) os.makeDir.all(outputFile, perms = dirPerms)
+              else {
+                os.makeDir.all(outputFile / os.up, perms = dirPerms)
+
+                val fos = os.write.outputStream(
+                  outputFile,
+                  createFolders = true,
+                  perms = entry.getMode
+                )
+                try transfer(tarInput, fos)
+                finally fos.close()
+              }
+              true
+          }
+        }) ()
+      } finally tarInput.close()
+    }
+
+  // Copy of os/Internal.scala, but without closing the inputstream at the
+  // end because we need to use it again for each subsequent tar file entry
+  def transfer0(src: InputStream, sink: (Array[Byte], Int) => Unit) = {
+    val buffer = new Array[Byte](8192)
+    var r = 0
+    while (r != -1) {
+      r = src.read(buffer)
+      if (r != -1) sink(buffer, r)
+    }
+//    src.close()
+  }
+
+  def transfer(src: InputStream, dest: OutputStream) = transfer0(
+    src,
+    dest.write(_, 0, _)
+  )
 }
