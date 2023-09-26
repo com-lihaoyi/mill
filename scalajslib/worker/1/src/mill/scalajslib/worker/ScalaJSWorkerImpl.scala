@@ -41,9 +41,10 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     case _ => true
   }
   private object ScalaJSLinker {
+    private val irFileCache = StandardImpl.irFileCache()
     private val cache = mutable.Map.empty[LinkerInput, SoftReference[(Linker, IRFileCache.Cache)]]
     def reuseOrCreate(input: LinkerInput): (Linker, IRFileCache.Cache) = cache.get(input) match {
-      case Some(SoftReference((linker, irFileCache))) => (linker, irFileCache)
+      case Some(SoftReference((linker, irFileCacheCache))) => (linker, irFileCacheCache)
       case _ =>
         val newResult = createLinker(input)
         cache.update(input, SoftReference(newResult))
@@ -146,8 +147,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         else withModuleSplitStyle
 
       val linker = StandardImpl.clearableLinker(withOutputPatterns)
-      val irFileCache = StandardImpl.irFileCache().newCache
-      (linker, irFileCache)
+      val irFileCacheCache = irFileCache.newCache
+      (linker, irFileCacheCache)
     }
   }
   def link(
@@ -168,7 +169,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     // the new mode is not supported and in tests we always use legacy = false
     val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
-    val (linker, irFileCache) = ScalaJSLinker.reuseOrCreate(LinkerInput(
+    val (linker, irFileCacheCache) = ScalaJSLinker.reuseOrCreate(LinkerInput(
       isFullLinkJS = isFullLinkJS,
       optimizer = optimizer,
       sourceMap = sourceMap,
@@ -194,7 +195,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
     val resultFuture = (for {
       (irContainers, _) <- irContainersAndPathsFuture
-      irFiles <- irFileCache.cached(irContainers)
+      irFiles <- irFileCacheCache.cached(irContainers)
       report <-
         if (useLegacy) {
           val jsFileName = "out.js"
