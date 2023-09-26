@@ -42,6 +42,7 @@ class MillBuildBootstrap(
   import MillBuildBootstrap._
 
   val millBootClasspath = prepareMillBootClasspath(projectRoot / "out")
+  val millBootClasspathPathRefs = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = {
     val runnerState = evaluateRec(0)
@@ -162,7 +163,7 @@ class MillBuildBootstrap(
                 .dropRight(1)
                 .headOption
                 .map(_.runClasspath)
-                .getOrElse(millBootClasspath.map(PathRef(_, quick = true)))
+                .getOrElse(millBootClasspathPathRefs)
                 .map(p => (p.path, p.sig))
                 .hashCode(),
               nestedState
