@@ -105,7 +105,7 @@ object Deps {
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.7"
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.18"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
