@@ -162,7 +162,7 @@ class MillBuildBootstrap(
                 .dropRight(1)
                 .headOption
                 .map(_.runClasspath)
-                .getOrElse(millBootClasspath.map(PathRef(_)))
+                .getOrElse(millBootClasspath.map(PathRef(_, quick = true)))
                 .map(p => (p.path, p.sig))
                 .hashCode(),
               nestedState
