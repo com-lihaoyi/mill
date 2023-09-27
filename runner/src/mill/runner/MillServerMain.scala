@@ -71,17 +71,18 @@ object MillServerMain extends MillServerMain[RunnerState] {
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String]
   ): (Boolean, RunnerState) = {
-    MillMain.main0(
-      args = args,
-      stateCache = stateCache,
-      mainInteractive = mainInteractive,
-      streams0 = streams,
-      bspLog = None,
-      env = env,
-      setIdle = setIdle,
-      userSpecifiedProperties0 = userSpecifiedProperties,
-      initialSystemProperties = initialSystemProperties
-    )
+    try MillMain.main0(
+        args = args,
+        stateCache = stateCache,
+        mainInteractive = mainInteractive,
+        streams0 = streams,
+        bspLog = None,
+        env = env,
+        setIdle = setIdle,
+        userSpecifiedProperties0 = userSpecifiedProperties,
+        initialSystemProperties = initialSystemProperties
+      )
+    catch MillMain.handleMillException(streams.err, stateCache)
   }
 }
 
