@@ -9,13 +9,14 @@ import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
 import mainargs.Flag
-import mill.api.Loose.Agg
-import mill.define.ModuleRef
+import mill.Agg
 import mill.api.{JarManifest, PathRef, Result, internal}
-import mill.util.Jvm
+import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
+import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
+import mill.util.Jvm
 import os.Path
 
 /**
@@ -122,15 +123,49 @@ trait JavaModule
    */
   def javacOptions: T[Seq[String]] = T { Seq.empty[String] }
 
-  /** The direct dependencies of this module */
+  /**
+   *  The direct dependencies of this module.
+   *  @see [[moduleDepschecked]]
+   */
   def moduleDeps: Seq[JavaModule] = Seq.empty
+
+  /** Same as [[moduleDeps]] but checked to not contain cycles. */
+  final def moduleDepsChecked: Seq[JavaModule] = {
+    // trigger initialization to check for cycles
+    recModuleDeps
+    moduleDeps
+  }
+
+  /** Should only be called from [[moduleDepsChecked]] */
+  private lazy val recModuleDeps: Seq[JavaModule] =
+    ModuleUtils.recursive[JavaModule](
+      (millModuleSegments ++ Seq(Segment.Label("moduleDeps"))).render,
+      this,
+      _.moduleDeps
+    )
 
   /** The compile-only direct dependencies of this module. */
   def compileModuleDeps: Seq[JavaModule] = Seq.empty
 
+  /** Same as [[compileModuleDeps]] but checked to not contain cycles. */
+  final def compileModuleDepsChecked: Seq[JavaModule] = {
+    // trigger initialization to check for cycles
+    recCompileModuleDeps
+    compileModuleDeps
+  }
+
+  /** Should only be called from [[compileModuleDeps]] */
+  private lazy val recCompileModuleDeps: Seq[JavaModule] =
+    ModuleUtils.recursive[JavaModule](
+      (millModuleSegments ++ Seq(Segment.Label("compileModuleDeps"))).render,
+      this,
+      _.compileModuleDeps
+    )
+
   /** The direct and indirect dependencies of this module */
   def recursiveModuleDeps: Seq[JavaModule] = {
-    moduleDeps.flatMap(_.transitiveModuleDeps).distinct
+//    moduleDeps.flatMap(_.transitiveModuleDeps).distinct
+    recModuleDeps
   }
 
   /**
@@ -148,14 +183,14 @@ trait JavaModule
    * look at the direct `compileModuleDeps` when assembling this list
    */
   def transitiveModuleCompileModuleDeps: Seq[JavaModule] = {
-    (moduleDeps ++ compileModuleDeps).flatMap(_.transitiveModuleDeps).distinct
+    (moduleDepsChecked ++ compileModuleDepsChecked).flatMap(_.transitiveModuleDeps).distinct
   }
 
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = T {
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
     compileIvyDeps().map(bindDependency()) ++
-      T.traverse(compileModuleDeps)(_.transitiveIvyDeps)().flatten
+      T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 
   /**
@@ -163,17 +198,17 @@ trait JavaModule
    * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.
    */
   def showModuleDeps(recursive: Boolean = false): Command[Unit] = T.command {
-    val normalDeps = if (recursive) recursiveModuleDeps else moduleDeps
+    val normalDeps = if (recursive) recursiveModuleDeps else moduleDepsChecked
     val compileDeps =
-      if (recursive) compileModuleDeps.flatMap(_.transitiveModuleDeps).distinct
-      else compileModuleDeps
+      if (recursive) compileModuleDepsChecked.flatMap(_.transitiveModuleDeps).distinct
+      else compileModuleDepsChecked
     val deps = (normalDeps ++ compileDeps).distinct
     val asString =
       s"${if (recursive) "Recursive module"
         else "Module"} dependencies of ${millModuleSegments.render}:\n\t${deps
           .map { dep =>
             dep.millModuleSegments.render ++
-              (if (compileModuleDeps.contains(dep) || !normalDeps.contains(dep)) " (compile)"
+              (if (compileModuleDepsChecked.contains(dep) || !normalDeps.contains(dep)) " (compile)"
                else "")
           }
           .mkString("\n\t")}"
@@ -193,7 +228,7 @@ trait JavaModule
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = T {
     (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++
-      T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+      T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 
   /**

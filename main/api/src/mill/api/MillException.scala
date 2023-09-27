@@ -5,3 +5,6 @@ package mill.api
  * @param msg The error message, to be displayed to the user.
  */
 class MillException(msg: String) extends Exception(msg)
+
+class BuildScriptException(msg: String)
+    extends MillException("Build script contains errors:\n" + msg)

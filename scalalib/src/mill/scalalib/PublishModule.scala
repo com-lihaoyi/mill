@@ -58,8 +58,10 @@ trait PublishModule extends JavaModule { outer =>
       .filter(!ivyPomDeps.contains(_))
       .map(_.copy(scope = Scope.Provided))
 
-    val modulePomDeps = T.sequence(moduleDeps.map(_.publishSelfDependency))()
-    val compileModulePomDeps = T.sequence(compileModuleDeps.collect {
+    val modulePomDeps = T.sequence(moduleDepsChecked.collect {
+      case m: PublishModule => m.publishSelfDependency
+    })()
+    val compileModulePomDeps = T.sequence(compileModuleDepsChecked.collect {
       case m: PublishModule => m.publishSelfDependency
     })()
 
