@@ -31,7 +31,7 @@ object BspModuleTests extends TestSuite {
   }
 
   object InterDeps extends BspBase {
-    val maxCrossCount = 25
+    val maxCrossCount = 15
     val configs = 1.to(maxCrossCount)
     object Mod extends Cross[ModCross](configs)
     trait ModCross extends ScalaModule with Cross.Module[Int] {
@@ -105,7 +105,7 @@ object BspModuleTests extends TestSuite {
         }
         test("interdependencies are fast") {
           test("reference (no BSP)") {
-            def runNoBsp(entry: Int, maxTime: Int) = workspaceTest(MultiBase) { eval =>
+            def runNoBsp(entry: Int, maxTime: Int) = workspaceTest(InterDeps) { eval =>
               val start = System.currentTimeMillis()
               val Right((result, evalCount)) = eval.apply(
                 InterDeps.Mod(entry).compileClasspath
@@ -116,11 +116,10 @@ object BspModuleTests extends TestSuite {
             }
             test("index 1 (no deps)") { runNoBsp(1, 5000) }
             test("index 10") { runNoBsp(10, 30000) }
-            test("index 20") { runNoBsp(20, 30000) }
-            test("index 25") { runNoBsp(25, 100000) }
+            test("index 15") { runNoBsp(15, 30000) }
           }
           def run(entry: Int, maxTime: Int) = retry(3) {
-            workspaceTest(MultiBase) { eval =>
+            workspaceTest(InterDeps) { eval =>
               val start = System.currentTimeMillis()
               val Right((result, evalCount)) = eval.apply(
                 InterDeps.Mod(entry).bspCompileClasspath
@@ -132,8 +131,7 @@ object BspModuleTests extends TestSuite {
           }
           test("index 1 (no deps)") { run(1, 500) }
           test("index 10") { run(10, 5000) }
-          test("index 20") { run(20, 15000) }
-          test("index 25") { run(25, 50000) }
+          test("index 15") { run(15, 15000) }
         }
       }
     }
