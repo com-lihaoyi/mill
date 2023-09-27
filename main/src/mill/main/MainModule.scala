@@ -30,7 +30,8 @@ object MainModule {
       evaluator: Evaluator,
       targets: Seq[String],
       log: Logger,
-      watch0: Watchable => Unit
+      watch0: Watchable => Unit,
+      onlyDeps: Boolean
   )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value) = {
 
     RunScript.evaluateTasksNamed(
@@ -40,7 +41,8 @@ object MainModule {
         evaluator.baseLogger.withOutStream(evaluator.baseLogger.errorStream)
       ),
       targets,
-      Separated
+      Separated,
+      onlyDeps
     ) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) =>
@@ -316,7 +318,8 @@ trait MainModule extends mill.define.Module {
    * to integrate Mill into external scripts and tooling.
    */
   def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] = Target.command {
-    MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0) { res =>
+    // TODO: support onlyDeps
+    MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0, onlyDeps = false) { res =>
       res.flatMap(_._2) match {
         case Seq((k, singleValue)) => singleValue
         case multiple => ujson.Obj.from(multiple)
@@ -329,7 +332,8 @@ trait MainModule extends mill.define.Module {
    * to integrate Mill into external scripts and tooling.
    */
   def showNamed(evaluator: Evaluator, targets: String*): Command[ujson.Value] = Target.command {
-    MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0) { res =>
+    // TODO: support onlyDeps
+    MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0, onlyDeps = false) { res =>
       ujson.Obj.from(res.flatMap(_._2))
     }
   }
@@ -431,7 +435,8 @@ trait MainModule extends mill.define.Module {
     RunScript.evaluateTasksNamed(
       evaluator,
       Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
-      SelectMode.Separated
+      SelectMode.Separated,
+      onlyDeps = false
     )
 
     ()

@@ -15,7 +15,8 @@ object RunScript {
   def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
-      selectMode: SelectMode
+      selectMode: SelectMode,
+      onlyDeps: Boolean
   ): Either[
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
@@ -23,8 +24,16 @@ object RunScript {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, scriptArgs, selectMode)
     }
-    for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets))
+    for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets), onlyDeps)
   }
+
+  @deprecated("Binary compatibility shim", "Mill 0.11.5")
+  def evaluateTasksNamed(
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])] =
+    evaluateTasksNamed(evaluator, scriptArgs, selectMode, onlyDeps = false)
 
   /**
    * @param evaluator
@@ -33,9 +42,10 @@ object RunScript {
    */
   def evaluateNamed(
       evaluator: Evaluator,
-      targets: Agg[Task[Any]]
+      targets: Agg[Task[Any]],
+      onlyDeps: Boolean
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
-    val evaluated: Results = evaluator.evaluate(targets)
+    val evaluated: Results = evaluator.evaluate(targets, onlyDeps = onlyDeps)
 
     val watched = evaluated.results
       .iterator
@@ -70,5 +80,12 @@ object RunScript {
       case n => watched -> Left(s"$n targets failed\n$errorStr")
     }
   }
+
+  @deprecated("Binary compatibility shim", "Mill 0.11.5")
+  def evaluateNamed(
+      evaluator: Evaluator,
+      targets: Agg[Task[Any]]
+  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) =
+    evaluateNamed(evaluator, targets, onlyDeps = false)
 
 }

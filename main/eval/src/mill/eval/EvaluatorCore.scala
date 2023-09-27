@@ -2,10 +2,10 @@ package mill.eval
 
 import mill.api.Result.{Aborted, Failing}
 import mill.api.Strict.Agg
-import mill.api.{Ctx, _}
+import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
-import mill.util._
+import mill.util.{ColorLogger, MultiBiMap, PrefixLogger}
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
@@ -22,13 +22,17 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
    * @param testReporter Listener for test events like start, finish with success/error
+   * @param onlyDeps Evaluate only all dependencies of the given goals, but not the goals itself
    */
   def evaluate(
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger
+      logger: ColorLogger = baseLogger,
+      onlyDeps: Boolean = false
   ): Evaluator.Results = {
+    println(s"evaluate;goals=${goals};onlyDeps=${onlyDeps}")
+
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
@@ -40,10 +44,18 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         if (effectiveThreadCount == 1) ""
         else s"[#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId}] "
 
-      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg)
+      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg, onlyDeps)
       finally ec.close()
     }
   }
+
+  @deprecated("Binary compatibility shim", "Mill 0.11.5")
+  def evaluate(
+      goals: Agg[Task[_]],
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      logger: ColorLogger
+  ): Evaluator.Results = evaluate(goals, reporter, testReporter, logger, onlyDeps = false)
 
   private def getFailing(
       sortedGroups: MultiBiMap[Terminal, Task[_]],
@@ -66,15 +78,62 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       ec: ExecutionContext with AutoCloseable,
-      contextLoggerMsg: Int => String
+      contextLoggerMsg: Int => String,
+      onlyDeps: Boolean
   ): Evaluator.Results = {
     implicit val implicitEc = ec
+
+    def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {
+      val plan = Plan.plan(goals)
+      println("goals:")
+      pprint.pprintln(goals)
+      if (!onlyDeps) plan
+      else {
+
+        val (sortedGroups0, transitive0) = plan
+        // we need to remove the source goals
+        val sortedGroups = new MultiBiMap.Mutable[Terminal, Task[_]]()
+        val (groupsIn, groupsOut) = sortedGroups0.items().toSeq.partition {
+          case (Terminal.Task(t), _) => !goals.contains(t)
+          case (Terminal.Labelled(t, _), _) => !goals.contains(t)
+          case _ => true
+        }
+        groupsIn.foreach {
+          case (k, vs) => sortedGroups.addAll(k, vs)
+        }
+//        println("sortedGroups")
+//        pprint.pprintln(sortedGroups.items().toSeq)
+        println(s"removed groups: ${groupsOut.size}")
+        pprint.pprintln(groupsOut)
+
+        val (transitive, removedTransitive) = transitive0.toSeq.partition(t => !goals.contains(t))
+        println(s"removed transitive: ${removedTransitive.size}")
+        pprint.pprintln(removedTransitive)
+
+        // and ensure they are not transitively needed
+        val conflictDep = transitive.toSeq.collectFirst {
+          case t if t.inputs.exists(i => goals.contains(i)) =>
+            goals.find(g => t.inputs.contains(g)).head
+        }
+        if (conflictDep.nonEmpty) {
+          val selfTerminals =
+            conflictDep.map(dep => sortedGroups0.lookupValue(dep)).map(_.render)
+          // one of the requested goals depends one another requested goal,
+          // hence --onlydeps isn't possible
+          throw new MillException(
+            s"Cannot limit evaluation to the dependencies of the given targets (--onlydeps). At least one requested target is also a dependency of the others: ${selfTerminals.head}"
+          )
+        }
+
+        (sortedGroups, transitive)
+      }
+    }
 
     os.makeDir.all(outPath)
     val chromeProfileLogger = new ChromeProfileLogger(outPath / "mill-chrome-profile.json")
     val profileLogger = new ProfileLogger(outPath / "mill-profile.json")
     val threadNumberer = new ThreadNumberer()
-    val (sortedGroups, transitive) = Plan.plan(goals)
+    val (sortedGroups, transitive) = plan(goals)
     val interGroupDeps = findInterGroupDeps(sortedGroups)
     val terminals = sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)

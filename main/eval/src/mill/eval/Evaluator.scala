@@ -22,12 +22,22 @@ trait Evaluator {
   def pathsResolver: EvaluatorPathsResolver
   def workerCache: collection.Map[Segments, (Int, Val)]
   def disableCallgraphInvalidation: Boolean = false
+
   def evaluate(
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger
-  ): Evaluator.Results
+      logger: ColorLogger = baseLogger,
+      onlyDeps: Boolean = false
+  ): Evaluator.Results = evaluate(goals, reporter, testReporter, logger)
+
+  @deprecated("Binary compatibility shim", "Mill 0.11.5")
+  def evaluate(
+      goals: Agg[Task[_]],
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      logger: ColorLogger
+  ): Evaluator.Results = evaluate(goals, reporter, testReporter, logger, onlyDeps = false)
 
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
   def withFailFast(newFailFast: Boolean): Evaluator

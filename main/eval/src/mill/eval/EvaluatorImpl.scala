@@ -1,9 +1,10 @@
 package mill.eval
 
-import mill.api.Val
+import mill.api.{CompileProblemReporter, DummyTestReporter, TestReporter, Val}
 import mill.api.Strict.Agg
 import mill.define._
 import mill.util._
+
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -45,6 +46,22 @@ private[mill] case class EvaluatorImpl(
   override def evalOrThrow(exceptionFactory: Evaluator.Results => Throwable)
       : Evaluator.EvalOrThrow =
     new EvalOrThrow(this, exceptionFactory)
+
+  override def evaluate(
+      goals: Agg[Task[_]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = DummyTestReporter,
+      logger: ColorLogger = baseLogger,
+      onlyDeps: Boolean = false
+  ): Evaluator.Results = super.evaluate(goals, reporter, testReporter, logger, onlyDeps)
+
+  @deprecated("Binary compatibility shim", "Mill 0.11.5")
+  override def evaluate(
+      goals: Agg[Task[_]],
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      logger: ColorLogger
+  ): Evaluator.Results = evaluate(goals, reporter, testReporter, logger, onlyDeps = false)
 }
 
 private[mill] object EvaluatorImpl {

@@ -18,7 +18,8 @@ object GenIdea extends ExternalModule {
       Seq(
         "mill.idea.GenIdea/idea"
       ),
-      selectMode = SelectMode.Separated
+      selectMode = SelectMode.Separated,
+      onlyDeps = false
     )
     ()
   }
