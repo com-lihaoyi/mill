@@ -773,7 +773,7 @@ trait JavaModule
     (procId, procTombstone, token)
   }
 
-  private[this] def doRunBackground(
+  protected def doRunBackground(
       taskDest: Path,
       runClasspath: Seq[PathRef],
       zwBackgroundWrapperClasspath: Agg[PathRef],
@@ -804,6 +804,52 @@ trait JavaModule
   }
 
   /**
+   * By default, stdout of the executable run in `runBackground` (or `runMainBackground`)
+   * goes to mill's stdout -- which usually is the console.
+   *
+   * To redirect that stdout, override this method to return an
+   * `Some[os.FilePath]` rather than `None`.
+   *
+   * If the `os.FilePath` is an (absolute) `os.Path`, stdout will be redirected
+   * to the given path. Any existing file at that path will be replaced.
+   *
+   * If the `os.FilePath` is a (relative) `os.RelPath` or `os.SubPath`,
+   * it will be interpreted as _relative to the `runBackground.dest` dir
+   * (or `runMainBackgrouns.dest dir)_ of your module. stdout will be redirected
+   * to the path usully within that directory. (If `os.RelPath` is given,
+   * `os.up` / ".." entries might let the path escape. If `os.SubPath` is given,
+   * the path will be surely within the `runBackground` task's dest directory.)
+   * Any existing file at that path will be replaced.
+   */
+  def runBackgroundLogOutPath: T[Option[os.FilePath]] = T { None }
+
+  /**
+   * By default, stderr of the executable run in `runBackground` (or `runMainBackground`)
+   * goes to mill's stderr -- which usually is the console.
+   *
+   * To redirect that stderr, override this method to return
+   * `Some[os.FilePath]` rather than `None`.
+   *
+   * If the `os.FilePath` is an (absolute) `os.Path`, stderr will be redirected
+   * to the given path. Any existing file at that path will be replaced.
+   *
+   * If the `os.FilePath` is a (relative) `os.RelPath` or `os.SubPath`,
+   * it will be interpreted as _relative to the `runBackground.dest` dir
+   * (or `runMainBackgrouns.dest dir)_ of your module. stderr will be redirected
+   * to the path usully within that directory. (If `os.RelPath` is given,
+   * `os.up` / ".." entries might let the path escape. If `os.SubPath` is given,
+   * the path will be surely within the `runBackground` task's dest directory.)
+   * Any existing file at that path will be replaced.
+   */
+  def runBackgroundLogErrPath: T[Option[os.FilePath]] = T { None }
+
+  private def absoluteLogPath(fp: os.FilePath, tDest: os.Path): os.Path = fp match {
+    case p: os.Path => p
+    case rp: os.RelPath => tDest / rp
+    case sp: os.SubPath => tDest / sp
+  }
+
+  /**
    * Runs this module's code in a background process, until it dies or
    * `runBackground` is used again. This lets you continue using Mill while
    * the process is running in the background: editing files, compiling, and
@@ -816,6 +862,12 @@ trait JavaModule
    */
   def runBackground(args: String*): Command[Unit] = T.command {
     val ctx = implicitly[Ctx]
+
+    val logOutPath: Option[os.PathRedirect] =
+      runBackgroundLogOutPath().map(fp => os.PathRedirect(absoluteLogPath(fp, T.dest)))
+    val logErrPath: Option[os.PathRedirect] =
+      runBackgroundLogErrPath().map(fp => os.PathRedirect(absoluteLogPath(fp, T.dest)))
+
     doRunBackground(
       taskDest = T.dest,
       runClasspath = runClasspath(),
@@ -825,7 +877,8 @@ trait JavaModule
       finalMainClass = finalMainClass(),
       forkWorkingDir = forkWorkingDir(),
       runUseArgsFile = runUseArgsFile(),
-      backgroundOutputs = Jvm.defaultBackgroundOutputs(T.dest)
+      backgroundOutputs =
+        Some(Tuple2(logOutPath.getOrElse(os.Inherit), logErrPath.getOrElse(os.Inherit)))
     )(args: _*)(ctx)
   }
 
@@ -834,6 +887,12 @@ trait JavaModule
    */
   def runMainBackground(mainClass: String, args: String*): Command[Unit] = T.command {
     val ctx = implicitly[Ctx]
+
+    val logOutPath: Option[os.PathRedirect] =
+      runBackgroundLogOutPath().map(fp => os.PathRedirect(absoluteLogPath(fp, T.dest)))
+    val logErrPath: Option[os.PathRedirect] =
+      runBackgroundLogErrPath().map(fp => os.PathRedirect(absoluteLogPath(fp, T.dest)))
+
     doRunBackground(
       taskDest = T.dest,
       runClasspath = runClasspath(),
@@ -843,40 +902,8 @@ trait JavaModule
       finalMainClass = mainClass,
       forkWorkingDir = forkWorkingDir(),
       runUseArgsFile = runUseArgsFile(),
-      backgroundOutputs = Jvm.defaultBackgroundOutputs(T.dest)
-    )(args: _*)(ctx)
-  }
-
-  def runBackgroundInherit(args: String*): Command[Unit] = T.command {
-    val ctx = implicitly[Ctx]
-    doRunBackground(
-      taskDest = T.dest,
-      runClasspath = runClasspath(),
-      zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
-      forkArgs = forkArgs(),
-      forkEnv = forkEnv(),
-      finalMainClass = finalMainClass(),
-      forkWorkingDir = forkWorkingDir(),
-      runUseArgsFile = runUseArgsFile(),
-      backgroundOutputs = Some((os.Inherit, os.Inherit))
-    )(args: _*)(ctx)
-  }
-
-  /**
-   * Same as `runBackground`, but lets you specify a main class to run
-   */
-  def runMainBackgroundInherit(mainClass: String, args: String*): Command[Unit] = T.command {
-    val ctx = implicitly[Ctx]
-    doRunBackground(
-      taskDest = T.dest,
-      runClasspath = runClasspath(),
-      zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
-      forkArgs = forkArgs(),
-      forkEnv = forkEnv(),
-      finalMainClass = mainClass,
-      forkWorkingDir = forkWorkingDir(),
-      runUseArgsFile = runUseArgsFile(),
-      backgroundOutputs = Some((os.Inherit, os.Inherit))
+      backgroundOutputs =
+        Some(Tuple2(logOutPath.getOrElse(os.Inherit), logErrPath.getOrElse(os.Inherit)))
     )(args: _*)(ctx)
   }
 

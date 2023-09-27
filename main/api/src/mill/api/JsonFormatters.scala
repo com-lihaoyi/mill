@@ -17,6 +17,12 @@ trait JsonFormatters {
       os.Path(_)
     )
 
+  implicit val filePathReadWrite: RW[os.FilePath] = upickle.default.readwriter[String]
+    .bimap[os.FilePath](
+      _.toString,
+      os.FilePath(_)
+    )
+
   implicit val regexReadWrite: RW[Regex] = upickle.default.readwriter[String]
     .bimap[Regex](
       _.pattern.toString,
