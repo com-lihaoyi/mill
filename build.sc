@@ -63,7 +63,7 @@ object Deps {
   val testScala32Version = "3.2.0"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.13.1"
+    val scalaJsVersion = "1.14.0"
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
@@ -116,7 +116,7 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jline = ivy"org.jline:jline:3.21.0"
+  val jline = ivy"org.jline:jline:3.23.0"
   val jna = ivy"net.java.dev.jna:jna:5.13.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.13.0"
 
@@ -137,7 +137,7 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.10"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.14"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.11"
