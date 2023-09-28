@@ -481,21 +481,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   @nowarn("msg=pure expression does nothing")
   override def prepareOffline(all: Flag): Command[Unit] = {
+    val ammonite = resolvedAmmoniteReplIvyDeps
     val tasks =
-      if (all.value) Seq(
-        resolvedAmmoniteReplIvyDeps,
-        T.task {
-          zincWorker().scalaCompilerBridgeJar(
-            scalaVersion(),
-            scalaOrganization(),
-            repositoriesTask()
-          )
-        }
-      )
+      if (all.value) Seq(ammonite)
       else Seq()
 
     T.command {
       super.prepareOffline(all)()
+      // resolve the compile bridge jar
       resolveDeps(T.task {
         val bind = bindDependency()
         scalacPluginIvyDeps().map(bind)
@@ -504,6 +497,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         val bind = bindDependency()
         scalaDocPluginIvyDeps().map(bind)
       })()
+      zincWorker().scalaCompilerBridgeJar(
+        scalaVersion(),
+        scalaOrganization(),
+        repositoriesTask()
+      )
       T.sequence(tasks)()
       ()
     }
