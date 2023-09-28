@@ -3,7 +3,7 @@ package mill.util
 import mill.api.Loose.Agg
 import mill.api._
 import mill.main.client.InputPumper
-import os.SubProcess
+import os.{ProcessOutput, SubProcess}
 
 import java.io._
 import java.lang.reflect.Modifier
@@ -56,6 +56,9 @@ object Jvm extends CoursierSupport {
 
   def javaExe: String = jdkTool("java")
 
+  def defaultBackgroundOutputs(outputDir: os.Path): Option[(ProcessOutput, ProcessOutput)] =
+    Some((outputDir / "stdout.log", outputDir / "stderr.log"))
+
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
@@ -82,6 +85,44 @@ object Jvm extends CoursierSupport {
       background: Boolean = false,
       useCpPassingJar: Boolean = false
   )(implicit ctx: Ctx): Unit = {
+    runSubprocessWithBackgroundOutputs(
+      mainClass,
+      classPath,
+      jvmArgs,
+      envArgs,
+      mainArgs,
+      workingDir,
+      if (background) defaultBackgroundOutputs(ctx.dest) else None,
+      useCpPassingJar
+    )
+  }
+
+  /**
+   * Runs a JVM subprocess with the given configuration and streams
+   * it's stdout and stderr to the console.
+   * @param mainClass The main class to run
+   * @param classPath The classpath
+   * @param JvmArgs Arguments given to the forked JVM
+   * @param envArgs Environment variables used when starting the forked JVM
+   * @param workingDir The working directory to be used by the forked JVM
+   * @param backgroundOutputs If the subprocess should run in the background, a Tuple of ProcessOutputs containing out and err respectively. Specify None for nonbackground processes.
+   * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
+   *                        to the forked JVM.
+   *                        When `true`, a temporary empty JAR is created
+   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
+   *                        This might help with long classpaths on OS'es (like Windows)
+   *                        which only supports limited command-line length
+   */
+  def runSubprocessWithBackgroundOutputs(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String] = Seq.empty,
+      envArgs: Map[String, String] = Map.empty,
+      mainArgs: Seq[String] = Seq.empty,
+      workingDir: os.Path = null,
+      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None,
+      useCpPassingJar: Boolean = false
+  )(implicit ctx: Ctx): Unit = {
 
     val cp =
       if (useCpPassingJar && !classPath.iterator.isEmpty) {
@@ -105,15 +146,22 @@ object Jvm extends CoursierSupport {
 
     ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
 
-    if (background) spawnSubprocess(args, envArgs, workingDir, background = true)
-    else runSubprocess(args, envArgs, workingDir)
+    if (backgroundOutputs.nonEmpty)
+      spawnSubprocessWithBackgroundOutputs(args, envArgs, workingDir, backgroundOutputs)
+    else
+      runSubprocess(args, envArgs, workingDir)
   }
 
   /**
    * Runs a generic subprocess and waits for it to terminate.
    */
   def runSubprocess(commandArgs: Seq[String], envArgs: Map[String, String], workingDir: os.Path) = {
-    val process = spawnSubprocess(commandArgs, envArgs, workingDir, background = false)
+    val process = spawnSubprocessWithBackgroundOutputs(
+      commandArgs,
+      envArgs,
+      workingDir,
+      backgroundOutputs = None
+    )
     val shutdownHook = new Thread("subprocess-shutdown") {
       override def run(): Unit = {
         System.err.println("Host JVM shutdown. Forcefully destroying subprocess ...")
@@ -148,6 +196,28 @@ object Jvm extends CoursierSupport {
       workingDir: os.Path,
       background: Boolean = false
   ): SubProcess = {
+    // XXX: workingDir is perhaps not the best choice for outputs, but absent a Ctx, we have
+    //      no other place to choose.
+    val backgroundOutputs = if (background) defaultBackgroundOutputs(workingDir) else None
+    spawnSubprocessWithBackgroundOutputs(commandArgs, envArgs, workingDir, backgroundOutputs)
+  }
+
+  /**
+   * Spawns a generic subprocess, streaming the stdout and stderr to the
+   * console. If the System.out/System.err have been substituted, makes sure
+   * that the subprocess's stdout and stderr streams go to the subtituted
+   * streams.
+   *
+   * If the process should be spawned in the background, destination streams for out and err
+   * respectively must be defined in the backgroundOutputs tuple. Nonbackground process should set
+   * backgroundOutputs to None
+   */
+  def spawnSubprocessWithBackgroundOutputs(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path,
+      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None
+  ): SubProcess = {
     // If System.in is fake, then we pump output manually rather than relying
     // on `os.Inherit`. That is because `os.Inherit` does not follow changes
     // to System.in/System.out/System.err, so the subprocess's streams get sent
@@ -158,9 +228,9 @@ object Jvm extends CoursierSupport {
       val process = os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,
-        stdin = if (!background) os.Pipe else "",
-        stdout = if (!background) os.Pipe else workingDir / "stdout.log",
-        stderr = if (!background) os.Pipe else workingDir / "stderr.log"
+        stdin = if (backgroundOutputs.isEmpty) os.Pipe else "",
+        stdout = backgroundOutputs.map(_._1).getOrElse(os.Pipe),
+        stderr = backgroundOutputs.map(_._2).getOrElse(os.Pipe)
       )
 
       val sources = Seq(
@@ -183,9 +253,9 @@ object Jvm extends CoursierSupport {
       os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,
-        stdin = if (!background) os.Inherit else "",
-        stdout = if (!background) os.Inherit else workingDir / "stdout.log",
-        stderr = if (!background) os.Inherit else workingDir / "stderr.log"
+        stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
+        stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
+        stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit)
       )
     }
   }
