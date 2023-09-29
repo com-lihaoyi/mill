@@ -4,9 +4,10 @@ import ch.epfl.scala.bsp4j.{
   BuildClient,
   BuildTargetIdentifier,
   StatusCode,
-  TaskDataKind,
+  TaskFinishDataKind,
   TaskFinishParams,
   TaskId,
+  TaskStartDataKind,
   TaskStartParams,
   TestFinish,
   TestReport,
@@ -56,7 +57,7 @@ private class BspTestReporter(
   override def logStart(event: Event): Unit = {
     val taskStartParams = new TaskStartParams(taskId)
     taskStartParams.setEventTime(System.currentTimeMillis())
-    taskStartParams.setDataKind(TaskDataKind.TEST_START)
+    taskStartParams.setDataKind(TaskStartDataKind.TEST_START)
     taskStartParams.setData(new TestStart(getDisplayName(event)))
     taskStartParams.setMessage("Starting running: " + getDisplayName(event))
     client.onBuildTaskStart(taskStartParams)
@@ -108,7 +109,7 @@ private class BspTestReporter(
         TestStatus.SKIPPED // TODO: what to do here
     }
 
-    taskFinishParams.setDataKind(TaskDataKind.TEST_FINISH)
+    taskFinishParams.setDataKind(TaskFinishDataKind.TEST_FINISH)
     taskFinishParams.setData({
       val testFinish = new TestFinish(getDisplayName(event), status)
       if (event.throwable.isDefined)

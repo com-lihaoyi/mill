@@ -18,7 +18,8 @@ import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 
 private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
-  override def jvmRunEnvironment(params: JvmRunEnvironmentParams)
+
+  override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] = {
     jvmRunTestEnvironment(
       s"jvmRunEnvironment ${params}",
@@ -27,7 +28,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
     )
   }
 
-  override def jvmTestEnvironment(params: JvmTestEnvironmentParams)
+  override def buildTargetJvmTestEnvironment(params: JvmTestEnvironmentParams)
       : CompletableFuture[JvmTestEnvironmentResult] = {
     jvmRunTestEnvironment(
       s"jvmTestEnvironment ${params}",
@@ -59,6 +60,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           }
       }
     ) {
+      // We ignore all non-JavaModule
       case (
             ev,
             state,
