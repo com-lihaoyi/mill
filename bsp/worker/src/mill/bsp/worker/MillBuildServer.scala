@@ -43,9 +43,10 @@ import ch.epfl.scala.bsp4j.{
   SourcesParams,
   SourcesResult,
   StatusCode,
-  TaskDataKind,
+  TaskFinishDataKind,
   TaskFinishParams,
   TaskId,
+  TaskStartDataKind,
   TaskStartParams,
   TestParams,
   TestProvider,
@@ -73,6 +74,9 @@ import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import Utils.sanitizeUri
 import mill.bsp.BspServerResult
+import mill.eval.Evaluator.TaskResult
+
+import scala.util.chaining.scalaUtilChainingOps
 private class MillBuildServer(
     bspVersion: String,
     serverVersion: String,
@@ -88,7 +92,6 @@ private class MillBuildServer(
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
   protected var client: BuildClient = _
   private var initialized = false
-  private var clientInitialized = false
   private var shutdownRequested = false
   protected var clientWantsSemanticDb = false
   protected var clientIsIntelliJ = false
@@ -107,7 +110,7 @@ private class MillBuildServer(
 
   def debug(msg: String) = logStream.println(msg)
 
-  override def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
+  def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
 
   override def buildInitialize(request: InitializeBuildParams)
       : CompletableFuture[InitializeBuildResult] =
@@ -167,7 +170,7 @@ private class MillBuildServer(
     }
 
   override def onBuildInitialized(): Unit = {
-    clientInitialized = true
+    debug("Build initialized")
   }
 
   override def buildShutdown(): CompletableFuture[Object] = {
@@ -218,13 +221,15 @@ private class MillBuildServer(
           Some((dataKind, target))
 
         case Some((dataKind, d: JvmBuildTarget)) =>
-          val target = new bsp4j.JvmBuildTarget(
-            d.javaHome.map(_.uri).getOrElse(null),
-            d.javaVersion.getOrElse(null)
-          )
+          val target = new bsp4j.JvmBuildTarget().tap { it =>
+            d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
+            d.javaVersion.foreach(jv => it.setJavaVersion(jv))
+          }
           Some((dataKind, target))
 
-        case Some((dataKind, d)) => None // unsupported data kind
+        case Some((dataKind, d)) =>
+          debug(s"Unsupported dataKind=${dataKind} with value=${d}")
+          None // unsupported data kind
         case None => None
       }
 
@@ -233,7 +238,12 @@ private class MillBuildServer(
         s.tags.asJava,
         s.languageIds.asJava,
         deps.asJava,
-        new BuildTargetCapabilities(s.canCompile, s.canTest, s.canRun, s.canDebug)
+        new BuildTargetCapabilities().tap { it =>
+          it.setCanCompile(s.canCompile)
+          it.setCanTest(s.canTest)
+          it.setCanRun(s.canRun)
+          it.setCanDebug(s.canDebug)
+        }
       )
 
       s.displayName.foreach(buildTarget.setDisplayName)
@@ -524,7 +534,7 @@ private class MillBuildServer(
               val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
               taskStartParams.setEventTime(System.currentTimeMillis())
               taskStartParams.setMessage("Testing target: " + targetId)
-              taskStartParams.setDataKind(TaskDataKind.TEST_TASK)
+              taskStartParams.setDataKind(TaskStartDataKind.TEST_TASK)
               taskStartParams.setData(new TestTask(targetId))
               client.onBuildTaskStart(taskStartParams)
 
@@ -555,7 +565,7 @@ private class MillBuildServer(
               taskFinishParams.setMessage(
                 s"Finished testing target${testModule.bspBuildTarget.displayName}"
               )
-              taskFinishParams.setDataKind(TaskDataKind.TEST_REPORT)
+              taskFinishParams.setDataKind(TaskFinishDataKind.TEST_REPORT)
               taskFinishParams.setData(testReporter.getTestReport)
               client.onBuildTaskFinish(taskFinishParams)
 
@@ -603,8 +613,11 @@ private class MillBuildServer(
             if (cleanResult.failing.keyCount > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.results(cleanTask) match {
-                  case fail: Result.Failure[Any] => fail.msg + "\n"
-                  case _ => "could not retrieve message"
+                  case TaskResult(Result.Failure(msg, _), _) => msg
+                  case TaskResult(ex: Result.Exception, _) => ex.toString()
+                  case TaskResult(Result.Skipped, _) => "Task was skipped"
+                  case TaskResult(Result.Aborted, _) => "Task was aborted"
+                  case _ => "could not retrieve the failure message"
                 }),
               false
             )
@@ -620,7 +633,9 @@ private class MillBuildServer(
             }
         }
 
-      new CleanCacheResult(msg, cleaned)
+      new CleanCacheResult(cleaned).tap { it =>
+        it.setMessage(msg)
+      }
     }
 
   override def debugSessionStart(debugParams: DebugSessionParams)

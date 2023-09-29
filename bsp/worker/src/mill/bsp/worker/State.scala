@@ -23,7 +23,7 @@ private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
         }
       }
       .toMap
-    debug(s"BspModules: ${map.mapValues(_._1.bspDisplayName).toMap}")
+    debug(s"BspModules: ${map.view.mapValues(_._1.bspDisplayName).toMap}")
 
     map
   }
@@ -31,5 +31,5 @@ private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
   lazy val rootModules: Seq[mill.define.BaseModule] = evaluators.map(_.rootModule)
 
   lazy val bspIdByModule: Map[BspModule, BuildTargetIdentifier] =
-    bspModulesById.mapValues(_._1).map(_.swap).toMap
+    bspModulesById.view.mapValues(_._1).map(_.swap).toMap
 }

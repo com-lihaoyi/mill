@@ -83,7 +83,7 @@ object Result {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => Result[V]): Exception = this
 
-    override def toString: String = {
+    override def toString(): String = {
       var current = List(throwable)
       while (current.head.getCause != null) {
         current = current.head.getCause :: current
