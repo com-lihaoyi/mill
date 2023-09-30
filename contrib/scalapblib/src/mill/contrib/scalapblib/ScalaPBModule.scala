@@ -104,10 +104,9 @@ trait ScalaPBModule extends ScalaModule {
             case Some(entry) =>
               if (entry.getName.endsWith(".proto")) {
                 val protoDest = dest / os.SubPath(entry.getName)
-                Using(os.write.over.outputStream(protoDest, createFolders = true))(IO.stream(
-                  zip,
-                  _
-                ))
+                Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
+                  IO.stream(zip, os)
+                }```
               }
               zip.closeEntry()
               true
