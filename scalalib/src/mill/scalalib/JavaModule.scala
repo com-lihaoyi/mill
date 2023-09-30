@@ -17,7 +17,7 @@ import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
-import os.{Path,ProcessOutput}
+import os.{Path, ProcessOutput}
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -848,8 +848,8 @@ trait JavaModule
   def runBackgroundLogToConsole: Boolean = true
 
   private def backgroundOutputs(dest: os.Path) =
-   if (runBackgroundLogToConsole) Some(os.Inherit, os.Inherit)
-   else Jvm.defaultBackgroundOutputs(dest)
+    if (runBackgroundLogToConsole) Some(os.Inherit, os.Inherit)
+    else Jvm.defaultBackgroundOutputs(dest)
 
   /**
    * Runs this module's code in a background process, until it dies or
