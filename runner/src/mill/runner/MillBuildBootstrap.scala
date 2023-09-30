@@ -434,7 +434,7 @@ object MillBuildBootstrap {
         else Left(
           // We can't get use `child.toString` here, because as a RootModule
           // it's segments are empty and it's toString is ""
-          s"RootModule ${child.getClass.getSimpleName} cannot have other " +
+          s"RootModule ${child.getClass.getSimpleName.stripSuffix("$")} cannot have other " +
             s"modules defined outside of it: ${invalidChildModules.mkString(",")}"
         )
 

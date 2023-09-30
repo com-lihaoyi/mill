@@ -11,7 +11,7 @@ object ThingsOutsideTopLevelModuleTests extends IntegrationTestSuite {
       assert(!res.isSuccess)
       assert(
         res.err.contains(
-          "RootModule bar$ cannot have other modules defined outside of it: invalidModule"
+          "RootModule bar cannot have other modules defined outside of it: invalidModule"
         )
       )
     }
