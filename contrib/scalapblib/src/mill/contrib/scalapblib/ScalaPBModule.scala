@@ -106,7 +106,7 @@ trait ScalaPBModule extends ScalaModule {
                 val protoDest = dest / os.SubPath(entry.getName)
                 Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
                   IO.stream(zip, os)
-                }```
+                }
               }
               zip.closeEntry()
               true
