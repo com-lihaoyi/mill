@@ -104,7 +104,11 @@ trait ScalaPBModule extends ScalaModule {
             case Some(entry) =>
               if (entry.getName.endsWith(".proto")) {
                 val protoDest = dest / os.SubPath(entry.getName)
-                Using(os.write.outputStream(protoDest, createFolders = true))(IO.stream(zip, _))
+                if (os.exists(protoDest))
+                  T.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
+                Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
+                  IO.stream(zip, os)
+                }
               }
               zip.closeEntry()
               true
