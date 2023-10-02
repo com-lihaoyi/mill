@@ -492,28 +492,6 @@ class ZincWorkerImpl(
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
 
-    // We want to listed to all compiled files
-    val compileProgress = reporter.map { reporter =>
-      new CompileProgress {
-        val seen = new ConcurrentHashMap[String, java.lang.Boolean]()
-        override def startUnit(phase: String, unitPath: String): Unit = {
-          // ctx.log.info(s"compiler starts unit `${unitPath}` (phase: ${phase})")
-          try {
-            seen.putIfAbsent(unitPath, java.lang.Boolean.TRUE) match {
-              case null =>
-                // first visit
-                os.Path(unitPath)
-                reporter.fileVisited(os.Path(unitPath))
-              case _ =>
-            }
-          } catch {
-            case e: IllegalArgumentException =>
-            // could not convert path to os.Path
-          }
-        }
-      }
-    }
-
     val inputs = ic.inputs(
       classpath = classpath,
       sources = virtualSources,
@@ -532,7 +510,7 @@ class ZincWorkerImpl(
         cache = new FreshCompilerCache,
         incOptions = IncOptions.of(),
         reporter = newReporter,
-        progress = compileProgress,
+        progress = None,
         earlyAnalysisStore = None,
         extra = Array()
       ),
@@ -569,6 +547,7 @@ class ZincWorkerImpl(
       case e: CompileFailed =>
         Result.Failure(e.toString)
     } finally {
+      reporter.foreach(r => sources.foreach(r.fileVisited(_)))
       reporter.foreach(_.finish())
     }
   }
