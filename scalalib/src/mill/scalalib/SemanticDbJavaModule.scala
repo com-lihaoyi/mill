@@ -115,7 +115,7 @@ trait SemanticDbJavaModule extends CoursierModule {
         compileClasspath =
           (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
         javacOptions = javacOpts,
-        reporter = T.reporter.apply(hashCode()),
+        reporter = None,
         reportCachedProblems = zincReportCachedProblems()
       ).map(r =>
         SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")

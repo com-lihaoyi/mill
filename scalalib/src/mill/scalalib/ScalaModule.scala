@@ -578,7 +578,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalacOptions = scalacOptions,
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = semanticDbPluginClasspath(),
-        reporter = T.reporter.apply(hashCode),
+        reporter = None,
         reportCachedProblems = zincReportCachedProblems()
       )
       .map(r =>
