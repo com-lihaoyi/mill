@@ -71,7 +71,7 @@ private class BspCompileProblemReporter(
     val textDocument = new TextDocumentIdentifier(
       sourceFile match {
         case None => targetId.getUri
-        case Some(f) => 
+        case Some(f) =>
           // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
           f.toPath.toUri.toString
       }
