@@ -94,6 +94,7 @@ trait MillTestKit {
     }
     val evaluator = mill.eval.EvaluatorImpl(
       mill.api.Ctx.defaultHome,
+      module.millSourcePath,
       outPath,
       outPath,
       module,

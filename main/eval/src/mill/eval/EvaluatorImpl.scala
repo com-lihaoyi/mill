@@ -14,6 +14,7 @@ import scala.reflect.ClassTag
  */
 private[mill] case class EvaluatorImpl(
     home: os.Path,
+    workspace: os.Path,
     outPath: os.Path,
     externalOutPath: os.Path,
     rootModule: mill.define.BaseModule,

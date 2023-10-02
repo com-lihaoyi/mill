@@ -338,6 +338,7 @@ class MillBuildBootstrap(
 
     mill.eval.EvaluatorImpl(
       home,
+      projectRoot,
       recOut(projectRoot, depth),
       recOut(projectRoot, depth),
       rootModule,
