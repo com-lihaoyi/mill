@@ -22,7 +22,6 @@ import sbt.testing.Fingerprint
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
-import scala.util.chaining.scalaUtilChainingOps
 
 private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 
@@ -50,7 +49,6 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           T.task { (Nil, Nil, classesPathTask()) }
       }
     ) {
-      // We ignore all non-JavaModule
       case (
             ev,
             state,
@@ -67,6 +65,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             .map(sanitizeUri).toSeq.asJava,
           sanitizeUri(classesPathTask.resolve(pathResolver))
         )
+
     } {
       new ScalacOptionsResult(_)
     }
@@ -127,9 +126,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             }
           )(new mill.api.Ctx.Home { def home = os.home })
         val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
-        new ScalaTestClassesItem(id, classes.asJava).tap { it =>
-          it.setFramework(frameworkName)
-        }
+        new ScalaTestClassesItem(id, classes.asJava, frameworkName)
       case (ev, state, id, _, _) =>
         // Not a test module, so no test classes
         new ScalaTestClassesItem(id, Seq.empty[String].asJava)
