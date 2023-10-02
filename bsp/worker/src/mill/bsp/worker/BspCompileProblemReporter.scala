@@ -69,9 +69,11 @@ private class BspCompileProblemReporter(
     val diagnostic = getSingleDiagnostic(problem)
     val sourceFile = problem.position.sourceFile
     val textDocument = new TextDocumentIdentifier(
-      sourceFile.getOrElse(None) match {
+      sourceFile match {
         case None => targetId.getUri
-        case f: File => f.toURI.toString
+        case Some(f) =>
+          // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
+          f.toPath.toUri.toString
       }
     )
     val params = new bsp.PublishDiagnosticsParams(
