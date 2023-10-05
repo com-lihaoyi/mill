@@ -224,7 +224,7 @@ val bridgeScalaVersions = Seq(
 val compilerBridgeScalaVersions = interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
   case None => Seq.empty[String]
   case Some("all") => bridgeScalaVersions
-  case Some(versions) => versions.split(',').toSeq
+  case Some(versions) => versions.split(',').map(_.trim).toSeq
 }
 val bridgeVersion = "0.0.1"
 
