@@ -185,13 +185,6 @@ def millBinPlatform: T[String] = T {
 
 def baseDir = build.millSourcePath
 
-// We limit the number of compiler bridges to compile and publish for local
-// development and testing, because otherwise it takes forever to compile all
-// of them. Compiler bridges not in this set will get downloaded and compiled
-// on the fly anyway. For publishing, we publish everything.
-val buildAllCompilerBridges = interp.watchValue(sys.env.contains("MILL_BUILD_COMPILER_BRIDGES"))
-val bridgeVersion = "0.0.1"
-
 val bridgeScalaVersions = Seq(
   // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
   // bridges. We skip 2.12.1 because it's so old not to matter, and we need a
@@ -223,7 +216,17 @@ val bridgeScalaVersions = Seq(
   "2.13.11"
 )
 
-val buildBridgeScalaVersions = if (!buildAllCompilerBridges) Seq() else bridgeScalaVersions
+// We limit the number of compiler bridges to compile and publish for local
+// development and testing, because otherwise it takes forever to compile all
+// of them. Compiler bridges not in this set will get downloaded and compiled
+// on the fly anyway. For publishing, we publish everything or a specific version
+// if given.
+val compilerBridgeScalaVersions = interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
+  case None => Seq.empty[String]
+  case Some("all") => bridgeScalaVersions
+  case Some(versions) => versions.split(',').toSeq
+}
+val bridgeVersion = "0.0.1"
 
 trait MillJavaModule extends JavaModule {
 
@@ -395,7 +398,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 }
 
-object bridge extends Cross[BridgeModule](buildBridgeScalaVersions)
+object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def scalaVersion = crossScalaVersion
   def publishVersion = bridgeVersion
