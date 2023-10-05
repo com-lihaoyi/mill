@@ -59,7 +59,7 @@ private class ChromeProfileLogger(outPath: os.Path)
       task: String,
       cat: String,
       startTime: Long,
-      endTime: Long,
+      duration: Long,
       threadId: Int,
       cached: Boolean
   ): Unit = {
@@ -68,8 +68,8 @@ private class ChromeProfileLogger(outPath: os.Path)
       name = task,
       cat = cat,
       ph = "X",
-      ts = startTime * 1000,
-      dur = (endTime - startTime) * 1000 /*chrome treats the duration as microseconds*/,
+      ts = startTime,
+      dur = duration,
       pid = 1,
       tid = threadId,
       args = if (cached) Seq("cached") else Seq()

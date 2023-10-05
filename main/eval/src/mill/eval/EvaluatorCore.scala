@@ -97,7 +97,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
             .flatMap(_.iterator.flatMap(_.newResults))
             .toMap
 
-          val startTime = System.currentTimeMillis()
+          val startTime = System.nanoTime() / 1000
           val threadId = threadNumberer.getThreadId(Thread.currentThread())
           val counterMsg = s"${count.getAndIncrement()}/${terminals.size}"
           val contextLogger = PrefixLogger(
@@ -119,13 +119,15 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
             failed.set(true)
 
-          val endTime = System.currentTimeMillis()
+          val endTime = System.nanoTime() / 1000
+
+          val duration = endTime - startTime
 
           chromeProfileLogger.log(
             task = Terminal.printTerm(terminal),
             cat = "job",
             startTime = startTime,
-            endTime = endTime,
+            duration = duration,
             threadId = threadNumberer.getThreadId(Thread.currentThread()),
             cached = res.cached
           )
@@ -133,7 +135,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           profileLogger.log(
             ProfileLogger.Timing(
               terminal.render,
-              (endTime - startTime).toInt,
+              (duration / 1000).toInt,
               res.cached,
               deps.map(_.render),
               res.inputsHash,
