@@ -338,10 +338,18 @@ trait JavaModule
   def allSources: T[Seq[PathRef]] = T { sources() ++ generatedSources() }
 
   /**
+   * allSourceFiles used internally to avoid recalculating the PathRef
+   * for all sources since we already calculate it for sources
+   */
+  private[mill] def allSourceFilesTask: T[Seq[Path]] = T.task {
+    Lib.findSourceFiles(allSources(), Seq("java"))
+  }
+
+  /**
    * All individual source files fed into the Java compiler
    */
   def allSourceFiles: T[Seq[PathRef]] = T {
-    Lib.findSourceFiles(allSources(), Seq("java")).map(PathRef(_))
+    allSourceFilesTask().map(PathRef(_))
   }
 
   /**
@@ -366,7 +374,7 @@ trait JavaModule
       .worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
-        sources = allSourceFiles().map(_.path),
+        sources = allSourceFilesTask(),
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions(),
         reporter = T.reporter.apply(hashCode),

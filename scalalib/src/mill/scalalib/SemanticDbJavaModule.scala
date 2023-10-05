@@ -15,6 +15,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   def zincWorker: ModuleRef[ZincWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]
+  private[mill] def allSourceFilesTask: T[Seq[os.Path]]
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.scalalib.api.CompilationResult]
   def bspBuildTarget: BspBuildTarget
@@ -111,7 +112,7 @@ trait SemanticDbJavaModule extends CoursierModule {
     zincWorker().worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
-        sources = allSourceFiles().map(_.path),
+        sources = allSourceFilesTask(),
         compileClasspath =
           (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
         javacOptions = javacOpts,

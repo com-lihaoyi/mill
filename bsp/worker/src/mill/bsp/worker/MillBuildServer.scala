@@ -311,7 +311,7 @@ private class MillBuildServer(
       val tasksEvaluators = state.bspModulesById.iterator.collect {
         case (id, (m: JavaModule, ev)) =>
           T.task {
-            val src = m.allSourceFiles()
+            val src = m.allSourceFilesTask()
             val found = src.map(sanitizeUri).contains(
               p.getTextDocument.getUri
             )

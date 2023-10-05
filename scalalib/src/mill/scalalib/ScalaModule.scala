@@ -219,7 +219,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       .worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
-        sources = allSourceFiles().map(_.path),
+        sources = allSourceFilesTask(),
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions(),
         scalaVersion = sv,
@@ -569,7 +569,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     zincWorker().worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
-        sources = allSourceFiles().map(_.path),
+        sources = allSourceFilesTask(),
         compileClasspath =
           (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
         javacOptions = javacOpts,
