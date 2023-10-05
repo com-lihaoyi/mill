@@ -5,6 +5,12 @@ name: Publish Bridges
 # publishing workflow that runs every Mill version
 on:
   workflow_dispatch:
+    inputs:
+      bridge_versions:
+        description: 'comma-separated list of Scala versions to publish or `all` for all supported versions'
+        required: true
+        type: string
+
 jobs:
   publish-bridges:
     runs-on: ubuntu-latest
@@ -19,7 +25,7 @@ jobs:
       LANG: "en_US.UTF-8"
       LC_MESSAGES: "en_US.UTF-8"
       LC_ALL: "en_US.UTF-8"
-      MILL_BUILD_COMPILER_BRIDGES: "true"
+      MILL_COMPILER_BRIDGE_VERSIONS: ${{ inputs.bridge_versions }}
 
     steps:
       - uses: actions/checkout@v4
