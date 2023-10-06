@@ -53,8 +53,8 @@ object Task {
   }
 
   private[define] class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
-    val inputs = inputs0
-    def evaluate(ctx: mill.api.Ctx) = {
+    val inputs: Seq[Task[_]] = inputs0
+    def evaluate(ctx: mill.api.Ctx): Result[Seq[T]] = {
       for (i <- 0 until ctx.args.length)
         yield ctx.args(i).asInstanceOf[T]
     }
@@ -63,7 +63,7 @@ object Task {
       inputs0: Seq[Task[T]],
       f: (IndexedSeq[T], mill.api.Ctx) => Result[V]
   ) extends Task[V] {
-    val inputs = inputs0
+    val inputs: Seq[Task[_]] = inputs0
     def evaluate(ctx: mill.api.Ctx) = {
       f(
         for (i <- 0 until ctx.args.length)
@@ -75,12 +75,12 @@ object Task {
 
   private[define] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
     def evaluate(ctx: mill.api.Ctx) = f(ctx.arg(0))
-    val inputs = List(source)
+    val inputs: Seq[Task[_]] = List(source)
   }
 
   private[define] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
     def evaluate(ctx: mill.api.Ctx) = (ctx.arg(0), ctx.arg(1))
-    val inputs = List(source1, source2)
+    val inputs: Seq[Task[_]] = List(source1, source2)
   }
 }
 
@@ -108,7 +108,7 @@ trait NamedTask[+T] extends Task[T] {
   def evaluate(ctx: mill.api.Ctx) = ctx.arg[T](0)
 
   val ctx = ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
-  val inputs = Seq(t)
+  val inputs: Seq[Task[_]] = Seq(t)
 
   def readWriterOpt: Option[upickle.default.ReadWriter[_]] = None
 
