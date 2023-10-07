@@ -213,7 +213,8 @@ val bridgeScalaVersions = Seq(
   "2.13.8",
   "2.13.9",
   "2.13.10",
-  "2.13.11"
+  "2.13.11",
+  "2.13.12"
 )
 
 // We limit the number of compiler bridges to compile and publish for local
