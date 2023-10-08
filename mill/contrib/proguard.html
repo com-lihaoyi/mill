@@ -263,14 +263,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.5-7-bfe8dc</span>
+    <span class="version">0.11.5-8-09892e</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../index.html">0.11.5-7-bfe8dc</a>
+          <a href="../index.html">0.11.5-8-09892e</a>
         </li>
         <li class="version">
           <a href="../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -304,9 +304,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-7-bfe8dc</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-8-09892e</button>
   <div class="version-menu">
-    <a class="version is-current" href="proguard.html">0.11.5-7-bfe8dc</a>
+    <a class="version is-current" href="proguard.html">0.11.5-8-09892e</a>
     <a class="version" href="../0.11.0-M7/Plugin_Proguard.html">0.11.0-M7</a>
     <a class="version" href="../0.10.12/Plugin_Proguard.html">0.10.12</a>
     <a class="version is-missing" href="../0.10.0/index.html">0.10.0</a>
@@ -354,6 +354,23 @@ object foo extends ScalaModule with Proguard {
   override def shrink: T[Boolean] = T { true }
   override def optimize: T[Boolean] = T { false }
   override def obfuscate: T[Boolean] = T { false }
+
+  // https://github.com/Guardsquare/proguard/releases
+  override def proguardVersion = T(&quot;7.3.2&quot;)
+
+  // tell Proguard where to enter your app, so it can optimise outwards from there
+  override def entryPoint = T {
+    s&quot;&quot;&quot;|-keep public class myProject.main.myApp {
+        |  public ReturnType main(ParamTypeA, ParamTypeB);
+        |}
+        |&quot;&quot;&quot;.stripMargin
+  }
+
+  // customise to be as narrow/wide as your application requires
+  override def additionalOptions = Seq (
+    &quot;-keep class myProject.main.myApp { *; }&quot;,
+    &quot;-keep class Scala.Symbol { *; };
+  )
 }</code></pre>
 </div>
 </div>
