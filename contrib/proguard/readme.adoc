@@ -28,5 +28,22 @@ object foo extends ScalaModule with Proguard {
   override def shrink: T[Boolean] = T { true }
   override def optimize: T[Boolean] = T { false }
   override def obfuscate: T[Boolean] = T { false }
+
+  // https://github.com/Guardsquare/proguard/releases
+  override def proguardVersion = T("7.3.2")
+
+  // tell Proguard where to enter your app, so it can optimise outwards from there
+  override def entryPoint = T {
+    s"""|-keep public class myProject.main.myApp {
+        |  public ReturnType main(ParamTypeA, ParamTypeB);
+        |}
+        |""".stripMargin
+  }
+
+  // customise to be as narrow/wide as your application requires
+  override def additionalOptions = Seq (
+    "-keep class myProject.main.myApp { *; }",
+    "-keep class Scala.Symbol { *; };
+  )
 }
 ----
