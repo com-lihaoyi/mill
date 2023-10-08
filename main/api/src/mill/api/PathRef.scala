@@ -124,7 +124,7 @@ object PathRef {
         ) {
           val sub = path.subRelativeTo(basePath)
           digest.update(sub.toString().getBytes())
-          if (!attrs.isDir)
+          if (!attrs.isDir) {
             try {
               if (isPosix) {
                 updateWithInt(os.perms(path, followLinks = false).value)
@@ -158,6 +158,7 @@ object PathRef {
               // caches
 
             }
+          }
         }
       }
 
