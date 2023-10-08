@@ -40,8 +40,6 @@ object foo extends ScalaModule with Proguard {
         |""".stripMargin
   }
 
-  def scalaVersion = 2.13.x
-
   // customise to be as narrow/wide as your application requires
   override def additionalOptions = Seq (
     "-keep class myProject.main.myApp { *; }",
