@@ -80,7 +80,9 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
         workspaceTest(playmulti) { eval =>
           val eitherResult = eval.apply(playmulti.core(scalaVersion, playVersion).compile)
           val Right((result, evalCount)) = eitherResult
-          val outputFiles = os.walk(result.classes.path).filter(os.isFile)
+          val outputClassFiles =
+            os.walk(result.classes.path).filter(f => os.isFile(f) && f.ext == "class")
+
           val expectedClassfiles = Seq[os.RelPath](
             os.RelPath("controllers/HomeController.class"),
             os.RelPath("controllers/ReverseAssets.class"),
@@ -89,7 +91,8 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
             os.RelPath("controllers/routes$javascript.class"),
             os.RelPath("controllers/javascript/ReverseHomeController.class"),
             os.RelPath("controllers/javascript/ReverseAssets.class"),
-            os.RelPath("router/Routes$$anonfun$routes$1.class"),
+            if (scalaVersion.startsWith("3.")) os.RelPath("router/Routes$$anon$1.class")
+            else os.RelPath("router/Routes$$anonfun$routes$1.class"),
             os.RelPath("router/Routes.class"),
             os.RelPath("router/RoutesPrefix$.class"),
             os.RelPath("router/RoutesPrefix.class"),
@@ -102,9 +105,9 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
           )
           assert(
             result.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compile.dest" / "classes",
-            outputFiles.nonEmpty,
-            outputFiles.forall(expectedClassfiles.contains),
-            outputFiles.size == 15,
+            outputClassFiles.nonEmpty,
+            outputClassFiles.forall(expectedClassfiles.contains),
+            outputClassFiles.size == 15,
             evalCount > 0
           )
 
