@@ -125,28 +125,38 @@ object PathRef {
           val sub = path.subRelativeTo(basePath)
           digest.update(sub.toString().getBytes())
           if (!attrs.isDir) {
-            if (isPosix) {
-              updateWithInt(os.perms(path, followLinks = false).value)
-            }
-            if (quick) {
-              val value = (attrs.mtime, attrs.size).hashCode()
-              updateWithInt(value)
-            } else if (jnio.Files.isReadable(path.toNIO)) {
-              val is =
-                try Some(os.read.inputStream(path))
-                catch {
-                  case _: jnio.FileSystemException =>
-                    // This is known to happen, when we try to digest a socket file.
-                    // We ignore the content of this file for now, as we would do,
-                    // when the file isn't readable.
-                    // See https://github.com/com-lihaoyi/mill/issues/1875
-                    None
-                }
-              is.foreach {
-                Using.resource(_) { is =>
-                  StreamSupport.stream(is, digestOut)
+            try {
+              if (isPosix) {
+                updateWithInt(os.perms(path, followLinks = false).value)
+              }
+              if (quick) {
+                val value = (attrs.mtime, attrs.size).hashCode()
+                updateWithInt(value)
+              } else if (jnio.Files.isReadable(path.toNIO)) {
+                val is =
+                  try Some(os.read.inputStream(path))
+                  catch {
+                    case _: jnio.FileSystemException =>
+                      // This is known to happen, when we try to digest a socket file.
+                      // We ignore the content of this file for now, as we would do,
+                      // when the file isn't readable.
+                      // See https://github.com/com-lihaoyi/mill/issues/1875
+                      None
+                  }
+                is.foreach {
+                  Using.resource(_) { is =>
+                    StreamSupport.stream(is, digestOut)
+                  }
                 }
               }
+            } catch {
+              case e: java.nio.file.NoSuchFileException =>
+              // If file was deleted after we listed the folder but before we operate on it,
+              // `os.perms` or `os.read.inputStream` will crash. In that case, just do nothing,
+              // so next time we calculate the `PathRef` we'll get a different hash signature
+              // (either with the file missing, or with the file present) and invalidate any
+              // caches
+
             }
           }
         }
