@@ -4,7 +4,7 @@ import utest._
 
 object InvalidMetaModuleTests extends IntegrationTestSuite {
   val tests = Tests {
-    val workspaceRoot = initWorkspace()
+    initWorkspace()
 
     test("success") {
       val res = evalStdout("resolve", "_")
