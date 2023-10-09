@@ -1,10 +1,7 @@
 package mill.main
 
-import mill.api.{PathRef, internal}
+import mill.api.internal
 import mill.define.{Caller, Discover, Segments}
-import TokenReaders._
-
-import scala.collection.mutable
 
 /**
  * Used to mark a module in your `build.sc` as a top-level module, so it's

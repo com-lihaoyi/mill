@@ -2,8 +2,6 @@ package mill
 package contrib.scalapblib
 
 import java.io.File
-import java.lang.reflect.Method
-import java.net.URLClassLoader
 
 import mill.api.PathRef
 import mill.T

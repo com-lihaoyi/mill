@@ -2,8 +2,6 @@ package mill.scalalib
 
 import upickle.default.{ReadWriter => RW}
 
-import scala.reflect.ClassTag
-
 trait JsonFormatters {
   implicit lazy val publicationFormat: RW[coursier.core.Publication] = upickle.default.macroRW
   implicit lazy val extensionFormat: RW[coursier.core.Extension] = upickle.default.macroRW

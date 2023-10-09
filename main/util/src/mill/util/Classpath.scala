@@ -2,12 +2,8 @@ package mill.util
 
 import java.io.File
 import java.net.URL
-import java.nio.file.{Path, Paths}
-import java.util.zip.{ZipFile, ZipInputStream}
-import mill.java9rtexport.Export
 
 import scala.collection.mutable
-import scala.util.control.NonFatal
 
 /**
  * Loads the jars that make up the classpath of the scala-js-fiddle

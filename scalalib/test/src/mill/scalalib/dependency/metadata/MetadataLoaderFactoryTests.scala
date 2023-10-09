@@ -28,7 +28,6 @@
  */
 package mill.scalalib.dependency.metadata
 
-import coursier.Fetch
 import coursier.core.{Classifier, Dependency, Module, Project, Repository, ArtifactSource}
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository

@@ -1,6 +1,6 @@
 package mill.codesig
+
 import JvmModel._
-import JType.{Cls => JCls}
 import utest._
 
 object MethodHashTests extends TestSuite {

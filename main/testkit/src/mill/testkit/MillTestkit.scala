@@ -11,8 +11,6 @@ import mill.eval.Evaluator
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.PrintLogger
 
-import language.experimental.macros
-
 trait MillTestKit {
 
   def defaultTargetDir: os.Path =
@@ -96,6 +94,7 @@ trait MillTestKit {
     }
     val evaluator = mill.eval.EvaluatorImpl(
       mill.api.Ctx.defaultHome,
+      module.millSourcePath,
       outPath,
       outPath,
       module,

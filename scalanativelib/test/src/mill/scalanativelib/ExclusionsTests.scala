@@ -3,7 +3,6 @@ package mill.scalanativelib
 import mill.Agg
 import mill.scalalib._
 import mill.define.Discover
-import mill.scalanativelib.api._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 

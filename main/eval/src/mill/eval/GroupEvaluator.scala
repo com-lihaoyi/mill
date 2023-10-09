@@ -18,6 +18,7 @@ import scala.util.control.NonFatal
  */
 private[mill] trait GroupEvaluator {
   def home: os.Path
+  def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path
   def rootModule: mill.define.BaseModule
@@ -299,7 +300,7 @@ private[mill] trait GroupEvaluator {
               env = env,
               reporter = reporter,
               testReporter = testReporter,
-              workspace = rootModule.millSourcePath
+              workspace = workspace
             ) with mill.api.Ctx.Jobs {
               override def jobs: Int = effectiveThreadCount
             }

@@ -936,7 +936,6 @@ object main extends JavaModule with PublishModule {
 
 Limited zsh completion support.
 
-This script is part of a collection of configuration files and comes without documentation, but might be useful nonetheless, if you are a zsh user.
+This plugin adds ZSH shell completions to Mill.
 
-
-Project home: https://github.com/carlosedp/dotfiles/blob/master/completion/_mill
+Project home: https://github.com/carlosedp/mill-zsh-completions

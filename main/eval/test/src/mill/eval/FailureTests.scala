@@ -4,7 +4,6 @@ import mill.T
 import mill.util.{TestEvaluator, TestUtil}
 import mill.api.Result.OuterStack
 import utest._
-import utest.framework.TestPath
 
 object FailureTests extends TestSuite {
 

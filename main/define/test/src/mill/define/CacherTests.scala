@@ -1,7 +1,6 @@
 package mill.define
 
-import mill.util.{DummyLogger, TestEvaluator, TestUtil}
-import mill.api.Strict.Agg
+import mill.util.{TestEvaluator, TestUtil}
 import mill.T
 import mill.api.Result.Success
 import utest._

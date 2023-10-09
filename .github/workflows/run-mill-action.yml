@@ -18,12 +18,16 @@ on:
       continue-on-error:
         default: false
         type: boolean
+      timeout-minutes:
+        default: 90
+        type: number
 
 jobs:
   build:
 
     runs-on: ${{ inputs.os }}
     continue-on-error: ${{ inputs.continue-on-error }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
 
     steps:
       - uses: actions/checkout@v4

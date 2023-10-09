@@ -1,7 +1,6 @@
 package mill.contrib.bloop
 
 import bloop.config.{Config => BloopConfig}
-import bloop.config.Config.{File => BloopFile}
 import mill._
 import mill.scalajslib.api.ModuleKind
 import mill.scalalib._

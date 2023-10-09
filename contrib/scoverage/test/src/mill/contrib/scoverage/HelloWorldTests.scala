@@ -4,7 +4,6 @@ import mill._
 import mill.api.Result
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.{DepSyntax, SbtModule, ScalaModule, TestModule}
-import mill.scalalib.api.ZincWorkerUtil
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath

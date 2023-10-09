@@ -45,4 +45,3 @@ def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
   unpackZip(dest, s"https://github.com/$label/archive/$commit.zip")
   dest
 }
-

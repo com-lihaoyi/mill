@@ -54,6 +54,12 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 //
 // [NOTE]
 // --
+// Recent versions of `gpg` (versions 2.1 and above) require an additional argument
+// in order to accept a passphrase on the command line. Add `--pinentry-mode=loopback` to the
+// comma-separated list of `gpg` arguments after `--gpgArgs`, so it becomes
+// `--passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b,--pinentry-mode=loopback`. Without the additional
+// argument, you may see errors like `gpg: signing failed: Inappropriate ioctl for device`.
+//
 // Sonatype credentials can be passed via environment variables (`SONATYPE_USERNAME`
 // and `SONATYPE_PASSWORD`) or by passing second or `--sonatypeCreds` argument in format
 // `username:password`. Consider using environment variables over the direct CLI passing

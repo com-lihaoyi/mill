@@ -1,6 +1,5 @@
 package mill.scalajslib
 
-import mill._
 import mill.define.Discover
 import mill.scalajslib.api._
 import mill.util.{TestEvaluator, TestUtil}

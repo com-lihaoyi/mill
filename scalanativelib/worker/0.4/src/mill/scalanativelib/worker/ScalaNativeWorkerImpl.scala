@@ -7,7 +7,6 @@ import mill.scalanativelib.worker.api._
 import scala.scalanative.util.Scope
 import scala.scalanative.build.{
   Build,
-  BuildException,
   Config,
   Discover,
   GC,
@@ -106,8 +105,6 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       logLevel: NativeLogLevel,
       frameworkName: String
   ): (() => Unit, sbt.testing.Framework) = {
-    import collection.JavaConverters._
-
     val config = TestAdapter.Config()
       .withBinaryFile(testBinary)
       .withEnvVars(envVars)

@@ -1,10 +1,7 @@
 package mill.playlib
 
-import mill.define.Cross
-import mill.scalalib.CrossScalaModule
 import mill.T
-import mill.util.{TestEvaluator, TestUtil}
-import utest.framework.TestPath
+import mill.util.TestUtil
 import utest.{TestSuite, Tests, assert, _}
 
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {

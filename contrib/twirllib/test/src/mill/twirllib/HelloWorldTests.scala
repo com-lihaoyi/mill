@@ -4,8 +4,6 @@ import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
-import scala.io.Codec
-
 trait HelloWorldTests extends TestSuite {
   val testTwirlVersion: String
   val testTwirlScalaVersion: String

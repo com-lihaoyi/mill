@@ -63,7 +63,6 @@ object Version {
   val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
   val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.(\d+)-SNAPSHOT""".r
 
-  import upickle.core._
   import upickle.default._
 
   implicit val readWriter: ReadWriter[Version] =

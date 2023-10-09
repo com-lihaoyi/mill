@@ -8,7 +8,7 @@ import mill.define.{Command, NamedTask, Segments, Task}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
-import mill.util.{PrintLogger, Watchable}
+import mill.util.Watchable
 import pprint.{Renderer, Tree, Truncated}
 
 import scala.collection.mutable

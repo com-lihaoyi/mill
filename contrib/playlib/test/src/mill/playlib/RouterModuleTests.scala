@@ -1,11 +1,9 @@
 package mill.playlib
 
-import mill.T
 import mill.api.Result.Failure
 import mill.define.Cross
 import mill.scalalib.ScalaModule
-import mill.util.{TestEvaluator, TestUtil}
-import utest.framework.TestPath
+import mill.util.TestUtil
 import utest.{TestSuite, Tests, assert, _}
 
 object RouterModuleTests extends TestSuite with PlayTestSuite {

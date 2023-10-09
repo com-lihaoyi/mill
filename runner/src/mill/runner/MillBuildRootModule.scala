@@ -4,7 +4,7 @@ import coursier.Repository
 import mill._
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
-import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
+import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
@@ -41,7 +41,7 @@ class MillBuildRootModule()(implicit
   override def millSourcePath = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
   override def intellijModulePath: os.Path = millSourcePath / os.up
 
-  override def scalaVersion: T[String] = "2.13.10"
+  override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
   /**
    * All script files (that will get wrapped later)

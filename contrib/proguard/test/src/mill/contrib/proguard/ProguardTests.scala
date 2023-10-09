@@ -1,6 +1,5 @@
 package mill.contrib.proguard
 
-import scala.util.control.NonFatal
 import mill._
 import mill.define.Target
 import mill.util.Util.millProjectModule

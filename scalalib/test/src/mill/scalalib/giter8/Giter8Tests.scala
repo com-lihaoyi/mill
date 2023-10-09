@@ -1,6 +1,5 @@
 package mill.scalalib.giter8
 
-import mill.T
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import mill.api.Loose.Agg

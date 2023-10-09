@@ -13,8 +13,6 @@ import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 
-import scala.jdk.CollectionConverters._
-
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
@@ -91,7 +89,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // we need to use the scala-library of the currently running mill
     resolveDependencies(
       repositoriesTask(),
-      (commonDeps ++ envDeps).map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
+      (commonDeps.iterator ++ envDeps)
+        .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     )
   }
@@ -121,7 +120,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = runClasspath(),
-      mainClass = finalMainClassOpt().toOption,
+      mainClass = finalMainClassOpt(),
       forceOutJs = forceOutJs,
       testBridgeInit = false,
       isFullLinkJS = isFullLinkJS,
@@ -162,7 +161,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       worker: ScalaJSWorker,
       toolsClasspath: Agg[PathRef],
       runClasspath: Agg[PathRef],
-      mainClass: Option[String],
+      mainClass: Either[String, String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
@@ -177,16 +176,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
     os.makeDir.all(ctx.dest)
 
-    val classpath = runClasspath.map(_.path)
-    val sjsirFiles = classpath
-      .filter(path => os.exists(path) && os.isDir(path))
-      .flatMap(os.walk(_))
-      .filter(_.ext == "sjsir")
-    val libraries = classpath.filter(_.ext == "jar")
     worker.link(
       toolsClasspath = toolsClasspath,
-      sources = sjsirFiles,
-      libraries = libraries,
+      runClasspath = runClasspath,
       dest = outputPath.toIO,
       main = mainClass,
       forceOutJs = forceOutJs,
@@ -281,7 +273,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JS,
-        jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
+        jars = scalaCompilerClasspath().iterator.map(_.path.toNIO.toUri.toString).toSeq,
         jvmBuildTarget = None
       )
     ))
@@ -298,8 +290,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
       )
-        .map(_.withDottyCompat(scalaVersion()))
-        .map(bind)
+        .map(dep => bind(dep.withDottyCompat(scalaVersion())))
     })
   }
 
@@ -308,7 +299,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = scalaJSTestDeps() ++ runClasspath(),
-      mainClass = None,
+      mainClass = Left("No main class specified or found"),
       forceOutJs = false,
       testBridgeInit = true,
       isFullLinkJS = false,

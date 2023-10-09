@@ -1,7 +1,6 @@
 package mill.scalalib
 
 import mill._
-import mill.scalalib.api.ZincWorkerUtil
 import mill.util.{TestEvaluator, TestUtil}
 
 import utest._

@@ -1,11 +1,8 @@
 package mill.scalajslib
 
-import mill._
 import mill.define.Discover
-import mill.scalajslib.api._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
-import mill.define.Target
 
 object SourceMapTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "source-map"

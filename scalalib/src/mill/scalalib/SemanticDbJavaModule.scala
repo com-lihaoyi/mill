@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.api.{PathRef, Result, experimental}
-import mill.define.{ModuleRef, Target, Task}
+import mill.define.{ModuleRef, Target}
 import mill.main.BuildInfo
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mill.scalalib.bsp.BspBuildTarget
@@ -115,7 +115,7 @@ trait SemanticDbJavaModule extends CoursierModule {
         compileClasspath =
           (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
         javacOptions = javacOpts,
-        reporter = T.reporter.apply(hashCode()),
+        reporter = None,
         reportCachedProblems = zincReportCachedProblems()
       ).map(r =>
         SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")

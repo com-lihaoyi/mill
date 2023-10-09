@@ -8,7 +8,6 @@ import $ivy.`com.github.lolgab::mill-mima::0.0.24`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 
-
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
 import coursier.maven.MavenRepository
@@ -43,7 +42,7 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq()
-  val mimaBaseVersions: Seq[String] = 0.to(4).map("0.11." + _)
+  val mimaBaseVersions: Seq[String] = 0.to(5).map("0.11." + _)
 }
 
 object Deps {
@@ -64,7 +63,7 @@ object Deps {
   val testScala32Version = "3.2.0"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.13.1"
+    val scalaJsVersion = "1.14.0"
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
@@ -112,18 +111,18 @@ object Deps {
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.7"
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.18"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.7.2"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.8.1"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jline = ivy"org.jline:jline:3.21.0"
+  val jline = ivy"org.jline:jline:3.23.0"
   val jna = ivy"net.java.dev.jna:jna:5.13.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.13.0"
 
@@ -144,7 +143,7 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.10"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.14"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.11"
@@ -156,15 +155,15 @@ object Deps {
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.10"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.11"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.6"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.1.3"
   val utest = ivy"com.lihaoyi::utest:0.8.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
   val zinc = ivy"org.scala-sbt::zinc:1.9.5"
   // keep in sync with doc/antora/antory.yml
-  val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
+  val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M7"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.9.0"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
@@ -191,13 +190,6 @@ def millBinPlatform: T[String] = T {
 }
 
 def baseDir = build.millSourcePath
-
-// We limit the number of compiler bridges to compile and publish for local
-// development and testing, because otherwise it takes forever to compile all
-// of them. Compiler bridges not in this set will get downloaded and compiled
-// on the fly anyway. For publishing, we publish everything.
-val buildAllCompilerBridges = interp.watchValue(sys.env.contains("MILL_BUILD_COMPILER_BRIDGES"))
-val bridgeVersion = "0.0.1"
 
 val bridgeScalaVersions = Seq(
   // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
@@ -227,10 +219,21 @@ val bridgeScalaVersions = Seq(
   "2.13.8",
   "2.13.9",
   "2.13.10",
-  "2.13.11"
+  "2.13.11",
+  "2.13.12"
 )
 
-val buildBridgeScalaVersions = if (!buildAllCompilerBridges) Seq() else bridgeScalaVersions
+// We limit the number of compiler bridges to compile and publish for local
+// development and testing, because otherwise it takes forever to compile all
+// of them. Compiler bridges not in this set will get downloaded and compiled
+// on the fly anyway. For publishing, we publish everything or a specific version
+// if given.
+val compilerBridgeScalaVersions = interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
+  case None => Seq.empty[String]
+  case Some("all") => bridgeScalaVersions
+  case Some(versions) => versions.split(',').map(_.trim).toSeq
+}
+val bridgeVersion = "0.0.1"
 
 trait MillJavaModule extends JavaModule {
 
@@ -306,7 +309,8 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule { outer =>
   def scalaVersion = Deps.scalaVersion
-  def scalacOptions = super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature")
+  def scalacOptions =
+    super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature", "-Xlint:unused")
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
   def testModuleDeps: Seq[JavaModule] =
@@ -401,7 +405,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 }
 
-object bridge extends Cross[BridgeModule](buildBridgeScalaVersions)
+object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def scalaVersion = crossScalaVersion
   def publishVersion = bridgeVersion
@@ -527,14 +531,14 @@ object main extends MillStableScalaModule with BuildInfo {
       trait CaseModule extends ScalaModule with Cross.Module[String] {
         def caseName = crossValue
         object external extends ScalaModule {
-          def scalaVersion = "2.13.10"
+          def scalaVersion = Deps.scalaVersion
         }
 
         def moduleDeps = Seq(external)
 
         val Array(prefix, suffix, rest) = caseName.split("-", 3)
         def millSourcePath = super.millSourcePath / prefix / suffix / rest
-        def scalaVersion = "2.13.10"
+        def scalaVersion = Deps.scalaVersion
         def ivyDeps = T {
           if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
           else Agg(

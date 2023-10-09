@@ -1,9 +1,7 @@
 package mill.util
 
 import java.io._
-import java.nio.file.{Files, StandardOpenOption}
-import scala.util.DynamicVariable
-import mill.api.{Logger, SystemStreams}
+import mill.api.SystemStreams
 
 class PrintLogger(
     override val colored: Boolean,

@@ -1,13 +1,13 @@
 name: mill
 title: Mill Documentation
-version: '0.11.1'
+version: '0.11.5'
 nav:
   - modules/ROOT/nav.adoc
 asciidoc:
   attributes:
-    mill-version: '0.11.1'
-    mill-last-tag: '0.11-1'
-    bsp-version: '2.1.0-M5'
-    example-semanticdb-version: '4.8.1'
-    example-scala-2-13-version: '2.13.11'
+    mill-version: '0.11.5'
+    mill-last-tag: '0.11.5'
+    bsp-version: '2.1.0-M7'
+    example-semanticdb-version: '4.8.11'
+    example-scala-2-13-version: '2.13.12'
     example-utest-version: '0.8.1'

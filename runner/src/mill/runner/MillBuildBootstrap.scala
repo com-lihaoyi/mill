@@ -42,6 +42,7 @@ class MillBuildBootstrap(
   import MillBuildBootstrap._
 
   val millBootClasspath = prepareMillBootClasspath(projectRoot / "out")
+  val millBootClasspathPathRefs = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = {
     val runnerState = evaluateRec(0)
@@ -162,7 +163,7 @@ class MillBuildBootstrap(
                 .dropRight(1)
                 .headOption
                 .map(_.runClasspath)
-                .getOrElse(millBootClasspath.map(PathRef(_)))
+                .getOrElse(millBootClasspathPathRefs)
                 .map(p => (p.path, p.sig))
                 .hashCode(),
               nestedState
@@ -337,6 +338,7 @@ class MillBuildBootstrap(
 
     mill.eval.EvaluatorImpl(
       home,
+      projectRoot,
       recOut(projectRoot, depth),
       recOut(projectRoot, depth),
       rootModule,
@@ -433,7 +435,7 @@ object MillBuildBootstrap {
         else Left(
           // We can't get use `child.toString` here, because as a RootModule
           // it's segments are empty and it's toString is ""
-          s"RootModule ${child.getClass.getSimpleName} cannot have other " +
+          s"RootModule ${child.getClass.getSimpleName.stripSuffix("$")} cannot have other " +
             s"modules defined outside of it: ${invalidChildModules.mkString(",")}"
         )
 

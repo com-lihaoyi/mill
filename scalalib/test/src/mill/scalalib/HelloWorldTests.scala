@@ -10,7 +10,6 @@ import mill.api.Result
 import mill.define.NamedTask
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.scalalib.Assembly
-import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._

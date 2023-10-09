@@ -1,8 +1,7 @@
 package mill.playlib
 
 import mill.T
-import mill.util.{TestEvaluator, TestUtil}
-import utest.framework.TestPath
+import mill.util.TestUtil
 import utest.{TestSuite, Tests, assert, _}
 
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {

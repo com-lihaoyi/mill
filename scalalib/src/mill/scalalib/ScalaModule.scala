@@ -9,7 +9,6 @@ import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 
-import scala.jdk.CollectionConverters._
 import mainargs.Flag
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
@@ -482,21 +481,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   @nowarn("msg=pure expression does nothing")
   override def prepareOffline(all: Flag): Command[Unit] = {
+    val ammonite = resolvedAmmoniteReplIvyDeps
     val tasks =
-      if (all.value) Seq(
-        resolvedAmmoniteReplIvyDeps,
-        T.task {
-          zincWorker().scalaCompilerBridgeJar(
-            scalaVersion(),
-            scalaOrganization(),
-            repositoriesTask()
-          )
-        }
-      )
+      if (all.value) Seq(ammonite)
       else Seq()
 
     T.command {
       super.prepareOffline(all)()
+      // resolve the compile bridge jar
       resolveDeps(T.task {
         val bind = bindDependency()
         scalacPluginIvyDeps().map(bind)
@@ -505,6 +497,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         val bind = bindDependency()
         scalaDocPluginIvyDeps().map(bind)
       })()
+      zincWorker().scalaCompilerBridgeJar(
+        scalaVersion(),
+        scalaOrganization(),
+        repositoriesTask()
+      )
       T.sequence(tasks)()
       ()
     }
@@ -581,7 +578,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalacOptions = scalacOptions,
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = semanticDbPluginClasspath(),
-        reporter = T.reporter.apply(hashCode),
+        reporter = None,
         reportCachedProblems = zincReportCachedProblems()
       )
       .map(r =>

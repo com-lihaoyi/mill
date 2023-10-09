@@ -1,13 +1,23 @@
 = image:docs/logo.svg[Mill Logo] Mill
-:toc-placement: preamble
-:toc:
 :idprefix:
 :idseparator: -
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
 :link-current-doc-site: https://mill-build.com
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
-:example-scala-version: 3.2.2
+:example-scala-version: 3.3.1
+ifndef::env-github[]
+:icons: font
+:toc:
+:toc-placement: preamble
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
 
 {link-github}/actions/workflows/actions.yml[image:{link-github}/actions/workflows/actions.yml/badge.svg[Build and Release]]
 {link-gitter}?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge[image:https://badges.gitter.im/Join%20Chat.svg[Gitter Chat]]
@@ -276,6 +286,44 @@ endif::[]
 :link-pr: {link-github}/pull
 :link-issue: {link-github}/issues
 :link-milestone: {link-github}/milestone
+
+
+[#0-11-5]
+=== 0.11.5 - 2023-10-04
+:version: 0.11.5
+:milestone-name: 0.11.5
+:milestone: 89
+:prev-version: 0.11.4
+
+_Changes since {prev-version}:_
+
+* Support for Java 21 {link-pr}/2768[#2768]
+
+* Various BSP improvements {link-pr}/2814[#2814], {link-pr}/2813[#2813], {link-pr}/2810[#2810], {link-pr}/2771[#2771]
+
+* The `T.workspace` context path now always points to the top-level project directory, also for meta builds {link-pr}/2809[#2809]
+
+* Mill now better detects and reports logical cycles in inter-module dependencies {link-pr}/2790[#2790]
+
+* Fixed semanticDB data generation for meta builds {link-pr}/2809[#2809]
+
+* The `prepareOffline` command also fetches relevant compiler-bridges for Scala modules {link-pr}/2791[#2791]
+
+* Improved `ScalaJSModule` and added support for `IRFileCache` {link-pr}/2783[#2783]
+
+* The `JavaModule.zincReportCachedProblems` configuration can now also customized via a Java system property {link-pr}/2775[#2775]
+
+* Fixed a file truncation issue in protobuf module and print a warning when proto file get overwritten {link-pr}/2800[#2800]
+
+* Documentation improvements
+
+* Dependency updates: bsp4j 2.1.0-M7, castor 0.3.0, coursier-interface 1.0.19, jarjarabrams 1.9.0, jline 3.23.0, junitsocket 2.8.1, mainargs 0.5.4, scalafmt 3.7.14, Scala.js 1.14.0, semanticdb-java 0.9.6, semanticdb-scala 4.8.10
+
+* Various other improvements and cleanups
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-4]

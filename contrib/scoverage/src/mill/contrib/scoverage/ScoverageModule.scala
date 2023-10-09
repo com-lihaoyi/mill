@@ -8,7 +8,6 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 import mill.api.Result
-import mill.define.ModuleRef
 import mill.util.Util.millProjectModule
 
 import scala.util.Try

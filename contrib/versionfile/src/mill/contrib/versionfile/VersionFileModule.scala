@@ -1,6 +1,6 @@
 package mill.contrib.versionfile
 
-import mill._, scalalib._
+import mill._
 
 trait VersionFileModule extends Module {
 
@@ -64,7 +64,6 @@ trait VersionFileModule extends Module {
       case snapshot: Version.Snapshot => s"Setting next version to $version"
     }
 
-  import upickle.core._
   import upickle.default._
 
   implicit val shellableReadWriter: ReadWriter[os.Shellable] =

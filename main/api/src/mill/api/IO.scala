@@ -1,7 +1,5 @@
 package mill.api
 
-import java.io.{InputStream, OutputStream}
-
 /**
  * Misc IO utilities, eventually probably should be pushed upstream into
  * ammonite-ops

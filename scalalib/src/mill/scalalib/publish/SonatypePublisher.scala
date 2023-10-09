@@ -5,7 +5,6 @@ import java.security.MessageDigest
 
 import mill.api.Logger
 import mill.util.Jvm
-import os.Shellable
 
 class SonatypePublisher(
     uri: String,

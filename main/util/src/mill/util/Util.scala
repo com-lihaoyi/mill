@@ -2,7 +2,7 @@ package mill.util
 
 import coursier.Repository
 import mill.api.Loose.Agg
-import mill.api.{BuildInfo, Ctx, IO, Loose, PathRef, Result}
+import mill.api.{BuildInfo, Ctx, IO, PathRef, Result}
 
 object Util {
 

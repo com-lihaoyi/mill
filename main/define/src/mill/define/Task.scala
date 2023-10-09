@@ -2,7 +2,7 @@ package mill.define
 
 import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
 import mill.define.Applicative.Applyable
-import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
+import upickle.default.{ReadWriter => RW, Writer => W}
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
@@ -354,7 +354,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.Success(t.splice)).tree)
+      val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.create(t.splice)).tree)
 
       mill.moduledefs.Cacher.impl0[Target[T]](c)(
         reify(

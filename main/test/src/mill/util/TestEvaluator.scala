@@ -4,10 +4,12 @@ import java.io.{InputStream, PrintStream}
 import mill.eval.Evaluator
 import utest.framework.TestPath
 
-import language.experimental.macros
-import mill.api.{DummyInputStream, Result}
+import mill.api.DummyInputStream
+
 object TestEvaluator {
-  def static(module: => TestUtil.BaseModule)(implicit fullName: sourcecode.FullName) = {
+  def static(module: => TestUtil.BaseModule)(implicit
+      fullName: sourcecode.FullName
+  ): TestEvaluator = {
     new TestEvaluator(module)(fullName, TestPath(Nil))
   }
 }

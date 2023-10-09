@@ -47,7 +47,7 @@ private class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
 
   override def info(s: String): Unit = {
     super.info(s)
-    client.onBuildShowMessage(new ShowMessageParams(MessageType.INFORMATION, s))
+    client.onBuildShowMessage(new ShowMessageParams(MessageType.INFO, s))
   }
 
   override def debug(s: String): Unit = {

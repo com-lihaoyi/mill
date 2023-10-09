@@ -1,9 +1,9 @@
 package mill.eval
 
 import mill.util.TestUtil.{Test, test}
-import mill.define.{Discover, TargetImpl, Task}
-import mill.{Module, T}
-import mill.util.{DummyLogger, TestEvaluator, TestGraphs, TestUtil}
+import mill.define.{TargetImpl, Task}
+import mill.T
+import mill.util.{TestEvaluator, TestGraphs, TestUtil}
 import mill.api.Strict.Agg
 import os.SubPath
 import utest._

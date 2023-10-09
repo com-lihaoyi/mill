@@ -3,7 +3,7 @@ package mill.contrib.versionfile
 import mill.T
 import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
-import utest.{TestSuite, Tests, assert, assertMatch, intercept, test}
+import utest.{TestSuite, Tests, assert, assertMatch, test}
 import utest.framework.TestPath
 
 object VersionFileModuleTests extends TestSuite {

@@ -149,10 +149,9 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
 
   def link(
       toolsClasspath: Agg[mill.PathRef],
-      sources: Agg[os.Path],
-      libraries: Agg[os.Path],
+      runClasspath: Agg[mill.PathRef],
       dest: File,
-      main: Option[String],
+      main: Either[String, String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
@@ -164,10 +163,9 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       outputPatterns: api.OutputPatterns
   )(implicit ctx: Ctx.Home): Result[api.Report] = {
     bridge(toolsClasspath).link(
-      sources = sources.items.map(_.toIO).toArray,
-      libraries = libraries.items.map(_.toIO).toArray,
+      runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
       dest = dest,
-      main = main.orNull,
+      main = main,
       forceOutJs = forceOutJs,
       testBridgeInit = testBridgeInit,
       isFullLinkJS = isFullLinkJS,
@@ -186,8 +184,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
   def run(toolsClasspath: Agg[mill.PathRef], config: api.JsEnvConfig, report: api.Report)(
       implicit ctx: Ctx.Home
   ): Unit = {
-    val dest =
-      bridge(toolsClasspath).run(toWorkerApi(config), toWorkerApi(report))
+    bridge(toolsClasspath).run(toWorkerApi(config), toWorkerApi(report))
   }
 
   def getFramework(
