@@ -4,7 +4,7 @@ package scalalib
 import scala.annotation.nowarn
 import mill.api.{DummyInputStream, JarManifest, PathRef, Result, SystemStreams, internal}
 import mill.main.BuildInfo
-import mill.util.Jvm
+import mill.util.{Jvm,Util}
 import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
@@ -367,7 +367,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * for you to test and operate your code interactively.
    */
   def console(): Command[Unit] = T.command {
-    if (T.log.inStream == DummyInputStream) {
+    if (!Util.isInteractive()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
       SystemStreams.withStreams(SystemStreams.original) {
