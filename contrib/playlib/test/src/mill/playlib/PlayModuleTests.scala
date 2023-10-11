@@ -77,44 +77,50 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
     }
     test("compile") {
       matrix.foreach { case (scalaVersion, playVersion) =>
-        workspaceTest(playmulti) { eval =>
-          val eitherResult = eval.apply(playmulti.core(scalaVersion, playVersion).compile)
-          val Right((result, evalCount)) = eitherResult
-          val outputClassFiles =
-            os.walk(result.classes.path).filter(f => os.isFile(f) && f.ext == "class")
+        val s"2.$playMinor.$_" = playVersion
 
-          val expectedClassfiles = Seq[os.RelPath](
-            os.RelPath("controllers/HomeController.class"),
-            os.RelPath("controllers/ReverseAssets.class"),
-            os.RelPath("controllers/ReverseHomeController.class"),
-            os.RelPath("controllers/routes.class"),
-            os.RelPath("controllers/routes$javascript.class"),
-            os.RelPath("controllers/javascript/ReverseHomeController.class"),
-            os.RelPath("controllers/javascript/ReverseAssets.class"),
-            if (scalaVersion.startsWith("3.")) os.RelPath("router/Routes$$anon$1.class")
-            else os.RelPath("router/Routes$$anonfun$routes$1.class"),
-            os.RelPath("router/Routes.class"),
-            os.RelPath("router/RoutesPrefix$.class"),
-            os.RelPath("router/RoutesPrefix.class"),
-            os.RelPath("views/html/index$.class"),
-            os.RelPath("views/html/index.class"),
-            os.RelPath("views/html/main$.class"),
-            os.RelPath("views/html/main.class")
-          ).map(
-            eval.outPath / "core" / scalaVersion / playVersion / "compile.dest" / "classes" / _
-          )
-          assert(
-            result.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compile.dest" / "classes",
-            outputClassFiles.nonEmpty,
-            outputClassFiles.forall(expectedClassfiles.contains),
-            outputClassFiles.size == 15,
-            evalCount > 0
-          )
+        if (playMinor.toInt >= 9 && !Properties.isJavaAtLeast(11)) {
+          System.err.println(s"Skipping since play $playVersion doesn't support Java 8")
+        } else {
+          workspaceTest(playmulti) { eval =>
+            val eitherResult = eval.apply(playmulti.core(scalaVersion, playVersion).compile)
+            val Right((result, evalCount)) = eitherResult
+            val outputClassFiles =
+              os.walk(result.classes.path).filter(f => os.isFile(f) && f.ext == "class")
 
-          // don't recompile if nothing changed
-          val Right((_, unchangedEvalCount)) =
-            eval.apply(playmulti.core(scalaVersion, playVersion).compile)
-          assert(unchangedEvalCount == 0)
+            val expectedClassfiles = Seq[os.RelPath](
+              os.RelPath("controllers/HomeController.class"),
+              os.RelPath("controllers/ReverseAssets.class"),
+              os.RelPath("controllers/ReverseHomeController.class"),
+              os.RelPath("controllers/routes.class"),
+              os.RelPath("controllers/routes$javascript.class"),
+              os.RelPath("controllers/javascript/ReverseHomeController.class"),
+              os.RelPath("controllers/javascript/ReverseAssets.class"),
+              if (scalaVersion.startsWith("3.")) os.RelPath("router/Routes$$anon$1.class")
+              else os.RelPath("router/Routes$$anonfun$routes$1.class"),
+              os.RelPath("router/Routes.class"),
+              os.RelPath("router/RoutesPrefix$.class"),
+              os.RelPath("router/RoutesPrefix.class"),
+              os.RelPath("views/html/index$.class"),
+              os.RelPath("views/html/index.class"),
+              os.RelPath("views/html/main$.class"),
+              os.RelPath("views/html/main.class")
+            ).map(
+              eval.outPath / "core" / scalaVersion / playVersion / "compile.dest" / "classes" / _
+            )
+            assert(
+              result.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compile.dest" / "classes",
+              outputClassFiles.nonEmpty,
+              outputClassFiles.forall(expectedClassfiles.contains),
+              outputClassFiles.size == 15,
+              evalCount > 0
+            )
+
+            // don't recompile if nothing changed
+            val Right((_, unchangedEvalCount)) =
+              eval.apply(playmulti.core(scalaVersion, playVersion).compile)
+            assert(unchangedEvalCount == 0)
+          }
         }
       }
     }
