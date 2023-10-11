@@ -79,7 +79,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       matrix.foreach { case (scalaVersion, playVersion) =>
         val s"2.$playMinor.$_" = playVersion
 
-        if (playMinor.toInt >= 9 && !Properties.isJavaAtLeast(11)) {
+        if (playMinor.toInt >= 9 && !scala.util.Properties.isJavaAtLeast(11)) {
           System.err.println(s"Skipping since play $playVersion doesn't support Java 8")
         } else {
           workspaceTest(playmulti) { eval =>
