@@ -138,7 +138,7 @@ object BuildInfo {
          |public class $buildInfoObjectName {
          |  $bindingsCode
          |
-         |  public static java.util.Map<String, String> toMap(){
+         |  public static java.util.Map<String, String> toMap() {
          |    Map<String, String> map = new HashMap<String, String>();
          |    $mapEntries
          |    return map;
@@ -173,13 +173,17 @@ object BuildInfo {
          |object $buildInfoObjectName {
          |  private[this] val buildInfoProperties: java.util.Properties = new java.util.Properties()
          |
-         |  private[this] val buildInfoInputStream = getClass
+         |  {
+         |    val buildInfoInputStream = getClass
          |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
          |
-         |  try {
-         |    buildInfoProperties.load(buildInfoInputStream)
-         |  } finally {
-         |    buildInfoInputStream.close()
+         |    if(buildInfoInputStream == null)
+         |      throw new RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
+         |    else try {
+         |      buildInfoProperties.load(buildInfoInputStream)
+         |    } finally {
+         |      buildInfoInputStream.close()
+         |    }
          |  }
          |
          |  $bindingsCode
