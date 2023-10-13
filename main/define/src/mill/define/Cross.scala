@@ -286,28 +286,39 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
     def cls: Class[_]
   }
 
-  val items: List[Item] = for {
-    factory <- factories.toList
-    (crossSegments0, (crossValues0, (cls0, make))) <-
-      factory.crossSegmentsList.zip(factory.crossValuesListLists.zip(factory.makeList))
-  } yield {
-    val relPath = ctx.segment.pathSegments
-    val module0 = new Lazy(() =>
-      make(
-        ctx
-          .withSegments(ctx.segments ++ Seq(ctx.segment))
-          .withMillSourcePath(ctx.millSourcePath / relPath)
-          .withSegment(Segment.Cross(crossSegments0))
-          .withCrossValues(factories.flatMap(_.crossValuesRaw))
-          .withEnclosingModule(this)
+  val items: List[Item] = {
+    val seenPaths = collection.mutable.Map.empty[Seq[String], Seq[Any]]
+    for {
+      factory <- factories.toList
+      (crossSegments0, (crossValues0, (cls0, make))) <-
+        factory.crossSegmentsList.zip(factory.crossValuesListLists.zip(factory.makeList))
+    } yield {
+      val relPath = ctx.segment.pathSegments
+      val module0 = new Lazy(() =>
+        make(
+          ctx
+            .withSegments(ctx.segments ++ Seq(ctx.segment))
+            .withMillSourcePath(ctx.millSourcePath / relPath)
+            .withSegment(Segment.Cross(crossSegments0))
+            .withCrossValues(factories.flatMap(_.crossValuesRaw))
+            .withEnclosingModule(this)
+        )
       )
-    )
+      seenPaths.get(crossSegments0) match {
+        case Some(prev) =>
+          val msg = s"In ${ctx.fileName} on line ${ctx.lineNum},\n" +
+            s"Cross values $prev and $crossValues0 have colliding destination path segments: $crossSegments0"
+          throw new RuntimeException(msg) with scala.util.control.NoStackTrace
+        case None => // No collision
+      }
+      seenPaths(crossSegments0) = crossValues0
 
-    new Item {
-      def crossValues = crossValues0.toList
-      def crossSegments = crossSegments0.toList
-      def module = module0
-      def cls = cls0
+      new Item {
+        def crossValues = crossValues0.toList
+        def crossSegments = crossSegments0.toList
+        def module = module0
+        def cls = cls0
+      }
     }
   }
 
