@@ -111,6 +111,7 @@ object Cross {
     implicit object ShortToPathSegment extends ToSegments[Short](v => List(v.toString))
     implicit object ByteToPathSegment extends ToSegments[Byte](v => List(v.toString))
     implicit object BooleanToPathSegment extends ToSegments[Boolean](v => List(v.toString))
+    implicit object SubPathToPathSegment extends ToSegments[os.SubPath](v => v.segments.toList)
     implicit def SeqToPathSegment[T: ToSegments]: ToSegments[Seq[T]] = new ToSegments[Seq[T]](
       _.flatMap(implicitly[ToSegments[T]].convert).toList
     )
