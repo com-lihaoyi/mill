@@ -143,7 +143,7 @@ trait MainModule extends mill.define.Module {
     ) match {
       case Left(err) => Left(err)
       case Right(rs) =>
-        val (sortedGroups, _) = evaluator.plan(rs)
+        val sortedGroups = evaluator.plan(rs).sortedGroups
         Right(sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
     }
   }

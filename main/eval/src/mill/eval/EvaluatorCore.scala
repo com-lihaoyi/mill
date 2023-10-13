@@ -74,9 +74,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val chromeProfileLogger = new ChromeProfileLogger(outPath / "mill-chrome-profile.json")
     val profileLogger = new ProfileLogger(outPath / "mill-profile.json")
     val threadNumberer = new ThreadNumberer()
-    val (sortedGroups, transitive) = Plan.plan(goals)
-    val interGroupDeps = findInterGroupDeps(sortedGroups)
-    val terminals = sortedGroups.keys().toVector
+    val plan = Plan.plan(goals)
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
 
@@ -87,8 +85,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     // in a dictionary. When scheduling each future, we are guaranteed that the
     // necessary upstream futures will have already been scheduled and stored,
     // due to the topological order of traversal.
-    for (terminal <- terminals) {
-      val deps = interGroupDeps(terminal)
+    for (terminal <- plan.terminals) {
+      val deps = plan.interGroupDeps(terminal)
       futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
         if (failed.get()) None
         else {
@@ -99,7 +97,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
           val startTime = System.nanoTime() / 1000
           val threadId = threadNumberer.getThreadId(Thread.currentThread())
-          val counterMsg = s"${count.getAndIncrement()}/${terminals.size}"
+          val counterMsg = s"${count.getAndIncrement()}/${plan.terminals.size}"
           val contextLogger = PrefixLogger(
             out = logger,
             context = contextLoggerMsg(threadId),
@@ -108,7 +106,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
           val res = evaluateGroupCached(
             terminal = terminal,
-            group = sortedGroups.lookupKey(terminal),
+            group = plan.sortedGroups.lookupKey(terminal),
             results = upstreamResults,
             counterMsg = counterMsg,
             zincProblemReporter = reporter,
@@ -148,13 +146,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       }
     }
 
-    val finishedOptsMap = terminals
+    val finishedOptsMap = plan.terminals
       .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       .toMap
 
-    val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals
+    val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = plan.terminals
       .flatMap { t =>
-        sortedGroups.lookupKey(t).flatMap { t0 =>
+        plan.sortedGroups.lookupKey(t).flatMap { t0 =>
           finishedOptsMap(t) match {
             case None => Some((t0, TaskResult(Aborted, () => Aborted)))
             case Some(res) => res.newResults.get(t0).map(r => (t0, r))
@@ -170,26 +168,12 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     EvaluatorCore.Results(
       goals.indexed.map(results(_).map(_._1).result),
       finishedOptsMap.map(_._2).flatMap(_.toSeq.flatMap(_.newEvaluated)),
-      transitive,
-      getFailing(sortedGroups, results),
+      plan.transitive,
+      getFailing(plan.sortedGroups, results),
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
 
-  private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])
-      : Map[Terminal, Seq[Terminal]] = {
-    sortedGroups
-      .items()
-      .map { case (terminal, group) =>
-        terminal -> Seq.from(group)
-          .flatMap(_.inputs)
-          .filterNot(group.contains)
-          .distinct
-          .map(sortedGroups.lookupValue)
-          .distinct
-      }
-      .toMap
-  }
 }
 
 private[mill] object EvaluatorCore {

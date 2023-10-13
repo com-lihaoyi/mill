@@ -1,11 +1,24 @@
 package mill.eval
 import mill.api.Loose.Agg
-import mill.api.Strict
 import mill.define.{NamedTask, Segment, Segments, Task}
 import mill.util.MultiBiMap
 
+/**
+ * Execution plan
+ * @param sortedGroups
+ * @param transitive
+ */
+private[mill] case class Plan private (
+    sortedGroups: MultiBiMap[Terminal, Task[_]],
+    transitive: Agg[Task[_]]
+) {
+  lazy val terminals: Vector[Terminal] = sortedGroups.keys().toVector
+  lazy val interGroupDeps: Map[Terminal, Seq[Terminal]] = Plan.findInterGroupDeps(sortedGroups)
+}
+
 private object Plan {
-  def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {
+
+  def plan(goals: Agg[Task[_]]): Plan = {
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
     val seen = collection.mutable.Set.empty[Segments]
@@ -40,6 +53,22 @@ private object Plan {
         case t if goals.contains(t) => Terminal.Task(t)
       }
 
-    (sortedGroups, transitive)
+    Plan(sortedGroups, transitive)
   }
+
+  private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])
+      : Map[Terminal, Seq[Terminal]] = {
+    sortedGroups
+      .items()
+      .map { case (terminal, group) =>
+        terminal -> Seq.from(group)
+          .flatMap(_.inputs)
+          .filterNot(group.contains)
+          .distinct
+          .map(sortedGroups.lookupValue)
+          .distinct
+      }
+      .toMap
+  }
+
 }

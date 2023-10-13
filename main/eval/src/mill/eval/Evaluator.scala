@@ -32,7 +32,7 @@ trait Evaluator {
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
   def withFailFast(newFailFast: Boolean): Evaluator
 
-  def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Agg[Task[_]])
+  def plan(goals: Agg[Task[_]]): Plan
 
   /**
    * Evaluate given task(s) and return the successful result(s), or throw an exception.
