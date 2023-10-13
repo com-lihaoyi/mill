@@ -304,6 +304,11 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
             .withEnclosingModule(this)
         )
       )
+      if (crossSegments0.exists(_.contains('/'))) {
+        val msg = s"In ${ctx.fileName} on line ${ctx.lineNum},\n" +
+          s"Segments $crossSegments0 for cross value $crossValues0 contains '/' which is not allowed. Try using os.SubPath."
+        throw new RuntimeException(msg) with scala.util.control.NoStackTrace
+      }
       seenPaths.get(crossSegments0) match {
         case Some(prev) =>
           val msg = s"In ${ctx.fileName} on line ${ctx.lineNum},\n" +
