@@ -189,7 +189,7 @@ object MillMain {
               if (mill.main.client.Util.isJava9OrAbove) {
                 val rt = config.home / Export.rtJarName
                 if (!os.exists(rt)) {
-                  println(
+                  logger.errorStream.println(
                     s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
                   )
                   Export.rtTo(rt.toIO, false)
