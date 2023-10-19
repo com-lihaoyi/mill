@@ -37,6 +37,13 @@ using Mill and its supporting libraries to the fullest:
 
 * https://handsonscala.com/[Hands-on Scala Programming]
 
+If you prefer a video introduction rather than text, the following presentation
+(and companion blog post) is a good introduction into what the Mill build tool is 
+all about:
+
+- https://www.youtube.com/watch?v=UsXgCeU-ovI&list=PLLMLOC3WM2r6ZFhFfVH74W-sl8LfWtOEc&index=15[Video: A Deep Dive into the Mill Build Tool]
+- https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[Blog Post: So, What's So Special About The Mill Scala Build Tool?]
+
 The rest of this page contains a quick introduction to getting start with using
 Mill to build a simple Scala program. The other pages of this doc-site go into
 more depth, with more examples of how to use Mill and more details of how the
