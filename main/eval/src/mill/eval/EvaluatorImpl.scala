@@ -39,7 +39,7 @@ private[mill] case class EvaluatorImpl(
   override def withFailFast(newFailFast: Boolean): Evaluator =
     this.copy(failFast = newFailFast)
 
-  override def plan(goals: Agg[Task[_]]): Plan = {
+  override def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Agg[Task[_]]) = {
     Plan.plan(goals)
   }
 
