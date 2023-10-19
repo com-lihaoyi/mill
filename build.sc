@@ -222,11 +222,12 @@ val bridgeScalaVersions = Seq(
 // of them. Compiler bridges not in this set will get downloaded and compiled
 // on the fly anyway. For publishing, we publish everything or a specific version
 // if given.
-val compilerBridgeScalaVersions = interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
-  case None => Seq.empty[String]
-  case Some("all") => bridgeScalaVersions
-  case Some(versions) => versions.split(',').map(_.trim).toSeq
-}
+val compilerBridgeScalaVersions =
+  interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
+    case None => Seq.empty[String]
+    case Some("all") => bridgeScalaVersions
+    case Some(versions) => versions.split(',').map(_.trim).toSeq
+  }
 val bridgeVersion = "0.0.1"
 
 trait MillJavaModule extends JavaModule {
