@@ -95,7 +95,7 @@ object Util {
       ),
       force = Nil,
       resolveFilter = resolveFilter
-    )
+    ).map(_.map(_.withRevalidateOnce))
   }
 
   def millProperty(key: String): Option[String] =

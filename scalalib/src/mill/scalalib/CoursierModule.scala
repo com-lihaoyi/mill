@@ -47,7 +47,7 @@ trait CoursierModule extends mill.Module {
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
         ctx = Some(implicitly[mill.api.Ctx.Log])
-      ).map(_.map(_.withRevalidateOnce))
+      )
     }
 
   /**
