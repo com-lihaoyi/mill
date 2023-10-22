@@ -74,7 +74,7 @@ object Lib {
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer
-    )
+    ).map(_.map(_.withRevalidateOnce))
   }
 
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
