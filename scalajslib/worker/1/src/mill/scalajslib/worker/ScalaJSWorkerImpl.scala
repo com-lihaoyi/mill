@@ -330,5 +330,3 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     Seq(input)
   }
 }
-
-
