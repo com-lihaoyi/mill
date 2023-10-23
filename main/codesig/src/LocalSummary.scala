@@ -140,7 +140,7 @@ object LocalSummary {
 
     def hash(x: Int): Unit = insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
 
-    def completeHash() = {
+    def completeHash(): Unit = {
       insnSigs.append(scala.util.hashing.MurmurHash3.finalizeHash(0, insnHash))
       insnHash = 0
     }

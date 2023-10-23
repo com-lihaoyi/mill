@@ -125,7 +125,7 @@ object ResolvedCalls {
 
       val allSamImplementors = allSamImplementors0
         .groupMap(_._1)(_._2)
-        .mapValues(_.toSet)
+        .view.mapValues(_.toSet)
         .toMap
 
       allSamImplementors

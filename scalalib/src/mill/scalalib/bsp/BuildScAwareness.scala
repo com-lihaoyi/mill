@@ -13,7 +13,6 @@ trait BuildScAwareness {
 
   private val MatchDep = """^import ([$]ivy[.]`([^`]+)`).*""".r
   private val MatchFile = """^import ([$]file[.]([^,]+)).*""".r
-  private val MatchShebang = """^(#!.*)$""".r
 
   def parseAmmoniteImports(buildScript: os.Path): Seq[Included] = {
     val queue = mutable.Queue.empty[os.Path]
@@ -25,8 +24,8 @@ trait BuildScAwareness {
     while (queue.nonEmpty) {
       val file = queue.dequeue()
       val inclusions = os.read.lines(file).collect {
-        case m @ MatchDep(_, dep) => IncludedDep(dep, file)
-        case m @ MatchFile(_, include) =>
+        case MatchDep(_, dep) => IncludedDep(dep, file)
+        case MatchFile(_, include) =>
           val pat = include.split("[.]").map {
             case "^" => os.up
             case x => os.rel / x

@@ -1,7 +1,6 @@
 package mill
 package scalalib
 
-import scala.annotation.nowarn
 import coursier.Repository
 import coursier.core.Dependency
 import coursier.core.Resolution
@@ -694,8 +693,6 @@ trait JavaModule
    */
   def ivyDepsTree(args: IvyDepsTreeArgs = IvyDepsTreeArgs()): Command[Unit] = {
 
-    val dependsOnModules = args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_))
-
     val (invalidModules, validModules) =
       args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_)).partitionMap(identity)
 
@@ -956,7 +953,6 @@ trait JavaModule
   /**
    * @param all If `true` fetches also source dependencies
    */
-  @nowarn("msg=pure expression does nothing")
   override def prepareOffline(all: Flag): Command[Unit] = {
     val tasks =
       if (all.value) Seq(

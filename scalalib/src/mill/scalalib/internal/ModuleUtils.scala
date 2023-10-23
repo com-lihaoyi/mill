@@ -1,6 +1,6 @@
 package mill.scalalib.internal
 
-import mill.api.{BuildScriptException, experimental}
+import mill.api.BuildScriptException
 import mill.define.{Module, Segments}
 
 import scala.annotation.tailrec

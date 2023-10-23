@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import scala.annotation.nowarn
 import coursier.Repository
 import mainargs.Flag
 import mill.Agg
@@ -47,7 +46,6 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   def zincLogDebug: T[Boolean] = T.input(T.ctx().log.debugEnabled)
 
   def worker: Worker[ZincWorkerApi] = T.worker {
-    val ctx = T.ctx()
     val jobs = T.ctx() match {
       case j: Ctx.Jobs => j.jobs
       case _ => 1
@@ -169,14 +167,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     } else dep
   }
 
-  @nowarn("msg=pure expression does nothing")
   override def prepareOffline(all: Flag): Command[Unit] = T.command {
     super.prepareOffline(all)()
     classpath()
     ()
   }
 
-  @nowarn("msg=pure expression does nothing")
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
     T.command {
       classpath()
