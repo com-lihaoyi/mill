@@ -20,7 +20,7 @@ def unpackZip(zipDest: os.Path, url: String) = {
       case null => false
       case entry =>
         if (!entry.isDirectory) {
-          val dest = zipDest / os.RelPath(entry.getName)
+          val dest = zipDest / os.SubPath(entry.getName)
           os.makeDir.all(dest / os.up)
           val fileOut = new java.io.FileOutputStream(dest.toString)
           val buffer = new Array[Byte](4096)
