@@ -91,7 +91,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
           case "mill" => evalStdout(rest)
           case cmd =>
             val tokens = cmd +: rest
-            val executable = workspaceRoot / os.RelPath(tokens.head)
+            val executable = workspaceRoot / os.SubPath(tokens.head)
             if (!os.exists(executable)) {
               throw new Exception(
                 s"Executable $executable not found.\n" +
