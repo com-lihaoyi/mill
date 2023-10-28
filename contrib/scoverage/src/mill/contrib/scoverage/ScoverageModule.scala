@@ -157,11 +157,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   def scoverageReportWorkerClasspath: T[Agg[PathRef]] = T {
-    val isScov2 = isScoverage2()
-
-    val workerArtifact =
-      if (isScov2) "mill-contrib-scoverage-worker2"
-      else "mill-contrib-scoverage-worker"
+    val v = if(isScoverage2()) "2" else "1"
+    val workerArtifact = s"mill-contrib-scoverage-worker-${v}"
 
     millProjectModule(
       workerArtifact,
