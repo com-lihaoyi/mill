@@ -295,7 +295,8 @@ class ZincWorkerImpl(
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
+      reportCachedProblems: Boolean,
+      incrementalCompilation: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     compileInternal(
       upstreamCompileOutput = upstreamCompileOutput,
@@ -305,7 +306,8 @@ class ZincWorkerImpl(
       scalacOptions = Nil,
       compilers = javaOnlyCompilers(javacOptions),
       reporter = reporter,
-      reportCachedProblems = reportCachedProblems
+      reportCachedProblems = reportCachedProblems,
+      incrementalCompilation = incrementalCompilation
     )
   }
 
@@ -320,7 +322,8 @@ class ZincWorkerImpl(
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
+      reportCachedProblems: Boolean,
+      incrementalCompilation: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     withCompilers(
       scalaVersion = scalaVersion,
@@ -337,7 +340,8 @@ class ZincWorkerImpl(
         scalacOptions = scalacOptions,
         compilers = compilers,
         reporter = reporter,
-        reportCachedProblems: Boolean
+        reportCachedProblems: Boolean,
+        incrementalCompilation
       )
     }
   }
@@ -419,7 +423,8 @@ class ZincWorkerImpl(
       scalacOptions: Seq[String],
       compilers: Compilers,
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
+      reportCachedProblems: Boolean,
+      incrementalCompilation: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
@@ -514,11 +519,16 @@ class ZincWorkerImpl(
         earlyAnalysisStore = None,
         extra = Array()
       ),
-      pr = {
+      pr = if (incrementalCompilation) {
         val prev = store.get()
         PreviousResult.of(
           prev.map(_.getAnalysis): Optional[CompileAnalysis],
           prev.map(_.getMiniSetup): Optional[MiniSetup]
+        )
+      } else {
+        PreviousResult.of(
+          Optional.empty[CompileAnalysis],
+          Optional.empty[MiniSetup]
         )
       },
       temporaryClassesDirectory = java.util.Optional.empty(),

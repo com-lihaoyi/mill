@@ -355,6 +355,10 @@ trait JavaModule
     ).equalsIgnoreCase("true")
   }
 
+  def zincIncrementalCompilation: T[Boolean] = T {
+    true
+  }
+
   /**
    * Compiles the current module to generate compiled classfiles/bytecode.
    *
@@ -370,7 +374,8 @@ trait JavaModule
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions(),
         reporter = T.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
       )
   }
 
