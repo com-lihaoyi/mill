@@ -23,7 +23,6 @@ import xsbti.compile.{
   ClasspathOptions,
   CompileAnalysis,
   CompileOrder,
-  CompileProgress,
   Compilers,
   IncOptions,
   JavaTools,
@@ -34,7 +33,6 @@ import xsbti.{PathBasedFile, VirtualFile}
 
 import java.io.File
 import java.util.Optional
-import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable
 import scala.ref.SoftReference
 import scala.util.Properties.isWin
@@ -289,7 +287,7 @@ class ZincWorkerImpl(
       .getOrElse(Seq.empty[String])
   }
 
-  def compileJava(
+  override def compileJava(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Agg[os.Path],
       compileClasspath: Agg[os.Path],

@@ -3,6 +3,8 @@ package mill.scalalib.api
 import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Loose.Agg
 
+import scala.annotation.nowarn
+
 object ZincWorkerApi {
   type Ctx = mill.api.Ctx.Dest with mill.api.Ctx.Log with mill.api.Ctx.Home
 }
@@ -17,7 +19,15 @@ trait ZincWorkerApi {
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] =
+    compileJava(
+      upstreamCompileOutput = upstreamCompileOutput,
+      sources = sources,
+      compileClasspath = compileClasspath,
+      javacOptions = javacOptions,
+      reporter = reporter,
+      reportCachedProblems = reportCachedProblems
+    ): @nowarn("cat=deprecation")
 
   /** Compile a Java-only project */
   @deprecated("Use override with `incrementalCompilation` parameter", "Mill 0.11.6")
@@ -30,13 +40,13 @@ trait ZincWorkerApi {
       reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] =
     compileJava(
-      upstreamCompileOutput,
-      sources,
-      compileClasspath,
-      javacOptions,
-      reporter,
-      reportCachedProblems,
-      true
+      upstreamCompileOutput = upstreamCompileOutput,
+      sources = sources,
+      compileClasspath = compileClasspath,
+      javacOptions = javacOptions,
+      reporter = reporter,
+      reportCachedProblems = reportCachedProblems,
+      incrementalCompilation = true
     )
 
   /** Compile a mixed Scala/Java or Scala-only project */
@@ -53,7 +63,20 @@ trait ZincWorkerApi {
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] =
+    compileMixed(
+      upstreamCompileOutput = upstreamCompileOutput,
+      sources = sources,
+      compileClasspath = compileClasspath,
+      javacOptions = javacOptions,
+      scalaVersion = scalaVersion,
+      scalaOrganization = scalaOrganization,
+      scalacOptions = scalacOptions,
+      compilerClasspath = compilerClasspath,
+      scalacPluginClasspath = scalacPluginClasspath,
+      reporter = reporter,
+      reportCachedProblems = reportCachedProblems
+    ): @nowarn("cat=deprecation")
 
   /** Compile a mixed Scala/Java or Scala-only project */
   @deprecated("Use override with `incrementalCompilation` parameter", "Mill 0.11.6")
@@ -71,18 +94,18 @@ trait ZincWorkerApi {
       reportCachedProblems: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] =
     compileMixed(
-      upstreamCompileOutput,
-      sources,
-      compileClasspath,
-      javacOptions,
-      scalaVersion,
-      scalaOrganization,
-      scalacOptions,
-      compilerClasspath,
-      scalacPluginClasspath,
-      reporter,
-      reportCachedProblems,
-      true
+      upstreamCompileOutput = upstreamCompileOutput,
+      sources = sources,
+      compileClasspath = compileClasspath,
+      javacOptions = javacOptions,
+      scalaVersion = scalaVersion,
+      scalaOrganization = scalaOrganization,
+      scalacOptions = scalacOptions,
+      compilerClasspath = compilerClasspath,
+      scalacPluginClasspath = scalacPluginClasspath,
+      reporter = reporter,
+      reportCachedProblems = reportCachedProblems,
+      incrementalCompilation = true
     )
 
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String]
