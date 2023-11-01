@@ -15,7 +15,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   def zincWorker: ModuleRef[ZincWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]
-  def zincIncrementalCompilation: T[Boolean]
+  protected def zincIncrementalCompilationCacheBuster: T[(Boolean, Double)]
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.scalalib.api.CompilationResult]
   def bspBuildTarget: BspBuildTarget
@@ -109,6 +109,8 @@ trait SemanticDbJavaModule extends CoursierModule {
 
     T.log.debug(s"effective javac options: ${javacOpts}")
 
+    val (incrementalCompilation, _) = zincIncrementalCompilationCacheBuster()
+
     zincWorker().worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -118,7 +120,7 @@ trait SemanticDbJavaModule extends CoursierModule {
         javacOptions = javacOpts,
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
+        incrementalCompilation = incrementalCompilation
       ).map(r =>
         SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")
       )
