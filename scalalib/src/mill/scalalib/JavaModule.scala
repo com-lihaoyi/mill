@@ -359,12 +359,6 @@ trait JavaModule
     true
   }
 
-  protected def zincIncrementalCompilationCacheBuster: T[(Boolean, Double)] = T.input {
-    val incrementalCompilation = zincIncrementalCompilation()
-    if (incrementalCompilation) (incrementalCompilation, 0d)
-    else (incrementalCompilation, Math.random())
-  }
-
   /**
    * Compiles the current module to generate compiled classfiles/bytecode.
    *
@@ -372,7 +366,6 @@ trait JavaModule
    */
   // Keep in sync with [[bspCompileClassesPath]]
   def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
-    val (incrementalCompilation, _) = zincIncrementalCompilationCacheBuster()
     zincWorker()
       .worker()
       .compileJava(
@@ -382,7 +375,7 @@ trait JavaModule
         javacOptions = javacOptions(),
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = incrementalCompilation
+        incrementalCompilation = zincIncrementalCompilation()
       )
   }
 

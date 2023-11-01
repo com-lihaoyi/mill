@@ -215,7 +215,6 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         |You may want to select another version. Upgrading to a more recent Scala version is recommended.
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
-    val (incrementalCompilation, _) = zincIncrementalCompilationCacheBuster()
     zincWorker()
       .worker()
       .compileMixed(
@@ -230,7 +229,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalacPluginClasspath = scalacPluginClasspath(),
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = incrementalCompilation
+        incrementalCompilation = zincIncrementalCompilation()
       )
   }
 
@@ -568,8 +567,6 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     T.log.debug(s"effective scalac options: ${scalacOptions}")
     T.log.debug(s"effective javac options: ${javacOpts}")
 
-    val (incrementalCompilation, _) = zincIncrementalCompilationCacheBuster()
-
     zincWorker().worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -584,7 +581,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalacPluginClasspath = semanticDbPluginClasspath(),
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = incrementalCompilation
+        incrementalCompilation = zincIncrementalCompilation()
       )
       .map(r =>
         SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")
