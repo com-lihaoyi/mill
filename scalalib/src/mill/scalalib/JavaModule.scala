@@ -361,7 +361,8 @@ trait JavaModule
 
   protected def zincIncrementalCompilationCacheBuster: T[(Boolean, Double)] = T.input {
     val incrementalCompilation = zincIncrementalCompilation()
-    if (incrementalCompilation) (incrementalCompilation, 0d) else (incrementalCompilation, Math.random())
+    if (incrementalCompilation) (incrementalCompilation, 0d)
+    else (incrementalCompilation, Math.random())
   }
 
   /**
