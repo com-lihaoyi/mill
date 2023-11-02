@@ -228,7 +228,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         reporter = T.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
       )
   }
 
@@ -579,7 +580,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = semanticDbPluginClasspath(),
         reporter = None,
-        reportCachedProblems = zincReportCachedProblems()
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
       )
       .map(r =>
         SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")

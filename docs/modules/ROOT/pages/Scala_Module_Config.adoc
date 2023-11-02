@@ -144,3 +144,22 @@ As a consequence, Ammonite needs full Scala version specific releases.
 
 The older your used Mill version or the newer the Scala version you want to use, the higher is the risk that the default Ammonite version will not match.
 --
+
+== Disabling incremental compilation with Zinc
+
+By default all `ScalaModule`s use incremental compilation via https://github.com/sbt/zinc[Zinc] to
+only recompile sources that have changed since the last compile, or ones that have been invalidated
+by changes to upstream sources.
+
+If for any reason you want to disable incremental compilation for a module, you can override and set
+`zincIncrementalCompilation` to `false`
+
+.`build.sc`
+[source,scala,subs="attributes,verbatim"]
+----
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def zincIncrementalCompilation = false
+}
+----
