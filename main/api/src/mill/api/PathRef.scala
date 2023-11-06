@@ -189,7 +189,7 @@ object PathRef {
       // Parsing to a long and casting to an int is the only way to make
       // round-trip handling of negative numbers work =(
       val sig = java.lang.Long.parseLong(hex, 16).toInt
-      val pr = PathRef(path, quick, sig, validOrig)
+      val pr = PathRef(path, quick, sig, revalidate = validOrig)
       validatedPaths.value.revalidateIfNeededOrThrow(pr)
       pr
     }

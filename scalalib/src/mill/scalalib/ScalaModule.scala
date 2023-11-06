@@ -1,7 +1,6 @@
 package mill
 package scalalib
 
-import scala.annotation.nowarn
 import mill.api.{DummyInputStream, JarManifest, PathRef, Result, SystemStreams, internal}
 import mill.main.BuildInfo
 import mill.util.{Jvm, Util}
@@ -228,7 +227,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         reporter = T.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
       )
   }
 
@@ -479,7 +479,6 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * @param all If `true` , fetches also sources, Ammonite and compiler dependencies.
    */
-  @nowarn("msg=pure expression does nothing")
   override def prepareOffline(all: Flag): Command[Unit] = {
     val ammonite = resolvedAmmoniteReplIvyDeps
     val tasks =
@@ -579,7 +578,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = semanticDbPluginClasspath(),
         reporter = None,
-        reportCachedProblems = zincReportCachedProblems()
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
       )
       .map(r =>
         SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")

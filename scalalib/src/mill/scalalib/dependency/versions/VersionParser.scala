@@ -1,6 +1,7 @@
 package mill.scalalib.dependency.versions
 
-import fastparse._, NoWhitespace._
+import fastparse._
+import fastparse.NoWhitespace._
 
 private[dependency] object VersionParser {
 

@@ -1,7 +1,6 @@
 package mill
 package scalalib
 
-import scala.annotation.nowarn
 import coursier.Repository
 import coursier.core.Dependency
 import coursier.core.Resolution
@@ -355,6 +354,10 @@ trait JavaModule
     ).equalsIgnoreCase("true")
   }
 
+  def zincIncrementalCompilation: T[Boolean] = T {
+    true
+  }
+
   /**
    * Compiles the current module to generate compiled classfiles/bytecode.
    *
@@ -370,7 +373,8 @@ trait JavaModule
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions(),
         reporter = T.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
       )
   }
 
@@ -694,8 +698,6 @@ trait JavaModule
    */
   def ivyDepsTree(args: IvyDepsTreeArgs = IvyDepsTreeArgs()): Command[Unit] = {
 
-    val dependsOnModules = args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_))
-
     val (invalidModules, validModules) =
       args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_)).partitionMap(identity)
 
@@ -956,7 +958,6 @@ trait JavaModule
   /**
    * @param all If `true` fetches also source dependencies
    */
-  @nowarn("msg=pure expression does nothing")
   override def prepareOffline(all: Flag): Command[Unit] = {
     val tasks =
       if (all.value) Seq(

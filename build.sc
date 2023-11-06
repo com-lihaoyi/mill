@@ -118,7 +118,7 @@ object Deps {
   val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.8.1"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.8.2"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
@@ -129,7 +129,7 @@ object Deps {
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.20.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.9.1"
+  val osLib = ivy"com.lihaoyi::os-lib:0.9.2"
   val pprint = ivy"com.lihaoyi::pprint:0.8.1"
   val mainargs = ivy"com.lihaoyi::mainargs:0.5.4"
   val millModuledefsVersion = "0.10.9"
@@ -159,7 +159,7 @@ object Deps {
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.6"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.1.3"
-  val utest = ivy"com.lihaoyi::utest:0.8.1"
+  val utest = ivy"com.lihaoyi::utest:0.8.2"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
   val zinc = ivy"org.scala-sbt::zinc:1.9.5"
   // keep in sync with doc/antora/antory.yml
@@ -228,11 +228,12 @@ val bridgeScalaVersions = Seq(
 // of them. Compiler bridges not in this set will get downloaded and compiled
 // on the fly anyway. For publishing, we publish everything or a specific version
 // if given.
-val compilerBridgeScalaVersions = interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
-  case None => Seq.empty[String]
-  case Some("all") => bridgeScalaVersions
-  case Some(versions) => versions.split(',').map(_.trim).toSeq
-}
+val compilerBridgeScalaVersions =
+  interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
+    case None => Seq.empty[String]
+    case Some("all") => bridgeScalaVersions
+    case Some(versions) => versions.split(',').map(_.trim).toSeq
+  }
 val bridgeVersion = "0.0.1"
 
 trait MillJavaModule extends JavaModule {

@@ -91,7 +91,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
           case "mill" => evalStdout(rest)
           case cmd =>
             val tokens = cmd +: rest
-            val executable = workspaceRoot / os.RelPath(tokens.head)
+            val executable = workspaceRoot / os.SubPath(tokens.head)
             if (!os.exists(executable)) {
               throw new Exception(
                 s"Executable $executable not found.\n" +
@@ -167,7 +167,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
         } finally { zipFile.close() }
 
       case Seq("printf", literal, ">>", path) =>
-        mangleFile(os.Path(path, workspacePath), _ + ujson.read('"' + literal + '"').str)
+        mangleFile(os.Path(path, workspacePath), _ + ujson.read(s""""${literal}"""").str)
 
     }
   }
@@ -217,17 +217,17 @@ object ExampleTestSuite extends IntegrationTestSuite {
     }
   }
 
-  def globMatches(expected: String, filtered: String) = {
+  def globMatches(expected: String, filtered: String): Boolean = {
     filtered
       .linesIterator
       .exists(
         StringContext
-          .glob(expected.split("\\.\\.\\.", -1), _)
+          .glob(expected.split("\\.\\.\\.", -1).toIndexedSeq, _)
           .nonEmpty
       )
   }
 
-  def globMatchesAny(expected: String, filtered: String) = {
+  def globMatchesAny(expected: String, filtered: String): Boolean = {
     expected.linesIterator.exists(globMatches(_, filtered))
   }
 }

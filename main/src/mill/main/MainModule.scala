@@ -2,7 +2,6 @@ package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
 import mill.define.Target
-import mill.main.BuildInfo
 import mill.api.{Ctx, Logger, PathRef, Result}
 import mill.define.{Command, NamedTask, Segments, Task}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
@@ -31,7 +30,8 @@ object MainModule {
       targets: Seq[String],
       log: Logger,
       watch0: Watchable => Unit
-  )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value) = {
+  )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value)
+      : Result[ujson.Value] = {
 
     RunScript.evaluateTasksNamed(
       // When using `show`, redirect all stdout of the evaluated tasks so the

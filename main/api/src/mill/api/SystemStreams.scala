@@ -49,13 +49,13 @@ object SystemStreams {
   def originalErr: PrintStream = original.err
 
   def withStreams[T](systemStreams: SystemStreams)(t: => T): T = {
-    val out = System.out
     val in = System.in
+    val out = System.out
     val err = System.err
     try {
       System.setIn(systemStreams.in)
-      System.setErr(systemStreams.err)
       System.setOut(systemStreams.out)
+      System.setErr(systemStreams.err)
       Console.withIn(systemStreams.in) {
         Console.withOut(systemStreams.out) {
           Console.withErr(systemStreams.err) {

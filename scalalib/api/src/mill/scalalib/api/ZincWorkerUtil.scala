@@ -24,10 +24,10 @@ trait ZincWorkerUtil {
     val suffix = if (sources) "-sources.jar" else ".jar"
     lazy val dir = if (sources) "srcs" else "jars"
 
-    def mavenStyleMatch(fname: String) =
+    def mavenStyleMatch(fname: String): Boolean =
       fname.startsWith(s"$name-$versionPrefix") && fname.endsWith(suffix)
 
-    def ivyStyleMatch(p: os.Path) = {
+    def ivyStyleMatch(p: os.Path): Boolean = {
       val fname = s"$name$suffix"
       p.segments.toSeq match {
         case _ :+ v :+ `dir` :+ `fname` if v.startsWith(versionPrefix) => true
@@ -52,7 +52,7 @@ trait ZincWorkerUtil {
   val NightlyVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
   val TypelevelVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
 
-  def scalaBinaryVersion(scalaVersion: String) = scalaVersion match {
+  def scalaBinaryVersion(scalaVersion: String): String = scalaVersion match {
     case Scala3EarlyVersion(milestone) => s"3.0.0-$milestone"
     case Scala3Version(_, _) => "3"
     case ReleaseVersion(major, minor, _) => s"$major.$minor"
@@ -65,7 +65,7 @@ trait ZincWorkerUtil {
 
   private val ScalaJSFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
 
-  def scalaJSBinaryVersion(scalaJSVersion: String) = scalaJSVersion match {
+  def scalaJSBinaryVersion(scalaJSVersion: String): String = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
       throw new Exception("Scala.js 0.6 is not supported")
     case ScalaJSFullVersion(major, minor, patch, suffix) =>
@@ -75,7 +75,7 @@ trait ZincWorkerUtil {
         major
   }
 
-  def scalaJSWorkerVersion(scalaJSVersion: String) = scalaJSVersion match {
+  def scalaJSWorkerVersion(scalaJSVersion: String): String = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
       throw new Exception("Scala.js 0.6 is not supported")
     case ScalaJSFullVersion(major, _, _, _) =>
@@ -84,7 +84,7 @@ trait ZincWorkerUtil {
 
   private val ScalaNativeFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
 
-  def scalaNativeBinaryVersion(version: String) = version match {
+  def scalaNativeBinaryVersion(version: String): String = version match {
     case ScalaNativeFullVersion(major, minor, patch, suffix) =>
       if (suffix != null && patch == "0")
         version
@@ -92,7 +92,7 @@ trait ZincWorkerUtil {
         s"$major.$minor"
   }
 
-  def scalaNativeWorkerVersion(version: String) = version match {
+  def scalaNativeWorkerVersion(version: String): String = version match {
     case ScalaNativeFullVersion(major, minor, _, _) =>
       s"$major.$minor"
   }
@@ -110,7 +110,7 @@ trait ZincWorkerUtil {
     Versions.millCompilerBridgeScalaVersions.split(",").toSet
 
   /** @return true if the compiler bridge can be downloaded as an already compiled jar */
-  def isBinaryBridgeAvailable(scalaVersion: String) =
+  def isBinaryBridgeAvailable(scalaVersion: String): Boolean =
     if (millCompilerBridgeScalaVersions.contains(scalaVersion)) true
     else scalaVersion match {
       case DottyNightlyVersion(major, minor, _, _) =>
