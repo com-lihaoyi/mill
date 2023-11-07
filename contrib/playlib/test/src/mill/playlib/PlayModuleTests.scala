@@ -12,8 +12,6 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       val (crossScalaVersion, crossPlayVersion) = (crossValue, crossValue2)
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
-      override def twirlVersion = "1.5.1"
-      override def twirlScalaVersion = sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???)
       object test extends PlayTests
       override def ivyDeps = T { super.ivyDeps() ++ Agg(ws()) }
     }
