@@ -6,7 +6,6 @@ import utest.{TestSuite, Tests, assert, _}
 
 trait HelloWorldTests extends TestSuite {
   val testTwirlVersion: String
-  val testTwirlScalaVersion: String
 
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath: os.Path =
@@ -15,7 +14,6 @@ trait HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
     def twirlVersion = testTwirlVersion
-    val twirlScalaVersion = testTwirlScalaVersion
   }
 
   object HelloWorld extends HelloBase {
@@ -163,11 +161,15 @@ trait HelloWorldTests extends TestSuite {
   }
 }
 
-object HelloWorldTests2_12 extends HelloWorldTests {
-  override val testTwirlVersion = "1.3.15"
-  override val testTwirlScalaVersion = sys.props.getOrElse("MILL_SCALA_2_12_VERSION", ???)
+object HelloWorldTests1_3 extends HelloWorldTests {
+  override val testTwirlVersion = "1.3.16"
 }
-object HelloWorldTests2_13 extends HelloWorldTests {
-  override val testTwirlVersion = "1.5.1"
-  override val testTwirlScalaVersion = sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???)
+object HelloWorldTests1_5 extends HelloWorldTests {
+  override val testTwirlVersion = "1.5.2"
+}
+object HelloWorldTests1_6 extends HelloWorldTests {
+  override val testTwirlVersion = "1.6.2"
+}
+object HelloWorldTests2_0 extends HelloWorldTests {
+  override val testTwirlVersion = "2.0.1"
 }

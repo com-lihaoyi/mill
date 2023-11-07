@@ -51,8 +51,10 @@ trait RouterModule extends ScalaModule with Version {
       playMinorVersion() match {
         case "2.6" | "2.7" | "2.8" =>
           Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}").map(bind)
-        case _ =>
+        case "2.9" =>
           Agg(ivy"com.typesafe.play::play-routes-compiler:${playVersion()}").map(bind)
+        case _ =>
+          Agg(ivy"org.playframework::play-routes-compiler:${playVersion()}").map(bind)
       }
     })()
   }
