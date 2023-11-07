@@ -72,6 +72,13 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
           }
         }
       }
+      test("resolvedRunIvyDeps") {
+        matrix.foreach { case (scalaVersion, playVersion) =>
+          workspaceTest(playmulti) { eval =>
+            val Right(_) = eval.apply(playmulti.core(scalaVersion, playVersion).resolvedRunIvyDeps)
+          }
+        }
+      }
     }
     test("compile") {
       matrix.foreach { case (scalaVersion, playVersion) =>
