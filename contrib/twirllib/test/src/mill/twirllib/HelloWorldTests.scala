@@ -76,14 +76,10 @@ trait HelloWorldTests extends TestSuite {
     "@something.else.Thing()"
   )
 
-  def skipUnsupportedVersions(test: => Unit) = {
-    testTwirlVersion match {
-      case s"1.$minor.$_" if minor.toIntOption.exists(_ < 6) =>
-        test
-      case _ if !scala.util.Properties.isJavaAtLeast(11) =>
-        System.err.println(s"Skipping since twirl $testTwirlVersion doesn't support Java 8")
-      case _ => test
-    }
+  def skipUnsupportedVersions(test: => Unit) = testTwirlVersion match {
+    case s"1.$minor.$_" if minor.toIntOption.exists(_ < 6) => test
+    case _ if scala.util.Properties.isJavaAtLeast(11) => test
+    case _ => System.err.println(s"Skipping since twirl $testTwirlVersion doesn't support Java 8")
   }
 
   def tests: Tests = Tests {

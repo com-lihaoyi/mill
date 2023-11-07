@@ -34,9 +34,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
   def tests: Tests = Tests {
     test("compileRouter") {
       matrix.foreach { case (scalaVersion, playVersion) =>
-        if (isPlay29OrNewer(playVersion) && !scala.util.Properties.isJavaAtLeast(11)) {
-          System.err.println(s"Skipping since play $playVersion doesn't support Java 8")
-        } else {
+        skipUnsupportedVersions(playVersion) {
           workspaceTest(HelloWorld) { eval =>
             val eitherResult = eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
             val Right((result, evalCount)) = eitherResult
@@ -71,9 +69,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
     }
     test("compileRouterInvalidRoutes") {
       matrix.foreach { case (scalaVersion, playVersion) =>
-        if (isPlay29OrNewer(playVersion) && !scala.util.Properties.isJavaAtLeast(11)) {
-          System.err.println(s"Skipping since play $playVersion doesn't support Java 8")
-        } else {
+        skipUnsupportedVersions(playVersion) {
           workspaceTest(HelloWorld, resourcePath = invalidResourcePath) { eval =>
             val project = HelloWorld.core(scalaVersion, playVersion)
             val eitherResult = eval.apply(project.compileRouter)
@@ -101,9 +97,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
     }
     test("compileRouterInvalidSubRoutes") {
       matrix.foreach { case (scalaVersion, playVersion) =>
-        if (isPlay29OrNewer(playVersion) && !scala.util.Properties.isJavaAtLeast(11)) {
-          System.err.println(s"Skipping since play $playVersion doesn't support Java 8")
-        } else {
+        skipUnsupportedVersions(playVersion) {
           workspaceTest(HelloWorld, resourcePath = invalidSubResourcePath) { eval =>
             val eitherResult = eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
             val Left(Failure(message, x)) = eitherResult

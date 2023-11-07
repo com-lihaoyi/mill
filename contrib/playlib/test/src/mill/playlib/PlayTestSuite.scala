@@ -26,8 +26,11 @@ trait PlayTestSuite {
     (testScala3, testPlay30)
   )
 
-  def isPlay29OrNewer(playVersion: String) =
-    playVersion.startsWith("3.") || playVersion.startsWith("2.9.")
+  def skipUnsupportedVersions(playVersion: String)(test: => Unit) = playVersion match {
+    case s"2.$minor.$_" if minor.toIntOption.exists(_ < 9) => test
+    case _ if scala.util.Properties.isJavaAtLeast(11) => test
+    case _ => System.err.println(s"Skipping since play $playVersion doesn't support Java 8")
+  }
 
   def resourcePath: os.Path
 
