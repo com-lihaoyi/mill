@@ -23,4 +23,14 @@ trait PlayApiModule extends Dependencies with Router with Server {
   def start(args: Task[Args] = T.task(Args())) = T.command { run(args) }
 
 }
-trait PlayModule extends PlayApiModule with Static with Twirl
+trait PlayModule extends PlayApiModule with Static with Twirl {
+  override def twirlVersion = T {
+    playMinorVersion() match {
+      case "2.6" => "1.3.16"
+      case "2.7" => "1.4.2"
+      case "2.8" => "1.5.1"
+      case "2.9" => "1.6.2"
+      case _ => "2.0.1"
+    }
+  }
+}
