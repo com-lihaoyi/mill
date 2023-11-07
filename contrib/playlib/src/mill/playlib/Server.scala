@@ -9,7 +9,14 @@ private[playlib] trait Server extends ScalaModule with Version {
 
   def akkaHttpServer = T { component("play-akka-http-server") }
 
-  def playServerProvider = T { akkaHttpServer() }
+  def pekkoHttpServer = T { component("play-pekko-http-server") }
+
+  def playServerProvider = T {
+    if (playVersion().startsWith("2."))
+      akkaHttpServer()
+    else
+      pekkoHttpServer()
+  }
 
   override def runIvyDeps = T {
     super.runIvyDeps() ++ Agg(playServerProvider())
