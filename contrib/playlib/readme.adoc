@@ -47,10 +47,9 @@ import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule {
-    //config
-    override def scalaVersion= T{"2.13.8"}
-    override def playVersion= T{"2.8.16"}
-    override def twirlVersion= T{"1.5.1"}
+    // config
+    override def scalaVersion = T { "2.13.12" }
+    override def playVersion = T { "2.8.20" }
 
     object test extends PlayTests
 }
@@ -108,18 +107,18 @@ ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
 === Using `PlayApiModule`
 
 The `PlayApiModule` trait behaves the same as the `PlayModule` trait but it won't process .scala
-.html files and you don't need to define the `twirlVersion:
+.html files:
 
 .`build.sc`
 [source,scala]
 ----
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayApiModule {
-    //config
-    override def scalaVersion= T{"2.13.8"}
-    override def playVersion= T{"2.8.16"}
+    // config
+    override def scalaVersion = T { "2.13.12" }
+    override def playVersion = T { "2.8.20" }
 
     object test extends PlayTests
 }
@@ -154,9 +153,9 @@ import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
 
 object core extends PlayApiModule {
-    //config
-    override def scalaVersion= T{"2.13.8"}
-    override def playVersion= T{"2.8.16"}
+    // config
+    override def scalaVersion = T{ "2.13.12" }
+    override def playVersion = T{ "2.8.20" }
 
     object test extends PlayTests
 
@@ -192,13 +191,12 @@ Looking back at the sample build definition in <<_using_playmodule>>:
 [source,scala]
 ----
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
 
 object core extends PlayModule {
-    //config
-    override def scalaVersion= T{"2.13.8"}
-    override def playVersion= T{"2.8.16"}
-    override def twirlVersion= T{"1.5.1"}
+    // config
+    override def scalaVersion = T { "2.13.12" }
+    override def playVersion = T { "2.8.20" }
 
     object test extends PlayTests
 }
@@ -236,10 +234,9 @@ import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule with SingleModule {
-	//config
-	override def scalaVersion= T{"2.13.8"}
-	override def playVersion= T{"2.8.16"}
-	override def twirlVersion= T{"1.5.1"}
+	// config
+	override def scalaVersion = T { "2.13.12" }
+	override def playVersion = T { "2.8.20" }
 
 	object test extends PlayTests
 }
@@ -281,8 +278,8 @@ import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
-  def playVersion= T{"2.8.16"}
-  def scalaVersion= T{"2.13.8"}
+  def playVersion = T{ "2.8.20" }
+  def scalaVersion = T { "2.13.12" }
 }
 ----
 
@@ -336,7 +333,7 @@ import mill.scalalib._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
-  def playVersion = "2.8.16"
+  def playVersion = "2.8.20"
   override def routesAdditionalImport = Seq("my.additional.stuff._", "my.other.stuff._")
 }
 ----

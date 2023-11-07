@@ -61,6 +61,7 @@ object Deps {
   val testScala30Version = "3.0.2"
   val testScala31Version = "3.1.3"
   val testScala32Version = "3.2.0"
+  val testScala33Version = "3.3.1"
 
   object Scalajs_1 {
     val scalaJsVersion = "1.14.0"
@@ -84,7 +85,11 @@ object Deps {
   trait Play {
     def playVersion: String
     def playBinVersion: String = playVersion.split("[.]").take(2).mkString(".")
-    def routesCompiler = ivy"com.typesafe.play::routes-compiler::$playVersion"
+    def routesCompiler = playBinVersion match {
+      case "2.6" | "2.7" | "2.8" => ivy"com.typesafe.play::routes-compiler::$playVersion"
+      case "2.9" => ivy"com.typesafe.play::play-routes-compiler::$playVersion"
+      case _ => ivy"org.playframework::play-routes-compiler::$playVersion"
+    }
     def scalaVersion: String = Deps.scalaVersion
   }
   object Play_2_6 extends Play {
@@ -95,9 +100,15 @@ object Deps {
     val playVersion = "2.7.9"
   }
   object Play_2_8 extends Play {
-    val playVersion = "2.8.19"
+    val playVersion = "2.8.20"
   }
-  val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
+  object Play_2_9 extends Play {
+    val playVersion = "2.9.0"
+  }
+  object Play_3_0 extends Play {
+    val playVersion = "3.0.0"
+  }
+  val play = Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.9"
   val ammoniteVersion = "3.0.0-M0-53-084f7f4e"
@@ -352,6 +363,7 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
       s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
       s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
+      s"-DTEST_SCALA_3_3_VERSION=${Deps.testScala33Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
@@ -739,7 +751,9 @@ object contrib extends Module {
         Seq(
           s"-DTEST_PLAY_VERSION_2_6=${Deps.Play_2_6.playVersion}",
           s"-DTEST_PLAY_VERSION_2_7=${Deps.Play_2_7.playVersion}",
-          s"-DTEST_PLAY_VERSION_2_8=${Deps.Play_2_8.playVersion}"
+          s"-DTEST_PLAY_VERSION_2_8=${Deps.Play_2_8.playVersion}",
+          s"-DTEST_PLAY_VERSION_2_9=${Deps.Play_2_9.playVersion}",
+          s"-DTEST_PLAY_VERSION_3_0=${Deps.Play_3_0.playVersion}"
         )
     }
 
