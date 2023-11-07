@@ -12,7 +12,8 @@ trait PlayApiModule extends Dependencies with Router with Server {
         case Versions.PLAY_2_6 => "3.1.3"
         case Versions.PLAY_2_7 => "4.0.3"
         case Versions.PLAY_2_8 => "5.1.0"
-        case Versions.PLAY_2_9 => "6.0.0-RC2"
+        case Versions.PLAY_2_9 => "6.0.0"
+        case Versions.PLAY_3_0 => "7.0.0"
       }
       Agg(ivy"org.scalatestplus.play::scalatestplus-play::${scalatestPlusPlayVersion}")
     }
