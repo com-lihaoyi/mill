@@ -182,7 +182,7 @@ be find for a production deployment.
 == Using `RootModule`
 
 The `RootModule` abstract class allows you to have the build descriptor at the same level as the
-sourc code on the filesystem. You can move from there to a multi-module build either by refactoring
+source code on the filesystem. You can move from there to a multi-module build either by refactoring
 your directory layout into multiple subdirectories or by using mill's nested modules feature.
 
 Looking back at the sample build definition in <<_using_playmodule>>:
