@@ -23,7 +23,8 @@ trait PlayTestSuite {
     (testScala3, testPlay29)
   )
 
-  def isPlay29OrNewer(playVersion: String) = playVersion.startsWith("3.") || playVersion.startsWith("2.9.")
+  def isPlay29OrNewer(playVersion: String) =
+    playVersion.startsWith("3.") || playVersion.startsWith("2.9.")
 
   def resourcePath: os.Path
 
