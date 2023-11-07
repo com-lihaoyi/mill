@@ -263,14 +263,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.5-20-071839</span>
+    <span class="version">0.11.5-21-d7859c</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../index.html">0.11.5-20-071839</a>
+          <a href="../index.html">0.11.5-21-d7859c</a>
         </li>
         <li class="version">
           <a href="../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -304,9 +304,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-20-071839</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-21-d7859c</button>
   <div class="version-menu">
-    <a class="version is-current" href="playlib.html">0.11.5-20-071839</a>
+    <a class="version is-current" href="playlib.html">0.11.5-21-d7859c</a>
     <a class="version" href="../0.11.0-M7/Plugin_Play.html">0.11.0-M7</a>
     <a class="version" href="../0.10.12/Plugin_Play.html">0.10.12</a>
     <a class="version is-missing" href="../0.10.0/index.html">0.10.0</a>
@@ -408,10 +408,9 @@ Twirl versions. You also need to define your own test object which extends the p
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule {
-    //config
-    override def scalaVersion= T{&quot;2.13.8&quot;}
-    override def playVersion= T{&quot;2.8.16&quot;}
-    override def twirlVersion= T{&quot;1.5.1&quot;}
+    // config
+    override def scalaVersion = T { &quot;2.13.12&quot; }
+    override def playVersion = T { &quot;2.8.20&quot; }
 
     object test extends PlayTests
 }</code></pre>
@@ -475,18 +474,18 @@ added (the actual version depends on the version of Play you are pulling <code>2
 <h3 id="_using_playapimodule"><a class="anchor" href="#_using_playapimodule"></a>Using <code>PlayApiModule</code></h3>
 <div class="paragraph">
 <p>The <code>PlayApiModule</code> trait behaves the same as the <code>PlayModule</code> trait but it won’t process .scala
-.html files and you don’t need to define the `twirlVersion:</p>
+.html files:</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayApiModule {
-    //config
-    override def scalaVersion= T{&quot;2.13.8&quot;}
-    override def playVersion= T{&quot;2.8.16&quot;}
+    // config
+    override def scalaVersion = T { &quot;2.13.12&quot; }
+    override def playVersion = T { &quot;2.8.20&quot; }
 
     object test extends PlayTests
 }</code></pre>
@@ -552,9 +551,9 @@ like in the following example build:</p>
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
 
 object core extends PlayApiModule {
-    //config
-    override def scalaVersion= T{&quot;2.13.8&quot;}
-    override def playVersion= T{&quot;2.8.16&quot;}
+    // config
+    override def scalaVersion = T{ &quot;2.13.12&quot; }
+    override def playVersion = T{ &quot;2.8.20&quot; }
 
     object test extends PlayTests
 
@@ -618,13 +617,12 @@ your directory layout into multiple subdirectories or by using mill’s nested m
 <div class="title"><code>build.sc</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
 
 object core extends PlayModule {
-    //config
-    override def scalaVersion= T{&quot;2.13.8&quot;}
-    override def playVersion= T{&quot;2.8.16&quot;}
-    override def twirlVersion= T{&quot;1.5.1&quot;}
+    // config
+    override def scalaVersion = T { &quot;2.13.12&quot; }
+    override def playVersion = T { &quot;2.8.20&quot; }
 
     object test extends PlayTests
 }</code></pre>
@@ -664,10 +662,9 @@ object core extends PlayModule {
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule with SingleModule {
- //config
- override def scalaVersion= T{&quot;2.13.8&quot;}
- override def playVersion= T{&quot;2.8.16&quot;}
- override def twirlVersion= T{&quot;1.5.1&quot;}
+ // config
+ override def scalaVersion = T { &quot;2.13.12&quot; }
+ override def playVersion = T { &quot;2.8.20&quot; }
 
  object test extends PlayTests
 }</code></pre>
@@ -711,8 +708,8 @@ define <code>playVersion</code> and <code>scalaVersion</code>.</p>
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
-  def playVersion= T{&quot;2.8.16&quot;}
-  def scalaVersion= T{&quot;2.13.8&quot;}
+  def playVersion = T{ &quot;2.8.20&quot; }
+  def scalaVersion = T { &quot;2.13.12&quot; }
 }</code></pre>
 </div>
 </div>
@@ -791,7 +788,7 @@ to have a custom override for <code>generatedSources</code> you can get the list
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
-  def playVersion = &quot;2.8.16&quot;
+  def playVersion = &quot;2.8.20&quot;
   override def routesAdditionalImport = Seq(&quot;my.additional.stuff._&quot;, &quot;my.other.stuff._&quot;)
 }</code></pre>
 </div>
