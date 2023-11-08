@@ -66,15 +66,15 @@ object foo extends RootModule with ScalaModule {
 
 /** Usage
 
-> ./mill run --text hello
+> mill run --text hello
 text: hello
 MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
 my.line.count: 12
 
-> ./mill show lineCount
+> mill show lineCount
 12
 
-> ./mill printLineCount
+> mill printLineCount
 12
 */
 

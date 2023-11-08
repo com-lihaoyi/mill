@@ -26,7 +26,7 @@ object bar extends MyModule {
 
 /** Usage
 
-> ./mill resolve _
+> mill resolve _
 foo
 bar
 clean
@@ -40,10 +40,10 @@ version
 visualize
 visualizePlan
 
-> ./mill resolve _.compile
+> mill resolve _.compile
 foo.compile
 
-> ./mill resolve foo._
+> mill resolve foo._
 foo.allSourceFiles
 foo.allSources
 foo.ammoniteReplClasspath
@@ -60,14 +60,14 @@ foo.artifactName
 
 /** Usage
 
-> ./mill resolve foo.{compile,run}
-> ./mill resolve "foo.{compile,run}"
-> ./mill resolve foo.compile foo.run
-> ./mill resolve _.compile  # list the compile tasks for every top-level module
-> ./mill resolve __.compile # list the compile tasks for every module
-> ./mill resolve _          # list every top level module and task
-> ./mill resolve foo._      # list every task directly within the foo module
-> ./mill resolve __         # list every module and task recursively
+> mill resolve foo.{compile,run}
+> mill resolve "foo.{compile,run}"
+> mill resolve foo.compile foo.run
+> mill resolve _.compile  # list the compile tasks for every top-level module
+> mill resolve __.compile # list the compile tasks for every module
+> mill resolve _          # list every top level module and task
+> mill resolve foo._      # list every task directly within the foo module
+> mill resolve __         # list every module and task recursively
 
 */
 
@@ -80,7 +80,7 @@ foo.artifactName
 
 /** Usage
 
-> ./mill inspect foo.run
+> mill inspect foo.run
 foo.run(JavaModule.scala:...)
     Runs this module's code in a subprocess and waits for it to finish
 Inputs:
@@ -106,7 +106,7 @@ Inputs:
 
 /** Usage
 
-> ./mill show foo.scalaVersion
+> mill show foo.scalaVersion
 "2.13.11"
 
 */
@@ -118,7 +118,7 @@ Inputs:
 
 /** Usage
 
-> ./mill show foo.compile
+> mill show foo.compile
 {
   "analysisFile": ".../out/foo/compile.dest/zinc",
   "classes": ".../out/foo/compile.dest/classes"
@@ -129,12 +129,12 @@ Inputs:
 
 /** Usage
 
-> ./mill show foo.sources
+> mill show foo.sources
 [
   ".../foo/src"
 ]
 
-> ./mill show foo.compileClasspath
+> mill show foo.compileClasspath
 [
   ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
   ...
@@ -151,7 +151,7 @@ Inputs:
 
 /** Usage
 
-> ./mill show "foo.{sources,compileClasspath}"
+> mill show "foo.{sources,compileClasspath}"
 {
   "foo.sources": [
     ".../foo/src"
@@ -172,7 +172,7 @@ Inputs:
 
 /** Usage
 
-> ./mill showNamed "foo.{sources,compileClasspath}"
+> mill showNamed "foo.{sources,compileClasspath}"
 {
   "foo.sources": [
     ".../foo/src"
@@ -191,12 +191,12 @@ Inputs:
 // `mill path` prints out a dependency chain between the first task and the
 // second. It is very useful for exploring the build graph and trying to figure
 // out how data gets from one task to another, or trying to figure out why
-// running `./mill foo` ends up running another task `bar` that you didn't
+// running `mill foo` ends up running another task `bar` that you didn't
 // expect it to.
 
 /** Usage
 
-> ./mill path foo.assembly foo.sources
+> mill path foo.assembly foo.sources
 foo.sources
 foo.allSources
 foo.allSourceFiles
@@ -220,7 +220,7 @@ foo.assembly
 
 /** Usage
 
-> ./mill plan foo.compileClasspath
+> mill plan foo.compileClasspath
 foo.transitiveCompileClasspath
 foo.compileResources
 foo.unmanagedClasspath
@@ -241,7 +241,7 @@ foo.compileClasspath
 
 /** Usage
 
-> ./mill clean
+> mill clean
 
 */
 
@@ -250,14 +250,14 @@ foo.compileClasspath
 
 /** Usage
 
-> ./mill clean             # clean all outputs
-> ./mill clean foo         # clean all outputs for module 'foo' (including nested modules)
-> ./mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
-> ./mill clean foo.{compile,run}
-> ./mill clean "foo.{compile,run}"
-> ./mill clean foo.compile foo.run
-> ./mill clean _.compile
-> ./mill clean __.compile
+> mill clean             # clean all outputs
+> mill clean foo         # clean all outputs for module 'foo' (including nested modules)
+> mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
+> mill clean foo.{compile,run}
+> mill clean "foo.{compile,run}"
+> mill clean foo.compile foo.run
+> mill clean _.compile
+> mill clean __.compile
 
 */
 
@@ -270,9 +270,9 @@ foo.compileClasspath
 
 /** Usage
 
-> ./mill mill.scalalib.Dependency/showUpdates
+> mill mill.scalalib.Dependency/showUpdates
 
-> ./mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
+> mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
 
 */
 

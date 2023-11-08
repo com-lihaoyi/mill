@@ -55,15 +55,15 @@ object bar extends MyModule {
 
 /** Usage
 
-> ./mill resolve __.run
+> mill resolve __.run
 foo.run
 bar.run
 
-> ./mill foo.run --foo-text hello --bar-text world
+> mill foo.run --foo-text hello --bar-text world
 Foo.value: hello
 Bar.value: <p>world</p>
 
-> ./mill bar.run world
+> mill bar.run world
 Bar.value: <p>world</p>
 
 */

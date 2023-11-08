@@ -22,14 +22,14 @@ object foo extends RootModule with ScalaModule {
 
 /** Usage
 
-> ./mill run
+> mill run
 ...
 Line Count: 11
 
-> ./mill show lineCount
+> mill show lineCount
 11
 
-> ./mill inspect lineCount
+> mill inspect lineCount
 lineCount(build.sc:12)
     Total number of lines in module's source files
 Inputs:
@@ -39,7 +39,7 @@ Inputs:
 // Above, `def lineCount` is a new build target we define, which makes use of
 // `allSourceFiles` (an existing target) and is in-turn used in our override of
 // `resources` (also an existing target). This generated file can then be
-// loaded and used at runtime, as see in the output of `./mill run`
+// loaded and used at runtime, as see in the output of `mill run`
 //
 // While this is a toy example, it shows how easy it is to customize your Mill
 // build to include the kinds of custom logic common in the build config of

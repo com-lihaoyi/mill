@@ -28,10 +28,10 @@ def bar = T { s"hello ${foo("2.10", "jvm").suffix()}" }
 
 /** Usage
 
-> ./mill show foo[2.10,jvm].suffix
+> mill show foo[2.10,jvm].suffix
 "_2.10_jvm"
 
-> ./mill showNamed foo[__].suffix
+> mill showNamed foo[__].suffix
 {
   "foo[2.10,jvm].suffix": "_2.10_jvm",
   "foo[2.10,js].suffix": "_2.10_js",

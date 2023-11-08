@@ -17,17 +17,17 @@ object foo extends ScalaModule {
 
 /** Usage
 
-> ./mill foo.compile
+> mill foo.compile
 compiling 1 Scala source...
 
-> ./mill foo.test.compile
+> mill foo.test.compile
 compiling 1 Scala source...
 
-> ./mill foo.test.test
+> mill foo.test.test
 + foo.FooTests.hello ...
 + foo.FooTests.world ...
 
-> ./mill foo.test
+> mill foo.test
 + foo.FooTests.hello ...
 + foo.FooTests.world ...
 
@@ -54,7 +54,7 @@ object bar extends ScalaModule {
 
 /** Usage
 
-> ./mill bar.test
+> mill bar.test
 + bar.BarTests.hello ...
 + bar.BarTests.world ...
 
@@ -77,7 +77,7 @@ object bar extends ScalaModule {
 
 /** Usage
 
-> ./mill bar.test bar.BarTests.hello
+> mill bar.test bar.BarTests.hello
 + bar.BarTests.hello ...
 
 */
@@ -100,14 +100,14 @@ object qux extends ScalaModule {
 
 /** Usage
 
-> ./mill qux.test
+> mill qux.test
 + qux.QuxTests.hello ...
 + qux.QuxTests.world ...
 
-> ./mill qux.integration
+> mill qux.integration
 + qux.QuxIntegrationTests.helloworld ...
 
-> ./mill qux.{test,integration}
+> mill qux.{test,integration}
 + qux.QuxTests.hello ...
 + qux.QuxTests.world ...
 + qux.QuxIntegrationTests.helloworld ...

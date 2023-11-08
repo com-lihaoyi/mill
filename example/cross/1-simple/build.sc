@@ -23,24 +23,24 @@ trait FooModule extends Cross.Module[String] {
 
 /** Usage
 
-> ./mill show foo[2.10].suffix
+> mill show foo[2.10].suffix
 "_2.10"
 
-> ./mill show foo[2.10].bigSuffix
+> mill show foo[2.10].bigSuffix
 "[[[_2.10]]]"
 
-> ./mill show foo[2.10].sources
+> mill show foo[2.10].sources
 [
   ".../foo"
 ]
 
-> ./mill show foo[2.12].suffix
+> mill show foo[2.12].suffix
 "_2.12"
 
-> ./mill show foo[2.12].bigSuffix
+> mill show foo[2.12].bigSuffix
 "[[[_2.12]]]"
 
-> ./mill show foo[2.12].sources
+> mill show foo[2.12].sources
 [
   ".../foo"
 ]

@@ -17,18 +17,18 @@ object bar extends JavaModule
 
 /** Usage
 
-> ./mill resolve __.run
+> mill resolve __.run
 foo.run
 bar.run
 
-> ./mill foo.compile
+> mill foo.compile
 compiling 1 Java source...
 
-> ./mill foo.run
+> mill foo.run
 Foo.value: 31337
 Bar.value: 271828
 
-> ./mill foo.test
+> mill foo.test
 Test run started
 ...
 Test run finished: 0 failed, 0 ignored, 2 total...

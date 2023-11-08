@@ -34,23 +34,23 @@ object baz extends MyModule {
 
 /** Usage
 
-> ./mill resolve __.run
+> mill resolve __.run
 foo.bar.run
 foo.qux.run
 baz.run
 
-> ./mill foo.run --bar-text hello --qux-text world --foo-text today
+> mill foo.run --bar-text hello --qux-text world --foo-text today
 Bar.value: <h1>hello</h1>
 Qux.value: <p>world</p>
 Foo.value: <p>today</p>
 
-> ./mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
+> mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
 Bar.value: <h1>hello</h1>
 Qux.value: <p>world</p>
 Foo.value: <p>today</p>
 Baz.value: <p>yay</p>
 
-> ./mill foo.qux.run --bar-text hello --qux-text world
+> mill foo.qux.run --bar-text hello --qux-text world
 Bar.value: <h1>hello</h1>
 Qux.value: <p>world</p>
 
