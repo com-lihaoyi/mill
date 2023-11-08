@@ -23,25 +23,25 @@ trait BarModule extends CrossScalaModule
 
 /** Usage
 
-> ./mill resolve __.run
+> mill resolve __.run
 foo[2.12.17].run
 foo[2.13.8].run
 bar[2.12.17].run
 bar[2.13.8].run
 
-> ./mill foo[2.12.17].run
+> mill foo[2.12.17].run
 Foo.value: Hello World Scala library version 2.12.17...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.12.x
 
-> ./mill foo[2.13.8].run
+> mill foo[2.13.8].run
 Foo.value: Hello World Scala library version 2.13.8...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.13.x
 
-> ./mill bar[2.13.8].run
+> mill bar[2.13.8].run
 Bar.value: bar-value
 
 */

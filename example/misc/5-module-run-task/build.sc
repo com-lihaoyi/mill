@@ -27,7 +27,7 @@ object bar extends ScalaModule{
 
 /** Usage
 
-> ./mill foo.run
+> mill foo.run
 ...
 Foo.value: HELLO
 

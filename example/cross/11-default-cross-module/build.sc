@@ -16,13 +16,13 @@ object bar extends Cross[FooModule]("2.10", "2.11", "2.12") {
 
 /** Usage
 
-> ./mill show foo[2.10].suffix
+> mill show foo[2.10].suffix
 "_2.10"
 
-> ./mill show foo[].suffix
+> mill show foo[].suffix
 "_2.10"
 
-> ./mill show bar[].suffix
+> mill show bar[].suffix
 "_2.12"
 
 */

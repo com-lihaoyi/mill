@@ -60,7 +60,7 @@ object foo3 extends ScalaModule {
 
 /** Usage
 
-> ./mill foo.run
+> mill foo.run
 Compiling...
 Running...
 Hello World

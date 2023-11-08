@@ -46,15 +46,15 @@ object foo extends RootModule with ScalaModule {
 
 /** Usage
 
-> ./mill compile
+> mill compile
 compiling 1 Scala source...
 ...
 
-> ./mill run
+> mill run
 Foo.value: <h1>hello</h1>
 scalatagsVersion: 0.12.0
 
-> ./mill show assembly
+> mill show assembly
 ".../out/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
@@ -68,13 +68,13 @@ scalatagsVersion: 0.12.0
 
 /** Usage
 
-> ./mill --meta-level 1 show sources
+> mill --meta-level 1 show sources
 [
 .../build.sc",
 .../mill-build/src"
 ]
 
-> ./mill --meta-level 2 show sources
+> mill --meta-level 2 show sources
 .../mill-build/build.sc"
 
 

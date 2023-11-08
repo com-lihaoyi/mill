@@ -79,7 +79,7 @@ def dist = T {
 
 /** Usage
 
-> ./mill dist
+> mill dist
 
 > cat out/dist.dest/index.html                    # root index page
 ...
@@ -100,14 +100,14 @@ def dist = T {
 // `post/` folder, and when you edit your posts it only re-parses and
 // re-renders the markdown files that you changed. You can use `-w` to watch
 // the posts folder to automatically re-run the `dist` command if a post
-// changes, or `-j` e.g. `./mill -j 4 dist` to enable parallelism if there are
+// changes, or `-j` e.g. `mill -j 4 dist` to enable parallelism if there are
 // enough posts that the build is becoming noticeably slow.
 //
 // You can also build each individual post directly:
 
 /** Usage
 
-> ./mill show "post[1-My-First-Post.md].render"
+> mill show "post[1-My-First-Post.md].render"
 ".../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html"
 
 > cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html

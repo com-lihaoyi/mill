@@ -29,7 +29,7 @@ trait BarModule extends MyModule {
 
 /** Usage
 
-> ./mill show bar[2.10].bigSuffix
+> mill show bar[2.10].bigSuffix
 ...
 "[[[_2.10]]]"
 

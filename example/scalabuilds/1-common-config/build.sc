@@ -74,7 +74,7 @@ object foo extends RootModule with ScalaModule {
 
 /** Usage
 
-> ./mill run
+> mill run
 Foo2.value: <h1>hello2</h1>
 Foo.value: <h1>hello</h1>
 FooA.value: hello A
@@ -85,7 +85,7 @@ MyOtherResource: My Other Resource Contents
 my.custom.property: my-prop-value
 MY_CUSTOM_ENV: my-env-value
 
-> ./mill show assembly
+> mill show assembly
 ".../out/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
@@ -100,7 +100,7 @@ my.custom.property: my-prop-value
 
 > sed -i 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
 
-> ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
+> mill compile # demonstrate -deprecation/-Xfatal-warnings flags
 error: object Foo2 { println(this + "hello")
 error:                       ^
 error: ...Implicit injection of + is deprecated. Convert to String to call +...

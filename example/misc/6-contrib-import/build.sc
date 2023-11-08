@@ -17,7 +17,7 @@ object foo extends ScalaModule with BuildInfo {
 
 /** Usage
 
-> ./mill foo.run
+> mill foo.run
 ...
 foo.BuildInfo.scalaVersion: 2.13.10
 
