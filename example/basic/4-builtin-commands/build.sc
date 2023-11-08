@@ -1,3 +1,5 @@
+// == Example `build.sc`
+//
 // The following examples will be assuming the `build.sc` file given below:
 
 import mill._, scalalib._
@@ -16,6 +18,11 @@ object bar extends MyModule {
 }
 
 // == resolve
+
+// `resolve` lists the tasks that match a particular query, without running them.
+// This is useful for "dry running" an `mill` command to see what would be run
+// before you run them, or to explore what modules or tasks are available
+// from the command line using `+resolve _+`, `+resolve foo._+`, etc.
 
 /** Usage
 
@@ -47,10 +54,9 @@ foo.artifactName
 
 */
 
-// `resolve` lists the tasks that match a particular query, without running them.
-// This is useful for "dry running" an `mill` command to see what would be run
-// before you run them, or to explore what modules or tasks are available
-// from the command line using `+resolve _+`, `+resolve foo._+`, etc.
+// You can also use the special wildcards `+_+` as a placeholder for a single segment and `+__+`as a placeholder for many segments.
+// Lists within curly braces (`{`, `}`) are also supported.
+
 
 /** Usage
 
@@ -67,6 +73,11 @@ foo.artifactName
 
 // == inspect
 
+// `inspect` is a more verbose version of <<_resolve>>. In addition to printing
+// out the name of one-or-more tasks, it also displays its source location and a
+// list of input tasks. This is very useful for debugging and interactively
+// exploring the structure of your build from the command line.
+
 /** Usage
 
 > ./mill inspect foo.run
@@ -81,16 +92,17 @@ Inputs:
 
 */
 
-// `inspect` is a more verbose version of <<_resolve>>. In addition to printing
-// out the name of one-or-more tasks, it also displays its source location and a
-// list of input tasks. This is very useful for debugging and interactively
-// exploring the structure of your build from the command line.
-//
-// While `inspect` also works with the same `+_+`/`+__+` wildcard/query syntaxes
+// While `inspect` also works with the same `+_+`/`+__+` wildcard/query syntax
 // that <<_resolve>> do, the most common use case is to inspect one task at a
 // time.
 
 // == show
+
+// By default, Mill does not print out the metadata from evaluating a task.
+// Most people would not be interested in e.g. viewing the metadata related to
+// incremental compilation: they just want to compile their code! However, if you
+// want to inspect the build to debug problems, you can make Mill show you the
+// metadata output for a task using the `show` command:
 
 /** Usage
 
@@ -99,15 +111,10 @@ Inputs:
 
 */
 
-// By default, Mill does not print out the metadata from evaluating a task. Most
-// people would not be interested in e.g. viewing the metadata related to
-// incremental compilation: they just want to compile their code! However, if you
-// want to inspect the build to debug problems, you can make Mill show you the
-// metadata output for a task using the `show` command:
-//
 // `show` is not just for showing configuration values. All tasks return values
-// that can be shown with `show`. E.g. `compile` returns the paths to the
-// `classes` folder and `analysisFile` file produced by the compilation:
+// that can be shown with `show`.
+// E.g. `compile` returns the paths to the `classes` folder and `analysisFile`
+// file produced by the compilation:
 
 /** Usage
 
@@ -181,6 +188,12 @@ Inputs:
 
 // == path
 
+// `mill path` prints out a dependency chain between the first task and the
+// second. It is very useful for exploring the build graph and trying to figure
+// out how data gets from one task to another, or trying to figure out why
+// running `./mill foo` ends up running another task `bar` that you didn't
+// expect it to.
+
 /** Usage
 
 > ./mill path foo.assembly foo.sources
@@ -193,16 +206,17 @@ foo.assembly
 
 */
 
-// `mill path` prints out a dependency chain between the first task and the
-// second. It is very useful for exploring the build graph and trying to figure
-// out how data gets from one task to another, or trying to figure out why
-// running `./mill foo` ends up running another task `bar` that you didn't
-// expect it to.
-//
 // If there are multiple possible dependency chains, one of them is picked
 // arbitrarily.
-//
+
 // == plan
+
+// `mill plan foo` shows which tasks would be evaluated if you ran `mill foo`,
+// and in what order, but without actually running them. This is a useful tool for
+// debugging your build: e.g. if you suspect a task `foo` is running things that
+// it shouldn't be running, a quick `mill plan` will list out all the upstream
+// tasks that `foo` needs to run, and you can then follow up with `mill path` on
+// any individual upstream task to see exactly how `foo` depends on it.
 
 /** Usage
 
@@ -221,14 +235,9 @@ foo.compileClasspath
 
 */
 
-// `mill plan foo` shows which tasks would be evaluated if you ran `mill foo`,
-// and in what order, but without actually running them. This is a useful tool for
-// debugging your build: e.g. if you suspect a task `foo` is running things that
-// it shouldn't be running, a quick `mill plan` will list out all the upstream
-// tasks that `foo` needs to run, and you can then follow up with `mill path` on
-// any individual upstream task to see exactly how `foo` depends on it.
-//
 // == clean
+
+// `clean` deletes all the cached outputs of previously executed tasks.
 
 /** Usage
 
@@ -236,8 +245,8 @@ foo.compileClasspath
 
 */
 
-// `clean` deletes all the cached outputs of previously executed tasks. It can
-// apply to the entire project, entire modules, or specific tasks.
+// `clean` without arguments cleans the entire project.
+// It also accepts arguments to clean entire modules, or specific tasks.
 
 /** Usage
 
@@ -254,6 +263,11 @@ foo.compileClasspath
 
 // == Search for dependency updates
 
+// Mill can search for updated versions of your project's dependencies, if
+// available from your project's configured repositories. Note that it uses
+// heuristics based on common versioning schemes, so it may not work as expected for
+// dependencies with particularly weird version numbers.
+
 /** Usage
 
 > ./mill mill.scalalib.Dependency/showUpdates
@@ -262,11 +276,6 @@ foo.compileClasspath
 
 */
 
-// Mill can search for updated versions of your project's dependencies, if
-// available from your project's configured repositories. Note that it uses
-// heuristics based on common versioning schemes, so it may not work as expected for
-// dependencies with particularly weird version numbers.
-//
 // Current limitations:
 //
 // * Only works for `JavaModule` modules (including ``ScalaModule``s,
