@@ -263,14 +263,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.5-21-d7859c</span>
+    <span class="version">0.11.5-22-4c2721</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../index.html">0.11.5-21-d7859c</a>
+          <a href="../index.html">0.11.5-22-4c2721</a>
         </li>
         <li class="version">
           <a href="../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -304,9 +304,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-21-d7859c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-22-4c2721</button>
   <div class="version-menu">
-    <a class="version is-current" href="playlib.html">0.11.5-21-d7859c</a>
+    <a class="version is-current" href="playlib.html">0.11.5-22-4c2721</a>
     <a class="version" href="../0.11.0-M7/Plugin_Play.html">0.11.0-M7</a>
     <a class="version" href="../0.10.12/Plugin_Play.html">0.10.12</a>
     <a class="version is-missing" href="../0.10.0/index.html">0.10.0</a>
@@ -374,17 +374,10 @@ if your Play app is a pure API server or if you want to use a different templati
 </ul>
 </div>
 <div class="paragraph">
-<p>The two helper traits:</p>
+<p>The helper trait:</p>
 </div>
 <div class="ulist">
 <ul>
-<li>
-<p><code>SingleModule</code> can be useful to configure mill for a single module Play application such as the
-<a href="https://github.com/playframework/play-scala-seed.g8">play-scala-seed project</a>. Mill is
-multi-module by default and requires a bit more configuration to have source, resource, and test
-directories at the top level alongside the <code>build.sc</code> file. This trait takes care of that (See
-<a href="#_using_singlemodule">Using <code>SingleModule</code></a> below).</p>
-</li>
 <li>
 <p><code>RouterModule</code> allows you to use the Play router without the rest of the configuration (see
 <a href="#_using_the_router_module_directly">Using the router module directly</a>.)</p>
@@ -469,6 +462,17 @@ added (the actual version depends on the version of Play you are pulling <code>2
 <div class="content">
 <pre>ivy&quot;com.typesafe.play::play-akka-http-server:${playVersion()}&quot;</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>ivy&quot;com.typesafe.play::play-pekko-http-server:${playVersion()}&quot;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>depending on the play version</p>
 </div>
 <div class="sect2">
 <h3 id="_using_playapimodule"><a class="anchor" href="#_using_playapimodule"></a>Using <code>PlayApiModule</code></h3>
@@ -603,11 +607,11 @@ be find for a production deployment.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_using_singlemodule"><a class="anchor" href="#_using_singlemodule"></a>Using <code>SingleModule</code></h2>
+<h2 id="_using_rootmodule"><a class="anchor" href="#_using_rootmodule"></a>Using <code>RootModule</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>SingleModule</code> trait allows you to have the build descriptor at the same level as the source
-code on the filesystem. You can move from there to a multi-module build either by refactoring
+<p>The <code>RootModule</code> abstract class allows you to have the build descriptor at the same level as the
+source code on the filesystem. You can move from there to a multi-module build either by refactoring
 your directory layout into multiple subdirectories or by using mill’s nested modules feature.</p>
 </div>
 <div class="paragraph">
@@ -653,7 +657,7 @@ object core extends PlayModule {
 </div>
 </div>
 <div class="paragraph">
-<p>by mixing in the <code>SingleModule</code> trait in your build:</p>
+<p>by extending <code>RootModule</code> in your build:</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
@@ -661,7 +665,7 @@ object core extends PlayModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
-object core extends PlayModule with SingleModule {
+object root extends RootModule with PlayModule {
  // config
  override def scalaVersion = T { &quot;2.13.12&quot; }
  override def playVersion = T { &quot;2.8.20&quot; }
@@ -676,22 +680,21 @@ object core extends PlayModule with SingleModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">.
-└── core
-    ├── build.sc
-    ├── app
-    │&nbsp;&nbsp; ├── controllers
-    │&nbsp;&nbsp; └── views
-    ├── conf
-    │&nbsp;&nbsp; └── application.conf
-    │&nbsp;&nbsp; └── routes
-    │&nbsp;&nbsp; └── ...
-    ├── logs
-    ├── public
-    │&nbsp;&nbsp; ├── images
-    │&nbsp;&nbsp; ├── javascripts
-    │&nbsp;&nbsp; └── stylesheets
-    └── test
-        └── controllers</code></pre>
+├── build.sc
+├── app
+│&nbsp;&nbsp; ├── controllers
+│&nbsp;&nbsp; └── views
+├── conf
+│&nbsp;&nbsp; └── application.conf
+│&nbsp;&nbsp; └── routes
+│&nbsp;&nbsp; └── ...
+├── logs
+├── public
+│&nbsp;&nbsp; ├── images
+│&nbsp;&nbsp; ├── javascripts
+│&nbsp;&nbsp; └── stylesheets
+└── test
+    └── controllers</code></pre>
 </div>
 </div>
 <div class="sect2">
