@@ -263,14 +263,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.5-23-22077b</span>
+    <span class="version">0.11.5-24-c12d02</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.5-23-22077b</a>
+          <a href="index.html">0.11.5-24-c12d02</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -303,9 +303,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-23-22077b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-24-c12d02</button>
   <div class="version-menu">
-    <a class="version is-current" href="Cross_Builds.html">0.11.5-23-22077b</a>
+    <a class="version is-current" href="Cross_Builds.html">0.11.5-24-c12d02</a>
     <a class="version" href="0.11.0-M7/Cross_Builds.html">0.11.0-M7</a>
     <a class="version" href="0.10.12/Cross_Builds.html">0.10.12</a>
     <a class="version" href="0.10.0/Cross_Builds.html">0.10.0</a>
@@ -338,7 +338,7 @@ config and building it across a variety of source folders.</p>
 <p>Mill handles cross-building of all sorts via the <code>Cross[T]</code> module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/1-simple">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -366,24 +366,24 @@ be overridden.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.10].suffix
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix
 &quot;_2.10&quot;
 
-&gt; ./mill show foo[2.10].bigSuffix
+&gt; mill show foo[2.10].bigSuffix
 &quot;[[[_2.10]]]&quot;
 
-&gt; ./mill show foo[2.10].sources
+&gt; mill show foo[2.10].sources
 [
   &quot;.../foo&quot;
 ]
 
-&gt; ./mill show foo[2.12].suffix
+&gt; mill show foo[2.12].suffix
 &quot;_2.12&quot;
 
-&gt; ./mill show foo[2.12].bigSuffix
+&gt; mill show foo[2.12].bigSuffix
 &quot;[[[_2.12]]]&quot;
 
-&gt; ./mill show foo[2.12].sources
+&gt; mill show foo[2.12].sources
 [
   &quot;.../foo&quot;
 ]</code></pre>
@@ -395,7 +395,7 @@ be overridden.</p>
 <h2 id="_default_cross_modules"><a class="anchor" href="#_default_cross_modules"></a>Default Cross Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/11-default-cross-module">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/11-default-cross-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -416,13 +416,13 @@ By default, this is the first cross value specified.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.10].suffix
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix
 &quot;_2.10&quot;
 
-&gt; ./mill show foo[].suffix
+&gt; mill show foo[].suffix
 &quot;_2.10&quot;
 
-&gt; ./mill show bar[].suffix
+&gt; mill show bar[].suffix
 &quot;_2.12&quot;</code></pre>
 </div>
 </div>
@@ -436,7 +436,7 @@ By default, this is the first cross value specified.</p>
 parameters to it as follows:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-2-cross-source-path.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/2-cross-source-path">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-2-cross-source-path.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/2-cross-source-path">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -456,17 +456,17 @@ can do so by overriding <code>millSourcePath</code> as shown above.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.10].sources
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].sources
 [
   &quot;.../foo/2.10&quot;
 ]
 
-&gt; ./mill show foo[2.11].sources
+&gt; mill show foo[2.11].sources
 [
   &quot;.../foo/2.11&quot;
 ]
 
-&gt; ./mill show foo[2.12].sources
+&gt; mill show foo[2.12].sources
 [
   &quot;.../foo/2.12&quot;
 ]</code></pre>
@@ -500,7 +500,7 @@ can do so by overriding <code>millSourcePath</code> as shown above.</p>
 <p>You can refer to targets defined in cross-modules as follows:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/3-outside-dependency">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/3-outside-dependency">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -522,13 +522,13 @@ in <code>def qux</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.10].suffix
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix
 &quot;_2.10&quot;
 
-&gt; ./mill show bar
+&gt; mill show bar
 &quot;hello _2.10&quot;
 
-&gt; ./mill show qux
+&gt; mill show qux
 &quot;hello _2.10 world _2.12&quot;</code></pre>
 </div>
 </div>
@@ -542,7 +542,7 @@ in <code>def qux</code>.</p>
 external targets:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/4-cross-dependencies">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/4-cross-dependencies">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -566,14 +566,14 @@ of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&qu
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill showNamed foo[__].suffix
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed foo[__].suffix
 {
   &quot;foo[2.10].suffix&quot;: &quot;_2.10&quot;,
   &quot;foo[2.11].suffix&quot;: &quot;_2.11&quot;,
   &quot;foo[2.12].suffix&quot;: &quot;_2.12&quot;
 }
 
-&gt; ./mill showNamed bar[__].bigSuffix
+&gt; mill showNamed bar[__].bigSuffix
 {
   &quot;bar[2.10].bigSuffix&quot;: &quot;[[[_2.10]]]&quot;,
   &quot;bar[2.11].bigSuffix&quot;: &quot;[[[_2.11]]]&quot;,
@@ -591,7 +591,7 @@ of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&qu
 trait:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-5-multiple-cross-axes.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/5-multiple-cross-axes">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-5-multiple-cross-axes.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/5-multiple-cross-axes">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -623,10 +623,10 @@ above.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.10,jvm].suffix
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10,jvm].suffix
 &quot;_2.10_jvm&quot;
 
-&gt; ./mill showNamed foo[__].suffix
+&gt; mill showNamed foo[__].suffix
 {
   &quot;foo[2.10,jvm].suffix&quot;: &quot;_2.10_jvm&quot;,
   &quot;foo[2.10,js].suffix&quot;: &quot;_2.10_js&quot;,
@@ -648,7 +648,7 @@ above.</p>
 axes as shown:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-6-axes-extension.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/6-axes-extension">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-6-axes-extension.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/6-axes-extension">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -688,26 +688,26 @@ for your own user-defined types that you wish to use in a Cross module</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[a].param1
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[a].param1
 &quot;Param Value: a&quot;
 
-&gt; ./mill show foo[b].param1
+&gt; mill show foo[b].param1
 &quot;Param Value: b&quot;
 
-&gt; ./mill show foo2[a,1].param1
+&gt; mill show foo2[a,1].param1
 &quot;Param Value: a&quot;
 
-&gt; ./mill show foo2[b,2].param2
+&gt; mill show foo2[b,2].param2
 &quot;Param Value: 2&quot;
 
-&gt; ./mill show foo3[b,2,false].param3
+&gt; mill show foo3[b,2,false].param3
 &quot;Param Value: false&quot;
 
 &gt; sed -i 's/, true//g' build.sc
 
 &gt; sed -i 's/, false//g' build.sc
 
-&gt; ./mill show foo3[b,2,false].param3
+&gt; mill show foo3[b,2,false].param3
 error: ...object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
 error: ...                                      ^
 error: ...value _3 is not a member of (String, Int)</code></pre>
@@ -719,7 +719,7 @@ error: ...value _3 is not a member of (String, Int)</code></pre>
 <h2 id="_inner_cross_modules"><a class="anchor" href="#_inner_cross_modules"></a>Inner Cross Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/7-inner-cross-module">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/7-inner-cross-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -757,13 +757,13 @@ modules that take multiple inputs.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[a].bar.param
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[a].bar.param
 &quot;Bar Param Value: a&quot;
 
-&gt; ./mill show foo[b].qux.param
+&gt; mill show foo[b].qux.param
 &quot;Qux Param Value: b&quot;
 
-&gt; ./mill show baz
+&gt; mill show baz
 &quot;hello Bar Param Value: a&quot;</code></pre>
 </div>
 </div>
@@ -773,7 +773,7 @@ modules that take multiple inputs.</p>
 <h2 id="_cross_resolvers"><a class="anchor" href="#_cross_resolvers"></a>Cross Resolvers</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-8-resolvers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/8-resolvers">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-8-resolvers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/8-resolvers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -809,7 +809,7 @@ with the current cross-module.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar[2.10].bigSuffix
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show bar[2.10].bigSuffix
 ...
 &quot;[[[_2.10]]]&quot;</code></pre>
 </div>
@@ -860,7 +860,7 @@ metadata and files:</p>
 <h2 id="_dynamic_cross_modules"><a class="anchor" href="#_dynamic_cross_modules"></a>Dynamic Cross Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-9-dynamic-cross-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/9-dynamic-cross-modules">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-9-dynamic-cross-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/9-dynamic-cross-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -887,28 +887,28 @@ re-compute the value and re-create the module structure if the value changes.</p
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve modules[_]
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve modules[_]
 modules[bar]
 modules[foo]
 modules[qux]
 
-&gt; ./mill modules[bar].run
+&gt; mill modules[bar].run
 Hello World Bar
 
-&gt; ./mill modules[new].run
+&gt; mill modules[new].run
 error: Cannot resolve modules[new]...
 
 &gt; cp -r modules/bar modules/new
 
 &gt; sed -i 's/Bar/New/g' modules/new/src/Example.scala
 
-&gt; ./mill resolve modules[_]
+&gt; mill resolve modules[_]
 modules[bar]
 modules[foo]
 modules[qux]
 modules[new]
 
-&gt; ./mill modules[new].run
+&gt; mill modules[new].run
 Hello World New</code></pre>
 </div>
 </div>
@@ -930,7 +930,7 @@ libraries - Commonmark and Scalatags - to deal with Markdown parsing and
 HTML generation respectively:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-cross-10-static-blog.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/10-static-blog">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-cross-10-static-blog.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/cross/10-static-blog">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
 import $ivy.`com.atlassian.commonmark:commonmark:0.13.1`
@@ -1022,7 +1022,7 @@ into a single target’s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill dist
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill dist
 
 &gt; cat out/dist.dest/index.html                    # root index page
 ...
@@ -1050,7 +1050,7 @@ into a single target’s <code>.dest</code> folder, and return it:</p>
 <code>post/</code> folder, and when you edit your posts it only re-parses and
 re-renders the markdown files that you changed. You can use <code>-w</code> to watch
 the posts folder to automatically re-run the <code>dist</code> command if a post
-changes, or <code>-j</code> e.g. <code>./mill -j 4 dist</code> to enable parallelism if there are
+changes, or <code>-j</code> e.g. <code>mill -j 4 dist</code> to enable parallelism if there are
 enough posts that the build is becoming noticeably slow.</p>
 </div>
 <div class="paragraph">
@@ -1058,7 +1058,7 @@ enough posts that the build is becoming noticeably slow.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show &quot;post[1-My-First-Post.md].render&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show &quot;post[1-My-First-Post.md].render&quot;
 &quot;.../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html&quot;
 
 &gt; cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html

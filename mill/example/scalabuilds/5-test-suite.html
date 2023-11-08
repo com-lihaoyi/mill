@@ -261,14 +261,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.5-23-22077b</span>
+    <span class="version">0.11.5-24-c12d02</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="../../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../../index.html">0.11.5-23-22077b</a>
+          <a href="../../index.html">0.11.5-24-c12d02</a>
         </li>
         <li class="version">
           <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -296,9 +296,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-23-22077b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-24-c12d02</button>
   <div class="version-menu">
-    <a class="version is-current" href="5-test-suite.html">0.11.5-23-22077b</a>
+    <a class="version is-current" href="5-test-suite.html">0.11.5-24-c12d02</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="../../0.10.0/index.html">0.10.0</a>
@@ -313,7 +313,7 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-5-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/5-test-suite">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-5-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/5-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -336,17 +336,17 @@ it will run the <code>.test</code> task as the default task for that module.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.compile
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
 compiling 1 Scala source...
 
-&gt; ./mill foo.test.compile
+&gt; mill foo.test.compile
 compiling 1 Scala source...
 
-&gt; ./mill foo.test.test
+&gt; mill foo.test.test
 + foo.FooTests.hello ...
 + foo.FooTests.world ...
 
-&gt; ./mill foo.test
+&gt; mill foo.test
 + foo.FooTests.hello ...
 + foo.FooTests.world ...</code></pre>
 </div>
@@ -395,7 +395,7 @@ compiling 1 Scala source...
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.test
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.test
 + bar.BarTests.hello ...
 + bar.BarTests.world ...</code></pre>
 </div>
@@ -419,7 +419,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.test bar.BarTests.hello
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.test bar.BarTests.hello
 + bar.BarTests.hello ...</code></pre>
 </div>
 </div>
@@ -446,14 +446,14 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.test
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.test
 + qux.QuxTests.hello ...
 + qux.QuxTests.world ...
 
-&gt; ./mill qux.integration
+&gt; mill qux.integration
 + qux.QuxIntegrationTests.helloworld ...
 
-&gt; ./mill qux.{test,integration}
+&gt; mill qux.{test,integration}
 + qux.QuxTests.hello ...
 + qux.QuxTests.world ...
 + qux.QuxIntegrationTests.helloworld ...</code></pre>

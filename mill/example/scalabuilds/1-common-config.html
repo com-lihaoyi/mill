@@ -261,14 +261,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.5-23-22077b</span>
+    <span class="version">0.11.5-24-c12d02</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="../../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../../index.html">0.11.5-23-22077b</a>
+          <a href="../../index.html">0.11.5-24-c12d02</a>
         </li>
         <li class="version">
           <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -296,9 +296,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-23-22077b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-24-c12d02</button>
   <div class="version-menu">
-    <a class="version is-current" href="1-common-config.html">0.11.5-23-22077b</a>
+    <a class="version is-current" href="1-common-config.html">0.11.5-24-c12d02</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="../../0.10.0/index.html">0.10.0</a>
@@ -319,7 +319,7 @@ sources/resources, generating resources, and setting compilation/run
 options.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/1-common-config">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -400,7 +400,7 @@ the same</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
 Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 FooA.value: hello A
@@ -411,7 +411,7 @@ MyOtherResource: My Other Resource Contents
 my.custom.property: my-prop-value
 MY_CUSTOM_ENV: my-env-value
 
-&gt; ./mill show assembly
+&gt; mill show assembly
 &quot;.../out/assembly.dest/out.jar&quot;
 
 &gt; ./out/assembly.dest/out.jar # mac/linux
@@ -426,7 +426,7 @@ my.custom.property: my-prop-value
 
 &gt; sed -i 's/Foo2 {/Foo2 { println(this + &quot;hello&quot;)/g' custom-src/Foo2.scala
 
-&gt; ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
+&gt; mill compile # demonstrate -deprecation/-Xfatal-warnings flags
 error: object Foo2 { println(this + &quot;hello&quot;)
 error:                       ^
 error: ...Implicit injection of + is deprecated. Convert to String to call +...</code></pre>

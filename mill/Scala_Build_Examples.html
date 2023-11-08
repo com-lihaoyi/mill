@@ -263,14 +263,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.5-23-22077b</span>
+    <span class="version">0.11.5-24-c12d02</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.5-23-22077b</a>
+          <a href="index.html">0.11.5-24-c12d02</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -303,9 +303,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-23-22077b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-24-c12d02</button>
   <div class="version-menu">
-    <a class="version is-current" href="Scala_Build_Examples.html">0.11.5-23-22077b</a>
+    <a class="version is-current" href="Scala_Build_Examples.html">0.11.5-24-c12d02</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="0.10.0/index.html">0.10.0</a>
@@ -372,7 +372,7 @@ sources/resources, generating resources, and setting compilation/run
 options.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/1-common-config">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -453,7 +453,7 @@ the same</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
 Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 FooA.value: hello A
@@ -464,7 +464,7 @@ MyOtherResource: My Other Resource Contents
 my.custom.property: my-prop-value
 MY_CUSTOM_ENV: my-env-value
 
-&gt; ./mill show assembly
+&gt; mill show assembly
 &quot;.../out/assembly.dest/out.jar&quot;
 
 &gt; ./out/assembly.dest/out.jar # mac/linux
@@ -479,7 +479,7 @@ my.custom.property: my-prop-value
 
 &gt; sed -i 's/Foo2 {/Foo2 { println(this + &quot;hello&quot;)/g' custom-src/Foo2.scala
 
-&gt; ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
+&gt; mill compile # demonstrate -deprecation/-Xfatal-warnings flags
 error: object Foo2 { println(this + &quot;hello&quot;)
 error:                       ^
 error: ...Implicit injection of + is deprecated. Convert to String to call +...</code></pre>
@@ -508,7 +508,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/2-custom-tasks">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -572,15 +572,15 @@ implementation.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run --text hello
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run --text hello
 text: hello
 MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
 my.line.count: 12
 
-&gt; ./mill show lineCount
+&gt; mill show lineCount
 12
 
-&gt; ./mill printLineCount
+&gt; mill printLineCount
 12</code></pre>
 </div>
 </div>
@@ -608,7 +608,7 @@ change.</p>
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/3-override-tasks">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -679,7 +679,7 @@ object foo3 extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
 Compiling...
 Running...
 Hello World</code></pre>
@@ -691,7 +691,7 @@ Hello World</code></pre>
 <h2 id="_nesting_modules"><a class="anchor" href="#_nesting_modules"></a>Nesting Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-4-nested-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/4-nested-modules">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-4-nested-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/4-nested-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -733,23 +733,23 @@ and vice versa, but not both at the same.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __.run
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 foo.bar.run
 foo.qux.run
 baz.run
 
-&gt; ./mill foo.run --bar-text hello --qux-text world --foo-text today
+&gt; mill foo.run --bar-text hello --qux-text world --foo-text today
 Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
 Qux.value: &lt;p&gt;world&lt;/p&gt;
 Foo.value: &lt;p&gt;today&lt;/p&gt;
 
-&gt; ./mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
+&gt; mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
 Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
 Qux.value: &lt;p&gt;world&lt;/p&gt;
 Foo.value: &lt;p&gt;today&lt;/p&gt;
 Baz.value: &lt;p&gt;yay&lt;/p&gt;
 
-&gt; ./mill foo.qux.run --bar-text hello --qux-text world
+&gt; mill foo.qux.run --bar-text hello --qux-text world
 Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
 Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
 </div>
@@ -760,7 +760,7 @@ Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
 <h2 id="_scala_module_with_test_suite"><a class="anchor" href="#_scala_module_with_test_suite"></a>Scala Module With Test Suite</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-5-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/5-test-suite">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-5-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/5-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -783,17 +783,17 @@ it will run the <code>.test</code> task as the default task for that module.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.compile
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
 compiling 1 Scala source...
 
-&gt; ./mill foo.test.compile
+&gt; mill foo.test.compile
 compiling 1 Scala source...
 
-&gt; ./mill foo.test.test
+&gt; mill foo.test.test
 + foo.FooTests.hello ...
 + foo.FooTests.world ...
 
-&gt; ./mill foo.test
+&gt; mill foo.test
 + foo.FooTests.hello ...
 + foo.FooTests.world ...</code></pre>
 </div>
@@ -842,7 +842,7 @@ compiling 1 Scala source...
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.test
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.test
 + bar.BarTests.hello ...
 + bar.BarTests.world ...</code></pre>
 </div>
@@ -866,7 +866,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.test bar.BarTests.hello
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.test bar.BarTests.hello
 + bar.BarTests.hello ...</code></pre>
 </div>
 </div>
@@ -893,14 +893,14 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.test
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.test
 + qux.QuxTests.hello ...
 + qux.QuxTests.world ...
 
-&gt; ./mill qux.integration
+&gt; mill qux.integration
 + qux.QuxIntegrationTests.helloworld ...
 
-&gt; ./mill qux.{test,integration}
+&gt; mill qux.{test,integration}
 + qux.QuxTests.hello ...
 + qux.QuxTests.world ...
 + qux.QuxIntegrationTests.helloworld ...</code></pre>
@@ -912,7 +912,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <h2 id="_publish_module"><a class="anchor" href="#_publish_module"></a>Publish Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-6-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/6-publish-module">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-6-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/6-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
 
@@ -942,7 +942,7 @@ machine or to the central maven repository</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.publishLocal
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.publishLocal
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...</code></pre>
 </div>
 </div>
@@ -1083,7 +1083,7 @@ maven path under <code>sonatypeUri</code> instead of staging path.</p>
 <h2 id="_cross_scala_version_modules"><a class="anchor" href="#_cross_scala_version_modules"></a>Cross-Scala-Version Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-7-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/7-cross-scala-version">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-7-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/7-cross-scala-version">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -1112,25 +1112,25 @@ apply to the cross-module with that version prefix.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __.run
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 foo[2.12.17].run
 foo[2.13.8].run
 bar[2.12.17].run
 bar[2.13.8].run
 
-&gt; ./mill foo[2.12.17].run
+&gt; mill foo[2.12.17].run
 Foo.value: Hello World Scala library version 2.12.17...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.12.x
 
-&gt; ./mill foo[2.13.8].run
+&gt; mill foo[2.13.8].run
 Foo.value: Hello World Scala library version 2.13.8...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.13.x
 
-&gt; ./mill bar[2.13.8].run
+&gt; mill bar[2.13.8].run
 Bar.value: bar-value</code></pre>
 </div>
 </div>
@@ -1157,7 +1157,7 @@ trait Bar2Module extends CrossScalaModule</code></pre>
 <h2 id="_sbt_compatible_modules"><a class="anchor" href="#_sbt_compatible_modules"></a>SBT-Compatible Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-8-sbt-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/8-sbt-compat-modules">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-8-sbt-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/8-sbt-compat-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -1225,22 +1225,22 @@ Mill at the same time</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.compile
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
 compiling 1 Scala source...
 
-&gt; ./mill foo.test.compile
+&gt; mill foo.test.compile
 compiling 1 Scala source...
 
-&gt; ./mill foo.test.test
+&gt; mill foo.test.test
 + foo.FooTests.hello ...
 
-&gt; ./mill foo.test
+&gt; mill foo.test
 + foo.FooTests.hello ...
 
-&gt; ./mill bar[2.13.8].run
+&gt; mill bar[2.13.8].run
 Bar.value: Hello World Scala library version 2.13.8...
 
-&gt; ./mill bar[2.12.17].run
+&gt; mill bar[2.12.17].run
 Bar.value: Hello World Scala library version 2.12.17...</code></pre>
 </div>
 </div>
@@ -1250,7 +1250,7 @@ Bar.value: Hello World Scala library version 2.12.17...</code></pre>
 <h2 id="_java_modules"><a class="anchor" href="#_java_modules"></a>Java Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-9-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/9-java-modules">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-9-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/9-java-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -1273,18 +1273,18 @@ their own test suites.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __.run
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 foo.run
 bar.run
 
-&gt; ./mill foo.compile
+&gt; mill foo.compile
 compiling 1 Java source...
 
-&gt; ./mill foo.run
+&gt; mill foo.run
 Foo.value: 31337
 Bar.value: 271828
 
-&gt; ./mill foo.test
+&gt; mill foo.test
 Test run started
 ...
 Test run finished: 0 failed, 0 ignored, 2 total...</code></pre>
@@ -1296,7 +1296,7 @@ Test run finished: 0 failed, 0 ignored, 2 total...</code></pre>
 <h2 id="_realistic_scala_example_project"><a class="anchor" href="#_realistic_scala_example_project"></a>Realistic Scala Example Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-scalabuilds-10-scala-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/10-scala-realistic">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-scalabuilds-10-scala-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/10-scala-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
 
@@ -1393,7 +1393,7 @@ repetitive module structure in a typical project</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __.run
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 bar[2.13.8].run
 bar[2.13.8].test.run
 bar[3.2.2].run
@@ -1404,34 +1404,34 @@ foo[3.2.2].run
 foo[3.2.2].test.run
 qux.run
 
-&gt; ./mill foo[2.13.8].run
+&gt; mill foo[2.13.8].run
 foo version 0.0.1
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
 Qux.value: 31337
 
-&gt; ./mill bar[3.2.2].test
+&gt; mill bar[3.2.2].test
 + bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
 
-&gt; ./mill qux.run
+&gt; mill qux.run
 Qux.value: 31337
 
-&gt; ./mill __.compile
+&gt; mill __.compile
 
-&gt; ./mill __.test
+&gt; mill __.test
 + bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
 + bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
 + foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
 + foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
 
-&gt; ./mill __.publishLocal
+&gt; mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 
-&gt; ./mill show foo[2.13.8].assembly # mac/linux
+&gt; mill show foo[2.13.8].assembly # mac/linux
 &quot;.../out/foo/2.13.8/assembly.dest/out.jar&quot;
 
 &gt; ./out/foo/2.13.8/assembly.dest/out.jar # mac/linux
@@ -1453,7 +1453,7 @@ integration tests and examples:</p>
 <div class="sect2">
 <h3 id="_acyclic"><a class="anchor" href="#_acyclic"></a>Acyclic</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/thirdparty/acyclic">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/thirdparty/acyclic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
 
@@ -1539,7 +1539,7 @@ compiling 6 Scala sources...
 <div class="sect2">
 <h3 id="_fansi"><a class="anchor" href="#_fansi"></a>Fansi</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/thirdparty/fansi">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/thirdparty/fansi">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
 
@@ -1644,7 +1644,7 @@ Publishing Artifact(com.lihaoyi,fansi_native0.4_3,1.3.3.7) to ivy repo...
 <div class="sect2">
 <h3 id="_jimfs"><a class="anchor" href="#_jimfs"></a>JimFS</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-thirdparty-jimfs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/thirdparty/jimfs">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-24-c12d02-example-thirdparty-jimfs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/thirdparty/jimfs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
 
