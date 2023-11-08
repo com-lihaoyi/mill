@@ -24,13 +24,8 @@ Twirl compilation and Akka HTTP server)
 * `PlayApiModule` applies the default Play configuration without `Twirl` templating. This is useful
 if your Play app is a pure API server or if you want to use a different templating engine.
 
-The two helper traits:
+The helper trait:
 
-* `SingleModule` can be useful to configure mill for a single module Play application such as the
-https://github.com/playframework/play-scala-seed.g8[play-scala-seed project]. Mill is
-multi-module by default and requires a bit more configuration to have source, resource, and test
-directories at the top level alongside the `build.sc` file. This trait takes care of that (See
-<<_using_singlemodule>> below).
 * `RouterModule` allows you to use the Play router without the rest of the configuration (see
 <<_using_the_router_module_directly>>.)
 
@@ -103,6 +98,11 @@ In order to have a working `start` command the following runtime dependency is a
 ----
 ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
 ----
+or
+----
+ivy"com.typesafe.play::play-pekko-http-server:${playVersion()}"
+----
+depending on the play version
 
 === Using `PlayApiModule`
 
@@ -179,10 +179,10 @@ starts a server in _PROD_ mode which:
 command to get a runnable fat jar of the project. The packaging is slightly different but should
 be find for a production deployment.
 
-== Using `SingleModule`
+== Using `RootModule`
 
-The `SingleModule` trait allows you to have the build descriptor at the same level as the source
-code on the filesystem. You can move from there to a multi-module build either by refactoring
+The `RootModule` abstract class allows you to have the build descriptor at the same level as the
+source code on the filesystem. You can move from there to a multi-module build either by refactoring
 your directory layout into multiple subdirectories or by using mill's nested modules feature.
 
 Looking back at the sample build definition in <<_using_playmodule>>:
@@ -225,7 +225,7 @@ The directory layout was:
         └── controllers
 ----
 
-by mixing in the `SingleModule` trait in your build:
+by extending `RootModule` in your build:
 
 .`build.sc`
 [source,scala]
@@ -233,7 +233,7 @@ by mixing in the `SingleModule` trait in your build:
 import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
-object core extends PlayModule with SingleModule {
+object root extends RootModule with PlayModule {
 	// config
 	override def scalaVersion = T { "2.13.12" }
 	override def playVersion = T { "2.8.20" }
@@ -247,22 +247,21 @@ the layout becomes:
 [source,text]
 ----
 .
-└── core
-    ├── build.sc
-    ├── app
-    │   ├── controllers
-    │   └── views
-    ├── conf
-    │   └── application.conf
-    │   └── routes
-    │   └── ...
-    ├── logs
-    ├── public
-    │   ├── images
-    │   ├── javascripts
-    │   └── stylesheets
-    └── test
-        └── controllers
+├── build.sc
+├── app
+│   ├── controllers
+│   └── views
+├── conf
+│   └── application.conf
+│   └── routes
+│   └── ...
+├── logs
+├── public
+│   ├── images
+│   ├── javascripts
+│   └── stylesheets
+└── test
+    └── controllers
 ----
 
 === Using the router module directly
