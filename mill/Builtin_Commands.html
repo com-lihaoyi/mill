@@ -263,14 +263,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.5-22-4c2721</span>
+    <span class="version">0.11.5-23-22077b</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.5-22-4c2721</a>
+          <a href="index.html">0.11.5-23-22077b</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -303,9 +303,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-22-4c2721</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-23-22077b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Builtin_Commands.html">0.11.5-22-4c2721</a>
+    <a class="version is-current" href="Builtin_Commands.html">0.11.5-23-22077b</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="0.10.0/index.html">0.10.0</a>
@@ -341,30 +341,13 @@ with your Mill build.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_init"><a class="anchor" href="#_init"></a>init</h2>
+<h2 id="_example_build_sc"><a class="anchor" href="#_example_build_sc"></a>Example <code>build.sc</code></h2>
 <div class="sectionbody">
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill -i init com-lihaoyi/mill-scala-hello.g8
-....
-A minimal Scala project.
-
-name [Scala Seed Project]: hello
-
-Template applied in ./hello</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>init</code> command generates a project based on a Giter8 template.
-It prompts you to enter project name and creates a folder with that name.
-You can use it to quickly generate a starter project.
-There are lots of templates out there for many frameworks and tools!</p>
-</div>
 <div class="paragraph">
 <p>The following examples will be assuming the <code>build.sc</code> file given below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-22-4c2721-example-basic-4-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/basic/4-builtin-commands">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.5-23-22077b-example-basic-4-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/basic/4-builtin-commands">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -387,6 +370,12 @@ object bar extends MyModule {
 <div class="sect1">
 <h2 id="_resolve"><a class="anchor" href="#_resolve"></a>resolve</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>resolve</code> lists the tasks that match a particular query, without running them.
+This is useful for &quot;dry running&quot; an <code>mill</code> command to see what would be run
+before you run them, or to explore what modules or tasks are available
+from the command line using <code>resolve _</code>, <code>resolve foo._</code>, etc.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve _
@@ -417,10 +406,9 @@ foo.artifactName
 </div>
 </div>
 <div class="paragraph">
-<p><code>resolve</code> lists the tasks that match a particular query, without running them.
-This is useful for &quot;dry running&quot; an <code>mill</code> command to see what would be run
-before you run them, or to explore what modules or tasks are available
-from the command line using <code>resolve _</code>, <code>resolve foo._</code>, etc.</p>
+<p>You can also use the special wildcards <code>_</code> as a placeholder for a single segment
+and <code>__</code> as a placeholder for many segments.
+Lists within curly braces (<code>{</code>, <code>}</code>) are also supported.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -439,6 +427,12 @@ from the command line using <code>resolve _</code>, <code>resolve foo._</code>, 
 <div class="sect1">
 <h2 id="_inspect"><a class="anchor" href="#_inspect"></a>inspect</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>inspect</code> is a more verbose version of <a href="#_resolve">resolve</a>. In addition to printing
+out the name of one-or-more tasks, it also displays its source location and a
+list of input tasks. This is very useful for debugging and interactively
+exploring the structure of your build from the command line.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill inspect foo.run
@@ -453,16 +447,21 @@ Inputs:
 </div>
 </div>
 <div class="paragraph">
-<p><code>inspect</code> is a more verbose version of <a href="#_resolve">resolve</a>. In addition to printing
-out the name of one-or-more tasks, it also displays its source location and a
-list of input tasks. This is very useful for debugging and interactively
-exploring the structure of your build from the command line.</p>
-</div>
-<div class="paragraph">
-<p>While <code>inspect</code> also works with the same <code>_</code>/<code>__</code> wildcard/query syntaxes
+<p>While <code>inspect</code> also works with the same <code>_</code>/<code>__</code> wildcard/query syntax
 that <a href="#_resolve">resolve</a> do, the most common use case is to inspect one task at a
-time.
-== show</p>
+time.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_show"><a class="anchor" href="#_show"></a>show</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, Mill does not print out the metadata from evaluating a task.
+Most people would not be interested in e.g. viewing the metadata related to
+incremental compilation: they just want to compile their code! However, if you
+want to inspect the build to debug problems, you can make Mill show you the
+metadata output for a task using the <code>show</code> command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -471,16 +470,10 @@ time.
 </div>
 </div>
 <div class="paragraph">
-<p>By default, Mill does not print out the metadata from evaluating a task. Most
-people would not be interested in e.g. viewing the metadata related to
-incremental compilation: they just want to compile their code! However, if you
-want to inspect the build to debug problems, you can make Mill show you the
-metadata output for a task using the <code>show</code> command:</p>
-</div>
-<div class="paragraph">
 <p><code>show</code> is not just for showing configuration values. All tasks return values
-that can be shown with <code>show</code>. E.g. <code>compile</code> returns the paths to the
-<code>classes</code> folder and <code>analysisFile</code> file produced by the compilation:</p>
+that can be shown with <code>show</code>.
+E.g. <code>compile</code> returns the paths to the <code>classes</code> folder and <code>analysisFile</code>
+file produced by the compilation:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -561,6 +554,13 @@ dictionary, whether there is one or more targets in the selection</p>
 <div class="sect1">
 <h2 id="_path"><a class="anchor" href="#_path"></a>path</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>mill path</code> prints out a dependency chain between the first task and the
+second. It is very useful for exploring the build graph and trying to figure
+out how data gets from one task to another, or trying to figure out why
+running <code>./mill foo</code> ends up running another task <code>bar</code> that you didn’t
+expect it to.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill path foo.assembly foo.sources
@@ -573,13 +573,6 @@ foo.assembly</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>mill path</code> prints out a dependency chain between the first task and the
-second. It is very useful for exploring the build graph and trying to figure
-out how data gets from one task to another, or trying to figure out why
-running <code>./mill foo</code> ends up running another task <code>bar</code> that you didn’t
-expect it to.</p>
-</div>
-<div class="paragraph">
 <p>If there are multiple possible dependency chains, one of them is picked
 arbitrarily.</p>
 </div>
@@ -588,6 +581,14 @@ arbitrarily.</p>
 <div class="sect1">
 <h2 id="_plan"><a class="anchor" href="#_plan"></a>plan</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>mill plan foo</code> shows which tasks would be evaluated if you ran <code>mill foo</code>,
+and in what order, but without actually running them. This is a useful tool for
+debugging your build: e.g. if you suspect a task <code>foo</code> is running things that
+it shouldn’t be running, a quick <code>mill plan</code> will list out all the upstream
+tasks that <code>foo</code> needs to run, and you can then follow up with <code>mill path</code> on
+any individual upstream task to see exactly how <code>foo</code> depends on it.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill plan foo.compileClasspath
@@ -604,27 +605,22 @@ foo.transitiveIvyDeps
 foo.compileClasspath</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p><code>mill plan foo</code> shows which tasks would be evaluated if you ran <code>mill foo</code>,
-and in what order, but without actually running them. This is a useful tool for
-debugging your build: e.g. if you suspect a task <code>foo</code> is running things that
-it shouldn’t be running, a quick <code>mill plan</code> will list out all the upstream
-tasks that <code>foo</code> needs to run, and you can then follow up with <code>mill path</code> on
-any individual upstream task to see exactly how <code>foo</code> depends on it.</p>
-</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_clean"><a class="anchor" href="#_clean"></a>clean</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>clean</code> deletes all the cached outputs of previously executed tasks.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill clean</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>clean</code> deletes all the cached outputs of previously executed tasks. It can
-apply to the entire project, entire modules, or specific tasks.</p>
+<p><code>clean</code> without arguments cleans the entire project.
+It also accepts arguments to clean entire modules, or specific tasks.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -643,18 +639,18 @@ apply to the entire project, entire modules, or specific tasks.</p>
 <div class="sect1">
 <h2 id="_search_for_dependency_updates"><a class="anchor" href="#_search_for_dependency_updates"></a>Search for dependency updates</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Mill can search for updated versions of your project’s dependencies, if
+available from your project’s configured repositories. Note that it uses
+heuristics based on common versioning schemes, so it may not work as expected for
+dependencies with particularly weird version numbers.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill mill.scalalib.Dependency/showUpdates
 
 &gt; ./mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>Mill can search for updated versions of your project’s dependencies, if
-available from your project’s configured repositories. Note that it uses
-heuristics based on common versioning schemes, so it may not work as expected for
-dependencies with particularly weird version numbers.</p>
 </div>
 <div class="paragraph">
 <p>Current limitations:</p>
@@ -672,6 +668,28 @@ dependencies with particularly weird version numbers.</p>
 <p>Doesn’t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
 </li>
 </ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_init"><a class="anchor" href="#_init"></a>init</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill -i init com-lihaoyi/mill-scala-hello.g8
+....
+A minimal Scala project.
+
+name [Scala Seed Project]: hello
+
+Template applied in ./hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>init</code> command generates a project based on a Giter8 template.
+It prompts you to enter project name and creates a folder with that name.
+You can use it to quickly generate a starter project.
+There are lots of templates out there for many frameworks and tools!</p>
 </div>
 </div>
 </div>
