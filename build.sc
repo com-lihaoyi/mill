@@ -1025,7 +1025,10 @@ object example extends MillScalaModule {
     def compile = example.compile()
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
 
-    def parsed = T {
+    /**
+     * Parses a `build.sc` for specific comments and return the split-by-type content
+     */
+    def parsed: T[Seq[(String, String)]] = T {
       val states = collection.mutable.Buffer("scala")
       val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
 
@@ -1047,7 +1050,7 @@ object example extends MillScalaModule {
         restOpt.foreach(r => chunks.last.append(r))
       }
 
-      states.zip(chunks.map(_.mkString("\n").trim)).filter(_._2.nonEmpty)
+      states.zip(chunks.map(_.mkString("\n").trim)).filter(_._2.nonEmpty).toSeq
     }
 
     def rendered = T {
@@ -1084,7 +1087,7 @@ object example extends MillScalaModule {
                  |$txt
                  |----
                  |""".stripMargin
-            case ("comment", txt) => txt
+            case ("comment", txt) => txt + "\n"
             case ("example", txt) =>
               s"""
                  |[source,bash,subs="attributes,verbatim"]
