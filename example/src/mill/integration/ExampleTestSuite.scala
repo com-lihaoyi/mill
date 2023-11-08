@@ -107,7 +107,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
           IntegrationTestSuite.EvalResult(true, res, "")
         )
 
-      case Seq("node", rest@_*) =>
+      case Seq("node", rest @ _*) =>
         val res = os
           .proc("node", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
@@ -116,7 +116,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
           IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
         )
 
-      case Seq("git", rest@_*) =>
+      case Seq("git", rest @ _*) =>
         val res = os
           .proc("git", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
@@ -125,7 +125,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
           IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
         )
 
-      case Seq("java", "-jar", rest@_*) =>
+      case Seq("java", "-jar", rest @ _*) =>
         val res = os
           .proc("java", "-jar", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
