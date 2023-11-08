@@ -6,7 +6,6 @@ import utest.{TestSuite, Tests, assert, _}
 
 trait HelloWorldTests extends TestSuite {
   val testTwirlVersion: String
-  val testTwirlScalaVersion: String
 
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath: os.Path =
@@ -15,7 +14,6 @@ trait HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
     def twirlVersion = testTwirlVersion
-    val twirlScalaVersion = testTwirlScalaVersion
   }
 
   object HelloWorld extends HelloBase {
@@ -78,6 +76,12 @@ trait HelloWorldTests extends TestSuite {
     "@something.else.Thing()"
   )
 
+  def skipUnsupportedVersions(test: => Unit) = testTwirlVersion match {
+    case s"1.$minor.$_" if minor.toIntOption.exists(_ < 6) => test
+    case _ if scala.util.Properties.isJavaAtLeast(11) => test
+    case _ => System.err.println(s"Skipping since twirl $testTwirlVersion doesn't support Java 8")
+  }
+
   def tests: Tests = Tests {
     "twirlVersion" - {
 
@@ -91,83 +95,95 @@ trait HelloWorldTests extends TestSuite {
         )
       }
     }
-    "compileTwirl" - workspaceTest(HelloWorld, "hello-world", debug = true) { eval =>
-      val res = eval.apply(HelloWorld.core.compileTwirl)
-      assert(res.isRight)
-      val Right((result, evalCount)) = res
+    test("compileTwirl") {
+      skipUnsupportedVersions {
+        workspaceTest(HelloWorld, "hello-world", debug = true) { eval =>
+          val res = eval.apply(HelloWorld.core.compileTwirl)
+          assert(res.isRight)
+          val Right((result, evalCount)) = res
 
-      val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
-      val expectedClassfiles = compileClassfiles.map(
-        eval.outPath / "core" / "compileTwirl.dest" / _
-      )
-
-      assert(
-        result.classes.path == eval.outPath / "core" / "compileTwirl.dest",
-        outputFiles.nonEmpty,
-        outputFiles.forall(expectedClassfiles.contains),
-        outputFiles.size == 3,
-        evalCount > 0,
-        outputFiles.forall { p =>
-          val lines = os.read.lines(p).map(_.trim)
-          (expectedDefaultImports ++ testAdditionalImports.map(s => s"import $s")).forall(
-            lines.contains
+          val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
+          val expectedClassfiles = compileClassfiles.map(
+            eval.outPath / "core" / "compileTwirl.dest" / _
           )
-        },
-        outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
-          val lines = os.read.lines(p).map(_.trim)
-          val expectedClassDeclaration = s"class hello ${testConstructorAnnotations.mkString}"
-          lines.exists(_.startsWith(expectedClassDeclaration))
+
+          assert(
+            result.classes.path == eval.outPath / "core" / "compileTwirl.dest",
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedClassfiles.contains),
+            outputFiles.size == 3,
+            evalCount > 0,
+            outputFiles.forall { p =>
+              val lines = os.read.lines(p).map(_.trim)
+              (expectedDefaultImports ++ testAdditionalImports.map(s => s"import $s")).forall(
+                lines.contains
+              )
+            },
+            outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
+              val lines = os.read.lines(p).map(_.trim)
+              val expectedClassDeclaration = s"class hello ${testConstructorAnnotations.mkString}"
+              lines.exists(_.startsWith(expectedClassDeclaration))
+            }
+          )
+
+          // don't recompile if nothing changed
+          val Right((_, unchangedEvalCount)) =
+            eval.apply(HelloWorld.core.compileTwirl)
+
+          assert(unchangedEvalCount == 0)
         }
-      )
-
-      // don't recompile if nothing changed
-      val Right((_, unchangedEvalCount)) =
-        eval.apply(HelloWorld.core.compileTwirl)
-
-      assert(unchangedEvalCount == 0)
+      }
     }
-    "compileTwirlInclusiveDot" - workspaceTest(
-      HelloWorldWithInclusiveDot,
-      "hello-world-inclusive-dot"
-    ) { eval =>
-      val Right((result, evalCount)) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
+    test("compileTwirlInclusiveDot") {
+      skipUnsupportedVersions {
+        workspaceTest(
+          HelloWorldWithInclusiveDot,
+          "hello-world-inclusive-dot"
+        ) { eval =>
+          val Right((result, evalCount)) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
 
-      val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
-      val expectedClassfiles = compileClassfiles.map(name =>
-        eval.outPath / "core" / "compileTwirl.dest" / name / os.RelPath.up / name.last.replace(
-          ".template.scala",
-          "$$TwirlInclusiveDot.template.scala"
-        )
-      )
+          val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
+          val expectedClassfiles = compileClassfiles.map(name =>
+            eval.outPath / "core" / "compileTwirl.dest" / name / os.RelPath.up / name.last.replace(
+              ".template.scala",
+              "$$TwirlInclusiveDot.template.scala"
+            )
+          )
 
-      println(s"outputFiles: $outputFiles")
+          println(s"outputFiles: $outputFiles")
 
-      assert(
-        result.classes.path == eval.outPath / "core" / "compileTwirl.dest",
-        outputFiles.nonEmpty,
-        outputFiles.forall(expectedClassfiles.contains),
-        outputFiles.size == 3,
-        evalCount > 0,
-        outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
-          val lines = os.read.lines(p).map(_.trim)
-          lines.exists(_.contains("$$TwirlInclusiveDot"))
+          assert(
+            result.classes.path == eval.outPath / "core" / "compileTwirl.dest",
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedClassfiles.contains),
+            outputFiles.size == 3,
+            evalCount > 0,
+            outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
+              val lines = os.read.lines(p).map(_.trim)
+              lines.exists(_.contains("$$TwirlInclusiveDot"))
+            }
+          )
+
+          // don't recompile if nothing changed
+          val Right((_, unchangedEvalCount)) =
+            eval.apply(HelloWorld.core.compileTwirl)
+
+          assert(unchangedEvalCount == 0)
         }
-      )
-
-      // don't recompile if nothing changed
-      val Right((_, unchangedEvalCount)) =
-        eval.apply(HelloWorld.core.compileTwirl)
-
-      assert(unchangedEvalCount == 0)
+      }
     }
   }
 }
 
-object HelloWorldTests2_12 extends HelloWorldTests {
-  override val testTwirlVersion = "1.3.15"
-  override val testTwirlScalaVersion = sys.props.getOrElse("MILL_SCALA_2_12_VERSION", ???)
+object HelloWorldTests1_3 extends HelloWorldTests {
+  override val testTwirlVersion = "1.3.16"
 }
-object HelloWorldTests2_13 extends HelloWorldTests {
-  override val testTwirlVersion = "1.5.1"
-  override val testTwirlScalaVersion = sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???)
+object HelloWorldTests1_5 extends HelloWorldTests {
+  override val testTwirlVersion = "1.5.2"
+}
+object HelloWorldTests1_6 extends HelloWorldTests {
+  override val testTwirlVersion = "1.6.2"
+}
+object HelloWorldTests2_0 extends HelloWorldTests {
+  override val testTwirlVersion = "2.0.1"
 }

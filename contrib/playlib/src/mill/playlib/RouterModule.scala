@@ -48,7 +48,14 @@ trait RouterModule extends ScalaModule with Version {
   def routerClasspath: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
       val bind = bindDependency()
-      Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}").map(bind)
+      playMinorVersion() match {
+        case "2.6" | "2.7" | "2.8" =>
+          Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}").map(bind)
+        case "2.9" =>
+          Agg(ivy"com.typesafe.play::play-routes-compiler:${playVersion()}").map(bind)
+        case _ =>
+          Agg(ivy"org.playframework::play-routes-compiler:${playVersion()}").map(bind)
+      }
     })()
   }
 
