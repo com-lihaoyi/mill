@@ -84,29 +84,8 @@ object ExampleTestSuite extends IntegrationTestSuite {
       workspaceRoot: os.Path,
       expectedSnippets: Vector[String],
       commandStr: String
-  ) = {
+  ): Unit = {
     BashTokenizer.tokenize(commandStr) match {
-      case Seq(s"./$command", rest @ _*) =>
-        val evalResult = command match {
-          case "mill" => evalStdout(rest)
-          case cmd =>
-            val tokens = cmd +: rest
-            val executable = workspaceRoot / os.SubPath(tokens.head)
-            if (!os.exists(executable)) {
-              throw new Exception(
-                s"Executable $executable not found.\n" +
-                  s"Other files present include ${os.list(executable / os.up)}"
-              )
-            }
-            val res = os
-              .proc(executable, tokens.tail)
-              .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-
-            IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-        }
-
-        validateEval(expectedSnippets, evalResult)
-
       case Seq("cp", "-r", from, to) =>
         os.copy(os.Path(from, workspaceRoot), os.Path(to, workspaceRoot))
 
@@ -128,7 +107,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
           IntegrationTestSuite.EvalResult(true, res, "")
         )
 
-      case Seq("node", rest @ _*) =>
+      case Seq("node", rest@_*) =>
         val res = os
           .proc("node", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
@@ -137,7 +116,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
           IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
         )
 
-      case Seq("git", rest @ _*) =>
+      case Seq("git", rest@_*) =>
         val res = os
           .proc("git", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
@@ -146,7 +125,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
           IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
         )
 
-      case Seq("java", "-jar", rest @ _*) =>
+      case Seq("java", "-jar", rest@_*) =>
         val res = os
           .proc("java", "-jar", rest)
           .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
@@ -164,11 +143,33 @@ object ExampleTestSuite extends IntegrationTestSuite {
             expectedSnippets,
             IntegrationTestSuite.EvalResult(true, boas.toString("UTF-8"), "")
           )
-        } finally { zipFile.close() }
+        } finally {
+          zipFile.close()
+        }
 
       case Seq("printf", literal, ">>", path) =>
         mangleFile(os.Path(path, workspacePath), _ + ujson.read(s""""${literal}"""").str)
 
+      case Seq(command, rest @ _*) =>
+        val evalResult = command match {
+          case "./mill" | "mill" => evalStdout(rest)
+          case s"./$cmd" =>
+            val tokens = cmd +: rest
+            val executable = workspaceRoot / os.SubPath(tokens.head)
+            if (!os.exists(executable)) {
+              throw new Exception(
+                s"Executable $executable not found.\n" +
+                  s"Other files present include ${os.list(executable / os.up)}"
+              )
+            }
+            val res = os
+              .proc(executable, tokens.tail)
+              .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
+
+            IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+        }
+
+        validateEval(expectedSnippets, evalResult)
     }
   }
 
