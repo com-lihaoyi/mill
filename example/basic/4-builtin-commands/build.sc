@@ -54,7 +54,8 @@ foo.artifactName
 
 */
 
-// You can also use the special wildcards `+_+` as a placeholder for a single segment and `+__+`as a placeholder for many segments.
+// You can also use the special wildcards `+_+` as a placeholder for a single segment
+// and `+__+` as a placeholder for many segments.
 // Lists within curly braces (`{`, `}`) are also supported.
 
 
