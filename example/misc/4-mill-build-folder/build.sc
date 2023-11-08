@@ -71,11 +71,11 @@ scalatagsVersion: 0.12.0
 > mill --meta-level 1 show sources
 [
 .../build.sc",
-..mill-build/src"
+.../mill-build/src"
 ]
 
 > mill --meta-level 2 show sources
-..mill-build/build.sc"
+.../mill-build/build.sc"
 
 
 */
