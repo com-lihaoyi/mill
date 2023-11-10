@@ -54,7 +54,7 @@ object HelloNativeWorldTests extends TestSuite {
     object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
     class BuildModuleUtest(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
         extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
-      object test extends super.Tests with TestModule.Utest {
+      object test extends ScalaNativeTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest::0.7.6"

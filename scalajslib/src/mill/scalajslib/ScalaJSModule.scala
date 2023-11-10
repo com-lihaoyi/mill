@@ -9,26 +9,19 @@ import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.TestRunner
 import mill.define.{Command, Target, Task}
 import mill.scalajslib.{ScalaJSWorker => DeprecatedScalaJSWorker}
-import mill.scalajslib.api.{
-  ESFeatures,
-  ESVersion,
-  FullOpt,
-  JsEnvConfig,
-  ModuleKind,
-  ModuleSplitStyle,
-  OptimizeMode,
-  Report
-}
+import mill.scalajslib.api.{ESFeatures, ESVersion, FullOpt, JsEnvConfig, ModuleKind, ModuleSplitStyle, OptimizeMode, Report}
 import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
 
-  trait ScalaJSTests extends TestScalaJSModule {
+  @deprecated("Replace use of trait Tests with trait ScalaJSTests", "Mill 0.10.13")
+  trait Tests extends TestScalaJSModule {
     override def zincWorker = outer.zincWorker
     override def scalaOrganization = outer.scalaOrganization()
     override def scalaVersion = outer.scalaVersion()
@@ -40,8 +33,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def jsEnvConfig = outer.jsEnvConfig()
     override def scalaJSOptimizer = outer.scalaJSOptimizer()
   }
-  @deprecated("Use ScalaJSTests instead", "Mill 0.10.13")
-  trait Tests extends ScalaJSTests
+  @nowarn
+  type ScalaJSTests = Tests
 
   def scalaJSBinaryVersion = T { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 
