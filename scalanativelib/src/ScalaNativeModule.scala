@@ -21,7 +21,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
   override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
 
-  trait Tests extends TestScalaNativeModule {
+  trait ScalaNativeTests extends TestScalaNativeModule {
     override def zincWorker = outer.zincWorker
     override def scalaOrganization = outer.scalaOrganization()
     override def scalaVersion = outer.scalaVersion()
@@ -30,12 +30,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     override def logLevel = outer.logLevel()
     override def moduleDeps = Seq(outer)
   }
+  @deprecated("Use ScalaNativeTests instead", "Mill 0.10.13")
+  trait Tests extends ScalaNativeTests
 
   def scalaNativeBinaryVersion =
-    T { mill.scalalib.api.Util.scalaNativeBinaryVersion(scalaNativeVersion()) }
+    T { mill.scalalib.api.ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerVersion =
-    T { mill.scalalib.api.Util.scalaNativeWorkerVersion(scalaNativeVersion()) }
+    T { mill.scalalib.api.ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorker = T.task {
     mill.scalanativelib.ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath())

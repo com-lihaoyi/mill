@@ -28,7 +28,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
 
-  trait Tests extends TestScalaJSModule {
+  trait ScalaJSTests extends TestScalaJSModule {
     override def zincWorker = outer.zincWorker
     override def scalaOrganization = outer.scalaOrganization()
     override def scalaVersion = outer.scalaVersion()
@@ -40,6 +40,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def jsEnvConfig = outer.jsEnvConfig()
     override def scalaJSOptimizer = outer.scalaJSOptimizer()
   }
+  @deprecated("Use ScalaJSTests instead", "Mill 0.10.13")
+  trait Tests extends ScalaJSTests
 
   def scalaJSBinaryVersion = T { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 

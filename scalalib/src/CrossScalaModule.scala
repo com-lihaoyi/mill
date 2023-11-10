@@ -17,11 +17,12 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase { outer =>
       scalaVersionDirectoryNames.map(s => PathRef(millSourcePath / s"src-$s"))
   }
 
-  trait CrossScalaModuleTests extends ScalaModuleTests {
+  trait CrossScalaModuleTests extends ScalaTests {
     override def sources = T.sources {
       super.sources() ++
         scalaVersionDirectoryNames.map(s => PathRef(millSourcePath / s"src-$s"))
     }
   }
+  @deprecated("Use CrossScalaModuleTests instead", "Mill 0.10.13")
   trait Tests extends CrossScalaModuleTests
 }

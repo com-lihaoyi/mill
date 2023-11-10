@@ -22,6 +22,7 @@ import mill.scalalib.dependency.versions.{ValidVersion, Version}
  */
 trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
 
+  @deprecated("Use ScalaTests instead", "Mill 0.10.13")
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
@@ -30,8 +31,10 @@ trait ScalaModule extends JavaModule with SemanticDbJavaModule { outer =>
     override def scalacOptions = outer.scalacOptions
     override def mandatoryScalacOptions = outer.mandatoryScalacOptions
   }
-
-  trait Tests extends ScalaModuleTests
+  @nowarn
+  type ScalaTests = ScalaModuleTests
+  @deprecated("Use ScalaTests instead", "Mill 0.10.13")
+  trait Tests extends ScalaTests
 
   /**
    * What Scala organization to use
