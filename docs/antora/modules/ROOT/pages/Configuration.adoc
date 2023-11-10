@@ -200,7 +200,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "{example-scala-2-13-version}"
 
-  object test extends Tests with TestModule.Utest {
+  object test extends ScalaTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:{example-utest-version}")
   }
 }
@@ -210,7 +210,7 @@ object foo extends ScalaModule {
 
 * {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-3.zip[Example 3]
 
-You can define a test suite by creating a nested module extending `Tests`, and
+You can define a test suite by creating a nested module extending `ScalaTests`, and
 specifying the ivy coordinates and name of your test framework. This expects the
 tests to be laid out as follows:
 
@@ -269,10 +269,10 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "{example-scala-2-13-version}"
 
-  object test extends Tests with TestModule.Utest {
+  object test extends ScalaTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:{example-utest-version}")
   }
-  object integration extends Tests with TestModule.Utest {
+  object integration extends ScalaTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:{example-utest-version}")
   }
 }
@@ -281,7 +281,7 @@ object foo extends ScalaModule {
 Each of which will expect their sources to be in their respective `foo/test` and
 `foo/integration` folder.
 
-`Tests` modules are ``ScalaModule``s like any other, and all the same
+`ScalaTests` modules are ``ScalaModule``s like any other, and all the same
 configuration options apply.
 
 == Custom Test Frameworks

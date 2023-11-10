@@ -181,7 +181,7 @@ object hello extends ScalaNativeModule {
   def scalaNativeVersion = "0.3.8"
   def scalaVersion = "2.11.12"
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.6.7")
-  object test extends Tests with TestModule.Utest {
+  object test extends ScalaNativeTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.6.3")
   }
 }
