@@ -78,11 +78,11 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.10"
+  val scalaVersion = "2.13.12"
   // Scoverage 1.x will not get releases for newer Scala versions
   val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.15"
+  val workerScalaVersion212 = "2.12.18"
 
   val testScala213Version = "2.13.8"
   val testScala212Version = "2.12.6"
@@ -110,10 +110,11 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.4.9"
-    val scalanativeUtil = ivy"org.scala-native::util:0.4.9"
-    val scalanativeNir = ivy"org.scala-native::nir:0.4.9"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.9"
+    val scalanativeVersion = "0.4.16"
+    val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
+    val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
+    val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:${scalanativeVersion}"
   }
 
   trait Play {
@@ -130,12 +131,12 @@ object Deps {
     val playVersion = "2.7.9"
   }
   object Play_2_8 extends Play {
-    val playVersion = "2.8.18"
+    val playVersion = "2.8.21"
   }
   val play = Seq(Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
-  val ammoniteVersion = "2.5.5"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.9"
+  val ammoniteVersion = "2.5.11"
   val ammonite = ivy"com.lihaoyi:::ammonite:${ammoniteVersion}"
   val ammoniteTerminal = ivy"com.lihaoyi::ammonite-terminal:${ammoniteVersion}"
   // Exclude trees here to force the version of we have defined. We use this
@@ -146,11 +147,11 @@ object Deps {
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
-  val coursier = ivy"io.get-coursier::coursier:2.1.0"
+  val coursier = ivy"io.get-coursier::coursier:2.1.7"
 
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.6.2"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.8.2"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
@@ -158,7 +159,7 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.13.0"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
-  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
+  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.20.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.8.1"
   val millModuledefsVersion = "0.10.9"
@@ -170,10 +171,10 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.6.1"
-  val scalametaTrees = ivy"org.scalameta::trees:4.7.6"
+  val scalametaTrees = ivy"org.scalameta::trees:4.8.12"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val scoverage2Version = "2.0.7"
+  val scoverage2Version = "2.0.11"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -182,12 +183,12 @@ object Deps {
   val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.6.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.0"
   val upickle = ivy"com.lihaoyi::upickle:2.0.0"
-  val utest = ivy"com.lihaoyi::utest:0.7.11"
+  val utest = ivy"com.lihaoyi::utest:0.8.2"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.4"
-  val zinc = ivy"org.scala-sbt::zinc:1.8.1"
+  val zinc = ivy"org.scala-sbt::zinc:1.9.5"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.2"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.9.0"
   val requests = ivy"com.lihaoyi::requests:0.7.1"
 }
 
