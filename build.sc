@@ -271,7 +271,10 @@ trait MillMimaConfig extends mima.Mima {
   lazy val issueFilterByModule: Map[MillMimaConfig, Seq[ProblemFilter]] = Map(
     main.core -> Seq(
       // refined generic parameter, should be ok
-      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.Evaluator.plan")
+      ProblemFilter.exclude[IncompatibleSignatureProblem]("mill.eval.Evaluator.plan"),
+      // The method exists in the class and in the object, so MiMa seems to be wrong
+      // see https://github.com/com-lihaoyi/mill/pull/2570
+      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.eval.Evaluator.evalOrThrow")
     ),
     scalalib -> Seq(
       ProblemFilter.exclude[DirectMissingMethodProblem](
