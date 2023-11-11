@@ -762,6 +762,27 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
+[#0-10-13]
+=== 0.10.13 - 203-11-12
+:version: 0.10.13
+:milestone-name: 0.10.13
+:milestone: 81
+:prev-version: 0.10.12
+
+_Changes since {prev-version}:_
+
+This version especially aids the transition from Mill 0.10 to Mill 0.11.
+
+* Backport of Java 20 compatibility
+* Deprecated `mill.define.SelectMode.Single`
+* Backport of `mill.eval.Evaluator.evalOrThrow`
+* Deprecated all inner `Tests` traits of modules derived from `JavaModule` and provide type aliases to use their successors
+* Dependency updates: Ammonite 2.5.11, Coursier 2.1.7, jarjar-abrams 1.9.0, Junixxocket 2.8.2, Play 2.8.21, Scalameta Trees 4.8.12, Scala Native 0.4.16, Scoverage 2.0.11, Zinc 1.9.5
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#0-10-12]
 === 0.10.12 - 2023-03-20
