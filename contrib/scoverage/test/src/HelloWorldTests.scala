@@ -141,7 +141,7 @@ trait HelloWorldTests extends utest.TestSuite {
 
             val resultPath = result.path.toIO.getPath.replace("""\""", "/")
             val expectedEnd =
-              "mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data.dest"
+              "target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data.dest"
 
             assert(
               resultPath.endsWith(expectedEnd),
@@ -304,7 +304,8 @@ trait FailedWorldTests extends HelloWorldTests {
 }
 
 object Scoverage1Tests_2_12 extends HelloWorldTests {
-  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
+  // This is the latest 2.12 version still supported by latest Scoverage 1 version 1.4.11
+  override def testScalaVersion: String = "2.12.15"
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
 }
 
