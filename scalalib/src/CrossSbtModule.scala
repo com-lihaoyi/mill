@@ -19,5 +19,6 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
       )
     }
   }
+  @deprecated("Use CrossSbtModuleTests instead", "Mill 0.10.13")
   trait Tests extends CrossSbtModuleTests
 }

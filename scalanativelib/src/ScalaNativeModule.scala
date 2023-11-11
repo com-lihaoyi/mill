@@ -4,7 +4,7 @@ package scalanativelib
 import ch.epfl.scala.bsp4j.{BuildTargetDataKind, ScalaBuildTarget, ScalaPlatform}
 import coursier.maven.MavenRepository
 import mill.api.Loose.Agg
-import mill.api.{internal, Result}
+import mill.api.{Result, internal}
 import mill.define.{Target, Task}
 import mill.modules.Jvm
 import mill.scalalib.api.Util.{isScala3, scalaBinaryVersion}
@@ -16,11 +16,14 @@ import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 import upickle.default.{macroRW, ReadWriter => RW}
 
+import scala.annotation.nowarn
+
 trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
   override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
 
+  @deprecated("Replace use of trait Tests with trait ScalaNativeTests", "Mill 0.10.13")
   trait Tests extends TestScalaNativeModule {
     override def zincWorker = outer.zincWorker
     override def scalaOrganization = outer.scalaOrganization()
@@ -30,12 +33,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     override def logLevel = outer.logLevel()
     override def moduleDeps = Seq(outer)
   }
+  @nowarn
+  trait ScalaNativeTests extends Tests
 
   def scalaNativeBinaryVersion =
-    T { mill.scalalib.api.Util.scalaNativeBinaryVersion(scalaNativeVersion()) }
+    T { mill.scalalib.api.ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerVersion =
-    T { mill.scalalib.api.Util.scalaNativeWorkerVersion(scalaNativeVersion()) }
+    T { mill.scalalib.api.ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorker = T.task {
     mill.scalanativelib.ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath())
