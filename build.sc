@@ -39,6 +39,7 @@ object Settings {
     "0.9.12",
     "0.10.0",
     "0.10.12",
+    "0.10.13",
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq()
