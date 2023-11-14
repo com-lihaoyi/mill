@@ -284,7 +284,7 @@ object HelloJSWorldTests extends TestSuite {
         HelloJSWorld.scalaTestsError.test
       }
       assert(
-        error.getCause.getMessage == s"scalaTestsError is a `ScalaJSModule`. scalaTestsError.test needs to extend `ScalaJSTests` instead of `ScalaTests`"
+        error.getCause.getMessage == s"scalaTestsError is a `ScalaJSModule`. scalaTestsError.test needs to extend `ScalaJSTests`."
       )
     }
 

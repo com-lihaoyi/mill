@@ -243,7 +243,7 @@ object HelloNativeWorldTests extends TestSuite {
         HelloNativeWorld.scalaTestsError.test
       }
       assert(
-        error.getCause.getMessage == s"scalaTestsError is a `ScalaNativeModule`. scalaTestsError.test needs to extend `ScalaNativeTests` instead of `ScalaTests`"
+        error.getCause.getMessage == s"scalaTestsError is a `ScalaNativeModule`. scalaTestsError.test needs to extend `ScalaNativeTests`."
       )
     }
 
