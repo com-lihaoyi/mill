@@ -21,20 +21,22 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
   trait ScalaTests extends JavaModuleTests with ScalaModule {
     try {
-      require(
-        !Class.forName("mill.scalajslib.ScalaJSModule").isInstance(outer) || Class.forName(
+      if (
+        Class.forName("mill.scalajslib.ScalaJSModule").isInstance(outer) && !Class.forName(
           "mill.scalajslib.ScalaJSModule$ScalaJSTests"
-        ).isInstance(this),
+        ).isInstance(this)
+      ) throw new Exception(
         s"$outer is a `ScalaJSModule`. $this needs to extend `ScalaJSTests` instead of `ScalaTests`"
       )
     } catch {
       case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
     }
     try {
-      require(
-        !Class.forName("mill.scalanativelib.ScalaNativeModule").isInstance(outer) || Class.forName(
-          "mill.scalajslib.ScalaNativeModule$ScalaNativeTests"
-        ).isInstance(this),
+      if (
+        Class.forName("mill.scalanativelib.ScalaNativeModule").isInstance(outer) && !Class.forName(
+          "mill.scalanativelib.ScalaNativeModule$ScalaNativeTests"
+        ).isInstance(this)
+      ) throw new Exception(
         s"$outer is a `ScalaNativeModule`. $this needs to extend `ScalaNativeTests` instead of `ScalaTests`"
       )
     } catch {

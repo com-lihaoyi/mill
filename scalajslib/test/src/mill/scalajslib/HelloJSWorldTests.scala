@@ -62,6 +62,13 @@ object HelloJSWorldTests extends TestSuite {
       }
     }
 
+    object scalaTestsError extends ScalaJSModule {
+      val (scala, scalaJS) = matrix.head
+      def scalaVersion = scala
+      def scalaJSVersion = scalaJS
+      object test extends ScalaTests with TestModule.Utest
+    }
+
     object buildScalaTest extends Cross[BuildModuleScalaTest](matrix)
     trait BuildModuleScalaTest extends RootModule {
       object test extends ScalaJSTests with TestModule.ScalaTest {
@@ -269,6 +276,15 @@ object HelloJSWorldTests extends TestSuite {
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
         skipScala = ZincWorkerUtil.isScala3
+      )
+    }
+
+    test("extends-ScalaTests") {
+      val error = intercept[ExceptionInInitializerError] {
+        HelloJSWorld.scalaTestsError.test
+      }
+      assert(
+        error.getCause.getMessage == s"scalaTestsError is a `ScalaJSModule`. scalaTestsError.test needs to extend `ScalaJSTests` instead of `ScalaTests`"
       )
     }
 
