@@ -20,6 +20,19 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   type ScalaModuleTests = ScalaTests
 
   trait ScalaTests extends JavaModuleTests with ScalaModule {
+    require(
+      !Class.forName("mill.scalajslib.ScalaJSModule").isInstance(outer) || Class.forName(
+        "mill.scalajslib.ScalaJSModule$ScalaJSTests"
+      ).isInstance(this),
+      s"$outer is a `ScalaJSModule`. $this needs to extend `ScalaJSTests` instead of `ScalaTests`"
+    )
+    require(
+      !Class.forName("mill.scalanativelib.ScalaNativeModule").isInstance(outer) || Class.forName(
+        "mill.scalajslib.ScalaNativeModule$ScalaNativeTests"
+      ).isInstance(this),
+      s"$outer is a `ScalaNativeModule`. $this needs to extend `ScalaNativeTests` instead of `ScalaTests`"
+    )
+
     override def scalaOrganization: Target[String] = outer.scalaOrganization()
     override def scalaVersion: Target[String] = outer.scalaVersion()
     override def scalacPluginIvyDeps: Target[Agg[Dep]] = outer.scalacPluginIvyDeps()
