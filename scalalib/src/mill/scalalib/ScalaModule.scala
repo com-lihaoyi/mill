@@ -26,7 +26,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           "mill.scalajslib.ScalaJSModule$ScalaJSTests"
         ).isInstance(this)
       ) throw new Exception(
-        s"$outer is a `ScalaJSModule`. $this needs to extend `ScalaJSTests` instead of `ScalaTests`"
+        s"$outer is a `ScalaJSModule`. $this needs to extend `ScalaJSTests`."
       )
     } catch {
       case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
