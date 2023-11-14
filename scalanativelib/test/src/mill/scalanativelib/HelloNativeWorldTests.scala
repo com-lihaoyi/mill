@@ -68,7 +68,6 @@ object HelloNativeWorldTests extends TestSuite {
         )
       }
     }
-
     object inherited extends ScalaNativeModule {
       val (scala, scalaNative, _) = matrix.head
       def scalacOptions = Seq("-deprecation")
