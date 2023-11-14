@@ -37,7 +37,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           "mill.scalanativelib.ScalaNativeModule$ScalaNativeTests"
         ).isInstance(this)
       ) throw new Exception(
-        s"$outer is a `ScalaNativeModule`. $this needs to extend `ScalaNativeTests` instead of `ScalaTests`"
+        s"$outer is a `ScalaNativeModule`. $this needs to extend `ScalaNativeTests`."
       )
     } catch {
       case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaNativeModule
