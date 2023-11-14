@@ -69,13 +69,6 @@ object HelloNativeWorldTests extends TestSuite {
       }
     }
 
-    object scalaTestsError extends ScalaNativeModule {
-      val (scala, scalaNative, _) = matrix.head
-      def scalaVersion = scala
-      def scalaNativeVersion = scalaNative
-      object test extends ScalaTests with TestModule.Utest
-    }
-
     object inherited extends ScalaNativeModule {
       val (scala, scalaNative, _) = matrix.head
       def scalacOptions = Seq("-deprecation")
@@ -236,15 +229,6 @@ object HelloNativeWorldTests extends TestSuite {
 
     "run" - {
       testAllMatrix((scala, scalaNative, releaseMode) => checkRun(scala, scalaNative, releaseMode))
-    }
-
-    test("extends-ScalaTests") {
-      val error = intercept[ExceptionInInitializerError] {
-        HelloNativeWorld.scalaTestsError.test
-      }
-      assert(
-        error.getCause.getMessage == s"scalaTestsError is a `ScalaNativeModule`. scalaTestsError.test needs to extend `ScalaNativeTests`."
-      )
     }
 
     def checkInheritedTargets[A](target: ScalaNativeModule => T[A], expected: A) = {
