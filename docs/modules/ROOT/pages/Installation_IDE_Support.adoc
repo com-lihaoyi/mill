@@ -51,7 +51,7 @@ To get the latest version run the following command:
 
 [source,bash,subs="verbatim,attributes"]
 ----
-curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-version} > mill && chmod +x mill
+curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
 ----
 
 The `mill` command will automatically use the version specified by the
