@@ -85,8 +85,7 @@ private class MillBuildServer(
     serverName: String,
     logStream: PrintStream,
     canReload: Boolean
-) extends ExternalModule
-    with BuildServer {
+) extends ExternalModule with BuildServer with MillBuildServerBase {
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
@@ -95,7 +94,8 @@ private class MillBuildServer(
   protected var client: BuildClient = _
   private var initialized = false
   private var shutdownRequested = false
-  private[worker] var clientWantsSemanticDb = false
+  protected var clientWantsSemanticDb = false
+  def enableSemanticDb: Boolean = clientWantsSemanticDb
   protected var clientIsIntelliJ = false
 
   private[this] var statePromise: Promise[State] = Promise[State]()

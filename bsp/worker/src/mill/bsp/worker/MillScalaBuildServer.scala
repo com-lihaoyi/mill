@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 import scala.util.chaining.scalaUtilChainingOps
 
-private class MillScalaBuildServer(base: MillBuildServer) extends ScalaBuildServer {
+private class MillScalaBuildServer(base: MillBuildServerBase) extends ScalaBuildServer {
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =
@@ -34,7 +34,7 @@ private class MillScalaBuildServer(base: MillBuildServer) extends ScalaBuildServ
       tasks = {
         case m: ScalaModule =>
           val classesPathTask = m match {
-            case sem: SemanticDbJavaModule if base.clientWantsSemanticDb =>
+            case sem: SemanticDbJavaModule if base.enableSemanticDb =>
               sem.bspCompiledClassesAndSemanticDbFiles
             case _ => m.bspCompileClassesPath
           }
@@ -43,7 +43,7 @@ private class MillScalaBuildServer(base: MillBuildServer) extends ScalaBuildServ
 
         case m: JavaModule =>
           val classesPathTask = m match {
-            case sem: SemanticDbJavaModule if base.clientWantsSemanticDb =>
+            case sem: SemanticDbJavaModule if base.enableSemanticDb =>
               sem.bspCompiledClassesAndSemanticDbFiles
             case _ => m.bspCompileClassesPath
           }
