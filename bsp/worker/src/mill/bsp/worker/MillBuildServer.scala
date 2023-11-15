@@ -77,14 +77,14 @@ import mill.bsp.BspServerResult
 import mill.eval.Evaluator.TaskResult
 
 import scala.util.chaining.scalaUtilChainingOps
+
 private class MillBuildServer(
     bspVersion: String,
     serverVersion: String,
     serverName: String,
     logStream: PrintStream,
     canReload: Boolean
-) extends ExternalModule
-    with BuildServer {
+) extends ExternalModule with BuildServer with MillBuildServerBase {
 
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
 
@@ -94,6 +94,7 @@ private class MillBuildServer(
   private var initialized = false
   private var shutdownRequested = false
   protected var clientWantsSemanticDb = false
+  def enableSemanticDb: Boolean = clientWantsSemanticDb
   protected var clientIsIntelliJ = false
 
   private[this] var statePromise: Promise[State] = Promise[State]()

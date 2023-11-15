@@ -17,7 +17,9 @@ import mill.scalalib.JavaModule
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 
-private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
+private trait MillJvmBuildServer extends JvmBuildServer {
+
+  def base: MillBuildServerBase
 
   override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] = {
@@ -42,7 +44,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       targetIds: Seq[BuildTargetIdentifier],
       agg: java.util.List[JvmEnvironmentItem] => V
   ) = {
-    completableTasks(
+    base.completableTasks(
       name,
       targetIds = _ => targetIds,
       tasks = {

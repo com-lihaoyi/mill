@@ -11,6 +11,7 @@ import java.io.{PrintStream, PrintWriter}
 import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, CancellationException, Promise}
+import scala.jdk.CollectionConverters._
 
 private class BspWorkerImpl() extends BspWorker {
 
@@ -28,7 +29,18 @@ private class BspWorkerImpl() extends BspWorker {
         serverName = Constants.serverName,
         logStream = logStream,
         canReload = canReload
-      ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
+      )
+
+    trait BaseProvider {
+      def base: MillBuildServerBase = millServer
+    }
+
+    val services = Seq(
+      millServer,
+      new MillJvmBuildServer with BaseProvider,
+      new MillJavaBuildServer with BaseProvider,
+      new MillScalaBuildServer with BaseProvider
+    )
 
     val executor = Executors.newCachedThreadPool()
 
@@ -38,7 +50,7 @@ private class BspWorkerImpl() extends BspWorker {
       val launcher = new Launcher.Builder[BuildClient]()
         .setOutput(streams.out)
         .setInput(streams.in)
-        .setLocalService(millServer)
+        .setLocalServices(services.asJava)
         .setRemoteInterface(classOf[BuildClient])
         .traceMessages(new PrintWriter(
           (logDir / s"${Constants.serverName}.trace").toIO
