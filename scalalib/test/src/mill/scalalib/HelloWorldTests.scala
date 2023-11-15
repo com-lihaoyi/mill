@@ -22,6 +22,8 @@ object HelloWorldTests extends TestSuite {
   val scala2123Version = "2.12.3"
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val scala213Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+  val scala32Version = sys.props.getOrElse("TEST_SCALA_3_2_VERSION", ???)
+  val scala33Version = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
   val zincVersion = sys.props.getOrElse("TEST_ZINC_VERSION", ???)
 
   trait HelloBase extends TestUtil.BaseModule {
@@ -58,6 +60,15 @@ object HelloWorldTests extends TestSuite {
           scala213Version
         )
     trait HelloWorldCross extends CrossScalaModule
+  }
+  object CrossModuleDeps extends HelloBase {
+    object stable extends Cross[Stable](scala212Version, scala32Version)
+    trait Stable extends CrossScalaModule
+
+    object cuttingEdge extends Cross[CuttingEdge](scala213Version, scala33Version)
+    trait CuttingEdge extends CrossScalaModule {
+      def moduleDeps = Seq(stable())
+    }
   }
 
   object HelloWorldDefaultMain extends HelloBase {
@@ -675,6 +686,14 @@ object HelloWorldTests extends TestSuite {
           eval.apply(CrossHelloWorld.core(scala213Version).artifactName)
         assert(artifactName == "core")
       }
+    }
+
+    "scala-33-depend-on-scala-32-works" - {
+      CrossModuleDeps.cuttingEdge(scala33Version).moduleDeps
+    }
+    "scala-213-depend-on-scala-212-fails" - {
+      val message = intercept(CrossModuleDeps.cuttingEdge(scala213Version).moduleDeps).getMessage
+      assert(message == "Unable to find compatible cross version between 2.13.8 and 2.12.6,3.2.0")
     }
 
     "runMain" - {

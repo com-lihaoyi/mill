@@ -22,7 +22,7 @@ trait CrossModuleBase extends ScalaModule with Cross.Module[String] {
         crossScalaVersion
           .split('.')
           .inits
-          .takeWhile(_.length > 1)
+          .takeWhile(_.length > (if (ZincWorkerUtil.isScala3(crossScalaVersion)) 0 else 1))
           .flatMap(prefix =>
             c.crossModules
               .find(_.crossScalaVersion.split('.').startsWith(prefix))
