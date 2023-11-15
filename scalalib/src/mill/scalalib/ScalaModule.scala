@@ -28,28 +28,33 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   type ScalaModuleTests = ScalaTests
 
   trait ScalaTests extends JavaModuleTests with ScalaModule {
-    try {
-      if (
-        Class.forName("mill.scalajslib.ScalaJSModule").isInstance(outer) && !Class.forName(
-          "mill.scalajslib.ScalaJSModule$ScalaJSTests"
-        ).isInstance(this)
-      ) throw new MillException(
-        s"$outer is a `ScalaJSModule`. $this needs to extend `ScalaJSTests`."
-      )
-    } catch {
-      case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
+    protected def hierarchyChecks(): Unit = {
+      try {
+        if (
+          Class.forName("mill.scalajslib.ScalaJSModule").isInstance(outer) && !Class.forName(
+            "mill.scalajslib.ScalaJSModule$ScalaJSTests"
+          ).isInstance(this)
+        ) throw new MillException(
+          s"$outer is a `ScalaJSModule`. $this needs to extend `ScalaJSTests`."
+        )
+      } catch {
+        case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
+      }
+      try {
+        if (
+          Class.forName("mill.scalanativelib.ScalaNativeModule").isInstance(
+            outer
+          ) && !Class.forName(
+            "mill.scalanativelib.ScalaNativeModule$ScalaNativeTests"
+          ).isInstance(this)
+        ) throw new MillException(
+          s"$outer is a `ScalaNativeModule`. $this needs to extend `ScalaNativeTests`."
+        )
+      } catch {
+        case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaNativeModule
+      }
     }
-    try {
-      if (
-        Class.forName("mill.scalanativelib.ScalaNativeModule").isInstance(outer) && !Class.forName(
-          "mill.scalanativelib.ScalaNativeModule$ScalaNativeTests"
-        ).isInstance(this)
-      ) throw new MillException(
-        s"$outer is a `ScalaNativeModule`. $this needs to extend `ScalaNativeTests`."
-      )
-    } catch {
-      case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaNativeModule
-    }
+    hierarchyChecks()
 
     override def scalaOrganization: Target[String] = outer.scalaOrganization()
     override def scalaVersion: Target[String] = outer.scalaVersion()
