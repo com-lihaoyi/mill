@@ -27,7 +27,7 @@ object ScalaTestsErrorTests extends TestSuite {
       }
       val message = error.getCause.getMessage
       assert(
-        message == s"scalaTestsError is a `ScalaNativeModule`. scalaTestsError.test needs to extend `ScalaNativeTests`."
+        message == s"scalaTestsError is a `mill.scalanativelib.ScalaNativeModule`. scalaTestsError.test needs to extend `ScalaNativeTests`."
       )
     }
     test("extends-ScalaTests-disabled-hierarchy-check") {

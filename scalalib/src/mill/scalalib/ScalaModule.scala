@@ -29,30 +29,39 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
   trait ScalaTests extends JavaModuleTests with ScalaModule {
     protected def hierarchyChecks(): Unit = {
-      try {
-        if (
-          Class.forName("mill.scalajslib.ScalaJSModule").isInstance(outer) && !Class.forName(
-            "mill.scalajslib.ScalaJSModule$ScalaJSTests"
-          ).isInstance(this)
-        ) throw new MillException(
-          s"$outer is a `ScalaJSModule`. $this needs to extend `ScalaJSTests`."
+      val outerInnerSets = Seq(
+        (
+          "mill.scalajslib.ScalaJSModule",
+          "mill.scalajslib.ScalaJSModule$ScalaJSTests",
+          "ScalaJSTests"
+        ),
+        (
+          "mill.scalanativelib.ScalaNativeModule",
+          "mill.scalanativelib.ScalaNativeModule$ScalaNativeTests",
+          "ScalaNativeTests"
+        ),
+        (
+          "mill.scalalib.SbtModule",
+          "mill.scalalib.SbtModule$SbtModuleTests",
+          "SbtModuleTests"
+        ),
+        (
+          "mill.scalalib.MavenModule",
+          "mill.scalalib.MavenModule$MavenModuleTests",
+          "MavenModuleTests"
         )
-      } catch {
-        case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
+      )
+      for {
+        (mod, testMod, testModShort) <- outerInnerSets
       }
-      try {
-        if (
-          Class.forName("mill.scalanativelib.ScalaNativeModule").isInstance(
-            outer
-          ) && !Class.forName(
-            "mill.scalanativelib.ScalaNativeModule$ScalaNativeTests"
-          ).isInstance(this)
-        ) throw new MillException(
-          s"$outer is a `ScalaNativeModule`. $this needs to extend `ScalaNativeTests`."
-        )
-      } catch {
-        case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaNativeModule
-      }
+        try {
+          if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(this))
+            throw new MillException(
+              s"$outer is a `${mod}`. $this needs to extend `${testModShort}`."
+            )
+        } catch {
+          case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
+        }
     }
     hierarchyChecks()
 
