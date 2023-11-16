@@ -565,13 +565,6 @@ The name of the class that will contain all the members from
 
 The package name for the generated class.
 
-== JNI-Rust
-
-A plugin for build Rust JNI code! 
-
-Project home: https://github.com/otavia-projects/mill-rust-jni
-
-For documentation please visit the https://github.com/otavia-projects/mill-rust-jni[mill-rust-jni project page].
 
 == Kotlin
 
@@ -788,6 +781,14 @@ Publishing to custom local Maven repository
 [40/40] project.publishM2Local
 Publishing to /tmp/m2repo
 ----
+
+== Rust JNI
+
+A plugin for build Rust JNI code! 
+
+Project home: https://github.com/otavia-projects/mill-rust-jni
+
+For documentation please visit the https://github.com/otavia-projects/mill-rust-jni[mill-rust-jni project page].
 
 == ScalablyTyped
 
