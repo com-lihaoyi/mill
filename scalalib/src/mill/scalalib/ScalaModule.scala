@@ -1,15 +1,7 @@
 package mill
 package scalalib
 
-import mill.api.{
-  DummyInputStream,
-  JarManifest,
-  MillException,
-  PathRef,
-  Result,
-  SystemStreams,
-  internal
-}
+import mill.api.{DummyInputStream, JarManifest, PathRef, Result, SystemStreams, internal}
 import mill.main.BuildInfo
 import mill.util.{Jvm, Util}
 import mill.util.Jvm.createJar
@@ -28,28 +20,6 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   type ScalaModuleTests = ScalaTests
 
   trait ScalaTests extends JavaModuleTests with ScalaModule {
-    protected def hierarchyChecks(): Unit = {
-      val outerInnerSets = Seq(
-        ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
-        ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
-        ("mill.scalalib.SbtModule", "SbtModuleTests"),
-        ("mill.scalalib.MavenModule", "MavenModuleTests")
-      )
-      for {
-        (mod, testModShort) <- outerInnerSets
-        testMod = s"${mod}$$${testModShort}"
-      }
-        try {
-          if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(this))
-            throw new MillException(
-              s"$outer is a `${mod}`. $this needs to extend `${testModShort}`."
-            )
-        } catch {
-          case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
-        }
-    }
-    hierarchyChecks()
-
     override def scalaOrganization: Target[String] = outer.scalaOrganization()
     override def scalaVersion: Target[String] = outer.scalaVersion()
     override def scalacPluginIvyDeps: Target[Agg[Dep]] = outer.scalacPluginIvyDeps()

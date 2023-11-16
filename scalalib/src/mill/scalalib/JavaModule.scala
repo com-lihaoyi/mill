@@ -9,7 +9,7 @@ import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.Agg
-import mill.api.{Ctx, JarManifest, PathRef, Result, internal}
+import mill.api.{Ctx, JarManifest, MillException, PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
@@ -34,6 +34,9 @@ trait JavaModule
   def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(mill.scalalib.ZincWorkerModule)
 
   trait JavaModuleTests extends JavaModule with TestModule {
+    // Run some consistence checks
+    hierarchyChecks()
+
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
@@ -46,6 +49,33 @@ trait JavaModule
       for (src <- outer.sources()) yield {
         PathRef(this.millSourcePath / src.path.relativeTo(outer.millSourcePath))
       }
+    }
+
+    /**
+     * JavaModule and its derivates define inner test modules.
+     * To avoid unexpected misbehavior due to the use of the wrong inner test trait
+     * we apply some hierarchy consistency checks.
+     * If for some reasons, those are too restrictive to you, you can override this method.
+     */
+    protected def hierarchyChecks(): Unit = {
+      val outerInnerSets = Seq(
+        ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
+        ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
+        ("mill.scalalib.SbtModule", "SbtModuleTests"),
+        ("mill.scalalib.MavenModule", "MavenModuleTests")
+      )
+      for {
+        (mod, testModShort) <- outerInnerSets
+        testMod = s"${mod}$$${testModShort}"
+      }
+        try {
+          if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(this))
+            throw new MillException(
+              s"$outer is a `${mod}`. $this needs to extend `${testModShort}`."
+            )
+        } catch {
+          case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
+        }
     }
   }
 
