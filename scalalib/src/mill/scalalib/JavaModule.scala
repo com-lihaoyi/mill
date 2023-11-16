@@ -56,6 +56,7 @@ trait JavaModule
      * To avoid unexpected misbehavior due to the use of the wrong inner test trait
      * we apply some hierarchy consistency checks.
      * If for some reasons, those are too restrictive to you, you can override this method.
+     * @throws MillException
      */
     protected def hierarchyChecks(): Unit = {
       val outerInnerSets = Seq(
