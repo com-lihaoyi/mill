@@ -30,29 +30,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   trait ScalaTests extends JavaModuleTests with ScalaModule {
     protected def hierarchyChecks(): Unit = {
       val outerInnerSets = Seq(
-        (
-          "mill.scalajslib.ScalaJSModule",
-          "mill.scalajslib.ScalaJSModule$ScalaJSTests",
-          "ScalaJSTests"
-        ),
-        (
-          "mill.scalanativelib.ScalaNativeModule",
-          "mill.scalanativelib.ScalaNativeModule$ScalaNativeTests",
-          "ScalaNativeTests"
-        ),
-        (
-          "mill.scalalib.SbtModule",
-          "mill.scalalib.SbtModule$SbtModuleTests",
-          "SbtModuleTests"
-        ),
-        (
-          "mill.scalalib.MavenModule",
-          "mill.scalalib.MavenModule$MavenModuleTests",
-          "MavenModuleTests"
-        )
+        ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
+        ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
+        ("mill.scalalib.SbtModule", "SbtModuleTests"),
+        ("mill.scalalib.MavenModule", "MavenModuleTests")
       )
       for {
-        (mod, testMod, testModShort) <- outerInnerSets
+        (mod, testModShort) <- outerInnerSets
+        testMod = s"${mod}$$${testModShort}"
       }
         try {
           if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(this))
