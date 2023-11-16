@@ -101,45 +101,58 @@ public class MillClientMain {
 
         int index = 0;
         while (index < serverProcessesLimit) {
-            index += 1;
+            index++;
             final String lockBase = "out/mill-worker-" + versionAndJvmHomeEncoding + "-" + index;
-            new java.io.File(lockBase).mkdirs();
+            java.io.File lockBaseFile = new java.io.File(lockBase);
+            final File stdout = new java.io.File(lockBaseFile, "stdout");
+            final File stderr = new java.io.File(lockBaseFile, "stderr");
 
-            final File stdout = new java.io.File(lockBase + "/stdout");
-            final File stderr = new java.io.File(lockBase + "/stderr");
-            final int refeshIntervalMillis = 2;
+            int attempts = 0;
+            while (attempts < 3) {
+                try {
+                    lockBaseFile.mkdirs();
 
-            try (
-                Locks locks = Locks.files(lockBase);
-                final FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMillis);
-                final FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMillis);
-            ) {
-                Locked clientLock = locks.clientLock.tryLock();
-                if (clientLock != null) {
-                    stdoutTailer.start();
-                    stderrTailer.start();
-                    final int exitCode = run(
-                        lockBase,
-                        () -> {
-                            try {
-                                initServer(lockBase, setJnaNoSys);
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        },
-                        locks,
-                        System.in,
-                        System.out,
-                        System.err,
-                        args,
-                        System.getenv()
-                    );
+                    final int refeshIntervalMillis = 2;
 
-                    // Here, we ensure we process the tails of the output files before interrupting the threads
-                    stdoutTailer.flush();
-                    stderrTailer.flush();
-                    clientLock.release();
-                    return exitCode;
+                    try (
+                        Locks locks = Locks.files(lockBase);
+                        final FileToStreamTailer stdoutTailer =new FileToStreamTailer(stdout, System.out, refeshIntervalMillis);
+                        final FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMillis);
+                    ) {
+                        Locked clientLock = locks.clientLock.tryLock();
+                        if (clientLock != null) {
+                            stdoutTailer.start();
+                            stderrTailer.start();
+                            final int exitCode = run(
+                                    lockBase,
+                                    () -> {
+                                        try {
+                                            initServer(lockBase, setJnaNoSys);
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    },
+                                    locks,
+                                    System.in,
+                                    System.out,
+                                    System.err,
+                                    args,
+                                    System.getenv());
+
+                            // Here, we ensure we process the tails of the output files before interrupting
+                            // the threads
+                            stdoutTailer.flush();
+                            stderrTailer.flush();
+                            clientLock.release();
+                            return exitCode;
+                        }
+                    }
+                } catch (Exception e) {
+                    for (File file : lockBaseFile.listFiles()) {
+                        file.delete();
+                    }
+                } finally {
+                    attempts++;
                 }
             }
         }
@@ -176,14 +189,14 @@ public class MillClientMain {
         }
         while (locks.processLock.probe()) Thread.sleep(3);
 
+        String socketName = lockBase + "/mill-" + Util.md5hex(new File(lockBase).getCanonicalPath()) + "-io";
+        AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
+
+        long retryStart = System.currentTimeMillis();
         Socket ioSocket = null;
         Throwable socketThrowable = null;
-        long retryStart = System.currentTimeMillis();
-
-        while (ioSocket == null && System.currentTimeMillis() - retryStart < 5000) {
+        while (ioSocket == null && System.currentTimeMillis() - retryStart < 1000) {
             try {
-                String socketName = lockBase + "/mill-" + Util.md5hex(new File(lockBase).getCanonicalPath()) + "-io";
-                AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
                 ioSocket = AFUNIXSocket.connectTo(addr);
             } catch (Throwable e) {
                 socketThrowable = e;
