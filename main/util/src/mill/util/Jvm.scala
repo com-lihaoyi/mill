@@ -146,21 +146,46 @@ object Jvm extends CoursierSupport {
 
     ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
 
+    val envWithPropagated = ctx.env ++ envArgs
+
     if (backgroundOutputs.nonEmpty)
-      spawnSubprocessWithBackgroundOutputs(args, envArgs, workingDir, backgroundOutputs)
+      spawnSubprocessWithBackgroundOutputs(
+        args,
+        envWithPropagated,
+        workingDir,
+        backgroundOutputs,
+        propagateEnv = false
+      )
     else
-      runSubprocess(args, envArgs, workingDir)
+      runSubprocess(args, envWithPropagated, workingDir, propagateEnv = false)
   }
 
   /**
    * Runs a generic subprocess and waits for it to terminate.
    */
-  def runSubprocess(commandArgs: Seq[String], envArgs: Map[String, String], workingDir: os.Path) = {
+  def runSubprocess(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path
+  ): Unit = runSubprocess(
+    commandArgs = commandArgs,
+    envArgs = envArgs,
+    workingDir = workingDir,
+    propagateEnv = true
+  )
+
+  private def runSubprocess(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path,
+      propagateEnv: Boolean
+  ): Unit = {
     val process = spawnSubprocessWithBackgroundOutputs(
       commandArgs,
       envArgs,
       workingDir,
-      backgroundOutputs = None
+      backgroundOutputs = None,
+      propagateEnv = propagateEnv
     )
     val shutdownHook = new Thread("subprocess-shutdown") {
       override def run(): Unit = {
@@ -217,6 +242,20 @@ object Jvm extends CoursierSupport {
       envArgs: Map[String, String],
       workingDir: os.Path,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None
+  ): SubProcess = spawnSubprocessWithBackgroundOutputs(
+    commandArgs = commandArgs,
+    envArgs = envArgs,
+    workingDir = workingDir,
+    backgroundOutputs = backgroundOutputs,
+    propagateEnv = true
+  )
+
+  private def spawnSubprocessWithBackgroundOutputs(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path,
+      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]],
+      propagateEnv: Boolean
   ): SubProcess = {
     // If System.in is fake, then we pump output manually rather than relying
     // on `os.Inherit`. That is because `os.Inherit` does not follow changes
@@ -231,7 +270,7 @@ object Jvm extends CoursierSupport {
         stdin = if (backgroundOutputs.isEmpty) os.Pipe else "",
         stdout = backgroundOutputs.map(_._1).getOrElse(os.Pipe),
         stderr = backgroundOutputs.map(_._2).getOrElse(os.Pipe),
-        propagateEnv = false
+        propagateEnv = propagateEnv
       )
 
       val sources = Seq(
@@ -257,7 +296,7 @@ object Jvm extends CoursierSupport {
         stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
         stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
         stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit),
-        propagateEnv = false
+        propagateEnv = propagateEnv
       )
     }
   }
