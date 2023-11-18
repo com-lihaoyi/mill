@@ -230,7 +230,8 @@ object Jvm extends CoursierSupport {
         env = envArgs,
         stdin = if (backgroundOutputs.isEmpty) os.Pipe else "",
         stdout = backgroundOutputs.map(_._1).getOrElse(os.Pipe),
-        stderr = backgroundOutputs.map(_._2).getOrElse(os.Pipe)
+        stderr = backgroundOutputs.map(_._2).getOrElse(os.Pipe),
+        propagateEnv = false
       )
 
       val sources = Seq(
@@ -255,7 +256,8 @@ object Jvm extends CoursierSupport {
         env = envArgs,
         stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
         stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
-        stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit)
+        stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit),
+        propagateEnv = false
       )
     }
   }

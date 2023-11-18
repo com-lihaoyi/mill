@@ -382,6 +382,18 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object HelloWorldWithEnv extends HelloBase {
+    object env extends HelloWorldModule {
+      def forkEnv = T { T.env }
+    }
+  }
+
+  object HelloWorldWithoutEnv extends HelloBase {
+    object env extends HelloWorldModule {
+      def forkEnv = T { Map.empty[String, String] }
+    }
+  }
+
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -809,6 +821,26 @@ object HelloWorldTests extends TestSuite {
       ) { eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
 
+      }
+      "withEnv" - workspaceTest(HelloWorldWithEnv) { eval =>
+        val runResult = eval.outPath / "env" / "run.dest" / "hello-mill"
+        val Right((_, evalCount)) = eval.apply(HelloWorldWithEnv.env.run(T.task(Args(runResult.toString))))
+
+        assert(evalCount > 0)
+        assert(os.exists(runResult))
+
+        val output = os.read(runResult)
+        assert(output == "TEST_ENV_VARIABLE=value")
+      }
+      "withoutEnv" - workspaceTest(HelloWorldWithoutEnv) { eval =>
+        val runResult = eval.outPath / "env" / "run.dest" / "hello-mill"
+        val Right((_, evalCount)) = eval.apply(HelloWorldWithoutEnv.env.run(T.task(Args(runResult.toString))))
+
+        assert(evalCount > 0)
+        assert(os.exists(runResult))
+
+        val output = os.read(runResult)
+        assert(output == "TEST_ENV_VARIABLE=")
       }
     }
 

@@ -374,6 +374,12 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
     )
   }
 
+  def forkEnv = T {
+    super.forkEnv() ++ Seq(
+      "TEST_ENV_VARIABLE" -> "value"
+    )
+  }
+
   def testFramework = "mill.UTestFramework"
 }
 
