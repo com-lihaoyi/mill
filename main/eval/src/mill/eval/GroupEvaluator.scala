@@ -123,7 +123,8 @@ private[mill] trait GroupEvaluator {
                 ctx.enclosingModule match {
                   case null => None
                   case m: mill.define.Module => Some((m, m.millOuterCtx))
-                  case unknown => throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
+                  case unknown =>
+                    throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
                 }
             }
 
