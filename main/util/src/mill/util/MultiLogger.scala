@@ -40,6 +40,8 @@ class MultiLogger(
     logger1.close()
     logger2.close()
   }
+
+  override def rawOutputStream: PrintStream = systemStreams.out
 }
 
 class MultiStream(stream1: OutputStream, stream2: OutputStream)

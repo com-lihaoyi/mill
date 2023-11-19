@@ -50,7 +50,7 @@ object MainModule {
       case Right((watched, Right(res))) =>
         val output = f(res)
         watched.foreach(watch0)
-        log.outputStream.println(output.render(indent = 2))
+        log.rawOutputStream.println(output.render(indent = 2))
         Result.Success(output)
     }
   }

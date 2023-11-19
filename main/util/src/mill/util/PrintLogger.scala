@@ -76,6 +76,8 @@ class PrintLogger(
       systemStreams.err.println(context + s)
     }
   }
+
+  override def rawOutputStream: PrintStream = systemStreams.out
 }
 
 object PrintLogger {

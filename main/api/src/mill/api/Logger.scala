@@ -31,6 +31,14 @@ trait Logger {
 
   def errorStream: PrintStream = systemStreams.err
   def outputStream: PrintStream = systemStreams.out
+
+  /**
+   * [[rawOutputStream]] is intended to be a version of [[outputStream]]
+   * without decoration: colors, prefixes, timestamps, etc. It is intended
+   * for the use of tasks like `show` which output data in a way that is
+   * easily readable by downstream programs.
+   */
+  def rawOutputStream: PrintStream = systemStreams.out
   def inStream: InputStream = systemStreams.in
 
   def info(s: String): Unit
