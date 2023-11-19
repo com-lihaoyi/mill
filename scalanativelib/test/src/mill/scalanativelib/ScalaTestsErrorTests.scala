@@ -12,6 +12,9 @@ object ScalaTestsErrorTests extends TestSuite {
       def scalaVersion = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
       def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_VERSION", ???)
       object test extends ScalaTests with TestModule.Utest
+      object testDisabledError extends ScalaTests with TestModule.Utest {
+        override def hierarchyChecks(): Unit = {}
+      }
     }
 
     override lazy val millDiscover = Discover[this.type]
@@ -24,8 +27,12 @@ object ScalaTestsErrorTests extends TestSuite {
       }
       val message = error.getCause.getMessage
       assert(
-        message == s"scalaTestsError is a `ScalaNativeModule`. scalaTestsError.test needs to extend `ScalaNativeTests`."
+        message == s"scalaTestsError is a `mill.scalanativelib.ScalaNativeModule`. scalaTestsError.test needs to extend `ScalaNativeTests`."
       )
+    }
+    test("extends-ScalaTests-disabled-hierarchy-check") {
+      // expect no throws exception
+      ScalaTestsError.scalaTestsError.testDisabledError
     }
   }
 }
