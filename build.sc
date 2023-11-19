@@ -110,7 +110,8 @@ object Deps {
   object Play_3_0 extends Play {
     val playVersion = "3.0.0"
   }
-  val play = Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
+  val play =
+    Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.9"
   val ammoniteVersion = "3.0.0-M0-53-084f7f4e"
@@ -495,7 +496,11 @@ object main extends MillStableScalaModule with BuildInfo {
     def buildInfoMembers = Seq(
       BuildInfo.Value("millVersion", millVersion(), "Mill version."),
       BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url."),
-      BuildInfo.Value("millReportNewIssueUrl", Settings.newIssueUrl, "URL to create a new issue in Mills issue tracker.")
+      BuildInfo.Value(
+        "millReportNewIssueUrl",
+        Settings.newIssueUrl,
+        "URL to create a new issue in Mills issue tracker."
+      )
     )
 
     def ivyDeps = Agg(
