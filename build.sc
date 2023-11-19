@@ -1419,15 +1419,17 @@ object dev extends MillPublishScalaModule {
       case wd0 +: rest =>
         val wd = os.Path(wd0, T.workspace)
         os.makeDir.all(wd)
-        try Jvm.runSubprocess(
+        try {
+          Jvm.runSubprocess(
             Seq(launcher().path.toString) ++ rest,
             forkEnv(),
             workingDir = wd
           )
-        catch {
-          case e: Throwable => () /*ignore to avoid confusing stacktrace and error messages*/
+          mill.api.Result.Success(())
+        } catch {
+          case e: Throwable =>
+            mill.api.Result.Failure(s"dev.run failed with an exception. ${e.getMessage()}")
         }
-        mill.api.Result.Success(())
     }
   }
 }
