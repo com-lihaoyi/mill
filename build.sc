@@ -31,6 +31,7 @@ object Settings {
   val githubRepo = "mill"
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
   val changelogUrl = s"${projectUrl}#changelog"
+  val newIssueUrl = s"${projectUrl}/issues/new/choose"
   val docUrl = "https://mill-build.com"
   // the exact branches containing a doc root
   val docBranches = Seq()
@@ -493,7 +494,8 @@ object main extends MillStableScalaModule with BuildInfo {
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Seq(
       BuildInfo.Value("millVersion", millVersion(), "Mill version."),
-      BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
+      BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url."),
+      BuildInfo.Value("millReportNewIssueUrl", Settings.newIssueUrl, "URL to create a new issue in Mills issue tracker.")
     )
 
     def ivyDeps = Agg(
