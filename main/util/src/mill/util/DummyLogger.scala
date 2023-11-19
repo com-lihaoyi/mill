@@ -12,6 +12,7 @@ object DummyLogger extends Logger {
     new PrintStream(_ => ()),
     new ByteArrayInputStream(Array())
   )
+  override def rawOutputStream = systemStreams.out
 
   def info(s: String) = ()
   def error(s: String) = ()

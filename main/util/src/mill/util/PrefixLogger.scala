@@ -36,6 +36,8 @@ class PrefixLogger(
     logger0.systemStreams.in
   )
 
+  override def rawOutputStream = logger0.rawOutputStream
+
   override def info(s: String): Unit = logger0.info(context + s)
   override def error(s: String): Unit = logger0.error(context + s)
   override def ticker(s: String): Unit = logger0.ticker(context + tickerContext + s)

@@ -7,6 +7,7 @@ import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.util._
 
+import java.io.PrintStream
 import scala.collection.mutable
 import scala.reflect.NameTransformer.decode
 import scala.util.DynamicVariable
@@ -268,6 +269,8 @@ private[mill] trait GroupEvaluator {
           if (enableTicker) super.ticker(tickerPrefix.getOrElse("") + s)
           else () // do nothing
         }
+
+        override def rawOutputStream: PrintStream = logger.rawOutputStream
       }
       // This is used to track the usage of `T.dest` in more than one Task
       // But it's not really clear what issue we try to prevent here

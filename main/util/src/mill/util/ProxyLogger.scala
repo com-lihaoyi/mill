@@ -2,6 +2,8 @@ package mill.util
 
 import mill.api.Logger
 
+import java.io.PrintStream
+
 /**
  * A Logger that forwards all logging to another Logger.  Intended to be
  * used as a base class for wrappers that modify logging behavior.
@@ -19,4 +21,6 @@ class ProxyLogger(logger: Logger) extends Logger {
   override def debugEnabled: Boolean = logger.debugEnabled
 
   override def close() = logger.close()
+
+  override def rawOutputStream: PrintStream = logger.rawOutputStream
 }
