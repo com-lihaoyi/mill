@@ -8,7 +8,7 @@ import mill.eval.Evaluator.TaskResult
 import mill.util._
 
 import scala.collection.mutable
-import scala.reflect.NameTransformer.decode
+import scala.reflect.NameTransformer.{encode, decode}
 import scala.util.DynamicVariable
 import scala.util.control.NonFatal
 
@@ -98,7 +98,13 @@ private[mill] trait GroupEvaluator {
             val methods = for {
               c <- transitiveParents
               m <- c.getDeclaredMethods
-              if decode(m.getName) == namedTask.ctx.segment.pathSegments.head
+              encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
+              if m.getName == encodedTaskName ||
+                // Handle scenarios where private method names get mangled when they are
+                // not really JVM-private due to being accessed by Scala nested objects
+                // or classes https://github.com/scala/bug/issues/9306
+                m.getName == (c.getName.replace('.', '$') + "$$" + encodedTaskName) ||
+                m.getName == (c.getName.replace('.', '$') + "$" + encodedTaskName)
             } yield m
 
             val methodClass = methods.head.getDeclaringClass.getName
