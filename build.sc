@@ -31,6 +31,7 @@ object Settings {
   val githubRepo = "mill"
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
   val changelogUrl = s"${projectUrl}#changelog"
+  val newIssueUrl = s"${projectUrl}/issues/new/choose"
   val docUrl = "https://mill-build.com"
   // the exact branches containing a doc root
   val docBranches = Seq()
@@ -109,7 +110,8 @@ object Deps {
   object Play_3_0 extends Play {
     val playVersion = "3.0.0"
   }
-  val play = Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
+  val play =
+    Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.9"
   val ammoniteVersion = "3.0.0-M0-53-084f7f4e"
@@ -493,7 +495,12 @@ object main extends MillStableScalaModule with BuildInfo {
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Seq(
       BuildInfo.Value("millVersion", millVersion(), "Mill version."),
-      BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url.")
+      BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url."),
+      BuildInfo.Value(
+        "millReportNewIssueUrl",
+        Settings.newIssueUrl,
+        "URL to create a new issue in Mills issue tracker."
+      )
     )
 
     def ivyDeps = Agg(
@@ -1417,15 +1424,17 @@ object dev extends MillPublishScalaModule {
       case wd0 +: rest =>
         val wd = os.Path(wd0, T.workspace)
         os.makeDir.all(wd)
-        try Jvm.runSubprocess(
+        try {
+          Jvm.runSubprocess(
             Seq(launcher().path.toString) ++ rest,
             forkEnv(),
             workingDir = wd
           )
-        catch {
-          case e: Throwable => () /*ignore to avoid confusing stacktrace and error messages*/
+          mill.api.Result.Success(())
+        } catch {
+          case e: Throwable =>
+            mill.api.Result.Failure(s"dev.run failed with an exception. ${e.getMessage()}")
         }
-        mill.api.Result.Success(())
     }
   }
 }

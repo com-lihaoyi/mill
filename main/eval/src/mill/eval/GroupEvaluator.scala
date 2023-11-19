@@ -108,7 +108,14 @@ private[mill] trait GroupEvaluator {
                 m.getName == (c.getName.replace('.', '$') + "$" + encodedTaskName)
             } yield m
 
-            val methodClass = methods.head.getDeclaringClass.getName
+            val methodClass = methods
+              .headOption
+              .getOrElse(throw new MillException(
+                s"Could not detect the parent class of target ${namedTask}. " +
+                  s"Please report this at ${BuildInfo.millReportNewIssueUrl} . " +
+                  s"As a workaround, you can run Mill with `--disable-callgraph-invalidation` option."
+              ))
+              .getDeclaringClass.getName
             val name = namedTask.ctx.segment.pathSegments.last
             val expectedName = methodClass + "#" + name + "()mill.define.Target"
 
@@ -123,7 +130,8 @@ private[mill] trait GroupEvaluator {
                 ctx.enclosingModule match {
                   case null => None
                   case m: mill.define.Module => Some((m, m.millOuterCtx))
-                  case unknown => sys.error(s"Unknown ctx: $unknown")
+                  case unknown =>
+                    throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
                 }
             }
 
@@ -131,7 +139,7 @@ private[mill] trait GroupEvaluator {
               .map(m =>
                 constructorHashSignatures.get(m.getClass.getName) match {
                   case Some(Seq((singleMethod, hash))) => hash
-                  case Some(multiple) => sys.error(
+                  case Some(multiple) => throw new MillException(
                       s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
                     )
                   case None => 0
