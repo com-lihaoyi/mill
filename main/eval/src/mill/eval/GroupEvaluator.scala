@@ -105,7 +105,7 @@ private[mill] trait GroupEvaluator {
               .headOption
               .getOrElse(throw new MillException(
                 s"Could not detect the parent class of target ${namedTask}. " +
-                  s"Please report this at ${BuildInfo.millReportNewIssueUrl} " +
+                  s"Please report this at ${BuildInfo.millReportNewIssueUrl} . " +
                   s"As a workaround, you can run Mill with `--disable-callgraph-invalidation` option."
               ))
               .getDeclaringClass.getName
