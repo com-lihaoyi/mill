@@ -288,6 +288,37 @@ endif::[]
 :link-milestone: {link-github}/milestone
 
 
+[#0-11-6]
+=== 0.11.6 - 2023-11-21
+:version: 0.11.6
+:milestone-name: 0.11.6
+:milestone: 90
+:prev-version: 0.11.5
+
+
+_Changes since {prev-version}:_
+
+* Make `PathRef` robust against concurrent filesyste modifications {link-pr}/2832[#2832]
+
+* Use logger error stream for informational messages {link-pr}/2839[#2839]
+
+* Harden assembly logic against Zip-Slip vulnerabilities {link-pr}/2847[#2847]
+
+* Add an option to disable incremental compilation with zinc {link-pr}/2851[#2851]
+
+* Add check for right Tests traits in ScalaJS and Native  {link-pr}/2874[#2874]
+
+* Attempt to recover from client/server connection errors to {link-pr}/2879[#2879]
+
+* Fix discovery of targets whose names get mangled {link-pr}/2883[#2883]
+
+* Make `mill show` skip `-j` prefixes to ensure machine readability {link-pr}/2884[#2884]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 [#0-11-5]
 === 0.11.5 - 2023-10-04
 :version: 0.11.5
