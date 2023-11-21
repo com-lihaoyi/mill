@@ -262,14 +262,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.5-33-a00eac</span>
+    <span class="version">0.11.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.5-33-a00eac</a>
+          <a href="index.html">0.11.6</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -305,9 +305,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.5-33-a00eac</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.6</button>
   <div class="version-menu">
-    <a class="version is-current" href="Changelog.html">0.11.5-33-a00eac</a>
+    <a class="version is-current" href="Changelog.html">0.11.6</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.13/index.html">0.10.13</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -323,6 +323,47 @@
 </aside>
 <article class="doc">
 <h1 class="page">Changelog</h1>
+<div class="sect1">
+<h2 id="0-11-6"><a class="anchor" href="#0-11-6"></a>0.11.6 - 2023-11-21</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Changes since 0.11.5:</em></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Make <code>PathRef</code> robust against concurrent filesyste modifications <a href="https://github.com/com-lihaoyi/mill/pull/2832">#2832</a></p>
+</li>
+<li>
+<p>Use logger error stream for informational messages <a href="https://github.com/com-lihaoyi/mill/pull/2839">#2839</a></p>
+</li>
+<li>
+<p>Harden assembly logic against Zip-Slip vulnerabilities <a href="https://github.com/com-lihaoyi/mill/pull/2847">#2847</a></p>
+</li>
+<li>
+<p>Add an option to disable incremental compilation with zinc <a href="https://github.com/com-lihaoyi/mill/pull/2851">#2851</a></p>
+</li>
+<li>
+<p>Add check for right Tests traits in ScalaJS and Native  <a href="https://github.com/com-lihaoyi/mill/pull/2874">#2874</a></p>
+</li>
+<li>
+<p>Attempt to recover from client/server connection errors to <a href="https://github.com/com-lihaoyi/mill/pull/2879">#2879</a></p>
+</li>
+<li>
+<p>Fix discovery of targets whose names get mangled <a href="https://github.com/com-lihaoyi/mill/pull/2883">#2883</a></p>
+</li>
+<li>
+<p>Make <code>mill show</code> skip <code>-j</code> prefixes to ensure machine readability <a href="https://github.com/com-lihaoyi/mill/pull/2884">#2884</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><em>For details refer to
+<a href="https://github.com/com-lihaoyi/mill/milestone/90?closed=1">milestone 0.11.6</a>
+and the <a href="https://github.com/com-lihaoyi/mill/compare/0.11.5...0.11.6">list of commits</a>.</em></p>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="0-11-5"><a class="anchor" href="#0-11-5"></a>0.11.5 - 2023-10-04</h2>
 <div class="sectionbody">
