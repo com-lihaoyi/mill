@@ -4,7 +4,7 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
-import $ivy.`com.github.lolgab::mill-mima::0.0.24`
+import $ivy.`com.github.lolgab::mill-mima::0.1.0`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 
@@ -44,7 +44,7 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq()
-  val mimaBaseVersions: Seq[String] = 0.to(5).map("0.11." + _)
+  val mimaBaseVersions: Seq[String] = 0.to(6).map("0.11." + _)
 }
 
 object Deps {
