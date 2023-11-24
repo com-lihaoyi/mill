@@ -14,7 +14,8 @@ import scala.scalanative.build.{
   Logger,
   LTO,
   Mode,
-  NativeConfig => ScalaNativeNativeConfig
+  NativeConfig => ScalaNativeNativeConfig,
+  MillUtils
 }
 import scala.scalanative.nir.Versions
 import scala.scalanative.testinterface.adapter.TestAdapter
@@ -107,8 +108,35 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
     config
   }
 
-  def nativeLink(nativeConfig: Object, outPath: File): File = {
+  def nativeLink(nativeConfig: Object, outDirectory: File): File = {
     val config = nativeConfig.asInstanceOf[Config]
+    val compilerConfig = config.compilerConfig
+
+    val name = if (patchIsGreaterThanOrEqual(8)) {
+      val isWindows = MillUtils.targetsWindows(config)
+      val isMac = MillUtils.targetsMac(config)
+
+      val ext = if (compilerConfig.buildTarget == ScalaNativeBuildTarget.application) {
+        if (MillUtils.targetsWindows(config)) ".exe" else ""
+      } else if (compilerConfig.buildTarget == ScalaNativeBuildTarget.libraryDynamic) {
+        if (isWindows) ".dll"
+        else if (isMac) ".dylib"
+        else ".so"
+      } else if (compilerConfig.buildTarget == ScalaNativeBuildTarget.libraryStatic) {
+        if (isWindows) ".lib"
+        else ".a"
+      } else {
+        throw new RuntimeException(s"Unknown buildTarget ${compilerConfig.buildTarget}")
+      }
+
+      val namePrefix = if (compilerConfig.buildTarget == ScalaNativeBuildTarget.application) ""
+      else {
+        if (isWindows) "" else "lib"
+      }
+      s"${namePrefix}out${ext}"
+    } else "out"
+
+    val outPath = new File(outDirectory, name)
     Build.build(config, outPath.toPath)(Scope.unsafe())
     outPath
   }

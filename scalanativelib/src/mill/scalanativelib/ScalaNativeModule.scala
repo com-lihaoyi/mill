@@ -260,7 +260,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeLink = T {
     os.Path(scalaNativeBridge().nativeLink(
       nativeConfig().config,
-      (T.dest / "out").toIO
+      T.dest.toIO
     ))
   }
 
