@@ -75,9 +75,6 @@ jobs:
           - "contrib._.test"
 
         include:
-          # Limit some tests to Java 17 to limit CI times
-          - java-version: 17
-            millargs: "integration.feature.__.server.test"
           - java-version: 17
             millargs: "example.__.local.test"
           - java-version: 17
