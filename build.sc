@@ -118,7 +118,7 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.5"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursier = ivy"io.get-coursier::coursier:2.1.7"
+  val coursier = ivy"io.get-coursier::coursier:2.1.8"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
