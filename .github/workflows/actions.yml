@@ -70,13 +70,14 @@ jobs:
           - '"scalajslib.__.test"'
           - '"scalanativelib.__.test"'
           # integration tests
-          - "integration.feature.__.server.test"
           - "integration.feature.__.fork.test"
           # contrib tests
           - "contrib._.test"
 
         include:
           # Limit some tests to Java 17 to limit CI times
+          - java-version: 17
+            millargs: "integration.feature.__.server.test"
           - java-version: 17
             millargs: "example.__.local.test"
           - java-version: 17
@@ -90,6 +91,13 @@ jobs:
     with:
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+
+  linux-slow:
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: 8
+      millargs: "integration.feature.__.server.test"
+      timeout-minutes: 120
 
   format-check:
     uses: ./.github/workflows/run-mill-action.yml
@@ -139,7 +147,7 @@ jobs:
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
-    needs: [linux, windows, format-check, bincompat-check, itest]
+    needs: [linux, linux-slow, windows, format-check, bincompat-check, itest]
 
     runs-on: ubuntu-latest
 
