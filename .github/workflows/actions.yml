@@ -93,10 +93,17 @@ jobs:
       millargs: ${{ matrix.millargs }}
 
   linux-slow:
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [8, 17]
+        millargs:
+          - "integration.feature.__.server.test"
+
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      java-version: 8
-      millargs: "integration.feature.__.server.test"
+      java-version: ${{ matrix.java-version }}
+      millargs: ${{ matrix.millargs }}
       timeout-minutes: 120
 
   format-check:
