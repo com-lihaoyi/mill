@@ -7,6 +7,7 @@ import mill.scalanativelib.worker.api._
 import scala.scalanative.util.Scope
 import scala.scalanative.build.{
   Build,
+  BuildTarget => ScalaNativeBuildTarget,
   Config,
   Discover,
   GC,
@@ -61,7 +62,8 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       nativeEmbedResources: Boolean,
       nativeIncrementalCompilation: Boolean,
       nativeDump: Boolean,
-      logLevel: NativeLogLevel
+      logLevel: NativeLogLevel,
+      buildTarget: BuildTarget
   ): Object = {
     val entry = if (patchIsGreaterThanOrEqual(3)) mainClass else mainClass + "$"
     var nativeConfig =
@@ -77,6 +79,18 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
         .withOptimize(nativeOptimize)
         .withLTO(LTO(nativeLTO))
         .withDump(nativeDump)
+    if (patchIsGreaterThanOrEqual(8)) {
+      val nativeBuildTarget = buildTarget match {
+        case BuildTarget.Application => ScalaNativeBuildTarget.application
+        case BuildTarget.LibraryDynamic => ScalaNativeBuildTarget.libraryDynamic
+        case BuildTarget.LibraryStatic => ScalaNativeBuildTarget.libraryStatic
+      }
+      nativeConfig = nativeConfig.withBuildTarget(nativeBuildTarget)
+    } else {
+      if (buildTarget != BuildTarget.Application) {
+        err.println("nativeBuildTarget not supported. Please update to Scala Native 0.4.8+")
+      }
+    }
     if (patchIsGreaterThanOrEqual(4)) {
       nativeConfig = nativeConfig.withEmbedResources(nativeEmbedResources)
     }

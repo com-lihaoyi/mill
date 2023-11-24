@@ -210,6 +210,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def nativeOptimize: Target[Boolean] = T { nativeOptimizeInput().getOrElse(true) }
 
+  /** Build target for current compilation */
+  def nativeBuildTarget: Target[BuildTarget] = T { BuildTarget.Application }
+
   private def nativeConfig: Task[NativeConfig] = T.task {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 
@@ -231,7 +234,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         nativeEmbedResources(),
         nativeIncrementalCompilation(),
         nativeDump(),
-        toWorkerApi(logLevel())
+        toWorkerApi(logLevel()),
+        toWorkerApi(nativeBuildTarget())
       )
     )
   }
@@ -243,6 +247,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       case api.NativeLogLevel.Info => workerApi.NativeLogLevel.Info
       case api.NativeLogLevel.Debug => workerApi.NativeLogLevel.Debug
       case api.NativeLogLevel.Trace => workerApi.NativeLogLevel.Trace
+    }
+
+  private[scalanativelib] def toWorkerApi(buildTarget: api.BuildTarget): workerApi.BuildTarget =
+    buildTarget match {
+      case api.BuildTarget.Application => workerApi.BuildTarget.Application
+      case api.BuildTarget.LibraryDynamic => workerApi.BuildTarget.LibraryDynamic
+      case api.BuildTarget.LibraryStatic => workerApi.BuildTarget.LibraryStatic
     }
 
   // Generates native binary
