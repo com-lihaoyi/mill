@@ -60,3 +60,21 @@ object NativeConfig {
   def apply(config: Object): NativeConfig =
     new NativeConfig(config)
 }
+
+sealed trait BuildTarget
+object BuildTarget {
+
+  /** Link code as application */
+  case object Application extends BuildTarget
+
+  /** Link code as shared/dynamic library */
+  case object LibraryDynamic extends BuildTarget
+
+  /** Link code as static library */
+  case object LibraryStatic extends BuildTarget
+
+  implicit val rwApplication: ReadWriter[Application.type] = macroRW[Application.type]
+  implicit val rwLibraryDynamic: ReadWriter[LibraryDynamic.type] = macroRW[LibraryDynamic.type]
+  implicit val rwLibraryStatic: ReadWriter[LibraryStatic.type] = macroRW[LibraryStatic.type]
+  implicit val rw: ReadWriter[BuildTarget] = macroRW[BuildTarget]
+}

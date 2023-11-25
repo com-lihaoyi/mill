@@ -11,7 +11,7 @@ private[scalanativelib] trait ScalaNativeWorkerApi {
   def defaultGarbageCollector(): String
 
   def config(
-      mainClass: String,
+      mainClass: Either[String, String],
       classpath: Seq[File],
       nativeWorkdir: File,
       nativeClang: File,
@@ -27,8 +27,9 @@ private[scalanativelib] trait ScalaNativeWorkerApi {
       nativeEmbedResources: Boolean,
       nativeIncrementalCompilation: Boolean,
       nativeDump: Boolean,
-      logLevel: NativeLogLevel
-  ): Object
+      logLevel: NativeLogLevel,
+      buildTarget: BuildTarget
+  ): Either[String, Object]
 
   def nativeLink(nativeConfig: Object, outPath: File): File
 
@@ -47,4 +48,11 @@ private[scalanativelib] object NativeLogLevel {
   case object Info extends NativeLogLevel(400)
   case object Debug extends NativeLogLevel(500)
   case object Trace extends NativeLogLevel(600)
+}
+
+private[scalanativelib] sealed trait BuildTarget
+private[scalanativelib] object BuildTarget {
+  case object Application extends BuildTarget
+  case object LibraryDynamic extends BuildTarget
+  case object LibraryStatic extends BuildTarget
 }

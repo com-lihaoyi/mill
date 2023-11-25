@@ -7,13 +7,15 @@ import mill.scalanativelib.worker.api._
 import scala.scalanative.util.Scope
 import scala.scalanative.build.{
   Build,
+  BuildTarget => ScalaNativeBuildTarget,
   Config,
   Discover,
   GC,
   Logger,
   LTO,
   Mode,
-  NativeConfig => ScalaNativeNativeConfig
+  NativeConfig => ScalaNativeNativeConfig,
+  MillUtils
 }
 import scala.scalanative.nir.Versions
 import scala.scalanative.testinterface.adapter.TestAdapter
@@ -45,7 +47,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
   def defaultGarbageCollector(): String = GC.default.name
 
   def config(
-      mainClass: String,
+      mainClass: Either[String, String],
       classpath: Seq[File],
       nativeWorkdir: File,
       nativeClang: File,
@@ -61,9 +63,9 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       nativeEmbedResources: Boolean,
       nativeIncrementalCompilation: Boolean,
       nativeDump: Boolean,
-      logLevel: NativeLogLevel
-  ): Object = {
-    val entry = if (patchIsGreaterThanOrEqual(3)) mainClass else mainClass + "$"
+      logLevel: NativeLogLevel,
+      buildTarget: BuildTarget
+  ): Either[String, Config] = {
     var nativeConfig =
       ScalaNativeNativeConfig.empty
         .withClang(nativeClang.toPath)
@@ -77,24 +79,71 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
         .withOptimize(nativeOptimize)
         .withLTO(LTO(nativeLTO))
         .withDump(nativeDump)
+    if (patchIsGreaterThanOrEqual(8)) {
+      val nativeBuildTarget = buildTarget match {
+        case BuildTarget.Application => ScalaNativeBuildTarget.application
+        case BuildTarget.LibraryDynamic => ScalaNativeBuildTarget.libraryDynamic
+        case BuildTarget.LibraryStatic => ScalaNativeBuildTarget.libraryStatic
+      }
+      nativeConfig = nativeConfig.withBuildTarget(nativeBuildTarget)
+    } else {
+      if (buildTarget != BuildTarget.Application) {
+        return Left("nativeBuildTarget not supported. Please update to Scala Native 0.4.8+")
+      }
+    }
     if (patchIsGreaterThanOrEqual(4)) {
       nativeConfig = nativeConfig.withEmbedResources(nativeEmbedResources)
     }
     if (patchIsGreaterThanOrEqual(9)) {
       nativeConfig = nativeConfig.withIncrementalCompilation(nativeIncrementalCompilation)
     }
-    val config =
-      Config.empty
-        .withMainClass(entry)
-        .withClassPath(classpath.map(_.toPath))
-        .withWorkdir(nativeWorkdir.toPath)
-        .withCompilerConfig(nativeConfig)
-        .withLogger(logger(logLevel))
-    config
+    var config = Config.empty
+      .withClassPath(classpath.map(_.toPath))
+      .withWorkdir(nativeWorkdir.toPath)
+      .withCompilerConfig(nativeConfig)
+      .withLogger(logger(logLevel))
+
+    if (buildTarget == BuildTarget.Application) {
+      mainClass match {
+        case Left(error) => return Left(error)
+        case Right(mainClass) =>
+          val entry = if (patchIsGreaterThanOrEqual(3)) mainClass else mainClass + "$"
+          config = config.withMainClass(entry)
+      }
+    }
+
+    Right(config)
   }
 
-  def nativeLink(nativeConfig: Object, outPath: File): File = {
+  def nativeLink(nativeConfig: Object, outDirectory: File): File = {
     val config = nativeConfig.asInstanceOf[Config]
+    val compilerConfig = config.compilerConfig
+
+    val name = if (patchIsGreaterThanOrEqual(8)) {
+      val isWindows = MillUtils.targetsWindows(config)
+      val isMac = MillUtils.targetsMac(config)
+
+      val ext = if (compilerConfig.buildTarget == ScalaNativeBuildTarget.application) {
+        if (MillUtils.targetsWindows(config)) ".exe" else ""
+      } else if (compilerConfig.buildTarget == ScalaNativeBuildTarget.libraryDynamic) {
+        if (isWindows) ".dll"
+        else if (isMac) ".dylib"
+        else ".so"
+      } else if (compilerConfig.buildTarget == ScalaNativeBuildTarget.libraryStatic) {
+        if (isWindows) ".lib"
+        else ".a"
+      } else {
+        throw new RuntimeException(s"Unknown buildTarget ${compilerConfig.buildTarget}")
+      }
+
+      val namePrefix = if (compilerConfig.buildTarget == ScalaNativeBuildTarget.application) ""
+      else {
+        if (isWindows) "" else "lib"
+      }
+      s"${namePrefix}out${ext}"
+    } else "out"
+
+    val outPath = new File(outDirectory, name)
     Build.build(config, outPath.toPath)(Scope.unsafe())
     outPath
   }
