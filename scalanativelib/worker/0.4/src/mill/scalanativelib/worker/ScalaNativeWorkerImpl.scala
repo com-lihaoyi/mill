@@ -65,7 +65,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       nativeDump: Boolean,
       logLevel: NativeLogLevel,
       buildTarget: BuildTarget
-  ): Either[String, Object] = {
+  ): Either[String, Config] = {
     var nativeConfig =
       ScalaNativeNativeConfig.empty
         .withClang(nativeClang.toPath)
