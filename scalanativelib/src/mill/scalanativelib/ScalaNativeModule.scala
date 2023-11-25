@@ -216,28 +216,29 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   private def nativeConfig: Task[NativeConfig] = T.task {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 
-    NativeConfig(
-      scalaNativeBridge().config(
-        finalMainClass(),
-        classpath.map(_.toIO),
-        nativeWorkdir().toIO,
-        nativeClang().toIO,
-        nativeClangPP().toIO,
-        nativeTarget(),
-        nativeCompileOptions(),
-        nativeLinkingOptions(),
-        nativeGC(),
-        nativeLinkStubs(),
-        nativeLTO().value,
-        releaseMode().value,
-        nativeOptimize(),
-        nativeEmbedResources(),
-        nativeIncrementalCompilation(),
-        nativeDump(),
-        toWorkerApi(logLevel()),
-        toWorkerApi(nativeBuildTarget())
-      )
-    )
+    scalaNativeBridge().config(
+      finalMainClassOpt(),
+      classpath.map(_.toIO),
+      nativeWorkdir().toIO,
+      nativeClang().toIO,
+      nativeClangPP().toIO,
+      nativeTarget(),
+      nativeCompileOptions(),
+      nativeLinkingOptions(),
+      nativeGC(),
+      nativeLinkStubs(),
+      nativeLTO().value,
+      releaseMode().value,
+      nativeOptimize(),
+      nativeEmbedResources(),
+      nativeIncrementalCompilation(),
+      nativeDump(),
+      toWorkerApi(logLevel()),
+      toWorkerApi(nativeBuildTarget())
+    ) match {
+      case Right(config) => Result.Success(NativeConfig(config))
+      case Left(error) => Result.Failure(error)
+    }
   }
 
   private[scalanativelib] def toWorkerApi(logLevel: api.NativeLogLevel): workerApi.NativeLogLevel =

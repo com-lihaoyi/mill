@@ -47,7 +47,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
   def defaultGarbageCollector(): String = GC.default.name
 
   def config(
-      mainClass: String,
+      mainClass: Either[String, String],
       classpath: Seq[File],
       nativeWorkdir: File,
       nativeClang: File,
@@ -65,8 +65,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       nativeDump: Boolean,
       logLevel: NativeLogLevel,
       buildTarget: BuildTarget
-  ): Object = {
-    val entry = if (patchIsGreaterThanOrEqual(3)) mainClass else mainClass + "$"
+  ): Either[String, Object] = {
     var nativeConfig =
       ScalaNativeNativeConfig.empty
         .withClang(nativeClang.toPath)
@@ -89,7 +88,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       nativeConfig = nativeConfig.withBuildTarget(nativeBuildTarget)
     } else {
       if (buildTarget != BuildTarget.Application) {
-        err.println("nativeBuildTarget not supported. Please update to Scala Native 0.4.8+")
+        return Left("nativeBuildTarget not supported. Please update to Scala Native 0.4.8+")
       }
     }
     if (patchIsGreaterThanOrEqual(4)) {
@@ -98,14 +97,22 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
     if (patchIsGreaterThanOrEqual(9)) {
       nativeConfig = nativeConfig.withIncrementalCompilation(nativeIncrementalCompilation)
     }
-    val config =
-      Config.empty
-        .withMainClass(entry)
-        .withClassPath(classpath.map(_.toPath))
-        .withWorkdir(nativeWorkdir.toPath)
-        .withCompilerConfig(nativeConfig)
-        .withLogger(logger(logLevel))
-    config
+    var config = Config.empty
+      .withClassPath(classpath.map(_.toPath))
+      .withWorkdir(nativeWorkdir.toPath)
+      .withCompilerConfig(nativeConfig)
+      .withLogger(logger(logLevel))
+
+    if (buildTarget == BuildTarget.Application) {
+      mainClass match {
+        case Left(error) => return Left(error)
+        case Right(mainClass) =>
+          val entry = if (patchIsGreaterThanOrEqual(3)) mainClass else mainClass + "$"
+          config = config.withMainClass(entry)
+      }
+    }
+
+    Right(config)
   }
 
   def nativeLink(nativeConfig: Object, outDirectory: File): File = {

@@ -11,7 +11,7 @@ private[scalanativelib] trait ScalaNativeWorkerApi {
   def defaultGarbageCollector(): String
 
   def config(
-      mainClass: String,
+      mainClass: Either[String, String],
       classpath: Seq[File],
       nativeWorkdir: File,
       nativeClang: File,
@@ -29,7 +29,7 @@ private[scalanativelib] trait ScalaNativeWorkerApi {
       nativeDump: Boolean,
       logLevel: NativeLogLevel,
       buildTarget: BuildTarget
-  ): Object
+  ): Either[String, Object]
 
   def nativeLink(nativeConfig: Object, outPath: File): File
 
