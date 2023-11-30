@@ -9,7 +9,3 @@ object ModuleDependenciesUpdates {
   implicit val rw: upickle.default.ReadWriter[ModuleDependenciesUpdates] =
     upickle.default.macroRW
 }
-
-
-
-
