@@ -8,6 +8,8 @@ import mill.define.Task
 import mill.api.PathRef
 
 import scala.annotation.nowarn
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -60,7 +62,12 @@ trait CoursierModule extends mill.Module {
    * The repositories used to resolved dependencies with [[resolveDeps()]].
    */
   def repositoriesTask: Task[Seq[Repository]] = T.task {
-    Resolve.defaultRepositories
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val repos = Await.result(
+      Resolve().finalRepositories.future(),
+      Duration.Inf
+    )
+    repos
   }
 
   /**
