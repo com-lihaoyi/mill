@@ -57,17 +57,27 @@ public class MillClientMain {
     }
 
     public static void main(String[] args) throws Exception {
+        boolean runIsolated = false;
         if (args.length > 0) {
             String firstArg = args[0];
-            if (Arrays.asList("-i", "--interactive", "--no-server", "--repl", "--bsp", "--help").contains(firstArg)) {
-                // start in no-server mode
-                IsolatedMillMainLoader.runMain(args);
-                return;
+            runIsolated =
+                Arrays.asList("-i", "--interactive", "--no-server", "--repl", "--bsp", "--help")
+                    .contains(firstArg);
+        }
+        if (!runIsolated) {
+            // WSL2 has the directory /run/WSL/ and WSL1 not.
+            String osVersion =System.getProperty("os.version");
+            if(osVersion != null && (osVersion.contains("icrosoft") || osVersion.contains("WSL"))) {
+                // Server-Mode not supported under WSL1
+                runIsolated = true;
             }
         }
 
-        // start in client-server mode
-        try {
+        if (runIsolated) {
+            // start in no-server mode
+            IsolatedMillMainLoader.runMain(args);
+        } else try {
+            // start in client-server mode
             int exitCode = main0(args);
             if (exitCode == ExitServerCodeWhenVersionMismatch()) {
                 exitCode = main0(args);
@@ -116,7 +126,7 @@ public class MillClientMain {
 
                     try (
                         Locks locks = Locks.files(lockBase);
-                        final FileToStreamTailer stdoutTailer =new FileToStreamTailer(stdout, System.out, refeshIntervalMillis);
+                        final FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMillis);
                         final FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMillis);
                     ) {
                         Locked clientLock = locks.clientLock.tryLock();
@@ -124,20 +134,20 @@ public class MillClientMain {
                             stdoutTailer.start();
                             stderrTailer.start();
                             final int exitCode = run(
-                                    lockBase,
-                                    () -> {
-                                        try {
-                                            initServer(lockBase, setJnaNoSys);
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    },
-                                    locks,
-                                    System.in,
-                                    System.out,
-                                    System.err,
-                                    args,
-                                    System.getenv());
+                                lockBase,
+                                () -> {
+                                    try {
+                                        initServer(lockBase, setJnaNoSys);
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                },
+                                locks,
+                                System.in,
+                                System.out,
+                                System.err,
+                                args,
+                                System.getenv());
 
                             // Here, we ensure we process the tails of the output files before interrupting
                             // the threads
