@@ -210,30 +210,35 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def nativeOptimize: Target[Boolean] = T { nativeOptimizeInput().getOrElse(true) }
 
+  /** Build target for current compilation */
+  def nativeBuildTarget: Target[BuildTarget] = T { BuildTarget.Application }
+
   private def nativeConfig: Task[NativeConfig] = T.task {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 
-    NativeConfig(
-      scalaNativeBridge().config(
-        finalMainClass(),
-        classpath.map(_.toIO),
-        nativeWorkdir().toIO,
-        nativeClang().toIO,
-        nativeClangPP().toIO,
-        nativeTarget(),
-        nativeCompileOptions(),
-        nativeLinkingOptions(),
-        nativeGC(),
-        nativeLinkStubs(),
-        nativeLTO().value,
-        releaseMode().value,
-        nativeOptimize(),
-        nativeEmbedResources(),
-        nativeIncrementalCompilation(),
-        nativeDump(),
-        toWorkerApi(logLevel())
-      )
-    )
+    scalaNativeBridge().config(
+      finalMainClassOpt(),
+      classpath.map(_.toIO),
+      nativeWorkdir().toIO,
+      nativeClang().toIO,
+      nativeClangPP().toIO,
+      nativeTarget(),
+      nativeCompileOptions(),
+      nativeLinkingOptions(),
+      nativeGC(),
+      nativeLinkStubs(),
+      nativeLTO().value,
+      releaseMode().value,
+      nativeOptimize(),
+      nativeEmbedResources(),
+      nativeIncrementalCompilation(),
+      nativeDump(),
+      toWorkerApi(logLevel()),
+      toWorkerApi(nativeBuildTarget())
+    ) match {
+      case Right(config) => Result.Success(NativeConfig(config))
+      case Left(error) => Result.Failure(error)
+    }
   }
 
   private[scalanativelib] def toWorkerApi(logLevel: api.NativeLogLevel): workerApi.NativeLogLevel =
@@ -245,11 +250,18 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       case api.NativeLogLevel.Trace => workerApi.NativeLogLevel.Trace
     }
 
+  private[scalanativelib] def toWorkerApi(buildTarget: api.BuildTarget): workerApi.BuildTarget =
+    buildTarget match {
+      case api.BuildTarget.Application => workerApi.BuildTarget.Application
+      case api.BuildTarget.LibraryDynamic => workerApi.BuildTarget.LibraryDynamic
+      case api.BuildTarget.LibraryStatic => workerApi.BuildTarget.LibraryStatic
+    }
+
   // Generates native binary
   def nativeLink = T {
     os.Path(scalaNativeBridge().nativeLink(
       nativeConfig().config,
-      (T.dest / "out").toIO
+      T.dest.toIO
     ))
   }
 

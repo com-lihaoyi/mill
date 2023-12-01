@@ -77,7 +77,7 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeVersion = "0.4.15"
+    val scalanativeVersion = "0.4.16"
     val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
@@ -115,10 +115,10 @@ object Deps {
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.9"
   val ammoniteVersion = "3.0.0-M0-53-084f7f4e"
-  val asmTree = ivy"org.ow2.asm:asm-tree:9.5"
+  val asmTree = ivy"org.ow2.asm:asm-tree:9.6"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursier = ivy"io.get-coursier::coursier:2.1.7"
+  val coursier = ivy"io.get-coursier::coursier:2.1.8"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
@@ -126,7 +126,7 @@ object Deps {
   val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.8.2"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.8.3"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
@@ -151,7 +151,8 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.14"
+  // last scaöafmt release supporting Java 8 is 3.7.15
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.15" // scala-steward:off
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.0.11"
@@ -163,8 +164,8 @@ object Deps {
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.11"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.6"
+  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.14"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.7"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.1.3"
   val utest = ivy"com.lihaoyi::utest:0.8.2"
