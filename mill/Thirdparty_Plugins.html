@@ -263,14 +263,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.6-11-b21ef9</span>
+    <span class="version">0.11.6-12-90e414</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.6-11-b21ef9</a>
+          <a href="index.html">0.11.6-12-90e414</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -306,9 +306,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.6-11-b21ef9</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.6-12-90e414</button>
   <div class="version-menu">
-    <a class="version is-current" href="Thirdparty_Plugins.html">0.11.6-11-b21ef9</a>
+    <a class="version is-current" href="Thirdparty_Plugins.html">0.11.6-12-90e414</a>
     <a class="version" href="0.11.0-M7/Thirdparty_Plugins.html">0.11.0-M7</a>
     <a class="version" href="0.10.13/Thirdparty_Plugins.html">0.10.13</a>
     <a class="version" href="0.10.12/Thirdparty_Plugins.html">0.10.12</a>
@@ -1146,6 +1146,36 @@ Binary compatibility check passed.</code></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_missinglink"><a class="anchor" href="#_missinglink"></a>Missinglink</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://github.com/spotify/missinglink">missinglink</a> check for Mill, ported from <a href="https://github.com/scalacenter/sbt-missinglink">sbt-missinglink</a>.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/hoangmaihuy/mill-missinglink" class="bare">https://github.com/hoangmaihuy/mill-missinglink</a></p>
+</div>
+<div class="paragraph">
+<p><em>build.sc</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`io.github.hoangmaihuy::mill-missinglink::&lt;latest-version&gt;`
+import io.github.hoangmaihuy.missinglink._
+
+object example extends MissinglinkCheckModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Runtime missinglink check command</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill example.missinglinkCheck</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_native_image"><a class="anchor" href="#_native_image"></a>Native-Image</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1345,6 +1375,64 @@ object main extends ScalaJSModule with ScalablyTyped {
 </div>
 </div>
 <div class="sect1">
+<h2 id="_scala_tsi"><a class="anchor" href="#_scala_tsi"></a>Scala TSI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://github.com/scala-tsi/scala-tsi">scala-tsi</a> support for Mill</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/hoangmaihuy/mill-scala-tsi" class="bare">https://github.com/hoangmaihuy/mill-scala-tsi</a></p>
+</div>
+<div class="paragraph">
+<p><em>build.sc</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`io.github.hoangmaihuy::mill-scala-tsi::&lt;latest-version&gt;`
+
+import io.github.hoangmaihuy.scalatsi._
+
+object example extends ScalaModule with ScalaTsiModule {
+// The classes that you want to generate typescript interfaces for
+override def typescriptExports = Seq(&quot;MyClass&quot;)
+// The output file which will contain the typescript interfaces
+override def typescriptOutputFile = millSourcePath / &quot;model.ts&quot;
+// Include the package(s) of the classes here
+// Optionally import your own TSType implicits to override default default generated
+override def typescriptGenerationImports = Seq(&quot;mymodel._&quot;, &quot;MyTypescript._&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><em>MyClass.scala</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">case class MyClass(foo: String, bar: Int)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Generate Typescript command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill example.generateTypescript</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><em>model.ts</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">export interface IMyClass {
+  foo: string
+  bar: number
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_scalafix"><a class="anchor" href="#_scalafix"></a>Scalafix</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1469,6 +1557,35 @@ object app extends MavenModule with SpringBootModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># Package as executable Spring-Boot Application
 $ mill app.springBootAssembly</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_universal_packager"><a class="anchor" href="#_universal_packager"></a>Universal Packager</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Support universal archive packaging for Java application with Mill, ported from sbt-native-packager.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/hoangmaihuy/mill-universal-packager" class="bare">https://github.com/hoangmaihuy/mill-universal-packager</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.sc
+import $ivy.`io.github.hoangmaihuy::mill-universal-packager::&lt;latest-version&gt;`
+
+import io.github.hoangmaihuy.mill.packager.archetypes.JavaAppPackagingModule
+
+object example extends JavaAppPackagingModule {
+  override def packageVersion = &quot;0.1.0&quot;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># Package as zip archive with Bash start script
+$ mill example.universalPackage</code></pre>
 </div>
 </div>
 </div>
