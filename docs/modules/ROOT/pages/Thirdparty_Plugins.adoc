@@ -915,6 +915,29 @@ object app extends MavenModule with SpringBootModule {
 $ mill app.springBootAssembly
 ----
 
+== Universal Packager
+
+Support universal archive packaging for Java application with Mill, ported from sbt-native-packager.
+
+Project home: https://github.com/hoangmaihuy/mill-universal-packager
+
+[source,scala,subs="attributes,verbatim"]
+----
+// build.sc
+import $ivy.`io.github.hoangmaihuy::mill-universal-packager::<latest-version>`
+
+import io.github.hoangmaihuy.mill.packager.archetypes.JavaAppPackagingModule
+
+object example extends JavaAppPackagingModule {
+  override def packageVersion = "0.1.0"
+}
+----
+
+[source,shell]
+----
+# Package as zip archive with Bash start script
+$ mill example.universalPackage
+----
 
 == VCS Version
 
