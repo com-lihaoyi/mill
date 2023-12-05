@@ -654,6 +654,28 @@ You can then check the binary compatibility of the module with:
 Binary compatibility check passed.
 ----
 
+== Missinglink
+
+https://github.com/spotify/missinglink[missinglink] check for Mill, ported from https://github.com/scalacenter/sbt-missinglink[sbt-missinglink].
+
+Project home: https://github.com/hoangmaihuy/mill-missinglink
+
+_build.sc_:
+[source,scala]
+----
+import $ivy.`io.github.hoangmaihuy::mill-missinglink::<latest-version>`
+import io.github.hoangmaihuy.missinglink._
+
+object example extends MissinglinkCheckModule
+----
+
+Runtime missinglink check command
+
+[source,shell script]
+----
+> mill example.missinglinkCheck
+----
+
 == Native-Image
 
 Build GraalVM Native-Image binaries with mill.
