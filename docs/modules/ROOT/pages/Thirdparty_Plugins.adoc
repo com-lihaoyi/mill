@@ -816,6 +816,53 @@ object main extends ScalaJSModule with ScalablyTyped {
 
 It will run ScalablyTyped and add the converted dependencies to the module's `ivyDeps`.
 
+== Scala TSI
+
+https://github.com/scala-tsi/scala-tsi[scala-tsi] support for Mill
+
+Project home: https://github.com/hoangmaihuy/mill-scala-tsi
+
+_build.sc_:
+
+[source,scala]
+----
+import $ivy.`io.github.hoangmaihuy::mill-scala-tsi::<latest-version>`
+
+import io.github.hoangmaihuy.scalatsi._
+
+object example extends ScalaModule with ScalaTsiModule {
+// The classes that you want to generate typescript interfaces for
+override def typescriptExports = Seq("MyClass")
+// The output file which will contain the typescript interfaces
+override def typescriptOutputFile = millSourcePath / "model.ts"
+// Include the package(s) of the classes here
+// Optionally import your own TSType implicits to override default default generated
+override def typescriptGenerationImports = Seq("mymodel._", "MyTypescript._")
+}
+----
+
+_MyClass.scala_:
+[source,scala]
+----
+case class MyClass(foo: String, bar: Int)
+----
+
+Generate Typescript command:
+
+[source,shell script]
+----
+> mill example.generateTypescript
+----
+
+_model.ts_:
+[source]
+----
+export interface IMyClass {
+  foo: string
+  bar: number
+}
+----
+
 == Scalafix
 
 https://scalacenter.github.io/scalafix/[Scalafix] support for mill.
