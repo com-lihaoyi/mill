@@ -36,7 +36,7 @@ jobs:
 
       - uses: coursier/cache-action@v6
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           java-version: ${{ inputs.java-version }}
           distribution: temurin
