@@ -164,8 +164,8 @@ object Deps {
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDB = ivy"org.scalameta:::semanticdb-scalac:4.8.14"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.7"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.8.14"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.8"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.1.3"
   val utest = ivy"com.lihaoyi::utest:0.8.2"
@@ -643,7 +643,7 @@ object scalalib extends MillStableScalaModule {
       BuildInfo.Value("ammonite", Deps.ammoniteVersion, "Version of Ammonite."),
       BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc"),
       BuildInfo.Value("scalafmtVersion", Deps.scalafmtDynamic.dep.version, "Version of Scalafmt"),
-      BuildInfo.Value("semanticDBVersion", Deps.semanticDB.dep.version, "SemanticDB version."),
+      BuildInfo.Value("semanticDBVersion", Deps.semanticDBscala.dep.version, "SemanticDB version."),
       BuildInfo.Value(
         "semanticDbJavaVersion",
         Deps.semanticDbJava.dep.version,
@@ -1831,7 +1831,7 @@ object DependencyFetchDummy extends ScalaModule {
     Agg(
       Deps.millScip,
       Deps.semanticDbJava,
-      Deps.semanticDB,
+      Deps.semanticDBscala,
       Deps.testScalaTest,
       Deps.testZioTest,
       Deps.acyclic,
