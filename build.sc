@@ -176,18 +176,18 @@ object Deps {
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M7"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.13.1"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.9.0"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
 
   /** Used to manage transitive versions. */
-  object TransitiveDeps {
-    val ant = "org.apache.ant:ant:1.10.14"
-    val commonsIo = "commons-io:commons-io:2.15.1"
-    val gson = "com.google.code.gson:gson:2.10.1"
-    val protobufJava = "com.google.protobuf:protobuf-java:3.25.1"
-    val guava = "com.google.guava:guava:32.1.3-jre"
-    val snakeyaml = "org.yaml:snakeyaml:2.2"
-  }
+  val transitiveDeps = Seq(
+    ivy"org.apache.ant:ant:1.10.14",
+    ivy"commons-io:commons-io:2.15.1",
+    ivy"com.google.code.gson:gson:2.10.1",
+    ivy"com.google.protobuf:protobuf-java:3.25.1",
+    ivy"com.google.guava:guava:32.1.3-jre",
+    ivy"org.yaml:snakeyaml:2.2"
+  )
 
   /** Used in tests. */
   object TestDeps {
@@ -302,13 +302,7 @@ trait MillJavaModule extends JavaModule {
       }.getOrElse(dep)
     }
   }
-  val forcedVersions: Seq[Dep] = Seq(
-    Deps.TransitiveDeps.ant,
-    Deps.TransitiveDeps.commonsIo,
-    Deps.TransitiveDeps.gson,
-    Deps.TransitiveDeps.protobufJava,
-    Deps.TransitiveDeps.guava,
-    Deps.TransitiveDeps.snakeyaml,
+  val forcedVersions: Seq[Dep] = Deps.transitiveDeps ++ Seq(
     Deps.jline,
     Deps.jna
   )
@@ -1866,14 +1860,8 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.TestDeps.scalaTest,
   Deps.TestDeps.zioTest,
   Deps.acyclic,
-  Deps.scalacScoverage2Plugin,
-  Deps.TransitiveDeps.ant,
-  Deps.TransitiveDeps.commonsIo,
-  Deps.TransitiveDeps.gson,
-  Deps.TransitiveDeps.guava,
-  Deps.TransitiveDeps.protobufJava,
-  Deps.TransitiveDeps.snakeyaml
-)
+  Deps.scalacScoverage2Plugin
+) ++ Deps.transitiveDeps
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       val depString = formatDep(dep)
