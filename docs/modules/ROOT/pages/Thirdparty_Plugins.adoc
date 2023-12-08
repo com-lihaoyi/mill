@@ -395,6 +395,7 @@ jobs:
 == Hepek
 
 `mill-hepek` is a plugin for writing Scala `object`s to files.  
+
 It is used as a core for Hepek static site generator: https://sake92.github.io/hepek/hepek/index.html .
 
 Project home: https://github.com/sake92/mill-hepek
