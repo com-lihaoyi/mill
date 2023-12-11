@@ -17,12 +17,26 @@ object foo extends ScalaModule {
   }
 }
 
+// Mill will read [coursier](https://get-coursier.io/) config files automatically.
+//
+// It is possible to setup mirror with `mirror.properties`
+// ```
+// central.from=https://repo1.maven.org/maven2
+// central.to=http://exmaple.com:8080/nexus/content/groups/public
+// ```
+// Note the config file located in:
+//    + Windows: C:\Users\<user_name>\AppData\Roaming\Coursier\config\mirror.properties
+//    + Linux: ~/.config/coursier/mirror.properties
+//    + MacOS: ~/Library/Preferences/Coursier/mirror.properties
+// You can also set the environment variable `COURSIER_MIRRORS` or jvm property `coursier.mirrors` to specify config file location.
+
+
 // To add custom resolvers to the initial bootstrap of the build, you can create a
 // custom `ZincWorkerModule`, and override the `zincWorker` method in your
 // `ScalaModule` by pointing it to that custom object:
 
 object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
-  def repositoriesTask() = T.task { super.repositoriesTask() ++ sonatypeReleases }
+  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 object bar extends ScalaModule {
