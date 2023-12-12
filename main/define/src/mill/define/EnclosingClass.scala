@@ -8,7 +8,6 @@ object EnclosingClass {
   implicit def generate: EnclosingClass = macro impl
   def impl(c: Context): c.Tree = {
     import c.universe._
-    val cls = c.internal.enclosingOwner.owner.asType.asClass
     //    q"new _root_.mill.define.EnclosingClass(classOf[$cls])"
     q"new _root_.mill.define.EnclosingClass(this.getClass)"
   }

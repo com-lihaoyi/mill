@@ -103,7 +103,7 @@ class TwirlWorker {
             //   Codec codec,
             //   boolean inclusiveDot
             // )
-            val o = compileMethod.invoke(
+            compileMethod.invoke(
               null,
               source,
               sourceDirectory,

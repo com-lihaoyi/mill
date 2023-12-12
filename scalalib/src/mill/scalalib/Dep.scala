@@ -136,7 +136,7 @@ object Dep {
       force
     )
   }
-  private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
+
   implicit def rw: RW[Dep] = macroRW
 }
 
@@ -208,6 +208,6 @@ case class BoundDep(
 }
 
 object BoundDep {
-  private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
+  mill.scalalib.JsonFormatters.depFormat
   implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
 }
