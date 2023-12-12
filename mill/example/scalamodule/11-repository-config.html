@@ -261,14 +261,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.6-19-ea367c</span>
+    <span class="version">0.11.6-20-b7e54a</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="../../index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../../index.html">0.11.6-19-ea367c</a>
+          <a href="../../index.html">0.11.6-20-b7e54a</a>
         </li>
         <li class="version">
           <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -299,9 +299,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.6-19-ea367c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.6-20-b7e54a</button>
   <div class="version-menu">
-    <a class="version is-current" href="11-repository-config.html">0.11.6-19-ea367c</a>
+    <a class="version is-current" href="11-repository-config.html">0.11.6-20-b7e54a</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.13/index.html">0.10.13</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
@@ -321,7 +321,7 @@
 your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-19-ea367c-example-scalamodule-11-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/11-repository-config">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-20-b7e54a-example-scalamodule-11-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/11-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import mill.define.ModuleRef
@@ -341,6 +341,37 @@ object foo extends ScalaModule {
 </div>
 </div>
 <div class="paragraph">
+<p>Mill read <a href="https://get-coursier.io/">coursier</a> config files automatically.</p>
+</div>
+<div class="paragraph">
+<p>It is possible to setup mirror with <code>mirror.properties</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">central.from=https://repo1.maven.org/maven2
+central.to=http://example.com:8080/nexus/content/groups/public</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note theses default config file locatations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Linux: <code>~/.config/coursier/mirror.properties</code></p>
+</li>
+<li>
+<p>MacOS: <code>~/Library/Preferences/Coursier/mirror.properties</code></p>
+</li>
+<li>
+<p>Windows: <code>C:\Users\&lt;user_name&gt;\AppData\Roaming\Coursier\config\mirror.properties</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can also set the environment variable <code>COURSIER_MIRRORS</code> or the jvm property <code>coursier.mirrors</code> to specify config file location.</p>
+</div>
+<div class="paragraph">
 <p>To add custom resolvers to the initial bootstrap of the build, you can create a
 custom <code>ZincWorkerModule</code>, and override the <code>zincWorker</code> method in your
 <code>ScalaModule</code> by pointing it to that custom object:</p>
@@ -348,7 +379,7 @@ custom <code>ZincWorkerModule</code>, and override the <code>zincWorker</code> m
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
-  def repositoriesTask() = T.task { super.repositoriesTask() ++ sonatypeReleases }
+  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 object bar extends ScalaModule {
