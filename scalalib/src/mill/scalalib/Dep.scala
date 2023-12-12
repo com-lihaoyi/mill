@@ -208,6 +208,5 @@ case class BoundDep(
 }
 
 object BoundDep {
-  mill.scalalib.JsonFormatters.depFormat
   implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
 }
