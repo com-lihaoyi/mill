@@ -95,6 +95,12 @@ jobs:
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '8'
+      millargs: mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
+
+  scalafix-check:
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: '8'
       millargs: -i __.fix && git diff --exit-code
 
   bincompat-check:
