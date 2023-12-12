@@ -9,7 +9,7 @@ class ScoverageReportWorker extends AutoCloseable {
   private[this] var scoverageClCache = Option.empty[(Long, ClassLoader)]
 
   def bridge(classpath: Agg[PathRef])(implicit ctx: Ctx): ScoverageReportWorkerApi = {
-    val klassName = "mill.contrib.scoverage.worker.ScoverageReportWorkerImpl"
+
     val classloaderSig = classpath.hashCode
     val cl = scoverageClCache match {
       case Some((sig, cl)) if sig == classloaderSig => cl

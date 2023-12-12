@@ -178,7 +178,7 @@ case class GenIdeaImpl(
               extRunIvyDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
           // unused, but we want to trigger sources, to have them available (automatically)
           // TODO: make this a separate eval to handle resolve errors
-          val resolvedSrcs: Agg[PathRef] = externalSources()
+          externalSources()
           val resolvedSp: Agg[PathRef] = scalacPluginDependencies()
           val resolvedCompilerCp: Agg[PathRef] =
             scalaCompilerClasspath()

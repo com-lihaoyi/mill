@@ -5,6 +5,8 @@ import mill.scalalib.CrossVersion._
 import coursier.core.Dependency
 import mill.scalalib.api.ZincWorkerUtil
 
+import scala.annotation.unused
+
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
     !dep.module.name.value.contains("/") &&
@@ -136,7 +138,7 @@ object Dep {
       force
     )
   }
-  private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
+  @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
   implicit def rw: RW[Dep] = macroRW
 }
 
@@ -208,6 +210,6 @@ case class BoundDep(
 }
 
 object BoundDep {
-  private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
+  @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
   implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
 }

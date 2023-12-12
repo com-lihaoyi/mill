@@ -9,7 +9,7 @@ import mill.util._
 
 import java.io.PrintStream
 import scala.collection.mutable
-import scala.reflect.NameTransformer.{encode, decode}
+import scala.reflect.NameTransformer.encode
 import scala.util.DynamicVariable
 import scala.util.control.NonFatal
 
