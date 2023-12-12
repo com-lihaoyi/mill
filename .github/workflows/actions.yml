@@ -101,7 +101,7 @@ jobs:
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '8'
-      millargs: -i __.fix && git diff --exit-code
+      millargs: -i -k __.fix --check
 
   bincompat-check:
     uses: ./.github/workflows/run-mill-action.yml
