@@ -9,7 +9,7 @@ import Evaluator._
 import mill.resolve.{Resolve, SelectMode}
 
 object RunScript {
-
+  private val x = 1323
   type TaskName = String
 
   def evaluateTasksNamed(
