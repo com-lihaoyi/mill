@@ -119,8 +119,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       val fail = Result.Failure("The compiler exited with errors (exit code 1)")
 
       {
-        case true | java.lang.Boolean.TRUE => if(trueIsSuccess) ok else fail
-        case false | java.lang.Boolean.FALSE => if(trueIsSuccess) fail else ok
+        case true | java.lang.Boolean.TRUE => if (trueIsSuccess) ok else fail
+        case false | java.lang.Boolean.FALSE => if (trueIsSuccess) fail else ok
         case null if sv.startsWith("2.") =>
           // Scala 2.11 and earlier return `Unit` and require use to use the result value,
           // which we don't want to implement for just a simple help output of an very old compiler
