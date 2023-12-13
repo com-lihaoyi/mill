@@ -21,11 +21,11 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     } else {
       val zip = new ZipInputStream(new FileInputStream(base.toIO))
       geny.Generator.selfClosing(
-        Iterator.continually(zip.getNextEntry)
+        (Iterator.continually(zip.getNextEntry)
           .takeWhile(_ != null)
           .map(_.getName)
           .filter(_.endsWith(".class")),
-        () => zip.close()
+        () => zip.close())
       )
     }
   }

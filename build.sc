@@ -322,7 +322,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule{ outer =>
   def scalaVersion = Deps.scalaVersion
   def scalacOptions =
-    super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature", "-Xlint:unused")
+    super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature", "-Xlint:unused", "-Xlint:adapted-args")
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
   def testModuleDeps: Seq[JavaModule] =

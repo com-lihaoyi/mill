@@ -60,7 +60,7 @@ object RunScript {
             case t: mill.define.NamedTask[_] =>
               val jsonFile = EvaluatorPaths.resolveDestPaths(evaluator.outPath, t).meta
               val metadata = upickle.default.read[Evaluator.Cached](ujson.read(jsonFile.toIO))
-              Some(t.toString, metadata.value)
+              Some((t.toString, metadata.value))
 
             case _ => None
           }

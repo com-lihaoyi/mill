@@ -14,7 +14,7 @@ object EvaluatorPaths {
     new EvaluatorPaths(dest, meta, log)
 
   private def unapply(evaluatorPaths: EvaluatorPaths): Option[(os.Path, os.Path, os.Path)] =
-    Option(evaluatorPaths.dest, evaluatorPaths.meta, evaluatorPaths.log)
+    Option((evaluatorPaths.dest, evaluatorPaths.meta, evaluatorPaths.log))
 
   @internal
   private[mill] def makeSegmentStrings(segments: Segments): Seq[String] = segments.value.flatMap {
