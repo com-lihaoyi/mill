@@ -7,10 +7,11 @@ import mill.util.{Jvm, Util}
 import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
-
 import mainargs.Flag
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
+
+import scala.reflect.internal.util.ScalaClassLoader
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -86,6 +87,45 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         platformSuffix()
       )
     }
+
+  /**
+   * Print the scala compile built-in help output.
+   * This is equivalent to running `scalac -help`
+   *
+   * @param args The option to pass to the scala compiler, e.g. "-Xlint:help". Default: "-help"
+   */
+  def scalacHelp(
+      @mainargs.arg(doc =
+        """The option to pass to the scala compiler, e.g. "-Xlint:help". Default: "-help""""
+      )
+      args: String*
+  ): Command[Unit] = T.command {
+    val sv = scalaVersion()
+
+    // TODO: do we need to handle compiler plugins?
+    val options: Seq[String] = if (args.isEmpty) Seq("-help") else args
+    T.log.info(
+      s"""Output of scalac version: ${sv}
+         |            with options: ${options.mkString(" ")}""".stripMargin
+    )
+
+    val mainClassName =
+      if (sv.startsWith("2.")) "scala.tools.nsc.Main"
+      else "dotty.tools.MainGenericRunner"
+
+    // Zinc isn't outputting any help with `-help` options, so we ask the compiler directly
+    val cp = scalaCompilerClasspath()
+    val cl = ScalaClassLoader.fromURLs(cp.toSeq.map(_.path.toNIO.toUri().toURL()))
+    val mainClass = cl.loadClass("scala.tools.nsc.Main")
+    val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+    val exitVal = mainMethod.invoke(null, options.toArray)
+    exitVal match {
+      case true | java.lang.Boolean.TRUE => Result.Success(())
+      case false | java.lang.Boolean.FALSE => Result.Failure("Could not invoke scala compiler")
+      case x => Result.Failure(s"Got unexpected return type from the scala compile: ${x}")
+    }
+    ()
+  }
 
   /**
    * Allows you to make use of Scala compiler plugins.
