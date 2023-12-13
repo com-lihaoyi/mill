@@ -12,6 +12,7 @@ import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlat
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
 import scala.reflect.internal.util.ScalaClassLoader
+import scala.util.Using
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -112,39 +113,39 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
     // Zinc isn't outputting any help with `-help` options, so we ask the compiler directly
     val cp = scalaCompilerClasspath()
-    val cl = ScalaClassLoader.fromURLs(cp.toSeq.map(_.path.toNIO.toUri().toURL()))
+    Using.resource(ScalaClassLoader.fromURLs(cp.toSeq.map(_.path.toNIO.toUri().toURL()))) { cl =>
+      def handleResult(trueIsSuccess: Boolean): PartialFunction[Any, Result[Unit]] = {
+        val ok = Result.Success(())
+        val fail = Result.Failure("The compiler exited with errors (exit code 1)")
 
-    def handleResult(trueIsSuccess: Boolean): PartialFunction[Any, Result[Unit]] = {
-      val ok = Result.Success(())
-      val fail = Result.Failure("The compiler exited with errors (exit code 1)")
-
-      {
-        case true | java.lang.Boolean.TRUE => if (trueIsSuccess) ok else fail
-        case false | java.lang.Boolean.FALSE => if (trueIsSuccess) fail else ok
-        case null if sv.startsWith("2.") =>
-          // Scala 2.11 and earlier return `Unit` and require use to use the result value,
-          // which we don't want to implement for just a simple help output of an very old compiler
-          Result.Success(())
-        case x => Result.Failure(s"Got unexpected return type from the scala compiler: ${x}")
+        {
+          case true | java.lang.Boolean.TRUE => if (trueIsSuccess) ok else fail
+          case false | java.lang.Boolean.FALSE => if (trueIsSuccess) fail else ok
+          case null if sv.startsWith("2.") =>
+            // Scala 2.11 and earlier return `Unit` and require use to use the result value,
+            // which we don't want to implement for just a simple help output of an very old compiler
+            Result.Success(())
+          case x => Result.Failure(s"Got unexpected return type from the scala compiler: ${x}")
+        }
       }
-    }
 
-    if (sv.startsWith("2.")) {
-      // Scala 2.x
-      val mainClass = cl.loadClass("scala.tools.nsc.Main")
-      val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
-      val exitVal = mainMethod.invoke(null, options.toArray)
-      handleResult(true)(exitVal)
-    } else {
-      // Scala 3.x
-      val mainClass = cl.loadClass("dotty.tools.dotc.Main")
-      val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
-      val resultClass = cl.loadClass("dotty.tools.dotc.reporting.Reporter")
-      val hasErrorsMethod = resultClass.getMethod("hasErrors")
-      val exitVal = mainMethod.invoke(null, options.toArray)
-      exitVal match {
-        case r if resultClass.isInstance(r) => handleResult(false)(hasErrorsMethod.invoke(r))
-        case x => Result.Failure(s"Got unexpected return type from the scala compiler: ${x}")
+      if (sv.startsWith("2.")) {
+        // Scala 2.x
+        val mainClass = cl.loadClass("scala.tools.nsc.Main")
+        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+        val exitVal = mainMethod.invoke(null, options.toArray)
+        handleResult(true)(exitVal)
+      } else {
+        // Scala 3.x
+        val mainClass = cl.loadClass("dotty.tools.dotc.Main")
+        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+        val resultClass = cl.loadClass("dotty.tools.dotc.reporting.Reporter")
+        val hasErrorsMethod = resultClass.getMethod("hasErrors")
+        val exitVal = mainMethod.invoke(null, options.toArray)
+        exitVal match {
+          case r if resultClass.isInstance(r) => handleResult(false)(hasErrorsMethod.invoke(r))
+          case x => Result.Failure(s"Got unexpected return type from the scala compiler: ${x}")
+        }
       }
     }
   }
