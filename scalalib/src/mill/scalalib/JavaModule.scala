@@ -881,7 +881,7 @@ trait JavaModule
   def runBackgroundLogToConsole: Boolean = true
 
   private def backgroundOutputs(dest: os.Path) =
-    if (runBackgroundLogToConsole) Some(os.Inherit, os.Inherit)
+    if (runBackgroundLogToConsole) Some((os.Inherit, os.Inherit))
     else Jvm.defaultBackgroundOutputs(dest)
 
   /**

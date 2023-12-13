@@ -84,7 +84,7 @@ private[dependency] object ReleaseVersion {
 private[dependency] object PreReleaseVersion {
   def unapply(v: Version): Option[(List[Long], List[String])] = v match {
     case ValidVersion(_, releasePart, preReleasePart, Nil) if preReleasePart.nonEmpty =>
-      Some(releasePart, preReleasePart)
+      Some((releasePart, preReleasePart))
     case _ => None
   }
 }
@@ -94,7 +94,7 @@ private[dependency] object PreReleaseBuildVersion {
     v match {
       case ValidVersion(_, releasePart, preReleasePart, buildPart)
           if preReleasePart.nonEmpty && buildPart.nonEmpty =>
-        Some(releasePart, preReleasePart, buildPart)
+        Some((releasePart, preReleasePart, buildPart))
       case _ => None
     }
 }
@@ -104,7 +104,7 @@ private[dependency] object SnapshotVersion {
     v match {
       case ValidVersion(_, releasePart, preReleasePart, buildPart)
           if preReleasePart.lastOption.contains("SNAPSHOT") =>
-        Some(releasePart, preReleasePart, buildPart)
+        Some((releasePart, preReleasePart, buildPart))
       case _ => None
     }
 }
@@ -112,7 +112,7 @@ private[dependency] object SnapshotVersion {
 private[dependency] object BuildVersion {
   def unapply(v: Version): Option[(List[Long], List[String])] = v match {
     case ValidVersion(_, releasePart, Nil, buildPart) if buildPart.nonEmpty =>
-      Some(releasePart, buildPart)
+      Some((releasePart, buildPart))
     case _ => None
   }
 }
