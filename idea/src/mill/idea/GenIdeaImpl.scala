@@ -786,6 +786,11 @@ case class GenIdeaImpl(
       </library>
     </component>
   }
+
+  /**
+   * @param libNames The library dependencies (external dependencies)
+   * @param depNames The dependency modules (internal dependencies)
+   */
   def moduleXmlTemplate(
       basePath: os.Path,
       scalaVersionOpt: Option[String],
@@ -872,22 +877,24 @@ case class GenIdeaImpl(
         <orderEntry type="sourceFolder" forTests="false" />
 
         {
-      for (dep <- depNames.sorted)
-        yield dep.scope match {
-          case None => <orderEntry type="module" module-name={dep.value} exported="" />
-          case Some(scope) =>
-            <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
-        }
-    }
-        {
       for (name <- libNames.sorted)
         yield name.scope match {
           case None => <orderEntry type="library" name={name.value} level="project" />
           case Some(scope) =>
             <orderEntry type="library" scope={scope} name={name.value} level="project" />
         }
-
     }
+        {
+        // we place the module dependencies after the library dependencies, as IJ is leaking the (transitive)
+        // library dependencies of the module dependencies, even if they are not exported
+        // This can result in wrong classpath when lib dependencies are refined.
+        for (dep <- depNames.sorted)
+          yield dep.scope match {
+            case None => <orderEntry type="module" module-name={dep.value} exported="" />
+            case Some(scope) =>
+                <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
+          }
+        }
       </component>
       {
       if (facets.isEmpty) NodeSeq.Empty
