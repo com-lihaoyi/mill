@@ -7,10 +7,12 @@ import mill.util.{Jvm, Util}
 import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
-
 import mainargs.Flag
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
+
+import scala.reflect.internal.util.ScalaClassLoader
+import scala.util.Using
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -86,6 +88,67 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         platformSuffix()
       )
     }
+
+  /**
+   * Print the scala compile built-in help output.
+   * This is equivalent to running `scalac -help`
+   *
+   * @param args The option to pass to the scala compiler, e.g. "-Xlint:help". Default: "-help"
+   */
+  def scalacHelp(
+      @mainargs.arg(doc =
+        """The option to pass to the scala compiler, e.g. "-Xlint:help". Default: "-help""""
+      )
+      args: String*
+  ): Command[Unit] = T.command {
+    val sv = scalaVersion()
+
+    // TODO: do we need to handle compiler plugins?
+    val options: Seq[String] = if (args.isEmpty) Seq("-help") else args
+    T.log.info(
+      s"""Output of scalac version: ${sv}
+         |            with options: ${options.mkString(" ")}
+         |""".stripMargin
+    )
+
+    // Zinc isn't outputting any help with `-help` options, so we ask the compiler directly
+    val cp = scalaCompilerClasspath()
+    Using.resource(ScalaClassLoader.fromURLs(cp.toSeq.map(_.path.toNIO.toUri().toURL()))) { cl =>
+      def handleResult(trueIsSuccess: Boolean): PartialFunction[Any, Result[Unit]] = {
+        val ok = Result.Success(())
+        val fail = Result.Failure("The compiler exited with errors (exit code 1)")
+
+        {
+          case true | java.lang.Boolean.TRUE => if (trueIsSuccess) ok else fail
+          case false | java.lang.Boolean.FALSE => if (trueIsSuccess) fail else ok
+          case null if sv.startsWith("2.") =>
+            // Scala 2.11 and earlier return `Unit` and require use to use the result value,
+            // which we don't want to implement for just a simple help output of an very old compiler
+            Result.Success(())
+          case x => Result.Failure(s"Got unexpected return type from the scala compiler: ${x}")
+        }
+      }
+
+      if (sv.startsWith("2.")) {
+        // Scala 2.x
+        val mainClass = cl.loadClass("scala.tools.nsc.Main")
+        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+        val exitVal = mainMethod.invoke(null, options.toArray)
+        handleResult(true)(exitVal)
+      } else {
+        // Scala 3.x
+        val mainClass = cl.loadClass("dotty.tools.dotc.Main")
+        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+        val resultClass = cl.loadClass("dotty.tools.dotc.reporting.Reporter")
+        val hasErrorsMethod = resultClass.getMethod("hasErrors")
+        val exitVal = mainMethod.invoke(null, options.toArray)
+        exitVal match {
+          case r if resultClass.isInstance(r) => handleResult(false)(hasErrorsMethod.invoke(r))
+          case x => Result.Failure(s"Got unexpected return type from the scala compiler: ${x}")
+        }
+      }
+    }
+  }
 
   /**
    * Allows you to make use of Scala compiler plugins.
