@@ -885,16 +885,16 @@ case class GenIdeaImpl(
         }
     }
         {
-        // we place the module dependencies after the library dependencies, as IJ is leaking the (transitive)
-        // library dependencies of the module dependencies, even if they are not exported.
-        // This can result in wrong classpath when lib dependencies are refined.
-        for (dep <- depNames.sorted)
-          yield dep.scope match {
-            case None => <orderEntry type="module" module-name={dep.value} exported="" />
-            case Some(scope) =>
-                <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
-          }
+      // we place the module dependencies after the library dependencies, as IJ is leaking the (transitive)
+      // library dependencies of the module dependencies, even if they are not exported.
+      // This can result in wrong classpath when lib dependencies are refined.
+      for (dep <- depNames.sorted)
+        yield dep.scope match {
+          case None => <orderEntry type="module" module-name={dep.value} exported="" />
+          case Some(scope) =>
+            <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
         }
+    }
       </component>
       {
       if (facets.isEmpty) NodeSeq.Empty
