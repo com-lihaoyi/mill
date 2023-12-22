@@ -8,7 +8,13 @@ import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mainargs.Flag
-import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
+import mill.scalalib.bsp.{
+  BspBuildTarget,
+  BspModule,
+  JvmBuildTarget,
+  ScalaBuildTarget,
+  ScalaPlatform
+}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
 import scala.reflect.internal.util.ScalaClassLoader
@@ -590,12 +596,15 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
         jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
-        jvmBuildTarget = None
+        jvmBuildTarget = super.bspBuildTargetData().flatMap {
+          case (JvmBuildTarget.dataKind, bt: JvmBuildTarget) => Some(bt)
+          case _ => None
+        }
       )
     ))
   }
 
-  override def semanticDbScalaVersion = scalaVersion()
+  override def semanticDbScalaVersion: T[String] = scalaVersion()
 
   override protected def semanticDbPluginClasspath = T {
     resolveDeps(T.task {
@@ -604,7 +613,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     })()
   }
 
-  def semanticDbData: T[PathRef] = T.persistent {
+  override def semanticDbData: T[PathRef] = T.persistent {
     val sv = scalaVersion()
 
     val scalacOptions = (
