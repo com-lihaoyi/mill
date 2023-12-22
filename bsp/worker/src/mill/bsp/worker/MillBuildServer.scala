@@ -592,9 +592,8 @@ private class MillBuildServer(
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams)
       : CompletableFuture[CleanCacheResult] =
     completable(s"buildTargetCleanCache ${cleanCacheParams}") { state =>
-      val targetIds = state.rootModules.map { case b: BspModule => state.bspIdByModule(b) }
       val (msg, cleaned) =
-        cleanCacheParams.getTargets.asScala.filter(targetIds.contains).foldLeft((
+        cleanCacheParams.getTargets.asScala.foldLeft((
           "",
           true
         )) {
