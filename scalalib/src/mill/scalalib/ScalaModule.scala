@@ -11,6 +11,7 @@ import mainargs.Flag
 import mill.scalalib.bsp.{
   BspBuildTarget,
   BspModule,
+  BspUri,
   JvmBuildTarget,
   ScalaBuildTarget,
   ScalaPlatform
@@ -596,10 +597,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
         jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
-        jvmBuildTarget = super.bspBuildTargetData().flatMap {
-          case (JvmBuildTarget.dataKind, bt: JvmBuildTarget) => Some(bt)
-          case _ => None
-        }
+        // this is what we want to use, but can't due to a resulting binary incompatibility
+        //        jvmBuildTarget = super.bspBuildTargetData().flatMap {
+        //          case (JvmBuildTarget.dataKind, bt: JvmBuildTarget) => Some(bt)
+        //          case _ => None
+        //        }
+        jvmBuildTarget = Some(
+          JvmBuildTarget(
+            javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
+            javaVersion = Option(System.getProperty("java.version"))
+          )
+        )
       )
     ))
   }
