@@ -107,6 +107,9 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 //
 // * `https://s01.oss.sonatype.org/service/local` - for the `--sonatypeUri`
 // * `https://s01.oss.sonatype.org/content/repositories/snapshots` - for `sonatypeSnapshotUri`
+//
+// If you do happen to be using the "wrong" URL for publish your project, you'll probably be getting
+// 403 errors back from the publish task.
 // --
 //
 // === Non-Staging Releases (classic Maven uploads)
