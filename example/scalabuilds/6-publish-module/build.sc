@@ -105,11 +105,15 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 // Since Feb. 2021 any new Sonatype accounts have been created on
 // `s01.oss.sonatype.org`, so you'll want to ensure you set the relevant URIs to match.
 //
+// The symptom of using the "wrong" URL for publishling is typically a 403 error code, in response to the publish request.
+//
+// See https://central.sonatype.org/publish/publish-guide/#releasing-to-central
+//
+// Typically
+//
 // * `https://s01.oss.sonatype.org/service/local` - for the `--sonatypeUri`
 // * `https://s01.oss.sonatype.org/content/repositories/snapshots` - for `sonatypeSnapshotUri`
 //
-// If you do happen to be using the "wrong" URL for publish your project, you'll probably be getting
-// 403 errors back from the publish task.
 // --
 //
 // === Non-Staging Releases (classic Maven uploads)
