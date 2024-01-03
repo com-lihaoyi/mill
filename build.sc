@@ -133,13 +133,14 @@ object Deps {
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
   val jline = ivy"org.jline:jline:3.24.1"
-  val jna = ivy"net.java.dev.jna:jna:5.13.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.13.0"
+  val jnaVersion = "5.14.0"
+  val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.22.1"
-  val osLib = ivy"com.lihaoyi::os-lib:0.9.2"
+  val osLib = ivy"com.lihaoyi::os-lib:0.9.3"
   val pprint = ivy"com.lihaoyi::pprint:0.8.1"
   val mainargs = ivy"com.lihaoyi::mainargs:0.5.4"
   val millModuledefsVersion = "0.10.9"
@@ -166,7 +167,7 @@ object Deps {
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.8.14"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.8.15"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.8"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.1.3"
