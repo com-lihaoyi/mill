@@ -181,7 +181,7 @@ object Deps {
   val requests = ivy"com.lihaoyi::requests:0.8.0"
   // tests framework (test)
   val testScalaTest = ivy"org.scalatest::scalatest:3.2.17"
-  val testZioTest = ivy"dev.zio::zio-test:2.0.17"
+  val testZioTest = ivy"dev.zio::zio-test:2.0.21"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
