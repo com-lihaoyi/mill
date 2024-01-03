@@ -13,7 +13,7 @@ import mill.api.{Ctx, JarManifest, MillException, PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
-import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 import os.{Path, ProcessOutput}
@@ -1025,4 +1025,14 @@ trait JavaModule
     canRun = true
   )
 
+  @internal
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+    Some((
+      JvmBuildTarget.dataKind,
+      JvmBuildTarget(
+        javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
+        javaVersion = Option(System.getProperty("java.version"))
+      )
+    ))
+  }
 }
