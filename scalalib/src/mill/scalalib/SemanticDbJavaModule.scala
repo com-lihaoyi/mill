@@ -49,7 +49,7 @@ trait SemanticDbJavaModule extends JavaModule { hostModule =>
   /**
    * Scalac options to activate the compiler plugins.
    */
-  private def semanticDbEnablePluginScalacOptions: Target[Seq[String]] = T {
+  protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = T {
     val resolvedJars = resolveDeps(semanticDbPluginIvyDeps.map(_.map(_.exclude("*" -> "*"))))()
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
