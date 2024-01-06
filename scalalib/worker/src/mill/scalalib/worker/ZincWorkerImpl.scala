@@ -535,7 +535,7 @@ class ZincWorkerImpl(
     )
 
     val scalaColorProp = "scala.color"
-    val previousScalaColor = sys.props.get(scalaColorProp).getOrElse("auto")
+    val previousScalaColor = sys.props(scalaColorProp)
     try {
       sys.props(scalaColorProp) = if (ctx.log.colored) "true" else "false"
       val newResult = ic.compile(
@@ -560,7 +560,10 @@ class ZincWorkerImpl(
     } finally {
       reporter.foreach(r => sources.foreach(r.fileVisited(_)))
       reporter.foreach(_.finish())
-      sys.props(scalaColorProp) = previousScalaColor
+      previousScalaColor match {
+        case null => sys.props.remove(scalaColorProp)
+        case v => sys.props(scalaColorProp) = previousScalaColor
+      }
     }
   }
 
