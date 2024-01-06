@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import java.io.ByteArrayOutputStream
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.util.jar.JarFile
 import scala.jdk.CollectionConverters._
 import scala.util.{Properties, Using}
@@ -283,6 +283,16 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object HelloWorldColorOutput extends HelloBase {
+    object core extends ScalaModule {
+      def scalaVersion = scala213Version
+
+      override def scalacOptions = super.scalacOptions() ++ Seq(
+        "-Vimplicits"
+      )
+    }
+  }
+
   object HelloScalacheck extends HelloBase {
     object foo extends ScalaModule {
       def scalaVersion = scala212Version
@@ -420,9 +430,10 @@ object HelloWorldTests extends TestSuite {
       m: TestUtil.BaseModule,
       resourcePath: os.Path = resourcePath,
       env: Map[String, String] = Evaluator.defaultEnv,
-      debug: Boolean = false
+      debug: Boolean = false,
+      errStream: PrintStream = System.err
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m, env = env, debugEnabled = debug)
+    val eval = new TestEvaluator(m, env = env, debugEnabled = debug, errStream = errStream)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -1187,6 +1198,22 @@ object HelloWorldTests extends TestSuite {
       ) { eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldFlags.core.docJar)
         assert(evalCount > 0)
+      }
+    }
+    "color-output" - {
+      val errStream = new ByteArrayOutputStream()
+      workspaceTest(
+        HelloWorldColorOutput,
+        os.pwd / "scalalib" / "test" / "resources" / "hello-world-color-output",
+        errStream = new PrintStream(errStream, true)
+      ) { eval =>
+        val Left(Result.Failure("Compilation failed", _)) =
+          eval.apply(HelloWorldColorOutput.core.compile)
+        val output = errStream.toString
+        assert(output.contains(s"${Console.RED}!${Console.RESET}${Console.BLUE}I"))
+        assert(output.contains(
+          s"${Console.GREEN}example.Show[scala.Option[java.lang.String]]${Console.RESET}"
+        ))
       }
     }
 

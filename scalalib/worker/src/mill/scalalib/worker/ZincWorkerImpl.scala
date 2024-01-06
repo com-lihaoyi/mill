@@ -534,7 +534,10 @@ class ZincWorkerImpl(
       stampReader = Stamps.timeWrapBinaryStamps(converter)
     )
 
+    val scalaColorProp = "scala.color"
+    val previousScalaColor = sys.props.get(scalaColorProp).getOrElse("auto")
     try {
+      sys.props(scalaColorProp) = if (ctx.log.colored) "true" else "false"
       val newResult = ic.compile(
         in = inputs,
         logger = logger
@@ -557,6 +560,7 @@ class ZincWorkerImpl(
     } finally {
       reporter.foreach(r => sources.foreach(r.fileVisited(_)))
       reporter.foreach(_.finish())
+      sys.props(scalaColorProp) = previousScalaColor
     }
   }
 
