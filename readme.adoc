@@ -793,6 +793,22 @@ _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
+[#0-10-15]
+=== 0.10.15 - 2024-01-07
+:version: 0.10.15
+:milestone-name: 0.10.15
+:milestone: 92
+:prev-version: 0.10.13
+
+_Changes since {prev-version}:_
+
+* Make `semanticDbEnablePluginScalacOptions` protected and thus accessible for downstream use and customization
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 [#0-10-13]
 === 0.10.13 - 2023-11-12
 :version: 0.10.13
