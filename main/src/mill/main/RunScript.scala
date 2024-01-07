@@ -46,7 +46,7 @@ object RunScript {
           Seq(Watchable.Path(p))
         case (t: InputImpl[_], TaskResult(result, recalc)) =>
           val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
-          Seq(Watchable.Value(() => recalc().hashCode(), result.hashCode, pretty))
+          Seq(Watchable.Value(() => recalc().hashCode(), result.hashCode(), pretty))
       }
       .flatten
       .toSeq
