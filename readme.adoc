@@ -247,7 +247,20 @@ corresponding version of Mill.
 
 == Changelog
 
-=== 0.10.13 - 203-11-12
+=== 0.10.14 - 2024-01-07
+:version: 0.10.14
+:milestone-name: 0.10.14
+:milestone: 92
+:prev-version: 0.10.13
+
+* Make `semanticDbEnablePluginScalacOptions` protected and thus accessible for downstream use and customization
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.13 - 2023-11-12
 :version: 0.10.13
 :milestone-name: 0.10.13
 :milestone: 81
