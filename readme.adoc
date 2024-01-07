@@ -247,9 +247,9 @@ corresponding version of Mill.
 
 == Changelog
 
-=== 0.10.14 - 2024-01-07
-:version: 0.10.14
-:milestone-name: 0.10.14
+=== 0.10.15 - 2024-01-07
+:version: 0.10.15
+:milestone-name: 0.10.15
 :milestone: 92
 :prev-version: 0.10.13
 
