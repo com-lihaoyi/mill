@@ -113,7 +113,8 @@ class ZincWorkerImpl(
     javac.JavaTools(javaCompiler, javaDoc)
   }
 
-  val compilerBridgeLocks: mutable.Map[String,Object] = collection.mutable.Map.empty[String, Object]
+  val compilerBridgeLocks: mutable.Map[String, Object] =
+    collection.mutable.Map.empty[String, Object]
 
   def docJar(
       scalaVersion: String,

@@ -10,7 +10,8 @@ trait ZincWorkerUtil {
   def isDotty(scalaVersion: String): Boolean = scalaVersion.startsWith("0.")
   def isScala3(scalaVersion: String): Boolean = scalaVersion.startsWith("3.")
   def isScala3Milestone(scalaVersion: String): Boolean = scalaVersion.startsWith("3.0.0-M")
-  def isDottyOrScala3(scalaVersion: String): Boolean = isDotty(scalaVersion) || isScala3(scalaVersion)
+  def isDottyOrScala3(scalaVersion: String): Boolean =
+    isDotty(scalaVersion) || isScala3(scalaVersion)
 
   // eg, grepJar(classPath, name = "scala-library", versionPrefix = "2.13.")
   // return first path in `classPath` that match:

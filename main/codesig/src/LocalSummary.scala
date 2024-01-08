@@ -83,10 +83,15 @@ object LocalSummary {
   }
 
   class MyClassVisitor()(implicit st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
-    val classCallGraph: mutable.Builder[(MethodSig, Set[MethodCall]),Map[MethodSig,Set[MethodCall]]] = Map.newBuilder[MethodSig, Set[MethodCall]]
-    val classMethodHashes: mutable.Builder[(MethodSig, Int),Map[MethodSig,Int]] = Map.newBuilder[MethodSig, Int]
-    val classMethodPrivate: mutable.Builder[(MethodSig, Boolean),Map[MethodSig,Boolean]] = Map.newBuilder[MethodSig, Boolean]
-    val classMethodAbstract: mutable.Builder[(MethodSig, Boolean),Map[MethodSig,Boolean]] = Map.newBuilder[MethodSig, Boolean]
+    val classCallGraph
+        : mutable.Builder[(MethodSig, Set[MethodCall]), Map[MethodSig, Set[MethodCall]]] =
+      Map.newBuilder[MethodSig, Set[MethodCall]]
+    val classMethodHashes: mutable.Builder[(MethodSig, Int), Map[MethodSig, Int]] =
+      Map.newBuilder[MethodSig, Int]
+    val classMethodPrivate: mutable.Builder[(MethodSig, Boolean), Map[MethodSig, Boolean]] =
+      Map.newBuilder[MethodSig, Boolean]
+    val classMethodAbstract: mutable.Builder[(MethodSig, Boolean), Map[MethodSig, Boolean]] =
+      Map.newBuilder[MethodSig, Boolean]
     var clsType: JCls = null
     var directSuperClass: Option[JCls] = None
     var directAncestors: Set[JCls] = Set()
@@ -126,7 +131,7 @@ object LocalSummary {
       access: Int
   )(implicit st: SymbolTable) extends MethodVisitor(Opcodes.ASM9) {
     val outboundCalls: mutable.Set[MethodCall] = collection.mutable.Set.empty[MethodCall]
-    val labelIndices: mutable.Map[Label,Int] = collection.mutable.Map.empty[Label, Int]
+    val labelIndices: mutable.Map[Label, Int] = collection.mutable.Map.empty[Label, Int]
     val jumpList: mutable.Buffer[Label] = collection.mutable.Buffer.empty[Label]
 
     val methodSig: MethodSig = st.MethodSig(

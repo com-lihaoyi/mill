@@ -15,7 +15,7 @@ class CallGraphAnalysis(
     prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
 )(implicit st: SymbolTable) {
 
-  val methods: Map[MethodDef,LocalSummary.MethodInfo] = for {
+  val methods: Map[MethodDef, LocalSummary.MethodInfo] = for {
     (k, v) <- localSummary.items
     (sig, m) <- v.methods
   } yield (st.MethodDef(k, sig), m)
@@ -36,12 +36,12 @@ class CallGraphAnalysis(
     ignoreCall
   )
 
-  lazy val methodCodeHashes: SortedMap[String,Int] =
+  lazy val methodCodeHashes: SortedMap[String, Int] =
     methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
 
   logger.log(methodCodeHashes)
 
-  lazy val prettyCallGraph: SortedMap[String,Array[CallGraphAnalysis.Node]] = {
+  lazy val prettyCallGraph: SortedMap[String, Array[CallGraphAnalysis.Node]] = {
     indexGraphEdges.zip(indexToNodes).map { case (vs, k) =>
       (k.toString, vs.map(indexToNodes))
     }
@@ -67,12 +67,13 @@ class CallGraphAnalysis(
     case _ => 0
   }
 
-  val transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)] = transitiveCallGraphValues[Int](
-    nodeValues = nodeValues,
-    reduce = _ + _,
-    zero = 0
-  )
-  val transitiveCallGraphHashes: SortedMap[String,Int] = transitiveCallGraphHashes0
+  val transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)] =
+    transitiveCallGraphValues[Int](
+      nodeValues = nodeValues,
+      reduce = _ + _,
+      zero = 0
+    )
+  val transitiveCallGraphHashes: SortedMap[String, Int] = transitiveCallGraphHashes0
     .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
     .to(SortedMap)
 

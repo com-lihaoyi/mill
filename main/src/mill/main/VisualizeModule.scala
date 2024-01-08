@@ -34,7 +34,10 @@ trait VisualizeModule extends mill.define.TaskModule {
    * everyone can use to call into Graphviz, which the Mill execution threads
    * can communicate via in/out queues.
    */
-  def worker: Worker[(LinkedBlockingQueue[(Seq[_], Seq[_], Path)], LinkedBlockingQueue[Result[Seq[PathRef]]])] = Target.worker {
+  def worker: Worker[(
+      LinkedBlockingQueue[(Seq[_], Seq[_], Path)],
+      LinkedBlockingQueue[Result[Seq[PathRef]]]
+  )] = Target.worker {
     val in = new LinkedBlockingQueue[(Seq[_], Seq[_], os.Path)]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
 

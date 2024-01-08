@@ -85,7 +85,8 @@ object License {
   val Aladdin: License = spdx("Aladdin Free Public License", "Aladdin", false, false)
   val AMDPLPA: License = spdx("AMD's plpa_map.c License", "AMDPLPA", false, false)
   val AML: License = spdx("Apple MIT License", "AML", false, false)
-  val AMPAS: License = spdx("Academy of Motion Picture Arts and Sciences BSD", "AMPAS", false, false)
+  val AMPAS: License =
+    spdx("Academy of Motion Picture Arts and Sciences BSD", "AMPAS", false, false)
   val `ANTLR-PD` = spdx("ANTLR Software Rights Notice", "ANTLR-PD", false, false)
   val `Apache-1.0` = spdx("Apache License 1.0", "Apache-1.0", false, true)
   val `Apache-1.1` = spdx("Apache License 1.1", "Apache-1.1", true, true)
@@ -294,7 +295,8 @@ object License {
   val FreeImage: License = spdx("FreeImage Public License v1.0", "FreeImage", false, false)
   val FSFAP: License = spdx("FSF All Permissive License", "FSFAP", false, true)
   val FSFUL: License = spdx("FSF Unlimited License", "FSFUL", false, false)
-  val FSFULLR: License = spdx("FSF Unlimited License (with License Retention)", "FSFULLR", false, false)
+  val FSFULLR: License =
+    spdx("FSF Unlimited License (with License Retention)", "FSFULLR", false, false)
   val FTL: License = spdx("Freetype Project License", "FTL", false, true)
   val `GFDL-1.1-only` =
     spdx("GNU Free Documentation License v1.1 only", "GFDL-1.1-only", false, false)
@@ -323,7 +325,8 @@ object License {
   val `GPL-3.0-or-later` =
     spdx("GNU General Public License v3.0 or later", "GPL-3.0-or-later", true, false)
   val `gSOAP-1.3b` = spdx("gSOAP Public License v1.3b", "gSOAP-1.3b", false, false)
-  val HaskellReport: License = spdx("Haskell Language Report License", "HaskellReport", false, false)
+  val HaskellReport: License =
+    spdx("Haskell Language Report License", "HaskellReport", false, false)
   val HPND: License = spdx("Historical Permission Notice and Disclaimer", "HPND", true, true)
   val `IBM-pibs` = spdx("IBM PowerPC Initialization and Boot Software", "IBM-pibs", false, false)
   val ICU: License = spdx("ICU License", "ICU", false, false)
@@ -484,7 +487,8 @@ object License {
   val `Spencer-99` = spdx("Spencer License 99", "Spencer-99", false, false)
   val `SPL-1.0` = spdx("Sun Public License v1.0", "SPL-1.0", true, true)
   val `SugarCRM-1.1.3` = spdx("SugarCRM Public License v1.1.3", "SugarCRM-1.1.3", false, false)
-  val SWL: License = spdx("Scheme Widget Library (SWL) Software License Agreement", "SWL", false, false)
+  val SWL: License =
+    spdx("Scheme Widget Library (SWL) Software License Agreement", "SWL", false, false)
   val TCL: License = spdx("TCL/TK License", "TCL", false, false)
   val `TCP-wrappers` = spdx("TCP Wrappers License", "TCP-wrappers", false, false)
   val TMate: License = spdx("TMate Open Source License", "TMate", false, false)

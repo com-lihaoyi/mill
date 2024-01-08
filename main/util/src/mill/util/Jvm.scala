@@ -156,7 +156,11 @@ object Jvm extends CoursierSupport {
   /**
    * Runs a generic subprocess and waits for it to terminate.
    */
-  def runSubprocess(commandArgs: Seq[String], envArgs: Map[String, String], workingDir: os.Path): Unit = {
+  def runSubprocess(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path
+  ): Unit = {
     val process = spawnSubprocessWithBackgroundOutputs(
       commandArgs,
       envArgs,

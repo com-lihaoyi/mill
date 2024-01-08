@@ -651,7 +651,8 @@ class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Optio
       upickle.default.readwriter[Seq[PathRef]],
       isPrivate
     ) {
-  override def readWriterOpt: Some[RW[Seq[PathRef]]] = Some(upickle.default.readwriter[Seq[PathRef]])
+  override def readWriterOpt: Some[RW[Seq[PathRef]]] =
+    Some(upickle.default.readwriter[Seq[PathRef]])
 }
 
 class SourceImpl(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])

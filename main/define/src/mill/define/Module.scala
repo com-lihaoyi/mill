@@ -67,7 +67,8 @@ object Module {
     }
 
     lazy val modules: Seq[Module] = traverse(Seq(_))
-    lazy val segmentsToModules: Map[Segments,Module] = modules.map(m => (m.millModuleSegments, m)).toMap
+    lazy val segmentsToModules: Map[Segments, Module] =
+      modules.map(m => (m.millModuleSegments, m)).toMap
 
     lazy val targets: Set[Target[_]] =
       traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
@@ -84,7 +85,8 @@ object Module {
 
     def reflectAll[T: ClassTag]: Seq[T] = reflect[T](Function.const(true))
 
-    def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true)): Seq[T] = {
+    def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true))
+        : Seq[T] = {
       Reflect.reflectNestedObjects0(outer.getClass, filter).map {
         case (name, m: java.lang.reflect.Method) => m.invoke(outer).asInstanceOf[T]
         case (name, m: java.lang.reflect.Field) => m.get(outer).asInstanceOf[T]

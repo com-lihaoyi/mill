@@ -21,7 +21,7 @@ object JvmModel {
   class SymbolTable {
     abstract class Table[K, V] {
       def create: K => V
-      val lookup: LinkedHashMap[K,V] = LinkedHashMap.empty[K, V]
+      val lookup: LinkedHashMap[K, V] = LinkedHashMap.empty[K, V]
       def get(k: K): V = lookup.getOrElseUpdate(k, create(k))
     }
 
@@ -36,7 +36,8 @@ object JvmModel {
     }
 
     object MethodCall extends Table[(JType.Cls, InvokeType, String, Desc), MethodCall] {
-      def create: ((JType.Cls, InvokeType, String, Desc)) => MethodCall = (new MethodCall(_, _, _, _)).tupled
+      def create: ((JType.Cls, InvokeType, String, Desc)) => MethodCall =
+        (new MethodCall(_, _, _, _)).tupled
       def apply(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc): MethodCall =
         get((cls, invokeType, name, desc))
     }

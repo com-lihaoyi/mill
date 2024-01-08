@@ -51,9 +51,10 @@ abstract class IntegrationTestSuite extends TestSuite {
     )
   }
 
-  val millReleaseFileOpt: Option[Path] = Option(System.getenv("MILL_TEST_LAUNCHER")).map(os.Path(_, os.pwd))
+  val millReleaseFileOpt: Option[Path] =
+    Option(System.getenv("MILL_TEST_LAUNCHER")).map(os.Path(_, os.pwd))
 
-  val millTestSuiteEnv: Map[String,String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+  val millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
   private def evalFork(
       stdout: os.ProcessOutput,

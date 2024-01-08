@@ -59,7 +59,8 @@ object Parsers {
   def StatementBlock[$: P]: P[Seq[String]] =
     P(Semis.? ~ (TmplStat ~~ WS ~~ (Semis | &("}") | End)).!.repX)
 
-  def CompilationUnit[$: P]: P[(Option[String], String, Seq[String])] = P(HashBang.!.? ~~ WL.! ~~ StatementBlock ~ WL ~ End)
+  def CompilationUnit[$: P]: P[(Option[String], String, Seq[String])] =
+    P(HashBang.!.? ~~ WL.! ~~ StatementBlock ~ WL ~ End)
 
   def parseImportHooksWithIndices(stmts: Seq[String]): Seq[(String, Seq[ImportTree])] = {
     val hookedStmts = mutable.Buffer.empty[(String, Seq[ImportTree])]

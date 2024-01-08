@@ -34,7 +34,11 @@ private object ResolveNotFoundHandler {
 
   def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 
-  def hintList(revSelectorsSoFar: Segments, lastSegment: Segment, allPossibleNames: Set[String]): String = {
+  def hintList(
+      revSelectorsSoFar: Segments,
+      lastSegment: Segment,
+      allPossibleNames: Set[String]
+  ): String = {
     val search = revSelectorsSoFar.render
 
     val lastSearchOpt = for {

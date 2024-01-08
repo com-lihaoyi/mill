@@ -33,7 +33,7 @@ private[mill] trait GroupEvaluator {
   def methodCodeHashSignatures: Map[String, Int]
   def disableCallgraphInvalidation: Boolean
 
-  lazy val constructorHashSignatures: Map[String,Seq[(String, Int)]] = methodCodeHashSignatures
+  lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] = methodCodeHashSignatures
     .toSeq
     .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
     .groupMap(_._1)(t => (t._2, t._3))
