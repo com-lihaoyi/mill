@@ -1,6 +1,5 @@
 package mill.main
 
-import java.util.concurrent.LinkedBlockingQueue
 import mill.define.Target
 import mill.api.{Ctx, Logger, PathRef, Result}
 import mill.define.{Command, NamedTask, Segments, Task}
@@ -393,7 +392,9 @@ trait MainModule extends mill.define.Module {
    * Renders the dependencies between the given tasks as a SVG for you to look at
    */
   def visualize(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] = Target.command {
-    visualize0(evaluator, targets, Target.ctx(), mill.main.VisualizeModule.worker())
+    visualize0(evaluator, targets, Target.ctx(), mill.main.VisualizeModule.visualizeModuleWorker())
+      // FIXME: instead, return the map directly
+      .map(_.map(_._2).toSeq)
   }
 
   /**
@@ -407,9 +408,12 @@ trait MainModule extends mill.define.Module {
             evaluator,
             targets,
             Target.ctx(),
-            mill.main.VisualizeModule.worker(),
+            mill.main.VisualizeModule.visualizeModuleWorker(),
             Some(planResults.toList.map(_.task))
           )
+            // FIXME: instead, return the map directly
+            .map(_.map(_._2).toSeq)
+
       }
     }
 
@@ -437,25 +441,19 @@ trait MainModule extends mill.define.Module {
     ()
   }
 
-  private type VizWorker = (
-      LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
-      LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
-  )
-
   private def visualize0(
       evaluator: Evaluator,
       targets: Seq[String],
       ctx: Ctx,
-      vizWorker: VizWorker,
+      vizWorker: VisualizeModuleWorker,
       planTasks: Option[List[NamedTask[_]]] = None
-  ): Result[Seq[PathRef]] = {
+  ): Result[Map[String, PathRef]] = {
     def callVisualizeModule(
         rs: List[NamedTask[Any]],
         allRs: List[NamedTask[Any]]
-    ): Result[Seq[PathRef]] = {
-      val (in, out) = vizWorker
-      in.put((rs, allRs, ctx.dest))
-      out.take()
+    ): Result[Map[String, PathRef]] = {
+      vizWorker.in.put((rs, allRs, ctx.dest))
+      vizWorker.out.take()
     }
 
     Resolve.Tasks.resolve(
