@@ -1,0 +1,24 @@
+{
+	"httpProxy": {
+		"address": "http://somecompanyproxy.com:8080",
+		"password": "value:PROXY_PASSWORD",
+		"user": "value:PROXY_USER"
+	},
+	"repositories": {
+		"credentials": [
+			{
+				"host": "somecompany.com",
+				"user": "value:REPO_USER",
+				"password": "value:REPO_PASSWORD"
+			}
+		],
+		"mirrors": [
+			"tree:https://repo.maven.apache.org/maven2/=https://repo1.maven.org/maven2"
+		],
+		"default": [
+			"https://somecompany.com/artifactory/someRepo",
+			"ivy:https://somecompany.com/artifactory/qordoba-releases/[organisation]/[module](_[scalaVersion])(_[sbtVersion])/[revision]/[type]s/[artifact](-[classifier]).[ext]",
+			"central"
+		]
+	}
+}

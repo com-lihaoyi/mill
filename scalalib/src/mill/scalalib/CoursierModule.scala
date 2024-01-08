@@ -1,11 +1,16 @@
 package mill.scalalib
 
+import coursier.Dependency
+import coursier.Repository
+import coursier.Resolve
 import coursier.cache.FileCache
-import coursier.{Dependency, Repository, Resolve}
 import coursier.core.Resolution
-import mill.{Agg, T}
-import mill.define.Task
+import coursier.ivy.IvyRepository
+import coursier.maven.MavenRepository
+import mill.Agg
+import mill.T
 import mill.api.PathRef
+import mill.define.Task
 
 import scala.annotation.nowarn
 import scala.concurrent.Await
@@ -63,8 +68,25 @@ trait CoursierModule extends mill.Module {
    */
   def repositoriesTask: Task[Seq[Repository]] = T.task {
     import scala.concurrent.ExecutionContext.Implicits.global
+    Resolve.proxySetup()
+    val resolvedCredentials = coursier.cache.CacheDefaults.credentials.flatMap { _.get() }
     val repos = Await.result(
-      Resolve().finalRepositories.future(),
+      Resolve().finalRepositories.map {
+        _.map {
+          case x: IvyRepository =>
+            x.withAuthentication(
+              resolvedCredentials.find { c =>
+                c.matches(x.pattern.string, c.usernameOpt.getOrElse(""))
+              }.map(_.authentication)
+            )
+          case x: MavenRepository =>
+            x.withAuthentication(
+              resolvedCredentials.find { c =>
+                c.matches(x.root, c.usernameOpt.getOrElse(""))
+              }.map(_.authentication)
+            )
+        }
+      }.future(),
       Duration.Inf
     )
     repos
