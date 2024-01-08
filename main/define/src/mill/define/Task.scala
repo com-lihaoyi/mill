@@ -605,6 +605,7 @@ class TargetImpl[+T](
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
   override def asTarget: Option[Target[T]] = Some(this)
+  // FIXME: deprecated return type: Change to Option
   override def readWriterOpt: Some[RW[_]] = Some(readWriter)
 }
 
@@ -625,6 +626,7 @@ class Command[+T](
     val isPrivate: Option[Boolean]
 ) extends NamedTask[T] {
   override def asCommand: Some[Command[T]] = Some(this)
+  // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[_]] = Some(writer)
 }
 
@@ -641,6 +643,7 @@ class InputImpl[T](
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
   override def sideHash: Int = util.Random.nextInt()
+  // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[_]] = Some(writer)
 }
 
