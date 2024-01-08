@@ -1,6 +1,6 @@
 package mill.main
 
-import mill.api.{PathRef, Result}
+import mill.api.{Ctx, PathRef, Result}
 import os.Path
 
 import java.lang.reflect.Method
@@ -13,41 +13,47 @@ import java.util.concurrent.LinkedBlockingQueue
  * everyone can use to call into Graphviz, which the Mill execution threads
  * can communicate via in/out queues.
  */
-class VisualizeModuleWorker(classpath: Seq[os.Path]) extends AutoCloseable {
+class VisualizeModuleWorker(classpath: Seq[os.Path])(implicit ctx: Ctx.Home) extends AutoCloseable {
 
   val in: LinkedBlockingQueue[(Seq[_], Seq[_], Path)] =
     new LinkedBlockingQueue[(Seq[_], Seq[_], os.Path)]()
 
-  val out: LinkedBlockingQueue[Result[Seq[PathRef]]] =
-    new LinkedBlockingQueue[Result[Seq[PathRef]]]()
+  val out: LinkedBlockingQueue[Result[Map[String, PathRef]]] =
+    new LinkedBlockingQueue[Result[Map[String, PathRef]]]()
 
-  private val classLoader = mill.api.ClassLoader.create(
-    classpath.map(_.toNIO.toUri.toURL).toVector,
-    getClass.getClassLoader
-  )
+  private val onClose: () => Unit = {
+    val classLoader = mill.api.ClassLoader.create(
+      classpath.map(_.toNIO.toUri.toURL).toVector,
+      getClass.getClassLoader
+    )
 
-  private val graphvizToolsMethod: Method =
-    classLoader.loadClass("mill.main.graphviz.GraphvizTools")
-      .getMethod("apply", classOf[Seq[_]], classOf[Seq[_]], classOf[os.Path])
+    val graphvizToolsMethod: Method =
+      classLoader.loadClass("mill.main.graphviz.GraphvizTools")
+        .getMethod("render", classOf[Seq[_]], classOf[Seq[_]], classOf[os.Path])
 
-  private var accepting: Boolean = true
+    var accepting: Boolean = true
 
-  private val visualizeThread = new java.lang.Thread(() =>
-    while (!accepting) {
-      val res = Result.Success {
-        val (targets, tasks, dest) = in.take()
-        graphvizToolsMethod
-          .invoke(null, targets, tasks, dest)
-          .asInstanceOf[Seq[PathRef]]
+    val visualizeThread = new java.lang.Thread(() =>
+      while (!accepting) {
+        val res = Result.Success {
+          val (targets, tasks, dest) = in.take()
+          graphvizToolsMethod
+            .invoke(null, targets, tasks, dest)
+            .asInstanceOf[Map[String, PathRef]]
+        }
+        out.put(res)
       }
-      out.put(res)
+    )
+    visualizeThread.setDaemon(true)
+    visualizeThread.start()
+
+    () => {
+      accepting = false
+      classLoader.close()
     }
-  )
-  visualizeThread.setDaemon(true)
-  visualizeThread.start()
+  }
 
   override def close(): Unit = {
-    accepting = false
-    classLoader.close()
+    onClose()
   }
 }

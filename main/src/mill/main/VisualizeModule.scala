@@ -1,14 +1,13 @@
 package mill.main
 
-import java.util.concurrent.LinkedBlockingQueue
 import coursier.Resolve
 import coursier.core.Repository
-import mill.T
-import mill.define.{Discover, ExternalModule, Target}
+import mill.define.{Discover, ExternalModule, Target, Worker}
 import mill.api.{PathRef, Result}
 import mill.util.Util.millProjectModule
 import os.Path
 
+import java.util.concurrent.LinkedBlockingQueue
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -28,19 +27,20 @@ object VisualizeModule extends ExternalModule with VisualizeModule {
 trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
-  def classpath: T[Seq[PathRef]] = T {
-    millProjectModule("mill-main-graphviz", repositories)
+  def classpath: Target[Seq[PathRef]] = Target {
+    millProjectModule("mill-main-graphviz", repositories).map(_.toSeq)
   }
 
   @deprecated("Use visualizeModuleWorker instead", "Mill 0.11.7")
-  def worker = Target.worker {
-    val w = visualizeModuleWorker()
-    (w.in, w.out)
+  def worker: Worker[(
+      LinkedBlockingQueue[(Seq[_], Seq[_], Path)],
+      LinkedBlockingQueue[Result[Seq[PathRef]]]
+  )] = Target.worker {
+    // this worker is no longer functional
+    ???
   }
 
-  def visualizeModuleWorker = T.worker {
+  def visualizeModuleWorker: Worker[VisualizeModuleWorker] = Target.worker {
     new VisualizeModuleWorker(classpath().map(_.path))
   }
 }
-
-

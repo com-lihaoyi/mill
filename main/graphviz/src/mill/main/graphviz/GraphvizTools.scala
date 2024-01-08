@@ -9,7 +9,7 @@ import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 object GraphvizTools {
 
   def apply(targets: Seq[NamedTask[Any]], rs: Seq[NamedTask[Any]], dest: os.Path): Seq[PathRef] =
-    render(targets, rs, dest).map(_._2)
+    render(targets, rs, dest).map(_._2).toSeq
 
   def render(targets: Seq[NamedTask[Any]], rs: Seq[NamedTask[Any]], dest: os.Path): Map[String, PathRef] = {
     val transitive = Graph.transitiveTargets(rs.distinct)
