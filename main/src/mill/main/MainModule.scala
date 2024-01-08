@@ -1,6 +1,5 @@
 package mill.main
 
-import java.util.concurrent.LinkedBlockingQueue
 import mill.define.Target
 import mill.api.{Ctx, Logger, PathRef, Result}
 import mill.define.{Command, NamedTask, Segments, Task}
@@ -437,25 +436,19 @@ trait MainModule extends mill.define.Module {
     ()
   }
 
-  private type VizWorker = (
-      LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
-      LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
-  )
-
   private def visualize0(
       evaluator: Evaluator,
       targets: Seq[String],
       ctx: Ctx,
-      vizWorker: VizWorker,
+      vizWorker: VisualizeModuleWorker,
       planTasks: Option[List[NamedTask[_]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
         rs: List[NamedTask[Any]],
         allRs: List[NamedTask[Any]]
     ): Result[Seq[PathRef]] = {
-      val (in, out) = vizWorker
-      in.put((rs, allRs, ctx.dest))
-      out.take()
+      vizWorker.in.put((rs, allRs, ctx.dest))
+      vizWorker.out.take()
     }
 
     Resolve.Tasks.resolve(
