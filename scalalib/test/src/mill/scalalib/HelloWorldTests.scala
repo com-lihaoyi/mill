@@ -692,7 +692,9 @@ object HelloWorldTests extends TestSuite {
       CrossModuleDeps.cuttingEdge(scala33Version).moduleDeps
     }
     "scala-213-depend-on-scala-212-fails" - {
-      val message = intercept(CrossModuleDeps.cuttingEdge(scala213Version).moduleDeps).getMessage
+      val message = intercept[Exception](
+        CrossModuleDeps.cuttingEdge(scala213Version).moduleDeps
+      ).getMessage
       assert(message == "Unable to find compatible cross version between 2.13.8 and 2.12.6,3.2.0")
     }
 
