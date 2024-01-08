@@ -169,7 +169,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     EvaluatorCore.Results(
       goals.indexed.map(results(_).map(_._1).result),
-      finishedOptsMap.map(_._2).flatMap(_.toSeq.flatMap(_.newEvaluated)),
+      Strict.Agg.from(
+        Loose.Agg.from(
+          finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated))
+        )
+      ),
       transitive,
       getFailing(sortedGroups, results),
       results.map { case (k, v) => (k, v.map(_._1)) }
