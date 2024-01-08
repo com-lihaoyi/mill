@@ -61,8 +61,7 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
         set
       }
 
-      def newBuilder[V]: newBuilder[V] = new newBuilder[V]()
-      class newBuilder[V]() extends mutable.Builder[V, Mutable[V]] {
+      def newBuilder[V]: mutable.Builder[V, Mutable[V]] = new mutable.Builder[V, Mutable[V]] {
         var mutable = new Agg.Mutable[V]()
         def clear(): Unit = { mutable = new Agg.Mutable[V]() }
         def result(): Mutable[V] = mutable

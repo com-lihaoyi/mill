@@ -605,7 +605,7 @@ class TargetImpl[+T](
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
   override def asTarget: Option[Target[T]] = Some(this)
-  override def readWriterOpt: Option[RW[_]] = Some(readWriter)
+  override def readWriterOpt: Some[RW[_]] = Some(readWriter)
 }
 
 class PersistentImpl[+T](
@@ -625,7 +625,7 @@ class Command[+T](
     val isPrivate: Option[Boolean]
 ) extends NamedTask[T] {
   override def asCommand: Some[Command[T]] = Some(this)
-  override def writerOpt: Option[W[_]] = Some(writer)
+  override def writerOpt: Some[W[_]] = Some(writer)
 }
 
 class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
@@ -641,7 +641,7 @@ class InputImpl[T](
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
   override def sideHash: Int = util.Random.nextInt()
-  override def writerOpt: Option[W[_]] = Some(writer)
+  override def writerOpt: Some[W[_]] = Some(writer)
 }
 
 class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
