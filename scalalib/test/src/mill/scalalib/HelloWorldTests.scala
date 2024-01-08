@@ -403,6 +403,12 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object HelloWorldWithoutEnv extends HelloBase {
+    object env extends HelloWorldModule {
+      def forkEnv = T { Map.empty[String, String] }
+    }
+  }
+
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -841,6 +847,18 @@ object HelloWorldTests extends TestSuite {
       ) { eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
 
+      }
+      "envIsPropagated" - workspaceTest(HelloWorldWithoutEnv) { eval =>
+        val runResult = eval.outPath / "env" / "run.dest" / "hello-mill"
+        val Right((_, evalCount)) =
+          eval.apply(HelloWorldWithoutEnv.env.run(T.task(Args(runResult.toString))))
+
+        assert(sys.env.get("TEST_ENV_VARIABLE") == Some("value"))
+        assert(evalCount > 0)
+        assert(os.exists(runResult))
+
+        val output = os.read(runResult)
+        assert(output == "TEST_ENV_VARIABLE=value")
       }
     }
 
