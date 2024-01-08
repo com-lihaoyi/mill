@@ -600,7 +600,7 @@ case class GenIdeaImpl(
     fixedFiles ++ ideaWholeConfigFiles ++ fileComponentContributions ++ libraries ++ moduleFiles
   }
 
-  def relify(p: os.Path) = {
+  def relify(p: os.Path): String = {
     val r = p.relativeTo(ideaDir / "mill_modules")
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
@@ -639,7 +639,7 @@ case class GenIdeaImpl(
     </project>
   }
 
-  def scalaSettingsTemplate() = {
+  def scalaSettingsTemplate(): Elem = {
 //    simpleIdeaConfigFileTemplate(Map("ScalaProjectSettings" -> Map("scFileMode" -> "Ammonite")))
     <project version={"" + ideaConfigVersion}>
       <component name="ScalaProjectSettings">
@@ -647,7 +647,7 @@ case class GenIdeaImpl(
       </component>
     </project>
   }
-  def miscXmlTemplate(jdkInfo: (String, String)) = {
+  def miscXmlTemplate(jdkInfo: (String, String)): Elem = {
     <project version={"" + ideaConfigVersion}>
       <component name="ProjectRootManager" version="2" languageLevel={jdkInfo._1} project-jdk-name={
       jdkInfo._2
@@ -657,7 +657,7 @@ case class GenIdeaImpl(
     </project>
   }
 
-  def allModulesXmlTemplate(selectors: Seq[String]) = {
+  def allModulesXmlTemplate(selectors: Seq[String]): Elem = {
     <project version={"" + ideaConfigVersion}>
       <component name="ProjectModuleManager">
         <modules>

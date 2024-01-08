@@ -15,15 +15,15 @@ class LinePrefixOutputStream(
   private[this] var isFirst = true
 
   val buffer = new ByteArrayOutputStream()
-  override def write(b: Array[Byte]) = write(b, 0, b.length)
-  override def write(b: Array[Byte], off: Int, len: Int) = {
+  override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
+  override def write(b: Array[Byte], off: Int, len: Int): Unit = {
     var i = off
     while (i < len) {
       write(b(i))
       i += 1
     }
   }
-  override def write(b: Int) = {
+  override def write(b: Int): Unit = {
 
     if (isFirst) {
       isFirst = false

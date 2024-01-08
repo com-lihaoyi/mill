@@ -15,7 +15,7 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
     new PrintStream(Files.newOutputStream(outPath.toNIO, options: _*))
   }
 
-  def log(t: T) = synchronized {
+  def log(t: T): Unit = synchronized {
     if (used) traceStream.println(",")
     else traceStream.println("[")
     used = true

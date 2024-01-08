@@ -33,7 +33,7 @@ private[mill] trait GroupEvaluator {
   def methodCodeHashSignatures: Map[String, Int]
   def disableCallgraphInvalidation: Boolean
 
-  lazy val constructorHashSignatures = methodCodeHashSignatures
+  lazy val constructorHashSignatures: Map[String,Seq[(String, Int)]] = methodCodeHashSignatures
     .toSeq
     .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
     .groupMap(_._1)(t => (t._2, t._3))
@@ -381,7 +381,7 @@ private[mill] trait GroupEvaluator {
   // We do not want to do this for normal targets, because those are always
   // read from disk and re-instantiated every time, so whether the
   // classloader/class is the same or different doesn't matter.
-  def workerCacheHash(inputHash: Int) = inputHash + classLoaderIdentityHash
+  def workerCacheHash(inputHash: Int): Int = inputHash + classLoaderIdentityHash
 
   private def handleTaskResult(
       v: Val,

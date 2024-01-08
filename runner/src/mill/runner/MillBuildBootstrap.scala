@@ -8,6 +8,7 @@ import mill.resolve.SelectMode
 import mill.define.{Discover, Segments}
 
 import java.net.URLClassLoader
+import os.Path
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -41,8 +42,8 @@ class MillBuildBootstrap(
 ) {
   import MillBuildBootstrap._
 
-  val millBootClasspath = prepareMillBootClasspath(projectRoot / "out")
-  val millBootClasspathPathRefs = millBootClasspath.map(PathRef(_, quick = true))
+  val millBootClasspath: Seq[Path] = prepareMillBootClasspath(projectRoot / "out")
+  val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = {
     val runnerState = evaluateRec(0)
@@ -421,7 +422,7 @@ object MillBuildBootstrap {
     getChildRootModule(rootModule0, depth, projectRoot)
   }
 
-  def getChildRootModule(rootModule0: RootModule, depth: Int, projectRoot: os.Path) = {
+  def getChildRootModule(rootModule0: RootModule, depth: Int, projectRoot: os.Path): Either[String,RootModule] = {
 
     val childRootModules: Seq[RootModule] = rootModule0
       .millInternal

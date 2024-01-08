@@ -3,13 +3,14 @@ package mill.contrib.artifactory
 import java.util.Base64
 
 import scala.concurrent.duration._
+import requests.Session
 
 class ArtifactoryHttpApi(
     credentials: String,
     readTimeout: Int,
     connectTimeout: Int
 ) {
-  val http = requests.Session(
+  val http: Session = requests.Session(
     readTimeout = readTimeout,
     connectTimeout = connectTimeout,
     maxRedirects = 0,

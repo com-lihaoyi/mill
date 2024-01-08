@@ -60,7 +60,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
     }
   }
 
-  def processCommandBlock(workspaceRoot: os.Path, commandBlock: String) = {
+  def processCommandBlock(workspaceRoot: os.Path, commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
     val expectedSnippets = commandBlockLines.tail

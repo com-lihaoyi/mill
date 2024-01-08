@@ -10,6 +10,8 @@ import java.io.{InputStream, PrintStream}
 import mill.eval.Evaluator
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.PrintLogger
+import mill.eval.EvaluatorImpl
+import os.Path
 
 trait MillTestKit {
 
@@ -20,7 +22,7 @@ trait MillTestKit {
 
   def staticTestEvaluator(module: => mill.define.BaseModule)(implicit
       fullName: sourcecode.FullName
-  ) = {
+  ): TestEvaluator = {
     new TestEvaluator(module, Seq.empty)(fullName)
   }
 
@@ -69,10 +71,11 @@ trait MillTestKit {
       extraPathEnd: Seq[String] = Seq.empty,
       env: Map[String, String] = Evaluator.defaultEnv
   )(implicit fullName: sourcecode.FullName) {
-    val outPath = getOutPath(testPath) / extraPathEnd
+    val outPath: Path = getOutPath(testPath) / extraPathEnd
 
 //  val logger = DummyLogger
-    val logger = new mill.util.PrintLogger(
+    val logger: logger = new logger
+    class logger extends mill.util.PrintLogger(
       colored = true,
       enableTicker = true,
       mill.util.Colors.Default.info,
@@ -92,7 +95,7 @@ trait MillTestKit {
       override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
       override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
     }
-    val evaluator = mill.eval.EvaluatorImpl(
+    val evaluator: EvaluatorImpl = mill.eval.EvaluatorImpl(
       mill.api.Ctx.defaultHome,
       module.millSourcePath,
       outPath,

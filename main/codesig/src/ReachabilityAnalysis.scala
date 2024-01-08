@@ -4,6 +4,7 @@ import upickle.default.{Writer, writer}
 import JvmModel._
 
 import scala.collection.immutable.SortedMap
+import ujson.Obj
 
 class CallGraphAnalysis(
     localSummary: LocalSummary,
@@ -14,7 +15,7 @@ class CallGraphAnalysis(
     prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
 )(implicit st: SymbolTable) {
 
-  val methods = for {
+  val methods: Map[MethodDef,LocalSummary.MethodInfo] = for {
     (k, v) <- localSummary.items
     (sig, m) <- v.methods
   } yield (st.MethodDef(k, sig), m)
@@ -26,7 +27,7 @@ class CallGraphAnalysis(
 
   val nodeToIndex = indexToNodes.zipWithIndex.toMap
 
-  val indexGraphEdges = CallGraphAnalysis.indexGraphEdges(
+  val indexGraphEdges: Array[Array[Int]] = CallGraphAnalysis.indexGraphEdges(
     indexToNodes,
     methods,
     resolved,
@@ -35,12 +36,12 @@ class CallGraphAnalysis(
     ignoreCall
   )
 
-  lazy val methodCodeHashes =
+  lazy val methodCodeHashes: SortedMap[String,Int] =
     methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
 
   logger.log(methodCodeHashes)
 
-  lazy val prettyCallGraph = {
+  lazy val prettyCallGraph: SortedMap[String,Array[CallGraphAnalysis.Node]] = {
     indexGraphEdges.zip(indexToNodes).map { case (vs, k) =>
       (k.toString, vs.map(indexToNodes))
     }
@@ -53,7 +54,7 @@ class CallGraphAnalysis(
       nodeValues: Array[V],
       reduce: (V, V) => V,
       zero: V
-  ) = CallGraphAnalysis.transitiveCallGraphValues[V](
+  ): Array[(CallGraphAnalysis.Node, V)] = CallGraphAnalysis.transitiveCallGraphValues[V](
     indexGraphEdges,
     indexToNodes,
     nodeValues,
@@ -61,23 +62,23 @@ class CallGraphAnalysis(
     zero
   )
 
-  val nodeValues = indexToNodes.map {
+  val nodeValues: Array[Int] = indexToNodes.map {
     case CallGraphAnalysis.LocalDef(m) => methods(m).codeHash
     case _ => 0
   }
 
-  val transitiveCallGraphHashes0 = transitiveCallGraphValues[Int](
+  val transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)] = transitiveCallGraphValues[Int](
     nodeValues = nodeValues,
     reduce = _ + _,
     zero = 0
   )
-  val transitiveCallGraphHashes = transitiveCallGraphHashes0
+  val transitiveCallGraphHashes: SortedMap[String,Int] = transitiveCallGraphHashes0
     .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
     .to(SortedMap)
 
   logger.log(transitiveCallGraphHashes)
 
-  lazy val spanningInvalidationForest = prevTransitiveCallGraphHashesOpt() match {
+  lazy val spanningInvalidationForest: Obj = prevTransitiveCallGraphHashesOpt() match {
     case Some(prevTransitiveCallGraphHashes) =>
       CallGraphAnalysis.spanningInvalidationForest(
         prevTransitiveCallGraphHashes,
@@ -142,7 +143,7 @@ object CallGraphAnalysis {
       externalSummary: ExternalSummary,
       nodeToIndex: Map[CallGraphAnalysis.Node, Int],
       ignoreCall: (Option[MethodDef], MethodSig) => Boolean
-  )(implicit st: SymbolTable) = {
+  )(implicit st: SymbolTable): Array[Array[Int]] = {
 
     def singleAbstractMethods(methodDefCls: JType.Cls) = {
       resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)
@@ -224,7 +225,7 @@ object CallGraphAnalysis {
       nodeValues: Array[V],
       reduce: (V, V) => V,
       zero: V
-  ) = {
+  ): Array[(Node, V)] = {
     val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges)
 
     val nodeGroups = topoSortedMethodGroups
@@ -270,12 +271,12 @@ object CallGraphAnalysis {
   )
 
   case class LocalDef(call: MethodDef) extends Node {
-    override def toString = "def " + call.toString
+    override def toString: String = "def " + call.toString
   }
   case class Call(call: MethodCall) extends Node {
-    override def toString = "call " + call.toString
+    override def toString: String = "call " + call.toString
   }
   case class ExternalClsCall(call: JType.Cls) extends Node {
-    override def toString = "external " + call.toString
+    override def toString: String = "external " + call.toString
   }
 }

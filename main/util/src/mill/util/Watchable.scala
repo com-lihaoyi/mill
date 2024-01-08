@@ -18,11 +18,11 @@ private[mill] trait Watchable {
 @internal
 private[mill] object Watchable {
   case class Path(p: mill.api.PathRef) extends Watchable {
-    def poll() = p.recomputeSig()
+    def poll(): Long = p.recomputeSig()
     def signature = p.sig
     def pretty = p.toString
   }
   case class Value(f: () => Long, signature: Long, pretty: String) extends Watchable {
-    def poll() = f()
+    def poll(): Long = f()
   }
 }

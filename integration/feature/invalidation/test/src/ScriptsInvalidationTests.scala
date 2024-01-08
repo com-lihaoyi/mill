@@ -4,7 +4,7 @@ import utest._
 
 object ScriptsInvalidationTests extends IntegrationTestSuite {
 
-  def runTask(task: String) = {
+  def runTask(task: String): Vector[String] = {
     val res = evalStdout(task)
     assert(res.isSuccess)
     res.out.linesIterator.map(_.trim).toVector

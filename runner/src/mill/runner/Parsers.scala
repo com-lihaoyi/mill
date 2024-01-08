@@ -46,20 +46,20 @@ object Parsers {
     P(`import` ~/ ImportExpr.rep(1, sep = ","./))
   }
 
-  def Prelude[$: P] = P((Annot ~ OneNLMax).rep ~ (Mod ~/ Pass).rep)
+  def Prelude[$: P]: P[Unit] = P((Annot ~ OneNLMax).rep ~ (Mod ~/ Pass).rep)
 
-  def TmplStat[$: P] = P(Import | Prelude ~ BlockDef | StatCtx.Expr)
+  def TmplStat[$: P]: P[Unit] = P(Import | Prelude ~ BlockDef | StatCtx.Expr)
 
-  def HashBang[$: P] = P(Start ~~ "#!" ~~ CharsWhile(_ != '\n') ~~ "\n")
+  def HashBang[$: P]: P[Unit] = P(Start ~~ "#!" ~~ CharsWhile(_ != '\n') ~~ "\n")
   // Do this funny ~~WS thing to make sure we capture the whitespace
   // together with each statement; otherwise, by default, it gets discarded.
   //
   // After each statement, there must either be `Semis`, a "}" marking the
   // end of the block, or the `End` of the input
-  def StatementBlock[$: P] =
+  def StatementBlock[$: P]: P[Seq[String]] =
     P(Semis.? ~ (TmplStat ~~ WS ~~ (Semis | &("}") | End)).!.repX)
 
-  def CompilationUnit[$: P] = P(HashBang.!.? ~~ WL.! ~~ StatementBlock ~ WL ~ End)
+  def CompilationUnit[$: P]: P[(Option[String], String, Seq[String])] = P(HashBang.!.? ~~ WL.! ~~ StatementBlock ~ WL ~ End)
 
   def parseImportHooksWithIndices(stmts: Seq[String]): Seq[(String, Seq[ImportTree])] = {
     val hookedStmts = mutable.Buffer.empty[(String, Seq[ImportTree])]

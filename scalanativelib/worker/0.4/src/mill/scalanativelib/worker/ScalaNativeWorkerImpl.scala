@@ -31,7 +31,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
     }
   }
 
-  def logger(level: NativeLogLevel) =
+  def logger(level: NativeLogLevel): Logger =
     Logger(
       traceFn = msg => if (level.value >= NativeLogLevel.Trace.value) err.println(s"[trace] $msg"),
       debugFn = msg => if (level.value >= NativeLogLevel.Debug.value) out.println(s"[debug] $msg"),

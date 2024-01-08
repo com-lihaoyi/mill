@@ -10,7 +10,7 @@ trait BspModule extends Module {
 
   def bspDisplayName0: String = ModuleUtils.moduleDisplayName(this)
 
-  def bspDisplayName = bspDisplayName0 match {
+  def bspDisplayName: String = bspDisplayName0 match {
     case "" => "root-module"
     case n => n
   }

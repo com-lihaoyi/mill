@@ -5,7 +5,7 @@ import mill.define.NamedTask
 import mill.eval.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 object GraphvizTools {
-  def apply(targets: Seq[NamedTask[Any]], rs: Seq[NamedTask[Any]], dest: os.Path) = {
+  def apply(targets: Seq[NamedTask[Any]], rs: Seq[NamedTask[Any]], dest: os.Path): Seq[Nothing] = {
     val transitive = Graph.transitiveTargets(rs.distinct)
     val topoSorted = Graph.topoSorted(transitive)
     val goalSet = rs.toSet

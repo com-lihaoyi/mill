@@ -5,6 +5,7 @@ import JvmModel._
 import JType.{Cls => JCls}
 import mill.codesig.LocalSummary.ClassInfo
 import upickle.default.{ReadWriter, macroRW}
+import scala.collection.mutable
 
 case class LocalSummary(items: Map[JCls, ClassInfo]) {
   def get(cls: JCls, m: MethodSig): Option[LocalSummary.MethodInfo] =
@@ -14,7 +15,7 @@ case class LocalSummary(items: Map[JCls, ClassInfo]) {
 
   def mapValuesOnly[T](f: ClassInfo => T): Seq[T] = items.map { case (k, v) => f(v) }.toSeq
 
-  def contains(cls: JCls) = items.contains(cls)
+  def contains(cls: JCls): Boolean = items.contains(cls)
 }
 
 /**
@@ -82,10 +83,10 @@ object LocalSummary {
   }
 
   class MyClassVisitor()(implicit st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
-    val classCallGraph = Map.newBuilder[MethodSig, Set[MethodCall]]
-    val classMethodHashes = Map.newBuilder[MethodSig, Int]
-    val classMethodPrivate = Map.newBuilder[MethodSig, Boolean]
-    val classMethodAbstract = Map.newBuilder[MethodSig, Boolean]
+    val classCallGraph: mutable.Builder[(MethodSig, Set[MethodCall]),Map[MethodSig,Set[MethodCall]]] = Map.newBuilder[MethodSig, Set[MethodCall]]
+    val classMethodHashes: mutable.Builder[(MethodSig, Int),Map[MethodSig,Int]] = Map.newBuilder[MethodSig, Int]
+    val classMethodPrivate: mutable.Builder[(MethodSig, Boolean),Map[MethodSig,Boolean]] = Map.newBuilder[MethodSig, Boolean]
+    val classMethodAbstract: mutable.Builder[(MethodSig, Boolean),Map[MethodSig,Boolean]] = Map.newBuilder[MethodSig, Boolean]
     var clsType: JCls = null
     var directSuperClass: Option[JCls] = None
     var directAncestors: Set[JCls] = Set()
@@ -124,17 +125,17 @@ object LocalSummary {
       descriptor: String,
       access: Int
   )(implicit st: SymbolTable) extends MethodVisitor(Opcodes.ASM9) {
-    val outboundCalls = collection.mutable.Set.empty[MethodCall]
-    val labelIndices = collection.mutable.Map.empty[Label, Int]
-    val jumpList = collection.mutable.Buffer.empty[Label]
+    val outboundCalls: mutable.Set[MethodCall] = collection.mutable.Set.empty[MethodCall]
+    val labelIndices: mutable.Map[Label,Int] = collection.mutable.Map.empty[Label, Int]
+    val jumpList: mutable.Buffer[Label] = collection.mutable.Buffer.empty[Label]
 
-    val methodSig = st.MethodSig(
+    val methodSig: MethodSig = st.MethodSig(
       (access & Opcodes.ACC_STATIC) != 0,
       name,
       st.Desc.read(descriptor)
     )
 
-    val insnSigs = collection.mutable.ArrayBuffer.empty[Int]
+    val insnSigs: mutable.ArrayBuffer[Int] = collection.mutable.ArrayBuffer.empty[Int]
 
     var insnHash = 0
 
@@ -145,7 +146,7 @@ object LocalSummary {
       insnHash = 0
     }
 
-    def clinitCall(desc: String) = JType.read(desc) match {
+    def clinitCall(desc: String): Unit = JType.read(desc) match {
       case descCls: JType.Cls if descCls != currentCls =>
         storeCallEdge(
           st.MethodCall(descCls, InvokeType.Static, "<clinit>", st.Desc.read("()V"))

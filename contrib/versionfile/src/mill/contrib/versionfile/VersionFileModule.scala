@@ -36,7 +36,7 @@ trait VersionFileModule extends Module {
     writeVersionToFile(versionFile(), version())
   }
 
-  def writeVersionToFile(versionFile: mill.api.PathRef, version: Version) =
+  def writeVersionToFile(versionFile: mill.api.PathRef, version: Version): Unit =
     os.write.over(
       versionFile.path,
       version.toString
@@ -58,7 +58,7 @@ trait VersionFileModule extends Module {
     )
   }
 
-  def generateCommitMessage(version: Version) =
+  def generateCommitMessage(version: Version): String =
     version match {
       case release: Version.Release => s"Setting release version to $version"
       case snapshot: Version.Snapshot => s"Setting next version to $version"

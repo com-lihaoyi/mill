@@ -3,13 +3,14 @@ package mill.scalalib.api
 import mill.api.Loose.Agg
 import mill.api.PathRef
 import mill.scalalib.api.Versions
+import scala.util.matching.Regex
 
 trait ZincWorkerUtil {
 
-  def isDotty(scalaVersion: String) = scalaVersion.startsWith("0.")
-  def isScala3(scalaVersion: String) = scalaVersion.startsWith("3.")
-  def isScala3Milestone(scalaVersion: String) = scalaVersion.startsWith("3.0.0-M")
-  def isDottyOrScala3(scalaVersion: String) = isDotty(scalaVersion) || isScala3(scalaVersion)
+  def isDotty(scalaVersion: String): Boolean = scalaVersion.startsWith("0.")
+  def isScala3(scalaVersion: String): Boolean = scalaVersion.startsWith("3.")
+  def isScala3Milestone(scalaVersion: String): Boolean = scalaVersion.startsWith("3.0.0-M")
+  def isDottyOrScala3(scalaVersion: String): Boolean = isDotty(scalaVersion) || isScala3(scalaVersion)
 
   // eg, grepJar(classPath, name = "scala-library", versionPrefix = "2.13.")
   // return first path in `classPath` that match:
@@ -42,15 +43,15 @@ trait ZincWorkerUtil {
       ))
   }
 
-  val PartialVersion = raw"""(\d+)\.(\d+)\.*""".r
-  val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
-  val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
-  val DottyVersion = raw"""0\.(\d+)\.(\d+).*""".r
-  val Scala3EarlyVersion = raw"""3\.0\.0-(\w+).*""".r
-  val Scala3Version = raw"""3\.(\d+)\.(\d+).*""".r
-  val DottyNightlyVersion = raw"""(0|3)\.(\d+)\.(\d+)-bin-(.*)-NIGHTLY""".r
-  val NightlyVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
-  val TypelevelVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
+  val PartialVersion: Regex = raw"""(\d+)\.(\d+)\.*""".r
+  val ReleaseVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)""".r
+  val MinorSnapshotVersion: Regex = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
+  val DottyVersion: Regex = raw"""0\.(\d+)\.(\d+).*""".r
+  val Scala3EarlyVersion: Regex = raw"""3\.0\.0-(\w+).*""".r
+  val Scala3Version: Regex = raw"""3\.(\d+)\.(\d+).*""".r
+  val DottyNightlyVersion: Regex = raw"""(0|3)\.(\d+)\.(\d+)-bin-(.*)-NIGHTLY""".r
+  val NightlyVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
+  val TypelevelVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
 
   def scalaBinaryVersion(scalaVersion: String): String = scalaVersion match {
     case Scala3EarlyVersion(milestone) => s"3.0.0-$milestone"

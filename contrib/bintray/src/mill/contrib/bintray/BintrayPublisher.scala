@@ -21,8 +21,8 @@ class BintrayPublisher(
     log
   )
 
-  def publish(publishData: BintrayPublishData) = publishAll(publishData)
-  def publishAll(publishData: BintrayPublishData*) = {
+  def publish(publishData: BintrayPublishData): Unit = publishAll(publishData)
+  def publishAll(publishData: BintrayPublishData*): Unit = {
     val mappings =
       for {
         BintrayPublishData(meta, payload, pkg) <- publishData
