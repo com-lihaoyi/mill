@@ -2,7 +2,7 @@ package mill.eval
 
 import utest._
 import mill.T
-import mill.define.Worker
+import mill.define.{Module, Worker}
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 
@@ -120,13 +120,15 @@ trait TaskTests extends TestSuite {
     }
 
     // Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2958
-    val task1 = T.task { "task1" }
-    def task2 = T { task1() }
-    def task3 = T { task1() }
-    def com1() = T.command {
-      val t2 = task2()
-      val t3 = task3()
-      s"${t2},${t3}"
+    object repro2958 extends Module {
+      val task1 = T.task { "task1" }
+      def task2 = T { task1() }
+      def task3 = T { task1() }
+      def com1() = T.command {
+        val t2 = task2()
+        val t3 = task3()
+        s"${t2},${t3}"
+      }
     }
   }
 
@@ -252,7 +254,7 @@ trait TaskTests extends TestSuite {
       }
     }
     "duplicateTaskInResult-issue2958" - withEnv { (build, check) =>
-      check.apply(build.com1()) ==> Right("task1,task1", 1)
+      check.apply(build.repro2958.com1()) ==> Right(("task1,task1", 3))
     }
   }
 
