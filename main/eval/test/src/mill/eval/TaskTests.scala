@@ -118,6 +118,16 @@ trait TaskTests extends TestSuite {
       superBuildTargetOverrideWithInputCount += 1
       superBuildTargetOverrideWithInputCount
     }
+
+    // Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2958
+    val task1 = T.task { "task1" }
+    def task2 = T { task1() }
+    def task3 = T { task1() }
+    def com1() = T.command {
+      val t2 = task2()
+      val t3 = task3()
+      s"${t2},${t3}"
+    }
   }
 
   def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath): Unit
@@ -241,7 +251,11 @@ trait TaskTests extends TestSuite {
         check.apply(build.superBuildTargetOverrideWithInput) ==> Right((3, 0))
       }
     }
+    "duplicateTaskInResult-issue2958" - withEnv { (build,check) =>
+      check.apply(build.com1()) ==> Right("task1,task1", 1)
+    }
   }
+
 }
 
 object SeqTaskTests extends TaskTests {
