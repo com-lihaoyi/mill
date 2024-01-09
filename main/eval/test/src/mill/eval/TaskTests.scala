@@ -251,7 +251,7 @@ trait TaskTests extends TestSuite {
         check.apply(build.superBuildTargetOverrideWithInput) ==> Right((3, 0))
       }
     }
-    "duplicateTaskInResult-issue2958" - withEnv { (build,check) =>
+    "duplicateTaskInResult-issue2958" - withEnv { (build, check) =>
       check.apply(build.com1()) ==> Right("task1,task1", 1)
     }
   }

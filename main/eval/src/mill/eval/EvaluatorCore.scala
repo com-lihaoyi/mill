@@ -170,7 +170,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     EvaluatorCore.Results(
       goals.indexed.map(results(_).map(_._1).result),
       // result of flatMap may contain non-distinct entries,
-      // se we manually clean it up before converting to a `Strict.Agg`
+      // so we manually clean it up before converting to a `Strict.Agg`
       // see https://github.com/com-lihaoyi/mill/issues/2958
       Strict.Agg.from(
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).iterator.distinct
