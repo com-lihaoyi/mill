@@ -435,7 +435,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * Command-line options to pass to the Scala console
    */
-  def consoleScalacOptions: T[Seq[String]] = T(Seq.empty[String])
+  def consoleScalacOptions: T[Seq[String]] = T(Seq("-usejavacp"))
 
   /**
    * Opens up a Scala console with your module and all dependencies present,
@@ -457,7 +457,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           ),
           jvmArgs = forkArgs(),
           envArgs = forkEnv(),
-          mainArgs = (Seq("-usejavacp") ++ consoleScalacOptions()).distinct,
+          mainArgs = consoleScalacOptions(),
           workingDir = forkWorkingDir()
         )
       }
