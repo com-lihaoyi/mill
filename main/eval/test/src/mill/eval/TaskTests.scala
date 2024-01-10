@@ -124,7 +124,7 @@ trait TaskTests extends TestSuite {
       val task1 = T.task { "task1" }
       def task2 = T { task1() }
       def task3 = T { task1() }
-      def com1() = T.command {
+      def command() = T.command {
         val t2 = task2()
         val t3 = task3()
         s"${t2},${t3}"
@@ -254,7 +254,7 @@ trait TaskTests extends TestSuite {
       }
     }
     "duplicateTaskInResult-issue2958" - withEnv { (build, check) =>
-      check.apply(build.repro2958.com1()) ==> Right(("task1,task1", 3))
+      check.apply(build.repro2958.command()) ==> Right(("task1,task1", 3))
     }
   }
 
