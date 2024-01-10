@@ -45,7 +45,7 @@ object EvaluatorPaths {
     raw"^([cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][0-9¹²³]|[lL][pP][tT][0-9¹²³])($$|[.].*$$)".r
   def sanitizePathSegment(segment: String): os.PathChunk = {
     segment match {
-      case ReservedWinNames(keyword, rest) => s"${keyword}_${rest}"
+      case ReservedWinNames(keyword, rest) => s"${keyword}~${rest}"
       case s => s
     }
   }

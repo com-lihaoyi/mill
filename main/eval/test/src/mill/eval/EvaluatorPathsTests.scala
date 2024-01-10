@@ -8,8 +8,8 @@ object EvaluatorPathsTests extends TestSuite {
     "sanitizedPathSegment" - {
       "WindowsReservedNames" - {
         val replace = Seq(
-          "com1.json" -> "com1_.json",
-          "LPT¹" -> "LPT¹_"
+          "com1.json" -> "com1~.json",
+          "LPT¹" -> "LPT¹~"
         )
         val noReplace = Seq(
           "con10.json"
