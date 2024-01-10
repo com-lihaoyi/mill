@@ -3,6 +3,8 @@ package mill.eval
 import mill.api.internal
 import mill.define.{NamedTask, Segment, Segments}
 
+import java.util.regex.Matcher
+
 case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path) {
   private def copy(dest: os.Path = dest, meta: os.Path = meta, log: os.Path = log): EvaluatorPaths =
     new EvaluatorPaths(dest, meta, log)
@@ -43,10 +45,14 @@ object EvaluatorPaths {
   // case-insensitive match on reserved names
   private val ReservedWinNames =
     raw"^([cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][0-9¹²³]|[lL][pP][tT][0-9¹²³])($$|[.].*$$)".r
+  private val Colon = "[:]".r
+
   def sanitizePathSegment(segment: String): os.PathChunk = {
-    segment match {
+    val seg = segment match {
       case ReservedWinNames(keyword, rest) => s"${keyword}~${rest}"
       case s => s
     }
+    val chunk: os.PathChunk = Colon.replaceAllIn(seg, Matcher.quoteReplacement("$colon"))
+    chunk
   }
 }
