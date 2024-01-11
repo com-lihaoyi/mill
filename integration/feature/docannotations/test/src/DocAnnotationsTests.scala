@@ -13,7 +13,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
       .isDefined
   }
 
-  val tests = Tests {
+  val tests: Tests = Tests {
     initWorkspace()
     test("test") - {
       val res = eval("inspect", "core.test.ivyDeps")

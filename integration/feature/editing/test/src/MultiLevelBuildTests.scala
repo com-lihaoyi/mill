@@ -11,7 +11,7 @@ import scala.util.matching.Regex
 // re-used or invalidated, and the proper files end up getting watched
 // in all cases.
 object MultiLevelBuildTests extends IntegrationTestSuite {
-  val tests = Tests {
+  val tests: Tests = Tests {
     val wsRoot = initWorkspace()
 
     def runAssertSuccess(expected: String) = {

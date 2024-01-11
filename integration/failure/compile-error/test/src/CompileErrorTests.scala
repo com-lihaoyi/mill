@@ -4,7 +4,7 @@ import utest._
 
 object CompileErrorTests extends IntegrationTestSuite {
   def captureOutErr = true
-  val tests = Tests {
+  val tests: Tests = Tests {
     initWorkspace()
 
     test {

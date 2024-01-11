@@ -3,7 +3,7 @@ package mill.integration
 import utest._
 
 object CodeSigNestedTests extends IntegrationTestSuite {
-  val tests = Tests {
+  val tests: Tests = Tests {
     val wsRoot = initWorkspace()
 
     "nested" - {

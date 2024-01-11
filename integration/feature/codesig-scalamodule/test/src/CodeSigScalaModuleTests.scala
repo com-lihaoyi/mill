@@ -3,7 +3,7 @@ package mill.integration
 import utest._
 
 object CodeSigScalaModuleTests extends IntegrationTestSuite {
-  val tests = Tests {
+  val tests: Tests = Tests {
     def filterLines(out: String) = {
       out.linesIterator.filter(!_.contains("[info]")).toSeq
     }
