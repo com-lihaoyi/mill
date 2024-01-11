@@ -14,7 +14,6 @@ import mill.main.BuildInfo
 
 import scala.collection.immutable.SortedMap
 import scala.util.Try
-import os.Path
 
 /**
  * Mill module for pre-processing a Mill `build.sc` and related files and then
@@ -39,7 +38,7 @@ class MillBuildRootModule()(implicit
     .++(super.bspDisplayName0.split("/"))
     .mkString("/")
 
-  override def millSourcePath: Path = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
+  override def millSourcePath: os.Path = millBuildRootModuleInfo.projectRoot / os.up / "mill-build"
   override def intellijModulePath: os.Path = millSourcePath / os.up
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
