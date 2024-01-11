@@ -6,7 +6,7 @@ package mill.eval
 private class ThreadNumberer() {
   private val threadIds = collection.mutable.Map.empty[Thread, Int]
 
-  def getThreadId(thread: Thread) = synchronized {
+  def getThreadId(thread: Thread): Int = synchronized {
     threadIds.getOrElseUpdate(thread, threadIds.size)
   }
 }

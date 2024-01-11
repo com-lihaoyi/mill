@@ -24,7 +24,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   def buildPath: os.SubPath = os.sub / "build.sc"
 
-  def wd = workspacePath / buildPath / os.up
+  def wd: Path = workspacePath / buildPath / os.up
 
   val debugLog = false
 
@@ -51,9 +51,10 @@ abstract class IntegrationTestSuite extends TestSuite {
     )
   }
 
-  val millReleaseFileOpt = Option(System.getenv("MILL_TEST_LAUNCHER")).map(os.Path(_, os.pwd))
+  val millReleaseFileOpt: Option[Path] =
+    Option(System.getenv("MILL_TEST_LAUNCHER")).map(os.Path(_, os.pwd))
 
-  val millTestSuiteEnv = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+  val millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
   private def evalFork(
       stdout: os.ProcessOutput,
@@ -102,7 +103,7 @@ abstract class IntegrationTestSuite extends TestSuite {
     workspacePath
   }
 
-  def mangleFile(p: os.Path, f: String => String) = os.write.over(p, f(os.read(p)))
+  def mangleFile(p: os.Path, f: String => String): Unit = os.write.over(p, f(os.read(p)))
 
   override def utestAfterEach(path: Seq[String]): Unit = {
     runnerState = RunnerState.empty

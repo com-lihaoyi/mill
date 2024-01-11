@@ -14,7 +14,7 @@ import collection.mutable
 object SpanningForest {
 
   case class Node(values: mutable.Map[Int, Node] = mutable.Map())
-  def apply(indexGraphEdges: Array[Array[Int]], importantVertices: Set[Int]) = {
+  def apply(indexGraphEdges: Array[Array[Int]], importantVertices: Set[Int]): Node = {
     // Find all importantVertices which are "roots" with no incoming edges
     // from other importantVertices
     val rootChangedNodeIndices = importantVertices.filter(i =>

@@ -28,7 +28,7 @@ class LineNumberPlugin(val global: Global) extends Plugin {
 }
 
 object LineNumberPlugin {
-  def apply(g: Global)(unit: g.CompilationUnit) = {
+  def apply(g: Global)(unit: g.CompilationUnit): Unit = {
 
     object LineNumberCorrector extends g.Transformer {
       import scala.reflect.internal.util._

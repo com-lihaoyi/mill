@@ -41,8 +41,8 @@ class MillBuildBootstrap(
 ) {
   import MillBuildBootstrap._
 
-  val millBootClasspath = prepareMillBootClasspath(projectRoot / "out")
-  val millBootClasspathPathRefs = millBootClasspath.map(PathRef(_, quick = true))
+  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / "out")
+  val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = {
     val runnerState = evaluateRec(0)
@@ -69,7 +69,7 @@ class MillBuildBootstrap(
 
     val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
-    val nestedState =
+    val nestedState: RunnerState =
       if (depth == 0) {
         // On this level we typically want assume a Mill project, which means we want to require an existing `build.sc`.
         // Unfortunately, some targets also make sense without a `build.sc`, e.g. the `init` command.
@@ -421,7 +421,11 @@ object MillBuildBootstrap {
     getChildRootModule(rootModule0, depth, projectRoot)
   }
 
-  def getChildRootModule(rootModule0: RootModule, depth: Int, projectRoot: os.Path) = {
+  def getChildRootModule(
+      rootModule0: RootModule,
+      depth: Int,
+      projectRoot: os.Path
+  ): Either[String, RootModule] = {
 
     val childRootModules: Seq[RootModule] = rootModule0
       .millInternal

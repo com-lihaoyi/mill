@@ -10,6 +10,7 @@ import java.lang.reflect.Modifier
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.Files
 import scala.util.Properties.isWin
+import os.CommandResult
 
 object Jvm extends CoursierSupport {
 
@@ -25,7 +26,7 @@ object Jvm extends CoursierSupport {
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
       streamOut: Boolean = true
-  )(implicit ctx: Ctx) = {
+  )(implicit ctx: Ctx): CommandResult = {
 
     val commandArgs =
       Vector(javaExe) ++
@@ -155,7 +156,11 @@ object Jvm extends CoursierSupport {
   /**
    * Runs a generic subprocess and waits for it to terminate.
    */
-  def runSubprocess(commandArgs: Seq[String], envArgs: Map[String, String], workingDir: os.Path) = {
+  def runSubprocess(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path
+  ): Unit = {
     val process = spawnSubprocessWithBackgroundOutputs(
       commandArgs,
       envArgs,

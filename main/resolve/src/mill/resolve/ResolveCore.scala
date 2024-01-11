@@ -58,7 +58,7 @@ private object ResolveCore {
     }
   }
 
-  def makeResultException(e: Throwable, base: Exception) = {
+  def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] = {
     val outerStack = new mill.api.Result.OuterStack(base.getStackTrace)
     Left(mill.api.Result.Exception(e, outerStack).toString)
   }
@@ -290,7 +290,12 @@ private object ResolveCore {
     modulesOrErr.map(_ ++ targets ++ commands)
   }
 
-  def notFoundResult(rootModule: Module, querySoFar: Segments, current: Resolved, next: Segment) = {
+  def notFoundResult(
+      rootModule: Module,
+      querySoFar: Segments,
+      current: Resolved,
+      next: Segment
+  ): NotFound = {
     val possibleNexts = current match {
       case m: Resolved.Module =>
         resolveDirectChildren(rootModule, m.cls, None, current.segments).toOption.get.map(

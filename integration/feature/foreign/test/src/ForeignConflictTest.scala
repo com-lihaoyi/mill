@@ -2,10 +2,11 @@ package mill.integration
 package local
 
 import utest._
+import os.SubPath
 
 object ForeignConflictTest extends IntegrationTestSuite {
 
-  override def buildPath = os.sub / "conflict" / "build.sc"
+  override def buildPath: SubPath = os.sub / "conflict" / "build.sc"
 
   val tests = Tests {
     initWorkspace()

@@ -7,20 +7,23 @@ import coursier.maven.MavenRepository
 import mill.define.{Discover, ExternalModule, Target}
 import mill.api.{PathRef, Result}
 import mill.util.Util.millProjectModule
+import mill.api.Loose
+import mill.define.Worker
+import os.Path
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
-  def repositories = Seq(
+  def repositories: Seq[Repository] = Seq(
     LocalRepositories.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2"),
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
 
-  lazy val millDiscover = Discover[this.type]
+  lazy val millDiscover: Discover[this.type] = Discover[this.type]
 }
 trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
-  def classpath = Target {
+  def classpath: Target[Loose.Agg[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 
@@ -31,7 +34,10 @@ trait VisualizeModule extends mill.define.TaskModule {
    * everyone can use to call into Graphviz, which the Mill execution threads
    * can communicate via in/out queues.
    */
-  def worker = Target.worker {
+  def worker: Worker[(
+      LinkedBlockingQueue[(Seq[_], Seq[_], Path)],
+      LinkedBlockingQueue[Result[Seq[PathRef]]]
+  )] = Target.worker {
     val in = new LinkedBlockingQueue[(Seq[_], Seq[_], os.Path)]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
 
