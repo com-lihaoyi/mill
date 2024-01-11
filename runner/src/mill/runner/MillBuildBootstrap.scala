@@ -8,7 +8,6 @@ import mill.resolve.SelectMode
 import mill.define.{Discover, Segments}
 
 import java.net.URLClassLoader
-import os.Path
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -42,7 +41,7 @@ class MillBuildBootstrap(
 ) {
   import MillBuildBootstrap._
 
-  val millBootClasspath: Seq[Path] = prepareMillBootClasspath(projectRoot / "out")
+  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / "out")
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = {
@@ -70,7 +69,7 @@ class MillBuildBootstrap(
 
     val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
-    val nestedState =
+    val nestedState: RunnerState =
       if (depth == 0) {
         // On this level we typically want assume a Mill project, which means we want to require an existing `build.sc`.
         // Unfortunately, some targets also make sense without a `build.sc`, e.g. the `init` command.
