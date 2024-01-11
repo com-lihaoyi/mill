@@ -2,7 +2,6 @@ package mill.api
 
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
-import os.Path
 
 /**
  * Provides access to various resources in the context of a currently execution Target.
@@ -98,7 +97,7 @@ object Ctx {
     def workspace: os.Path
   }
 
-  def defaultHome: Path = os.home / ".mill" / "ammonite"
+  def defaultHome: os.Path = os.home / ".mill" / "ammonite"
 
   /**
    * Marker annotation.
