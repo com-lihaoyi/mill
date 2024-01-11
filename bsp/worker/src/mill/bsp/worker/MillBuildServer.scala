@@ -86,7 +86,7 @@ private class MillBuildServer(
 ) extends ExternalModule
     with BuildServer {
 
-  lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
+  lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
   private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
@@ -108,7 +108,7 @@ private class MillBuildServer(
     }
   }
 
-  def debug(msg: String) = logStream.println(msg)
+  def debug(msg: String): Unit = logStream.println(msg)
 
   def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
 

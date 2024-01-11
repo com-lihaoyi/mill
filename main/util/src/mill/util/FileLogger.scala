@@ -13,7 +13,7 @@ class FileLogger(
 ) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
 
-  lazy val fileStream = {
+  lazy val fileStream: PrintStream = {
 
     val options = Seq(
       Seq(StandardOpenOption.CREATE, StandardOpenOption.WRITE),
@@ -44,11 +44,11 @@ class FileLogger(
   }
 
   val systemStreams = new SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
-  def info(s: String) = outputStream.println(s)
-  def error(s: String) = outputStream.println(s)
-  def ticker(s: String) = outputStream.println(s)
-  def debug(s: String) = if (debugEnabled) outputStream.println(s)
-  override def close() = {
+  def info(s: String): Unit = outputStream.println(s)
+  def error(s: String): Unit = outputStream.println(s)
+  def ticker(s: String): Unit = outputStream.println(s)
+  def debug(s: String): Unit = if (debugEnabled) outputStream.println(s)
+  override def close(): Unit = {
     if (outputStreamUsed)
       outputStream.close()
   }

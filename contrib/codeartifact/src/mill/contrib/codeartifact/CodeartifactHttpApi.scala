@@ -1,13 +1,14 @@
 package mill.contrib.codeartifact
 
 import scala.concurrent.duration._
+import requests.Session
 
 class CodeartifactHttpApi(
     credentials: String,
     readTimeout: Int,
     connectTimeout: Int
 ) {
-  val http = requests.Session(
+  val http: Session = requests.Session(
     readTimeout = readTimeout,
     connectTimeout = connectTimeout,
     maxRedirects = 0,

@@ -14,17 +14,17 @@ class PrintLogger(
     printLoggerState: PrintLogger.State
 ) extends ColorLogger {
 
-  def info(s: String) = synchronized {
+  def info(s: String): Unit = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
     systemStreams.err.println(infoColor(context + s))
   }
 
-  def error(s: String) = synchronized {
+  def error(s: String): Unit = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
     systemStreams.err.println((infoColor(context) ++ errorColor(s)).render)
   }
 
-  def ticker(s: String) = synchronized {
+  def ticker(s: String): Unit = synchronized {
     if (enableTicker) {
       printLoggerState.value match {
         case PrintLogger.State.Newline =>
@@ -70,7 +70,7 @@ class PrintLogger(
     printLoggerState
   )
 
-  def debug(s: String) = synchronized {
+  def debug(s: String): Unit = synchronized {
     if (debugEnabled) {
       printLoggerState.value = PrintLogger.State.Newline
       systemStreams.err.println(context + s)
@@ -82,7 +82,7 @@ class PrintLogger(
 
 object PrintLogger {
 
-  def wrapSystemStreams(systemStreams0: SystemStreams, printLoggerState: State) = {
+  def wrapSystemStreams(systemStreams0: SystemStreams, printLoggerState: State): SystemStreams = {
     new SystemStreams(
       new PrintStream(new PrintLogger.StateStream(systemStreams0.out, printLoggerState.value = _)),
       new PrintStream(new PrintLogger.StateStream(systemStreams0.err, printLoggerState.value = _)),

@@ -61,7 +61,7 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
         set
       }
 
-      def newBuilder[V] = new mutable.Builder[V, Mutable[V]] {
+      def newBuilder[V]: mutable.Builder[V, Mutable[V]] = new mutable.Builder[V, Mutable[V]] {
         var mutable = new Agg.Mutable[V]()
         def clear(): Unit = { mutable = new Agg.Mutable[V]() }
         def result(): Mutable[V] = mutable
@@ -87,8 +87,8 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
 
       private[this] val set0 = mutable.LinkedHashSet.empty[V]
 
-      def contains(v: V) = set0.contains(v)
-      def coll = this
+      def contains(v: V): Boolean = set0.contains(v)
+      def coll: Mutable[V] = this
 
       override def toIterable: Iterable[V] = set0.toIterable
       def append(v: V): AnyVal = {

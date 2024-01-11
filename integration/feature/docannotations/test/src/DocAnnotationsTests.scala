@@ -3,7 +3,7 @@ package mill.integration
 import utest._
 
 object DocAnnotationsTests extends IntegrationTestSuite {
-  def globMatches(glob: String, input: String) = {
+  def globMatches(glob: String, input: String): Boolean = {
     StringContext
       .glob(
         // Normalize the line separator to be `\n` for comparisons

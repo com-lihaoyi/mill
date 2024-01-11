@@ -40,5 +40,5 @@ object ScoverageReportWorker extends ExternalModule {
 
   def scoverageReportWorker: Worker[ScoverageReportWorker] =
     T.worker { new ScoverageReportWorker() }
-  lazy val millDiscover = Discover[this.type]
+  lazy val millDiscover: Discover[this.type] = Discover[this.type]
 }

@@ -106,7 +106,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       classFilter: Class[_] => Boolean,
       cl: ClassLoader,
       testReporter: TestReporter
-  )(implicit ctx: Ctx.Log with Ctx.Home) = {
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
     val events = new ConcurrentLinkedQueue[Event]()

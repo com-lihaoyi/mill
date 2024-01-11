@@ -32,7 +32,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   trait ScalaNativeTests extends ScalaTests with TestScalaNativeModule {
     override def scalaNativeVersion = outer.scalaNativeVersion()
     override def releaseMode = T { outer.releaseMode() }
-    override def logLevel = outer.logLevel()
+    override def logLevel: Target[NativeLogLevel] = outer.logLevel()
   }
 
   def scalaNativeBinaryVersion =

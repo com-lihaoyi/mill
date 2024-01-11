@@ -13,14 +13,14 @@ class ProxyLogger(logger: Logger) extends Logger {
 
   lazy val systemStreams = logger.systemStreams
 
-  def info(s: String) = logger.info(s)
-  def error(s: String) = logger.error(s)
-  def ticker(s: String) = logger.ticker(s)
-  def debug(s: String) = logger.debug(s)
+  def info(s: String): Unit = logger.info(s)
+  def error(s: String): Unit = logger.error(s)
+  def ticker(s: String): Unit = logger.ticker(s)
+  def debug(s: String): Unit = logger.debug(s)
 
   override def debugEnabled: Boolean = logger.debugEnabled
 
-  override def close() = logger.close()
+  override def close(): Unit = logger.close()
 
   override def rawOutputStream: PrintStream = logger.rawOutputStream
 }
