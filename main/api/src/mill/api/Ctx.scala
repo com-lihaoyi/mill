@@ -125,7 +125,7 @@ class Ctx(
     with Ctx.Env
     with Ctx.Workspace {
 
-  def dest: Path = dest0()
+  def dest: os.Path = dest0()
   def arg[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
     else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
