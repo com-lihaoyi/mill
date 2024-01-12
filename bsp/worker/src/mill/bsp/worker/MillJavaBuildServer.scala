@@ -13,16 +13,16 @@ import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 
-private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
+private class MillJavaBuildServer(base: MillBuildServer) extends JavaBuildServer {
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
-    completableTasks(
+    base.completableTasks(
       s"buildTargetJavacOptions ${javacOptionsParams}",
       targetIds = _ => javacOptionsParams.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
         val classesPathTask = m match {
-          case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+          case sem: SemanticDbJavaModule if base.clientWantsSemanticDb =>
             sem.bspCompiledClassesAndSemanticDbFiles
           case _ => m.bspCompileClassesPath
         }

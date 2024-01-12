@@ -11,6 +11,7 @@ import java.io.{PrintStream, PrintWriter}
 import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, CancellationException, Promise}
+import scala.jdk.CollectionConverters._
 
 private class BspWorkerImpl() extends BspWorker {
 
@@ -21,14 +22,19 @@ private class BspWorkerImpl() extends BspWorker {
       canReload: Boolean
   ): Either[String, BspServerHandle] = {
 
-    val millServer =
-      new MillBuildServer(
-        bspVersion = Constants.bspProtocolVersion,
-        serverVersion = BuildInfo.millVersion,
-        serverName = Constants.serverName,
-        logStream = logStream,
-        canReload = canReload
-      ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
+    val millServer = new MillBuildServer(
+      bspVersion = Constants.bspProtocolVersion,
+      serverVersion = BuildInfo.millVersion,
+      serverName = Constants.serverName,
+      logStream = logStream,
+      canReload = canReload
+    )
+
+    val jvmBuildServer = new MillJvmBuildServer(millServer)
+    val javaBuildServer = new MillJavaBuildServer(millServer)
+    val scalaBuildServer = new MillScalaBuildServer(millServer)
+
+    val services: Seq[AnyRef] = Seq(millServer, jvmBuildServer, javaBuildServer, scalaBuildServer)
 
     val executor = Executors.newCachedThreadPool()
 
@@ -38,12 +44,13 @@ private class BspWorkerImpl() extends BspWorker {
       val launcher = new Launcher.Builder[BuildClient]()
         .setOutput(streams.out)
         .setInput(streams.in)
-        .setLocalService(millServer)
+        .setLocalServices(services.asJava)
         .setRemoteInterface(classOf[BuildClient])
         .traceMessages(new PrintWriter(
           (logDir / s"${Constants.serverName}.trace").toIO
         ))
         .setExecutorService(executor)
+        .setClassLoader(getClass().getClassLoader())
         .create()
 
       millServer.onConnectWithClient(launcher.getRemoteProxy)

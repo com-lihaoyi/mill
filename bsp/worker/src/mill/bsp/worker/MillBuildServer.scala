@@ -78,6 +78,7 @@ import mill.bsp.BspServerResult
 import mill.eval.Evaluator.TaskResult
 
 import scala.util.chaining.scalaUtilChainingOps
+
 private class MillBuildServer(
     bspVersion: String,
     serverVersion: String,
@@ -94,7 +95,7 @@ private class MillBuildServer(
   protected var client: BuildClient = _
   private var initialized = false
   private var shutdownRequested = false
-  protected var clientWantsSemanticDb = false
+  private[worker] var clientWantsSemanticDb = false
   protected var clientIsIntelliJ = false
 
   private[this] var statePromise: Promise[State] = Promise[State]()

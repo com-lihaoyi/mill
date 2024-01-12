@@ -24,17 +24,17 @@ import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 import scala.util.chaining.scalaUtilChainingOps
 
-private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
+private class MillScalaBuildServer(base: MillBuildServer) extends ScalaBuildServer {
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =
-    completableTasks(
+    base.completableTasks(
       hint = s"buildTargetScalacOptions ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: ScalaModule =>
           val classesPathTask = m match {
-            case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+            case sem: SemanticDbJavaModule if base.clientWantsSemanticDb =>
               sem.bspCompiledClassesAndSemanticDbFiles
             case _ => m.bspCompileClassesPath
           }
@@ -43,7 +43,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
 
         case m: JavaModule =>
           val classesPathTask = m match {
-            case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+            case sem: SemanticDbJavaModule if base.clientWantsSemanticDb =>
               sem.bspCompiledClassesAndSemanticDbFiles
             case _ => m.bspCompileClassesPath
           }
@@ -73,7 +73,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
 
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
       : CompletableFuture[ScalaMainClassesResult] =
-    completableTasks(
+    base.completableTasks(
       hint = "buildTargetScalaMainClasses",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
@@ -99,7 +99,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
 
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
       : CompletableFuture[ScalaTestClassesResult] =
-    completableTasks(
+    base.completableTasks(
       s"buildTargetScalaTestClasses ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
