@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 import scala.util.chaining.scalaUtilChainingOps
 
-private class MillScalaBuildServer(base: MillBuildServerBase) extends ScalaBuildServer {
+class MillScalaBuildServer(base: MillBuildServerBase) extends ScalaBuildServer {
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =

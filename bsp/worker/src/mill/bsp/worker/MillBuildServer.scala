@@ -75,6 +75,7 @@ import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import Utils.sanitizeUri
 import mill.bsp.BspServerResult
+import mill.bsp.BspUtil.pretty
 import mill.eval.Evaluator.TaskResult
 
 import scala.util.chaining.scalaUtilChainingOps
@@ -116,7 +117,7 @@ private class MillBuildServer(
 
   override def buildInitialize(request: InitializeBuildParams)
       : CompletableFuture[InitializeBuildResult] =
-    completableNoState(s"buildInitialize ${request}", checkInitialized = false) {
+    completableNoState(s"buildInitialize ${pretty(request)}", checkInitialized = false) {
 
       // TODO: scan BspModules and infer their capabilities
 

@@ -1,7 +1,15 @@
 package mill
 package scalalib
 
-import mill.api.{DummyInputStream, JarManifest, PathRef, Result, SystemStreams, internal}
+import mill.api.{
+  DummyInputStream,
+  JarManifest,
+  PathRef,
+  Result,
+  SystemStreams,
+  experimental,
+  internal
+}
 import mill.main.BuildInfo
 import mill.util.{Jvm, Util}
 import mill.util.Jvm.createJar
@@ -10,6 +18,7 @@ import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mainargs.Flag
 import mill.scalalib.bsp.{
   BspBuildTarget,
+  BspExtension,
   BspModule,
   BspUri,
   JvmBuildTarget,
@@ -585,6 +594,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   override def manifest: T[JarManifest] = T {
     super.manifest().add("Scala-Version" -> scalaVersion())
   }
+
+  @internal
+  @experimental
+  override def bspExtensions: Seq[BspExtension] = super.bspExtensions ++ Seq(
+    BspExtension("mill.bsp.worker.MillScalaBuildServer", Seq())
+  )
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(

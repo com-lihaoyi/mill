@@ -2,18 +2,44 @@ package mill.bsp
 
 import mill.api.{Ctx, PathRef}
 import mill.{Agg, T}
-import mill.define.{Command, Discover, ExternalModule}
+import mill.define.{Command, Discover, ExternalModule, Task}
 import mill.main.BuildInfo
 import mill.eval.Evaluator
 import mill.util.Util.millProjectModule
-import mill.scalalib.CoursierModule
+import mill.scalalib.{BoundDep, CoursierModule, Dep, Lib}
+import mill.scalalib.bsp.BspModule
+import mill.scalalib.internal.JavaModuleUtils
 
 object BSP extends ExternalModule with CoursierModule {
 
+  private def evaluator(): Evaluator =
+    Option(Evaluator.currentEvaluator.value)
+      .orElse(Option(Evaluator.allBootstrapEvaluators.value).flatMap(_.value.headOption))
+      .get
+
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
+  private def bspExtensions: T[(Seq[String], Seq[Dep])] = T.input {
+    // As this is a runtime value which can change, we need to be in an input target
+    val modules = JavaModuleUtils.transitiveModules(evaluator().rootModule)
+      .collect { case m: BspModule => m }
+    val extensions = modules.flatMap(m => m.bspExtensions).distinct
+    val classes = extensions.map(_.className).distinct
+    T.log.debug(s"BSP extensions: ${BspUtil.pretty(extensions)}")
+    val extensionIvyDeps = extensions.flatMap(_.ivyDeps)
+    (classes, extensionIvyDeps)
+  }
+
+  override def bindDependency: Task[Dep => BoundDep] = T.task { dep: Dep =>
+    Lib.depToBoundDep(dep, BuildInfo.scalaVersion, s"_mill${BuildInfo.millBinPlatform}")
+  }
+
   private def bspWorkerLibs: T[Agg[PathRef]] = T {
-    millProjectModule("mill-bsp-worker", repositoriesTask())
+    millProjectModule(
+      "mill-bsp-worker",
+      repositoriesTask(),
+      extraDeps = bspExtensions()._2.map(bindDependency().andThen(_.dep))
+    )
   }
 
   /**
@@ -32,12 +58,17 @@ object BSP extends ExternalModule with CoursierModule {
    */
   def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = T.command {
     // we create a file containing the additional jars to load
-    val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
+//    val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri).iterator.toSeq
+
+    val bspServerConfig = BspServerConfig(
+      bspExtensions()._1,
+      bspWorkerLibs().toSeq
+    )
     val cpFile =
-      T.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
+      T.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.conf"
     os.write.over(
       cpFile,
-      libUrls.mkString("\n"),
+      upickle.default.write(bspServerConfig, indent = 2),
       createFolders = true
     )
     createBspConnection(jobs, Constants.serverName)
@@ -97,7 +128,8 @@ object BSP extends ExternalModule with CoursierModule {
         millVersion = BuildInfo.millVersion,
         bspVersion = Constants.bspProtocolVersion,
         languages = Constants.languages
-      )
+      ),
+      indent = 2
     )
   }
 

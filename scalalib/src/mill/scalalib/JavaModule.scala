@@ -9,11 +9,11 @@ import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
 import mainargs.Flag
 import mill.Agg
-import mill.api.{Ctx, JarManifest, MillException, PathRef, Result, internal}
+import mill.api.{Ctx, JarManifest, MillException, PathRef, Result, experimental, internal}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
-import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
+import mill.scalalib.bsp.{BspBuildTarget, BspExtension, BspModule, BspUri, JvmBuildTarget}
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 import os.{Path, ProcessOutput}
@@ -1017,6 +1017,13 @@ trait JavaModule
       ()
     }
   }
+
+  @internal
+  @experimental
+  override def bspExtensions: Seq[BspExtension] = super.bspExtensions ++ Seq(
+    BspExtension("mill.bsp.worker.MillJvmBuildServer", Seq()),
+    BspExtension("mill.bsp.worker.MillJavaBuildServer", Seq())
+  )
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(

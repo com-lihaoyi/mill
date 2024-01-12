@@ -70,6 +70,16 @@ object Util {
     IO.unpackZip(downloaded.path, dest)
   }
 
+  @deprecated("Use other overload with `extraDeps` parameter instead.", "Mill after 0.11.6")
+  def millProjectModule(
+      artifact: String,
+      repositories: Seq[Repository],
+      resolveFilter: os.Path => Boolean,
+      // this should correspond to the mill runtime Scala version
+      artifactSuffix: String
+  ): Result[Agg[PathRef]] =
+    millProjectModule(artifact, repositories, resolveFilter, artifactSuffix, extraDeps = Agg.empty)
+
   /**
    * Deprecated helper method, intended to allow runtime resolution and in-development-tree testings of mill plugins possible.
    * This design has issues and will probably replaced.
@@ -79,20 +89,23 @@ object Util {
       repositories: Seq[Repository],
       resolveFilter: os.Path => Boolean = _ => true,
       // this should correspond to the mill runtime Scala version
-      artifactSuffix: String = "_2.13"
+      artifactSuffix: String = "_2.13",
+      extraDeps: Agg[coursier.Dependency] = Agg.empty[coursier.Dependency]
   ): Result[Agg[PathRef]] = {
+
+    val deps = Seq(
+      coursier.Dependency(
+        coursier.Module(
+          coursier.Organization("com.lihaoyi"),
+          coursier.ModuleName(artifact + artifactSuffix)
+        ),
+        BuildInfo.millVersion
+      )
+    ) ++ extraDeps
 
     mill.util.Jvm.resolveDependencies(
       repositories = repositories,
-      deps = Seq(
-        coursier.Dependency(
-          coursier.Module(
-            coursier.Organization("com.lihaoyi"),
-            coursier.ModuleName(artifact + artifactSuffix)
-          ),
-          BuildInfo.millVersion
-        )
-      ),
+      deps = deps,
       force = Nil,
       resolveFilter = resolveFilter
     ).map(_.map(_.withRevalidateOnce))
