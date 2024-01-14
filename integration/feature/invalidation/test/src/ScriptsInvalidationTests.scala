@@ -10,7 +10,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
     res.out.linesIterator.map(_.trim).toVector
   }
 
-  val tests = Tests {
+  val tests: Tests = Tests {
     test("should not invalidate tasks in different untouched sc files") {
       test("first run") {
         initWorkspace()

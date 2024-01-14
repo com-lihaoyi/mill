@@ -4,7 +4,7 @@ import utest._
 
 // Regress test for issue https://github.com/com-lihaoyi/mill/issues/1901
 object ZincIncrementalCompilationTests extends IntegrationTestSuite {
-  val tests = Tests {
+  val tests: Tests = Tests {
     initWorkspace()
     "incremental compilation only compiles changed files" - {
       val successful = eval("app.compile")

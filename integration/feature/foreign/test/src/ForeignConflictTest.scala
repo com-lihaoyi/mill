@@ -8,7 +8,7 @@ object ForeignConflictTest extends IntegrationTestSuite {
 
   override def buildPath: SubPath = os.sub / "conflict" / "build.sc"
 
-  val tests = Tests {
+  val tests: Tests = Tests {
     initWorkspace()
     test("test") - {
       // see https://github.com/lihaoyi/mill/issues/302

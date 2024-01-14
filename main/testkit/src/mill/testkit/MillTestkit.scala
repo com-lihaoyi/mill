@@ -85,7 +85,7 @@ trait MillTestKit {
           context = "",
           new PrintLogger.State()
         ) {
-      val prefix = {
+      val prefix: String = {
         val idx = fullName.value.lastIndexOf(".")
         if (idx > 0) fullName.value.substring(0, idx)
         else fullName.value

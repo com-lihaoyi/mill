@@ -13,7 +13,7 @@ object ScriptsInvalidationForeignTests extends IntegrationTestSuite {
     res.out.linesIterator.map(_.trim).toVector
   }
 
-  val tests = Tests {
+  val tests: Tests = Tests {
     test("should handle foreign modules") {
       test("first run") {
         initWorkspace()

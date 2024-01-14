@@ -1,5 +1,4 @@
 // plugins and dependencies
-
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
@@ -7,7 +6,8 @@ import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`com.github.lolgab::mill-mima::0.1.0`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
-import $ivy.`com.goyeau::mill-scalafix::0.3.1`
+import $ivy.`com.goyeau::mill-scalafix::0.3.2`
+
 
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
@@ -19,6 +19,7 @@ import mill.api.JarManifest
 import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
+import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.resolve.SelectMode
@@ -320,10 +321,17 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule{ outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
+  def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def scalacOptions =
-    super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature", "-Xlint:unused", "-Xlint:adapted-args")
+    super.scalacOptions() ++ Seq(
+      "-deprecation",
+      "-P:acyclic:force",
+      "-feature",
+      "-Xlint:unused",
+      "-Xlint:adapted-args"
+    )
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
   def testModuleDeps: Seq[JavaModule] =
@@ -824,7 +832,7 @@ object contrib extends Module {
     // Worker for Scoverage 1.x
     object worker extends MillPublishScalaModule {
       // scoverage is on an old Scala version which doesnt support scalafix
-      def fix(args: String*): Command[Unit] = T.command{}
+      def fix(args: String*): Command[Unit] = T.command {}
       def compileModuleDeps = Seq(main.api)
       def moduleDeps = Seq(scoverage.api)
       def testDepPaths = T { Seq(compile().classes) }
@@ -1050,7 +1058,7 @@ object example extends MillScalaModule {
 
   trait ExampleCrossModule extends IntegrationTestCrossModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
-    def fix(args: String*): Command[Unit] = T.command{}
+    def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
@@ -1309,7 +1317,7 @@ object dist extends MillPublishJavaModule {
 
 object dev extends MillPublishScalaModule {
   // disable scalafix here because it crashes when a module has no sources
-  def fix(args: String*): Command[Unit] = T.command{}
+  def fix(args: String*): Command[Unit] = T.command {}
   def moduleDeps = Seq(runner, idea)
 
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
