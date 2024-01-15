@@ -3,7 +3,7 @@ package mill.bsp
 import mill.api.PathRef
 
 case class BspServerConfig(
-    services: Seq[String],
+    extensions: Seq[String],
     classpath: Seq[PathRef]
 )
 

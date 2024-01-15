@@ -5,22 +5,15 @@ import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Result.{Skipped, Success}
 import mill.eval.Evaluator
 import mill.scalalib.JavaModule
-import mill.scalalib.bsp.BspModule
+import mill.scalalib.bsp.{BspModule, BspUri}
 
 private object Utils {
-
-  def sanitizeUri(uri: String): String =
-    if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
-
-  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toNIO.toUri.toString)
-
-  def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
   // define the function that spawns compilation reporter for each module based on the
   // module's hash code TODO: find something more reliable than the hash code
   def getBspLoggedReporterPool(
       originId: String,
-      bspIdsByModule: Map[BspModule, BuildTargetIdentifier],
+      bspIdsByModule: Map[BspModule, BspUri],
       client: BuildClient
   ): Int => Option[CompileProblemReporter] = { moduleHashCode: Int =>
     bspIdsByModule.find(_._1.hashCode == moduleHashCode).map {
@@ -29,8 +22,8 @@ private object Utils {
         val taskId = new TaskId(module.compile.hashCode.toString)
         new BspCompileProblemReporter(
           client,
-          targetId,
-          buildTarget.displayName.getOrElse(targetId.getUri),
+          new BuildTargetIdentifier(targetId.uri),
+          buildTarget.displayName.getOrElse(targetId.uri),
           taskId,
           Option(originId)
         )

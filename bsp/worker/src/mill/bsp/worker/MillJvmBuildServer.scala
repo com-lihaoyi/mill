@@ -11,8 +11,9 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentResult
 }
 import mill.T
-import mill.bsp.worker.Utils.sanitizeUri
+import mill.bsp.spi.MillBuildServerBase
 import mill.scalalib.JavaModule
+import mill.scalalib.bsp.BspUri
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
@@ -50,7 +51,7 @@ class MillJvmBuildServer(base: MillBuildServerBase)
   ): CompletableFuture[V] = {
     base.completableTasks(
       hint = name,
-      targetIds = _ => targetIds,
+      targetIds = _ => targetIds.map(_.bspUri),
       tasks = {
         case m: JavaModule =>
           T.task {
@@ -74,9 +75,9 @@ class MillJvmBuildServer(base: MillBuildServerBase)
             m: JavaModule,
             (runClasspath, forkArgs, forkWorkingDir, forkEnv, mainClass, zincWorker, compile)
           ) =>
-        val classpath = runClasspath.map(_.path).map(sanitizeUri)
+        val classpath = runClasspath.map(_.path).map(BspUri.sanitizeUri)
         val item = new JvmEnvironmentItem(
-          id,
+          id.buildTargetIdentifier,
           classpath.iterator.toSeq.asJava,
           forkArgs.asJava,
           forkWorkingDir.toString(),

@@ -6,8 +6,7 @@ import mill.define.{Command, Discover, ExternalModule, Task}
 import mill.main.BuildInfo
 import mill.eval.Evaluator
 import mill.util.Util.millProjectModule
-import mill.scalalib.{BoundDep, CoursierModule, Dep, Lib}
-import mill.scalalib.bsp.BspModule
+import mill.scalalib.{BoundDep, CoursierModule, Dep, JavaModule, Lib}
 import mill.scalalib.internal.JavaModuleUtils
 
 object BSP extends ExternalModule with CoursierModule {
@@ -22,7 +21,7 @@ object BSP extends ExternalModule with CoursierModule {
   private def bspExtensions: T[(Seq[String], Seq[Dep])] = T.input {
     // As this is a runtime value which can change, we need to be in an input target
     val modules = JavaModuleUtils.transitiveModules(evaluator().rootModule)
-      .collect { case m: BspModule => m }
+      .collect { case m: JavaModule => m }
     val extensions = modules.flatMap(m => m.bspExtensions).distinct
     val classes = extensions.map(_.className).distinct
     T.log.debug(s"BSP extensions: ${BspUtil.pretty(extensions)}")

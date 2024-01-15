@@ -1,9 +1,8 @@
-package mill.bsp.worker
+package mill.bsp.spi
 
-import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import mill.define.Task
 import mill.eval.Evaluator
-import mill.scalalib.bsp.BspModule
+import mill.scalalib.bsp.{BspModule, BspUri}
 
 import java.util.concurrent.CompletableFuture
 import scala.reflect.ClassTag
@@ -30,9 +29,9 @@ trait MillBuildServerBase {
 
   def completableTasks[T, V, W: ClassTag](
       hint: String,
-      targetIds: State => Seq[BuildTargetIdentifier],
+      targetIds: State => Seq[BspUri],
       tasks: BspModule => Task[W]
-  )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
+  )(f: (Evaluator, State, BspUri, BspModule, W) => T)(agg: java.util.List[T] => V)
       : CompletableFuture[V]
 
   /**

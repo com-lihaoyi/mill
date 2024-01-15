@@ -59,7 +59,7 @@ private class BspWorkerImpl() extends BspWorker {
         )
 
       val extensions: Seq[(String, MillBspExtension)] =
-        config.services.map(s => s -> loadExtension(s, Seq(millServer)))
+        config.extensions.map(s => s -> loadExtension(s, Seq(millServer)))
 
       logStream.println(s"Loaded extensions: ${BspUtil.pretty(extensions)}")
 

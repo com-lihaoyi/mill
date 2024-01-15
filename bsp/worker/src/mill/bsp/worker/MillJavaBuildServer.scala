@@ -1,13 +1,15 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.{
+  BuildTargetIdentifier,
   JavaBuildServer,
   JavacOptionsItem,
   JavacOptionsParams,
   JavacOptionsResult
 }
 import mill.T
-import mill.bsp.worker.Utils.sanitizeUri
+import mill.bsp.spi.MillBuildServerBase
+import mill.scalalib.bsp.BspUri
 import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 
 import java.util.concurrent.CompletableFuture
@@ -25,7 +27,7 @@ class MillJavaBuildServer(base: MillBuildServerBase)
       : CompletableFuture[JavacOptionsResult] =
     base.completableTasks(
       s"buildTargetJavacOptions ${javacOptionsParams}",
-      targetIds = _ => javacOptionsParams.getTargets.asScala.toSeq,
+      targetIds = _ => javacOptionsParams.getTargets.asScala.map(_.bspUri).toSeq,
       tasks = { case m: JavaModule =>
         val classesPathTask = m match {
           case sem: SemanticDbJavaModule if base.enableSemanticDb =>
@@ -36,16 +38,22 @@ class MillJavaBuildServer(base: MillBuildServerBase)
       }
     ) {
       // We ignore all non-JavaModule
-      case (ev, state, id, m: JavaModule, (classesPath, javacOptions, bspCompileClasspath)) =>
+      case (
+            ev,
+            state,
+            id,
+            m: JavaModule,
+            (classesPath, javacOptions, bspCompileClasspath)
+          ) =>
         val pathResolver = ev.pathsResolver
         val options = javacOptions
         val classpath =
-          bspCompileClasspath.map(_.resolve(pathResolver)).map(sanitizeUri)
+          bspCompileClasspath.map(_.resolve(pathResolver)).map(BspUri.sanitizeUri)
         new JavacOptionsItem(
-          id,
+          id.buildTargetIdentifier,
           options.asJava,
           classpath.iterator.toSeq.asJava,
-          sanitizeUri(classesPath.resolve(pathResolver))
+          BspUri.sanitizeUri(classesPath.resolve(pathResolver))
         )
     } {
       new JavacOptionsResult(_)
