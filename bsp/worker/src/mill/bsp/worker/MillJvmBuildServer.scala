@@ -41,9 +41,9 @@ class MillJvmBuildServer(base: MillBuildServerBase) extends JvmBuildServer {
       name: String,
       targetIds: Seq[BuildTargetIdentifier],
       agg: java.util.List[JvmEnvironmentItem] => V
-  ) = {
+  ): CompletableFuture[V] = {
     base.completableTasks(
-      name,
+      hint = name,
       targetIds = _ => targetIds,
       tasks = {
         case m: JavaModule =>

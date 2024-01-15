@@ -1,11 +1,11 @@
 package mill.bsp
 
-import mill.Agg
 import mill.api.PathRef
 
 case class BspServerConfig(
     services: Seq[String],
-    classpath: Seq[PathRef]
+    classpath: Seq[PathRef],
+    languages: Seq[String]
 )
 
 object BspServerConfig {

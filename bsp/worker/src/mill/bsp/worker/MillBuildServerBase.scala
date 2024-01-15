@@ -9,6 +9,11 @@ import java.util.concurrent.CompletableFuture
 import scala.reflect.ClassTag
 
 trait MillBuildServerBase {
+
+  /**
+   * Write a debug message to the log file.
+   * @param msg
+   */
   def debug(msg: String): Unit
 
   /**
@@ -30,5 +35,9 @@ trait MillBuildServerBase {
   )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
       : CompletableFuture[V]
 
+  /**
+   * `true` if semanticDb generation is enabled for this build.
+   * @return
+   */
   def enableSemanticDb: Boolean
 }

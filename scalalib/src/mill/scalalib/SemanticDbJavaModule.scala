@@ -125,7 +125,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   }
 
   // keep in sync with bspCompiledClassesAndSemanticDbFiles
-  def compiledClassesAndSemanticDbFiles: Target[PathRef] = T {
+  def compiledClassesAndSemanticDbFiles: T[PathRef] = T {
     val dest = T.dest
     val classes = compile().classes.path
     val sems = semanticDbData().path
@@ -135,7 +135,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   }
 
   // keep in sync with compiledClassesAndSemanticDbFiles
-  def bspCompiledClassesAndSemanticDbFiles: Target[UnresolvedPath] = {
+  def bspCompiledClassesAndSemanticDbFiles: T[UnresolvedPath] = {
     if (
       compiledClassesAndSemanticDbFiles.ctx.enclosing == s"${classOf[SemanticDbJavaModule].getName}#compiledClassesAndSemanticDbFiles"
     ) {

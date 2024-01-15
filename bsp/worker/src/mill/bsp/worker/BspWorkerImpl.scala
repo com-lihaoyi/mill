@@ -55,7 +55,8 @@ private class BspWorkerImpl() extends BspWorker {
           serverVersion = BuildInfo.millVersion,
           serverName = Constants.serverName,
           logStream = logStream,
-          canReload = canReload
+          canReload = canReload,
+          languages = config.languages
         )
 
       val services = config.services.map(s => s -> loadService(s, Seq(millServer))).toSeq

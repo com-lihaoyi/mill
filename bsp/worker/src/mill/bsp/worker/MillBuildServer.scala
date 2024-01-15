@@ -85,7 +85,8 @@ private class MillBuildServer(
     serverVersion: String,
     serverName: String,
     logStream: PrintStream,
-    canReload: Boolean
+    canReload: Boolean,
+    languages: Seq[String]
 ) extends ExternalModule with BuildServer with MillBuildServerBase {
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
@@ -95,9 +96,8 @@ private class MillBuildServer(
   protected var client: BuildClient = _
   private var initialized = false
   private var shutdownRequested = false
-  protected var clientWantsSemanticDb = false
+  private var clientWantsSemanticDb = false
   def enableSemanticDb: Boolean = clientWantsSemanticDb
-  protected var clientIsIntelliJ = false
 
   private[this] var statePromise: Promise[State] = Promise[State]()
 
@@ -121,7 +121,7 @@ private class MillBuildServer(
 
       // TODO: scan BspModules and infer their capabilities
 
-      val supportedLangs = Seq("java", "scala").asJava
+      val supportedLangs = languages.asJava
       val capabilities = new BuildServerCapabilities
 
       capabilities.setBuildTargetChangedProvider(false)
@@ -137,10 +137,6 @@ private class MillBuildServer(
       capabilities.setResourcesProvider(true)
       capabilities.setRunProvider(new RunProvider(supportedLangs))
       capabilities.setTestProvider(new TestProvider(supportedLangs))
-
-      // IJ is currently not able to handle files as source paths, only dirs
-      // TODO: Rumor has it, that newer version may handle it, so we need to better detect that
-      clientIsIntelliJ = request.getDisplayName == "IntelliJ-BSP"
 
       def readVersion(json: JsonObject, name: String): Option[String] =
         if (json.has(name)) {

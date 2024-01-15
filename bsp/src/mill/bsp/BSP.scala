@@ -19,7 +19,7 @@ object BSP extends ExternalModule with CoursierModule {
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
-  private def bspExtensions: T[(Seq[String], Seq[Dep])] = T.input {
+  private def bspModuleData: T[(Seq[String], Seq[Dep], Seq[String])] = T.input {
     // As this is a runtime value which can change, we need to be in an input target
     val modules = JavaModuleUtils.transitiveModules(evaluator().rootModule)
       .collect { case m: BspModule => m }
@@ -27,7 +27,10 @@ object BSP extends ExternalModule with CoursierModule {
     val classes = extensions.map(_.className).distinct
     T.log.debug(s"BSP extensions: ${BspUtil.pretty(extensions)}")
     val extensionIvyDeps = extensions.flatMap(_.ivyDeps)
-    (classes, extensionIvyDeps)
+
+    val languages = modules.flatMap(m => m.bspBuildTarget.languageIds).distinct
+
+    (classes, extensionIvyDeps, languages)
   }
 
   override def bindDependency: Task[Dep => BoundDep] = T.task { dep: Dep =>
@@ -38,7 +41,7 @@ object BSP extends ExternalModule with CoursierModule {
     millProjectModule(
       "mill-bsp-worker",
       repositoriesTask(),
-      extraDeps = bspExtensions()._2.map(bindDependency().andThen(_.dep))
+      extraDeps = bspModuleData()._2.map(bindDependency().andThen(_.dep))
     )
   }
 
@@ -60,10 +63,15 @@ object BSP extends ExternalModule with CoursierModule {
     // we create a file containing the additional jars to load
 //    val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri).iterator.toSeq
 
+    val moduleData = bspModuleData()
+    val (classes, _, languages) = moduleData
+
     val bspServerConfig = BspServerConfig(
-      bspExtensions()._1,
-      bspWorkerLibs().toSeq
+      classes,
+      bspWorkerLibs().toSeq,
+      languages
     )
+
     val cpFile =
       T.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.conf"
     os.write.over(
