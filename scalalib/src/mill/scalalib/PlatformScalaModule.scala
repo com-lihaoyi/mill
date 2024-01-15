@@ -1,4 +1,5 @@
 package mill.scalalib
+
 import mill._
 import os.Path
 
@@ -25,7 +26,7 @@ trait PlatformScalaModule extends ScalaModule {
     .collect { case l: mill.define.Segment.Label => l.value }
     .last
 
-  override def sources = T.sources {
+  override def sources: T[Seq[PathRef]] = T.sources {
     super.sources().flatMap { source =>
       val platformPath =
         PathRef(source.path / _root_.os.up / s"${source.path.last}-${platformScalaSuffix}")
@@ -33,5 +34,5 @@ trait PlatformScalaModule extends ScalaModule {
     }
   }
 
-  override def artifactNameParts = super.artifactNameParts().dropRight(1)
+  override def artifactNameParts: T[Seq[String]] = super.artifactNameParts().dropRight(1)
 }
