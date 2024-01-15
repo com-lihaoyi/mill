@@ -85,14 +85,17 @@ private class MillBuildServer(
     serverVersion: String,
     serverName: String,
     logStream: PrintStream,
-    canReload: Boolean,
-    languages: Seq[String]
-) extends ExternalModule with BuildServer with MillBuildServerBase {
+    canReload: Boolean
+) extends ExternalModule
+    with BuildServer
+    with MillBuildServerBase {
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
   private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
+  private[worker] var extensionCapabilities: Seq[ExtensionCapabilities] = Seq()
+
   protected var client: BuildClient = _
   private var initialized = false
   private var shutdownRequested = false
@@ -102,7 +105,7 @@ private class MillBuildServer(
   private[this] var statePromise: Promise[State] = Promise[State]()
 
   def updateEvaluator(evaluatorsOpt: Option[Seq[Evaluator]]): Unit = {
-    debug(s"Updating Evaluator: $evaluatorsOpt")
+    debug(s"Updating Evaluator: ${pretty(evaluatorsOpt)}")
     if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
       statePromise.success(
@@ -113,20 +116,25 @@ private class MillBuildServer(
 
   def debug(msg: String): Unit = logStream.println(msg)
 
-  def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
+  def onConnectWithClient(buildClient: BuildClient): Unit = {
+    client = buildClient
+    debug(s"Client connected: ${buildClient}")
+  }
 
   override def buildInitialize(request: InitializeBuildParams)
       : CompletableFuture[InitializeBuildResult] =
     completableNoState(s"buildInitialize ${pretty(request)}", checkInitialized = false) {
 
-      // TODO: scan BspModules and infer their capabilities
+      // BSP is by-default for Java projects
+      val builtInCaps = ExtensionCapabilities(languages = Seq("java"))
+      val allCaps = builtInCaps +: extensionCapabilities
 
-      val supportedLangs = languages.asJava
+      val supportedLanguages = allCaps.flatMap(_.languages).distinct.asJava
       val capabilities = new BuildServerCapabilities
 
       capabilities.setBuildTargetChangedProvider(false)
       capabilities.setCanReload(canReload)
-      capabilities.setCompileProvider(new CompileProvider(supportedLangs))
+      capabilities.setCompileProvider(new CompileProvider(supportedLanguages))
       capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
       capabilities.setDependencyModulesProvider(true)
       capabilities.setDependencySourcesProvider(true)
@@ -135,8 +143,8 @@ private class MillBuildServer(
       capabilities.setJvmTestEnvironmentProvider(true)
       capabilities.setOutputPathsProvider(true)
       capabilities.setResourcesProvider(true)
-      capabilities.setRunProvider(new RunProvider(supportedLangs))
-      capabilities.setTestProvider(new TestProvider(supportedLangs))
+      capabilities.setRunProvider(new RunProvider(supportedLanguages))
+      capabilities.setTestProvider(new TestProvider(supportedLanguages))
 
       def readVersion(json: JsonObject, name: String): Option[String] =
         if (json.has(name)) {

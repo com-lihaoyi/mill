@@ -4,8 +4,7 @@ import mill.api.PathRef
 
 case class BspServerConfig(
     services: Seq[String],
-    classpath: Seq[PathRef],
-    languages: Seq[String]
+    classpath: Seq[PathRef]
 )
 
 object BspServerConfig {

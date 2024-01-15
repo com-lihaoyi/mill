@@ -17,7 +17,13 @@ import mill.scalalib.JavaModule
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 
-class MillJvmBuildServer(base: MillBuildServerBase) extends JvmBuildServer {
+class MillJvmBuildServer(base: MillBuildServerBase)
+    extends MillBspExtension
+    with JvmBuildServer {
+
+  override def extensionCapabilities: ExtensionCapabilities = ExtensionCapabilities(
+    languages = Seq()
+  )
 
   override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] = {

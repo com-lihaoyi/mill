@@ -13,7 +13,13 @@ import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 
-class MillJavaBuildServer(base: MillBuildServerBase) extends JavaBuildServer {
+class MillJavaBuildServer(base: MillBuildServerBase)
+    extends MillBspExtension
+    with JavaBuildServer {
+
+  override def extensionCapabilities: ExtensionCapabilities = ExtensionCapabilities(
+    languages = Seq("java")
+  )
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
@@ -44,4 +50,5 @@ class MillJavaBuildServer(base: MillBuildServerBase) extends JavaBuildServer {
     } {
       new JavacOptionsResult(_)
     }
+
 }

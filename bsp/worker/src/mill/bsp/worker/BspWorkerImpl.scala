@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters._
 
 private class BspWorkerImpl() extends BspWorker {
 
-  def loadService(className: String, services: Seq[AnyRef]): AnyRef = {
+  def loadExtension(className: String, services: Seq[AnyRef]): MillBspExtension = {
     val cl = getClass().getClassLoader()
     val serviceClass = cl.loadClass(className)
     val ctrWithParams: Seq[Either[String, (Constructor[_], Seq[AnyRef])]] =
@@ -33,8 +33,8 @@ private class BspWorkerImpl() extends BspWorker {
       }
     ctrWithParams.collectFirst {
       case Right((ctr, params)) =>
-        ctr.newInstance(params: _*).asInstanceOf[AnyRef]
-    }.getOrElse(sys.error("Could not found acceptable contructor"))
+        ctr.newInstance(params: _*).asInstanceOf[MillBspExtension]
+    }.getOrElse(sys.error("Could not found acceptable BSP extension contructor"))
   }
 
   override def startBspServer(
@@ -55,12 +55,15 @@ private class BspWorkerImpl() extends BspWorker {
           serverVersion = BuildInfo.millVersion,
           serverName = Constants.serverName,
           logStream = logStream,
-          canReload = canReload,
-          languages = config.languages
+          canReload = canReload
         )
 
-      val services = config.services.map(s => s -> loadService(s, Seq(millServer))).toSeq
-      logStream.println(s"Loaded services: ${BspUtil.pretty(services)}")
+      val extensions: Seq[(String, MillBspExtension)] =
+        config.services.map(s => s -> loadExtension(s, Seq(millServer)))
+
+      logStream.println(s"Loaded extensions: ${BspUtil.pretty(extensions)}")
+
+      val services = Seq(millServer) ++ extensions.map(_._2)
 
       val executor = Executors.newCachedThreadPool()
 
@@ -70,7 +73,7 @@ private class BspWorkerImpl() extends BspWorker {
         val launcher = new Launcher.Builder[BuildClient]()
           .setOutput(streams.out)
           .setInput(streams.in)
-          .setLocalServices(services.map(_._2).asJava)
+          .setLocalServices(services.asJava)
           .setRemoteInterface(classOf[BuildClient])
           .traceMessages(new PrintWriter(
             (logDir / s"${Constants.serverName}.trace").toIO
@@ -78,6 +81,8 @@ private class BspWorkerImpl() extends BspWorker {
           .setExecutorService(executor)
           .setClassLoader(getClass().getClassLoader())
           .create()
+
+        millServer.extensionCapabilities = extensions.map(_._2.extensionCapabilities)
 
         millServer.onConnectWithClient(launcher.getRemoteProxy)
         val listening = launcher.startListening()
