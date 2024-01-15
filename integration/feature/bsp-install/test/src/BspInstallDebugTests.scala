@@ -18,7 +18,7 @@ object BspInstallDebugTests extends IntegrationTestSuite {
       val contents = os.read(jsonFile)
       assert(
         contents.contains("--debug"),
-        contents.contains(s""""bspVersion":"${bsp4jVersion}"""")
+        contents.contains(s""""bspVersion": "${bsp4jVersion}"""")
       )
     }
   }
