@@ -83,7 +83,7 @@ class MillBuildRootModule()(implicit
     }
   }
 
-  def cliImports = T.input { millBuildRootModuleInfo.cliImports }
+  def cliImports: Target[Seq[String]] = T.input { millBuildRootModuleInfo.cliImports }
 
   override def ivyDeps = T {
     Agg.from(
@@ -117,7 +117,7 @@ class MillBuildRootModule()(implicit
         T.dest,
         millBuildRootModuleInfo.enclosingClasspath,
         millBuildRootModuleInfo.topLevelProjectRoot,
-        millBuildRootModuleInfo.cliImports
+        cliImports()
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
