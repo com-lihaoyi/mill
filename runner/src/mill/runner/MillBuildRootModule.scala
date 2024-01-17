@@ -83,7 +83,13 @@ class MillBuildRootModule()(implicit
     }
   }
 
-  def cliImports: Target[Seq[String]] = T.input { millBuildRootModuleInfo.cliImports }
+  def cliImports: Target[Seq[String]] = T.input {
+    val imports = CliImports.value
+    if (imports.nonEmpty) {
+      T.log.debug(s"Using cli-provided runtime imports: ${imports.mkString(", ")}")
+    }
+    imports
+  }
 
   override def ivyDeps = T {
     Agg.from(
@@ -94,8 +100,10 @@ class MillBuildRootModule()(implicit
   }
 
   override def runIvyDeps = T {
+    val imports = cliImports()
+    val ivyImports = imports.collect { case s"ivy:$rest" => rest }
     Agg.from(
-      MillIvy.processMillIvyDepSignature(cliImports().toSet)
+      MillIvy.processMillIvyDepSignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     )
   }
@@ -116,8 +124,7 @@ class MillBuildRootModule()(implicit
         parsed.seenScripts,
         T.dest,
         millBuildRootModuleInfo.enclosingClasspath,
-        millBuildRootModuleInfo.topLevelProjectRoot,
-        cliImports()
+        millBuildRootModuleInfo.topLevelProjectRoot
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -253,15 +260,13 @@ object MillBuildRootModule {
   class BootstrapModule(
       topLevelProjectRoot0: os.Path,
       projectRoot: os.Path,
-      enclosingClasspath: Seq[os.Path],
-      cliImports: Seq[String]
+      enclosingClasspath: Seq[os.Path]
   )(implicit baseModuleInfo: RootModule.Info) extends RootModule {
 
     implicit private def millBuildRootModuleInfo: Info = MillBuildRootModule.Info(
       enclosingClasspath,
       projectRoot,
-      topLevelProjectRoot0,
-      cliImports
+      topLevelProjectRoot0
     )
     object build extends MillBuildRootModule
 
@@ -272,8 +277,7 @@ object MillBuildRootModule {
   case class Info(
       enclosingClasspath: Seq[os.Path],
       projectRoot: os.Path,
-      topLevelProjectRoot: os.Path,
-      cliImports: Seq[String]
+      topLevelProjectRoot: os.Path
   )
 
   def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info): FileImportGraph = {
@@ -289,8 +293,7 @@ object MillBuildRootModule {
       scriptCode: Map[os.Path, String],
       targetDest: os.Path,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path,
-      cliImports: Seq[String]
+      millTopLevelProjectRoot: os.Path
   ): Unit = {
     for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
@@ -303,8 +306,7 @@ object MillBuildRootModule {
         scriptSource.path.baseName,
         enclosingClasspath,
         millTopLevelProjectRoot,
-        scriptSource.path,
-        cliImports
+        scriptSource.path
       ) +
         scriptCode(scriptSource.path) +
         MillBuildRootModule.bottom
@@ -320,8 +322,7 @@ object MillBuildRootModule {
       name: String,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
-      originalFilePath: os.Path,
-      cliImports: Seq[String]
+      originalFilePath: os.Path
   ): String = {
     val superClass =
       if (pkg.size <= 1 && name == "build") "_root_.mill.main.RootModule"
@@ -352,7 +353,6 @@ object MillBuildRootModule {
        |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
        |    _root_.os.Path(${literalize(base.toString)}),
        |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)}),
-       |    _root_.scala.Seq(${cliImports.map(literalize(_)).mkString(", ")})
        |  )
        |  implicit lazy val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
        |    millBuildRootModuleInfo.projectRoot,

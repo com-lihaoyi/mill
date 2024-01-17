@@ -1,4 +1,5 @@
 package mill.runner
+
 import mill.util.{ColorLogger, PrefixLogger, Watchable}
 import mill.main.BuildInfo
 import mill.api.{PathRef, Val, internal}
@@ -44,7 +45,7 @@ class MillBuildBootstrap(
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / "out")
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
-  def evaluate(): Watching.Result[RunnerState] = {
+  def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
     val runnerState = evaluateRec(0)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
@@ -101,8 +102,7 @@ class MillBuildBootstrap(
             new MillBuildRootModule.BootstrapModule(
               projectRoot,
               recRoot(projectRoot, depth),
-              millBootClasspath,
-              imports.collect { case s"ivy:$rest" => rest }
+              millBootClasspath
             )(
               mill.main.RootModule.Info(
                 recRoot(projectRoot, depth),
@@ -466,4 +466,5 @@ object MillBuildBootstrap {
   def recOut(projectRoot: os.Path, depth: Int): os.Path = {
     projectRoot / "out" / Seq.fill(depth)("mill-build")
   }
+
 }
