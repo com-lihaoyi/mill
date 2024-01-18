@@ -5,6 +5,7 @@ import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.{CompileProblemReporter, Problem}
 
 import scala.collection.mutable
+import scala.util.chaining.scalaUtilChainingOps
 
 /**
  * Specialized reporter that sends compilation diagnostics
@@ -52,20 +53,33 @@ private class BspCompileProblemReporter(
   // TODO: document that if the problem is a general information without a text document
   // associated to it, then the document field of the diagnostic is set to the uri of the target
   private def reportProblem(problem: Problem): Unit = {
-    val diagnostic = toDiagnostic(problem)
     val sourceFile = problem.position.sourceFile
-    val textDocument = new TextDocumentIdentifier(
-      sourceFile match {
-        case None => targetId.getUri
-        case Some(f) =>
+    sourceFile match {
+      case None =>
+        // It seems, this isn't an actionable compile problem,
+        // instead of sending a `build/publishDiagnostics` we send a `build/logMessage`.
+        // see https://github.com/com-lihaoyi/mill/issues/2926
+        val messagesType = problem.severity match {
+          case mill.api.Error => MessageType.ERROR
+          case mill.api.Warn => MessageType.WARNING
+          case mill.api.Info => MessageType.INFO
+        }
+        val msgParam = new LogMessageParams(messagesType, problem.message).tap { it =>
+          it.setTask(taskId)
+        }
+        client.onBuildLogMessage(msgParam)
+
+      case Some(f) =>
+        val diagnostic = toDiagnostic(problem)
+        val textDocument = new TextDocumentIdentifier(
           // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
           f.toPath.toUri.toString
-      }
-    )
-    diagnostics.add(textDocument, diagnostic)
-    val diagnosticList = new java.util.LinkedList[Diagnostic]()
-    diagnosticList.add(diagnostic)
-    sendBuildPublishDiagnostics(textDocument, diagnosticList, reset = false)
+        )
+        diagnostics.add(textDocument, diagnostic)
+        val diagnosticList = new java.util.LinkedList[Diagnostic]()
+        diagnosticList.add(diagnostic)
+        sendBuildPublishDiagnostics(textDocument, diagnosticList, reset = false)
+    }
   }
 
   // Computes the diagnostic related to the given Problem
