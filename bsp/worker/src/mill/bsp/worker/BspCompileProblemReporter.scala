@@ -98,6 +98,8 @@ private class BspCompileProblemReporter(
       pos.endColumn.orElse(pos.pointer).getOrElse[Int](start.getCharacter.intValue())
     )
     new bsp.Diagnostic(new bsp.Range(start, end), problem.message).tap { d =>
+      // TODO: review whether this is a proper source or if it should better
+      // something like "scala compiler" or "foo.bar.compile"
       d.setSource("mill")
       d.setSeverity(
         problem.severity match {
