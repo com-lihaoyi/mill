@@ -97,24 +97,26 @@ private class BspCompileProblemReporter(
       pos.endLine.map(correctLine).orElse(line).getOrElse[Int](start.getLine.intValue()),
       pos.endColumn.orElse(pos.pointer).getOrElse[Int](start.getCharacter.intValue())
     )
-    val diagnostic = new bsp.Diagnostic(new bsp.Range(start, end), problem.message)
-    diagnostic.setSource("mill")
-    diagnostic.setSeverity(
-      problem.severity match {
-        case mill.api.Info => bsp.DiagnosticSeverity.INFORMATION
-        case mill.api.Error => bsp.DiagnosticSeverity.ERROR
-        case mill.api.Warn => bsp.DiagnosticSeverity.WARNING
+    new bsp.Diagnostic(new bsp.Range(start, end), problem.message).tap { d =>
+      d.setSource("mill")
+      d.setSeverity(
+        problem.severity match {
+          case mill.api.Info => bsp.DiagnosticSeverity.INFORMATION
+          case mill.api.Error => bsp.DiagnosticSeverity.ERROR
+          case mill.api.Warn => bsp.DiagnosticSeverity.WARNING
+        }
+      )
+      problem.diagnosticCode.foreach { existingCode =>
+        d.setCode(existingCode.code)
       }
-    )
-    problem.diagnosticCode.foreach { existingCode => diagnostic.setCode(existingCode.code) }
-    diagnostic
+    }
   }
 
   private def sendBuildPublishDiagnostics(
       textDocument: TextDocumentIdentifier,
       diagnosticList: java.util.List[Diagnostic],
       reset: Boolean
-  ) = {
+  ): Unit = {
     val params = new bsp.PublishDiagnosticsParams(
       textDocument,
       targetId,
@@ -141,26 +143,26 @@ private class BspCompileProblemReporter(
   }
 
   override def start(): Unit = {
-    val taskStartParams = new TaskStartParams(taskId)
-    taskStartParams.setEventTime(System.currentTimeMillis())
-    taskStartParams.setData(new CompileTask(targetId))
-    taskStartParams.setDataKind(TaskStartDataKind.COMPILE_TASK)
-    taskStartParams.setMessage(s"Compiling target ${targetDisplayName}")
+    val taskStartParams = new TaskStartParams(taskId).tap { it =>
+      it.setEventTime(System.currentTimeMillis())
+      it.setData(new CompileTask(targetId))
+      it.setDataKind(TaskStartDataKind.COMPILE_TASK)
+      it.setMessage(s"Compiling target ${targetDisplayName}")
+    }
     client.onBuildTaskStart(taskStartParams)
   }
 
   override def finish(): Unit = {
     val taskFinishParams =
-      new TaskFinishParams(taskId, if (errors > 0) StatusCode.ERROR else StatusCode.OK)
-    taskFinishParams.setEventTime(System.currentTimeMillis())
-    taskFinishParams.setMessage(s"Compiled ${targetDisplayName}")
-    taskFinishParams.setDataKind(TaskFinishDataKind.COMPILE_REPORT)
-    val compileReport = new CompileReport(targetId, errors, warnings)
-    compilationOriginId match {
-      case Some(id) => compileReport.setOriginId(id)
-      case None =>
-    }
-    taskFinishParams.setData(compileReport)
+      new TaskFinishParams(taskId, if (errors > 0) StatusCode.ERROR else StatusCode.OK).tap { it =>
+        it.setEventTime(System.currentTimeMillis())
+        it.setMessage(s"Compiled ${targetDisplayName}")
+        it.setDataKind(TaskFinishDataKind.COMPILE_REPORT)
+        val compileReport = new CompileReport(targetId, errors, warnings).tap { it =>
+          compilationOriginId.foreach(id => it.setOriginId(id))
+        }
+        it.setData(compileReport)
+      }
     client.onBuildTaskFinish(taskFinishParams)
   }
 
