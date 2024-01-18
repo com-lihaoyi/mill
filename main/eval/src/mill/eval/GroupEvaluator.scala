@@ -42,19 +42,20 @@ private[mill] trait GroupEvaluator {
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   private object synchronizedEval {
-    private val keyLock = new KeyLock[Segments]
-    def apply[T](terminal: Terminal)(f: => T): T = terminal match {
-      case t: Terminal.Task[_] =>
-        // A un-labelled terminal task won't be synchronized
-        // as there is no filesystem cache region assigned to it
-        f
-      case Terminal.Labelled(_, segments) =>
-        // A labelled terminal needs synchronization due to
-        // a shared cache region in the filesystem
-        Using.resource(keyLock.lock(segments)) { _ =>
+    private val keyLock = new KeyLock[Segments]()
+    def apply[T](terminal: Terminal, onCollision: Option[() => Unit] = None)(f: => T): T =
+      terminal match {
+        case t: Terminal.Task[_] =>
+          // A un-labelled terminal task won't be synchronized
+          // as there is no filesystem cache region assigned to it
           f
-        }
-    }
+        case Terminal.Labelled(_, segments) =>
+          // A labelled terminal needs synchronization due to
+          // a shared cache region in the filesystem
+          Using.resource(keyLock.lock(segments, onCollision)) { _ =>
+            f
+          }
+      }
   }
 
   // those result which are inputs but not contained in this terminal group
@@ -66,7 +67,11 @@ private[mill] trait GroupEvaluator {
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger
-  ): GroupEvaluator.Results = synchronizedEval(terminal) {
+  ): GroupEvaluator.Results = synchronizedEval(
+    terminal,
+    onCollision =
+      Some(() => logger.debug(s"Waiting for concurrently executing task ${terminal.render}"))
+  ) {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
