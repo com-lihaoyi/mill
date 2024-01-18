@@ -10,8 +10,8 @@ import mill.util._
 import java.io.PrintStream
 import scala.collection.mutable
 import scala.reflect.NameTransformer.encode
-import scala.util.DynamicVariable
 import scala.util.control.NonFatal
+import scala.util.{DynamicVariable, Using}
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -41,6 +41,22 @@ private[mill] trait GroupEvaluator {
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
+  private object synchronizedEval {
+    private val keyLock = new KeyLock[Segments]
+    def apply[T](terminal: Terminal)(f: => T): T = terminal match {
+      case t: Terminal.Task[_] =>
+        // A un-labelled terminal task won't be synchronized
+        // as there is no filesystem cache region assigned to it
+        f
+      case Terminal.Labelled(_, segments) =>
+        // A labelled terminal needs synchronization due to
+        // a shared cache region in the filesystem
+        Using.resource(keyLock.lock(segments)) { _ =>
+          f
+        }
+    }
+  }
+
   // those result which are inputs but not contained in this terminal group
   def evaluateGroupCached(
       terminal: Terminal,
@@ -50,7 +66,7 @@ private[mill] trait GroupEvaluator {
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger
-  ): GroupEvaluator.Results = {
+  ): GroupEvaluator.Results = synchronizedEval(terminal) {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
