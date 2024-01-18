@@ -31,6 +31,7 @@ import ch.epfl.scala.bsp4j.{
   OutputPathsItem,
   OutputPathsParams,
   OutputPathsResult,
+  ReadParams,
   ResourcesItem,
   ResourcesParams,
   ResourcesResult,
@@ -749,5 +750,9 @@ private class MillBuildServer(
     }
 
     future
+  }
+
+  override def onRunReadStdin(params: ReadParams): Unit = {
+    debug("onRunReadStdin is current unsupported")
   }
 }
