@@ -42,11 +42,13 @@ private[mill] trait GroupEvaluator {
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   /**
-   * Synchronize evaluations of the same terminal task. This won't necessary for normal Mill execution,
+   * Synchronize evaluations of the same terminal task.
+   * This isn't necessarily needed for normal Mill executions,
    * but in an BSP context, where multiple requests where handled concurrently in the same Mill instance,
-   * it can happen.
-   * Note, that we don't synchronize multiple Mill-instances (e.g. run in two shells)
-   * or multiple evaluator-instances (which should have different out-dirs anyhow.
+   * evaluating the same task concurrently  can happen.
+   *
+   * We don't synchronize multiple Mill-instances (e.g. run in two shells)
+   * or multiple evaluator-instances (which should have different `out`-dirs anyway.
    */
   private object synchronizedEval {
     private val keyLock = new KeyLock[Segments]()
