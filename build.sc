@@ -8,7 +8,6 @@ import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import $ivy.`com.goyeau::mill-scalafix::0.3.2`
 
-
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
 import coursier.maven.MavenRepository
@@ -1876,7 +1875,10 @@ implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       List(depString)
     })
 
-/** Dummy module(s) to let Scala-Steward find and bump dependency versions we use at runtime */
+/**
+ * Dummy module(s) to let Dependency/showUpdates or Scala-Steward find
+ * and bump dependency versions we use at runtime
+ */
 object dummy extends Cross[DependencyFetchDummy](dummyDeps)
 trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
   def scalaVersion = Deps.scalaVersion
