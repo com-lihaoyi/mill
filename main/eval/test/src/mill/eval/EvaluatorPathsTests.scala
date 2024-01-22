@@ -8,9 +8,13 @@ object EvaluatorPathsTests extends TestSuite {
     "sanitizedPathSegment" - {
       "WindowsReservedNames" - {
         val replace = Seq(
+          // reserved file names under Windows
           "com1.json" -> "com1~.json",
           "LPT¹" -> "LPT¹~",
-          "a:b" -> "a$colonb"
+          // a unsupported character under Windows
+          "a:b" -> "a$colonb",
+          // do not collide with out applied `$`-masking charcter
+          "a$colonb" -> "a$$colonb"
         )
         val noReplace = Seq(
           "con10.json"

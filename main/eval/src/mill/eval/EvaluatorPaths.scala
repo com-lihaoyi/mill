@@ -46,17 +46,28 @@ object EvaluatorPaths {
       task: NamedTask[_]
   ): EvaluatorPaths = resolveDestPaths(workspacePath, task.ctx.segments, task.ctx.foreign)
 
-  // case-insensitive match on reserved names
+  // case-insensitive match on reserved names,
   private val ReservedWinNames =
     raw"^([cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][0-9¹²³]|[lL][pP][tT][0-9¹²³])($$|[.].*$$)".r
+  // Colons are not supported on Windows
   private val Colon = "[:]".r
+  // Dollar sign `$` is our masking-character
+  private val Dollar = "[$]".r
 
-  def sanitizePathSegment(segment: String): os.PathChunk = {
-    val seg = segment match {
+  private val steps: Seq[String => String] = Seq(
+    // Step 1: mask all existing dollar signs, so we can use the dollar as masking character
+    s => Dollar.replaceAllIn(s, Matcher.quoteReplacement("$$")),
+    // Step 2: mask reserved Windows names, like CON1 or LPT1
+    _ match {
       case ReservedWinNames(keyword, rest) => s"${keyword}~${rest}"
       case s => s
-    }
-    val chunk: os.PathChunk = Colon.replaceAllIn(seg, Matcher.quoteReplacement("$colon"))
-    chunk
+    },
+    // Step 3: Replace colon (:) with $colon
+    s => Colon.replaceAllIn(s, Matcher.quoteReplacement("$colon"))
+  )
+
+  def sanitizePathSegment(segment: String): os.PathChunk = {
+    // sanitize and implicitly convert to PathChunk
+    steps.foldLeft(segment) { (segment, f) => f(segment) }
   }
 }
