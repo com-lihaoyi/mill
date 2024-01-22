@@ -46,7 +46,7 @@ object EvaluatorPaths {
       task: NamedTask[_]
   ): EvaluatorPaths = resolveDestPaths(workspacePath, task.ctx.segments, task.ctx.foreign)
 
-  // case-insensitive match on reserved names,
+  // case-insensitive match on reserved names
   private val ReservedWinNames =
     raw"^([cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][0-9¹²³]|[lL][pP][tT][0-9¹²³])($$|[.].*$$)".r
   // Colons are not supported on Windows
