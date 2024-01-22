@@ -32,7 +32,7 @@ object EvaluatorPaths {
   ): EvaluatorPaths = {
     val refinedSegments = foreignSegments.map(_ ++ segments).getOrElse(segments)
     val segmentStrings = makeSegmentStrings(refinedSegments)
-    val targetPath = workspacePath / segmentStrings
+    val targetPath = workspacePath / segmentStrings.map(sanitizePathSegment)
     EvaluatorPaths(
       targetPath / os.up / s"${targetPath.last}.dest",
       targetPath / os.up / s"${targetPath.last}.json",
@@ -43,4 +43,14 @@ object EvaluatorPaths {
       workspacePath: os.Path,
       task: NamedTask[_]
   ): EvaluatorPaths = resolveDestPaths(workspacePath, task.ctx.segments, task.ctx.foreign)
+
+  // case-insensitive match on reserved names
+  private val ReservedWinNames =
+    raw"^([cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][0-9¹²³]|[lL][pP][tT][0-9¹²³])($$|[.].*$$)".r
+  def sanitizePathSegment(segment: String): os.PathChunk = {
+    segment match {
+      case ReservedWinNames(keyword, rest) => s"${keyword}~${rest}"
+      case s => s
+    }
+  }
 }
