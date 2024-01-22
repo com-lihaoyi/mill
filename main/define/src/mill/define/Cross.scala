@@ -1,8 +1,9 @@
 package mill.define
 
-import mill.api.Lazy
+import mill.api.{BuildScriptException, Lazy, MillException}
 
 import language.experimental.macros
+import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.reflect.macros.blackbox
 
@@ -286,28 +287,41 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
     def cls: Class[_]
   }
 
-  val items: List[Item] = for {
-    factory <- factories.toList
-    (crossSegments0, (crossValues0, (cls0, make))) <-
-      factory.crossSegmentsList.zip(factory.crossValuesListLists.zip(factory.makeList))
-  } yield {
-    val relPath = ctx.segment.pathSegments
-    val module0 = new Lazy(() =>
-      make(
-        ctx
-          .withSegments(ctx.segments ++ Seq(ctx.segment))
-          .withMillSourcePath(ctx.millSourcePath / relPath)
-          .withSegment(Segment.Cross(crossSegments0))
-          .withCrossValues(factories.flatMap(_.crossValuesRaw))
-          .withEnclosingModule(this)
+  val items: List[Item] = {
+    val seen = mutable.Map[Seq[String], Seq[Any]]()
+    for {
+      factory <- factories.toList
+      (crossSegments0, (crossValues0, (cls0, make))) <-
+        factory.crossSegmentsList.zip(factory.crossValuesListLists.zip(factory.makeList))
+    } yield {
+      seen.get(crossSegments0) match {
+        case None => // no collision
+        case Some(other) => // collision
+          throw new BuildScriptException(
+            s"Cross module ${ctx.enclosing} contains colliding cross values: ${other} and ${crossValues0}",
+            Option(ctx.fileName).filter(_.nonEmpty)
+          )
+      }
+      val relPath = ctx.segment.pathSegments
+      val module0 = new Lazy(() =>
+        make(
+          ctx
+            .withSegments(ctx.segments ++ Seq(ctx.segment))
+            .withMillSourcePath(ctx.millSourcePath / relPath)
+            .withSegment(Segment.Cross(crossSegments0))
+            .withCrossValues(factories.flatMap(_.crossValuesRaw))
+            .withEnclosingModule(this)
+        )
       )
-    )
 
-    new Item {
-      def crossValues = crossValues0.toList
-      def crossSegments = crossSegments0.toList
-      def module = module0
-      def cls = cls0
+      val item = new Item {
+        def crossValues = crossValues0.toList
+        def crossSegments = crossSegments0.toList
+        def module = module0
+        def cls = cls0
+      }
+      seen.update(crossSegments0, crossValues0)
+      item
     }
   }
 
