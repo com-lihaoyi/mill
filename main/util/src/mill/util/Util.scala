@@ -6,13 +6,13 @@ import mill.api.{BuildInfo, Ctx, IO, PathRef, Result}
 
 object Util {
 
-  def isInteractive() = System.console() != null
+  def isInteractive(): Boolean = System.console() != null
 
-  val newLine = System.lineSeparator()
+  val newLine: String = System.lineSeparator()
 
-  val windowsPlatform = System.getProperty("os.name").startsWith("Windows")
+  val windowsPlatform: Boolean = System.getProperty("os.name").startsWith("Windows")
 
-  val java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
+  val java9OrAbove: Boolean = !System.getProperty("java.specification.version").startsWith("1.")
 
   private val LongMillProps = new java.util.Properties()
 
@@ -22,7 +22,7 @@ object Util {
       LongMillProps.load(new java.io.FileInputStream(millOptionsPath))
   }
 
-  def cleanupScaladoc(v: String) = {
+  def cleanupScaladoc(v: String): Array[String] = {
     v.linesIterator.map(
       _.dropWhile(_.isWhitespace)
         .stripPrefix("/**")
@@ -63,7 +63,7 @@ object Util {
 
   def downloadUnpackZip(url: String, dest: os.RelPath = os.rel / "unpacked")(implicit
       ctx: Ctx.Dest
-  ) = {
+  ): PathRef = {
 
     val tmpName = if (dest == os.rel / "tmp.zip") "tmp2.zip" else "tmp.zip"
     val downloaded = download(url, os.rel / tmpName)

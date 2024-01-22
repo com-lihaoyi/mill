@@ -1,6 +1,7 @@
 package mill.runner
 
 import mainargs.{Flag, Leftover, arg}
+import os.Path
 
 class MillCliConfig private (
     @arg(
@@ -263,7 +264,7 @@ import mainargs.ParserForClass
 // see https://github.com/com-lihaoyi/mill/issues/2315
 object MillCliConfigParser {
 
-  val customName = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
+  val customName: String = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
   val customDoc = "usage: mill [options] [[target [target-options]] [+ [target ...]]]"
 
   /**
@@ -271,13 +272,13 @@ object MillCliConfigParser {
    */
   implicit object PathRead extends mainargs.TokensReader.Simple[os.Path] {
     def shortName = "path"
-    def read(strs: Seq[String]) = Right(os.Path(strs.last, os.pwd))
+    def read(strs: Seq[String]): Either[String, Path] = Right(os.Path(strs.last, os.pwd))
   }
 
   private[this] lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]
 
-  lazy val usageText =
+  lazy val usageText: String =
     parser.helpText(customName = customName, customDoc = customDoc)
 
   def parse(args: Array[String]): Either[String, MillCliConfig] = {

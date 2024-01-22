@@ -53,7 +53,7 @@ object Watching {
       setIdle: Boolean => Unit,
       stdin: InputStream,
       watched: Seq[Watchable]
-  ) = {
+  ): Unit = {
     setIdle(true)
     val watchedPaths = watched.collect { case p: Watchable.Path => p.p.path }
     val watchedValues = watched.size - watchedPaths.size

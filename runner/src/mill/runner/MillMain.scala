@@ -275,7 +275,7 @@ object MillMain {
       mainInteractive: Boolean,
       enableTicker: Option[Boolean],
       printLoggerState: PrintLogger.State
-  ) = {
+  ): PrintLogger = {
     val colored = config.color.getOrElse(mainInteractive)
     val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
@@ -311,7 +311,7 @@ object MillMain {
     !(whitelistMatch || extraPlugins)
   }
 
-  def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream) = {
+  def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream): Unit = {
     Seq(
       projectDir / ".config" / "mill-version",
       projectDir / ".mill-version"

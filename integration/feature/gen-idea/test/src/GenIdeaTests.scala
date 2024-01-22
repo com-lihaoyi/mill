@@ -5,10 +5,11 @@ import utest.{Tests, assert, _}
 import scala.util.Try
 import mill.integration.IntegrationTestSuite
 import GenIdeaUtils._
+import os.Path
 
 object GenIdeaTests extends IntegrationTestSuite {
 
-  override def scriptSourcePath = super.scriptSourcePath / "hello-world"
+  override def scriptSourcePath: Path = super.scriptSourcePath / "hello-world"
   private val scalaVersionLibPart = "2_12_5"
 
   def tests: Tests = Tests {

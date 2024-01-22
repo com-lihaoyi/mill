@@ -5,7 +5,7 @@ import utest._
 
 object BspInstallDebugTests extends IntegrationTestSuite {
 
-  val bsp4jVersion = sys.props.getOrElse("BSP4J_VERSION", ???)
+  val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
   // we purposely enable debugging in this simulated test env
   override val debugLog: Boolean = true
 

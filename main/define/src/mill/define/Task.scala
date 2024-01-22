@@ -46,8 +46,8 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 object Task {
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
-    def filter(f: T => Boolean) = this
-    def withFilter(f: T => Boolean) = this
+    def filter(f: T => Boolean): Task[T] = this
+    def withFilter(f: T => Boolean): Task[T] = this
     def zip[V](other: Task[V]): Task[(T, V)] = new Task.Zipped(this, other)
 
   }
@@ -64,7 +64,7 @@ object Task {
       f: (IndexedSeq[T], mill.api.Ctx) => Result[V]
   ) extends Task[V] {
     val inputs: Seq[Task[_]] = inputs0
-    def evaluate(ctx: mill.api.Ctx) = {
+    def evaluate(ctx: mill.api.Ctx): Result[V] = {
       f(
         for (i <- 0 until ctx.args.length)
           yield ctx.args(i).asInstanceOf[T],
@@ -74,12 +74,12 @@ object Task {
   }
 
   private[define] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
-    def evaluate(ctx: mill.api.Ctx) = f(ctx.arg(0))
+    def evaluate(ctx: mill.api.Ctx): Result[V] = f(ctx.arg(0))
     val inputs: Seq[Task[_]] = List(source)
   }
 
   private[define] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
-    def evaluate(ctx: mill.api.Ctx) = (ctx.arg(0), ctx.arg(1))
+    def evaluate(ctx: mill.api.Ctx): Result[(T, V)] = (ctx.arg(0), ctx.arg(1))
     val inputs: Seq[Task[_]] = List(source1, source2)
   }
 }
@@ -105,9 +105,9 @@ trait NamedTask[+T] extends Task[T] {
   }
   override def toString = ctx.segments.render
 
-  def evaluate(ctx: mill.api.Ctx) = ctx.arg[T](0)
+  def evaluate(ctx: mill.api.Ctx): Result[T] = ctx.arg[T](0)
 
-  val ctx = ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
+  val ctx: Ctx = ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs: Seq[Task[_]] = Seq(t)
 
   def readWriterOpt: Option[upickle.default.ReadWriter[_]] = None
@@ -605,7 +605,8 @@ class TargetImpl[+T](
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
   override def asTarget: Option[Target[T]] = Some(this)
-  override def readWriterOpt = Some(readWriter)
+  // FIXME: deprecated return type: Change to Option
+  override def readWriterOpt: Some[RW[_]] = Some(readWriter)
 }
 
 class PersistentImpl[+T](
@@ -624,14 +625,15 @@ class Command[+T](
     val cls: Class[_],
     val isPrivate: Option[Boolean]
 ) extends NamedTask[T] {
-  override def asCommand = Some(this)
-  override def writerOpt = Some(writer)
+  override def asCommand: Some[Command[T]] = Some(this)
+  // FIXME: deprecated return type: Change to Option
+  override def writerOpt: Some[W[_]] = Some(writer)
 }
 
 class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
     extends NamedTask[T] {
   override def flushDest = false
-  override def asWorker = Some(this)
+  override def asWorker: Some[Worker[T]] = Some(this)
 }
 
 class InputImpl[T](
@@ -640,8 +642,9 @@ class InputImpl[T](
     val writer: upickle.default.Writer[_],
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
-  override def sideHash = util.Random.nextInt()
-  override def writerOpt = Some(writer)
+  override def sideHash: Int = util.Random.nextInt()
+  // FIXME: deprecated return type: Change to Option
+  override def writerOpt: Some[W[_]] = Some(writer)
 }
 
 class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
@@ -651,7 +654,8 @@ class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Optio
       upickle.default.readwriter[Seq[PathRef]],
       isPrivate
     ) {
-  override def readWriterOpt = Some(upickle.default.readwriter[Seq[PathRef]])
+  override def readWriterOpt: Some[RW[Seq[PathRef]]] =
+    Some(upickle.default.readwriter[Seq[PathRef]])
 }
 
 class SourceImpl(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
@@ -661,5 +665,5 @@ class SourceImpl(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Bool
       upickle.default.readwriter[PathRef],
       isPrivate
     ) {
-  override def readWriterOpt = Some(upickle.default.readwriter[PathRef])
+  override def readWriterOpt: Some[RW[PathRef]] = Some(upickle.default.readwriter[PathRef])
 }

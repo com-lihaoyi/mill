@@ -1,6 +1,7 @@
 package mill.contrib.gitlab
 
 import scala.concurrent.duration._
+import requests.Session
 
 object GitlabUploader {
   type Upload = (String, Array[Byte]) => requests.Response
@@ -11,7 +12,7 @@ class GitlabUploader(
     readTimeout: Int = 5000,
     connectTimeout: Int = 5000
 ) {
-  val http = requests.Session(
+  val http: Session = requests.Session(
     readTimeout = readTimeout,
     connectTimeout = connectTimeout,
     maxRedirects = 0,

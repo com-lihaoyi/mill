@@ -221,7 +221,7 @@ trait PublishModule extends JavaModule { outer =>
 }
 
 object PublishModule extends ExternalModule {
-  val defaultGpgArgs = Seq("--batch", "--yes", "-a", "-b")
+  val defaultGpgArgs: Seq[String] = Seq("--batch", "--yes", "-a", "-b")
 
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
   object PublishData {

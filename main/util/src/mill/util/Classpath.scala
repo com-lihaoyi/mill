@@ -4,6 +4,7 @@ import java.io.File
 import java.net.URL
 
 import scala.collection.mutable
+import scala.util.matching.Regex
 
 /**
  * Loads the jars that make up the classpath of the scala-js-fiddle
@@ -11,7 +12,7 @@ import scala.collection.mutable
  * scala-compile and scalajs-tools
  */
 object Classpath {
-  val traceClasspathIssues =
+  val traceClasspathIssues: Boolean =
     sys.props
       .get("ammonite.trace-classpath")
       .exists(_.toLowerCase == "true")
@@ -60,7 +61,7 @@ object Classpath {
     files.toVector
   }
 
-  val simpleNameRegex = "[a-zA-Z0-9_]+".r
+  val simpleNameRegex: Regex = "[a-zA-Z0-9_]+".r
 
   def allJars(classloader: ClassLoader): Seq[URL] = {
     allClassloaders(classloader)
@@ -69,7 +70,7 @@ object Classpath {
       .toSeq
   }
 
-  def allClassloaders(classloader: ClassLoader) = {
+  def allClassloaders(classloader: ClassLoader): mutable.Buffer[ClassLoader] = {
     val all = mutable.Buffer.empty[ClassLoader]
     var current = classloader
     while (current != null && current != ClassLoader.getSystemClassLoader) {

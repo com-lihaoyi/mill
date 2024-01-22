@@ -3,7 +3,7 @@ package mill.integration
 import utest._
 
 object ImportRepoTests extends IntegrationTestSuite {
-  val tests = Tests {
+  val tests: Tests = Tests {
     initWorkspace()
     test("test") - {
       // Make sure, we propery parse a line:

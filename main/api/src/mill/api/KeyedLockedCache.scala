@@ -15,7 +15,7 @@ object KeyedLockedCache {
     val available = new java.util.concurrent.Semaphore(hotParallelism)
 
     // Awful asymptotic complexity, but our caches are tiny n < 10 so it doesn't matter
-    var cache = Array.fill[Option[(Long, T)]](coldCacheSize)(None)
+    var cache: Array[Option[(Long, T)]] = Array.fill[Option[(Long, T)]](coldCacheSize)(None)
 
     def withCachedValue[V](key: Long)(f: => T)(f2: T => V): V = {
       available.acquire()

@@ -8,7 +8,7 @@ object CodeSig {
       ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
       logger: Logger,
       prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
-  ) = {
+  ): CallGraphAnalysis = {
     implicit val st: SymbolTable = new SymbolTable()
 
     val localSummary = LocalSummary.apply(classFiles.iterator.map(os.read.inputStream(_)))

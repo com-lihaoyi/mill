@@ -61,8 +61,8 @@ object MainModule {
  * [[show]], [[inspect]], [[plan]], etc.
  */
 trait MainModule extends mill.define.Module {
-  protected[mill] val watchedValues = mutable.Buffer.empty[Watchable]
-  protected[mill] val evalWatchedValues = mutable.Buffer.empty[Watchable]
+  protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
+  protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
 
   object interp {
 

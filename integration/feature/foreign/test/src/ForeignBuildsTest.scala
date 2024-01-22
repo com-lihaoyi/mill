@@ -3,11 +3,12 @@ package local
 
 import utest._
 import utest.framework.TestPath
+import os.SubPath
 
 object ForeignBuildsTest extends IntegrationTestSuite {
-  override def buildPath = os.sub / "project" / "build.sc"
+  override def buildPath: SubPath = os.sub / "project" / "build.sc"
 
-  val tests = Tests {
+  val tests: Tests = Tests {
     initWorkspace()
     def checkTarget()(implicit testPath: TestPath): Unit = assert(eval(testPath.value.last))
     "checkProjectPaths" - checkTarget()

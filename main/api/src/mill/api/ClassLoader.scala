@@ -13,7 +13,7 @@ import scala.util.Try
  */
 object ClassLoader {
 
-  def java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
+  def java9OrAbove: Boolean = !System.getProperty("java.specification.version").startsWith("1.")
 
   def create(
       urls: Seq[URL],

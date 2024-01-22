@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object WatchSourceInputTests extends IntegrationTestSuite {
 
   val maxDuration = 60000
-  val tests = Tests {
+  val tests: Tests = Tests {
     val wsRoot = initWorkspace()
 
     def awaitCompletionMarker(name: String) = {

@@ -6,6 +6,7 @@ import coursier.core.Dependency
 import mill.scalalib.api.ZincWorkerUtil
 
 import scala.annotation.unused
+import coursier.core.Configuration
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
@@ -15,13 +16,13 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
     "Dependency coordinates must not contain `/`s"
   )
 
-  def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
+  def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String): String = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
     dep.module.name.value + suffix
   }
   def configure(attributes: coursier.Attributes): Dep = copy(dep = dep.withAttributes(attributes))
   def forceVersion(): Dep = copy(force = true)
-  def exclude(exclusions: (String, String)*) = copy(
+  def exclude(exclusions: (String, String)*): Dep = copy(
     dep = dep.withExclusions(
       dep.exclusions() ++
         exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
@@ -29,7 +30,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   )
   def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*"): _*)
   def excludeName(names: String*): Dep = exclude(names.map("*" -> _): _*)
-  def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String) =
+  def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String): Dependency =
     dep.withModule(
       dep.module.withName(
         coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
@@ -100,7 +101,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
 
 object Dep {
 
-  val DefaultConfiguration = coursier.core.Configuration("default(compile)")
+  val DefaultConfiguration: Configuration = coursier.core.Configuration("default(compile)")
 
   implicit def parse(signature: String): Dep = {
     val parts = signature.split(';')
@@ -201,7 +202,7 @@ case class BoundDep(
 
   def toDep: Dep = Dep(dep = dep, cross = CrossVersion.empty(false), force = force)
 
-  def exclude(exclusions: (String, String)*) = copy(
+  def exclude(exclusions: (String, String)*): BoundDep = copy(
     dep = dep.withExclusions(
       dep.exclusions() ++
         exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }

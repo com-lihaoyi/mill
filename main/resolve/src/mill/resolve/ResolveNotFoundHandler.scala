@@ -34,7 +34,11 @@ private object ResolveNotFoundHandler {
 
   def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 
-  def hintList(revSelectorsSoFar: Segments, lastSegment: Segment, allPossibleNames: Set[String]) = {
+  def hintList(
+      revSelectorsSoFar: Segments,
+      lastSegment: Segment,
+      allPossibleNames: Set[String]
+  ): String = {
     val search = revSelectorsSoFar.render
 
     val lastSearchOpt = for {
@@ -54,7 +58,7 @@ private object ResolveNotFoundHandler {
       revSelectorsSoFar: Segments,
       lastSegment: Segment,
       allPossibleNames: Set[String]
-  ) = {
+  ): String = {
     hintList(revSelectorsSoFar ++ Segment.Label("_"), lastSegment, allPossibleNames)
   }
 
@@ -72,7 +76,7 @@ private object ResolveNotFoundHandler {
       prefixSegments: Segments,
       fullSegments: Segments,
       allPossibleNames: Set[String]
-  ) = {
+  ): String = {
     val suggestion = findMostSimilar(given, possibleMembers) match {
       case None => hintListLabel(prefixSegments, fullSegments.value.last, allPossibleNames)
       case Some(similar) =>
@@ -92,7 +96,7 @@ private object ResolveNotFoundHandler {
       prefixSegments: Segments,
       fullSegments: Segments,
       allPossibleNames: Set[String]
-  ) = {
+  ): String = {
 
     val suggestion = findMostSimilar(
       givenKeys.mkString(","),

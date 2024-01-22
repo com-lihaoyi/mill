@@ -3,7 +3,7 @@ package mill.integration
 import utest._
 
 object PrivateMethodsTests extends IntegrationTestSuite {
-  val tests = Tests {
+  val tests: Tests = Tests {
     initWorkspace()
     "simple" - {
       // Simple public target depending on private target works

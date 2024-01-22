@@ -18,7 +18,7 @@ case class PathRef private (
     revalidate: PathRef.Revalidate
 ) {
 
-  def recomputeSig() = PathRef.apply(path, quick).sig
+  def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig
 
   /* Hide case class specific copy method. */
@@ -195,7 +195,9 @@ object PathRef {
     }
   )
 
-  /* Hide case class generated unapply method. */
-  private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] =
+  // scalafix:off; we want to hide the unapply method
+  private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] = {
     Some((pathRef.path, pathRef.quick, pathRef.sig, pathRef.revalidate))
+  }
+  // scalalfix:on
 }

@@ -102,7 +102,7 @@ object Result {
 
     override def hashCode(): Int = value.hashCode()
 
-    override def equals(obj: scala.Any) = obj match {
+    override def equals(obj: scala.Any): Boolean = obj match {
       case o: OuterStack => value.equals(o.value)
       case _ => false
     }

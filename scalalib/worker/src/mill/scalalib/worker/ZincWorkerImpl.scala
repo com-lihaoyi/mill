@@ -113,7 +113,8 @@ class ZincWorkerImpl(
     javac.JavaTools(javaCompiler, javaDoc)
   }
 
-  val compilerBridgeLocks = collection.mutable.Map.empty[String, Object]
+  val compilerBridgeLocks: mutable.Map[String, Object] =
+    collection.mutable.Map.empty[String, Object]
 
   def docJar(
       scalaVersion: String,
@@ -351,7 +352,7 @@ class ZincWorkerImpl(
 
   def getCachedClassLoader(compilersSig: Long, combinedCompilerJars: Array[java.io.File])(implicit
       ctx: ZincWorkerApi.Ctx
-  ) = {
+  ): ClassLoader = {
     classloaderCache.synchronized {
       classloaderCache.get(compilersSig) match {
         case Some(SoftReference(cl)) => cl
