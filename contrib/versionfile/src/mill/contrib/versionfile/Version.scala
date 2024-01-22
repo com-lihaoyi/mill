@@ -1,5 +1,6 @@
 package mill.contrib.versionfile
 
+import scala.util.matching.Regex
 sealed trait Version {
 
   import Version._
@@ -44,7 +45,7 @@ object Bump {
   val minor = "minor"
   val patch = "patch"
 
-  val values = Seq(major, minor, patch)
+  val values: Seq[String] = Seq(major, minor, patch)
 }
 
 object Version {
@@ -60,8 +61,8 @@ object Version {
   case class Release(major: Int, minor: Int, patch: Int) extends Version
   case class Snapshot(major: Int, minor: Int, patch: Int) extends Version
 
-  val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
-  val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.(\d+)-SNAPSHOT""".r
+  val ReleaseVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)""".r
+  val MinorSnapshotVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)-SNAPSHOT""".r
 
   import upickle.default._
 

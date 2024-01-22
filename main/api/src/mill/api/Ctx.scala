@@ -2,7 +2,6 @@ package mill.api
 
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
-import os.Path
 
 /**
  * Provides access to various resources in the context of a currently execution Target.
@@ -98,7 +97,7 @@ object Ctx {
     def workspace: os.Path
   }
 
-  def defaultHome = os.home / ".mill" / "ammonite"
+  def defaultHome: os.Path = os.home / ".mill" / "ammonite"
 
   /**
    * Marker annotation.
@@ -126,7 +125,7 @@ class Ctx(
     with Ctx.Env
     with Ctx.Workspace {
 
-  def dest: Path = dest0()
+  def dest: os.Path = dest0()
   def arg[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
     else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")

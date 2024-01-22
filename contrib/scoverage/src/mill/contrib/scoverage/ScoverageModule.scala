@@ -65,8 +65,6 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
   private def isScala3: Task[Boolean] = T.task { ZincWorkerUtil.isScala3(outer.scalaVersion()) }
 
-  private def isScala2: Task[Boolean] = T.task { !isScala3() }
-
   def scoverageRuntimeDeps: T[Agg[Dep]] = T {
     if (isScala3()) {
       Agg.empty

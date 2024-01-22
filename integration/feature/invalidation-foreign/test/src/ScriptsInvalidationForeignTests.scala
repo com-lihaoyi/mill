@@ -1,18 +1,19 @@
 package mill.integration
 
 import utest._
+import os.SubPath
 
 object ScriptsInvalidationForeignTests extends IntegrationTestSuite {
 
-  override def buildPath = os.sub / "foreignA" / "build.sc"
+  override def buildPath: SubPath = os.sub / "foreignA" / "build.sc"
 
-  def runTask(task: String) = {
+  def runTask(task: String): Vector[String] = {
     val res = evalStdout(task)
     assert(res.isSuccess)
     res.out.linesIterator.map(_.trim).toVector
   }
 
-  val tests = Tests {
+  val tests: Tests = Tests {
     test("should handle foreign modules") {
       test("first run") {
         initWorkspace()

@@ -8,6 +8,7 @@ import scala.concurrent.duration._
 import mill.main.BuildInfo
 import requests.BaseSession
 import ujson.ParseException
+import requests.Session
 
 class SonatypeHttpApi(
     uri: String,
@@ -15,7 +16,7 @@ class SonatypeHttpApi(
     readTimeout: Int,
     connectTimeout: Int
 ) {
-  val http = requests.Session(
+  val http: Session = requests.Session(
     readTimeout = readTimeout,
     connectTimeout = connectTimeout,
     maxRedirects = 0,

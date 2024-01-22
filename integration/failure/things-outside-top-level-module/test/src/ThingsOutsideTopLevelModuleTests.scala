@@ -3,7 +3,7 @@ package mill.integration
 import utest._
 
 object ThingsOutsideTopLevelModuleTests extends IntegrationTestSuite {
-  val tests = Tests {
+  val tests: Tests = Tests {
     initWorkspace()
 
     test("success") {

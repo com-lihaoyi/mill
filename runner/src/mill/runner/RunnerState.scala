@@ -48,10 +48,10 @@ object RunnerState {
     // Random ID of the URLClassLoader to ensure it doesn't
     // duplicate (unlike System.identityHashCode), allowing tests to compare
     // hashcodes to verify whether the classloader has been re-created
-    val identity = scala.util.Random.nextInt()
+    val identity: Int = scala.util.Random.nextInt()
   }
 
-  def empty = RunnerState(None, Nil, None)
+  def empty: RunnerState = RunnerState(None, Nil, None)
 
   @internal
   case class Frame(
@@ -102,7 +102,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty = Frame(Map.empty, Nil, Nil, Map.empty, Map.empty, None, Nil, null)
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, Map.empty, None, Nil, null)
   }
 
 }

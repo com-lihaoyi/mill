@@ -41,7 +41,7 @@ import mill.util.Util
  * to each one.
  */
 object ExampleTestSuite extends IntegrationTestSuite {
-  val tests = Tests {
+  val tests: Tests = Tests {
     val workspaceRoot = initWorkspace()
 
     test("exampleUsage") {
@@ -60,7 +60,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
     }
   }
 
-  def processCommandBlock(workspaceRoot: os.Path, commandBlock: String) = {
+  def processCommandBlock(workspaceRoot: os.Path, commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
     val expectedSnippets = commandBlockLines.tail

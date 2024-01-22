@@ -94,7 +94,7 @@ brew install mill
 
 === Arch Linux
 
-Arch Linux has a https://www.archlinux.org/packages/community/any/mill/[Community package for mill]:
+Arch Linux has an https://archlinux.org/packages/extra/any/mill/[Extra package for mill]:
 
 [source,bash]
 ----

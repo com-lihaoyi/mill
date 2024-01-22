@@ -211,7 +211,7 @@ object Cross {
       c.Expr[Factory[T]](tree)
     }
 
-    def abortOldStyleClass(c: blackbox.Context)(tpe: c.Type) = {
+    def abortOldStyleClass(c: blackbox.Context)(tpe: c.Type): Nothing = {
       val primaryConstructorArgs =
         tpe.typeSymbol.asClass.primaryConstructor.typeSignature.paramLists.head
 

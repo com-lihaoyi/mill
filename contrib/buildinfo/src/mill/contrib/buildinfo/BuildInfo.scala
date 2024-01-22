@@ -1,6 +1,7 @@
 package mill.contrib.buildinfo
 
-import mill.{PathRef, T}
+import mill.T
+import mill.api.PathRef
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalajslib.ScalaJSModule
@@ -34,7 +35,7 @@ trait BuildInfo extends JavaModule {
    */
   def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
 
-  def resources =
+  def resources: T[Seq[PathRef]] =
     if (buildInfoStaticCompiled) super.resources
     else T.sources { super.resources() ++ Seq(buildInfoResources()) }
 
@@ -219,7 +220,7 @@ object BuildInfo {
       """.stripMargin.trim
   }
 
-  def commentStr(v: Value) = {
+  def commentStr(v: Value): String = {
     if (v.comment.isEmpty) ""
     else {
       val lines = v.comment.linesIterator.toVector

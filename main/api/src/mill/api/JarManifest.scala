@@ -46,9 +46,9 @@ final class JarManifest private (
 
 object JarManifest {
 
-  final val Empty = JarManifest()
+  final val Empty: JarManifest = JarManifest()
 
-  final val MillDefault = JarManifest(
+  final val MillDefault: JarManifest = JarManifest(
     main = Map[String, String](
       java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
       "Created-By" -> s"Mill ${BuildInfo.millVersion}",

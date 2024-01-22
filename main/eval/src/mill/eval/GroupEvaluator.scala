@@ -10,8 +10,8 @@ import mill.util._
 import java.io.PrintStream
 import scala.collection.mutable
 import scala.reflect.NameTransformer.encode
-import scala.util.DynamicVariable
 import scala.util.control.NonFatal
+import scala.util.{DynamicVariable, Using}
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -33,13 +33,39 @@ private[mill] trait GroupEvaluator {
   def methodCodeHashSignatures: Map[String, Int]
   def disableCallgraphInvalidation: Boolean
 
-  lazy val constructorHashSignatures = methodCodeHashSignatures
+  lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] = methodCodeHashSignatures
     .toSeq
     .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
     .groupMap(_._1)(t => (t._2, t._3))
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
+
+  /**
+   * Synchronize evaluations of the same terminal task.
+   * This isn't necessarily needed for normal Mill executions,
+   * but in an BSP context, where multiple requests where handled concurrently in the same Mill instance,
+   * evaluating the same task concurrently  can happen.
+   *
+   * We don't synchronize multiple Mill-instances (e.g. run in two shells)
+   * or multiple evaluator-instances (which should have different `out`-dirs anyway.
+   */
+  private object synchronizedEval {
+    private val keyLock = new KeyLock[Segments]()
+    def apply[T](terminal: Terminal, onCollision: Option[() => Unit] = None)(f: => T): T =
+      terminal match {
+        case t: Terminal.Task[_] =>
+          // A un-labelled terminal task won't be synchronized
+          // as there is no filesystem cache region assigned to it
+          f
+        case Terminal.Labelled(_, segments) =>
+          // A labelled terminal needs synchronization due to
+          // a shared cache region in the filesystem
+          Using.resource(keyLock.lock(segments, onCollision)) { _ =>
+            f
+          }
+      }
+  }
 
   // those result which are inputs but not contained in this terminal group
   def evaluateGroupCached(
@@ -50,7 +76,11 @@ private[mill] trait GroupEvaluator {
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger
-  ): GroupEvaluator.Results = {
+  ): GroupEvaluator.Results = synchronizedEval(
+    terminal,
+    onCollision =
+      Some(() => logger.debug(s"Waiting for concurrently executing task ${terminal.render}"))
+  ) {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
@@ -381,7 +411,7 @@ private[mill] trait GroupEvaluator {
   // We do not want to do this for normal targets, because those are always
   // read from disk and re-instantiated every time, so whether the
   // classloader/class is the same or different doesn't matter.
-  def workerCacheHash(inputHash: Int) = inputHash + classLoaderIdentityHash
+  def workerCacheHash(inputHash: Int): Int = inputHash + classLoaderIdentityHash
 
   private def handleTaskResult(
       v: Val,

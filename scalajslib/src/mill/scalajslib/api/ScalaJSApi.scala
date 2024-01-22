@@ -252,6 +252,7 @@ object OutputPatterns {
     )
   }
 
+  // scalafix:off; we want to hide the generic apply method
   private def apply(
       jsFile: String,
       sourceMapFile: String,
@@ -265,6 +266,7 @@ object OutputPatterns {
     jsFileURI,
     sourceMapURI
   )
+  // scalalfix:on
 
   implicit val rw: RW[OutputPatterns] = macroRW[OutputPatterns]
 }

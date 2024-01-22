@@ -144,7 +144,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
     Result.Success(sources.toMap)
   }
 
-  protected def name(m: JavaModule) = ModuleUtils.moduleDisplayName(m) match {
+  protected def name(m: JavaModule): String = ModuleUtils.moduleDisplayName(m) match {
     case "" => "root-module"
     case n => n
   }
@@ -433,5 +433,5 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
     }
   }
 
-  lazy val millDiscover = Discover[this.type]
+  lazy val millDiscover: Discover[this.type] = Discover[this.type]
 }

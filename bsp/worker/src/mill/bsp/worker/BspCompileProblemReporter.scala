@@ -5,6 +5,7 @@ import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.{CompileProblemReporter, Problem}
 
 import scala.collection.mutable
+import scala.util.chaining.scalaUtilChainingOps
 
 /**
  * Specialized reporter that sends compilation diagnostics
@@ -52,20 +53,33 @@ private class BspCompileProblemReporter(
   // TODO: document that if the problem is a general information without a text document
   // associated to it, then the document field of the diagnostic is set to the uri of the target
   private def reportProblem(problem: Problem): Unit = {
-    val diagnostic = toDiagnostic(problem)
     val sourceFile = problem.position.sourceFile
-    val textDocument = new TextDocumentIdentifier(
-      sourceFile match {
-        case None => targetId.getUri
-        case Some(f) =>
+    sourceFile match {
+      case None =>
+        // It seems, this isn't an actionable compile problem,
+        // instead of sending a `build/publishDiagnostics` we send a `build/logMessage`.
+        // see https://github.com/com-lihaoyi/mill/issues/2926
+        val messagesType = problem.severity match {
+          case mill.api.Error => MessageType.ERROR
+          case mill.api.Warn => MessageType.WARNING
+          case mill.api.Info => MessageType.INFO
+        }
+        val msgParam = new LogMessageParams(messagesType, problem.message).tap { it =>
+          it.setTask(taskId)
+        }
+        client.onBuildLogMessage(msgParam)
+
+      case Some(f) =>
+        val diagnostic = toDiagnostic(problem)
+        val textDocument = new TextDocumentIdentifier(
           // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
           f.toPath.toUri.toString
-      }
-    )
-    diagnostics.add(textDocument, diagnostic)
-    val diagnosticList = new java.util.LinkedList[Diagnostic]()
-    diagnosticList.add(diagnostic)
-    sendBuildPublishDiagnostics(textDocument, diagnosticList, reset = false)
+        )
+        diagnostics.add(textDocument, diagnostic)
+        val diagnosticList = new java.util.LinkedList[Diagnostic]()
+        diagnosticList.add(diagnostic)
+        sendBuildPublishDiagnostics(textDocument, diagnosticList, reset = false)
+    }
   }
 
   // Computes the diagnostic related to the given Problem
@@ -83,24 +97,28 @@ private class BspCompileProblemReporter(
       pos.endLine.map(correctLine).orElse(line).getOrElse[Int](start.getLine.intValue()),
       pos.endColumn.orElse(pos.pointer).getOrElse[Int](start.getCharacter.intValue())
     )
-    val diagnostic = new bsp.Diagnostic(new bsp.Range(start, end), problem.message)
-    diagnostic.setSource("mill")
-    diagnostic.setSeverity(
-      problem.severity match {
-        case mill.api.Info => bsp.DiagnosticSeverity.INFORMATION
-        case mill.api.Error => bsp.DiagnosticSeverity.ERROR
-        case mill.api.Warn => bsp.DiagnosticSeverity.WARNING
+    new bsp.Diagnostic(new bsp.Range(start, end), problem.message).tap { d =>
+      // TODO: review whether this is a proper source or if it should better
+      // something like "scala compiler" or "foo.bar.compile"
+      d.setSource("mill")
+      d.setSeverity(
+        problem.severity match {
+          case mill.api.Info => bsp.DiagnosticSeverity.INFORMATION
+          case mill.api.Error => bsp.DiagnosticSeverity.ERROR
+          case mill.api.Warn => bsp.DiagnosticSeverity.WARNING
+        }
+      )
+      problem.diagnosticCode.foreach { existingCode =>
+        d.setCode(existingCode.code)
       }
-    )
-    problem.diagnosticCode.foreach { existingCode => diagnostic.setCode(existingCode.code) }
-    diagnostic
+    }
   }
 
   private def sendBuildPublishDiagnostics(
       textDocument: TextDocumentIdentifier,
       diagnosticList: java.util.List[Diagnostic],
       reset: Boolean
-  ) = {
+  ): Unit = {
     val params = new bsp.PublishDiagnosticsParams(
       textDocument,
       targetId,
@@ -127,26 +145,26 @@ private class BspCompileProblemReporter(
   }
 
   override def start(): Unit = {
-    val taskStartParams = new TaskStartParams(taskId)
-    taskStartParams.setEventTime(System.currentTimeMillis())
-    taskStartParams.setData(new CompileTask(targetId))
-    taskStartParams.setDataKind(TaskStartDataKind.COMPILE_TASK)
-    taskStartParams.setMessage(s"Compiling target ${targetDisplayName}")
+    val taskStartParams = new TaskStartParams(taskId).tap { it =>
+      it.setEventTime(System.currentTimeMillis())
+      it.setData(new CompileTask(targetId))
+      it.setDataKind(TaskStartDataKind.COMPILE_TASK)
+      it.setMessage(s"Compiling target ${targetDisplayName}")
+    }
     client.onBuildTaskStart(taskStartParams)
   }
 
   override def finish(): Unit = {
     val taskFinishParams =
-      new TaskFinishParams(taskId, if (errors > 0) StatusCode.ERROR else StatusCode.OK)
-    taskFinishParams.setEventTime(System.currentTimeMillis())
-    taskFinishParams.setMessage(s"Compiled ${targetDisplayName}")
-    taskFinishParams.setDataKind(TaskFinishDataKind.COMPILE_REPORT)
-    val compileReport = new CompileReport(targetId, errors, warnings)
-    compilationOriginId match {
-      case Some(id) => compileReport.setOriginId(id)
-      case None =>
-    }
-    taskFinishParams.setData(compileReport)
+      new TaskFinishParams(taskId, if (errors > 0) StatusCode.ERROR else StatusCode.OK).tap { it =>
+        it.setEventTime(System.currentTimeMillis())
+        it.setMessage(s"Compiled ${targetDisplayName}")
+        it.setDataKind(TaskFinishDataKind.COMPILE_REPORT)
+        val compileReport = new CompileReport(targetId, errors, warnings).tap { it =>
+          compilationOriginId.foreach(id => it.setOriginId(id))
+        }
+        it.setData(compileReport)
+      }
     client.onBuildTaskFinish(taskFinishParams)
   }
 

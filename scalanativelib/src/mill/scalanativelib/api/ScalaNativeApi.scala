@@ -4,7 +4,7 @@ import upickle.default._
 
 sealed abstract class LTO(val value: String)
 object LTO {
-  val values = Seq(None, Thin, Full)
+  val values: Seq[LTO] = Seq(None, Thin, Full)
 
   case object None extends LTO("none")
   case object Thin extends LTO("thin")
@@ -18,7 +18,7 @@ object LTO {
 
 sealed abstract class ReleaseMode(val value: String)
 object ReleaseMode {
-  val values = Seq(Debug, ReleaseFast, ReleaseFull, ReleaseSize)
+  val values: Seq[ReleaseMode] = Seq(Debug, ReleaseFast, ReleaseFull, ReleaseSize)
 
   case object Debug extends ReleaseMode("debug")
   case object ReleaseFast extends ReleaseMode("release-fast")

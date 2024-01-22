@@ -4,10 +4,11 @@ import mill.integration.IntegrationTestSuite
 import utest._
 
 import scala.util.Try
+import os.Path
 
 object GenIdeaExtendedTests extends IntegrationTestSuite {
 
-  override def scriptSourcePath = super.scriptSourcePath / "extended"
+  override def scriptSourcePath: Path = super.scriptSourcePath / "extended"
 
   private val scalaVersionLibPart = "2_13_6"
 

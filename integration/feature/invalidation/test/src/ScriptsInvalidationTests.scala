@@ -4,13 +4,13 @@ import utest._
 
 object ScriptsInvalidationTests extends IntegrationTestSuite {
 
-  def runTask(task: String) = {
+  def runTask(task: String): Vector[String] = {
     val res = evalStdout(task)
     assert(res.isSuccess)
     res.out.linesIterator.map(_.trim).toVector
   }
 
-  val tests = Tests {
+  val tests: Tests = Tests {
     test("should not invalidate tasks in different untouched sc files") {
       test("first run") {
         initWorkspace()

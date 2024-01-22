@@ -1,6 +1,7 @@
 package mill.eval
 
 import scala.concurrent.ExecutionContext
+import java.util.concurrent.ExecutorService
 
 private object ExecutionContexts {
 
@@ -20,7 +21,7 @@ private object ExecutionContexts {
    * and AutoCloseable support
    */
   class ThreadPool(threadCount: Int) extends ExecutionContext with AutoCloseable {
-    val threadPool = java.util.concurrent.Executors.newFixedThreadPool(threadCount)
+    val threadPool: ExecutorService = java.util.concurrent.Executors.newFixedThreadPool(threadCount)
     def execute(runnable: Runnable): Unit = threadPool.submit(runnable)
     def reportFailure(t: Throwable): Unit = {}
     def close(): Unit = threadPool.shutdown()

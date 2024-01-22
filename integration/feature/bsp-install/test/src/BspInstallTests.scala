@@ -4,7 +4,7 @@ import mill.bsp.Constants
 import utest._
 
 object BspInstallTests extends IntegrationTestSuite {
-  val bsp4jVersion = sys.props.getOrElse("BSP4J_VERSION", ???)
+  val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
   def tests: Tests = Tests {
     test("BSP install") {

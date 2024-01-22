@@ -95,7 +95,7 @@ class Server[T](
 ) {
 
   val originalStdout = System.out
-  def run() = {
+  def run(): Unit = {
     val initialSystemProperties = sys.props.toMap
     Server.tryLockBlock(locks.processLock) {
       var running = true
@@ -131,7 +131,7 @@ class Server[T](
     }.getOrElse(throw new Exception("PID already present"))
   }
 
-  def proxyInputStreamThroughPumper(in: InputStream) = {
+  def proxyInputStreamThroughPumper(in: InputStream): PipedInputStream = {
     val pipedInput = new PipedInputStream()
     val pipedOutput = new PipedOutputStream()
     pipedOutput.connect(pipedInput)
@@ -141,7 +141,7 @@ class Server[T](
     pumperThread.start()
     pipedInput
   }
-  def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]) = {
+  def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
 
     val currentOutErr = clientSocket.getOutputStream
     val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)

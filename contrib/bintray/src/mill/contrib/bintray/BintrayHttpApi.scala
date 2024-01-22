@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Base64
 
 import scala.concurrent.duration._
+import requests.Session
 
 class BintrayHttpApi(
     owner: String,
@@ -16,7 +17,7 @@ class BintrayHttpApi(
     connectTimeout: Int,
     log: Logger
 ) {
-  val http = requests.Session(
+  val http: Session = requests.Session(
     readTimeout = readTimeout,
     connectTimeout = connectTimeout,
     maxRedirects = 0,
@@ -25,7 +26,7 @@ class BintrayHttpApi(
 
   private val uploadTimeout = 5.minutes.toMillis.toInt
 
-  def now = ZonedDateTime.now(ZoneOffset.UTC)
+  def now: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
 
   // https://www.jfrog.com/confluence/display/BT/Bintray+REST+API#BintrayRESTAPI-UploadContent
   def upload(
@@ -90,9 +91,10 @@ class BintrayHttpApi(
 
   object Paths {
     val root = "https://api.bintray.com"
-    def upload(pkg: String, version: String) = s"$root/content/$owner/$repo/$pkg/$version"
-    def publish(pkg: String, version: String) = s"$root/content/$owner/$repo/$pkg/$version/publish"
-    def version(pkg: String) = s"$root/packages/$owner/$repo/$pkg/versions"
+    def upload(pkg: String, version: String): String = s"$root/content/$owner/$repo/$pkg/$version"
+    def publish(pkg: String, version: String): String =
+      s"$root/content/$owner/$repo/$pkg/$version/publish"
+    def version(pkg: String): String = s"$root/packages/$owner/$repo/$pkg/versions"
   }
 
   object ContentTypes {
@@ -102,7 +104,7 @@ class BintrayHttpApi(
   }
 
   object Auth {
-    val basic = s"Basic ${base64(credentials)}"
+    val basic: String = s"Basic ${base64(credentials)}"
   }
 
   private def base64(s: String) =

@@ -1,5 +1,4 @@
 // plugins and dependencies
-
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
@@ -7,7 +6,8 @@ import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`com.github.lolgab::mill-mima::0.1.0`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
-import $ivy.`com.goyeau::mill-scalafix::0.3.1`
+import $ivy.`com.goyeau::mill-scalafix::0.3.2`
+
 
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
@@ -19,6 +19,7 @@ import mill.api.JarManifest
 import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
+import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.resolve.SelectMode
@@ -68,7 +69,7 @@ object Deps {
   val testScala33Version = "3.3.1"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.14.0"
+    val scalaJsVersion = "1.15.0"
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
@@ -132,7 +133,7 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jline = ivy"org.jline:jline:3.24.1"
+  val jline = ivy"org.jline:jline:3.25.0"
   val jnaVersion = "5.14.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
@@ -170,12 +171,12 @@ object Deps {
   val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.8.15"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.8"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
-  val upickle = ivy"com.lihaoyi::upickle:3.1.3"
+  val upickle = ivy"com.lihaoyi::upickle:3.1.4"
   val utest = ivy"com.lihaoyi::utest:0.8.2"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
   val zinc = ivy"org.scala-sbt::zinc:1.9.6"
   // keep in sync with doc/antora/antory.yml
-  val bsp4j = ivy"ch.epfl.scala:bsp4j:2.1.0-M7"
+  val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M1"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.9.0"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
@@ -320,10 +321,17 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule{ outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
+  def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def scalacOptions =
-    super.scalacOptions() ++ Seq("-deprecation", "-P:acyclic:force", "-feature", "-Xlint:unused", "-Xlint:adapted-args")
+    super.scalacOptions() ++ Seq(
+      "-deprecation",
+      "-P:acyclic:force",
+      "-feature",
+      "-Xlint:unused",
+      "-Xlint:adapted-args"
+    )
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
   def testModuleDeps: Seq[JavaModule] =
@@ -824,7 +832,7 @@ object contrib extends Module {
     // Worker for Scoverage 1.x
     object worker extends MillPublishScalaModule {
       // scoverage is on an old Scala version which doesnt support scalafix
-      def fix(args: String*): Command[Unit] = T.command{}
+      def fix(args: String*): Command[Unit] = T.command {}
       def compileModuleDeps = Seq(main.api)
       def moduleDeps = Seq(scoverage.api)
       def testDepPaths = T { Seq(compile().classes) }
@@ -1050,7 +1058,7 @@ object example extends MillScalaModule {
 
   trait ExampleCrossModule extends IntegrationTestCrossModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
-    def fix(args: String*): Command[Unit] = T.command{}
+    def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
@@ -1309,7 +1317,7 @@ object dist extends MillPublishJavaModule {
 
 object dev extends MillPublishScalaModule {
   // disable scalafix here because it crashes when a module has no sources
-  def fix(args: String*): Command[Unit] = T.command{}
+  def fix(args: String*): Command[Unit] = T.command {}
   def moduleDeps = Seq(runner, idea)
 
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(

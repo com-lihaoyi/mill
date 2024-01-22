@@ -18,25 +18,25 @@ class MultiLogger(
     inStream0
   )
 
-  def info(s: String) = {
+  def info(s: String): Unit = {
     logger1.info(s)
     logger2.info(s)
   }
-  def error(s: String) = {
+  def error(s: String): Unit = {
     logger1.error(s)
     logger2.error(s)
   }
-  def ticker(s: String) = {
+  def ticker(s: String): Unit = {
     logger1.ticker(s)
     logger2.ticker(s)
   }
 
-  def debug(s: String) = {
+  def debug(s: String): Unit = {
     logger1.debug(s)
     logger2.debug(s)
   }
 
-  override def close() = {
+  override def close(): Unit = {
     logger1.close()
     logger2.close()
   }

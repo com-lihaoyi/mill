@@ -1,4 +1,5 @@
 package mill.runner
+
 import mill.util.{ColorLogger, PrefixLogger, Watchable}
 import mill.main.BuildInfo
 import mill.api.{PathRef, Val, internal}
@@ -41,10 +42,10 @@ class MillBuildBootstrap(
 ) {
   import MillBuildBootstrap._
 
-  val millBootClasspath = prepareMillBootClasspath(projectRoot / "out")
-  val millBootClasspathPathRefs = millBootClasspath.map(PathRef(_, quick = true))
+  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / "out")
+  val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
-  def evaluate(): Watching.Result[RunnerState] = {
+  def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
     val runnerState = evaluateRec(0)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
@@ -69,7 +70,7 @@ class MillBuildBootstrap(
 
     val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
-    val nestedState =
+    val nestedState: RunnerState =
       if (depth == 0) {
         // On this level we typically want assume a Mill project, which means we want to require an existing `build.sc`.
         // Unfortunately, some targets also make sense without a `build.sc`, e.g. the `init` command.
@@ -101,8 +102,7 @@ class MillBuildBootstrap(
             new MillBuildRootModule.BootstrapModule(
               projectRoot,
               recRoot(projectRoot, depth),
-              millBootClasspath,
-              imports.collect { case s"ivy:$rest" => rest }
+              millBootClasspath
             )(
               mill.main.RootModule.Info(
                 recRoot(projectRoot, depth),
@@ -421,7 +421,11 @@ object MillBuildBootstrap {
     getChildRootModule(rootModule0, depth, projectRoot)
   }
 
-  def getChildRootModule(rootModule0: RootModule, depth: Int, projectRoot: os.Path) = {
+  def getChildRootModule(
+      rootModule0: RootModule,
+      depth: Int,
+      projectRoot: os.Path
+  ): Either[String, RootModule] = {
 
     val childRootModules: Seq[RootModule] = rootModule0
       .millInternal
@@ -462,4 +466,5 @@ object MillBuildBootstrap {
   def recOut(projectRoot: os.Path, depth: Int): os.Path = {
     projectRoot / "out" / Seq.fill(depth)("mill-build")
   }
+
 }
