@@ -13,8 +13,10 @@ object EvaluatorPathsTests extends TestSuite {
           "LPT¹" -> "LPT¹~",
           // a unsupported character under Windows
           "a:b" -> "a$colonb",
-          // do not collide with out applied `$`-masking charcter
-          "a$colonb" -> "a$$colonb"
+          // do not collide with the applied `$`-masking character
+          "a$colonb" -> "a$$colonb",
+          // replace not just the first $
+          "a$$b" -> "a$$$$b"
         )
         val noReplace = Seq(
           "con10.json"
