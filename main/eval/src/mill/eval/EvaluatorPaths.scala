@@ -53,6 +53,8 @@ object EvaluatorPaths {
   private val Colon = "[:]".r
   // Dollar sign `$` is our masking-character
   private val Dollar = "[$]".r
+  // Forward-slashed are reserved for directory delimiters
+  private val Slash = "/".r
 
   private val steps: Seq[String => String] = Seq(
     // Step 1: mask all existing dollar signs, so we can use the dollar as masking character
@@ -63,7 +65,9 @@ object EvaluatorPaths {
       case s => s
     },
     // Step 3: Replace colon (:) with $colon
-    s => Colon.replaceAllIn(s, Matcher.quoteReplacement("$colon"))
+    s => Colon.replaceAllIn(s, Matcher.quoteReplacement("$colon")),
+    // Step 4: Replace slash (/) with $slash
+    s => Slash.replaceAllIn(s, Matcher.quoteReplacement("$slash"))
   )
 
   def sanitizePathSegment(segment: String): os.PathChunk = {
