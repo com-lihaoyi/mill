@@ -218,9 +218,25 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   /** Adds the Scala.js Library as mandatory dependency. */
   override def mandatoryIvyDeps = T {
-    super.mandatoryIvyDeps() ++ Seq(
-      ivy"org.scala-js::scalajs-library:${scalaJSVersion()}".withDottyCompat(scalaVersion())
-    )
+    val prev = super.mandatoryIvyDeps()
+    val scalaVer = scalaVersion()
+    val scalaJSVer = scalaJSVersion()
+
+    val scalaJSLibrary =
+      ivy"org.scala-js::scalajs-library:$scalaJSVer".withDottyCompat(scalaVer)
+
+    /* For Scala 2.x and Scala.js >= 1.15.0, explicitly add scalajs-scalalib,
+     * in order to support forward binary incompatible changesin the standard library.
+     */
+    if (
+      scalaVer.startsWith("2.") && scalaJSVer.startsWith("1.")
+      && scalaJSVer.drop(2).takeWhile(_.isDigit).toInt >= 15
+    ) {
+      val scalaJSScalalib = ivy"org.scala-js::scalajs-scalalib:$scalaVer+$scalaJSVer"
+      prev ++ Seq(scalaJSLibrary, scalaJSScalalib)
+    } else {
+      prev ++ Seq(scalaJSLibrary)
+    }
   }
 
   // publish artifact with name "mill_sjs0.6.4_2.12" instead of "mill_sjs0.6_2.12"
