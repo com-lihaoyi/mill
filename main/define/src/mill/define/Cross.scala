@@ -1,6 +1,6 @@
 package mill.define
 
-import mill.api.{BuildScriptException, Lazy, MillException}
+import mill.api.{BuildScriptException, Lazy}
 
 import language.experimental.macros
 import scala.collection.mutable

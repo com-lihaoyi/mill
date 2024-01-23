@@ -3,8 +3,8 @@ package mill.integration
 import utest._
 
 object CrossCollisionsTests extends IntegrationTestSuite {
-  val tests = Tests {
-    val workspaceRoot = initWorkspace()
+  val tests: Tests = Tests {
+    initWorkspace()
 
     test("detect-collision") {
       val res = evalStdout("resolve", "foo._")
