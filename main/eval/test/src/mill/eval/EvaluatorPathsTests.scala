@@ -6,7 +6,7 @@ object EvaluatorPathsTests extends TestSuite {
 
   override def tests: Tests = Tests {
     "sanitizedPathSegment" - {
-      "WindowsReservedNames" - {
+      "mask-reserved-chars-and-names" - {
         val replace = Seq(
           // reserved file names under Windows
           "com1.json" -> "com1~.json",
@@ -16,7 +16,9 @@ object EvaluatorPathsTests extends TestSuite {
           // do not collide with the applied `$`-masking character
           "a$colonb" -> "a$$colonb",
           // replace not just the first $
-          "a$$b" -> "a$$$$b"
+          "a$$b" -> "a$$$$b",
+          // replace a forward slash,
+          "a/b" -> "a$slashb"
         )
         val noReplace = Seq(
           "con10.json"

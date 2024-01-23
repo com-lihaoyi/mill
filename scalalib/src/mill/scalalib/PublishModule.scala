@@ -5,6 +5,7 @@ import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
+import os.Path
 
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar
@@ -106,15 +107,28 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * Publish artifacts to a local ivy repository.
    * @param localIvyRepo The local ivy repository.
-   *                     If not defined, defaults to `$HOME/.ivy2/local`
+   *                     If not defined, the default resolution is used (probably `$HOME/.ivy2/local`).
    */
   def publishLocal(localIvyRepo: String = null): define.Command[Unit] = T.command {
-    val publisher = localIvyRepo match {
-      case null => LocalIvyPublisher
-      case repo => new LocalIvyPublisher(os.Path(repo, T.workspace))
-    }
+    publishLocalTask(T.task {
+      Option(localIvyRepo).map(os.Path(_, T.workspace))
+    })()
+    Result.Success(())
+  }
 
-    publisher.publish(
+  /**
+   * Publish artifacts the local ivy repository.
+   */
+  def publishLocalCached: T[Seq[PathRef]] = T {
+    publishLocalTask(T.task(None))().map(p => PathRef(p).withRevalidateOnce)
+  }
+
+  private def publishLocalTask(localIvyRepo: Task[Option[os.Path]]): Task[Seq[Path]] = T.task {
+    val publisher = localIvyRepo() match {
+      case None => LocalIvyPublisher
+      case Some(path) => new LocalIvyPublisher(path)
+    }
+    publisher.publishLocal(
       jar = jar().path,
       sourcesJar = sourceJar().path,
       docJar = docJar().path,
@@ -132,7 +146,23 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishM2Local(m2RepoPath: String = (os.home / ".m2" / "repository").toString())
       : Command[Seq[PathRef]] = T.command {
-    val path = os.Path(m2RepoPath, T.workspace)
+    publishM2LocalTask(T.task {
+      os.Path(m2RepoPath, T.workspace)
+    })()
+  }
+
+  /**
+   * Publish artifacts to the local Maven repository.
+   * @return [[PathRef]]s to published files.
+   */
+  def publishM2LocalCached: T[Seq[PathRef]] = T {
+    publishM2LocalTask(T.task {
+      os.Path(os.home / ".m2" / "repository", T.workspace)
+    })()
+  }
+
+  private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = T.task {
+    val path = m2RepoPath()
     new LocalM2Publisher(path)
       .publish(
         jar = jar().path,
@@ -141,7 +171,7 @@ trait PublishModule extends JavaModule { outer =>
         pom = pom().path,
         artifact = artifactMetadata(),
         extras = extraPublish()
-      ).map(PathRef(_))
+      ).map(PathRef(_).withRevalidateOnce)
   }
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"

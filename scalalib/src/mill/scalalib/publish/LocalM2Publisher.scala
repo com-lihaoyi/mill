@@ -15,7 +15,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
 
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
     ctx.log.info(s"Publish ${artifact.id}-${artifact.version} to ${releaseDir}")
-    os.makeDir.all(releaseDir)
+
     val toCopy: Seq[(os.Path, os.Path)] = Seq(
       jar -> releaseDir / s"${artifact.id}-${artifact.version}.jar",
       sourcesJar -> releaseDir / s"${artifact.id}-${artifact.version}-sources.jar",
@@ -26,7 +26,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
     }
     toCopy.map {
       case (from, to) =>
-        os.copy.over(from, to)
+        os.copy.over(from, to, createFolders = true)
         to
     }
   }
