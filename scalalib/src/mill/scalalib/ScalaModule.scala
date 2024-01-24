@@ -433,6 +433,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   /**
+   * Command-line options to pass to the Scala console
+   */
+  def consoleScalacOptions: T[Seq[String]] = T(Seq.empty[String])
+
+  /**
    * Opens up a Scala console with your module and all dependencies present,
    * for you to test and operate your code interactively.
    */
@@ -440,6 +445,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     if (!Util.isInteractive()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
+      val useJavaCp = "-usejavacp"
       SystemStreams.withStreams(SystemStreams.original) {
         Jvm.runSubprocess(
           mainClass =
@@ -452,7 +458,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           ),
           jvmArgs = forkArgs(),
           envArgs = forkEnv(),
-          mainArgs = Seq("-usejavacp"),
+          mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
           workingDir = forkWorkingDir()
         )
       }

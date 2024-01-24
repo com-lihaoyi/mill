@@ -118,7 +118,21 @@ for details.
 
 All ``ScalaModule``s have a `console` and a `repl` target, to start a Scala console or an Ammonite Repl.
 
-To use the latter, you can (and sometimes need to) customize the Ammonite version to work with your selected Scala version.
+When using the `console`, you can configure its `scalac` options using the `consoleScalacOptions` target.
+
+For example, you may want to inherit all of your regular `scalacOptions` but disable `-Xfatal-warnings`:
+
+.Example: Using `consoleScalacOptions` to disable fatal warnings
+[source,scala,subs="attributes,verbatim"]
+----
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def consoleScalacOptions = scalacOptions().filterNot(o => o == "-Xfatal-warnings")
+}
+----
+
+To use the `repl`, you can (and sometimes need to) customize the Ammonite version to work with your selected Scala version.
 Mill provides a default Ammonite version,
 but depending on the Scala version you are using, there may be no matching Ammonite release available.
 In order to start the repl, you may have to specify a different available Ammonite version.
