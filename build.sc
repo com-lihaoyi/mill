@@ -8,7 +8,6 @@ import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import $ivy.`com.goyeau::mill-scalafix::0.3.2`
 
-
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
 import coursier.maven.MavenRepository
@@ -149,13 +148,12 @@ object Deps {
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
-  val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.7"
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  // last scaöafmt release supporting Java 8 is 3.7.15
+  // last scalafmt release supporting Java 8 is 3.7.15
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.15" // scala-steward:off
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
@@ -180,9 +178,28 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.9.0"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
-  // tests framework (test)
-  val testScalaTest = ivy"org.scalatest::scalatest:3.2.17"
-  val testZioTest = ivy"dev.zio::zio-test:2.0.21"
+
+  /** Used to manage transitive versions. */
+  val transitiveDeps = Seq(
+    ivy"org.apache.ant:ant:1.10.14",
+    ivy"commons-io:commons-io:2.15.1",
+    ivy"com.google.code.gson:gson:2.10.1",
+    ivy"com.google.protobuf:protobuf-java:3.25.1",
+    ivy"com.google.guava:guava:32.1.3-jre",
+    ivy"org.yaml:snakeyaml:2.2"
+  )
+
+  /** Used in tests. */
+  object TestDeps {
+    // tests framework (test)
+    val scalaTest = ivy"org.scalatest::scalatest:3.2.17"
+    val zioTest = ivy"dev.zio::zio-test:2.0.21"
+  }
+
+  /** Used in documentation. */
+  object DocDeps {
+    val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.7"
+  }
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
@@ -275,22 +292,19 @@ trait MillJavaModule extends JavaModule {
 
   def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
     super.mapDependencies().andThen { dep =>
-      forcedVersions.find(t =>
-        t._1 == dep.module.organization.value && t._2 == dep.module.name.value
+      forcedVersions.find(f =>
+        f.dep.module.organization.value == dep.module.organization.value &&
+          f.dep.module.name.value == dep.module.name.value
       ).map { forced =>
-        val newDep = dep.withVersion(forced._3)
+        val newDep = dep.withVersion(forced.dep.version)
         T.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
         newDep
       }.getOrElse(dep)
     }
   }
-  val forcedVersions: Seq[(String, String, String)] = Seq(
-    ("org.apache.ant", "ant", "1.10.14"),
-    ("commons-io", "commons-io", "2.13.0"),
-    ("com.google.code.gson", "gson", "2.10.1"),
-    ("com.google.protobuf", "protobuf-java", "3.24.2"),
-    ("com.google.guava", "guava", "32.1.2-jre"),
-    ("org.yaml", "snakeyaml", "2.2")
+  val forcedVersions: Seq[Dep] = Deps.transitiveDeps ++ Seq(
+    Deps.jline,
+    Deps.jna
   )
 }
 
@@ -382,8 +396,8 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
-      s"-DTEST_SCALATEST_VERSION=${Deps.testScalaTest.dep.version}",
-      s"-DTEST_ZIOTEST_VERSION=${Deps.testZioTest.dep.version}",
+      s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
+      s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.dep.version}",
       s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
     )
   }
@@ -633,6 +647,11 @@ object testrunner extends MillPublishScalaModule {
   object entrypoint extends MillPublishJavaModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
+}
+
+def formatDep(dep: Dep) = {
+  val d = Lib.depToDependency(dep, Deps.scalaVersion)
+  s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
 }
 
 object scalalib extends MillStableScalaModule {
@@ -1596,7 +1615,7 @@ object docs extends Module {
       else s"${Settings.projectUrl}/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
-       |    mill-scip-version: ${Deps.millScip.dep.version}
+       |    mill-scip-version: ${Deps.DocDeps.millScip.dep.version}
        |
        |antora:
        |  extensions:
@@ -1841,17 +1860,27 @@ def validate(): Command[Unit] = {
   }
 }
 
-/** Dummy module to let Scala-Steward find and bump dependency versions we use at runtime */
-object DependencyFetchDummy extends ScalaModule {
+val dummyDeps: Seq[Dep] = Seq(
+  Deps.DocDeps.millScip,
+  Deps.semanticDbJava,
+  Deps.semanticDBscala,
+  Deps.TestDeps.scalaTest,
+  Deps.TestDeps.zioTest,
+  Deps.acyclic,
+  Deps.scalacScoverage2Plugin
+) ++ Deps.transitiveDeps
+
+implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
+      val depString = formatDep(dep)
+      List(depString)
+    })
+
+/**
+ * Dummy module(s) to let Dependency/showUpdates or Scala-Steward find
+ * and bump dependency versions we use at runtime
+ */
+object dummy extends Cross[DependencyFetchDummy](dummyDeps)
+trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
   def scalaVersion = Deps.scalaVersion
-  def compileIvyDeps =
-    Agg(
-      Deps.millScip,
-      Deps.semanticDbJava,
-      Deps.semanticDBscala,
-      Deps.testScalaTest,
-      Deps.testZioTest,
-      Deps.acyclic,
-      Deps.scalacScoverage2Plugin
-    )
+  def compileIvyDeps = Agg(crossValue)
 }
