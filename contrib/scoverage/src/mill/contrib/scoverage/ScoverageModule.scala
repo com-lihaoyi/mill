@@ -227,7 +227,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def xmlReport(): Command[Unit] = T.command { doReport(ReportType.Xml) }
     def consoleReport(): Command[Unit] = T.command { doReport(ReportType.Console) }
 
-    override def skipIdea = outer.skipIdea
+    override def skipIdea: Boolean = true // being a synthetic module, no need to appear in the IDE
   }
 
   trait ScoverageTests extends ScalaTests {
