@@ -170,7 +170,8 @@ object Resolve {
             docsOnNewLine = false,
             customName = None,
             customDoc = None,
-            sorted = true
+            sorted = true,
+            nameMapper = mainargs.Util.nullNameMapper
           )
         )
     }
