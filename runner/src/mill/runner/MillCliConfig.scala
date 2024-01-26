@@ -20,7 +20,6 @@ class MillCliConfig private (
     )
     val repl: Flag,
     @arg(
-      name = "no-server",
       doc = """Run Mill in single-process mode.
                In this mode, no Mill server will be started or used.
                Must be the first argument."""
@@ -37,13 +36,11 @@ class MillCliConfig private (
     )
     val ringBell: Flag,
     @arg(
-      name = "disable-ticker",
       doc =
         """Disable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
     val disableTicker: Flag,
     @arg(
-      name = "enable-ticker",
       doc =
         """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
@@ -52,7 +49,6 @@ class MillCliConfig private (
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
     val debugLog: Flag,
     @arg(
-      name = "keep-going",
       short = 'k',
       doc = """Continue build, even after build failures."""
     )
@@ -113,7 +109,6 @@ class MillCliConfig private (
     )
     val color: Option[Boolean],
     @arg(
-      name = "disable-callgraph-invalidation",
       doc =
         """Disable the fine-grained callgraph-based target invalidation in response to
            code changes, and instead fall back to the previous coarse-grained implementation
@@ -121,7 +116,6 @@ class MillCliConfig private (
     )
     val disableCallgraphInvalidation: Flag,
     @arg(
-      name = "meta-level",
       doc =
         """Experimental: Select a meta-build level to run the given targets.
            Level 0 is the normal project, level 1 the first meta-build, and so on.

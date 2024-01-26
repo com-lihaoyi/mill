@@ -142,7 +142,7 @@ object Deps {
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.22.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.9.3"
   val pprint = ivy"com.lihaoyi::pprint:0.8.1"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.5.4"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.6.1"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -1210,7 +1210,6 @@ def launcherScript(
 ) = {
 
   val millMainClass = "mill.main.client.MillClientMain"
-  val millClientMainClass = "mill.main.client.MillClientMain"
 
   Jvm.universalScript(
     shellCommands = {
@@ -1264,15 +1263,20 @@ def launcherScript(
          |    fi
          |    ${java(millMainClass, true)}
          |else
-         |    case "$$1" in
-         |      -i | --interactive | --repl | --no-server | --bsp )
+         |    if [ "$${1%"-i"*}" != "$$1" ] ; then # first arg starts with "-i"
          |        init_mill_jvm_opts
          |        ${java(millMainClass, true)}
-         |        ;;
-         |      *)
-         |        ${java(millClientMainClass, false)}
-         |        ;;
-         |esac
+         |    else
+         |        case "$$1" in
+         |          -i | --interactive | --repl | --no-server | --bsp )
+         |            init_mill_jvm_opts
+         |            ${java(millMainClass, true)}
+         |            ;;
+         |          *)
+         |            ${java(millMainClass, false)}
+         |            ;;
+         |        esac
+         |    fi
          |fi
          |""".stripMargin
     },
@@ -1307,7 +1311,7 @@ def launcherScript(
          |  )
          |  ${java(millMainClass, true)}
          |) else (
-         |  ${java(millClientMainClass, false)}
+         |  ${java(millMainClass, false)}
          |)
          |endlocal
          |""".stripMargin

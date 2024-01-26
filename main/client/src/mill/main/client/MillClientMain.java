@@ -61,8 +61,8 @@ public class MillClientMain {
         if (args.length > 0) {
             String firstArg = args[0];
             runIsolated =
-                Arrays.asList("-i", "--interactive", "--no-server", "--repl", "--bsp", "--help")
-                    .contains(firstArg);
+                Arrays.asList("--interactive", "--no-server", "--repl", "--bsp", "--help")
+                    .contains(firstArg) || firstArg.startsWith("-i");
         }
         if (!runIsolated) {
             // WSL2 has the directory /run/WSL/ and WSL1 not.
