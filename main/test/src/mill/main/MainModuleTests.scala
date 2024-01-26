@@ -161,7 +161,7 @@ object MainModuleTests extends TestSuite {
       test("command") {
         val Left(Result.Failure(failureMsg, _)) = evaluator.evalTokens("show", "helloCommand")
         assert(
-          failureMsg.contains("Expected Signature: helloCommand"),
+          failureMsg.contains("Expected Signature: hello-command"),
           failureMsg.contains("-x <int>"),
           failureMsg.contains("-y <str>")
         )
