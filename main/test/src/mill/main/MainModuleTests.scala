@@ -169,6 +169,11 @@ object MainModuleTests extends TestSuite {
           evaluator.evalTokens("show", "helloCommand", "-x", "1337", "-y", "lol")
 
         assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
+
+        val Right((Seq(res2), _)) =
+          evaluator.evalTokens("show", "hello-command", "-x", "1337", "-y", "lol")
+
+        assert(res2 == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
       }
     }
 
