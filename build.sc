@@ -1230,15 +1230,20 @@ def launcherScript(
          |    fi
          |    ${java(millMainClass, true)}
          |else
-         |    case "$$1" in
-         |      -i | --interactive | --repl | --no-server | --bsp )
+         |    if [ "$${1:0:1}" = "-i" ] ; then
          |        init_mill_jvm_opts
          |        ${java(millMainClass, true)}
-         |        ;;
-         |      *)
-         |        ${java(millClientMainClass, false)}
-         |        ;;
-         |esac
+         |    else
+         |        case "$$1" in
+         |          -i | --interactive | --repl | --no-server | --bsp )
+         |            init_mill_jvm_opts
+         |            ${java(millMainClass, true)}
+         |            ;;
+         |          *)
+         |            ${java(millClientMainClass, false)}
+         |            ;;
+         |        esac
+         |    fi
          |fi
          |""".stripMargin
     },

@@ -148,7 +148,7 @@ object Resolve {
       allowRepeats = false,
       allowLeftover = ep.argSigs0.exists(_.reader.isLeftover)
     ).flatMap { (grouped: TokenGrouping[_]) =>
-      val mainData = ep.asInstanceOf[MainData[_, Any]]
+      val mainData = ep.asInstanceOf[MainData[Any, Any]]
       val mainDataWithDefaults = mainData
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
 
