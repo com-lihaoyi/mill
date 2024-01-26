@@ -146,7 +146,8 @@ object Resolve {
       flattenedArgSigsWithDefaults,
       allowPositional = true,
       allowRepeats = false,
-      allowLeftover = ep.argSigs0.exists(_.reader.isLeftover)
+      allowLeftover = ep.argSigs0.exists(_.reader.isLeftover),
+      nameMapper = mainargs.Util.kebabCaseNameMapper
     ).flatMap { (grouped: TokenGrouping[_]) =>
       val mainData = ep.asInstanceOf[MainData[Any, Any]]
       val mainDataWithDefaults = mainData
