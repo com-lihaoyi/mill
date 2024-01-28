@@ -44,6 +44,9 @@ object TestRunnerTests extends TestSuite {
     object doneMessageFailure extends DoneMessage {
       def testFramework = "mill.scalalib.DoneMessageFailureFramework"
     }
+    object doneMessageNull extends DoneMessage {
+      def testFramework = "mill.scalalib.DoneMessageNullFramework"
+    }
 
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def ivyDeps = T {
@@ -121,6 +124,11 @@ object TestRunnerTests extends TestSuite {
             val Right(_) = eval(testrunner.doneMessageSuccess.test())
             val stdout = new String(outStream.toByteArray)
             assert(stdout.contains("test success done message"))
+          }
+        }
+        test("null") {
+          workspaceTest(testrunner) { eval =>
+            val Right(_) = eval(testrunner.doneMessageNull.test())
           }
         }
       }

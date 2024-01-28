@@ -156,7 +156,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       runner.done()
     }
 
-    if (doneMessage.nonEmpty) {
+    if (doneMessage != null && doneMessage.nonEmpty) {
       if (doneMessage.endsWith("\n"))
         ctx.log.outputStream.print(doneMessage)
       else
