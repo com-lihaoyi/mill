@@ -397,6 +397,7 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
       s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
+      s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.dep.version}",
       s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.dep.version}",
       s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
     )
