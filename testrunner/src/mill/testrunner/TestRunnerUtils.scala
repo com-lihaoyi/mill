@@ -156,7 +156,12 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       runner.done()
     }
 
-    ctx.log.outputStream.println(doneMessage)
+    if (doneMessage.nonEmpty) {
+      if (doneMessage.endsWith("\n"))
+        ctx.log.outputStream.print(doneMessage)
+      else
+        ctx.log.outputStream.println(doneMessage)
+    }
 
     val results = for (e <- events.iterator().asScala) yield {
       val ex =
