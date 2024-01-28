@@ -2,9 +2,12 @@ package mill.scalalib
 
 import mill.{Agg, T}
 
+import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
+
+import java.io.{ByteArrayOutputStream, PrintStream}
 
 object TestRunnerTests extends TestSuite {
   object testrunner extends TestUtil.BaseModule with ScalaModule {
@@ -28,6 +31,20 @@ object TestRunnerTests extends TestSuite {
       }
     }
 
+    trait DoneMessage extends ScalaTests {
+      override def ivyDeps = T {
+        super.ivyDeps() ++ Agg(
+          ivy"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
+        )
+      }
+    }
+    object doneMessageSuccess extends DoneMessage {
+      def testFramework = "mill.scalalib.DoneMessageSuccessFramework"
+    }
+    object doneMessageFailure extends DoneMessage {
+      def testFramework = "mill.scalalib.DoneMessageFailureFramework"
+    }
+
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def ivyDeps = T {
         super.ivyDeps() ++ Agg(
@@ -42,11 +59,12 @@ object TestRunnerTests extends TestSuite {
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,
+      outStream: PrintStream = System.out,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(
       implicit tp: TestPath
   ): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new TestEvaluator(m, outStream = outStream)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -88,6 +106,24 @@ object TestRunnerTests extends TestSuite {
         }
       }
 
+      "doneMessage" - {
+        test("failure") {
+          val outStream = new ByteArrayOutputStream()
+          workspaceTest(testrunner, outStream = new PrintStream(outStream, true)) { eval =>
+            val Left(Result.Failure(msg, _)) = eval(testrunner.doneMessageFailure.test())
+            val stdout = new String(outStream.toByteArray)
+            assert(stdout.contains("test failure done message"))
+          }
+        }
+        test("success") {
+          val outStream = new ByteArrayOutputStream()
+          workspaceTest(testrunner, outStream = new PrintStream(outStream, true)) { eval =>
+            val Right(_) = eval(testrunner.doneMessageSuccess.test())
+            val stdout = new String(outStream.toByteArray)
+            assert(stdout.contains("test success done message"))
+          }
+        }
+      }
       "ScalaTest" - {
         test("scalatest.test") {
           workspaceTest(testrunner) { eval =>
