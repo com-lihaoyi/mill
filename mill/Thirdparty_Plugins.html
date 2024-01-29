@@ -263,14 +263,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.6-67-596e28</span>
+    <span class="version">0.11.6-68-3036bd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.6-67-596e28</a>
+          <a href="index.html">0.11.6-68-3036bd</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -306,9 +306,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.6-67-596e28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.6-68-3036bd</button>
   <div class="version-menu">
-    <a class="version is-current" href="Thirdparty_Plugins.html">0.11.6-67-596e28</a>
+    <a class="version is-current" href="Thirdparty_Plugins.html">0.11.6-68-3036bd</a>
     <a class="version" href="0.11.0-M7/Thirdparty_Plugins.html">0.11.0-M7</a>
     <a class="version" href="0.10.15/Thirdparty_Plugins.html">0.10.15</a>
     <a class="version" href="0.10.12/Thirdparty_Plugins.html">0.10.12</a>
@@ -520,6 +520,64 @@ in your build and publish them. Your version will automatically be managed by
 <a href="https://github.com/lefou/mill-vcs-version"><code>mill-vcs-version</code></a> and if your
 version ends in <code>-SNAPSHOT</code> you’re project will be published to Sonatype
 Snapshots or to the normal releases if it’s a new tag.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_daemon"><a class="anchor" href="#_daemon"></a>Daemon</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use mill as a launcher for self-building systemd daemons,
+convenient for handling of code-as-config, or quick editing and rebuilding
+of code-generating templates.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/swaldman/mill-daemon" class="bare">https://github.com/swaldman/mill-daemon</a></p>
+</div>
+<div class="paragraph">
+<p>Place the millw script from <a href="https://github.com/lefou/millw" class="bare">https://github.com/lefou/millw</a> in your project directory.</p>
+</div>
+<div class="listingblock">
+<div class="title">/opt/coolproj/build.sc</div>
+<div class="content">
+<pre>import $ivy.`com.mchange::mill-daemon:0.0.1`
+import com.mchange.milldaemon.DaemonModule
+
+object coolproj extends RootModule with DaemonModule {
+  override def runDaemonPidFile = Some( os.pwd / &quot;coolproj.pid&quot; )
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">/opt/coolproj/rebuild-and-start</div>
+<div class="content">
+<pre>#!/bin.bash
+
+./millw runMainDaemon coolproj.Main &quot;$@&quot;</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">/opt/coolproj/coolproj.service</div>
+<div class="content">
+<pre>[Unit]
+Description=Cool Project
+After=syslog.target network.target
+
+[Service]
+Type=forking
+PIDFile=/opt/coolproj/coolproj.pid
+User=coolproj
+Group=coolproj
+WorkingDirectory=/opt/coolproj
+ExecStart=/opt/coolproj/rebuild-and-start
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Symlink <code>/opt/coolproj/coolproj.service</code> from <code>/etc/systemd/system</code>, then <code>systemctl restart coolproj</code>.</p>
 </div>
 </div>
 </div>
