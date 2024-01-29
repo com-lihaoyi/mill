@@ -158,7 +158,7 @@ Project home: https://github.com/swaldman/mill-daemon
 
 Place the millw script from https://github.com/lefou/millw in your project directory.
 
-.build.sc
+./opt/coolproj/build.sc
 ----
 import $ivy.`com.mchange::mill-daemon:0.0.1`
 import com.mchange.milldaemon.DaemonModule
@@ -168,14 +168,14 @@ object coolproj extends RootModule with DaemonModule {
 }
 ----
 
-.rebuild-and-start
+./opt/coolproj/rebuild-and-start
 ----
 #!/bin.bash
 
 ./millw runMainDaemon coolproj.Main "$@"
 ----
 
-.coolproj.service
+./opt/coolproj/coolproj.service
 ----
 [Unit]
 Description=Cool Project
@@ -194,7 +194,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 ----
 
-Symlink `coolproj.service` from `/etc/systemd/system`, then `systemctl restart coolproj`.
+Symlink `/opt/coolproj/coolproj.service` from `/etc/systemd/system`, then `systemctl restart coolproj`.
 
 == DGraph
 
