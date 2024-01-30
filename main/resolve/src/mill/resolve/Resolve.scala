@@ -230,11 +230,23 @@ trait Resolve[T] {
   ): Either[String, Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
-      ResolveCore.resolve(rootModule, sel.value.toList, rootResolved, Segments()) match {
+      ResolveCore.resolve(
+        rootModule = rootModule,
+        remainingQuery = sel.value.toList,
+        current = rootResolved,
+        querySoFar = Segments()
+      ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
           val allPossibleNames = rootModule.millDiscover.value.values.flatMap(_._1).toSet
-          Left(ResolveNotFoundHandler(sel, segments, found, next, possibleNexts, allPossibleNames))
+          Left(ResolveNotFoundHandler(
+            selector = sel,
+            segments = segments,
+            found = found,
+            next = next,
+            possibleNexts = possibleNexts,
+            allPossibleNames = allPossibleNames
+          ))
         case ResolveCore.Error(value) => Left(value)
       }
 
