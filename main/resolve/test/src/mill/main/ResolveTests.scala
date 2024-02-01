@@ -909,7 +909,7 @@ object ResolveTests extends TestSuite {
       val check = new Checker(TestGraphs.TypedModules)
       test - check(
         "__",
-        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz)),
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz, _.typeC.typeA.foo)),
         Set()
       )
       test - check(
@@ -930,6 +930,16 @@ object ResolveTests extends TestSuite {
       test - check(
         "_:TypeA._",
         Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar)),
+        Set()
+      )
+      test - check(
+        "__:Module._",
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz, _.typeC.typeA.foo)),
+        Set()
+      )
+      test - check(
+        "__:TypeA._",
+        Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar, _.typeC.typeA.foo)),
         Set()
       )
 

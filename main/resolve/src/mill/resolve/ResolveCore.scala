@@ -96,12 +96,36 @@ private object ResolveCore {
               case "__" =>
                 val self = Seq(Resolved.Module(m.segments, m.cls))
                 val transitiveOrErr =
-                  resolveTransitiveChildren(rootModule, m.cls, None, current.segments)
+                  resolveTransitiveChildren(rootModule, m.cls, None, current.segments, None)
+
+                transitiveOrErr.map(transitive => self ++ transitive)
+
+              case pattern if pattern.startsWith("__:") =>
+                val typePattern = pattern.drop(3)
+                val self = Seq(Resolved.Module(m.segments, m.cls))
+
+                val transitiveOrErr = resolveTransitiveChildren(
+                  rootModule,
+                  m.cls,
+                  None,
+                  current.segments,
+                  Option(typePattern)
+                )
 
                 transitiveOrErr.map(transitive => self ++ transitive)
 
               case "_" =>
                 resolveDirectChildren(rootModule, m.cls, None, current.segments)
+
+              case pattern if pattern.startsWith("_:") =>
+                val typePattern = pattern.drop(2)
+                resolveDirectChildren(
+                  rootModule,
+                  m.cls,
+                  None,
+                  current.segments,
+                  Option(typePattern)
+                )
 
               case pattern if pattern.startsWith("_:") =>
                 val typePattern = pattern.drop(2)
@@ -195,16 +219,28 @@ private object ResolveCore {
       rootModule: Module,
       cls: Class[_],
       nameOpt: Option[String],
-      segments: Segments
+      segments: Segments,
+      typePattern: Option[String]
   ): Either[String, Set[Resolved]] = {
-    for {
-      direct <- resolveDirectChildren(rootModule, cls, nameOpt, segments)
-      indirect0 = direct
+    val direct = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern)
+    val indirect = for {
+      directTraverse <- resolveDirectChildren(rootModule, cls, nameOpt, segments, None)
+      indirect0 = directTraverse
         .collect { case m: Resolved.Module =>
-          resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments)
+          resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments, typePattern)
         }
       indirect <- EitherOps.sequence(indirect0).map(_.flatten)
-    } yield direct ++ indirect
+    } yield indirect
+    direct.flatMap { direct =>
+      for {
+        directTraverse <- resolveDirectChildren(rootModule, cls, nameOpt, segments, None)
+        indirect0 = directTraverse
+          .collect { case m: Resolved.Module =>
+            resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments, typePattern)
+          }
+        indirect <- EitherOps.sequence(indirect0).map(_.flatten)
+      } yield direct ++ indirect
+    }
   }
 
   private def resolveParents(c: Class[_]): Seq[Class[_]] =

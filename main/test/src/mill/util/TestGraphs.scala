@@ -561,7 +561,9 @@ object TestGraphs {
 
     object typeA extends TypeA
     object typeB extends TypeB
-    object typeC extends TypeC
+    object typeC extends TypeC {
+      object typeA extends TypeA
+    }
     object typeAB extends TypeAB
   }
 
