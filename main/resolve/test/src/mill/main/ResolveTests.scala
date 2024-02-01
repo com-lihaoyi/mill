@@ -1,6 +1,7 @@
 package mill.resolve
 
 import mill.define.NamedTask
+import mill.util.TestGraphs
 import mill.util.TestGraphs._
 import utest._
 object ResolveTests extends TestSuite {
@@ -31,6 +32,7 @@ object ResolveTests extends TestSuite {
         expectedMetadata.isEmpty ||
           resolvedMetadata.map(_.toSet) == Right(expectedMetadata)
       )
+      selectorStrings.mkString(" ")
     }
 
     def checkSeq0(
@@ -902,6 +904,35 @@ object ResolveTests extends TestSuite {
         Right(Set(_.normal.inner.target)),
         Set("normal.inner.target")
       )
+    }
+    test("typeSelector") {
+      val check = new Checker(TestGraphs.TypedModules)
+      test - check(
+        "__",
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz)),
+        Set()
+      )
+      test - check(
+        "_._",
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz)),
+        Set()
+      )
+      test - check(
+        "_:Module._",
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz)),
+        Set()
+      )
+      test - check(
+        "_:_root_$mill$define$Module._",
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz)),
+        Set()
+      )
+      test - check(
+        "_:TypeA._",
+        Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar)),
+        Set()
+      )
+
     }
   }
 }

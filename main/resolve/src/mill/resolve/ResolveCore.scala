@@ -103,6 +103,17 @@ private object ResolveCore {
               case "_" =>
                 resolveDirectChildren(rootModule, m.cls, None, current.segments)
 
+              case pattern if pattern.startsWith("_:") =>
+                val typePattern = pattern.drop(2)
+                debug(s"Type pattern: ${typePattern}")
+                resolveDirectChildren(
+                  rootModule,
+                  m.cls,
+                  None,
+                  current.segments,
+                  Option(typePattern)
+                )
+
               case _ =>
                 resolveDirectChildren(rootModule, m.cls, Some(singleLabel), current.segments)
             }
@@ -197,11 +208,52 @@ private object ResolveCore {
     } yield direct ++ indirect
   }
 
+  private def resolveParents(c: Class[_]): Seq[Class[_]] =
+    Seq(c) ++
+      Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
+      c.getInterfaces.flatMap(resolveParents)
+
+  /**
+   * Check if the given class matches a given type selector as string
+   * @param cls
+   * @param typePattern
+   * @return
+   */
+  private def classMatchesTypePred(typePattern: Option[String])(cls: Class[_]): Boolean =
+    typePattern match {
+      case None => true
+      case Some(pat) =>
+        // We split full class names by `.` and `$`
+        // a class matches a type patter, if the type pattern segments match from the right
+        // to express a full match, use `_root_` as first segment
+
+        val parents = resolveParents(cls)
+        val classNames =
+          parents.flatMap(c =>
+            ("_root_$" + c.getName).split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
+          )
+
+        val typeNames = pat.split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
+
+        val ok = classNames.exists(cn => typeNames.exists(_ == cn))
+
+        ok
+    }
+
   def resolveDirectChildren(
       rootModule: Module,
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments
+  ): Either[String, Set[Resolved]] =
+    resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern = None)
+
+  def resolveDirectChildren(
+      rootModule: Module,
+      cls: Class[_],
+      nameOpt: Option[String],
+      segments: Segments,
+      typePattern: Option[String]
   ): Either[String, Set[Resolved]] = {
 
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
@@ -216,7 +268,14 @@ private object ResolveCore {
     } else Right(Nil)
 
     crossesOrErr.flatMap { crosses =>
-      resolveDirectChildren0(rootModule, segments, cls, nameOpt)
+      val filteredCrosses = crosses.filter { c =>
+        classMatchesTypePred(typePattern)(c.cls)
+      }
+
+      val res1 =
+        resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern)
+
+      res1
         .map(
           _.map {
             case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
@@ -233,16 +292,18 @@ private object ResolveCore {
       rootModule: Module,
       segments: Segments,
       cls: Class[_],
-      nameOpt: Option[String]
+      nameOpt: Option[String],
+      typePattern: Option[String] = None
   ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
 
-    val modulesOrErr: Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] =
+    val modulesOrErr: Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {
         instantiateModule(rootModule, segments).map {
           case m: DynamicModule =>
             m.millModuleDirectChildren
               .filter(c => namePred(c.millModuleSegments.parts.last))
+              .filter(c => classMatchesTypePred(typePattern)(c.getClass))
               .map(c =>
                 (
                   Resolved.Module(
@@ -256,6 +317,14 @@ private object ResolveCore {
       } else Right {
         Reflect
           .reflectNestedObjects0[Module](cls, namePred)
+          .filter {
+            case (_, member) =>
+              val memberCls = member match {
+                case f: java.lang.reflect.Field => f.getType
+                case f: java.lang.reflect.Method => f.getReturnType
+              }
+              classMatchesTypePred(typePattern)(memberCls)
+          }
           .map { case (name, member) =>
             Resolved.Module(
               Segments.labels(decode(name)),
@@ -274,6 +343,7 @@ private object ResolveCore {
             )
           }
       }
+    }
 
     val targets = Reflect
       .reflect(cls, classOf[Target[_]], namePred, noParams = true)
