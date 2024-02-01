@@ -219,6 +219,14 @@ private object ResolveCore {
       rootModule: Module,
       cls: Class[_],
       nameOpt: Option[String],
+      segments: Segments
+  ): Either[String, Set[Resolved]] =
+    resolveTransitiveChildren(rootModule, cls, nameOpt, segments, None)
+
+  def resolveTransitiveChildren(
+      rootModule: Module,
+      cls: Class[_],
+      nameOpt: Option[String],
       segments: Segments,
       typePattern: Option[String]
   ): Either[String, Set[Resolved]] = {
@@ -304,9 +312,9 @@ private object ResolveCore {
     } else Right(Nil)
 
     crossesOrErr.flatMap { crosses =>
-      val filteredCrosses = crosses.filter { c =>
-        classMatchesTypePred(typePattern)(c.cls)
-      }
+//      val filteredCrosses = crosses.filter { c =>
+//        classMatchesTypePred(typePattern)(c.cls)
+//      }
 
       val res1 =
         resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern)
@@ -323,6 +331,14 @@ private object ResolveCore {
         )
     }
   }
+
+  def resolveDirectChildren0(
+      rootModule: Module,
+      segments: Segments,
+      cls: Class[_],
+      nameOpt: Option[String]
+  ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] =
+    resolveDirectChildren0(rootModule, segments, cls, nameOpt, None)
 
   def resolveDirectChildren0(
       rootModule: Module,
