@@ -942,6 +942,11 @@ object ResolveTests extends TestSuite {
         Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar, _.typeC.typeA.foo)),
         Set()
       )
+      test - check(
+        "__:!TypeA._",
+        Right(Set(_.typeB.bar, _.typeC.baz)),
+        Set()
+      )
 
     }
   }

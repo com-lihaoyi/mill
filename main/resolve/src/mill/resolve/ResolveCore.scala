@@ -258,21 +258,22 @@ private object ResolveCore {
     typePattern match {
       case None => true
       case Some(pat) =>
+        val negate = pat.startsWith("!")
+        val clsPat = pat.drop(if (negate) 1 else 0)
+
         // We split full class names by `.` and `$`
         // a class matches a type patter, if the type pattern segments match from the right
         // to express a full match, use `_root_` as first segment
 
+        val typeNames = clsPat.split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
+
         val parents = resolveParents(cls)
-        val classNames =
-          parents.flatMap(c =>
-            ("_root_$" + c.getName).split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
-          )
+        val classNames = parents.flatMap(c =>
+          ("_root_$" + c.getName).split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
+        )
 
-        val typeNames = pat.split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
-
-        val ok = classNames.exists(cn => typeNames.exists(_ == cn))
-
-        ok
+        val isOfType = classNames.exists(cn => typeNames.exists(_ == cn))
+        if (negate) !isOfType else isOfType
     }
 
   def resolveDirectChildren(

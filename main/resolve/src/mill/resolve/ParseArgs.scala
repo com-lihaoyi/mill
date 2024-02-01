@@ -93,9 +93,10 @@ object ParseArgs {
     }
 
   private def selector[_p: P]: P[(Option[Segments], Segments)] = {
-    def identLabel = P(CharsWhileIn("a-zA-Z0-9_\\-:$")).!
+    def typeLabel = P(("!" | "") ~~ CharsWhileIn("a-zA-Z0-9_\\-$")).!
+    def typePattern = P(("_:" | "__:") ~~ typeLabel).!
     def identCross = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def segment = P(identLabel).map(Segment.Label)
+    def segment = P(typePattern | mill.define.Reflect.ident).map(Segment.Label)
     def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross)
     def defaultCrossSegment = P("[]").map(_ => Segment.Cross(Seq()))
     def simpleQuery = P(segment ~ ("." ~ segment | crossSegment | defaultCrossSegment).rep).map {
