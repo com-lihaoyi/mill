@@ -916,28 +916,23 @@ object ResolveTests extends TestSuite {
           _.typeAB.bar,
           _.typeC.baz,
           _.typeC.typeA.foo
-        )),
-        Set()
+        ))
       )
       test - check(
         "_._",
-        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz)),
-        Set()
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
         "_:Module._",
-        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz)),
-        Set()
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
         "_:_root_$mill$define$Module._",
-        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz)),
-        Set()
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
         "_:TypeA._",
-        Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar)),
-        Set()
+        Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar))
       )
       test - check(
         "__:Module._",
@@ -948,20 +943,82 @@ object ResolveTests extends TestSuite {
           _.typeAB.bar,
           _.typeC.baz,
           _.typeC.typeA.foo
-        )),
-        Set()
+        ))
       )
       test - check(
         "__:TypeA._",
-        Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar, _.typeC.typeA.foo)),
-        Set()
+        Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar, _.typeC.typeA.foo))
       )
       test - check(
         "__:!TypeA._",
-        Right(Set(_.typeB.bar, _.typeC.baz)),
-        Set()
+        Right(Set(_.typeB.bar, _.typeC.baz))
       )
-
+    }
+    test("crossTypeSelector") {
+      val check = new Checker(TestGraphs.TypedCrossModules)
+      test - check(
+        "__",
+        Right(Set(
+          _.typeA("a").foo,
+          _.typeA("b").foo,
+          _.typeAB("a").foo,
+          _.typeAB("a").bar,
+          _.typeAB("b").foo,
+          _.typeAB("b").bar,
+          _.inner.typeA("a").foo,
+          _.inner.typeA("b").foo,
+          _.inner.typeAB("a").foo,
+          _.inner.typeAB("a").bar,
+          _.inner.typeAB("b").foo,
+          _.inner.typeAB("b").bar,
+          _.nestedAB("a").foo,
+          _.nestedAB("a").bar,
+          _.nestedAB("b").foo,
+          _.nestedAB("b").bar,
+          _.nestedAB("a").typeAB("a").foo,
+          _.nestedAB("a").typeAB("a").bar,
+          _.nestedAB("a").typeAB("b").foo,
+          _.nestedAB("a").typeAB("b").bar,
+          _.nestedAB("b").typeAB("a").foo,
+          _.nestedAB("b").typeAB("a").bar,
+          _.nestedAB("b").typeAB("b").foo,
+          _.nestedAB("b").typeAB("b").bar
+        ))
+      )
+      test - check(
+        "__:TypeB._",
+        Right(Set(
+          _.typeAB("a").foo,
+          _.typeAB("a").bar,
+          _.typeAB("b").foo,
+          _.typeAB("b").bar,
+          _.inner.typeAB("a").foo,
+          _.inner.typeAB("a").bar,
+          _.inner.typeAB("b").foo,
+          _.inner.typeAB("b").bar,
+          _.nestedAB("a").foo,
+          _.nestedAB("a").bar,
+          _.nestedAB("b").foo,
+          _.nestedAB("b").bar,
+          _.nestedAB("a").typeAB("a").foo,
+          _.nestedAB("a").typeAB("a").bar,
+          _.nestedAB("a").typeAB("b").foo,
+          _.nestedAB("a").typeAB("b").bar,
+          _.nestedAB("b").typeAB("a").foo,
+          _.nestedAB("b").typeAB("a").bar,
+          _.nestedAB("b").typeAB("b").foo,
+          _.nestedAB("b").typeAB("b").bar
+        ))
+      )
+      test - check(
+        "__:!TypeB._",
+        Right(Set(
+          _.typeA("a").foo,
+          _.typeA("b").foo,
+          _.inner.typeA("a").foo,
+          _.inner.typeA("b").foo
+        ))
+      )
     }
   }
 }

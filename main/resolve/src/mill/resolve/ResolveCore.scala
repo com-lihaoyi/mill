@@ -304,14 +304,11 @@ private object ResolveCore {
     } else Right(Nil)
 
     crossesOrErr.flatMap { crosses =>
-//      val filteredCrosses = crosses.filter { c =>
-//        classMatchesTypePred(typePattern)(c.cls)
-//      }
+      val filteredCrosses = crosses.filter { c =>
+        classMatchesTypePred(typePattern)(c.cls)
+      }
 
-      val res1 =
-        resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern)
-
-      res1
+      resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern)
         .map(
           _.map {
             case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
@@ -319,7 +316,7 @@ private object ResolveCore {
             case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
           }
             .toSet
-            .++(crosses)
+            .++(filteredCrosses)
         )
     }
   }
