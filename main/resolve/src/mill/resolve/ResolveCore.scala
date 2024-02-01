@@ -231,14 +231,6 @@ private object ResolveCore {
       typePattern: Option[String]
   ): Either[String, Set[Resolved]] = {
     val direct = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern)
-    val indirect = for {
-      directTraverse <- resolveDirectChildren(rootModule, cls, nameOpt, segments, None)
-      indirect0 = directTraverse
-        .collect { case m: Resolved.Module =>
-          resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments, typePattern)
-        }
-      indirect <- EitherOps.sequence(indirect0).map(_.flatten)
-    } yield indirect
     direct.flatMap { direct =>
       for {
         directTraverse <- resolveDirectChildren(rootModule, cls, nameOpt, segments, None)
