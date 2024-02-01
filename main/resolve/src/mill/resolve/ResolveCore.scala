@@ -105,7 +105,6 @@ private object ResolveCore {
 
               case pattern if pattern.startsWith("_:") =>
                 val typePattern = pattern.drop(2)
-                debug(s"Type pattern: ${typePattern}")
                 resolveDirectChildren(
                   rootModule,
                   m.cls,
