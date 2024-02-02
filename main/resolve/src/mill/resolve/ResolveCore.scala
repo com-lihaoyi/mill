@@ -245,24 +245,26 @@ private object ResolveCore {
    * @return
    */
   private def classMatchesTypePred(typePattern: Seq[String])(cls: Class[_]): Boolean =
-    typePattern.forall { pat =>
-      val negate = pat.startsWith("!")
-      val clsPat = pat.drop(if (negate) 1 else 0)
+    typePattern
+      .map(p => if (p.startsWith("(") && p.endsWith(")")) p.drop(1).dropRight(1) else p)
+      .forall { pat =>
+        val negate = pat.startsWith("!")
+        val clsPat = pat.drop(if (negate) 1 else 0)
 
-      // We split full class names by `.` and `$`
-      // a class matches a type patter, if the type pattern segments match from the right
-      // to express a full match, use `_root_` as first segment
+        // We split full class names by `.` and `$`
+        // a class matches a type patter, if the type pattern segments match from the right
+        // to express a full match, use `_root_` as first segment
 
-      val typeNames = clsPat.split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
+        val typeNames = clsPat.split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
 
-      val parents = resolveParents(cls)
-      val classNames = parents.flatMap(c =>
-        ("_root_$" + c.getName).split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
-      )
+        val parents = resolveParents(cls)
+        val classNames = parents.flatMap(c =>
+          ("_root_$" + c.getName).split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
+        )
 
-      val isOfType = classNames.exists(cn => typeNames.exists(_ == cn))
-      if (negate) !isOfType else isOfType
-    }
+        val isOfType = classNames.exists(cn => typeNames.exists(_ == cn))
+        if (negate) !isOfType else isOfType
+      }
 
   def resolveDirectChildren(
       rootModule: Module,

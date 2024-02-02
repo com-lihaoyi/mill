@@ -93,8 +93,10 @@ object ParseArgs {
     }
 
   private def selector[_p: P]: P[(Option[Segments], Segments)] = {
-    def typeLabel = P(("!" | "") ~~ CharsWhileIn("a-zA-Z0-9_\\-$")).!
-    def typePattern = P(("__" | "_") ~~ (":" ~~ typeLabel).rep).!
+    def typeLabel = P("!".? ~~ CharsWhileIn("a-zA-Z0-9_\\-$")).!
+    def typeLabelWithDots = P("!".? ~~ CharsWhileIn("a-zA-Z0-9_\\-$.")).!
+    def parenTypeLabel = P("(" ~~ typeLabelWithDots ~~ ")")
+    def typePattern = P("_".rep(min = 1, max = 2) ~~ (":" ~~ (parenTypeLabel | typeLabel)).rep(1)).!
     def identCross = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
     def segment = P(typePattern | mill.define.Reflect.ident).map(Segment.Label)
     def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross)
