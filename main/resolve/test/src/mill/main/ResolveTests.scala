@@ -1031,6 +1031,29 @@ object ResolveTests extends TestSuite {
           _.inner.typeA("b").foo
         ))
       )
+      test("innerTypeSelector") {
+        val check = new Checker(TestGraphs.TypedInnerModules)
+        test - check(
+          "__:(TypeA)._",
+          Right(Set(
+            _.typeA.foo,
+            _.inner.typeA.foo
+          ))
+        )
+        test - check(
+          "__:(!TypeA)._",
+          Right(Set(
+            _.typeB.foo
+          ))
+        )
+        test - check(
+          "__:(!inner.TypeA)._",
+          Right(Set(
+            _.typeA.foo,
+            _.typeB.foo
+          ))
+        )
+      }
     }
   }
 }

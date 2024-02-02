@@ -255,14 +255,15 @@ private object ResolveCore {
         // a class matches a type patter, if the type pattern segments match from the right
         // to express a full match, use `_root_` as first segment
 
-        val typeNames = clsPat.split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
+        val typeNames = clsPat.split("[.$]").toSeq.reverse
 
         val parents = resolveParents(cls)
+        println(s"parents: ${pprint.apply(parents)}")
         val classNames = parents.flatMap(c =>
           ("_root_$" + c.getName).split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
         )
 
-        val isOfType = classNames.exists(cn => typeNames.exists(_ == cn))
+        val isOfType = classNames.contains(typeNames)
         if (negate) !isOfType else isOfType
       }
 

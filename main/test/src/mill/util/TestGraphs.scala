@@ -592,4 +592,20 @@ object TestGraphs {
     object nestedAB extends Cross[NestedAB]("a", "b")
   }
 
+  object TypedInnerModules extends TestUtil.BaseModule {
+    trait TypeA extends Module {
+      def foo = T { "foo" }
+    }
+    object typeA extends TypeA
+    object typeB extends Module {
+      def foo = T { "foo" }
+    }
+    object inner extends Module {
+      trait TypeA extends Module {
+        def foo = T { "foo" }
+      }
+      object typeA extends TypeA
+    }
+  }
+
 }
