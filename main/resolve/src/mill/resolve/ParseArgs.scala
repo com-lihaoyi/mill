@@ -96,19 +96,15 @@ object ParseArgs {
     def wildcard = P("__" | "_")
     def label = mill.define.Reflect.ident
 
-//    def typeLabel = P("!".? ~~ label ~~ ("." ~~ label).rep).!
-    def typeLabel = P("!".? ~~ CharsWhileIn("a-zA-Z0-9_\\-$")).!
-    def typeLabelWithDots = P("!".? ~~ CharsWhileIn("a-zA-Z0-9_\\-$.")).!
+    def typeQualifier(simple: Boolean) = {
+      val maxSegments = if (simple) 0 else Int.MaxValue
+      P("!".? ~~ label ~~ ("." ~~ label).rep(max = maxSegments)).!
+    }
 
-    def parenTypeLabel = P("(" ~~ typeLabelWithDots ~~ ")")
+    def typePattern(simple: Boolean) = P(wildcard ~~ (":" ~~ typeQualifier(simple)).rep(1)).!
 
-    def typePattern = P(wildcard ~~ (":" ~~ (parenTypeLabel | typeLabel)).rep(1)).!
-    def complexTypePattern = P(wildcard ~~ (":" ~~ (parenTypeLabel | typeLabel)).rep(1)).!
-
-    def segmentSimple = P(typePattern | label).map(Segment.Label)
-    def segmentComplex = P(complexTypePattern | label).map(Segment.Label)
-
-    def segment = P("(" ~ segmentComplex ~ ")" | segmentSimple)
+    def segment0(simple: Boolean) = P(typePattern(simple) | label).map(Segment.Label)
+    def segment = P("(" ~ segment0(false) ~ ")" | segment0(true))
 
     def identCross = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
     def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross)
