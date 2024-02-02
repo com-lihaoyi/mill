@@ -98,7 +98,7 @@ object ParseArgs {
 
     def typeQualifier(simple: Boolean) = {
       val maxSegments = if (simple) 0 else Int.MaxValue
-      P(("!"|"^").? ~~ label ~~ ("." ~~ label).rep(max = maxSegments)).!
+      P(("!" | "^").? ~~ label ~~ ("." ~~ label).rep(max = maxSegments)).!
     }
 
     def typePattern(simple: Boolean) = P(wildcard ~~ (":" ~~ typeQualifier(simple)).rep(1)).!

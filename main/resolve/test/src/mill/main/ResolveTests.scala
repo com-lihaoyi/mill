@@ -949,7 +949,9 @@ object ResolveTests extends TestSuite {
       )
       test - check(
         "(_:!_root_.mill.define.Module)._",
-        Left("Cannot resolve _:!_root_.mill.define.Module._. Try `mill resolve _` to see what's available.")
+        Left(
+          "Cannot resolve _:!_root_.mill.define.Module._. Try `mill resolve _` to see what's available."
+        )
       )
       test - check(
         "_:TypeA._",
@@ -977,7 +979,9 @@ object ResolveTests extends TestSuite {
       // missing parens
       test - check(
         "__:TypeA:!TypedModules.TypeB._",
-        Left("Cannot resolve __:TypeA:!TypedModules.TypeB._. Try `mill resolve _` to see what's available.")
+        Left(
+          "Cannot resolve __:TypeA:!TypedModules.TypeB._. Try `mill resolve _` to see what's available."
+        )
       )
       test - check(
         "(__:TypeA:!TypeB)._",
