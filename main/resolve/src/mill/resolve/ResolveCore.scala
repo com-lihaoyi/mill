@@ -258,7 +258,6 @@ private object ResolveCore {
         val typeNames = clsPat.split("[.$]").toSeq.reverse
 
         val parents = resolveParents(cls)
-        println(s"parents: ${pprint.apply(parents)}")
         val classNames = parents.flatMap(c =>
           ("_root_$" + c.getName).split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
         )
