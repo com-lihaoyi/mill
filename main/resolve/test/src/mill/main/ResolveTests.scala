@@ -991,6 +991,10 @@ object ResolveTests extends TestSuite {
         "__:!TypeA._",
         Right(Set(_.typeB.bar, _.typeC.baz))
       )
+      test - check(
+        "__:^TypeA._",
+        Right(Set(_.typeB.bar, _.typeC.baz))
+      )
     }
     test("crossTypeSelector") {
       val check = new Checker(TestGraphs.TypedCrossModules)
@@ -1050,6 +1054,15 @@ object ResolveTests extends TestSuite {
       )
       test - check(
         "__:!TypeB._",
+        Right(Set(
+          _.typeA("a").foo,
+          _.typeA("b").foo,
+          _.inner.typeA("a").foo,
+          _.inner.typeA("b").foo
+        ))
+      )
+      test - check(
+        "__:^TypeB._",
         Right(Set(
           _.typeA("a").foo,
           _.typeA("b").foo,
