@@ -1,0 +1,57 @@
+= Target Query Syntax
+
+When interacting with Mill from the CLI, you often need to select targets or modules.
+In most places, where Mill accepts a target, it really accepts a target query, which is the name of a target in it's simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific targets.
+
+== Selecting dedicated targets
+
+== Understanding target paths and path segments
+
+Each Mill module and target has a unique path.
+Each part of the path is called _segment_.
+Segments are separated with a dot (`.`).
+They look like regular Scala class name qualifiers.
+
+There are two kind of segments: _label segments_ and _cross segments_.
+
+_Label segments_ are the components of a target path and have the same restriction as Scala identifiers.
+The must start with a letter and may contain letters, numbers and a limited set of special characters `-` (dash), `_` (underscore).
+They are used to denote Mill modules, tasks, but in the case of xref:Modules.adoc#external-modules[external modules] their Scala package names.
+
+_Cross segments_ start with a label segment but contain additional square brackets (`[`, `]`]) and are used to denote cross module and their parameters.
+
+== Wildcard selections
+
+There are two wildcards, you can use as a path segment.
+
+`_` (single underscore) ::
+Acts as a placeholder for a single segment.
+
+`__` (double underscore) ::
+Acts as a placeholder for many segments.
+In particular, it can represent an empty segment.
+
+== Enumerations
+
+Enumeration are denoted by curly braces (`{`, `}`).
+Inside the curly braces you can place one or more query paths.
+
+Examples:
+
+* `foo.{compile,run}` expands to `foo.compile` and `foo.run`
+* `{_, foo.bar}.baz` expands to `_.baz` and `foo.bar.baz
+
+== Type filters
+
+Type filters are always combined with wildcard and are used to restrict the scope of the wildcard.
+
+A type filter starts with a colon (`:`) followed by a type qualifier.
+The wildcard will only expand to segments, that fulfil the type filter.
+For module path this means, the represented module needs to be an instance of the specified type.
+
+Type filter are currently only supported for module selections, but not for target selections.
+That means, you can't filter based on the result type of a target.
+
+
+
+
