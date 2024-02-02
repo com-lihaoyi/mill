@@ -993,7 +993,7 @@ object bsp extends MillPublishScalaModule with BuildInfo {
   trait Test extends MillScalaTests {
     def forkEnv: T[Map[String, String]] = T {
       // We try to fetch this dependency with coursier in the tests
-      bsp.worker.publishLocal()()
+      bsp.worker.publishLocalCached()
       super.forkEnv()
     }
 
@@ -1399,7 +1399,7 @@ object dev extends MillPublishScalaModule {
   }
 
   def assembly = T {
-    T.traverse(allPublishModules)(m => m.publishLocal())()
+    T.traverse(allPublishModules)(m => m.publishLocalCached)()
     val version = millVersion()
     val devRunClasspath = runClasspath().map(_.path)
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
