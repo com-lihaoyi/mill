@@ -919,7 +919,18 @@ object ResolveTests extends TestSuite {
         ))
       )
       test - check(
-        "_._",
+        "(__)",
+        Right(Set(
+          _.typeA.foo,
+          _.typeB.bar,
+          _.typeAB.foo,
+          _.typeAB.bar,
+          _.typeC.baz,
+          _.typeC.typeA.foo
+        ))
+      )
+      test - check(
+        "(_)._",
         Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
@@ -927,7 +938,11 @@ object ResolveTests extends TestSuite {
         Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
-        "_:_root_$mill$define$Module._",
+        "(_:Module)._",
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
+      )
+      test - check(
+        "(_:_root_$mill$define$Module)._",
         Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
@@ -950,15 +965,15 @@ object ResolveTests extends TestSuite {
         Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar, _.typeC.typeA.foo))
       )
       test - check(
-        "__:TypeA:!TypedModules$TypeB._",
+        "(__:TypeA:!TypedModules$TypeB)._",
         Right(Set(_.typeA.foo, _.typeC.typeA.foo))
       )
       test - check(
-        "__:(TypeA):(!TypeB)._",
+        "(__:(TypeA):(!TypeB))._",
         Right(Set(_.typeA.foo, _.typeC.typeA.foo))
       )
       test - check(
-        "__:(TypedModules.TypeA):(!TypedModules$TypeB)._",
+        "(__:(TypedModules.TypeA):(!TypedModules$TypeB))._",
         Right(Set(_.typeA.foo, _.typeC.typeA.foo))
       )
       test - check(
@@ -1034,20 +1049,20 @@ object ResolveTests extends TestSuite {
       test("innerTypeSelector") {
         val check = new Checker(TestGraphs.TypedInnerModules)
         test - check(
-          "__:(TypeA)._",
+          "__:TypeA._",
           Right(Set(
             _.typeA.foo,
             _.inner.typeA.foo
           ))
         )
         test - check(
-          "__:(!TypeA)._",
+          "__:!TypeA._",
           Right(Set(
             _.typeB.foo
           ))
         )
         test - check(
-          "__:(!inner.TypeA)._",
+          "(__:(!inner.TypeA))._",
           Right(Set(
             _.typeA.foo,
             _.typeB.foo

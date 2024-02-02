@@ -93,14 +93,27 @@ object ParseArgs {
     }
 
   private def selector[_p: P]: P[(Option[Segments], Segments)] = {
+    def wildcard = P("__" | "_")
+    def label = mill.define.Reflect.ident
+
+//    def typeLabel = P("!".? ~~ label ~~ ("." ~~ label).rep).!
     def typeLabel = P("!".? ~~ CharsWhileIn("a-zA-Z0-9_\\-$")).!
     def typeLabelWithDots = P("!".? ~~ CharsWhileIn("a-zA-Z0-9_\\-$.")).!
+
     def parenTypeLabel = P("(" ~~ typeLabelWithDots ~~ ")")
-    def typePattern = P("_".rep(min = 1, max = 2) ~~ (":" ~~ (parenTypeLabel | typeLabel)).rep(1)).!
+
+    def typePattern = P(wildcard ~~ (":" ~~ (parenTypeLabel | typeLabel)).rep(1)).!
+    def complexTypePattern = P(wildcard ~~ (":" ~~ (parenTypeLabel | typeLabel)).rep(1)).!
+
+    def segmentSimple = P(typePattern | label).map(Segment.Label)
+    def segmentComplex = P(complexTypePattern | label).map(Segment.Label)
+
+    def segment = P("(" ~ segmentComplex ~ ")" | segmentSimple)
+
     def identCross = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def segment = P(typePattern | mill.define.Reflect.ident).map(Segment.Label)
     def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross)
     def defaultCrossSegment = P("[]").map(_ => Segment.Cross(Seq()))
+
     def simpleQuery = P(segment ~ ("." ~ segment | crossSegment | defaultCrossSegment).rep).map {
       case (h, rest) => Segments(h +: rest)
     }
