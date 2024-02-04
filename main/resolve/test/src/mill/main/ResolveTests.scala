@@ -948,9 +948,9 @@ object ResolveTests extends TestSuite {
         Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
-        "(_:!_root_.mill.define.Module)._",
+        "(_:^_root_.mill.define.Module)._",
         Left(
-          "Cannot resolve _:!_root_.mill.define.Module._. Try `mill resolve _` to see what's available."
+          "Cannot resolve _:^_root_.mill.define.Module._. Try `mill resolve _` to see what's available."
         )
       )
       test - check(
@@ -973,14 +973,14 @@ object ResolveTests extends TestSuite {
         Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar, _.typeC.typeA.foo))
       )
       test - check(
-        "(__:TypeA:!TypedModules.TypeB)._",
+        "(__:TypeA:^TypedModules.TypeB)._",
         Right(Set(_.typeA.foo, _.typeC.typeA.foo))
       )
       // missing parens
       test - check(
-        "__:TypeA:!TypedModules.TypeB._",
+        "__:TypeA:^TypedModules.TypeB._",
         Left(
-          "Cannot resolve __:TypeA:!TypedModules.TypeB._. Try `mill resolve _` to see what's available."
+          "Cannot resolve __:TypeA:^TypedModules.TypeB._. Try `mill resolve _` to see what's available."
         )
       )
       test - check(
@@ -988,11 +988,11 @@ object ResolveTests extends TestSuite {
         Right(Set(_.typeA.foo, _.typeC.typeA.foo))
       )
       test - check(
-        "(__:TypedModules.TypeA:!TypedModules.TypeB)._",
+        "(__:TypedModules.TypeA:^TypedModules.TypeB)._",
         Right(Set(_.typeA.foo, _.typeC.typeA.foo))
       )
       test - check(
-        "__:!TypeA._",
+        "__:^TypeA._",
         Right(Set(_.typeB.bar, _.typeC.baz))
       )
       test - check(
@@ -1057,7 +1057,7 @@ object ResolveTests extends TestSuite {
         ))
       )
       test - check(
-        "__:!TypeB._",
+        "__:^TypeB._",
         Right(Set(
           _.typeA("a").foo,
           _.typeA("b").foo,
@@ -1065,8 +1065,9 @@ object ResolveTests extends TestSuite {
           _.inner.typeA("b").foo
         ))
       )
+      // Keep `!` as alternative to `^`
       test - check(
-        "__:^TypeB._",
+        "__:!TypeB._",
         Right(Set(
           _.typeA("a").foo,
           _.typeA("b").foo,
@@ -1084,13 +1085,13 @@ object ResolveTests extends TestSuite {
           ))
         )
         test - check(
-          "__:!TypeA._",
+          "__:^TypeA._",
           Right(Set(
             _.typeB.foo
           ))
         )
         test - check(
-          "(__:!inner.TypeA)._",
+          "(__:^inner.TypeA)._",
           Right(Set(
             _.typeA.foo,
             _.typeB.foo

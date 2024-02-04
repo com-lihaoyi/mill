@@ -247,7 +247,7 @@ private object ResolveCore {
   private def classMatchesTypePred(typePattern: Seq[String])(cls: Class[_]): Boolean =
     typePattern
       .forall { pat =>
-        val negate = pat.startsWith("!") || pat.startsWith("^")
+        val negate = pat.startsWith("^") || pat.startsWith("!")
         val clsPat = pat.drop(if (negate) 1 else 0)
 
         // We split full class names by `.` and `$`
