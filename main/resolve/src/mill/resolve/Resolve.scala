@@ -28,7 +28,7 @@ object Resolve {
       Right(resolved.map(_.segments))
     }
 
-    private[mill] override def deduplicate(items: List[Segments]) = items.distinct
+    private[mill] override def deduplicate(items: List[Segments]): List[Segments] = items.distinct
   }
 
   object Tasks extends Resolve[NamedTask[Any]] {
@@ -83,11 +83,11 @@ object Resolve {
       )
     }
 
-    private[mill] override def deduplicate(items: List[NamedTask[Any]]) =
+    private[mill] override def deduplicate(items: List[NamedTask[Any]]): List[NamedTask[Any]] =
       items.distinctBy(_.ctx.segments)
   }
 
-  private def instantiateTarget(r: Resolved.Target, p: Module) = {
+  private def instantiateTarget(r: Resolved.Target, p: Module): Either[String, Target[_]] = {
     val definition = Reflect
       .reflect(p.getClass, classOf[Target[_]], _ == r.segments.parts.last, true)
       .head
@@ -230,11 +230,23 @@ trait Resolve[T] {
   ): Either[String, Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
-      ResolveCore.resolve(rootModule, sel.value.toList, rootResolved, Segments()) match {
+      ResolveCore.resolve(
+        rootModule = rootModule,
+        remainingQuery = sel.value.toList,
+        current = rootResolved,
+        querySoFar = Segments()
+      ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
           val allPossibleNames = rootModule.millDiscover.value.values.flatMap(_._1).toSet
-          Left(ResolveNotFoundHandler(sel, segments, found, next, possibleNexts, allPossibleNames))
+          Left(ResolveNotFoundHandler(
+            selector = sel,
+            segments = segments,
+            found = found,
+            next = next,
+            possibleNexts = possibleNexts,
+            allPossibleNames = allPossibleNames
+          ))
         case ResolveCore.Error(value) => Left(value)
       }
 
@@ -245,7 +257,10 @@ trait Resolve[T] {
 
   private[mill] def deduplicate(items: List[T]): List[T] = items
 
-  private[mill] def resolveRootModule(rootModule: BaseModule, scopedSel: Option[Segments]) = {
+  private[mill] def resolveRootModule(
+      rootModule: BaseModule,
+      scopedSel: Option[Segments]
+  ): Either[String, BaseModule] = {
     scopedSel match {
       case None => Right(rootModule)
       case Some(scoping) =>

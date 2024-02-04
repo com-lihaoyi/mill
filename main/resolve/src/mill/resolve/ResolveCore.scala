@@ -96,12 +96,36 @@ private object ResolveCore {
               case "__" =>
                 val self = Seq(Resolved.Module(m.segments, m.cls))
                 val transitiveOrErr =
-                  resolveTransitiveChildren(rootModule, m.cls, None, current.segments)
+                  resolveTransitiveChildren(rootModule, m.cls, None, current.segments, Nil)
 
                 transitiveOrErr.map(transitive => self ++ transitive)
 
               case "_" =>
                 resolveDirectChildren(rootModule, m.cls, None, current.segments)
+
+              case pattern if pattern.startsWith("__:") =>
+                val typePattern = pattern.split(":").drop(1)
+                val self = Seq(Resolved.Module(m.segments, m.cls))
+
+                val transitiveOrErr = resolveTransitiveChildren(
+                  rootModule,
+                  m.cls,
+                  None,
+                  current.segments,
+                  typePattern
+                )
+
+                transitiveOrErr.map(transitive => self ++ transitive)
+
+              case pattern if pattern.startsWith("_:") =>
+                val typePattern = pattern.split(":").drop(1)
+                resolveDirectChildren(
+                  rootModule,
+                  m.cls,
+                  None,
+                  current.segments,
+                  typePattern
+                )
 
               case _ =>
                 resolveDirectChildren(rootModule, m.cls, Some(singleLabel), current.segments)
@@ -186,22 +210,75 @@ private object ResolveCore {
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments
+  ): Either[String, Set[Resolved]] =
+    resolveTransitiveChildren(rootModule, cls, nameOpt, segments, Nil)
+
+  def resolveTransitiveChildren(
+      rootModule: Module,
+      cls: Class[_],
+      nameOpt: Option[String],
+      segments: Segments,
+      typePattern: Seq[String]
   ): Either[String, Set[Resolved]] = {
-    for {
-      direct <- resolveDirectChildren(rootModule, cls, nameOpt, segments)
-      indirect0 = direct
-        .collect { case m: Resolved.Module =>
-          resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments)
-        }
-      indirect <- EitherOps.sequence(indirect0).map(_.flatten)
-    } yield direct ++ indirect
+    val direct = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern)
+    direct.flatMap { direct =>
+      for {
+        directTraverse <- resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil)
+        indirect0 = directTraverse
+          .collect { case m: Resolved.Module =>
+            resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments, typePattern)
+          }
+        indirect <- EitherOps.sequence(indirect0).map(_.flatten)
+      } yield direct ++ indirect
+    }
   }
+
+  private def resolveParents(c: Class[_]): Seq[Class[_]] =
+    Seq(c) ++
+      Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
+      c.getInterfaces.flatMap(resolveParents)
+
+  /**
+   * Check if the given class matches a given type selector as string
+   * @param cls
+   * @param typePattern
+   * @return
+   */
+  private def classMatchesTypePred(typePattern: Seq[String])(cls: Class[_]): Boolean =
+    typePattern
+      .forall { pat =>
+        val negate = pat.startsWith("^") || pat.startsWith("!")
+        val clsPat = pat.drop(if (negate) 1 else 0)
+
+        // We split full class names by `.` and `$`
+        // a class matches a type patter, if the type pattern segments match from the right
+        // to express a full match, use `_root_` as first segment
+
+        val typeNames = clsPat.split("[.$]").toSeq.reverse
+
+        val parents = resolveParents(cls)
+        val classNames = parents.flatMap(c =>
+          ("_root_$" + c.getName).split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
+        )
+
+        val isOfType = classNames.contains(typeNames)
+        if (negate) !isOfType else isOfType
+      }
 
   def resolveDirectChildren(
       rootModule: Module,
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments
+  ): Either[String, Set[Resolved]] =
+    resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern = Nil)
+
+  def resolveDirectChildren(
+      rootModule: Module,
+      cls: Class[_],
+      nameOpt: Option[String],
+      segments: Segments,
+      typePattern: Seq[String]
   ): Either[String, Set[Resolved]] = {
 
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
@@ -216,7 +293,11 @@ private object ResolveCore {
     } else Right(Nil)
 
     crossesOrErr.flatMap { crosses =>
-      resolveDirectChildren0(rootModule, segments, cls, nameOpt)
+      val filteredCrosses = crosses.filter { c =>
+        classMatchesTypePred(typePattern)(c.cls)
+      }
+
+      resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern)
         .map(
           _.map {
             case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
@@ -224,7 +305,7 @@ private object ResolveCore {
             case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
           }
             .toSet
-            .++(crosses)
+            .++(filteredCrosses)
         )
     }
   }
@@ -234,15 +315,25 @@ private object ResolveCore {
       segments: Segments,
       cls: Class[_],
       nameOpt: Option[String]
+  ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] =
+    resolveDirectChildren0(rootModule, segments, cls, nameOpt, Nil)
+
+  def resolveDirectChildren0(
+      rootModule: Module,
+      segments: Segments,
+      cls: Class[_],
+      nameOpt: Option[String],
+      typePattern: Seq[String]
   ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
 
-    val modulesOrErr: Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] =
+    val modulesOrErr: Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {
         instantiateModule(rootModule, segments).map {
           case m: DynamicModule =>
             m.millModuleDirectChildren
               .filter(c => namePred(c.millModuleSegments.parts.last))
+              .filter(c => classMatchesTypePred(typePattern)(c.getClass))
               .map(c =>
                 (
                   Resolved.Module(
@@ -256,6 +347,14 @@ private object ResolveCore {
       } else Right {
         Reflect
           .reflectNestedObjects0[Module](cls, namePred)
+          .filter {
+            case (_, member) =>
+              val memberCls = member match {
+                case f: java.lang.reflect.Field => f.getType
+                case f: java.lang.reflect.Method => f.getReturnType
+              }
+              classMatchesTypePred(typePattern)(memberCls)
+          }
           .map { case (name, member) =>
             Resolved.Module(
               Segments.labels(decode(name)),
@@ -274,6 +373,7 @@ private object ResolveCore {
             )
           }
       }
+    }
 
     val targets = Reflect
       .reflect(cls, classOf[Target[_]], namePred, noParams = true)

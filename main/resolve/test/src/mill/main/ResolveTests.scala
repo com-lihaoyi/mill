@@ -1,6 +1,7 @@
 package mill.resolve
 
 import mill.define.NamedTask
+import mill.util.TestGraphs
 import mill.util.TestGraphs._
 import utest._
 object ResolveTests extends TestSuite {
@@ -31,6 +32,7 @@ object ResolveTests extends TestSuite {
         expectedMetadata.isEmpty ||
           resolvedMetadata.map(_.toSet) == Right(expectedMetadata)
       )
+      selectorStrings.mkString(" ")
     }
 
     def checkSeq0(
@@ -902,6 +904,200 @@ object ResolveTests extends TestSuite {
         Right(Set(_.normal.inner.target)),
         Set("normal.inner.target")
       )
+    }
+    test("typeSelector") {
+      val check = new Checker(TestGraphs.TypedModules)
+      test - check(
+        "__",
+        Right(Set(
+          _.typeA.foo,
+          _.typeB.bar,
+          _.typeAB.foo,
+          _.typeAB.bar,
+          _.typeC.baz,
+          _.typeC.typeA.foo
+        ))
+      )
+      // parens should work
+      test - check(
+        "(__)",
+        Right(Set(
+          _.typeA.foo,
+          _.typeB.bar,
+          _.typeAB.foo,
+          _.typeAB.bar,
+          _.typeC.baz,
+          _.typeC.typeA.foo
+        ))
+      )
+      test - check(
+        "(_)._",
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
+      )
+      test - check(
+        "_:Module._",
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
+      )
+      // parens should work
+      test - check(
+        "(_:Module)._",
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
+      )
+      test - check(
+        "(_:_root_.mill.define.Module)._",
+        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
+      )
+      test - check(
+        "(_:^_root_.mill.define.Module)._",
+        Left(
+          "Cannot resolve _:^_root_.mill.define.Module._. Try `mill resolve _` to see what's available."
+        )
+      )
+      test - check(
+        "_:TypeA._",
+        Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar))
+      )
+      test - check(
+        "__:Module._",
+        Right(Set(
+          _.typeA.foo,
+          _.typeB.bar,
+          _.typeAB.foo,
+          _.typeAB.bar,
+          _.typeC.baz,
+          _.typeC.typeA.foo
+        ))
+      )
+      test - check(
+        "__:TypeA._",
+        Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar, _.typeC.typeA.foo))
+      )
+      test - check(
+        "(__:TypeA:^TypedModules.TypeB)._",
+        Right(Set(_.typeA.foo, _.typeC.typeA.foo))
+      )
+      // missing parens
+      test - check(
+        "__:TypeA:^TypedModules.TypeB._",
+        Left(
+          "Cannot resolve __:TypeA:^TypedModules.TypeB._. Try `mill resolve _` to see what's available."
+        )
+      )
+      test - check(
+        "(__:TypeA:!TypeB)._",
+        Right(Set(_.typeA.foo, _.typeC.typeA.foo))
+      )
+      test - check(
+        "(__:TypedModules.TypeA:^TypedModules.TypeB)._",
+        Right(Set(_.typeA.foo, _.typeC.typeA.foo))
+      )
+      test - check(
+        "__:^TypeA._",
+        Right(Set(_.typeB.bar, _.typeC.baz))
+      )
+      test - check(
+        "__:^TypeA._",
+        Right(Set(_.typeB.bar, _.typeC.baz))
+      )
+    }
+    test("crossTypeSelector") {
+      val check = new Checker(TestGraphs.TypedCrossModules)
+      test - check(
+        "__",
+        Right(Set(
+          _.typeA("a").foo,
+          _.typeA("b").foo,
+          _.typeAB("a").foo,
+          _.typeAB("a").bar,
+          _.typeAB("b").foo,
+          _.typeAB("b").bar,
+          _.inner.typeA("a").foo,
+          _.inner.typeA("b").foo,
+          _.inner.typeAB("a").foo,
+          _.inner.typeAB("a").bar,
+          _.inner.typeAB("b").foo,
+          _.inner.typeAB("b").bar,
+          _.nestedAB("a").foo,
+          _.nestedAB("a").bar,
+          _.nestedAB("b").foo,
+          _.nestedAB("b").bar,
+          _.nestedAB("a").typeAB("a").foo,
+          _.nestedAB("a").typeAB("a").bar,
+          _.nestedAB("a").typeAB("b").foo,
+          _.nestedAB("a").typeAB("b").bar,
+          _.nestedAB("b").typeAB("a").foo,
+          _.nestedAB("b").typeAB("a").bar,
+          _.nestedAB("b").typeAB("b").foo,
+          _.nestedAB("b").typeAB("b").bar
+        ))
+      )
+      test - check(
+        "__:TypeB._",
+        Right(Set(
+          _.typeAB("a").foo,
+          _.typeAB("a").bar,
+          _.typeAB("b").foo,
+          _.typeAB("b").bar,
+          _.inner.typeAB("a").foo,
+          _.inner.typeAB("a").bar,
+          _.inner.typeAB("b").foo,
+          _.inner.typeAB("b").bar,
+          _.nestedAB("a").foo,
+          _.nestedAB("a").bar,
+          _.nestedAB("b").foo,
+          _.nestedAB("b").bar,
+          _.nestedAB("a").typeAB("a").foo,
+          _.nestedAB("a").typeAB("a").bar,
+          _.nestedAB("a").typeAB("b").foo,
+          _.nestedAB("a").typeAB("b").bar,
+          _.nestedAB("b").typeAB("a").foo,
+          _.nestedAB("b").typeAB("a").bar,
+          _.nestedAB("b").typeAB("b").foo,
+          _.nestedAB("b").typeAB("b").bar
+        ))
+      )
+      test - check(
+        "__:^TypeB._",
+        Right(Set(
+          _.typeA("a").foo,
+          _.typeA("b").foo,
+          _.inner.typeA("a").foo,
+          _.inner.typeA("b").foo
+        ))
+      )
+      // Keep `!` as alternative to `^`
+      test - check(
+        "__:!TypeB._",
+        Right(Set(
+          _.typeA("a").foo,
+          _.typeA("b").foo,
+          _.inner.typeA("a").foo,
+          _.inner.typeA("b").foo
+        ))
+      )
+      test("innerTypeSelector") {
+        val check = new Checker(TestGraphs.TypedInnerModules)
+        test - check(
+          "__:TypeA._",
+          Right(Set(
+            _.typeA.foo,
+            _.inner.typeA.foo
+          ))
+        )
+        test - check(
+          "__:^TypeA._",
+          Right(Set(
+            _.typeB.foo
+          ))
+        )
+        test - check(
+          "(__:^inner.TypeA)._",
+          Right(Set(
+            _.typeA.foo,
+            _.typeB.foo
+          ))
+        )
+      }
     }
   }
 }

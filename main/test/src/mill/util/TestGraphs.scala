@@ -546,4 +546,66 @@ object TestGraphs {
     }
     object mod extends M1 with M2
   }
+
+  object TypedModules extends TestUtil.BaseModule {
+    trait TypeA extends Module {
+      def foo = T { "foo" }
+    }
+    trait TypeB extends Module {
+      def bar = T { "bar" }
+    }
+    trait TypeC extends Module {
+      def baz = T { "baz" }
+    }
+    trait TypeAB extends TypeA with TypeB
+
+    object typeA extends TypeA
+    object typeB extends TypeB
+    object typeC extends TypeC {
+      object typeA extends TypeA
+    }
+    object typeAB extends TypeAB
+  }
+
+  object TypedCrossModules extends TestUtil.BaseModule {
+    trait TypeA extends Cross.Module[String] {
+      def foo = T { crossValue }
+    }
+
+    trait TypeB extends Module {
+      def bar = T { "bar" }
+    }
+
+    trait TypeAB extends TypeA with TypeB
+
+    object typeA extends Cross[TypeA]("a", "b")
+    object typeAB extends Cross[TypeAB]("a", "b")
+
+    object inner extends Module {
+      object typeA extends Cross[TypeA]("a", "b")
+      object typeAB extends Cross[TypeAB]("a", "b")
+    }
+
+    trait NestedAB extends TypeAB {
+      object typeAB extends Cross[TypeAB]("a", "b")
+    }
+    object nestedAB extends Cross[NestedAB]("a", "b")
+  }
+
+  object TypedInnerModules extends TestUtil.BaseModule {
+    trait TypeA extends Module {
+      def foo = T { "foo" }
+    }
+    object typeA extends TypeA
+    object typeB extends Module {
+      def foo = T { "foo" }
+    }
+    object inner extends Module {
+      trait TypeA extends Module {
+        def foo = T { "foo" }
+      }
+      object typeA extends TypeA
+    }
+  }
+
 }

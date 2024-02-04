@@ -93,10 +93,23 @@ object ParseArgs {
     }
 
   private def selector[_p: P]: P[(Option[Segments], Segments)] = {
-    def ident2 = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def segment = P(mill.define.Reflect.ident).map(Segment.Label)
-    def crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
+    def wildcard = P("__" | "_")
+    def label = mill.define.Reflect.ident
+
+    def typeQualifier(simple: Boolean) = {
+      val maxSegments = if (simple) 0 else Int.MaxValue
+      P(("^" | "!").? ~~ label ~~ ("." ~~ label).rep(max = maxSegments)).!
+    }
+
+    def typePattern(simple: Boolean) = P(wildcard ~~ (":" ~~ typeQualifier(simple)).rep(1)).!
+
+    def segment0(simple: Boolean) = P(typePattern(simple) | label).map(Segment.Label)
+    def segment = P("(" ~ segment0(false) ~ ")" | segment0(true))
+
+    def identCross = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
+    def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross)
     def defaultCrossSegment = P("[]").map(_ => Segment.Cross(Seq()))
+
     def simpleQuery = P(segment ~ ("." ~ segment | crossSegment | defaultCrossSegment).rep).map {
       case (h, rest) => Segments(h +: rest)
     }
