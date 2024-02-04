@@ -16,10 +16,23 @@ import mill.contrib.buildinfo.BuildInfo
 
 object project extends BuildInfo {
   val name = "project-name"
+  val buildInfoPackageName = "com.organization"
   def buildInfoMembers = Seq(
     BuildInfo.Value("name", name),
     BuildInfo.Value("scalaVersion", scalaVersion()),
   )
+}
+----
+
+.`Main.scala`
+[source,scala]
+----
+import com.organization.BuildInfo
+
+@main
+def main = {
+  println(BuildInfo.name)
+  println(BuildInfo.scalaVersion)
 }
 ----
 
