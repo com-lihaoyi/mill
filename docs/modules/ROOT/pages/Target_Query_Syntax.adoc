@@ -1,11 +1,42 @@
 = Target Query Syntax
 
 When interacting with Mill from the CLI, you often need to select targets or modules.
-In most places, where Mill accepts a target, it really accepts a target query, which is the name of a target in it's simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific targets.
+In most places, where Mill accepts a target, it really accepts a target query, which is the name of a target in its simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific targets.
 
 == Selecting dedicated targets
 
-== Understanding target paths and path segments
+When invoking Mill, the simplest way to run a target is to give it with a fully qualified names.
+
+[scala]
+----
+import mill._, scalalib._
+
+trait MyModule extends ScalaModule {
+  def scalaVersion = "2.13.12"
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+}
+
+object bar extends MyModule {
+  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
+
+  object test extends ScalaTests with TestModule.Utest {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+  }
+}
+----
+
+The tests can be run by explicitly specifying the test target to Mill
+
+----
+> mill bar.test
+----
+
+.Understanding target paths and path segments
+****
 
 Each Mill module and target has a unique path.
 Each part of the path is called _segment_.
@@ -20,17 +51,23 @@ They are used to denote Mill modules, tasks, but in the case of xref:Modules.ado
 
 _Cross segments_ start with a label segment but contain additional square brackets (`[`, `]`]) and are used to denote cross module and their parameters.
 
-== Wildcard selections
+NOTE: Segments can be surrounded by parentheses (`(`, `)`)).
+When combined with <<type-filters-for-wildcard-selections,qualified type filter>> which contain dots (`.`), the parentheses need to be used, to avoid the dots to being interpreted as path separators.
 
-There are two wildcards, you can use as a path segment.
+****
 
-`_` (single underscore) ::
-Acts as a placeholder for a single segment.
+== Selecting multiple targets
 
-`__` (double underscore) ::
-Acts as a placeholder for many segments.
-In particular, it can represent an empty segment.
+If you want to select more than one target, you have multiple options:
 
+* <<enumerations,Use target enumerations>>
+* <<wildcards,Use wildcard selections>>
+* <<type-filters,Specify type filters on wildcard selections>>
+* <<add-target-selector,Use `+` to use more than one target selector>>
+
+You can also combine these techniques to properly select your targets
+
+[#enumerations]
 == Enumerations
 
 Enumeration are denoted by curly braces (`{`, `}`).
@@ -38,20 +75,39 @@ Inside the curly braces you can place one or more query paths.
 
 Examples:
 
+* `{foo,bar}` simple enumerates two targets, `foo` and `bar`
 * `foo.{compile,run}` expands to `foo.compile` and `foo.run`
 * `{_, foo.bar}.baz` expands to `_.baz` and `foo.bar.baz
 
-== Type filters
+[#wildcards]
+== Wildcard selections
+
+There are two wildcards, you can use as as path segment.
+
+* `_` The single underscore acts as a placeholder for a single segment.
+
+* `__ The double underscore acts as a placeholder for many segments.
+In particular, it can represent an empty segment.
+
+With wildcards, you can get explicit control over the position of a target in the build tree.
+
+E.g. the filter `_._._.jar` will match all jar targets, that are on the third-level of the build tree.
+
+[#type-filters]
+== Type filters for wildcard selections
 
 Type filters are always combined with wildcard and are used to restrict the scope of the wildcard.
 
 A type filter starts with a colon (`:`) followed by a type qualifier.
-The wildcard will only expand to segments, that fulfil the type filter.
-For module path this means, the represented module needs to be an instance of the specified type.
+The wildcard that is annotated that way will only expand to segments, that fulfil the type filter.
+For modules path this means, the represented module needs to be an instance of the specified type.
 
 Type filter are currently only supported for module selections, but not for target selections.
 That means, you can't filter based on the result type of a target.
 
+[#add-target-selector]
+== Start a new target selector with `+`
 
-
+You can also start a new target selector with the `+` sign.
+This is a more special way to select multiple targets in the sence that it starts a complete new target selector, including any optional parameters a target / command may accept.
 
