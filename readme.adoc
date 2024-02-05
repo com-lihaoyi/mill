@@ -320,11 +320,11 @@ __Fixes and Improvements__
 * Mask forward slashes in cross values to fix their cache locations {link-pr}/2986[#2986]
 * Re-enable test result summary (print `done` message from test framework to stdout) {link-pr}/2993[#2993]
 * Fix overeager caching of `cliImports` value in `generatedScriptSources`  {link-pr}/2977[#2977]
+* Allow resolving moduleDeps with older Scala 3 versions {link-pr}/2877[#2877]
 * GenIdea: Put module dependencies after library dependencies {link-pr}/2925[#2925]
 * BSP: do not filter clean-requests for meta-builds  {link-pr}/2931[#2931]
 * BSP: Add `JavaModule.bspBuildTargetData` to make `JavaModule` reports workable `BuildTarget` {link-pr}/2930[#2930]
 * BSP: Send `logMessage` instead of diagnostics when `textDocument` is unknown {link-pr}/2979[#2979]
-* Allow resolving moduleDeps with older Scala 3 versions {link-pr}/2877[#2877]
 * Scoverage inner module defaults new to `skipIdea = true` {link-pr}/2989[#2989]
 
 __Updates and internal changes__
