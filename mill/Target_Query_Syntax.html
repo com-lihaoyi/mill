@@ -3,10 +3,10 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Using Plugins :: Mill</title>
-    <link rel="canonical" href="https://mill-build.com/mill/Using_Plugins.html" />
-    <link rel="prev" href="The_Mill_Evaluation_Model.html" />
-    <link rel="next" href="Contrib_Plugins.html" />
+    <title>Target Query Syntax :: Mill</title>
+    <link rel="canonical" href="https://mill-build.com/mill/Target_Query_Syntax.html" />
+    <link rel="prev" href="Cross_Builds.html" />
+    <link rel="next" href="Extending_Mill.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../_/css/site.css" />
 <link rel="icon" href="../_/favicon.png" type="image/x-icon" />
@@ -135,7 +135,7 @@
     <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="Target_Query_Syntax.html">Target Query Syntax</a>
   </li>
 
@@ -154,7 +154,7 @@
     <span class="nav-text">Mill Plugins</span>
 <ul class="nav-list">
 
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
   </li>
 
@@ -305,132 +305,139 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
-    <li>Mill Plugins</li>
-    <li><a href="Using_Plugins.html">Using Plugins</a></li>
+    <li>Mill In Depth</li>
+    <li><a href="Target_Query_Syntax.html">Target Query Syntax</a></li>
   </ul>
 </nav>
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.6-72-dd2e54</button>
   <div class="version-menu">
-    <a class="version is-current" href="Using_Plugins.html">0.11.6-72-dd2e54</a>
-    <a class="version" href="0.11.0-M7/Using_Plugins.html">0.11.0-M7</a>
-    <a class="version" href="0.10.15/Using_Plugins.html">0.10.15</a>
-    <a class="version" href="0.10.12/Using_Plugins.html">0.10.12</a>
+    <a class="version is-current" href="Target_Query_Syntax.html">0.11.6-72-dd2e54</a>
+    <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
+    <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
+    <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
     <a class="version is-missing" href="0.10.0/index.html">0.10.0</a>
     <a class="version is-missing" href="0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/Using_Plugins.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/Target_Query_Syntax.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Using Plugins</h1>
+<h1 class="page">Target Query Syntax</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill plugins are ordinary jars and are loaded as any other external dependency with the <a href="Extending_Mill.html#_import_ivy" class="xref page"><code>import $ivy</code> mechanism</a>.</p>
-</div>
-<div class="paragraph">
-<p>There exist a large number of Mill plugins, Many of them are available on GitHub and via Maven Central. We also have a list of plugins, which is most likely not complete, but it might be a good start if you are looking for plugins: <a href="Thirdparty_Plugins.html" class="xref page">Third-Party Plugins</a>.</p>
-</div>
-<div class="paragraph">
-<p>Some plugin contributions are also hosted in Mill’s own git tree as <a href="Contrib_Plugins.html" class="xref page">Contrib Plugins</a>.</p>
-</div>
-<div class="paragraph">
-<p>Mill plugins are typically bound to a specific version range of Mill.
-This is called the binary platform.
-To ease the use of the correct versions and avoid runtime issues (caused by binary incompatible plugins, which are hard to debug) you can apply one of the following techniques:</p>
+<p>When interacting with Mill from the CLI, you often need to select targets or modules.
+In most places, where Mill accepts a target, it really accepts a target selector query, which is the name of a target in its simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific targets.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_use_the_specific_mill_binary_platform_notation"><a class="anchor" href="#_use_the_specific_mill_binary_platform_notation"></a>Use the specific Mill Binary Platform notation</h2>
+<h2 id="_selecting_dedicated_targets"><a class="anchor" href="#_selecting_dedicated_targets"></a>Selecting dedicated targets</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>When invoking Mill, the simplest way to run a target is to give it with a fully qualified names.</p>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// for classic Scala dependencies
-import $ivy.`&lt;group&gt;::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" data-value="1"></i><b>(1)</b>
-// for dependencies specific to the exact Scala version
-import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
+<pre>&gt; mill for.compile
+&gt; mill for.run hello world
+&gt; mill foo.testCached</pre>
 </div>
 </div>
-<div class="colist arabic">
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Understanding target paths and path segments</div>
+<div class="paragraph">
+<p>Each Mill module and target has a unique path.
+Each part of the path is called <em>segment</em>.
+Segments are separated with a dot (<code>.</code>).
+They look like regular Scala class name qualifiers.</p>
+</div>
+<div class="paragraph">
+<p>There are two kind of segments: <em>label segments</em> and <em>cross segments</em>.</p>
+</div>
+<div class="paragraph">
+<p><em>Label segments</em> are the components of a target path and have the same restriction as Scala identifiers.
+The must start with a letter and may contain letters, numbers and a limited set of special characters <code>-</code> (dash), <code>_</code> (underscore).
+They are used to denote Mill modules, tasks, but in the case of <a href="Modules.html#external-modules" class="xref page">external modules</a> their Scala package names.</p>
+</div>
+<div class="paragraph">
+<p><em>Cross segments</em> start with a label segment but contain additional square brackets (<code>[</code>, <code>]</code>]) and are used to denote cross module and their parameters.</p>
+</div>
+<div class="admonitionblock note">
 <table>
 <tbody><tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>This is equivalent to
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`&lt;group&gt;::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;`</code></pre>
-</div>
-</div></td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>This is equivalent to
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`&lt;group&gt;:::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;`</code></pre>
-</div>
-</div></td>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Segments can be surrounded by parentheses (<code>(</code>, <code>)</code>)).
+When combined with <a href="#type-filters">qualified type filter</a> which contain dots (<code>.</code>), the parentheses need to be used, to avoid the dots to being interpreted as path separators.
+</td>
 </tr>
 </tbody></table>
 </div>
 </div>
 </div>
+</div>
+</div>
 <div class="sect1">
-<h2 id="_use_special_placeholders_in_your_import_ivy"><a class="anchor" href="#_use_special_placeholders_in_your_import_ivy"></a>Use special placeholders in your <code>import $ivy</code></h2>
+<h2 id="select-multiple-targets"><a class="anchor" href="#select-multiple-targets"></a>Selecting multiple targets</h2>
 <div class="sectionbody">
-<div class="dlist">
-<dl>
-<dt class="hdlist1"><code>$MILL_VERSION</code> </dt>
-<dd>
-<div class="openblock">
-<div class="content">
 <div class="paragraph">
-<p>to substitute the currently used Mill version.
-This is typical required for Mill contrib modules, which are developed in the Mill repository and highly bound to the current Mill version.</p>
+<p>If you want to select more than one target, you have multiple options:</p>
 </div>
-<div class="listingblock">
-<div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
-<div class="content">
-<pre>import $ivy.`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`</pre>
-</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#enumerations">Use target enumerations</a></p>
+</li>
+<li>
+<p><a href="#wildcards">Use wildcard selections</a></p>
+</li>
+<li>
+<p><a href="#type-filters">Specify type filters on wildcard selections</a></p>
+</li>
+<li>
+<p><a href="#add-target-selector">Use <code>+</code> to use more than one target selector</a></p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>There is the even more convenient option to leave the version completely empty.
-Mill will substitute it with its current version.
-But don’t forget to provide the trailing colon!</p>
-</div>
-<div class="listingblock">
-<div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
-<div class="content">
-<pre>import $ivy.`com.lihaoyi:mill-contrib-bloop:`</pre>
+<p>You can also combine these techniques to properly select your targets</p>
 </div>
 </div>
 </div>
-</div>
-</dd>
-<dt class="hdlist1"><code>$MILL_BIN_PLATFORM</code> </dt>
-<dd>
-<div class="openblock">
-<div class="content">
+<div class="sect1">
+<h2 id="enumerations"><a class="anchor" href="#enumerations"></a>Enumerations</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>to substitute the currently used Mill binary platform.</p>
+<p>Enumeration are denoted by curly braces (<code>{</code>, <code>}</code>).
+Inside the curly braces you can place two or more selector paths, separated with a comma (<code>,</code>).</p>
 </div>
-<div class="listingblock">
-<div class="title">Example: Using <code>mill-vcs-version</code> plugin matching the current Mill Binary Platfrom</div>
-<div class="content">
-<pre>import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`</pre>
+<div class="paragraph">
+<p>Examples:</p>
 </div>
-</div>
-</div>
-</div>
-</dd>
-</dl>
+<div class="ulist">
+<ul>
+<li>
+<p><code>{foo,bar}</code> simple enumerates two targets, <code>foo</code> and <code>bar</code></p>
+</li>
+<li>
+<p><code>foo.{compile,run}</code> expands to <code>foo.compile</code> and <code>foo.run</code></p>
+</li>
+<li>
+<p><code>{<em>,foo.bar}.baz</em></code> expands to <code>.baz</code> and <code>foo.bar.baz</code></p>
+</li>
+</ul>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -439,16 +446,149 @@ But don’t forget to provide the trailing colon!</p>
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-If you want to publish re-usable libraries that <em>other</em> people can use in their builds, simply publish your code as a library to maven central.
+<div class="paragraph">
+<p>Some Shells like <code>bash</code> support curly braces expansion.
+Make sure to properly mask the selector path, e.g. by putting it in quotes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>mill &quot;foo.{compile.run}&quot;</pre>
+</div>
+</div>
 </td>
 </tr>
 </tbody></table>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="wildcards"><a class="anchor" href="#wildcards"></a>Wildcard selections</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are two wildcards, you can use as path segment.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>_</code> The single underscore acts as a placeholder for a single segment.</p>
+</li>
+<li>
+<p><code>__</code> The double underscore acts as a placeholder for many segments.
+In particular, it can represent an empty segment.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>With wildcards, you can get explicit control over the position of a target in the build tree.</p>
+</div>
+<div class="paragraph">
+<p>E.g. the filter <code>_._._.jar</code> will match all jar targets, that are on the third-level of the build tree.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="type-filters"><a class="anchor" href="#type-filters"></a>Type filters for wildcard selections</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Type filters are always combined with wildcard.
+They are used to limit the scope of the wildcard to only match path segments of the specified types.
+For module paths this means, the represented module needs to be an instance of the specified type.</p>
+</div>
+<div class="paragraph">
+<p>A type filter always starts with a wildcard (<code><em></em></code>, <code>_</code>) followed by a colon (<code>:</code>) and finally  the <em>type qualifier</em>.</p>
+</div>
+<div class="paragraph">
+<p>The type is matched by its name and optionally by its enclosing types and packages, separated by a <code>.</code> sign.
+Since this is also used to separate target path segments, a type selector segment containing a <code>.</code> needs to be enclosed in parentheses.
+A fully qualified type can be denoted with the <em>root</em> package.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; mill resolve __:TestModule.jar
+&gt; mill resolve &quot;(__:scalalib.TestModule).jar&quot;
+&gt; mill resolve &quot;(__:mill.scalalib.TestModule).jar&quot;
+&gt; mill resolve &quot;(__:_root_.mill.scalalib.TestModule).jar&quot;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the type qualifier starts with a <code>^</code> or <code>!</code>, it’s only matching types which are <em>not</em> instances of the specified type.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; mill resolve __:^TestModule.jar</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also add more than one type filters to a wildcard.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; mill resolve &quot;__:JavaModule:^ScalaModule:^TestModule.jar&quot;</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Type filter are currently only supported for module selections, but not for target selections.
+That means, you can’t filter based on the result type of a target.
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="add-target-selector"><a class="anchor" href="#add-target-selector"></a>Start a new target selector with <code>+</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>On the Mill CLI you can also start a complete new target selector with the <code>+</code> sign.</p>
+</div>
+<div class="paragraph">
+<p>There is a subtile difference between the expansion of <a href="#enumerations">enumerations</a>, <a href="#wildcards">wildcards</a> and <a href="#type-filters">wildcards with type filters</a> in contrast to the  <a href="#add-target-selector">start of a new selector with <code>+</code></a>.</p>
+</div>
+<div class="paragraph">
+<p>For all the former versions, Mill parses them into a complex but single target selector path and subsequent parameters are used for all resolved targets.</p>
+</div>
+<div class="paragraph">
+<p>Whereas the <code>+</code> start a completely new selector path to which you can also provide a different parameter list. This is important when using <a href="Tasks.html#commands" class="xref page">command targets</a> which can accept their own parameters. The <code>JavaModule.run</code> command is an example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; mill foo.run hello                   <i class="conum" data-value="1"></i><b>(1)</b>
+&gt; mill {foo,bar}.run hello             <i class="conum" data-value="2"></i><b>(2)</b>
+&gt; mill __:JavaModule:^TestModule.run   <i class="conum" data-value="3"></i><b>(3)</b>
+&gt; mill foo.run hello + bar.run world   <i class="conum" data-value="4"></i><b>(4)</b></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Runs <code>foo.run</code> with the parameter <code>hello</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Expands to <code>foo.run</code> and <code>bar.run</code> and runs both with the parameter <code>hello</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Selects the <code>run</code> command of all Java modules, but not test moudles, and runs them with the parameter <code>hello</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Runs <code>fun.run</code> with the parameter <code>hello</code> and <code>bar.run</code> with the parameter <code>world</code>.</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
 <nav class="pagination">
-  <span class="prev"><a href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a></span>
-  <span class="next"><a href="Contrib_Plugins.html">Contrib Plugins</a></span>
+  <span class="prev"><a href="Cross_Builds.html">Cross Builds</a></span>
+  <span class="next"><a href="Extending_Mill.html">Extending Mill</a></span>
 </nav>
 </article>
   </div>

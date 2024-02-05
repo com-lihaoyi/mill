@@ -136,6 +136,10 @@
   </li>
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Target_Query_Syntax.html">Target Query Syntax</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
   </li>
 
@@ -263,14 +267,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.6-71-9884b0</span>
+    <span class="version">0.11.6-72-dd2e54</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.6-71-9884b0</a>
+          <a href="index.html">0.11.6-72-dd2e54</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -306,9 +310,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.6-71-9884b0</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.6-72-dd2e54</button>
   <div class="version-menu">
-    <a class="version is-current" href="Tasks.html">0.11.6-71-9884b0</a>
+    <a class="version is-current" href="Tasks.html">0.11.6-72-dd2e54</a>
     <a class="version" href="0.11.0-M7/Tasks.html">0.11.0-M7</a>
     <a class="version" href="0.10.15/Tasks.html">0.10.15</a>
     <a class="version" href="0.10.12/Tasks.html">0.10.12</a>
@@ -433,7 +437,7 @@ different Task types:</p>
 <p>The following is a simple self-contained example using Mill to compile Java:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-71-9884b0-example-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/1-task-graph">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-72-dd2e54-example-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/1-task-graph">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -502,7 +506,7 @@ and use the cached output of <code>compile</code></p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_primary_tasks"><a class="anchor" href="#_primary_tasks"></a>Primary Tasks</h2>
+<h2 id="primitive-tasks"><a class="anchor" href="#primitive-tasks"></a>Primary Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>There are three primary kinds of <em>Tasks</em> that you should care about:</p>
@@ -516,14 +520,14 @@ and use the cached output of <code>compile</code></p>
 <p><a href="#_sources">Sources</a>, defined using <code>T.sources {…​}</code></p>
 </li>
 <li>
-<p><a href="#_commands">Commands</a>, defined using <code>T.command {…​}</code></p>
+<p><a href="#_commands">[_commands]</a>, defined using <code>T.command {…​}</code></p>
 </li>
 </ul>
 </div>
 <div class="sect2">
 <h3 id="_targets"><a class="anchor" href="#_targets"></a>Targets</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-71-9884b0-example-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/2-primary-tasks">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-72-dd2e54-example-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/2-primary-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -754,7 +758,7 @@ object bar extends Bar</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_commands"><a class="anchor" href="#_commands"></a>Commands</h3>
+<h3 id="commands"><a class="anchor" href="#commands"></a>Commands</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(args: String*) = T.command {
@@ -814,7 +818,7 @@ path for consumption by external tools.</p>
 <div class="sect2">
 <h3 id="_anonymous_tasks"><a class="anchor" href="#_anonymous_tasks"></a>Anonymous Tasks</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-71-9884b0-example-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/3-anonymous-tasks">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-72-dd2e54-example-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/3-anonymous-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, define.Task
 
@@ -838,7 +842,7 @@ find yourself repeating in <code>Target</code>s and <code>Command</code>s.</p>
 <div class="paragraph">
 <p>Anonymous task’s output does not need to be JSON-serializable, their output is
 not cached, and they can be defined with or without arguments.
-Unlike <a href="#_targets">Targets</a> or <a href="#_commands">Commands</a>, anonymous tasks can be defined
+Unlike <a href="#_targets">Targets</a> or <a href="#_commands">[_commands]</a>, anonymous tasks can be defined
 anywhere and passed around any way you want, until you finally make use of them
 within a downstream target or command.</p>
 </div>
@@ -864,7 +868,7 @@ World!</code></pre>
 <div class="sect2">
 <h3 id="_inputs"><a class="anchor" href="#_inputs"></a>Inputs</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-71-9884b0-example-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/4-inputs">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-72-dd2e54-example-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/4-inputs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -971,7 +975,7 @@ fine-grained manner than Mill’s own Target-level caching.</p>
 <p>Below is a semi-realistic example of using a <code>T.persistent</code> target:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-71-9884b0-example-tasks-5-persistent-targets.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/5-persistent-targets">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-72-dd2e54-example-tasks-5-persistent-targets.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/5-persistent-targets">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import java.util.Arrays
@@ -1066,7 +1070,7 @@ and paying the cost of serializing it to disk every evaluation. This example
 uses a Worker to provide simple in-memory caching for compressed files.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-71-9884b0-example-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/6-workers">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/latest/0.11.6-72-dd2e54-example-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/tasks/6-workers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import java.util.Arrays
