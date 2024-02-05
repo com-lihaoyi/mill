@@ -286,6 +286,61 @@ endif::[]
 :link-pr: {link-github}/pull
 :link-issue: {link-github}/issues
 :link-milestone: {link-github}/milestone
+// find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
+
+[#0-11-7]
+=== 0.11.7 - 2024-02-05
+:version: 0.11.7
+:milestone-name: 0.11.7
+:milestone: 91
+:prev-version: 0.11.6
+
+_Changes since {prev-version}:_
+
+__New features__
+
+* Support Scala Native build target. This allows to build static and dynamic libraries other than binaries {link-pr}/2898[#2898]
+* Read coursier default config files to set up repositories and support mirror configuration {link-pr}/2886[#2886], {link-pr}/2917[#2917]
+* Add new `ScalaModule.scalacHelp` command {link-pr}/2921[#2921]
+* Enable colored output for Scala 2 compiler output {link-pr}/2950[#2950]
+* Add `publishLocalCached` and `publishM2LocalCached` targets to `PublishModule` {link-pr}/2976[#2976]
+* Prepare the Scala.js integration for SIP-51 {link-pr}/2988[#2988]
+* Add a `ScalaModule.consoleScalacOptions` target {link-pr}/2948[#2948]
+* Added support for `type` attribute when parsing dependencies {link-pr}/2994[#2994]
+* Support type selectors as path selection syntax in resolve  {link-pr}/2997[#2997], {link-pr}/2998[#2998]
+
+__Fixes__
+
+* Better detect Windows Subsystem for Linux environments {link-pr}/2901[#2901]
+* GenIdea: Put module dependencies after library dependencies {link-pr}/2925[#2925]
+* BSP: do not filter clean-requests for meta-builds  {link-pr}/2931[#2931]
+* BSP: Add `JavaModule.bspBuildTargetData` to make `JavaModule` reports workable `BuildTarget` {link-pr}/2930[#2930]
+* Avoid evaluating `T.input`s twice {link-pr}/2952[#2952]
+* Allow resolving moduleDeps with older Scala 3 versions {link-pr}/2877[#2877]
+* Deduplicate (anonymous) tasks in results {link-pr}/2959[#2959]
+* BSP: Send `logMessage` instead of diagnostics when `textDocument` is unknown {link-pr}/2979[#2979]
+* Synchronize `evaluateGroupCached` to avoid concurrent access to cache  {link-pr}/2980[#2980]
+* Properly sanitize Windows reserved names and symbols in evaluator paths {link-pr}/2964[#2964], {link-pr}/2965[#2965]
+* Detect colliding cross module values {link-pr}/2984[#2984]
+* Mask forward slashes in cross values to fix their cache locations {link-pr}/2986[#2986]
+* Scoverage inner module defaults new to `skipIdea = true` {link-pr}/2989[#2989]
+* Re-enable test result summary (print `done` message from test framework to stdout) {link-pr}/2993[#2993]
+* Fix overeager caching of `cliImports` value in `generatedScriptSources`  {link-pr}/2977[#2977]
+
+__Updates and internal changes__
+
+* Dependency updates: asm-tree 9.6, bsp4j 2.2.0-M1, coursier 2.1.8, jline 3.25.0, jna 5.14.0, junixsocket-core 2.8.3, log4j-core 2.22.1, mainargs 0.6.1, os-lib 0.9.3, scalafmt 3.7.15, Scala.js 1.15.0, scala-native 8.4.16, semanticdb-java 0.9.8, semanticdb-scala 4.8.15, upickle 3.1.4, zinc 1.9.6
+
+* Contrib dependency updates: Play 2.8.21, Play 2.9.1, Play 3.0.1
+
+* Documentation updates and new sections
+* More code cleanups, explicit result types and enforcement of some code quality metrics via mill-scalafix
+
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 
 [#0-11-6]
