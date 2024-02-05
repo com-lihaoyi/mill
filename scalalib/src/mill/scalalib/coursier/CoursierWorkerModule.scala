@@ -51,8 +51,7 @@ trait CoursierWorkerModule {
   }
 
   /**
-   * Sets up repositories with mirrors, proxies, and credentials from
-   * coursier's config sources.
+   * Sets up repositories with mirrors, proxies, and credentials from coursier's config sources, without overwriting existing authentication.
    *
    * @return a worker containing the result of applying the coursier credentials, proxy setup, and mirrors to the repositories in coursiers configs
    */
@@ -64,18 +63,19 @@ trait CoursierWorkerModule {
         Await.result(
           Resolve().finalRepositories.map {
             _.map {
-              case x: IvyRepository =>
+              case x: IvyRepository if x.authentication.isEmpty =>
                 x.withAuthentication(
                   resolvedCredentials.find { c =>
                     c.matches(x.pattern.string, c.usernameOpt.getOrElse(""))
                   }.map(_.authentication)
                 )
-              case x: MavenRepository =>
+              case x: MavenRepository if x.authentication.isEmpty =>
                 x.withAuthentication(
                   resolvedCredentials.find { c =>
                     c.matches(x.root, c.usernameOpt.getOrElse(""))
                   }.map(_.authentication)
                 )
+              case r => r
             }
           }.future(),
           Duration.Inf
