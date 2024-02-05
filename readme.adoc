@@ -299,33 +299,33 @@ _Changes since {prev-version}:_
 
 __New features__
 
-* Support Scala Native build target. This allows to build static and dynamic libraries other than binaries {link-pr}/2898[#2898]
+* Support type selectors as path selection syntax in resolve  {link-pr}/2997[#2997], {link-pr}/2998[#2998]
 * Read coursier default config files to set up repositories and support mirror configuration {link-pr}/2886[#2886], {link-pr}/2917[#2917]
+* Added support for `type` attribute when parsing dependencies {link-pr}/2994[#2994]
 * Add new `ScalaModule.scalacHelp` command {link-pr}/2921[#2921]
+* Add a `ScalaModule.consoleScalacOptions` target {link-pr}/2948[#2948]
 * Enable colored output for Scala 2 compiler output {link-pr}/2950[#2950]
 * Add `publishLocalCached` and `publishM2LocalCached` targets to `PublishModule` {link-pr}/2976[#2976]
+* Support Scala Native build target. This allows to build static and dynamic libraries other than binaries {link-pr}/2898[#2898]
 * Prepare the Scala.js integration for SIP-51 {link-pr}/2988[#2988]
-* Add a `ScalaModule.consoleScalacOptions` target {link-pr}/2948[#2948]
-* Added support for `type` attribute when parsing dependencies {link-pr}/2994[#2994]
-* Support type selectors as path selection syntax in resolve  {link-pr}/2997[#2997], {link-pr}/2998[#2998]
 
 __Fixes and Improvements__
 
 * Better detect Windows Subsystem for Linux environments {link-pr}/2901[#2901]
-* GenIdea: Put module dependencies after library dependencies {link-pr}/2925[#2925]
-* BSP: do not filter clean-requests for meta-builds  {link-pr}/2931[#2931]
-* BSP: Add `JavaModule.bspBuildTargetData` to make `JavaModule` reports workable `BuildTarget` {link-pr}/2930[#2930]
 * Avoid evaluating `T.input`s twice {link-pr}/2952[#2952]
-* Allow resolving moduleDeps with older Scala 3 versions {link-pr}/2877[#2877]
 * Deduplicate (anonymous) tasks in results {link-pr}/2959[#2959]
-* BSP: Send `logMessage` instead of diagnostics when `textDocument` is unknown {link-pr}/2979[#2979]
 * Synchronize `evaluateGroupCached` to avoid concurrent access to cache  {link-pr}/2980[#2980]
 * Properly sanitize Windows reserved names and symbols in evaluator paths {link-pr}/2964[#2964], {link-pr}/2965[#2965]
 * Detect colliding cross module values {link-pr}/2984[#2984]
 * Mask forward slashes in cross values to fix their cache locations {link-pr}/2986[#2986]
-* Scoverage inner module defaults new to `skipIdea = true` {link-pr}/2989[#2989]
 * Re-enable test result summary (print `done` message from test framework to stdout) {link-pr}/2993[#2993]
 * Fix overeager caching of `cliImports` value in `generatedScriptSources`  {link-pr}/2977[#2977]
+* GenIdea: Put module dependencies after library dependencies {link-pr}/2925[#2925]
+* BSP: do not filter clean-requests for meta-builds  {link-pr}/2931[#2931]
+* BSP: Add `JavaModule.bspBuildTargetData` to make `JavaModule` reports workable `BuildTarget` {link-pr}/2930[#2930]
+* BSP: Send `logMessage` instead of diagnostics when `textDocument` is unknown {link-pr}/2979[#2979]
+* Allow resolving moduleDeps with older Scala 3 versions {link-pr}/2877[#2877]
+* Scoverage inner module defaults new to `skipIdea = true` {link-pr}/2989[#2989]
 
 __Updates and internal changes__
 
