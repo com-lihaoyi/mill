@@ -309,7 +309,7 @@ __New features__
 * Added support for `type` attribute when parsing dependencies {link-pr}/2994[#2994]
 * Support type selectors as path selection syntax in resolve  {link-pr}/2997[#2997], {link-pr}/2998[#2998]
 
-__Fixes__
+__Fixes and Improvements__
 
 * Better detect Windows Subsystem for Linux environments {link-pr}/2901[#2901]
 * GenIdea: Put module dependencies after library dependencies {link-pr}/2925[#2925]
