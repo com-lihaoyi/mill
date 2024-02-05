@@ -28,6 +28,7 @@ different Task types:
 
 include::example/tasks/1-task-graph.adoc[]
 
+[#primitive-tasks]
 == Primary Tasks
 
 include::example/tasks/2-primary-tasks.adoc[]

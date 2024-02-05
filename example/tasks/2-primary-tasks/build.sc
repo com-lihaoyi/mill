@@ -212,6 +212,7 @@ object bar extends Bar
 
 */
 
+// [#commands]
 // === Commands
 
 def run(args: String*) = T.command {
