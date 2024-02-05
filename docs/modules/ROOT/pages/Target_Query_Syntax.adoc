@@ -58,7 +58,7 @@ Examples:
 
 * `{foo,bar}` simple enumerates two targets, `foo` and `bar`
 * `foo.{compile,run}` expands to `foo.compile` and `foo.run`
-* `{_,foo.bar}.baz` expands to `_.baz` and `foo.bar.baz`
+* `+{_,foo.bar}.baz+` expands to `+_.baz+` and `foo.bar.baz`
 
 [TIP]
 ====
@@ -76,9 +76,9 @@ mill "foo.{compile.run}"
 
 There are two wildcards, you can use as path segment.
 
-* `_` The single underscore acts as a placeholder for a single segment.
+* `+_+` The single underscore acts as a placeholder for a single segment.
 
-* `__` The double underscore acts as a placeholder for many segments.
+* `+__+` The double underscore acts as a placeholder for many segments.
 In particular, it can represent an empty segment.
 
 With wildcards, you can get explicit control over the position of a target in the build tree.
@@ -92,11 +92,11 @@ Type filters are always combined with wildcard.
 They are used to limit the scope of the wildcard to only match path segments of the specified types.
 For module paths this means, the represented module needs to be an instance of the specified type.
 
-A type filter always starts with a wildcard (`_`, `__`) followed by a colon (`:`) and finally  the _type qualifier_.
+A type filter always starts with a wildcard (`+_+`, `+__+`) followed by a colon (`:`) and finally  the _type qualifier_.
 
 The type is matched by its name and optionally by its enclosing types and packages, separated by a `.` sign.
 Since this is also used to separate target path segments, a type selector segment containing a `.` needs to be enclosed in parentheses.
-A fully qualified type can be denoted with the _root_ package.
+A fully qualified type can be denoted with the `+_root_+` package.
 
 [sh]
 ----
@@ -135,10 +135,10 @@ For all the former versions, Mill parses them into a complex but single target s
 Whereas the `+` start a completely new selector path to which you can also provide a different parameter list. This is important when using xref:Tasks.adoc#commands[command targets] which can accept their own parameters. The `JavaModule.run` command is an example.
 
 ----
-> mill foo.run hello                   # <1>
-> mill {foo,bar}.run hello             # <2>
-> mill __:JavaModule:^TestModule.run   # <3>
-> mill foo.run hello + bar.run world   # <4>
+> mill foo.run hello                         # <1>
+> mill {foo,bar}.run hello                   # <2>
+> mill __:JavaModule:^TestModule.run hello   # <3>
+> mill foo.run hello + bar.run world         # <4>
 ----
 
 <1> Runs `foo.run` with the parameter `hello`
