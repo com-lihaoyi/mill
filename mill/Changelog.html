@@ -266,14 +266,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.6-72-dd2e54</span>
+    <span class="version">0.11.7</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.6-72-dd2e54</a>
+          <a href="index.html">0.11.7</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -309,9 +309,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.6-72-dd2e54</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.7</button>
   <div class="version-menu">
-    <a class="version is-current" href="Changelog.html">0.11.6-72-dd2e54</a>
+    <a class="version is-current" href="Changelog.html">0.11.7</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -327,6 +327,124 @@
 </aside>
 <article class="doc">
 <h1 class="page">Changelog</h1>
+<div class="sect1">
+<h2 id="0-11-7"><a class="anchor" href="#0-11-7"></a>0.11.7 - 2024-02-05</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Changes since 0.11.6:</em></p>
+</div>
+<div class="paragraph">
+<p><em>New features</em></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Support type selectors as path selection syntax in resolve  <a href="https://github.com/com-lihaoyi/mill/pull/2997">#2997</a>, <a href="https://github.com/com-lihaoyi/mill/pull/2998">#2998</a></p>
+</li>
+<li>
+<p>Read coursier default config files to set up repositories and support mirror configuration <a href="https://github.com/com-lihaoyi/mill/pull/2886">#2886</a>, <a href="https://github.com/com-lihaoyi/mill/pull/2917">#2917</a></p>
+</li>
+<li>
+<p>Added support for <code>type</code> attribute when parsing dependencies <a href="https://github.com/com-lihaoyi/mill/pull/2994">#2994</a></p>
+</li>
+<li>
+<p>Add new <code>ScalaModule.scalacHelp</code> command <a href="https://github.com/com-lihaoyi/mill/pull/2921">#2921</a></p>
+</li>
+<li>
+<p>Add a <code>ScalaModule.consoleScalacOptions</code> target <a href="https://github.com/com-lihaoyi/mill/pull/2948">#2948</a></p>
+</li>
+<li>
+<p>Enable colored output for Scala 2 compiler output <a href="https://github.com/com-lihaoyi/mill/pull/2950">#2950</a></p>
+</li>
+<li>
+<p>Add <code>publishLocalCached</code> and <code>publishM2LocalCached</code> targets to <code>PublishModule</code> <a href="https://github.com/com-lihaoyi/mill/pull/2976">#2976</a></p>
+</li>
+<li>
+<p>Support Scala Native build target. This allows to build static and dynamic libraries other than binaries <a href="https://github.com/com-lihaoyi/mill/pull/2898">#2898</a></p>
+</li>
+<li>
+<p>Prepare the Scala.js integration for SIP-51 <a href="https://github.com/com-lihaoyi/mill/pull/2988">#2988</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><em>Fixes and Improvements</em></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Better detect Windows Subsystem for Linux environments <a href="https://github.com/com-lihaoyi/mill/pull/2901">#2901</a></p>
+</li>
+<li>
+<p>Avoid evaluating `T.input`s twice <a href="https://github.com/com-lihaoyi/mill/pull/2952">#2952</a></p>
+</li>
+<li>
+<p>Deduplicate (anonymous) tasks in results <a href="https://github.com/com-lihaoyi/mill/pull/2959">#2959</a></p>
+</li>
+<li>
+<p>Synchronize <code>evaluateGroupCached</code> to avoid concurrent access to cache  <a href="https://github.com/com-lihaoyi/mill/pull/2980">#2980</a></p>
+</li>
+<li>
+<p>Properly sanitize Windows reserved names and symbols in evaluator paths <a href="https://github.com/com-lihaoyi/mill/pull/2964">#2964</a>, <a href="https://github.com/com-lihaoyi/mill/pull/2965">#2965</a></p>
+</li>
+<li>
+<p>Detect colliding cross module values <a href="https://github.com/com-lihaoyi/mill/pull/2984">#2984</a></p>
+</li>
+<li>
+<p>Mask forward slashes in cross values to fix their cache locations <a href="https://github.com/com-lihaoyi/mill/pull/2986">#2986</a></p>
+</li>
+<li>
+<p>Re-enable test result summary (print <code>done</code> message from test framework to stdout) <a href="https://github.com/com-lihaoyi/mill/pull/2993">#2993</a></p>
+</li>
+<li>
+<p>Fix overeager caching of <code>cliImports</code> value in <code>generatedScriptSources</code>  <a href="https://github.com/com-lihaoyi/mill/pull/2977">#2977</a></p>
+</li>
+<li>
+<p>Allow resolving moduleDeps with older Scala 3 versions <a href="https://github.com/com-lihaoyi/mill/pull/2877">#2877</a></p>
+</li>
+<li>
+<p>GenIdea: Put module dependencies after library dependencies <a href="https://github.com/com-lihaoyi/mill/pull/2925">#2925</a></p>
+</li>
+<li>
+<p>BSP: do not filter clean-requests for meta-builds  <a href="https://github.com/com-lihaoyi/mill/pull/2931">#2931</a></p>
+</li>
+<li>
+<p>BSP: Add <code>JavaModule.bspBuildTargetData</code> to make <code>JavaModule</code> reports workable <code>BuildTarget</code> <a href="https://github.com/com-lihaoyi/mill/pull/2930">#2930</a></p>
+</li>
+<li>
+<p>BSP: Send <code>logMessage</code> instead of diagnostics when <code>textDocument</code> is unknown <a href="https://github.com/com-lihaoyi/mill/pull/2979">#2979</a></p>
+</li>
+<li>
+<p>Scoverage inner module defaults new to <code>skipIdea = true</code> <a href="https://github.com/com-lihaoyi/mill/pull/2989">#2989</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><em>Updates and internal changes</em></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Dependency updates: asm-tree 9.6, bsp4j 2.2.0-M1, coursier 2.1.8, jline 3.25.0, jna 5.14.0, junixsocket-core 2.8.3, log4j-core 2.22.1, mainargs 0.6.1, os-lib 0.9.3, scalafmt 3.7.15, Scala.js 1.15.0, scala-native 8.4.16, semanticdb-java 0.9.8, semanticdb-scala 4.8.15, upickle 3.1.4, zinc 1.9.6</p>
+</li>
+<li>
+<p>Contrib dependency updates: Play 2.8.21, Play 2.9.1, Play 3.0.1</p>
+</li>
+<li>
+<p>Documentation updates and new sections</p>
+</li>
+<li>
+<p>More code cleanups, explicit result types and enforcement of some code quality metrics via mill-scalafix</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><em>For details refer to
+<a href="https://github.com/com-lihaoyi/mill/milestone/91?closed=1">milestone 0.11.7</a>
+and the <a href="https://github.com/com-lihaoyi/mill/compare/0.11.6...0.11.7">list of commits</a>.</em></p>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="0-11-6"><a class="anchor" href="#0-11-6"></a>0.11.6 - 2023-11-21</h2>
 <div class="sectionbody">
