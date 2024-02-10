@@ -10,16 +10,10 @@ trait ScoverageReportWorkerApi {
       reportType: ReportType,
       sources: Seq[os.Path],
       dataDirs: Seq[os.Path],
-      @Unroll sourceRoot: os.Path
+      @Unroll sourceRoot: os.Path = null
   )(implicit
       ctx: Ctx
-  ): Unit = {
-    // FIXME: We only call the deprecated version here, to preserve binary compatibility. Remove when appropriate.
-    ctx.log.error(
-      "Binary compatibility stub may cause infinite loops with StackOverflowError. You need to implement: def report(ReportType, Seq[Path], Seq[Path], os.Path): Unit"
-    )
-    report(reportType, sources, dataDirs)
-  }
+  ): Unit
 }
 
 object ScoverageReportWorkerApi {

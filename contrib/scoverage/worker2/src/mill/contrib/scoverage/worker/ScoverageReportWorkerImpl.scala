@@ -4,6 +4,7 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi
 import _root_.scoverage.reporter.{CoverageAggregator, ScoverageHtmlWriter, ScoverageXmlWriter}
 import mill.api.Ctx
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
+import unroll.Unroll
 
 /**
  * Scoverage Worker for Scoverage 2.x
@@ -14,8 +15,9 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
       reportType: ReportType,
       sources: Seq[os.Path],
       dataDirs: Seq[os.Path],
-      sourceRoot: os.Path
-  )(implicit ctx: Ctx): Unit =
+      @Unroll sourceRoot0: os.Path = null
+  )(implicit ctx: Ctx): Unit = {
+    val sourceRoot = Option(sourceRoot0).getOrElse(ctx.workspace)
     try {
       ctx.log.info(s"Processing coverage data for ${dataDirs.size} data locations")
       CoverageAggregator.aggregate(dataDirs.map(_.toIO), sourceRoot.toIO) match {
@@ -43,4 +45,5 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
         e.printStackTrace()
         throw e
     }
+  }
 }
